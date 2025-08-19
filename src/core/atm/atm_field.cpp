@@ -28,8 +28,8 @@ bool AtmPoint::zero_mag() const noexcept {
 }
 
 void Atm::Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<SortedGriddedField3>(data)) {
-    auto &field = std::get<SortedGriddedField3>(data);
+  if (std::holds_alternative<GeodeticField3>(data)) {
+    auto &field = std::get<GeodeticField3>(data);
 
     if (field.grid<0>().size() == 1) {
       alt_upp = InterpolationExtrapolation::Nearest;
@@ -336,8 +336,7 @@ Size Field::size() const {
 }
 
 String Data::data_type() const {
-  if (std::holds_alternative<SortedGriddedField3>(data))
-    return "SortedGriddedField3";
+  if (std::holds_alternative<GeodeticField3>(data)) return "GeodeticField3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -363,7 +362,7 @@ Limits find_limits(const Numeric &) { return {}; }
 
 Limits find_limits(const FunctionalData &) { return {}; }
 
-Limits find_limits(const SortedGriddedField3 &gf3) {
+Limits find_limits(const GeodeticField3 &gf3) {
   return {.alt_low = gf3.grid<0>().front(),
           .alt_upp = gf3.grid<0>().back(),
           .lat_low = gf3.grid<1>().front(),
@@ -675,7 +674,7 @@ ConstVectorView Data::flat_view() const {
   return std::visit(
       [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, SortedGriddedField3>)
+        if constexpr (std::same_as<T, GeodeticField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return ConstVectorView{X};
@@ -690,7 +689,7 @@ VectorView Data::flat_view() {
   return std::visit(
       [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, SortedGriddedField3>)
+        if constexpr (std::same_as<T, GeodeticField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return VectorView{X};
@@ -702,8 +701,10 @@ VectorView Data::flat_view() {
 }
 
 namespace {
-std::vector<std::pair<Index, Numeric>> flat_weight_(
-    const SortedGriddedField3 &data, Numeric alt, Numeric lat, Numeric lon) {
+std::vector<std::pair<Index, Numeric>> flat_weight_(const GeodeticField3 &data,
+                                                    Numeric alt,
+                                                    Numeric lat,
+                                                    Numeric lon) {
   return interp::flat_weight(data, alt, lat, lon);
 }
 
@@ -736,8 +737,8 @@ std::vector<std::pair<Index, Numeric>> Data::flat_weight(
 }
 
 bool Data::ok() const {
-  if (std::holds_alternative<SortedGriddedField3>(data)) {
-    auto &v = *std::get_if<SortedGriddedField3>(&data);
+  if (std::holds_alternative<GeodeticField3>(data)) {
+    auto &v = *std::get_if<GeodeticField3>(&data);
     return v.ok() and
            lagrange_interp::loncross::cycle(v.grid<2>().front()) ==
                v.grid<2>().front() and
@@ -749,41 +750,9 @@ bool Data::ok() const {
   return true;
 }
 
-void Data::fix_cyclicity() {
-  if (std::holds_alternative<SortedGriddedField3>(data)) {
-    if (ok()) return;
-
-    auto &v              = *std::get_if<SortedGriddedField3>(&data);
-    const auto &lon_grid = v.grid<2>();
-
-    std::vector<std::pair<Index, Numeric>> lon{lon_grid.size()};
-    for (Size i = 0; i < lon.size(); ++i) {
-      lon[i] = {i, lon_grid[i]};
-      while (lon[i].second != lagrange_interp::loncross::cycle(lon[i].second)) {
-        lon[i].second = lagrange_interp::loncross::cycle(lon[i].second);
-      }
-    }
-
-    stdr::sort(lon, {}, &std::pair<Index, Numeric>::second);
-    auto [end, _] = stdr::unique(lon, {}, &std::pair<Index, Numeric>::second);
-    lon.erase(end, lon.end());
-
-    Tensor3 data(v.shape()[0], v.shape()[1], lon.size());
-    Vector lon_grid_new(lon.size());
-
-    for (auto [i, l] : lon) {
-      lon_grid_new[i] = l;
-      data[joker, i]  = v.data[joker, joker, i];
-    }
-
-    v.data      = std::move(data);
-    v.grid<2>() = std::move(lon_grid_new);
-  }
-}
-
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
 
-Data::Data(SortedGriddedField3 x) : data(std::move(x)) {
+Data::Data(GeodeticField3 x) : data(std::move(x)) {
   adjust_interpolation_extrapolation();
 }
 
@@ -797,7 +766,7 @@ Data &Data::operator=(Numeric x) {
   return *this;
 }
 
-Data &Data::operator=(SortedGriddedField3 x) {
+Data &Data::operator=(GeodeticField3 x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;
@@ -967,7 +936,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point> &atm,
                      N,
                      atm.size())
 
-  SortedGriddedField3 gf3{};
+  GeodeticField3 gf3{};
   gf3.grid<0>()     = altitudes;
   gf3.grid<1>()     = Vector{0.0};
   gf3.grid<2>()     = Vector{0.0};
@@ -1099,25 +1068,14 @@ void Atm::extend_in_pressure(
 }
 
 AtmField AtmField::gridded(const AscendingGrid &alt,
-                           const AscendingGrid &lat,
-                           const AscendingGrid &lon) const {
+                           const LatGrid &lat,
+                           const LonGrid &lon) const {
   AtmField out{IsoRatioOption::None};
   out.top_of_atmosphere = top_of_atmosphere;
 
   const Index nalt = alt.size();
   const Index nlat = lat.size();
   const Index nlon = lon.size();
-
-  ARTS_USER_ERROR_IF(
-      lagrange_interp::loncross::cycle(lon.front()) != lon.front() or
-          lagrange_interp::loncross::cycle(lon.back()) != lon.back(),
-      "The longitude grid is incorrect.  It needs to be [-180, 180), its: {:Bs,}",
-      lon);
-
-  ARTS_USER_ERROR_IF(
-      lat.front() < -90 or lat.back() > 90,
-      "The latitude grid is incorrect.  It needs to be [-90, 90], its: {:Bs,}",
-      lat);
 
   ARTS_USER_ERROR_IF(nalt * nlat * nlon == 0, "Must have a grid")
 
@@ -1140,7 +1098,7 @@ Longitude must be within -180 to 180 degrees.
                      lat,
                      lon)
 
-  SortedGriddedField3 gf3{
+  GeodeticField3 gf3{
       .data_name  = "",
       .data       = Tensor3(nalt, nlat, nlon),
       .grid_names = {"Altitude", "Latitude", "Longitude"},
@@ -1184,8 +1142,8 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
 
   if (keys.empty()) {
     altitudes  = AscendingGrid{};
-    latitudes  = AscendingGrid{};
-    longitudes = AscendingGrid{};
+    latitudes  = LatGrid{};
+    longitudes = LonGrid{};
     data       = Tensor4{};
     return;
   }
@@ -1193,11 +1151,10 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   {
     const auto &key      = keys.front();
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(
-        not std::holds_alternative<SortedGriddedField3>(atm_data),
-        "Data for key {} is not a SortedGriddedField3",
-        key)
-    const auto &gf3 = std::get<SortedGriddedField3>(atm_data);
+    ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(atm_data),
+                       "Data for key {} is not a GeodeticField3",
+                       key)
+    const auto &gf3 = std::get<GeodeticField3>(atm_data);
 
     altitudes  = gf3.grid<0>();
     latitudes  = gf3.grid<1>();
@@ -1211,11 +1168,10 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   for (Size i = 1; i < keys.size(); i++) {
     const auto &key      = keys[i];
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(
-        not std::holds_alternative<SortedGriddedField3>(atm_data),
-        "Data for key {} is not a SortedGriddedField3",
-        key)
-    const auto &gf3 = std::get<SortedGriddedField3>(atm_data);
+    ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(atm_data),
+                       "Data for key {} is not a GeodeticField3",
+                       key)
+    const auto &gf3 = std::get<GeodeticField3>(atm_data);
     ARTS_USER_ERROR_IF(
         gf3.grid<0>() != altitudes.vec() or gf3.grid<1>() != latitudes.vec() or
             gf3.grid<2>() != longitudes.vec(),

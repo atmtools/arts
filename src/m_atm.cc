@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <variant>
 
+#include "debug.h"
+
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
                            const String &default_isotopologue) {
@@ -187,8 +189,8 @@ template <Atm::KeyType T>
 void atmospheric_fieldRegridTemplate(AtmData &data,
                                      const T &key,
                                      const AscendingGrid &alt,
-                                     const AscendingGrid &lat,
-                                     const AscendingGrid &lon,
+                                     const LatGrid &lat,
+                                     const LonGrid &lon,
                                      const String &extrapolation) {
   ARTS_USER_ERROR_IF(alt.size() * lat.size() * lon.size() == 0,
                      R"(Cannot regrid to empty grid
@@ -206,7 +208,7 @@ lon: {:Bs,} [{} elements]
   const InterpolationExtrapolation extrap =
       to<InterpolationExtrapolation>(extrapolation);
 
-  SortedGriddedField3 new_field{
+  GeodeticField3 new_field{
       .data_name  = String{std::format("{}", key)},
       .data       = Tensor3(alt.size(), lat.size(), lon.size()),
       .grid_names = {String{"Altitude"},
@@ -662,9 +664,9 @@ void atmospheric_fieldSchmidthFieldFromIGRF(AtmField &atmospheric_field,
 }
 
 namespace {
-Atm::MagnitudeField to_magnitude_field(const SortedGriddedField3 &u,
-                                       const SortedGriddedField3 &v,
-                                       const SortedGriddedField3 &w) {
+Atm::MagnitudeField to_magnitude_field(const GeodeticField3 &u,
+                                       const GeodeticField3 &v,
+                                       const GeodeticField3 &w) {
   ARTS_USER_ERROR_IF(u.shape() != v.shape() or u.shape() != w.shape(),
                      R"(The field components must have the same shape
 
@@ -708,15 +710,17 @@ w.shape(): {:B,}                  )",
 }
 }  // namespace
 
-void atmospheric_fieldAbsoluteMagneticField(AtmField &atmospheric_field) {
+void atmospheric_fieldAbsoluteMagneticField(AtmField &atmospheric_field) try {
+  ARTS_TIME_REPORT
+
   constexpr AtmKey u = AtmKey::mag_u;
   constexpr AtmKey v = AtmKey::mag_v;
   constexpr AtmKey w = AtmKey::mag_w;
 
   Atm::MagnitudeField field =
-      to_magnitude_field(atmospheric_field[u].get<SortedGriddedField3>(),
-                         atmospheric_field[v].get<SortedGriddedField3>(),
-                         atmospheric_field[w].get<SortedGriddedField3>());
+      to_magnitude_field(atmospheric_field[u].get<GeodeticField3>(),
+                         atmospheric_field[v].get<GeodeticField3>(),
+                         atmospheric_field[w].get<GeodeticField3>());
 
   field.component      = FieldComponent::u;
   atmospheric_field[u] = AtmFunctionalData{.f = field};
@@ -727,16 +731,19 @@ void atmospheric_fieldAbsoluteMagneticField(AtmField &atmospheric_field) {
   field.component      = FieldComponent::w;
   atmospheric_field[w] = AtmFunctionalData{.f = std::move(field)};
 }
+ARTS_METHOD_ERROR_CATCH
 
-void atmospheric_fieldAbsoluteWindField(AtmField &atmospheric_field) {
+void atmospheric_fieldAbsoluteWindField(AtmField &atmospheric_field) try {
+  ARTS_TIME_REPORT
+
   constexpr AtmKey u = AtmKey::wind_u;
   constexpr AtmKey v = AtmKey::wind_v;
   constexpr AtmKey w = AtmKey::wind_w;
 
   Atm::MagnitudeField field =
-      to_magnitude_field(atmospheric_field[u].get<SortedGriddedField3>(),
-                         atmospheric_field[v].get<SortedGriddedField3>(),
-                         atmospheric_field[w].get<SortedGriddedField3>());
+      to_magnitude_field(atmospheric_field[u].get<GeodeticField3>(),
+                         atmospheric_field[v].get<GeodeticField3>(),
+                         atmospheric_field[w].get<GeodeticField3>());
 
   field.component      = FieldComponent::u;
   atmospheric_field[u] = AtmFunctionalData{.f = field};
@@ -747,12 +754,13 @@ void atmospheric_fieldAbsoluteWindField(AtmField &atmospheric_field) {
   field.component      = FieldComponent::w;
   atmospheric_field[w] = AtmFunctionalData{.f = std::move(field)};
 }
+ARTS_METHOD_ERROR_CATCH
 
 void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
     const AscendingGrid &alts,
-    const SortedGriddedField2 &p0,
+    const GeodeticField2 &p0,
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
@@ -841,11 +849,11 @@ void atmospheric_fieldHydrostaticPressure(
   const auto &t = atmospheric_field[AtmKey::t];
 
   ARTS_USER_ERROR_IF(
-      not std::holds_alternative<SortedGriddedField3>(t.data),
-      "Temperature field must be a SortedGriddedField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
+      not std::holds_alternative<GeodeticField3>(t.data),
+      "Temperature field must be a GeodeticField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
 
-  const auto &t0 = std::get<SortedGriddedField3>(t.data);
-  const SortedGriddedField2 p0_field{
+  const auto &t0 = std::get<GeodeticField3>(t.data);
+  const GeodeticField2 p0_field{
       .data_name  = "Pressure",
       .data       = Matrix(t0.grid<1>().size(), t0.grid<2>().size(), p0),
       .grid_names = {t0.gridname<1>(), t0.gridname<2>()},
@@ -862,8 +870,8 @@ void atmospheric_fieldHydrostaticPressure(
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
+                             const LatGrid &lat,
+                             const LonGrid &lon,
                              const ScatteringSpeciesProperty &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
@@ -878,8 +886,8 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
+                             const LatGrid &lat,
+                             const LonGrid &lon,
                              const SpeciesEnum &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
@@ -894,8 +902,8 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
+                             const LatGrid &lat,
+                             const LonGrid &lon,
                              const SpeciesIsotope &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
@@ -910,8 +918,8 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
+                             const LatGrid &lat,
+                             const LonGrid &lon,
                              const QuantumLevelIdentifier &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
@@ -926,8 +934,8 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
 
 void atmospheric_fieldRegrid(AtmField &atmospheric_field,
                              const AscendingGrid &alt,
-                             const AscendingGrid &lat,
-                             const AscendingGrid &lon,
+                             const LatGrid &lat,
+                             const LonGrid &lon,
                              const AtmKey &key,
                              const String &extrapolation) {
   ARTS_TIME_REPORT
@@ -942,8 +950,8 @@ void atmospheric_fieldRegrid(AtmField &atmospheric_field,
 
 void atmospheric_fieldRegridAll(AtmField &atmospheric_field,
                                 const AscendingGrid &alt,
-                                const AscendingGrid &lat,
-                                const AscendingGrid &lon,
+                                const LatGrid &lat,
+                                const LonGrid &lon,
                                 const String &extrapolation) {
   ARTS_TIME_REPORT
 

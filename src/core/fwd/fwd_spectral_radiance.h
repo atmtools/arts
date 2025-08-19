@@ -14,8 +14,8 @@
 namespace fwd {
 struct spectral_radiance {
   AscendingGrid alt;
-  AscendingGrid lat;
-  AscendingGrid lon;
+  LatGrid lat;
+  LonGrid lon;
   matpack::data_t<std::shared_ptr<AtmPoint>, 3> atm;
   matpack::data_t<propmat, 3> pm;
 
@@ -39,8 +39,8 @@ struct spectral_radiance {
   spectral_radiance& operator=(spectral_radiance&&) noexcept;
 
   spectral_radiance(AscendingGrid alt,
-                    AscendingGrid lat,
-                    AscendingGrid lon,
+                    LatGrid lat,
+                    LonGrid lon,
                     const AtmField& atm,
                     const SurfaceField& surf,
                     const std::shared_ptr<AbsorptionBands>& lines,
@@ -59,8 +59,8 @@ struct spectral_radiance {
                            spectral_radiance::as_vector) const;
 
   [[nodiscard]] const AscendingGrid& altitude() const { return alt; }
-  [[nodiscard]] const AscendingGrid& latitude() const { return lat; }
-  [[nodiscard]] const AscendingGrid& longitude() const { return lon; }
+  [[nodiscard]] const LatGrid& latitude() const { return lat; }
+  [[nodiscard]] const LonGrid& longitude() const { return lon; }
 
   [[nodiscard]] std::vector<path> geometric_planar(const Vector3 pos,
                                                    const Vector2 los) const;

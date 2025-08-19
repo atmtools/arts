@@ -54,12 +54,11 @@ struct Point {
 };
 
 using FunctionalData = NumericTernaryOperator;
-using FieldData =
-    std::variant<CartesianSubsurfaceGriddedField3, Numeric, FunctionalData>;
+using FieldData      = std::variant<GeodeticField3, Numeric, FunctionalData>;
 
 template <typename T>
-concept isCartesianSubsurfaceGriddedField3 =
-    std::is_same_v<std::remove_cvref_t<T>, CartesianSubsurfaceGriddedField3>;
+concept isGeodeticField3 =
+    std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
@@ -69,8 +68,8 @@ concept isFunctionalDataType =
     std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
 
 template <typename T>
-concept RawDataType = isCartesianSubsurfaceGriddedField3<T> or isNumeric<T> or
-                      isFunctionalDataType<T>;
+concept RawDataType =
+    isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 struct Data {
   FieldData data{FunctionalData{}};
@@ -94,8 +93,8 @@ struct Data {
   explicit Data(Numeric x);
   Data &operator=(Numeric x);
 
-  explicit Data(CartesianSubsurfaceGriddedField3 x);
-  Data &operator=(CartesianSubsurfaceGriddedField3 x);
+  explicit Data(GeodeticField3 x);
+  Data &operator=(GeodeticField3 x);
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
@@ -134,8 +133,6 @@ struct Data {
       const Vector3 pos) const;
 
   [[nodiscard]] bool ok() const;
-
-  void fix_cyclicity();
 };
 
 struct Field final {

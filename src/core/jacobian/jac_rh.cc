@@ -2,14 +2,16 @@
 
 #include <debug.h>
 
+#include <stdexcept>
+
 #include "jacobian.h"
 #include "operators.h"
 
-Vector rhfwd::operator()(ConstVectorView x, const AtmField& atm) const {
+Vector rhfwd::operator()(ConstVectorView x, const AtmField& atm) const try {
   const auto& t = atm[AtmKey::t];
   const auto& p = atm[AtmKey::p];
 
-  const auto& [alt, lat, lon] = atm[self_key].get<SortedGriddedField3>().grids;
+  const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
   ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size(),
                      R"(Mismatch expected size:
@@ -40,13 +42,18 @@ lon.size(): {}
   }
 
   return out;
+} catch (std::invalid_argument& e) {
+  throw std::runtime_error(
+      std::format("Error in rhfwd for key {}:\n{}", self_key, e.what()));
+} catch (...) {
+  throw;
 }
 
-Vector rhinv::operator()(ConstVectorView x, const AtmField& atm) const {
+Vector rhinv::operator()(ConstVectorView x, const AtmField& atm) const try {
   const auto& t = atm[AtmKey::t];
   const auto& p = atm[AtmKey::p];
 
-  const auto& [alt, lat, lon] = atm[self_key].get<SortedGriddedField3>().grids;
+  const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
   ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size(),
                      R"(Mismatch expected size:
@@ -77,15 +84,20 @@ lon.size(): {}
   }
 
   return out;
+} catch (std::invalid_argument& e) {
+  throw std::runtime_error(
+      std::format("Error in rhfwd for key {}:\n{}", self_key, e.what()));
+} catch (...) {
+  throw;
 }
 
 Matrix rhinv::operator()(ConstMatrixView dy,
                          ConstVectorView x,
-                         const AtmField& atm) const {
+                         const AtmField& atm) const try {
   const auto& t = atm[AtmKey::t];
   const auto& p = atm[AtmKey::p];
 
-  const auto& [alt, lat, lon] = atm[self_key].get<SortedGriddedField3>().grids;
+  const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
   ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size() or
                          static_cast<Size>(dy.ncols()) != x.size(),
@@ -118,6 +130,11 @@ dy.shape(): {:B,}
   }
 
   return out;
+} catch (std::invalid_argument& e) {
+  throw std::runtime_error(
+      std::format("Error in rhfwd for key {}:\n{}", self_key, e.what()));
+} catch (...) {
+  throw;
 }
 
 void make_rhfit(Jacobian::AtmTarget& x,

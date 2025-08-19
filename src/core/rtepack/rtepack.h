@@ -98,3 +98,10 @@ using StokvecSortedGriddedField6 = matpack::gridded_data_t<Stokvec,
                                                            AscendingGrid,
                                                            AscendingGrid,
                                                            AscendingGrid>;
+using GriddedSpectralField6      = matpack::gridded_data_t<Stokvec,
+                                                           AscendingGrid,
+                                                           LatGrid,
+                                                           LonGrid,
+                                                           ZenithGrid,
+                                                           AzimuthGrid,
+                                                           AscendingGrid>;

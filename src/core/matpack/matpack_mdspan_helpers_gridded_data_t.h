@@ -9,6 +9,7 @@
 #include "lagrange_interp.h"
 #include "matpack_mdspan.h"
 #include "matpack_mdspan_helpers_grid_t.h"
+#include "matpack_mdspan_helpers_ranged_grid_t.h"
 
 namespace matpack {
 template <typename T, typename Grid0, typename... Grids>
@@ -193,8 +194,11 @@ using GriddedField6 = matpack::
 using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
 using SortedGriddedField2 =
     matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
+using GeodeticField2      = matpack::gridded_data_t<Numeric, LatGrid, LonGrid>;
 using SortedGriddedField3 = matpack::
     gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
+using GeodeticField3 =
+    matpack::gridded_data_t<Numeric, AscendingGrid, LatGrid, LonGrid>;
 using SortedGriddedField4 = matpack::gridded_data_t<Numeric,
                                                     AscendingGrid,
                                                     AscendingGrid,
@@ -213,9 +217,6 @@ using SortedGriddedField6 = matpack::gridded_data_t<Numeric,
                                                     AscendingGrid,
                                                     AscendingGrid,
                                                     AscendingGrid>;
-
-using CartesianSubsurfaceGriddedField3 = matpack::
-    gridded_data_t<Numeric, DescendingGrid, AscendingGrid, AscendingGrid>;
 
 using ComplexGriddedField2 = matpack::gridded_data_t<Complex, Vector, Vector>;
 
@@ -242,6 +243,25 @@ using ArrayOfArrayOfGriddedField1 = Array<ArrayOfGriddedField1>;
 using ArrayOfArrayOfGriddedField2 = Array<ArrayOfGriddedField2>;
 using ArrayOfArrayOfGriddedField3 = Array<ArrayOfGriddedField3>;
 using ArrayOfArrayOfGriddedField4 = Array<ArrayOfGriddedField4>;
+
+namespace matpack {
+/** Make a custom GriddedField into a GeodeticField
+ * 
+ * The first dimension is presumed to be altitude, the second latitude,
+ * and the third longitude.
+ *
+ * All the grids are sorted in ascending order.
+ * Latitude values outside [-90, 90] degrees are removed.
+ * Longitude values are cycled into [-180, 180) degrees and duplicates are removed.
+ *
+ * Data is copied from the original gridded field.
+ *
+ * @param gf The gridded field to convert
+ * @return Geodetic gridded data
+ */
+GeodeticField3 make_geodetic(const GriddedField3& gf);
+GeodeticField2 make_geodetic(const GriddedField2& gf);
+}  // namespace matpack
 
 template <typename T, typename... Grids>
 struct std::formatter<matpack::gridded_data_t<T, Grids...>> {

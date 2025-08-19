@@ -51,8 +51,8 @@ void spectral_radiance_operatorClearsky1D(
                     : std::shared_ptr<predef_t>{};
 
   spectral_radiance_operator = SpectralRadianceOperator(altitude_grid,
-                                                        {latitude},
-                                                        {longitude},
+                                                        Vector{latitude},
+                                                        Vector{longitude},
                                                         atmospheric_field,
                                                         surface_field,
                                                         lines,
@@ -64,16 +64,16 @@ void spectral_radiance_operatorClearsky1D(
 }
 
 void spectral_radiance_fieldFromOperatorPlanarGeometric(
-    StokvecSortedGriddedField6& spectral_radiance_field,
+    GriddedSpectralField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const AscendingGrid& frequency_grid,
-    const AscendingGrid& zenith_grid,
-    const AscendingGrid& azimuth_grid) {
+    const ZenithGrid& zenith_grid,
+    const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
-  const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
-  const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
-  const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
+  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
+  const LatGrid& latitude_grid       = spectral_radiance_operator.latitude();
+  const LonGrid& longitude_grid      = spectral_radiance_operator.longitude();
 
   const Index nza   = zenith_grid.size();
   const Index naa   = azimuth_grid.size();
@@ -82,7 +82,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
-  spectral_radiance_field = StokvecSortedGriddedField6{
+  spectral_radiance_field = GriddedSpectralField6{
       .data_name = "Spectral Radiance Field",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
@@ -172,23 +172,23 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       }
     }
 
-    if(not error.empty()) throw std::runtime_error(error);
+    if (not error.empty()) throw std::runtime_error(error);
   }
 }
 
 void spectral_radiance_fieldFromOperatorPath(
     const Workspace& ws,
-    StokvecSortedGriddedField6& spectral_radiance_field,
+    GriddedSpectralField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const Agenda& ray_path_observer_agenda,
     const AscendingGrid& frequency_grid,
-    const AscendingGrid& zenith_grid,
-    const AscendingGrid& azimuth_grid) {
+    const ZenithGrid& zenith_grid,
+    const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
-  const AscendingGrid& altitude_grid  = spectral_radiance_operator.altitude();
-  const AscendingGrid& latitude_grid  = spectral_radiance_operator.latitude();
-  const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
+  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
+  const LatGrid& latitude_grid       = spectral_radiance_operator.latitude();
+  const LonGrid& longitude_grid      = spectral_radiance_operator.longitude();
 
   const Index nza   = zenith_grid.size();
   const Index naa   = azimuth_grid.size();
@@ -197,7 +197,7 @@ void spectral_radiance_fieldFromOperatorPath(
   const Index nlon  = longitude_grid.size();
   const Index nfreq = frequency_grid.size();
 
-  spectral_radiance_field = StokvecSortedGriddedField6{
+  spectral_radiance_field = GriddedSpectralField6{
       .data_name = "spectral_radiance_fieldFromOperatorPath",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),

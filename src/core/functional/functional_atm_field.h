@@ -7,9 +7,9 @@
 
 namespace Atm {
 struct MagnitudeField {
-  SortedGriddedField3 magnitude{};
-  SortedGriddedField3 theta{};
-  SortedGriddedField3 phi{};
+  GeodeticField3 magnitude{};
+  GeodeticField3 theta{};
+  GeodeticField3 phi{};
 
   FieldComponent component{};
 

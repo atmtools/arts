@@ -7,8 +7,8 @@
 
 namespace Atm {
 struct HydrostaticPressure {
-  SortedGriddedField3 grad_p{};
-  SortedGriddedField3 pre{};
+  GeodeticField3 grad_p{};
+  GeodeticField3 pre{};
   HydrostaticPressureOption option{};
 
   [[nodiscard]] Numeric step(Numeric p, Numeric h, Numeric d) const;
@@ -20,7 +20,7 @@ struct HydrostaticPressure {
   HydrostaticPressure& operator=(HydrostaticPressure&&) noexcept = default;
 
   HydrostaticPressure(Tensor3 in_grad_p,
-                      const SortedGriddedField2& pre0,
+                      const GeodeticField2& pre0,
                       AscendingGrid in_alt,
                       HydrostaticPressureOption option);
 

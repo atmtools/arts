@@ -8,14 +8,12 @@ ws.absorption_speciesSet(species=["H2O-161"])
 ws.surface_fieldMars()
 ws.surface_field["t"] = pyarts.arts.GriddedField2.fromxml(
     "planets/Mars/Ls0.day.dust-medium/surface_temperature.xml"
-)
-ws.surface_field["h"] = pyarts.arts.SortedGriddedField2.fromxml(
+).make_geodetic()
+ws.surface_field["h"] = pyarts.arts.GriddedField2.fromxml(
     "planets/Mars//surface_elevation.xml"
-)
+).make_geodetic()
 ws.surface_field["t"].set_extrapolation("Nearest")
 ws.surface_field["h"].set_extrapolation("Nearest")
-
-ws.surface_fieldFixCyclicity()
 
 pos = [200e3, 0, 0]
 los = [180, 0]

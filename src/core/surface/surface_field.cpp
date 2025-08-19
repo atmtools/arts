@@ -121,8 +121,8 @@ std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
 
 namespace Surf {
 String Data::data_type() const {
-  if (std::holds_alternative<SortedGriddedField2>(data))
-    return "SortedGriddedField2";
+  if (std::holds_alternative<GeodeticField2>(data))
+    return "GeodeticField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -153,7 +153,7 @@ Numeric Point::operator[](const SurfaceKeyVal &x) const {
 
 namespace {
 Numeric numeric_interpolation(
-    const SortedGriddedField2 &data,
+    const GeodeticField2 &data,
     Numeric lat,
     Numeric lon,
     std::pair<InterpolationExtrapolation, InterpolationExtrapolation>
@@ -388,7 +388,7 @@ std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
           std::numeric_limits<Numeric>::max()};
 }
 
-std::pair<Numeric, Numeric> minmax(const SortedGriddedField2 &x) {
+std::pair<Numeric, Numeric> minmax(const GeodeticField2 &x) {
   return matpack::minmax(x.data);
 }
 }  // namespace
@@ -416,7 +416,7 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::visit(
       [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, SortedGriddedField2>)
+        if constexpr (std::same_as<T, GeodeticField2>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return ConstVectorView{X};
@@ -431,7 +431,7 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::visit(
       [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, SortedGriddedField2>)
+        if constexpr (std::same_as<T, GeodeticField2>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return VectorView{X};
@@ -459,7 +459,7 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
 }
 
 std::array<std::pair<Index, Numeric>, 4> flat_weights_(
-    const SortedGriddedField2 &v, const Numeric &lat, const Numeric &lon) {
+    const GeodeticField2 &v, const Numeric &lat, const Numeric &lon) {
   using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
   using LatLag = lagrange_interp::lag_t<1>;
 
@@ -514,8 +514,8 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
 }
 
 bool Data::ok() const {
-  if (std::holds_alternative<SortedGriddedField2>(data)) {
-    auto &v = *std::get_if<SortedGriddedField2>(&data);
+  if (std::holds_alternative<GeodeticField2>(data)) {
+    auto &v = *std::get_if<GeodeticField2>(&data);
     return v.ok() and
            lagrange_interp::loncross::cycle(v.grid<1>().front()) ==
                v.grid<1>().front() and
@@ -527,42 +527,9 @@ bool Data::ok() const {
   return true;
 }
 
-void Data::fix_cyclicity() {
-  if (std::holds_alternative<SortedGriddedField2>(data)) {
-    if (ok()) return;
-
-    auto &v              = *std::get_if<SortedGriddedField2>(&data);
-    const auto &lon_grid = v.grid<1>();
-
-    std::vector<std::pair<Index, Numeric>> lon{lon_grid.size()};
-    for (Size i = 0; i < lon.size(); ++i) {
-      lon[i] = {i, lon_grid[i]};
-      while (lon[i].second != lagrange_interp::loncross::cycle(lon[i].second)) {
-        lon[i].second = lagrange_interp::loncross::cycle(lon[i].second);
-      }
-    }
-
-    stdr::sort(lon, {}, &std::pair<Index, Numeric>::second);
-    auto [end, _] = stdr::unique(lon, {}, &std::pair<Index, Numeric>::second);
-    lon.erase(end, lon.end());
-
-    Matrix data(v.shape()[0], lon.size());
-    Vector lon_grid_new;
-    lon_grid_new.reserve(lon.size());
-
-    for (auto [i, l] : lon) {
-      lon_grid_new.emplace_back(l);
-      data[joker, i] = v.data[joker, i];
-    }
-
-    v.data      = std::move(data);
-    v.grid<1>() = std::move(lon_grid_new);
-  }
-}
-
 void Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<SortedGriddedField2>(data)) {
-    auto &field = std::get<SortedGriddedField2>(data);
+  if (std::holds_alternative<GeodeticField2>(data)) {
+    auto &field = std::get<GeodeticField2>(data);
 
     if (field.grid<0>().size() == 1) {
       lat_upp = InterpolationExtrapolation::Nearest;
@@ -583,7 +550,7 @@ void Data::adjust_interpolation_extrapolation() {
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
 
-Data::Data(SortedGriddedField2 x) : data(std::move(x)) {
+Data::Data(GeodeticField2 x) : data(std::move(x)) {
   adjust_interpolation_extrapolation();
 }
 
@@ -597,7 +564,7 @@ Data &Data::operator=(Numeric x) {
   return *this;
 }
 
-Data &Data::operator=(SortedGriddedField2 x) {
+Data &Data::operator=(GeodeticField2 x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;

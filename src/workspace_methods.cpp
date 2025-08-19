@@ -340,81 +340,6 @@ std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods_create() try {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
-  wsm_data["atmospheric_fieldCheck"] = {
-      .desc =
-          R"(Check the atmospheric field for consistency and validity.
-
-This method is optional and recommended to be used in-case you get
-results that are weird.  Just to ensure there are no issues
-with the data.
-)",
-      .author = {"Richard Larsson"},
-      .in     = {"atmospheric_field"},
-  };
-
-  wsm_data["surface_fieldCheck"] = {
-      .desc =
-          R"(Check the surface field for consistency and validity.
-
-This method is optional and recommended to be used in-case you get
-results that are weird.  Just to ensure there are no issues
-with the data.
-)",
-      .author = {"Richard Larsson"},
-      .in     = {"surface_field"},
-  };
-
-  wsm_data["subsurface_fieldCheck"] = {
-      .desc =
-          R"(Check the subsurface field for consistency and validity.
-
-This method is optional and recommended to be used in-case you get
-results that are weird somehow.  Just to ensure there are no issues
-with the data.
-)",
-      .author = {"Richard Larsson"},
-      .in     = {"subsurface_field"},
-  };
-
-  wsm_data["atmospheric_fieldFixCyclicity"] = {
-      .desc =
-          R"(Fix the cyclicity of the atmospheric field.
-
-This method ensures that the atmospheric field is properly
-cyclic in the longitude dimension, meaning that the data
-wraps around correctly from -180 to 180 degrees.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"atmospheric_field"},
-      .in     = {"atmospheric_field"},
-  };
-
-  wsm_data["surface_fieldFixCyclicity"] = {
-      .desc =
-          R"(Fix the cyclicity of the surface field.
-
-This method ensures that the surface field is properly
-cyclic in the longitude dimension, meaning that the data
-wraps around correctly from -180 to 180 degrees.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"surface_field"},
-      .in     = {"surface_field"},
-  };
-
-  wsm_data["subsurface_fieldFixCyclicity"] = {
-      .desc =
-          R"(Fix the cyclicity of the subsurface field.
-
-This method ensures that the subsurface field is properly
-cyclic in the longitude dimension, meaning that the data
-wraps around correctly from -180 to 180 degrees.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"subsurface_field"},
-      .in     = {"subsurface_field"},
-  };
-
   wsm_data["Ignore"] = {
       .desc      = R"--(Ignore a workspace variable.
 
@@ -818,7 +743,7 @@ of the magnetic field Legendre coefficients.
   wsm_data["atmospheric_fieldAbsoluteMagneticField"] = {
       .desc = R"--(Set the magnetic field to use the magnitude field functional.
 
-The input field must be a *SortedGriddedField3* for all three parameters
+The input field must be a *GeodeticField3* for all three parameters
 to call this method.
 
 The main purpose of this method is to retrieve the magnitude rather than the vector field.
@@ -831,7 +756,7 @@ The main purpose of this method is to retrieve the magnitude rather than the vec
   wsm_data["atmospheric_fieldAbsoluteWindField"] = {
       .desc   = R"--(Set the wind field to use the magnitude field functional.
 
-The input field must be a *SortedGriddedField3* for all three parameters
+The input field must be a *GeodeticField3* for all three parameters
 to call this method.
 
 The main purpose of this method is to retrieve the magnitude rather than the vector field.
@@ -2197,7 +2122,7 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
                     "hydrostatic_option"},
-      .gin_type  = {"SortedGriddedField2,Numeric",
+      .gin_type  = {"GeodeticField2,Numeric",
                     "Numeric",
                     "Numeric",
                     "String"},
@@ -3852,7 +3777,7 @@ Limitations:
       .out    = {"spectral_radiance_field"},
       .in     = {"spectral_radiance_operator", "frequency_grid", "zenith_grid"},
       .gin    = {"azimuth_grid"},
-      .gin_type  = {"AscendingGrid"},
+      .gin_type  = {"AzimuthGrid"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The azimuth grid"},
   };
@@ -3875,7 +3800,7 @@ the first 5 dimensions are computed in parallel.
                          "frequency_grid",
                          "zenith_grid"},
       .gin            = {"azimuth_grid"},
-      .gin_type       = {"AscendingGrid"},
+      .gin_type       = {"AzimuthGrid"},
       .gin_value      = {std::nullopt},
       .gin_desc       = {"The azimuth grid"},
       .pass_workspace = true,

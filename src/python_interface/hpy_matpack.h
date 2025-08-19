@@ -9,6 +9,7 @@
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/variant.h>
 
+#include "configtypes.h"
 #include "hpy_numpy.h"
 
 namespace Python {
@@ -189,6 +190,47 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
 
   py::implicitly_convertible<nd, matpack::grid_t<Compare>>();
   py::implicitly_convertible<mtype, matpack::grid_t<Compare>>();
+
+  matpack_common_interface(c);
+}
+
+template <class Compare, Numeric l, Numeric u, bool il, bool iu>
+void matpack_grid_interface(
+    py::class_<matpack::ranged_grid_t<Compare, l, u, il, iu>>& c) {
+  using mtype = Vector;
+  using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
+  using T = matpack::ranged_grid_t<Compare, l, u, il, iu>;
+
+  c.def(
+      "__init__",
+      [](T* v, const nd& a) {
+        auto m = py::type<Vector>()(a);
+        new (v) T(py::cast<Vector>(m));
+      },
+      "a"_a);
+
+  c.def(
+      "__init__",
+      [](T* v, const mtype& a) {
+        new (v) T(a);
+      },
+      "vec"_a);
+
+  c.def(
+      "__array__",
+      [](T& v, py::object dtype, py::object copy) {
+        std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
+
+        auto np = py::module_::import_("numpy");
+        auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
+        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+      },
+      "dtype"_a.none() = py::none(),
+      "copy"_a.none()  = py::none(),
+      "Allows :func:`~numpy.array` to be called with the object.");
+
+  py::implicitly_convertible<nd, T>();
+  py::implicitly_convertible<mtype, T>();
 
   matpack_common_interface(c);
 }

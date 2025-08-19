@@ -52,12 +52,11 @@ auto ray_path_propagation_matrixProfile(
 }
 
 StokvecVector interp(const StokvecConstMatrixView& data,
-                     const Vector& zenith_grid,
+                     const ZenithGrid& zenith_grid,
                      const Numeric& zenith) {
   const Size NF = data.shape().back();
 
-  const lagrange_interp::lag_t<1> za(
-      zenith_grid, zenith, lagrange_interp::ascending_grid_t{});
+  const auto za = zenith_grid.lag<1>(zenith);
 
   StokvecVector out(NF);
 
@@ -86,7 +85,7 @@ const Vector zenith_level_limb(const AscendingGrid& altitude_grid,
 }
 }  // namespace
 
-void zenith_gridProfilePseudo2D(AscendingGrid& zenith_grid,
+void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
                                 const SurfaceField& surface_field,
                                 const AscendingGrid& altitude_grid,
                                 const Numeric& latitude,
@@ -99,6 +98,10 @@ void zenith_gridProfilePseudo2D(AscendingGrid& zenith_grid,
   ARTS_USER_ERROR_IF(dza <= 0.0 or dza >= 180.0,
                      "Delta zenith angle must be (0, 180). Given dza: {}",
                      dza);
+
+  LatGrid::assert_ranged(latitude);
+  LonGrid::assert_ranged(longitude);
+  AzimuthGrid::assert_ranged(azimuth);
 
   Vector out;
 
@@ -135,17 +138,18 @@ void zenith_gridProfilePseudo2D(AscendingGrid& zenith_grid,
 
   auto [it, _] = stdr::unique(out);
   auto s       = out | stdv::take(stdr::distance(out.begin(), it));
-  zenith_grid  = AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{});
+  zenith_grid =
+      Vector{AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{})};
 }
 
 void spectral_radiance_fieldProfilePseudo2D(
     const Workspace& ws,
-    StokvecSortedGriddedField6& spectral_radiance_field,
+    GriddedSpectralField6& spectral_radiance_field,
     const Agenda& propagation_matrix_agenda,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
-    const AscendingGrid& zenith_grid,
+    const ZenithGrid& zenith_grid,
     const AscendingGrid& altitude_grid,
     const Numeric& latitude,
     const Numeric& longitude,

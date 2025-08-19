@@ -1,10 +1,16 @@
 #pragma once
 
+#include <algorithm>
 #include <limits>
+#include <stdexcept>
 
 #include "lagrange_interp.h"
 #include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_helpers_grid_t.h"
+#include "matpack_mdspan_view_t.h"
+#include "xml_io_base.h"
+#include "xml_io_stream.h"
+#include "xml_io_stream_matpack_mdspan.h"
 
 namespace matpack {
 template <sorting_t Compare,
@@ -17,9 +23,9 @@ class ranged_grid_t {
   Vector grid;
 
  public:
-  using lag_sorting = std::conditional_t<std::same_as<Compare, Ascending>,
-                                         lagrange_interp::ascending_grid_t,
-                                         lagrange_interp::descending_grid_t>;
+  using lag_sorting_t = std::conditional_t<std::same_as<Compare, Ascending>,
+                                           lagrange_interp::ascending_grid_t,
+                                           lagrange_interp::descending_grid_t>;
 
   static constexpr bool is_valid(Numeric value) {
     bool lower = include_lower ? value >= lower_limit : value > lower_limit;
@@ -30,15 +36,20 @@ class ranged_grid_t {
   static void assert_ranged(const exact_md<Numeric, 1> auto& grid) {
     if (grid.empty()) return;
 
-    ARTS_USER_ERROR_IF(
-        not grid_t<Compare>::is_sorted(grid) or not is_valid(grid.front()) or
-            not is_valid(grid.back()),
-        "Wrong range. Expected range [{}, {}) of {} sorting, got:\n{:B,}",
-        lower_limit,
-        upper_limit,
-        Compare::name(),
-        grid);
+    if (not grid_t<Compare>::is_sorted(grid) or not is_valid(grid.front()) or
+        not is_valid(grid.back())) {
+      throw std::runtime_error(std::format(
+          "Wrong range. Expected range {}{}, {}{} of {} sort, got:\n{:B,}",
+          include_lower ? '[' : '(',
+          lower_limit,
+          upper_limit,
+          include_upper ? ']' : ')',
+          Compare::name(),
+          grid));
+    }
   }
+
+  static void assert_ranged(Numeric x) { assert_ranged(ConstVectorView{x}); }
 
   constexpr ranged_grid_t()                                    = default;
   constexpr ranged_grid_t(const ranged_grid_t&)                = default;
@@ -75,6 +86,18 @@ class ranged_grid_t {
   constexpr operator StridedConstVectorView() const { return grid; }
   constexpr operator std::span<const Numeric>() const { return grid; }
 
+  [[nodiscard]] constexpr Size size() const { return grid.size(); }
+  [[nodiscard]] constexpr bool empty() const { return grid.empty(); }
+
+  [[nodiscard]] constexpr auto begin() const { return grid.begin(); }
+  [[nodiscard]] constexpr auto end() const { return grid.end(); }
+
+  [[nodiscard]] constexpr Numeric front() const { return grid.front(); }
+  [[nodiscard]] constexpr Numeric back() const { return grid.back(); }
+
+  [[nodiscard]] constexpr auto operator<=>(const ranged_grid_t&) const =
+      default;
+
   template <access_operator Op>
   constexpr decltype(auto) operator[](Op&& x) const {
     return grid[std::forward<Op>(x)];
@@ -83,11 +106,12 @@ class ranged_grid_t {
   template <Size N,
             lagrange_interp::transformer transform = lagrange_interp::identity>
   [[nodiscard]] auto lag(Numeric x) const {
-    return lagrange_interp::lag_t<N, transform>{grid, x, lag_sorting{}};
+    return lagrange_interp::lag_t<N, transform>{grid, x, lag_sorting_t{}};
   }
+
   template <lagrange_interp::transformer transform = lagrange_interp::identity>
   [[nodiscard]] auto lag(Numeric x, Size N) const {
-    return lagrange_interp::lag_t<-1, transform>{grid, x, N, lag_sorting{}};
+    return lagrange_interp::lag_t<-1, transform>{grid, x, N, lag_sorting_t{}};
   }
 
   template <Size N,
@@ -109,20 +133,97 @@ class ranged_grid_t {
 };
 }  // namespace matpack
 
-using LongitudeGrid =
-    matpack::ranged_grid_t<Ascending, -180.0, 180.0, true, false>;
-using LatitudeGrid = matpack::ranged_grid_t<Ascending, -90.0, 90.0, true, true>;
-using AltitudeGrid =
-    matpack::ranged_grid_t<Ascending,
-                           -std::numeric_limits<Numeric>::infinity(),
-                           std::numeric_limits<Numeric>::infinity(),
-                           false,
-                           false>;
-using ZenithGrid  = matpack::ranged_grid_t<Descending, 0.0, 180.0, true, true>;
-using AzimuthGrid = matpack::ranged_grid_t<Descending, 0.0, 360.0, true, false>;
-using FrequencyGrid =
-    matpack::ranged_grid_t<Ascending,
-                           0.0,
-                           std::numeric_limits<Numeric>::infinity(),
-                           false,
-                           false>;
+//! Guaranteed [-180, 180)
+using LonGrid = matpack::ranged_grid_t<Ascending, -180.0, 180.0, true, false>;
+
+//! Guaranteed [-90, 90]
+using LatGrid = matpack::ranged_grid_t<Ascending, -90.0, 90.0, true, true>;
+
+//! Guaranteed [0, 180]
+using ZenithGrid = matpack::ranged_grid_t<Ascending, 0.0, 180.0, true, true>;
+
+//! Guaranteed [0, 360)
+using AzimuthGrid = matpack::ranged_grid_t<Ascending, 0.0, 360.0, true, false>;
+
+template <>
+struct xml_io_stream_name<LonGrid> {
+  static constexpr std::string_view name = "LonGrid"sv;
+};
+
+template <>
+struct xml_io_stream_name<LatGrid> {
+  static constexpr std::string_view name = "LatGrid"sv;
+};
+
+template <>
+struct xml_io_stream_name<ZenithGrid> {
+  static constexpr std::string_view name = "ZenithGrid"sv;
+};
+
+template <>
+struct xml_io_stream_name<AzimuthGrid> {
+  static constexpr std::string_view name = "AzimuthGrid"sv;
+};
+
+template <matpack::sorting_t Compare,
+          Numeric lower_limit,
+          Numeric upper_limit,
+          bool include_lower,
+          bool include_upper>
+struct xml_io_stream<matpack::ranged_grid_t<Compare,
+                                            lower_limit,
+                                            upper_limit,
+                                            include_lower,
+                                            include_upper>> {
+  using T = matpack::ranged_grid_t<Compare,
+                                   lower_limit,
+                                   upper_limit,
+                                   include_lower,
+                                   include_upper>;
+
+  static constexpr std::string_view type_name = xml_io_stream_name_v<T>;
+
+  static void write(std::ostream& os,
+                    const T& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv) {
+    xml_write_to_stream(os, x.vec(), pbofs, name);
+  }
+
+  static void read(std::istream& is, T& x, bifstream* pbifs = nullptr) {
+    Vector data;
+    xml_read_from_stream(is, data, pbifs);
+    x = std::move(data);
+  }
+};
+
+template <matpack::sorting_t Compare,
+          Numeric lower_limit,
+          Numeric upper_limit,
+          bool include_lower,
+          bool include_upper>
+struct std::formatter<matpack::ranged_grid_t<Compare,
+                                             lower_limit,
+                                             upper_limit,
+                                             include_lower,
+                                             include_upper>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const matpack::ranged_grid_t<Compare,
+                                                           lower_limit,
+                                                           upper_limit,
+                                                           include_lower,
+                                                           include_upper>& v,
+                              FmtContext& ctx) const {
+    return tags.format(ctx, v.vec());
+  }
+};

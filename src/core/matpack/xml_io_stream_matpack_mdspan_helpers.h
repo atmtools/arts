@@ -127,5 +127,4 @@ GF_IO(SortedGriddedField3)
 GF_IO(SortedGriddedField4)
 GF_IO(SortedGriddedField5)
 GF_IO(SortedGriddedField6)
-GF_IO(CartesianSubsurfaceGriddedField3)
 #undef GF_IO

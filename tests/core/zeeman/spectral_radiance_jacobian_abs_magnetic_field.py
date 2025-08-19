@@ -56,9 +56,9 @@ t3u = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_u"](alt, lat, lon)]]])
 t3v = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_v"](alt, lat, lon)]]])
 t3w = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_w"](alt, lat, lon)]]])
 g3 = ([alt], [lat], [lon])
-mag_u = pyarts.arts.SortedGriddedField3(data=t3u, grids=g3)
-mag_v = pyarts.arts.SortedGriddedField3(data=t3v, grids=g3)
-mag_w = pyarts.arts.SortedGriddedField3(data=t3w, grids=g3)
+mag_u = pyarts.arts.GeodeticField3(data=t3u, grids=g3)
+mag_v = pyarts.arts.GeodeticField3(data=t3v, grids=g3)
+mag_w = pyarts.arts.GeodeticField3(data=t3w, grids=g3)
 ws.atmospheric_field["mag_u"] = mag_u
 ws.atmospheric_field["mag_v"] = mag_v
 ws.atmospheric_field["mag_w"] = mag_w

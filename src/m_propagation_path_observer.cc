@@ -95,7 +95,7 @@ void ray_path_observersFluxProfile(
       n < 3 or (n % 2) == 0,
       "Must have at least 3 observers, and an uneven number of them.")
 
-  const auto& data = atmospheric_field[atm_key].get<SortedGriddedField3>();
+  const auto& data = atmospheric_field[atm_key].get<GeodeticField3>();
 
   const auto& alt_g  = data.grid<0>();
   const auto& lat    = data.grid<1>()[0];
@@ -158,7 +158,7 @@ void ray_path_fieldFluxProfile(
 
   ray_path_field.clear();
 
-  const auto& data  = atmospheric_field[atm_key].get<SortedGriddedField3>();
+  const auto& data  = atmospheric_field[atm_key].get<GeodeticField3>();
   const auto& alt_g = data.grid<0>();
   ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
                      "Data size does not match altitude grid size")

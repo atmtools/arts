@@ -8,7 +8,7 @@
 
 namespace fwd {
 namespace {
-constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) try {
+constexpr Size xpos(const Numeric x, const Vector& x_grid) try {
   if (x_grid.size() == 1) return 0;
 
   return std::min<Size>(
@@ -21,7 +21,7 @@ constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) try {
 ARTS_METHOD_ERROR_CATCH
 
 constexpr Numeric xweight(const Numeric x,
-                          const AscendingGrid& x_grid,
+                          const Vector& x_grid,
                           const Size i0) try {
   if (x_grid.size() == 1 and i0 == 0) return 1.0;
 
@@ -36,7 +36,7 @@ constexpr Numeric xweight(const Numeric x,
 ARTS_METHOD_ERROR_CATCH
 
 constexpr void check_grid(const Numeric x [[maybe_unused]],
-                          const AscendingGrid& x_grid [[maybe_unused]],
+                          const Vector& x_grid [[maybe_unused]],
                           const char* const name [[maybe_unused]]) {
   ARTS_USER_ERROR_IF(x_grid.size() == 0, "No grid of {}", name);
 
@@ -57,8 +57,8 @@ constexpr void check_grid(const Numeric x [[maybe_unused]],
 constexpr path find_path(const Vector3 pos,
                          const Vector2 los,
                          const AscendingGrid& alt,
-                         const AscendingGrid& lat,
-                         const AscendingGrid& lon) try {
+                         const LatGrid& lat,
+                         const LonGrid& lon) try {
   check_grid(pos[0], alt, "altitude");
   check_grid(pos[1], lat, "latitude");
   check_grid(pos[2], lon, "longitude");
@@ -118,8 +118,8 @@ void path_from_propagation_path(
     std::vector<path>& out,
     const ArrayOfPropagationPathPoint& propagation_path,
     const AscendingGrid& alt,
-    const AscendingGrid& lat,
-    const AscendingGrid& lon,
+    const LatGrid& lat,
+    const LonGrid& lon,
     const Vector2 ellipsoid) try {
   out.resize(propagation_path.size());
   std::transform(propagation_path.begin(),
@@ -142,8 +142,8 @@ ARTS_METHOD_ERROR_CATCH
 std::vector<path> path_from_propagation_path(
     const ArrayOfPropagationPathPoint& propagation_path,
     const AscendingGrid& alt,
-    const AscendingGrid& lat,
-    const AscendingGrid& lon,
+    const LatGrid& lat,
+    const LonGrid& lon,
     const Vector2 ellipsoid) {
   std::vector<path> out(propagation_path.size());
   path_from_propagation_path(out, propagation_path, alt, lat, lon, ellipsoid);
@@ -153,8 +153,8 @@ std::vector<path> path_from_propagation_path(
 std::vector<path> geometric_planar(const Vector3 pos,
                                    const Vector2 los,
                                    const AscendingGrid& alt,
-                                   const AscendingGrid& lat,
-                                   const AscendingGrid& lon) {
+                                   const LatGrid& lat,
+                                   const LonGrid& lon) {
   const bool up_looking = los[0] > 90.0;
   const Numeric csc     = std::abs(1.0 / Conversion::cosd(los[0]));
 

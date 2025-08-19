@@ -21,22 +21,22 @@ using latlags = std::variant<latlag0, latlag1>;
 using lonlags = std::variant<lonlag0, lonlag1>;
 
 altlags altlag(const AscendingGrid& xs, Numeric x);
-latlags latlag(const AscendingGrid& xs, Numeric x);
-lonlags lonlag(const AscendingGrid& xs, Numeric x);
+latlags latlag(const LatGrid& xs, Numeric x);
+lonlags lonlag(const LonGrid& xs, Numeric x);
 
 Tensor3 interpweights(const altlags&, const latlags&, const lonlags&);
 Matrix interpweights(const latlags&, const lonlags&);
 
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             const Numeric,
             const Numeric,
             const Numeric);
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             const Tensor3&,
             const altlags&,
             const latlags&,
             const lonlags&);
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             Index ialt,
             const Matrix&,
             const latlags&,
@@ -52,7 +52,7 @@ Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>&,
             const Numeric);
 
 std::vector<std::pair<Index, Numeric>> flat_weight(
-    const SortedGriddedField3& gf3,
+    const GeodeticField3& gf3,
     const Numeric alt,
     const Numeric lat,
     const Numeric lon);

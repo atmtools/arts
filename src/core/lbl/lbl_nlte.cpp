@@ -24,11 +24,11 @@ AtmFunctionalData level_density(const AtmFunctionalData& T,
       }};
 }
 
-SortedGriddedField3 level_density(const SortedGriddedField3& T,
-                                  Numeric g,
-                                  Numeric E,
-                                  const SpeciesIsotope& spec) {
-  SortedGriddedField3 out(T);
+GeodeticField3 level_density(const GeodeticField3& T,
+                             Numeric g,
+                             Numeric E,
+                             const SpeciesIsotope& spec) {
+  GeodeticField3 out(T);
   out.data_name = "NLTE";
 
   stdr::transform(matpack::elemwise_range(T.data),
@@ -92,9 +92,8 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
       } else {
         auto& x = normalization[key.isot];
 
-        auto srhs = std::get_if<SortedGriddedField3>(&data.data);
-        if (auto lhs = std::get_if<SortedGriddedField3>(&x.data);
-            lhs and srhs) {
+        auto srhs = std::get_if<GeodeticField3>(&data.data);
+        if (auto lhs = std::get_if<GeodeticField3>(&x.data); lhs and srhs) {
           lhs->data += srhs->data;
           continue;
         }
@@ -107,14 +106,14 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
         throw std::runtime_error(
             std::format("Unsupported types or type mismatch {} and {}, "
-                        "please use SortedGriddedField3 or Numeric for NonLTE",
+                        "please use GeodeticField3 or Numeric for NonLTE",
                         data.data_type(),
                         x.data_type()));
       }
     }
 
     for (auto& [_, data] : normalization) {
-      if (auto ptr = std::get_if<SortedGriddedField3>(&data.data); ptr) {
+      if (auto ptr = std::get_if<GeodeticField3>(&data.data); ptr) {
         ptr->data /= normalizing_factor;
         continue;
       }
@@ -126,15 +125,15 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
       throw std::runtime_error(
           std::format("Unsupported type: {}\n"
-                      "Please use SortedGriddedField3 or Numeric for NonLTE",
+                      "Please use GeodeticField3 or Numeric for NonLTE",
                       data.data_type()));
     }
 
     for (auto& [key, data] : out) {
       auto& x = normalization[key.isot];
 
-      if (auto lhs = std::get_if<SortedGriddedField3>(&data.data),
-          rhs      = std::get_if<SortedGriddedField3>(&x.data);
+      if (auto lhs = std::get_if<GeodeticField3>(&data.data),
+          rhs      = std::get_if<GeodeticField3>(&x.data);
           lhs and rhs) {
         lhs->data /= rhs->data;
         continue;
@@ -149,7 +148,7 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
       throw std::runtime_error(
           std::format("Unsupported types or type mismatch {} and {}, "
-                      "please use SortedGriddedField3 or Numeric for NonLTE",
+                      "please use GeodeticField3 or Numeric for NonLTE",
                       data.data_type(),
                       x.data_type()));
     }

@@ -2,6 +2,8 @@
 
 #include <lagrange_interp.h>
 
+#include "matpack_mdspan_helpers_gridded_data_t.h"
+
 namespace Atm::interp {
 altlags altlag(const AscendingGrid& xs, Numeric x) {
   return xs.size() == 1
@@ -9,13 +11,13 @@ altlags altlag(const AscendingGrid& xs, Numeric x) {
              : altlags{altlag1(xs, x, lagrange_interp::ascending_grid_t{})};
 }
 
-latlags latlag(const AscendingGrid& xs, Numeric x) {
+latlags latlag(const LatGrid& xs, Numeric x) {
   return xs.size() == 1
              ? latlags{latlag0(xs, x, lagrange_interp::ascending_grid_t{})}
              : latlags{latlag1(xs, x, lagrange_interp::ascending_grid_t{})};
 }
 
-lonlags lonlag(const AscendingGrid& xs, Numeric x) {
+lonlags lonlag(const LonGrid& xs, Numeric x) {
   return xs.size() == 1
              ? lonlags{lonlag0(xs, x, lagrange_interp::ascending_grid_t{})}
              : lonlags{lonlag1(xs, x, lagrange_interp::ascending_grid_t{})};
@@ -50,7 +52,7 @@ Matrix interpweights(const latlags& b, const lonlags& c) {
       c);
 }
 
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {
@@ -64,7 +66,7 @@ Numeric get(const SortedGriddedField3& f,
       lonlag(f.grid<2>(), lon));
 }
 
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             const Tensor3& iw,
             const altlags& alt,
             const latlags& lat,
@@ -79,7 +81,7 @@ Numeric get(const SortedGriddedField3& f,
       lon);
 }
 
-Numeric get(const SortedGriddedField3& f,
+Numeric get(const GeodeticField3& f,
             Index ialt,
             const Matrix& iw,
             const latlags& lat,
@@ -104,11 +106,10 @@ Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>& fd,
   return fd(alt, lat, lon);
 }
 
-std::vector<std::pair<Index, Numeric>> flat_weight(
-    const SortedGriddedField3& gf3,
-    const Numeric alt,
-    const Numeric lat,
-    const Numeric lon) {
+std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
+                                                   const Numeric alt,
+                                                   const Numeric lat,
+                                                   const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
 
   const Index nalt = gf3.grid<0>().size();
@@ -133,8 +134,10 @@ std::vector<std::pair<Index, Numeric>> flat_weight(
         return out;
       },
       nalt == 1 ? altlags{gf3.lag<0, 0>(alt)} : altlags{gf3.lag<0, 1>(alt)},
-      nlat == 1 ? latlags{gf3.lag<1, 0>(lat)} : latlags{gf3.lag<1, 1>(lat)},
-      nlon == 1 ? lonlags{gf3.lag<2, 0, lagrange_interp::loncross>(lon)}
-                : lonlags{gf3.lag<2, 1, lagrange_interp::loncross>(lon)});
+      nlat == 1 ? latlags{gf3.grid<1>().lag<0>(lat)}
+                : latlags{gf3.grid<1>().lag<1>(lat)},
+      nlon == 1
+          ? lonlags{gf3.grid<2>().lag<0, lagrange_interp::loncross>(lon)}
+          : lonlags{gf3.grid<2>().lag<1, lagrange_interp::loncross>(lon)});
 }
 }  // namespace Atm::interp

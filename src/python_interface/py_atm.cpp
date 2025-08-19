@@ -22,13 +22,13 @@ namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
   generic_interface(atmdata);
-  atmdata.def(py::init_implicit<SortedGriddedField3>())
+  atmdata.def(py::init_implicit<GeodeticField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
       .def(
           "__init__",
           [](Atm::Data *a, const GriddedField3 &v) {
-            new (a) Atm::Data(SortedGriddedField3(v));
+            new (a) Atm::Data(GeodeticField3(v));
           },
           "v"_a,
           "Initialize with a gridded field")

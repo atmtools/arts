@@ -54,12 +54,12 @@ ws.jacobian_targetsInit()
 ws.atmospheric_fieldInit(toa=toa)
 ws.surface_fieldEarth()
 ws.surface_field["t"] = 295
-ws.surface_field["h"] = pyarts.arts.GriddedField2(
+ws.surface_field["h"] = pyarts.arts.GeodeticField2(
     data=2 + np.random.random((nlat, nlon)),
     name="Elevation",
     grids=(
         np.linspace(0, 90, nlat),
-        np.linspace(0, 180, nlon),
+        np.linspace(0, 180-1e-6, nlon),
     ),
     grid_names=["Latitude", "Longitude"],
 )
@@ -77,13 +77,13 @@ ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
 ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 ws.jacobian_targetsAddTemperature()
 
-ws.atmospheric_field[pyarts.arts.AtmKey.p] = pyarts.arts.GriddedField3(
+ws.atmospheric_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
     data=2 + np.random.random((nalt, nlat, nlon)),
     name="Pressure",
     grids=(
         np.linspace(0, toa, nalt),
         np.linspace(0, 90, nlat),
-        np.linspace(0, 180, nlon),
+        np.linspace(0, 180-1e-6, nlon),
     ),
     grid_names=["Altitude", "Latitude", "Longitude"],
 )

@@ -35,11 +35,9 @@ class grid_t {
   }
 
   static constexpr void assert_sorted(const exact_md<Numeric, 1> auto& x) {
-    ARTS_USER_ERROR_IF(
-        not is_sorted(x),
-        "Expected {} sorting but values are not.  Input list:\n{:B,}",
-        Compare::name(),
-        x);
+    if (not is_sorted(x))
+      throw std::runtime_error(std::format(
+          "Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
   }
 
   grid_t(Index N) : x(N) {

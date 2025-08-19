@@ -489,6 +489,15 @@ The grids are 6 *AscendingGrid*.
 )--",
   };
 
+  wsg_data["GriddedSpectralField6"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 6-dimensional gridof *Stokvec*.
+
+The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
+*AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
+)--",
+  };
+
   wsg_data["ArrayOfPropmatVector"] = {
       .file        = "rtepack.h",
       .desc        = "A list of *PropmatVector*.\n",
@@ -721,6 +730,15 @@ The grids are 2 *AscendingGrid*.
 )--",
   };
 
+  wsg_data["GeodeticField2"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 2-dimensional gridof *Numeric*.
+
+The grids are *latitude_grid* x *longitude_grid*.
+The types are *LatGrid* x *LonGrid*.
+)--",
+  };
+
   wsg_data["SortedGriddedField3"] = {
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
@@ -750,6 +768,30 @@ The grids are 5 *AscendingGrid*.
       .desc = R"--(A 6-dimensional gridof *Numeric*.
 
 The grids are 6 *AscendingGrid*.
+)--",
+  };
+
+  wsg_data["ZenithGrid"] = {
+      .file = "matpack.h",
+      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 180].
+)--",
+  };
+
+  wsg_data["AzimuthGrid"] = {
+      .file = "matpack.h",
+      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 360).
+)--",
+  };
+
+  wsg_data["LonGrid"] = {
+      .file = "matpack.h",
+      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-180, 180).
+)--",
+  };
+
+  wsg_data["LatGrid"] = {
+      .file = "matpack.h",
+      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-90, 90].
 )--",
   };
 
