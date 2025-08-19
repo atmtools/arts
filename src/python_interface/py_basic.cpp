@@ -45,9 +45,9 @@ void py_basic(py::module_& m) try {
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
-           return x.cast((not copy.is_none() and py::bool_(copy))
-                             ? py::rv_policy::copy
-                             : py::rv_policy::automatic_reference);
+           return x.cast((copy.is_none() or not py::bool_(copy))
+                             ? py::rv_policy::automatic_reference
+                             : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -79,9 +79,9 @@ void py_basic(py::module_& m) try {
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
-           return x.cast((not copy.is_none() and py::bool_(copy))
-                             ? py::rv_policy::copy
-                             : py::rv_policy::automatic_reference);
+           return x.cast((copy.is_none() or not py::bool_(copy))
+                             ? py::rv_policy::automatic_reference
+                             : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),
@@ -117,9 +117,9 @@ void py_basic(py::module_& m) try {
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
-           return x.cast((not copy.is_none() and py::bool_(copy))
-                             ? py::rv_policy::copy
-                             : py::rv_policy::automatic_reference);
+           return x.cast((copy.is_none() or not py::bool_(copy))
+                             ? py::rv_policy::automatic_reference
+                             : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -152,9 +152,9 @@ void py_basic(py::module_& m) try {
              return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
            }
 
-           return x.cast((not copy.is_none() and py::bool_(copy))
-                             ? py::rv_policy::copy
-                             : py::rv_policy::automatic_reference);
+           return x.cast((copy.is_none() or not py::bool_(copy))
+                             ? py::rv_policy::automatic_reference
+                             : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),

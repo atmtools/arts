@@ -84,13 +84,13 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
-
-        return x.cast((not copy.is_none() and py::bool_(copy))
-                          ? py::rv_policy::copy
-                          : py::rv_policy::automatic_reference);
+  
+        return x.cast((copy.is_none() or not py::bool_(copy))
+                          ? py::rv_policy::automatic_reference
+                          : py::rv_policy::copy);
       },
-      "dtype"_a.none() = py::none(),
-      "copy"_a.none()  = py::none(),
+      "dtype"_a = py::none(),
+      "copy"_a  = py::none(),
       "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, mtype>();
@@ -130,9 +130,9 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
-        return x.cast((not copy.is_none() and py::bool_(copy))
-                          ? py::rv_policy::copy
-                          : py::rv_policy::automatic_reference);
+        return x.cast((copy.is_none() or not py::bool_(copy))
+                          ? py::rv_policy::automatic_reference
+                          : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -173,16 +173,15 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
 
-        if (not copy.is_none() and not py::bool_(copy)) {
-          throw std::invalid_argument(
-              "Unable to avoid copy while creating an array as requested.");
-        }
-
         if (not dtype.is_none()) {
-          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = true);
+          if (copy.is_none())
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
-        return x.cast(py::rv_policy::copy);
+        return x.cast((copy.is_none() or not py::bool_(copy))
+                          ? py::rv_policy::automatic_reference
+                          : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -199,7 +198,7 @@ void matpack_grid_interface(
     py::class_<matpack::ranged_grid_t<Compare, l, u, il, iu>>& c) {
   using mtype = Vector;
   using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
-  using T = matpack::ranged_grid_t<Compare, l, u, il, iu>;
+  using T  = matpack::ranged_grid_t<Compare, l, u, il, iu>;
 
   c.def(
       "__init__",
@@ -209,21 +208,27 @@ void matpack_grid_interface(
       },
       "a"_a);
 
-  c.def(
-      "__init__",
-      [](T* v, const mtype& a) {
-        new (v) T(a);
-      },
-      "vec"_a);
+  c.def("__init__", [](T* v, const mtype& a) { new (v) T(a); }, "vec"_a);
 
   c.def(
       "__array__",
-      [](T& v, py::object dtype, py::object copy) {
+      [](T& v,
+         py::object dtype,
+         const py::object& copy) -> std::variant<nd, py::object> {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
-        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+
+        if (not dtype.is_none()) {
+          if (copy.is_none())
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+        }
+
+        return x.cast((copy.is_none() or not py::bool_(copy))
+                          ? py::rv_policy::automatic_reference
+                          : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
