@@ -65,7 +65,7 @@ void setup_cdisort(disort_state& ds,
 
   ds.flag.brdf_type = BRDF_NONE;
 
-  ds.flag.ibcnd  = GENERAL_BC;
+  ds.flag.ibcnd = GENERAL_BC;
 
   if (disort_settings.source_polynomial.ncols() > 0) {
     ds.flag.planck = TRUE;
@@ -102,7 +102,6 @@ void setup_cdisort(disort_state& ds,
   ds.bc.ttemp = Constant::cosmic_microwave_background_temperature;
   ds.bc.btemp = surface_temperature;
   ds.bc.temis = 1.;
-
 }
 
 void freq_setup_cdisort(disort_state& ds,
@@ -136,8 +135,7 @@ void freq_setup_cdisort(disort_state& ds,
   const auto& tau = dis.tau();
   std::adjacent_difference(tau.begin(), tau.end(), dtauc.begin());
 
-  std::memcpy(
-      ds.dtauc, dtauc.data(), sizeof(Numeric) * ds.nlyr);
+  std::memcpy(ds.dtauc, dtauc.data(), sizeof(Numeric) * ds.nlyr);
   std::memcpy(ds.ssalb, dis.omega().data_handle(), sizeof(Numeric) * ds.nlyr);
 
   // Wavenumber in [1/cm]
@@ -247,23 +245,19 @@ void cdisort_spectral_radiance_fieldCalc(
                  disort_quadrature_angles.begin(),
                  [](const Numeric& mu) { return acosd(mu); });
 
+  disort_state ds;
+  setup_cdisort(ds, phis, disort_settings, dis, surface_temperature);
+
   String error;
-#pragma omp parallel for if (not arts_omp_in_parallel()) \
-  firstprivate(dis)
+#pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis, ds)
   for (Index iv = 0; iv < nv; iv++) {
     try {
-      disort_state ds;
       disort_output out;
-      setup_cdisort(ds,
-                    phis,
-                    disort_settings,
-                    dis,
-                    surface_temperature);
-
-      disort_settings.set_cdisort(dis, iv);
       /* Allocate memory */
       c_disort_state_alloc(&ds);
       c_disort_out_alloc(&ds, &out);
+
+      disort_settings.set_cdisort(dis, iv);
 
       freq_setup_cdisort(ds,
                          dis,
@@ -272,8 +266,6 @@ void cdisort_spectral_radiance_fieldCalc(
                          ray_path_frequency_grid[0][iv]);
 
       run_cdisort(disort_spectral_radiance_field[iv], ds, out);
-
-      // dis.gridded_u(disort_spectral_radiance_field[iv], phis);
 
       /* Free allocated memory */
       c_disort_out_free(&ds, &out);
