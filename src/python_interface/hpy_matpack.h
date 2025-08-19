@@ -7,6 +7,7 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/tuple.h>
+#include <nanobind/stl/variant.h>
 
 #include "hpy_numpy.h"
 
@@ -30,7 +31,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
 
   c.def_prop_rw(
       "value",
-      [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
+      [](py::object& x) { return x.attr("__array__")(); },
       [](mtype& a, const mtype& b) { a = b; },
       py::for_getter(py::rv_policy::reference_internal),
       "A :class:`~numpy.ndarray` of the object.");
@@ -68,13 +69,24 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& v, py::object dtype, py::object copy) {
+      [](mtype& v,
+         py::object dtype,
+         py::object copy) -> std::variant<nd, py::object> {
         std::array<size_t, ndim> shape;
         std::ranges::copy(v.shape(), shape.begin());
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::cast(v));
-        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+
+        if (not dtype.is_none()) {
+          if (copy.is_none())
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+        }
+
+        return x.cast((not copy.is_none() and py::bool_(copy))
+                          ? py::rv_policy::copy
+                          : py::rv_policy::automatic_reference);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -102,13 +114,24 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& v, py::object dtype, py::object copy) {
+      [](mtype& v,
+         py::object dtype,
+         py::object copy) -> std::variant<nd, py::object> {
         constexpr std::array<size_t, sizeof...(ndim)> shape{
             static_cast<size_t>(ndim)...};
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(v));
-        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+
+        if (not dtype.is_none()) {
+          if (copy.is_none())
+            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+        }
+
+        return x.cast((not copy.is_none() and py::bool_(copy))
+                          ? py::rv_policy::copy
+                          : py::rv_policy::automatic_reference);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -141,12 +164,24 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
 
   c.def(
       "__array__",
-      [](matpack::grid_t<Compare>& v, py::object dtype, py::object copy) {
+      [](matpack::grid_t<Compare>& v,
+         py::object dtype,
+         const py::object& copy) -> std::variant<nd, py::object> {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(v));
-        return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
+
+        if (not copy.is_none() and not py::bool_(copy)) {
+          throw std::invalid_argument(
+              "Unable to avoid copy while creating an array as requested.");
+        }
+
+        if (not dtype.is_none()) {
+          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = true);
+        }
+
+        return x.cast(py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -248,7 +283,7 @@ void gridded_data_interface(
         if (not d.contains("coords"))
           throw std::invalid_argument(
               "cannot convert dict without the key 'coords''");
-              
+
         if (not d.contains("dims"))
           throw std::invalid_argument(
               "cannot convert dict without the key 'dims''");
