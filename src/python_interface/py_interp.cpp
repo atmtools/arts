@@ -23,7 +23,7 @@ template <lagrange_interp::lagrange_type T>
 py::class_<T>& interp_class_(py::class_<T>& cl) {
   cl.def(
         "__init__",
-        [](T* l, const Numeric x, const Vector& xi, const Size polyorder) {
+        [](T* l, const Vector& xi, const Numeric x, const Size polyorder) {
           if (xi.size() < polyorder + 1)
             throw std::invalid_argument("Insufficient data points");
 

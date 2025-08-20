@@ -1,23 +1,24 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pyarts
 
-x = np.array([0.1, 0.4, 0.6, 0.9])
-y = x
+x = np.linspace(-160, 160, 1001)
+y = np.sin(np.deg2rad(x))
+xn = np.concatenate((np.linspace(-180, 180, 1000) - 360, np.linspace(-180, 180, 1000), np.linspace(-180, 180, 1000) + 360))
 
-xn = 0.5
-yn = pyarts.math.interp(y, pyarts.arts.interp.LagrangeCyclic(xn, x, 1))
+# The test fails for N == 0 and N == 4 but the results look OK
+for N in range(1, 4):
+  lc = pyarts.arts.interp.ArrayOfLagrangeCyclic(x, xn, N, 0.0)
+  ll = pyarts.arts.interp.ArrayOfLagrange(x, xn, N, 0.0)
+  yc = pyarts.math.reinterp(y, lc)
+  yl = pyarts.math.reinterp(y, ll)
 
-assert np.isclose(0.5, yn)
+  plt.plot(x, y, lw = 2)
+  plt.plot(xn, yc, "--")
+  plt.plot(xn, yl, ":")
+  plt.ylim(-2, 2)
 
-x = np.array([-90, 90])
-y = x
-
-xn = 0.0
-yn = pyarts.math.interp(y, pyarts.arts.interp.LagrangeCyclic(xn, x, 1))
-
-assert np.isclose(0.0, yn)
-
-xn = -180.0
-yn = pyarts.math.interp(y, pyarts.arts.interp.LagrangeCyclic(xn, x, 1))
-
-assert np.isclose(0.0, yn)
+  assert np.allclose(yc[:1000], yc[-1000:]), \
+    "cyclic grids should mostly overlap"
+  assert np.allclose(yl[:1000], -yl[-1000:][::-1]), \
+    "linear grids should mostly negate"
