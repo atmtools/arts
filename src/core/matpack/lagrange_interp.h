@@ -76,9 +76,17 @@ concept lagrange_type_list =
     lagrange_type<typename T::value_type> and requires(T a) { a.size(); };
 
 template <typename T>
-concept constant_lagrange_type_list = lagrange_type_list<T> and requires(T a) {
-  std::array{a};
-} and std::size(T{}) > 0;
+struct is_std_array : std::false_type {};
+
+template <typename T, std::size_t N>
+struct is_std_array<std::array<T, N>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_std_array_v = is_std_array<T>::value;
+
+template <typename T>
+concept constant_lagrange_type_list =
+    lagrange_type_list<T> and is_std_array_v<T>;
 
 template <typename T>
 concept fully_constant_lagrange_type_list =
