@@ -26,8 +26,6 @@ class grid_t {
   Vector x;
 
  public:
-  [[nodiscard]] constexpr const Vector& vec() const { return x; }
-
   using value_type = Numeric;
 
   static constexpr bool is_sorted(const exact_md<Numeric, 1> auto& x) {
@@ -94,11 +92,15 @@ class grid_t {
   constexpr grid_t& operator=(grid_t&&)      = default;
   constexpr grid_t& operator=(const grid_t&) = default;
 
-  constexpr operator Vector() && { return Vector{std::move(x)}; }
+  [[nodiscard]] constexpr const Vector& vec() const { return x; }
+  [[nodiscard]] constexpr Vector&& rvec() && { return std::move(x); }
+  constexpr operator Vector() && { return std::move(*this).rvec(); }
   constexpr operator const Vector&() const { return vec(); }
   constexpr operator ConstVectorView() const { return vec(); }
   constexpr operator StridedConstVectorView() const { return vec(); }
-  constexpr operator std::span<const Numeric, std::dynamic_extent>() const { return vec(); }
+  constexpr operator std::span<const Numeric, std::dynamic_extent>() const {
+    return vec();
+  }
 
   template <access_operator Op>
   [[nodiscard]] constexpr auto operator[](const Op& op) const {

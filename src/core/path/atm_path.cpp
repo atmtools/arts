@@ -56,7 +56,7 @@ void forward_path_freq(AscendingGrid &path_freq,
   ARTS_USER_ERROR_IF(
       fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
 
-  Vector tmp = std::move(path_freq);
+  Vector tmp = std::move(path_freq).rvec();
   stdr::transform(
       main_freq, tmp.begin(), [fac](const auto &f) { return fac * f; });
   path_freq = std::move(tmp);

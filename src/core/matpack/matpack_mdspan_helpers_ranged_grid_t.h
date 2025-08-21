@@ -80,11 +80,14 @@ class ranged_grid_t {
   }
 
   [[nodiscard]] const Vector& vec() const { return grid; }
-  constexpr operator Vector() && { return std::move(grid); }
+  [[nodiscard]] Vector&& rvec() && noexcept { return std::move(grid); }
+  constexpr operator Vector() && { return std::move(*this).rvec(); }
   constexpr operator const Vector&() const { return grid; }
   constexpr operator ConstVectorView() const { return grid; }
   constexpr operator StridedConstVectorView() const { return grid; }
-  constexpr operator std::span<const Numeric, std::dynamic_extent>() const { return grid; }
+  constexpr operator std::span<const Numeric, std::dynamic_extent>() const {
+    return grid;
+  }
 
   [[nodiscard]] constexpr Size size() const { return grid.size(); }
   [[nodiscard]] constexpr bool empty() const { return grid.empty(); }
