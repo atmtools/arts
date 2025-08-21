@@ -27,15 +27,25 @@ def __getattr__(attr):
     elif attr == "recipe":
         import pyarts.recipe as recipe
         return recipe
+    elif attr == "math":
+        import pyarts.math as math
+        return math
     
     raise AttributeError("module {!r} has no attribute "
                           "{!r}".format(__name__, attr))
 
 def __dir__():
-    return ["xml", "data", "plots",
-            "workspace", "hitran",
-            "fields", "recipe",
-            "workspace", "version"]
+    return [
+        "data",
+        "fields",
+        "hitran",
+        "math",
+        "plots",
+        "recipe",
+        "version",
+        "workspace",
+        "xml",
+        ]
 
 __all__ = [s for s in dir() if not s.startswith("_")]
 __version__ = "@ARTS_VERSION@"

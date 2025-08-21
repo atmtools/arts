@@ -89,7 +89,7 @@ struct Point {
 };
 
 using FunctionalData = NumericBinaryOperator;
-using FieldData = std::variant<SortedGriddedField2, Numeric, FunctionalData>;
+using FieldData = std::variant<GeodeticField2, Numeric, FunctionalData>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -112,8 +112,8 @@ struct Data {
   explicit Data(Numeric x);
   Data &operator=(Numeric x);
 
-  explicit Data(SortedGriddedField2 x);
-  Data &operator=(SortedGriddedField2 x);
+  explicit Data(GeodeticField2 x);
+  Data &operator=(GeodeticField2 x);
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
@@ -143,6 +143,8 @@ struct Data {
       const Numeric &lat, const Numeric &lon) const;
 
   [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
+
+  [[nodiscard]] bool ok() const;
 };
 
 struct Field final {

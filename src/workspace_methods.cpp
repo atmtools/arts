@@ -722,7 +722,8 @@ spherical harmonics and is only valid for a limited time period.
   };
 
   wsm_data["atmospheric_fieldSchmidthFieldFromIGRF"] = {
-      .desc      = R"--(For forward calculations, this should be similar to *atmospheric_fieldIGRF*.
+      .desc =
+          R"--(For forward calculations, this should be similar to *atmospheric_fieldIGRF*.
 
 What it does different is that it is 1) not a direct computations matching the IGRF field,
 instead averaging the Legendre coefficient matrices.
@@ -742,7 +743,7 @@ of the magnetic field Legendre coefficients.
   wsm_data["atmospheric_fieldAbsoluteMagneticField"] = {
       .desc = R"--(Set the magnetic field to use the magnitude field functional.
 
-The input field must be a *SortedGriddedField3* for all three parameters
+The input field must be a *GeodeticField3* for all three parameters
 to call this method.
 
 The main purpose of this method is to retrieve the magnitude rather than the vector field.
@@ -755,7 +756,7 @@ The main purpose of this method is to retrieve the magnitude rather than the vec
   wsm_data["atmospheric_fieldAbsoluteWindField"] = {
       .desc   = R"--(Set the wind field to use the magnitude field functional.
 
-The input field must be a *SortedGriddedField3* for all three parameters
+The input field must be a *GeodeticField3* for all three parameters
 to call this method.
 
 The main purpose of this method is to retrieve the magnitude rather than the vector field.
@@ -2121,7 +2122,7 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
                     "hydrostatic_option"},
-      .gin_type  = {"SortedGriddedField2,Numeric",
+      .gin_type  = {"GeodeticField2,Numeric",
                     "Numeric",
                     "Numeric",
                     "String"},
@@ -2380,7 +2381,8 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
   };
 
   wsm_data["spectral_radianceApplyForwardUnit"] = {
-      .desc   = R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
+      .desc =
+          R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
@@ -2861,7 +2863,7 @@ See *FieldComponent* for valid ``component``.
       jac2ret("jacobian_targetsAddMagneticField");
 
   wsm_data["jacobian_targetsAddOverlappingMagneticField"] = {
-      .desc      = R"--(Set magnetic field derivative for overlapping fields.
+      .desc   = R"--(Set magnetic field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
 x-component of the jacobian is at the same position as another Jacobian
@@ -2870,9 +2872,9 @@ target.
 To call this method, you first have added 1 component of the magnetic field
 derivative, and then you call this method to add the second and third component.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
   };
   wsm_data["RetrievalAddOverlappingMagneticField"] =
       jac2ret("jacobian_targetsAddOverlappingMagneticField");
@@ -2898,7 +2900,7 @@ See *FieldComponent* for valid ``component``
   wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
 
   wsm_data["jacobian_targetsAddOverlappingWindField"] = {
-      .desc      = R"--(Set wind field derivative for overlapping fields.
+      .desc   = R"--(Set wind field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
 x-component of the jacobian is at the same position as another Jacobian
@@ -2907,9 +2909,9 @@ target.
 To call this method, you first have added 1 component of the wind field
 derivative, and then you call this method to add the second and third component.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .author = {"Richard Larsson"},
+      .out    = {"jacobian_targets"},
+      .in     = {"jacobian_targets"},
   };
   wsm_data["RetrievalAddOverlappingWindField"] =
       jac2ret("jacobian_targetsAddOverlappingWindField");
@@ -3775,7 +3777,7 @@ Limitations:
       .out    = {"spectral_radiance_field"},
       .in     = {"spectral_radiance_operator", "frequency_grid", "zenith_grid"},
       .gin    = {"azimuth_grid"},
-      .gin_type  = {"AscendingGrid"},
+      .gin_type  = {"AzimuthGrid"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The azimuth grid"},
   };
@@ -3798,7 +3800,7 @@ the first 5 dimensions are computed in parallel.
                          "frequency_grid",
                          "zenith_grid"},
       .gin            = {"azimuth_grid"},
-      .gin_type       = {"AscendingGrid"},
+      .gin_type       = {"AzimuthGrid"},
       .gin_value      = {std::nullopt},
       .gin_desc       = {"The azimuth grid"},
       .pass_workspace = true,

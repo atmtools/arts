@@ -88,9 +88,6 @@ void propagation_matrixAddXsecFit(  // WS Output:
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
-  /* NOTE:  The calculations below are inefficient and could
-              be made much better by using interp in Extract to
-              return the derivatives as well. */
   // Jacobian vectors START
   Vector dxsec_temp_dT;
   Vector dxsec_temp_dF;

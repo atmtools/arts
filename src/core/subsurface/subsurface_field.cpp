@@ -1,9 +1,9 @@
 #include "subsurface_field.h"
 
-#include <utility>
+#include <enumsSubsurfaceKey.h>
+#include <lagrange_interp.h>
 
-#include "enumsSubsurfaceKey.h"
-#include "subsurface.h"
+#include <utility>
 
 namespace Subsurface {
 Point::Point()                             = default;
@@ -64,8 +64,8 @@ Data &Data::operator=(const Data &)     = default;
 Data &Data::operator=(Data &&) noexcept = default;
 
 void Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<CartesianSubsurfaceGriddedField3>(data)) {
-    auto &field = std::get<CartesianSubsurfaceGriddedField3>(data);
+  if (std::holds_alternative<GeodeticField3>(data)) {
+    auto &field = std::get<GeodeticField3>(data);
 
     if (field.grid<0>().size() == 1) {
       alt_upp = InterpolationExtrapolation::Nearest;
@@ -99,11 +99,11 @@ Data &Data::operator=(Numeric x) {
   return *this;
 }
 
-Data::Data(CartesianSubsurfaceGriddedField3 x) : data(std::move(x)) {
+Data::Data(GeodeticField3 x) : data(std::move(x)) {
   adjust_interpolation_extrapolation();
 }
 
-Data &Data::operator=(CartesianSubsurfaceGriddedField3 x) {
+Data &Data::operator=(GeodeticField3 x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;
@@ -120,8 +120,7 @@ Data &Data::operator=(FunctionalData x) {
 }
 
 String Data::data_type() const {
-  if (std::holds_alternative<CartesianSubsurfaceGriddedField3>(data))
-    return "CartesianSubsurfaceGriddedField3";
+  if (std::holds_alternative<GeodeticField3>(data)) return "GeodeticField3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -130,16 +129,14 @@ String Data::data_type() const {
 
 namespace interp {
 namespace {
-using altlag1 = my_interp::Lagrange<1>;
-using altlag0 = my_interp::Lagrange<0>;
+using altlag1 = lagrange_interp::lag_t<1>;
+using altlag0 = lagrange_interp::lag_t<0>;
 
-using latlag1 = my_interp::Lagrange<1>;
-using latlag0 = my_interp::Lagrange<0>;
+using latlag1 = lagrange_interp::lag_t<1>;
+using latlag0 = lagrange_interp::lag_t<0>;
 
-using lonlag1 =
-    my_interp::Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
-using lonlag0 =
-    my_interp::Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag1 = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
+using lonlag0 = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
 
 using altlags = std::variant<altlag0, altlag1>;
 using latlags = std::variant<latlag0, latlag1>;
@@ -158,7 +155,7 @@ Limits find_limits(const Numeric &) { return {}; }
 
 Limits find_limits(const FunctionalData &) { return {}; }
 
-Limits find_limits(const CartesianSubsurfaceGriddedField3 &gf3) {
+Limits find_limits(const GeodeticField3 &gf3) {
   return {.alt_low = gf3.grid<0>().back(),
           .alt_upp = gf3.grid<0>().front(),
           .lat_low = gf3.grid<1>().front(),
@@ -243,7 +240,7 @@ ComputeLimit find_limit(const Data &data,
   return out;
 }
 
-Numeric get(const CartesianSubsurfaceGriddedField3 &gf3,
+Numeric get(const GeodeticField3 &gf3,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {
@@ -251,14 +248,15 @@ Numeric get(const CartesianSubsurfaceGriddedField3 &gf3,
 
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
-        return my_interp::interp(data, al, la, lo);
+        return lagrange_interp::interp(data, al, la, lo);
       },
-      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
-                                : altlags{gf3.lag<0, altlag1>(alt)},
-      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
-                                : latlags{gf3.lag<1, latlag1>(lat)},
-      gf3.grid<2>().size() == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
-                                : lonlags{gf3.lag<2, lonlag1>(lon)});
+      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, 0>(alt)}
+                                : altlags{gf3.lag<0, 1>(alt)},
+      gf3.grid<1>().size() == 1 ? latlags{gf3.grid<1>().lag<0>(lat)}
+                                : latlags{gf3.grid<1>().lag<1>(lat)},
+      gf3.grid<2>().size() == 1
+          ? lonlags{gf3.grid<2>().lag<0, lagrange_interp::loncross>(lon)}
+          : lonlags{gf3.grid<2>().lag<1, lagrange_interp::loncross>(lon)});
 }
 
 constexpr Numeric get(const Numeric num,
@@ -313,11 +311,10 @@ std::optional<Numeric> get_optional_limit(const Data &data,
   return std::nullopt;
 }
 
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(
-    const CartesianSubsurfaceGriddedField3 &gf3,
-    const Numeric alt,
-    const Numeric lat,
-    const Numeric lon) {
+std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
+                                                      const Numeric alt,
+                                                      const Numeric lat,
+                                                      const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
 
   const Index nalt = gf3.grid<0>().size();
@@ -336,19 +333,19 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(
         for (Index i = 0; i < al.size(); i++) {
           for (Index j = 0; j < la.size(); j++) {
             for (Index k = 0; k < lo.size(); k++, ++m) {
-              out[m] = {{(al.pos + i) * NN + (la.pos + j) * N + lo.pos + k},
+              out[m] = {{al.indx[i] * NN + la.indx[j] * N + lo.indx[k]},
                         x[i, j, k]};
             }
           }
         }
         return out;
       },
-      nalt == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
-                : altlags{gf3.lag<0, altlag1>(alt)},
-      nlat == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
-                : latlags{gf3.lag<1, latlag1>(lat)},
-      nlon == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
-                : lonlags{gf3.lag<2, lonlag1>(lon)});
+      nalt == 1 ? altlags{gf3.lag<0, 0>(alt)} : altlags{gf3.lag<0, 1>(alt)},
+      nlat == 1 ? latlags{gf3.grid<1>().lag<0>(lat)}
+                : latlags{gf3.grid<1>().lag<1>(lat)},
+      nlon == 1
+          ? lonlags{gf3.grid<2>().lag<0, lagrange_interp::loncross>(lon)}
+          : lonlags{gf3.grid<2>().lag<1, lagrange_interp::loncross>(lon)});
 }
 }  // namespace
 }  // namespace interp
@@ -367,7 +364,7 @@ ConstVectorView Data::flat_view() const {
   return std::visit(
       [](auto &X) -> ConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, CartesianSubsurfaceGriddedField3>)
+        if constexpr (std::same_as<T, GeodeticField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return ConstVectorView{X};
@@ -382,7 +379,7 @@ VectorView Data::flat_view() {
   return std::visit(
       [](auto &X) -> VectorView {
         using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, CartesianSubsurfaceGriddedField3>)
+        if constexpr (std::same_as<T, GeodeticField3>)
           return X.data.view_as(X.data.size());
         else if constexpr (std::same_as<T, Numeric>)
           return VectorView{X};
@@ -395,10 +392,7 @@ VectorView Data::flat_view() {
 
 namespace {
 std::array<std::pair<Index, Numeric>, 8> flat_weight_(
-    const CartesianSubsurfaceGriddedField3 &data,
-    Numeric alt,
-    Numeric lat,
-    Numeric lon) {
+    const GeodeticField3 &data, Numeric alt, Numeric lat, Numeric lon) {
   return interp::flat_weight_(data, alt, lat, lon);
 }
 
@@ -429,6 +423,20 @@ std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
 std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(
     const Vector3 pos) const {
   return flat_weight(pos[0], pos[1], pos[2]);
+}
+
+bool Data::ok() const {
+  if (std::holds_alternative<GeodeticField3>(data)) {
+    auto &v = *std::get_if<GeodeticField3>(&data);
+    return v.ok() and
+           lagrange_interp::loncross::cycle(v.grid<2>().front()) ==
+               v.grid<2>().front() and
+           lagrange_interp::loncross::cycle(v.grid<2>().back()) ==
+               v.grid<2>().back() and
+           v.grid<1>().front() >= -90 and v.grid<1>().back() <= 90;
+  }
+
+  return true;
 }
 
 Field::Field()                             = default;

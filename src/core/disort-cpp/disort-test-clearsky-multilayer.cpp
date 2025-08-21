@@ -2945,22 +2945,21 @@ int main() {
 
   disort::main_data dis(N, NQuad, NLeg, NFourier, 2, NLeg, 1);
 
-  dis.solar_zenith()                  = 1.0;
-  dis.beam_azimuth()                  = 0.0;
-  dis.omega()                         = 0.0;
-  dis.f()                             = 0.0;
-  dis.all_legendre_coeffs()           = Matrix(N, 1, 1.0);
-  dis.positive_boundary()             = 0.0;
-  dis.negative_boundary()             = 0.0;
-  dis.brdf_modes()[0] =
-      disort::BDRF{[](MatrixView x,
-                      const ConstVectorView&,
-                      const ConstVectorView&) { x = 0.0; }};
+  dis.solar_zenith()        = 1.0;
+  dis.beam_azimuth()        = 0.0;
+  dis.omega()               = 0.0;
+  dis.f()                   = 0.0;
+  dis.all_legendre_coeffs() = Matrix(N, 1, 1.0);
+  dis.positive_boundary()   = 0.0;
+  dis.negative_boundary()   = 0.0;
+  dis.brdf_modes()[0]       = disort::BDRF{[](MatrixView x,
+                                        const ConstVectorView&,
+                                        const ConstVectorView&) { x = 0.0; }};
 
   Tensor3 disort_intensities(nv, N, NQuad);
 
   for (Index iv = 0; iv < nv; iv++) {
-    dis.tau()         = tau[iv];
+    dis.tau(tau[iv].vec());
     dis.source_poly() = src[iv];
     dis.check_input_size();
     dis.update_all(0.0);

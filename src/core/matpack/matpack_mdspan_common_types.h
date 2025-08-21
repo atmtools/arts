@@ -148,7 +148,6 @@ concept typed_view = any_view<T> and std::same_as<value_type<T>, U>;
 template <class T, class U>
 concept typed_strided_view =
     any_strided_view<T> and std::same_as<value_type<T>, U>;
-;
 
 template <class T, class U>
 concept typed_cdata = any_cdata<T> and std::same_as<value_type<T>, U>;

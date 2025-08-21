@@ -95,8 +95,8 @@ spectral_radiance::pos_weights(const path& pp) const {
 
 spectral_radiance::spectral_radiance(
     AscendingGrid alt_,
-    AscendingGrid lat_,
-    AscendingGrid lon_,
+    LatGrid lat_,
+    LonGrid lon_,
     const AtmField& atm_,
     const SurfaceField& surf,
     const std::shared_ptr<AbsorptionBands>& lines,

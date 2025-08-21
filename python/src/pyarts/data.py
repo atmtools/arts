@@ -257,7 +257,7 @@ def to_atmospheric_field(
         else np.array([0])
     )
 
-    GF3 = pyarts.arts.SortedGriddedField3(
+    GF3 = pyarts.arts.GeodeticField3(
         name="Generic",
         data=np.zeros((alt.size, lat.size, lon.size)),
         grid_names=["Altitude", "Latitude", "Longitude"],

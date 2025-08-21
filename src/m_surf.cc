@@ -9,7 +9,7 @@ void surface_fieldSet(SurfaceField &surface_field,
 }
 
 void surface_fieldSet(SurfaceField &surface_field,
-                      const SortedGriddedField2 &value,
+                      const GeodeticField2 &value,
                       const String &key) {
   ARTS_TIME_REPORT
 
@@ -25,7 +25,7 @@ void surface_fieldSetProp(SurfaceField &surface_field,
 }
 
 void surface_fieldSetProp(SurfaceField &surface_field,
-                          const SortedGriddedField2 &value,
+                          const GeodeticField2 &value,
                           const String &key) {
   ARTS_TIME_REPORT
 

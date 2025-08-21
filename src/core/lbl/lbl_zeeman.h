@@ -1,5 +1,6 @@
 #pragma once
 
+#include <arts_constants.h>
 #include <matpack.h>
 #include <quantum.h>
 #include <rtepack.h>

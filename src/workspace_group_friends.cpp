@@ -454,14 +454,6 @@ It holds essentially two things:
 )--",
   };
 
-  wsg_data["CartesianSubsurfaceGriddedField3"] = {
-      .file = "rtepack.h",
-      .desc = R"--(A 3-dimensional gridof *Numeric*.
-
-The grids are 1 *DescendingGrid* followed by 2 *AscendingGrid*.
-)--",
-  };
-
   wsg_data["ComplexGriddedField2"] = {
       .file = "matpack.h",
       .desc =
@@ -603,6 +595,15 @@ Both the data and the grid may be named)--",
 The grid is a combination of 1 *Vector* and 1 *ArrayOfString*
 
 Both the data and the grid may be named
+)--",
+  };
+
+  wsg_data["GeodeticField3"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A 3-dimensional gridof *Numeric*.
+
+The grids are *altitude_grid* x *latitude_grid* x *longitude_grid*.
+The types are *AscendingGrid* x *LatGrid* x *LonGrid*.
 )--",
   };
 

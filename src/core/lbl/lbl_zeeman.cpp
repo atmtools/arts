@@ -12,6 +12,7 @@
 #include "lbl_zeeman.h"
 
 #include <arts_constexpr_math.h>
+#include <arts_conversions.h>
 #include <double_imanip.h>
 #include <wigner_functions.h>
 

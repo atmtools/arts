@@ -573,7 +573,7 @@ psat : Numeric
 
 Dimensions are *altitude_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
 )",
-      .type = "StokvecSortedGriddedField6",
+      .type = "GriddedSpectralField6",
   };
 
   wsv_data["spectral_radiance_transform_operator"] = {
@@ -648,7 +648,7 @@ Units: degrees
     There is no global grid system in ARTS, so beware of the local
     nature of all grids.
 )--",
-      .type = "AscendingGrid",
+      .type = "ZenithGrid",
   };
 
   wsv_data["ray_path"] = {
@@ -981,7 +981,7 @@ Units: degrees
     There is no global grid system in ARTS, so beware of the local
     nature of all grids.
 )--",
-      .type = "AscendingGrid",
+      .type = "LatGrid",
   };
 
   wsv_data["longitude"] = {
@@ -1004,7 +1004,7 @@ Units: degrees
     There is no global grid system in ARTS, so beware of the local
     nature of all grids.
 )--",
-      .type = "AscendingGrid",
+      .type = "LonGrid",
   };
 
   wsv_data["legendre_degree"] = {

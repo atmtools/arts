@@ -8,6 +8,7 @@ API Reference
    pyarts.arts
    pyarts.data
    pyarts.hitran
+   pyarts.math
    pyarts.plots
    pyarts.recipe
    pyarts.utils
@@ -22,6 +23,7 @@ API Reference
    pyarts.arts
    pyarts.data
    pyarts.hitran
+   pyarts.math
    pyarts.plots
    pyarts.recipe
    pyarts.utils

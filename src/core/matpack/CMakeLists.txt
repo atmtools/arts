@@ -1,6 +1,7 @@
 add_library(matpack STATIC
   xml_io_stream_matpack_mdspan.cc
   xml_io_stream_matpack_mdspan_helpers.cc
+  matpack_mdspan_helpers_gridded_data_t.cc
   xml_io_stream_matpack_range.cc
   lin_alg.cc
   matpack_sparse.cc
@@ -14,6 +15,7 @@ add_library(matpack STATIC
   matpack_mdspan_view_t.cc
   interpolation.cc
   minimize.cc
+  lagrange_interp.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)

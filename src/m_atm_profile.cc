@@ -1,5 +1,6 @@
 #include <arts_omp.h>
 #include <atm.h>
+
 #include <stdexcept>
 
 void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
@@ -24,7 +25,7 @@ void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
     }
   }
 
-  if(not error.empty()) throw std::runtime_error(error);
+  if (not error.empty()) throw std::runtime_error(error);
 }
 
 void atmospheric_profileFromGrid(ArrayOfAtmPoint &atmospheric_profile,
@@ -33,7 +34,7 @@ void atmospheric_profileFromGrid(ArrayOfAtmPoint &atmospheric_profile,
                                  Numeric &longitude,
                                  const AtmField &atmospheric_field,
                                  const AtmKey &key) {
-  const auto &gf3 = atmospheric_field[key].get<SortedGriddedField3>();
+  const auto &gf3 = atmospheric_field[key].get<GeodeticField3>();
   altitude_grid   = gf3.grid<0>();
 
   const Size N = gf3.data.size();

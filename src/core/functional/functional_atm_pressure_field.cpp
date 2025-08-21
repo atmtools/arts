@@ -13,7 +13,7 @@ Numeric HydrostaticPressure::step(Numeric p, Numeric h, Numeric d) const {
 }
 
 HydrostaticPressure::HydrostaticPressure(Tensor3 in_grad_p,
-                                         const SortedGriddedField2& pre0,
+                                         const GeodeticField2& pre0,
                                          AscendingGrid in_alt,
                                          HydrostaticPressureOption option_)
     : grad_p{.data_name  = "Pressure Gradient",

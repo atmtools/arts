@@ -7,6 +7,7 @@
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"
+#include "matpack_mdspan_helpers_gridded_data_t.h"
 #include "python_interface.h"
 
 static_assert(std::is_nothrow_move_constructible_v<GriddedField3>,
@@ -104,10 +105,23 @@ void py_griddedfield(py::module_& m) try {
   generic_interface(sgf3num);
   implicit_convert_gf<GriddedField3>(sgf3num);
 
-  py::class_<CartesianSubsurfaceGriddedField3> csgf3num(m, "CartesianSubsurfaceGriddedField3");
-  gridded_data_interface(csgf3num);
-  generic_interface(csgf3num);
-  implicit_convert_gf<GriddedField3>(csgf3num);
+  py::class_<GeodeticField3> geo3(m, "GeodeticField3");
+  gridded_data_interface(geo3);
+  generic_interface(geo3);
+  implicit_convert_gf<GriddedField3>(geo3);
+  gf3.def(
+      "make_geodetic",
+      [](const GriddedField3& gf) { return matpack::make_geodetic(gf); },
+      "Make the field geodetic");
+
+  py::class_<GeodeticField2> geo2(m, "GeodeticField2");
+  gridded_data_interface(geo2);
+  generic_interface(geo2);
+  implicit_convert_gf<GriddedField2>(geo2);
+  gf2.def(
+      "make_geodetic",
+      [](const GriddedField2& gf) { return matpack::make_geodetic(gf); },
+      "Make the field geodetic");
 
   py::class_<SortedGriddedField4> sgf4num(m, "SortedGriddedField4");
   gridded_data_interface(sgf4num);
@@ -123,6 +137,11 @@ void py_griddedfield(py::module_& m) try {
   gridded_data_interface(sgf6num);
   generic_interface(sgf6num);
   implicit_convert_gf<GriddedField6>(sgf6num);
+
+  py::class_<GriddedSpectralField6> gsf6(m, "GriddedSpectralField6");
+  gridded_data_interface(gsf6);
+  generic_interface(gsf6);
+  implicit_convert_gf<GriddedField6>(gsf6);
 
   auto a1 =
       py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(

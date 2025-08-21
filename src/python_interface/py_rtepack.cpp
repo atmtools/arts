@@ -78,14 +78,12 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
         auto x  = nd(v.data_handle(), n, shape.data(), py::cast(v));
 
         if (not dtype.is_none()) {
-          if (copy.is_none())
-            return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = false);
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
 
-        return x.cast((not copy.is_none() and py::bool_(copy))
-                          ? py::rv_policy::copy
-                          : py::rv_policy::automatic_reference);
+        return x.cast((copy.is_none() or not py::bool_(copy))
+                          ? py::rv_policy::automatic_reference
+                          : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -142,15 +140,12 @@ void py_rtepack(py::module_ &m) try {
                     v.data.data(), 1, shape.data(), py::cast(v));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    x, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
             }
 
-            return x.cast((not copy.is_none() and py::bool_(copy))
-                              ? py::rv_policy::copy
-                              : py::rv_policy::automatic_reference);
+            return x.cast((copy.is_none() or not py::bool_(copy))
+                              ? py::rv_policy::automatic_reference
+                              : py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -210,15 +205,12 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 1, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
-            return w.cast((not copy.is_none() and py::bool_(copy))
-                              ? py::rv_policy::copy
-                              : py::rv_policy::automatic_reference);
+            return w.cast((copy.is_none() or not py::bool_(copy))
+                              ? py::rv_policy::automatic_reference
+                              : py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -267,15 +259,12 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 2, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
-            return w.cast((not copy.is_none() and py::bool_(copy))
-                              ? py::rv_policy::copy
-                              : py::rv_policy::automatic_reference);
+            return w.cast((copy.is_none() or not py::bool_(copy))
+                              ? py::rv_policy::automatic_reference
+                              : py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -310,7 +299,13 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init_implicit<std::array<Complex, 16>>())
       .def(
           "__array__",
-          [](Specmat &x, py::object dtype, py::object copy)->std::variant<py::ndarray<py::numpy, Complex, py::shape<4, 4>, py::c_contig>, py::object> {
+          [](Specmat &x,
+             py::object dtype,
+             py::object copy) -> std::variant<py::ndarray<py::numpy,
+                                                          Complex,
+                                                          py::shape<4, 4>,
+                                                          py::c_contig>,
+                                              py::object> {
             std::array<size_t, 2> shape = {4, 4};
             auto np                     = py::module_::import_("numpy");
             auto w =
@@ -318,15 +313,12 @@ void py_rtepack(py::module_ &m) try {
                     x.data.data(), 2, shape.data(), py::cast(x));
 
             if (not dtype.is_none()) {
-              if (copy.is_none())
-                return np.attr("asarray")(
-                    w, "dtype"_a = dtype, "copy"_a = false);
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
             }
 
-            return w.cast((not copy.is_none() and py::bool_(copy))
-                              ? py::rv_policy::copy
-                              : py::rv_policy::automatic_reference);
+            return w.cast((copy.is_none() or not py::bool_(copy))
+                              ? py::rv_policy::automatic_reference
+                              : py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),

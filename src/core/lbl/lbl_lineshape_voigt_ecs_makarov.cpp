@@ -1,5 +1,6 @@
 #include "lbl_lineshape_voigt_ecs_makarov.h"
 
+#include <arts_conversions.h>
 #include <wigner_functions.h>
 
 #include "debug.h"

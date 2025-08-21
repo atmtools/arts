@@ -30,8 +30,8 @@ Variables and functions related to interpolation are defined in the files:
 - ``interpolation.cc``
 - ``test interpolation.cc``
 
-The first two files contain the declarations and implementation, the last file some usage
-examples.
+The first two files contain the declarations and implementation,
+the last file some usage examples.
 
 Green and blue interpolation
 ----------------------------
@@ -47,10 +47,10 @@ Green and blue interpolation
 There are two different types of interpolation in ARTS:
 
 - *Green Interpolation*: Interpolation of a gridded field to a new grid.
-- *Blue Interpolation*: Interpolation of a gridded field to a sequence of positions.
+- *Blue Interpolation*: Interpolation of a gridded field to asequence of positions.
 
 The figure above illustrates the different types
-for a 2D example. 
+for a 2D example.
 
 The first step of an interpolation always consists in determining
 where your new points are, relative to the original grid. You can do
@@ -82,7 +82,7 @@ function has the following parameters:
 There is also a special version for the case that the new grid is just
 a scalar. What the function does is check if old and new grid for an
 interpolation are ok. If not, it throws a detailed runtime error
-message. 
+message.
 
 The parameter ``extpolfac`` determines how much extrapolation
 is tolerated. Its default value is 0.5, which means that we allow
@@ -96,7 +96,7 @@ computationally. Its intended use is at the beginning of workspace
 methods, when you check the input variables and issue runtime errors
 if there are any problems. The runtime error thrown also explains in
 quite a lot of detail what is actually wrong with the grids.
-  
+
 
 Grid positions
 --------------
@@ -117,7 +117,7 @@ the dimension is fixed.) So the structure ``GridPos`` looks like:
     Index   idx;      /*!< Original grid index below
                             interpolation point. */
     Numeric fd[2];    /*!< Fractional distance to next point
-                            (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
+                            (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
   };
 
 For example, ``idx``=3 and ``fd``=0.5 means that this interpolation point is
@@ -626,314 +626,78 @@ interpolation, which uses two neighboring data points in the 1D
 case. But ARTS also has a framework for higher order polynomial
 interpolation. It is defined in the the file
 
-- ``matpack/interp.h``
+- ``matpack/lagrange_interp.h``
+
+The higher order interpolation framework uses a template class,
+``lagrange_interp::lag_t<>``, which is described below.
+The class takes two compile-time parameters, the polynomial order
+:math:`O` and  grid transformation type.  The rules for how
+to transform the grid are in the file ``matpack/lagrange_interp.h``.
+Regardless, the template type holds weights and indices to the
+original grid, which are used to compute the interpolated value
+and which are used to map into the data field.
+
+Three styles of interpolations are implemented as functions:
+
+- ``interp``: Pure interpolation.  Reduces the data field to the
+  a single interpolated value.  Takes as many ``lagrange_interp::lag_t<>``
+  as the rank of the data field.  May also use an ``interpweights``
+  approach similar to the linear case, but this is not required.
+  The signature is either ``T interp(data, lag_t<>, lag_t<>, ...)``
+  or ``T interp(data, interpweights, lag_t<>, lag_t<>, ...)``, to
+  return the interpolated value ``T``.
+- ``reinterp``: Reinterpolates the data to a new grid.  Retains
+  the same rank as the data field but changes the grid.  This
+  takes as many lists of ``lagrange_interp::lag_t<>`` as the
+  rank of the data field.  The lists can be of any type that
+  follows rules similar to ``std::vector`` or ``std::array``.
+  May use ``reinterpweights`` as a multidimensional
+  interpolation weights approach similar to the linear case,
+  and it may reuse data.  This yields four possible signatures:
+  ``void reinterp(data_t&, data, list<lag_t<>>, list<lag_t<>>, ...)``,
+  ``void reinterp(data_t&, data, reinterpweights, list<lag_t<>>, list<lag_t<>>, ...)``,
+  ``data_t reinterp(data, list<lag_t<>>, list<lag_t<>>, ...)``, and
+  ``data_t reinterp(data, reinterpweights, list<lag_t<>>, list<lag_t<>>, ...)``.
+- ``flat_interp``: Interpolates a line through the data field composed
+  of all the coordinates of the ``lag_t<>`` objects.  This reduces
+  the data_field to a vector of values.  For rank 1 data fields,
+  this is equivalent to the ``interp`` function.  The methods take
+  as many lists of ``lag_t<>`` as the rank of the data field.  These
+  must all have the same length, and this length is the size of the
+  output vector.  May use ``flat_interpweights`` as a
+  multidimensional interpolation weights approach similar to the
+  linear case, and it may reuse data.  This yields four possible
+  signatures:
+  ``void flat_interp(data_t&, data, list<lag_t<>>, list<lag_t<>>, ...)``,
+  ``void flat_interp(data_t&, data, flat_interpweights, list<lag_t<>>, list<lag_t<>>, ...)``,
+  ``data_t flat_interp(data, list<lag_t<>>, list<lag_t<>>, ...)``, and
+  ``data_t flat_interp(data, flat_interpweights, list<lag_t<>>, list<lag_t<>>, ...)``.
 
 Weights
 -------
 
-We define interpolation order :math:`O` as the order of the polynomial that
-is used. Linear interpolation, the ARTS standard case, corresponds to
-:math:`O=1`. :math:`O=2` is quadratic interpolation, :math:`O=3` cubic interpolation.
-The number of interpolation points (and weights) for a 1D
-interpolation is :math:`O+1` for each point in the new grid. So, linear
-interpolation uses 2 points, quadratic 3, and cubic 4. 
-
-As a special case, interpolation order `O=0` is also implemented,
-which means *nearest neighbor interpolation*. In other words, the
-value at the closest neighboring point is chosen, so there is no real
-interpolation at all. This case is particularly useful if you have a
-field that may be interpolated in several dimensions, but you do not
-really want to do all dimensions all the time. With :math:`O=0`
-interpolation and a grid that matches the original grid, interpolation
-can be effectively *turned off* for that dimension.
-
-Note, that if you use even interpolation orders, you will have an
-unequal number of interpolation points *to the left* and *to the
-right* of your new point. This is an argument for preferring :math:`O=3` as the
-basic higher order polynomial interpolation, instead of :math:`O=2`.
-
-Overall, higher order interpolation works rather similarly to the
-linear case.  The main difference is that grid positions for higher
-order interpolation are stored in an object of type
-``my_interp::Lagrange<>``, instead of ``GridPos``. A
-``my_interp::Lagrange<>`` object contains the grids first index, interpolation
-weights for all interpolation points, and on demand the linear derivative of the 
-interpolation at the grid position. For each point in the new grid,
-there is 1 index, :math:`O+1` weights, and ``0`` or :math:`O+1` weight derivatives.
-
-The ``my_interp::Lagrange<>`` type is a template and requires 
-instantiation upon use of several compile-time parameters.  The template
-signature is:
-
-.. code-block:: C++
-
-  template <
-      Index PolyOrder=-1,
-      bool do_derivs=false,
-      GridType type=GridType::Standard,
-      template <cycle_limit lim> class Limit=no_cycle>
-    requires(test_cyclic_limit<Limit>())
-  struct Lagrange;
-
-The ``PolyOrder`` ``Index`` informs the type about its interpolation
-order.  If it is negative, the object's polynomial order is determined at runtime.
-If it is positive, the value of the polynomial order has been determined at compile time.
-The difference between runtime and compile time objects is that you tend to to get
-orders of magnitude faster execution times if the value is known at compile time.
-
-The ``do_derivs`` ``bool`` tells the type to also compute the
-derivatives of the weights.  If this is false, fewer calculations are performed
-but you cannot compute the derivatives.  In general, computing the derivatives
-add an overhead of in worst case 2, as there's often quite a lot less work to
-do to compute the derivatives.
-
-The ``type`` ``GridType`` selects the grid transformation.
-``GridType`` is described more below for options, but there are two
-special grid types that are important to distinguish: cyclic and non-cyclic
-grid types.  If the type is inherently cyclic, special care is taken to cycle the indices
-and weights so that you can interpolate over the "borders" of the input vector grid.
-
-The ``template <cycle_limit lim> class Limit`` template class over the
-``lim`` ``cycle_limit`` determines the cyclicity of the grid.
-It has to be ``my_interp::no_cycle`` for all non-cyclic grids.
-The template class itself is very simple.  It needs to be possible to instantiate
-the class with ``cycle_limit::lower`` and ``cycle_limit::upper``
-such that the class has a ``static constexpr Numeric`` member called
-``bound``.  If the class is instantiated with the ``cycle_limit::lower``,
-the value of ``bound`` must be strictly lower than the value of the class
-as instantiated by ``cycle_limit::upper``.  Three examples of cyclic bounds 
-are provided as ``my_interp::cycle_m180_p180``,  ``my_interp::cycle_0_p360``,
-and ``my_interp::cycle_0_p2pi``, which respectively represents the cyclic bounds
-of :math:`[-180,\; 180)`, :math:`[0,\; 360)`, and :math:`[0,\; 2\pi)`.
-
-In contrast to ``GridPos``, ``my_interp::Lagrange<>`` stores
-weights ``lx`` rather than fractional distances ``fd``.
-For the linear case:
-
-.. code-block:: C++
-
-  lx[0] = fd[1]
-  lx[1] = fd[0]
-
-So the two concepts are almost the same.  Because the ``lx`` are associated
-with each interpolation point, they work also for higher interpolation
-order, whereas the concept of fractional distance does not.
-
-The weights along any dimension is calculated according to 
+Lagrange weights are computed as:
 
 .. math::
 
-  l_j(x) = \prod_{\substack{0 \leq m \leq O \\ m \neq j}} 
-  \frac{u(f(x) - f(x _m))}{u(f(x_j) - f(x_m))} 
+  l_j(x) = \prod_{\substack{0 \leq m \leq O \\ m \neq j}}
+  \frac{u(f(x)) - u(f(x _m))}{u(f(x_j)) - u(f(x_m))}
 
-where :math:`f` is a grid scaling function and :math:`u` is a combination of sign-reversal and cyclic minima.
-The :math:`f` can be a logarithm, reverse cosine,
-circular constraints, or, most commonly, just the input.  The provided options
-are part of the ``my_interp::GridType`` enum class and are:
+where :math:`f` is a grid scaling function and :math:`u` deals with cyclicity.
+The transformation can be whatever, but most common
+is to use the identity function :math:`f(x) = x`, which is thus the default.
 
+Grid cyclicity
+--------------
 
-- ``Standard``
-
-  .. math::
-
-    f\left(t\right) = t
-  
-  where :math:`u(t) = t`.
-
-- ``Cyclic``
-
-  .. math::
-    
-    f\left(t\right) = t + n\left(t_1 - t_0\right),
-
-  where :math:`c_0 \leq t + n\left(c_1 - c_0\right) < c_1`,
-  with :math:`n` as an integer and
-  :math:`\left[c_0, c_1\right)` as the cyclic limits so that
-  :math:`g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)`
-  holds true for a valid function :math:`g(t)` and any integer :math:`m`.
-  :math:`u(t) = t + X`.  :math:`X` is found as whichever has the absolute minimum
-  of :math:`t + c_1-c_0`, :math:`t`, or :math:`t+c_0-c_1`.
-
-- ``Log``
-  
-  .. math::
-    
-    f\left(t\right) = \ln\left(t\right),
-
-  where :math:`t > 0`.  :math:`u(t) = t`.
-
-- ``Log10``
-  
-  .. math::
-    
-    f\left(t\right) = \log_{10}\left(t\right),
-
-  where :math:`t > 0`.  :math:`u(t) = t`.
-
-- ``Log2``
-  
-  .. math::
-    
-    f\left(t\right) = \log_2\left(t\right),
-
-  where :math:`t > 0`.  :math:`u(t) = t`.
-
-- ``SinDeg``
-
-  .. math::
-
-    f\left(t\right) = \sin\left(\frac{\pi}{180}t\right),
-
-  where :math:`-90\leq t \leq 90`.  :math:`u(t) = t`.
-
-- ``SinRad``
-  
-  .. math::
-    
-    f\left(t\right) = \sin\left(t\right),
-
-  where :math:`-\pi/2 \leq t \leq \pi/2`.  :math:`u(t) = t`.
-
-- ``CosDeg``
-  
-  .. math::
-
-    f\left(t\right) = \cos\left(\frac{\pi}{180}\left[180 - t\right]\right),
-
-  where :math:`0\leq t \leq 180`.  :math:`u(t) = -t`.
-
-- ``CosRad``
-  
-  .. math::
-
-    f\left(t\right) = \cos\left(\pi-t\right),
-
-  where :math:`0 \leq t \leq \pi`.  :math:`u(t) = -t`.
-
-The derivatives are computed as
-
-.. math::
-
-  \frac{\partial l_j(x)}{\partial x} = \sum_{i=0}^{O}
-  \left\{
-  \begin{array}{lcr}
-    \frac{l_j(x)}{x - x_i} & \mathrm{if} & x \neq x_i \\
-    \frac{1}{x_j - x_i} \prod_{m=0}^O
-    \left\{
-    \begin{array}{lcr}
-    \frac{x - x_m}{x_j - x_m} & \mathrm{if} & m \neq i,\; j \\
-    1 & \mathrm{if} & m \in i,\; j
-    \end{array} \right. & \mathrm{if} & x \equiv x_i
-  \end{array}
-  \right. \; i \neq j.
-
-Note that the upper branch speedup is only available for 
-``Standard`` and for ``Cyclic`` code.
-Other cases must use the lower branch to get linear derivatives.
-
-Instead of ``gridpos``, you have to use the constructor
-``my_interp::Lagrange<>`` for higher order interpolation
-with a single interpolation point, and ``my_interp::lagrange_interpolation_list<my_interp::Lagrange<>>``
-for multiple outputs. The constructor requires a start-position guess,
-the value at which to interpolate towards, and the original grid as
-inputs.  In the version of ``my_interp::Lagrange<>`` that has
-its polynomial order determined at runtime, and addition number representing
-this polynomial order has to also be passed (so that the choice of runtime
-rather than compile time polynomial order is explicit).  The multiple outputs
-function takes the new grid followed by the old grid as arguments.  Again,
-the runtime polynomial order has to also explicitly be set when the runtime
-when calling this function.  An optional but crucial final parameter can
-be passed to the function to determine if the extrapolation outside of a grid is
-acceptable.  By default, the new grid is only allowed to be half a step size
-beyond the upper and lower edges of the old grid.
-
-Interpolation
--------------
-
-So far we have not computed any interpolation but just the weights.  For the 
-interpolation, the code using one or more (list of) ``my_interp::Lagrange<>``
-can both mimic, but also differs in parts significantly from, the linear interpolation
-discussed above.  Perhaps the most important difference is that there are no blue
-interpolation schemes.  This was not used anywhere at the time of implementation,
-so it was deemed less useful.  Instead, there are only two types of
-interpolation offered: full interpolation that goes from a N-dimensional tensor
-input to a scalar, and full re-interpolation that goes from one N-dimensional
-tensor and outputs another N-dimensional tensor.  Note that we say "scalar"
-and not ``Numeric``, because we can handle a much wider
-variety of input value type, perhaps most notable ``Complex``.
-
-The call order after you have a list of (lists of) ``my_interp::Lagrange<>``
-is simple.  Given ``lag...`` as this list and ``in`` as the input field,
-the call-order for scalar interpolation is
-
-.. code-block:: C++
-
-  auto itw = interpweights(lag...);
-  auto out = interp(in, itw, lag...);
-
-where ``out`` is a scalar.  It is very important that the rank of ``in``
-is the same as the count of the number of ``lag...``.  If you want to have
-the derivative instead of the interpolation along some dimension ``dim``,
-the call is 
-
-.. code-block:: C++
-
-  auto ditw = dinterpweights<dim>(lag...);
-  auto dout = interp(in, itw, lag...);
-
-where again ``dout`` is a scalar but now represents the derivative along the select dimension.  The ``dim`` must be 0 or
-higher but strictly less than the rank of ``in``.  The two interpolation
-weight tensors ``itw`` and ``ditw`` will here have the rank as
-``in`` with a shape that is the polynomial order plus one in the same
-order as ``lag...``.  It is possible to pre-allocate these sizes and call
-these two functions directly with ``d/itw`` as the first input.  
-For re-interpolation, the call order is very similar
-
-.. code-block:: C++
-
-  auto ritw = interpweights(lag...);
-  auto rout = reinterp(in, itw, lag...);
-
-where ``rout`` is a tensor the same rank as ``in``.  If you want to have
-the derivative instead of the interpolation along some dimension ``dim``,
-the call is 
-
-.. code-block:: C++
-
-  auto dritw = dinterpweights<dim>(lag...);
-  auto drout = reinterp(in, itw, lag...);
-
-where again ``drout`` is a tensor the same rank as ``in`` but now represents the derivative along the select dimension.
-The rank of ``ritw`` and ``dritw`` is twice that of the rank of ``in``.  The inner half of the shape is exactly
-the same as in the scalar interpolation.  The outer half of the shape is the same as the length of the lists that makes up the 
-``lag...``.
-
-.. note::
-
-  For convenience and for an unknown effect on the speed of the calculations, it is optional to compute
-  the interpolation weights.  You can call ``interp`` and ``reinterp`` directly, omitting the calls to
-  ``interpweights`` and ``dinterpweights``.  We are to this date (2023-02-27) not sure what that does to execution
-  speed and cannot give any recommendation either way on how to use it.  Different compilers seem to prefer different solutions,
-  so it is better for code consistency to stick with the same approach as the ``gridpos`` does of demanding a call
-  to ``interpweights`` and ``dinterpweights`` first.
-
-Summary
--------
-
-Now you probably understand better what was written at the very
-beginning of this chapter, namely that doing an interpolation always
-requires the chain of function calls:
-
-1. ``gridpos`` or ``my_interp::Lagrange<>`` or ``my_interp::lagrange_interpolation_list<>`` (one for each interpolation dimension)
-2. ``interpweights``
-3. ``interp`` or ``reinterp``
-
-If you are interested in how the functions really work, look in file
-``interpolation.cc`` or ``matpack/interp.h``.
-The documentation there is quite detailed.  When you are using
-interpolation, you should always give some thought to whether you can
-re-use grid positions or even interpolation weights. This can really
-save you a lot of computation time. For example, if you want to
-interpolate several fields --- which are all on the same grids --- to
-some position, you only have to compute the weights once.  However, also
-be aware that sometimes reallocating might be preferred to passing views.
+If the grid is cyclic :math:`\left[X_0, X_1\right)`,
+and for simplicity of writing these examples :math:`f(x) = x`, then
+the algorithmic first thing that happens is that :math:`x` is shifted
+to be within this range :math:`\left[X_0, X_1\right)`.
+If the grid coordinates closest to :math:`x` after the shift are
+:math:`\left[x_j, x_{j+1}, \cdots, x_{j+n}\right]`,
+and :math:`x_j \leq x \lt x_{j+n}` then :math:`u(x) = x` for all values.
+If :math:`x \lt x_j`, then :math:`u(x) = x + X_0 - X_1`
+for all :math:`x_i \geq \left(X_1-X_0\right) / 2`.
+If :math:`x \gt x_{j+n}`, then :math:`u(x) = x - X_0 + X_1`
+for all :math:`x_i \lt \left(X_1-X_0\right) / 2`.

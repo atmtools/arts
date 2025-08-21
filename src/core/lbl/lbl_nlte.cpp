@@ -1,6 +1,7 @@
 #include "lbl_nlte.h"
 
 #include <array_algo.h>
+#include <lagrange_interp.h>
 #include <matpack_mdspan_elemwise_mditer.h>
 #include <partfun.h>
 
@@ -23,11 +24,11 @@ AtmFunctionalData level_density(const AtmFunctionalData& T,
       }};
 }
 
-SortedGriddedField3 level_density(const SortedGriddedField3& T,
-                                  Numeric g,
-                                  Numeric E,
-                                  const SpeciesIsotope& spec) {
-  SortedGriddedField3 out(T);
+GeodeticField3 level_density(const GeodeticField3& T,
+                             Numeric g,
+                             Numeric E,
+                             const SpeciesIsotope& spec) {
+  GeodeticField3 out(T);
   out.data_name = "NLTE";
 
   stdr::transform(matpack::elemwise_range(T.data),
@@ -91,9 +92,8 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
       } else {
         auto& x = normalization[key.isot];
 
-        auto srhs = std::get_if<SortedGriddedField3>(&data.data);
-        if (auto lhs = std::get_if<SortedGriddedField3>(&x.data);
-            lhs and srhs) {
+        auto srhs = std::get_if<GeodeticField3>(&data.data);
+        if (auto lhs = std::get_if<GeodeticField3>(&x.data); lhs and srhs) {
           lhs->data += srhs->data;
           continue;
         }
@@ -106,14 +106,14 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
         throw std::runtime_error(
             std::format("Unsupported types or type mismatch {} and {}, "
-                        "please use SortedGriddedField3 or Numeric for NonLTE",
+                        "please use GeodeticField3 or Numeric for NonLTE",
                         data.data_type(),
                         x.data_type()));
       }
     }
 
     for (auto& [_, data] : normalization) {
-      if (auto ptr = std::get_if<SortedGriddedField3>(&data.data); ptr) {
+      if (auto ptr = std::get_if<GeodeticField3>(&data.data); ptr) {
         ptr->data /= normalizing_factor;
         continue;
       }
@@ -125,15 +125,15 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
       throw std::runtime_error(
           std::format("Unsupported type: {}\n"
-                      "Please use SortedGriddedField3 or Numeric for NonLTE",
+                      "Please use GeodeticField3 or Numeric for NonLTE",
                       data.data_type()));
     }
 
     for (auto& [key, data] : out) {
       auto& x = normalization[key.isot];
 
-      if (auto lhs = std::get_if<SortedGriddedField3>(&data.data),
-          rhs      = std::get_if<SortedGriddedField3>(&x.data);
+      if (auto lhs = std::get_if<GeodeticField3>(&data.data),
+          rhs      = std::get_if<GeodeticField3>(&x.data);
           lhs and rhs) {
         lhs->data /= rhs->data;
         continue;
@@ -148,7 +148,7 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
       throw std::runtime_error(
           std::format("Unsupported types or type mismatch {} and {}, "
-                      "please use SortedGriddedField3 or Numeric for NonLTE",
+                      "please use GeodeticField3 or Numeric for NonLTE",
                       data.data_type(),
                       x.data_type()));
     }
@@ -210,8 +210,6 @@ QuantumIdentifierVectorMap createCij(
     const AbsorptionBands& absorption_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
     const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
-  using lag = FixedLagrangeInterpolation<1>;
-
   QuantumIdentifierVectorMap Cij(absorption_bands.size());
   for (const auto& [key, data] : absorption_bands) {
     assert(data.size() == 1);
@@ -220,7 +218,10 @@ QuantumIdentifierVectorMap createCij(
 
     for (auto& atmospheric_point : ray_path_atmospheric_point) {
       const auto numden = atmospheric_point.number_density(key.isot);
-      x.push_back(coll.interp<lag>(atmospheric_point.temperature) * numden);
+
+      x.push_back(
+          interp(coll.data, coll.lag<0, 1>(atmospheric_point.temperature)) *
+          numden);
     }
   }
 

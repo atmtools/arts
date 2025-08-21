@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <concepts>
+#include <span>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -145,6 +146,16 @@ class [[nodiscard]] data_t {
 
   constexpr operator view_t<T, N>&() { return view; }
   constexpr operator const view_t<T, N>&() const { return view; }
+  constexpr operator std::span<T, std::dynamic_extent>()
+    requires(N == 1)
+  {
+    return {begin(), end()};
+  }
+  constexpr operator std::span<const T, std::dynamic_extent>() const
+    requires(N == 1)
+  {
+    return {begin(), end()};
+  }
 
   /*
 

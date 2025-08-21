@@ -277,7 +277,7 @@ void nlte_line_flux_profileIntegrate(
 
 void spectral_flux_profileFromSpectralRadianceField(
     Matrix& spectral_flux_profile,
-    const StokvecSortedGriddedField6& spectral_radiance_field,
+    const GriddedSpectralField6& spectral_radiance_field,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
 
@@ -317,14 +317,8 @@ NFRE: {}
                      NFRE);
   ARTS_USER_ERROR_IF(NLAT != 1, "Only for one latitude point");
   ARTS_USER_ERROR_IF(NLON != 1, "Only for one longitude point");
-  ARTS_USER_ERROR_IF(
-      NZA < 2 or za.front() != 0.0 or za.back() != 180.0,
-      "Must have more than one zenith angle and cover [0, 180] degrees.  Zenith angle grid: {:B,}",
-      za);
-  ARTS_USER_ERROR_IF(
-      NAA != 1 and (aa.front() != 0.0 or aa.back() != 360.0),
-      "Azimuth grid must be 1-long or [0, 360] degrees.  Azimuth angle grid: {:B,}",
-      aa)
+  ARTS_USER_ERROR_IF(NZA < 2, "Must have more than one zenith angle.");
+  ARTS_USER_ERROR_IF(NAA != 1, "Only for one azimuth angle.")
 
   spectral_flux_profile.resize(NALT, NFRE);
   spectral_flux_profile = 0.0;

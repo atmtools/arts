@@ -11,6 +11,7 @@
 #include <properties.h>
 #include <quantum.h>
 #include <species.h>
+#include <stdexcept>
 
 AtmKey to_wind(const String &);
 AtmKey to_mag(const String &);
@@ -158,11 +159,11 @@ struct Point {
 //! All the field data; if these types grow too much we might want to
 //! reconsider...
 using FunctionalData = NumericTernaryOperator;
-using FieldData = std::variant<SortedGriddedField3, Numeric, FunctionalData>;
+using FieldData      = std::variant<GeodeticField3, Numeric, FunctionalData>;
 
 template <typename T>
-concept isSortedGriddedField3 =
-    std::is_same_v<std::remove_cvref_t<T>, SortedGriddedField3>;
+concept isGeodeticField3 =
+    std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
@@ -173,7 +174,7 @@ concept isFunctionalDataType =
 
 template <typename T>
 concept RawDataType =
-    isSortedGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
+    isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -198,8 +199,8 @@ struct Data {
   explicit Data(Numeric x);
   Data &operator=(Numeric x);
 
-  explicit Data(SortedGriddedField3 x);
-  Data &operator=(SortedGriddedField3 x);
+  explicit Data(GeodeticField3 x);
+  Data &operator=(GeodeticField3 x);
 
   explicit Data(FunctionalData x);
   Data &operator=(FunctionalData x);
@@ -207,18 +208,17 @@ struct Data {
   [[nodiscard]] String data_type() const;
 
   template <RawDataType T>
-  [[nodiscard]] const T &get() const {
-    auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    if (out == nullptr) throw std::runtime_error(data_type());
+  [[nodiscard]] const T &get(this auto &&self) {
+    auto *out = std::get_if<std::remove_cvref_t<T>>(&self.data);
+    if (out == nullptr) {
+      throw std::invalid_argument(
+          std::format("Expected type {} not in data.  Instead type {} found.",
+                      Data{T{}}.data_type(),
+                      self.data_type()));
+    }
     return *out;
   }
 
-  template <RawDataType T>
-  [[nodiscard]] T &get() {
-    auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    if (out == nullptr) throw std::runtime_error(data_type());
-    return *out;
-  }
   [[nodiscard]] Numeric at(const Numeric alt,
                            const Numeric lat,
                            const Numeric lon) const;
@@ -235,6 +235,8 @@ struct Data {
 
   [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
       const Vector3 pos) const;
+
+  [[nodiscard]] bool ok() const;
 };
 
 template <typename T>
@@ -307,16 +309,16 @@ struct Field final {
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
   [[nodiscard]] Field gridded(const AscendingGrid &alt,
-                              const AscendingGrid &lat,
-                              const AscendingGrid &lon) const;
+                              const LatGrid &lat,
+                              const LonGrid &lon) const;
 };
 
 struct Xarr {
   Numeric toa{};
   std::vector<Field::KeyVal> keys{};
   AscendingGrid altitudes{};
-  AscendingGrid latitudes{};
-  AscendingGrid longitudes{};
+  LatGrid latitudes{};
+  LonGrid longitudes{};
   Tensor4 data{};
 
   Xarr(const Field &, std::vector<Field::KeyVal> keys = {});

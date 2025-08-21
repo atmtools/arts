@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array.h>
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
 #include <configtypes.h>
 #include <enumsLineByLineCutoffType.h>
 #include <enumsLineByLineLineshape.h>

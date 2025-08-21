@@ -65,10 +65,10 @@ void ray_pathRemoveNonGeometricGridCrossings(
   ARTS_TIME_REPORT
 
   const auto& data = atmospheric_field[atm_key];
-  ARTS_USER_ERROR_IF(not std::holds_alternative<SortedGriddedField3>(data.data),
-                     "The data for key {} is not a SortedGriddedField3",
+  ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(data.data),
+                     "The data for key {} is not a GeodeticField3",
                      atm_key);
-  const auto& field = std::get<SortedGriddedField3>(data.data);
+  const auto& field = std::get<GeodeticField3>(data.data);
   const auto& alt   = field.grid<0>();
   const auto& lat   = field.grid<1>();
   const auto& lon   = field.grid<2>();
@@ -87,10 +87,10 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
   ARTS_TIME_REPORT
 
   const auto& data = atmospheric_field[atm_key];
-  ARTS_USER_ERROR_IF(not std::holds_alternative<SortedGriddedField3>(data.data),
-                     "The data for key {} is not a SortedGriddedField3",
+  ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(data.data),
+                     "The data for key {} is not a GeodeticField3",
                      atm_key);
-  const auto& field = std::get<SortedGriddedField3>(data.data);
+  const auto& field = std::get<GeodeticField3>(data.data);
   const auto& alt   = field.grid<0>();
   const auto& lat   = field.grid<1>();
   const auto& lon   = field.grid<2>();

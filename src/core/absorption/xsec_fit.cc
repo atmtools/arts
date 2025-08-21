@@ -9,7 +9,7 @@
 #include "xsec_fit.h"
 
 #include <debug.h>
-#include <interp.h>
+#include <lagrange_interp.h>
 
 #include <algorithm>
 #include <memory>
@@ -169,12 +169,11 @@ void XsecRecord::Extract(VectorView result,
     RemoveNegativeXsec(fit_result);
 
     {
-      const auto f_gp =
-          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
-              data_f_grid_active, f_grid_active, 0.5, "Frequency");
-      const auto f_itw = interpweights(f_gp);
+      const auto f_gp = lagrange_interp::make_lags<1>(
+          f_grid_active, data_f_grid_active, 0.5, "Frequency");
+      const auto f_itw = reinterpweights(f_gp);
       // Find frequency grid positions:
-      my_interp::reinterp(xsec_interp, fit_result_active, f_itw, f_gp);
+      reinterp(xsec_interp, fit_result_active, f_itw, f_gp);
     }
 
     result_active += xsec_interp;

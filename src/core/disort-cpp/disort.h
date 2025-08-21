@@ -567,7 +567,12 @@ class main_data {
   [[nodiscard]] auto&& beam_azimuth() const { return phi0; }
 
   //! Set the optical thicknesses grid - NLayers
-  [[nodiscard]] ExtendAscendingGrid tau() { return tau_arr; }
+  template <matpack::exact_md<Numeric, 1> T>
+  void tau(T&& x) {
+    ARTS_USER_ERROR_IF(
+        x.size() != tau_arr.size(), "Invalid size for tau: {}", x.size());
+    tau_arr = std::forward<T>(x);
+  }
 
   //! The single scattering albedo - NLayers
   [[nodiscard]] auto omega() { return VectorView{omega_arr}; }

@@ -15,13 +15,13 @@
 namespace Python {
 void py_surf(py::module_ &m) try {
   py::class_<Surf::Data> surfdata(m, "SurfaceData");
-  surfdata.def(py::init_implicit<SortedGriddedField2>())
+  surfdata.def(py::init_implicit<GeodeticField2>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Surf::FunctionalData>())
       .def(
           "__init__",
           [](Surf::Data *a, const GriddedField2 &v) {
-            new (a) Surf::Data(SortedGriddedField2(v));
+            new (a) Surf::Data(GeodeticField2(v));
           },
           "v"_a,
           "Initialize with a sorted field")

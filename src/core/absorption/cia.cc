@@ -16,7 +16,7 @@
 #include <arts_constants.h>
 #include <double_imanip.h>
 #include <file.h>
-#include <interp.h>
+#include <lagrange_interp.h>
 
 #include <cmath>
 #include <memory>
@@ -178,38 +178,34 @@ void cia_interpolation(VectorView result,
   }
 
   // Find frequency grid positions:
-  const auto f_lag = my_interp::lagrange_interpolation_list<
-      FixedLagrangeInterpolation<f_order>>(
-      f_grid_active, data_f_grid, 0.5, "Frequency");
+  const auto f_lag = lagrange_interp::make_lags<f_order>(
+      data_f_grid, f_grid_active, 0.5, "Frequency");
 
   // Do the rest of the interpolation.
   if (T_order == 0) {
     // No temperature interpolation in this case, just a frequency interpolation.
     result_active =
-        reinterp(cia_data.data[joker, 0], interpweights(f_lag), f_lag);
+        reinterp(cia_data.data[joker, 0], reinterpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::cdata_t<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag =
-          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
-              Tnew, data_T_grid, T_extrapolfac, "Temperature");
+      const auto T_lag = lagrange_interp::make_lags<1>(
+          data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
               .reshape(f_lag.size());
     } else if (T_order == 2) {
-      const auto T_lag =
-          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
-              Tnew, data_T_grid, T_extrapolfac, "Temperature");
+      const auto T_lag = lagrange_interp::make_lags<2>(
+          data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
               .reshape(f_lag.size());
     } else if (T_order == 3) {
-      const auto T_lag =
-          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
-              Tnew, data_T_grid, T_extrapolfac, "Temperature");
+      const auto T_lag = lagrange_interp::make_lags<3>(
+          data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active =
-          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
               .reshape(f_lag.size());
     } else {
       throw std::runtime_error(

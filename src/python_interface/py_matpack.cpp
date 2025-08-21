@@ -76,7 +76,8 @@ void py_matpack(py::module_& m) try {
            })
       .def("__setstate__",
            [](StridedRange* r, const std::tuple<Index, Index, Index>& t) {
-             new (r) StridedRange{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
+             new (r)
+                 StridedRange{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
            })
       .doc() = "A strided range, used to select parts of a matpack type";
 
@@ -216,7 +217,7 @@ void py_matpack(py::module_& m) try {
   generic_interface(g1);
   g1.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<AscendingGrid>());
-  
+
   py::class_<DescendingGrid> g2(m, "DescendingGrid");
   matpack_grid_interface(g2);
   generic_interface(g2);
@@ -228,6 +229,30 @@ void py_matpack(py::module_& m) try {
           m, "ArrayOfAscendingGrid");
   generic_interface(b1);
   vector_interface(b1);
+
+  py::class_<LatGrid> gr1(m, "LatGrid");
+  matpack_grid_interface(gr1);
+  generic_interface(gr1);
+  gr1.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<LatGrid>());
+
+  py::class_<LonGrid> gr2(m, "LonGrid");
+  matpack_grid_interface(gr2);
+  generic_interface(gr2);
+  gr2.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<LonGrid>());
+
+  py::class_<ZenithGrid> gr3(m, "ZenithGrid");
+  matpack_grid_interface(gr3);
+  generic_interface(gr3);
+  gr3.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<ZenithGrid>());
+
+  py::class_<AzimuthGrid> gr4(m, "AzimuthGrid");
+  matpack_grid_interface(gr4);
+  generic_interface(gr4);
+  gr4.def(py::init_implicit<Vector>());
+  v1.def(py::init_implicit<AzimuthGrid>());
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
