@@ -68,6 +68,16 @@ struct [[nodiscard]] cdata_t {
   explicit constexpr operator data_t<T, N>() const {
     return data_t<T, N>{view()};
   }
+  constexpr operator std::span<T, ndata>()
+    requires(N == 1)
+  {
+    return data;
+  }
+  constexpr operator std::span<const T, ndata>() const
+    requires(N == 1)
+  {
+    return data;
+  }
 
   /*
 
@@ -207,6 +217,16 @@ struct [[nodiscard]] cdata_t {
   template <typename Self>
   constexpr auto empty(this Self&& self) {
     return std::forward<Self>(self).view().empty();
+  }
+
+  template <typename Self>
+  constexpr decltype(auto) front(this Self&& self) {
+    return std::forward<Self>(self).data.front();
+  }
+
+  template <typename Self>
+  constexpr decltype(auto) back(this Self&& self) {
+    return std::forward<Self>(self).data.back();
   }
 
   template <typename Self>

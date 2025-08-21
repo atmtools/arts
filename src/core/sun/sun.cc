@@ -86,7 +86,7 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
   const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
   // Check if frequency is inside the range covered by the data:
-  lagrange_interp::check_limit<lagrange_interp::identity>(
+  lagrange_interp::check_limit(
       data_f_grid, f_grid_active, 0.5, 1, "Frequency grid for sun spectrum");
 
   {

@@ -84,7 +84,7 @@ class ranged_grid_t {
   constexpr operator const Vector&() const { return grid; }
   constexpr operator ConstVectorView() const { return grid; }
   constexpr operator StridedConstVectorView() const { return grid; }
-  constexpr operator std::span<const Numeric>() const { return grid; }
+  constexpr operator std::span<const Numeric, std::dynamic_extent>() const { return grid; }
 
   [[nodiscard]] constexpr Size size() const { return grid.size(); }
   [[nodiscard]] constexpr bool empty() const { return grid.empty(); }

@@ -98,7 +98,7 @@ class grid_t {
   constexpr operator const Vector&() const { return vec(); }
   constexpr operator ConstVectorView() const { return vec(); }
   constexpr operator StridedConstVectorView() const { return vec(); }
-  constexpr operator std::span<const Numeric>() const { return vec(); }
+  constexpr operator std::span<const Numeric, std::dynamic_extent>() const { return vec(); }
 
   template <access_operator Op>
   [[nodiscard]] constexpr auto operator[](const Op& op) const {

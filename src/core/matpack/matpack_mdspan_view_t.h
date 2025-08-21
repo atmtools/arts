@@ -385,6 +385,17 @@ struct view_t final : public mdview_t<T, N> {
   {
     std::swap(static_cast<base&>(*this), static_cast<base&>(other));
   }
+
+  constexpr operator std::span<T, std::dynamic_extent>()
+    requires(N == 1)
+  {
+    return {begin(), end()};
+  }
+  constexpr operator std::span<const T, std::dynamic_extent>() const
+    requires(N == 1)
+  {
+    return {begin(), end()};
+  }
 };
 }  // namespace matpack
 
