@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 PLOT = False
-toa = 100e3
+toa = 120e3
 lat = 0
 lon = 0
 NQuad = 40
