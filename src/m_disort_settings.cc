@@ -29,6 +29,9 @@ void disort_settingsInit(DisortSettings& disort_settings,
   disort_settings   = DisortSettings();
   const Index nfreq = frequency_grid.size();
   const Index nlay  = ray_path.size() - 1;
+  ARTS_USER_ERROR_IF(quadrature_dimension % 2,
+                     "Quadrature dimension ({}) must be even",
+                     quadrature_dimension);
   disort_settings.resize(quadrature_dimension,
                          legendre_polynomial_dimension,
                          fourier_mode_dimension,
