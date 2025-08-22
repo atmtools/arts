@@ -328,7 +328,7 @@ void disort_settingsOpticalThicknessFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const Index& allow_fixing) {
+    const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   const Index N  = disort_settings.nlay;
@@ -376,22 +376,17 @@ ray_path: {:B,}
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
-      disort_settings.optical_thicknesses[iv, i] =
+      disort_settings.optical_thicknesses[iv, i] = std::max(
           r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
-                               ray_path_propagation_matrix[i + 0][iv].A());
+                               ray_path_propagation_matrix[i + 0][iv].A()),
+          min_optical_depth);
       if (i > 0) {
         disort_settings.optical_thicknesses[iv, i] +=
             disort_settings.optical_thicknesses[iv, i - 1];
 
-        if (disort_settings.optical_thicknesses[iv, i] <=
-            disort_settings.optical_thicknesses[iv, i - 1]) {
-          if (allow_fixing != 0) {
-            disort_settings.optical_thicknesses[iv, i] =
-                std::nextafter(disort_settings.optical_thicknesses[iv, i - 1],
-                               std::numeric_limits<Numeric>::max());
-          } else {
-            ARTS_USER_ERROR(
-                R"(
+        ARTS_USER_ERROR_IF((disort_settings.optical_thicknesses[iv, i] <=
+                            disort_settings.optical_thicknesses[iv, i - 1]),
+                           R"(
 Not strictly increasing optical thicknesses between layers.
 
 Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
@@ -399,10 +394,8 @@ Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
 Value:                {}
 Frequency grid index: {}
 )",
-                disort_settings.optical_thicknesses[iv, i - 1],
-                iv);
-          }
-        }
+                           disort_settings.optical_thicknesses[iv, i - 1],
+                           iv);
       }
     }
   }
@@ -616,15 +609,16 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_settings_agendaSetup(
-    Agenda& disort_settings_agenda,
+namespace {
+Agenda disort_settings_agendaSetup(
     const disort_settings_agenda_setup_layer_emission_type&
         layer_emission_setting,
     const disort_settings_agenda_setup_scattering_type& scattering_setting,
     const disort_settings_agenda_setup_space_type& space_setting,
     const disort_settings_agenda_setup_sun_type& sun_setting,
     const disort_settings_agenda_setup_surface_type& surface_setting,
-    const Vector& surface_lambertian_value) {
+    const Vector& surface_lambertian_value,
+    const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -657,7 +651,8 @@ void disort_settings_agendaSetup(
   }
 
   // We have both scattering and clearsky absorption, so we can set the optical thickness
-  agenda.add("disort_settingsOpticalThicknessFromPath");
+  agenda.add("disort_settingsOpticalThicknessFromPath",
+             SetWsv("min_optical_depth", min_optical_depth));
 
   // Since we have the optical thickness, we can set the thermal emission
   switch (layer_emission_setting) {
@@ -712,8 +707,9 @@ void disort_settings_agendaSetup(
       break;
   }
 
-  disort_settings_agenda = std::move(agenda).finalize(false);
+  return std::move(agenda).finalize(false);
 }
+}  // namespace
 
 void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
                                  const String& layer_emission_setting,
@@ -721,16 +717,17 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
                                  const String& space_setting,
                                  const String& sun_setting,
                                  const String& surface_setting,
-                                 const Vector& surface_lambertian_value) {
+                                 const Vector& surface_lambertian_value,
+                                 const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
-  disort_settings_agendaSetup(
-      disort_settings_agenda,
+  disort_settings_agenda = disort_settings_agendaSetup(
       to<disort_settings_agenda_setup_layer_emission_type>(
           layer_emission_setting),
       to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
       to<disort_settings_agenda_setup_space_type>(space_setting),
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
       to<disort_settings_agenda_setup_surface_type>(surface_setting),
-      surface_lambertian_value);
+      surface_lambertian_value,
+      min_optical_depth);
 }

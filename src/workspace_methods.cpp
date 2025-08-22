@@ -2122,10 +2122,7 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
                     "hydrostatic_option"},
-      .gin_type  = {"GeodeticField2,Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "String"},
+      .gin_type  = {"GeodeticField2,Numeric", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
                     Numeric{-1},
                     Numeric{-1},
@@ -5067,6 +5064,19 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .out    = {"scattering_species"},
   };
 
+  wsm_data["disort_settingsOpticalThicknessFromPath"] = {
+      .desc   = R"(Get optical thickness from path.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
+      .gin    = {"min_optical_depth"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e-11}},
+      .gin_desc =
+          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
+  };
+
   wsm_data["disort_settings_agendaSetup"] = {
       .desc =
           R"--(Setup for Disort standard calculations.
@@ -5074,28 +5084,39 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
 This method allows setting up *disort_settings_agenda* by named options.
 A description of the options is given below.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings_agenda"},
-      .gin       = {"layer_emission_setting",
-                    "scattering_setting",
-                    "space_setting",
-                    "sun_setting",
-                    "surface_setting",
-                    "surface_lambertian_value"},
-      .gin_type  = {"String", "String", "String", "String", "String", "Vector"},
-      .gin_value = {String{"LinearInTau"},
-                    String{"None"},
-                    String{"CosmicMicrowaveBackgroundRadiation"},
-                    String{"None"},
-                    String{"Thermal"},
-                    Vector{}},
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings_agenda"},
+      .gin    = {"layer_emission_setting",
+                 "scattering_setting",
+                 "space_setting",
+                 "sun_setting",
+                 "surface_setting",
+                 "surface_lambertian_value",
+                 wsm_data["disort_settingsOpticalThicknessFromPath"].gin[0]},
+      .gin_type =
+          {"String",
+           "String",
+           "String",
+           "String",
+           "String",
+           "Vector",
+           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_type[0]},
+      .gin_value =
+          {String{"LinearInTau"},
+           String{"None"},
+           String{"CosmicMicrowaveBackgroundRadiation"},
+           String{"None"},
+           String{"Thermal"},
+           Vector{},
+           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_value[0]},
       .gin_desc =
           {"Layer emission settings",
            "Scattering settings",
            "Space settings",
            "Sun settings",
            "Surface settings",
-           "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)"},
+           "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)",
+           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_desc[0]},
   };
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
@@ -5235,19 +5256,6 @@ This is WIP and should not be used.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
-  };
-
-  wsm_data["disort_settingsOpticalThicknessFromPath"] = {
-      .desc   = R"(Get optical thickness from path.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings"},
-      .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
-      .gin    = {"allow_fixing"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {"Flag to allow fixing of the optical thickness - it must be strictly increasing, this does that"},
   };
 
   wsm_data["disort_settingsNoSurfaceScattering"] = {

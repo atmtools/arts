@@ -58,7 +58,7 @@ Before that, a concise overview of what each option do is available by the types
           enumstrs::disort_settings_agenda_setup_sun_typeNames<>.size() *
           enumstrs::disort_settings_agenda_setup_surface_typeNames<>.size(),
       method_name,
-      
+
       method.in[0].substr(1),
       method.in[1].substr(1),
       method.in[2].substr(1),
@@ -85,9 +85,10 @@ Before that, a concise overview of what each option do is available by the types
                                           std::string{space_setting},
                                           std::string{sun_setting},
                                           std::string{surface_setting},
-                                          y);
-              docstr = replace(
-                  x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection");
+                                          y,
+                                          123);
+              docstr = replace(replace(
+                  x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection"), "123", "min_optical_depth");
             } catch (std::exception& e) {
               docstr = std::format("Invalid combination: {}", e.what());
             }
@@ -96,7 +97,7 @@ Before that, a concise overview of what each option do is available by the types
                 R"(
 ------------------------------------------------------------
 
-``{}({}="{}", {}="{}", {}="{}", {}="{}", {}="{}", {}=lambertian_reflection)``
+``{}({}="{}", {}="{}", {}="{}", {}="{}", {}="{}", {}=lambertian_reflection, min_optical_depth=min_optical_depth)``
 
 {}
 )",
