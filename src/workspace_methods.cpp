@@ -5305,8 +5305,11 @@ This is WIP and should not be used.
       .gin_desc  = {"The azimuthal angles"},
   };
 
+#ifdef ENABLE_CDISORT
   wsm_data["cdisort_spectral_radiance_fieldCalc"] = {
       .desc      = R"(Perform CDisort calculations for spectral radiance.
+
+CDisort is only included for testing and comparisons with our own disort implementation.
 )",
       .author    = {"Oliver Lemke"},
       .out       = {"disort_spectral_radiance_field",
@@ -5322,6 +5325,7 @@ This is WIP and should not be used.
       .gin_value = {Vector{0.0}},
       .gin_desc  = {"The azimuthal angles"},
   };
+#endif
 
   wsm_data["disort_spectral_flux_fieldCalc"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.

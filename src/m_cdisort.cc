@@ -1,11 +1,12 @@
+#include <config.h>
+
+#ifdef ENABLE_CDISORT
 #include <arts_conversions.h>
 #include <arts_omp.h>
 #include <disort.h>
 #include <workspace.h>
 #pragma clang - format off
-#if not ARTS_LGPL
 #include <cdisort.h>
-#endif
 #pragma clang - format on
 
 #include <algorithm>
@@ -22,7 +23,6 @@
 // Core Disort
 ////////////////////////////////////////////////////////////////////////
 
-#if not ARTS_LGPL
 namespace {
 void setup_cdisort(disort_state& ds,
                    const Vector& phis,
@@ -117,15 +117,10 @@ void freq_setup_cdisort(disort_state& ds,
       ds.temper[i] = ray_path_atmospheric_point[i].temperature;
   }
 
-  // for (Index i = 0; i < ds.numu; i++) {
-  //   ds.umu[i] = dis.mu()[i];  // -cos(za_grid[i] * PI / 180);
-  // }
-
   for (Index i = 0; i < ds.numu / 2; i++) {
     ds.umu[i] = dis.mu()[ds.numu - i - 1];  // -cos(za_grid[i] * PI / 180);
     ds.umu[i + ds.numu / 2] = dis.mu()[i];  // -cos(za_grid[i] * PI / 180);
   }
-
 
   // Cosmic background
   // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
@@ -206,7 +201,6 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 }
 
 }  // namespace
-#endif  // ARTS_LGPL
 
 void cdisort_spectral_radiance_fieldCalc(
     Tensor4& disort_spectral_radiance_field,
@@ -219,7 +213,6 @@ void cdisort_spectral_radiance_fieldCalc(
     const SurfaceField& surface_field,
     const Vector& phis) {
   ARTS_TIME_REPORT
-#if not ARTS_LGPL
 
   using Conversion::acosd;
 
@@ -278,7 +271,6 @@ void cdisort_spectral_radiance_fieldCalc(
 
   ARTS_USER_ERROR_IF(
       error.size(), "Error occurred in disort-spectral:\n{}", error);
-#else
-  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-#endif  // ARTS_LGPL
 }
+
+#endif  // ENABLE_CDISORT

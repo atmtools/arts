@@ -237,7 +237,9 @@ if(ENABLE_TMATRIX)
   target_link_libraries(artsworkspace PUBLIC tmatrix)
 endif(ENABLE_TMATRIX)
 
-target_link_libraries(artsworkspace PUBLIC cdisort)
+if(ENABLE_CDISORT)
+  target_link_libraries(artsworkspace PUBLIC cdisort)
+endif()
 
 # ########## next target ###############
 

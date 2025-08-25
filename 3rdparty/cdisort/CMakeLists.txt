@@ -1,4 +1,4 @@
-if(NOT ENABLE_ARTS_LGPL AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+if(ENABLE_CDISORT)
 add_library (cdisort STATIC
   cdisort.cc
   locate.c

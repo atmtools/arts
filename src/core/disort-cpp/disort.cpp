@@ -1608,6 +1608,7 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
 }
 ARTS_METHOD_ERROR_CATCH
 
+#ifdef ENABLE_CDISORT
 disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv) const
     try {
   using Conversion::cosd;
@@ -1632,6 +1633,7 @@ disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv)
   return dis;
 }
 ARTS_METHOD_ERROR_CATCH
+#endif
 
 void xml_io_stream<DisortBDRF>::read(std::istream& is,
                                      DisortBDRF& x,

@@ -39,6 +39,9 @@
 #cmakedefine ENABLE_TMATRIX
 #cmakedefine ENABLE_TMATRIX_QUAD
 
+/* Define to compile with cdisort support */
+#cmakedefine ENABLE_CDISORT
+
 /* Defined if IPO/LTO support is available and enabled */
 #cmakedefine IPO_SUPPORTED
 

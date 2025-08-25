@@ -62,6 +62,7 @@ option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (ENABLE_CDISORT "Turn on cdisort" ON)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
@@ -294,6 +295,11 @@ if (NOT FFTW_FOUND OR ENABLE_ARTS_LGPL OR CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set (DISABLE_SHTNS ON)
 endif()
 
+########## CDISORT #########
+if (ENABLE_ARTS_LGPL OR CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set (ENABLE_CDISORT OFF)
+endif()
+
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
@@ -493,6 +499,12 @@ get_directory_property(ENABLE_WIGNER DIRECTORY
 if(FASTWIGNER)
   add_definitions( "-DFAST_WIGNER_PATH_3J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.3j\"")
   add_definitions( "-DFAST_WIGNER_PATH_6J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.6j\"")
+endif()
+
+if (ENABLE_CDISORT)
+  message (STATUS "CDisort enabled")
+else()
+  message (STATUS "CDisort disabled")
 endif()
 
 if (OEM_SUPPORT)
