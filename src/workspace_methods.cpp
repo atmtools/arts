@@ -2252,12 +2252,14 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 
   wsm_data["spectral_radianceFlatScalarReflectance"] = {
       .desc =
-          R"--(Set surface spectral radiance from Planck function of the surface temperature and the reflectance of incoming radiation
+          R"--(Set surface spectral radiance to use sub-surface emission and flat scalar reflectance.
 
-Gets incoming radiation by placing an observer at the surface looking at the
-specular reflection of the outgoing radiation (as described by *ray_path_point*)
+The input path point must be close to the surface.
 
-The surface field must contain the surface temperature and the reflectance.
+The *spectral_radiance_subsurface_agenda* should produce the subsurface emission,
+though pure surface emission is fine.
+
+The surface field must contain the reflectance.
 The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectance".
 )--",
       .author         = {"Richard Larsson"},
@@ -2268,7 +2270,33 @@ The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectanc
                          "subsurface_field",
                          "jacobian_targets",
                          "ray_path_point",
-                         "spectral_radiance_observer_agenda"},
+                         "spectral_radiance_observer_agenda",
+                         "spectral_radiance_subsurface_agenda"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radianceFlatFresnelReflectance"] = {
+      .desc =
+          R"--(Set surface spectral radiance to use sub-surface emission and Fresnel reflectance.
+
+The input path point must be close to the surface.
+
+The *spectral_radiance_subsurface_agenda* should produce the subsurface emission,
+though pure surface emission is fine.
+
+The surface field must contain the surface refractive index.
+The refractive index lives under the *SurfacePropertyTag* key "scalar refractive index".
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in             = {"frequency_grid",
+                         "atmospheric_field",
+                         "surface_field",
+                         "subsurface_field",
+                         "jacobian_targets",
+                         "ray_path_point",
+                         "spectral_radiance_observer_agenda",
+                         "spectral_radiance_subsurface_agenda"},
       .pass_workspace = true,
   };
 

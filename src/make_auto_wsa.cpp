@@ -305,6 +305,10 @@ bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
     os << "  if (ag == \"" << ag.first << "\") return has_" << ag.first
        << ";\n";
   }
+  for (auto& ag : internal_workspace_agenda_names()) {
+    os << "  if (ag == \"" << ag.first << "\") return has_" << ag.second
+       << ";\n";
+  }
   os << R"--(
   throw std::runtime_error(std::format("Not a predefined agenda: \"{}\"", ag));
 }
@@ -313,6 +317,10 @@ void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
 )--";
   for (auto& ag : agmap) {
     os << "  if (ag == \"" << ag.first << "\") {has_" << ag.first
+       << " = true; return;}\n";
+  }
+  for (auto& ag : internal_workspace_agenda_names()) {
+    os << "  if (ag == \"" << ag.first << "\") {has_" << ag.second
        << " = true; return;}\n";
   }
   os << R"--(

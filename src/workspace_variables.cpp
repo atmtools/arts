@@ -519,8 +519,21 @@ temperature but also entirerly abstract properties and types.
       .default_value = "SurfaceField()",
   };
 
+  wsv_data["spectral_radiance_subsurface_agenda"] = {
+      .desc          = R"--(A subsurface agenda.
+
+It behave exactly like *spectral_radiance_surface_agenda*.  It exists
+to allow chaining surface agendas.  The idea is that the main
+*spectral_radiance_surface_agenda* variable is the first interface
+and can chain into the subsurface agenda and do top-level extras,
+like compute the down-welling radiation required for reflectance.
+)--",
+      .type          = "Agenda",
+      .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
+  };
+
   wsv_data["subsurface_field"] = {
-      .desc = R"--(The sub0surface field describes the sub-surface properties.
+      .desc = R"--(The sub-surface field describes the sub-surface properties.
 )--",
       .type = "SubsurfaceField",
       .default_value = "SubsurfaceField()",

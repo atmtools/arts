@@ -54,7 +54,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-namespace detail {
+namespace {
 StokvecVector from_temp(const ConstVectorView& frequency_grid,
                         const Numeric t) {
   StokvecVector v(frequency_grid.size(), 0.0);
@@ -64,14 +64,14 @@ StokvecVector from_temp(const ConstVectorView& frequency_grid,
                  [t](auto f) -> Stokvec { return {planck(f, t), 0, 0, 0}; });
   return v;
 }
-}  // namespace detail
+}  // namespace
 
 void spectral_radianceUniformCosmicBackground(
     StokvecVector& spectral_radiance, const AscendingGrid& frequency_grid) {
   ARTS_TIME_REPORT
 
   constexpr auto t  = Constant::cosmic_microwave_background_temperature;
-  spectral_radiance = detail::from_temp(frequency_grid, t);
+  spectral_radiance = from_temp(frequency_grid, t);
 }
 
 void spectral_radianceSunOrCosmicBackground(
@@ -128,7 +128,7 @@ void spectral_radianceSurfaceBlackbody(
 
   const auto t = surface_field.single_value(
       key, ray_path_point.pos[1], ray_path_point.pos[2]);
-  spectral_radiance = detail::from_temp(frequency_grid, t);
+  spectral_radiance = from_temp(frequency_grid, t);
 
   spectral_radiance_jacobianEmpty(
       spectral_radiance_jacobian, frequency_grid, jacobian_targets);

@@ -174,7 +174,7 @@ The input path point should be as if it is looking at space.
       }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc         = R"--(Spectral radiance as seen of the surface.
+      .desc               = R"--(Spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -183,14 +183,17 @@ The input path point should be as if it is looking at the surface.
 
 Subsurface calculations are also supported through this agenda.
 )--",
-      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input        = {"frequency_grid",
-                       "jacobian_targets",
-                       "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
-      .enum_options = {"Blackbody", "Transmission", "FlatScalarReflectance"},
-      .enum_default = "Blackbody",
+      .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .input              = {"frequency_grid",
+                             "jacobian_targets",
+                             "ray_path_point",
+                             "surface_field",
+                             "subsurface_field"},
+      .enum_options       = {"Blackbody",
+                             "Transmission",
+                             "FlatScalarReflectance",
+                             "FlatFresnelReflectance"},
+      .enum_default       = "Blackbody",
       .output_constraints = {
           {"spectral_radiance.size() == frequency_grid.size()",
            "On output, *spectral_radiance* has the size of *frequency_grid*.",
@@ -302,7 +305,7 @@ scenarios.  The output of this Agenda is just that setting.
     }
 
     record.desc += std::format(R"(
-It is possible to execute *{0}* directly from the workspace by calling *{0}Execute*.
+You can execute *{0}* directly from the workspace by calling *{0}Execute*.
 
 As all agendas in ARTS, it is also customizable via its operator helper class: *{0}Operator*.
 See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
@@ -330,5 +333,14 @@ Also see the :func:`~pyarts.workspace.arts_agenda` property for how to fully def
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas() {
   static const auto out = internal_workspace_agendas_creator();
+  return out;
+}
+
+std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
+  std::unordered_map<std::string, std::string> out;
+
+  out["spectral_radiance_subsurface_agenda"] =
+      "spectral_radiance_surface_agenda";
+
   return out;
 }

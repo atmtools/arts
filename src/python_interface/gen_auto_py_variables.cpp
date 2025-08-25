@@ -22,6 +22,8 @@ std::string share_type(const std::string& name) {
 
 std::string variable(const std::string& name,
                      const WorkspaceVariableRecord& wsv) try {
+  const auto extra_names = internal_workspace_agenda_names();
+
   const auto& wsgs = internal_workspace_groups();
   std::ostringstream os;
 
@@ -40,14 +42,21 @@ std::string variable(const std::string& name,
   os << R"--()});
 )--";
 
-  if (wsv.type == "Agenda")
-    os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
-       << "\");\n      ws_val.set_name(\"" << name
-       << "\");\n      ws_val.finalize();\n";
+  if (wsv.type == "Agenda") {
+    if (extra_names.contains(name)) {
+      os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
+         << "\");\n      ws_val.set_name(\"" << extra_names.at(name)
+         << "\");\n      ws_val.finalize();\n";
+    } else {
+      os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
+         << "\");\n      ws_val.set_name(\"" << name
+         << "\");\n      ws_val.finalize();\n";
+    }
+  }
 
   os << "    }, R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
-  if (wsv.type == "Agenda") {
+  if (wsv.type == "Agenda" and not extra_names.contains(name)) {
     os << get_agenda_io(name);
   }
 

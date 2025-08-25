@@ -31,6 +31,9 @@ void fresnel(Complex& Rv,
              const Complex& n1,
              const Complex& n2,
              const Numeric& theta);
+std::pair<Complex, Complex> fresnel(const Complex& n1,
+                                    const Complex& n2,
+                                    const Numeric& theta);
 
 Numeric invplanck(const Numeric& i, const Numeric& f);
 
