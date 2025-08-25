@@ -15,6 +15,10 @@
 #include "workspace_agenda_class.h"
 #include "workspace_class.h"
 
+namespace {
+static const auto& wsms = workspace_methods();
+}  // namespace
+
 std::ostream& operator<<(std::ostream& os, const Method& m) {
   if (m.setval) {
     const Wsv& wsv = m.setval.value();
@@ -69,9 +73,7 @@ Method::Method() : name("this-is-not-a-method") {}
 Method::Method(const std::string& n,
                const std::vector<std::string>& a,
                const std::unordered_map<std::string, std::string>& kw) try
-    : name(n),
-      outargs(workspace_methods().at(name).out),
-      inargs(workspace_methods().at(name).in) {
+    : name(n), outargs(wsms.at(name).out), inargs(wsms.at(name).in) {
   const std::size_t nargout = outargs.size();
   const std::size_t nargin  = inargs.size();
 
@@ -176,7 +178,7 @@ Method::Method(const std::string& n,
   // Check that all non-defaulted GINS are set
   for (std::size_t i = 0; i < nargin; i++) {
     if (inargs[i].front() == internal_prefix and
-        not workspace_methods().at(n).defs.contains(inargs[i])) {
+        not wsms.at(n).defs.contains(inargs[i])) {
       throw std::runtime_error(std::format(
           "Missing required generic input argument \"{}\"",
           std::string_view(inargs[i].begin() + 1, inargs[i].end())));
@@ -219,7 +221,7 @@ void Method::operator()(Workspace& ws) const try {
       }
     }
   } else {
-    workspace_methods().at(name).func(ws, outargs, inargs);
+    wsms.at(name).func(ws, outargs, inargs);
   }
 } catch (std::out_of_range&) {
   throw std::runtime_error(std::format("No method named \"{}\"", name));
@@ -230,7 +232,7 @@ void Method::operator()(Workspace& ws) const try {
 
 void Method::add_defaults_to_agenda(Agenda& agenda) const {
   if (not setval) {
-    const auto& map = workspace_methods().at(name).defs;
+    const auto& map = wsms.at(name).defs;
     for (auto& arg : inargs) {
       if (arg.front() == internal_prefix and map.contains(arg)) {
         agenda.add(Method{arg, map.at(arg), true});
@@ -255,16 +257,16 @@ std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
 }
 
 std::string wsv_format(const std::string& x) {
-  std::string_view n = x;
+  const static auto& wsvs = workspace_variables();
+  std::string_view n      = x;
 
   while (n.size() > 1 and
          (n.front() == internal_prefix or n.front() == named_input_prefix))
     n.remove_prefix(1);
 
-  std::string_view sep =
-      workspace_variables().contains(std::string{n}) ? "*" : "";
+  std::string_view sep = wsvs.contains(std::string{n}) ? "*" : "";
 
-  return std::format("{0}{1}", sep, n);
+  return std::format("{0}{1}{0}", sep, n);
 }
 
 struct SetvalHelper {
@@ -312,7 +314,7 @@ std::string Method::sphinx_list_item() const {
   }
 
   std::vector<SetvalHelper> setvals;
-  const WorkspaceMethodRecord& wsm = workspace_methods().at(name);
+  const WorkspaceMethodRecord& wsm = wsms.at(name);
   for (Size i = 0; i < outargs.size(); i++) {
     if (outargs[i] != wsm.out[i] and outargs[i].front() != named_input_prefix) {
       setvals.push_back({wsm.out[i], outargs[i]});

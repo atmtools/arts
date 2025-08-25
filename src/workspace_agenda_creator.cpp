@@ -93,6 +93,10 @@ Agenda get_spectral_radiance_observer_agenda(const std::string_view option) {
       agenda.add("spectral_radianceClearskyEmission");
       agenda.add("spectral_radiance_jacobianAddSensorJacobianPerturbations");
       break;
+    case EmissionNoSensor:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radianceClearskyEmission");
+      break;
   }
 
   return std::move(agenda).finalize(false);

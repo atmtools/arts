@@ -1,6 +1,4 @@
-#include "rtepack_mueller_matrix.h"
-#include "rtepack_multitype.h"
-#include "rtepack_stokes_vector.h"
+#include "rtepack_surface.h"
 
 namespace rtepack {
 stokvec flat_scalar_reflection(stokvec I, const Numeric R, const Numeric B) {

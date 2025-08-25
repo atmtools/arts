@@ -34,7 +34,7 @@ auto is_not_in(const std::vector<std::string>& seq) {
 }
 
 void Agenda::finalize(bool fix) try {
-  const auto& wsa = workspace_agendas();
+  const static auto& wsa = workspace_agendas();
 
   auto ag_ptr                          = wsa.find(name);
   const std::vector<std::string> empty = {};
@@ -126,7 +126,8 @@ Agenda required output: {:B,}
           must_out));
     }
 
-    if (not std::ranges::binary_search(outs_first, o)) {
+    if (not std::ranges::binary_search(outs_first, o) and
+        not std::ranges::binary_search(in_then_out, o)) {
       if (fix) {
         methods.emplace_back("Touch",
                              std::vector<std::string>{o},
@@ -144,6 +145,11 @@ Agenda required output: {:B,}
 
   std::erase_if(ins_first, [&in_then_out](const auto& str) {
     return std::ranges::binary_search(in_then_out, str);
+  });
+
+  std::erase_if(in_then_out, [&must_out, &must_in](const auto& str) {
+    return std::ranges::any_of(must_out, Cmp::eq(str)) and
+           std::ranges::any_of(must_in, Cmp::eq(str));
   });
 
   copy  = in_then_out;
@@ -267,59 +273,16 @@ std::vector<std::string> split(const std::string& s, char c) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& os, const Agenda& a) {
-  const auto& wsa = workspace_agendas();
-
-  auto ptr           = wsa.find(a.name);
-  const bool named   = ptr != wsa.end();
-  const bool checked = a.checked;
-
-  os << "Agenda " << a.name;
-
-  if (a.is_checked())
-    os << " (checked)";
-  else
-    os << " (unchecked)";
-
-  if (checked or named) {
-    os << ":\n";
-
-    if (named) {
-      os << "  Output : ";
-      for (auto& o : ptr->second.output) {
-        os << o << ", ";
-      }
-      os << '\n';
-
-      os << "  Input  : ";
-      for (auto& i : ptr->second.input) {
-        os << i << ", ";
-      }
-    }
-
-    if (checked) {
-      if (named) {
-        os << '\n';
-      }
-
-      os << "  Share  : ";
-      for (auto& s : a.share) {
-        os << s << ", ";
-      }
-      os << '\n';
-
-      os << "  Copy   : ";
-      for (auto& c : a.copy) {
-        os << c << ", ";
-      }
-    }
-  }
-
-  return os;
-}
-
 std::string Agenda::sphinx_list(const std::string_view prep) const {
   std::string out{};
+
+  for (auto& item : share) {
+    out += std::format("{}Shares the global *{}*\n", prep, item);
+  }
+
+  for (auto& item : copy) {
+    out += std::format("{}Copies the global *{}*\n", prep, item);
+  }
 
   for (auto& method : methods) {
     out += std::format("{}{}\n", prep, method.sphinx_list_item());

@@ -2,6 +2,8 @@
 
 #include <format>
 
+using namespace std::literals;
+
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
@@ -112,7 +114,7 @@ position and line of sight.
 
   wsa_data["spectral_radiance_observer_agenda"] = {
       .desc =
-          R"--(Spectral radiance as seen from the input position and environment
+          R"--(Spectral radiance as seen from the input position and environment.
 
 The intent of this agenda is to provide the spectral radiance as seen from the observer
 position and line of sight.
@@ -129,7 +131,7 @@ is warranted
                  "atmospheric_field",
                  "surface_field",
                  "subsurface_field"},
-      .enum_options = {"Emission"},
+      .enum_options = {"Emission", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {
@@ -274,6 +276,8 @@ it does a lot of unnecessary checks and operations that are not always needed.
   wsa_data["disort_settings_agenda"] = {
       .desc   = R"--(An agenda for setting up Disort.
 
+See *disort_settings_agendaSetup* for prepared agenda settings.
+
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
@@ -288,18 +292,31 @@ scenarios.  The output of this Agenda is just that setting.
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
     record.desc += std::format(R"(
+.. rubric:: Execution and customization
+)");
+
+    if (not record.enum_options.empty()) {
+      record.desc += std::format(
+          "See *{}Set* for builtin options that selects execution options.\n",
+          name);
+    }
+
+    record.desc += std::format(R"(
 It is possible to execute *{0}* directly from the workspace by calling *{0}Execute*.
 
-As all agendas in ARTS, *{0}* is also customizable via its operator helper class: *{0}Operator*.
+As all agendas in ARTS, it is also customizable via its operator helper class: *{0}Operator*.
 See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
+
+Also see the :func:`~pyarts.workspace.arts_agenda` property for how to fully define an agenda in python.
 )",
                                name);
     if (not record.output_constraints.empty()) {
-      record.desc += std::format(R"(
-*{0}* have these constraints ():
+      record.desc +=
+          std::format(R"(
+.. rubric:: Constraint{0}
 
 )",
-                                 name);
+                      record.output_constraints.size() > 1 ? "s"sv : ""sv);
       for (auto& c : record.output_constraints) {
         record.desc += std::format("#. {}\n", c.constraint);
       }
