@@ -85,7 +85,7 @@ void setup_cdisort(disort_state& ds,
 
   ds.nstr   = static_cast<int>(disort_settings.quadrature_dimension);
   ds.nphase = ds.nstr;
-  ds.nmom   = ds.nstr;
+  ds.nmom   = static_cast<int>(dis.all_legendre_coeffs().ncols());
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
   ds.numu = static_cast<int>(
       disort_settings.quadrature_dimension);  // za_grid.nelem();
@@ -146,9 +146,10 @@ void freq_setup_cdisort(disort_state& ds,
 
   ds.bc.fbeam = dis.beam_source();
 
-  std::memcpy(ds.pmom,
-              dis.all_legendre_coeffs().data_handle(),
-              sizeof(Numeric) * dis.all_legendre_coeffs().size());
+  for (Index layer = 0; layer < ds.nlyr; layer++)
+    for (Index coeff = 0; coeff < dis.all_legendre_coeffs().ncols(); coeff++)
+      ds.pmom[coeff + layer * (ds.nmom_nstr + 1)] =
+          dis.all_legendre_coeffs()[layer, coeff];
 }
 
 void run_cdisort(Tensor3View disort_spectral_radiance_field,
