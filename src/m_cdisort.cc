@@ -104,13 +104,14 @@ void setup_cdisort(disort_state& ds,
   ds.bc.temis = 1.;
 }
 
-void freq_setup_cdisort(disort_state& ds,
-                        const disort::main_data& dis,
-                        const Vector& phis,
-                        const ArrayOfAtmPoint& ray_path_atmospheric_point,
-                        const Numeric& frequency) {
+void setup_cdisort_for_frequency(
+    disort_state& ds,
+    const disort::main_data& dis,
+    const Vector& phis,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const Numeric& frequency) {
   // fill up azimuth angle and temperature array
-  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = phis[i];  // aa_grid[i];
+  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = phis[i];
 
   if (ds.flag.planck == TRUE) {
     for (Index i = 0; i <= ds.nlyr; i++)
@@ -118,8 +119,8 @@ void freq_setup_cdisort(disort_state& ds,
   }
 
   for (Index i = 0; i < ds.numu / 2; i++) {
-    ds.umu[i] = dis.mu()[ds.numu - i - 1];  // -cos(za_grid[i] * PI / 180);
-    ds.umu[i + ds.numu / 2] = dis.mu()[i];  // -cos(za_grid[i] * PI / 180);
+    ds.umu[i] = dis.mu()[ds.numu - i - 1];
+    ds.umu[i + ds.numu / 2] = dis.mu()[i];
   }
 
   // Cosmic background
@@ -253,11 +254,11 @@ void cdisort_spectral_radiance_fieldCalc(
 
       disort_settings.set_cdisort(dis, iv);
 
-      freq_setup_cdisort(ds,
-                         dis,
-                         phis,
-                         ray_path_atmospheric_point,
-                         ray_path_frequency_grid[0][iv]);
+      setup_cdisort_for_frequency(ds,
+                                  dis,
+                                  phis,
+                                  ray_path_atmospheric_point,
+                                  ray_path_frequency_grid[0][iv]);
 
       run_cdisort(disort_spectral_radiance_field[iv], ds, out);
 
