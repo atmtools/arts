@@ -28,6 +28,12 @@ Numeric &Point::operator[](SubsurfaceKey x) {
   std::unreachable();
 }
 
+Numeric Point::operator[](const SubsurfacePropertyTag &x) const {
+  return prop.at(x);
+}
+
+Numeric &Point::operator[](const SubsurfacePropertyTag &x) { return prop[x]; }
+
 Numeric Point::operator[](const KeyVal &x) const {
   return std::visit([this](auto &key) { return this->operator[](key); }, x);
 }
@@ -54,6 +60,7 @@ std::vector<KeyVal> Point::keys() const {
   std::vector<KeyVal> out;
   out.reserve(size());
   for (auto &a : enumtyps::SubsurfaceKeyTypes) out.emplace_back(a);
+  for (auto &a : prop | stdv::keys) out.emplace_back(a);
   return out;
 }
 
@@ -448,26 +455,34 @@ Field &Field::operator=(Field &&) noexcept = default;
 Index Field::nbasic() const { return other.size(); }
 Index Field::size() const { return nbasic(); }
 
-[[nodiscard]] std::vector<Field::KeyVal> Field::keys() const {
+[[nodiscard]] std::vector<KeyVal> Field::keys() const {
   std::vector<KeyVal> out;
   out.reserve(size());
-  for (const auto &[key, _] : other) out.push_back(key);
+  for (const auto &[key, _] : other) out.emplace_back(key);
+  for (const auto &[key, _] : prop) out.emplace_back(key);
   return out;
 }
 
 Data &Field::operator[](const SubsurfaceKey &key) { return other[key]; }
 
+Data &Field::operator[](const SubsurfacePropertyTag &key) { return prop[key]; }
+
 Data &Field::operator[](const KeyVal &key) {
-  return std::visit([this](auto &k) -> Data & { return other[k]; }, key);
+  return std::visit([this](auto &k) -> Data & { return this->operator[](k); },
+                    key);
 }
 
 const Data &Field::operator[](const SubsurfaceKey &key) const {
   return other.at(key);
 }
 
+const Data &Field::operator[](const SubsurfacePropertyTag &key) const {
+  return prop.at(key);
+}
+
 const Data &Field::operator[](const KeyVal &key) const {
-  return std::visit([this](auto &k) -> const Data & { return other.at(k); },
-                    key);
+  return std::visit(
+      [this](auto &k) -> const Data & { return this->operator[](k); }, key);
 }
 
 bool Field::contains(const SubsurfaceKey &key) const {
@@ -504,7 +519,9 @@ std::string std::formatter<SubsurfacePoint>::to_string(
                                  v.temperature,
                                  sep,
                                  R"("density": )"sv,
-                                 v.density);
+                                 v.density,
+                                 "\nproperties:\n"sv,
+                                 v.prop);
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
@@ -533,8 +550,3 @@ std::string std::formatter<SubsurfaceField>::to_string(
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
-
-static_assert(
-    std::same_as<typename SubsurfaceField::KeyVal, SubsurfaceKeyVal>,
-    "The order of arguments in the template of which Field inherits from is "
-    "wrong.  KeyVal must be defined in the same way for this to work.");

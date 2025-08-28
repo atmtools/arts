@@ -5209,6 +5209,17 @@ Note that you must have set the optical thickness before calling this.
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
   };
 
+  wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
+      .desc =
+          R"(Use a source function that changes linearly in optical thickness.
+
+Note that you must have set the optical thickness before calling this.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "subsurface_profile", "frequency_grid"},
+  };
+
   wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
       .desc =
           R"(Same as *disort_settingsLayerThermalEmissionLinearInTau* but considers non-LTE

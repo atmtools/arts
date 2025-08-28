@@ -8,6 +8,7 @@
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
 #include <species_tags.h>
+#include <subsurface_field.h>
 #include <surf.h>
 
 #include "hpy_arts.h"
@@ -311,11 +312,21 @@ void py_surf(py::module_ &m) try {
           &SurfaceField::props,
           "Properties of the surface field\n\n.. :class:`dict[SurfacePropertyTag, SurfaceData]`");
 
+  py::class_<SubsurfacePropertyTag> sptag(m, "SubsurfacePropertyTag");
+  sptag.def_rw("name",
+               &SubsurfacePropertyTag::name,
+               "Name of the subsurface property\n\n.. :class:`String`");
+  generic_interface(sptag);
+
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
   ssf.def_rw(
       "other",
       &SubsurfaceField::other,
-      "Other data in the subsurface field\n\n.. :class:`dict[SubsurfaceKey, SurfaceData]`");
+      "Other data in the subsurface field\n\n.. :class:`dict[SubsurfaceKey, SubsurfaceData]`");
+  ssf.def_rw(
+      "prop",
+      &SubsurfaceField::prop,
+      "Properties of the subsurface field\n\n.. :class:`dict[SubsurfacePropertyTag, SubsurfaceData]`");
   ssf.def_rw(
       "bottom_depth",
       &SubsurfaceField::bottom_depth,
@@ -323,7 +334,18 @@ void py_surf(py::module_ &m) try {
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
+  ssp.def_rw("temperature",
+             &SubsurfacePoint::temperature,
+             "Temperature [K]\n\n.. :class:`Numeric`");
+  ssp.def_rw("density",
+             &SubsurfacePoint::density,
+             "Density [kg/m^3]\n\n.. :class:`Numeric`");
+  ssp.def_rw(
+      "prop",
+      &SubsurfacePoint::prop,
+      "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");
   generic_interface(ssp);
+
   auto assp = py::bind_vector<Array<SubsurfacePoint>,
                               py::rv_policy::reference_internal>(
       m, "ArrayOfSubsurfacePoint");

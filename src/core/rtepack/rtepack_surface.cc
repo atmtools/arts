@@ -4,14 +4,14 @@
 
 namespace rtepack {
 muelmat fresnel_reflectance(Complex Rv, Complex Rh) {
-  const Numeric rv    = Math::pow2(std::abs(Rv));
-  const Numeric rh    = Math::pow2(std::abs(Rh));
+  const Numeric rv    = std::norm(Rv);
+  const Numeric rh    = std::norm(Rh);
+  const Numeric rmean = 0.5 * (rv + rh);
+  const Numeric rdiff = 0.5 * (rv - rh);
   const Complex a     = Rh * std::conj(Rv);
   const Complex b     = Rv * std::conj(Rh);
-  const Numeric rmean = (rv + rh) / 2.0;
-  const Numeric rdiff = (rv - rh) / 2.0;
-  const Numeric c     = std::real(a + b) / 2.0;
-  const Numeric d     = std::imag(a - b) / 2.0;
+  const Numeric c     = 0.5 * std::real(a + b);
+  const Numeric d     = 0.5 * std::imag(a - b);
 
   muelmat out{};
 

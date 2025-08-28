@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Cmp {
-//! Returns a 'less than' lambda expression for use in, e.g., std::any_of 
+//! Returns a 'less than' lambda expression for use in, e.g., std::any_of
 constexpr auto lt(auto v) {
   return [v](const auto& x) { return x < v; };
 }
@@ -29,5 +29,10 @@ constexpr auto ne(auto v) {
 //! Returns an 'equal to' lambda expression for use in, e.g., std::any_of
 constexpr auto eq(auto v) {
   return [v](const auto& x) { return x == v; };
+}
+
+//! Returns a `this->contains` lambda expression for use in, e.g., std::any_of
+constexpr auto contains(const auto& v) {
+  return [&v](const auto& x) { return x.contains(v); };
 }
 }  // namespace Cmp

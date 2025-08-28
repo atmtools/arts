@@ -509,6 +509,12 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatTensor3",
   };
 
+  wsv_data["subsurface_profile"] = {
+      .desc          = R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
+)--",
+      .type          = "ArrayOfSubsurfacePoint",
+  };
+
   wsv_data["surface_field"] = {
       .desc          = R"--(The surface field describes the surface properties.
 

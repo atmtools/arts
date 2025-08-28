@@ -44,3 +44,17 @@ struct xml_io_stream<SubsurfacePoint> {
                    SubsurfacePoint& x,
                    bifstream* pbifs = nullptr);
 };
+
+template <>
+struct xml_io_stream<SubsurfacePropertyTag> {
+  static constexpr std::string_view type_name = "SubsurfacePropertyTag"sv;
+
+  static void write(std::ostream& os,
+                    const SubsurfacePropertyTag& x,
+                    bofstream* pbofs      = nullptr,
+                    std::string_view name = ""sv);
+
+  static void read(std::istream& is,
+                   SubsurfacePropertyTag& x,
+                   bifstream* pbifs = nullptr);
+};
