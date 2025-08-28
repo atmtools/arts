@@ -70,7 +70,7 @@ fig.set_size_inches(width_in_cm / 2.54, h=height_in_cm / 2.54)
 
 # cdisort calculation
 dt = datetime.now()
-ws.cdisort_spectral_radiance_fieldProfile(
+ws.disort_spectral_radiance_fieldProfileCdisort(
     longitude=lon,
     latitude=lat,
     disort_quadrature_dimension=N_quad,

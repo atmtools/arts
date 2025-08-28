@@ -204,7 +204,7 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 
 }  // namespace
 
-void cdisort_spectral_radiance_fieldCalc(
+void disort_spectral_radiance_fieldCalcCdisort(
     Tensor4& disort_spectral_radiance_field,
     Vector& disort_quadrature_angles,
     Vector& disort_quadrature_weights,

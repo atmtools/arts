@@ -5306,7 +5306,7 @@ This is WIP and should not be used.
   };
 
 #ifdef ENABLE_CDISORT
-  wsm_data["cdisort_spectral_radiance_fieldCalc"] = {
+  wsm_data["disort_spectral_radiance_fieldCalcCdisort"] = {
       .desc      = R"(Perform CDisort calculations for spectral radiance.
 
 CDisort is only included for testing and comparisons with our own disort implementation.
