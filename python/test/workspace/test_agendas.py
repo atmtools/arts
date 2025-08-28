@@ -3,7 +3,7 @@ Test handling of agendas of the Python interface.
 """
 
 import numpy as np
-from pyarts.workspace import Workspace, arts_agenda
+from pyarts3.workspace import Workspace, arts_agenda
 
 
 def _input_only(frequency_grid):

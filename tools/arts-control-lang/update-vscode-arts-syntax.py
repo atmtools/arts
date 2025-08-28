@@ -8,13 +8,13 @@ install syntax highlighting extension for VSCode
 import os
 from shutil import copytree, rmtree
 from jinja2 import Environment, FileSystemLoader
-import pyarts.workspace
+from pyarts3 import workspace
 
 
 def main():
     # Get names of ARTS workspace variables and methods
-    arts_variables = pyarts.workspace.variables.workspace_variables.keys()
-    arts_methods = pyarts.workspace.methods.workspace_methods.keys()
+    arts_variables = workspace.variables.workspace_variables.keys()
+    arts_methods = workspace.methods.workspace_methods.keys()
 
     # Add ARTS workspace variables and methods to language syntax configuration
     env = Environment(loader=FileSystemLoader("syntaxes"))

@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-import pyarts.arts as cxx
+import pyarts3.arts as cxx
 
 
 def convert(group, value):

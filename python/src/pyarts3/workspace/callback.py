@@ -1,7 +1,7 @@
 from ast import parse, FunctionDef, Return, Name, Tuple, List, ClassDef
 from inspect import getsource
-import pyarts.arts as cxx
-from pyarts.workspace.utility import unindent as unindent
+import pyarts3.arts as cxx
+from pyarts3.workspace.utility import unindent as unindent
 
 
 _errvar = "Unknown Value"

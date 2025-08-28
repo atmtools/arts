@@ -1,8 +1,8 @@
 """This module provides functions related to plotting ARTS data."""
 
-from pyarts.plots.ray_path import *  # noqa
-from pyarts.plots.ppvar_atm import * # noqa
-from pyarts.plots.time_report import time_report # noqa
+from pyarts3.plots.ray_path import *  # noqa
+from pyarts3.plots.ppvar_atm import * # noqa
+from pyarts3.plots.time_report import time_report # noqa
 
 from . import AtmField
 from . import ArrayOfSensorObsel

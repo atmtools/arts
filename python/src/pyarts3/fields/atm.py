@@ -1,4 +1,4 @@
-from pyarts.arts import interp as cxx
+from pyarts3.arts import interp as cxx
 
 import numpy as np
 from enum import Enum

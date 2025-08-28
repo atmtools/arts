@@ -68,7 +68,7 @@ author = 'The ARTS Developers'
 # built documents.
 #
 # The short X.Y version.
-from pyarts import __version__
+from pyarts3 import __version__
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version

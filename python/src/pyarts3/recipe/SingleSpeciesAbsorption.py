@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 
 
 class SingleSpeciesAbsorption:

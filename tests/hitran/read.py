@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 
 DIR = "lines"
 local_fn = "single_line.par"

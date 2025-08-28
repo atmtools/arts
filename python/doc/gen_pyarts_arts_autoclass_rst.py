@@ -1,5 +1,5 @@
-import pyarts
-import pyarts.arts as cxx
+import pyarts3 as pyarts
+import pyarts3.arts as cxx
 import sys
 
 global_errors = []

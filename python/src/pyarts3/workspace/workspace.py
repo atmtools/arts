@@ -14,11 +14,11 @@ from ast import (
     unparse,
 )
 from inspect import getsource, getsourcelines, getfile
-from pyarts.workspace.utility import unindent as unindent
-from pyarts.arts.globals import workspace_methods, workspace_variables
-from pyarts.arts import Agenda, Method
-import pyarts.arts as cxx
-from pyarts.workspace.callback import callback_operator
+from pyarts3.workspace.utility import unindent as unindent
+from pyarts3.arts.globals import workspace_methods, workspace_variables
+from pyarts3.arts import Agenda, Method
+import pyarts3.arts as cxx
+from pyarts3.workspace.callback import callback_operator
 
 
 _group_types = tuple(eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups()))
@@ -429,7 +429,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Creating a basic Agenda
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        @arts_agenda
        def propmat_clearsky_agenda(ws):
@@ -443,7 +443,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Setting an agenda to a workspace directly
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        ws = Workspace()
 
@@ -456,7 +456,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Setting an Agenda while skipping some housekeeping
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        ws = Workspace()
 
@@ -468,7 +468,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Using custom values
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        ws = Workspace()
 
@@ -487,7 +487,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Assigning or copying a variable using python syntax
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        ws = Workspace()
 
@@ -499,7 +499,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     .. code-block:: python
        :caption: Using callback operators to execute code in python
 
-       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+       from pyarts3.workspace import Workspace, arts_agenda, callback_operator
 
        def fun(f_grid):
            x = f_grid

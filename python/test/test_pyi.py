@@ -1,8 +1,8 @@
 from inspect import getmembers, ismodule
 from pathlib import Path
 
-import pyarts
-from pyarts import arts
+import pyarts3 as pyarts
+from pyarts3 import arts
 
 
 class TestStubFiles:

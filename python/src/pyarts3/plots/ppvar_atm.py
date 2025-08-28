@@ -7,7 +7,7 @@ Created on Tue May  9 09:06:26 2023
 """
 
 
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 

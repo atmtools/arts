@@ -14,7 +14,7 @@ You have three options to fix this issue:
         and all std::*map types.
 """
 
-import pyarts
+import pyarts3 as pyarts
 
 wsvs = pyarts.arts.globals.workspace_variables()
 wsgs = pyarts.arts.globals.workspace_groups()

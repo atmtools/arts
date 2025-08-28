@@ -1,6 +1,6 @@
 # The first step is to import the pyarts package. This will make all
 # pyarts modules available to you.
-import pyarts
+import pyarts3 as pyarts
 
 # The Workspace class is the common entry point for all pyarts simulations.
 # It is used to interface with the ARTS C++ library and to manage the

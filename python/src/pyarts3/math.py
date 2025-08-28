@@ -22,7 +22,7 @@ def interp(y, *args):
     .. plot::
         :include-source:
 
-        import pyarts
+        import pyarts3 as pyarts
         import numpy as np
         import matplotlib.pyplot as plt
 
@@ -67,7 +67,7 @@ def reinterp(y, *args):
     .. plot::
         :include-source:
 
-        import pyarts
+        import pyarts3 as pyarts
         import numpy as np
         import matplotlib.pyplot as plt
 

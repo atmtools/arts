@@ -4,9 +4,9 @@ Test calling of workspace methods.
 import numpy as np
 import pytest
 from tempfile import NamedTemporaryFile
-import pyarts
-from pyarts.utils.common import TempFileHandler
-from pyarts.workspace import Workspace
+import pyarts3 as pyarts
+from pyarts3.utils.common import TempFileHandler
+from pyarts3.workspace import Workspace
 
 
 class TestMethods:

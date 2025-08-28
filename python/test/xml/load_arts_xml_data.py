@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from pyarts import xml
-from pyarts import environment
+from pyarts3 import xml
+from pyarts3 import environment
 
 
 def collect_xml_files():

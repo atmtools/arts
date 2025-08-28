@@ -1,6 +1,6 @@
 """ Functions to plot :class:`pyarts.arts.ray_path` in different ways """
 
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 

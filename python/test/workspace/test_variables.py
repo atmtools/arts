@@ -5,10 +5,10 @@ import os
 import numpy as np
 import pytest
 import scipy as sp
-import pyarts
-from pyarts.workspace import Workspace
-from pyarts.workspace import global_data as global_data
-from pyarts.xml import load, save
+import pyarts3 as pyarts
+from pyarts3.workspace import Workspace
+from pyarts3.workspace import global_data as global_data
+from pyarts3.xml import load, save
 
 
 class TestVariables:

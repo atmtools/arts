@@ -11,7 +11,7 @@ import numpy as np
 from scipy import sparse
 import pytest
 
-from pyarts import arts, xml
+from pyarts3 import arts, xml
 
 
 def _get_matpack_type_by_dim(n):

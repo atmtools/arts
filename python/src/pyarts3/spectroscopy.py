@@ -5,7 +5,7 @@
 import numpy as np
 from scipy import interpolate
 
-import pyarts.arts.constants as constants
+import pyarts3.arts.constants as constants
 
 
 __all__ = [

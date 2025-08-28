@@ -4,10 +4,10 @@ Test handling of workspace of the Python interface.
 
 import copy
 import pytest
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
-from pyarts.workspace import Workspace, arts_agenda
-from pyarts.arts import Index, Vector
+from pyarts3.workspace import Workspace, arts_agenda
+from pyarts3.arts import Index, Vector
 
 
 class TestWorkspace:

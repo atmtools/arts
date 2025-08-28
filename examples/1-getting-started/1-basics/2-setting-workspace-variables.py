@@ -1,5 +1,5 @@
 # Import the module
-import pyarts
+import pyarts3 as pyarts
 import numpy as np  # For some of the examples
 
 

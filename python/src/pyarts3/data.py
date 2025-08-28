@@ -4,8 +4,8 @@
 import os
 import urllib.request
 import zipfile
-from pyarts.arts.globals import parameters
-import pyarts
+from pyarts3.arts.globals import parameters
+import pyarts3 as pyarts
 import numpy as np
 from tqdm import tqdm
 import xarray
@@ -132,7 +132,7 @@ def _download_arts_data(catname, download_dir=None, version=None, verbose=False)
         download_dir = os.path.join(os.path.expanduser("~"), ".cache", "arts")
 
     if version is None:
-        from pyarts import __version__
+        from pyarts3 import __version__
 
         version = __version__
 

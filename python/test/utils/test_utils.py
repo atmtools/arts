@@ -8,7 +8,7 @@ from datetime import timedelta
 
 import pytest
 
-from pyarts import utils
+from pyarts3 import utils
 
 
 class TestUtils:

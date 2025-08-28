@@ -8,7 +8,7 @@
 # In[ ]:
 
 
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -45,8 +45,8 @@ ws.propagation_matrix_agendaAuto()
 # In[ ]:
 
 
-from pyarts.arts import ParticleHabit
-from pyarts.xml import load
+from pyarts3.arts import ParticleHabit
+from pyarts3.xml import load
 scat_data_raw = load("scat_data.xml")
 scat_data_meta = load("scat_meta.xml" )
 
@@ -61,7 +61,7 @@ f_grid = scat_data_raw[0][0].f_grid
 # In[ ]:
 
 
-from pyarts.arts import ParticleHabit
+from pyarts3.arts import ParticleHabit
 rain_habit = ParticleHabit.from_legacy_tro(scat_data_raw[0], scat_data_meta[0])
 rain_habit = rain_habit.to_tro_spectral(t_grid, f_grid, 39)
 
@@ -73,7 +73,7 @@ rain_habit = rain_habit.to_tro_spectral(t_grid, f_grid, 39)
 # In[ ]:
 
 
-from pyarts.arts import MGDSingleMoment, ScatteringSpeciesProperty, ParticulateProperty, ScatteringHabit
+from pyarts3.arts import MGDSingleMoment, ScatteringSpeciesProperty, ParticulateProperty, ScatteringHabit
 rain_first_moment = pyarts.arts.ScatteringSpeciesProperty("rain", pyarts.arts.ParticulateProperty("MassDensity"))
 psd = MGDSingleMoment(rain_first_moment, "Wang16", 270, 300, False)
 rain = ScatteringHabit(rain_habit, psd)
@@ -92,7 +92,7 @@ ws.scattering_species = [rain]
 # In[ ]:
 
 
-from pyarts.arts import AtmPoint
+from pyarts3.arts import AtmPoint
 point = AtmPoint()
 point["t"] = 280
 point[rain_first_moment] = 1e-4
@@ -109,7 +109,7 @@ bulk_props = rain.get_bulk_scattering_properties_tro_spectral(point, f_grid, 1)
 # In[ ]:
 
 
-from pyarts.xml import load
+from pyarts3.xml import load
 
 p_grid = load("p_grid.xml")
 t_field = load("t_field.xml")
@@ -124,7 +124,7 @@ ws.surface_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
 # In[ ]:
 
 
-from pyarts.arts import GriddedField3, Tensor3, Vector
+from pyarts3.arts import GriddedField3, Tensor3, Vector
 
 lat_grid = np.array([0.0])
 lon_grid = np.array([0.0])

@@ -1,4 +1,4 @@
-import pyarts.arts as cxx
+import pyarts3.arts as cxx
 
 
 def recursion(orig, name="pyarts.arts"):

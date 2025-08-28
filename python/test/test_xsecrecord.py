@@ -1,7 +1,7 @@
 import os
 from tempfile import mkstemp
 from copy import deepcopy
-import pyarts
+import pyarts3 as pyarts
 
 
 class TestXsecRecord:

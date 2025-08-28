@@ -6,7 +6,7 @@ Created on Wed Oct  2 09:30:55 2024
 @author: richard
 """
 
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 

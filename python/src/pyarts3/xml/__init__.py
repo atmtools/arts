@@ -9,7 +9,7 @@ import itertools
 import os
 from os.path import isfile, join, basename, splitext, dirname
 import tempfile
-from pyarts import arts
+from pyarts3 import arts
 
 
 __all__ = [

@@ -7,8 +7,8 @@ import xarray as xa
 import numpy as np
 import pytest
 
-from pyarts import xml
-import pyarts.arts as cxx
+from pyarts3 import xml
+import pyarts3.arts as cxx
 
 
 def _create_tensor(n):

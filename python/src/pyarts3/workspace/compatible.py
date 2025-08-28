@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 
 wsgs = list(pyarts.arts.globals.workspace_groups().keys())
 wsgs.sort()
