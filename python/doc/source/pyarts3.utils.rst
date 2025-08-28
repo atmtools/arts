@@ -1,7 +1,7 @@
-pyarts.recipe
+pyarts3.utils
 =============
 
-.. automodule:: pyarts.recipe
+.. automodule:: pyarts3.utils
    :members:
    :imported-members:
    :undoc-members:

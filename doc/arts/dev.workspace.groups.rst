@@ -3,7 +3,7 @@ Workspace groups
 
 Workspace groups are the types of the :doc:`dev.workspace.variables`.
 They define the logic that can be applied to the data.
-Workspace groups are all available in the :py:mod:`~pyarts.arts` module.
+Workspace groups are all available in the :py:mod:`~pyarts3.arts` module.
 
 Most workspace groups are defined in the ``workspace_groups.cpp`` file.
 Additionally, :doc:`dev.workspace.options` are automatically turned into workspace groups using their definitions in the ``arts_options.cpp`` file.

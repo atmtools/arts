@@ -216,7 +216,7 @@ You are on your own when things go wrong with this.
   wsg_data["BlockMatrix"] = {
       .file = "covariance_matrix.h",
       .desc =
-          R"(The data for a single :class:`~pyarts.arts.Block`, likely part of a *CovarianceMatrix*.
+          R"(The data for a single :class:`~pyarts3.arts.Block`, likely part of a *CovarianceMatrix*.
 
 This holds either a *Matrix* or a *Sparse* matrix.
 )",
@@ -229,7 +229,7 @@ This holds either a *Matrix* or a *Sparse* matrix.
 
 Please see the different workspace variables of this type for more information.
 
-In ARTS, this square matrix is represented by two lists of :class:`~pyarts.arts.Block`.
+In ARTS, this square matrix is represented by two lists of :class:`~pyarts3.arts.Block`.
 These are used to give both the covariance matrix and the inverse covariance matrix.
 The block-structure allows for efficient storage and computation of the covariance matrix.
 )",
@@ -340,7 +340,7 @@ A surface field effectively holds two things:
 
 #. A *Vector2* of the ellipsoid.  a and b parameters.  Unit: m
 
-#. A map of :class:`~pyarts.arts.SurfaceData`.  The available types of keys are:
+#. A map of :class:`~pyarts3.arts.SurfaceData`.  The available types of keys are:
 
    #. *SurfaceKey*
 
@@ -359,7 +359,7 @@ A sub-surface field effectively holds two things:
 
 #. A *Numeric* of the deepest depth of the subsurface.  Unit: m
 
-#. A map of :class:`~pyarts.arts.SubsurfaceData`.  The available types of keys are:
+#. A map of :class:`~pyarts3.arts.SubsurfaceData`.  The available types of keys are:
 
    #. *SubsurfaceKey*
 

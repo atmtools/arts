@@ -86,16 +86,16 @@ void internalCKDMT400(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
-predefined_model_data : ~pyarts.arts.PredefinedModelData
+predefined_model_data : ~pyarts3.arts.PredefinedModelData
     As WSV
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -124,16 +124,16 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
-predefined_model_data : ~pyarts.arts.PredefinedModelData
+predefined_model_data : ~pyarts3.arts.PredefinedModelData
     As WSV
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -156,14 +156,14 @@ void internalMPM89(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -184,14 +184,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -214,14 +214,14 @@ void internalMPM93(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -244,14 +244,14 @@ void internalELL07(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -274,14 +274,14 @@ void internalPWR98(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -302,14 +302,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -332,14 +332,14 @@ void internalPWR20xx(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -360,14 +360,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -388,14 +388,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -416,14 +416,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -444,14 +444,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -474,14 +474,14 @@ void internalTRE05(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -504,14 +504,14 @@ void internalCKDMT100(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -532,14 +532,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -560,14 +560,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -590,14 +590,14 @@ void internalCKDMT252(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -618,14 +618,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -646,14 +646,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -674,14 +674,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -704,14 +704,14 @@ void internalSTANDARD(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -732,14 +732,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -760,14 +760,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -788,14 +788,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -818,14 +818,14 @@ void internalCKDMT350(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -846,14 +846,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }
@@ -876,14 +876,14 @@ void internalCKDMT320(py::module_& m) {
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 
@@ -904,14 +904,14 @@ abs_coef : ~pyarts.arts.Vector
 
 Parameters
 ----------
-f_grid : ~pyarts.arts.Vector
+f_grid : ~pyarts3.arts.Vector
     Frequency grid [Hz]
 atm : AtmPoint
     The atmospheric state
 
 Returns
 -------
-abs_coef : ~pyarts.arts.Vector
+abs_coef : ~pyarts3.arts.Vector
     Absorption coefficients
 )--");
 }

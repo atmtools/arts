@@ -8,8 +8,8 @@ It is defined in the ``matpack`` namespace as a template class called ``gridded_
 The template parameters are the data type and the type of each grid.
 
 For instance, a 3D gridded field of numeric data with unsorted grids is defined as: ``matpack::gridded_data_t<Numeric, Vector, Vector, Vector>``.
-This is in fact the type :class:`pyarts.arts.GriddedField3`.  It holds the name of of the data as a string, the data itself
-as a :class:`pyarts.arts.Tensor3`, the name of the grids as strings, and the grids themselves as :class:`pyarts.arts.Vector`.
+This is in fact the type :class:`pyarts3.arts.GriddedField3`.  It holds the name of of the data as a string, the data itself
+as a :class:`pyarts3.arts.Tensor3`, the name of the grids as strings, and the grids themselves as :class:`pyarts3.arts.Vector`.
 
 The internal workings of the gridded data class is that it holds a :doc:`dev.matpack.data` object whose rank is
 the same as the number of grids passed in.

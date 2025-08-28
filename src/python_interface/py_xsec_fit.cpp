@@ -16,22 +16,22 @@ void py_xsec(py::module_& m) try {
           "version", &XsecRecord::mversion, ":class:`int` The version")
       .def_rw("species",
               &XsecRecord::mspecies,
-              ":class:`~pyarts.arts.Species` The species")
+              ":class:`~pyarts3.arts.Species` The species")
       .def_rw("fitcoeffs",
               &XsecRecord::mfitcoeffs,
-              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
       .def_rw("fitminpressures",
               &XsecRecord::mfitminpressures,
-              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
       .def_rw("fitmaxpressures",
               &XsecRecord::mfitmaxpressures,
-              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
       .def_rw("fitmintemperatures",
               &XsecRecord::mfitmintemperatures,
-              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
       .def_rw("fitmaxtemperatures",
               &XsecRecord::mfitmaxtemperatures,
-              ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(
           "propagation_matrix",
           [](const XsecRecord& self,

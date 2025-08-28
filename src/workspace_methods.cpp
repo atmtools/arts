@@ -1392,7 +1392,7 @@ are interpolated using third order polynomials.
 Given that the interpolation is :math:`\vec{x}_{ij} = f\left(T, \vec{f}\right)`,
 where the *atmospheric_point* temperature is :math:`T` and :math:`f` is the
 *frequency_grid*, :math:`i` is an index into the *absorption_cia_data* and :math:`j`
-is an index into the underlying :class:`~pyarts.arts.CIARecord` data structure,
+is an index into the underlying :class:`~pyarts3.arts.CIARecord` data structure,
 the absorption coefficient from CIA is given by
 
 .. math::
@@ -3860,7 +3860,7 @@ if the method should throw if the pressure or temperature is missing.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3890,7 +3890,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
-See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names.
+See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3920,8 +3920,8 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
-See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names and
-:class:`~pyarts.arts.QuantumNumberValue` for valid quantum numbers.
+See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names and
+:class:`~pyarts3.arts.QuantumNumberValue` for valid quantum numbers.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3951,7 +3951,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3981,7 +3981,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4011,7 +4011,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4041,7 +4041,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4071,7 +4071,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
-See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -5433,7 +5433,7 @@ Below is an example using this method to create a *ray_path_field*.
 .. plot::
     :include-source:
 
-    import pyarts
+    import pyarts3 as pyarts
     import numpy as np
 
     ws = pyarts.Workspace()

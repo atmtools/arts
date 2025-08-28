@@ -32,19 +32,19 @@ For all ranks, the ``data_t`` has the following additional member methods beyond
 
 Some types made available via the python interface are:
 
-- :class:`~pyarts.arts.Vector` - a 1D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 1>``.
-- :class:`~pyarts.arts.Matrix` - a 2D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 2>``.
-- :class:`~pyarts.arts.Tensor3` - a 3D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 3>``.
-- :class:`~pyarts.arts.Tensor4` - a 4D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 4>``.
-- :class:`~pyarts.arts.Tensor5` - a 5D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 5>``.
-- :class:`~pyarts.arts.Tensor6` - a 6D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 6>``.
-- :class:`~pyarts.arts.Tensor7` - a 7D array of :class:`~pyarts.arts.Numeric`, defined as ``data_t<Numeric, 7>``.
-- :class:`~pyarts.arts.StokvecVector` - a 1D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 1>``.
-- :class:`~pyarts.arts.StokvecMatrix` - a 2D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 2>``.
-- :class:`~pyarts.arts.StokvecTensor3` - a 3D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 3>``.
-- :class:`~pyarts.arts.StokvecTensor4` - a 4D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 4>``.
-- :class:`~pyarts.arts.StokvecTensor5` - a 5D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 5>``.
-- :class:`~pyarts.arts.StokvecTensor6` - a 6D array of :class:`~pyarts.arts.Stokvec`, defined as ``data_t<Stokvec, 6>``.
+- :class:`~pyarts3.arts.Vector` - a 1D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 1>``.
+- :class:`~pyarts3.arts.Matrix` - a 2D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 2>``.
+- :class:`~pyarts3.arts.Tensor3` - a 3D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 3>``.
+- :class:`~pyarts3.arts.Tensor4` - a 4D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 4>``.
+- :class:`~pyarts3.arts.Tensor5` - a 5D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 5>``.
+- :class:`~pyarts3.arts.Tensor6` - a 6D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 6>``.
+- :class:`~pyarts3.arts.Tensor7` - a 7D array of :class:`~pyarts3.arts.Numeric`, defined as ``data_t<Numeric, 7>``.
+- :class:`~pyarts3.arts.StokvecVector` - a 1D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 1>``.
+- :class:`~pyarts3.arts.StokvecMatrix` - a 2D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 2>``.
+- :class:`~pyarts3.arts.StokvecTensor3` - a 3D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 3>``.
+- :class:`~pyarts3.arts.StokvecTensor4` - a 4D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 4>``.
+- :class:`~pyarts3.arts.StokvecTensor5` - a 5D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 5>``.
+- :class:`~pyarts3.arts.StokvecTensor6` - a 6D array of :class:`~pyarts3.arts.Stokvec`, defined as ``data_t<Stokvec, 6>``.
 - ... there are many more ...
 
 .. tip::
@@ -76,12 +76,12 @@ operations do not contaminate the general-purpose ``cdata_t``.
 
 Some types made available via the python interface are:
 
-- :class:`~pyarts.arts.Stokvec` - a 1D array of 4 :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Numeric, 4>``.  Holds spectral radiance in ARTS.
-- :class:`~pyarts.arts.Propmat` - a 1D array of 7 :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Numeric, 7>``.  Holds a sparsified propagation matrix in ARTS.
-- :class:`~pyarts.arts.Muelmat` - a 2D array of ``4x4`` :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Numeric, 4, 4>``.  Holds a Mueller matrix in ARTS.
-- :class:`~pyarts.arts.Specmat` - a 2D array of ``4x4`` :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Complex, 4, 4>``.  Holds a spectral matrix in ARTS.
-- :class:`~pyarts.arts.Vector2` - a 1D array of 2 :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Numeric, 2>``.  Used for 2D vectors in ARTS.  Not to be confused with :class:`~pyarts.arts.Vector`.  An example is the line-of-sight vector (zenith, azimuth).
-- :class:`~pyarts.arts.Vector3` - a 1D array of 3 :class:`~pyarts.arts.Numeric`, defined as ``cdata_t<Numeric, 3>``. Used for 3D vectors in ARTS.  Not to be confused with :class:`~pyarts.arts.Vector`.  An example is the position vector (altitude, latitude, longitude).
+- :class:`~pyarts3.arts.Stokvec` - a 1D array of 4 :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Numeric, 4>``.  Holds spectral radiance in ARTS.
+- :class:`~pyarts3.arts.Propmat` - a 1D array of 7 :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Numeric, 7>``.  Holds a sparsified propagation matrix in ARTS.
+- :class:`~pyarts3.arts.Muelmat` - a 2D array of ``4x4`` :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Numeric, 4, 4>``.  Holds a Mueller matrix in ARTS.
+- :class:`~pyarts3.arts.Specmat` - a 2D array of ``4x4`` :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Complex, 4, 4>``.  Holds a spectral matrix in ARTS.
+- :class:`~pyarts3.arts.Vector2` - a 1D array of 2 :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Numeric, 2>``.  Used for 2D vectors in ARTS.  Not to be confused with :class:`~pyarts3.arts.Vector`.  An example is the line-of-sight vector (zenith, azimuth).
+- :class:`~pyarts3.arts.Vector3` - a 1D array of 3 :class:`~pyarts3.arts.Numeric`, defined as ``cdata_t<Numeric, 3>``. Used for 3D vectors in ARTS.  Not to be confused with :class:`~pyarts3.arts.Vector`.  An example is the position vector (altitude, latitude, longitude).
 - ...
 
 .. tip::

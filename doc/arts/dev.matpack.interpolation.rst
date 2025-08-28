@@ -102,10 +102,10 @@ Grid positions
 --------------
 
 A grid position specifies where an interpolation point is, relative
-to the original grid. It consists of three parts, an :class:`pyarts.arts.Index` giving the
-original grid index below the interpolation point, a :class:`pyarts.arts.Numeric`
+to the original grid. It consists of three parts, an :class:`pyarts3.arts.Index` giving the
+original grid index below the interpolation point, a :class:`pyarts3.arts.Numeric`
 giving the fractional distance to the next original grid point, and a
-:class:`pyarts.arts.Numeric` giving 1 minus this number. Of course, the last element is
+:class:`pyarts3.arts.Numeric` giving 1 minus this number. Of course, the last element is
 redundant. However, it is efficient to store this, since it is used
 many times over. We store the two numerics in a plain C array of
 dimension 2. (No need to use a fancy Array or Vector for this, since

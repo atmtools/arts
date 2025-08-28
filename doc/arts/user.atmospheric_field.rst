@@ -16,9 +16,9 @@ An atmospheric point effectively holds the local state of the atmosphere at a sp
 
 Key notations:
 
-- :class:`~pyarts.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts.workspace.Workspace.atmospheric_field`.
-- :class:`~pyarts.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.  These do not generally live on the workspace.
-- :class:`~pyarts.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts.workspace.Workspace.atmospheric_point`.
+- :class:`~pyarts3.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_field`.
+- :class:`~pyarts3.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.  These do not generally live on the workspace.
+- :class:`~pyarts3.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_point`.
 
 .. note::
 
@@ -29,23 +29,23 @@ Key notations:
 The full atmospheric field
 **************************
 
-An atmospheric field is represented by the class :class:`~pyarts.arts.AtmField`.
+An atmospheric field is represented by the class :class:`~pyarts3.arts.AtmField`.
 
-The atmospheric field holds a collection of atmospheric field data, :class:`~pyarts.arts.AtmData`,
+The atmospheric field holds a collection of atmospheric field data, :class:`~pyarts3.arts.AtmData`,
 that can be accessed and modified through a :class:`dict`-like interface.
-An atmospheric field has a maximum altitude, :attr:`~pyarts.arts.AtmField.top_of_atmosphere`, above which it is considered undefined.
+An atmospheric field has a maximum altitude, :attr:`~pyarts3.arts.AtmField.top_of_atmosphere`, above which it is considered undefined.
 It has no minimum altitude, instead relying on an external ellipsoid and elevation field to define the surface of the planet below it.
-The ellipsoid and the elevation field are (often) part of the :class:`~pyarts.arts.SurfaceField` class
+The ellipsoid and the elevation field are (often) part of the :class:`~pyarts3.arts.SurfaceField` class
 and are described in :ref:`Sec Surface Field`.
 The atmospheric field can be called as if it were a function taking altitude, geodetic latitude, and longitude 
-coordinate arguments to compute or extract the local atmospheric state, :class:`~pyarts.arts.AtmPoint`.
+coordinate arguments to compute or extract the local atmospheric state, :class:`~pyarts3.arts.AtmPoint`.
 
 The core operations on ``atm_field`` are:
 
-- ``atm_field[key]``: Accessing relevant atmospheric field data: :class:`~pyarts.arts.AtmData`. See `Atmospheric field/point data access`_ for more information on what constitutes a valid ``key``
+- ``atm_field[key]``: Accessing relevant atmospheric field data: :class:`~pyarts3.arts.AtmData`. See `Atmospheric field/point data access`_ for more information on what constitutes a valid ``key``
 - ``atm_field.top_of_atmosphere``: The maximum altitude of the atmosphere.
   This is the altitude above which the atmospheric field is undefined.
-- ``atm_field(alt, lat, lon)``: Compute the local atmospheric state (:class:`~pyarts.arts.AtmPoint`) at the given coordinate.
+- ``atm_field(alt, lat, lon)``: Compute the local atmospheric state (:class:`~pyarts3.arts.AtmPoint`) at the given coordinate.
   It is an error to call this with ``alt > atm_field.top_of_atmosphere``.
 
 Shorthand graph for ``atm_field``:
@@ -78,17 +78,17 @@ A single atmospheric point
 An atmospheric point holds the local state of the atmosphere.
 This is required for local calculations of radiative transfer properties,
 such as absorption, scattering, emission, etc.
-An atmospheric point is represented by an instance of :class:`~pyarts.arts.AtmPoint`.
+An atmospheric point is represented by an instance of :class:`~pyarts3.arts.AtmPoint`.
 
 The main use on an atmospheric point is to access the local, numerical state of the atmosphere.
 
 The core operations on ``atm_point`` are:
 
 - ``atm_point[key]``: The local state as a :class:`float`. See `Atmospheric field/point data access`_ for more information on what constitutes a valid ``key``.
-- ``atm_point.pressure``: The local :attr:`~pyarts.arts.AtmPoint.pressure` [Pa] as a :class:`float`.
-- ``atm_point.temperature``: The local :attr:`~pyarts.arts.AtmPoint.temperature` [K] as a :class:`float`.
-- ``atm_point.mag``: The local magnetic field (:attr:`~pyarts.arts.AtmPoint.mag`) as a :class:`~pyarts.arts.Vector3` [T].
-- ``atm_point.wind``: The local wind field (:attr:`~pyarts.arts.AtmPoint.wind`) as a :class:`~pyarts.arts.Vector3` [m/s].
+- ``atm_point.pressure``: The local :attr:`~pyarts3.arts.AtmPoint.pressure` [Pa] as a :class:`float`.
+- ``atm_point.temperature``: The local :attr:`~pyarts3.arts.AtmPoint.temperature` [K] as a :class:`float`.
+- ``atm_point.mag``: The local magnetic field (:attr:`~pyarts3.arts.AtmPoint.mag`) as a :class:`~pyarts3.arts.Vector3` [T].
+- ``atm_point.wind``: The local wind field (:attr:`~pyarts3.arts.AtmPoint.wind`) as a :class:`~pyarts3.arts.Vector3` [m/s].
 
 Shorthand graph for ``atm_point``:
 
@@ -127,26 +127,26 @@ Shorthand graph for ``atm_point``:
 Atmospheric field/point data access
 ***********************************
 
-The access operator ``atm_field[key]`` is used to get and set atmospheric field data (:class:`~pyarts.arts.AtmData`)
+The access operator ``atm_field[key]`` is used to get and set atmospheric field data (:class:`~pyarts3.arts.AtmData`)
 in the atmospheric field through the use of types of keys.
 Likewise, the access operator ``atm_point[key]`` is used to get and set data in the atmospheric point,
 though it deals with pure floating point data.
 Each type of key is meant to represent a different type of atmospheric data.
 The following types of keys are available:
 
-- :class:`~pyarts.arts.AtmKey`: Basic atmospheric data.
+- :class:`~pyarts3.arts.AtmKey`: Basic atmospheric data.
   Defines temperature [K], pressure [Pa], wind [m/s], and magnetic [T] components.
-- :class:`~pyarts.arts.SpeciesEnum`: Content of species.
+- :class:`~pyarts3.arts.SpeciesEnum`: Content of species.
   This most often means "volume mixing ratio" (VMR) but for historical reasons there are exceptions.
   VMRs need not sum up to 1 for practical reasons.
-- :class:`~pyarts.arts.SpeciesIsotope`: Isotopologue ratios.
+- :class:`~pyarts3.arts.SpeciesIsotope`: Isotopologue ratios.
   These are ratios of different isotopologues of the same species.
   As for VMRs they need not sum up to 1 per species for practical reasons.
   These are defaulted to values extracted from `HITRAN <https://hitran.org/>`_,
   complemented by other sources as necessary.
-- :class:`~pyarts.arts.QuantumIdentifier`: Non-LTE data.
+- :class:`~pyarts3.arts.QuantumIdentifier`: Non-LTE data.
   These are the state distributions of energy levels of molecules required for non-LTE calculations.
-- :class:`~pyarts.arts.ScatteringSpeciesProperty`: Scattering properties of the atmosphere.
+- :class:`~pyarts3.arts.ScatteringSpeciesProperty`: Scattering properties of the atmosphere.
   These are properties of the atmosphere that are relevant for scattering calculations.
 
 Shorthand graph for ``key`` of different types:
@@ -183,9 +183,9 @@ Shorthand graph for ``key`` of different types:
 
 .. tip::
 
-  Both ``atm_field["temperature"]`` and ``atm_field[pyarts.arts.AtmKey.temperature]`` will give
-  the same :class:`~pyarts.arts.AtmData` back in python.  This is
-  because ``pyarts.arts.AtmKey("temperature") == pyarts.arts.AtmKey.temperature``.
+  Both ``atm_field["temperature"]`` and ``atm_field[pyarts3.arts.AtmKey.temperature]`` will give
+  the same :class:`~pyarts3.arts.AtmData` back in python.  This is
+  because ``pyarts3.arts.AtmKey("temperature") == pyarts3.arts.AtmKey.temperature``.
   The same is also true when accessing ``atm_point``, though it gives floating point values.
 
 .. note::
@@ -198,7 +198,7 @@ Atmospheric field data
 **********************
 
 The atmospheric field data is a core component of the atmospheric field.
-It is stored in an instance of :class:`~pyarts.arts.AtmData`.
+It is stored in an instance of :class:`~pyarts3.arts.AtmData`.
 This type holds the entire atmospheric data for a single atmospheric property,
 such as the full 3D temperature field, the full 3D pressure field, etc.
 It also holds the logic for how to interpolate and extrapolate this data to any altitude, geodetic latitude, and longitude point.
@@ -251,21 +251,21 @@ Shorthand graph:
 
 .. tip:: 
   
-  An :class:`~pyarts.arts.AtmData` is implicitly constructible from each of the `Data types`_ described below.
+  An :class:`~pyarts3.arts.AtmData` is implicitly constructible from each of the `Data types`_ described below.
   The extrapolation settings will be set to appropriate defaults when an implicit construction takes place.
   These default settings depend on the type and even available data.
 
 .. note::
 
   If the extrapolation settings or the data itself cannot be used to extract a value at a point using the call-operator,
-  the :class:`~pyarts.arts.AtmData` will raise an exception.  This is to ensure that the user is aware of the problem.
+  the :class:`~pyarts3.arts.AtmData` will raise an exception.  This is to ensure that the user is aware of the problem.
   Changing the extrapolation settings will likely fix the immediate problem, but be aware that the consequences of doing so
   might yield numerical differences from what was originally expected.
 
 Extrapolation rules
 -------------------
 
-The rules for extrapolation is governed by :class:`~pyarts.arts.InterpolationExtrapolation`.
+The rules for extrapolation is governed by :class:`~pyarts3.arts.InterpolationExtrapolation`.
 Please see its documentation for more information.
 Extrapolation happens only outside the grids of the data.
 Interpreting the data inside a grid is done on a type-by-type basis.
@@ -284,16 +284,16 @@ Each data type has its own rules for how to interpret, interpolate, and extrapol
 Numeric
 ^^^^^^^
 
-:class:`~pyarts.arts.Numeric` data simply means that the atmosphere contains constant data.
+:class:`~pyarts3.arts.Numeric` data simply means that the atmosphere contains constant data.
 Extrapolation rules are not relevant for this data type as it is constant everywhere.
-An example of using :class:`~pyarts.arts.Numeric` as atmospheric field data is given in the following code block.
+An example of using :class:`~pyarts3.arts.Numeric` as atmospheric field data is given in the following code block.
 
 .. plot::
   :include-source:
 
   import matplotlib.pyplot as plt
   import numpy as np
-  import pyarts
+  import pyarts3 as pyarts
 
   atm_field = pyarts.arts.AtmField(toa=100e3)
   atm_field["mag_u"] = 50e-6
@@ -312,19 +312,19 @@ An example of using :class:`~pyarts.arts.Numeric` as atmospheric field data is g
 SortedGriddedField3
 ^^^^^^^^^^^^^^^^^^^
 
-If the atmospheric data is of the type :class:`~pyarts.arts.SortedGriddedField3`,
+If the atmospheric data is of the type :class:`~pyarts3.arts.SortedGriddedField3`,
 the data is defined on a grid of altitude, geodetic latitude, and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate between [-180, 180) - please ensure your grid is defined accordingly.
 This data type fully respects the rules of extrapolation outside its grid.
-An example of using :class:`~pyarts.arts.SortedGriddedField3` as atmospheric field data is given in the following code block.
+An example of using :class:`~pyarts3.arts.SortedGriddedField3` as atmospheric field data is given in the following code block.
 
 .. plot::
   :include-source:
 
   import matplotlib.pyplot as plt
   import numpy as np
-  import pyarts
+  import pyarts3 as pyarts
 
   atm_field = pyarts.arts.AtmField(toa=100e3)
   atm_field["t"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/t.xml")
@@ -345,13 +345,13 @@ An example of using :class:`~pyarts.arts.SortedGriddedField3` as atmospheric fie
 
 .. tip::
 
-  It is possible to use any number of 1-long grids in a :class:`~pyarts.arts.SortedGriddedField3` meant for use as a :class:`~pyarts.arts.AtmData`.
+  It is possible to use any number of 1-long grids in a :class:`~pyarts3.arts.SortedGriddedField3` meant for use as a :class:`~pyarts3.arts.AtmData`.
   The 1-long grids will by default apply the "nearest" interpolation rule for those grids, potentially reducing the atmospheric data
   to a 1D profile if only the altitude is given, or even a constant if all three grids are 1-long.
 
 .. note::
 
-  If the :class:`~pyarts.arts.SortedGriddedField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
+  If the :class:`~pyarts3.arts.SortedGriddedField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
   extrapolate it.  By default, these rules are set to not allow any extrapolation.  This can be changed by setting the
   extrapolation settings as needed.  See headers `Extrapolation rules`_ and `Atmospheric field data`_ for more information.
 
@@ -366,17 +366,17 @@ An example of using :class:`~pyarts.arts.SortedGriddedField3` as atmospheric fie
 NumericTernaryOperator
 ^^^^^^^^^^^^^^^^^^^^^^
 
-This operator (:class:`~pyarts.arts.NumericTernaryOperator`) represents that the atmospheric property is purely
+This operator (:class:`~pyarts3.arts.NumericTernaryOperator`) represents that the atmospheric property is purely
 a function of altitude, geodetic latitude, and longitude.  The operator takes three arguments and returns a float.
 Extrapolation rules are not relevant for this data type as it is a function.
-An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric field data is given in the following code block.
+An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric field data is given in the following code block.
 
 .. plot::
   :include-source:
 
   import matplotlib.pyplot as plt
   import numpy as np
-  import pyarts
+  import pyarts3 as pyarts
 
   h = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").grids[0]
   p = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").data.flatten()
@@ -402,13 +402,13 @@ An example of using :class:`~pyarts.arts.NumericTernaryOperator` as atmospheric 
 .. tip::
 
   Any kind of python function-like object can be used as
-  a :class:`~pyarts.arts.NumericTernaryOperator`.  It must simply take three floats and return another float.
+  a :class:`~pyarts3.arts.NumericTernaryOperator`.  It must simply take three floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, alt, lat, lon)`` for it.
 
 .. note::
 
-  Some workspace methods populate parts of the atmospheric field with :class:`~pyarts.arts.NumericTernaryOperator` objects.
-  One example is :func:`~pyarts.workspace.Workspace.atmospheric_fieldIGRF`.
-  These functions are generally faster than manually created :class:`~pyarts.arts.NumericTernaryOperator` in python.
+  Some workspace methods populate parts of the atmospheric field with :class:`~pyarts3.arts.NumericTernaryOperator` objects.
+  One example is :func:`~pyarts3.workspace.Workspace.atmospheric_fieldIGRF`.
+  These functions are generally faster than manually created :class:`~pyarts3.arts.NumericTernaryOperator` in python.
   They have 3 advantages: 1) C++ is faster than python, 2) there is no python wrapper overhead for the function call,
   and 3) we can know if these methods are safe for parallel execution, so we do not need to engage the python GIL.

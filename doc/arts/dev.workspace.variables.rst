@@ -2,7 +2,7 @@ Workspace variables
 ###################
 
 Workspace variables allow named data to be passed into workspace methods.
-They are attributes of the :class:`~pyarts.workspace.Workspace` object.
+They are attributes of the :class:`~pyarts3.workspace.Workspace` object.
 
 Most workspace variables are defined in the ``workspace_variables.cpp`` file.
 Workspace agendas are automatically defined as workspace variables from the ``workspace_agendas.cpp``.
@@ -19,13 +19,13 @@ of the map and the object are a struct with the following fields:
 
 - ``desc`` - a description of the variable as a string.
 - ``type`` - the workspace group of the variable as a string.
-- ``default_value`` - an optional default value of the workspace variable that is defined when a :class:`~pyarts.workspace.Workspace` object is default-initialized.
+- ``default_value`` - an optional default value of the workspace variable that is defined when a :class:`~pyarts3.workspace.Workspace` object is default-initialized.
 
 In ``workspace_agendas.cpp``
 ----------------------------
 
 See the page on :doc:`dev.workspace.agendas` for more information.  The workspace variable defined from the workspace agenda will
-have no default value.  It will be of the type :class:`~pyarts.arts.Agenda`.
+have no default value.  It will be of the type :class:`~pyarts3.arts.Agenda`.
 
 What qualifies as a workspace variable?
 =======================================
@@ -67,8 +67,8 @@ To allow searching and connecting different workspace variables to their intende
 we have reserved a set of terms that should be used in the names of related workspace variables.
 This list will connect workspace variables under a rubric ``Related workspace variables`` in the documentation.
 Please note that combining more than one of these terms is possible and highly encouraged.
-The workspace variable :attr:`~pyarts.workspace.Workspace.propagation_matrix` along the :attr:`~pyarts.workspace.Workspace.ray_path`
-is called :attr:`~pyarts.workspace.Workspace.ray_path_propagation_matrix` to connect it to both concepts.
+The workspace variable :attr:`~pyarts3.workspace.Workspace.propagation_matrix` along the :attr:`~pyarts3.workspace.Workspace.ray_path`
+is called :attr:`~pyarts3.workspace.Workspace.ray_path_propagation_matrix` to connect it to both concepts.
 The full list is available in the ``workspace_variables_keywords.cpp`` file.
 As of writing this, the list includes the following terms:
 

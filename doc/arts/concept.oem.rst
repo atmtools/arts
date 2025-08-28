@@ -12,10 +12,10 @@ He formulates the core expression of a measurement as
   \vec{y} = F\left(\vec{x}\right) + \epsilon,
 
 where :math:`\vec{y}` is a measurement vector
-(i.e., :attr:`~pyarts.workspace.Workspace.measurement_vector`
+(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_vector`
 in the ARTS workspace),
 :math:`\vec{x}` is the state of the model
-(i.e., :attr:`~pyarts.workspace.Workspace.model_state_vector`
+(i.e., :attr:`~pyarts3.workspace.Workspace.model_state_vector`
 in the ARTS workspace),
 :math:`F` is the model (i.e., ARTS itself), and
 :math:`\epsilon` is some measurement error that cannot
@@ -64,7 +64,7 @@ where we can take the partial derivative to find that
   \mathbf{J} = \frac{\partial \vec{y}}{\partial \vec{x}}
 
 is the Jacobian matrix
-(i.e., :attr:`~pyarts.workspace.Workspace.measurement_jacobian`
+(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jacobian`
 in the ARTS workspace).
 
 One approach to minimize :math:`\vec{x}` is to
@@ -105,11 +105,11 @@ map the Jacobian matrix to another vector space (e.g., from
 Cartesian coordinates to spherical coordinates).
 
 The first type of transformations are performed by an
-:class:`~pyarts.arts.SpectralRadianceTransformOperator`
+:class:`~pyarts3.arts.SpectralRadianceTransformOperator`
 in ARTS.  This is a local operation that is almost trivial to undo.
 Generally, you should just use one of the
 provided enumeration values of
-:class:`~pyarts.arts.SpectralRadianceUnitType` to
+:class:`~pyarts3.arts.SpectralRadianceUnitType` to
 set up these types of transformations.
 The enumeration class also describes how the transformations
 are done.  This will not be repeated here.

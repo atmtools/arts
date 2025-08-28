@@ -1,8 +1,7 @@
-pyarts.plots
+pyarts3.data
 ============
 
-.. automodule:: pyarts.plots
+.. automodule:: pyarts3.data
    :members:
-   :imported-members:
    :undoc-members:
    :special-members: __init__, __call__

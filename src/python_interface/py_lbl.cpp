@@ -48,14 +48,14 @@ void py_lbl(py::module_& m) try {
           [](lbl::temperature::data& self, LineShapeModelType x) {
             self = lbl::temperature::data{x, self.X()};
           },
-          ":class:`~pyarts.arts.TemperatureModelType` The type of the model")
+          ":class:`~pyarts3.arts.TemperatureModelType` The type of the model")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },
           [](lbl::temperature::data& self, const Vector& x) {
             self = lbl::temperature::data{self.Type(), x};
           },
-          ":class:`~pyarts.arts.Vector` The coefficients")
+          ":class:`~pyarts3.arts.Vector` The coefficients")
       .def("__getstate__",
            [](const lbl::temperature::data& v) {
              return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
@@ -205,17 +205,17 @@ void py_lbl(py::module_& m) try {
       .def_rw(
           "on",
           &lbl::zeeman::model::on,
-          ":class:`~pyarts.arts.Bool` If True, the Zeeman effect is included")
+          ":class:`~pyarts3.arts.Bool` If True, the Zeeman effect is included")
       .def_prop_rw(
           "gl",
           [](lbl::zeeman::model& z) { return z.gl(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gl(g); },
-          ":class:`~pyarts.arts.Numeric` The lower level statistical weight")
+          ":class:`~pyarts3.arts.Numeric` The lower level statistical weight")
       .def_prop_rw(
           "gu",
           [](lbl::zeeman::model& z) { return z.gu(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
-          ":class:`~pyarts.arts.Numeric` The upper level statistical weight")
+          ":class:`~pyarts3.arts.Numeric` The upper level statistical weight")
       .def(
           "strengths",
           [](const lbl::zeeman::model& mod, const QuantumState& qn) {
@@ -244,31 +244,31 @@ void py_lbl(py::module_& m) try {
   py::class_<lbl::line>(m, "AbsorptionLine")
       .def_rw("a",
               &lbl::line::a,
-              ":class:`~pyarts.arts.Numeric` The Einstein coefficient [1 / s]")
+              ":class:`~pyarts3.arts.Numeric` The Einstein coefficient [1 / s]")
       .def_rw("f0",
               &lbl::line::f0,
-              ":class:`~pyarts.arts.Numeric` The line center frequency [Hz]")
+              ":class:`~pyarts3.arts.Numeric` The line center frequency [Hz]")
       .def_rw("e0",
               &lbl::line::e0,
-              ":class:`~pyarts.arts.Numeric` The lower level energy [J]")
+              ":class:`~pyarts3.arts.Numeric` The lower level energy [J]")
       .def_rw(
           "gu",
           &lbl::line::gu,
-          ":class:`~pyarts.arts.Numeric` The upper level statistical weight [-]")
+          ":class:`~pyarts3.arts.Numeric` The upper level statistical weight [-]")
       .def_rw(
           "gl",
           &lbl::line::gl,
-          ":class:`~pyarts.arts.Numeric` The lower level statistical weight [-]")
+          ":class:`~pyarts3.arts.Numeric` The lower level statistical weight [-]")
       .def_rw("z",
               &lbl::line::z,
-              ":class:`~pyarts.arts.ZeemanLineModel` The Zeeman model")
+              ":class:`~pyarts3.arts.ZeemanLineModel` The Zeeman model")
       .def_rw("ls",
               &lbl::line::ls,
-              ":class:`~pyarts.arts.LineShapeModel` The line shape model")
+              ":class:`~pyarts3.arts.LineShapeModel` The line shape model")
       .def_rw(
           "qn",
           &lbl::line::qn,
-          ":class:`~pyarts.arts.QuantumNumberLocalState` The local quantum numbers of this line")
+          ":class:`~pyarts3.arts.QuantumNumberLocalState` The local quantum numbers of this line")
       .def(
           "s",
           [](const lbl::line& self, py::object& T, py::object& Q) {
@@ -481,16 +481,16 @@ T0 : float
   py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
   ed.def_rw("scaling",
             &LinemixingSingleEcsData::scaling,
-            ":class:`~pyarts.arts.TemperatureModel`");
+            ":class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("beta",
             &LinemixingSingleEcsData::beta,
-            ":class:`~pyarts.arts.TemperatureModel`");
+            ":class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("lambda_",  // Fix name, not python
             &LinemixingSingleEcsData::lambda,
-            ":class:`~pyarts.arts.TemperatureModel`");
+            ":class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("collisional_distance",
             &LinemixingSingleEcsData::collisional_distance,
-            ":class:`~pyarts.arts.TemperatureModel`");
+            ":class:`~pyarts3.arts.TemperatureModel`");
   ed.def("Q",
          &LinemixingSingleEcsData::Q,
          "J"_a,

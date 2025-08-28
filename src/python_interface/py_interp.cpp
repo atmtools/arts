@@ -99,7 +99,7 @@ void py_interp(py::module_& m) {
   auto vlc_ =
       py::bind_vector<std::vector<lc>, py::rv_policy::reference_internal>(
           interp, "ArrayOfLagrangeCyclic");
-  interp_vec_class(vid_).doc() = "List of :class:`~pyarts.arts.Lagrange`";
-  interp_vec_class(vlc_).doc() = "List of :class:`~pyarts.arts.LagrangeCyclic`";
+  interp_vec_class(vid_).doc() = "List of :class:`~pyarts3.arts.Lagrange`";
+  interp_vec_class(vlc_).doc() = "List of :class:`~pyarts3.arts.LagrangeCyclic`";
 }
 }  // namespace Python

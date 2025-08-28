@@ -12,11 +12,11 @@ void py_star(py::module_& m) try {
   generic_interface(suns);
   suns.def_rw("description",
               &Sun::description,
-              ":class:`~pyarts.arts.String` Sun description")
+              ":class:`~pyarts3.arts.String` Sun description")
       .def_rw(
           "spectrum",
           &Sun::spectrum,
-          ":class:`~pyarts.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
+          ":class:`~pyarts3.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
       .def_rw("radius", &Sun::radius, ":class:`float` Sun radius")
       .def_rw("distance", &Sun::distance, ":class:`float` Sun distance")
       .def_rw("latitude", &Sun::latitude, ":class:`float` Sun latitude")

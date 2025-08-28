@@ -577,7 +577,7 @@ arr : :class:`scipy.sparse.csr_matrix`
                   std::make_shared<Sparse>(**std::get_if<Sparse*>(&y)));
             }
           },
-          ":class:`~pyarts.arts.Matrix` or :class:`~pyarts.arts.Sparse` The matrix held inside the instance")
+          ":class:`~pyarts3.arts.Matrix` or :class:`~pyarts3.arts.Sparse` The matrix held inside the instance")
       .def("__getstate__",
            [](const Block& self) {
              if (self.is_sparse())
@@ -681,7 +681,7 @@ arr : :class:`scipy.sparse.csr_matrix`
           [](CovarianceMatrix& x, std::vector<Block> y) {
             x.get_blocks() = std::move(y);
           },
-          ":class:`list` of :class:`~pyarts.arts.Block`")
+          ":class:`list` of :class:`~pyarts3.arts.Block`")
       .def("__getstate__",
            [](CovarianceMatrix& self) {
              return std::tuple<std::vector<Block>, std::vector<Block>>(

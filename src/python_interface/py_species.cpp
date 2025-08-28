@@ -145,7 +145,7 @@ void py_species(py::module_& m) try {
           "Partition function")
       .def_ro("spec",
               &SpeciesIsotope::spec,
-              ":class:`~pyarts.arts.Species` The species")
+              ":class:`~pyarts3.arts.Species` The species")
       .def_ro("isotname",
               &SpeciesIsotope::isotname,
               ":class:`str` A custom name that is unique for this Species type")
@@ -159,7 +159,7 @@ void py_species(py::module_& m) try {
           ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
       .def_prop_ro("name",
                    &SpeciesIsotope::FullName,
-                   ":class:`~pyarts.arts.String` The full name")
+                   ":class:`~pyarts3.arts.String` The full name")
       .def_prop_ro("predef",
                    &SpeciesIsotope::is_predefined,
                    ":class:`bool` Check if this represents a predefined model")
@@ -190,10 +190,10 @@ void py_species(py::module_& m) try {
   stag.def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_rw("type",
               &SpeciesTag::type,
-              ":class:`~pyarts.arts.SpeciesTagType` Type of tag")
+              ":class:`~pyarts3.arts.SpeciesTagType` Type of tag")
       .def_rw("cia_2nd_species",
               &SpeciesTag::cia_2nd_species,
-              ":class:`~pyarts.arts.Species` CIA species")
+              ":class:`~pyarts3.arts.Species` CIA species")
       .def(
           "partfun",
           [](const SpeciesTag& self, Numeric T) {
@@ -214,7 +214,7 @@ Returns
           "T"_a)
       .def_prop_ro("full_name",
                    &SpeciesTag::FullName,
-                   ":class:`~pyarts.arts.String` The full name")
+                   ":class:`~pyarts3.arts.String` The full name")
       .def(py::self == py::self)
       .def("__getstate__",
            [](const SpeciesTag& self) {

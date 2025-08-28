@@ -1,7 +1,8 @@
-pyarts.hitran
+pyarts3.plots
 =============
 
-.. automodule:: pyarts.hitran
+.. automodule:: pyarts3.plots
    :members:
+   :imported-members:
    :undoc-members:
    :special-members: __init__, __call__

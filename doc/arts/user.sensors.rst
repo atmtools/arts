@@ -8,9 +8,9 @@ Stokes vectors from one or several spectral raditive transfer simulations
 and turn them into scalar measurements.
 
 The main variable that describes 
-the sensor setup is :attr:`~pyarts.workspace.Workspace.measurement_sensor`.
+the sensor setup is :attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
 It is a list of sensor observation elements.
-Every sensor observation element (:class:`~pyarts.arts.SensorObsel`) has a
+Every sensor observation element (:class:`~pyarts3.arts.SensorObsel`) has a
 shared frequency grid and shared geometry.
 
 Sensor observation elements

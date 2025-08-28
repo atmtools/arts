@@ -11,14 +11,14 @@ rttools channel:
 
 .. code-block:: bash
 
-    mamba install -c rttools pyarts
+    mamba install -c rttools-dev pyarts3
 
 .. warning::
     The pyarts package was created for use with Miniforge3.  If you are using
     Anaconda, you will need to install it into a separate environment with the
     ``conda-forge`` channel:
 
-    ``conda create -n arts -c conda-forge -c rttools pyarts``
+    ``conda create -n arts -c conda-forge -c rttools-dev pyarts3``
 
     But compatiblity issues remain, e.g. it has been reported that the package
     fails to install on Intel Macs with Anaconda. Therefore, we recommend to

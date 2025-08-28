@@ -212,7 +212,7 @@ def to_atmospheric_field(
     atm: None | pyarts.arts.AtmField = None,
 ) -> pyarts.arts.AtmField:
     """
-    Populates a ~pyarts.arts.AtmField from an xarray Dataset-like structure
+    Populates a ~pyarts3.arts.AtmField from an xarray Dataset-like structure
 
     Parameters
     ----------

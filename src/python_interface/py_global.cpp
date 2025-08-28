@@ -62,14 +62,14 @@ void py_global(py::module_& m) try {
       .def_rw_static(
           "includepath",
           &parameters.includepath,
-          ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
+          ":class:`~pyarts3.arts.ArrayOfString` Automatic include paths")
       .def_rw_static("datapath",
                      &parameters.datapath,
-                     ":class:`~pyarts.arts.ArrayOfString` Automatic data paths")
+                     ":class:`~pyarts3.arts.ArrayOfString` Automatic data paths")
       .def_rw_static(
           "numthreads",
           &parameters.numthreads,
-          ":class:`~pyarts.arts.Index` Number of threads allowed to start")
+          ":class:`~pyarts3.arts.Index` Number of threads allowed to start")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
@@ -172,7 +172,7 @@ Return
   global.def(
       "all_isotopologues",
       []() { return Species::Isotopologues; },
-      "List of all valid :class:`~pyarts.arts.SpeciesIsotopeRecord`");
+      "List of all valid :class:`~pyarts3.arts.SpeciesIsotopeRecord`");
 
 #ifdef _OPENMP
   global.def("omp_get_max_threads",
@@ -243,7 +243,7 @@ The time report is a :class:`dict` with :class:`int` keys representing threads.
 
 Each entry has another :class:`dict` with :class:`str` key representing the short-name of the C++ method that was timed.
 
-As a thread can call a method multiple times, these results are stored as a :class:`list` of a start and an end :class:`~pyarts.arts.Time`.
+As a thread can call a method multiple times, these results are stored as a :class:`list` of a start and an end :class:`~pyarts3.arts.Time`.
 
 .. note::
     This function is only available if ARTS is compiled with profiling enabled.

@@ -105,7 +105,7 @@ void py_atm(py::module_ &m) try {
       py::bind_vector<std::vector<Atm::Data>,
                       py::rv_policy::reference_internal>(m, "ArrayOfAtmData");
   generic_interface(aad);
-  aad.doc() = "A list of :class:`~pyarts.arts.AtmData`";
+  aad.doc() = "A list of :class:`~pyarts3.arts.AtmData`";
   vector_interface(aad);
 
   auto pnt = py::class_<AtmPoint>(m, "AtmPoint");
@@ -413,7 +413,7 @@ Parameters
       "ssprops"_a = true,
       R"(Get a list of the keys from an atmospheric field.
 
->>> from pyarts.arts import AtmField
+>>> from pyarts3.arts import AtmField
 >>> field = AtmField()
 >>> field["t"] = 273
 >>> k = AtmField.keys(isots=False)  # Get list of keys ignoring isotopologue ratios
@@ -558,7 +558,7 @@ gridded_atm : AtmField
       "keys"_a = std::vector<Atm::Field::KeyVal>{},
       R"(Convert the atmospheric field to an xarray dataset.
 
-The atmospheric field must be gridded using, e.g., the :func:`~pyarts.arts.AtmField.as_gridded` method.
+The atmospheric field must be gridded using, e.g., the :func:`~pyarts3.arts.AtmField.as_gridded` method.
 
 Parameters
 ----------
@@ -822,7 +822,7 @@ Parameters
           R"(Extend the atmosphere to a new pressure point.
 
 The logarithm of the pressure profile will be used as a pseudo-altitude coordinate
-in calling :func:`~pyarts.arts.ArrayOfAtmPoint.field1D`.  The extrapolation type will be used for the new points,
+in calling :func:`~pyarts3.arts.ArrayOfAtmPoint.field1D`.  The extrapolation type will be used for the new points,
 above and below the original profile (if necessary).
 
 Parameters

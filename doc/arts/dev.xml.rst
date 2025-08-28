@@ -153,8 +153,8 @@ In turn, the ``Array<T>`` will not be parseable or binary-compatible.
 
 Example types:
 
-- :class:`~pyarts.arts.ArrayOfIndex`
-- :class:`~pyarts.arts.ArrayOfString`
+- :class:`~pyarts3.arts.ArrayOfIndex`
+- :class:`~pyarts3.arts.ArrayOfString`
 
 ``std::array<T, N>``
 ^^^^^^^^^^^^^^^^^^^^
@@ -259,8 +259,8 @@ No care for binary-compatibility or parseability are taken.
 
 Example types:
 
-- :class:`~pyarts.arts.AtmKeyVal`
-- :class:`~pyarts.arts.SurfKeyVal`
+- :class:`~pyarts3.arts.AtmKeyVal`
+- :class:`~pyarts3.arts.SurfKeyVal`
 
 ``matpack::data_t<T, N>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -273,8 +273,8 @@ to nested types.
 
 Example types:
 
-- :class:`~pyarts.arts.Vector`
-- :class:`~pyarts.arts.Matrix`
+- :class:`~pyarts3.arts.Vector`
+- :class:`~pyarts3.arts.Matrix`
 
 ``matpack::cdata_t<T, N...>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -287,8 +287,8 @@ to nested types.
 
 Example types:
 
-- :class:`~pyarts.arts.Vector2`
-- :class:`~pyarts.arts.Vector3`
+- :class:`~pyarts3.arts.Vector2`
+- :class:`~pyarts3.arts.Vector3`
 
 ``matpack::grid_t<Compare>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -298,8 +298,8 @@ Are completely forwarded as ``Vector`` in
 
 Example types:
 
-- :class:`~pyarts.arts.AscendingGrid`
-- :class:`~pyarts.arts.DescendingGrid`
+- :class:`~pyarts3.arts.AscendingGrid`
+- :class:`~pyarts3.arts.DescendingGrid`
 
 ``matpack::gridded_data_t<T, Grids...>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -311,8 +311,8 @@ No care for binary-compatibility or parseability are taken.
 
 Example types:
 
-- :class:`~pyarts.arts.GriddedField1`
-- :class:`~pyarts.arts.GriddedField2`
+- :class:`~pyarts3.arts.GriddedField1`
+- :class:`~pyarts3.arts.GriddedField2`
 
 Aggregates
 ^^^^^^^^^^

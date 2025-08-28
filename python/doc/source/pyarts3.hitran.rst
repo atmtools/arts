@@ -1,7 +1,7 @@
-pyarts.data
-===========
+pyarts3.hitran
+==============
 
-.. automodule:: pyarts.data
+.. automodule:: pyarts3.hitran
    :members:
    :undoc-members:
    :special-members: __init__, __call__

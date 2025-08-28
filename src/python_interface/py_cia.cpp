@@ -27,7 +27,7 @@ void py_cia(py::module_& m) try {
       .def_prop_ro(
           "data",
           [](const CIARecord& c) { return c.Data(); },
-          ":class:`~pyarts.arts.ArrayOfGriddedField2` Data by bands")
+          ":class:`~pyarts3.arts.ArrayOfGriddedField2` Data by bands")
       .def(
           "propagation_matrix",
           [](const CIARecord& self,

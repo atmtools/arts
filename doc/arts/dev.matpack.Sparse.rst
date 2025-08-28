@@ -13,7 +13,7 @@ implementation is just a wrap of ``Eigen::SparseMatrix`` for floating-point data
 The class supports basic operations like scaling, addition, subtraction,
 as well as the linear algebra operations of matrix-matrix and matrix-vector multiplication.
 
-This class is accessible through the python interface via :class:`~pyarts.arts.Sparse`.
+This class is accessible through the python interface via :class:`~pyarts3.arts.Sparse`.
 
 Like :doc:`dev.matpack.band_matrix`, this is a very simple class that
 has very specialized use cases.  It is not recommended using this class

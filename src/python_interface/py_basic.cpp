@@ -152,7 +152,7 @@ void py_basic(py::module_& m) try {
           [](py::object& x) { return x.attr("__array__")(); },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; },
           "A :class:`~numpy.ndarray` of the object.")
-      .doc() = "A list of :class:`~pyarts.arts.Numeric`";
+      .doc() = "A list of :class:`~pyarts3.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);
   generic_interface(aon);

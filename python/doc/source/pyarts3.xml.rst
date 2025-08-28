@@ -1,7 +1,7 @@
-pyarts.xml
-==========
+pyarts3.xml
+===========
 
-.. automodule:: pyarts.xml
+.. automodule:: pyarts3.xml
    :members:
    :imported-members:
    :undoc-members:

@@ -18,7 +18,7 @@ std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
 
 This information includes
 
-#. A list of :class:`~pyarts.arts.AbsorptionLine`.
+#. A list of :class:`~pyarts3.arts.AbsorptionLine`.
 
 #. The line shape profile model.  See *LineByLineLineshape* for available line shape profiles.
 
@@ -196,8 +196,8 @@ so that reading routines can find the correct data files.
       .desc =
           R"--(One of the following:
 
-#. :class:`~pyarts.arts.predef.PredefinedModelDataName`
-#. :class:`~pyarts.arts.predef.PredefinedModelDataWaterDataMTCKD4`
+#. :class:`~pyarts3.arts.predef.PredefinedModelDataName`
+#. :class:`~pyarts3.arts.predef.PredefinedModelDataWaterDataMTCKD4`
 )--",
   };
 

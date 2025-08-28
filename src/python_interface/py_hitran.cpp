@@ -14,14 +14,14 @@ void py_hitran(py::module_& m) try {
 
 Parameters
 ----------
-mol : ~pyarts.arts.Index
+mol : ~pyarts3.arts.Index
     Moluecule index
 iso : bytes
     Isotopologue character (single byte)
 
 Return
 ------
-:class:`~pyarts.arts.QuantumIdentifier`
+:class:`~pyarts3.arts.QuantumIdentifier`
     Identifier
 )--");
 
@@ -33,7 +33,7 @@ Return
 
 Parameters
 ----------
-mol : ~pyarts.arts.Index
+mol : ~pyarts3.arts.Index
     Moluecule index
 iso : bytes
     Isotopologue character (single byte)

@@ -1,7 +1,7 @@
-pyarts.math
-===========
+pyarts3.math
+============
 
-.. automodule:: pyarts.math
+.. automodule:: pyarts3.math
    :members:
    :imported-members:
    :undoc-members:

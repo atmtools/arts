@@ -2,7 +2,7 @@ Workspace methods
 #################
 
 Workspace methods are the core interaction a user has with ARTS calculations.
-They are called from the :class:`~pyarts.workspace.Workspace` object in python but are
+They are called from the :class:`~pyarts3.workspace.Workspace` object in python but are
 implemented in C++ under-the-hood.
 
 The workspace methods definition are mainly located in the ``workspace_methods.cpp``
@@ -55,7 +55,7 @@ method is the key and the value is a struct with the following fields:
 - ``gin_type`` - the type of the generic input as a list of strings.  These must be :doc:`dev.workspace.groups`.
 - ``gin_value`` - the default value of the generic input as an optional initialized :doc:`dev.workspace.groups`.
 - ``gin_desc`` - the description of the generic input as a list of strings.
-- ``pass_workspace`` - a boolean indicating if a :class:`~pyarts.workspace.Workspace` instance should be passed to the method.  If true, the first argument to the method is a ``const Workspace&``.
+- ``pass_workspace`` - a boolean indicating if a :class:`~pyarts3.workspace.Workspace` instance should be passed to the method.  If true, the first argument to the method is a ``const Workspace&``.
 
 The expected signature of the method will depend on these fields.
 A linker error will likely occur if the actual signature does not match
@@ -117,7 +117,7 @@ treated as normal workspace method.
 You need to do nothing to define these methods.  But please refrain from defining
 them manually as that may cause undefined naming conflicts.
 
-The expected signature of the method :func:`~pyarts.workspace.Workspace.propagation_matrix_agendaAuto` is also
+The expected signature of the method :func:`~pyarts3.workspace.Workspace.propagation_matrix_agendaAuto` is also
 generated automatically near the end of ``workspace_methods.cpp``.  It takes
 its input and output from a list of other methods.  Feel free to add to this
 list but make sure that any naming conflicts regarding ``gin`` are resolved
@@ -157,10 +157,10 @@ in ``PascalCase``.
 A general rule of thumb is to use verbs for methods that modify the workspace
 variable and nouns for methods that create a new workspace variable.
 
-For example, :func:`~pyarts.workspace.Workspace.propagation_matrixAddLines`
-has a main output of :attr:`~pyarts.workspace.Workspace.propagation_matrix` and
+For example, :func:`~pyarts3.workspace.Workspace.propagation_matrixAddLines`
+has a main output of :attr:`~pyarts3.workspace.Workspace.propagation_matrix` and
 adds line absorption to it.  It needs to be preceded by a call to 
-:func:`~pyarts.workspace.Workspace.propagation_matrixInit` which sets up the
+:func:`~pyarts3.workspace.Workspace.propagation_matrixInit` which sets up the
 propagation matrix to an initial state.
 
 Of course, every use-case is different, but please try to follow this convention.
@@ -231,12 +231,12 @@ The signature of the method is:
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
-The first argument of the method is a reference to :attr:`~pyarts.workspace.Workspace.ray_path`.
-Since :attr:`~pyarts.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
-it is expected that the method overwrite any existing value of :attr:`~pyarts.workspace.Workspace.ray_path`.
+The first argument of the method is a reference to :attr:`~pyarts3.workspace.Workspace.ray_path`.
+Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
+it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
-The arguments :attr:`~pyarts.workspace.Workspace.atmospheric_field`, :attr:`~pyarts.workspace.Workspace.surface_field`,
-:attr:`~pyarts.workspace.Workspace.latitude`, and :attr:`~pyarts.workspace.Workspace.longitude`
+The arguments :attr:`~pyarts3.workspace.Workspace.atmospheric_field`, :attr:`~pyarts3.workspace.Workspace.surface_field`,
+:attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
 
@@ -246,7 +246,7 @@ and the default value is ``1e3``.  The default value is passed to the method
 if the user does not provide a value for ``max_step``.
 
 All other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts.workspace.Workspace.ray_pathGeometricUplooking` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.ray_pathGeometricUplooking` for the full documentation.
 
 Method modifying a workspace variable
 -------------------------------------
@@ -303,21 +303,21 @@ The signature of the method is:
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
 The first four arguments of the method are references to
-:attr:`~pyarts.workspace.Workspace.propagation_matrix`.
-:attr:`~pyarts.workspace.Workspace.propagation_matrix_source_vector_nonlte`,
-:attr:`~pyarts.workspace.Workspace.propagation_matrix_jacobian`, and
-:attr:`~pyarts.workspace.Workspace.propagation_matrix_source_vector_nonlte_jacobian`
+:attr:`~pyarts3.workspace.Workspace.propagation_matrix`.
+:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte`,
+:attr:`~pyarts3.workspace.Workspace.propagation_matrix_jacobian`, and
+:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte_jacobian`
 are both output (``out``) and input (``in``).  The method is expected to modify the existing values
 of these workspace variables instead of creating new ones.
 
 The arguments
-:attr:`~pyarts.workspace.Workspace.frequency_grid`,
-:attr:`~pyarts.workspace.Workspace.jacobian_targets`,
-:attr:`~pyarts.workspace.Workspace.select_species`,
-:attr:`~pyarts.workspace.Workspace.absorption_bands`,
-:attr:`~pyarts.workspace.Workspace.ecs_data`,
-:attr:`~pyarts.workspace.Workspace.atmospheric_point`, and
-:attr:`~pyarts.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
+:attr:`~pyarts3.workspace.Workspace.frequency_grid`,
+:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts3.workspace.Workspace.select_species`,
+:attr:`~pyarts3.workspace.Workspace.absorption_bands`,
+:attr:`~pyarts3.workspace.Workspace.ecs_data`,
+:attr:`~pyarts3.workspace.Workspace.atmospheric_point`, and
+:attr:`~pyarts3.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
 Lastly, the argument ``no_negative_absorption`` is defined in ``gin`` and is passed
@@ -328,7 +328,7 @@ The ``no_negative_absorption`` argument is used to turn off the check for negati
 which is useful for debugging purposes.
 
 The other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts.workspace.Workspace.propagation_matrixAddLines` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.propagation_matrixAddLines` for the full documentation.
 
 Method that uses a workspace agenda
 -----------------------------------
@@ -382,23 +382,23 @@ to the method because ``pass_workspace`` is set to ``true`` in the method defini
 Note that the workspace object is passed as a ``const`` reference, so it cannot be modified.
 
 The coming two arguments of the method are references to
-:attr:`~pyarts.workspace.Workspace.measurement_vector` and
-:attr:`~pyarts.workspace.Workspace.measurement_jacobian`.
-Since :attr:`~pyarts.workspace.Workspace.measurement_vector` and
-:attr:`~pyarts.workspace.Workspace.measurement_jacobian` are in ``out`` but not in ``in``,
+:attr:`~pyarts3.workspace.Workspace.measurement_vector` and
+:attr:`~pyarts3.workspace.Workspace.measurement_jacobian`.
+Since :attr:`~pyarts3.workspace.Workspace.measurement_vector` and
+:attr:`~pyarts3.workspace.Workspace.measurement_jacobian` are in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing values they might hold.
 
-The arguments :attr:`~pyarts.workspace.Workspace.measurement_sensor`,
-:attr:`~pyarts.workspace.Workspace.jacobian_targets`,
-:attr:`~pyarts.workspace.Workspace.atmospheric_field`,
-:attr:`~pyarts.workspace.Workspace.surface_field`, 
-:attr:`~pyarts.workspace.Workspace.spectral_radiance_unit`, and
-:attr:`~pyarts.workspace.Workspace.spectral_radiance_observer_agenda`
+The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
+:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts3.workspace.Workspace.atmospheric_field`,
+:attr:`~pyarts3.workspace.Workspace.surface_field`, 
+:attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_radiance_observer_agenda`
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
 The other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts.workspace.Workspace.measurement_vectorFromSensor` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.measurement_vectorFromSensor` for the full documentation.
 
 Meta-method output with workspace variables
 -------------------------------------------
@@ -431,5 +431,5 @@ In other words, even if a sub-method has an output that is not in ``out``,
 it will not be passed to the user.
 
 The call order and documentation of
-See :meth:`~pyarts.workspace.Workspace.atmospheric_fieldRead` 
+See :meth:`~pyarts3.workspace.Workspace.atmospheric_fieldRead` 
 makes it possible to follow the call order.
