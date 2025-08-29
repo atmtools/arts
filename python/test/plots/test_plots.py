@@ -1,9 +1,9 @@
 # %%
 from os.path import join, dirname
 import matplotlib.pyplot as plt
-import pyarts.xml as axml
-from pyarts.plots import plot_arts_lookup
-from pyarts.arts import ArrayOfArrayOfSpeciesTag, SpeciesTag
+import pyarts3.xml as axml
+from pyarts3.plots import plot_arts_lookup
+from pyarts3.arts import ArrayOfArrayOfSpeciesTag, SpeciesTag
 
 
 class TestPlots:

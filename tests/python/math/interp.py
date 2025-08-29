@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pyarts
+import pyarts3 as pyarts
 
 x = np.linspace(-160, 160, 1001)
 y = np.sin(np.deg2rad(x))

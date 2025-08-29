@@ -1,5 +1,5 @@
 # Import the module
-import pyarts
+import pyarts3 as pyarts
 
 
 # Create a workspace

@@ -1,5 +1,5 @@
-{% if objname != 'pyarts.workspace.Workspace' %}
-{% if not module.startswith('pyarts.arts') %}
+{% if objname != 'pyarts3.workspace.Workspace' %}
+{% if not module.startswith('pyarts3.arts') %}
 
 {{ name }}
 {{ underline }}

@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 
 f = pyarts.arts.convert.kaycm2freq(np.linspace(1, 21000, 101))

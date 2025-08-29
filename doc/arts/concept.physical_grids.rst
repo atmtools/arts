@@ -28,9 +28,9 @@ in the calculations.
 
   Use these methods to check the latitude grid for correctness:
 
-  - :func:`~pyarts.workspace.Workspace.atmospheric_fieldCheck`
-  - :func:`~pyarts.workspace.Workspace.surface_fieldCheck`
-  - :func:`~pyarts.workspace.Workspace.subsurface_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.surface_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.subsurface_fieldCheck`
 
   The only way to fix this if the grid is not valid is
   to regrid the data manually.
@@ -43,16 +43,16 @@ in the calculations.
 
   Use these methods to check the longitudes grid for correctness:
 
-  - :func:`~pyarts.workspace.Workspace.atmospheric_fieldCheck`
-  - :func:`~pyarts.workspace.Workspace.surface_fieldCheck`
-  - :func:`~pyarts.workspace.Workspace.subsurface_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.surface_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.subsurface_fieldCheck`
 
   If these fail because of the longitude grid,
   there are methods to fix the cyclicity of the grid:
 
-  - :func:`~pyarts.workspace.Workspace.atmospheric_fieldFixCyclicity`
-  - :func:`~pyarts.workspace.Workspace.surface_fieldFixCyclicity`
-  - :func:`~pyarts.workspace.Workspace.subsurface_fieldFixCyclicity`
+  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldFixCyclicity`
+  - :func:`~pyarts3.workspace.Workspace.surface_fieldFixCyclicity`
+  - :func:`~pyarts3.workspace.Workspace.subsurface_fieldFixCyclicity`
 
 - Frequency grid.
 

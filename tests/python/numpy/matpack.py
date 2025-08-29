@@ -1,5 +1,5 @@
 import numpy as np
-import pyarts
+import pyarts3 as pyarts
 
 def not_owns_data(nd):
   assert not nd.flags["OWNDATA"]

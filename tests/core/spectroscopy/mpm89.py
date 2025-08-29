@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 
 f = np.linspace(1e9, 1500e9, 101)

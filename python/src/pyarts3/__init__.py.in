@@ -1,0 +1,52 @@
+# -*- coding: utf-8 -*-
+"""This module contains functions to interact with ARTS."""
+
+from pyarts3 import arts  # noqa
+from pyarts3.workspace import Workspace, arts_agenda  # noqa
+from pyarts3.workspace.callback import callback_operator  # noqa
+
+def __getattr__(attr):
+    if attr == "xml":
+        import pyarts3.xml as xml
+        return xml
+    elif attr == "data":
+        import pyarts3.data as data
+        return data
+    elif attr == "plots":
+        import pyarts3.plots as plots
+        return plots
+    elif attr == "workspace":
+        import pyarts3.workspace as workspace
+        return workspace
+    elif attr == "hitran":
+        import pyarts3.hitran as hitran
+        return hitran
+    elif attr == "fields":
+        import pyarts3.fields as fields
+        return fields
+    elif attr == "recipe":
+        import pyarts3.recipe as recipe
+        return recipe
+    elif attr == "math":
+        import pyarts3.math as math
+        return math
+    
+    raise AttributeError("module {!r} has no attribute "
+                          "{!r}".format(__name__, attr))
+
+def __dir__():
+    return [
+        "data",
+        "fields",
+        "hitran",
+        "math",
+        "plots",
+        "recipe",
+        "version",
+        "workspace",
+        "xml",
+        ]
+
+__all__ = [s for s in dir() if not s.startswith("_")]
+__version__ = "@ARTS_VERSION@"
+version = __version__

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 
-import pyarts
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colormaps as cm

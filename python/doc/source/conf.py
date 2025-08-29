@@ -68,7 +68,7 @@ author = 'The ARTS Developers'
 # built documents.
 #
 # The short X.Y version.
-from pyarts import __version__
+from pyarts3 import __version__
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -109,7 +109,7 @@ exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-modindex_common_prefix = ['pyarts.']
+modindex_common_prefix = ['pyarts3.']
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False

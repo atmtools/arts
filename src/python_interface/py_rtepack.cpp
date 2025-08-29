@@ -161,7 +161,7 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<String, Stokvec>();
 
   py::bind_vector<std::vector<Stokvec>>(m, "ArrayOfStokvec").doc() =
-      "A list of :class:`~pyarts.arts.Stokvec`";
+      "A list of :class:`~pyarts3.arts.Stokvec`";
 
   py::class_<StokvecVector> vsv(m, "StokvecVector");
   vsv.def(py::init_implicit<std::vector<Numeric>>())
@@ -228,7 +228,7 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(pm);
 
   py::bind_vector<std::vector<Propmat>>(m, "ArrayOfPropmat").doc() =
-      "A list of :class:`~pyarts.arts.Propmat`";
+      "A list of :class:`~pyarts3.arts.Propmat`";
 
   py::class_<PropmatVector> vpm(m, "PropmatVector");
   vpm.def(py::init_implicit<std::vector<Numeric>>())
@@ -278,7 +278,7 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(mm);
 
   py::bind_vector<std::vector<Muelmat>>(m, "ArrayOfMuelmat").doc() =
-      "A list of :class:`~pyarts.arts.Muelmat`";
+      "A list of :class:`~pyarts3.arts.Muelmat`";
 
   py::class_<MuelmatVector> vmm(m, "MuelmatVector");
   vmm.def(py::init_implicit<std::vector<Numeric>>())
@@ -334,14 +334,14 @@ void py_rtepack(py::module_ &m) try {
   auto asp =
       py::bind_vector<std::vector<Specmat>, py::rv_policy::reference_internal>(
           m, "ArrayOfSpecmat");
-  asp.doc() = "A list of :class:`~pyarts.arts.Specmat`";
+  asp.doc() = "A list of :class:`~pyarts3.arts.Specmat`";
   vector_interface(asp);
 
   py::class_<SpecmatVector> vcmm(m, "SpecmatVector");
   vcmm.def(py::init_implicit<std::vector<Complex>>())
       .def(py::init_implicit<std::vector<Specmat>>());
   rtepack_array<Specmat, 1, 4, 4>(vcmm);
-  vcmm.doc() = "A vector of :class:`~pyarts.arts.Specmat`";
+  vcmm.doc() = "A vector of :class:`~pyarts3.arts.Specmat`";
   //generic_interface(vcmm);
 
   py::class_<SpecmatMatrix> mcmm(m, "SpecmatMatrix");
@@ -350,7 +350,7 @@ void py_rtepack(py::module_ &m) try {
 
   py::class_<SpecmatTensor3> cmt3(m, "SpecmatTensor3");
   rtepack_array<Specmat, 3, 4, 4>(cmt3);
-  cmt3.doc() = "A 3-tensor of :class:`~pyarts.arts.Specmat`";
+  cmt3.doc() = "A 3-tensor of :class:`~pyarts3.arts.Specmat`";
 
   auto a1 =
       py::bind_vector<ArrayOfPropmatVector, py::rv_policy::reference_internal>(

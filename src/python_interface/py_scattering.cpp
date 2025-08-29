@@ -26,31 +26,31 @@ void py_scattering(py::module_& m) try {
   generic_interface(ssdb);
   ssdb.def_rw("ptype",
               &SingleScatteringData::ptype,
-              ":class:`~pyarts.arts.PType` The type")
+              ":class:`~pyarts3.arts.PType` The type")
       .def_rw("description",
               &SingleScatteringData::description,
-              ":class:`~pyarts.arts.String` The description")
+              ":class:`~pyarts3.arts.String` The description")
       .def_rw("f_grid",
               &SingleScatteringData::f_grid,
-              ":class:`~pyarts.arts.Vector` The frequency grid")
+              ":class:`~pyarts3.arts.Vector` The frequency grid")
       .def_rw("T_grid",
               &SingleScatteringData::T_grid,
-              ":class:`~pyarts.arts.Vector` The temperature grid")
+              ":class:`~pyarts3.arts.Vector` The temperature grid")
       .def_rw("za_grid",
               &SingleScatteringData::za_grid,
-              ":class:`~pyarts.arts.Vector` The zenith grid")
+              ":class:`~pyarts3.arts.Vector` The zenith grid")
       .def_rw("aa_grid",
               &SingleScatteringData::aa_grid,
-              ":class:`~pyarts.arts.Vector` The azimuth grid")
+              ":class:`~pyarts3.arts.Vector` The azimuth grid")
       .def_rw("pha_mat_data",
               &SingleScatteringData::pha_mat_data,
-              ":class:`~pyarts.arts.Tensor7` The phase matrix")
+              ":class:`~pyarts3.arts.Tensor7` The phase matrix")
       .def_rw("ext_mat_data",
               &SingleScatteringData::ext_mat_data,
-              ":class:`~pyarts.arts.Tensor5` The extinction matrix")
+              ":class:`~pyarts3.arts.Tensor5` The extinction matrix")
       .def_rw("abs_vec_data",
               &SingleScatteringData::abs_vec_data,
-              ":class:`~pyarts.arts.Tensor5` The absorption vector")
+              ":class:`~pyarts3.arts.Tensor5` The absorption vector")
       .def("__getstate__",
            [](const SingleScatteringData& self) {
              return py::make_tuple(self.ptype,
@@ -82,13 +82,13 @@ void py_scattering(py::module_& m) try {
   generic_interface(smdb);
   smdb.def_rw("description",
               &ScatteringMetaData::description,
-              ":class:`~pyarts.arts.String` The description")
+              ":class:`~pyarts3.arts.String` The description")
       .def_rw("source",
               &ScatteringMetaData::source,
-              ":class:`~pyarts.arts.String` The source")
+              ":class:`~pyarts3.arts.String` The source")
       .def_rw("refr_index",
               &ScatteringMetaData::refr_index,
-              ":class:`~pyarts.arts.String` The refractive index")
+              ":class:`~pyarts3.arts.String` The refractive index")
       .def_rw("mass", &ScatteringMetaData::mass, ":class:`float` The mass")
       .def_rw("diameter_max",
               &ScatteringMetaData::diameter_max,

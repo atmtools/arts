@@ -372,8 +372,8 @@ void py_auto_agenda_operators(py::module_& m) {
       input.push_back(std::format("const {}& {}", wsv.at(v).type, v));
       vars.push_back(std::format(R"("{}"_a)", v));
       params += std::format(
-          R"({0} : :class:`~pyarts.arts.{1}`
-     {2} See also :attr:`~pyarts.workspace.Workspace.{0}`.
+          R"({0} : :class:`~pyarts3.arts.{1}`
+     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,
@@ -383,8 +383,8 @@ void py_auto_agenda_operators(py::module_& m) {
     retval.reserve(ag.output.size());
     for (auto&& v : ag.output) {
       retval += std::format(
-          R"({0} : :class:`~pyarts.arts.{1}`
-     {2} See also :attr:`~pyarts.workspace.Workspace.{0}`.
+          R"({0} : :class:`~pyarts3.arts.{1}`
+     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,
@@ -421,13 +421,13 @@ Returns
     generic_interface({0}_operator);
     py::implicitly_convertible<{0}Operator::func_t,
                                {0}Operator>();
-    {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda: :attr:`~pyarts.workspace.Workspace.{0}`.
+    {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda: :attr:`~pyarts3.workspace.Workspace.{0}`.
 
 The python meta-code to make use of this operator class instead of the standard agenda in a workspace reads like this:
 
 .. code-block:: python
 
-    import pyarts
+    import pyarts3 as pyarts
 
     ws = pyarts.Workspace()
 

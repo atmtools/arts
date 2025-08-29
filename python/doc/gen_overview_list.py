@@ -1,4 +1,4 @@
-import pyarts
+import pyarts3 as pyarts
 import sys
 
 
@@ -22,7 +22,7 @@ def agendas():
 """
     for var in vars:
         if var in existing:
-            txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
+            txt += f"    * :attr:`~pyarts3.workspace.Workspace.{var}`\n"
     return txt
 
 
@@ -36,7 +36,7 @@ def variables():
 """
     for var in vars:
         if var in existing:
-            txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
+            txt += f"    * :attr:`~pyarts3.workspace.Workspace.{var}`\n"
     return txt
 
 
@@ -50,7 +50,7 @@ def groups():
 """
     for var in vars:
         if var in existing:
-            txt += f"    * :class:`~pyarts.arts.{var}`\n"
+            txt += f"    * :class:`~pyarts3.arts.{var}`\n"
     return txt
 
 
@@ -64,7 +64,7 @@ def methods():
 """
     for var in vars:
         if var in existing:
-            txt += f"    * :func:`~pyarts.workspace.Workspace.{var}`\n"
+            txt += f"    * :func:`~pyarts3.workspace.Workspace.{var}`\n"
     return txt
 
 

@@ -42,15 +42,15 @@ Before that, a concise overview of what each option do is available by the types
   * - Input variable
     - pyarts class
   * - ``{2}``
-    - :class:`~pyarts.arts.disort_settings_agenda_setup_layer_emission_type`
+    - :class:`~pyarts3.arts.disort_settings_agenda_setup_layer_emission_type`
   * - ``{3}``
-    -  :class:`~pyarts.arts.disort_settings_agenda_setup_scattering_type`
+    -  :class:`~pyarts3.arts.disort_settings_agenda_setup_scattering_type`
   * - ``{4}``
-    -  :class:`~pyarts.arts.disort_settings_agenda_setup_space_type` 
+    -  :class:`~pyarts3.arts.disort_settings_agenda_setup_space_type`
   * - ``{5}``
-    -  :class:`~pyarts.arts.disort_settings_agenda_setup_sun_type`
+    -  :class:`~pyarts3.arts.disort_settings_agenda_setup_sun_type`
   * - ``{6}``
-    -  :class:`~pyarts.arts.disort_settings_agenda_setup_surface_type`
+    -  :class:`~pyarts3.arts.disort_settings_agenda_setup_surface_type`
 )",
       enumstrs::disort_settings_agenda_setup_layer_emission_typeNames<>.size() *
           enumstrs::disort_settings_agenda_setup_scattering_typeNames<>.size() *

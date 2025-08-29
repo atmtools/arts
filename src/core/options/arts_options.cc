@@ -511,7 +511,7 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(EnumeratedOption{
       .name = "LineShapeModelCoefficient",
       .desc =
-          R"(The type of line shape model coefficients.  See :class:`~pyarts.arts.LineShapeModelType` for more information.
+          R"(The type of line shape model coefficients.  See :class:`~pyarts3.arts.LineShapeModelType` for more information.
 )",
       .values_and_desc =
           {
@@ -574,7 +574,7 @@ if good cases, so we have provide this selection mechanism to make them match.
               Value{"None", "No cutoff"},
               Value{
                   "ByLine",
-                  "Line's are cut 1-by-1 around :attr:`~pyarts.arts.AbsorptionLine.f0`"},
+                  "Line's are cut 1-by-1 around :attr:`~pyarts3.arts.AbsorptionLine.f0`"},
           },
   });
 

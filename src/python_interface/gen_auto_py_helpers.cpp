@@ -44,11 +44,11 @@ String as_pyarts(const String& x) try {
   };
 
   if (found_in_options(x) or found_in(wsgs) or found_in(group_friends))
-    return std::format(":class:`~pyarts.arts.{}`", x);
+    return std::format(":class:`~pyarts3.arts.{}`", x);
   if (found_in(wsms))
-    return std::format(":func:`~pyarts.workspace.Workspace.{}`", x);
+    return std::format(":func:`~pyarts3.workspace.Workspace.{}`", x);
   if (found_in(wsvs))
-    return std::format(":attr:`~pyarts.workspace.Workspace.{}`", x);
+    return std::format(":attr:`~pyarts3.workspace.Workspace.{}`", x);
 
   throw std::invalid_argument(
       std::format(R"("{0}"  is not a valid group, method, or workspace variable.
@@ -170,8 +170,8 @@ Parameters
   constexpr matpack::cdata_t<std::string_view, 2, 2> inout{
       "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
   for (auto& var : writer) {
-    out += std::format(R"({0} : ~pyarts.arts.{1}
-    {2} See :attr:`~pyarts.workspace.Workspace.{0}` **{3}**
+    out += std::format(R"({0} : ~pyarts3.arts.{1}
+    {2} See :attr:`~pyarts3.workspace.Workspace.{0}` **{3}**
 )",
                        var.name,
                        var.group,
@@ -222,7 +222,7 @@ void remove_trailing(String& x, char n) {
 }
 
 String compose_generic_groups(const String& grps) {
-  return std::format("~pyarts.arts.{}", grps);
+  return std::format("~pyarts3.arts.{}", grps);
 }
 
 String to_defval_str(const Wsv& wsv, const std::string_view x) try {
@@ -319,7 +319,7 @@ String method_docs(const String& name) try {
                    hlist_num_cols(metamethods),
                    metamethods | stdv::transform([](const auto& m) {
                      return std::format(
-                         "\n    * :func:`~pyarts.workspace.Workspace.{}`", m);
+                         "\n    * :func:`~pyarts3.workspace.Workspace.{}`", m);
                    }) | stdr::to<std::vector<String>>());
   fix();
 
@@ -329,8 +329,8 @@ String method_docs(const String& name) try {
     const auto& wsv      = wsvs.at(varname);
     const auto& grpname  = wsv.type;
     out                 += std::format(R"(
-{0} : ~pyarts.arts.{1}, optional
-    {2} See :attr:`~pyarts.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[{3}]**)",
+{0} : ~pyarts3.arts.{1}, optional
+    {2} See :attr:`~pyarts3.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[{3}]**)",
                        varname,
                        grpname,
                        unwrap_stars(short_doc(varname)),
@@ -356,8 +356,8 @@ String method_docs(const String& name) try {
     const auto& wsv      = wsvs.at(varname);
     const auto& grpname  = wsv.type;
     out                 += std::format(R"(
-{0} : ~pyarts.arts.{1}, optional
-    {2} See :attr:`~pyarts.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[IN]**)",
+{0} : ~pyarts3.arts.{1}, optional
+    {2} See :attr:`~pyarts3.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[IN]**)",
                        varname,
                        grpname,
                        unwrap_stars(short_doc(varname)));
@@ -521,11 +521,11 @@ String variable_used_by(const String& name) {
   });
 
   const auto to_attr = stdv::transform([](const String& x) -> String {
-    return std::format("\n    * :attr:`~pyarts.workspace.Workspace.{}`", x);
+    return std::format("\n    * :attr:`~pyarts3.workspace.Workspace.{}`", x);
   });
 
   const auto to_func = stdv::transform([](const String& x) -> String {
-    return std::format("\n    * :func:`~pyarts.workspace.Workspace.{}`", x);
+    return std::format("\n    * :func:`~pyarts3.workspace.Workspace.{}`", x);
   });
 
   const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;

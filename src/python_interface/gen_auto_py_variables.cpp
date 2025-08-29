@@ -45,7 +45,7 @@ std::string variable(const std::string& name,
        << "\");\n      ws_val.set_name(\"" << name
        << "\");\n      ws_val.finalize();\n";
 
-  os << "    }, R\"-x-(:class:`~pyarts.arts." << wsv.type << "` "
+  os << "    }, R\"-x-(:class:`~pyarts3.arts." << wsv.type << "` "
      << unwrap_stars(wsv.desc) << "\n\n";
 
   if (wsv.type == "Agenda") {

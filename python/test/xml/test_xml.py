@@ -7,7 +7,7 @@ from os.path import (dirname, join)
 import numpy as np
 import pytest
 
-from pyarts import xml
+from pyarts3 import xml
 
 
 class TestXML:

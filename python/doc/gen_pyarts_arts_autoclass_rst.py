@@ -1,5 +1,5 @@
-import pyarts
-import pyarts.arts as cxx
+import pyarts3
+import pyarts3.arts as cxx
 import sys
 
 global_errors = []
@@ -379,40 +379,40 @@ def create_rst(data, path, mod):
 
 def create_workspace_rst(path):
     try:
-        ws = pyarts.Workspace
+        ws = pyarts3.Workspace
 
-        data = loop_over_class(ws, "pyarts.workspace", True)
-        create_class_rst(data[0], path, f"pyarts.workspace.Workspace")
+        data = loop_over_class(ws, "pyarts3.workspace", True)
+        create_class_rst(data[0], path, f"pyarts3.workspace.Workspace")
 
         for name in dir(ws):
             attr = getattr(ws, name)
 
             if isinstance(attr, attr_t):
                 with open(
-                    f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
-                    f.write(".. currentmodule:: pyarts.workspace\n\n")
+                    f.write(".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(".. autoattribute:: Workspace." + name + "\n\n")
             elif isinstance(attr, method_t):
                 with open(
-                    f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
-                    f.write(".. currentmodule:: pyarts.workspace\n\n")
+                    f.write(".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(".. automethod:: Workspace." + name + "\n\n")
             elif is_operator(name):
                 with open(
-                    f"{path}/pyarts.workspace.Workspace.{name}.rst", "w"
+                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
-                    f.write(".. currentmodule:: pyarts.workspace\n\n")
+                    f.write(".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(".. automethod:: Workspace." + name + "\n\n")
     except Exception as e:
         raise Exception(f"Error in create_workspace_rst for path={path}:\n{e}")
 
 
-create_rst(data, sys.argv[1], "pyarts.arts")
+create_rst(data, sys.argv[1], "pyarts3.arts")
 
 create_workspace_rst(sys.argv[1])
 

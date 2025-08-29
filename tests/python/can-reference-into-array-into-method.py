@@ -6,7 +6,7 @@ constructs.
 It used to fail but should clearly work.
 """
 
-import pyarts
+import pyarts3 as pyarts
 
 ws = pyarts.Workspace()
 

@@ -9,8 +9,8 @@ import uuid
 import pickle
 
 import numpy as np
-import pyarts.arts as cxx
-from pyarts.workspace import Workspace, arts_agenda
+import pyarts3.arts as cxx
+from pyarts3.workspace import Workspace, arts_agenda
 from copy import copy, deepcopy
 
 

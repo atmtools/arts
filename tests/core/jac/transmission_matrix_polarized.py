@@ -1,13 +1,13 @@
 import numpy as np
 import scipy as sp
-from pyarts.arts import Propmat as Propmat
-from pyarts.arts import PropmatVector as PropmatVector
-from pyarts.arts import PropmatMatrix as PropmatMatrix
-from pyarts.arts import ArrayOfPropmatVector as ArrayOfPropmatVector
-from pyarts.arts import ArrayOfPropmatMatrix as ArrayOfPropmatMatrix
-from pyarts.arts import Vector as Vector
-from pyarts.arts import Tensor3 as Tensor3
-from pyarts.arts.rtepack import two_level_exp
+from pyarts3.arts import Propmat as Propmat
+from pyarts3.arts import PropmatVector as PropmatVector
+from pyarts3.arts import PropmatMatrix as PropmatMatrix
+from pyarts3.arts import ArrayOfPropmatVector as ArrayOfPropmatVector
+from pyarts3.arts import ArrayOfPropmatMatrix as ArrayOfPropmatMatrix
+from pyarts3.arts import Vector as Vector
+from pyarts3.arts import Tensor3 as Tensor3
+from pyarts3.arts.rtepack import two_level_exp
 
 
 a, b, c, d, u, v, w = np.random.random((7))

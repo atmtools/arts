@@ -12,8 +12,8 @@ else()
 endif()
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts/__init__.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts/__init__.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts3/__init__.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts3/__init__.py
   @ONLY
 )
 
@@ -35,11 +35,11 @@ configure_file(
   COPYONLY
 )
 
-file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts/*.py")
+file(GLOB_RECURSE PYTHON_PYARTS_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/src/pyarts3/*.py")
 add_custom_target(
   pyarts_copy_python_source_files
   COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different src ${CMAKE_CURRENT_BINARY_DIR}/src
-  COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts/__init__.py.in
+  COMMAND ${CMAKE_COMMAND} -E rm ${CMAKE_CURRENT_BINARY_DIR}/src/pyarts3/__init__.py.in
   DEPENDS ${PYTHON_PYARTS_FILES}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMENT "Copying python/src *.py files"

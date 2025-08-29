@@ -198,7 +198,7 @@ target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 set_target_properties(
     pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-    "${ARTS_BINARY_DIR}/python/src/pyarts/")
+    "${ARTS_BINARY_DIR}/python/src/pyarts3/")
 
 include (ArtsNanobindStubs)
 arts_add_cpp_stubs(
