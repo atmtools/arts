@@ -29,6 +29,13 @@ struct global_data {
                                   true;
 #endif
 
+  static constexpr bool has_cdisort =
+#ifdef ENABLE_CDISORT
+      true;
+#else
+      false;
+#endif
+
   static constexpr bool has_profiling =
 #if ARTS_PROFILING
       true;
@@ -204,6 +211,10 @@ Parameters
           "has_sht",
           &global_data::has_sht,
           "Whether the ARTS library is compiled to be able to use the SHT library")
+      .def_ro_static(
+          "has_cdisort",
+          &global_data::has_cdisort,
+          "Whether the ARTS library is compiled with CDisort support")
       .def_ro_static("has_profiling",
                      &global_data::has_profiling,
                      "Whether the ARTS library is compiled with time profiling")

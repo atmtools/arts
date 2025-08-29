@@ -1608,6 +1608,33 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
 }
 ARTS_METHOD_ERROR_CATCH
 
+#ifdef ENABLE_CDISORT
+disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv) const
+    try {
+  using Conversion::cosd;
+  using Conversion::deg2rad;
+
+  for (Index i = 0;
+       i < bidirectional_reflectance_distribution_functions.ncols();
+       i++) {
+    dis.brdf_modes()[i] =
+        bidirectional_reflectance_distribution_functions[iv, i];
+  }
+
+  dis.tau(optical_thicknesses[iv]);
+  dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
+  dis.beam_azimuth()        = deg2rad(solar_azimuth_angle[iv]);
+  dis.omega()               = single_scattering_albedo[iv];
+  dis.f()                   = fractional_scattering[iv];
+  dis.all_legendre_coeffs() = legendre_coefficients[iv];
+  dis.positive_boundary()   = positive_boundary_condition[iv];
+  dis.negative_boundary()   = negative_boundary_condition[iv];
+
+  return dis;
+}
+ARTS_METHOD_ERROR_CATCH
+#endif
+
 void xml_io_stream<DisortBDRF>::read(std::istream& is,
                                      DisortBDRF& x,
                                      bifstream* pbifs) {

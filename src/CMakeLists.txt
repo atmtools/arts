@@ -165,6 +165,7 @@ add_library(artsworkspace STATIC
   m_atm_profile.cc
   m_background.cc
   m_cat.cc
+  m_cdisort.cc
   m_cia.cc
   m_covmat.cc
   m_disort.cc
@@ -210,6 +211,7 @@ add_library(artsworkspace STATIC
 )
 
 target_include_directories(artsworkspace PUBLIC
+  ${ARTS_SOURCE_DIR}/3rdparty/cdisort
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
 )
 
@@ -234,6 +236,10 @@ endif(ENABLE_FASTEM)
 if(ENABLE_TMATRIX)
   target_link_libraries(artsworkspace PUBLIC tmatrix)
 endif(ENABLE_TMATRIX)
+
+if(ENABLE_CDISORT)
+  target_link_libraries(artsworkspace PUBLIC cdisort)
+endif()
 
 # ########## next target ###############
 
