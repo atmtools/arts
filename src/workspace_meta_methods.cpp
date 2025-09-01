@@ -79,6 +79,19 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "ray_path"},
   });
 
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "disort_spectral_radiance_fieldSubsurfaceProfile",
+      .desc =
+          "Extract a 1D path through the subsurface field and calculate spectral radiance using Disort",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathFromPointAndDepth",
+                  "disort_spectral_radiance_fieldFromAgenda"},
+      .out     = {"disort_spectral_radiance_field",
+                  "disort_quadrature_angles",
+                  "disort_quadrature_weights",
+                  "ray_path"},
+  });
+
 #ifdef ENABLE_CDISORT
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgendaCdisort",

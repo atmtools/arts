@@ -3719,6 +3719,19 @@ bad angles if this is turned off.
            "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
+  wsm_data["ray_pathFromPointAndDepth"] = {
+      .desc      = R"--(Create a depth profile ray path from a point.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path_point"},
+      .gin       = {"depth_profile"},
+      .gin_type  = {"DescendingGrid"},
+      .gin_value = {std::nullopt},
+      .gin_desc =
+          {"List of depths"},
+  };
+
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
       .desc           = R"--(Set up a 1D spectral radiance operator
 
@@ -5610,6 +5623,15 @@ Additional work is requires if proper coverage of the limb is required
       .out            = {"ray_path_field"},
       .in             = {"ray_path_observers", "ray_path_observer_agenda"},
       .pass_workspace = true,
+  };
+
+  wsm_data["subsurface_profileFromPath"] = {
+      .desc =
+          R"(Extract a subsurface profile from a ray path.
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"subsurface_profile"},
+      .in             = {"subsurface_field", "ray_path"},
   };
 
   /* 
