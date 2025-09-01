@@ -59,22 +59,22 @@ void py_global(py::module_& m) try {
   global.doc() = "Global settings and data";
 
   py::class_<Parameters>(global, "parameters")
-      .def_rw_static(
-          "includepath",
-          &parameters.includepath,
-          ":class:`~pyarts3.arts.ArrayOfString` Automatic include paths")
+      .def_rw_static("includepath",
+                     &parameters.includepath,
+                     "Automatic include paths\n\n.. :class:`ArrayOfString`")
       .def_rw_static("datapath",
                      &parameters.datapath,
-                     ":class:`~pyarts3.arts.ArrayOfString` Automatic data paths")
-      .def_rw_static(
-          "numthreads",
-          &parameters.numthreads,
-          ":class:`~pyarts3.arts.Index` Number of threads allowed to start")
+                     "Automatic data paths\n\n.. :class:`ArrayOfString`")
+      .def_rw_static("numthreads",
+                     &parameters.numthreads,
+                     "Number of threads allowed to start\n\n.. :class:`Index`")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
-      .def_ro("file", &WorkspaceGroupRecord::file, "File path")
-      .def_ro("desc", &WorkspaceGroupRecord::desc, "Description")
+      .def_ro(
+          "file", &WorkspaceGroupRecord::file, "File path\n\n.. :class:`str`")
+      .def_ro(
+          "desc", &WorkspaceGroupRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace group records";
 
   global.def(
@@ -90,9 +90,11 @@ Return
   py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
       .def_ro("default_value",
               &WorkspaceVariableRecord::default_value,
-              "Default value")
-      .def_ro("type", &WorkspaceVariableRecord::type, "Type")
-      .def_ro("desc", &WorkspaceVariableRecord::desc, "Description")
+              "Default value\n\n.. :class:`Wsv`\n\n.. :class:`None`")
+      .def_ro("type", &WorkspaceVariableRecord::type, "Type\n\n.. :class:`str`")
+      .def_ro("desc",
+              &WorkspaceVariableRecord::desc,
+              "Description\n\n.. :class:`str`")
       .doc() = "Workspace variable records";
 
   global.def(
@@ -107,30 +109,42 @@ Return
 
   py::class_<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
-      .def_ro("output", &WorkspaceMethodInternalRecord::out, "Outputs")
-      .def_ro("input", &WorkspaceMethodInternalRecord::in, "Inputs")
-      .def_ro("author", &WorkspaceMethodInternalRecord::author, "Authors")
-      .def_ro("gout", &WorkspaceMethodInternalRecord::gout, "Generic output")
+      .def_ro("output",
+              &WorkspaceMethodInternalRecord::out,
+              "Outputs\n\n.. :class:`list[str]`")
+      .def_ro("input",
+              &WorkspaceMethodInternalRecord::in,
+              "Inputs\n\n.. :class:`list[str]`")
+      .def_ro("author",
+              &WorkspaceMethodInternalRecord::author,
+              "Authors\n\n.. :class:`list[str]`")
+      .def_ro("gout",
+              &WorkspaceMethodInternalRecord::gout,
+              "Generic output\n\n.. :class:`list[str]`")
       .def_ro("gout_type",
               &WorkspaceMethodInternalRecord::gout_type,
-              "Generic output type")
+              "Generic output type\n\n.. :class:`list[str]`")
       .def_ro("gout_desc",
               &WorkspaceMethodInternalRecord::gout_desc,
-              "Generic output description")
-      .def_ro("gin", &WorkspaceMethodInternalRecord::gin, "Generic input")
+              "Generic output description\n\n.. :class:`list[str]`")
+      .def_ro("gin",
+              &WorkspaceMethodInternalRecord::gin,
+              "Generic input\n\n.. :class:`list[str]`")
       .def_ro("gin_type",
               &WorkspaceMethodInternalRecord::gin_type,
-              "Generic input type")
+              "Generic input type\n\n.. :class:`list[str]`")
       .def_ro("gin_desc",
               &WorkspaceMethodInternalRecord::gin_desc,
-              "Generic input description")
+              "Generic input description\n\n.. :class:`list[str]`")
       .def_ro("gin_value",
               &WorkspaceMethodInternalRecord::gin_value,
-              "Generic input default value")
+              "Generic input default value\n\n.. :class:`list[Wsv | None]`")
       .def_ro("pass_workspace",
               &WorkspaceMethodInternalRecord::pass_workspace,
-              "Pass workspace")
-      .def_ro("desc", &WorkspaceMethodInternalRecord::desc, "Description")
+              "Pass workspace\n\n.. :class:`bool`")
+      .def_ro("desc",
+              &WorkspaceMethodInternalRecord::desc,
+              "Description\n\n.. :class:`str`")
       .doc() = "Method records used as workspace variables";
 
   global.def(
@@ -145,9 +159,15 @@ Return
 
   py::class_<WorkspaceAgendaInternalRecord>(global,
                                             "WorkspaceAgendaInternalRecord")
-      .def_ro("desc", &WorkspaceAgendaInternalRecord::desc, "Description")
-      .def_ro("output", &WorkspaceAgendaInternalRecord::output, "Outputs")
-      .def_ro("input", &WorkspaceAgendaInternalRecord::input, "Inputs")
+      .def_ro("desc",
+              &WorkspaceAgendaInternalRecord::desc,
+              "Description\n\n.. :class:`str`")
+      .def_ro("output",
+              &WorkspaceAgendaInternalRecord::output,
+              "Outputs\n\n.. :class:`list[str]`")
+      .def_ro("input",
+              &WorkspaceAgendaInternalRecord::input,
+              "Inputs\n\n.. :class:`list[str]`")
       .doc() = "Agenda records used as workspace variables";
 
   global.def(
@@ -206,21 +226,23 @@ Parameters
       .def_ro_static(
           "is_lgpl",
           &global_data::is_lgpl,
-          "Whether the ARTS library is compiled licensed under the LGPL")
+          "Whether the ARTS library is compiled licensed under the LGPL\n\n.. :class:`bool`")
       .def_ro_static(
           "has_sht",
           &global_data::has_sht,
-          "Whether the ARTS library is compiled to be able to use the SHT library")
+          "Whether the ARTS library is compiled to be able to use the SHT library\n\n.. :class:`bool`")
       .def_ro_static(
           "has_cdisort",
           &global_data::has_cdisort,
-          "Whether the ARTS library is compiled with CDisort support")
-      .def_ro_static("has_profiling",
-                     &global_data::has_profiling,
-                     "Whether the ARTS library is compiled with time profiling")
-      .def_ro_static("arts_source_dir",
-                     &global_data::arts_source_dir,
-                     "The original ARTS source directory, if available")
+          "Whether the ARTS library is compiled with CDisort support\n\n.. :class:`bool`")
+      .def_ro_static(
+          "has_profiling",
+          &global_data::has_profiling,
+          "Whether the ARTS library is compiled with time profiling\n\n.. :class:`bool`")
+      .def_ro_static(
+          "arts_source_dir",
+          &global_data::arts_source_dir,
+          "The original ARTS source directory, if available\n\n.. :class:`str`")
       .def("__repr__",
            [](const global_data&) {
              return std::format(R"(Global state of ARTS:

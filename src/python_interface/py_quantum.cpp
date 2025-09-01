@@ -23,9 +23,10 @@ void py_quantum(py::module_& m) try {
   qval.def(py::init<String>())
       .def(py::init<Rational>())
       .def(py::init<QuantumNumberType>())
-      .def_rw("value",
-              &Quantum::Value::value,
-              ":class:`~pyarts3.arts.String` or :class:`~pyarts3.arts.Rational`")
+      .def_rw(
+          "value",
+          &Quantum::Value::value,
+          "Quantum number value\n\n.. :class:`~pyarts3.arts.String`\n\n..:class:`~pyarts3.arts.Rational`")
       .def("__getstate__",
            [](const Quantum::Value& qnv) {
              return std::tuple<std::string>{std::format("{}", qnv)};
@@ -38,9 +39,13 @@ void py_quantum(py::module_& m) try {
   generic_interface(qval);
 
   py::class_<Quantum::UpperLower> qul(m, "QuantumUpperLower");
-  qul.def_rw("upper", &Quantum::UpperLower::upper, "Upper state");
-  qul.def_rw("lower", &Quantum::UpperLower::lower, "Lower state");
-  qul.doc() = "Uppler and lower quantum number values";
+  qul.def_rw("upper",
+             &Quantum::UpperLower::upper,
+             "Upper state\n\n.. :class:`QuantumValue`");
+  qul.def_rw("lower",
+             &Quantum::UpperLower::lower,
+             "Lower state\n\n.. :class:`QuantumValue`");
+  qul.doc() = "Upper and lower quantum number values";
   generic_interface(qul);
 
   auto qlvl = py::bind_map<QuantumLevel, py::rv_policy::reference_internal>(
@@ -55,14 +60,21 @@ void py_quantum(py::module_& m) try {
 
   py::class_<QuantumIdentifier> qid(m, "QuantumIdentifier");
   qid.def(py::init_implicit<const std::string_view>());
-  qid.def_rw("isot", &QuantumIdentifier::isot, "Isotopologue");
-  qid.def_rw("state", &QuantumIdentifier::state, "State");
+  qid.def_rw("isot",
+             &QuantumIdentifier::isot,
+             "Isotopologue\n\n.. :class:`SpeciesIsotope`");
+  qid.def_rw(
+      "state", &QuantumIdentifier::state, "State\n\n.. :class:`QuantumState`");
   generic_interface(qid);
 
   py::class_<QuantumLevelIdentifier> qlid(m, "QuantumLevelIdentifier");
   qlid.def(py::init_implicit<const std::string_view>());
-  qlid.def_rw("isot", &QuantumLevelIdentifier::isot, "Isotopologue");
-  qlid.def_rw("state", &QuantumLevelIdentifier::state, "State");
+  qlid.def_rw("isot",
+              &QuantumLevelIdentifier::isot,
+              "Isotopologue\n\n.. :class:`SpeciesIsotope`");
+  qlid.def_rw("state",
+              &QuantumLevelIdentifier::state,
+              "State\n\n.. :class:`QuantumLevel`");
   generic_interface(qlid);
 
   qid.def(py::self == py::self)

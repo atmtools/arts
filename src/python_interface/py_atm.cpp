@@ -1,6 +1,7 @@
 #include <atm.h>
 #include <atm_path.h>
 #include <debug.h>
+#include <hpy_arts.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/function.h>
@@ -16,8 +17,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include <hpy_arts.h>
-
 namespace Python {
 void py_atm(py::module_ &m) try {
   py::class_<Atm::Data> atmdata(m, "AtmData");
@@ -32,13 +31,34 @@ void py_atm(py::module_ &m) try {
           },
           "v"_a,
           "Initialize with a gridded field")
-      .def_rw("data", &Atm::Data::data, "The data")
-      .def_rw("alt_upp", &Atm::Data::alt_upp, "Upper altitude limit")
-      .def_rw("alt_low", &Atm::Data::alt_low, "Lower altitude limit")
-      .def_rw("lat_upp", &Atm::Data::lat_upp, "Upper latitude limit")
-      .def_rw("lat_low", &Atm::Data::lat_low, "Lower latitude limit")
-      .def_rw("lon_upp", &Atm::Data::lon_upp, "Upper longitude limit")
-      .def_rw("lon_low", &Atm::Data::lon_low, "Lower longitude limit")
+      .def_rw(
+          "data",
+          &Atm::Data::data,
+          "The data.\n\n.. :class:`~pyarts3.arts.GeodeticField3`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericTernaryOperator`")
+      .def_rw(
+          "alt_upp",
+          &Atm::Data::alt_upp,
+          "Upper altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "alt_low",
+          &Atm::Data::alt_low,
+          "Lower altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lat_upp",
+          &Atm::Data::lat_upp,
+          "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lat_low",
+          &Atm::Data::lat_low,
+          "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lon_upp",
+          &Atm::Data::lon_upp,
+          "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lon_low",
+          &Atm::Data::lon_low,
+          "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "set_extrapolation",
           [](Atm::Data &self, InterpolationExtrapolation x) {
@@ -69,7 +89,9 @@ void py_atm(py::module_ &m) try {
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a position")
-      .def_prop_ro("data_type", &Atm::Data::data_type, "The data type")
+      .def_prop_ro("data_type",
+                   &Atm::Data::data_type,
+                   "The data type\n\n.. :class:`~pyarts3.arts.String`")
       .def("__getstate__",
            [](const Atm::Data &t) {
              return std::make_tuple(t.data,
@@ -114,10 +136,18 @@ void py_atm(py::module_ &m) try {
   auto fld = py::class_<AtmField>(m, "AtmField");
   generic_interface(fld);
 
-  pnt.def_rw("temperature", &AtmPoint::temperature, "Temperature [K]")
-      .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]")
-      .def_rw("mag", &AtmPoint::mag, "Magnetic field [T]")
-      .def_rw("wind", &AtmPoint::wind, "Wind field [m/s]")
+  pnt.def_rw("temperature",
+             &AtmPoint::temperature,
+             "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("pressure",
+              &AtmPoint::pressure,
+              "Pressure [Pa]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("mag",
+              &AtmPoint::mag,
+              "Magnetic field [T]\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw("wind",
+              &AtmPoint::wind,
+              "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
       .def(
           "number_density",
           [](AtmPoint &atm, std::variant<SpeciesEnum, SpeciesIsotope> key) {
@@ -305,7 +335,7 @@ Parameters
           "Get the data as a list")
       .def_rw("top_of_atmosphere",
               &AtmField::top_of_atmosphere,
-              "Top of the atmosphere [m]");
+              "Top of the atmosphere [m]\n\n.. :class:`~pyarts3.arts.Numeric`");
 
   m.def(
       "frequency_shift",
@@ -622,9 +652,6 @@ Parameters
            [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) {
              self[key] = x;
            })
-      .def_rw("top_of_atmosphere",
-              &AtmField::top_of_atmosphere,
-              "Top of the atmosphere [m]")
       .def("__getstate__",
            [](const AtmField &t) {
              auto k = t.keys();
@@ -654,11 +681,30 @@ Parameters
                   k[i]) = v[i];
           });
 
-  fld.def_rw("nlte", &AtmField::nlte, "NLTE data");
-  fld.def_rw("specs", &AtmField::specs, "Species data");
-  fld.def_rw("isots", &AtmField::isots, "Isotopologue ratio data");
-  fld.def_rw("other", &AtmField::other, "Basic atmospheric data");
-  fld.def_rw("ssprops", &AtmField::ssprops, "Scattering species properties data");
+  fld.def_rw(
+      "nlte",
+      &AtmField::nlte,
+      "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.AtmData]`");
+
+  fld.def_rw(
+      "specs",
+      &AtmField::specs,
+      "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.AtmData]`");
+
+  fld.def_rw(
+      "isots",
+      &AtmField::isots,
+      "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.AtmData]`");
+
+  fld.def_rw(
+      "other",
+      &AtmField::other,
+      "Basic atmospheric data\n\n.. :class:`dict[~pyarts3.arts.AtmKey, ~pyarts3.arts.AtmData]`");
+
+  fld.def_rw(
+      "ssprops",
+      &AtmField::ssprops,
+      "Scattering species properties data\n\n.. :class:`dict[~pyarts3.arts.ScatteringSpeciesProperty, ~pyarts3.arts.AtmData]`");
 
   pnt.def(
       "to_dict",

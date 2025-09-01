@@ -52,7 +52,7 @@ void py_basic(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")(); },
           [](ValueHolder<Numeric>& a, const ValueHolder<Numeric>& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`numpy.ndarray`");
   common_ndarray(num);
 
   py::class_<ValueHolder<Index>> ind(m, "Index");
@@ -84,7 +84,7 @@ void py_basic(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")(); },
           [](ValueHolder<Index>& a, const ValueHolder<Index>& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`numpy.ndarray`");
   common_ndarray(ind);
 
   auto aos = py::class_<ArrayOfString>(m, "ArrayOfString");
@@ -118,7 +118,7 @@ void py_basic(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")(); },
           [](ArrayOfIndex& a, const ArrayOfIndex& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`numpy.ndarray`");
   common_ndarray(aoi);
   value_holder_vector_interface(aoi);
   generic_interface(aoi);
@@ -151,7 +151,7 @@ void py_basic(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")(); },
           [](ArrayOfNumeric& a, const ArrayOfNumeric& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.")
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`numpy.ndarray`")
       .doc() = "A list of :class:`~pyarts3.arts.Numeric`";
   common_ndarray(aon);
   value_holder_vector_interface(aon);

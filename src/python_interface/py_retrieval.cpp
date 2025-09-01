@@ -11,14 +11,18 @@ void py_retrieval(py::module_& m) try {
                              py::rv_policy::reference_internal>(
       m, "JacobianTargetsDiagonalCovarianceMatrixMap");
   generic_interface(jtdcmm);
-  
+
   py::class_<PairOfBlockMatrix> pobm(m, "PairOfBlockMatrix");
   generic_interface(pobm);
-  pobm.def_rw("first", &PairOfBlockMatrix::first, "Matrix");
-  pobm.def_rw("second", &PairOfBlockMatrix::second, "Inverse of Matrix");
+  pobm.def_rw(
+      "first", &PairOfBlockMatrix::first, "Matrix\n\n.. :class:`BlockMatrix`");
+  pobm.def_rw("second",
+              &PairOfBlockMatrix::second,
+              "Inverse of Matrix\n\n.. :class:`BlockMatrix`");
 
   py::class_<JacobianTargetType> jtt(m, "JacobianTargetType");
-  jtt.def_rw("value", &JacobianTargetType::target, "Target");
+  jtt.def_rw(
+      "value", &JacobianTargetType::target, "Target\n\n.. :class:`object`");
   generic_interface(jtt);
 } catch (std::exception& e) {
   throw std::runtime_error(

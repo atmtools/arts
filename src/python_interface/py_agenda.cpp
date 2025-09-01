@@ -77,7 +77,9 @@ void py_agenda(py::module_& m) try {
   py::class_<Wsv> wsv(m, "Wsv");
   generic_interface(wsv);
   wsv.def_prop_ro(
-         "value", [](Wsv& v) { return to_py(v); }, "A workspace variable")
+         "value",
+         [](Wsv& v) { return to_py(v); },
+         "A workspace variable.\n\n.. :class:`~pyarts3.arts.Any`")
       .doc() = "A workspace variable wrapper - no manual use required";
 
   py::class_<Method> methods(m, "Method");
@@ -110,11 +112,11 @@ void py_agenda(py::module_& m) try {
             if (x) return to_py(x.value());
             return py::none();
           },
-          "The value (if any) of a set method")
+          "The value (if any) of a set method.\n\n.. :class:`~pyarts3.arts.Wsv`.\n\n.. :class:`None`")
       .def_prop_ro(
           "name",
           [](const Method& method) { return method.get_name(); },
-          "The name of the method")
+          "The name of the method.\n\n.. :class:`str`")
       .doc() = "The method class of ARTS";
 
   py::class_<Agenda> ag(m, "Agenda");
@@ -150,11 +152,11 @@ so Copy(a, out=b) will not even see the b variable.
       .def_prop_ro(
           "name",
           [](const Agenda& agenda) { return agenda.get_name(); },
-          "The name of the agenda")
+          "The name of the agenda.\n\n.. :class:`str`")
       .def_prop_ro(
           "methods",
           [](const Agenda& agenda) { return agenda.get_methods(); },
-          "The methods of the agenda");
+          "The methods of the agenda.\n\n.. :class:`list[~pyarts3.arts.Method]`");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));

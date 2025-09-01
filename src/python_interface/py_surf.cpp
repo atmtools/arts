@@ -25,11 +25,22 @@ void py_surf(py::module_ &m) try {
           },
           "v"_a,
           "Initialize with a sorted field")
-      .def_rw("data", &Surf::Data::data, "The data")
-      .def_rw("lat_upp", &Surf::Data::lat_upp, "Upper latitude limit")
-      .def_rw("lat_low", &Surf::Data::lat_low, "Lower latitude limit")
-      .def_rw("lon_upp", &Surf::Data::lon_upp, "Upper longitude limit")
-      .def_rw("lon_low", &Surf::Data::lon_low, "Lower longitude limit")
+      .def_rw(
+          "data",
+          &Surf::Data::data,
+          "The data\n\n.. :class:`GeodeticField2`\n\n.. :class:`Numeric`\n\n.. :class:`NumericBinaryOperator`")
+      .def_rw("lat_upp",
+              &Surf::Data::lat_upp,
+              "Upper latitude limit\n\n.. :class:`InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Surf::Data::lat_low,
+              "Lower latitude limit\n\n.. :class:`InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Surf::Data::lon_upp,
+              "Upper longitude limit\n\n.. :class:`InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Surf::Data::lon_low,
+              "Lower longitude limit\n\n.. :class:`InterpolationExtrapolation`")
       .def(
           "set_extrapolation",
           [](Surf::Data &self, InterpolationExtrapolation x) {
@@ -79,7 +90,9 @@ void py_surf(py::module_ &m) try {
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a position")
-      .def_prop_ro("data_type", &Surf::Data::data_type, "The data type")
+      .def_prop_ro("data_type",
+                   &Surf::Data::data_type,
+                   "The data type\n\n.. :class:`String`")
       .def("__getstate__",
            [](const Surf::Data &t) {
              return std::make_tuple(
@@ -106,7 +119,9 @@ void py_surf(py::module_ &m) try {
   py::class_<SurfacePropertyTag> spt =
       py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
   generic_interface(spt);
-  spt.def_rw("name", &SurfacePropertyTag::name, "Name of property");
+  spt.def_rw("name",
+             &SurfacePropertyTag::name,
+             "Name of property\n\n.. :class:`String`");
   spt.def(py::init_implicit<String>());
 
   auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint");
@@ -125,15 +140,22 @@ void py_surf(py::module_ &m) try {
            surface_fieldPlanet(*sf, planet, 0.0);
          },
          "planet"_a)
-      .def_rw("ellipsoid",
-              &SurfaceField::ellipsoid,
-              "Ellipsoid parameters (semi-major axis, semi-minor axis)");
+      .def_rw(
+          "ellipsoid",
+          &SurfaceField::ellipsoid,
+          "Ellipsoid parameters (semi-major axis, semi-minor axis)\n\n.. :class:`Vector2`");
   generic_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 
-  pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]")
-      .def_rw("elevation", &SurfacePoint::elevation, "Surface elevation [m]")
-      .def_rw("normal", &SurfacePoint::normal, "Surface normal vector")
+  pnt.def_rw("temperature",
+             &SurfacePoint::temperature,
+             "Temperature [K]\n\n.. :class:`Numeric`")
+      .def_rw("elevation",
+              &SurfacePoint::elevation,
+              "Surface elevation [m]\n\n.. :class:`Numeric`")
+      .def_rw("normal",
+              &SurfacePoint::normal,
+              "Surface normal vector\n\n.. :class:`Vector2`")
       .def(
           "__getitem__",
           [](SurfacePoint &surf, SurfaceKey x) {
@@ -280,15 +302,24 @@ void py_surf(py::module_ &m) try {
                    k[i]) = v[i];
              }
            });
-  fld.def_rw("other", &SurfaceField::other, "Other data in the surface field")
-      .def_rw("props", &SurfaceField::props, "Properties of the surface field");
+  fld.def_rw(
+         "other",
+         &SurfaceField::other,
+         "Other data in the surface field\n\n.. :class:`dict[SurfaceKey, SurfaceData]`")
+      .def_rw(
+          "props",
+          &SurfaceField::props,
+          "Properties of the surface field\n\n.. :class:`dict[SurfacePropertyTag, SurfaceData]`");
 
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
   ssf.def_rw(
-      "other", &SubsurfaceField::other, "Other data in the subsurface field");
-  ssf.def_rw("bottom_depth",
-             &SubsurfaceField::bottom_depth,
-             "The depth of the bottom of the subsurface [m]");
+      "other",
+      &SubsurfaceField::other,
+      "Other data in the subsurface field\n\n.. :class:`dict[SubsurfaceKey, SurfaceData]`");
+  ssf.def_rw(
+      "bottom_depth",
+      &SubsurfaceField::bottom_depth,
+      "The depth of the bottom of the subsurface [m]\n\n.. :class:`Numeric`");
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");

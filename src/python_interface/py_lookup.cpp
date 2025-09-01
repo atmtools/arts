@@ -8,29 +8,32 @@ namespace Python {
 void py_lookup(py::module_& m) try {
   py::class_<AbsorptionLookupTable> alt(m, "AbsorptionLookupTable");
   generic_interface(alt);
+  alt.def_rw("f_grid",
+             &AbsorptionLookupTable::f_grid,
+             "The frequency grid in Hz\n\n.. :class:`AscendingGrid`");
   alt.def_rw(
-      "f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz");
-  alt.def_rw("log_p_grid",
-             &AbsorptionLookupTable::log_p_grid,
-             "The pressure grid in log Pa [same dimension as atm]");
+      "log_p_grid",
+      &AbsorptionLookupTable::log_p_grid,
+      "The pressure grid in log Pa [same dimension as atm]\n\n.. :class:`DescendingGrid`");
   alt.def_rw(
       "t_pert",
       &AbsorptionLookupTable::t_pert,
-      "The temperautre perturbation grid in K [any number of elements or empty for nothing]");
+      "The temperature perturbation grid in K [any number of elements or empty for nothing]\n\n.. :class:`AscendingGrid`");
   alt.def_rw(
       "w_pert",
       &AbsorptionLookupTable::w_pert,
-
-      "The humidity perturbation grid in fractional units [any number of elements or empty for nothing]");
-  alt.def_rw("water_atmref",
-             &AbsorptionLookupTable::water_atmref,
-             "Local grids so that pressure interpolation may work");
-  alt.def_rw("t_atmref",
-             &AbsorptionLookupTable::t_atmref,
-             "Local grids so that pressure interpolation may work");
+      "The humidity perturbation grid in fractional units [any number of elements or empty for nothing]\n\n.. :class:`AscendingGrid`");
+  alt.def_rw(
+      "water_atmref",
+      &AbsorptionLookupTable::water_atmref,
+      "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
+  alt.def_rw(
+      "t_atmref",
+      &AbsorptionLookupTable::t_atmref,
+      "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
   alt.def_rw("xsec",
              &AbsorptionLookupTable::xsec,
-             "The absorption cross section table");
+             "The absorption cross section table\n\n.. :class:`Tensor4`");
 
   auto alts = py::bind_map<AbsorptionLookupTables>(m, "AbsorptionLookupTables");
   generic_interface(alts);

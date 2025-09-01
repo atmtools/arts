@@ -35,7 +35,7 @@ void matpack_common_interface(py::class_<mtype>& c) {
       [](py::object& x) { return x.attr("__array__")(); },
       [](mtype& a, const mtype& b) { a = b; },
       py::for_getter(py::rv_policy::reference_internal),
-      "A :class:`~numpy.ndarray` of the object.");
+      "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
 
   c.def("__getstate__",
         [](const py::object& v) { return std::tuple{v.attr("__array__")()}; });
@@ -82,7 +82,7 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
         if (not dtype.is_none()) {
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
         }
-  
+
         return x.cast((copy.is_none() or not py::bool_(copy))
                           ? py::rv_policy::automatic_reference
                           : py::rv_policy::copy);
@@ -109,7 +109,7 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
       },
       "a"_a);
 
-  c.def_rw("data", &mtype::data, "The data itself");
+  c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 
   c.def(
       "__array__",
@@ -250,18 +250,23 @@ void gridded_data_interface(
         "grid_names"_a = std::array<String, dim>{},
         "grids"_a);
 
-  c.def_rw("dataname", &mtype::data_name, "Name of the data");
+  c.def_rw(
+      "dataname", &mtype::data_name, "Name of the data\n\n.. :class:`String`");
 
-  c.def_rw("data", &mtype::data, "The data itself");
+  c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 
-  c.def_rw("gridnames", &mtype::grid_names, "The grid names");
+  c.def_rw("gridnames",
+           &mtype::grid_names,
+           "The grid names\n\n.. :class:`list[str]`");
 
-  c.def_rw("grids", &mtype::grids, "The grid of the data");
+  c.def_rw("grids",
+           &mtype::grids,
+           "The grid of the data\n\n.. :class:`list[object]`");
 
   c.def_prop_ro_static(
       "dim",
       [](const py::object&) { return mtype::dim; },
-      "Dimension of the field");
+      "Dimension of the field\n\n.. :class:`int`");
 
   c.def("ok", &mtype::ok, "Check the field");
 
@@ -280,7 +285,7 @@ void gridded_data_interface(
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
       [](mtype& a, const mtype& b) { a = b; },
       py::for_getter(py::rv_policy::reference_internal),
-      "A :class:`~numpy.ndarray` of the object.");
+      "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`numpy.ndarray`");
 
   c.def(
       "to_dict",

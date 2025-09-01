@@ -209,9 +209,9 @@ deg : int
 
 Returns
 -------
-x : List[float]
+x : list[float]
     The abscissas
-w : List[float]
+w : list[float]
     The weights
 )");
 
@@ -233,9 +233,9 @@ deg : int
 
 Returns
 -------
-x : List[float]
+x : list[float]
     The abscissas
-w : List[float]
+w : list[float]
     The weights
 )");
 
@@ -292,9 +292,9 @@ nmax : int
 
 Returns
 -------
-Pnm : SchmidtMatrix
+Pnm : ~pyarts3.arts.math.SchmidtMatrix
     The Polynominal matrix (nmax+1 x nmax+1).
-dPnm : SchmidtMatrix
+dPnm : ~pyarts3.arts.math.SchmidtMatrix
     The Polynominal matrix derivative (nmax+1 x nmax+1).
 )");
 } catch (std::exception& e) {

@@ -33,7 +33,8 @@ void py_fwd(py::module_& m) try {
             StokvecVector out(frequency.size());
 
             if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1 or
-                static_cast<Index>(frequency.size()) < arts_omp_get_max_threads()) {
+                static_cast<Index>(frequency.size()) <
+                    arts_omp_get_max_threads()) {
               std::transform(
                   frequency.begin(),
                   frequency.end(),
@@ -51,7 +52,7 @@ void py_fwd(py::module_& m) try {
                 }
               }
 
-              if(not error.empty()) throw std::runtime_error(error);
+              if (not error.empty()) throw std::runtime_error(error);
             }
             return out;
           },
@@ -59,9 +60,10 @@ void py_fwd(py::module_& m) try {
           "pos"_a,
           "los"_a,
           "Geometric planar spectral radiance")
-      .def_prop_ro("altitude",
-                   &SpectralRadianceOperator::altitude,
-                   "The altitude of the top of the atmosphere [m]");
+      .def_prop_ro(
+          "altitude",
+          &SpectralRadianceOperator::altitude,
+          "The altitude of the top of the atmosphere [m]\n\n.. :class:`AscendingGrid`");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize fwd\n{}", e.what()));
