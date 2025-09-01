@@ -581,7 +581,7 @@ void main_data::check_input_value() const {
       stdr::any_of(Leg_coeffs_all,
                    [](auto&& x) {
                      return x[0] != 1 or stdr::any_of(x, [](auto&& u) {
-                              return std::abs<Numeric>(u) > 1;
+                              return std::abs(u) > 1;
                             });
                    }),
       "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
@@ -1609,8 +1609,8 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
 ARTS_METHOD_ERROR_CATCH
 
 #ifdef ENABLE_CDISORT
-disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv) const
-    try {
+disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis,
+                                               Index iv) const try {
   using Conversion::cosd;
   using Conversion::deg2rad;
 
