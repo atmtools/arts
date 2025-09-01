@@ -32,12 +32,12 @@ void py_time(py::module_& m) try {
           "From :class:`float` seconds from Unix time start")
       .def(py::init<std::string>(),
            "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
-      .def_rw("time", &Time::time, ":class:`datetime.datetime` The time")
+      .def_rw("time", &Time::time, "The time\n\n.. :class:`~datetime.datetime`")
       .def_prop_rw(
           "sec",
           [](const Time& t) { return t.Seconds(); },
           [](Time& t, Numeric n) { return t.Seconds(n); },
-          ":class:`float` Time from Unix start")
+          "Time from Unix start\n\n.. :class:`float`")
       .def(
           "__add__",
           [](Time& t, Numeric n) {
@@ -90,18 +90,19 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(
-                m, "ArrayOfTime")
-                .def_prop_ro(
-                    "as_datetime",
-                    [](const ArrayOfTime& in)
-                        -> std::vector<std::chrono::system_clock::time_point> {
-                      const Index n = in.size();
-                      std::vector<std::chrono::system_clock::time_point> out(n);
-                      for (Index i = 0; i < n; i++) out[i] = in[i].time;
-                      return out;
-                    },
-                    "A :class:`list` of :class:`datetime.datetime`");
+  auto a1 =
+      py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(
+          m, "ArrayOfTime")
+          .def_prop_ro(
+              "as_datetime",
+              [](const ArrayOfTime& in)
+                  -> std::vector<std::chrono::system_clock::time_point> {
+                const Index n = in.size();
+                std::vector<std::chrono::system_clock::time_point> out(n);
+                for (Index i = 0; i < n; i++) out[i] = in[i].time;
+                return out;
+              },
+              "Convert to time lists\n\n.. :class:`list[~datetime.datetime]`");
 
   generic_interface(a1);
 

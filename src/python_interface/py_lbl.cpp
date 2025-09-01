@@ -28,13 +28,23 @@ void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
-  line_key.def_rw("band", &lbl::line_key::band, "The band");
-  line_key.def_rw("line", &lbl::line_key::line, "The line");
-  line_key.def_rw("spec", &lbl::line_key::spec, "The species");
-  line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable");
+  line_key.def_rw("band",
+                  &lbl::line_key::band,
+                  "The band\n\n.. :class:`QuantumIdentifier`");
+  line_key.def_rw("line", &lbl::line_key::line, "The line\n\n.. :class:`int`");
   line_key.def_rw(
-      "ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient");
-  line_key.def_rw("var", &lbl::line_key::var, "The variable");
+      "spec", &lbl::line_key::spec, "The species\n\n.. :class:`int`");
+  line_key.def_rw(
+      "ls_var",
+      &lbl::line_key::ls_var,
+      "The line shape variable\n\n.. :class:`LineShapeModelVariable`");
+  line_key.def_rw(
+      "ls_coeff",
+      &lbl::line_key::ls_coeff,
+      "The line shape coefficient\n\n.. :class:`LineShapeModelCoefficient`");
+  line_key.def_rw("var",
+                  &lbl::line_key::var,
+                  "The variable\n\n.. :class:`LineByLineVariable`");
   line_key.doc() = "A key for a line";
   str_interface(line_key);
 
@@ -48,14 +58,14 @@ void py_lbl(py::module_& m) try {
           [](lbl::temperature::data& self, LineShapeModelType x) {
             self = lbl::temperature::data{x, self.X()};
           },
-          ":class:`~pyarts3.arts.TemperatureModelType` The type of the model")
+          "The type of the model\n\n.. :class:`~pyarts3.arts.TemperatureModelType`")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },
           [](lbl::temperature::data& self, const Vector& x) {
             self = lbl::temperature::data{self.Type(), x};
           },
-          ":class:`~pyarts3.arts.Vector` The coefficients")
+          "The coefficients\n\n.. :class:`~pyarts3.arts.Vector`")
       .def("__getstate__",
            [](const lbl::temperature::data& v) {
              return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
@@ -98,9 +108,13 @@ void py_lbl(py::module_& m) try {
   vector_interface(lsvtml);
 
   py::class_<lbl::line_shape::species_model>(m, "LineShapeSpeciesModel")
+      .def_rw("species",
+              &lbl::line_shape::species_model::species,
+              "The species\n\n.. :class:`SpeciesEnum`")
       .def_rw(
-          "species", &lbl::line_shape::species_model::species, "The species")
-      .def_rw("data", &lbl::line_shape::species_model::data, "The data")
+          "data",
+          &lbl::line_shape::species_model::data,
+          "The data\n\n.. :class:`list[tuple[LineShapeModelVariable, TemperatureModel]]`")
       .def("__getitem__",
            [](py::object& x, const py::object& key) {
              return x.attr("data").attr("__getitem__")(key);
@@ -175,11 +189,13 @@ void py_lbl(py::module_& m) try {
   py::class_<lbl::line_shape::model>(m, "LineShapeModel")
       .def_rw("one_by_one",
               &lbl::line_shape::model::one_by_one,
-              "If true, the lines are treated one by one")
-      .def_rw("T0", &lbl::line_shape::model::T0, "The reference temperature")
+              "If true, the lines are treated one by one\n\n.. :class:`bool`")
+      .def_rw("T0",
+              &lbl::line_shape::model::T0,
+              "The reference temperature\n\n.. :class:`Numeric`")
       .def_rw("single_models",
               &lbl::line_shape::model::single_models,
-              "The single models")
+              "The single models\n\n.. :class:`list[LineShapeSpeciesModel]`")
       .def("G0", &lbl::line_shape::model::G0, "The G0 coefficient", "atm"_a)
       .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", "atm"_a)
       .def("D0", &lbl::line_shape::model::D0, "The D0 coefficient", "atm"_a)
@@ -202,20 +218,19 @@ void py_lbl(py::module_& m) try {
       .doc() = "Line shape model";
 
   py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
-      .def_rw(
-          "on",
-          &lbl::zeeman::model::on,
-          ":class:`~pyarts3.arts.Bool` If True, the Zeeman effect is included")
+      .def_rw("on",
+              &lbl::zeeman::model::on,
+              "If True, the Zeeman effect is included\n\n.. :class:`bool`")
       .def_prop_rw(
           "gl",
           [](lbl::zeeman::model& z) { return z.gl(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gl(g); },
-          ":class:`~pyarts3.arts.Numeric` The lower level statistical weight")
+          "The lower level statistical weight\n\n.. :class:`Numeric`")
       .def_prop_rw(
           "gu",
           [](lbl::zeeman::model& z) { return z.gu(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
-          ":class:`~pyarts3.arts.Numeric` The upper level statistical weight")
+          "The upper level statistical weight\n\n.. :class:`Numeric`")
       .def(
           "strengths",
           [](const lbl::zeeman::model& mod, const QuantumState& qn) {
@@ -242,33 +257,37 @@ void py_lbl(py::module_& m) try {
       .doc() = "Zeeman model";
 
   py::class_<lbl::line>(m, "AbsorptionLine")
-      .def_rw("a",
-              &lbl::line::a,
-              ":class:`~pyarts3.arts.Numeric` The Einstein coefficient [1 / s]")
-      .def_rw("f0",
-              &lbl::line::f0,
-              ":class:`~pyarts3.arts.Numeric` The line center frequency [Hz]")
-      .def_rw("e0",
-              &lbl::line::e0,
-              ":class:`~pyarts3.arts.Numeric` The lower level energy [J]")
+      .def_rw(
+          "a",
+          &lbl::line::a,
+          "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
+      .def_rw(
+          "f0",
+          &lbl::line::f0,
+          "The line center frequency [Hz]\n\n.. :class:`Numeric`")
+      .def_rw(
+          "e0",
+          &lbl::line::e0,
+          "The lower level energy [J]\n\n.. :class:`Numeric`")
       .def_rw(
           "gu",
           &lbl::line::gu,
-          ":class:`~pyarts3.arts.Numeric` The upper level statistical weight [-]")
+          "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
       .def_rw(
           "gl",
           &lbl::line::gl,
-          ":class:`~pyarts3.arts.Numeric` The lower level statistical weight [-]")
+          "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
       .def_rw("z",
               &lbl::line::z,
-              ":class:`~pyarts3.arts.ZeemanLineModel` The Zeeman model")
-      .def_rw("ls",
-              &lbl::line::ls,
-              ":class:`~pyarts3.arts.LineShapeModel` The line shape model")
+              "The Zeeman model\n\n.. :class:`~pyarts3.arts.ZeemanLineModel`")
+      .def_rw(
+          "ls",
+          &lbl::line::ls,
+          "The line shape model\n\n.. :class:`~pyarts3.arts.LineShapeModel`")
       .def_rw(
           "qn",
           &lbl::line::qn,
-          ":class:`~pyarts3.arts.QuantumNumberLocalState` The local quantum numbers of this line")
+          "The local quantum numbers of this line\n\n.. :class:`~pyarts3.arts.QuantumState`")
       .def(
           "s",
           [](const lbl::line& self, py::object& T, py::object& Q) {
@@ -290,16 +309,22 @@ void py_lbl(py::module_& m) try {
 
   auto ll  = py::bind_vector<std::vector<lbl::line>,
                              py::rv_policy::reference_internal>(m, "LineList");
-  ll.doc() = "A list of absorption lines";
+  ll.doc() = "A list of :class:`AbsorptionLine`";
   vector_interface(ll);
 
   py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
-  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band")
-      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type")
-      .def_rw("cutoff", &AbsorptionBand::cutoff, "The cutoff type")
+  ab.def_rw("lines",
+            &AbsorptionBand::lines,
+            "The lines in the band\n\n.. :class:`LineList`")
+      .def_rw("lineshape",
+              &AbsorptionBand::lineshape,
+              "The lineshape type\n\n.. :class:`LineByLineLineshape`")
+      .def_rw("cutoff",
+              &AbsorptionBand::cutoff,
+              "The cutoff type\n\n.. :class:`LineByLineCutoffType`")
       .def_rw("cutoff_value",
               &AbsorptionBand::cutoff_value,
-              "The cutoff value [Hz]")
+              "The cutoff value [Hz]\n\n.. :class:`Numeric`")
       .def(
           "keep_frequencies",
           [](AbsorptionBand& band, Vector2 freqs) {
@@ -481,16 +506,16 @@ T0 : float
   py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
   ed.def_rw("scaling",
             &LinemixingSingleEcsData::scaling,
-            ":class:`~pyarts3.arts.TemperatureModel`");
+            ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("beta",
             &LinemixingSingleEcsData::beta,
-            ":class:`~pyarts3.arts.TemperatureModel`");
+            ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("lambda_",  // Fix name, not python
             &LinemixingSingleEcsData::lambda,
-            ":class:`~pyarts3.arts.TemperatureModel`");
+            ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("collisional_distance",
             &LinemixingSingleEcsData::collisional_distance,
-            ":class:`~pyarts3.arts.TemperatureModel`");
+            ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def("Q",
          &LinemixingSingleEcsData::Q,
          "J"_a,

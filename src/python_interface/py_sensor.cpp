@@ -43,10 +43,11 @@ void py_sensor(py::module_& m) try {
           "value",
           [](py::object& x) { return x.attr("__array__")(); },
           [](SensorPosLos& a, const SensorPosLos& b) { a = b; },
-          "A :class:`~numpy.ndarray` of the object.")
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
       .def(py::init<Vector3, Vector2>(), "From pos and los")
-      .def_rw("pos", &SensorPosLos::pos, "Position")
-      .def_rw("los", &SensorPosLos::los, "Line of sight");
+      .def_rw("pos", &SensorPosLos::pos, "Position\n\n.. :class:`Vector3`")
+      .def_rw(
+          "los", &SensorPosLos::los, "Line of sight\n\n.. :class:`Vector2`");
 
   py::class_<SensorPosLosVector> vsplos(m, "SensorPosLosVector");
   generic_interface(vsplos);
@@ -113,7 +114,7 @@ void py_sensor(py::module_& m) try {
                                   .los = {row[3], row[4]}};
             });
           },
-          "A :class:`~numpy.ndarray` of the object.")
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
       .def("__getstate__",
            [](const py::object& self) {
              return py::make_tuple(self.attr("value"));
@@ -127,16 +128,19 @@ void py_sensor(py::module_& m) try {
   so.def(py::init<const AscendingGrid&,
                   const SensorPosLosVector&,
                   StokvecMatrix>())
-      .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid")
+      .def_prop_ro("f_grid",
+                   &SensorObsel::f_grid,
+                   "Frequency grid\n\n.. :class:`AscendingGrid`")
       .def_prop_ro(
           "weight_matrix",
           [](const SensorObsel& self) {
             return StokvecMatrix{self.weight_matrix()};
           },
-          "Weights matrix")
-      .def_prop_ro("poslos",
-                   &SensorObsel::poslos_grid,
-                   "Position and line of sight grid");
+          "Weights matrix\n\n.. :class:`StokvecMatrix`")
+      .def_prop_ro(
+          "poslos",
+          &SensorObsel::poslos_grid,
+          "Position and line of sight grid\n\n.. :class:`SensorPosLosVector`");
 
   auto a0 = py::bind_vector<Array<SensorPosLosVector>,
                             py::rv_policy::reference_internal>(

@@ -445,7 +445,7 @@ It holds essentially two things:
     #. *Numeric* - The data field is constant in the atmosphere.
        Cannot consider the extrapolation rules as there is no grid.
 
-    #. *SortedGriddedField3* - The grids are altitude, latitude, longitude.
+    #. *GeodeticField3* - The grids are altitude, latitude, longitude.
        Will consider the extrapolation rules but otherwise performs linear interpolation between all points.
        With the additional rule that longitude is considerd cyclic around [-180, 180).
 

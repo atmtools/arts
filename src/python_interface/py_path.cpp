@@ -15,22 +15,22 @@ void py_path(py::module_& m) try {
 
   pppp.def_rw("pos_type",
               &PropagationPathPoint::pos_type,
-              ":class:`~pyarts3.arts.PathPositionType` Path position type")
+              "Path position type\n\n.. :class:`PathPositionType`")
       .def_rw("los_type",
               &PropagationPathPoint::los_type,
-              ":class:`~pyarts3.arts.PathPositionType` Path line-of-sight type")
+              "Path line-of-sight type\n\n.. :class:`PathPositionType`")
       .def_rw("pos",
               &PropagationPathPoint::pos,
-              ":class:`~pyarts3.arts.Vector3` Path position")
+              "Path position\n\n.. :class:`~pyarts3.arts.Vector3`")
       .def_rw("los",
               &PropagationPathPoint::los,
-              ":class:`~pyarts3.arts.Vector2` Path line-of-sight")
+              "Path line-of-sight\n\n.. :class:`~pyarts3.arts.Vector2`")
       .def_rw("nreal",
               &PropagationPathPoint::nreal,
-              ":class:`float` Path real refractive index")
+              "Path real refractive index\n\n.. :class:`Numeric`")
       .def_rw("ngroup",
               &PropagationPathPoint::ngroup,
-              ":class:`float` Path group refractive index");
+              "Path group refractive index\n\n.. :class:`Numeric`");
 
   auto a1 = py::bind_vector<ArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(

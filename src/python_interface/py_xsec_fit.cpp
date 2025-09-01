@@ -13,25 +13,30 @@ void py_xsec(py::module_& m) try {
   py::class_<XsecRecord> xsec(m, "XsecRecord");
   generic_interface(xsec);
   xsec.def_ro_static(
-          "version", &XsecRecord::mversion, ":class:`int` The version")
+          "version", &XsecRecord::mversion, "The version\n\n.. :class:`int`")
       .def_rw("species",
               &XsecRecord::mspecies,
-              ":class:`~pyarts3.arts.Species` The species")
-      .def_rw("fitcoeffs",
-              &XsecRecord::mfitcoeffs,
-              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_rw("fitminpressures",
-              &XsecRecord::mfitminpressures,
-              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_rw("fitmaxpressures",
-              &XsecRecord::mfitmaxpressures,
-              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_rw("fitmintemperatures",
-              &XsecRecord::mfitmintemperatures,
-              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
-      .def_rw("fitmaxtemperatures",
-              &XsecRecord::mfitmaxtemperatures,
-              ":class:`~pyarts3.arts.ArrayOfGriddedField2` Fit coefficients")
+              "The species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw(
+          "fitcoeffs",
+          &XsecRecord::mfitcoeffs,
+          "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
+      .def_rw(
+          "fitminpressures",
+          &XsecRecord::mfitminpressures,
+          "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
+      .def_rw(
+          "fitmaxpressures",
+          &XsecRecord::mfitmaxpressures,
+          "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
+      .def_rw(
+          "fitmintemperatures",
+          &XsecRecord::mfitmintemperatures,
+          "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
+      .def_rw(
+          "fitmaxtemperatures",
+          &XsecRecord::mfitmaxtemperatures,
+          "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
           "propagation_matrix",
           [](const XsecRecord& self,
@@ -360,8 +365,8 @@ abs : Vector
       },
       "f"_a,
       "atm"_a,
-      "spec"_a          = SpeciesEnum::Bath,
-      "kwargs"_a        = py::kwargs{},
+      "spec"_a   = SpeciesEnum::Bath,
+      "kwargs"_a = py::kwargs{},
       R"--(Computes the Hitran cross-section absorption in 1/m
 
 Parameters

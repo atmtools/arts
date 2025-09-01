@@ -12,15 +12,16 @@ void py_star(py::module_& m) try {
   generic_interface(suns);
   suns.def_rw("description",
               &Sun::description,
-              ":class:`~pyarts3.arts.String` Sun description")
+              "Sun description\n\n.. :class:`~pyarts3.arts.String`")
       .def_rw(
           "spectrum",
           &Sun::spectrum,
-          ":class:`~pyarts3.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
-      .def_rw("radius", &Sun::radius, ":class:`float` Sun radius")
-      .def_rw("distance", &Sun::distance, ":class:`float` Sun distance")
-      .def_rw("latitude", &Sun::latitude, ":class:`float` Sun latitude")
-      .def_rw("longitude", &Sun::longitude, ":class:`float` Sun longitude")
+          "Sun spectrum, monochromatic radiance spectrum at the surface of the sun\n\n.. :class:`~pyarts3.arts.Matrix`")
+      .def_rw("radius", &Sun::radius, "Sun radius\n\n.. :class:`float`")
+      .def_rw("distance", &Sun::distance, "Sun distance\n\n.. :class:`float`")
+      .def_rw("latitude", &Sun::latitude, "Sun latitude\n\n.. :class:`float`")
+      .def_rw(
+          "longitude", &Sun::longitude, "Sun longitude\n\n.. :class:`float`")
       .def("__getstate__",
            [](const Sun& self) {
              return std::

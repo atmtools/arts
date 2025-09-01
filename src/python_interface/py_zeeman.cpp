@@ -78,17 +78,25 @@ void py_zeeman(py::module_& m) try {
       .def_prop_ro_static(
           "sm",
           [](py::object&) { return lbl::zeeman::pol::sm; },
-          R"-x-(Sigma minus)-x-")
+          R"-x-(Sigma minus
+.. :class:`int`
+)-x-")
       .def_prop_ro_static(
           "sp",
           [](py::object&) { return lbl::zeeman::pol::sp; },
-          R"-x-(Sigma plus)-x-")
+          R"-x-(Sigma plus
+.. :class:`int`
+)-x-")
       .def_prop_ro_static(
-          "pi", [](py::object&) { return lbl::zeeman::pol::pi; }, R"-x-(Pi)-x-")
+          "pi", [](py::object&) { return lbl::zeeman::pol::pi; }, R"-x-(Pi
+.. :class:`int`
+)-x-")
       .def_prop_ro_static(
           "no",
           [](py::object&) { return lbl::zeeman::pol::no; },
-          R"-x-(Unpolarized)-x-")
+          R"-x-(Unpolarized
+.. :class:`int`
+)-x-")
       .def("__str__", [](const lbl::zeeman::pol& x) { return from(x); })
       .def("__repr__", [](const lbl::zeeman::pol& x) { return from(x); })
       .doc() = "Polarization state of Zeeman calculations";
@@ -96,42 +104,63 @@ void py_zeeman(py::module_& m) try {
 
   py::class_<lbl::zeeman::magnetic_angles>(zee, "MagneticAngles")
       .def(py::init<Vector3, Vector2>())
-      .def_ro("u", &lbl::zeeman::magnetic_angles::u, "Magnetic u")
-      .def_ro("v", &lbl::zeeman::magnetic_angles::v, "Magnetic v")
-      .def_ro("w", &lbl::zeeman::magnetic_angles::w, "Magnetic w")
-      .def_ro("sa", &lbl::zeeman::magnetic_angles::sa, "Magnetic cos(asimuth)")
-      .def_ro("ca", &lbl::zeeman::magnetic_angles::ca, "Magnetic sin(asimuth)")
-      .def_ro("sz", &lbl::zeeman::magnetic_angles::sz, "Magnetic sin(zenith)")
-      .def_ro("cz", &lbl::zeeman::magnetic_angles::cz, "Magnetic cos(zenith)")
+      .def_ro("u",
+              &lbl::zeeman::magnetic_angles::u,
+              "Magnetic u\n\n.. :class:`Numeric`")
+      .def_ro("v",
+              &lbl::zeeman::magnetic_angles::v,
+              "Magnetic v\n\n.. :class:`Numeric`")
+      .def_ro("w",
+              &lbl::zeeman::magnetic_angles::w,
+              "Magnetic w\n\n.. :class:`Numeric`")
+      .def_ro("sa",
+              &lbl::zeeman::magnetic_angles::sa,
+              "Magnetic cos(asimuth)\n\n.. :class:`Numeric`")
+      .def_ro("ca",
+              &lbl::zeeman::magnetic_angles::ca,
+              "Magnetic sin(asimuth)\n\n.. :class:`Numeric`")
+      .def_ro("sz",
+              &lbl::zeeman::magnetic_angles::sz,
+              "Magnetic sin(zenith)\n\n.. :class:`Numeric`")
+      .def_ro("cz",
+              &lbl::zeeman::magnetic_angles::cz,
+              "Magnetic cos(zenith)\n\n.. :class:`Numeric`")
       .def_ro("H",
               &lbl::zeeman::magnetic_angles::H,
-              "Absolute magnetic field strength")
-      .def_ro("uct", &lbl::zeeman::magnetic_angles::uct, "Angle constant")
+              "Absolute magnetic field strength\n\n.. :class:`Numeric`")
+      .def_ro("uct",
+              &lbl::zeeman::magnetic_angles::uct,
+              "Angle constant\n\n.. :class:`Numeric`")
       .def_ro("duct",
               &lbl::zeeman::magnetic_angles::duct,
-              "Derivative of angle constant")
+              "Derivative of angle constant\n\n.. :class:`Numeric`")
+      .def_prop_ro("theta",
+                   &lbl::zeeman::magnetic_angles::theta,
+                   "Magnetic angle theta\n\n.. :class:`Numeric`")
+      .def_prop_ro("eta",
+                   &lbl::zeeman::magnetic_angles::eta,
+                   "Magnetic angle eta\n\n.. :class:`Numeric`")
       .def_prop_ro(
-          "theta", &lbl::zeeman::magnetic_angles::theta, "Magnetic angle theta")
+          "dtheta_du",
+          &lbl::zeeman::magnetic_angles::dtheta_du,
+          "Derivative of theta with respect to u\n\n.. :class:`Numeric`")
       .def_prop_ro(
-          "eta", &lbl::zeeman::magnetic_angles::eta, "Magnetic angle eta")
-      .def_prop_ro("dtheta_du",
-                   &lbl::zeeman::magnetic_angles::dtheta_du,
-                   "Derivative of theta with respect to u")
-      .def_prop_ro("dtheta_dv",
-                   &lbl::zeeman::magnetic_angles::dtheta_dv,
-                   "Derivative of theta with respect to v")
-      .def_prop_ro("dtheta_dw",
-                   &lbl::zeeman::magnetic_angles::dtheta_dw,
-                   "Derivative of theta with respect to w")
+          "dtheta_dv",
+          &lbl::zeeman::magnetic_angles::dtheta_dv,
+          "Derivative of theta with respect to v\n\n.. :class:`Numeric`")
+      .def_prop_ro(
+          "dtheta_dw",
+          &lbl::zeeman::magnetic_angles::dtheta_dw,
+          "Derivative of theta with respect to w\n\n.. :class:`Numeric`")
       .def_prop_ro("deta_du",
                    &lbl::zeeman::magnetic_angles::deta_du,
-                   "Derivative of eta with respect to u")
+                   "Derivative of eta with respect to u\n\n.. :class:`Numeric`")
       .def_prop_ro("deta_dv",
                    &lbl::zeeman::magnetic_angles::deta_dv,
-                   "Derivative of eta with respect to v")
+                   "Derivative of eta with respect to v\n\n.. :class:`Numeric`")
       .def_prop_ro("deta_dw",
                    &lbl::zeeman::magnetic_angles::deta_dw,
-                   "Derivative of eta with respect to w")
+                   "Derivative of eta with respect to w\n\n.. :class:`Numeric`")
       .doc() =
       "Magnetic angles for the Zeeman effect, note that the numbers are in radians.";
 

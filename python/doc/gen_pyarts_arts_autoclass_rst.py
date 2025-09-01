@@ -19,6 +19,10 @@ def doc(x):
         raise Exception(f"Error in doc for {x}:\n{e}")
 
 
+def indent(text, num_spaces):
+    return "\n".join(" " * num_spaces + line for line in text.split("\n"))
+
+
 def short_doc(v, var=None, name=None):
     try:
         x = doc(v).split("\n")
@@ -41,9 +45,24 @@ def short_doc(v, var=None, name=None):
         raise Exception(f"Error in short_doc for v={v}, var={var}, name={name}:\n{e}")
 
 
+def typesof(v):
+    x = doc(v).split(".. :class:")
+
+    classes = None
+    for c in x:
+        if len(c) < 2 or c[0] != '`':
+            continue
+        if classes is None:
+            classes = c.split("`")[1]
+        else:
+            classes += " | " + c.split("`")[1]
+
+    return classes
+
+
 def func(name, var):
     try:
-        return {"name": name, "short": short_doc(getattr(var, name), var.__name__, name)}
+        return {"name": name, "short": short_doc(getattr(var, name), var.__name__, name), "types": typesof(getattr(var, name)), "doc": doc(getattr(var, name))}
     except Exception as e:
         raise Exception(f"Error in func for name={name}, var={var}:\n{e}")
 
@@ -175,7 +194,7 @@ def loop_over_class(cls, mod, pure_overview=False):
             for n in values:
                 str += f"    * - Static Data\n"
                 str += f"      - ``{mod}.{cls.__name__}.{n}``\n"
-                str += f"      - {repr(values[n])} - :class:`~{type(values[n]).__name__}`\n"
+                str += f"      - {repr(values[n])} (:class:`~{type(values[n]).__name__}`)\n"
 
             for n in operators:
                 str += f"    * - Operator\n"
@@ -205,7 +224,13 @@ def loop_over_class(cls, mod, pure_overview=False):
             if len(attributes):
                 str += "  .. rubric:: Attributes\n\n"
                 for n in attributes:
-                    str += f"  .. autoattribute:: {cls.__name__}.{attributes[n]['name']}\n"
+                    str += f"  .. attribute:: {cls.__name__}.{attributes[n]['name']}\n"
+                    str += f"     :type: {attributes[n]['types']}\n"
+                    str += f"     \n"
+                    str += f"{indent(attributes[n]['doc'], 5)}\n\n"
+                    if attributes[n]['types'] is None:
+                        global_errors.append(
+                            f"{cls.__name__}.{attributes[n]['name']} lacks type-info - add '.. :class:`class-information`' to a newline of the docstring")
                 str += "\n"
 
             if len(operators):
@@ -231,7 +256,8 @@ def loop_over_class(cls, mod, pure_overview=False):
 
         return str, short
     except Exception as e:
-        raise Exception(f"Error in loop_over_class cls={cls}, mod={mod}, pure_overview={pure_overview}:\n{e}")
+        raise Exception(
+            f"Error in loop_over_class cls={cls}, mod={mod}, pure_overview={pure_overview}:\n{e}")
 
 
 def loop_over_module(mod):
@@ -287,7 +313,8 @@ def create_func_rst(name, path, mod):
             f.write(f".. currentmodule:: {mod}\n\n")
             f.write(f".. automethod:: {name}\n\n")
     except Exception as e:
-        raise Exception(f"Error in create_func_rst for name={name}, path={path}, mod={mod}:\n{e}")
+        raise Exception(
+            f"Error in create_func_rst for name={name}, path={path}, mod={mod}:\n{e}")
 
 
 def create_class_rst(data, path, mod):
@@ -295,7 +322,8 @@ def create_class_rst(data, path, mod):
         with open(f"{path}/{mod}.rst", "w") as f:
             f.write(data)
     except Exception as e:
-        raise Exception(f"Error in create_class_rst for data={data}, path={path}, mod={mod}:\n{e}")
+        raise Exception(
+            f"Error in create_class_rst for data={data}, path={path}, mod={mod}:\n{e}")
 
 
 def create_rst(data, path, mod):
@@ -374,7 +402,8 @@ def create_rst(data, path, mod):
                     )
                     f.write(f"      - {repr(data["values"][n])}\n")
     except Exception as e:
-        raise Exception(f"Error in create_rst for data={data}, path={path}, mod={mod}:\n{e}")
+        raise Exception(
+            f"Error in create_rst for data={data}, path={path}, mod={mod}:\n{e}")
 
 
 def create_workspace_rst(path):
@@ -392,8 +421,10 @@ def create_workspace_rst(path):
                     f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
-                    f.write(".. currentmodule:: pyarts3.workspace\n\n")
-                    f.write(".. autoattribute:: Workspace." + name + "\n\n")
+                    f.write(f".. currentmodule:: pyarts3.workspace\n\n")
+                    f.write(f".. attribute:: Workspace.{name}\n")
+                    f.write(f"   :type: {typesof(attr)}\n   \n")
+                    f.write(f"{indent(doc(attr), 3)}\n")
             elif isinstance(attr, method_t):
                 with open(
                     f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"

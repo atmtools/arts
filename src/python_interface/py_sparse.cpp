@@ -73,63 +73,43 @@ arr : :class:`scipy.sparse.csr_matrix`
 
   sp.def(
       "arcsin",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("arcsin")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("arcsin")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "arcsinh",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("arcsinh")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("arcsinh")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "arctan",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("arctan")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("arctan")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "arctanh",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("arctanh")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("arctanh")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "argmax",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("argmax")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("argmax")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "argmin",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("argmin")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("argmin")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "asformat",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("asformat")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("asformat")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "asfptype",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("asfptype")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("asfptype")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "astype",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("astype")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("astype")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "ceil",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("ceil")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("ceil")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "check_format",
@@ -139,21 +119,15 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "conj",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("conj")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("conj")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "conjugate",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("conjugate")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("conjugate")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "copy",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("copy")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("copy")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "count_nonzero",
@@ -163,33 +137,23 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "data",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("data")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("data")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "deg2rad",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("deg2rad")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("deg2rad")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "diagonal",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("diagonal")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("diagonal")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "dot",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("dot")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("dot")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "dtype",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("dtype")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("dtype")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "eliminate_zeros",
@@ -199,45 +163,31 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "expm1",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("expm1")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("expm1")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "floor",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("floor")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("floor")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "format",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("format")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("format")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getH",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getH")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getH")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "get_shape",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("get_shape")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("get_shape")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getcol",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getcol")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getcol")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getformat",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getformat")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getformat")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getmaxprint",
@@ -247,15 +197,11 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getnnz",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getnnz")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getnnz")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getrow",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getrow")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getrow")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "has_canonical_format",
@@ -271,183 +217,123 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "imag",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("imag")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("imag")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "indices",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("indices")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("indices")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "indptr",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("indptr")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("indptr")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "log1p",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("log1p")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("log1p")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "max",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("max")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("max")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "maximum",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("maximum")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("maximum")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "maxprint",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("maxprint")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("maxprint")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "mean",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("mean")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("mean")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "min",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("min")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("min")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "minimum",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("minimum")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("minimum")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "multiply",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("multiply")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("multiply")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "nanmax",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("nanmax")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("nanmax")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "nanmin",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("nanmin")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("nanmin")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "ndim",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("ndim")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("ndim")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "nnz",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("nnz")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("nnz")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "nonzero",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("nonzero")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("nonzero")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "power",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("power")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("power")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "prune",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("prune")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("prune")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "rad2deg",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("rad2deg")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("rad2deg")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "real",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("real")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("real")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "reshape",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("reshape")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("reshape")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "resize",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("resize")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("resize")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "rint",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("rint")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("rint")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "set_shape",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("set_shape")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("set_shape")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "setdiag",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("setdiag")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("setdiag")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "shape",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("shape")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("shape")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sign",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sign")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sign")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sin",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sin")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sin")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sinh",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sinh")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sinh")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "size",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("size")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("size")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sort_indices",
@@ -463,15 +349,11 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sqrt",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sqrt")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sqrt")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sum",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sum")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sum")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sum_duplicates",
@@ -481,75 +363,51 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tan",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tan")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tan")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tanh",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tanh")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tanh")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tobsr",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tobsr")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tobsr")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tocoo",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tocoo")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tocoo")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tocsc",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tocsc")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tocsc")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "todense",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("todense")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("todense")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "todia",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("todia")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("todia")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "todok",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("todok")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("todok")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tolil",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("tolil")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("tolil")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "trace",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("trace")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("trace")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "transpose",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("transpose")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("transpose")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "trunc",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("trunc")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("trunc")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
 
   auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(
@@ -577,7 +435,7 @@ arr : :class:`scipy.sparse.csr_matrix`
                   std::make_shared<Sparse>(**std::get_if<Sparse*>(&y)));
             }
           },
-          ":class:`~pyarts3.arts.Matrix` or :class:`~pyarts3.arts.Sparse` The matrix held inside the instance")
+          "The matrix held inside the instance\n\n.. :class:`~pyarts3.arts.Matrix`\n\n.. :class:`~pyarts3.arts.Sparse`")
       .def("__getstate__",
            [](const Block& self) {
              if (self.is_sparse())
@@ -654,7 +512,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) {
         std::visit([&bm](auto& m) { bm = m; }, mat);
       },
-      "The matrix of the block");
+      "The matrix of the block\n\n.. :class:`~pyarts3.arts.Matrix`\n\n.. :class:`~pyarts3.arts.Sparse`");
   bm.def(
       "__array__",
       [](py::object& v, py::object dtype, py::object copy) {
@@ -669,7 +527,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) {
         std::visit([&a](auto& c) { a = c; }, b);
       },
-      "A :class:`~numpy.ndarray` or :class:`scipy.sparse.csr_matrix` of the object.");
+      "A python friendly version of the object.\n\n.. :class:`~numpy.ndarray`\n\n.. :class:`scipy.sparse.csr_matrix`");
   common_ndarray(bm);
   generic_interface(bm);
 
@@ -681,7 +539,7 @@ arr : :class:`scipy.sparse.csr_matrix`
           [](CovarianceMatrix& x, std::vector<Block> y) {
             x.get_blocks() = std::move(y);
           },
-          ":class:`list` of :class:`~pyarts3.arts.Block`")
+          "The blocks\n\n.. :class:`list[~pyarts3.arts.Block]`")
       .def("__getstate__",
            [](CovarianceMatrix& self) {
              return std::tuple<std::vector<Block>, std::vector<Block>>(

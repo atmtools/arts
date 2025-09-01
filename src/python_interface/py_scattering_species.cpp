@@ -235,20 +235,24 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
   //        "absorption_vector"_a,
   //        "backscatter_matrix"_a,
   //        "forwardscatter_matrix"_a)
-  s.def_rw("properties", &SSDClass::properties, "Particle properties")
-      .def_rw("phase_matrix", &SSDClass::phase_matrix, "Phase matrix")
+  s.def_rw("properties",
+           &SSDClass::properties,
+           "Particle properties\n\n.. :class:`object`")
+      .def_rw("phase_matrix",
+              &SSDClass::phase_matrix,
+              "Phase matrix\n\n.. :class:`object`")
       .def_rw("extinction_matrix",
               &SSDClass::extinction_matrix,
-              "Extinction matrix")
+              "Extinction matrix\n\n.. :class:`object`")
       .def_rw("absorption_vector",
               &SSDClass::absorption_vector,
-              "Absorption vector")
+              "Absorption vector\n\n.. :class:`object`")
       .def_rw("backscatter_matrix",
               &SSDClass::backscatter_matrix,
-              "Back scatter matrix")
+              "Back scatter matrix\n\n.. :class:`object`")
       .def_rw("forwardscatter_matrix",
               &SSDClass::forwardscatter_matrix,
-              "Forward scatter matrix")
+              "Forward scatter matrix\n\n.. :class:`object`")
       .def_static("from_legacy_tro",
                   &SSDClass::from_legacy_tro,
                   "ssd"_a,
@@ -269,15 +273,15 @@ auto bind_bulk_scattering_properties(py::module_& m, const std::string& name) {
       m, name.c_str());
   s.def_rw("phase_matrix",
            &scattering::BulkScatteringProperties<format, repr>::phase_matrix,
-           "Phase matrix")
+           "Phase matrix\n\n.. :class:`object`")
       .def_rw("extinction_matrix",
               &scattering::BulkScatteringProperties<format,
                                                     repr>::extinction_matrix,
-              "Extinction matrix")
+              "Extinction matrix\n\n.. :class:`object`")
       .def_rw("absorption_vector",
               &scattering::BulkScatteringProperties<format,
                                                     repr>::absorption_vector,
-              "Absorption vector");
+              "Absorption vector\n\n.. :class:`object`");
   return s;
 }
 
@@ -286,13 +290,13 @@ void py_scattering_species(py::module_& m) try {
                                                "ScatteringTroSpectralVector");
   stsv.def_rw("phase_matrix",
               &ScatteringTroSpectralVector::phase_matrix,
-              "Phase matrix")
+              "Phase matrix\n\n.. :class:`object`")
       .def_rw("extinction_matrix",
               &ScatteringTroSpectralVector::extinction_matrix,
-              "Extinction matrix")
+              "Extinction matrix\n\n.. :class:`object`")
       .def_rw("absorption_vector",
               &ScatteringTroSpectralVector::absorption_vector,
-              "Absorption vector");
+              "Absorption vector\n\n.. :class:`object`");
   stsv.def_static(
       "to_gridded",
       [](const SpecmatMatrix& phase_matrix, const std::shared_ptr<Vector>& f) {
@@ -318,7 +322,10 @@ void py_scattering_species(py::module_& m) try {
   sgstro.def(py::init<>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
-  sgstro.def_rw("f", &ScatteringGeneralSpectralTRO::f, "Frequency grid");
+  sgstro.def_rw(
+      "f",
+      &ScatteringGeneralSpectralTRO::f,
+      "Frequency grid\n\n.. :class:`ScatteringGeneralSpectralTROFunc`");
   sgstro.doc() = "Scattering general spectral TRO";
   str_interface(stsv);
 
@@ -331,10 +338,10 @@ void py_scattering_species(py::module_& m) try {
   ssp.def(py::init<std::string, ParticulateProperty>(), "Constructor")
       .def_rw("species_name",
               &ScatteringSpeciesProperty::species_name,
-              "Species name")
+              "Species name\n\n.. :class:`str`")
       .def_rw("pproperty",
               &ScatteringSpeciesProperty::pproperty,
-              "Particulate property");
+              "Particulate property\n\n.. :class:`ParticulateProperty`");
 
   //   using BulkScatteringPropertiesTROSpectral =
   //       std::variant<scattering::BulkScatteringProperties<
@@ -400,32 +407,35 @@ void py_scattering_species(py::module_& m) try {
   irr_grid.def(py::init<Vector>())
       .def_rw("value",
               &scattering::IrregularZenithAngleGrid::angles,
-              "Zenith angle grid")
+              "Zenith angle grid\n\n.. :class:`Vector`")
       .doc() = "Irregular zenith angle grid";
   common_ndarray(irr_grid);
 
   py::class_<scattering::GaussLegendreGrid> gauss_grid(m, "GaussLegendreGrid");
   gauss_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::GaussLegendreGrid::angles,
-              "Zenith angle grid for Legendre calculations")
+      .def_rw(
+          "value",
+          &scattering::GaussLegendreGrid::angles,
+          "Zenith angle grid for Legendre calculations\n\n.. :class:`Vector`")
       .doc() = "Gaussian Legendre grid";
   common_ndarray(gauss_grid);
 
   py::class_<scattering::DoubleGaussGrid> double_gauss_grid(m,
                                                             "DoubleGaussGrid");
   double_gauss_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::DoubleGaussGrid::angles,
-              "Zenith angle grid for Double Gauss calculations")
+      .def_rw(
+          "value",
+          &scattering::DoubleGaussGrid::angles,
+          "Zenith angle grid for Double Gauss calculations\n\n.. :class:`Vector`")
       .doc() = "Double Gaussian grid";
   common_ndarray(double_gauss_grid);
 
   py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
   lobatto_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::LobattoGrid::angles,
-              "Zenith angle grid for Lobatto calculations")
+      .def_rw(
+          "value",
+          &scattering::LobattoGrid::angles,
+          "Zenith angle grid for Lobatto calculations\n\n.. :class:`Vector`")
       .doc() = "Lobatto grid";
   common_ndarray(lobatto_grid);
 
@@ -433,7 +443,7 @@ void py_scattering_species(py::module_& m) try {
   fejer_grid.def(py::init<Index>())
       .def_rw("value",
               &scattering::FejerGrid::angles,
-              "Zenith angle grid for Fejer calculations")
+              "Zenith angle grid for Fejer calculations\n\n.. :class:`Vector`")
       .doc() = "Fejer grid";
   common_ndarray(fejer_grid);
 
@@ -546,14 +556,24 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<scattering::ParticleProperties>(m, "ParticleProperties")
       .def(py::init<>())
-      .def_rw("name", &scattering::ParticleProperties::name, "Name")
-      .def_rw("source", &scattering::ParticleProperties::source, "Source")
+      .def_rw("name",
+              &scattering::ParticleProperties::name,
+              "Name\n\n.. :class:`str`")
+      .def_rw("source",
+              &scattering::ParticleProperties::source,
+              "Source\n\n.. :class:`str`")
       .def_rw("refractive_index",
               &scattering::ParticleProperties::refractive_index,
-              "Refractive index")
-      .def_rw("mass", &scattering::ParticleProperties::mass, "Mass")
-      .def_rw("d_veq", &scattering::ParticleProperties::d_veq, "Diameter")
-      .def_rw("d_max", &scattering::ParticleProperties::d_max, "Max diameter")
+              "Refractive index\n\n.. :class:`float`")
+      .def_rw("mass",
+              &scattering::ParticleProperties::mass,
+              "Mass\n\n.. :class:`float`")
+      .def_rw("d_veq",
+              &scattering::ParticleProperties::d_veq,
+              "Diameter\n\n.. :class:`float`")
+      .def_rw("d_max",
+              &scattering::ParticleProperties::d_max,
+              "Max diameter\n\n.. :class:`float`")
       .doc() = "Particle properties";
 
   bind_single_scattering_data<double,
@@ -630,12 +650,13 @@ void py_scattering_species(py::module_& m) try {
            py::arg("psd"),
            py::arg("mass_size_rel_a") = -1.0,
            py::arg("mass_size_rel_b") = -1.0)
-      .def("get_bulk_scattering_properties_tro_spectral",
-           &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
-           "point"_a,
-           "f_grid"_a,
-           "degree"_a,
-           "Get the bulk scattering properties for totally random orientation but ignores the degree")
+      .def(
+          "get_bulk_scattering_properties_tro_spectral",
+          &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
+          "point"_a,
+          "f_grid"_a,
+          "degree"_a,
+          "Get the bulk scattering properties for totally random orientation but ignores the degree")
       .doc() =
       "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 

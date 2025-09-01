@@ -93,7 +93,7 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
       "value",
       [](py::object &x) { return x.attr("__array__")(); },
       [](matpack::data_t<T, M> &x, matpack::data_t<T, M> &y) { x = y; },
-      "A :class:`~numpy.ndarray` of the object.");
+      "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
 
   common_ndarray(c);
 }
@@ -154,7 +154,7 @@ void py_rtepack(py::module_ &m) try {
           "value",
           [](py::object &x) { return x.attr("__array__")(); },
           [](Stokvec &x, Stokvec &y) { x = y; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
   common_ndarray(sv);
   generic_interface(sv);
   py::implicitly_convertible<PolarizationChoice, Stokvec>();
@@ -223,7 +223,7 @@ void py_rtepack(py::module_ &m) try {
           "value",
           [](py::object &x) { return x.attr("__array__")(); },
           [](Propmat &x, Propmat &y) { x = y; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
   common_ndarray(pm);
   generic_interface(pm);
 
@@ -273,7 +273,7 @@ void py_rtepack(py::module_ &m) try {
           "value",
           [](py::object &x) { return x.attr("__array__")(); },
           [](Muelmat &x, Muelmat &y) { x = y; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
   common_ndarray(mm);
   generic_interface(mm);
 
@@ -327,7 +327,7 @@ void py_rtepack(py::module_ &m) try {
           "value",
           [](py::object &x) { return x.attr("__array__")(); },
           [](Specmat &x, Specmat &y) { x = y; },
-          "A :class:`~numpy.ndarray` of the object.");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
   common_ndarray(cmm);
   generic_interface(cmm);
 

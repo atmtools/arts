@@ -1,5 +1,5 @@
-#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <predefined/predef.h>
 #include <python_interface.h>
@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <memory>
 #include <unordered_map>
-
 
 #include "debug.h"
 #include "hpy_arts.h"
@@ -22,26 +21,26 @@ void internalCKDMT400(py::module_& m) {
       .def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
       .def_rw("ref_temp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp,
-              ":class:`float` Reference temperature")
+              "Reference temperature\n\n.. :class:`Numeric`")
       .def_rw("ref_press",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press,
-              ":class:`float` Reference pressure")
+              "Reference pressure\n\n.. :class:`Numeric`")
       .def_rw("ref_h2o_vmr",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr,
-              ":class:`float` Reference water VMR")
+              "Reference water VMR\n\n.. :class:`Numeric`")
       .def_rw(
           "self_absco_ref",
           &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref,
-          ":class:`list` Self absorption")
+          "Self absorption\n\n.. :class:`Vector`")
       .def_rw("for_absco_ref",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref,
-              ":class:`list` Foreign absorption")
+              "Foreign absorption\n\n.. :class:`Vector`")
       .def_rw("wavenumbers",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers,
-              ":class:`list` Wavenumbers")
+              "Wavenumbers\n\n.. :class:`Vector`")
       .def_rw("self_texp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp,
-              ":class:`list` Self temperature exponent")
+              "Self temperature exponent\n\n.. :class:`Vector`")
       .def("__getstate__",
            [](const Absorption::PredefinedModel::MT_CKD400::WaterData& t) {
              return std::make_tuple(
@@ -935,7 +934,10 @@ void py_predefined(py::module_& m) try {
   predef.doc() = "Contains predefined absorption models";
 
   py::class_<PredefinedModelDataVariant> var(m, "PredefinedModelDataVariant");
-  var.def_rw("data", &PredefinedModelDataVariant::data, "The data");
+  var.def_rw(
+      "data",
+      &PredefinedModelDataVariant::data,
+      "The data\n\n.. :class:`~pyarts3.arts.predef.ModelName`\n\n.. :class:`~pyarts3.arts.predef.MTCKD400WaterData`");
   generic_interface(var);
 
   //! ARTS Workspace class, must live on the main (m) namespace

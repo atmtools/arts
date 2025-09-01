@@ -23,11 +23,11 @@ void py_cia(py::module_& m) try {
       .def_prop_ro(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
-          ":class:`list` The two species")
+          "The two species\n\n.. :class:`tuple[pyarts3.arts.SpeciesEnum, pyarts3.arts.SpeciesEnum]`")
       .def_prop_ro(
           "data",
           [](const CIARecord& c) { return c.Data(); },
-          ":class:`~pyarts3.arts.ArrayOfGriddedField2` Data by bands")
+          "Data by bands\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
           "propagation_matrix",
           [](const CIARecord& self,

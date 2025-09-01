@@ -45,8 +45,7 @@ std::string variable(const std::string& name,
        << "\");\n      ws_val.set_name(\"" << name
        << "\");\n      ws_val.finalize();\n";
 
-  os << "    }, R\"-x-(:class:`~pyarts3.arts." << wsv.type << "` "
-     << unwrap_stars(wsv.desc) << "\n\n";
+  os << "    }, R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
   if (wsv.type == "Agenda") {
     os << get_agenda_io(name);
@@ -59,7 +58,8 @@ std::string variable(const std::string& name,
 
   os << variable_used_by(name) << '\n';
 
-  return fix_newlines(os.str()) + ")-x-\");\n\n";
+  return fix_newlines(os.str()) + "\n.. :class:`~pyarts3.arts." + wsv.type +
+         "`\n)-x-\");\n\n";
 } catch (std::exception& e) {
   std::cerr << "Error in variable " << '"' << name << '"' << ":\n"
             << e.what() << '\n';

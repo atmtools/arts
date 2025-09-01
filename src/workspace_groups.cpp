@@ -73,7 +73,7 @@ does not change the global workspace while minimizing the number of variables th
   wsg_data["Any"] = {
       .file = "supergeneric.h",
       .desc =
-          "Meta type for when methods can take any argument (avoid manual use - there is non)\n",
+          "Meta type for any workspace group (see :doc:`workspace.groups`)\n",
   };
 
   wsg_data["ArrayOfArrayOfSpeciesTag"] = {
@@ -773,25 +773,29 @@ The grids are 6 *AscendingGrid*.
 
   wsg_data["ZenithGrid"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 180].
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 180].
 )--",
   };
 
   wsg_data["AzimuthGrid"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 360).
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 360).
 )--",
   };
 
   wsg_data["LonGrid"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-180, 180).
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-180, 180).
 )--",
   };
 
   wsg_data["LatGrid"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-90, 90].
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-90, 90].
 )--",
   };
 

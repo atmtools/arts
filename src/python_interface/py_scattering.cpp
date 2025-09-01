@@ -26,31 +26,31 @@ void py_scattering(py::module_& m) try {
   generic_interface(ssdb);
   ssdb.def_rw("ptype",
               &SingleScatteringData::ptype,
-              ":class:`~pyarts3.arts.PType` The type")
+              "The type\n\n.. :class:`~pyarts3.arts.PType`")
       .def_rw("description",
               &SingleScatteringData::description,
-              ":class:`~pyarts3.arts.String` The description")
+              "The description\n\n.. :class:`~pyarts3.arts.String`")
       .def_rw("f_grid",
               &SingleScatteringData::f_grid,
-              ":class:`~pyarts3.arts.Vector` The frequency grid")
+              "The frequency grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("T_grid",
               &SingleScatteringData::T_grid,
-              ":class:`~pyarts3.arts.Vector` The temperature grid")
+              "The temperature grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("za_grid",
               &SingleScatteringData::za_grid,
-              ":class:`~pyarts3.arts.Vector` The zenith grid")
+              "The zenith grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("aa_grid",
               &SingleScatteringData::aa_grid,
-              ":class:`~pyarts3.arts.Vector` The azimuth grid")
+              "The azimuth grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("pha_mat_data",
               &SingleScatteringData::pha_mat_data,
-              ":class:`~pyarts3.arts.Tensor7` The phase matrix")
+              "The phase matrix\n\n.. :class:`~pyarts3.arts.Tensor7`")
       .def_rw("ext_mat_data",
               &SingleScatteringData::ext_mat_data,
-              ":class:`~pyarts3.arts.Tensor5` The extinction matrix")
+              "The extinction matrix\n\n.. :class:`~pyarts3.arts.Tensor5`")
       .def_rw("abs_vec_data",
               &SingleScatteringData::abs_vec_data,
-              ":class:`~pyarts3.arts.Tensor5` The absorption vector")
+              "The absorption vector\n\n.. :class:`~pyarts3.arts.Tensor5`")
       .def("__getstate__",
            [](const SingleScatteringData& self) {
              return py::make_tuple(self.ptype,
@@ -82,23 +82,24 @@ void py_scattering(py::module_& m) try {
   generic_interface(smdb);
   smdb.def_rw("description",
               &ScatteringMetaData::description,
-              ":class:`~pyarts3.arts.String` The description")
+              "The description\n\n.. :class:`~pyarts3.arts.String`")
       .def_rw("source",
               &ScatteringMetaData::source,
-              ":class:`~pyarts3.arts.String` The source")
+              "The source\n\n.. :class:`~pyarts3.arts.String`")
       .def_rw("refr_index",
               &ScatteringMetaData::refr_index,
-              ":class:`~pyarts3.arts.String` The refractive index")
-      .def_rw("mass", &ScatteringMetaData::mass, ":class:`float` The mass")
+              "The refractive index\n\n.. :class:`~pyarts3.arts.String`")
+      .def_rw(
+          "mass", &ScatteringMetaData::mass, "The mass\n\n.. :class:`float`")
       .def_rw("diameter_max",
               &ScatteringMetaData::diameter_max,
-              ":class:`float` The max diameter")
+              "The max diameter\n\n.. :class:`float`")
       .def_rw("diameter_volume_equ",
               &ScatteringMetaData::diameter_volume_equ,
-              ":class:`float` The volume equivalent diameter")
+              "The volume equivalent diameter\n\n.. :class:`float`")
       .def_rw("diameter_area_equ_aerodynamical",
               &ScatteringMetaData::diameter_area_equ_aerodynamical,
-              ":class:`float` The diameter area equivalent")
+              "The diameter area equivalent\n\n.. :class:`float`")
       .def("__getstate__",
            [](const ScatteringMetaData& self) {
              return py::make_tuple(self.description,

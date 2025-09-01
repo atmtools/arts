@@ -71,10 +71,10 @@ void py_species(py::module_& m) try {
           "Builtin values")
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
-                     ":class:`int` The max size of the data")
+                     "The max size of the data\n\n.. :class:`int`")
       .def_rw("data",
               &SpeciesIsotopologueRatios::data,
-              ":class:`list` The max size of the data")
+              "The isotopologue ratios\n\n.. :class:`list[Numeric]`")
       .def("__getstate__",
            [](const SpeciesIsotopologueRatios& self) {
              return std::make_tuple(self.data);
@@ -145,24 +145,26 @@ void py_species(py::module_& m) try {
           "Partition function")
       .def_ro("spec",
               &SpeciesIsotope::spec,
-              ":class:`~pyarts3.arts.Species` The species")
-      .def_ro("isotname",
-              &SpeciesIsotope::isotname,
-              ":class:`str` A custom name that is unique for this Species type")
+              "The species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_ro(
+          "isotname",
+          &SpeciesIsotope::isotname,
+          "A custom name that is unique for this Species type\n\n.. :class:`str`")
       .def_ro(
           "mass",
           &SpeciesIsotope::mass,
-          ":class:`float` The mass of the isotope in units of grams per mol. It is Nan if not defined")
+          "The mass of the isotope in units of grams per mol. It is Nan if not defined\n\n.. :class:`float`")
       .def_ro(
           "gi",
           &SpeciesIsotope::gi,
-          ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
+          "The degeneracy of states of the molecule. It is -1 if not defined.\n\n.. :class:`float`")
       .def_prop_ro("name",
                    &SpeciesIsotope::FullName,
-                   ":class:`~pyarts3.arts.String` The full name")
-      .def_prop_ro("predef",
-                   &SpeciesIsotope::is_predefined,
-                   ":class:`bool` Check if this represents a predefined model")
+                   "The full name\n\n.. :class:`String`")
+      .def_prop_ro(
+          "predef",
+          &SpeciesIsotope::is_predefined,
+          "Check if this represents a predefined model\n\n.. :class:`bool`")
       .def("__getstate__",
            [](const SpeciesIsotope& self) {
              return std::make_tuple(
@@ -187,13 +189,14 @@ void py_species(py::module_& m) try {
 
   py::class_<SpeciesTag> stag(m, "SpeciesTag");
   generic_interface(stag);
-  stag.def_rw("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
+  stag.def_rw(
+          "spec_ind", &SpeciesTag::spec_ind, "Species index\n\n.. :class:`int`")
       .def_rw("type",
               &SpeciesTag::type,
-              ":class:`~pyarts3.arts.SpeciesTagType` Type of tag")
+              "Type of tag\n\n.. :class:`~pyarts3.arts.SpeciesTagType`")
       .def_rw("cia_2nd_species",
               &SpeciesTag::cia_2nd_species,
-              ":class:`~pyarts3.arts.Species` CIA species")
+              "CIA species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def(
           "partfun",
           [](const SpeciesTag& self, Numeric T) {
@@ -214,7 +217,7 @@ Returns
           "T"_a)
       .def_prop_ro("full_name",
                    &SpeciesTag::FullName,
-                   ":class:`~pyarts3.arts.String` The full name")
+                   "The full name\n\n.. :class:`~pyarts3.arts.String`")
       .def(py::self == py::self)
       .def("__getstate__",
            [](const SpeciesTag& self) {

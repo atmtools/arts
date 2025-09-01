@@ -201,49 +201,62 @@ void common_ndarray(auto& c) {
 
   c.def("__xor__", &npxor, "value"_a, "See :attr:`numpy.ndarray.__xor__`");
 
-  c.def_prop_ro("T", &npT, "See :attr:`numpy.ndarray.T`");
+  c.def_prop_ro(
+      "T", &npT, "See :attr:`numpy.ndarray.T`.\n\n.. :class:`object`");
 
   // Renamed to behave as data_ as the return type is similar
   c.def_prop_ro("_base",
                 &np_base,
                 py::keep_alive<0, 1>{},
-                "See :attr:`numpy.ndarray.base`");
+                "See :attr:`numpy.ndarray.base`.\n\n.. :class:`object`");
 
   // Renamed because we often have properties with the same name
   c.def_prop_ro("_data",
                 &np_data,
                 py::keep_alive<0, 1>{},
-                "See :attr:`numpy.ndarray.data`");
+                "See :attr:`numpy.ndarray.data`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("dtype", &npdtype, "See :attr:`numpy.ndarray.dtype`");
+  c.def_prop_ro("dtype",
+                &npdtype,
+                "See :attr:`numpy.ndarray.dtype`.\n\n.. :class:`object`");
 
   // Renamed to behave as data_ as the return type is similar
   c.def_prop_ro("_flat",
                 &np_flat,
                 py::keep_alive<0, 1>{},
-                "See :attr:`numpy.ndarray.flat`");
+                "See :attr:`numpy.ndarray.flat`.\n\n.. :class:`object`");
 
   c.def_prop_ro("imag",
                 &npimag,
                 py::keep_alive<0, 1>{},
-                "See :attr:`numpy.ndarray.imag`");
+                "See :attr:`numpy.ndarray.imag`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("itemsize", &npitemsize, "See :attr:`numpy.ndarray.itemsize`");
+  c.def_prop_ro("itemsize",
+                &npitemsize,
+                "See :attr:`numpy.ndarray.itemsize`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("nbytes", &npnbytes, "See :attr:`numpy.ndarray.nbytes`");
+  c.def_prop_ro("nbytes",
+                &npnbytes,
+                "See :attr:`numpy.ndarray.nbytes`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("ndim", &npndim, "See :attr:`numpy.ndarray.ndim`");
+  c.def_prop_ro(
+      "ndim", &npndim, "See :attr:`numpy.ndarray.ndim`.\n\n.. :class:`object`");
 
   c.def_prop_ro("real",
                 &npreal,
                 py::keep_alive<0, 1>{},
-                "See :attr:`numpy.ndarray.real`");
+                "See :attr:`numpy.ndarray.real`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("shape", &npshape, "See :attr:`numpy.ndarray.shape`");
+  c.def_prop_ro("shape",
+                &npshape,
+                "See :attr:`numpy.ndarray.shape`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("size", &npsize, "See :attr:`numpy.ndarray.size`");
+  c.def_prop_ro(
+      "size", &npsize, "See :attr:`numpy.ndarray.size`.\n\n.. :class:`object`");
 
-  c.def_prop_ro("strides", &npstrides, "See :attr:`numpy.ndarray.strides`");
+  c.def_prop_ro("strides",
+                &npstrides,
+                "See :attr:`numpy.ndarray.strides`.\n\n.. :class:`object`");
 
   c.def("flatten",
         &npflatten,
