@@ -1,21 +1,11 @@
 #include <workspace.h>
 
 #include <ranges>
-#include "path_point.h"
 
 void subsurface_profileFromPath(ArrayOfSubsurfacePoint subsurface_profile,
                                 const SubsurfaceField& subsurface_field,
                                 const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(
-      not subsurface_field.contains(SubsurfaceKey::t) or
-          not subsurface_field.contains(SubsurfacePropertyTag{"scalar tau"}) or
-          not subsurface_field.contains(SubsurfacePropertyTag{"scalar omega"}),
-      R"(Sub-surface field does not contain all required components.
-
-It must contain: `temperature`, `scalar tau`, `scalar omega`
-)")
 
   const auto to_vec3 = stdv::transform([](const auto& p) { return p.pos; });
 
@@ -31,25 +21,41 @@ void ray_pathFromPointAndDepth(ArrayOfPropagationPathPoint& ray_path,
                                const DescendingGrid& depth_profile) {
   ARTS_TIME_REPORT
 
-  ray_path = depth_profile | stdv::transform([ray_path_point](const auto& d) {
-               auto v   = ray_path_point;
-               v.pos[0] = d;
-               return v;
-             }) |
-             stdr::to<ArrayOfPropagationPathPoint>();
+  const auto to_ppp = stdv::transform([ray_path_point](const auto& d) {
+    auto v    = ray_path_point;
+    v.pos[0] += d;
+    return v;
+  });
+
+  ray_path = depth_profile | to_ppp | stdr::to<ArrayOfPropagationPathPoint>();
 }
 
 void spectral_radianceScalarSubsurface(
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
+    const Workspace& ws,
     const AscendingGrid& frequency_grid,
-    const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
-    const DescendingGrid& depth_profile) {
+    const Index& disort_quadrature_dimension,
+    const Index& disort_fourier_mode_dimension,
+    const Index& disort_legendre_polynomial_dimension,
+    const Agenda& disort_settings_agenda,
+    const DescendingGrid& depth_profile,
+    const AscendingGrid& phis) {
   ARTS_TIME_REPORT
 
   ArrayOfPropagationPathPoint ray_path;
   ray_pathFromPointAndDepth(ray_path, ray_path_point, depth_profile);
+
+  Tensor4 disort_spectral_radiance_field;
+  Vector disort_quadrature_angles, disort_quadrature_weights;
+  disort_spectral_radiance_fieldFromAgenda(ws,
+                                           disort_spectral_radiance_field,
+                                           disort_quadrature_angles,
+                                           disort_quadrature_weights,
+                                           disort_fourier_mode_dimension,
+                                           disort_legendre_polynomial_dimension,
+                                           disort_quadrature_dimension,
+                                           disort_settings_agenda,
+                                           frequency_grid,
+                                           ray_path,
+                                           phis);
 }

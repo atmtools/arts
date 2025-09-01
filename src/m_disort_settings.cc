@@ -101,6 +101,7 @@ void disort_settingsNoLayerThermalEmission(DisortSettings& disort_settings) {
       disort_settings.frequency_count(), disort_settings.layer_count(), 0);
 }
 
+namespace {
 template <typename T>
 void disort_settingsLayerThermalEmissionLinearInTauImpl(
     DisortSettings& disort_settings,
@@ -142,6 +143,7 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
     }
   }
 }
+}  // namespace
 
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,

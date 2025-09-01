@@ -5105,6 +5105,19 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
 
+  wsm_data["disort_settingsSubsurfaceScalarAbsorption"] = {
+      .desc      = R"(Get optical thickness from path.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings", "ray_path", "subsurface_profile"},
+      .gin       = {"min_optical_depth"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e-11}},
+      .gin_desc =
+          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
+  };
+
   wsm_data["disort_settings_agendaSetup"] = {
       .desc =
           R"--(Setup for Disort standard calculations.
@@ -5145,6 +5158,28 @@ A description of the options is given below.
            "Surface settings",
            "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)",
            wsm_data["disort_settingsOpticalThicknessFromPath"].gin_desc[0]},
+  };
+
+  wsm_data["disort_settings_agendaSubsurfaceSetup"] = {
+      .desc =
+          R"--(Setup for Disort subsurface calculations.
+
+This method allows setting up *disort_settings_agenda* by named options.
+A description of the options is given below.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings_agenda"},
+      .gin    = {"sun_setting",
+                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0]},
+      .gin_type =
+          {"String",
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0]},
+      .gin_value =
+          {String{"None"},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0]},
+      .gin_desc =
+          {"Sun settings",
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0]},
   };
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
@@ -5253,6 +5288,17 @@ This is WIP and should not be used.
       .in     = {"disort_settings", "frequency_grid"},
   };
 
+  wsm_data["disort_settingsSubsurfaceBoundaryEmissionByTemperature"] = {
+      .desc =
+          R"(Subsurface boundary emission into Disort is based on temperature.
+
+Sets both upper and lower bounds.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "frequency_grid", "subsurface_profile"},
+  };
+
   wsm_data["disort_settingsNoSurfaceEmission"] = {
       .desc = R"(Turns boundary condition from surface for Disort calculations.
 )",
@@ -5295,6 +5341,14 @@ This is WIP and should not be used.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
+  };
+
+  wsm_data["disort_settingsSubsurfaceScalarSingleScatteringAlbedo"] = {
+      .desc   = R"(Turns off single albedo scattering in Disort calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "subsurface_profile"},
   };
 
   wsm_data["disort_settingsNoSurfaceScattering"] = {
