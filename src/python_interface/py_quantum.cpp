@@ -26,7 +26,7 @@ void py_quantum(py::module_& m) try {
       .def_rw(
           "value",
           &Quantum::Value::value,
-          "Quantum number value\n\n.. :class:`~pyarts3.arts.String`\n\n..:class:`~pyarts3.arts.Rational`")
+          "Quantum number value\n\n.. :class:`~pyarts3.arts.String`\n\n.. :class:`~pyarts3.arts.Rational`")
       .def("__getstate__",
            [](const Quantum::Value& qnv) {
              return std::tuple<std::string>{std::format("{}", qnv)};
