@@ -188,10 +188,10 @@ void py_matpack(py::module_& m) try {
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
       .def_rw(
-          "n", &Rational::numer, ":class:`int` Numerator\n\n.. :class:`Index`")
+          "n", &Rational::numer, "Numerator\n\n.. :class:`Index`")
       .def_rw("d",
               &Rational::denom,
-              ":class:`int` Denominator\n\n.. :class:`Index`")
+              "Denominator\n\n.. :class:`Index`")
       .def("__getstate__",
            [](const Rational& self) {
              return std::make_tuple(self.numer, self.denom);
