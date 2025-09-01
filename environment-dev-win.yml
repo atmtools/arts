@@ -9,6 +9,7 @@ dependencies:
         - ipykernel
         - lark-parser
         - libcxx
+        - llvm-openmp < 21
         - matplotlib
         - nanobind < 2.5.0
         - nbsphinx
