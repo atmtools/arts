@@ -58,16 +58,27 @@ struct Point {
 
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
-    const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
-      if constexpr (isSubsurfaceKey<T>) return true;
-      if constexpr (isSubsurfacePropertyTag<T>) return x.contains(k);
-    };
-
-    if constexpr (N > 0)
-      return has_(*this, std::forward<T>(key)) and
-             has(std::forward<Ts>(keys)...);
-    else
-      return has_(*this, std::forward<T>(key));
+    if constexpr (N > 0) {
+      if constexpr (isSubsurfaceKey<T>) {
+        return has(std::forward<Ts>(keys)...);
+      } else if constexpr (isSubsurfacePropertyTag<T>) {
+        return prop.contains(key) and has(std::forward<Ts>(keys)...);
+      } else {
+        static_assert(
+            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
+            "Unhandled type");
+      }
+    } else {
+      if constexpr (isSubsurfaceKey<T>) {
+        return true;
+      } else if constexpr (isSubsurfacePropertyTag<T>) {
+        return prop.contains(key);
+      } else {
+        static_assert(
+            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
+            "Unhandled type");
+      }
+    }
   }
 
   [[nodiscard]] bool contains(const KeyVal &) const;

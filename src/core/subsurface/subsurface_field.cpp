@@ -496,9 +496,9 @@ bool Field::contains(const KeyVal &key) const {
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
     try {
   ARTS_USER_ERROR_IF(
-      alt > bottom_depth,
-      "Cannot get values below the deepest point of the subsurface, which is at: {}"
-      " m.\nYour depth is: {} m.",
+      alt < bottom_depth,
+      "Cannot get values below the deepest point of the subsurface, "
+      "which is at: {} m.\nYour depth is: {} m.",
       bottom_depth,
       alt)
 
@@ -537,7 +537,10 @@ std::string std::formatter<SubsurfaceField>::to_string(
                        v.bottom_depth,
                        sep,
                        R"("Other": )"sv,
-                       v.other.size());
+                       v.other.size(),
+                       sep,
+                       R"("Prop": )"sv,
+                       v.prop.size());
   } else {
     const std::string_view sep = tags.sep(true);
 
@@ -545,7 +548,10 @@ std::string std::formatter<SubsurfaceField>::to_string(
                        v.bottom_depth,
                        sep,
                        R"("Other": )"sv,
-                       v.other);
+                       v.other,
+                       sep,
+                       R"("Prop": )"sv,
+                       v.prop);
   }
 
   return tags.bracket ? ("{" + out + "}") : out;

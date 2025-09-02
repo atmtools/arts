@@ -316,6 +316,7 @@ void py_surf(py::module_ &m) try {
   sptag.def_rw("name",
                &SubsurfacePropertyTag::name,
                "Name of the subsurface property\n\n.. :class:`String`");
+  sptag.def(py::init_implicit<String>());
   generic_interface(sptag);
 
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
@@ -331,6 +332,35 @@ void py_surf(py::module_ &m) try {
       "bottom_depth",
       &SubsurfaceField::bottom_depth,
       "The depth of the bottom of the subsurface [m]\n\n.. :class:`Numeric`");
+  ssf.def(
+         "__getitem__",
+         [](SubsurfaceField &surf, SubsurfaceKey x) -> SubsurfaceData & {
+           if (not surf.contains(x)) {
+             const auto error_message = std::format("{}", x);
+             throw py::key_error(error_message.c_str());
+           }
+           return surf[x];
+         },
+         py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SubsurfaceField &surf,
+              SubsurfaceKey x,
+              const SubsurfaceData &data) { surf[x] = data; })
+      .def(
+          "__getitem__",
+          [](SubsurfaceField &surf,
+             const SubsurfacePropertyTag &x) -> SubsurfaceData & {
+            if (not surf.contains(x)) {
+              const auto error_message = std::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return surf[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__setitem__",
+           [](SubsurfaceField &surf,
+              const SubsurfacePropertyTag &x,
+              const SubsurfaceData &data) { surf[x] = data; });
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
@@ -345,6 +375,111 @@ void py_surf(py::module_ &m) try {
       &SubsurfacePoint::prop,
       "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");
   generic_interface(ssp);
+
+  py::class_<SubsurfaceData> ssd(m, "SubsurfaceData");
+  ssd.def(py::init_implicit<GeodeticField3>())
+      .def(py::init_implicit<Numeric>())
+      .def(py::init_implicit<Subsurface::FunctionalData>())
+      .def(
+          "__init__",
+          [](Subsurface::Data *a, const GriddedField3 &v) {
+            new (a) Subsurface::Data(GeodeticField3(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
+      .def_rw(
+          "data",
+          &Subsurface::Data::data,
+          "The data.\n\n.. :class:`~pyarts3.arts.GeodeticField3`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericTernaryOperator`")
+      .def_rw(
+          "alt_upp",
+          &Subsurface::Data::alt_upp,
+          "Upper altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "alt_low",
+          &Subsurface::Data::alt_low,
+          "Lower altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lat_upp",
+          &Subsurface::Data::lat_upp,
+          "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lat_low",
+          &Subsurface::Data::lat_low,
+          "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lon_upp",
+          &Subsurface::Data::lon_upp,
+          "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "lon_low",
+          &Subsurface::Data::lon_low,
+          "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def(
+          "set_extrapolation",
+          [](Subsurface::Data &self, InterpolationExtrapolation x) {
+            self.alt_upp = x;
+            self.alt_low = x;
+            self.lat_upp = x;
+            self.lat_low = x;
+            self.lon_upp = x;
+            self.lon_low = x;
+          },
+          "extrapolation"_a,
+          "Set the extrapolation for all dimensions")
+      .def(
+          "__call__",
+          [](const Subsurface::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            return d.at(alt, lat, lon);
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get a point of data at the position")
+      .def(
+          "ws",
+          [](const Subsurface::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            return d.flat_weight(alt, lat, lon);
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the weights of neighbors at a position")
+      .def_prop_ro("data_type",
+                   &Subsurface::Data::data_type,
+                   "The data type\n\n.. :class:`~pyarts3.arts.String`")
+      .def("__getstate__",
+           [](const Subsurface::Data &t) {
+             return std::make_tuple(t.data,
+                                    t.alt_low,
+                                    t.alt_upp,
+                                    t.lat_low,
+                                    t.lat_upp,
+                                    t.lon_low,
+                                    t.lon_upp);
+           })
+      .def("__setstate__",
+           [](Subsurface::Data *a,
+              const std::tuple<Subsurface::FieldData,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation,
+                               InterpolationExtrapolation> &state) {
+             new (a) Subsurface::Data();
+             a->data    = std::get<0>(state);
+             a->alt_low = std::get<1>(state);
+             a->alt_upp = std::get<2>(state);
+             a->lat_low = std::get<3>(state);
+             a->lat_upp = std::get<4>(state);
+             a->lon_low = std::get<5>(state);
+             a->lon_upp = std::get<6>(state);
+           });
+  py::implicitly_convertible<Subsurface::FunctionalData::func_t,
+                             Subsurface::Data>();
+  py::implicitly_convertible<GriddedField3, Subsurface::Data>();
+  generic_interface(ssd);
 
   auto assp = py::bind_vector<Array<SubsurfacePoint>,
                               py::rv_policy::reference_internal>(

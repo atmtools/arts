@@ -354,16 +354,12 @@ void disort_settingsSubsurfaceBoundaryEmissionByTemperature(
       "Must have at least one fourier mode to use the negative boundary condition.")
 
   disort_settings.positive_boundary_condition = 0.0;
-  disort_settings.negative_boundary_condition = 0.0;
 
-  const Numeric Ttop = subsurface_profile.front().temperature;
   const Numeric Tbot = subsurface_profile.back().temperature;
 
   for (Size iv = 0; iv < nv; iv++) {
     disort_settings.positive_boundary_condition[iv, 0, joker] =
         planck(frequency_grid[iv], Tbot);
-    disort_settings.negative_boundary_condition[iv, 0, joker] =
-        planck(frequency_grid[iv], Ttop);
   }
 }
 
@@ -875,8 +871,9 @@ Agenda disort_settings_agendaSubsurfaceSetup(
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
              SetWsv("min_optical_depth", min_optical_depth));
   agenda.add("disort_settingsSubsurfaceScalarSingleScatteringAlbedo");
-  agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
+  agenda.add("disort_settingsSubsurfaceBoundaryEmissionByTemperature");
   agenda.add("disort_settingsSubsurfaceLayerThermalEmissionLinearInTau");
+  agenda.add("disort_settingsNoLegendre");
 
   switch (sun_setting) {
     using enum disort_settings_agenda_setup_sun_type;

@@ -106,3 +106,40 @@ void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
 
   ARTS_USER_ERROR("Not implemented")
 }
+
+void disort_spectral_radiance_fieldApplyUnit(
+    Tensor4& disort_spectral_radiance_field,
+    const AscendingGrid& frequency_grid,
+    const PropagationPathPoint& ray_path_point,
+    const SpectralRadianceTransformOperator&
+        spectral_radiance_transform_operator) try {
+  ARTS_TIME_REPORT
+
+  StokvecVector spectral_radiance(frequency_grid.size());
+  StokvecMatrix spectral_radiance_jacobian(0, frequency_grid.size());
+
+  const Index nv = disort_spectral_radiance_field.nbooks();
+  const Index np = disort_spectral_radiance_field.npages();
+  const Index nz = disort_spectral_radiance_field.nrows();
+  const Index nq = disort_spectral_radiance_field.ncols();
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3) \
+    firstprivate(spectral_radiance, spectral_radiance_jacobian)
+  for (Index i = 0; i < np; i++) {
+    for (Index j = 0; j < nz; j++) {
+      for (Index k = 0; k < nq; k++) {
+        for (Index v = 0; v < nv; v++) {
+          spectral_radiance[v][0] = disort_spectral_radiance_field[v, i, j, k];
+        }
+        spectral_radiance_transform_operator(spectral_radiance,
+                                             spectral_radiance_jacobian,
+                                             frequency_grid,
+                                             ray_path_point);
+        for (Index v = 0; v < nv; v++) {
+          disort_spectral_radiance_field[v, i, j, k] = spectral_radiance[v][0];
+        }
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH

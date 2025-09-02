@@ -3728,8 +3728,7 @@ bad angles if this is turned off.
       .gin       = {"depth_profile"},
       .gin_type  = {"DescendingGrid"},
       .gin_value = {std::nullopt},
-      .gin_desc =
-          {"List of depths"},
+      .gin_desc  = {"List of depths"},
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
@@ -5397,6 +5396,17 @@ Sets both upper and lower bounds.
                  "disort_fourier_mode_dimension"},
   };
 
+  wsm_data["disort_spectral_radiance_fieldApplyUnit"] = {
+      .desc   = R"(Convert units of the Disort spectral radiance field.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_spectral_radiance_field"},
+      .in     = {"disort_spectral_radiance_field",
+                 "frequency_grid",
+                 "ray_path_point",
+                 "spectral_radiance_transform_operator"},
+  };
+
   wsm_data["disort_spectral_radiance_fieldCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral radiance.
 )",
@@ -5629,9 +5639,9 @@ Additional work is requires if proper coverage of the limb is required
       .desc =
           R"(Extract a subsurface profile from a ray path.
 )",
-      .author         = {"Richard Larsson"},
-      .out            = {"subsurface_profile"},
-      .in             = {"subsurface_field", "ray_path"},
+      .author = {"Richard Larsson"},
+      .out    = {"subsurface_profile"},
+      .in     = {"subsurface_field", "ray_path"},
   };
 
   /* 
