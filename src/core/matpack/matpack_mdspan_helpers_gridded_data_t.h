@@ -191,6 +191,7 @@ using GriddedField5 =
 using GriddedField6 = matpack::
     gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
 
+using ZenithGriddedField1 = matpack::gridded_data_t<Numeric, ZenithGrid>;
 using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
 using SortedGriddedField2 =
     matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;

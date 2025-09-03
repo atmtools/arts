@@ -5,44 +5,35 @@
 
 #include <algorithm>
 #include <format>
-#include <numeric>
-#include <vector>
-
-#include "arts_constants.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "path_point.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Core Disort
 ////////////////////////////////////////////////////////////////////////
 
-void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
-                                        Vector& disort_quadrature_angles,
-                                        Vector& disort_quadrature_weights,
-                                        const DisortSettings& disort_settings,
-                                        const Vector& phis) {
+void disort_spectral_radiance_fieldCalc(
+    DisortRadiance& disort_spectral_radiance_field,
+    ZenithGriddedField1& disort_quadrature,
+    const DisortSettings& disort_settings,
+    const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
-  using Conversion::acosd;
-
-  const Index nv    = disort_settings.nfreq;
-  const Index np    = disort_settings.nlay;
+  const Index nv    = disort_settings.frequency_count();
+  const Index np    = disort_settings.layer_count();
   const Index nquad = disort_settings.quadrature_dimension;
-
-  disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
 
   disort::main_data dis = disort_settings.init();
   Tensor3 ims(np, phis.size(), nquad / 2);
   Tensor3 tms(np, phis.size(), nquad);
 
   //! Supplementary outputs
-  disort_quadrature_weights = dis.weights();
-  disort_quadrature_angles.resize(nquad);
-  std::transform(dis.mu().begin(),
-                 dis.mu().end(),
-                 disort_quadrature_angles.begin(),
-                 [](const Numeric& mu) { return acosd(mu); });
+  disort_quadrature = dis.gridded_weights();
+
+  //! Main output
+  disort_spectral_radiance_field.resize(
+      disort_settings.frequency_grid,
+      disort_settings.altitude_grid,
+      phis,
+      ZenithGrid{disort_quadrature.grid<0>()});
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
@@ -50,25 +41,29 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
   for (Index iv = 0; iv < nv; iv++) {
     try {
       disort_settings.set(dis, iv);
-      dis.gridded_u_corr(disort_spectral_radiance_field[iv], tms, ims, phis);
+      dis.gridded_u_corr(
+          disort_spectral_radiance_field.data[iv], tms, ims, phis);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
     }
   }
 
+  //! FIXME: It would be nice to remove this if the internal angles can be solved
+  disort_spectral_radiance_field.sort(dis.mu());
+
   ARTS_USER_ERROR_IF(
       error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 
-void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
+void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
                                     const DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  const Index nv = disort_settings.nfreq;
-  const Index np = disort_settings.nlay;
+  const Index nv = disort_settings.frequency_count();
 
-  disort_spectral_flux_field.resize(nv, 3, np);
+  disort_spectral_flux_field.resize(disort_settings.frequency_grid,
+                                    disort_settings.altitude_grid);
 
   disort::main_data dis = disort_settings.init();
 
@@ -79,9 +74,9 @@ void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
     try {
       disort_settings.set(dis, iv);
 
-      dis.gridded_flux(disort_spectral_flux_field[iv, 0, joker],
-                       disort_spectral_flux_field[iv, 1, joker],
-                       disort_spectral_flux_field[iv, 2, joker]);
+      dis.gridded_flux(disort_spectral_flux_field.up[iv],
+                       disort_spectral_flux_field.down_diffuse[iv],
+                       disort_spectral_flux_field.down_direct[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -97,9 +92,8 @@ void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
 
 void spectral_radianceIntegrateDisort(
     StokvecVector& /*spectral_radiance*/,
-    const Tensor4& /*disort_spectral_radiance_field*/,
-    const Vector& /*disort_quadrature_angles*/,
-    const Vector& /*disort_quadrature_weights*/) {
+    const DisortRadiance& /*disort_spectral_radiance_field*/,
+    const ZenithGriddedField1& /*disort_quadrature*/) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR("Not implemented")
@@ -107,7 +101,7 @@ void spectral_radianceIntegrateDisort(
 
 void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
                         Matrix& /*spectral_flux_field_down*/,
-                        const Tensor3& /*disort_spectral_flux_field*/) {
+                        const DisortFlux& /*disort_spectral_flux_field*/) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR("Not implemented")

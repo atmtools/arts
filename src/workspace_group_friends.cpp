@@ -91,6 +91,16 @@ and interpolate the cross-section to other temperatures and pressures
 )",
   };
 
+  wsg_data["Tensor3"] = {
+      .file = "matpack.h",
+      .desc = "A 3 dimensional array of *Numeric*\n",
+  };
+
+  wsg_data["Tensor4"] = {
+      .file = "matpack.h",
+      .desc = "A 4 dimensional array of *Numeric*\n",
+  };
+
   wsg_data["Tensor5"] = {
       .file = "matpack.h",
       .desc = "A 5 dimensional array of *Numeric*\n",

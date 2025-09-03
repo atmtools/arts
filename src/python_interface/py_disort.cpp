@@ -231,8 +231,12 @@ void py_disort(py::module_& m) try {
   disort_settings.def_rw("fourier_mode_dimension",
                          &DisortSettings::fourier_mode_dimension,
                          ".. :class:`Index`");
-  disort_settings.def_rw("nfreq", &DisortSettings::nfreq, ".. :class:`Index`");
-  disort_settings.def_rw("nlay", &DisortSettings::nlay, ".. :class:`Index`");
+  disort_settings.def_rw("frequency_grid",
+                         &DisortSettings::frequency_grid,
+                         ".. :class:`AscendingGrid`");
+  disort_settings.def_rw("altitude_grid",
+                         &DisortSettings::altitude_grid,
+                         ".. :class:`DescendingGrid`");
   disort_settings.def_rw("solar_azimuth_angle",
                          &DisortSettings::solar_azimuth_angle,
                          ".. :class:`Vector`");
@@ -266,6 +270,44 @@ void py_disort(py::module_& m) try {
   disort_settings.def_rw("negative_boundary_condition",
                          &DisortSettings::negative_boundary_condition,
                          ".. :class:`Tensor3`");
+
+  py::class_<DisortFlux> df(m, "DisortFlux");
+  generic_interface(df);
+  df.def_rw("frequency_grid",
+            &DisortFlux::frequency_grid,
+            "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
+  df.def_rw(
+      "altitude_grid",
+      &DisortFlux::altitude_grid,
+      "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
+  df.def_rw("up",
+            &DisortFlux::up,
+            "Upwelling flux (layer values)\n\n.. :class:`Matrix`");
+  df.def_rw("down_diffuse",
+            &DisortFlux::down_diffuse,
+            "Downward diffuse flux (layer values)\n\n.. :class:`Matrix`");
+  df.def_rw("down_direct",
+            &DisortFlux::down_direct,
+            "Downward direct flux (layer values)\n\n.. :class:`Matrix`");
+
+  py::class_<DisortRadiance> dr(m, "DisortRadiance");
+  generic_interface(dr);
+  dr.def_rw("frequency_grid",
+            &DisortRadiance::frequency_grid,
+            "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
+  dr.def_rw(
+      "altitude_grid",
+      &DisortRadiance::altitude_grid,
+      "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
+  dr.def_rw("zenith_grid",
+            &DisortRadiance::zenith_grid,
+            "Zenith grid\n\n.. :class:`ZenithGrid`");
+  dr.def_rw("azimuth_grid",
+            &DisortRadiance::azimuth_grid,
+            "Azimuth grid\n\n.. :class:`AzimuthGrid`");
+  dr.def_rw("data",
+            &DisortRadiance::data,
+            "Radiance field (layer values)\n\n.. :class:`Matrix`");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));

@@ -66,19 +66,19 @@ if PLOT:
 
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, 0, 0, : (NQuad // 2)],
+        ws.disort_spectral_radiance_field.data[:, 0, 0, : (NQuad // 2)],
         label="disort",
     )
     plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, 0, 0, 0],
+        ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
         "g:",
         lw=3,
     )
     plt.semilogy(
         f,
-        ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
+        ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
         "m:",
         lw=3,
     )
@@ -89,7 +89,7 @@ if PLOT:
 # %% The last test should be that we are close to the correct values
 
 assert np.allclose(
-    ws.disort_spectral_radiance_field[:, 0, 0, NQuad // 2-1]
+    ws.disort_spectral_radiance_field.data[:, 0, 0, 0]
     / ws.spectral_radiance[:, 0],
     1,
     rtol=1e-3,

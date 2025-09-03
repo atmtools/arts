@@ -33,7 +33,8 @@ class AtmosphericFlux:
         solar_latitude: float = 0.0,
         solar_longitude: float = 0.0,
         species: list = ["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
-        remove_lines_percentile: dict[pyarts.arts.SpeciesEnum, float] | float | None = None,
+        remove_lines_percentile: dict[pyarts.arts.SpeciesEnum,
+                                      float] | float | None = None,
     ):
         """Compute the total flux for a given atmospheric profile and surface temperature
 
@@ -166,13 +167,17 @@ class AtmosphericFlux:
             space_setting="None",
             surface_setting="Lambertian",
             sun_setting="Sun",
-            surface_lambertian_value=self.visible_surface_reflectivity*np.ones_like(self.visf)
+            surface_lambertian_value=self.visible_surface_reflectivity *
+            np.ones_like(self.visf)
         )
         self.ws.disort_spectral_flux_fieldFromAgenda()
 
-        self.SOLAR = np.einsum(
-            "i,ijk->jk", self.visw, self.ws.disort_spectral_flux_field
-        )
+        self.SOLAR = Flux("solar",
+                          np.einsum("i,ik->k", self.visw,
+                                    self.ws.disort_spectral_flux_field.up),
+                          np.einsum("i,ik->k", self.visw,
+                                    self.ws.disort_spectral_flux_field.down_diffuse),
+                          np.einsum("i,ik->k", self.visw, self.ws.disort_spectral_flux_field.down_direct))
 
         # IR
         self.ws.frequency_grid = self.ir_f
@@ -182,17 +187,21 @@ class AtmosphericFlux:
             space_setting="CosmicMicrowaveBackgroundRadiation",
             surface_setting="ThermalLambertian",
             sun_setting="None",
-            surface_lambertian_value=self.thermal_surface_reflectivity*np.ones_like(self.visf)
+            surface_lambertian_value=self.thermal_surface_reflectivity *
+            np.ones_like(self.visf)
         )
         self.ws.disort_spectral_flux_fieldFromAgenda()
 
-        self.THERMAL = np.einsum(
-            "i,ijk->jk", self.ir_w, self.ws.disort_spectral_flux_field
-        )
+        self.THERMAL = Flux("thermal",
+                            np.einsum("i,ik->k", self.ir_w,
+                                      self.ws.disort_spectral_flux_field.up),
+                            np.einsum("i,ik->k", self.ir_w,
+                                      self.ws.disort_spectral_flux_field.down_diffuse),
+                            np.einsum("i,ik->k", self.ir_w, self.ws.disort_spectral_flux_field.down_direct))
 
         return (
-            Flux("solar", *self.SOLAR),
-            Flux("thermal", *self.THERMAL),
+            self.SOLAR,
+            self.THERMAL,
             np.array(
                 [
                     0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])

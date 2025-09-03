@@ -61,7 +61,8 @@ void setup_cdisort(disort_state& ds,
   ds.flag.general_source = FALSE;
   ds.flag.output_uum     = FALSE;
 
-  ds.nlyr = static_cast<int>(disort_settings.nlay);  // pressure.nelem() - 1
+  ds.nlyr =
+      static_cast<int>(disort_settings.layer_count());  // pressure.nelem() - 1
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -107,7 +108,7 @@ void setup_cdisort(disort_state& ds,
 void setup_cdisort_for_frequency(
     disort_state& ds,
     const disort::main_data& dis,
-    const Vector& phis,
+    const AzimuthGrid& phis,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const Numeric& frequency) {
   // fill up azimuth angle and temperature array
@@ -119,7 +120,7 @@ void setup_cdisort_for_frequency(
   }
 
   for (Index i = 0; i < ds.numu / 2; i++) {
-    ds.umu[i] = dis.mu()[ds.numu - i - 1];
+    ds.umu[i]               = dis.mu()[ds.numu - i - 1];
     ds.umu[i + ds.numu / 2] = dis.mu()[i];
   }
 
@@ -205,40 +206,31 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 }  // namespace
 
 void disort_spectral_radiance_fieldCalcCdisort(
-    Tensor4& disort_spectral_radiance_field,
-    Vector& disort_quadrature_angles,
-    Vector& disort_quadrature_weights,
+    DisortRadiance& disort_spectral_radiance_field,
+    ZenithGriddedField1& disort_quadrature,
     const DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
     const ArrayOfPropagationPathPoint& ray_path,
     const SurfaceField& surface_field,
-    const Vector& phis) {
+    const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
-  using Conversion::acosd;
-
-  const Index nv    = disort_settings.nfreq;
-  const Index np    = disort_settings.nlay;
-  const Index nquad = disort_settings.quadrature_dimension;
-
-  disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
+  const Index nv    = disort_settings.frequency_count();
 
   disort::main_data dis = disort_settings.init();
+
+  disort_quadrature = dis.gridded_weights();
 
   const Numeric surface_temperature =
       surface_field.single_value(SurfaceKey::t,
                                  ray_path[ray_path.size() - 1].latitude(),
                                  ray_path[ray_path.size() - 1].longitude());
 
-  //! Supplementary outputs
-  disort_quadrature_weights = dis.weights();
-  disort_quadrature_angles.resize(nquad);
-
-  std::transform(dis.mu().begin(),
-                 dis.mu().end(),
-                 disort_quadrature_angles.begin(),
-                 [](const Numeric& mu) { return acosd(mu); });
+  disort_spectral_radiance_field.resize(disort_settings.frequency_grid,
+                                        disort_settings.altitude_grid,
+                                        phis,
+                                        disort_quadrature.grid<0>());
 
   disort_state ds;
   setup_cdisort(ds, phis, disort_settings, dis, surface_temperature);
@@ -260,7 +252,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
                                   ray_path_atmospheric_point,
                                   ray_path_frequency_grid[0][iv]);
 
-      run_cdisort(disort_spectral_radiance_field[iv], ds, out);
+      run_cdisort(disort_spectral_radiance_field.data[iv], ds, out);
 
       /* Free allocated memory */
       c_disort_out_free(&ds, &out);
@@ -270,6 +262,9 @@ void disort_spectral_radiance_fieldCalcCdisort(
       if (error.empty()) error = e.what();
     }
   }
+
+  //! FIXME: It would be nice to remove this if the internal angles can be solved
+  disort_spectral_radiance_field.sort(dis.mu());
 
   ARTS_USER_ERROR_IF(
       error.size(), "Error occurred in disort-spectral:\n{}", error);

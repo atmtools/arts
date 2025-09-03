@@ -52,7 +52,8 @@ ws.disort_spectral_flux_fieldFromAgenda(
 )
 
 assert np.allclose(
-    ws.disort_spectral_flux_field[:, :2].flatten()
+    np.append(ws.disort_spectral_flux_field.up,
+              ws.disort_spectral_flux_field.down_diffuse, axis=1).flatten()
     / np.array(
         [
             2.65924430e-15,

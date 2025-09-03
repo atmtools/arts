@@ -67,13 +67,13 @@ plt.figure()
 plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
 plt.semilogy(
     f,
-    ws.disort_spectral_radiance_field[:, 0, 0, 0],
+    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
     "g:",
     lw=3,
 )
 plt.semilogy(
     f,
-    ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
+    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
     "m:",
     lw=3,
 )
@@ -124,13 +124,13 @@ for manual in [False, True]:
                 plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
                 plt.semilogy(
                     f,
-                    ws.disort_spectral_radiance_field[:, 0, 0, 0],
+                    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
                     "g:",
                     lw=3,
                 )
                 plt.semilogy(
                     f,
-                    ws.disort_spectral_radiance_field[:, 0, 0, (NQuad // 2) - 1],
+                    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
                     "m:",
                     lw=3,
                 )

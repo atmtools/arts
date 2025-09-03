@@ -188,7 +188,7 @@ def calculate_tbs_disort():
         disort_fourier_mode_dimension=1,
         max_step=100
     )
-    disort_stokes = [[ws.disort_spectral_radiance_field[f_ind, 0, 0, 19], 0.0, 0.0, 0.0] for f_ind in range(3)]
+    disort_stokes = [[ws.disort_spectral_radiance_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0] for f_ind in range(3)]
     ws.spectral_radiance = disort_stokes
     ws.spectral_radianceApplyForwardUnit(ray_path_point=ws.ray_path[0])
     return ws.spectral_radiance.value.copy()[:, 0]

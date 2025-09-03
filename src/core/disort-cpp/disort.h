@@ -6,10 +6,36 @@
 
 #include <format>
 #include <iosfwd>
+#include <string_view>
 
 #include "disort-eigen.h"
 
 namespace disort {
+struct radiances {
+  AscendingGrid frequency_grid;  // nf
+  DescendingGrid altitude_grid;  // level; nl
+  AzimuthGrid azimuth_grid;      // naa
+  ZenithGrid zenith_grid;        // nza
+  Tensor4 data;                  // nf, nl - 1, naa, nza
+
+  void resize(AscendingGrid frequency_grid,
+              DescendingGrid altitude_grid,
+              AzimuthGrid azimuth_grid,
+              ZenithGrid zenith_grid);
+
+  void sort(const Vector& solver_mu);
+};
+
+struct fluxes {
+  AscendingGrid frequency_grid;  // nf
+  DescendingGrid altitude_grid;  // level; nl
+  Matrix up;                     // nf, nl - 1
+  Matrix down_diffuse;           // nf, nl - 1
+  Matrix down_direct;            // nf, nl - 1
+
+  void resize(AscendingGrid frequency_grid, DescendingGrid altitude_grid);
+};
+
 struct BDRF {
   using func_t = CustomOperator<void,
                                 MatrixView,
@@ -612,6 +638,9 @@ class main_data {
 
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
+
+  //! Get weights on a grid
+  [[nodiscard]] ZenithGriddedField1 gridded_weights() const;
 };
 }  // namespace disort
 
@@ -622,40 +651,42 @@ struct DisortSettings {
   Index quadrature_dimension{0};
   Index legendre_polynomial_dimension{0};
   Index fourier_mode_dimension{0};
-  Index nfreq{0};
-  Index nlay{0};
 
-  // nfreq
+  // Grids
+  AscendingGrid frequency_grid{};
+  DescendingGrid altitude_grid{};  // levels not layers
+
+  // frequency_grid.size()
   Vector solar_azimuth_angle{};
 
-  // nfreq
+  // frequency_grid.size()
   Vector solar_zenith_angle{};
 
-  // nfreq
+  // frequency_grid.size()
   Vector solar_source{};
 
-  // nfreq x nbrdf
+  // frequency_grid.size() x nbrdf
   MatrixOfDisortBDRF bidirectional_reflectance_distribution_functions{};
 
-  // nfreq x nlay
+  // frequency_grid.size() x [altitude_grid.size() - 1]
   Matrix optical_thicknesses{};
 
-  // nfreq x nlay
+  // frequency_grid.size() x [altitude_grid.size() - 1]
   Matrix single_scattering_albedo{};
 
-  // nfreq x nlay
+  // frequency_grid.size() x [altitude_grid.size() - 1]
   Matrix fractional_scattering{};
 
-  // nfreq x nlay x nsrc
+  // frequency_grid.size() x [altitude_grid.size() - 1] x nsrc
   Tensor3 source_polynomial{};
 
-  // nfreq x nlay x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
+  // frequency_grid.size() x [altitude_grid.size() - 1] x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
   Tensor3 legendre_coefficients{};
 
-  // nfreq x fourier_mode_dimension x quadrature_dimension / 2
+  // frequency_grid.size() x fourier_mode_dimension x quadrature_dimension / 2
   Tensor3 positive_boundary_condition{};
 
-  // nfreq x fourier_mode_dimension x quadrature_dimension / 2.
+  // frequency_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.
   Tensor3 negative_boundary_condition{};
 
   DisortSettings() = default;
@@ -663,10 +694,11 @@ struct DisortSettings {
   void resize(Index quadrature_dimension,
               Index legendre_polynomial_dimension,
               Index fourier_mode_dimension,
-              Index nfreq,
-              Index nlay);
+              AscendingGrid frequency_grid,
+              DescendingGrid altitude_grid);
 
-  [[nodiscard]] Index frequency_count() const { return nfreq; }
+  [[nodiscard]] Index frequency_count() const { return frequency_grid.size(); }
+  [[nodiscard]] Index layer_count() const { return altitude_grid.size() - 1; }
 
   [[nodiscard]] disort::main_data init() const;
   disort::main_data& set(disort::main_data&, Index iv) const;
@@ -918,11 +950,11 @@ legendre_polynomial_dimension: ")-x-"sv,
 fourier_mode_dimension:        ")-x-"sv,
           v.fourier_mode_dimension,
           R"-x-(
-nfreq:                         ")-x-"sv,
-          v.nfreq,
+frequency_grid.size():         ")-x-"sv,
+          v.frequency_grid.size(),
           R"-x-(
-nlay:                          ")-x-"sv,
-          v.nlay,
+altitude_grid.size():          ")-x-"sv,
+          v.altitude_grid.size(),
           R"-x-(
 nsrc:                          ")-x-"sv,
           v.source_polynomial.ncols(),
@@ -933,38 +965,37 @@ nbrdf:                         ")-x-"sv,
 
 solar_source.shape():                                     ")-x-"sv,
           v.solar_source.shape(),
-          R"-x-( - should be nfreq.
+          R"-x-( - should be frequency_grid.size().
 solar_zenith_angle.shape():                               ")-x-"sv,
           v.solar_zenith_angle.shape(),
-          R"-x-( - should be nfreq.
+          R"-x-( - should be frequency_grid.size().
 solar_azimuth_angle.shape():                              ")-x-"sv,
-
           v.solar_azimuth_angle.shape(),
-          R"-x-( - should be nfreq.
+          R"-x-( - should be frequency_grid.size().
 bidirectional_reflectance_distribution_functions.shape(): ")-x-"sv,
           v.bidirectional_reflectance_distribution_functions.shape(),
-          R"-x-( - should be nfreq x nbrdf.
+          R"-x-( - should be frequency_grid.size() x nbrdf.
 optical_thicknesses.shape():                              ")-x-"sv,
           v.optical_thicknesses.shape(),
-          R"-x-( - should be nfreq x nlay.
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
 single_scattering_albedo.shape():                         ")-x-"sv,
           v.single_scattering_albedo.shape(),
-          R"-x-( - should be nfreq x nlay.
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
 fractional_scattering.shape():                            ")-x-"sv,
           v.fractional_scattering.shape(),
-          R"-x-( - should be nfreq x nlay.
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
 source_polynomial.shape():                                ")-x-"sv,
           v.source_polynomial.shape(),
-          R"-x-( - should be nfreq x nlay x nsrc.
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x nsrc.
 legendre_coefficients.shape():                            ")-x-"sv,
           v.legendre_coefficients.shape(),
-          R"-x-( - should be nfreq x nlay x nleg.
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x nleg.
 positive_boundary_condition.shape():                      ")-x-"sv,
           v.positive_boundary_condition.shape(),
-          R"-x-( - should be nfreq x nlay x (quadrature_dimension / 2).
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x (quadrature_dimension / 2).
 negative_boundary_condition.shape():                      ")-x-"sv,
           v.negative_boundary_condition.shape(),
-          R"-x-( - should be nfreq x nlay x (quadrature_dimension / 2).)-x-"sv);
+          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x (quadrature_dimension / 2).)-x-"sv);
     }
     return tags.format(
         ctx,
@@ -977,11 +1008,11 @@ legendre_polynomial_dimension: ")-x-"sv,
 fourier_mode_dimension:        ")-x-"sv,
         v.fourier_mode_dimension,
         R"-x-(
-nfreq:                         ")-x-"sv,
-        v.nfreq,
+frequency_grid:                ")-x-"sv,
+        v.frequency_grid,
         R"-x-(
-nlay:                          ")-x-"sv,
-        v.nlay,
+altitude_grid:                 ")-x-"sv,
+        v.altitude_grid,
         R"-x-(
 nsrc:                          ")-x-"sv,
         v.source_polynomial.ncols(),
@@ -1060,4 +1091,84 @@ struct xml_io_stream<DisortSettings> {
   static void read(std::istream& is,
                    DisortSettings& x,
                    bifstream* pbifs = nullptr);
+};
+
+using DisortFlux = disort::fluxes;
+
+template <>
+struct xml_io_stream_name<DisortFlux> {
+  constexpr static std::string_view name = "DisortFlux"sv;
+};
+
+template <>
+struct xml_io_stream_aggregate<DisortFlux> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct std::formatter<DisortFlux> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
+    auto sep = tags.sep(true);
+    return tags.format(ctx,
+                       v.frequency_grid,
+                       sep,
+                       v.altitude_grid,
+                       sep,
+                       v.up,
+                       sep,
+                       v.down_diffuse,
+                       sep,
+                       v.down_direct);
+  }
+};
+
+using DisortRadiance = disort::radiances;
+
+template <>
+struct xml_io_stream_name<DisortRadiance> {
+  constexpr static std::string_view name = "DisortRadiance"sv;
+};
+
+template <>
+struct xml_io_stream_aggregate<DisortRadiance> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct std::formatter<DisortRadiance> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
+    auto sep = tags.sep(true);
+    return tags.format(ctx,
+                       v.frequency_grid,
+                       sep,
+                       v.altitude_grid,
+                       sep,
+                       v.azimuth_grid,
+                       sep,
+                       v.zenith_grid,
+                       sep,
+                       v.data);
+  }
 };
