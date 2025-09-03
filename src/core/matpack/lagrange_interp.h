@@ -501,6 +501,18 @@ struct lag_t {
 };
 
 /******************************************************************
+ * Common helper functions for linear Lagrange interpolation
+ ******************************************************************/
+
+template <transformer transform = identity>
+std::variant<lag_t<0, transform>, lag_t<1, transform>> variant_lag(
+    std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
+  if (xi.size() < 2) return lag_t<0, transform>(xi, x, ascending_grid_t{});
+  if (xi[0] < xi[1]) return lag_t<1, transform>(xi, x, ascending_grid_t{});
+  return lag_t<1, transform>(xi, x, descending_grid_t{});
+}
+
+/******************************************************************
  * Check limits
  ******************************************************************/
 

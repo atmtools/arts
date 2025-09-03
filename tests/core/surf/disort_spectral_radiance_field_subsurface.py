@@ -39,7 +39,13 @@ ws.disort_spectral_radiance_fieldSubsurfaceProfile(
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.disort_spectral_radiance_fieldApplyUnit()
 
-T = np.array([ws.subsurface_field["t"](zs, 0, 0) for zs in z])
-for i in range(NQUAD):
-    plt.plot(ws.disort_spectral_radiance_field.data[0, :, 0, i], z[:-1], alpha=0.3)
-plt.plot(T, z, lw=3, color="k", label="T")
+zas = np.linspace(0, 180, 361)
+data = []
+for za in zas:
+    ws.ray_path_point.los = [za, 0]
+    ws.spectral_radianceFromReverseDisort()
+    data.append(ws.spectral_radiance[0, 0])
+data = np.array(data)
+plt.plot(zas, data)
+
+assert np.all(np.sort(data) == data)

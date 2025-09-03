@@ -5410,8 +5410,7 @@ Sets both upper and lower bounds.
       .desc      = R"(Perform Disort calculations for spectral radiance.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature"},
+      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings"},
       .gin       = {"phis"},
       .gin_type  = {"AzimuthGrid"},
@@ -5426,8 +5425,7 @@ Sets both upper and lower bounds.
 CDisort is only included for testing and comparisons with our own disort implementation.
 )",
       .author    = {"Oliver Lemke"},
-      .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature"},
+      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings",
                     "ray_path_atmospheric_point",
                     "ray_path_frequency_grid",
@@ -5464,8 +5462,15 @@ CDisort is only included for testing and comparisons with our own disort impleme
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"disort_spectral_radiance_field",
-                 "disort_quadrature"},
+      .in     = {"disort_spectral_radiance_field", "disort_quadrature"},
+  };
+
+  wsm_data["spectral_radianceFromReverseDisort"] = {
+      .desc = R"(Extract spectral radiance from the Disort field at reverse LOS.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in     = {"disort_spectral_radiance_field", "ray_path_point"},
   };
 
   wsm_data["RetrievalInit"] = {
