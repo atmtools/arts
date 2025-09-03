@@ -9,15 +9,29 @@
 #include <string_view>
 
 #include "disort-eigen.h"
-#include "matpack_mdspan_helpers_grid_t.h"
 
 namespace disort {
+struct radiances {
+  AscendingGrid frequency_grid;  // nf
+  DescendingGrid altitude_grid;  // level; nl
+  AzimuthGrid azimuth_grid;      // naa
+  ZenithGrid zenith_grid;        // nza
+  Tensor4 data;                  // nf, nl - 1, naa, nza
+
+  void resize(AscendingGrid frequency_grid,
+              DescendingGrid altitude_grid,
+              AzimuthGrid azimuth_grid,
+              ZenithGrid zenith_grid);
+
+  void sort(const Vector& solver_mu);
+};
+
 struct fluxes {
-  AscendingGrid frequency_grid;
-  DescendingGrid altitude_grid;  // level
-  Matrix up;
-  Matrix down_diffuse;
-  Matrix down_direct;
+  AscendingGrid frequency_grid;  // nf
+  DescendingGrid altitude_grid;  // level; nl
+  Matrix up;                     // nf, nl - 1
+  Matrix down_diffuse;           // nf, nl - 1
+  Matrix down_direct;            // nf, nl - 1
 
   void resize(AscendingGrid frequency_grid, DescendingGrid altitude_grid);
 };
@@ -624,6 +638,9 @@ class main_data {
 
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
+
+  //! Get weights on a grid
+  [[nodiscard]] ZenithGriddedField1 gridded_weights() const;
 };
 }  // namespace disort
 
@@ -1113,5 +1130,45 @@ struct std::formatter<DisortFlux> {
                        v.down_diffuse,
                        sep,
                        v.down_direct);
+  }
+};
+
+using DisortRadiance = disort::radiances;
+
+template <>
+struct xml_io_stream_name<DisortRadiance> {
+  constexpr static std::string_view name = "DisortRadiance"sv;
+};
+
+template <>
+struct xml_io_stream_aggregate<DisortRadiance> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct std::formatter<DisortRadiance> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
+    auto sep = tags.sep(true);
+    return tags.format(ctx,
+                       v.frequency_grid,
+                       sep,
+                       v.altitude_grid,
+                       sep,
+                       v.azimuth_grid,
+                       sep,
+                       v.zenith_grid,
+                       sep,
+                       v.data);
   }
 };

@@ -12,9 +12,40 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <numeric>
 #include <vector>
 
 namespace disort {
+void radiances::resize(AscendingGrid f_grid,
+                       DescendingGrid alt_grid,
+                       AzimuthGrid aa_grid,
+                       ZenithGrid za_grid) {
+  frequency_grid = std::move(f_grid);
+  altitude_grid  = std::move(alt_grid);
+  azimuth_grid   = std::move(aa_grid);
+  zenith_grid    = std::move(za_grid);
+
+  data.resize(frequency_grid.size(),
+              altitude_grid.size() - 1,
+              azimuth_grid.size(),
+              zenith_grid.size());
+}
+
+void radiances::sort(const Vector& solver_mu) {
+  using Conversion::acosd;
+
+  ArrayOfIndex idx(solver_mu.size());
+  stdr::iota(idx, 0);
+  stdr::sort(idx, [&solver_mu](Index i, Index j) {
+    return solver_mu[i] > solver_mu[j];
+  });
+
+  Tensor4 data_copy = data;
+  for (Size i = 0; i < solver_mu.size(); i++) {
+    data[joker, joker, joker, i] = data_copy[joker, joker, joker, idx[i]];
+  }
+}
+
 void fluxes::resize(AscendingGrid f, DescendingGrid a) {
   frequency_grid = std::move(f);
   altitude_grid  = std::move(a);
@@ -1512,6 +1543,27 @@ void main_data::ungridded_u(Tensor3View out,
         "On Failure, the einsum has been changed to not use optimal path");
     einsum<"pi", "im", "pm">(out[il], transpose(um), cp);
   }
+}
+
+ZenithGriddedField1 main_data::gridded_weights() const {
+  Vector mu = mu_arr;
+
+  stdr::sort(mu);
+
+  std::transform(mu.begin(), mu.end(), mu.begin(), [](const Numeric& m) {
+    return 180.0 - Conversion::acosd(m);
+  });
+
+  ZenithGriddedField1 disort_quadrature{
+      .data_name  = "Disort quadrature weights",
+      .data       = mu,
+      .grid_names = {"Zenith grid"},
+      .grids      = {std::move(mu)}};
+
+  disort_quadrature[rf(N)] = W;
+  disort_quadrature[rb(N)] = W;
+
+  return disort_quadrature;
 }
 }  // namespace disort
 

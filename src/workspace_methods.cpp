@@ -5296,8 +5296,7 @@ This is WIP and should not be used.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature_angles",
-                    "disort_quadrature_weights"},
+                    "disort_quadrature"},
       .in        = {"disort_settings"},
       .gin       = {"phis"},
       .gin_type  = {"AzimuthGrid"},
@@ -5313,8 +5312,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
 )",
       .author    = {"Oliver Lemke"},
       .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature_angles",
-                    "disort_quadrature_weights"},
+                    "disort_quadrature"},
       .in        = {"disort_settings",
                     "ray_path_atmospheric_point",
                     "ray_path_frequency_grid",
@@ -5352,8 +5350,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
       .in     = {"disort_spectral_radiance_field",
-                 "disort_quadrature_angles",
-                 "disort_quadrature_weights"},
+                 "disort_quadrature"},
   };
 
   wsm_data["RetrievalInit"] = {

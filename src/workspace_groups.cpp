@@ -367,11 +367,6 @@ A sub-surface field effectively holds two things:
 )--",
   };
 
-  wsg_data["Tensor4"] = {
-      .file = "matpack.h",
-      .desc = "A 4 dimensional array of *Numeric*\n",
-  };
-
   wsg_data["Time"] = {
       .file = "artstime.h",
       .desc = R"(Represents a time stamp
@@ -692,6 +687,18 @@ line-of-sight to get the corresponding spectral radiance.
 )",
   };
 
+  wsg_data["DisortRadiance"] = {
+      .file = "disort.h",
+      .desc = R"(The radiance result variable for Disort.
+
+#. *AscendingGrid* frequency grid
+#. *DescendingGrid* level altitude grid
+#. *AzimuthGrid* azimuth grid
+#. *ZenithGrid* zenith grid
+#. *Tensor4* radiance data
+)",
+  };
+
   wsg_data["DisortSettings"] = {
       .file = "disort.h",
       .desc = R"(The settings required to run Disort.
@@ -721,8 +728,16 @@ line-of-sight to get the corresponding spectral radiance.
       .map_type = true,
   };
 
+  wsg_data["ZenithGriddedField1"] = {
+      .file = "matpack.h",
+      .desc = R"--(A 1-dimensional gridof *Numeric*.
+
+The grids are 1 *ZenithGrid*.
+)--",
+  };
+
   wsg_data["SortedGriddedField1"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 1-dimensional gridof *Numeric*.
 
 The grids are 1 *AscendingGrid*.
@@ -730,7 +745,7 @@ The grids are 1 *AscendingGrid*.
   };
 
   wsg_data["SortedGriddedField2"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 2-dimensional gridof *Numeric*.
 
 The grids are 2 *AscendingGrid*.
@@ -738,7 +753,7 @@ The grids are 2 *AscendingGrid*.
   };
 
   wsg_data["GeodeticField2"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 2-dimensional gridof *Numeric*.
 
 The grids are *latitude_grid* x *longitude_grid*.
@@ -747,7 +762,7 @@ The types are *LatGrid* x *LonGrid*.
   };
 
   wsg_data["SortedGriddedField3"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
 The grids are 3 *AscendingGrid*.
@@ -755,7 +770,7 @@ The grids are 3 *AscendingGrid*.
   };
 
   wsg_data["SortedGriddedField4"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 4-dimensional gridof *Numeric*.
 
 The grids are 4 *AscendingGrid*.
@@ -763,7 +778,7 @@ The grids are 4 *AscendingGrid*.
   };
 
   wsg_data["SortedGriddedField5"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 5-dimensional gridof *Numeric*.
 
 The grids are 5 *AscendingGrid*.
@@ -771,7 +786,7 @@ The grids are 5 *AscendingGrid*.
   };
 
   wsg_data["SortedGriddedField6"] = {
-      .file = "rtepack.h",
+      .file = "matpack.h",
       .desc = R"--(A 6-dimensional gridof *Numeric*.
 
 The grids are 6 *AscendingGrid*.

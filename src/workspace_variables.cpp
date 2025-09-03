@@ -915,33 +915,30 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
+  wsv_data["disort_spectral_radiance_field"] = {
+      .desc = R"(The spectral radiance field from Disort.
+)",
+      .type = "DisortRadiance",
+  };
+
+  wsv_data["disort_spectral_flux_field"] = {
+      .desc = R"(The spectral flux field from Disort.
+)",
+      .type = "DisortFlux",
+  };
+
   wsv_data["disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations.
 )",
       .type = "DisortSettings",
   };
 
-  wsv_data["disort_quadrature_angles"] = {
-      .desc = R"(The quadrature angles for Disort.
+  wsv_data["disort_quadrature"] = {
+      .desc = R"(The quadrature angles for Disort with accompying weights.
 
-Unit is in degrees.
-
-Size is *disort_quadrature_dimension*.
+Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_radiance_field*.
 )",
-      .type = "Vector",
-  };
-
-  wsv_data["disort_quadrature_weights"] = {
-      .desc = R"(The quadrature weights for Disort.
-
-These weights are symmetric for uplooking and downlooking.
-
-In essence, the matching *disort_quadrature_angles* for the weights can
-be found as [*disort_quadrature_weights*, *disort_quadrature_weights*].
-
-Size is *disort_quadrature_dimension* / 2
-)",
-      .type = "Vector",
+      .type = "ZenithGriddedField1",
   };
 
   wsv_data["disort_quadrature_dimension"] = {
@@ -1011,23 +1008,6 @@ Units: degrees
       .desc = R"(The degree of a Legendre polynimial.
 )",
       .type = "Index",
-  };
-
-  wsv_data["disort_spectral_radiance_field"] = {
-      .desc = R"(The spectral radiance field from Disort.
-
-Size is *frequency_grid* times *ray_path* - 1 times azimuthal angles
-times *disort_quadrature_dimension*.
-)",
-      .type = "Tensor4",
-  };
-
-  wsv_data["disort_spectral_flux_field"] = {
-      .desc = R"(The spectral flux field from Disort.
-
-The inner "3" is in order: upwelling, diffuse downwelling, and direct downwelling.
-)",
-      .type = "DisortFlux",
   };
 
   wsv_data["covariance_matrix_diagonal_blocks"] = {

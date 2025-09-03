@@ -64,9 +64,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .author = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_radiance_fieldCalc"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights"},
+      .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -77,8 +75,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .methods = {"ray_pathGeometricDownlooking",
                   "disort_spectral_radiance_fieldFromAgenda"},
       .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights",
+                  "disort_quadrature",
                   "ray_path"},
   });
 
@@ -91,9 +88,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "ray_path_atmospheric_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "disort_spectral_radiance_fieldCalcCdisort"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights"},
+      .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -104,8 +99,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .methods = {"ray_pathGeometricDownlooking",
                   "disort_spectral_radiance_fieldFromAgendaCdisort"},
       .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights",
+                  "disort_quadrature",
                   "ray_path"},
   });
 #endif

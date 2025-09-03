@@ -18,7 +18,7 @@ if not pyarts.arts.globals.data.has_cdisort:
 # paths/constants
 # =============================================================================
 
-PLOT = True
+PLOT = False
 toa = 100e3
 lat = 0
 lon = 0
@@ -78,7 +78,7 @@ ws.disort_spectral_radiance_fieldProfileCdisort(
 )
 print("cdisort:   ", datetime.now() - dt)
 
-cdisort_spectral_radiance_field = ws.disort_spectral_radiance_field * 1.0
+cdisort_spectral_radiance_field = ws.disort_spectral_radiance_field.data * 1.0
 
 # cppdisort calculation
 dt = datetime.now()
@@ -92,12 +92,12 @@ ws.disort_spectral_radiance_fieldProfile(
 print("cppdisort: ", datetime.now() - dt)
 
 radiance_field_absdiff = (
-    cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field
+    cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field.data
 )
 
 radiance_field_reldiff = (
-    (cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field)
-    / ws.disort_spectral_radiance_field
+    (cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field.data)
+    / ws.disort_spectral_radiance_field.data
     * 100
 )
 
@@ -108,7 +108,7 @@ imax = np.unravel_index(
 print(
     f"max location: {ws.ray_path[imax[1]].pos[0] / 1000:.1f} km, "
     f"{ws.frequency_grid[imax[0]] / 1e9:.1f} GHz, "
-    f"{ws.disort_quadrature_angles[imax[-1]]:.2f}°"
+    f"{ws.disort_quadrature.grids[0][imax[-1]]:.2f}°"
 )
 
 
@@ -128,7 +128,7 @@ def plot_field(fig, I, ax, title, reldiff=False):
     # =============================================================================
     cmap = cm["managua"]
     colors = cmap(np.linspace(0, 1, N_quad))
-    angles = ws.disort_quadrature_angles[:]
+    angles = ws.disort_quadrature.grids[0][:]
     idx = np.argsort(angles)
     angles = angles[idx]
     I = I[:, :, idx] * 1.0
@@ -163,7 +163,7 @@ def plot_field(fig, I, ax, title, reldiff=False):
 if PLOT:
     plot_field(fig, cdisort_spectral_radiance_field[:, :, 0, :], ax[0:2, 0], "cdisort")
     plot_field(
-        fig, ws.disort_spectral_radiance_field[:, :, 0, :], ax[0:2, 1], "cppdisort"
+        fig, ws.disort_spectral_radiance_field.data[:, :, 0, :], ax[0:2, 1], "cppdisort"
     )
 
     plot_field(
@@ -181,4 +181,4 @@ if PLOT:
     # fig.savefig(f"disort-toa{toa / 1e3:.0f}km.pdf")
     plt.show()
 
-assert np.allclose(cdisort_spectral_radiance_field, ws.disort_spectral_radiance_field)
+assert np.allclose(cdisort_spectral_radiance_field, ws.disort_spectral_radiance_field.data)
