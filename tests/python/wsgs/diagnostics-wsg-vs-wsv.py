@@ -21,7 +21,7 @@ wsgs = pyarts.arts.globals.workspace_groups()
 wsms = pyarts.arts.globals.workspace_methods()
 
 wsgs = {}.fromkeys(wsgs, 0)
-wsgs["CallbackOperator"] = 1
+wsgs["CallbackOperator"] = 1  # Exception since pure user-agenda-method
 
 for wsv in wsvs:
     wsgs[wsvs[wsv].type] += 1
@@ -48,3 +48,5 @@ errors = [f"\n{wsg} should not be a workspace group"
           for wsg in keys if wsgs[wsg] == 0]
 
 assert len(errors) == 0, ", and".join(errors) + '\n' + reason
+
+print("All workspace groups are used in workspace variables or methods")

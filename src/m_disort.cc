@@ -26,8 +26,8 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
 
   using Conversion::acosd;
 
-  const Index nv    = disort_settings.nfreq;
-  const Index np    = disort_settings.nlay;
+  const Index nv    = disort_settings.frequency_count();
+  const Index np    = disort_settings.layer_count();
   const Index nquad = disort_settings.quadrature_dimension;
 
   disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);
@@ -61,14 +61,14 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
       error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 
-void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
+void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
                                     const DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  const Index nv = disort_settings.nfreq;
-  const Index np = disort_settings.nlay;
+  const Index nv = disort_settings.frequency_count();
 
-  disort_spectral_flux_field.resize(nv, 3, np);
+  disort_spectral_flux_field.resize(disort_settings.frequency_grid,
+                                    disort_settings.altitude_grid);
 
   disort::main_data dis = disort_settings.init();
 
@@ -79,9 +79,9 @@ void disort_spectral_flux_fieldCalc(Tensor3& disort_spectral_flux_field,
     try {
       disort_settings.set(dis, iv);
 
-      dis.gridded_flux(disort_spectral_flux_field[iv, 0, joker],
-                       disort_spectral_flux_field[iv, 1, joker],
-                       disort_spectral_flux_field[iv, 2, joker]);
+      dis.gridded_flux(disort_spectral_flux_field.up[iv],
+                       disort_spectral_flux_field.down_diffuse[iv],
+                       disort_spectral_flux_field.down_direct[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -107,7 +107,7 @@ void spectral_radianceIntegrateDisort(
 
 void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
                         Matrix& /*spectral_flux_field_down*/,
-                        const Tensor3& /*disort_spectral_flux_field*/) {
+                        const DisortFlux& /*disort_spectral_flux_field*/) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR("Not implemented")

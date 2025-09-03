@@ -18,7 +18,7 @@ if not pyarts.arts.globals.data.has_cdisort:
 # paths/constants
 # =============================================================================
 
-PLOT = False
+PLOT = True
 toa = 100e3
 lat = 0
 lon = 0

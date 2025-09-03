@@ -32,7 +32,8 @@ class SpectralAtmosphericFlux:
         solar_latitude: float = 0.0,
         solar_longitude: float = 0.0,
         species=["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],
-        remove_lines_percentile: dict[pyarts.arts.SpeciesEnum, float] | float | None = None,
+        remove_lines_percentile: dict[pyarts.arts.SpeciesEnum,
+                                      float] | float | None = None,
     ):
         """Compute the total flux for a given atmospheric profile and surface temperature
 
@@ -172,7 +173,8 @@ class SpectralAtmosphericFlux:
         # Shape is f x 3 x np, we want 3 x f x np
 
         return (
-            Flux(*np.einsum("ijk->jik", self.ws.disort_spectral_flux_field)),
+            Flux(self.ws.disort_spectral_flux_field.up, self.ws.disort_spectral_flux_field.down_diffuse,
+                 self.ws.disort_spectral_flux_field.down_direct),
             np.array(
                 [
                     0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])

@@ -367,11 +367,6 @@ A sub-surface field effectively holds two things:
 )--",
   };
 
-  wsg_data["Tensor3"] = {
-      .file = "matpack.h",
-      .desc = "A 3 dimensional array of *Numeric*\n",
-  };
-
   wsg_data["Tensor4"] = {
       .file = "matpack.h",
       .desc = "A 4 dimensional array of *Numeric*\n",
@@ -685,6 +680,18 @@ line-of-sight to get the corresponding spectral radiance.
       .desc = "List of *SensorObsel*.\n",
   };
 
+  wsg_data["DisortFlux"] = {
+      .file = "disort.h",
+      .desc = R"(The flux result variable for Disort.
+
+#. *AscendingGrid* frequency grid
+#. *DescendingGrid* level altitude grid
+#. *Matrix* upwelling flux
+#. *Matrix* diffuse downwelling flux
+#. *Matrix* direct downwelling flux
+)",
+  };
+
   wsg_data["DisortSettings"] = {
       .file = "disort.h",
       .desc = R"(The settings required to run Disort.
@@ -692,8 +699,8 @@ line-of-sight to get the corresponding spectral radiance.
 #. *Index* Quadrature dimension
 #. *Index* Legendre order
 #. *Index* Fourier order
-#. *Index* Number of frequency points
-#. *Index* Number of layers
+#. *Index* The frequency grid
+#. *Index* The level altitude grid
 #. *Vector* Solar azimuth angles
 #. *Vector* Solar zenith angles
 #. *Vector* Solar source

@@ -1025,11 +1025,9 @@ times *disort_quadrature_dimension*.
   wsv_data["disort_spectral_flux_field"] = {
       .desc = R"(The spectral flux field from Disort.
 
-Size is *frequency_grid* times 3 times *ray_path* - 1.
-
 The inner "3" is in order: upwelling, diffuse downwelling, and direct downwelling.
 )",
-      .type = "Tensor3",
+      .type = "DisortFlux",
   };
 
   wsv_data["covariance_matrix_diagonal_blocks"] = {

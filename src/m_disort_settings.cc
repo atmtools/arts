@@ -5,14 +5,10 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <sun_methods.h>
 #include <workspace.h>
 
 #include <numeric>
-
-#include "atm.h"
-#include "debug.h"
-#include "enumsSurfaceKey.h"
-#include "sun_methods.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Disort settings initialization
@@ -26,17 +22,21 @@ void disort_settingsInit(DisortSettings& disort_settings,
                          const Index& fourier_mode_dimension) {
   ARTS_TIME_REPORT
 
-  disort_settings   = DisortSettings();
-  const Index nfreq = frequency_grid.size();
-  const Index nlay  = ray_path.size() - 1;
   ARTS_USER_ERROR_IF(quadrature_dimension % 2,
                      "Quadrature dimension ({}) must be even",
                      quadrature_dimension);
+
+  ARTS_USER_ERROR_IF(
+      ray_path.size() < 2,
+      "Must have at least one layer (two levels) to use disort solver");
+
   disort_settings.resize(quadrature_dimension,
                          legendre_polynomial_dimension,
                          fourier_mode_dimension,
-                         nfreq,
-                         nlay);
+                         frequency_grid,
+                         DescendingGrid{ray_path.begin(),
+                                        ray_path.end(),
+                                        [](auto& v) { return v.altitude(); }});
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ void disort_settingsNoLayerThermalEmission(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
   disort_settings.source_polynomial.resize(
-      disort_settings.nfreq, disort_settings.nlay, 0);
+      disort_settings.frequency_count(), disort_settings.layer_count(), 0);
 }
 
 void disort_settingsLayerThermalEmissionLinearInTau(
@@ -334,8 +334,8 @@ void disort_settingsOpticalThicknessFromPath(
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
-  const Index N  = disort_settings.nlay;
-  const Index nv = disort_settings.nfreq;
+  const Index N  = disort_settings.layer_count();
+  const Index nv = disort_settings.frequency_count();
 
   ARTS_USER_ERROR_IF(ray_path.size() != ray_path_propagation_matrix.size() or
                          ray_path.size() != static_cast<Size>(N + 1),
@@ -412,7 +412,7 @@ void disort_settingsNoSurfaceScattering(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
-      disort_settings.nfreq, 0);
+      disort_settings.frequency_count(), 0);
 }
 
 void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
@@ -420,9 +420,9 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
   ARTS_TIME_REPORT
 
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
-      disort_settings.nfreq, 1);
+      disort_settings.frequency_count(), 1);
 
-  for (Index iv = 0; iv < disort_settings.nfreq; iv++) {
+  for (Index iv = 0; iv < disort_settings.frequency_count(); iv++) {
     disort_settings.bidirectional_reflectance_distribution_functions[iv, 0] =
         DisortBDRF{[value = vec[iv]](MatrixView x,
                                      const ConstVectorView&,
@@ -435,7 +435,7 @@ void disort_settingsSurfaceLambertian(DisortSettings& disort_settings,
   ARTS_TIME_REPORT
 
   disort_settings.bidirectional_reflectance_distribution_functions.resize(
-      disort_settings.nfreq, 1);
+      disort_settings.frequency_count(), 1);
 
   const auto f = DisortBDRF{[value](MatrixView x,
                                     const ConstVectorView&,
@@ -463,15 +463,15 @@ void disort_settingsLegendreCoefficientsFromPath(
     const ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral) try {
   ARTS_TIME_REPORT
 
-  const Size N  = disort_settings.nlay;
-  const Index F = disort_settings.nfreq;
+  const Size N  = disort_settings.layer_count();
+  const Index F = disort_settings.frequency_count();
   const Index L = disort_settings.legendre_polynomial_dimension;
 
   ARTS_USER_ERROR_IF(
       (N + 1) != ray_path_phase_matrix_scattering_spectral.size(),
       R"(The number of levels in ray_path_phase_matrix_scattering_spectral must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay + 1:                         {}
+  disort_settings.layer_count() + 1:                         {}
   ray_path_phase_matrix_scattering_spectral.size(): {}
 )",
       N,
@@ -537,14 +537,14 @@ void disort_settingsSingleScatteringAlbedoFromPath(
     const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
   ARTS_TIME_REPORT
 
-  const Size N  = disort_settings.nlay;
-  const Index F = disort_settings.nfreq;
+  const Size N  = disort_settings.layer_count();
+  const Index F = disort_settings.frequency_count();
 
   ARTS_USER_ERROR_IF(
       (N + 1) != ray_path_propagation_matrix.size(),
       R"(The number of levels in ray_path_propagation_matrix must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay:                          {}
+  disort_settings.layer_count():                          {}
   ray_path_propagation_matrix.size(): {}
 )",
       N,
@@ -554,7 +554,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       (N + 1) != ray_path_propagation_matrix_scattering.size(),
       R"(The number of levels in ray_path_propagation_matrix_scattering must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay:                          {}
+  disort_settings.layer_count():                          {}
   ray_path_propagation_matrix_scattering.size(): {}
 )",
       N,
@@ -564,7 +564,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       (N + 1) != ray_path_absorption_vector_scattering.size(),
       R"(The number of levels in ray_path_absorption_vector_scattering must be one more than the number of layers in disort_settings.
 
-  disort_settings.nlay:                         {}
+  disort_settings.layer_count():                         {}
   ray_path_absorption_vector_scattering.size(): {}
 )",
       N,

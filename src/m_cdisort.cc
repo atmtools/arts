@@ -61,7 +61,7 @@ void setup_cdisort(disort_state& ds,
   ds.flag.general_source = FALSE;
   ds.flag.output_uum     = FALSE;
 
-  ds.nlyr = static_cast<int>(disort_settings.nlay);  // pressure.nelem() - 1
+  ds.nlyr = static_cast<int>(disort_settings.layer_count());  // pressure.nelem() - 1
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -218,8 +218,8 @@ void disort_spectral_radiance_fieldCalcCdisort(
 
   using Conversion::acosd;
 
-  const Index nv    = disort_settings.nfreq;
-  const Index np    = disort_settings.nlay;
+  const Index nv    = disort_settings.frequency_count();
+  const Index np    = disort_settings.layer_count();
   const Index nquad = disort_settings.quadrature_dimension;
 
   disort_spectral_radiance_field.resize(nv, np, phis.size(), nquad);

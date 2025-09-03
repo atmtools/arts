@@ -15,6 +15,14 @@
 #include <vector>
 
 namespace disort {
+void fluxes::resize(AscendingGrid f, DescendingGrid a) {
+  frequency_grid = std::move(f);
+  altitude_grid  = std::move(a);
+  up.resize(frequency_grid.size(), altitude_grid.size() - 1);
+  down_diffuse.resize(frequency_grid.size(), altitude_grid.size() - 1);
+  down_direct.resize(frequency_grid.size(), altitude_grid.size() - 1);
+}
+
 void BDRF::operator()(MatrixView x,
                       const ConstVectorView& a,
                       const ConstVectorView& b) const {
@@ -1510,13 +1518,16 @@ void main_data::ungridded_u(Tensor3View out,
 void DisortSettings::resize(Index quadrature_dimension_,
                             Index legendre_polynomial_dimension_,
                             Index fourier_mode_dimension_,
-                            Index nfreq_,
-                            Index nlay_) {
+                            AscendingGrid f_grid,
+                            DescendingGrid alt_grid) {
   quadrature_dimension          = quadrature_dimension_;
   legendre_polynomial_dimension = legendre_polynomial_dimension_;
   fourier_mode_dimension        = fourier_mode_dimension_;
-  nfreq                         = nfreq_;
-  nlay                          = nlay_;
+  const Size nfreq              = f_grid.size();
+  const Size nlay               = alt_grid.size() - 1;
+
+  frequency_grid = std::move(f_grid);
+  altitude_grid  = std::move(alt_grid);
 
   solar_source.resize(nfreq);
   solar_zenith_angle.resize(nfreq);
@@ -1534,6 +1545,9 @@ void DisortSettings::resize(Index quadrature_dimension_,
 }
 
 void DisortSettings::check() const {
+  const Index nfreq = frequency_grid.size();
+  const Index nlay  = altitude_grid.size() - 1;
+
   ARTS_USER_ERROR_IF(
       solar_source.shape() != std::array{nfreq} or
           solar_zenith_angle.shape() != std::array{nfreq} or
@@ -1570,7 +1584,7 @@ Also note that the reduced Legendre polynomial dimension is {}.  It must be at m
 disort::main_data DisortSettings::init() const try {
   check();
   return disort::main_data(
-      nlay,
+      altitude_grid.size() - 1,
       quadrature_dimension,
       legendre_coefficients.ncols(),
       fourier_mode_dimension,
@@ -1670,8 +1684,8 @@ void xml_io_stream<DisortSettings>::read(std::istream& is_xml,
   xml_read_from_stream(is_xml, v.quadrature_dimension, pbifs);
   xml_read_from_stream(is_xml, v.legendre_polynomial_dimension, pbifs);
   xml_read_from_stream(is_xml, v.fourier_mode_dimension, pbifs);
-  xml_read_from_stream(is_xml, v.nfreq, pbifs);
-  xml_read_from_stream(is_xml, v.nlay, pbifs);
+  xml_read_from_stream(is_xml, v.frequency_grid, pbifs);
+  xml_read_from_stream(is_xml, v.altitude_grid, pbifs);
   xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_source, pbifs);
@@ -1707,8 +1721,8 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
                       "legendre_polynomial_dimension");
   xml_write_to_stream(
       os_xml, v.fourier_mode_dimension, pbofs, "fourier_mode_dimension");
-  xml_write_to_stream(os_xml, v.nfreq, pbofs, "nfreq");
-  xml_write_to_stream(os_xml, v.nlay, pbofs, "nlay");
+  xml_write_to_stream(os_xml, v.frequency_grid, pbofs, "nfreq");
+  xml_write_to_stream(os_xml, v.altitude_grid, pbofs, "nlay");
   xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solaz");
   xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solza");
   xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");

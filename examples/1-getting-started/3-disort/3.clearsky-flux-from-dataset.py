@@ -68,7 +68,7 @@ if not pyarts.arts.globals.data.is_lgpl:
     ws.disort_spectral_flux_fieldFromAgenda()
 
     plt.semilogy(pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
-                ws.disort_spectral_flux_field[:, 1])
+                ws.disort_spectral_flux_field.down_diffuse)
 
     f, s = pyarts.plots.AtmField.plot(ws.atmospheric_field,
                             alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere))
