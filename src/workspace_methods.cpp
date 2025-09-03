@@ -5300,8 +5300,8 @@ This is WIP and should not be used.
                     "disort_quadrature_weights"},
       .in        = {"disort_settings"},
       .gin       = {"phis"},
-      .gin_type  = {"Vector"},
-      .gin_value = {Vector{0.0}},
+      .gin_type  = {"AzimuthGrid"},
+      .gin_value = {AzimuthGrid{{0.0}}},
       .gin_desc  = {"The azimuthal angles"},
   };
 
@@ -5321,8 +5321,8 @@ CDisort is only included for testing and comparisons with our own disort impleme
                     "ray_path",
                     "surface_field"},
       .gin       = {"phis"},
-      .gin_type  = {"Vector"},
-      .gin_value = {Vector{0.0}},
+      .gin_type  = {"AzimuthGrid"},
+      .gin_value = {AzimuthGrid{{0.0}}},
       .gin_desc  = {"The azimuthal angles"},
   };
 #endif

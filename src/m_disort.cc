@@ -5,13 +5,6 @@
 
 #include <algorithm>
 #include <format>
-#include <numeric>
-#include <vector>
-
-#include "arts_constants.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "path_point.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Core Disort
@@ -21,7 +14,7 @@ void disort_spectral_radiance_fieldCalc(Tensor4& disort_spectral_radiance_field,
                                         Vector& disort_quadrature_angles,
                                         Vector& disort_quadrature_weights,
                                         const DisortSettings& disort_settings,
-                                        const Vector& phis) {
+                                        const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
   using Conversion::acosd;

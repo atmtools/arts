@@ -107,7 +107,7 @@ void setup_cdisort(disort_state& ds,
 void setup_cdisort_for_frequency(
     disort_state& ds,
     const disort::main_data& dis,
-    const Vector& phis,
+    const AzimuthGrid& phis,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const Numeric& frequency) {
   // fill up azimuth angle and temperature array
@@ -213,7 +213,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
     const ArrayOfPropagationPathPoint& ray_path,
     const SurfaceField& surface_field,
-    const Vector& phis) {
+    const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
   using Conversion::acosd;
