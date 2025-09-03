@@ -87,8 +87,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .methods = {"ray_pathFromPointAndDepth",
                   "disort_spectral_radiance_fieldFromAgenda"},
       .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature_angles",
-                  "disort_quadrature_weights",
+                  "disort_quadrature",
                   "ray_path"},
   });
 

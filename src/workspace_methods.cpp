@@ -5402,7 +5402,6 @@ Sets both upper and lower bounds.
       .author = {"Richard Larsson"},
       .out    = {"disort_spectral_radiance_field"},
       .in     = {"disort_spectral_radiance_field",
-                 "frequency_grid",
                  "ray_path_point",
                  "spectral_radiance_transform_operator"},
   };

@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <format>
 
+#include "lagrange_interp.h"
+#include "path_point.h"
+
 ////////////////////////////////////////////////////////////////////////
 // Core Disort
 ////////////////////////////////////////////////////////////////////////
@@ -108,20 +111,21 @@ void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
 }
 
 void disort_spectral_radiance_fieldApplyUnit(
-    Tensor4& disort_spectral_radiance_field,
-    const AscendingGrid& frequency_grid,
+    DisortRadiance& disort_spectral_radiance_field,
     const PropagationPathPoint& ray_path_point,
     const SpectralRadianceTransformOperator&
         spectral_radiance_transform_operator) try {
   ARTS_TIME_REPORT
 
-  StokvecVector spectral_radiance(frequency_grid.size());
-  StokvecMatrix spectral_radiance_jacobian(0, frequency_grid.size());
+  StokvecVector spectral_radiance(
+      disort_spectral_radiance_field.frequency_grid.size());
+  StokvecMatrix spectral_radiance_jacobian(
+      0, disort_spectral_radiance_field.frequency_grid.size());
 
-  const Index nv = disort_spectral_radiance_field.nbooks();
-  const Index np = disort_spectral_radiance_field.npages();
-  const Index nz = disort_spectral_radiance_field.nrows();
-  const Index nq = disort_spectral_radiance_field.ncols();
+  const Index nv = disort_spectral_radiance_field.data.nbooks();
+  const Index np = disort_spectral_radiance_field.data.npages();
+  const Index nz = disort_spectral_radiance_field.data.nrows();
+  const Index nq = disort_spectral_radiance_field.data.ncols();
 
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3) \
     firstprivate(spectral_radiance, spectral_radiance_jacobian)
@@ -129,14 +133,17 @@ void disort_spectral_radiance_fieldApplyUnit(
     for (Index j = 0; j < nz; j++) {
       for (Index k = 0; k < nq; k++) {
         for (Index v = 0; v < nv; v++) {
-          spectral_radiance[v][0] = disort_spectral_radiance_field[v, i, j, k];
+          spectral_radiance[v][0] =
+              disort_spectral_radiance_field.data[v, i, j, k];
         }
-        spectral_radiance_transform_operator(spectral_radiance,
-                                             spectral_radiance_jacobian,
-                                             frequency_grid,
-                                             ray_path_point);
+        spectral_radiance_transform_operator(
+            spectral_radiance,
+            spectral_radiance_jacobian,
+            disort_spectral_radiance_field.frequency_grid,
+            ray_path_point);
         for (Index v = 0; v < nv; v++) {
-          disort_spectral_radiance_field[v, i, j, k] = spectral_radiance[v][0];
+          disort_spectral_radiance_field.data[v, i, j, k] =
+              spectral_radiance[v][0];
         }
       }
     }

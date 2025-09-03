@@ -476,7 +476,7 @@ void disort_settingsSubsurfaceScalarAbsorption(
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
-  const Index N = disort_settings.nlay;
+  const Index N = disort_settings.layer_count();
 
   ARTS_USER_ERROR_IF(ray_path.size() != subsurface_profile.size() or
                          subsurface_profile.size() != static_cast<Size>(N + 1),
@@ -579,7 +579,7 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
     const ArrayOfSubsurfacePoint& subsurface_profile) {
   ARTS_TIME_REPORT
 
-  const Index N = disort_settings.nlay;
+  const Index N = disort_settings.layer_count();
 
   if (N == 0) return;
 

@@ -41,5 +41,5 @@ ws.disort_spectral_radiance_fieldApplyUnit()
 
 T = np.array([ws.subsurface_field["t"](zs, 0, 0) for zs in z])
 for i in range(NQUAD):
-    plt.plot(ws.disort_spectral_radiance_field[0, :, 0, i], z[:-1], alpha=0.3)
+    plt.plot(ws.disort_spectral_radiance_field.data[0, :, 0, i], z[:-1], alpha=0.3)
 plt.plot(T, z, lw=3, color="k", label="T")
