@@ -109,7 +109,7 @@ struct format_tags {
   [[nodiscard]] std::string vformat(const Ts&... xs) const
     requires(sizeof...(Ts) > 1)
   {
-    return (vformat(xs) + ...);
+    return (... + vformat(xs));
   }
 };
 

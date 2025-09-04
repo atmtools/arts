@@ -23,9 +23,8 @@ struct species_model {
   template <LineShapeModelVariable... V>
   std::vector<std::pair<LineShapeModelVariable, temperature::data>>::size_type
   remove_variables() {
-    return (
-        std::erase_if(data, [v = V](const auto& x) { return x.first == v; }) +
-        ...);
+    return (... +
+        std::erase_if(data, [v = V](const auto& x) { return x.first == v; }));
   }
 
 #define VARIABLE(name) \

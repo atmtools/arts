@@ -882,7 +882,7 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
     out += std::apply(
         [&](auto&&... i) {
-          return field[lags.indx[i]...] * (lags.data[i] * ...);
+          return (field[lags.indx[i]...] * ... * lags.data[i]);
         },
         s);
   }
@@ -1063,7 +1063,7 @@ constexpr void interpweights(matpack::mut_ranked_md<N> auto&& itw,
                              const FlagTs&... lags) {
   const std::array<Index, N> n{itw.shape()};
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { itw[i...] = (lags.data[i] * ...); }, s);
+    std::apply([&](auto&&... i) { itw[i...] = (... * lags.data[i]); }, s);
   }
 }
 

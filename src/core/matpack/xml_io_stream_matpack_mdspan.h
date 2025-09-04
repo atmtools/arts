@@ -151,13 +151,13 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
     requires(xml_io_parseable<T>)
   {
     inner::parse(
-        std::span{reinterpret_cast<T*>(v.data()), v.size() * (N * ...)}, is);
+        std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)}, is);
   }
 
   static void get(std::span<matpack::cdata_t<T, N...>> v, bifstream* pbifs)
     requires(xml_io_binary<T>)
   {
-    inner::get(std::span{reinterpret_cast<T*>(v.data()), v.size() * (N * ...)},
+    inner::get(std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)},
                pbifs);
   }
 
@@ -166,7 +166,7 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
     requires(xml_io_binary<T>)
   {
     inner::put(
-        std::span{reinterpret_cast<const T*>(v.data()), v.size() * (N * ...)},
+        std::span{reinterpret_cast<const T*>(v.data()), (v.size() * ... * N)},
         pbofs);
   }
 
