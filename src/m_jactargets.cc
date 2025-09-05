@@ -124,18 +124,21 @@ void jacobian_targetsAddOverlappingMagneticField(
     JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  const auto f = stdr::find_if(jacobian_targets.atm, Jacobian::is_mag);
+  const auto fptr = stdr::find_if(jacobian_targets.atm, Jacobian::is_mag);
 
-  ARTS_USER_ERROR_IF(f == jacobian_targets.atm.end(),
+  ARTS_USER_ERROR_IF(fptr == jacobian_targets.atm.end(),
                      "Cannot find original magnetic field for component");
 
-  const AtmKey component = std::get<AtmKey>(f->type);
+  const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size N           = jacobian_targets.target_count();
 
-  jacobian_targets.atm.emplace_back(*f);
-  jacobian_targets.atm.back().overlap     = true;
-  jacobian_targets.atm.back().overlap_key = component;
-  jacobian_targets.atm.back().target_pos  = N;
+  // Must copy because emplace_back destroys the pointer
+  auto copy        = *fptr;
+  copy.overlap     = true;
+  copy.overlap_key = component;
+  copy.target_pos  = N;
+
+  jacobian_targets.atm.emplace_back(copy);
   switch (component) {
     using enum AtmKey;
     case mag_u: jacobian_targets.atm.back().type = mag_v; break;
@@ -144,10 +147,8 @@ void jacobian_targetsAddOverlappingMagneticField(
     default:    throw std::out_of_range("Invalid state");
   }
 
-  jacobian_targets.atm.emplace_back(*f);
-  jacobian_targets.atm.back().overlap     = true;
-  jacobian_targets.atm.back().overlap_key = component;
-  jacobian_targets.atm.back().target_pos  = N + 1;
+  copy.target_pos = N + 1;
+  jacobian_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
     case mag_u:
@@ -174,18 +175,21 @@ void jacobian_targetsAddOverlappingWindField(
     JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  const auto f = stdr::find_if(jacobian_targets.atm, Jacobian::is_wind);
+  const auto fptr = stdr::find_if(jacobian_targets.atm, Jacobian::is_wind);
 
-  ARTS_USER_ERROR_IF(f == jacobian_targets.atm.end(),
+  ARTS_USER_ERROR_IF(fptr == jacobian_targets.atm.end(),
                      "Cannot find original wind field for component");
 
-  const AtmKey component = std::get<AtmKey>(f->type);
+  const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size N           = jacobian_targets.target_count();
 
-  jacobian_targets.atm.emplace_back(*f);
-  jacobian_targets.atm.back().overlap     = true;
-  jacobian_targets.atm.back().overlap_key = component;
-  jacobian_targets.atm.back().target_pos  = N;
+  // Must copy because emplace_back destroys the pointer
+  auto copy        = *fptr;
+  copy.overlap     = true;
+  copy.overlap_key = component;
+  copy.target_pos  = N;
+
+  jacobian_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
     case wind_u: jacobian_targets.atm.back().type = wind_v; break;
@@ -194,10 +198,8 @@ void jacobian_targetsAddOverlappingWindField(
     default:     throw std::out_of_range("Invalid state");
   }
 
-  jacobian_targets.atm.emplace_back(*f);
-  jacobian_targets.atm.back().overlap     = true;
-  jacobian_targets.atm.back().overlap_key = component;
-  jacobian_targets.atm.back().target_pos  = N + 1;
+  copy.target_pos = N + 1;
+  jacobian_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
     case wind_u:

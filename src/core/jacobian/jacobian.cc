@@ -822,27 +822,33 @@ but the measurement_vector will only have {} element by the measurement_sensor.
 }
 
 AtmTarget& Targets::emplace_back(AtmKeyVal&& t, Numeric d) {
-  return atm.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return atm.emplace_back(std::move(t), d, n);
 }
 
 SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
-  return surf.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return surf.emplace_back(std::move(t), d, n);
 }
 
 SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
-  return subsurf.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return subsurf.emplace_back(std::move(t), d, n);
 }
 
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
-  return line.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return line.emplace_back(std::move(t), d, n);
 }
 
 SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
-  return sensor.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return sensor.emplace_back(std::move(t), d, n);
 }
 
 ErrorTarget& Targets::emplace_back(ErrorKey&& t, Numeric d) {
-  return error.emplace_back(std::move(t), d, target_count());
+  const auto n = target_count();
+  return error.emplace_back(std::move(t), d, n);
 }
 
 AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) {
