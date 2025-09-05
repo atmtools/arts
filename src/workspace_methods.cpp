@@ -3863,7 +3863,7 @@ if the method should throw if the pressure or temperature is missing.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3893,7 +3893,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
-See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names.
+See *absorption_speciesSet* for valid isotopologue names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3923,8 +3923,8 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
-See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names and
-:class:`~pyarts3.arts.QuantumNumberValue` for valid quantum numbers.
+See *absorption_speciesSet* for valid isotopologue names and
+*QuantumLevelIdentifier* for constructing quantum numbers identifiers.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3954,7 +3954,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3984,7 +3984,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4014,7 +4014,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4044,7 +4044,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4074,7 +4074,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.  Will also append H2O VMR if available as some predefined models requires it.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4100,9 +4100,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
       .desc =
-          R"--(Append data to the atmospheric field based all absorption data
-
-See *InterpolationExtrapolation* for valid ``extrapolation``.
+          R"--(Append data to the atmospheric field based on available absorption data.
 
 Wraps:
 
@@ -4114,6 +4112,8 @@ Wraps:
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
+
+See these individually for more details.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
