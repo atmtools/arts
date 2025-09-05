@@ -96,10 +96,6 @@
       }
     },
     {
-      "name": "nofortran-gcc-conda",
-      "inherits": "default-gcc-conda"
-    },
-    {
       "name": "lgpl-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {

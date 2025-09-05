@@ -5,6 +5,7 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - compiler-rt
         - doxygen
         - docutils
         - graphviz
@@ -12,7 +13,6 @@ dependencies:
         - fast_float
         - fftw
         - gcc
-        - gfortran
         - gmp
         - gxx
         - ipykernel
@@ -22,7 +22,7 @@ dependencies:
         - libcxx-devel
         - libopenblas=*=*openmp*
         - llvm-openmp
-        - nanobind < 2.5.0
+        - nanobind=2.9
         - nbsphinx
         - matplotlib
         - netcdf4

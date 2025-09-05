@@ -9,9 +9,6 @@
 /* Compiler */
 #cmakedefine ARTS_COMPILER "${ARTS_COMPILER}"
 
-/* Compiler */
-#cmakedefine FORTRAN_COMPILER "${FORTRAN_COMPILER}"
-
 /* Default directory for ARTS include files */
 #cmakedefine ARTS_SOURCE_DIR "${ARTS_SOURCE_DIR}"
 

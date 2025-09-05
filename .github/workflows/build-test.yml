@@ -41,16 +41,6 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: linux-nofortran-gcc
-            os: ubuntu-24.04
-            preset: nofortran-gcc-conda
-            pyarts: "yes"
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 4
-            jcheck: 2
-
           - name: linux-lgpl-gcc
             os: ubuntu-24.04
             preset: lgpl-gcc-conda

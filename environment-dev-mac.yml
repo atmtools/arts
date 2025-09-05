@@ -4,22 +4,23 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - compiler-rt
         - docutils
         - doxygen
         - eigen
         - fast_float
         - fftw
-        - gfortran
         - graphviz
         - ipykernel
         - lark-parser
+        - ld64
         - libclang
         - libcxx
         - libcxx-devel
         - libmicrohttpd
         - llvm-openmp
         - matplotlib
-        - nanobind < 2.5.0
+        - nanobind=2.9
         - nbsphinx
         - netcdf4
         - ninja
