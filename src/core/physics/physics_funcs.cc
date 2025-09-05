@@ -123,6 +123,24 @@ void fresnel(Complex& Rv,
   Rh = (a - b) / (a + b);
 }
 
+std::pair<Complex, Complex> fresnel(const Complex& n1,
+                                    const Complex& n2,
+                                    const Numeric& theta) {
+  const Numeric theta1    = DEG2RAD * theta;
+  const Numeric costheta1 = std::cos(theta1);
+  const Numeric sintheta2 = n1.real() * std::sin(theta1) / n2.real();
+
+  if (nonstd::abs(sintheta2) > 1.0) return {1.0, 1.0};
+
+  const Numeric costheta2 = std::cos(std::asin(sintheta2));
+  const Complex a         = n2 * costheta1;
+  const Complex b         = n1 * costheta2;
+  const Complex c         = n1 * costheta1;
+  const Complex d         = n2 * costheta2;
+
+  return {(a - b) / (a + b), (c - d) / (c + d)};
+}
+
 /** invplanck
  *
  * Converts a radiance to Planck brightness temperature.

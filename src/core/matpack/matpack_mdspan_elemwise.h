@@ -154,9 +154,9 @@ struct elemwise {
   elemwise_iteration d;
   Index len;
   constexpr elemwise(iters&... x)
-      : d(x...), len(static_cast<Index>((x.size() * ...))) {}
+      : d(x...), len(static_cast<Index>((... * x.size()))) {}
   constexpr elemwise(const iters&... x)
-      : d(x...), len(static_cast<Index>((x.size() * ...))) {}
+      : d(x...), len(static_cast<Index>((... * x.size()))) {}
   constexpr auto begin() { return d; }
   constexpr auto end() { return d + len; }
   constexpr auto begin() const { return d; }

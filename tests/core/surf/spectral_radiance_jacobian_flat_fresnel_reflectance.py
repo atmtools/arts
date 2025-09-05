@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 PLOT = False  # Plot for debug
 LIMIT = 50  # Rerun limit for finding a fit
-ATOL = 5
+ATOL = 0.5
 NF = 11
 noise = 0.5
 
@@ -42,15 +42,15 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_surface_agendaSet(option="SurfaceReflectance")
-ws.surface_reflectance_agendaSet(option="FlatScalar")
+ws.surface_reflectance_agendaSet(option="FlatRealFresnel")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Surface
 
 ts = 295.0
-rs = 0.5
+n2 = 1.5
 ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surface_field["scalar refractive index"] = n2
 
 pos = [110e3, 0, 0]
 los = [160.0, 30.0]
@@ -73,7 +73,7 @@ for i in range(LIMIT):
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["t"] = ts + 30
+    ws.surface_field["t"] = ts - 30
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -100,28 +100,28 @@ print("Temperature retrieval successful\n")
 # %% Artificial Surface Reset
 
 ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surface_field["scalar refractive index"] = n2
 
 # %% Retrieval agenda
 
 ws.RetrievalInit()
 ws.RetrievalAddSurface(
-    target = "flat scalar reflectance", matrix=np.diag(np.ones((1)) * 1)
+    target = "scalar refractive index", matrix=np.diag(np.ones((1)) * 1)
 )
 ws.RetrievalFinalizeDiagonal()
 
 fail = True
 
-print("Retrieving flat scalar reflectance")
+print("Retrieving scalar refractive index")
 for i in range(LIMIT):
-    ws.surface_field["flat scalar reflectance"] = rs
+    ws.surface_field["scalar refractive index"] = n2
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["flat scalar reflectance"] = rs + 0.3
+    ws.surface_field["scalar refractive index"] = n2 + 0.3
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -129,13 +129,13 @@ for i in range(LIMIT):
 
     ws.OEM(method="gn")
 
-    absdiff = round(100*abs(rs - ws.model_state_vector[0]), 2)
+    absdiff = round(abs(n2 - ws.model_state_vector[0]), 2)
 
     print(
-        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vector[0], 2)} %, AbsDiff {absdiff} %"
+        f"'scalar refractive index'-component: Input {n2}, Output {round(ws.model_state_vector[0], 2)}, AbsDiff {absdiff}"
     )
     if absdiff >= ATOL:
-        print(f"AbsDiff not less than {ATOL} %, rerunning with new random noise")
+        print(f"AbsDiff not less than {ATOL}, rerunning with new random noise")
         continue
     else:
         fail = False
@@ -143,18 +143,18 @@ for i in range(LIMIT):
 
 assert not fail
 
-print("Flat scalar reflectance retrieval successful\n")
+print("Flat refractive index retrieval successful\n")
 
 # %% Artificial Surface Reset
 
 ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surface_field["scalar refractive index"] = n2
 
 # %% Retrieval agenda
 
 ws.RetrievalInit()
 ws.RetrievalAddSurface(
-    target = "flat scalar reflectance", matrix=np.diag(np.ones((1)) * 1)
+    target = "scalar refractive index", matrix=np.diag(np.ones((1)) * 1)
 )
 ws.RetrievalAddSurface(
     target = "t", matrix=np.diag(np.ones((1)) * 1000)
@@ -163,11 +163,11 @@ ws.RetrievalFinalizeDiagonal()
 
 fail = True
 
-print("Retrieving flat scalar reflectance and temperature")
+print("Retrieving scalar refractive index and temperature")
 ATOL = 10
 for i in range(LIMIT):
     ws.surface_field["t"] = ts
-    ws.surface_field["flat scalar reflectance"] = rs
+    ws.surface_field["scalar refractive index"] = n2
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
@@ -175,7 +175,7 @@ for i in range(LIMIT):
     ws.measurement_jacobian = [[]]
 
     ws.surface_field["t"] = ts + 35
-    ws.surface_field["flat scalar reflectance"] = rs + 0.3
+    ws.surface_field["scalar refractive index"] = n2 + 0.3
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -183,11 +183,11 @@ for i in range(LIMIT):
 
     ws.OEM(method="gn")
 
-    absdiff_rs = round(100*abs(rs - ws.model_state_vector[0]), 2)
+    absdiff_rs = round(abs(n2 - ws.model_state_vector[0]), 2)
     absdiff_ts = round(abs(ts - ws.model_state_vector[1]), 2)
 
     print(
-        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vector[0], 2)} %, AbsDiff {absdiff_rs} %"
+        f"'scalar refractive index'-component: Input {n2}, Output {round(ws.model_state_vector[0], 2)}, AbsDiff {absdiff_rs}"
     )
     print(
         f"t-component: Input {ts} K, Output {round(ws.model_state_vector[1], 2)} K, AbsDiff {absdiff_ts} K"
@@ -201,4 +201,4 @@ for i in range(LIMIT):
 
 assert not fail
 
-print("Flat scalar reflectance and temperature retrieval successful\n")
+print("Flat refractive index and temperature retrieval successful\n")

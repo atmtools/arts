@@ -200,9 +200,9 @@ add_library(artsworkspace STATIC
   m_spectral_flux.cc
   m_spectral_radiance.cc
   m_spectral_radiance_field.cc
+  m_subsurface.cc
   m_sun.cc
-  m_surf.cc
-  m_surface_spectral_radiance.cc
+  m_surface.cc
   m_wigner.cc
   m_xml.cc
   sun_methods.cc

@@ -2,6 +2,8 @@
 
 #include <format>
 
+using namespace std::literals;
+
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
@@ -112,7 +114,7 @@ position and line of sight.
 
   wsa_data["spectral_radiance_observer_agenda"] = {
       .desc =
-          R"--(Spectral radiance as seen from the input position and environment
+          R"--(Spectral radiance as seen from the input position and environment.
 
 The intent of this agenda is to provide the spectral radiance as seen from the observer
 position and line of sight.
@@ -129,7 +131,7 @@ is warranted
                  "atmospheric_field",
                  "surface_field",
                  "subsurface_field"},
-      .enum_options = {"Emission"},
+      .enum_options = {"Emission", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {
@@ -172,7 +174,7 @@ The input path point should be as if it is looking at space.
       }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc         = R"--(Spectral radiance as seen of the surface.
+      .desc               = R"--(Spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -181,14 +183,14 @@ The input path point should be as if it is looking at the surface.
 
 Subsurface calculations are also supported through this agenda.
 )--",
-      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input        = {"frequency_grid",
-                       "jacobian_targets",
-                       "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
-      .enum_options = {"Blackbody", "Transmission", "FlatScalarReflectance"},
-      .enum_default = "Blackbody",
+      .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .input              = {"frequency_grid",
+                             "jacobian_targets",
+                             "ray_path_point",
+                             "surface_field",
+                             "subsurface_field"},
+      .enum_options       = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .enum_default       = "Blackbody",
       .output_constraints = {
           {"spectral_radiance.size() == frequency_grid.size()",
            "On output, *spectral_radiance* has the size of *frequency_grid*.",
@@ -271,8 +273,30 @@ it does a lot of unnecessary checks and operations that are not always needed.
           },
   };
 
+  wsa_data["surface_reflectance_agenda"] = {
+      .desc         = R"--(An agenda to compute the surface reflectance.
+)--",
+      .output       = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .input        = {"frequency_grid",
+                       "surface_field",
+                       "ray_path_point",
+                       "jacobian_targets"},
+      .enum_options = {"FlatScalar", "FlatRealFresnel"},
+      .output_constraints = {
+          {"surface_reflectance.size() == frequency_grid.size()",
+           "*surface_reflectance* match *frequency_grid* size",
+           "surface_reflectance.size()",
+           "frequency_grid.size()"},
+          {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, surface_reflectance_jacobian)",
+           "*surface_reflectance_jacobian* match *jacobian_targets* target count and *frequency_grid* size",
+           "jacobian_targets.target_count()",
+           "frequency_grid.size()",
+           "surface_reflectance_jacobian.shape()"}}};
+
   wsa_data["disort_settings_agenda"] = {
       .desc   = R"--(An agenda for setting up Disort.
+
+See *disort_settings_agendaSetup* for prepared agenda settings.
 
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
@@ -282,24 +306,36 @@ scenarios.  The output of this Agenda is just that setting.
                  "ray_path",
                  "disort_quadrature_dimension",
                  "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
-  };
+                 "disort_legendre_polynomial_dimension"}};
 
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
     record.desc += std::format(R"(
-It is possible to execute *{0}* directly from the workspace by calling *{0}Execute*.
+.. rubric:: Execution and customization
+)");
 
-As all agendas in ARTS, *{0}* is also customizable via its operator helper class: *{0}Operator*.
+    if (not record.enum_options.empty()) {
+      record.desc += std::format(
+          "See *{}Set* for builtin options that selects execution options.\n",
+          name);
+    }
+
+    record.desc += std::format(R"(
+You can execute *{0}* directly from the workspace by calling *{0}Execute*.
+
+As all agendas in ARTS, it is also customizable via its operator helper class: *{0}Operator*.
 See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
+
+Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully define an agenda in python.
 )",
                                name);
     if (not record.output_constraints.empty()) {
-      record.desc += std::format(R"(
-*{0}* have these constraints ():
+      record.desc +=
+          std::format(R"(
+.. rubric:: Constraint{0}
 
 )",
-                                 name);
+                      record.output_constraints.size() > 1 ? "s"sv : ""sv);
       for (auto& c : record.output_constraints) {
         record.desc += std::format("#. {}\n", c.constraint);
       }
@@ -313,5 +349,14 @@ See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas() {
   static const auto out = internal_workspace_agendas_creator();
+  return out;
+}
+
+std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
+  std::unordered_map<std::string, std::string> out;
+
+  out["spectral_radiance_closed_surface_agenda"] =
+      "spectral_radiance_surface_agenda";
+
   return out;
 }

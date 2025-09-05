@@ -8,24 +8,46 @@ namespace rtepack {
 /** Reflect and emit a Stokes vector
  * 
  * The reflection is scalar, i.e. the same for all Stokes components.
- * To maintain R + E = 1, (1 - R) * B is added to the I() component.
+ * To maintain R + E = 1, (1 - R) * B is added as emission.  Named B
+ * because this is often the Planck emission
  * 
  * Circular polarization is mirrored.
  * 
  * @param I Incoming radiation
  * @param R Scalar reflection
- * @param T Surface temperature
- * @param f Frequency of incoming radiation
- * @return  Outgoing radiation
+ * @param B Vector emission
+ * @return  Outgoing radiation - R I + (1 - R) B
  */
-stokvec flat_scalar_reflection(stokvec I, const Numeric R, const Numeric B);
+stokvec flat_scalar_reflection(stokvec I, const Numeric R, const stokvec B);
 
-/** See flat_scalar_reflection, this is just the reflection part. */
-stokvec flat_scalar_reflection_pure_reflect(stokvec I, const Numeric R);
+/** First order partial derivative wrt reflection of flat_scalar_reflection
+ * 
+ * @param I Incoming radiation
+ * @param B Vector emission
+ * @return  Outgoing first order radiation
+ */
+stokvec dflat_scalar_reflection_dr(stokvec I, const stokvec B);
 
-/** See flat_scalar_reflection, this is the dRdx part. */
-stokvec dflat_scalar_reflection_dr(stokvec I, const Numeric dRdx, const Numeric B);
+/** Fresnel style reflectance matrix
+ *
+ *  @param[out]  Rv    Reflection AMPLITUDE coefficient for vertical polarisation.
+ *  @param[out]  Rh    Reflection AMPLITUDE coefficient for vertical polarisation.
+ */
+muelmat fresnel_reflectance(Complex Rv, Complex Rh);
 
-/** See flat_scalar_reflection, this is the dBdx part. */
-stokvec dflat_scalar_reflection_db(const Numeric R, const Numeric dBdx);
+/** Reflect and emit a Stokes vector
+ * 
+ * The reflection is scalar, i.e. the same for all Stokes components.
+ * To maintain R + E = 1, (1 - R) * B is added as emission.  Named B
+ * because this is often the Planck emission
+ * 
+ * Circular polarization is mirrored.
+ * 
+ * @param I Incoming radiation
+ * @param R Matrix reflection
+ * @param B Vector emission
+ * @return  Outgoing radiation - R I + (1 - R) B
+ */
+stokvec reflection(stokvec I, const muelmat R, const stokvec B);
+stokvec dreflection(stokvec I, const muelmat dR, const stokvec B);
 }  // namespace rtepack

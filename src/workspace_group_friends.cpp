@@ -164,6 +164,22 @@ so that reading routines can find the correct data files.
 )",
   };
 
+  wsg_data["SubsurfacePropertyTag"] = {
+      .file = "subsurface.h",
+      .desc = R"--(A custom property tag for subsurface fields data.
+)--",
+  };
+
+  wsg_data["SubsurfaceData"] = {
+      .file        = "subsurface.h",
+      .desc        = "A data structure for subsurface field information.\n",
+  };
+
+  wsg_data["SubsurfacePoint"] = {
+      .file        = "subsurface.h",
+      .desc        = "A point in the subsurface.\n",
+  };
+
   wsg_data["Sparse"] = {
       .file = "matpack_sparse.h",
       .desc = "A sparse version of *Matrix*\n",
@@ -228,11 +244,6 @@ to produce another *Numeric*.
     m = f(x, y)
 
 )--",
-  };
-
-  wsg_data["MuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A matrix of *Muelmat*.\n",
   };
 
   wsg_data["MatrixOfDisortBDRF"] = {

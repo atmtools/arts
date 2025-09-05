@@ -123,7 +123,7 @@ constexpr T einsum_reduce(const auto&... xs) {
   assert((good_sizes<cs...>(xs...)));
 
   if constexpr ((empty<cs>() and ...)) {
-    return (static_cast<T>(xs) * ...);
+    return (... * static_cast<T>(xs));
   } else {
     constexpr char first_char = find_first_char<cs...>();
     const Size n              = mddimsize<first_char, cs...>(xs...);

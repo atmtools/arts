@@ -359,9 +359,11 @@ A sub-surface field effectively holds two things:
 
 #. A *Numeric* of the deepest depth of the subsurface.  Unit: m
 
-#. A map of :class:`~pyarts3.arts.SubsurfaceData`.  The available types of keys are:
+#. A map of *SubsurfaceData*.  The available types of keys are:
 
    #. *SubsurfaceKey*
+
+   #. *SubsurfacePropertyTag*
 
    See each key for more information on what type of data it allows holding.
 )--",
@@ -409,6 +411,11 @@ The components of the Stokes vector are:
   wsg_data["MuelmatVector"] = {
       .file = "rtepack.h",
       .desc = "A vector of *Muelmat*.\n",
+  };
+
+  wsg_data["MuelmatMatrix"] = {
+      .file = "rtepack.h",
+      .desc = "A matrix of *Muelmat*.\n",
   };
 
   wsg_data["StokvecVector"] = {
@@ -486,6 +493,12 @@ The grids are 6 *AscendingGrid*.
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
 *AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
 )--",
+  };
+
+  wsg_data["ArrayOfSubsurfacePoint"] = {
+      .file        = "subsurface.h",
+      .desc        = "A list of *SubsurfacePoint*.\n",
+      .array_depth = 1,
   };
 
   wsg_data["ArrayOfPropmatVector"] = {

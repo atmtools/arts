@@ -2250,15 +2250,17 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "ray_path_point"},
   };
 
-  wsm_data["spectral_radianceFlatScalarReflectance"] = {
+  wsm_data["spectral_radianceSurfaceReflectance"] = {
       .desc =
-          R"--(Set surface spectral radiance from Planck function of the surface temperature and the reflectance of incoming radiation
+          R"--(Set surface spectral radiance to use sub-surface emission and Fresnel reflectance.
 
-Gets incoming radiation by placing an observer at the surface looking at the
-specular reflection of the outgoing radiation (as described by *ray_path_point*)
+The input path point must be close to the surface.
 
-The surface field must contain the surface temperature and the reflectance.
-The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectance".
+The *spectral_radiance_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain the surface refractive index.
+The refractive index lives under the *SurfacePropertyTag* key "scalar refractive index".
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
@@ -2268,7 +2270,9 @@ The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectanc
                          "subsurface_field",
                          "jacobian_targets",
                          "ray_path_point",
-                         "spectral_radiance_observer_agenda"},
+                         "spectral_radiance_observer_agenda",
+                         "spectral_radiance_closed_surface_agenda",
+                         "surface_reflectance_agenda"},
       .pass_workspace = true,
   };
 
@@ -2390,6 +2394,73 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
               "ray_path_point",
               "spectral_radiance_transform_operator",
           },
+  };
+
+  wsm_data["surface_reflectanceFlatRealFresnel"] = {
+      .desc =
+          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+
+.. math::
+    \begin{array}{lcr}
+        \theta_2 &=& \arcsin\left(\frac{\Re{n_1}}{\Re{n_2}}\sin{\theta_1}\right)\\[5pt]
+        R_v &=& \frac{n_2\cos\left(\theta_1\right) -
+                      n_1\cos\left(\theta_2\right)}
+                     {n_2\cos\left(\theta_1\right) +
+                      n_1\cos\left(\theta_2\right)}\\[5pt]
+        R_h &=& \frac{n_1\cos\left(\theta_1\right) -
+                      n_2\cos\left(\theta_2\right)}
+                     {n_1\cos\left(\theta_1\right) +
+                      n_2\cos\left(\theta_2\right)},
+    \end{array}
+
+where :math:`\theta_1` is the angle of incidence, :math:`\theta_2` is the angle of refraction, and
+:math:`n_1` and :math:`n_2` are the refractive indices of the two media.
+
+We get :math:`n_1` and :math:`\theta_1` from the *ray_path_point* and extracts
+:math:`n_2` from the *surface_field* parameter ``"scalar refractive index"``.
+
+The reflectance matrix is
+
+.. math::
+    \mathbf{R} = \frac{1}{2}\left[
+    \begin{array}{cccc}
+            R_v\overline{R_v} + R_h\overline{R_h} & R_v\overline{R_v} - R_h\overline{R_h} & 0 & 0 \\
+            R_v\overline{R_v} - R_h\overline{R_h} & R_v\overline{R_v} + R_h\overline{R_h} & 0 & 0 \\
+            0 & 0 & \Re\left(R_h\overline{R_v} + R_v\overline{R_h}\right) & \Im\left(R_h\overline{R_v} - R_v\overline{R_h}\right) \\
+            0 & 0 & \Im\left(R_v\overline{R_h} - R_h\overline{R_v}\right) & \Re\left(R_h\overline{R_v} + R_v\overline{R_h}\right) \\
+    \end{array}\right]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .in     = {"frequency_grid",
+                 "surface_field",
+                 "ray_path_point",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["surface_reflectanceFlatScalar"] = {
+      .desc =
+          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+
+We get :math:`r` from the *surface_field* parameter ``"flat scalar reflectance"``.
+
+The reflectance matrix is
+
+.. math::
+    \mathbf{R} = \left[
+    \begin{array}{cccc}
+            r&0&0&0\\
+            0&r&0&0\\
+            0&0&r&0\\
+            0&0&0&r\\
+    \end{array}\right]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .in     = {"frequency_grid",
+                 "surface_field",
+                 "ray_path_point",
+                 "jacobian_targets"},
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {
@@ -3689,6 +3760,18 @@ bad angles if this is turned off.
            "Wheter or not to keep only atmospheric points",
            "Whether or not to attempt fix a potential issue with the path azimuthal angle",
            "Whether or not to search for the surface intersection in a safer but slower manner"},
+  };
+
+  wsm_data["ray_pathFromPointAndDepth"] = {
+      .desc      = R"--(Create a depth profile ray path from a point.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path"},
+      .in        = {"ray_path_point"},
+      .gin       = {"depth_profile"},
+      .gin_type  = {"DescendingGrid"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"List of depths"},
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
@@ -5077,6 +5160,19 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
 
+  wsm_data["disort_settingsSubsurfaceScalarAbsorption"] = {
+      .desc      = R"(Get optical thickness from path.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings", "ray_path", "subsurface_profile"},
+      .gin       = {"min_optical_depth"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e-11}},
+      .gin_desc =
+          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
+  };
+
   wsm_data["disort_settings_agendaSetup"] = {
       .desc =
           R"--(Setup for Disort standard calculations.
@@ -5117,6 +5213,28 @@ A description of the options is given below.
            "Surface settings",
            "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)",
            wsm_data["disort_settingsOpticalThicknessFromPath"].gin_desc[0]},
+  };
+
+  wsm_data["disort_settings_agendaSubsurfaceSetup"] = {
+      .desc =
+          R"--(Setup for Disort subsurface calculations.
+
+This method allows setting up *disort_settings_agenda* by named options.
+A description of the options is given below.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings_agenda"},
+      .gin    = {"sun_setting",
+                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0]},
+      .gin_type =
+          {"String",
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0]},
+      .gin_value =
+          {String{"None"},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0]},
+      .gin_desc =
+          {"Sun settings",
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0]},
   };
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
@@ -5181,6 +5299,17 @@ Note that you must have set the optical thickness before calling this.
       .in = {"disort_settings", "ray_path_atmospheric_point", "frequency_grid"},
   };
 
+  wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
+      .desc =
+          R"(Use a source function that changes linearly in optical thickness.
+
+Note that you must have set the optical thickness before calling this.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "subsurface_profile", "frequency_grid"},
+  };
+
   wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
       .desc =
           R"(Same as *disort_settingsLayerThermalEmissionLinearInTau* but considers non-LTE
@@ -5212,6 +5341,17 @@ This is WIP and should not be used.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "frequency_grid"},
+  };
+
+  wsm_data["disort_settingsSubsurfaceBoundaryEmissionByTemperature"] = {
+      .desc =
+          R"(Subsurface boundary emission into Disort is based on temperature.
+
+Sets both upper and lower bounds.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "frequency_grid", "subsurface_profile"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -5258,6 +5398,14 @@ This is WIP and should not be used.
       .in     = {"disort_settings"},
   };
 
+  wsm_data["disort_settingsSubsurfaceScalarSingleScatteringAlbedo"] = {
+      .desc   = R"(Turns off single albedo scattering in Disort calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings", "subsurface_profile"},
+  };
+
   wsm_data["disort_settingsNoSurfaceScattering"] = {
       .desc   = R"(Turns off BDRF in Disort calculations.
 )",
@@ -5291,12 +5439,21 @@ This is WIP and should not be used.
                  "disort_fourier_mode_dimension"},
   };
 
+  wsm_data["disort_spectral_radiance_fieldApplyUnit"] = {
+      .desc   = R"(Convert units of the Disort spectral radiance field.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_spectral_radiance_field"},
+      .in     = {"disort_spectral_radiance_field",
+                 "ray_path_point",
+                 "spectral_radiance_transform_operator"},
+  };
+
   wsm_data["disort_spectral_radiance_fieldCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral radiance.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature"},
+      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings"},
       .gin       = {"phis"},
       .gin_type  = {"AzimuthGrid"},
@@ -5311,8 +5468,7 @@ This is WIP and should not be used.
 CDisort is only included for testing and comparisons with our own disort implementation.
 )",
       .author    = {"Oliver Lemke"},
-      .out       = {"disort_spectral_radiance_field",
-                    "disort_quadrature"},
+      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings",
                     "ray_path_atmospheric_point",
                     "ray_path_frequency_grid",
@@ -5349,8 +5505,15 @@ CDisort is only included for testing and comparisons with our own disort impleme
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"disort_spectral_radiance_field",
-                 "disort_quadrature"},
+      .in     = {"disort_spectral_radiance_field", "disort_quadrature"},
+  };
+
+  wsm_data["spectral_radianceFromReverseDisort"] = {
+      .desc = R"(Extract spectral radiance from the Disort field at reverse LOS.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance"},
+      .in     = {"disort_spectral_radiance_field", "ray_path_point"},
   };
 
   wsm_data["RetrievalInit"] = {
@@ -5517,6 +5680,15 @@ Additional work is requires if proper coverage of the limb is required
       .out            = {"ray_path_field"},
       .in             = {"ray_path_observers", "ray_path_observer_agenda"},
       .pass_workspace = true,
+  };
+
+  wsm_data["subsurface_profileFromPath"] = {
+      .desc =
+          R"(Extract a subsurface profile from a ray path.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"subsurface_profile"},
+      .in     = {"subsurface_field", "ray_path"},
   };
 
   /* 

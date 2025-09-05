@@ -74,7 +74,7 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                          static_cast<Size>(sun.spectrum.nrows()) != nv,
                      R"(Solar spectrum not agreeing with frequency grids:
 
-frequency_grid.size():              {}
+frequency_grid.size():               {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",
@@ -101,14 +101,16 @@ void disort_settingsNoLayerThermalEmission(DisortSettings& disort_settings) {
       disort_settings.frequency_count(), disort_settings.layer_count(), 0);
 }
 
-void disort_settingsLayerThermalEmissionLinearInTau(
+namespace {
+template <typename T>
+void disort_settingsLayerThermalEmissionLinearInTauImpl(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const T& ray_path_points,
     const AscendingGrid& frequency_grid) {
   ARTS_TIME_REPORT
 
   const Size nv = frequency_grid.size();
-  const Size N  = ray_path_atmospheric_point.size();
+  const Size N  = ray_path_points.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -125,8 +127,8 @@ void disort_settingsLayerThermalEmissionLinearInTau(
     const Numeric& f = frequency_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
+      const Numeric& t0 = ray_path_points[i + 0].temperature;
+      const Numeric& t1 = ray_path_points[i + 1].temperature;
 
       const Numeric y0 = planck(f, t0);
       const Numeric y1 = planck(f, t1);
@@ -140,6 +142,23 @@ void disort_settingsLayerThermalEmissionLinearInTau(
       disort_settings.source_polynomial[iv, i, 1] = b;
     }
   }
+}
+}  // namespace
+
+void disort_settingsLayerThermalEmissionLinearInTau(
+    DisortSettings& disort_settings,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const AscendingGrid& frequency_grid) {
+  disort_settingsLayerThermalEmissionLinearInTauImpl(
+      disort_settings, ray_path_atmospheric_point, frequency_grid);
+}
+
+void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
+    DisortSettings& disort_settings,
+    const ArrayOfSubsurfacePoint& subsurface_profile,
+    const AscendingGrid& frequency_grid) {
+  disort_settingsLayerThermalEmissionLinearInTauImpl(
+      disort_settings, subsurface_profile, frequency_grid);
 }
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
@@ -299,6 +318,52 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Disort both boundary conditions
+////////////////////////////////////////////////////////////////////////////////
+
+void disort_settingsSubsurfaceBoundaryEmissionByTemperature(
+    DisortSettings& disort_settings,
+    const AscendingGrid& frequency_grid,
+    const ArrayOfSubsurfacePoint& subsurface_profile) {
+  ARTS_TIME_REPORT
+
+  const auto nv = frequency_grid.size();
+
+  ARTS_USER_ERROR_IF(subsurface_profile.size() < 2, "Need at least two points")
+
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(nv) !=
+          disort_settings.positive_boundary_condition.npages(),
+      "Frequency grid size does not match the positive boundary condition size: {} vs {}",
+      nv,
+      disort_settings.positive_boundary_condition.npages())
+
+  ARTS_USER_ERROR_IF(
+      disort_settings.positive_boundary_condition.nrows() < 1,
+      "Must have at least one fourier mode to use the positive boundary condition.")
+
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(nv) !=
+          disort_settings.negative_boundary_condition.npages(),
+      "Frequency grid size does not match the negative boundary condition size: {} vs {}",
+      nv,
+      disort_settings.negative_boundary_condition.npages())
+
+  ARTS_USER_ERROR_IF(
+      disort_settings.negative_boundary_condition.nrows() < 1,
+      "Must have at least one fourier mode to use the negative boundary condition.")
+
+  disort_settings.positive_boundary_condition = 0.0;
+
+  const Numeric Tbot = subsurface_profile.back().temperature;
+
+  for (Size iv = 0; iv < nv; iv++) {
+    disort_settings.positive_boundary_condition[iv, 0, joker] =
+        planck(frequency_grid[iv], Tbot);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Disort Legendre coefficients
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -404,6 +469,61 @@ Frequency grid index: {}
   }
 }
 
+void disort_settingsSubsurfaceScalarAbsorption(
+    DisortSettings& disort_settings,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const ArrayOfSubsurfacePoint& subsurface_profile,
+    const Numeric& min_optical_depth) {
+  ARTS_TIME_REPORT
+
+  const Index N = disort_settings.layer_count();
+
+  ARTS_USER_ERROR_IF(ray_path.size() != subsurface_profile.size() or
+                         subsurface_profile.size() != static_cast<Size>(N + 1),
+                     "Wrong path size.")
+
+  if (N == 0) return;
+
+  const Vector r = [n = N, &ray_path]() {
+    Vector out(n);
+    for (Index i = 0; i < n; i++) {
+      out[i] = ray_path[i].altitude() - ray_path[i + 1].altitude();
+    }
+
+    return out;
+  }();
+
+  ARTS_USER_ERROR_IF(std::ranges::any_of(r, Cmp::le(0.0)),
+                     R"(Atmospheric layer thickness must be positive.
+
+Values:   {:B,}
+
+Ray path points must be sorted by decreasing altitude.
+
+ray_path: {:B,}
+)",
+                     r,
+                     ray_path);
+
+  const SubsurfacePropertyTag absorption_tag{"scalar absorption"};
+
+  ARTS_USER_ERROR_IF(
+      not stdr::all_of(subsurface_profile, Cmp::contains(absorption_tag)),
+      R"(Missing '{}' in some or all of the subsurface profile)",
+      absorption_tag);
+
+  for (Index i = 0; i < N; i++) {
+    disort_settings.optical_thicknesses[joker, i] = std::max(
+        r[i] * std::midpoint(subsurface_profile[i + 1][absorption_tag],
+                             subsurface_profile[i + 0][absorption_tag]),
+        min_optical_depth);
+    if (i > 0) {
+      disort_settings.optical_thicknesses[joker, i] +=
+          disort_settings.optical_thicknesses[joker, i - 1];
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Disort BRDF / BDRF
 ////////////////////////////////////////////////////////////////////////////////
@@ -452,6 +572,28 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
   disort_settings.single_scattering_albedo = 0.0;
+}
+
+void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
+    DisortSettings& disort_settings,
+    const ArrayOfSubsurfacePoint& subsurface_profile) {
+  ARTS_TIME_REPORT
+
+  const Index N = disort_settings.layer_count();
+
+  if (N == 0) return;
+
+  const SubsurfacePropertyTag ssa_tag{"scalar ssa"};
+
+  ARTS_USER_ERROR_IF(
+      not stdr::all_of(subsurface_profile, Cmp::contains(ssa_tag)),
+      R"(Missing '{}' in some or all of the subsurface profile)",
+      ssa_tag);
+
+  for (Index i = 0; i < N; i++) {
+    disort_settings.single_scattering_albedo[joker, i] = std::midpoint(
+        subsurface_profile[i + 1][ssa_tag], subsurface_profile[i + 0][ssa_tag]);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -712,6 +854,38 @@ Agenda disort_settings_agendaSetup(
 
   return std::move(agenda).finalize(false);
 }
+
+Agenda disort_settings_agendaSubsurfaceSetup(
+    const disort_settings_agenda_setup_sun_type& sun_setting,
+    const Numeric& min_optical_depth) {
+  ARTS_TIME_REPORT
+
+  AgendaCreator agenda("disort_settings_agenda");
+
+  agenda.add("jacobian_targetsOff");
+
+  // Clearsky absorption
+  agenda.add("subsurface_profileFromPath");
+
+  agenda.add("disort_settingsInit");
+  agenda.add("disort_settingsSubsurfaceScalarAbsorption",
+             SetWsv("min_optical_depth", min_optical_depth));
+  agenda.add("disort_settingsSubsurfaceScalarSingleScatteringAlbedo");
+  agenda.add("disort_settingsSubsurfaceBoundaryEmissionByTemperature");
+  agenda.add("disort_settingsSubsurfaceLayerThermalEmissionLinearInTau");
+  agenda.add("disort_settingsNoLegendre");
+
+  switch (sun_setting) {
+    using enum disort_settings_agenda_setup_sun_type;
+    case None: agenda.add("disort_settingsNoSun"); break;
+    case Sun:
+      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("disort_settingsSetSun");
+      break;
+  }
+
+  return std::move(agenda).finalize(false);
+}
 }  // namespace
 
 void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
@@ -732,5 +906,15 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
       to<disort_settings_agenda_setup_surface_type>(surface_setting),
       surface_lambertian_value,
+      min_optical_depth);
+}
+
+void disort_settings_agendaSubsurfaceSetup(Agenda& disort_settings_agenda,
+                                           const String& sun_setting,
+                                           const Numeric& min_optical_depth) {
+  ARTS_TIME_REPORT
+
+  disort_settings_agenda = disort_settings_agendaSubsurfaceSetup(
+      to<disort_settings_agenda_setup_sun_type>(sun_setting),
       min_optical_depth);
 }

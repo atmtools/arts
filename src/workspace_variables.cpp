@@ -354,7 +354,7 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
-Shape: NJAC x NFREQ
+Shape: NJAC x *frequency_grid*
 )--",
       .type = "StokvecMatrix",
   };
@@ -362,9 +362,25 @@ Shape: NJAC x NFREQ
   wsv_data["spectral_radiance_background"] = {
       .desc = R"--(Spectral radiance from the background
 
-Shape: NFREQ
+Shape: *frequency_grid*
 )--",
       .type = "StokvecVector",
+  };
+
+  wsv_data["surface_reflectance"] = {
+      .desc = R"--(Spectral surface reflectance.
+
+Shape: *frequency_grid*
+)--",
+      .type = "MuelmatVector",
+  };
+
+  wsv_data["surface_reflectance_jacobian"] = {
+      .desc = R"--(Spectral surface reflectance jacobian.
+
+Shape: *jacobian_targets* - target count x *frequency_grid*
+)--",
+      .type = "MuelmatMatrix",
   };
 
   wsv_data["transmission_matrix_background"] = {
@@ -509,6 +525,12 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatTensor3",
   };
 
+  wsv_data["subsurface_profile"] = {
+      .desc          = R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
+)--",
+      .type          = "ArrayOfSubsurfacePoint",
+  };
+
   wsv_data["surface_field"] = {
       .desc          = R"--(The surface field describes the surface properties.
 
@@ -519,8 +541,24 @@ temperature but also entirerly abstract properties and types.
       .default_value = "SurfaceField()",
   };
 
+  wsv_data["spectral_radiance_closed_surface_agenda"] = {
+      .desc          = R"--(A closed surface agenda.
+
+It behave exactly like *spectral_radiance_surface_agenda*.  It exists
+to allow chaining surface agendas.  The idea is that the main
+*spectral_radiance_surface_agenda* variable is the first interface
+and can chain into the subsurface agenda and do top-level extras,
+like compute the down-welling radiation required for reflectance.
+
+Thus this agenda must be "closed".  It cannot call *spectral_radiance_surface_agenda*,
+whereas *spectral_radiance_surface_agenda* can call this agenda.
+)--",
+      .type          = "Agenda",
+      .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
+  };
+
   wsv_data["subsurface_field"] = {
-      .desc = R"--(The sub0surface field describes the sub-surface properties.
+      .desc = R"--(The sub-surface field describes the sub-surface properties.
 )--",
       .type = "SubsurfaceField",
       .default_value = "SubsurfaceField()",

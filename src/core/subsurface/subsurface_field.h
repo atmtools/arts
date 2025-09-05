@@ -7,18 +7,39 @@
 
 #include <unordered_map>
 
+struct SubsurfacePropertyTag {
+  String name;
+
+  auto operator<=>(const SubsurfacePropertyTag &x) const = default;
+};
+
+namespace std {
+template <>
+struct hash<SubsurfacePropertyTag> {
+  std::size_t operator()(const SubsurfacePropertyTag &pp) const noexcept {
+    return std::hash<String>{}(pp.name);
+  }
+};
+}  // namespace std
+
 namespace Subsurface {
 template <typename T>
 concept isSubsurfaceKey = std::same_as<std::remove_cvref_t<T>, SubsurfaceKey>;
 
 template <typename T>
-concept KeyType = isSubsurfaceKey<T>;
+concept isSubsurfacePropertyTag =
+    std::same_as<std::remove_cvref_t<T>, SubsurfacePropertyTag>;
 
-using KeyVal = std::variant<SubsurfaceKey>;
+template <typename T>
+concept KeyType = isSubsurfaceKey<T> or isSubsurfacePropertyTag<T>;
+
+using KeyVal = std::variant<SubsurfaceKey, SubsurfacePropertyTag>;
 
 struct Point {
   Numeric temperature{0};
   Numeric density{0};
+
+  std::unordered_map<SubsurfacePropertyTag, Numeric> prop;
 
   Point();
   Point(const Point &);
@@ -29,20 +50,35 @@ struct Point {
   Numeric operator[](SubsurfaceKey x) const;
   Numeric &operator[](SubsurfaceKey x);
 
+  Numeric operator[](const SubsurfacePropertyTag &x) const;
+  Numeric &operator[](const SubsurfacePropertyTag &x);
+
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
 
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
-    const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
-      if constexpr (isSubsurfaceKey<T>) return true;
-    };
-
-    if constexpr (N > 0)
-      return has_(*this, std::forward<T>(key)) and
-             has(std::forward<Ts>(keys)...);
-    else
-      return has_(*this, std::forward<T>(key));
+    if constexpr (N > 0) {
+      if constexpr (isSubsurfaceKey<T>) {
+        return has(std::forward<Ts>(keys)...);
+      } else if constexpr (isSubsurfacePropertyTag<T>) {
+        return prop.contains(key) and has(std::forward<Ts>(keys)...);
+      } else {
+        static_assert(
+            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
+            "Unhandled type");
+      }
+    } else {
+      if constexpr (isSubsurfaceKey<T>) {
+        return true;
+      } else if constexpr (isSubsurfacePropertyTag<T>) {
+        return prop.contains(key);
+      } else {
+        static_assert(
+            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
+            "Unhandled type");
+      }
+    }
   }
 
   [[nodiscard]] bool contains(const KeyVal &) const;
@@ -136,9 +172,8 @@ struct Data {
 };
 
 struct Field final {
-  using KeyVal = std::variant<SubsurfaceKey>;
-
   std::unordered_map<SubsurfaceKey, Data> other;
+  std::unordered_map<SubsurfacePropertyTag, Data> prop;
 
   Numeric bottom_depth{std::numeric_limits<Numeric>::max()};
 
@@ -149,9 +184,11 @@ struct Field final {
   Field &operator=(Field &&) noexcept;
 
   Data &operator[](const SubsurfaceKey &key);
+  Data &operator[](const SubsurfacePropertyTag &key);
   Data &operator[](const KeyVal &key);
 
   const Data &operator[](const SubsurfaceKey &key) const;
+  const Data &operator[](const SubsurfacePropertyTag &key) const;
   const Data &operator[](const KeyVal &key) const;
 
   [[nodiscard]] bool contains(const SubsurfaceKey &key) const;
@@ -177,6 +214,26 @@ using SubsurfacePoint        = Subsurface::Point;
 using SubsurfaceData         = Subsurface::Data;
 using SubsurfaceKeyVal       = Subsurface::KeyVal;
 using ArrayOfSubsurfacePoint = Array<SubsurfacePoint>;
+
+template <>
+struct std::formatter<SubsurfacePropertyTag> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SubsurfacePropertyTag &v,
+                              FmtContext &ctx) const {
+    const std::string_view quote = tags.quote();
+    return tags.format(ctx, quote, v.name, quote);
+  }
+};
 
 template <>
 struct xml_io_stream_name<SubsurfaceKeyVal> {
