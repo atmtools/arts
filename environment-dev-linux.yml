@@ -5,6 +5,7 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - compiler-rt
         - doxygen
         - docutils
         - graphviz
