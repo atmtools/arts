@@ -5150,6 +5150,25 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .out    = {"scattering_species"},
   };
 
+  wsm_data["disort_settingsDownwellingObserver"] = {
+      .desc           = R"(Set the downwelling boundary condition using the observer agenda.
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"disort_settings"},
+      .in             = {"disort_settings",
+                         "frequency_grid",
+                         "ray_path_point",
+                         "atmospheric_field",
+                         "surface_field",
+                         "subsurface_field",
+                         "spectral_radiance_observer_agenda"},
+      .gin            = {"pol"},
+      .gin_type       = {"Stokvec"},
+      .gin_value      = {Stokvec{1.0, 0.0, 0.0, 0.0}},
+      .gin_desc       = {"The polarization state to select.  The dot-product of this and *spectral_radiance* is used."},
+      .pass_workspace = true,
+  };
+
   wsm_data["disort_settingsOpticalThicknessFromPath"] = {
       .desc   = R"(Get optical thickness from path.
 )",
@@ -5346,7 +5365,7 @@ This is WIP and should not be used.
       .in     = {"disort_settings", "frequency_grid"},
   };
 
-  wsm_data["disort_settingsSubsurfaceBoundaryEmissionByTemperature"] = {
+  wsm_data["disort_settingsSubsurfaceEmissionByTemperature"] = {
       .desc =
           R"(Subsurface boundary emission into Disort is based on temperature.
 

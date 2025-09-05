@@ -1,6 +1,7 @@
 #include <array_algo.h>
 #include <arts_omp.h>
 #include <disort.h>
+#include <legendre.h>
 #include <matpack.h>
 #include <path_point.h>
 #include <physics_funcs.h>
@@ -8,6 +9,7 @@
 #include <sun_methods.h>
 #include <workspace.h>
 
+#include <exception>
 #include <numeric>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +245,7 @@ ray_path_source_vector_nonlte.size(): {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Disort positive boundary condition
+// Disort positive boundary condition - from "surface", "subsurface" or "below"
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
@@ -264,27 +266,54 @@ void disort_settingsSurfaceEmissionByTemperature(
   const Numeric T = surface_field.single_value(
       SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
 
-  disort_settings.positive_boundary_condition = 0.0;
+  auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(
-      static_cast<Index>(nv) !=
-          disort_settings.positive_boundary_condition.npages(),
+      static_cast<Index>(nv) != limit.npages(),
       "Frequency grid size does not match the positive boundary condition size: {} vs {}",
       nv,
-      disort_settings.positive_boundary_condition.npages())
+      limit.npages())
 
   ARTS_USER_ERROR_IF(
-      disort_settings.positive_boundary_condition.nrows() < 1,
+      limit.nrows() < 1,
       "Must have at least one fourier mode to use the positive boundary condition.")
 
   for (Size iv = 0; iv < nv; iv++) {
-    disort_settings.positive_boundary_condition[iv, 0, joker] =
-        planck(frequency_grid[iv], T);
+    limit[iv, 0, joker] = planck(frequency_grid[iv], T);
+  }
+}
+
+void disort_settingsSubsurfaceEmissionByTemperature(
+    DisortSettings& disort_settings,
+    const AscendingGrid& frequency_grid,
+    const ArrayOfSubsurfacePoint& subsurface_profile) {
+  ARTS_TIME_REPORT
+
+  const auto nv = frequency_grid.size();
+
+  auto& limit = disort_settings.positive_boundary_condition = 0.0;
+
+  ARTS_USER_ERROR_IF(subsurface_profile.size() < 2, "Need at least two points")
+
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(nv) != limit.npages(),
+      "Frequency grid size does not match the positive boundary condition size: {} vs {}",
+      nv,
+      limit.npages())
+
+  ARTS_USER_ERROR_IF(
+      limit.nrows() < 1,
+      "Must have at least one fourier mode to use the positive boundary condition.")
+
+  const Numeric Tbot = subsurface_profile.back().temperature;
+
+  for (Size iv = 0; iv < nv; iv++) {
+    limit[iv, 0, joker] = planck(frequency_grid[iv], Tbot);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Disort negative boundary condition
+// Disort negative boundary condition - from "space", "atmosphere" or "above"
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
@@ -309,7 +338,7 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 
   ARTS_USER_ERROR_IF(
       disort_settings.negative_boundary_condition.nrows() < 1,
-      "Must have at leaat one fourier mode to use the negative boundary condition.")
+      "Must have at least one fourier mode to use the negative boundary condition.")
 
   for (Index iv = 0; iv < nv; iv++) {
     disort_settings.negative_boundary_condition[iv, 0, joker] = planck(
@@ -317,50 +346,73 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Disort both boundary conditions
-////////////////////////////////////////////////////////////////////////////////
-
-void disort_settingsSubsurfaceBoundaryEmissionByTemperature(
+void disort_settingsDownwellingObserver(
+    const Workspace& ws,
     DisortSettings& disort_settings,
     const AscendingGrid& frequency_grid,
-    const ArrayOfSubsurfacePoint& subsurface_profile) {
+    const PropagationPathPoint& ray_path_point,
+    const AtmField& atmospheric_field,
+    const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field,
+    const Agenda& spectral_radiance_observer_agenda,
+    const Stokvec& pol) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
+  auto& limit = disort_settings.negative_boundary_condition = 0;
 
-  ARTS_USER_ERROR_IF(subsurface_profile.size() < 2, "Need at least two points")
+  const Index nv = frequency_grid.size();
+  const Index N  = disort_settings.quadrature_dimension / 2;
 
   ARTS_USER_ERROR_IF(
-      static_cast<Index>(nv) !=
-          disort_settings.positive_boundary_condition.npages(),
-      "Frequency grid size does not match the positive boundary condition size: {} vs {}",
+      nv != limit.npages(),
+      "Frequency grid size does not match the boundary condition size: {} vs {}",
       nv,
-      disort_settings.positive_boundary_condition.npages())
+      limit.npages())
 
-  ARTS_USER_ERROR_IF(
-      disort_settings.positive_boundary_condition.nrows() < 1,
-      "Must have at least one fourier mode to use the positive boundary condition.")
+  ARTS_USER_ERROR_IF(limit.nrows() < 1, "Must have at least one fourier mode.")
 
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(nv) !=
-          disort_settings.negative_boundary_condition.npages(),
-      "Frequency grid size does not match the negative boundary condition size: {} vs {}",
-      nv,
-      disort_settings.negative_boundary_condition.npages())
+  ARTS_USER_ERROR_IF(limit.ncols() != N,
+                     "Must have at least one quadrature dimension.")
 
-  ARTS_USER_ERROR_IF(
-      disort_settings.negative_boundary_condition.nrows() < 1,
-      "Must have at least one fourier mode to use the negative boundary condition.")
+  Vector mu(N);
+  Vector W(N);
+  Legendre::PositiveDoubleGaussLegendre(mu, W);
 
-  disort_settings.positive_boundary_condition = 0.0;
+  StokvecVector spectral_radiance;
+  StokvecMatrix spectral_radiance_jacobian;
+  ArrayOfPropagationPathPoint ray_path;
+  const JacobianTargets jacobian_targets{};
 
-  const Numeric Tbot = subsurface_profile.back().temperature;
+  String error{};
 
-  for (Size iv = 0; iv < nv; iv++) {
-    disort_settings.positive_boundary_condition[iv, 0, joker] =
-        planck(frequency_grid[iv], Tbot);
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(1) \
+    firstprivate(spectral_radiance, ray_path, spectral_radiance_jacobian)
+  for (Index i = 0; i < N; i++) {
+    try {
+      spectral_radiance_observer_agendaExecute(
+          ws,
+          spectral_radiance,
+          spectral_radiance_jacobian,
+          ray_path,
+          frequency_grid,
+          jacobian_targets,
+          ray_path_point.pos,
+          {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
+          atmospheric_field,
+          surface_field,
+          subsurface_field,
+          spectral_radiance_observer_agenda);
+
+      for (Index iv = 0; iv < nv; iv++) {
+        limit[iv, 0, i] = dot(spectral_radiance[iv], pol);
+      }
+    } catch (std::exception& e) {
+#pragma omp critical
+      error = e.what();
+    }
   }
+
+  ARTS_USER_ERROR_IF(not error.empty(), error)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -871,7 +923,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
              SetWsv("min_optical_depth", min_optical_depth));
   agenda.add("disort_settingsSubsurfaceScalarSingleScatteringAlbedo");
-  agenda.add("disort_settingsSubsurfaceBoundaryEmissionByTemperature");
+  agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
   agenda.add("disort_settingsSubsurfaceLayerThermalEmissionLinearInTau");
   agenda.add("disort_settingsNoLegendre");
 
