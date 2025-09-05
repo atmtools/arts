@@ -1,6 +1,12 @@
 #include <enums.h>
 #include <workspace.h>
 
+#include <ranges>
+
+#include "configtypes.h"
+#include "enumsSpeciesEnum.h"
+#include "isotopologues.h"
+
 std::string& docstr(std::unordered_map<std::string, std::string>& map,
                     const std::string& key) {
   const auto& orig = workspace_methods();
@@ -87,8 +93,11 @@ Before that, a concise overview of what each option do is available by the types
                                           std::string{surface_setting},
                                           y,
                                           123);
-              docstr = replace(replace(
-                  x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection"), "123", "min_optical_depth");
+              docstr = replace(
+                  replace(
+                      x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection"),
+                  "123",
+                  "min_optical_depth");
             } catch (std::exception& e) {
               docstr = std::format("Invalid combination: {}", e.what());
             }
@@ -123,12 +132,53 @@ Before that, a concise overview of what each option do is available by the types
   return doc;
 }
 
+std::string get_absorption_speciesSet_doc() {
+  const std::string method_name = "absorption_speciesSet";
+
+  std::string doc = R"(
+Below follows a complete list of all single species tags that can be set using this method.
+
+.. list-table::
+   :name: A complete list of species tags
+   :widths: auto
+   :align: left
+   :header-rows: 1
+
+   * - Isotopologue name
+     - Type
+     - Mass
+     - :math:`g_i`)";
+
+  for (auto& x : Species::Isotopologues | stdv::drop(1)) {
+    doc += std::format(R"(
+   * - ``{}``
+     - {}
+     - {}
+     - {})",
+                       x.FullName(),
+                       x.is_predefined() ? "Predefined Model"sv
+                       : x.is_normal()   ? "Normal Isotopologue"sv
+                                         : "Joker"sv,
+                       x.is_normal() ? std::format("{}", x.mass) : ""s,
+                       x.is_normal() ? std::format("{}", x.gi) : ""s);
+  }
+
+  doc += "\nAnd in short: ";
+  for (auto& x : Species::Isotopologues | stdv::drop(1)) {
+    doc += std::format("``{}``, ", x.FullName());
+  }
+
+  return doc;
+}
+
 std::unordered_map<std::string, std::string>
 workspace_method_extra_doc_internal() {
   std::unordered_map<std::string, std::string> doc{};
 
   docstr(doc, "disort_settings_agendaSetup") =
       get_disort_settings_agendaSetup_doc();
+
+  docstr(doc, "absorption_speciesSet") = get_absorption_speciesSet_doc();
 
   return doc;
 }
