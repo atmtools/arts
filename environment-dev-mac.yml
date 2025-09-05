@@ -4,15 +4,16 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - compiler-rt
         - docutils
         - doxygen
         - eigen
         - fast_float
         - fftw
-        - gfortran
         - graphviz
         - ipykernel
         - lark-parser
+        - ld64
         - libclang
         - libcxx
         - libcxx-devel

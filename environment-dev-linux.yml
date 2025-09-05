@@ -12,7 +12,6 @@ dependencies:
         - fast_float
         - fftw
         - gcc
-        - gfortran
         - gmp
         - gxx
         - ipykernel
