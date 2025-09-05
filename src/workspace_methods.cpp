@@ -668,7 +668,7 @@ after the regridding at all positions.
   };
 
   wsm_data["absorption_speciesDefineAll"] = {
-      .desc   = R"--(Sets *absorption_species* [i][0] to all species in ARTS
+      .desc   = R"--(Sets *absorption_species* to contain all species in ARTS
 )--",
       .author = {"Richard Larsson"},
       .out    = {"absorption_species"},
@@ -678,26 +678,29 @@ after the regridding at all positions.
       .desc      = R"--(Set *absorption_species* to the named species.
 
 The species that are defined by this method are used in various
-file reading routines to populate both atmosphere- and abosorption-related
-data variables.
+file reading routines to populate both atmosphere- and absorption-related
+data variables.  They select what data is required,
 
 A tag begins with a valid *SpeciesEnum*.  The rest of the tag
-is optional.  Here are the options:
+is optional.
 
-#. Leave it as is.  Example: "H2O".  This selection means all pure isotopologues of water have been selected.
+There 3 single tags and 2 combinatory tags.
+These are named:
 
-#. Make it a valid *SpeciesIsotope*.  Example: "H2O-161" emphasis:`or` "H2O-PWR98".
-   The former selection is an actual isotopologue, whereas the latter selects a predefined model.
+#. Joker.  Example ``"H2O"``.  Selects all Normal Isotopologue of the provided *SpeciesEnum*.
+#. Normal Isotopologue.  Example ``"H2O-161"``.  Selects a specific Normal Isotopologue.
+#. Predefined Model.  Example ``"H2O-PWR2022"``.  Selects a specific Predefined Model.
+   For more information on Predefined Models, see *propagation_matrixAddPredefined*.
+#. CIA.  Example ``"H2O-CIA-H2O"``.  Selects collusion-induced absorption between the two species.
+   Any two *SpeciesEnum* in combination is valid.  The reverse combination is also valid and unique.
+#. XFIT.  Example ``"H2O-XFIT"``.  Selects using cross-section fits for the species.
 
-#. Make it a valid cross-section species.  Example: "H2O-XFIT".
-   This selects a cross-section species, which is defined in the
-   *absorption_xsec_fit_data* variable.  The tagtype "XFIT" is used to indicate that this is a cross-section species.
-
-#. Make it a valid collision-induced absorption (CIA) species.
-   Example: "N2-CIA-N2".  This selection is used to select a CIA species, which is defined in the
-   *absorption_cia_data* variable.  The tagtype "CIA" is used to indicate that this is a CIA species.
+.. tip::
+    We provide data to help make use of these tags in ``arts-cat-data``. Far
+    from all use-cases are covered, but enough to help you get started.  See
+    :func:`~pyarts3.data.download_arts_cat_data` for help to download and set it up.
 )--",
-      .author    = {"Stefan Buehler"},
+      .author    = {"Stefan Buehler", "Richard Larsson"},
       .out       = {"absorption_species"},
       .gin       = {"species"},
       .gin_type  = {"ArrayOfString"},
@@ -3943,7 +3946,7 @@ if the method should throw if the pressure or temperature is missing.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -3973,7 +3976,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
-See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names.
+See *absorption_speciesSet* for valid isotopologue names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4003,8 +4006,8 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
-See :class:`~pyarts3.arts.SpeciesIsotopeRecord` for valid isotopologue names and
-:class:`~pyarts3.arts.QuantumNumberValue` for valid quantum numbers.
+See *absorption_speciesSet* for valid isotopologue names and
+*QuantumLevelIdentifier* for constructing quantum numbers identifiers.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4034,7 +4037,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4064,7 +4067,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4094,7 +4097,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4124,7 +4127,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4154,7 +4157,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
-See :class:`~pyarts3.arts.SpeciesEnum` for valid short names.
+See *SpeciesEnum* for valid short names.  Will also append H2O VMR if available as some predefined models requires it.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4180,9 +4183,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
       .desc =
-          R"--(Append data to the atmospheric field based all absorption data
-
-See *InterpolationExtrapolation* for valid ``extrapolation``.
+          R"--(Append data to the atmospheric field based on available absorption data.
 
 Wraps:
 
@@ -4194,6 +4195,8 @@ Wraps:
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
+
+See these individually for more details.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},

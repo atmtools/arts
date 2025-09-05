@@ -501,6 +501,8 @@ void atmospheric_fieldAppendPredefSpeciesData(
     const Index &replace_existing) {
   ARTS_TIME_REPORT
 
+  if (absorption_predefined_model_data.empty()) return;
+
   const auto to_string = [](const SpeciesEnum &x) {
     return String{toString<1>(x)};
   };
