@@ -2250,38 +2250,13 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                  "ray_path_point"},
   };
 
-  wsm_data["spectral_radianceFlatScalarReflectance"] = {
-      .desc =
-          R"--(Set surface spectral radiance to use sub-surface emission and flat scalar reflectance.
-
-The input path point must be close to the surface.
-
-The *spectral_radiance_subsurface_agenda* should produce the subsurface emission,
-though pure surface emission is fine.
-
-The surface field must contain the reflectance.
-The reflectance lives under the *SurfacePropertyTag* key "flat scalar reflectance".
-)--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in             = {"frequency_grid",
-                         "atmospheric_field",
-                         "surface_field",
-                         "subsurface_field",
-                         "jacobian_targets",
-                         "ray_path_point",
-                         "spectral_radiance_observer_agenda",
-                         "spectral_radiance_subsurface_agenda"},
-      .pass_workspace = true,
-  };
-
-  wsm_data["spectral_radianceFlatFresnelReflectance"] = {
+  wsm_data["spectral_radianceSurfaceReflectance"] = {
       .desc =
           R"--(Set surface spectral radiance to use sub-surface emission and Fresnel reflectance.
 
 The input path point must be close to the surface.
 
-The *spectral_radiance_subsurface_agenda* should produce the subsurface emission,
+The *spectral_radiance_closed_surface_agenda* should produce the surface emission,
 though pure surface emission is fine.
 
 The surface field must contain the surface refractive index.
@@ -2296,7 +2271,8 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
                          "jacobian_targets",
                          "ray_path_point",
                          "spectral_radiance_observer_agenda",
-                         "spectral_radiance_subsurface_agenda"},
+                         "spectral_radiance_closed_surface_agenda",
+                         "surface_reflectance_agenda"},
       .pass_workspace = true,
   };
 
@@ -2418,6 +2394,73 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
               "ray_path_point",
               "spectral_radiance_transform_operator",
           },
+  };
+
+  wsm_data["surface_reflectanceFlatRealFresnel"] = {
+      .desc =
+          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+
+.. math::
+    \begin{array}{lcr}
+        \theta_2 &=& \arcsin\left(\frac{\Re{n_1}}{\Re{n_2}}\sin{\theta_1}\right)\\[5pt]
+        R_v &=& \frac{n_2\cos\left(\theta_1\right) -
+                      n_1\cos\left(\theta_2\right)}
+                     {n_2\cos\left(\theta_1\right) +
+                      n_1\cos\left(\theta_2\right)}\\[5pt]
+        R_h &=& \frac{n_1\cos\left(\theta_1\right) -
+                      n_2\cos\left(\theta_2\right)}
+                     {n_1\cos\left(\theta_1\right) +
+                      n_2\cos\left(\theta_2\right)},
+    \end{array}
+
+where :math:`\theta_1` is the angle of incidence, :math:`\theta_2` is the angle of refraction, and
+:math:`n_1` and :math:`n_2` are the refractive indices of the two media.
+
+We get :math:`n_1` and :math:`\theta_1` from the *ray_path_point* and extracts
+:math:`n_2` from the *surface_field* parameter ``"scalar refractive index"``.
+
+The reflectance matrix is
+
+.. math::
+    \mathbf{R} = \frac{1}{2}\left[
+    \begin{array}{cccc}
+            R_v\overline{R_v} + R_h\overline{R_h} & R_v\overline{R_v} - R_h\overline{R_h} & 0 & 0 \\
+            R_v\overline{R_v} - R_h\overline{R_h} & R_v\overline{R_v} + R_h\overline{R_h} & 0 & 0 \\
+            0 & 0 & \Re\left(R_h\overline{R_v} + R_v\overline{R_h}\right) & \Im\left(R_h\overline{R_v} - R_v\overline{R_h}\right) \\
+            0 & 0 & \Im\left(R_v\overline{R_h} - R_h\overline{R_v}\right) & \Re\left(R_h\overline{R_v} + R_v\overline{R_h}\right) \\
+    \end{array}\right]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .in     = {"frequency_grid",
+                 "surface_field",
+                 "ray_path_point",
+                 "jacobian_targets"},
+  };
+
+  wsm_data["surface_reflectanceFlatScalar"] = {
+      .desc =
+          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+
+We get :math:`r` from the *surface_field* parameter ``"flat scalar reflectance"``.
+
+The reflectance matrix is
+
+.. math::
+    \mathbf{R} = \left[
+    \begin{array}{cccc}
+            r&0&0&0\\
+            0&r&0&0\\
+            0&0&r&0\\
+            0&0&0&r\\
+    \end{array}\right]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .in     = {"frequency_grid",
+                 "surface_field",
+                 "ray_path_point",
+                 "jacobian_targets"},
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {

@@ -41,7 +41,8 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_surface_agendaSet(option="FlatScalarReflectance")
+ws.spectral_radiance_surface_agendaSet(option="SurfaceReflectance")
+ws.surface_reflectance_agendaSet(option="FlatScalar")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Surface

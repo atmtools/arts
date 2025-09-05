@@ -49,5 +49,5 @@ muelmat fresnel_reflectance(Complex Rv, Complex Rh);
  * @return  Outgoing radiation - R I + (1 - R) B
  */
 stokvec reflection(stokvec I, const muelmat R, const stokvec B);
-stokvec dreflection_dn2(stokvec I, const muelmat dR, const stokvec B);
+stokvec dreflection(stokvec I, const muelmat dR, const stokvec B);
 }  // namespace rtepack

@@ -132,11 +132,8 @@ Agenda get_spectral_radiance_surface_agenda(const std::string_view option) {
     case Transmission:
       agenda.add("spectral_radianceDefaultTransmission");
       break;
-    case FlatScalarReflectance:
-      agenda.add("spectral_radianceFlatScalarReflectance");
-      break;
-    case FlatFresnelReflectance:
-      agenda.add("spectral_radianceFlatFresnelReflectance");
+    case SurfaceReflectance:
+      agenda.add("spectral_radianceSurfaceReflectance");
       break;
   }
 
@@ -169,6 +166,20 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
       agenda.add("measurement_jacobianTransformations");
       agenda.add("measurement_vectorConditionalAddError");
       agenda.add("measurement_vector_fittedFromMeasurement");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
+Agenda get_surface_reflectance_agenda(const std::string_view option) {
+  AgendaCreator agenda("surface_reflectance_agenda");
+
+  using enum surface_reflectance_agendaPredefined;
+  switch (to<surface_reflectance_agendaPredefined>(option)) {
+    case FlatScalar: agenda.add("surface_reflectanceFlatScalar"); break;
+    case FlatRealFresnel:
+      agenda.add("surface_reflectanceFlatRealFresnel");
       break;
   }
 

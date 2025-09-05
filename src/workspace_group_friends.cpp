@@ -246,11 +246,6 @@ to produce another *Numeric*.
 )--",
   };
 
-  wsg_data["MuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A matrix of *Muelmat*.\n",
-  };
-
   wsg_data["MatrixOfDisortBDRF"] = {
       .file = "disort.h",
       .desc = "A 2 dimensional array of *DisortBDRF*\n",

@@ -47,7 +47,7 @@ stokvec reflection(stokvec I, const muelmat R, const stokvec B) {
   return I;
 }
 
-stokvec dreflection_dn2(stokvec I, const muelmat dR, const stokvec B) {
+stokvec dreflection(stokvec I, const muelmat dR, const stokvec B) {
   I      = dR * I;
   I.V() *= -1.0;  //! FIXME: Is this correct?
   I     -= dR * B;

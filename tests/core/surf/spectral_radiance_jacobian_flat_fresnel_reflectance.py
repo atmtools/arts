@@ -41,7 +41,8 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_surface_agendaSet(option="FlatFresnelReflectance")
+ws.spectral_radiance_surface_agendaSet(option="SurfaceReflectance")
+ws.surface_reflectance_agendaSet(option="FlatRealFresnel")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Surface
@@ -72,7 +73,7 @@ for i in range(LIMIT):
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["t"] = ts + 30
+    ws.surface_field["t"] = ts - 30
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

@@ -189,10 +189,7 @@ Subsurface calculations are also supported through this agenda.
                              "ray_path_point",
                              "surface_field",
                              "subsurface_field"},
-      .enum_options       = {"Blackbody",
-                             "Transmission",
-                             "FlatScalarReflectance",
-                             "FlatFresnelReflectance"},
+      .enum_options       = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default       = "Blackbody",
       .output_constraints = {
           {"spectral_radiance.size() == frequency_grid.size()",
@@ -276,6 +273,26 @@ it does a lot of unnecessary checks and operations that are not always needed.
           },
   };
 
+  wsa_data["surface_reflectance_agenda"] = {
+      .desc         = R"--(An agenda to compute the surface reflectance.
+)--",
+      .output       = {"surface_reflectance", "surface_reflectance_jacobian"},
+      .input        = {"frequency_grid",
+                       "surface_field",
+                       "ray_path_point",
+                       "jacobian_targets"},
+      .enum_options = {"FlatScalar", "FlatRealFresnel"},
+      .output_constraints = {
+          {"surface_reflectance.size() == frequency_grid.size()",
+           "*surface_reflectance* match *frequency_grid* size",
+           "surface_reflectance.size()",
+           "frequency_grid.size()"},
+          {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, surface_reflectance_jacobian)",
+           "*surface_reflectance_jacobian* match *jacobian_targets* target count and *frequency_grid* size",
+           "jacobian_targets.target_count()",
+           "frequency_grid.size()",
+           "surface_reflectance_jacobian.shape()"}}};
+
   wsa_data["disort_settings_agenda"] = {
       .desc   = R"--(An agenda for setting up Disort.
 
@@ -289,8 +306,7 @@ scenarios.  The output of this Agenda is just that setting.
                  "ray_path",
                  "disort_quadrature_dimension",
                  "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"},
-  };
+                 "disort_legendre_polynomial_dimension"}};
 
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
@@ -339,7 +355,7 @@ internal_workspace_agendas() {
 std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
   std::unordered_map<std::string, std::string> out;
 
-  out["spectral_radiance_subsurface_agenda"] =
+  out["spectral_radiance_closed_surface_agenda"] =
       "spectral_radiance_surface_agenda";
 
   return out;
