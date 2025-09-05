@@ -56,6 +56,7 @@ endif()
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
 option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
+option (ENABLE_ASAN "Turn on address sanitizer" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
@@ -380,6 +381,30 @@ if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
 endif (WERROR)
 
+########### Address sanitizer ##########
+set (ASAN_PRELOAD_ENV "")
+if (ENABLE_ASAN)
+  if (NOT CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    message(FATAL_ERROR "Address sanitizer is only supported with clang")
+  endif()
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+  if (APPLE)
+    execute_process(
+      COMMAND clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
+    set(ASAN_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB};")
+  elseif (UNIX)
+    execute_process(
+      COMMAND clang -print-file-name=libclang_rt.asan-x86_64.so
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
+    set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
+  endif()
+endif()
+
+########### OpenMP ##########
 if (OpenMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -548,3 +573,16 @@ message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")
 if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
   message(STATUS "Optimization level set to O2 instead of O3 in Release mode")
 endif ()
+
+if (ENABLE_ASAN)
+  message(STATUS "!!! Address sanitizer is enabled")
+  message(STATUS "!!! When you manually execute ARTS python scripts, you need to prepend the following to the command line:")
+  if (APPLE)
+    message(STATUS "!!! DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) python ...")
+  elseif (UNIX)
+    message(STATUS "!!! LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...")
+  else()
+    message(FATAL_ERROR "Address sanitizer is not supported on this platform")
+  endif()
+endif()
+

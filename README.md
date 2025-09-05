@@ -255,6 +255,24 @@ turned off with the option `-DENABLE_CCACHE=0`
 For details see https://ccache.samba.org/
 
 
+Address sanitizer
+-----------------
+
+ARTS can be built with address sanitizer (ASAN) support. This is enabled by using the following preset:
+
+```
+cmake --preset=asan-clang-conda
+```
+
+When you manually execute ARTS python scripts, you need to prepend the following to the command line:
+
+```
+# macOS
+DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) python ...
+# Linux
+LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...
+```
+
 Valgrind profiling
 ------------------
 
