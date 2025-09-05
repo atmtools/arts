@@ -178,6 +178,11 @@ Return
       "\n    Map of agendas");
 
   global.def(
+      "workspace_agendas_extra",
+      []() { return internal_workspace_agenda_names(); },
+      "Get a :class:`dict` of overloaded agendas");
+
+  global.def(
       "option_groups",
       []() -> std::vector<std::string> {
         std::vector<std::string> out(internal_options().size());

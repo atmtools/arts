@@ -12,10 +12,10 @@
 #include "nonstd.h"
 #include "python_interface/pydocs.h"
 #include "workspace_agendas.h"
+#include "workspace_group_friends.h"
 #include "workspace_meta_methods.h"
 #include "workspace_method_extra_doc.h"
 #include "workspace_variables.h"
-#include "workspace_group_friends.h"
 
 String rawify(const String& x) {
   std::stringstream os{x};
@@ -32,9 +32,9 @@ String rawify(const String& x) {
 }
 
 String as_pyarts(const String& x) try {
-  const auto& wsgs = internal_workspace_groups();
-  const auto& wsvs = workspace_variables();
-  const auto& wsms = workspace_methods();
+  const auto& wsgs          = internal_workspace_groups();
+  const auto& wsvs          = workspace_variables();
+  const auto& wsms          = workspace_methods();
   const auto& group_friends = workspace_group_friends();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
@@ -130,56 +130,46 @@ String unwrap_stars(const String& x) try {
 
 String get_agenda_io(const String& x) try {
   const auto& wsas = internal_workspace_agendas();
-  const auto& wsvs = workspace_variables();
 
-  String out{R"(
-Parameters
-----------
-)"};
+  String out{};
 
-  struct AgendaIO {
-    bool in;
-    bool out;
-    String group;
-    String name;
-  };
+  auto& ag = wsas.at(x);
 
-  auto& ag      = wsas.at(x);
-  auto& out_ind = ag.output;
-  auto& in_ind  = ag.input;
+  if (not ag.output.empty()) {
+    out += std::format(R"(
+.. rubric:: Agenda output
 
-  const auto output = [&](const std::string& ind) {
-    return stdr::any_of(out_ind, Cmp::eq(ind));
-  };
+.. hlist::
+    :columns: {}
 
-  const auto input = [&](const std::string& ind) {
-    return stdr::any_of(in_ind, Cmp::eq(ind));
-  };
-
-  std::vector<AgendaIO> writer;
-  writer.reserve(out_ind.size());
-  for (auto& var : out_ind) {
-    writer.emplace_back(AgendaIO{input(var), true, wsvs.at(var).type, var});
-  }
-
-  for (auto& var : in_ind) {
-    if (not output(var))
-      writer.emplace_back(AgendaIO{true, false, wsvs.at(var).type, var});
-  }
-
-  constexpr matpack::cdata_t<std::string_view, 2, 2> inout{
-      "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
-  for (auto& var : writer) {
-    out += std::format(R"({0} : ~pyarts3.arts.{1}
-    {2} See :attr:`~pyarts3.workspace.Workspace.{0}` **{3}**
 )",
-                       var.name,
-                       var.group,
-                       unwrap_stars(short_doc(var.name)),
-                       inout[var.in, var.out]);
+                       1 + (ag.output.size() > 3));
+
+    for (auto& varname : ag.output) {
+      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+)",
+                         varname);
+    }
   }
 
-  return writer.size() ? out + "\n\n" : "";
+  if (not ag.input.empty()) {
+    out += std::format(R"(
+.. rubric:: Agenda input
+
+.. hlist::
+    :columns: {}
+
+)",
+                       1 + (ag.input.size() > 3));
+
+    for (auto& varname : ag.input) {
+      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+)",
+                         varname);
+    }
+  }
+
+  return out;
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Could not get agenda IO for \"{}\":\n{}",

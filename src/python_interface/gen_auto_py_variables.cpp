@@ -56,8 +56,11 @@ std::string variable(const std::string& name,
 
   os << "    }, R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
-  if (wsv.type == "Agenda" and not extra_names.contains(name)) {
-    os << get_agenda_io(name);
+  if (wsv.type == "Agenda") {
+    if (not extra_names.contains(name))
+      os << get_agenda_io(name);
+    else
+      os << get_agenda_io(extra_names.at(name));
   }
 
   if (wsv.default_value) {
