@@ -22,7 +22,7 @@ dependencies:
         - libcxx-devel
         - libopenblas=*=*openmp*
         - llvm-openmp
-        - nanobind < 2.5.0
+        - nanobind=2.9
         - nbsphinx
         - matplotlib
         - netcdf4
