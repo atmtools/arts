@@ -25,7 +25,8 @@ internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   wsv_data["absorption_bands"] = {
-      .desc = R"--(Bands of absorption lines for line-by-line (LBL) calculations.
+      .desc =
+          R"--(Bands of absorption lines for line-by-line (LBL) calculations.
 
 See methods that consume this variable for more details on its content.
 )--",
@@ -526,19 +527,19 @@ The order of the elements is such that index zero is closest to the obeserver.
   };
 
   wsv_data["subsurface_profile"] = {
-      .desc          = R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
+      .desc =
+          R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
 )--",
-      .type          = "ArrayOfSubsurfacePoint",
+      .type = "ArrayOfSubsurfacePoint",
   };
 
   wsv_data["surface_field"] = {
-      .desc          = R"--(The surface field describes the surface properties.
+      .desc = R"--(The surface field describes the surface properties.
 
 This describes the global surface values, such as elevation and 
 temperature but also entirerly abstract properties and types.
 )--",
-      .type          = "SurfaceField",
-      .default_value = "SurfaceField()",
+      .type = "SurfaceField",
   };
 
   wsv_data["spectral_radiance_closed_surface_agenda"] = {
@@ -836,7 +837,7 @@ has been produced and if the measurement can be understood properly.
   };
 
   wsv_data["measurement_gain_matrix"] = {
-      .desc =R"(Contribution function (or gain) matrix.
+      .desc = R"(Contribution function (or gain) matrix.
 
 This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
 
@@ -864,7 +865,8 @@ Usage: Used and set by inversion methods.
   };
 
   wsv_data["do_jacobian"] = {
-      .desc = R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
+      .desc =
+          R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
 
 This variable is limited to very few methods related to the inversion process for *OEM*.
 Note that deep code of ARTS will ignore this variable, so it is not a global switch.
@@ -873,7 +875,7 @@ to determine the size of the *measurement_jacobian*.  It is important to be care
 with this, as it will mess with the size of the *measurement_jacobian* and could
 thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
 )",
-      .type = "Index",
+      .type          = "Index",
       .default_value = "1",
   };
 
@@ -890,7 +892,8 @@ thus lead to runtime errors being thrown in places where unexpected sizes are en
   };
 
   wsv_data["measurement_jacobian"] = {
-      .desc = R"(The first order partial derivatives of the *measurement_vector*.
+      .desc =
+          R"(The first order partial derivatives of the *measurement_vector*.
 
 This variable represents the matrix
 

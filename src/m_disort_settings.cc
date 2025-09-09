@@ -60,8 +60,10 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                            const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   const Numeric h =
       surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);

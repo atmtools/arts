@@ -15,6 +15,8 @@ tf = pyarts.arts.GeodeticField3(
     data=np.linspace(200, 400, len(z)).reshape(len(z), 1, 1)
 )
 
+ws.surface_fieldEarth()
+
 ws.subsurface_field.bottom_depth = min(z)
 ws.subsurface_field['scalar absorption'] = 0.5
 ws.subsurface_field['scalar ssa'] = 0.9

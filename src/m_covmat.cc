@@ -403,8 +403,10 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   jacobian_targetsFinalize(jacobian_targets,
                            atmospheric_field,

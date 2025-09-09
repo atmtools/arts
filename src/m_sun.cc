@@ -117,8 +117,10 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                                 const Index& just_hit) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   find_sun_path(ws,
                 sun_path,
@@ -143,8 +145,10 @@ void ray_path_sun_pathFromPathObserver(
     const Index& just_hit) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
@@ -201,8 +205,10 @@ void ray_path_suns_pathFromPathObserver(
     const Index& just_hit) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
@@ -404,8 +410,10 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
                      "Cannot have any Jacobian targets")

@@ -22,8 +22,10 @@ void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const Index& as_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(any_nan(pos) or any_nan(los),
                      R"(There are NAN in the pos or los vector:
@@ -44,8 +46,10 @@ void ray_pathRemoveNearby(ArrayOfPropagationPathPoint& ray_path,
                           const Index& first) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   path::erase_closeby(ray_path, surface_field, min_dist, first);
 }
@@ -57,8 +61,10 @@ void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
                                   const Index& surface_safe_search) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   path::set_geometric_extremes(ray_path,
                                atmospheric_field,
@@ -95,8 +101,10 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
                                        const AtmKey& atm_key) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   const auto& data = atmospheric_field[atm_key];
   ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(data.data),
@@ -115,8 +123,10 @@ void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,
                                    const Numeric& max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   path::fill_geometric_by_half_steps(ray_path, surface_field, max_step);
 }
@@ -126,8 +136,10 @@ void ray_pathFillGeometricStepwise(ArrayOfPropagationPathPoint& ray_path,
                                    const Numeric& max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   path::fill_geometric_stepwise(ray_path, surface_field, max_step);
 }
@@ -142,8 +154,10 @@ void ray_pathAddLimbPoint(ArrayOfPropagationPathPoint& ray_path,
                           const SurfaceField& surface_field) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   path::fill_geometric_limb(ray_path, surface_field);
 }
@@ -231,8 +245,10 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
                        const Index& surface_safe_search) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ray_pathInit(ray_path, atmospheric_field, surface_field, pos, los, as_sensor);
   ray_pathSetGeometricExtremes(ray_path,
@@ -297,8 +313,10 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                 const Numeric& max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ray_pathGeometric(
       ray_path,
@@ -325,8 +343,10 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
                                   const Numeric& max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ray_pathGeometric(ray_path,
                     atmospheric_field,

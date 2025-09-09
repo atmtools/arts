@@ -30,8 +30,10 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   jacobian_targets.finalize(atmospheric_field,
                             surface_field,

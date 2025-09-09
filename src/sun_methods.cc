@@ -213,8 +213,10 @@ void find_sun_path(const Workspace& ws,
                    const bool just_hit) {
   using Conversion::rad2deg;
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   assert(angle_cut >= 0.0);
 
@@ -225,7 +227,7 @@ void find_sun_path(const Workspace& ws,
                           SurfaceKey::h, observer_pos[1], observer_pos[2]),
        sun.latitude,
        sun.longitude}};
-  Vector2 los = geometric_los(observer_pos, sun_pos, surface_field.ellipsoid);
+  Vector2 los   = geometric_los(observer_pos, sun_pos, surface_field.ellipsoid);
   auto best_los = los;
 
   Numeric best_beta = 360;

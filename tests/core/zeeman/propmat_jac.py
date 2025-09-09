@@ -20,13 +20,14 @@ ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
+ws.surface_fieldEarth()
+
 B = [-3.132846e-06, 2.62680294e-05, 1.39844339e-05]
 dx = 1e-11
 
 B1 = [b for b in B]
 B1[2] += dx
 
-ws.surface_field
 ws.atmospheric_field["mag_w"] = B[2]
 ws.jacobian_targetsInit()
 ws.jacobian_targetsAddMagneticField(component="w")

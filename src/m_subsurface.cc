@@ -51,8 +51,10 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
     const DescendingGrid& depth_profile) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   DisortSettings disort_settings                = {};
   ArrayOfPropagationPathPoint ray_path          = {};
@@ -110,19 +112,19 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
 
   String error{};
 
-  #pragma omp parallel for if (not arts_omp_in_parallel() and             \
-                                   static_cast<Size>(                     \
-                                           disort_quadrature_dimension) < \
-                                           model_state_vector.size())     \
-      firstprivate(model_state_vector,                                    \
-                       atm_field,                                         \
-                       surf_field,                                        \
-                       subsurf_field,                                     \
-                       disort_settings,                                   \
-                       ray_path,                                          \
-                       disort_spectral_radiance_field,                    \
-                       disort_quadrature,                                 \
-                       spectral_radiance2)
+#pragma omp parallel for if (not arts_omp_in_parallel() and             \
+                                 static_cast<Size>(                     \
+                                         disort_quadrature_dimension) < \
+                                         model_state_vector.size())     \
+    firstprivate(model_state_vector,                                    \
+                     atm_field,                                         \
+                     surf_field,                                        \
+                     subsurf_field,                                     \
+                     disort_settings,                                   \
+                     ray_path,                                          \
+                     disort_spectral_radiance_field,                    \
+                     disort_quadrature,                                 \
+                     spectral_radiance2)
   for (Size i = 0; i < model_state_vector.size(); i++) {
     try {
       const Numeric orig     = model_state_vector[i];

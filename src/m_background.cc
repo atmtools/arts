@@ -100,8 +100,10 @@ void spectral_radianceSunsOrCosmicBackground(
     const SurfaceField& surface_field) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
-                     "Surface field not properly set up")
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   spectral_radiance.resize(frequency_grid.size());
 
