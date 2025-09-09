@@ -273,39 +273,6 @@ DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dyli
 LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...
 ```
 
-Valgrind profiling
-------------------
-
-The callgrind plugin included in valgrind is the recommended profiling method
-for ARTS.
-
-Certain things should be taken into account when calling ARTS with valgrind.
-Since recursion (cycles) will lead to wrong profiling results it is
-important to use the following settings to obtain profile data for ARTS:
-
-```
-valgrind --tool=callgrind --separate-callers=10 --separate-recs=3 arts -n1 ...
-```
-
-For detail on these options consult the valgrind manual:
-
-http://valgrind.org/docs/manual/cl-manual.html#cl-manual.cycles
-
--n1 should be passed to ARTS because parallelisation can further scew the
-results. Since executing a program in valgrind can lead to 50x slower
-execution, it is recommended to create a dedicated, minimal controlfile for
-profiling.
-
-After execution with valgrind, the resulting callgrind.out.* file can be
-opened in kcachegrind[1] for visualization. It is available as a package for
-most Linux distributions.
-
-Note that you don't have to do a full ARTS run. You can cancel the program
-after some time when you think you have gathered enough statistics.
-
-[1] https://kcachegrind.github.io/
-
-
 Linux perf profiling
 --------------------
 
@@ -323,7 +290,7 @@ cmake --preset=perf-gcc-conda
 Prepend the perf command to your arts call to record callgraph information:
 
 ```
-perf record -g src/arts MYCONTROLFILE.arts
+perf record -g python artsscript.py
 ```
 
 This can also be applied to any test case:
