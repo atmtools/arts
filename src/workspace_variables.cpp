@@ -534,10 +534,13 @@ The order of the elements is such that index zero is closest to the obeserver.
   };
 
   wsv_data["surface_field"] = {
-      .desc = R"--(The surface field describes the surface properties.
+      .desc = R"--(The surface field.
 
-This describes the global surface values, such as elevation and 
-temperature but also entirerly abstract properties and types.
+This contains the global surface values, such as elevation and
+temperature but also entirely abstract properties and types that
+are used by specific surface-related methods.
+
+It is a 2D field with latitude, and longitude dimensions.
 )--",
       .type = "SurfaceField",
   };
@@ -558,9 +561,15 @@ whereas *spectral_radiance_surface_agenda* can call this agenda.
   };
 
   wsv_data["subsurface_field"] = {
-      .desc = R"--(The sub-surface field describes the sub-surface properties.
+      .desc          = R"--(The sub-surface field.
+
+This contains global subsurface properties, such as temperature.
+It also contains many properties that are used by specific
+subsurface-related methods.
+
+It is a 3D field with altitude, latitude, and longitude dimensions.
 )--",
-      .type = "SubsurfaceField",
+      .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
   };
 
