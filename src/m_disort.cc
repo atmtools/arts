@@ -6,9 +6,6 @@
 #include <algorithm>
 #include <format>
 
-#include "lagrange_interp.h"
-#include "path_point.h"
-
 ////////////////////////////////////////////////////////////////////////
 // Core Disort
 ////////////////////////////////////////////////////////////////////////
@@ -93,10 +90,12 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
 // Integrate functions
 ////////////////////////////////////////////////////////////////////////
 
-void spectral_radianceFromReverseDisort(
+void spectral_radianceFromDisort(
     StokvecVector& spectral_radiance,
     const DisortRadiance& disort_spectral_radiance_field,
     const PropagationPathPoint& ray_path_point) {
+  using namespace lagrange_interp;
+
   ARTS_TIME_REPORT
 
   const auto& f_grid   = disort_spectral_radiance_field.frequency_grid;
@@ -113,14 +112,9 @@ void spectral_radianceFromReverseDisort(
   ARTS_USER_ERROR_IF(alt_grid.size() < 2,
                      "DISORT altitude grid must have at least two points")
 
-  //! FIXME: Is the azimuth angle supposed to be mirrored or not?
-  const Vector2 mirror_los = path::mirror(ray_path_point.los);
-
-  using aa_cyc_t = lagrange_interp::cycler<0.0, 360.0>;
-  const auto aa_lag =
-      lagrange_interp::variant_lag<aa_cyc_t>(aa_grid, mirror_los[1]);
-  const auto za_lag = lagrange_interp::variant_lag<lagrange_interp::identity>(
-      za_grid, mirror_los[0]);
+  using aa_cyc_t    = cycler<0.0, 360.0>;
+  const auto aa_lag = variant_lag<aa_cyc_t>(aa_grid, ray_path_point.los[1]);
+  const auto za_lag = variant_lag<identity>(za_grid, ray_path_point.los[0]);
 
   const Numeric z  = ray_path_point.altitude();
   const bool above = alt_grid.size() < 2 or z >= alt_grid[1];
@@ -129,21 +123,22 @@ void spectral_radianceFromReverseDisort(
   if (above or below) {
     std::visit(
         [&, idx = above ? 0 : alt_grid.size() - 2](auto& aa, auto& za) {
-          for (Size iv = 0; iv < nf; iv++) {
-            spectral_radiance[iv] = interp(data[iv, idx], aa, za);
-          }
+          std::transform(data.begin(),
+                         data.end(),
+                         spectral_radiance.begin(),
+                         [&](auto&& d) { return interp(d[idx], aa, za); });
         },
         aa_lag,
         za_lag);
   } else {
-    const auto alt_lag =
-        lagrange_interp::variant_lag<>(std::span{alt_grid}.subspan(1), z);
+    const auto alt_lag = variant_lag<>(std::span{alt_grid}.subspan(1), z);
 
     std::visit(
         [&](auto& alt, auto& aa, auto& za) {
-          for (Size iv = 0; iv < nf; iv++) {
-            spectral_radiance[iv] = interp(data[iv], alt, aa, za);
-          }
+          std::transform(data.begin(),
+                         data.end(),
+                         spectral_radiance.begin(),
+                         [&](auto&& d) { return interp(d, alt, aa, za); });
         },
         alt_lag,
         aa_lag,

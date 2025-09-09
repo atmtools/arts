@@ -60,6 +60,9 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                            const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   const Numeric h =
       surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
 
@@ -350,13 +353,15 @@ void disort_settingsDownwellingObserver(
     const Workspace& ws,
     DisortSettings& disort_settings,
     const AscendingGrid& frequency_grid,
-    const PropagationPathPoint& ray_path_point,
+    const ArrayOfPropagationPathPoint& ray_path,
     const AtmField& atmospheric_field,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
     const Agenda& spectral_radiance_observer_agenda,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
+
+  const auto& ray_path_point = ray_path.front();
 
   auto& limit = disort_settings.negative_boundary_condition = 0;
 
@@ -380,20 +385,20 @@ void disort_settingsDownwellingObserver(
 
   StokvecVector spectral_radiance;
   StokvecMatrix spectral_radiance_jacobian;
-  ArrayOfPropagationPathPoint ray_path;
+  ArrayOfPropagationPathPoint ray_path_up;
   const JacobianTargets jacobian_targets{};
 
   String error{};
 
-#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(1) \
-    firstprivate(spectral_radiance, ray_path, spectral_radiance_jacobian)
+#pragma omp parallel for if (not arts_omp_in_parallel()) \
+    firstprivate(spectral_radiance, spectral_radiance_jacobian, ray_path_up)
   for (Index i = 0; i < N; i++) {
     try {
       spectral_radiance_observer_agendaExecute(
           ws,
           spectral_radiance,
           spectral_radiance_jacobian,
-          ray_path,
+          ray_path_up,
           frequency_grid,
           jacobian_targets,
           ray_path_point.pos,

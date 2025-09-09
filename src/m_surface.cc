@@ -29,6 +29,9 @@ void surface_reflectanceFlatRealFresnel(
     const JacobianTargets& jacobian_targets) try {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag refraction_target{"scalar refractive index"};
 
@@ -93,6 +96,9 @@ void surface_reflectanceFlatScalar(
     const JacobianTargets& jacobian_targets) try {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag reflectance_target{"flat scalar reflectance"};
 
@@ -145,6 +151,9 @@ void spectral_radianceSurfaceReflectance(
     const Agenda& spectral_radiance_closed_surface_agenda,
     const Agenda& surface_reflectance_agenda) try {
   ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
 
   const Size NF                    = frequency_grid.size();
   const Size NX                    = jacobian_targets.x_size();

@@ -121,8 +121,7 @@ std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
 
 namespace Surf {
 String Data::data_type() const {
-  if (std::holds_alternative<GeodeticField2>(data))
-    return "GeodeticField2";
+  if (std::holds_alternative<GeodeticField2>(data)) return "GeodeticField2";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
@@ -297,9 +296,8 @@ bool Field::contains(const KeyVal &key) const {
 }
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
-  ARTS_USER_ERROR_IF(ellipsoid[0] <= 0. or ellipsoid[1] <= 0.,
-                     "Ellipsoid must have positive axes: {:B,}",
-                     ellipsoid)
+  ARTS_USER_ERROR_IF(
+      bad_ellipsoid(), "Ellipsoid must have positive axes: {:B,}", ellipsoid)
 
   constexpr Vector2 up{180, 0};
 
@@ -370,9 +368,7 @@ Point Field::at(Numeric lat, Numeric lon) const {
 
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
   ARTS_USER_ERROR_IF(
-      not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: {}",
-      key)
+      not contains(key), "Surface field does not possess the key: {}", key)
 
   const auto interp = interpolation_function(lat, lon);
 
@@ -396,18 +392,14 @@ std::pair<Numeric, Numeric> minmax(const GeodeticField2 &x) {
 std::pair<Numeric, Numeric> Field::minmax_single_value(
     const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
-      not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ",
-      key)
+      not contains(key), "Surface field does not possess the key: {}", key)
   return std::visit([](auto &a) { return minmax(a); },
                     this->operator[](key).data);
 }
 
 bool Field::constant_value(const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
-      not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: {}",
-      key)
+      not contains(key), "Surface field does not possess the key: {}", key)
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
@@ -458,8 +450,9 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
   return {v0, v0, v0, v0};
 }
 
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(
-    const GeodeticField2 &v, const Numeric &lat, const Numeric &lon) {
+std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GeodeticField2 &v,
+                                                       const Numeric &lat,
+                                                       const Numeric &lon) {
   using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
   using LatLag = lagrange_interp::lag_t<1>;
 
@@ -574,6 +567,10 @@ Data &Data::operator=(FunctionalData x) {
   data = std::move(x);
   adjust_interpolation_extrapolation();
   return *this;
+}
+
+[[nodiscard]] bool Field::bad_ellipsoid() const {
+  return not(ellipsoid[1] > 0 and ellipsoid[0] >= ellipsoid[1]);
 }
 }  // namespace Surf
 

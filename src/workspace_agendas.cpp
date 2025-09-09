@@ -308,6 +308,31 @@ scenarios.  The output of this Agenda is just that setting.
                  "disort_fourier_mode_dimension",
                  "disort_legendre_polynomial_dimension"}};
 
+  wsa_data["disort_settings_downwelling_wrapper_agenda"] = {
+      .desc   = R"--(An wrapper agenda for calling *disort_settings_agenda*.
+
+This agenda wraps the *disort_settings_agenda* to provide a simpler interface
+for the common case of calculating downwelling radiation.  The idea is that a
+call to *disort_settings_agenda* is made, and then a follow-up calculation of
+the down-welling radiation is done to set the boundary condition at the top
+of the tau-range covered by the ray path.
+
+One use-case is to use this agenda to give downwelling atmospheric radiation
+as a boundary condition to subsurface radiance calculation.
+)--",
+      .output = {"disort_settings"},
+      .input  = {"frequency_grid",
+                 "ray_path",
+                 "atmospheric_field",
+                 "surface_field",
+                 "subsurface_field",
+                 "disort_quadrature_dimension",
+                 "disort_fourier_mode_dimension",
+                 "disort_legendre_polynomial_dimension",
+                 "disort_settings_agenda"},
+      .enum_options = {"Standard", "Disort"},
+      .enum_default = "Standard"};
+
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
     record.desc += std::format(R"(

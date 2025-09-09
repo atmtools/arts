@@ -213,6 +213,9 @@ void find_sun_path(const Workspace& ws,
                    const bool just_hit) {
   using Conversion::rad2deg;
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   assert(angle_cut >= 0.0);
 
   Vector3 observer_pos = observer_pos_;

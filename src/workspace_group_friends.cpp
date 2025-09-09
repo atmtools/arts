@@ -164,12 +164,6 @@ so that reading routines can find the correct data files.
 )",
   };
 
-  wsg_data["SubsurfacePropertyTag"] = {
-      .file = "subsurface.h",
-      .desc = R"--(A custom property tag for subsurface fields data.
-)--",
-  };
-
   wsg_data["SubsurfaceData"] = {
       .file        = "subsurface.h",
       .desc        = "A data structure for subsurface field information.\n",

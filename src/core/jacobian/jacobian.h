@@ -314,12 +314,18 @@ struct Targets final {
   ErrorTarget& emplace_back(ErrorKey&& t, Numeric d = 0.0);
   ErrorTarget& emplace_back(const ErrorKey& t, Numeric d = 0.0);
 
-  [[nodiscard]] std::vector<AtmTarget>::const_iterator find(const AtmKeyVal& t) const;
-  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator find(const SurfaceKeyVal& t) const;
-  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(const SubsurfaceKeyVal& t) const;
-  [[nodiscard]] std::vector<LineTarget>::const_iterator find(const LblLineKey& t) const;
-  [[nodiscard]] std::vector<SensorTarget>::const_iterator find(const SensorKey& t) const;
-  [[nodiscard]] std::vector<ErrorTarget>::const_iterator find(const ErrorKey& t) const;
+  [[nodiscard]] std::vector<AtmTarget>::const_iterator find(
+      const AtmKeyVal& t) const;
+  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator find(
+      const SurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(
+      const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<LineTarget>::const_iterator find(
+      const LblLineKey& t) const;
+  [[nodiscard]] std::vector<SensorTarget>::const_iterator find(
+      const SensorKey& t) const;
+  [[nodiscard]] std::vector<ErrorTarget>::const_iterator find(
+      const ErrorKey& t) const;
 
   [[nodiscard]] Index target_position(const AtmKeyVal& t) const;
   [[nodiscard]] Index target_position(const SurfaceKeyVal& t) const;
@@ -459,6 +465,8 @@ struct std::formatter<Jacobian::AtmTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::AtmTarget& v,
                               FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
@@ -491,6 +499,42 @@ struct std::formatter<Jacobian::SurfaceTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::SurfaceTarget& v,
                               FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
+    const std::string_view sep = tags.sep();
+    return tags.format(ctx,
+                       v.type,
+                       ": "sv,
+                       v.d,
+                       sep,
+                       "target_pos: "sv,
+                       v.target_pos,
+                       sep,
+                       "x_start: "sv,
+                       v.x_start,
+                       sep,
+                       "x_size: "sv,
+                       v.x_size);
+  }
+};
+
+template <>
+struct std::formatter<Jacobian::SubsurfaceTarget> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const Jacobian::SubsurfaceTarget& v,
+                              FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
@@ -523,6 +567,8 @@ struct std::formatter<Jacobian::LineTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::LineTarget& v,
                               FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
@@ -555,6 +601,8 @@ struct std::formatter<Jacobian::SensorTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::SensorTarget& v,
                               FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
@@ -587,6 +635,8 @@ struct std::formatter<Jacobian::ErrorTarget> {
   template <class FmtContext>
   FmtContext::iterator format(const Jacobian::ErrorTarget& v,
                               FmtContext& ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.type);
+
     const std::string_view sep = tags.sep();
     return tags.format(ctx,
                        v.type,
@@ -624,6 +674,9 @@ struct std::formatter<JacobianTargets> {
                 sep,
                 R"("surf": )"sv,
                 v.surf,
+                sep,
+                R"("subsurf": )"sv,
+                v.subsurf,
                 sep,
                 R"("line": )"sv,
                 v.line,

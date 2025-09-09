@@ -27,6 +27,9 @@ void spectral_radiance_operatorClearsky1D(
     const Index& cia_robust) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
 
   using lines_t  = AbsorptionBands;

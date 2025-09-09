@@ -213,12 +213,13 @@ void Agenda::copy_workspace(Workspace& out,
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
       R"(
-Error with workspace copying in Agenda
+Error with workspace copying in Agenda "{}"
 
 Workspace contains:
 {:s}
 
 {})",
+      name,
       in,
       e.what()));
 }

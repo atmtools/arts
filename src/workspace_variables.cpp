@@ -547,8 +547,7 @@ temperature but also entirerly abstract properties and types.
 It behave exactly like *spectral_radiance_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
 *spectral_radiance_surface_agenda* variable is the first interface
-and can chain into the subsurface agenda and do top-level extras,
-like compute the down-welling radiation required for reflectance.
+and can chain into another surface agenda.
 
 Thus this agenda must be "closed".  It cannot call *spectral_radiance_surface_agenda*,
 whereas *spectral_radiance_surface_agenda* can call this agenda.

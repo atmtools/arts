@@ -13,6 +13,9 @@ void ray_path_transmission_matrixFromPath(
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(surface_field.bad_ellipsoid(),
+                     "Surface field not properly set up")
+
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
 
   ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
