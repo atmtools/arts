@@ -415,7 +415,7 @@ This is the extraction of the text in the ``workspace_meta_methods.cpp`` file:
       .author           = {"Richard Larsson"},
       .methods          = {"atmospheric_fieldInit",
                            "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAbsorptionData"},
+                           "atmospheric_fieldAppendDataToTheAtmosphericFieldBasedOnAvailableAbsorptionData"},
       .out              = {"atmospheric_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},

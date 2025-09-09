@@ -222,7 +222,7 @@ This method simply is a convenience wrapper for that use case.
       .author           = {"Richard Larsson"},
       .methods          = {"atmospheric_fieldInit",
                            "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAbsorptionData"},
+                           "atmospheric_fieldAppendDataToTheAtmosphericFieldBasedOnAvailableAbsorptionData"},
       .out              = {"atmospheric_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},

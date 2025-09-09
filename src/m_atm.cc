@@ -328,7 +328,7 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
   }
 }
 
-void atmospheric_fieldAppendLineSpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnLineData(
     AtmField &atmospheric_field,
     const AbsorptionBands &absorption_bands,
     const String &basename,
@@ -350,7 +350,7 @@ void atmospheric_fieldAppendLineSpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldAppendLineIsotopologueData(
+void atmospheric_fieldAppendIsotopologueRatioDataToTheAtmosphericFieldBasedOnLineData(
     AtmField &atmospheric_field,
     const AbsorptionBands &absorption_bands,
     const String &basename,
@@ -376,7 +376,7 @@ void atmospheric_fieldAppendLineIsotopologueData(
               [](const SpeciesIsotope &x) { return x.FullName(); });
 }
 
-void atmospheric_fieldAppendLineLevelData(
+void atmospheric_fieldAppendNLTEDataToTheAtmosphericFieldBasedOnLineData(
     AtmField &atmospheric_field,
     const AbsorptionBands &absorption_bands,
     const String &basename,
@@ -404,7 +404,7 @@ void atmospheric_fieldAppendLineLevelData(
       [](const QuantumLevelIdentifier &x) { return std::format("{}", x); });
 }
 
-void atmospheric_fieldAppendTagsSpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionSpecies(
     AtmField &atmospheric_field,
     const ArrayOfArrayOfSpeciesTag &absorption_species,
     const String &basename,
@@ -426,7 +426,7 @@ void atmospheric_fieldAppendTagsSpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldAppendCIASpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnCollisionInducedAbsorptionData(
     AtmField &atmospheric_field,
     const ArrayOfCIARecord &absorption_cia_data,
     const String &basename,
@@ -448,7 +448,7 @@ void atmospheric_fieldAppendCIASpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldAppendLookupTableSpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionLookupTableData(
     AtmField &atmospheric_field,
     const AbsorptionLookupTables &absorption_lookup_table,
     const String &basename,
@@ -470,7 +470,7 @@ void atmospheric_fieldAppendLookupTableSpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldAppendXsecSpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionCrossSectionFitData(
     AtmField &atmospheric_field,
     const ArrayOfXsecRecord &absorption_xsec_fit_data,
     const String &basename,
@@ -492,7 +492,7 @@ void atmospheric_fieldAppendXsecSpeciesData(
               [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void atmospheric_fieldAppendPredefSpeciesData(
+void atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionPredefinedModelData(
     AtmField &atmospheric_field,
     const PredefinedModelData &absorption_predefined_model_data,
     const String &basename,
@@ -535,7 +535,7 @@ void atmospheric_fieldAppendPredefSpeciesData(
   }
 }
 
-void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
+void atmospheric_fieldAppendDataToTheAtmosphericFieldBasedOnAvailableAbsorptionData(const Workspace &ws,
                                            AtmField &atmospheric_field,
                                            const String &basename,
                                            const String &extrapolation,
@@ -550,7 +550,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
     using lines_t                = AbsorptionBands;
     const auto &absorption_bands = ws.get<lines_t>(lines_str);
 
-    atmospheric_fieldAppendLineSpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnLineData(atmospheric_field,
                                            absorption_bands,
                                            basename,
                                            extrapolation,
@@ -558,7 +558,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
                                            replace_existing);
 
     if (static_cast<bool>(load_isot)) {
-      atmospheric_fieldAppendLineIsotopologueData(atmospheric_field,
+      atmospheric_fieldAppendIsotopologueRatioDataToTheAtmosphericFieldBasedOnLineData(atmospheric_field,
                                                   absorption_bands,
                                                   basename,
                                                   extrapolation,
@@ -567,7 +567,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
     }
 
     if (static_cast<bool>(load_nlte)) {
-      atmospheric_fieldAppendLineLevelData(atmospheric_field,
+      atmospheric_fieldAppendNLTEDataToTheAtmosphericFieldBasedOnLineData(atmospheric_field,
                                            absorption_bands,
                                            basename,
                                            extrapolation,
@@ -580,7 +580,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       ws.wsv_and_contains(cia_str)) {
     using cia_t                     = ArrayOfCIARecord;
     const auto &absorption_cia_data = ws.get<cia_t>(cia_str);
-    atmospheric_fieldAppendCIASpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnCollisionInducedAbsorptionData(atmospheric_field,
                                           absorption_cia_data,
                                           basename,
                                           extrapolation,
@@ -592,7 +592,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       ws.wsv_and_contains(lookup_str)) {
     using lookup_t                      = AbsorptionLookupTables;
     const auto &absorption_lookup_table = ws.get<lookup_t>(lookup_str);
-    atmospheric_fieldAppendLookupTableSpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionLookupTableData(atmospheric_field,
                                                   absorption_lookup_table,
                                                   basename,
                                                   extrapolation,
@@ -604,7 +604,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       ws.wsv_and_contains(xsec_str)) {
     using xsec_t                         = ArrayOfXsecRecord;
     const auto &absorption_xsec_fit_data = ws.get<xsec_t>(xsec_str);
-    atmospheric_fieldAppendXsecSpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionCrossSectionFitData(atmospheric_field,
                                            absorption_xsec_fit_data,
                                            basename,
                                            extrapolation,
@@ -616,7 +616,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       ws.wsv_and_contains(predef_str)) {
     using predef_t                               = PredefinedModelData;
     const auto &absorption_predefined_model_data = ws.get<predef_t>(predef_str);
-    atmospheric_fieldAppendPredefSpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionPredefinedModelData(atmospheric_field,
                                              absorption_predefined_model_data,
                                              basename,
                                              extrapolation,
@@ -628,7 +628,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       ws.wsv_and_contains(species_str)) {
     using aospec_t                 = ArrayOfArrayOfSpeciesTag;
     const auto &absorption_species = ws.get<aospec_t>(species_str);
-    atmospheric_fieldAppendTagsSpeciesData(atmospheric_field,
+    atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionSpecies(atmospheric_field,
                                            absorption_species,
                                            basename,
                                            extrapolation,

@@ -36,7 +36,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
             missing_is_zero=True,
             extrapolation="Nearest",
         )
-        ws.atmospheric_fieldAppendLineIsotopologueData(
+        ws.atmospheric_fieldAppendIsotopologueRatioDataToTheAtmosphericFieldBasedOnLineData(
             basename="planets/Mars/isotopologue_ratios/", replace_existing=True
         )
         assert 6 == len(

@@ -3940,7 +3940,7 @@ if the method should throw if the pressure or temperature is missing.
                     "Whether or not to allow missing temperature data"},
   };
 
-  wsm_data["atmospheric_fieldAppendLineSpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnLineData"] = {
       .desc =
           R"--(Append species data to the atmospheric field based on line data
 
@@ -3970,9 +3970,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendLineIsotopologueData"] = {
+  wsm_data["atmospheric_fieldAppendIsotopologueRatioDataToTheAtmosphericFieldBasedOnLineData"] = {
       .desc =
-          R"--(Append isotopologue data to the atmospheric field based on line data
+          R"--(Append isotopologue ratio data to the atmospheric field based on line data
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
@@ -4000,7 +4000,7 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendLineLevelData"] = {
+  wsm_data["atmospheric_fieldAppendNLTEDataToTheAtmosphericFieldBasedOnLineData"] = {
       .desc =
           R"--(Append NLTE data to the atmospheric field based on line data
 
@@ -4031,9 +4031,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendTagsSpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionSpecies"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on species data
+          R"--(Append species data to the atmospheric field based on *absorption_species*
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4061,9 +4061,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendCIASpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnCollisionInducedAbsorptionData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on collision-induced data data
+          R"--(Append species data to the atmospheric field based on collision-induced absorption data
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
@@ -4091,9 +4091,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendXsecSpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionCrossSectionFitData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on cross-section data
+          R"--(Append species data to the atmospheric field based on absorption cross-section fit data
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4121,9 +4121,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionLookupTableData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on lookup data
+          R"--(Append species data to the atmospheric field based on absorption lookup table data
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4151,9 +4151,9 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendPredefSpeciesData"] = {
+  wsm_data["atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionPredefinedModelData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on predefined model data
+          R"--(Append species data to the atmospheric field based on absorption predefined model data
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
@@ -4181,22 +4181,24 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
+  wsm_data["atmospheric_fieldAppendDataToTheAtmosphericFieldBasedOnAvailableAbsorptionData"] = {
       .desc =
           R"--(Append data to the atmospheric field based on available absorption data.
 
 Wraps:
 
-- *atmospheric_fieldAppendLineSpeciesData* if the workspace contains *absorption_bands*
-- *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
-- *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
-- *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
-- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *absorption_lookup_table*
-- *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
-- *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
-- *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnLineData* if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendIsotopologueRatioDataToTheAtmosphericFieldBasedOnLineData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendNLTEDataToTheAtmosphericFieldBasedOnLineData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionSpecies* if the workspace contains *absorption_species*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionLookupTableData* if the workspace contains *absorption_lookup_table*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnCollisionInducedAbsorptionData* if the workspace contains *absorption_cia_data*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionCrossSectionFitData* if the workspace contains *absorption_xsec_fit_data*
+- *atmospheric_fieldAppendSpeciesDataToTheAtmosphericFieldBasedOnAbsorptionPredefinedModelData* if the workspace contains *absorption_predefined_model_data*
 
-See these individually for more details.
+See these individually for more details.  Not that unlike the individual methods, this method will still
+work if some of the absorption data types are missing in the workspace.  It operates directly on the
+workspace rather than taking the data as input arguments.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
