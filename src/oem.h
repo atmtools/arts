@@ -790,7 +790,7 @@ void OEM_checks(const Workspace &ws,
       (method == "ml_cg")) {
     ARTS_USER_ERROR_IF(lm_ga_settings.size() != 6,
                        "When using \"ml\", *lm_ga_setings* must be a "
-                       "vector of length 6. lm_ga_setings.size(): {}", );
+                       "vector of length 6. lm_ga_setings.size(): {}", lm_ga_settings.size());
     ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
                        "The vector *lm_ga_setings* can not contain any "
                        "negative value. lm_ga_setings: {}",
