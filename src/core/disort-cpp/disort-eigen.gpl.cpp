@@ -129,7 +129,7 @@ Index c_asymmetric_matrix(MatrixView P,
    */
 
   for (Index j = k; j >= 0; j--) {
-    const Range oj{0, j}, jm{j + 1, m - j};
+    const Range oj{0, j}, jm{j + 1, m - j - 1};
     const Numeric row = abssum(A[j, oj]) + abssum(A[j, jm]);
 
     if (row == 0) {
@@ -151,7 +151,7 @@ Index c_asymmetric_matrix(MatrixView P,
    */
 
   for (Index j = l; j <= k; j++) {
-    const Range oj{0, j}, jm{j + 1, m - j};
+    const Range oj{0, j}, jm{j + 1, m - j - 1};
     const Numeric col = abssum(A[oj, j]) + abssum(A[jm, j]);
 
     if (col == 0) {
@@ -290,7 +290,7 @@ Index c_asymmetric_matrix(MatrixView P,
   }
 
   const Range zl{0, l};
-  const Range km{k + 1, m - k};
+  const Range km{k + 1, m - k - 1};
   auto dA = diagonal(A);
   W[zl]   = dA[zl];
   W[km]   = dA[km];

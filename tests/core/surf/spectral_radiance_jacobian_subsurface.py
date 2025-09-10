@@ -49,4 +49,6 @@ ws.spectral_radianceSubsurfaceDisortEmissionWithJacobian(disort_fourier_mode_dim
                                                          depth_profile=z)
 ws.spectral_radianceApplyUnit()
 
-plt.semilogx(ws.spectral_radiance_jacobian.flatten()[::4], tf.grids[0])
+j = ws.spectral_radiance_jacobian.flatten()[::4]
+plt.semilogx(j, tf.grids[0])
+print(ws.spectral_radiance)

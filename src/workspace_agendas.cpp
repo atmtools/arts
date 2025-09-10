@@ -330,7 +330,7 @@ as a boundary condition to subsurface radiance calculation.
                  "disort_fourier_mode_dimension",
                  "disort_legendre_polynomial_dimension",
                  "disort_settings_agenda"},
-      .enum_options = {"Standard", "Disort"},
+      .enum_options = {"Standard" /*, "Disort"*/},
       .enum_default = "Standard"};
 
   // Add information about all automatically generated code

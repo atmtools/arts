@@ -5283,16 +5283,20 @@ A description of the options is given below.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings_agenda"},
       .gin    = {"sun_setting",
-                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0]},
+                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0],
+                 "fading_bottom"},
       .gin_type =
           {"String",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0],
+           "Index"},
       .gin_value =
           {String{"None"},
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0],
+           Index{1}},
       .gin_desc =
           {"Sun settings",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0],
+           "If true, the bottom layer has no input from below (i.e., no emission or transmission from below)."},
   };
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {

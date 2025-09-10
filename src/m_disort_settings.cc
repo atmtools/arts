@@ -916,7 +916,8 @@ Agenda disort_settings_agendaSetup(
 
 Agenda disort_settings_agendaSubsurfaceSetup(
     const disort_settings_agenda_setup_sun_type& sun_setting,
-    const Numeric& min_optical_depth) {
+    const Numeric& min_optical_depth,
+    const Index& fading_bottom) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -930,7 +931,12 @@ Agenda disort_settings_agendaSubsurfaceSetup(
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
              SetWsv("min_optical_depth", min_optical_depth));
   agenda.add("disort_settingsSubsurfaceScalarSingleScatteringAlbedo");
-  agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
+
+  if (fading_bottom) {
+    agenda.add("disort_settingsNoSurfaceEmission");
+  } else {
+    agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
+  }
   agenda.add("disort_settingsSubsurfaceLayerThermalEmissionLinearInTau");
   agenda.add("disort_settingsNoLegendre");
 
@@ -970,10 +976,12 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
 
 void disort_settings_agendaSubsurfaceSetup(Agenda& disort_settings_agenda,
                                            const String& sun_setting,
-                                           const Numeric& min_optical_depth) {
+                                           const Numeric& min_optical_depth,
+                                           const Index& fading_bottom) {
   ARTS_TIME_REPORT
 
   disort_settings_agenda = disort_settings_agendaSubsurfaceSetup(
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
-      min_optical_depth);
+      min_optical_depth,
+      fading_bottom);
 }

@@ -180,26 +180,37 @@ void disort_spectral_radiance_fieldApplyUnit(
   const Index nz = disort_spectral_radiance_field.data.nrows();
   const Index nq = disort_spectral_radiance_field.data.ncols();
 
+  std::string error{};
+
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3) \
     firstprivate(spectral_radiance, spectral_radiance_jacobian)
   for (Index i = 0; i < np; i++) {
     for (Index j = 0; j < nz; j++) {
       for (Index k = 0; k < nq; k++) {
-        for (Index v = 0; v < nv; v++) {
-          spectral_radiance[v][0] =
-              disort_spectral_radiance_field.data[v, i, j, k];
-        }
-        spectral_radiance_transform_operator(
-            spectral_radiance,
-            spectral_radiance_jacobian,
-            disort_spectral_radiance_field.frequency_grid,
-            ray_path_point);
-        for (Index v = 0; v < nv; v++) {
-          disort_spectral_radiance_field.data[v, i, j, k] =
-              spectral_radiance[v][0];
+        try {
+          for (Index v = 0; v < nv; v++) {
+            spectral_radiance[v][0] =
+                disort_spectral_radiance_field.data[v, i, j, k];
+          }
+
+          spectral_radiance_transform_operator(
+              spectral_radiance,
+              spectral_radiance_jacobian,
+              disort_spectral_radiance_field.frequency_grid,
+              ray_path_point);
+
+          for (Index v = 0; v < nv; v++) {
+            disort_spectral_radiance_field.data[v, i, j, k] =
+                spectral_radiance[v][0];
+          }
+        } catch (std::exception& e) {
+#pragma omp critical
+          if (error.empty()) error = e.what();
         }
       }
     }
   }
+
+  ARTS_USER_ERROR_IF(not error.empty(), error)
 }
 ARTS_METHOD_ERROR_CATCH
