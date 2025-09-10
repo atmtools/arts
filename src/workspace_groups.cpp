@@ -369,6 +369,12 @@ A sub-surface field effectively holds two things:
 )--",
   };
 
+  wsg_data["SubsurfacePropertyTag"] = {
+      .file = "subsurface.h",
+      .desc = R"--(A custom property tag for subsurface fields data.
+)--",
+  };
+
   wsg_data["Time"] = {
       .file = "artstime.h",
       .desc = R"(Represents a time stamp

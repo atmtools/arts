@@ -16,10 +16,10 @@
 
 #include <cmath>
 
-inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric BOLTZMAN_CONST = Constant::boltzmann_constant;
+inline constexpr Numeric DEG2RAD        = Conversion::deg2rad(1);
+inline constexpr Numeric PLANCK_CONST   = Constant::planck_constant;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -74,13 +74,10 @@ Numeric barometric_heightformula(  //output is p1
  * @date   2010-10-26
  */
 Numeric dinvplanckdI(const Numeric& i, const Numeric& f) {
-  ARTS_USER_ERROR_IF (i <= 0, "Non-positive radiance")
-  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
-
-  static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
-  static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
-  const Numeric d = b * f * f * f / i;
-  const Numeric binv = a * f / log1p(d);
+  constexpr Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
+  constexpr Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+  const Numeric d     = b * f * f * f / i;
+  const Numeric binv  = a * f / log1p(d);
 
   return binv * binv / (a * f * i * (1 / d + 1));
 }
@@ -110,16 +107,16 @@ void fresnel(Complex& Rv,
              const Complex& n1,
              const Complex& n2,
              const Numeric& theta) {
-  const Numeric theta1 = DEG2RAD * theta;
+  const Numeric theta1    = DEG2RAD * theta;
   const Numeric costheta1 = cos(theta1);
   const Numeric costheta2 = cos(asin(n1.real() * sin(theta1) / n2.real()));
 
   Complex a, b;
-  a = n2 * costheta1;
-  b = n1 * costheta2;
+  a  = n2 * costheta1;
+  b  = n1 * costheta2;
   Rv = (a - b) / (a + b);
-  a = n1 * costheta1;
-  b = n2 * costheta2;
+  a  = n1 * costheta1;
+  b  = n2 * costheta2;
   Rh = (a - b) / (a + b);
 }
 
@@ -154,11 +151,8 @@ std::pair<Complex, Complex> fresnel(const Complex& n1,
  * @date   2002-08-11
 */
 Numeric invplanck(const Numeric& i, const Numeric& f) {
-  ARTS_USER_ERROR_IF (i <= 0, "Non-positive radiance")
-  ARTS_USER_ERROR_IF (f < 0, "Non-positive frequency")
-
-  static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
-  static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+  constexpr Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
+  constexpr Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
 
   return (a * f) / log1p((b * f * f * f) / i);
 }
@@ -176,11 +170,7 @@ Numeric invplanck(const Numeric& i, const Numeric& f) {
  * @date   2000-09-28
  */
 Numeric invrayjean(const Numeric& i, const Numeric& f) {
-  //   ARTS_USER_ERROR_IF (i <  0, "Negative radiance")
-  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
-
-  static const Numeric a =
-      SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
+  constexpr Numeric a = SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 
   return (a * i) / (f * f);
 }
@@ -200,10 +190,7 @@ Numeric invrayjean(const Numeric& i, const Numeric& f) {
  *  @date   2000-04-08
  */
 Numeric planck(const Numeric& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
-  
-  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);
   constexpr Numeric b = Constant::h / Constant::k;
 
   return a * Math::pow3(f) / std::expm1((b * f) / t);
@@ -225,8 +212,8 @@ Numeric planck(const Numeric& f, const Numeric& t) {
  * @date   2015-12-15
  */
 void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF (b.size() not_eq f.size(),
-                      "Vector size mismatch: frequency dim is bad")
+  ARTS_USER_ERROR_IF(b.size() not_eq f.size(),
+                     "Vector size mismatch: frequency dim is bad")
   for (Size i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
 }
 
@@ -265,16 +252,14 @@ Vector planck(const StridedConstVectorView& f, const Numeric& t) {
  * @date   2015-09-15
  */
 Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
-
-  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);
   constexpr Numeric b = Constant::h / Constant::k;
-  
+
   // nb. expm1(x) should be more accurate than exp(x) - 1, so use it
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * b * Math::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Math::pow2(t);
+  return a * b * Math::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) /
+         Math::pow2(t);
 }
 
 /** dplanck_dt
@@ -291,8 +276,8 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
  * @date   2019-10-11
  */
 void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF (dbdt.size() not_eq f.size(),
-                      "Vector size mismatch: frequency dim is bad")
+  ARTS_USER_ERROR_IF(dbdt.size() not_eq f.size(),
+                     "Vector size mismatch: frequency dim is bad")
   for (Size i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
 }
 
@@ -328,16 +313,14 @@ Vector dplanck_dt(const ConstVectorView& f, const Numeric& t) {
  * @author Richard Larsson
  * @date   2015-09-15
  */
-Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
-  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
-  
-  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
+Numeric dplanck_df(const Numeric& f, const Numeric& t) {
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);
   constexpr Numeric b = Constant::h / Constant::k;
-  
+
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * Math::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
+  return a * Math::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) *
+         inv_exp_t_m1;
 }
 
 /** dplanck_df
@@ -353,7 +336,7 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
  * @author Richard Larsson
  * @date   2015-09-15
  */
-Vector dplanck_df(const ConstVectorView& f, const Numeric& t)  {
+Vector dplanck_df(const ConstVectorView& f, const Numeric& t) {
   Vector dbdf(f.size());
   for (Size i = 0; i < f.size(); i++) dbdf[i] = dplanck_df(f[i], t);
   return dbdf;
@@ -372,11 +355,7 @@ Vector dplanck_df(const ConstVectorView& f, const Numeric& t)  {
  * @date   2011-07-13
  */
 Numeric rayjean(const Numeric& f, const Numeric& tb) {
-  ARTS_USER_ERROR_IF (tb <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF (f < 0, "Negative frequency")
-
-  static const Numeric a =
-      SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
+  constexpr Numeric a = SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 
   return (f * f) / (a * tb);
 }

@@ -43,9 +43,9 @@ zas = np.linspace(0, 180, 361)
 data = []
 for za in zas:
     ws.ray_path_point.los = [za, 0]
-    ws.spectral_radianceFromReverseDisort()
+    ws.spectral_radianceFromDisort()
     data.append(ws.spectral_radiance[0, 0])
 data = np.array(data)
 plt.plot(zas, data)
 
-assert np.all(np.sort(data) == data)
+assert np.all(np.sort(data) == data[::-1])

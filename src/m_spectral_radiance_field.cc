@@ -95,6 +95,11 @@ void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
                                 const Index& consider_limb) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
+
   ARTS_USER_ERROR_IF(dza <= 0.0 or dza >= 180.0,
                      "Delta zenith angle must be (0, 180). Given dza: {}",
                      dza);
@@ -157,6 +162,11 @@ void spectral_radiance_fieldProfilePseudo2D(
   ARTS_TIME_REPORT
 
   constexpr Numeric minimal_r = 0.001;
+
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(
       not arr::same_size(altitude_grid, ray_path_atmospheric_point),

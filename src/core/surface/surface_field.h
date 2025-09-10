@@ -213,6 +213,8 @@ struct Field final {
   [[nodiscard]] Size nother() const;
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
+
+  [[nodiscard]] bool bad_ellipsoid() const;
 };
 }  // namespace Surf
 

@@ -38,6 +38,11 @@ void ray_path_observersFieldProfilePseudo2D(
     const Index& ndown) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
+
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 

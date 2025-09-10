@@ -25,7 +25,8 @@ internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   wsv_data["absorption_bands"] = {
-      .desc = R"--(Bands of absorption lines for line-by-line (LBL) calculations.
+      .desc =
+          R"--(Bands of absorption lines for line-by-line (LBL) calculations.
 
 See methods that consume this variable for more details on its content.
 )--",
@@ -526,19 +527,22 @@ The order of the elements is such that index zero is closest to the obeserver.
   };
 
   wsv_data["subsurface_profile"] = {
-      .desc          = R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
+      .desc =
+          R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
 )--",
-      .type          = "ArrayOfSubsurfacePoint",
+      .type = "ArrayOfSubsurfacePoint",
   };
 
   wsv_data["surface_field"] = {
-      .desc          = R"--(The surface field describes the surface properties.
+      .desc = R"--(The surface field.
 
-This describes the global surface values, such as elevation and 
-temperature but also entirerly abstract properties and types.
+This contains the global surface values, such as elevation and
+temperature but also entirely abstract properties and types that
+are used by specific surface-related methods.
+
+It is a 2D field with latitude, and longitude dimensions.
 )--",
-      .type          = "SurfaceField",
-      .default_value = "SurfaceField()",
+      .type = "SurfaceField",
   };
 
   wsv_data["spectral_radiance_closed_surface_agenda"] = {
@@ -547,8 +551,7 @@ temperature but also entirerly abstract properties and types.
 It behave exactly like *spectral_radiance_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
 *spectral_radiance_surface_agenda* variable is the first interface
-and can chain into the subsurface agenda and do top-level extras,
-like compute the down-welling radiation required for reflectance.
+and can chain into another surface agenda.
 
 Thus this agenda must be "closed".  It cannot call *spectral_radiance_surface_agenda*,
 whereas *spectral_radiance_surface_agenda* can call this agenda.
@@ -558,9 +561,15 @@ whereas *spectral_radiance_surface_agenda* can call this agenda.
   };
 
   wsv_data["subsurface_field"] = {
-      .desc = R"--(The sub-surface field describes the sub-surface properties.
+      .desc          = R"--(The sub-surface field.
+
+This contains global subsurface properties, such as temperature.
+It also contains many properties that are used by specific
+subsurface-related methods.
+
+It is a 3D field with altitude, latitude, and longitude dimensions.
 )--",
-      .type = "SubsurfaceField",
+      .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
   };
 
@@ -837,7 +846,7 @@ has been produced and if the measurement can be understood properly.
   };
 
   wsv_data["measurement_gain_matrix"] = {
-      .desc =R"(Contribution function (or gain) matrix.
+      .desc = R"(Contribution function (or gain) matrix.
 
 This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
 
@@ -865,7 +874,8 @@ Usage: Used and set by inversion methods.
   };
 
   wsv_data["do_jacobian"] = {
-      .desc = R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
+      .desc =
+          R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
 
 This variable is limited to very few methods related to the inversion process for *OEM*.
 Note that deep code of ARTS will ignore this variable, so it is not a global switch.
@@ -874,7 +884,7 @@ to determine the size of the *measurement_jacobian*.  It is important to be care
 with this, as it will mess with the size of the *measurement_jacobian* and could
 thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
 )",
-      .type = "Index",
+      .type          = "Index",
       .default_value = "1",
   };
 
@@ -891,7 +901,8 @@ thus lead to runtime errors being thrown in places where unexpected sizes are en
   };
 
   wsv_data["measurement_jacobian"] = {
-      .desc = R"(The first order partial derivatives of the *measurement_vector*.
+      .desc =
+          R"(The first order partial derivatives of the *measurement_vector*.
 
 This variable represents the matrix
 

@@ -229,6 +229,22 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "spectral_radianceSubsurfaceDisortEmission",
+      .desc =
+          "Get the spectral radiance from subsurface emission simulated using Disort",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pathFromPointAndDepth",
+                  "disort_settings_downwelling_wrapper_agendaExecute",
+                  "disort_spectral_radiance_fieldCalc",
+                  "spectral_radianceFromDisort"},
+      .out     = {"spectral_radiance",
+                  "disort_settings",
+                  "ray_path",
+                  "disort_spectral_radiance_field",
+                  "disort_quadrature"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "atmospheric_fieldFitNonLTE",
       .desc    = "Fits non-LTE atmospheric field values",
       .author  = {"Richard Larsson"},

@@ -139,6 +139,10 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance,
                                     &spectral_radiance_transform_operator) try {
   ARTS_TIME_REPORT
 
+  if (spectral_radiance_jacobian.empty()) {
+    spectral_radiance_jacobian.resize(0, frequency_grid.size());
+  }
+
   spectral_radiance_transform_operator(spectral_radiance,
                                        spectral_radiance_jacobian,
                                        frequency_grid,
@@ -377,7 +381,7 @@ void measurement_vectorFromSensor(
     }
   };
 
-  std::vector<std::string> error{};
+  std::string error{};
 
 #pragma omp parallel for if (not arts_omp_in_parallel() and N > 1)
   for (Size i = 0; i < N; i++) {
@@ -423,9 +427,9 @@ void measurement_vectorFromSensor(
       }
     } catch (const std::exception &e) {
 #pragma omp critical
-      {
-        error.emplace_back(std::format(
-            "Error in unflattening data for index {}: {}\n", i, e.what()));
+      if (error.empty()) {
+        error = std::format(
+            "Error in unflattening data for index {}: {}\n", i, e.what());
       }
     }
   }

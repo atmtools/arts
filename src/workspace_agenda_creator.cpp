@@ -185,3 +185,18 @@ Agenda get_surface_reflectance_agenda(const std::string_view option) {
 
   return std::move(agenda).finalize(true);
 }
+
+Agenda get_disort_settings_downwelling_wrapper_agenda(
+    const std::string_view option) {
+  AgendaCreator agenda("disort_settings_downwelling_wrapper_agenda");
+
+  using enum disort_settings_downwelling_wrapper_agendaPredefined;
+  switch (to<disort_settings_downwelling_wrapper_agendaPredefined>(option)) {
+    case Standard:
+      agenda.add("disort_settings_agendaExecute");
+      agenda.add("disort_settingsDownwellingObserver");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}

@@ -717,24 +717,48 @@ void OEM_checks(const Workspace &ws,
   const Size n = xa.size();
   const Size m = y.size();
 
-  ARTS_USER_ERROR_IF((x.size() != n) && (x.size() != 0),
-                     "The length of *x* must be either the same as *xa* or 0.");
-  ARTS_USER_ERROR_IF(covmat_sx.ncols() != covmat_sx.nrows(),
-                     "*covmat_sx* must be a square matrix.");
-  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_sx.ncols()) != n,
-                     "Inconsistency in size between *x* and *covmat_sx*.");
-  ARTS_USER_ERROR_IF((yf.size() != m) && (yf.size() != 0),
-                     "The length of *yf* must be either the same as *y* or 0.");
-  ARTS_USER_ERROR_IF(covmat_se.ncols() != covmat_se.nrows(),
-                     "*covmat_se* must be a square matrix.");
-  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_se.ncols()) != m,
-                     "Inconsistency in size between *y* and *covmat_se*.");
+  ARTS_USER_ERROR_IF(
+      (x.size() != n) && (x.size() != 0),
+      "The length of *x* must be either the same as *xa* or 0. x.size(): {}, xa.size(): {}",
+      x.size(),
+      xa.size());
+  ARTS_USER_ERROR_IF(
+      covmat_sx.ncols() != covmat_sx.nrows(),
+      "*covmat_sx* must be a square matrix. covmat_sx shape: {}x{}",
+      covmat_sx.nrows(),
+      covmat_sx.ncols());
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(covmat_sx.ncols()) != n,
+      "Inconsistency in size between *x* and *covmat_sx*. x.size(): {}, covmat_sx size: {}x{}",
+      x.size(),
+      covmat_sx.nrows(),
+      covmat_sx.ncols());
+  ARTS_USER_ERROR_IF(
+      (yf.size() != m) && (yf.size() != 0),
+      "The length of *yf* must be either the same as *y* or 0. yf.size(): {}, y.size(): {}",
+      yf.size(),
+      y.size());
+  ARTS_USER_ERROR_IF(
+      covmat_se.ncols() != covmat_se.nrows(),
+      "*covmat_se* must be a square matrix. covmat_se shape: {}x{}",
+      covmat_se.nrows(),
+      covmat_se.ncols());
+  ARTS_USER_ERROR_IF(
+      static_cast<Size>(covmat_se.ncols()) != m,
+      "Inconsistency in size between *y* and *covmat_se*. y.size(): {}, covmat_se size: {}x{}",
+      y.size(),
+      covmat_se.nrows(),
+      covmat_se.ncols());
   ARTS_USER_ERROR_IF(
       (static_cast<Size>(jacobian.nrows()) != m) && (!jacobian.empty()),
-      "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
+      "The number of rows of the jacobian must be either the number of elements in *y* or 0. jacobian.nrows(): {}, y.size(): {}",
+      jacobian.nrows(),
+      y.size());
   ARTS_USER_ERROR_IF(
       (static_cast<Size>(jacobian.ncols()) != n) && (!jacobian.empty()),
-      "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
+      "The number of cols of the jacobian must be either the number of elements in *xa* or 0. jacobian.ncols(): {}, xa.size(): {}",
+      jacobian.ncols(),
+      xa.size());
 
   // Check GINs
   ARTS_USER_ERROR_IF(
@@ -747,29 +771,40 @@ void OEM_checks(const Workspace &ws,
 
   ARTS_USER_ERROR_IF(!(x_norm.size() == 0 || x_norm.size() == n),
                      "The vector *x_norm* must have length 0 or match "
-                     "*covmat_sx*.");
+                     "*covmat_sx*. x_norm.size(): {}, xa.size(): {}",
+                     x_norm.size(),
+                     xa.size());
 
   ARTS_USER_ERROR_IF(x_norm.size() > 0 && min(x_norm) <= 0,
-                     "All values in *x_norm* must be > 0.");
+                     "All values in *x_norm* must be > 0. x_norm: {}",
+                     x_norm);
 
-  ARTS_USER_ERROR_IF(max_iter <= 0, "The argument *max_iter* must be > 0.");
+  ARTS_USER_ERROR_IF(max_iter <= 0,
+                     "The argument *max_iter* must be > 0. max_iter: {}",
+                     max_iter);
 
-  ARTS_USER_ERROR_IF(stop_dx <= 0, "The argument *stop_dx* must be > 0.");
+  ARTS_USER_ERROR_IF(
+      stop_dx <= 0, "The argument *stop_dx* must be > 0. stop_dx: {}", stop_dx);
 
   if ((method == "ml") || (method == "lm") || (method == "lm_cg") ||
       (method == "ml_cg")) {
     ARTS_USER_ERROR_IF(lm_ga_settings.size() != 6,
                        "When using \"ml\", *lm_ga_setings* must be a "
-                       "vector of length 6.");
+                       "vector of length 6. lm_ga_setings.size(): {}", lm_ga_settings.size());
     ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
                        "The vector *lm_ga_setings* can not contain any "
-                       "negative value.");
+                       "negative value. lm_ga_setings: {}",
+                       lm_ga_settings);
   }
 
-  ARTS_USER_ERROR_IF(clear_matrices < 0 || clear_matrices > 1,
-                     "Valid options for *clear_matrices* are 0 and 1.");
-  ARTS_USER_ERROR_IF(display_progress < 0 || display_progress > 1,
-                     "Valid options for *display_progress* are 0 and 1.");
+  ARTS_USER_ERROR_IF(
+      clear_matrices < 0 || clear_matrices > 1,
+      "Valid options for *clear_matrices* are 0 and 1. clear_matrices: {}",
+      clear_matrices);
+  ARTS_USER_ERROR_IF(
+      display_progress < 0 || display_progress > 1,
+      "Valid options for *display_progress* are 0 and 1. display_progress: {}",
+      display_progress);
 
   // If necessary compute yf and jacobian.
   if (x.size() == 0) {

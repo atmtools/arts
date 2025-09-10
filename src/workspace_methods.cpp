@@ -289,9 +289,9 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
-        .desc = "Executes an operator emulating *" + agname +
-                "*, see it, and also *" + agname +
-                "Operator*, for more details\n",
+        .desc = std::format(
+            "Executes an operator emulating *{0}*, see it, and also *{0}Operator*, for more details\n",
+            agname),
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
@@ -302,9 +302,9 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "SetOperator"] = {
-        .desc = "Set *" + agname +
-                "* to exclusively use provided external operator.  See *" +
-                agname + "Operator* for more details.\n",
+        .desc = std::format(
+            "Set *{0}* to exclusively use provided external operator.  See *{0}Operator* for more details.\n",
+            agname),
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
@@ -3042,7 +3042,7 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jacobian_targets"},
       .in        = {"jacobian_targets"},
       .gin       = {"target", "d"},
-      .gin_type  = {"SubsurfaceKey", "Numeric"},
+      .gin_type  = {"SubsurfaceKey,SubsurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The target of interest",
@@ -4731,6 +4731,17 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
       .in     = {"jacobian_targets"},
   };
 
+  wsm_data["model_state_vectorPerturbations"] = {
+      .desc =
+          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+
+Then fills it with the perturbations from the *jacobian_targets*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vector"},
+      .in     = {"jacobian_targets"},
+  };
+
   wsm_data["model_state_vectorFromSensor"] = {
       .desc   = R"--(Sets *model_state_vector*'s sensor part.
 )--",
@@ -5150,6 +5161,56 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .out    = {"scattering_species"},
   };
 
+  wsm_data["disort_settingsDownwellingObserver"] = {
+      .desc =
+          R"(Set the downwelling boundary condition using the observer agenda.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings",
+                    "frequency_grid",
+                    "ray_path",
+                    "atmospheric_field",
+                    "surface_field",
+                    "subsurface_field",
+                    "spectral_radiance_observer_agenda"},
+      .gin       = {"pol"},
+      .gin_type  = {"Stokvec"},
+      .gin_value = {Stokvec{1.0, 0.0, 0.0, 0.0}},
+      .gin_desc =
+          {"The polarization state to select.  The dot-product of this and *spectral_radiance* is used."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radianceSubsurfaceDisortEmissionWithJacobian"] = {
+      .desc           = R"--(Gets the spectral radiance from the path.
+
+The Jacobian is computed by perturbations.  Sensor and absorption data are
+not considered as part of the perturbations.
+
+The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbing
+*model_state_vector* for Jacobian calculations using *model_state_vectorPerturbations*.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in             = {"frequency_grid",
+                         "atmospheric_field",
+                         "surface_field",
+                         "subsurface_field",
+                         "jacobian_targets",
+                         "ray_path_point",
+                         "disort_quadrature_dimension",
+                         "disort_fourier_mode_dimension",
+                         "disort_legendre_polynomial_dimension",
+                         "disort_settings_agenda",
+                         "disort_settings_downwelling_wrapper_agenda"},
+      .gin            = {wsm_data["ray_pathFromPointAndDepth"].gin[0]},
+      .gin_type       = {wsm_data["ray_pathFromPointAndDepth"].gin_type[0]},
+      .gin_value      = {wsm_data["ray_pathFromPointAndDepth"].gin_value[0]},
+      .gin_desc       = {wsm_data["ray_pathFromPointAndDepth"].gin_desc[0]},
+      .pass_workspace = true,
+  };
+
   wsm_data["disort_settingsOpticalThicknessFromPath"] = {
       .desc   = R"(Get optical thickness from path.
 )",
@@ -5163,18 +5224,12 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
 
-  wsm_data["disort_settingsSubsurfaceScalarAbsorption"] = {
-      .desc      = R"(Get optical thickness from path.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings", "ray_path", "subsurface_profile"},
-      .gin       = {"min_optical_depth"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{1e-11}},
-      .gin_desc =
-          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
-  };
+  wsm_data["disort_settingsSubsurfaceScalarAbsorption"] =
+      wsm_data["disort_settingsOpticalThicknessFromPath"];
+  wsm_data["disort_settingsSubsurfaceScalarAbsorption"].desc =
+      "Get optical thickness from subsurface path.\n";
+  wsm_data["disort_settingsSubsurfaceScalarAbsorption"].in[2] =
+      "subsurface_profile";
 
   wsm_data["disort_settings_agendaSetup"] = {
       .desc =
@@ -5228,16 +5283,20 @@ A description of the options is given below.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings_agenda"},
       .gin    = {"sun_setting",
-                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0]},
+                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0],
+                 "fading_bottom"},
       .gin_type =
           {"String",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0],
+           "Index"},
       .gin_value =
           {String{"None"},
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0],
+           Index{1}},
       .gin_desc =
           {"Sun settings",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0]},
+           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0],
+           "If true, the bottom layer has no input from below (i.e., no emission or transmission from below)."},
   };
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
@@ -5253,13 +5312,10 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in =
-          {
-              "disort_settings",
-              "ray_path_propagation_matrix",
-              "ray_path_propagation_matrix_scattering",
-              "ray_path_absorption_vector_scattering",
-          },
+      .in     = {"disort_settings",
+                 "ray_path_propagation_matrix",
+                 "ray_path_propagation_matrix_scattering",
+                 "ray_path_absorption_vector_scattering"},
   };
 
   wsm_data["disort_settingsNoSun"] = {
@@ -5346,7 +5402,7 @@ This is WIP and should not be used.
       .in     = {"disort_settings", "frequency_grid"},
   };
 
-  wsm_data["disort_settingsSubsurfaceBoundaryEmissionByTemperature"] = {
+  wsm_data["disort_settingsSubsurfaceEmissionByTemperature"] = {
       .desc =
           R"(Subsurface boundary emission into Disort is based on temperature.
 
@@ -5511,8 +5567,9 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .in     = {"disort_spectral_radiance_field", "disort_quadrature"},
   };
 
-  wsm_data["spectral_radianceFromReverseDisort"] = {
-      .desc = R"(Extract spectral radiance from the Disort field at reverse LOS.
+  wsm_data["spectral_radianceFromDisort"] = {
+      .desc =
+          R"(Extract spectral radiance from the Disort field at the ray path point.
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},

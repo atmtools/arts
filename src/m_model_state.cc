@@ -8,6 +8,44 @@ void model_state_vectorInit(Vector& model_state_vector,
   model_state_vector = 0.0;
 }
 
+void model_state_vectorPerturbations(
+    Vector& model_state_vector,
+    const JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  model_state_vectorInit(model_state_vector, jacobian_targets);
+
+  for (auto& target : jacobian_targets.atm) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+
+  for (auto& target : jacobian_targets.surf) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+
+  for (auto& target : jacobian_targets.subsurf) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+
+  for (auto& target : jacobian_targets.line) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+
+  for (auto& target : jacobian_targets.sensor) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+
+  for (auto& target : jacobian_targets.error) {
+    const Range r(target.x_start, target.x_size);
+    model_state_vector[r] = target.d;
+  }
+}
+
 ////// Update the fields from the model state vector
 
 void atmospheric_fieldFromModelState(AtmField& atmospheric_field,

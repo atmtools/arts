@@ -30,6 +30,11 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid)
+
   jacobian_targets.finalize(atmospheric_field,
                             surface_field,
                             subsurface_field,
@@ -39,6 +44,14 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
 
 void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,
                                    const SubsurfaceKey& key,
+                                   const Numeric& d) {
+  ARTS_TIME_REPORT
+
+  jacobian_targets.emplace_back(SubsurfaceKeyVal{key}, d);
+}
+
+void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,
+                                   const SubsurfacePropertyTag& key,
                                    const Numeric& d) {
   ARTS_TIME_REPORT
 
