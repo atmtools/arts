@@ -64,6 +64,7 @@ option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (ENABLE_CDISORT "Turn on cdisort" ON)
+option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" ON)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
@@ -402,6 +403,7 @@ if (ENABLE_ASAN)
       OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
     set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
   endif()
+  set(ENABLE_PYARTS_STUBS off)
 endif()
 
 ########### OpenMP ##########
@@ -524,6 +526,12 @@ get_directory_property(ENABLE_WIGNER DIRECTORY
 if(FASTWIGNER)
   add_definitions( "-DFAST_WIGNER_PATH_3J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.3j\"")
   add_definitions( "-DFAST_WIGNER_PATH_6J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.6j\"")
+endif()
+
+if (ENABLE_PYARTS_STUBS)
+  message (STATUS "Python stub generation enabled")
+else()
+  message (STATUS "Python stub generation disabled")
 endif()
 
 if (ENABLE_CDISORT)
