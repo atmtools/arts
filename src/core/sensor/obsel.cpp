@@ -83,11 +83,11 @@ const std::vector<SparseStokvec>& SparseStokvecMatrix::vector() const {
   return sparse_data;
 }
 
-void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size reserve) {
+void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size size) {
   rows = nrows;
   cols = ncols;
   sparse_data.clear();
-  sparse_data.reserve(reserve);
+  sparse_data.resize(size);
 }
 
 std::array<Index, 2> SparseStokvecMatrix::shape() const {

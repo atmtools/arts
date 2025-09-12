@@ -68,7 +68,7 @@ class SparseStokvecMatrix {
   [[nodiscard]] std::array<Index, 2> shape() const;
   const std::vector<SparseStokvec>& vector() const;
 
-  void resize(Size rows, Size cols, Size reserve);
+  void resize(Size rows, Size cols, Size size);
 
   Stokvec& operator[](Size i, Size j);
   Stokvec operator[](Size i, Size j) const;
