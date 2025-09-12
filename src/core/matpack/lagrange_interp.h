@@ -223,7 +223,15 @@ constexpr void update_pos(std::span<Index, X> indx,
     while (xp > xf and *xp < x) --xp;
   }
 
-  if (N == 0) xp += std::abs(x - *(xp + 1)) < std::abs(x - *xp);
+  if (N == 0) {
+    if constexpr (cyclic<transform>) {
+      const auto xn = ((xp + 1) == xi.end()) ? xf : (xp + 1);
+      xp            = (std::abs(x - *xn) < std::abs(x - *xp)) ? xn : xp;
+    } else {
+      const auto xn = xp + 1;
+      xp = (xn == xi.end() or std::abs(x - *xn) > std::abs(x - *xp)) ? xp : xn;
+    }
+  }
 
   if constexpr (cyclic<transform>) {
     indx[0] = (std::clamp(xp, xf, xe) - xf) % n;
