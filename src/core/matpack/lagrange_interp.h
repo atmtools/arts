@@ -225,11 +225,11 @@ constexpr void update_pos(std::span<Index, X> indx,
 
   if (N == 0) {
     if constexpr (cyclic<transform>) {
-      const auto xn = (xp + 1) == xe ? xf : (xp + 1);
+      const auto xn = ((xp + 1) == xi.end()) ? xf : (xp + 1);
       xp            = (std::abs(x - *xn) < std::abs(x - *xp)) ? xn : xp;
     } else {
       const auto xn = xp + 1;
-      xp = ((xn != xe) or (std::abs(x - *xn) >= std::abs(x - *xp))) ? xp : xn;
+      xp = (xn == xi.end() or std::abs(x - *xn) > std::abs(x - *xp)) ? xp : xn;
     }
   }
 
