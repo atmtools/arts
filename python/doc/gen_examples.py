@@ -20,11 +20,13 @@ def title_to_heading(title):
         ret = title[0].upper() + title[1:]
     else:
         ret = title[pos + 1].upper() + title[pos + 2 :]
-    ret = re.sub(r"^(\d+)-", r"\1. ", ret)
+    ret = re.sub(r"^(\d+)-", r"", ret)
     m = re.match(r"^\d+\. ", ret)
     if m:
         pos = len(m.group(0))
         ret = ret[:pos] + ret[pos].upper() + ret[pos + 1 :]
+    else:
+        ret = ret[0].upper() + ret[1 :]
     return ret.replace("-", " ")
 
 
