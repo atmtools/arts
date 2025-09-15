@@ -2,7 +2,7 @@ import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
-PLOT = False
+PLOT = True
 toa = 120e3
 lat = 0
 lon = 0

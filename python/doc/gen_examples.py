@@ -152,11 +152,8 @@ def from_list(lst, path):
 """
 
         if py:
-            out += f".. code-block:: python\n"
-            out += "    :linenos:\n\n"
-            with open(os.path.join(path, py), "r") as pyfile:
-                for line in pyfile.read().split("\n"):
-                    out += f"    {line}\n"
+            out += f".. plot:: {os.path.join(path, py)}\n"
+            out += "    :include-source:\n\n"
 
     return rst(out)
 
