@@ -143,6 +143,14 @@ def from_list(lst, path):
         if rstf:
             with open(os.path.join(path, rstf), "r") as f:
                 out += f.read() + "\n"
+            if rstf == INTROFILE:
+                out += """.. contents::
+   :depth: 1
+   :local:
+   :backlinks: none
+
+"""
+
         if py:
             out += f".. code-block:: python\n"
             out += "    :linenos:\n\n"
@@ -207,7 +215,7 @@ def filetrees_to_toctrees(filetree, arts_path):
             text += "   :maxdepth: 2\n\n"
             for item in data:
                 text += (
-                    f"    {filename_from_path(path+"."+item, arts_path, "", "", "")}\n"
+                    f"   {filename_from_path(path+"."+item, arts_path, "", "", "")}\n"
                 )
             out[path] = rst(text)
 
