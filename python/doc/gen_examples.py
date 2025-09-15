@@ -203,7 +203,8 @@ def filetrees_to_toctrees(filetree, arts_path):
         if isinstance(data, dict):
             out[path] = filetrees_to_toctrees(data, arts_path)
         elif isinstance(data, list):
-            text = ".. toctree::\n"
+            text =  ".. toctree::\n"
+            text += "   :maxdepth: 2\n\n"
             for item in data:
                 text += (
                     f"    {filename_from_path(path+"."+item, arts_path, "", "", "")}\n"
