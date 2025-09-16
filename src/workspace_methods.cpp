@@ -3942,7 +3942,7 @@ if the method should throw if the pressure or temperature is missing.
 
   wsm_data["atmospheric_fieldAppendLineSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on line data
+          R"--(Append species data to the atmospheric field based on line data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -3972,7 +3972,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendLineIsotopologueData"] = {
       .desc =
-          R"--(Append isotopologue data to the atmospheric field based on line data
+          R"--(Append isotopologue ratio data to the atmospheric field based on line data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
@@ -4002,7 +4002,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendLineLevelData"] = {
       .desc =
-          R"--(Append NLTE data to the atmospheric field based on line data
+          R"--(Append NLTE data to the atmospheric field based on line data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
@@ -4033,7 +4033,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendTagsSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on species data
+          R"--(Append species data to the atmospheric field based on *absorption_species*.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4063,7 +4063,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendCIASpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on collision-induced data data
+          R"--(Append species data to the atmospheric field based on collision-induced absorption data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species1.xml" "species2.xml" (e.g., "H2O.xml" "CO2.xml").
@@ -4093,7 +4093,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendXsecSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on cross-section data
+          R"--(Append species data to the atmospheric field based on absorption cross-section fit data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4123,7 +4123,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on lookup data
+          R"--(Append species data to the atmospheric field based on absorption lookup table data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4153,7 +4153,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendPredefSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on predefined model data
+          R"--(Append species data to the atmospheric field based on absorption predefined model data.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species-MODEL.xml" (e.g., "H2O-ForeignContCKDMT400.xml").
@@ -4181,9 +4181,16 @@ exists in the atmospheric field.
                     "Whether or not to replace existing data"},
   };
 
-  wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
+  wsm_data["atmospheric_fieldAppendAuto"] = {
       .desc =
           R"--(Append data to the atmospheric field based on available absorption data.
+
+It is recommended to use *atmospheric_fieldRead* rather than this method directly.
+
+This method scans available data and calls (in order) the methods below if that
+data is available on the workspace.  It is not possible to reproduce this
+method call by manually calling each method below because that would require
+defining the relevant data fields.
 
 Wraps:
 
