@@ -24,10 +24,22 @@ void py_atm(py::module_ &m) try {
   atmdata.def(py::init_implicit<GeodeticField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
+      .def(py::init_implicit<GeodeticField3>())
       .def(
           "__init__",
           [](Atm::Data *a, const GriddedField3 &v) {
             new (a) Atm::Data(GeodeticField3(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
+      .def(
+          "__init__",
+          [](Atm::Data *a, const SortedGriddedField3 &v) {
+            new (a) Atm::Data(GeodeticField3{
+                .data_name  = v.data_name,
+                .data       = v.data,
+                .grid_names = v.grid_names,
+                .grids = {v.grid<0>(), v.grid<1>().vec(), v.grid<2>().vec()}});
           },
           "v"_a,
           "Initialize with a gridded field")
@@ -122,6 +134,7 @@ void py_atm(py::module_ &m) try {
            });
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
   py::implicitly_convertible<GriddedField3, Atm::Data>();
+  py::implicitly_convertible<SortedGriddedField3, Atm::Data>();
 
   auto aad =
       py::bind_vector<std::vector<Atm::Data>,
