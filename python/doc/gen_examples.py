@@ -97,7 +97,7 @@ def combine_rstpy(rsts, pyfiles, out=None):
     return out
 
 
-def from_list(lst, path):
+def from_list(lst, path, with_plots):
     """Converts a list of paths to rst string"""
 
     assert isinstance(lst, list), "Expected a list of paths"
@@ -152,13 +152,20 @@ def from_list(lst, path):
 """
 
         if py:
-            out += f".. plot:: {os.path.join(path, py)}\n"
-            out += "    :include-source:\n\n"
+            if with_plots:
+                out += f".. plot:: {os.path.join(path, py)}\n"
+                out += "    :include-source:\n\n"
+            else:
+                out += f".. code-block:: python\n"
+                out += "    :linenos:\n\n"
+                with open(os.path.join(path, py), "r") as pyfile:
+                    for line in pyfile.read().split("\n"):
+                        out += f"    {line}\n"
 
     return rst(out)
 
 
-def generate_texts(paths):
+def generate_texts(paths, with_plots=False):
     out = {}
 
     for path in paths:
@@ -167,11 +174,11 @@ def generate_texts(paths):
         data = paths[path]
 
         if isinstance(data, dict):
-            x = generate_texts(data)
+            x = generate_texts(data, with_plots)
             if len(x) != 0:
                 out[path] = x
         elif isinstance(data, list):
-            x = from_list(data, path)
+            x = from_list(data, path, with_plots)
 
             if x is not None:
                 out[path] = x
@@ -276,10 +283,11 @@ def generate_docfiles(flat_toc, flat_txt, arts_path, save_path):
 if __name__ == "__main__":
     arts_path = sys.argv[1]
     save_path = sys.argv[2]
+    with_plots = True if len(sys.argv) >= 4 and sys.argv[3] == "plots" else False
     examplepath = os.path.join(arts_path, "examples")
 
     files = all_files(examplepath)
-    text = generate_texts(files)
+    text = generate_texts(files, with_plots)
     filetrees = generate_filetrees(files, examplepath)
     toctrees = filetrees_to_toctrees(filetrees, arts_path)
 
