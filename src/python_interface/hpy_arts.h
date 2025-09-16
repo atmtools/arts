@@ -40,6 +40,9 @@ Parameters:
     type (str): Type of file to save.  See :class:`FileType` for options.
     clobber (bool): Overwrite existing files or add new file with modified name?
 
+Return
+    file (str): The file path found (may differ from input due to environment variables)
+
 On Error:
     Throws RuntimeError for any failure to save)");
 
@@ -53,6 +56,9 @@ On Error:
 
 Parameters:
     file (str): A file that can be read
+
+Return
+    file (str): The file path found (may differ from input due to environment variables)
 
 On Error:
     Throws RuntimeError for any failure to read)");

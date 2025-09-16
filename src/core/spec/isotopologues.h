@@ -854,12 +854,11 @@ struct std::formatter<SpeciesIsotopologueRatios> {
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesIsotopologueRatios& v,
                               FmtContext& ctx) const {
-    for (Index i = 0; i < v.maxsize; i++) {
-      tags.format(ctx,
-                  Species::Isotopologues[i].FullName(),
-                  tags.sep(),
-                  v.data[i],
-                  tags.sep(true));
+    const auto sep = tags.sep();
+    tags.format(ctx, Species::Isotopologues[0].FullName(), sep, v.data[0]);
+    for (Index i = 1; i < v.maxsize; i++) {
+      tags.format(
+          ctx, '\n', Species::Isotopologues[i].FullName(), sep, v.data[i]);
     }
 
     return ctx.out();

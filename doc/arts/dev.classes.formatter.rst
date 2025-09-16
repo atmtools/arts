@@ -111,15 +111,24 @@ What formatter options are available?
 The following options are available for the ``format_tags`` object:
 
 1. ``bracket``. Activated by the ``"B"`` character in the format string.
+   Will add brackets around the output if applicable.
 2. ``short_str``. Activated by the ``"s"`` character in the format string.
+   Will use a short string representation if applicable.
 3. ``comma``. Activated by the ``","`` character in the format string.
+   Will comma-separate elements if applicable.
 4. ``names``. Activated by the ``"N"`` character in the format string.
+   Will show the names of the elements if applicable.
 5. ``io``. Activated by the ``"IO"`` characters in the format string.
+   Will use the IO formatting so that XML streams work as expected.
 6. ``q``. Activated by the ``"q"`` character in the format string.
-7. ``depth``.  Cannot be activated, should be set manually in the ``parse`` method.
+   Will quote the quotable output.
+7. ``n``. Activated by the ``"n"`` character in the format string.
+   Switch the default separator behavior from space to newline (or vice versa).
+8. ``depth``.  Cannot be activated, should be set manually in the
+   ``parse`` method.
 
-The default formatting string given to ``__str__`` is ``"{:qNB,}"`` and the default
-formatting string given to ``__repr__`` is ``"{:sqNB,}"``.
+The default formatting string given to ``__str__`` is ``"{:qNB,}"``
+and the default formatting string given to ``__repr__`` is ``"{:nsqNB,}"``.
 
 What a type will do with these options is up to the type itself.  Generally,
 a ``bracket`` type should add brackets around the output, a ``short_str`` type should

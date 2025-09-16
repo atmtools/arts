@@ -9,7 +9,7 @@ std::string format_tags::get_format_args() const {
   if (quoted) buf.push_back('q');
   if (short_str) buf.push_back('s');
   if (comma) buf.push_back(',');
-
+  if (newline) buf.push_back('n');
   if (io) buf += "IO"sv;
 
   buf.push_back('}');
@@ -18,7 +18,7 @@ std::string format_tags::get_format_args() const {
   return buf;
 }
 
-std::string_view format_tags::sep(bool newline) const {
+std::string_view format_tags::sep() const {
   if (newline) {
     if (comma) return ",\n"sv;
     return "\n"sv;

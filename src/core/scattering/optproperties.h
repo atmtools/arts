@@ -217,7 +217,9 @@ struct std::formatter<SingleScatteringData> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   [[nodiscard]] std::string to_string(const SingleScatteringData& v) const;

@@ -30,10 +30,10 @@ Block &Block::operator=(Block &&) noexcept                   = default;
 Block::~Block()                                              = default;
 CovarianceMatrix::CovarianceMatrix()                         = default;
 CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &) = default;
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&)      = default;
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept     = default;
 CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &) =
     default;
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) = default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept= default;
 CovarianceMatrix::~CovarianceMatrix()                              = default;
 
 Block::Block(Range row_range,

@@ -108,12 +108,14 @@ struct std::formatter<Workspace> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const Workspace& v, FmtContext& ctx) const {
-    const std::string_view sep   = tags.sep(true);
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
     tags.add_if_bracket(ctx, '{');

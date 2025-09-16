@@ -280,7 +280,9 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
  private:
@@ -291,7 +293,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
       tags.format(ctx, quote, v.grid_names[N], quote, ": "sv);
     }
 
-    tags.format(ctx, std::get<N>(v.grids), tags.sep(true));
+    tags.format(ctx, std::get<N>(v.grids), tags.sep());
   }
 
  public:

@@ -338,6 +338,7 @@ as a boundary condition to subsurface radiance calculation.
   for (auto& [name, record] : wsa_data) {
     record.desc += std::format(R"(
 .. rubric:: Execution and customization
+
 )");
 
     if (not record.enum_options.empty()) {

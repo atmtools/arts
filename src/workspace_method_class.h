@@ -80,7 +80,9 @@ struct std::formatter<Method> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -88,7 +90,7 @@ struct std::formatter<Method> {
     tags.add_if_bracket(ctx, '[');
     tags.add_if_bracket(ctx, '\n');
 
-    const std::string_view sep   = tags.sep(true);
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
     if (tags.names) {
@@ -128,14 +130,16 @@ struct std::formatter<Agenda> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep   = tags.sep(true);
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
     if (tags.names) {

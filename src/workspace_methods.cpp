@@ -1267,7 +1267,6 @@ and the Jacobian is computed as:
 where:
 
 .. list-table::
-  :name: Meaning of variables
   :widths: auto
   :align: left
   :header-rows: 1
@@ -4865,7 +4864,6 @@ where:
 where:
 
 .. list-table::
-  :name: Meaning of variables
   :widths: auto
   :align: left
   :header-rows: 1

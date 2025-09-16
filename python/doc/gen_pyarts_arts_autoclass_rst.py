@@ -20,7 +20,8 @@ def doc(x):
 
 
 def indent(text, num_spaces):
-    return "\n".join(" " * num_spaces + line for line in text.split("\n"))
+    res = "\n".join(" " * num_spaces + line for line in text.split("\n"))
+    return res.replace(" " * num_spaces + '\n', '\n').rstrip() + "\n"
 
 
 def short_doc(v, var=None, name=None):
@@ -226,7 +227,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 for n in attributes:
                     str += f"  .. attribute:: {cls.__name__}.{attributes[n]['name']}\n"
                     str += f"     :type: {attributes[n]['types']}\n"
-                    str += f"     \n"
+                    str += f"\n"
                     str += f"{indent(attributes[n]['doc'], 5)}\n\n"
                     if attributes[n]['types'] is None:
                         global_errors.append(
@@ -423,7 +424,7 @@ def create_workspace_rst(path):
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(f".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(f".. attribute:: Workspace.{name}\n")
-                    f.write(f"   :type: {typesof(attr)}\n   \n")
+                    f.write(f"   :type: {typesof(attr)}\n\n")
                     f.write(f"{indent(doc(attr), 3)}\n")
             elif isinstance(attr, method_t):
                 with open(

@@ -195,9 +195,9 @@ class CovarianceMatrix {
  public:
   CovarianceMatrix();
   CovarianceMatrix(const CovarianceMatrix &);
-  CovarianceMatrix(CovarianceMatrix &&);
+  CovarianceMatrix(CovarianceMatrix &&) noexcept;
   CovarianceMatrix &operator=(const CovarianceMatrix &);
-  CovarianceMatrix &operator=(CovarianceMatrix &&);
+  CovarianceMatrix &operator=(CovarianceMatrix &&) noexcept;
   ~CovarianceMatrix();
 
   explicit operator Matrix() const;
@@ -408,10 +408,8 @@ struct std::formatter<BlockMatrix> {
     if (v.not_null())
       return v.is_dense() ? tags.format(ctx, v.dense())
                           : tags.format(ctx, v.sparse());
-    else {
-      tags.add_if_bracket(ctx, '[');
-      tags.add_if_bracket(ctx, ']');
-    }
+   tags.add_if_bracket(ctx, '[');
+   tags.add_if_bracket(ctx, ']');
     return ctx.out();
   }
 };
@@ -425,13 +423,15 @@ struct std::formatter<CovarianceMatrix> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const CovarianceMatrix &v,
                               FmtContext &ctx) const {
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
     tags.format(ctx, Matrix{v}, sep, v.get_inverse());
     tags.add_if_bracket(ctx, ']');
