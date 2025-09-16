@@ -186,6 +186,13 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(
       EnumeratedOption{.name = "SurfaceKey",
                        .desc = R"(A key to identify a surface property.
+
+This is used to identify core components in the surface.
+See *SurfaceField* and *SurfacePoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
                        .values_and_desc = {
                            Value{"h", "elevation", "Altitude [m]"},
@@ -198,6 +205,10 @@ if good cases, so we have provide this selection mechanism to make them match.
 
 This is used to identify core components in the atmosphere.
 See *AtmField* and *AtmPoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
       .values_and_desc = {
           Value{"t", "temperature", "Temperature [K]"},
@@ -213,6 +224,13 @@ See *AtmField* and *AtmPoint* for its usage.
   opts.emplace_back(
       EnumeratedOption{.name = "SubsurfaceKey",
                        .desc = R"(A key to identify a subsurface property.
+
+This is used to identify core components in the subsurface.
+See *SubsurfaceField* and *SubsurfacePoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
                        .values_and_desc = {
                            Value{"t", "temperature", "Temperature [K]"},

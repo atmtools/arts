@@ -115,7 +115,7 @@ does not change the global workspace while minimizing the number of variables th
 This is used to identify atmospheric data that are required for scattering calculations.
 
 It is a combination of free-form strings and a *ParticulateProperty* - you need
-to see the specific scattering model for what type of data is required.
+to see the specific scattering models/methods for what type of data is required.
 )",
   };
 
@@ -123,10 +123,13 @@ to see the specific scattering model for what type of data is required.
       .file = "surf.h",
       .desc = R"--(A surface property.
 
-These tags are part of the keys that can be used to access a *SurfaceField*.
+These tags are part of the keys that can be used to access a *SurfaceField* or *SurfacePoint*.
 They are completely free-form and currently not used by ARTS internally.
 Instead, they offer a customization point for users to define their own
 surface properties and ensures we can access them in a consistent way.
+
+Please see individual surface models/methods for keys that are relevant to run them.
+They will generally throw an error if you lack the data.
 )--",
   };
 
@@ -387,6 +390,14 @@ A sub-surface field effectively holds two things:
   wsg_data["SubsurfacePropertyTag"] = {
       .file = "subsurface.h",
       .desc = R"--(A custom property tag for subsurface fields data.
+
+These tags are part of the keys that can be used to access a *SubsurfaceField* or *SubsurfacePoint*.
+They are completely free-form and currently not used by ARTS internally.
+Instead, they offer a customization point for users to define their own
+subsurface properties and ensures we can access them in a consistent way.
+
+Please see individual subsurface models/methods for keys that are relevant to run them.
+They will generally throw an error if you lack the data.
 )--",
   };
 
