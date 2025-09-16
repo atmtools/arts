@@ -45,7 +45,6 @@ bool test_single_scattering_data_from_legacy_tro() {
 }
 
 extern Parameters parameters;
-void parse_path_from_environment(String envvar, ArrayOfString& paths);
 
 int main() {
   parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);

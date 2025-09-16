@@ -1,77 +1,17 @@
 #include <auto_wsg.h>
 #include <debug.h>
 
-#include <algorithm>
 #include <iostream>
 #include <string>
-#include <vector>
 
 #include "workspace_agendas.h"
 #include "workspace_groups.h"
 #include "workspace_variables.h"
 
+namespace {
 const auto& wsg  = internal_workspace_groups();
 const auto& vars = internal_workspace_variables();
 const auto& ags  = internal_workspace_agendas();
-
-std::vector<std::string> wsv_names(std::ostream& os) {
-  std::vector<std::string> names;
-  names.reserve(vars.size() + 2 * ags.size());
-
-  for (const auto& [name, data] : vars) {
-    names.push_back(name);
-
-    if (not wsg.contains(data.type)) {
-      os << std::format(
-          R"WSV(static_assert(false, R"--(
-
-Workspace variable type is not a workspace group.
-
-This is not allowed.
-
-The workspace variable is:      "{}"
-The workspace variable type is: "{}"
-)--");
-
-)WSV",
-          name,
-          data.type);
-    }
-  }
-
-  std::sort(names.begin(), names.end());
-
-  auto ptr = std::adjacent_find(names.begin(), names.end());
-  while (names.end() not_eq ptr) {
-    os << std::format(R"WSV(static_assert(false, R"--(
-
-Duplicate name in workspace variables and agendas.
-
-This is not allowed.
-
-The duplicate name is: "{}"
-)--");
-
-)WSV",
-                      *ptr);
-    ptr = std::adjacent_find(ptr + 1, names.end());
-  }
-
-  return names;
-}
-
-std::vector<std::string> groups() {
-  std::vector<std::string> groups;
-  groups.reserve(wsg.size());
-
-  for (const auto& [group_name, group] : wsg) {
-    groups.push_back(group_name);
-  }
-
-  std::sort(groups.begin(), groups.end());
-
-  return groups;
-}
 
 void header(std::ostream& os) {
   os << R"--(#pragma once
@@ -155,6 +95,7 @@ const std::unordered_map<std::string, WorkspaceVariableRecord>& workspace_variab
 }
 )--";
 }
+}  // namespace
 
 int main() try {
   std::ofstream head("auto_wsv.h");

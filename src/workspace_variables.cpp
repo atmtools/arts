@@ -2,6 +2,7 @@
 
 #include "workspace_agendas.h"
 
+namespace {
 void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
                  wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
@@ -1069,11 +1070,10 @@ Units: degrees
 
   return wsv_data;
 }
+}  // namespace
 
-std::string_view any(const std::string& type) {
-  if (type == "Any") {
-    return "T";
-  }
+std::string_view any_is_typename(const std::string& type) {
+  if (type == "Any") return "T";
   return type;
 }
 

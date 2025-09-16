@@ -169,6 +169,7 @@ binistream::Float binistream::readFloat(FType ft) {
   ARTS_USER_ERROR("Unsupported floating-point type");
 }
 
+namespace {
 void swap_endian(double *d) {
   auto *val = reinterpret_cast<uint64_t *>(d);
   // Using this is much faster than swapping bytes manually
@@ -181,6 +182,7 @@ void swap_endian(double *d) {
           (((*val) << 40) & 0x00FF000000000000) |
           (((*val) << 56) & 0xFF00000000000000));
 }
+}  // namespace
 
 void binistream::readDoubleArray(double *d, unsigned long size) {
   getRaw((char *)d, sizeof(double) * size);

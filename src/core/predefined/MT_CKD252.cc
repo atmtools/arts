@@ -1,12 +1,14 @@
+#include <arts_constants.h>
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
-#include <atm.h>
+
 #include <cmath>
 
-#include "arts_constants.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::MT_CKD252 {
-
+namespace {
 Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
   // ---------------------------------------------------------------------- B18060
   //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
@@ -55,6 +57,7 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
 
   return RADFN;
 }
+}  // namespace
 
 //! Ported from legacy continua.  Original documentation
 //! CKD version MT 2.50 CO2 continuum absorption model

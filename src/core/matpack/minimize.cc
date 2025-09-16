@@ -277,6 +277,7 @@ struct DPL {
   }
 };
 
+namespace{
 bool goodStatus(int status) {
   return status != Eigen::LevenbergMarquardtSpace::ImproperInputParameters;
 }
@@ -323,6 +324,7 @@ std::optional<Vector> curve_fit(const Functor& fun) {
   if (not goodStatus(status)) return std::nullopt;
   return Vector{p};
 }
+}  // namespace
 
 std::optional<Vector> polyfit(const StridedConstVectorView& X,
                               const StridedConstVectorView& Y,

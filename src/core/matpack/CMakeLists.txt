@@ -6,7 +6,6 @@ add_library(matpack STATIC
   lin_alg.cc
   matpack_sparse.cc
   rational.cc
-  poly_roots.cc
   matpack_mdspan_math.cc
   matpack_mdspan_helpers.cc
   math_funcs.cc

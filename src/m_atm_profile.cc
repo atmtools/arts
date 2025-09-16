@@ -1,5 +1,5 @@
 #include <arts_omp.h>
-#include <atm.h>
+#include <workspace.h>
 
 #include <stdexcept>
 

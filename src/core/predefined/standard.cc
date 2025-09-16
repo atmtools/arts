@@ -1,8 +1,9 @@
+#include <arts_constexpr_math.h>
 #include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
 
-#include "arts_constexpr_math.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::Standard {
 //! Ported from legacy continua.  Original documentation//! Standard_O2_continuum

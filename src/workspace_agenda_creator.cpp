@@ -1,5 +1,6 @@
 #include "workspace_agenda_creator.h"
 
+#include <auto_wsa.h>
 #include <auto_wsa_options.h>
 
 #include <string>

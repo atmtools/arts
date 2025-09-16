@@ -1,7 +1,8 @@
 #include <algorithm>
 #include <array>
-#include <ranges>
 #include <string_view>
+
+#include "workspace_variables_keywords.h"
 
 static constexpr std::array keywords{"absorption",
                                      "jacobian",

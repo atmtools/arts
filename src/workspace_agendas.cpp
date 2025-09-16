@@ -4,6 +4,7 @@
 
 using namespace std::literals;
 
+namespace {
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
@@ -370,6 +371,7 @@ Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully d
 
   return wsa_data;
 }
+}  // namespace
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas() {

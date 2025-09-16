@@ -1,18 +1,17 @@
+#include <arts_omp.h>
+#include <debug.h>
 #include <fwd.h>
+#include <fwd_path.h>
+#include <fwd_spectral_radiance.h>
+#include <obsel.h>
+#include <path_point.h>
+#include <rtepack.h>
 #include <workspace.h>
 
 #include <algorithm>
 #include <exception>
 #include <memory>
 
-#include "arts_omp.h"
-#include "debug.h"
-#include "fwd_path.h"
-#include "fwd_spectral_radiance.h"
-#include "obsel.h"
-#include "path_point.h"
-#include "rtepack.h"
-#include "surf.h"
 #include "workspace_class.h"
 
 void spectral_radiance_operatorClearsky1D(

@@ -1,13 +1,14 @@
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
+#include <atm.h>
+#include <compare.h>
+#include <debug.h>
 #include <matpack.h>
 #include <rtepack.h>
-#include <atm.h>
 
 #include <algorithm>
 
-#include "arts_constants.h"
-#include "arts_constexpr_math.h"
-#include "compare.h"
-#include "debug.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::ELL07 {
 //! Ported from legacy continua.  Original documentation

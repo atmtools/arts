@@ -133,6 +133,7 @@ void ray_path_observersFluxProfile(
                                 .los      = {180.0, azimuth}});
 }
 
+namespace {
 Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
   assert(dx >= 0.0);
 
@@ -150,6 +151,7 @@ Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
 
   return nlinspace(x0, x1, s + 2);
 }
+}  // namespace
 
 void ray_path_fieldFluxProfile(
     const Workspace& ws,

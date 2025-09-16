@@ -10,6 +10,7 @@
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 
+namespace {
 std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> wsm_meta;
 
@@ -323,6 +324,8 @@ gridded using *atmospheric_profileExtract*.
 
   return wsm_meta;
 }
+}  // namespace
+
 const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
   static const auto out = internal_meta_methods_creator();
   return out;

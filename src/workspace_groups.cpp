@@ -7,6 +7,7 @@
 
 #include "workspace_agendas.h"
 
+namespace {
 void add_select_options(
     std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
     const std::vector<std::string>& select_options) {
@@ -879,6 +880,7 @@ ray_path_point : PropagationPathPoint
 
   return wsg_data;
 }
+}  // namespace
 
 const std::unordered_map<std::string, WorkspaceGroupRecord>&
 internal_workspace_groups() {

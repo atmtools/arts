@@ -6,11 +6,7 @@
 #include <matpack.h>
 #include <xml.h>
 
-#include <exception>
-#include <iosfwd>
-#include <string>
 #include <unordered_map>
-#include <utility>
 #include <variant>
 #include <vector>
 

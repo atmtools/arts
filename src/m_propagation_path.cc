@@ -2,18 +2,6 @@
 
 #include <algorithm>
 
-void apply_options(ArrayOfPropagationPathPoint& ray_path,
-                   const SurfaceField& surface_field,
-                   const bool add_limb,
-                   const bool remove_non_atm,
-                   const bool fix_updown_azimuth) {
-  if (fix_updown_azimuth) path::fix_updown_azimuth_to_first(ray_path);
-
-  if (add_limb) path::fill_geometric_limb(ray_path, surface_field);
-
-  if (remove_non_atm) path::keep_only_atm(ray_path);
-}
-
 void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const AtmField& atmospheric_field,
                   const SurfaceField& surface_field,

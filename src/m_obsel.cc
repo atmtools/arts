@@ -1,13 +1,11 @@
 #include <arts_omp.h>
+#include <debug.h>
 #include <obsel.h>
 #include <rtepack.h>
 #include <workspace.h>
 
 #include <boost/math/distributions/normal.hpp>
-#include <numeric>
 #include <stdexcept>
-
-#include "debug.h"
 
 void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
@@ -31,10 +29,11 @@ void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
   auto p = std::make_shared<const SensorPosLosVector>(
       SensorPosLosVector{{.pos = pos, .los = los}});
 
+  StokvecMatrix w(1, n, 0);
   for (Index i = 0; i < n; i++) {
-    StokvecMatrix w(1, n, 0);
     w[0, i]                    = pol;
-    measurement_sensor[i + sz] = {f, p, std::move(w)};
+    measurement_sensor[i + sz] = {f, p, w};
+    w[0, i]                    = 0.0;
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -76,7 +75,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
         w[0, j] *= pdf(dist, frequency_grid[j]);
       }
 
-      measurement_sensor[i + sz] = {f, p, std::move(w)};
+      measurement_sensor[i + sz] = {f, p, w};
       measurement_sensor[i + sz].normalize(pol);
     } catch (std::runtime_error& e) {
 #pragma omp critical
@@ -129,7 +128,7 @@ std::span<SensorObsel> get_span(ArrayOfSensorObsel& measurement_sensor,
 
   return {first, last};
 }
-}
+}  // namespace
 
 void measurement_sensorMakeExclusive(ArrayOfSensorObsel& measurement_sensor,
                                      const Index& start,
@@ -140,14 +139,7 @@ void measurement_sensorMakeExclusive(ArrayOfSensorObsel& measurement_sensor,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorMakeExhaustive(ArrayOfSensorObsel& measurement_sensor,
-                                      const Index& start,
-                                      const Index& end) try {
-  ARTS_TIME_REPORT
-
-  make_exhaustive(get_span(measurement_sensor, start, end));
-}
-ARTS_METHOD_ERROR_CATCH
+namespace {
 
 template <typename T, typename... Grids>
 void measurement_sensorAddRawSensorTmpl(
@@ -313,6 +305,7 @@ Your sorting is not correct, and instead reads:
     if (normalize) measurement_sensor.back().normalize();
   }
 }
+}  // namespace
 
 #define AddRawSensor(T, ...)                                          \
   void measurement_sensorAddRawSensor(                                \

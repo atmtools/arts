@@ -312,7 +312,7 @@ bool find_file(ArrayOfString& matches,
   else {
     for (const auto& path : paths) {
       for (const auto& ext : extensions) {
-        const String fullpath{expand_path(path) + "/" + efilename + ext};
+        const String fullpath{std::format("{}/{}{}", expand_path(path), efilename, ext)};
 
         if (file_exists(fullpath)) {
           if (std::find(matches.begin(), matches.end(), fullpath) ==
@@ -453,10 +453,6 @@ String expand_path(String path) {
 String add_basedir(const std::string_view path) {
   extern Parameters parameters;
   String expanded_path{expand_path(String{path})};
-
-  if (parameters.outdir.size() && path.length() && path[0] != '/') {
-    expanded_path = parameters.outdir + '/' + expanded_path;
-  }
 
   return expanded_path;
 }

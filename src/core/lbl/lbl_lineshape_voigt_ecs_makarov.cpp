@@ -3,8 +3,6 @@
 #include <arts_conversions.h>
 #include <wigner_functions.h>
 
-#include "debug.h"
-
 namespace lbl::voigt::ecs::makarov {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6

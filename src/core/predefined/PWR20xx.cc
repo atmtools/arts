@@ -7,6 +7,8 @@
 #include <Faddeeva.hh>
 #include <valarray>
 
+#include "predef.h"
+
 /**
  * @brief Contains the Rosenkranz 20xx absorption models
  * 
@@ -15,7 +17,7 @@
  */
 
 namespace Absorption::PredefinedModel::PWR20xx {
-
+namespace {
 void compute_h2o(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric& p_pa,
@@ -162,6 +164,7 @@ void compute_h2o(PropmatVector& propmat_clearsky,
     propmat_clearsky[iv].A() += line_sum + cont;
   }
 }
+}  // namespace
 
 void compute_h2o_2021(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
@@ -487,6 +490,7 @@ void compute_h2o_2022(PropmatVector& propmat_clearsky,
               xc_s);
 }
 
+namespace {
 void compute_o2(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric& p_pa,
@@ -567,6 +571,7 @@ void compute_o2(PropmatVector& propmat_clearsky,
     }
   }
 }
+}  // namespace
 
 void compute_o2_2021(PropmatVector& propmat_clearsky,
                      const Vector& f_grid,

@@ -1,4 +1,5 @@
 #include <array_algo.h>
+#include <debug.h>
 #include <enumsHydrostaticPressureOption.h>
 #include <enumsIsoRatioOption.h>
 #include <enumsMissingFieldComponentError.h>
@@ -10,8 +11,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <variant>
-
-#include "debug.h"
 
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,

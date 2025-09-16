@@ -1,8 +1,7 @@
+#include <debug.h>
 #include <jac_rh.h>
+#include <operators.h>
 #include <workspace.h>
-
-#include "debug.h"
-#include "operators.h"
 
 namespace {
 void jacobian_targetsToggleRelativeHumidityAtmTargetImpl(

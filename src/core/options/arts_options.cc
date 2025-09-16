@@ -5,11 +5,8 @@
 #include <algorithm>
 #include <array>
 #include <format>
-#include <iterator>
 #include <limits>
-#include <print>
 #include <ranges>
-#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -990,6 +987,7 @@ std::string_view EnumeratedOption::sz() const {
   throw std::runtime_error("Too many values for enum class");
 }
 
+namespace {
 std::string add_spaces(const std::string& s, int numspaces) {
   std::string out{s};
   const std::string newline{"\n"};
@@ -997,6 +995,7 @@ std::string add_spaces(const std::string& s, int numspaces) {
   replace(out, newline, spaces);
   return out;
 }
+}  // namespace
 
 std::string EnumeratedOption::docs() const {
   std::string out;

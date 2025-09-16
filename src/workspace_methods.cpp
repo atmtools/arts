@@ -7,7 +7,6 @@
 #include <limits>
 #include <optional>
 #include <ranges>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -146,7 +145,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     doc += std::format(
         "{}{}& {}",
         comma(first, spaces),
-        any(overloads[GVAR][std::min<int>(
+        any_is_typename(overloads[GVAR][std::min<int>(
             overload, static_cast<int>(overloads[GVAR].size() - 1))]),
         i);
     GVAR++;
@@ -177,7 +176,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     doc += std::format(
         "{}const {}& {}",
         comma(first, spaces),
-        any(overloads[GVAR][std::min<int>(
+        any_is_typename(overloads[GVAR][std::min<int>(
             overload, static_cast<int>(overloads[GVAR].size() - 1))]),
         i);
     GVAR++;
@@ -255,6 +254,7 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
                   std::string_view(e.what())));
 }
 
+namespace {
 void add_agenda_methods(
     std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [agname, ag] : internal_workspace_agendas()) {
@@ -5869,6 +5869,7 @@ for more information.
   throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}",
                                        std::string_view(e.what())));
 }
+}  // namespace
 
 const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&
 internal_workspace_methods() {

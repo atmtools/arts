@@ -2,6 +2,7 @@
 #include <arts_omp.h>
 #include <workspace.h>
 
+namespace {
 void ray_path_spectral_radianceStepByStepEmissionForwardOnly(
     ArrayOfStokvecVector& ray_path_spectral_radiance,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix,
@@ -107,6 +108,7 @@ void ray_path_spectral_radianceClearskyEmission(
       spectral_radiance_background);
 }
 ARTS_METHOD_ERROR_CATCH
+}  // namespace
 
 void spectral_flux_profileFromPathField(
     const Workspace& ws,

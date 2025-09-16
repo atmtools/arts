@@ -1,12 +1,14 @@
+#include "workspace_method_extra_doc.h"
+
+#include <configtypes.h>
 #include <enums.h>
+#include <enumsSpeciesEnum.h>
+#include <isotopologues.h>
 #include <workspace.h>
 
 #include <ranges>
 
-#include "configtypes.h"
-#include "enumsSpeciesEnum.h"
-#include "isotopologues.h"
-
+namespace {
 std::string& docstr(std::unordered_map<std::string, std::string>& map,
                     const std::string& key) {
   const auto& orig = workspace_methods();
@@ -182,6 +184,7 @@ workspace_method_extra_doc_internal() {
 
   return doc;
 }
+}  // namespace
 
 const std::unordered_map<std::string, std::string>&
 workspace_method_extra_doc() {

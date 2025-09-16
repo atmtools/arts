@@ -2,8 +2,6 @@
 
 #include <lagrange_interp.h>
 
-#include "matpack_mdspan_helpers_gridded_data_t.h"
-
 namespace Atm::interp {
 altlags altlag(const AscendingGrid& xs, Numeric x) {
   return xs.size() == 1

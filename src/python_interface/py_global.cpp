@@ -65,9 +65,6 @@ void py_global(py::module_& m) try {
       .def_rw_static("datapath",
                      &parameters.datapath,
                      "Automatic data paths\n\n.. :class:`ArrayOfString`")
-      .def_rw_static("numthreads",
-                     &parameters.numthreads,
-                     "Number of threads allowed to start\n\n.. :class:`Index`")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")

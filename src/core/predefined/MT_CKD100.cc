@@ -1,13 +1,15 @@
+#include <arts_constants.h>
+#include <arts_constexpr_math.h>
+#include <atm.h>
 #include <matpack.h>
 #include <rtepack.h>
-#include <atm.h>
 
 #include <vector>
 
-#include "arts_constants.h"
-#include "arts_constexpr_math.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::MT_CKD100 {
+namespace {
 Numeric XINT_FUN(const Numeric V1A,
                  const Numeric /* V2A */,
                  const Numeric DVA,
@@ -137,6 +139,7 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
 
   return RADFN;
 }
+}  // namespace
 
 //! Ported from legacy continua.  Original documentation
 //! CKD version MT 1.00 O2-O2 collision induced absorption (fundamental band)

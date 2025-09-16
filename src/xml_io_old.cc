@@ -2,13 +2,13 @@
 
 #include <double_imanip.h>
 #include <string_extract.h>
+#include <xml_io.h>
 
 #include <algorithm>
 #include <istream>
 #include <ostream>
 
-#include "xml_io.h"
-
+namespace {
 ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
   // Default data and values for this type
   ArtscatMeta output{};
@@ -329,6 +329,7 @@ The error is:
   output.bad = false;
   return output;
 }
+}  // namespace
 
 void xml_io_stream<ArrayOfArtscatMeta>::write(std::ostream&,
                                               const ArrayOfArtscatMeta&,

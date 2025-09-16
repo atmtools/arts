@@ -2,21 +2,21 @@
   ===  File description
   ===========================================================================*/
 
+#include <arts_omp.h>
+#include <atm.h>
+#include <compare.h>
+#include <configtypes.h>
+#include <debug.h>
+#include <jacobian.h>
+#include <path_point.h>
+#include <physics_funcs.h>
+#include <rtepack.h>
+#include <sun.h>
+#include <sun_methods.h>
 #include <workspace.h>
 
 #include <algorithm>
 
-#include "arts_omp.h"
-#include "atm.h"
-#include "compare.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "jacobian.h"
-#include "path_point.h"
-#include "physics_funcs.h"
-#include "rtepack.h"
-#include "sun.h"
-#include "sun_methods.h"
 #include "workspace_class.h"
 
 /*!
@@ -131,66 +131,6 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                 angle_cut,
                 refinements,
                 just_hit);
-}
-
-void ray_path_sun_pathFromPathObserver(
-    const Workspace& ws,
-    ArrayOfArrayOfPropagationPathPoint& ray_path_sun_path,
-    const SurfaceField& surface_field,
-    const Agenda& ray_path_observer_agenda,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const Sun& sun,
-    const Numeric& angle_cut,
-    const Index& refinements,
-    const Index& just_hit) {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
-
-  ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
-
-  const Size np = ray_path.size();
-
-  ray_path_sun_path.resize(np);
-  if (arts_omp_in_parallel() and
-      static_cast<Index>(np) >= arts_omp_get_max_threads()) {
-    for (Size i = 0; i < np; ++i) {
-      sun_pathFromObserverAgenda(ws,
-                                 ray_path_sun_path[i],
-                                 surface_field,
-                                 ray_path_observer_agenda,
-                                 sun,
-                                 ray_path[i].pos,
-                                 angle_cut,
-                                 refinements,
-                                 just_hit);
-    }
-  } else {
-    String error{};
-
-#pragma omp parallel for
-    for (Size i = 0; i < np; ++i) {
-      try {
-        sun_pathFromObserverAgenda(ws,
-                                   ray_path_sun_path[i],
-                                   surface_field,
-                                   ray_path_observer_agenda,
-                                   sun,
-                                   ray_path[i].pos,
-                                   angle_cut,
-                                   refinements,
-                                   just_hit);
-      } catch (const std::exception& e) {
-#pragma omp critical
-        error += e.what();
-      }
-    }
-
-    ARTS_USER_ERROR_IF(error.size(), "{}", error)
-  }
 }
 
 void ray_path_suns_pathFromPathObserver(

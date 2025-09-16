@@ -1,21 +1,18 @@
 #include "sun_methods.h"
 
+#include <arts_conversions.h>
+#include <configtypes.h>
+#include <debug.h>
 #include <path_point.h>
+#include <sun.h>
 #include <surf.h>
 #include <workspace.h>
 
 #include <cmath>
-#include <iomanip>
-#include <limits>
 #include <numeric>
-#include <stdexcept>
 #include <utility>
 
-#include "arts_conversions.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "sun.h"
-
+namespace {
 Vector3 cart2sph_plain(const Vector3 cart) {
   using Conversion::asind;
   using Conversion::atan2d;
@@ -144,6 +141,7 @@ Vector3 geodetic2cart(const Vector3 pos, const Vector2 ell) {
           (N + h) * coslat * sind(lon),
           (N * (1 - e2) + h) * sinlat};
 }
+}  // namespace
 
 Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
   const Vector3 cart_from = geodetic2cart(from, ell);
@@ -153,6 +151,7 @@ Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
   return cart2geodeticlos(cart_from, cart_los, ell);
 }
 
+namespace {
 Numeric zenith_horizon(const Workspace& ws,
                        const Vector3 observer_pos,
                        const Numeric aa,
@@ -173,6 +172,7 @@ Numeric zenith_horizon(const Workspace& ws,
 
   return za1;
 }
+}  // namespace
 
 std::pair<Numeric, bool> beta_angle(const Workspace& ws,
                                     ArrayOfPropagationPathPoint& sun_path,

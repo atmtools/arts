@@ -2,16 +2,15 @@
 
 #include <auto_wsa.h>
 #include <auto_wsm.h>
+#include <compare.h>
+#include <debug.h>
 
 #include <algorithm>
-#include <iomanip>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "compare.h"
-#include "debug.h"
 #include "workspace_class.h"
 #include "workspace_method_class.h"
 
@@ -19,18 +18,6 @@ void Agenda::add(const Method& method) {
   checked = false;
   method.add_defaults_to_agenda(*this);
   methods.push_back(method);
-}
-
-auto is_in(const std::vector<std::string>& seq) {
-  return [&seq](auto& str) {
-    return std::find(seq.begin(), seq.end(), str) != seq.end();
-  };
-}
-
-auto is_not_in(const std::vector<std::string>& seq) {
-  return [&seq](auto& str) {
-    return std::find(seq.begin(), seq.end(), str) == seq.end();
-  };
 }
 
 void Agenda::finalize(bool fix) try {
@@ -165,6 +152,7 @@ Agenda required output: {:B,}
                                        std::string_view(e.what())));
 }
 
+namespace {
 void agenda_add_inner_logic(Workspace& out,
                             const Workspace& in,
                             WorkspaceAgendaBoolHandler handle) {
@@ -180,6 +168,7 @@ startover:
     }
   }
 }
+}  // namespace
 
 void Agenda::copy_workspace(Workspace& out,
                             const Workspace& in,
@@ -258,21 +247,6 @@ Agenda::Agenda(std::string n,
                const std::vector<std::string>& c,
                bool check)
     : name(std::move(n)), methods(m), share(s), copy(c), checked(check) {}
-
-std::vector<std::string> split(const std::string& s, char c) {
-  std::vector<std::string> out;
-  std::string tmp;
-  for (auto& ch : s) {
-    if (ch == c) {
-      out.push_back(tmp);
-      tmp.clear();
-    } else {
-      tmp.push_back(ch);
-    }
-  }
-  out.push_back(tmp);
-  return out;
-}
 
 std::string Agenda::sphinx_list(const std::string_view prep) const {
   std::string out{};

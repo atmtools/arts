@@ -17,6 +17,9 @@
   === External declarations
   ===========================================================================*/
 
+#include <arts_constants.h>
+#include <arts_conversions.h>
+#include <debug.h>
 #include <enumsEarthEllipsoid.h>
 #include <enumsEuropaEllipsoid.h>
 #include <enumsGanymedeEllipsoid.h>
@@ -26,21 +29,15 @@
 #include <enumsMoonEllipsoid.h>
 #include <enumsPlanetOrMoonType.h>
 #include <enumsVenusEllipsoid.h>
+#include <operators.h>
 #include <planet_data.h>
+#include <rtepack.h>
+#include <surf.h>
 #include <workspace.h>
 
 #include <cmath>
-#include <stdexcept>
-
-#include "arts_constants.h"
-#include "arts_conversions.h"
-#include "debug.h"
-#include "operators.h"
-#include "rtepack.h"
-#include "surf.h"
 
 inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
-inline constexpr Numeric DEG2RAD      = Conversion::deg2rad(1);
 
 // Ref. 1:
 // Seidelmann, P. Kenneth; Archinal, B. A.; A'hearn, M. F. et al (2007).
@@ -51,61 +48,6 @@ inline constexpr Numeric DEG2RAD      = Conversion::deg2rad(1);
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void g0Earth(Numeric &g0, const Numeric &lat) {
-  ARTS_TIME_REPORT
-
-  // "Small g" at altitude=0, g0:
-  // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
-  // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
-  // Reference System Formula, Helmert's equation or Clairault's formula.
-
-  const Numeric x = DEG2RAD * fabs(lat);
-
-  g0 = 9.780327 *
-       (1 + 5.3024e-3 * pow(sin(x), 2.0) + 5.8e-6 * pow(sin(2 * x), 2.0));
-
-  // Move to apparent gravity, i.e. include effect of the centrifugal force.
-  // See: A first course in Atmospheric Thermodynamics by G. Petty (page 89) As
-  // well as https://glossary.ametsoc.org/wiki/Apparent_gravity 0.033895 =
-  // (7.29e-5)^2 * 6378e3
-  g0 -= 0.033895 * pow(cos(x), 2.0);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void g0Jupiter(Numeric &g0) {
-  ARTS_TIME_REPORT
-
-  // value from MPS, ESA-planetary
-  g0 = 23.12;
-  // value (1bar level) from
-  // http://nssdc.gsfc.nasa.gov/planetary/factsheet/jupiterfact.html g0 = 24.79;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void g0Mars(Numeric &g0) {
-  ARTS_TIME_REPORT
-
-  // value from MPS, ESA-planetary
-  g0 = 3.690;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void g0Venus(Numeric &g0) {
-  ARTS_TIME_REPORT
-
-  // value via MPS, ESA-planetary from Ahrens, 1995
-  g0 = 8.870;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void g0Io(Numeric &g0) {
-  ARTS_TIME_REPORT
-
-  // value via Wikipedia
-  g0 = 1.796;
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldEarth(SurfaceField &surface_field,

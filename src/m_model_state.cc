@@ -8,9 +8,8 @@ void model_state_vectorInit(Vector& model_state_vector,
   model_state_vector = 0.0;
 }
 
-void model_state_vectorPerturbations(
-    Vector& model_state_vector,
-    const JacobianTargets& jacobian_targets) {
+void model_state_vectorPerturbations(Vector& model_state_vector,
+                                     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   model_state_vectorInit(model_state_vector, jacobian_targets);

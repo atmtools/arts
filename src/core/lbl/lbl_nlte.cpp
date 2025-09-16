@@ -92,14 +92,14 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
       } else {
         auto& x = normalization[key.isot];
 
-        auto srhs = std::get_if<GeodeticField3>(&data.data);
-        if (auto lhs = std::get_if<GeodeticField3>(&x.data); lhs and srhs) {
+        auto* srhs = std::get_if<GeodeticField3>(&data.data);
+        if (auto* lhs = std::get_if<GeodeticField3>(&x.data); lhs and srhs) {
           lhs->data += srhs->data;
           continue;
         }
 
-        auto nrhs = std::get_if<Numeric>(&data.data);
-        if (auto lhs = std::get_if<Numeric>(&x.data); lhs and nrhs) {
+        auto* nrhs = std::get_if<Numeric>(&data.data);
+        if (auto* lhs = std::get_if<Numeric>(&x.data); lhs and nrhs) {
           *lhs += *nrhs;
           continue;
         }
@@ -113,12 +113,12 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
     }
 
     for (auto& [_, data] : normalization) {
-      if (auto ptr = std::get_if<GeodeticField3>(&data.data); ptr) {
+      if (auto* ptr = std::get_if<GeodeticField3>(&data.data); ptr) {
         ptr->data /= normalizing_factor;
         continue;
       }
 
-      if (auto ptr = std::get_if<Numeric>(&data.data); ptr) {
+      if (auto* ptr = std::get_if<Numeric>(&data.data); ptr) {
         *ptr /= normalizing_factor;
         continue;
       }

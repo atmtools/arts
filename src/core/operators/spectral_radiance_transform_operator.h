@@ -4,6 +4,8 @@
 #include <path_point.h>
 #include <rtepack.h>
 
+#include "operators.h"
+
 struct SpectralRadianceTransformOperator {
   using Op = CustomOperator<void,
                             StokvecVector&,

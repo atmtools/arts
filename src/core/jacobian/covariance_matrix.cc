@@ -133,15 +133,6 @@ void Block::set_matrix(std::shared_ptr<Matrix> dense) {
   matrix_ = std::move(dense);
 }
 
-std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
-  if (m.is_dense()) {
-    os << m.dense();
-  } else {
-    os << m.sparse();
-  }
-  return os;
-}
-
 std::array<Index, 2> BlockMatrix::shape() const {
   if (is_dense()) {
     return dense().shape();
@@ -636,10 +627,12 @@ void CovarianceMatrix::invert_correlation_block(
   }
 }
 
-void CovarianceMatrix::add_correlation(Block c) { correlations_.push_back(c); }
+void CovarianceMatrix::add_correlation(Block c) {
+  correlations_.push_back(std::move(c));
+}
 
 void CovarianceMatrix::add_correlation_inverse(Block c) {
-  inverses_.push_back(c);
+  inverses_.push_back(std::move(c));
 }
 
 Vector CovarianceMatrix::diagonal() const {

@@ -1,8 +1,7 @@
 #include <array_algo.h>
 #include <arts_omp.h>
+#include <math_funcs.h>
 #include <workspace.h>
-
-#include "math_funcs.h"
 
 namespace {
 auto ray_path_propagation_matrixProfile(

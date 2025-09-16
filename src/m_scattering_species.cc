@@ -1,8 +1,7 @@
 #include <array_algo.h>
 #include <arts_omp.h>
+#include <debug.h>
 #include <workspace.h>
-
-#include "debug.h"
 
 void legendre_degreeFromDisortSettings(Index& legendre_degree,
                                        const DisortSettings& disort_settings) {

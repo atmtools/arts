@@ -8,22 +8,18 @@
 
 */
 
+#include <arts_constants.h>
+#include <cia.h>
+#include <debug.h>
+#include <file.h>
+#include <jacobian.h>
+#include <physics_funcs.h>
+#include <species_tags.h>
 #include <workspace.h>
+#include <xml_io.h>
 
 #include <algorithm>
 #include <filesystem>
-#include <iomanip>
-
-#include "arts_constants.h"
-#include "atm.h"
-#include "cia.h"
-#include "debug.h"
-#include "file.h"
-#include "jacobian.h"
-#include "physics_funcs.h"
-#include "species.h"
-#include "species_tags.h"
-#include "xml_io.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
@@ -71,7 +67,10 @@ void propagation_matrixAddCIA(  // WS Output:
       std::ranges::any_of(jac_freqs, [end](const auto& x) { return x != end; });
   const bool do_temp_jac = jac_temps != end;
   const Numeric dt       = do_temp_jac ? jac_temps->d : 0.0;
-  const Numeric df       = jac_freqs[0] != end ? jac_freqs[0]->d : jac_freqs[1] != end ? jac_freqs[1]->d : jac_freqs[2] != end ? jac_freqs[2]->d : 0.0;
+  const Numeric df       = jac_freqs[0] != end   ? jac_freqs[0]->d
+                           : jac_freqs[1] != end ? jac_freqs[1]->d
+                           : jac_freqs[2] != end ? jac_freqs[2]->d
+                                                 : 0.0;
 
   Vector dfreq;
   Vector dabs_t{atm_point.temperature + dt};
@@ -188,26 +187,6 @@ void propagation_matrixAddCIA(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CIARecordReadFromFile(  // WS GOutput:
-    CIARecord& cia_record,
-    // WS Generic Input:
-    const String& species_tag,
-    const String& filename) {
-  ARTS_TIME_REPORT
-
-  SpeciesTag species(species_tag);
-
-  ARTS_USER_ERROR_IF(species.Type() != SpeciesTagType::Cia,
-                     "Invalid species tag {}"
-                     ".\n"
-                     "This is not recognized as a CIA type.\n",
-                     species_tag)
-
-  cia_record.SetSpecies(species.Spec(), species.cia_2nd_species);
-  cia_record.ReadFromCIA(filename);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_cia_dataAddCIARecord(  // WS Output:
     ArrayOfCIARecord& absorption_cia_data,
     // WS GInput:
@@ -267,12 +246,12 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
 
       bool found = false;
       for (Size fname = 0; !found && fname < cia_names.size(); fname++) {
-        String cia_name = cia_names[fname];
+        const String& cia_name = cia_names[fname];
 
         for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
           ArrayOfString files;
-          checked_dirs.push_back(catalogpath + "/" + subfolders[dir] +
-                                 cia_name + "/");
+          checked_dirs.push_back(
+              std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
           try {
             files = list_directory(*(checked_dirs.end() - 1));
           } catch (const std::runtime_error& e) {

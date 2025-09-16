@@ -1,72 +1,21 @@
 #include "workspace_method_class.h"
 
 #include <auto_wsm.h>
+#include <auto_wsv.h>
+#include <callback.h>
 
 #include <algorithm>
 #include <exception>
-#include <iomanip>
 #include <ranges>
 #include <stdexcept>
 #include <string_view>
 
-#include "auto_wsv.h"
-#include "callback.h"
-#include "format_tags.h"
 #include "workspace_agenda_class.h"
 #include "workspace_class.h"
 
 namespace {
 static const auto& wsms = workspace_methods();
 }  // namespace
-
-std::ostream& operator<<(std::ostream& os, const Method& m) {
-  if (m.setval) {
-    const Wsv& wsv = m.setval.value();
-    if (wsv.holds<CallbackOperator>()) {
-      const CallbackOperator& cb = wsv.get_unsafe<CallbackOperator>();
-      for (auto& var : cb.outputs) {
-        os << var << ", ";
-      }
-      os << " := " << m.name << '(';
-      for (auto& var : cb.inputs) {
-        os << var << ", ";
-      }
-      os << ')';
-    } else {
-      os << m.name;
-      auto var                      = wsv.vformat("{}"sv);
-      constexpr std::size_t maxsize = 50;
-      if (var.size() > maxsize) {
-        var = std::string(var.begin(), var.begin() + maxsize) + "...";
-      }
-      replace(var, "\n", " ");
-
-      os << " = " << var;
-    }
-  } else {
-    os << m.name;
-    os << '(';
-
-    os << "o : ";
-    bool first = true;
-    for (auto& o : m.outargs) {
-      if (not first) os << ", ";
-      first = false;
-      os << o;
-    }
-
-    os << '\n' << std::string(m.name.size() + 1, ' ') << "i : ";
-    first = true;
-    for (auto& o : m.inargs) {
-      if (not first) os << ", ";
-      first = false;
-      os << o;
-    }
-    os << ')';
-  }
-
-  return os;
-}
 
 Method::Method() : name("this-is-not-a-method") {}
 
@@ -256,6 +205,7 @@ std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const {
   return wsv.vformat("{}"sv);
 }
 
+namespace {
 std::string wsv_format(const std::string& x) {
   const static auto& wsvs = workspace_variables();
   std::string_view n      = x;
@@ -268,6 +218,7 @@ std::string wsv_format(const std::string& x) {
 
   return std::format("{0}{1}{0}", sep, n);
 }
+}  // namespace
 
 struct SetvalHelper {
   std::string method_name;

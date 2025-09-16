@@ -4,8 +4,6 @@
 #include <atm.h>
 #include <wigner_functions.h>
 
-#include "rational.h"
-
 namespace lbl::voigt::ecs::hartmann {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6

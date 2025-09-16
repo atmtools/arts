@@ -7,13 +7,12 @@
 
 */
 
+#include <jacobian.h>
+#include <physics_funcs.h>
+#include <species.h>
 #include <workspace.h>
-
-#include "jacobian.h"
-#include "physics_funcs.h"
-#include "species.h"
-#include "xml_io.h"
-#include "xsec_fit.h"
+#include <xml_io.h>
+#include <xsec_fit.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_xsec_fit_dataReadSpeciesSplitCatalog(

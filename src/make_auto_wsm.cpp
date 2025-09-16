@@ -1,4 +1,5 @@
 #include <auto_wsg.h>
+#include <debug.h>
 #include <mystring.h>
 
 #include <algorithm>
@@ -6,17 +7,15 @@
 #include <format>
 #include <iostream>
 #include <ranges>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
-#include "debug.h"
-#include "mystring.h"
 #include "workspace_groups.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 
+namespace {
 void scan_wsmr_for_errors(ArrayOfString& errors,
                           const std::string& name,
                           const WorkspaceMethodInternalRecord& wsmr) {
@@ -343,11 +342,12 @@ void call_function(std::ostream& os,
     // one method per group
     std::println(os, "      switch (_first.value_index()) {{");
     for (auto& group : internal_workspace_groups() | std::views::keys) {
-      std::print(os,
-                 R"(        case WorkspaceGroupInfo<{0}>::index: return {1}({2})",
-                 group,
-                 name,
-                 gets.front()[i]);
+      std::print(
+          os,
+          R"(        case WorkspaceGroupInfo<{0}>::index: return {1}({2})",
+          group,
+          name,
+          gets.front()[i]);
       for (auto& v : gets | std::views::drop(1)) {
         std::print(os, ", {}", v[i]);
       }
@@ -441,8 +441,9 @@ void call_function(std::ostream& os,
     }
 
     for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-      os << comma(first, spaces) << "ws.get_or<" << any(wsmr.gout_type[i])
-         << ">(out[" << out_count++ << "]) /* gout */";
+      os << comma(first, spaces) << "ws.get_or<"
+         << any_is_typename(wsmr.gout_type[i]) << ">(out[" << out_count++
+         << "]) /* gout */";
     }
 
     int in_count = 0;
@@ -629,6 +630,7 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
   throw std::runtime_error("Error in implementation():\n\n" +
                            std::string(e.what()));
 }
+}  // namespace
 
 int main(int argc, char** argv) try {
   if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");

@@ -1,5 +1,6 @@
 #include "xml_io_stream_matpack_mdspan_helpers.h"
 
+namespace {
 template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
 void xml_read_from_stream_recursive_old(
     std::istream& is_xml,
@@ -142,6 +143,7 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
 
   ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n{}", gfield);
 }
+}  // namespace
 
 #define GF_IO(GF)                                               \
   template <>                                                   \

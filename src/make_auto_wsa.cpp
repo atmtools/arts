@@ -10,6 +10,7 @@
 #include "workspace_agendas.h"
 #include "workspace_variables.h"
 
+namespace {
 const auto& wsa = internal_workspace_agendas();
 const auto& wsv = internal_workspace_variables();
 
@@ -432,6 +433,7 @@ constexpr {0}Predefined to<{0}Predefined>(const std::string_view x) {{
         ag.enum_options);
   }
 }
+}  // namespace
 
 int main() try {
   std::ofstream head("auto_wsa.h");

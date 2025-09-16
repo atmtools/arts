@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
@@ -6,8 +7,6 @@
 #include <workspace.h>
 
 #include <algorithm>
-
-#include "debug.h"
 
 void spectral_radiance_backgroundAgendasAtEndOfPath(
     const Workspace& ws,

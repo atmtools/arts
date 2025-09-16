@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format_tags.h>
 #include <wsv_value_wrapper.h>
 
 #include <optional>
@@ -7,8 +8,6 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-
-#include "format_tags.h"
 
 inline constexpr char named_input_prefix = '@';
 inline constexpr char internal_prefix    = '_';
@@ -46,8 +45,6 @@ class Method {
   void add_defaults_to_agenda(Agenda& agenda) const;
 
   [[nodiscard]] std::string sphinx_list_item() const;
-
-  friend std::ostream& operator<<(std::ostream& os, const Method& m);
 };
 
 template <>

@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <ranges>
-#include <set>
 
 void absorption_lookup_tableInit(
     AbsorptionLookupTables& absorption_lookup_table) {
@@ -11,6 +10,7 @@ void absorption_lookup_tableInit(
   absorption_lookup_table.clear();
 }
 
+namespace {
 template <bool calc>
 std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     PropmatVector& propagation_matrix [[maybe_unused]],
@@ -139,6 +139,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     }
   }
 }
+}  // namespace
 
 void propagation_matrixAddLookup(
     PropmatVector& propagation_matrix,

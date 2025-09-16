@@ -4,8 +4,6 @@
 
 extern Parameters parameters;
 
-void parse_path_from_environment(String envvar, ArrayOfString& paths);
-
 namespace Python {
 namespace py = nanobind;
 

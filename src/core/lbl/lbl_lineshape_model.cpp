@@ -5,8 +5,6 @@
 
 #include <ranges>
 
-#include "enumsLineByLineLineshape.h"
-
 namespace {
 std::istream& operator>>(
     std::istream& is,

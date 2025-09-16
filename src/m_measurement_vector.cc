@@ -1,7 +1,6 @@
 #include <jac_polyfit.h>
 #include <workspace.h>
 
-#include <limits>
 #include <memory>
 
 void measurement_vector_errorFromModelState(
@@ -60,21 +59,6 @@ measurement_jacobian_error.shape() : {:B,}
         measurement_jacobian_error.shape())
 
     measurement_jacobian += measurement_jacobian_error;
-  }
-}
-ARTS_METHOD_ERROR_CATCH
-
-void model_state_vectorUpdateError(
-    Vector& model_state_vector,
-    const JacobianTargets& jacobian_targets,
-    const Vector& measurement_vector,
-    const Vector& measurement_vector_fitted) try {
-  ARTS_TIME_REPORT
-
-  Vector meas{measurement_vector};
-  meas -= measurement_vector_fitted;
-  for (auto& elem : jacobian_targets.error) {
-    elem.update_state(model_state_vector, meas);
   }
 }
 ARTS_METHOD_ERROR_CATCH

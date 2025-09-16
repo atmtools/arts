@@ -1,3 +1,4 @@
+#include <arts_constants.h>
 #include <arts_constexpr_math.h>
 #include <atm.h>
 #include <matpack.h>
@@ -5,7 +6,7 @@
 
 #include <array>
 
-#include "arts_constants.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::PWR98 {
 //! Ported from legacy continua.  Original documentation

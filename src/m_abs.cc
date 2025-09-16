@@ -8,25 +8,22 @@
    \author Stefan Buehler
    \date   2001-03-12
 */
+#include <arts_constants.h>
+#include <debug.h>
+#include <enumsAtmKey.h>
+#include <file.h>
+#include <hitran_species.h>
+#include <jacobian.h>
+#include <lbl_data.h>
+#include <path_point.h>
+#include <species_tags.h>
 #include <workspace.h>
 
 #include <algorithm>
 #include <cmath>
 #include <utility>
 
-#include "array.h"
-#include "arts_constants.h"
-#include "arts_omp.h"
-#include "atm.h"
-#include "debug.h"
-#include "enumsAtmKey.h"
-#include "file.h"
-#include "hitran_species.h"
-#include "jacobian.h"
-#include "lbl_data.h"
-#include "path_point.h"
-#include "species_tags.h"
-
+namespace {
 void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
   ARTS_TIME_REPORT
   los_mirrored.resize(2);
@@ -57,6 +54,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
 
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
+}  // namespace
 
 inline constexpr Numeric ELECTRON_CHARGE     = -Constant::elementary_charge;
 inline constexpr Numeric ELECTRON_MASS       = Constant::electron_mass;
@@ -85,40 +83,6 @@ void absorption_speciesSet(  // WS Output:
 ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_speciesDefineAllInScenario(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& tgs,
-    // Control Parameters:
-    const String& basename) {
-  ARTS_TIME_REPORT
-
-  // We want to make lists of included and excluded species:
-  ArrayOfString included(0), excluded(0);
-
-  tgs.resize(0);
-
-  for (Size i = 0; i < enumsize::SpeciesEnumSize; ++i) {
-    const String specname{toString<1>(SpeciesEnum(i))};
-
-    String filename = basename;
-    if (basename.length() && basename[basename.length() - 1] != '/')
-      filename += ".";
-    filename += specname;
-
-    try {
-      find_xml_file(filename);
-      // Add to included list:
-      included.push_back(specname);
-
-      // Add this tag group to tgs:
-      tgs.emplace_back(ArrayOfSpeciesTag(specname));
-    } catch (const std::runtime_error& e) {
-      // The file for the species could not be found.
-      excluded.push_back(specname);
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_speciesDefineAll(  // WS Output:
     ArrayOfArrayOfSpeciesTag& absorption_species) {
   ARTS_TIME_REPORT
@@ -135,23 +99,6 @@ void absorption_speciesDefineAll(  // WS Output:
 
   // Set the values
   absorption_speciesSet(absorption_species, specs);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void AbsInputFromAtmFields(  // WS Output:
-    Vector& abs_p,
-    Vector& abs_t,
-    Matrix& abs_vmrs,
-    // WS Input:
-    const Vector& p_grid,
-    const Tensor3& t_field,
-    const Tensor4& vmr_field) {
-  // First, make sure that we really have a 1D atmosphere:
-  ARTS_USER_ERROR_IF(1 != 3, "Atmospheric dimension must be 1D, but 3 is 3")
-
-  abs_p    = p_grid;
-  abs_t    = t_field[joker, 0, 0];
-  abs_vmrs = vmr_field[joker, joker, 0, 0];
 }
 
 //======================================================================
@@ -290,39 +237,6 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
       }
     }
   }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixZero(PropmatVector& propagation_matrix,
-                            const AscendingGrid& frequency_grid) {
-  ARTS_TIME_REPORT
-
-  propagation_matrix = PropmatVector(frequency_grid.size());
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
-  ARTS_TIME_REPORT
-
-  for (Size i = 0; i < propagation_matrix.size(); i++)
-    if (propagation_matrix[i].A() < 0.0) propagation_matrix[i] = 0.0;
-  ;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void isotopologue_ratiosInitFromBuiltin(
-    SpeciesIsotopologueRatios& isotopologue_ratios) {
-  ARTS_TIME_REPORT
-
-  isotopologue_ratios = Species::isotopologue_ratiosInitFromBuiltin();
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void isotopologue_ratiosInitFromHitran(
-    SpeciesIsotopologueRatios& isotopologue_ratios) {
-  ARTS_TIME_REPORT
-
-  isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
 void propagation_matrix_agendaAuto(
