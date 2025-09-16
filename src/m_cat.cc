@@ -1,6 +1,5 @@
+#include <debug.h>
 #include <workspace.h>
-
-#include "debug.h"
 
 void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
                      ArrayOfXsecRecord& absorption_xsec_fit_data,

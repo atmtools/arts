@@ -1,4 +1,5 @@
 #include <array_algo.h>
+#include <debug.h>
 #include <enumsHydrostaticPressureOption.h>
 #include <enumsIsoRatioOption.h>
 #include <enumsMissingFieldComponentError.h>
@@ -10,8 +11,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <variant>
-
-#include "debug.h"
 
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
@@ -535,14 +534,14 @@ void atmospheric_fieldAppendPredefSpeciesData(
   }
 }
 
-void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
-                                           AtmField &atmospheric_field,
-                                           const String &basename,
-                                           const String &extrapolation,
-                                           const Index &missing_is_zero,
-                                           const Index &replace_existing,
-                                           const Index &load_isot,
-                                           const Index &load_nlte) {
+void atmospheric_fieldAppendAuto(const Workspace &ws,
+                                 AtmField &atmospheric_field,
+                                 const String &basename,
+                                 const String &extrapolation,
+                                 const Index &missing_is_zero,
+                                 const Index &replace_existing,
+                                 const Index &load_isot,
+                                 const Index &load_nlte) {
   ARTS_TIME_REPORT
 
   if (const String lines_str = "absorption_bands";

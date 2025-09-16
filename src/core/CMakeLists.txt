@@ -35,20 +35,20 @@ add_subdirectory(functional)
 add_subdirectory(igrf)
 
 # #####
-add_library(artscore STATIC
-  gas_scattering.cc
-  spectral_radiance_transform_operator.cc
-)
+add_library(artscore INTERFACE)
 
-target_link_libraries(artscore PUBLIC
-  arts_enum_options
+target_link_libraries(artscore INTERFACE
   absorption
+  arts_enum_options
   artstime
   atm
   binio
   coretypes
+  disort-cpp
   fwd
+  jacobian
   lbl
+  legendre
   lookup
   matpack
   operators
@@ -56,22 +56,19 @@ target_link_libraries(artscore PUBLIC
   physics
   predef
   quantum
+  rng
   rtepack
   sensor
   species
   species_tags
-  surface
   subsurface
-  util
-  disort-cpp
-  legendre
-  jacobian
-  xml_io
-  rng
   sun
+  surface
+  util
+  xml_io
 )
 
-target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(artscore INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE <matpack.h>)

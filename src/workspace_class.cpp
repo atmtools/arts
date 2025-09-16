@@ -1,12 +1,10 @@
 #include "workspace_class.h"
 
 #include <auto_wsv.h>
+#include <debug.h>
 
 #include <ranges>
 #include <stdexcept>
-#include <type_traits>
-
-#include "debug.h"
 
 Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   if (WorkspaceInitialization::FromGlobalDefaults == how_to_initialize) {

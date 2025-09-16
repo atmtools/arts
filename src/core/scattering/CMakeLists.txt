@@ -12,6 +12,7 @@ add_library(scattering STATIC
    scattering_habit.cc
    bulk_scattering_properties.cc
    optproperties.cc
+   gas_scattering.cc
 )
 
 target_include_directories(scattering PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")

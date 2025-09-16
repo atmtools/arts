@@ -1,6 +1,8 @@
 #include <arts_conversions.h>
-#include <rtepack.h>
 #include <atm.h>
+#include <rtepack.h>
+
+#include "predef.h"
 
 /*
       --------------------------- CKD_MT_3.20 -------------------------
@@ -1084,6 +1086,7 @@ const std::array FH2O_ckd_mt_320{
     3.490E-12, 2.710E-12, 2.100E-12, 1.650E-12, 1.310E-12, 1.060E-12, 8.350E-13,
     6.450E-13, 5.020E-13, 3.940E-13, 3.090E-13, 2.460E-13};
 
+namespace {
 Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) {
   // ---------------------------------------------------------------------- B18060
   //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
@@ -1162,6 +1165,7 @@ Numeric XINT_FUN(const Numeric V1A,
 
   return xint;
 }
+}  // namespace
 
 //! CKD version MT 3.20 H2O self continuum absorption model
 /*!

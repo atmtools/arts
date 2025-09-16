@@ -249,7 +249,9 @@ struct std::formatter<SubsurfacePoint> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   [[nodiscard]] std::string to_string(const SubsurfacePoint &v) const;
@@ -305,7 +307,9 @@ struct std::formatter<SubsurfaceField> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   [[nodiscard]] std::string to_string(const SubsurfaceField &v) const;

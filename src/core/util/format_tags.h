@@ -30,7 +30,7 @@ template <typename T>
 concept arts_formattable =
     std::formattable<T, char> and arts_inner_fmt<T> and requires(T x) {
       std::format("{}", x);
-      std::format("{:sqNBIO,}", x);
+      std::format("{:nsqNBIO,}", x);
     };
 
 template <typename T>
@@ -45,6 +45,7 @@ struct format_tags {
   bool quoted    = false;
   bool short_str = false;
   bool io        = false;
+  bool newline   = false;
   Size depth     = 0;
 
   [[nodiscard]] std::string get_format_args() const;
@@ -67,7 +68,7 @@ struct format_tags {
     (compat(x), ...);
   }
 
-  [[nodiscard]] std::string_view sep(bool newline = false) const;
+  [[nodiscard]] std::string_view sep() const;
 
   [[nodiscard]] std::string_view quote() const;
 
@@ -116,22 +117,6 @@ struct format_tags {
 template <>
 void format_tags::add_if_bracket(std::format_context& ctx, char x) const;
 
-// GCC complains here for unknown reasons - these would be good to have...
-
-// template <>
-// void format_tags::single_format(std::format_context& ctx,
-//                                 const std::string& x) const;
-
-// template <>
-// void format_tags::single_format(std::format_context& ctx,
-//                                 const std::string_view& x) const;
-
-// template <>
-// void format_tags::single_format(std::format_context& ctx, const bool& x) const;
-
-// template <>
-// void format_tags::single_format(std::format_context& ctx, const char& x) const;
-
 template <>
 std::string format_tags::vformat(const std::string& x) const;
 
@@ -169,6 +154,12 @@ constexpr std::format_parse_context::iterator parse_format_tags(
 
     if (*it == 'q') {
       fmt.quoted = true;
+      ++it;
+      continue;
+    }
+
+    if (*it == 'n') {
+      fmt.newline = true;
       ++it;
       continue;
     }
@@ -280,7 +271,7 @@ struct std::formatter<std::variant<WTs...>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::variant<WTs...>& v,
-                                   FmtContext& ctx) const {
+                              FmtContext& ctx) const {
     const auto call = []<typename T>(const format_tags& tags,
                                      FmtContext& ctx,
                                      const T* const e) -> bool {
@@ -309,7 +300,7 @@ struct std::formatter<std::unordered_map<Key, Value>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
-                                   FmtContext& ctx) const {
+                              FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -333,7 +324,7 @@ struct std::formatter<std::map<Key, Value>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
-                                   FmtContext& ctx) const {
+                              FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -431,7 +422,7 @@ struct std::formatter<std::vector<T, Allocator>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::vector<T, Allocator>& v,
-                                   FmtContext& ctx) const {
+                              FmtContext& ctx) const {
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -456,7 +447,7 @@ struct std::formatter<std::array<T, N>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::array<T, N>& v,
-                                   FmtContext& ctx) const {
+                              FmtContext& ctx) const {
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');

@@ -1201,7 +1201,7 @@ Grids for {1}:
 }
 
 std::string std::formatter<AtmPoint>::to_string(const AtmPoint &v) const {
-  const std::string_view sep = tags.sep(true);
+  const std::string_view sep = tags.sep();
 
   std::string out = tags.vformat(R"("pressure": )"sv,
                                  v.pressure,
@@ -1250,7 +1250,7 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
   std::string out;
 
   if (tags.short_str) {
-    const std::string_view sep = tags.sep();
+    const char sep = ' ';
 
     out = tags.vformat(R"("top_of_atmosphere": )"sv,
                        v.top_of_atmosphere,
@@ -1270,7 +1270,7 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
                        R"("ScatteringSpeciesProperty": )"sv,
                        v.ssprops.size());
   } else {
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep = tags.sep();
 
     out = tags.vformat(R"("top_of_atmosphere": )"sv,
                        v.top_of_atmosphere,

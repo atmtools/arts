@@ -26,7 +26,7 @@ Parameters parameters{};
  
  \author Oliver Lemke
  */
-void parse_path_from_environment(String envvar, ArrayOfString &paths) {
+void parse_path_from_environment(const String& envvar, ArrayOfString &paths) {
   char *envval = getenv(envvar.c_str());
   if (envval) {
     String pathstring(envval);

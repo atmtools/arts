@@ -1,7 +1,5 @@
 #include "functional_atm.h"
 
-#include "matpack_mdspan_common_types.h"
-
 namespace Atm {
 Numeric External::operator()(Numeric alt, Numeric lat, Numeric lon) const {
   return f(alt, lat, lon);

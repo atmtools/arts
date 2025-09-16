@@ -192,7 +192,7 @@ constexpr void update_pos(std::span<Index, X> indx,
         if (N == 0) {
           xu      = xu - (x < xl) * transform::cycle();
           xl      = xl + (x >= xu) * transform::cycle();
-          indx[0] = (std::abs(x - xl) > std::abs(x - xu)) * (n - 1);
+          indx[0] = (nonstd::abs(x - xl) > nonstd::abs(x - xu)) * (n - 1);
         } else {
           for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
         }
@@ -205,7 +205,7 @@ constexpr void update_pos(std::span<Index, X> indx,
         if (N == 0) {
           xu      = xu - (x < xl) * transform::cycle();
           xl      = xl + (x >= xu) * transform::cycle();
-          indx[0] = (std::abs(x - xl) < std::abs(x - xu)) * (n - 1);
+          indx[0] = (nonstd::abs(x - xl) < nonstd::abs(x - xu)) * (n - 1);
         } else {
           for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
         }
@@ -226,10 +226,10 @@ constexpr void update_pos(std::span<Index, X> indx,
   if (N == 0) {
     if constexpr (cyclic<transform>) {
       const auto xn = ((xp + 1) == xi.end()) ? xf : (xp + 1);
-      xp            = (std::abs(x - *xn) < std::abs(x - *xp)) ? xn : xp;
+      xp            = (nonstd::abs(x - *xn) < nonstd::abs(x - *xp)) ? xn : xp;
     } else {
       const auto xn = xp + 1;
-      xp = (xn == xi.end() or std::abs(x - *xn) > std::abs(x - *xp)) ? xp : xn;
+      xp = (xn == xi.end() or nonstd::abs(x - *xn) > nonstd::abs(x - *xp)) ? xp : xn;
     }
   }
 

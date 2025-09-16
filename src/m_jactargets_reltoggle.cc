@@ -1,7 +1,6 @@
+#include <debug.h>
 #include <jac_rel.h>
 #include <workspace.h>
-
-#include "debug.h"
 
 namespace {
 void jacobian_targetsToggleRelativeAtmTargetImpl(
@@ -88,9 +87,10 @@ void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
   jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
-                                             const AtmField& f,
-                                             const QuantumLevelIdentifier& key) {
+void jacobian_targetsToggleRelativeAtmTarget(
+    JacobianTargets& jacobian_targets,
+    const AtmField& f,
+    const QuantumLevelIdentifier& key) {
   jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
 }
 

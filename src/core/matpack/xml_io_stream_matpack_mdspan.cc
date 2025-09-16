@@ -288,6 +288,7 @@ void old_xml_io_read(XMLTag& tag,
   tag.check_name("/Tensor7"sv);
 }
 
+namespace {
 void xml_parse_from_stream(std::istream& is,
                            ComplexVector& vector,
                            bifstream* pbifs,
@@ -312,6 +313,7 @@ void xml_parse_from_stream(std::istream& is,
     }
   }
 }
+}  // namespace
 
 void old_xml_io_read(XMLTag& tag,
                      std::istream& is,

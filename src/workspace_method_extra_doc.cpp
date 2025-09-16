@@ -1,12 +1,14 @@
+#include "workspace_method_extra_doc.h"
+
+#include <configtypes.h>
 #include <enums.h>
+#include <enumsSpeciesEnum.h>
+#include <isotopologues.h>
 #include <workspace.h>
 
 #include <ranges>
 
-#include "configtypes.h"
-#include "enumsSpeciesEnum.h"
-#include "isotopologues.h"
-
+namespace {
 std::string& docstr(std::unordered_map<std::string, std::string>& map,
                     const std::string& key) {
   const auto& orig = workspace_methods();
@@ -40,7 +42,6 @@ Below, these are all listed with the generated agenda-call order for each combin
 Before that, a concise overview of what each option do is available by the types in this table:
 
 .. list-table::
-  :name: Setup options for ``{1}``
   :widths: auto
   :align: left
   :header-rows: 1
@@ -139,7 +140,6 @@ std::string get_absorption_speciesSet_doc() {
 Below follows a complete list of all single species tags that can be set using this method.
 
 .. list-table::
-   :name: A complete list of species tags
    :widths: auto
    :align: left
    :header-rows: 1
@@ -163,10 +163,11 @@ Below follows a complete list of all single species tags that can be set using t
                        x.is_normal() ? std::format("{}", x.gi) : ""s);
   }
 
-  doc += "\nAnd in short: ";
+  doc += "\n\nAnd in short: ";
   for (auto& x : Species::Isotopologues | stdv::drop(1)) {
     doc += std::format("``{}``, ", x.FullName());
   }
+  doc += '\n';
 
   return doc;
 }
@@ -182,6 +183,7 @@ workspace_method_extra_doc_internal() {
 
   return doc;
 }
+}  // namespace
 
 const std::unordered_map<std::string, std::string>&
 workspace_method_extra_doc() {

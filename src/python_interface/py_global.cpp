@@ -65,9 +65,6 @@ void py_global(py::module_& m) try {
       .def_rw_static("datapath",
                      &parameters.datapath,
                      "Automatic data paths\n\n.. :class:`ArrayOfString`")
-      .def_rw_static("numthreads",
-                     &parameters.numthreads,
-                     "Number of threads allowed to start\n\n.. :class:`Index`")
       .doc() = "Access to static settings data";
 
   py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
@@ -90,7 +87,7 @@ Return
   py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
       .def_ro("default_value",
               &WorkspaceVariableRecord::default_value,
-              "Default value\n\n.. :class:`Wsv`\n\n.. :class:`None`")
+              "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
       .def_ro("type", &WorkspaceVariableRecord::type, "Type\n\n.. :class:`str`")
       .def_ro("desc",
               &WorkspaceVariableRecord::desc,

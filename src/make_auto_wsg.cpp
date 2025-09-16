@@ -14,6 +14,7 @@
 
 using namespace std::literals;
 
+namespace {
 const auto& data = internal_workspace_groups();
 
 std::vector<std::pair<std::string, std::vector<std::string>>> files() {
@@ -292,142 +293,28 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
   }
 }
 
-constexpr std::string_view Name = "Wsv";
-
-void wsv_header(std::ostream& os) {
-  std::println(os,
-               R"-x-(#pragma once
-
-//! auto-generated file, edits do not persist
-
-#include "auto_wsg.h"
-
-class {0} {{
-  std::shared_ptr<void> data;  // A shared_ptr custom variant
-  std::size_t index;           // The index of the variant
-
-  struct our_little_secret {{}};
-  {0}(our_little_secret) : data(nullptr), index(-1) {{}}
-
-public:
-
-  std::size_t value_index() const noexcept {{
-    return index;
-  }}
-
-  //! Default constructor, creates an Any
-  {0}() : {0}{{std::shared_ptr<Any>(new Any{{}})}} {{}}
-
-  {0}({0}&&) noexcept = default;
-  {0}& operator=({0}&&) noexcept = default;
-
-  //! We must be able to make a {0} from any of the allowed workspace groups
-  template <WorkspaceGroup T>
-  {0}(std::shared_ptr<T>&& x) noexcept :
-    data{{std::move(x)}},
-    index{{WorkspaceGroupInfo<T>::index}} {{}}
-
-  //! We must be able to take over the data of a workspace group
-  template <WorkspaceGroup T>
-  {0}(T&& x) noexcept : {0}(std::shared_ptr<T>(new T{{std::move(x)}})) {{}}
-
-  //! We must have a sneaky share constructor (note: this is unsafe)
-  template <WorkspaceGroup T>
-  {0}(T* x) noexcept : {0}(std::shared_ptr<T>(x, [](void*) {{}})) {{}}
-
-  //! We must be able to copy workspace groups into the variant
-  template <WorkspaceGroup T>
-  {0}(const T& x) : {0}(std::shared_ptr<T>(new T{{ x }})) {{}}
-
-  {0}& operator=(const {0}& x) {{ return *this  = {0}(x); }}
-
-  [[nodiscard]] bool holds_same(const {0}& x) const noexcept {{
-    return index == x.index;
-  }}
-
-  template <WorkspaceGroup T>
-  [[nodiscard]] bool holds() const noexcept  {{
-    return index == WorkspaceGroupInfo<T>::index;
-  }}
-
-  //! Unsafely share into the variant (this may segfault)
-  template <WorkspaceGroup T>
-  [[nodiscard]] std::shared_ptr<T> share_unsafe() const {{
-    assert(holds<T>());
-    return std::static_pointer_cast<T>(data);
-  }}
-
-  //! Safely share into the variant (this may throw)
-  template <WorkspaceGroup T> [[nodiscard]] std::shared_ptr<T> share() const {{
-    if (not holds<T>())
-      throw std::runtime_error(std::format(R"(Casting "{{}}" to "{{}}")",
-                                           WorkspaceGroupInfo<T>::name,
-                                           type_name()));
-    return share_unsafe<T>();
-  }}
-
-  //! Unsafely reference into the variant (this may segfault)
-  template <WorkspaceGroup T> [[nodiscard]] T& get_unsafe() const {{
-    assert(holds<T>());
-    return *static_cast<T*>(data.get());
-  }}
-
-  //! Safely reference into the variant (this may throw)
-  template <WorkspaceGroup T> [[nodiscard]] T& get() const {{
-    if (not holds<T>())
-      throw std::runtime_error(std::format(R"(Casting "{{}}" to "{{}}")",
-                                           WorkspaceGroupInfo<T>::name,
-                                           type_name()));
-    return get_unsafe<T>();
-  }}
-
-  {0}(const {0}&) = default;
-
-  //! Get a {0} that holds the named type
-  static {0} from_named_type(const std::string_view);
-
-  //! Get the type name of the variant
-  [[nodiscard]] std::string_view type_name() const;
-
-  //! Get the type name of the variant
-  [[nodiscard]] std::string vformat(std::string_view) const;
-
-  [[nodiscard]] {0} shared() const {{ return *this; }}
-  [[nodiscard]] {0} copied() const;
-
-  std::ostream& write_to_stream(std::ostream&, bofstream*, const std::string&) const;
-
-  std::istream& read_from_stream(std::istream&, bifstream*);
-}};)-x-",
-               Name);
-}
-
 void wsv_implement_copied(std::ostream& os) {
-  std::println(os, "{0} {0}::copied() const {{\n  switch(index) {{", Name);
+  std::println(os, "Wsv Wsv::copied() const {{\n  switch(index) {{");
 
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
     std::println(
         os,
-        R"(    case {1}: return {2} {{ {0} {{ get_unsafe<{0}>() }} }}; break;)",
+        R"(    case {1}: return Wsv {{ {0} {{ get_unsafe<{0}>() }} }}; break;)",
         grps[i],
-        i,
-        Name);
+        i);
   }
 
   std::println(os, "  }}\n  throw std::logic_error(\"bad copy\");\n}}");
 }
 
 void wsv_implement_from_named_type(std::ostream& os) {
-  std::println(
-      os, "{0} {0}::from_named_type(const std::string_view x) {{", Name);
+  std::println(os, "Wsv Wsv::from_named_type(const std::string_view x) {{");
 
   for (auto& group : groups()) {
-    std::println(os,
-                 "  if (x == \"{0}\"sv) {{ return {1} {{ {0}{{}} }}; }}",
-                 group,
-                 Name);
+    std::println(
+        os, "  if (x == \"{0}\"sv) {{ return Wsv {{ {0}{{}} }}; }}", group);
   }
 
   std::println(
@@ -436,9 +323,8 @@ void wsv_implement_from_named_type(std::ostream& os) {
 }
 
 void wsv_implement_type_name(std::ostream& os) {
-  std::println(os,
-               "std::string_view {0}::type_name() const {{\n  switch(index) {{",
-               Name);
+  std::println(
+      os, "std::string_view Wsv::type_name() const {{\n  switch(index) {{");
 
   auto grps = groups();
 
@@ -472,8 +358,7 @@ bool valid_wsg(std::string_view x) {{
 void wsv_implement_vformat(std::ostream& os) {
   std::println(
       os,
-      "std::string {0}::vformat(std::string_view fmt) const {{\n  switch(index) {{",
-      Name);
+      "std::string Wsv::vformat(std::string_view fmt) const {{\n  switch(index) {{");
 
   auto grps = groups();
 
@@ -491,8 +376,7 @@ void wsv_implement_vformat(std::ostream& os) {
 void wsv_implement_write_to_stream(std::ostream& os) {
   std::println(
       os,
-      "std::ostream& {0}::write_to_stream(std::ostream& os, bofstream* pbofs, const std::string& s) const {{\n  switch(index) {{",
-      Name);
+      "std::ostream& Wsv::write_to_stream(std::ostream& os, bofstream* pbofs, const std::string& s) const {{\n  switch(index) {{");
 
   auto grps = groups();
 
@@ -510,8 +394,7 @@ void wsv_implement_write_to_stream(std::ostream& os) {
 void wsv_implement_read_from_stream(std::ostream& os) {
   std::println(
       os,
-      "std::istream& {0}::read_from_stream(std::istream& is, bifstream* pbifs) {{\n  switch(index) {{",
-      Name);
+      "std::istream& Wsv::read_from_stream(std::istream& is, bifstream* pbifs) {{\n  switch(index) {{");
 
   auto grps = groups();
 
@@ -538,6 +421,7 @@ void wsv_implement_includes(std::ostream& os) {
 #include "workspace_method_class.h"
 )-x-");
 }
+}  // namespace
 
 int main() try {
   std::ofstream head("auto_wsg.h");

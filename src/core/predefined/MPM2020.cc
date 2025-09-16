@@ -1,7 +1,9 @@
 #include <arts_conversions.h>
-#include <matpack.h>
 #include <atm.h>
+#include <matpack.h>
 #include <rtepack.h>
+
+#include "predef.h"
 
 /**
  * @brief Contains the MPM2020 model as presented by Makarov et al. (2020)
@@ -13,6 +15,7 @@
 namespace Absorption::PredefinedModel::MPM2020 {
 constexpr Index num = 38;
 
+namespace {
 constexpr Numeric sum_lines(const Numeric f,
                             const std::array<Numeric, num>& c,
                             const std::array<Numeric, num>& ga,
@@ -30,6 +33,7 @@ constexpr Numeric sum_lines(const Numeric f,
                      (pow2(ga[i]) + pow2(f + f0[i] + dv[i])));
   return a;
 }
+}  // namespace
 
 void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,

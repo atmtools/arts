@@ -1,15 +1,15 @@
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <iterator>
-
 #include <arts_conversions.h>
 #include <atm.h>
 #include <debug.h>
 #include <matpack.h>
 #include <rtepack.h>
 
-#include "predef_data.h"
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <iterator>
+
+#include "predef.h"
 
 /*!  This code is ported from Fortran90 code that contains the following statement:
 
@@ -33,6 +33,7 @@
 */
 
 namespace Absorption::PredefinedModel::MT_CKD400 {
+namespace {
 Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) noexcept {
   // ---------------------------------------------------------------------- B18060
   //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
@@ -96,6 +97,7 @@ void check(const WaterData& data) {
            data.wavenumbers.size() == 0 or data.self_texp.size() == 0;
   ARTS_USER_ERROR_IF(c, "No data")
 }
+}  // namespace
 
 void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,

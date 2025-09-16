@@ -58,7 +58,7 @@ PType PTypeFromString(const std::string_view ptype_string) {
 
 std::string std::formatter<SingleScatteringData>::to_string(
     const SingleScatteringData& v) const {
-  const std::string_view sep   = tags.sep(true);
+  const std::string_view sep   = tags.sep();
   const std::string_view quote = tags.quote();
 
   std::string out = tags.vformat(v.ptype,

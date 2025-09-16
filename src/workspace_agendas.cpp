@@ -4,6 +4,7 @@
 
 using namespace std::literals;
 
+namespace {
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
@@ -337,6 +338,7 @@ as a boundary condition to subsurface radiance calculation.
   for (auto& [name, record] : wsa_data) {
     record.desc += std::format(R"(
 .. rubric:: Execution and customization
+
 )");
 
     if (not record.enum_options.empty()) {
@@ -370,6 +372,7 @@ Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully d
 
   return wsa_data;
 }
+}  // namespace
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas() {

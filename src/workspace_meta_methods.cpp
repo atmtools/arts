@@ -10,6 +10,7 @@
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 
+namespace {
 std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> wsm_meta;
 
@@ -222,7 +223,7 @@ This method simply is a convenience wrapper for that use case.
       .author           = {"Richard Larsson"},
       .methods          = {"atmospheric_fieldInit",
                            "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAbsorptionData"},
+                           "atmospheric_fieldAppendAuto"},
       .out              = {"atmospheric_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
@@ -323,6 +324,8 @@ gridded using *atmospheric_profileExtract*.
 
   return wsm_meta;
 }
+}  // namespace
+
 const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
   static const auto out = internal_meta_methods_creator();
   return out;

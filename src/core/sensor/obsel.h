@@ -290,13 +290,15 @@ struct std::formatter<sensor::SparseStokvecMatrix> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const sensor::SparseStokvecMatrix& v,
                               FmtContext& ctx) const {
-    const auto sep = tags.sep(true);
+    const auto sep = tags.sep();
 
     tags.add_if_bracket(ctx, '[');
     for (auto& w : v) tags.format(ctx, w, sep);

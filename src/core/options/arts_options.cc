@@ -5,11 +5,8 @@
 #include <algorithm>
 #include <array>
 #include <format>
-#include <iterator>
 #include <limits>
-#include <print>
 #include <ranges>
-#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -189,6 +186,13 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(
       EnumeratedOption{.name = "SurfaceKey",
                        .desc = R"(A key to identify a surface property.
+
+This is used to identify core components in the surface.
+See *SurfaceField* and *SurfacePoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
                        .values_and_desc = {
                            Value{"h", "elevation", "Altitude [m]"},
@@ -198,6 +202,13 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(EnumeratedOption{
       .name            = "AtmKey",
       .desc            = R"(A key to identify an atmospheric property.
+
+This is used to identify core components in the atmosphere.
+See *AtmField* and *AtmPoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
       .values_and_desc = {
           Value{"t", "temperature", "Temperature [K]"},
@@ -213,6 +224,13 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(
       EnumeratedOption{.name = "SubsurfaceKey",
                        .desc = R"(A key to identify a subsurface property.
+
+This is used to identify core components in the subsurface.
+See *SubsurfaceField* and *SubsurfacePoint* for its usage.
+
+A core component must either be available or internal calculations will assume
+it has a value of 0 once the data is extracted.  This might yield NaN or Inf
+values in relevant calculations.  Or it might simply disable a functionality.
 )",
                        .values_and_desc = {
                            Value{"t", "temperature", "Temperature [K]"},
@@ -249,6 +267,22 @@ if good cases, so we have provide this selection mechanism to make them match.
       .name = "SpeciesEnum",
       .desc =
           R"(The valid species for the ARTS system.
+
+This identifies the species that can be used in the ARTS system.
+It has a wide variety of applications internally.
+
+In terms of atmospheric properties, it is used to identify the VMR
+in the atmosphere of the species.  See *AtmField* and *AtmPoint* for its usage there.
+
+For some applications, it is simply an identifier in a map, such as for *SpeciesEnumVectors*.
+
+For some applications, it is an extension of the species identifier, such
+as for *QuantumIdentifier*, *QuantumLevelIdentifier*, and *SpeciesTag*.
+
+The type is also used extensively in the absorption system for identifying species.
+This includes *AbsorptionLookupTables*, *CIARecord*, *XsecRecord*, and *AbsorptionBands*.
+Specifically for the latter, the inner *AbsorptionLine* type has line shape
+parameters that are mapped to the species identifier.
 )",
       .values_and_desc =
           {
@@ -574,7 +608,7 @@ if good cases, so we have provide this selection mechanism to make them match.
               Value{"None", "No cutoff"},
               Value{
                   "ByLine",
-                  "Line's are cut 1-by-1 around :attr:`~pyarts3.arts.AbsorptionLine.f0`"},
+                  "Line's are cut 1-by-1 around f0 in *AbsorptionLine*"},
           },
   });
 
@@ -990,6 +1024,7 @@ std::string_view EnumeratedOption::sz() const {
   throw std::runtime_error("Too many values for enum class");
 }
 
+namespace {
 std::string add_spaces(const std::string& s, int numspaces) {
   std::string out{s};
   const std::string newline{"\n"};
@@ -997,6 +1032,7 @@ std::string add_spaces(const std::string& s, int numspaces) {
   replace(out, newline, spaces);
   return out;
 }
+}  // namespace
 
 std::string EnumeratedOption::docs() const {
   std::string out;

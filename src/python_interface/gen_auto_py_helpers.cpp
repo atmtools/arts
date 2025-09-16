@@ -55,7 +55,7 @@ String as_pyarts(const String& x) try {
 
 If it is a GIN or GOUT, consider representing it as ``{0}`` instead?
 If it is an old or deleted method or variable or group, please remove it from the documentation! 
-  )",
+)",
                   x));
 } catch (std::exception& e) {
   throw std::runtime_error(
@@ -83,7 +83,7 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
 };
 
 std::string fix_newlines(std::string x) {
-  while (not x.empty() and x.back() == '\n') x.pop_back();
+  while (not x.empty() and nonstd::isspace(x.back())) x.pop_back();
   x.push_back('\n');
   return x;
 }
@@ -511,11 +511,11 @@ String variable_used_by(const String& name) {
   });
 
   const auto to_attr = stdv::transform([](const String& x) -> String {
-    return std::format("\n    * :attr:`~pyarts3.workspace.Workspace.{}`", x);
+    return std::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x);
   });
 
   const auto to_func = stdv::transform([](const String& x) -> String {
-    return std::format("\n    * :func:`~pyarts3.workspace.Workspace.{}`", x);
+    return std::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x);
   });
 
   const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;
@@ -535,7 +535,8 @@ String variable_used_by(const String& name) {
 
 .. hlist::
     :columns: {0}
-{1}
+
+{1:n}
 )",
                        hlist_num_cols(arr),
                        arr | f | to_vstring,

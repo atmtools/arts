@@ -30,10 +30,10 @@ Block &Block::operator=(Block &&) noexcept                   = default;
 Block::~Block()                                              = default;
 CovarianceMatrix::CovarianceMatrix()                         = default;
 CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &) = default;
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&)      = default;
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept     = default;
 CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &) =
     default;
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) = default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept= default;
 CovarianceMatrix::~CovarianceMatrix()                              = default;
 
 Block::Block(Range row_range,
@@ -131,15 +131,6 @@ void Block::set_matrix(std::shared_ptr<Sparse> sparse) {
 }
 void Block::set_matrix(std::shared_ptr<Matrix> dense) {
   matrix_ = std::move(dense);
-}
-
-std::ostream &operator<<(std::ostream &os, const BlockMatrix &m) {
-  if (m.is_dense()) {
-    os << m.dense();
-  } else {
-    os << m.sparse();
-  }
-  return os;
 }
 
 std::array<Index, 2> BlockMatrix::shape() const {
@@ -636,10 +627,12 @@ void CovarianceMatrix::invert_correlation_block(
   }
 }
 
-void CovarianceMatrix::add_correlation(Block c) { correlations_.push_back(c); }
+void CovarianceMatrix::add_correlation(Block c) {
+  correlations_.push_back(std::move(c));
+}
 
 void CovarianceMatrix::add_correlation_inverse(Block c) {
-  inverses_.push_back(c);
+  inverses_.push_back(std::move(c));
 }
 
 Vector CovarianceMatrix::diagonal() const {

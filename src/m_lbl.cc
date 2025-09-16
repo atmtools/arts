@@ -1,6 +1,24 @@
+#include <arts_omp.h>
+#include <configtypes.h>
+#include <debug.h>
 #include <enumsAbsorptionBandSortingOption.h>
+#include <enumsLineByLineCutoffType.h>
+#include <isotopologues.h>
+#include <jacobian.h>
 #include <lbl.h>
+#include <lbl_data.h>
+#include <lbl_lineshape_linemixing.h>
+#include <minimize.h>
 #include <partfun.h>
+#include <path_point.h>
+#include <quantum.h>
+#include <rtepack.h>
+#include <sorting.h>
+#include <species_tags.h>
+#include <time_report.h>
+#include <workspace.h>
+#include <xml_io.h>
+#include <xml_io_old.h>
 
 #include <algorithm>
 #include <cmath>
@@ -8,29 +26,11 @@
 #include <filesystem>
 #include <functional>
 #include <iterator>
-#include <limits>
 #include <ranges>
 #include <span>
 #include <unordered_map>
 
-#include "arts_omp.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "enumsLineByLineCutoffType.h"
-#include "isotopologues.h"
-#include "jacobian.h"
-#include "lbl_data.h"
-#include "lbl_lineshape_linemixing.h"
-#include "minimize.h"
-#include "path_point.h"
-#include "quantum.h"
-#include "rtepack.h"
-#include "sorting.h"
-#include "species_tags.h"
-#include "time_report.h"
-#include "xml_io.h"
-#include "xml_io_old.h"
-
+namespace {
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
                                                       const Index n) {
   std::vector<std::pair<Index, Index>> result(n, {0, 0});
@@ -47,6 +47,7 @@ std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
 
   return result;
 }
+}  // namespace
 
 void absorption_bandsSelectFrequencyByLine(AbsorptionBands& absorption_bands,
                                            const Numeric& fmin,
@@ -447,6 +448,7 @@ void absorption_bandsReadHITRAN(AbsorptionBands& absorption_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
+namespace {
 template <class Key, class T>
 const T& get_value(const Key& k, const std::unordered_map<Key, T>& m) {
   auto it = m.find(k);
@@ -460,6 +462,7 @@ T& get_value(const Key& k, std::unordered_map<Key, T>& m) {
   ARTS_USER_ERROR_IF(it == m.end(), "Key not found: {}", k)
   return it->second;
 }
+}  // namespace
 
 void absorption_bandsLineMixingAdaptation(
     AbsorptionBands& absorption_bands,

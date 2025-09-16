@@ -243,15 +243,6 @@ frequency_grid.size()              = {}
                                              subsurface_field,
                                              spectral_radiance_observer_agenda);
 
-    ARTS_USER_ERROR_IF(dsrad.size() != spectral_radiance.size(),
-                       R"(Wrong size of perturbed spectral radiance:
-
-    dsrad.size()             = {},
-    spectral_radiance.size() = {}
-)",
-                       dsrad.size(),
-                       spectral_radiance.size())
-
     // Convert to perturbed Jacobian
     dsrad -= spectral_radiance;
     dsrad /= d;

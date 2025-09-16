@@ -1,7 +1,6 @@
 #include "callback.h"
 
 #include <workspace.h>
-
 #include "workspace_class.h"
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {

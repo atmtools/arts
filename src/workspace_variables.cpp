@@ -2,6 +2,7 @@
 
 #include "workspace_agendas.h"
 
+namespace {
 void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
                  wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
@@ -105,7 +106,7 @@ Unit: m
 
 The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
-calculations along a path through the atmosphere.  The field can be 
+calculations along a path through the atmosphere.  The field can be
 accessed at any altitude, latitude, longitude path that is within the
 atmosphere to access the relevant atmospheric point data (*atmospheric_point*).
 
@@ -341,7 +342,7 @@ Dimension: *frequency_grid*.
 
   wsv_data["select_species"] = {
       .desc          = R"--(Species selection.
-      
+
 When Bath is selected, all species are used.  Otherwise, this variable should control so that only the selected species is used.
 )--",
       .type          = "SpeciesEnum",
@@ -805,7 +806,7 @@ Throughout ARTS, *measurement_vector* have different contextual meanings.
 These are:
 
 1. :math:`\vec{y}` - i.e., measured data.
-2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vector_fitted*. 
+2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vector_fitted*.
 3. :math:`\mathbf{F}\left(\vec{x}\right)` - i.e., the physical model of the measurement.
 )",
       .type = "Vector",
@@ -1069,11 +1070,10 @@ Units: degrees
 
   return wsv_data;
 }
+}  // namespace
 
-std::string_view any(const std::string& type) {
-  if (type == "Any") {
-    return "T";
-  }
+std::string_view any_is_typename(const std::string& type) {
+  if (type == "Any") return "T";
   return type;
 }
 

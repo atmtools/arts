@@ -513,7 +513,7 @@ Point Field::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
 
 std::string std::formatter<SubsurfacePoint>::to_string(
     const SubsurfacePoint &v) const {
-  const std::string_view sep = tags.sep(true);
+  const std::string_view sep = tags.sep();
 
   std::string out = tags.vformat(R"("temperature": )"sv,
                                  v.temperature,
@@ -531,7 +531,7 @@ std::string std::formatter<SubsurfaceField>::to_string(
   std::string out;
 
   if (tags.short_str) {
-    const std::string_view sep = tags.sep();
+    const char sep = ' ';
 
     out = tags.vformat(R"("bottom_depth": )"sv,
                        v.bottom_depth,
@@ -542,16 +542,17 @@ std::string std::formatter<SubsurfaceField>::to_string(
                        R"("Prop": )"sv,
                        v.prop.size());
   } else {
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep = tags.sep();
 
-    out = tags.vformat(R"("bottom_depth": )"sv,
-                       v.bottom_depth,
-                       sep,
-                       R"("Other": )"sv,
-                       v.other,
-                       sep,
-                       R"("Prop": )"sv,
-                       v.prop);
+    out = tags.vformat(R"("bottom_depth": )"sv, v.bottom_depth);
+
+    if (not v.other.empty()) {
+      out += tags.vformat(sep, R"("Other": )"sv, v.other);
+    }
+
+    if (not v.prop.empty()) {
+      out += tags.vformat(sep, R"("Prop": )"sv, v.prop);
+    }
   }
 
   return tags.bracket ? ("{" + out + "}") : out;

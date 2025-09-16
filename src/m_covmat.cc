@@ -1,14 +1,12 @@
+#include <enumsSpeciesEnum.h>
+#include <isotopologues.h>
 #include <workspace.h>
-
-#include "atm.h"
-#include "enumsFieldComponent.h"
-#include "enumsSpeciesEnum.h"
-#include "isotopologues.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Measurement vector error covariance matrix
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace {
 template <Jacobian::target_type T>
 void add_diagonal_covmat(CovarianceMatrix& covmat,
                          const T& target,
@@ -56,6 +54,7 @@ Target: {}
     }
   }
 }
+}  // namespace
 
 void model_state_covariance_matrixInit(
     CovarianceMatrix& model_state_covariance_matrix) {
@@ -64,6 +63,7 @@ void model_state_covariance_matrixInit(
   model_state_covariance_matrix = CovarianceMatrix{};
 }
 
+namespace {
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
     const JacobianTargets& jacobian_targets,
@@ -213,66 +213,7 @@ void model_state_covariance_matrixAdd(
   ARTS_USER_ERROR_IF(
       not found, "No target found for sensor target : {}", new_target);
 }
-
-void model_state_covariance_matrixAddAtmosphere(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const AtmKey& key,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{key},
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddAtmosphere(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesEnum& key,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{key},
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddAtmosphere(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesIsotope& key,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{key},
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddAtmosphere(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const QuantumLevelIdentifier& key,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{key},
-                                   matrix,
-                                   inverse);
-}
+}  // namespace
 
 void model_state_covariance_matrixAddSpeciesVMR(
     CovarianceMatrix& model_state_covariance_matrix,
@@ -285,79 +226,6 @@ void model_state_covariance_matrixAddSpeciesVMR(
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
                                    jacobian_targets,
                                    AtmKeyVal{species},
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddIsotopologueRatio(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesIsotope& species,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{species},
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddMagneticField(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const String& component,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   to_mag(component),
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddWindField(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const String& component,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   to_wind(component),
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddTemperature(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKey::t,
-                                   matrix,
-                                   inverse);
-}
-
-void model_state_covariance_matrixAddPressure(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKey::p,
                                    matrix,
                                    inverse);
 }

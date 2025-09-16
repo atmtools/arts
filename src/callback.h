@@ -30,7 +30,9 @@ struct std::formatter<CallbackOperator> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -46,7 +48,7 @@ struct std::formatter<CallbackOperator> {
                 quote,
                 ": "sv,
                 v.inputs,
-                tags.sep(true),
+                tags.sep(),
                 quote,
                 "output"sv,
                 quote,

@@ -17,16 +17,15 @@
   === External declarations
   ===========================================================================*/
 
+#include <array.h>
+#include <atm.h>
+#include <config.h>
+#include <debug.h>
+#include <jacobian.h>
 #include <workspace.h>
 
 #include <cmath>
 #include <string>
-
-#include "array.h"
-#include "atm.h"
-#include "config.h"
-#include "debug.h"
-#include "jacobian.h"
 
 #ifndef _MSC_VER
 #pragma GCC diagnostic ignored "-Wconversion"

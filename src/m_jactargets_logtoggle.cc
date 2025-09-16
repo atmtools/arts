@@ -1,7 +1,6 @@
+#include <debug.h>
 #include <jac_log.h>
 #include <workspace.h>
-
-#include "debug.h"
 
 namespace {
 void jacobian_targetsToggleLogarithmicAtmTargetImpl(

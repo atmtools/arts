@@ -6,7 +6,6 @@
 
 #include "array.h"
 #include "array_algo.h"
-#include "exceptions.h"
 #include "math_funcs.h"
 #include "matpack.h"
 #include "matpack_mdspan_helpers_eigen.h"

@@ -660,32 +660,38 @@ struct std::formatter<JacobianTargets> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '{');
 
-    const std::string_view sep = tags.sep(true);
-    tags.format(ctx,
-                R"("atm": )"sv,
-                v.atm,
-                sep,
-                R"("surf": )"sv,
-                v.surf,
-                sep,
-                R"("subsurf": )"sv,
-                v.subsurf,
-                sep,
-                R"("line": )"sv,
-                v.line,
-                sep,
-                R"("sensor": )"sv,
-                v.sensor,
-                sep,
-                R"("error": )"sv,
-                v.error);
+    const std::string_view sep = tags.sep();
+
+    if (not v.atm.empty()) {
+      tags.format(ctx, R"("atm": )"sv, v.atm, sep);
+    }
+
+    if (not v.surf.empty()) {
+      tags.format(ctx, R"("surf": )"sv, v.surf, sep);
+    }
+
+    if (not v.subsurf.empty()) {
+      tags.format(ctx, R"("subsurf": )"sv, v.subsurf, sep);
+    }
+
+    if (not v.line.empty()) tags.format(ctx, R"("line": )"sv, v.line, sep);
+
+    if (not v.sensor.empty()) {
+      tags.format(ctx, R"("sensor": )"sv, v.sensor, sep);
+    }
+
+    if (not v.error.empty()) {
+      tags.format(ctx, R"("error": )"sv, v.error);
+    }
 
     tags.add_if_bracket(ctx, '}');
     return ctx.out();

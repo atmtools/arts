@@ -89,7 +89,7 @@ struct Point {
 };
 
 using FunctionalData = NumericBinaryOperator;
-using FieldData = std::variant<GeodeticField2, Numeric, FunctionalData>;
+using FieldData      = std::variant<GeodeticField2, Numeric, FunctionalData>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -282,7 +282,9 @@ struct std::formatter<SurfaceField> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -297,7 +299,7 @@ struct std::formatter<SurfaceField> {
                   R"(, "SurfacePropertyTag": )",
                   v.props.size());
     } else {
-      const std::string_view sep = tags.sep(true);
+      const std::string_view sep = tags.sep();
       tags.format(ctx,
                   sep,
                   R"("SurfaceKey": )"sv,
@@ -321,7 +323,9 @@ struct std::formatter<SurfacePoint> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context &ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -338,7 +342,7 @@ struct std::formatter<SurfacePoint> {
     if (tags.short_str) {
       tags.format(ctx, R"(, "SurfacePropertyTag": )", v.prop.size());
     } else {
-      const std::string_view sep = tags.sep(true);
+      const std::string_view sep = tags.sep();
       tags.format(ctx, sep, R"("SurfacePropertyTag": )"sv, v.prop);
     }
 

@@ -3,7 +3,6 @@
 #include "functional_atm.h"
 #include "functional_atm_field.h"
 #include "functional_atm_mag_field.h"
-#include "matpack_mdspan_view_t.h"
 
 namespace ternary {
 namespace {

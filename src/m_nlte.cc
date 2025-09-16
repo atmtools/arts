@@ -1,10 +1,9 @@
 #include <array_algo.h>
+#include <arts_constants.h>
 #include <arts_omp.h>
+#include <auto_wsm.h>
+#include <jacobian.h>
 #include <workspace.h>
-
-#include "arts_constants.h"
-#include "auto_wsm.h"
-#include "jacobian.h"
 
 void absorption_bandsSetNonLTE(AbsorptionBands& absorption_bands) {
   ARTS_TIME_REPORT

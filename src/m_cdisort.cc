@@ -1,23 +1,22 @@
 #include <config.h>
 
 #ifdef ENABLE_CDISORT
+#include <arts_constants.h>
 #include <arts_conversions.h>
 #include <arts_omp.h>
+#include <configtypes.h>
+#include <debug.h>
 #include <disort.h>
+#include <path_point.h>
 #include <workspace.h>
+
 #pragma clang - format off
 #include <cdisort.h>
 #pragma clang - format on
 
-#include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <vector>
-
-#include "arts_constants.h"
-#include "configtypes.h"
-#include "debug.h"
-#include "path_point.h"
 
 ////////////////////////////////////////////////////////////////////////
 // Core Disort
@@ -158,7 +157,7 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
                  disort_state& ds,
                  disort_output& out) {
   Numeric umu0 = 0.;
-  enum class Status { FIRST_TRY, RETRY, SUCCESS };
+  enum class Status : char { FIRST_TRY, RETRY, SUCCESS };
   Status tries      = Status::FIRST_TRY;
   const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
   do {
@@ -216,7 +215,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
     const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
-  const Index nv    = disort_settings.frequency_count();
+  const Index nv = disort_settings.frequency_count();
 
   disort::main_data dis = disort_settings.init();
 

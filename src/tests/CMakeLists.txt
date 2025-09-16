@@ -58,10 +58,6 @@ if(MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
 endif()
 
 # ########## next testcase ###############
-add_executable(test_poly test_poly.cc)
-target_link_libraries(test_poly matpack)
-
-# ########## next testcase ###############
 add_executable(test_matpack test_matpack.cc)
 target_link_libraries(test_matpack artscore test_utils)
 

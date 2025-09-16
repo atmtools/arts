@@ -1,15 +1,17 @@
+#include <arts_constants.h>
 #include <arts_constexpr_math.h>
+#include <atm.h>
 #include <matpack.h>
 #include <nonstd.h>
 #include <rtepack.h>
-#include <atm.h>
 
 #include <array>
 #include <numeric>
 
-#include "arts_constants.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::MPM89 {
+namespace {
 /**
 
    \retval   MPMLineShapeFunction  H2O-line shape function value     [1/Hz]
@@ -61,6 +63,7 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
 
   return value;
 }
+}  // namespace
 
 //! Ported from legacy continua.  Original documentation
 //!  MPM89H2OAbsModel
@@ -176,6 +179,7 @@ void water(PropmatVector& propmat_clearsky,
   }
 }
 
+namespace {
 /**
 
    \retval   MPMLineShapeO2Function  O2-line shape function value         [1]
@@ -230,6 +234,7 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
 
   return value;
 }
+}  // namespace
 
 //! Ported from legacy continua.  Original documentation
 //! MPM89O2AbsModel

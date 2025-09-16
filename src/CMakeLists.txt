@@ -204,9 +204,7 @@ add_library(artsworkspace STATIC
   m_sun.cc
   m_surface.cc
   m_wigner.cc
-  m_xml.cc
   sun_methods.cc
-  version.cc
   xml_io_old.cc
 )
 

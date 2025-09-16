@@ -1,13 +1,15 @@
+#include <arts_constants.h>
 #include <atm.h>
+#include <debug.h>
 #include <matpack.h>
 #include <rtepack.h>
 
 #include <array>
 
-#include "arts_constants.h"
-#include "debug.h"
+#include "predef.h"
 
 namespace Absorption::PredefinedModel::TRE05 {
+namespace {
 //
 // #################################################################################
 //
@@ -66,6 +68,7 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
 
   return value;
 }
+}  // namespace
 
 // #################################################################################
 //! TRE05O2AbsModel

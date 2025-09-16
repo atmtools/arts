@@ -1,5 +1,5 @@
+#include <wigner_functions.h>
 #include <workspace.h>
-#include "wigner_functions.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WignerInit(const Index& fast_wigner_stored_symbols,

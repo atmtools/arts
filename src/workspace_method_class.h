@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format_tags.h>
 #include <wsv_value_wrapper.h>
 
 #include <optional>
@@ -7,8 +8,6 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-
-#include "format_tags.h"
 
 inline constexpr char named_input_prefix = '@';
 inline constexpr char internal_prefix    = '_';
@@ -46,8 +45,6 @@ class Method {
   void add_defaults_to_agenda(Agenda& agenda) const;
 
   [[nodiscard]] std::string sphinx_list_item() const;
-
-  friend std::ostream& operator<<(std::ostream& os, const Method& m);
 };
 
 template <>
@@ -83,7 +80,9 @@ struct std::formatter<Method> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -91,7 +90,7 @@ struct std::formatter<Method> {
     tags.add_if_bracket(ctx, '[');
     tags.add_if_bracket(ctx, '\n');
 
-    const std::string_view sep   = tags.sep(true);
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
     if (tags.names) {
@@ -131,14 +130,16 @@ struct std::formatter<Agenda> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, '[');
 
-    const std::string_view sep   = tags.sep(true);
+    const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
     if (tags.names) {

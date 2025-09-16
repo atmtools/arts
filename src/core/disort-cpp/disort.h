@@ -734,13 +734,15 @@ struct std::formatter<disort::main_data> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const disort::main_data& v,
                               FmtContext& ctx) const {
-    const auto sep = tags.sep(true);
+    const auto sep = tags.sep();
     return tags.format(ctx,
                        "NLayers: "sv,
                        v.NLayers,
@@ -818,7 +820,6 @@ struct std::formatter<disort::main_data> {
                        "Leg_coeffs_residue_avg: "sv,
                        v.Leg_coeffs_residue_avg,
                        sep,
-
                        "weighted_scaled_Leg_coeffs: "sv,
                        v.weighted_scaled_Leg_coeffs,
                        sep,
@@ -861,7 +862,6 @@ struct std::formatter<disort::main_data> {
                        "fac: "sv,
                        v.fac,
                        sep,
-
                        "weighted_asso_Leg_coeffs_l: "sv,
                        v.weighted_asso_Leg_coeffs_l,
                        sep,
@@ -1114,12 +1114,14 @@ struct std::formatter<DisortFlux> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
-    auto sep = tags.sep(true);
+    auto sep = tags.sep();
     return tags.format(ctx,
                        v.frequency_grid,
                        sep,
@@ -1154,12 +1156,14 @@ struct std::formatter<DisortRadiance> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
   FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
-    auto sep = tags.sep(true);
+    auto sep = tags.sep();
     return tags.format(ctx,
                        v.frequency_grid,
                        sep,

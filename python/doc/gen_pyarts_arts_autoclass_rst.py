@@ -20,7 +20,8 @@ def doc(x):
 
 
 def indent(text, num_spaces):
-    return "\n".join(" " * num_spaces + line for line in text.split("\n"))
+    res = "\n".join(" " * num_spaces + line for line in text.split("\n"))
+    return res.replace(" " * num_spaces + '\n', '\n').rstrip() + "\n"
 
 
 def short_doc(v, var=None, name=None):
@@ -59,6 +60,43 @@ def typesof(v):
 
     return classes
 
+
+import re
+
+def retypeof(v):
+    x = v.split(" | ")
+
+    def fixcur(s):
+        return f":class:`{s}`" if s != "None" else ":attr:`None`"
+
+    out = ""
+    cur = ""
+    first = True
+    for c in x:
+        if first:
+            first = False
+        else:
+            out += " or "
+
+        cur = ""
+        for b in re.split('(\\W+)', c):
+            if b == "":
+                continue
+
+            if b[0] == "[" or b[0] == ']':
+                out += f"{fixcur(cur)}\\{b[0]}"
+                cur = b[1:].strip() if len(b) > 1 else ""
+                continue
+
+            if "," == b[0]:
+                out += f"{fixcur(cur)}, "
+                cur = b[1:].strip() if len(b) > 1 else ""
+                continue
+            cur += b
+        if len(cur) > 0:
+            out += fixcur(cur)
+
+    return out
 
 def func(name, var):
     try:
@@ -187,7 +225,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 str += f"      - {functions[n]['short']}\n"
 
             for n in attributes:
-                str += f"    * - Attribute\n"
+                str += f"    * - {retypeof(attributes[n]["types"])}\n"
                 str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
                 str += f"      - {attributes[n]['short']}\n"
 
@@ -226,7 +264,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 for n in attributes:
                     str += f"  .. attribute:: {cls.__name__}.{attributes[n]['name']}\n"
                     str += f"     :type: {attributes[n]['types']}\n"
-                    str += f"     \n"
+                    str += f"\n"
                     str += f"{indent(attributes[n]['doc'], 5)}\n\n"
                     if attributes[n]['types'] is None:
                         global_errors.append(
@@ -423,7 +461,7 @@ def create_workspace_rst(path):
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(f".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(f".. attribute:: Workspace.{name}\n")
-                    f.write(f"   :type: {typesof(attr)}\n   \n")
+                    f.write(f"   :type: {typesof(attr)}\n\n")
                     f.write(f"{indent(doc(attr), 3)}\n")
             elif isinstance(attr, method_t):
                 with open(

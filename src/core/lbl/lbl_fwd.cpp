@@ -4,7 +4,6 @@
 #include <debug.h>
 #include <physics_funcs.h>
 
-#include <iomanip>
 #include <limits>
 
 #include "lbl_data.h"

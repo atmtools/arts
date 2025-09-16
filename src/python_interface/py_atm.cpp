@@ -24,10 +24,22 @@ void py_atm(py::module_ &m) try {
   atmdata.def(py::init_implicit<GeodeticField3>())
       .def(py::init_implicit<Numeric>())
       .def(py::init_implicit<Atm::FunctionalData>())
+      .def(py::init_implicit<GeodeticField3>())
       .def(
           "__init__",
           [](Atm::Data *a, const GriddedField3 &v) {
             new (a) Atm::Data(GeodeticField3(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
+      .def(
+          "__init__",
+          [](Atm::Data *a, const SortedGriddedField3 &v) {
+            new (a) Atm::Data(GeodeticField3{
+                .data_name  = v.data_name,
+                .data       = v.data,
+                .grid_names = v.grid_names,
+                .grids = {v.grid<0>(), v.grid<1>().vec(), v.grid<2>().vec()}});
           },
           "v"_a,
           "Initialize with a gridded field")
@@ -122,6 +134,7 @@ void py_atm(py::module_ &m) try {
            });
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
   py::implicitly_convertible<GriddedField3, Atm::Data>();
+  py::implicitly_convertible<SortedGriddedField3, Atm::Data>();
 
   auto aad =
       py::bind_vector<std::vector<Atm::Data>,
@@ -170,8 +183,13 @@ Boltzmann constant.
 
 Parameters
 ----------
-  spec : SpeciesEnum | SpeciesIsotope
+spec : SpeciesEnum | SpeciesIsotope
     The species or isotopologue that is considered.
+
+Returns
+-------
+nd : float
+    The number density [1 / :math:`\textrm{m}^3`] of the species or isotopologue.
 )")
       .def(
           "species_vmr",
@@ -360,6 +378,11 @@ Parameters
     The point in the atmosphere.
   ray_path_point : PropagationPathPoint
     The point along the ray path.
+
+Return
+------
+  frequency_grid : AscendingGrid
+      The frequency-shifted frequency grid.
 )");
 
   fld.def(
@@ -415,6 +438,11 @@ Parameters
     If True, the NLTE data will be included.  Default is True.
   ssprops : bool, optional
     If True, the scattering species properties data will be included.  Default is True.
+
+Return
+------
+  dict : dict
+    The atmospheric field data.
 )");
 
   fld.def(
@@ -461,6 +489,11 @@ Parameters
     If True, the NLTE keys will be included.  Default is True.
   ssprops : bool, optional
     If True, the scattering species property keys will be included.  Default is True.
+
+Return
+------
+  keys : list
+    A list of the keys in the atmospheric field.
 )");
 
   const auto update_field =
@@ -512,6 +545,11 @@ Parameters
     The isotopologue ratio option to use.  Default is "Builtin". Use "None" to create field without isotopologue ratios.
   extrap : InterpolationExtrapolation, optional
     The extrapolation method to use for the new keys.  Default is "Nearest".
+
+Return
+------
+  atmospheric_field : AtmField
+    The atmospheric field created from the dictionary.
 )");
 
   fld.def("update",
@@ -631,6 +669,11 @@ Parameters
     A dictionary of atmospheric keys and corresponding data.
   unique : bool, optional
     If True, non-unique keys will throw an error.  Default is True.
+
+Return
+------
+  py_atmospheric_field : dict
+    A dictionary of atmospheric keys and corresponding data.  The keys are the string representations of the atmospheric field keys.
 )");
 
   fld.def(
@@ -759,6 +802,11 @@ Parameters
     If True, the NLTE data will be included.  Default is True.
   ssprops : bool, optional
     If True, the scattering species properties data will be included.  Default is True.
+
+Return
+------
+  dict : dict
+    A dictionary of atmospheric keys and corresponding data.
 )");
 
   const auto update_point =
@@ -789,6 +837,11 @@ Parameters
     A dictionary of atmospheric keys and corresponding data.
   iso : IsoRatioOption, optional
     The isotopologue ratio option to use.  Default is "Builtin". Use "None" to create point without isotopologue ratios.
+
+Return
+------
+  atmospheric_point : AtmPoint
+    The atmospheric point created from the dictionary.
 )");
 
   pnt.def("update",
@@ -834,6 +887,11 @@ Parameters
     A dictionary of atmospheric keys and corresponding data.
   unique : bool, optional
     If True, non-unique keys will throw an error.  Default is True.
+
+Return
+------
+  dict : dict
+    A dictionary of atmospheric keys and corresponding data.
 )");
 
   auto aap =
@@ -861,6 +919,11 @@ Parameters
     The altitude grid
   extrap : InterpolationExtrapolation, optional
     The extrapolation method to use for the new keys.  Default is "Nearest".
+
+Return
+------
+  atmospheric_field : AtmField
+    The atmospheric field created from the profile.
 )");
 
   aap.def("extend_in_pressure",
@@ -956,6 +1019,11 @@ Parameters
     If True, the NLTE data will be included.  Default is True.
   ssprops : bool, optional
     If True, the scattering species properties data will be included.  Default is True.
+
+Return
+------
+  dict : dict
+    A dictionary of atmospheric keys and corresponding data.  The keys are the atmospheric point keys and the values are the corresponding data.
 )");
 
   const auto update_pointlist = [](ArrayOfAtmPoint &atm,
@@ -1002,6 +1070,11 @@ Parameters
     A dictionary with keys as the atmospheric point keys and values.
   iso : IsoRatioOption, optional
     The isotopologue ratio option to use.  Default is "Builtin". Use "None" to create points without isotopologue ratios.
+
+Return
+------
+  atmospheric_profile : AtmProfile
+    The atmospheric profile created from the dictionary.
 )");
 
   aap.def("update",
@@ -1047,6 +1120,11 @@ Parameters
     A dictionary with keys as the atmospheric point keys and values.
   unique : bool, optional
     If True, non-unique keys will throw an error.  Default is True.
+
+Return
+------
+  dict : dict
+    A dictionary of atmospheric keys and corresponding data.  The keys are the atmospheric point keys and the values are the corresponding data.
 )");
 } catch (std::exception &e) {
   throw std::runtime_error(

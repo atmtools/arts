@@ -1,9 +1,9 @@
 #include "spectral_radiance_transform_operator.h"
 
+#include <arts_constexpr_math.h>
 #include <debug.h>
 #include <physics_funcs.h>
 
-#include "arts_constexpr_math.h"
 
 namespace {
 struct spectral_unit_op {

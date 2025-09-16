@@ -140,7 +140,9 @@ struct std::formatter<XsecRecord> {
 
   constexpr std::format_parse_context::iterator parse(
       std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
+    std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
+    tags.newline                          = not tags.newline;
+    return v;
   }
 
   template <class FmtContext>
@@ -149,7 +151,7 @@ struct std::formatter<XsecRecord> {
       return tags.format(ctx, "XsecRecord("sv, v.Species(), ")"sv);
     }
 
-    const std::string_view sep = tags.sep(true);
+    const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
     tags.format(ctx,
                 v.Species(),
