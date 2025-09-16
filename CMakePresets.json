@@ -180,6 +180,20 @@
       "cacheVariables": {
         "ENABLE_ASAN": "ON"
       }
+    },
+    {
+      "name": "doc-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_EXAMPLE_PLOTS": "1"
+      }
+    },
+    {
+      "name": "doc-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "ENABLE_EXAMPLE_PLOTS": "1"
+      }
     }
   ]
 }
