@@ -110,7 +110,13 @@ does not change the global workspace while minimizing the number of variables th
 
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
-      .desc = "Meta data for scattering spefcies.",
+      .desc = R"(Meta data for scattering spefcies.
+
+This is used to identify atmospheric data that are required for scattering calculations.
+
+It is a combination of free-form strings and a *ParticulateProperty* - you need
+to see the specific scattering model for what type of data is required.
+)",
   };
 
   wsg_data["SurfacePropertyTag"] = {
@@ -173,7 +179,7 @@ An atmospheric field holds two things:
 
    #. *SpeciesIsotope*
 
-   #. *QuantumIdentifier*
+   #. *QuantumLevelIdentifier*
 
    #. *ScatteringSpeciesProperty*
 
@@ -189,6 +195,9 @@ This can be thought of as the sampling all the *AtmData* of and *AtmField*
 at a single altitude-latitude-longitude coordinate.
 It, like *AtmField* also acts like a map.  They keys are the same as for *AtmField*. However,
 the values are simply the *Numeric* data at that point in the atmosphere.
+
+See *AtmField* for the type of data that the atmospheric point can
+contain.
 )--",
   };
 
@@ -323,6 +332,11 @@ It can identify:
 2. an isotopologue of a species
 3. the energy level of absorption band(s) of an isotopologue
 4. the energy level of absorption line(s) of an isotopologue
+
+When used in the context of the atmosphere via *AtmField* or *AtmPoint*,
+this is used to store Non-LTE data - i.e., the direct ratios of upper and
+lower states (which are instead computed on-the-fly when LTE conditions
+are assumed).
 )--",
   };
 
@@ -687,7 +701,20 @@ line-of-sight to get the corresponding spectral radiance.
 
   wsg_data["SpeciesIsotope"] = {
       .file = "isotopologues.h",
-      .desc = "Contains name and data about an isotope.\n",
+      .desc = R"(Contains name and data about an isotope.
+
+This is used to identify a specific isotope in a species.
+The allowed values for the isotope are predefined, see *absorption_speciesSet* for available species.
+
+For *PredefinedModelData*, this identifies the predefined model by name
+and return any associated data.
+
+For *LinemixingEcsData*, this identifies the linemixing ECS data by name
+and returns any associated data.
+
+For *AtmField* and *AtmPoint*, this identifies the isotopologue ratio by name
+and returns any associated data.
+)",
   };
 
   wsg_data["ArrayOfSensorObsel"] = {

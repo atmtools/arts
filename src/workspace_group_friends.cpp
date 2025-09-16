@@ -17,11 +17,18 @@ std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
 
 This information includes
 
-#. A list of :class:`~pyarts3.arts.AbsorptionLine`.
+#. A list of *AbsorptionLine*.
 
 #. The line shape profile model.  See *LineByLineLineshape* for available line shape profiles.
 
 #. The frequency cutoff value in [Hz] and type.  See *LineByLineCutoffType* for available cutoff types.
+)",
+  };
+
+  wsg_data["AbsorptionLine"] = {
+      .file = "lbl.h",
+      .desc =
+          R"(Contains all information about related absorption lines.
 )",
   };
 

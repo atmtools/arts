@@ -15,7 +15,6 @@
 NB_MAKE_OPAQUE(
     std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>);
 NB_MAKE_OPAQUE(std::vector<lbl::line_shape::species_model>);
-NB_MAKE_OPAQUE(std::vector<lbl::line>)
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::identity>>);
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::loncross>>);
 NB_MAKE_OPAQUE(Array<Array<SpeciesTag>>);

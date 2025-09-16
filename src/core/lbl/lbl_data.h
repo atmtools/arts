@@ -306,6 +306,8 @@ struct std::hash<lbl::line_key> {
 
 using LblLineKey = lbl::line_key;
 
+using AbsorptionLine = lbl::line;
+
 using AbsorptionBand = lbl::band_data;
 
 //! A list of multiple bands

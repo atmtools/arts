@@ -195,6 +195,9 @@ if good cases, so we have provide this selection mechanism to make them match.
   opts.emplace_back(EnumeratedOption{
       .name            = "AtmKey",
       .desc            = R"(A key to identify an atmospheric property.
+
+This is used to identify core components in the atmosphere.
+See *AtmField* and *AtmPoint* for its usage.
 )",
       .values_and_desc = {
           Value{"t", "temperature", "Temperature [K]"},
@@ -246,6 +249,22 @@ if good cases, so we have provide this selection mechanism to make them match.
       .name = "SpeciesEnum",
       .desc =
           R"(The valid species for the ARTS system.
+
+This identifies the species that can be used in the ARTS system.
+It has a wide variety of applications internally.
+
+In terms of atmospheric properties, it is used to identify the VMR
+in the atmosphere of the species.  See *AtmField* and *AtmPoint* for its usage there.
+
+For some applications, it is simply an identifier in a map, such as for *SpeciesEnumVectors*.
+
+For some applications, it is an extension of the species identifier, such
+as for *QuantumIdentifier*, *QuantumLevelIdentifier*, and *SpeciesTag*.
+
+The type is also used extensively in the absorption system for identifying species.
+This includes *AbsorptionLookupTables*, *CIARecord*, *XsecRecord*, and *AbsorptionBands*.
+Specifically for the latter, the inner *AbsorptionLine* type has line shape
+parameters that are mapped to the species identifier.
 )",
       .values_and_desc =
           {
@@ -571,7 +590,7 @@ if good cases, so we have provide this selection mechanism to make them match.
               Value{"None", "No cutoff"},
               Value{
                   "ByLine",
-                  "Line's are cut 1-by-1 around :attr:`~pyarts3.arts.AbsorptionLine.f0`"},
+                  "Line's are cut 1-by-1 around f0 in *AbsorptionLine*"},
           },
   });
 
