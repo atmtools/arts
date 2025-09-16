@@ -33,6 +33,7 @@
 /doc/uguide/*.synctex.gz
 /doc/uguide/*.toc
 /doc/uguide/_minted-*
+/examples/1-basics/atmosphere.nc
 /tools/arts-control-lang/syntaxes/arts.tmLanguage.json
 Testing/
 __pycache__/
