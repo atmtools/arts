@@ -61,6 +61,43 @@ def typesof(v):
     return classes
 
 
+import re
+
+def retypeof(v):
+    x = v.split(" | ")
+
+    def fixcur(s):
+        return f":class:`{s}`" if s != "None" else ":attr:`None`"
+
+    out = ""
+    cur = ""
+    first = True
+    for c in x:
+        if first:
+            first = False
+        else:
+            out += " or "
+
+        cur = ""
+        for b in re.split('(\\W+)', c):
+            if b == "":
+                continue
+
+            if b[0] == "[" or b[0] == ']':
+                out += f"{fixcur(cur)}\\{b[0]}"
+                cur = b[1:].strip() if len(b) > 1 else ""
+                continue
+
+            if "," == b[0]:
+                out += f"{fixcur(cur)}, "
+                cur = b[1:].strip() if len(b) > 1 else ""
+                continue
+            cur += b
+        if len(cur) > 0:
+            out += fixcur(cur)
+
+    return out
+
 def func(name, var):
     try:
         return {"name": name, "short": short_doc(getattr(var, name), var.__name__, name), "types": typesof(getattr(var, name)), "doc": doc(getattr(var, name))}
@@ -188,7 +225,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 str += f"      - {functions[n]['short']}\n"
 
             for n in attributes:
-                str += f"    * - Attribute\n"
+                str += f"    * - {retypeof(attributes[n]["types"])}\n"
                 str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
                 str += f"      - {attributes[n]['short']}\n"
 

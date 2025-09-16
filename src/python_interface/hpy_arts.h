@@ -33,18 +33,27 @@ void xml_interface(py::class_<T>& c) {
       "file"_a.none(false),
       "type"_a.none(false) = "ascii",
       "clobber"_a          = true,
-      R"(Saves variable to file
+      R"(Saves variable to file.
 
-Parameters:
-    file (str): The path to which the file is written. Note that several of the options might modify the name or write more files
-    type (str): Type of file to save.  See :class:`FileType` for options.
-    clobber (bool): Overwrite existing files or add new file with modified name?
+Parameters
+----------
+file : str
+    The path to which the file is written. Note that several of the options might modify the name or write more files.
+type : str, optional
+    Type of file to save.  See :class:`FileType` for options.  Defaults is "ascii".
+clobber : bool, optional
+    Overwrite existing files or add new file with modified name?  Defaults is True.
+
+Raises
+------
+  RuntimeError
+      For any failure to write.
 
 Return
-    file (str): The file path found (may differ from input due to environment variables)
-
-On Error:
-    Throws RuntimeError for any failure to save)");
+------
+file : str
+    The file saved.  May differ from input.
+)");
 
   c.def(
       "readxml",
@@ -52,16 +61,23 @@ On Error:
         return xml_read_from_file(file, static_cast<U&>(x));
       },
       "file"_a.none(false),
-      R"(Read variable from file
+      R"(Read variable from file.
 
-Parameters:
-    file (str): A file that can be read
+Parameters
+----------
+file : str
+    A file that can be read.
+
+Raises
+------
+  RuntimeError
+      For any failure to read.
 
 Return
-    file (str): The file path found (may differ from input due to environment variables)
-
-On Error:
-    Throws RuntimeError for any failure to read)");
+------
+file : str
+    The file path found (may differ from input due to environment variables).
+)");
 
   c.def_static(
       "fromxml",
@@ -71,13 +87,23 @@ On Error:
         return x;
       },
       "file"_a.none(false),
-      R"(Create variable from file
+      R"(Create variable from file.
 
-Parameters:
-    file (str): A file that can be read
+Parameters
+----------
+file : str
+    A file that can be read
 
-On Error:
-    Throws RuntimeError for any failure to read)");
+Raises
+------
+  RuntimeError
+      For any failure to read.
+
+Return
+------
+artstype : T
+    The variable created from the file.
+)");
 }
 
 static constexpr std::array binops{
