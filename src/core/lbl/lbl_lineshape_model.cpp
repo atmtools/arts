@@ -18,7 +18,8 @@ std::istream& operator>>(std::istream& is,
   for (Size i = 0; i < n; i++) {
     LineShapeModelVariable var;
     lbl::temperature::data temp_data;
-    is >> var >> x[var];
+    is >> var >> temp_data;
+    x[var] = temp_data;
   }
   return is;
 }
