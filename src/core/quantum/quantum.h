@@ -346,6 +346,8 @@ struct std::formatter<QuantumState> {
   }
 };
 
+std::string to_educational_string(const QuantumIdentifier&);
+
 template <>
 struct std::formatter<QuantumIdentifier> {
   format_tags tags;
@@ -362,6 +364,14 @@ struct std::formatter<QuantumIdentifier> {
   template <class FmtContext>
   FmtContext::iterator format(const QuantumIdentifier& q,
                               FmtContext& ctx) const {
+    if (tags.help) {
+      return tags.format(ctx,
+                         "QuantumIdentifier: Species: "sv,
+                         q.isot,
+                         "; Symbol: ",
+                         to_educational_string(q));
+    }
+
     tags.format(ctx, q.isot);
 
     for (auto& v : q.state) tags.format(ctx, " "sv, v.first, " "sv, v.second);

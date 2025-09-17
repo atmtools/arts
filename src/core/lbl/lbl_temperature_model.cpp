@@ -2,6 +2,7 @@
 
 #include <debug.h>
 #include <double_imanip.h>
+#include <lbl_data.h>
 
 #include <limits>
 #include <utility>
@@ -323,4 +324,64 @@ void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error reading {}:\n{}", type_name, e.what()));
+}
+
+std::string to_educational_string(const lbl::temperature::data& data) {
+  switch (data.Type()) {
+    using enum LineShapeModelType;
+    using enum LineShapeModelCoefficient;
+    case T0: return std::format("LineShapeModelType::T0: {}", data.X(X0));
+    case T1:
+      return std::format("LineShapeModelType::T1: {} * pow(T0 / T, {})",
+                         data.X(X0),
+                         data.X(X1));
+    case T2:
+      return std::format(
+          "LineShapeModelType::T2: {} * pow(T0 / T, {}) * (1 + {} * log(T / T0))",
+          data.X(X0),
+          data.X(X1),
+          data.X(X2));
+    case T3:
+      return std::format(
+          "LineShapeModelType::T3: {} + {} * (T - T0)", data.X(X0), data.X(X1));
+    case T4:
+      return std::format(
+          "LineShapeModelType::T4: ({0} + {1} * (T0 / T - 1)) * pow(T0 / T, {2})",
+          data.X(X0),
+          data.X(X1),
+          data.X(X2));
+    case T5:
+      return std::format(
+          "LineShapeModelType::T5: {} * pow(T0 / T, 0.25 + 1.5 * {})",
+          data.X(X0),
+          data.X(X1));
+    case AER:
+      return std::format(
+          "LineShapeModelType::AER: (T < 250.0) ? "
+          "{0} + (T - 200.0) * ({1} - {0}) / (250.0 - 200.0) : "
+          "(T > 296.0) ? "
+          "{2} + (T - 296.0) * ({3} - {2}) / (340.0 - 296.0) : "
+          "{1} + (T - 250.0) * ({2} - {1}) / (296.0 - 250.0)",
+          data.X(X0),
+          data.X(X1),
+          data.X(X2),
+          data.X(X3));
+    case DPL:
+      return std::format(
+          "LineShapeModelType::DPL: {} * pow(T0 / T, {}) + {} * pow(T0 / T, {})",
+          data.X(X0),
+          data.X(X1),
+          data.X(X2),
+          data.X(X3));
+    case POLY: {
+      std::string s{};
+      std::string res{"LineShapeModelType::POLY: "};
+      for (auto& v : data.X()) {
+        res += std::format("{}{}", v, s);
+        s   += " * T";
+      }
+      return res;
+    }
+  }
+  std::unreachable();
 }

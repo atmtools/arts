@@ -10,6 +10,7 @@ std::string format_tags::get_format_args() const {
   if (short_str) buf.push_back('s');
   if (comma) buf.push_back(',');
   if (newline) buf.push_back('n');
+  if (help) buf.push_back('h');
   if (io) buf += "IO"sv;
 
   buf.push_back('}');

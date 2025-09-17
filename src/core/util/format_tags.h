@@ -30,7 +30,7 @@ template <typename T>
 concept arts_formattable =
     std::formattable<T, char> and arts_inner_fmt<T> and requires(T x) {
       std::format("{}", x);
-      std::format("{:nsqNBIO,}", x);
+      std::format("{:hnsqNBIO,}", x);
     };
 
 template <typename T>
@@ -46,6 +46,7 @@ struct format_tags {
   bool short_str = false;
   bool io        = false;
   bool newline   = false;
+  bool help      = false;
   Size depth     = 0;
 
   [[nodiscard]] std::string get_format_args() const;
@@ -160,6 +161,12 @@ constexpr std::format_parse_context::iterator parse_format_tags(
 
     if (*it == 'n') {
       fmt.newline = true;
+      ++it;
+      continue;
+    }
+
+    if (*it == 'h') {
+      fmt.help = true;
       ++it;
       continue;
     }

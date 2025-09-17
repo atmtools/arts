@@ -23,8 +23,8 @@ struct species_model {
   template <LineShapeModelVariable... V>
   std::vector<std::pair<LineShapeModelVariable, temperature::data>>::size_type
   remove_variables() {
-    return (... +
-        std::erase_if(data, [v = V](const auto& x) { return x.first == v; }));
+    return (... + std::erase_if(
+                      data, [v = V](const auto& x) { return x.first == v; }));
   }
 
 #define VARIABLE(name) \
@@ -245,7 +245,9 @@ struct std::formatter<lbl::line_shape::species_model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::species_model& v,
                               FmtContext& ctx) const {
-    if (tags.io) {
+    if (tags.help) {
+      tags.format(ctx, "Species: "sv, v.species, "; Data: "sv, v.data);
+    } else if (tags.io) {
       tags.format(ctx, v.species, ' ', v.data.size(), ' ', v.data);
     } else {
       tags.add_if_bracket(ctx, '[');

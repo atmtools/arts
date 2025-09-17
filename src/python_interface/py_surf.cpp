@@ -116,6 +116,7 @@ void py_surf(py::module_ &m) try {
   surfdata.doc() = "Surface data";
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
+  generic_interface(surfdata);
 
   py::class_<SurfacePropertyTag> spt =
       py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
@@ -132,6 +133,8 @@ void py_surf(py::module_ &m) try {
       py::bind_vector<ArrayOfSurfacePoint, py::rv_policy::reference_internal>(
           m, "ArrayOfSurfacePoint");
   asp.doc() = "Array of SurfacePoint";
+  generic_interface(asp);
+  vector_interface(asp);
 
   auto fld = py::class_<SurfaceField>(m, "SurfaceField");
   fld.def(

@@ -38,12 +38,12 @@ void py_star(py::module_& m) try {
               const std::
                   tuple<String, Matrix, Numeric, Numeric, Numeric, Numeric>&
                       state) {
-             new (self) Sun{std::get<0>(state),
-                            std::get<1>(state),
-                            std::get<2>(state),
-                            std::get<3>(state),
-                            std::get<4>(state),
-                            std::get<5>(state)};
+             new (self) Sun{.description = std::get<0>(state),
+                            .spectrum    = std::get<1>(state),
+                            .radius      = std::get<2>(state),
+                            .distance    = std::get<3>(state),
+                            .latitude    = std::get<4>(state),
+                            .longitude   = std::get<5>(state)};
            });
 
   auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(

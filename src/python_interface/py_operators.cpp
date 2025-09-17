@@ -3,8 +3,8 @@
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/pair.h>
-#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <operators.h>
 
@@ -49,6 +49,7 @@ void py_operators(py::module_& m) {
           "atm_point"_a)
       .doc() =
       "A callback to get [extinction, ssa] from a single scattering albedo and extinction field.";
+  generic_interface(esop);
   py::implicitly_convertible<ExtSSACallback::func_t, ExtSSACallback>();
 
   py::class_<NumericBinaryOperator> nbop(m, "NumericBinaryOperator");
@@ -117,13 +118,13 @@ void py_operators(py::module_& m) {
           "z"_a);
   sgstro.doc() =
       "A callback to get the bulk scattering properties of a species.";
+  generic_interface(sgstro);
   py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t,
                              ScatteringGeneralSpectralTROFunc>();
 
   py::class_<SpectralRadianceTransformOperator> srtop(
       m, "SpectralRadianceTransformOperator");
-  srtop
-      .def(py::init_implicit<const std::string_view&>())
+  srtop.def(py::init_implicit<const std::string_view&>())
       .def("__init__",
            [](SpectralRadianceTransformOperator* op,
               SpectralRadianceTransformOperator::Op::func_t f) {

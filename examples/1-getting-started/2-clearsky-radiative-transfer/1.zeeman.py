@@ -68,3 +68,4 @@ assert np.allclose(
         ]
     ),
 ), "Values have drifted from expected results in spectral radiance"
+print (f"{ws.absorption_bands[list(ws.absorption_bands.keys())[0]].lines[-1]:h}")

@@ -77,6 +77,7 @@ void py_auto_wsv(py::class_<Workspace>& ws);
 void py_auto_wsm(py::class_<Workspace>& ws);
 
 void py_workspace(py::class_<Workspace>& ws) try {
+  generic_interface(ws);
   ws.def(
         "__init__",
         [](Workspace* w, bool with_defaults) {
@@ -158,8 +159,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
           "other"_a,
           "Swap the workspace for andother.");
 
-  str_interface(ws);
-  xml_interface(ws);
   ws.def(
         "__iter__",
         [](const Workspace& w) {

@@ -28,6 +28,7 @@ void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
+  generic_interface(line_key);
   line_key.def_rw("band",
                   &lbl::line_key::band,
                   "The band\n\n.. :class:`QuantumIdentifier`");
@@ -46,12 +47,12 @@ void py_lbl(py::module_& m) try {
                   &lbl::line_key::var,
                   "The variable\n\n.. :class:`LineByLineVariable`");
   line_key.doc() = "A key for a line";
-  str_interface(line_key);
 
-  py::class_<lbl::temperature::data>(m, "TemperatureModel")
-      .def(py::init<LineShapeModelType, Vector>(),
-           "type"_a,
-           "data"_a = Vector{0.0})
+  py::class_<lbl::temperature::data> tm(m, "TemperatureModel");
+  generic_interface(tm);
+  tm.def(py::init<LineShapeModelType, Vector>(),
+         "type"_a,
+         "data"_a = Vector{0.0})
       .def_prop_rw(
           "type",
           &lbl::temperature::data::Type,
@@ -106,9 +107,11 @@ void py_lbl(py::module_& m) try {
                });
   lsvtml.doc() = "A list of line shape models with temperature coefficients";
   vector_interface(lsvtml);
+  generic_interface(lsvtml);
 
-  py::class_<lbl::line_shape::species_model>(m, "LineShapeSpeciesModel")
-      .def_rw("species",
+  py::class_<lbl::line_shape::species_model> lssm(m, "LineShapeSpeciesModel");
+  generic_interface(lssm);
+  lssm.def_rw("species",
               &lbl::line_shape::species_model::species,
               "The species\n\n.. :class:`SpeciesEnum`")
       .def_rw(
@@ -185,11 +188,13 @@ void py_lbl(py::module_& m) try {
           m, "LineShapeModelList");
   lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
+  generic_interface(lsml);
 
-  py::class_<lbl::line_shape::model>(m, "LineShapeModel")
-      .def_rw("one_by_one",
-              &lbl::line_shape::model::one_by_one,
-              "If true, the lines are treated one by one\n\n.. :class:`bool`")
+  py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
+  generic_interface(lsm);
+  lsm.def_rw("one_by_one",
+             &lbl::line_shape::model::one_by_one,
+             "If true, the lines are treated one by one\n\n.. :class:`bool`")
       .def_rw("T0",
               &lbl::line_shape::model::T0,
               "The reference temperature\n\n.. :class:`Numeric`")
@@ -217,8 +222,9 @@ void py_lbl(py::module_& m) try {
           "Remove zero coefficients")
       .doc() = "Line shape model";
 
-  py::class_<lbl::zeeman::model>(m, "ZeemanLineModel")
-      .def_rw("on",
+  py::class_<lbl::zeeman::model> zlm(m, "ZeemanLineModel");
+  generic_interface(zlm);
+  zlm.def_rw("on",
               &lbl::zeeman::model::on,
               "If True, the Zeeman effect is included\n\n.. :class:`bool`")
       .def_prop_rw(
@@ -256,27 +262,23 @@ void py_lbl(py::module_& m) try {
           "The number of Zeeman lines")
       .doc() = "Zeeman model";
 
-  py::class_<lbl::line>(m, "AbsorptionLine")
-      .def_rw(
-          "a",
-          &lbl::line::a,
-          "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
-      .def_rw(
-          "f0",
-          &lbl::line::f0,
-          "The line center frequency [Hz]\n\n.. :class:`Numeric`")
-      .def_rw(
-          "e0",
-          &lbl::line::e0,
-          "The lower level energy [J]\n\n.. :class:`Numeric`")
-      .def_rw(
-          "gu",
-          &lbl::line::gu,
-          "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
-      .def_rw(
-          "gl",
-          &lbl::line::gl,
-          "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
+  py::class_<lbl::line> al(m, "AbsorptionLine");
+  generic_interface(al);
+  al.def_rw("a",
+             &lbl::line::a,
+             "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
+      .def_rw("f0",
+              &lbl::line::f0,
+              "The line center frequency [Hz]\n\n.. :class:`Numeric`")
+      .def_rw("e0",
+              &lbl::line::e0,
+              "The lower level energy [J]\n\n.. :class:`Numeric`")
+      .def_rw("gu",
+              &lbl::line::gu,
+              "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
+      .def_rw("gl",
+              &lbl::line::gl,
+              "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
       .def_rw("z",
               &lbl::line::z,
               "The Zeeman model\n\n.. :class:`~pyarts3.arts.ZeemanLineModel`")
@@ -311,8 +313,10 @@ void py_lbl(py::module_& m) try {
                              py::rv_policy::reference_internal>(m, "LineList");
   ll.doc() = "A list of :class:`AbsorptionLine`";
   vector_interface(ll);
+  generic_interface(ll);
 
   py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
+  generic_interface(ab);
   ab.def_rw("lines",
             &AbsorptionBand::lines,
             "The lines in the band\n\n.. :class:`LineList`")
@@ -349,7 +353,6 @@ void py_lbl(py::module_& m) try {
           "isot"_a,
           "T0"_a = 296.0,
           "Keep only the lines with a stronger HITRAN-like line strength");
-  generic_interface(ab);
 
   auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
       m, "AbsorptionBands");
@@ -504,6 +507,7 @@ T0 : float
       "T0"_a = 296.0);
 
   py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
+  generic_interface(ed);
   ed.def_rw("scaling",
             &LinemixingSingleEcsData::scaling,
             ".. :class:`~pyarts3.arts.TemperatureModel`");
@@ -532,7 +536,6 @@ T0 : float
          "energy_x"_a,
          "energy_xm2"_a,
          R"(The Omega coefficient for the ECS model)");
-  generic_interface(ed);
 
   auto lsed =
       py::bind_map<LinemixingSpeciesEcsData>(m, "LinemixingSpeciesEcsData");

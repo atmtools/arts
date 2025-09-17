@@ -214,6 +214,10 @@ void py_matpack(py::module_& m) try {
   matpack_interface(comv2);
   matpack_interface(comv3);
   matpack_interface(comv4);
+  generic_interface(comv1);
+  generic_interface(comv2);
+  generic_interface(comv3);
+  generic_interface(comv4);
 
   py::class_<AscendingGrid> g1(m, "AscendingGrid");
   matpack_grid_interface(g1);

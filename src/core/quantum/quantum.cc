@@ -16,6 +16,8 @@
 #include <utility>
 #include <variant>
 
+#include "quantum_term_symbol.h"
+
 namespace Quantum {
 using enum QuantumNumberType;
 
@@ -911,4 +913,9 @@ void xml_io_stream<QuantumLevelIdentifier>::read(std::istream& is_xml,
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
   ARTS_USER_ERROR("Error reading QuantumLevelIdentifier:\n{}", e.what())
+}
+
+
+std::string to_educational_string(const QuantumIdentifier& q) {
+  return Quantum::Helpers::molecular_term_symbol(q);
 }

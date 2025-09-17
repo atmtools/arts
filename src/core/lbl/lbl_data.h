@@ -397,3 +397,5 @@ struct xml_io_stream<LblLineKey> {
 
   static void read(std::istream& is, LblLineKey& x, bifstream* pbifs = nullptr);
 };
+
+std::string to_educational_string_frequency(Numeric);

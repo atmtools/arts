@@ -289,7 +289,64 @@ Size count_lines(
 }
 }  // namespace lbl
 
+std::string to_educational_string_frequency(Numeric f0) {
+  if (f0 == 0.0) return "0 Hz";
+
+  constexpr std::array<std::pair<std::string_view, Numeric>, 10> high_units = {
+      {{"QHz"sv, 1e30},
+       {"RHz"sv, 1e27},
+       {"YHz"sv, 1e24},
+       {"ZHz"sv, 1e21},
+       {"EHz"sv, 1e18},
+       {"PHz"sv, 1e15},
+       {"THz"sv, 1e12},
+       {"GHz"sv, 1e9},
+       {"MHz"sv, 1e6},
+       {"kHz"sv, 1e3}}};
+
+  for (const auto& [unit, factor] : high_units) {
+    if (f0 > factor) return std::format("{:.2f} {}", f0 / factor, unit);
+  }
+
+  constexpr std::array<std::pair<std::string_view, Numeric>, 10> low_units = {
+      {{"qHz"sv, 1e-30 * 1000},
+       {"rHz"sv, 1e-27 * 1000},
+       {"yHz"sv, 1e-24 * 1000},
+       {"zHz"sv, 1e-21 * 1000},
+       {"aHz"sv, 1e-18 * 1000},
+       {"fHz"sv, 1e-15 * 1000},
+       {"pHz"sv, 1e-12 * 1000},
+       {"nHz"sv, 1e-9 * 1000},
+       {"μHz"sv, 1e-6 * 1000},
+       {"mHz"sv, 1e-3 * 1000}}};
+
+  for (const auto& [unit, factor] : low_units) {
+    if (f0 < factor) return std::format("{:.2f} {}", 1000 * f0 / factor, unit);
+  }
+
+  return std::format("{:.2f} Hz", f0);
+}
+
 std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
+  if (tags.help) {
+    return tags.vformat("Line center: "sv,
+                        to_educational_string_frequency(v.f0),
+                        "; Einstein A coefficient: "sv,
+                        to_educational_string_frequency(v.a),
+                        "; Lower level energy: "sv,
+                        v.e0,
+                        "; Upper level degeneracy: "sv,
+                        v.gu,
+                        "; Lower level degeneracy: "sv,
+                        v.gl,
+                        "; Zeeman model: "sv,
+                        v.z,
+                        "; Line shape: "sv,
+                        v.ls,
+                        "; Quantum state: "sv,
+                        v.qn);
+  }
+
   if (tags.io) {
     return tags.vformat(v.f0,
                         ' ',
@@ -318,6 +375,17 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
 
 std::string std::formatter<lbl::band_data>::to_string(
     const lbl::band_data& v) const {
+  if (tags.help) {
+    return tags.vformat("Line shape: "sv,
+                        v.lineshape,
+                        "; Cutoff type: "sv,
+                        v.cutoff,
+                        "; Cutoff value: "sv,
+                        to_educational_string_frequency(v.cutoff_value),
+                        "; Lines: "sv,
+                        v.lines);
+  }
+
   if (tags.io) {
     return tags.vformat(v.lineshape, ' ', v.cutoff, ' ', v.cutoff_value);
   }

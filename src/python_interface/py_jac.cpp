@@ -18,6 +18,7 @@ NB_MAKE_OPAQUE(std::vector<Jacobian::ErrorTarget>)
 namespace Python {
 void py_jac(py::module_& m) try {
   py::class_<ErrorKey> errkey(m, "ErrorKey");
+  generic_interface(errkey);
   errkey.doc() = "Error key";
   errkey.def_rw(
       "y_start",
@@ -28,6 +29,7 @@ void py_jac(py::module_& m) try {
                 "Size of target in measurement vector\n\n.. :class:`Index`");
 
   py::class_<Jacobian::AtmTarget> atm(m, "JacobianAtmTarget");
+  generic_interface(atm);
   atm.doc() = "Atmospheric target";
   atm.def_ro("type",
              &Jacobian::AtmTarget::type,
@@ -44,9 +46,9 @@ void py_jac(py::module_& m) try {
   atm.def_ro("x_size",
              &Jacobian::AtmTarget::x_size,
              "Size of target in state vector\n\n.. :class:`Index`");
-  str_interface(atm);
 
   py::class_<Jacobian::SurfaceTarget> surf(m, "JacobianSurfaceTarget");
+  generic_interface(surf);
   surf.doc() = "Surface target";
   surf.def_ro("type",
               &Jacobian::SurfaceTarget::type,
@@ -63,9 +65,9 @@ void py_jac(py::module_& m) try {
   surf.def_ro("x_size",
               &Jacobian::SurfaceTarget::x_size,
               "Size of target in state vector\n\n.. :class:`Index`");
-  str_interface(surf);
 
   py::class_<Jacobian::LineTarget> line(m, "JacobianLineTarget");
+  generic_interface(line);
   line.doc() = "Line target";
   line.def_ro("type",
               &Jacobian::LineTarget::type,
@@ -82,9 +84,9 @@ void py_jac(py::module_& m) try {
   line.def_ro("x_size",
               &Jacobian::LineTarget::x_size,
               "Size of target in state vector\n\n.. :class:`Index`");
-  str_interface(line);
 
   py::class_<Jacobian::SensorTarget> sensor(m, "JacobianSensorTarget");
+  generic_interface(sensor);
   sensor.doc() = "Sensor target";
   sensor.def_ro("type",
                 &Jacobian::SensorTarget::type,
@@ -101,9 +103,9 @@ void py_jac(py::module_& m) try {
   sensor.def_ro("x_size",
                 &Jacobian::SensorTarget::x_size,
                 "Size of target in state vector\n\n.. :class:`Index`");
-  str_interface(sensor);
 
   py::class_<Jacobian::ErrorTarget> error(m, "JacobianErrorTarget");
+  generic_interface(error);
   error.doc() = "Error target";
   error.def_ro("type",
                &Jacobian::ErrorTarget::type,
@@ -117,19 +119,28 @@ void py_jac(py::module_& m) try {
   error.def_ro("x_size",
                &Jacobian::ErrorTarget::x_size,
                "Size of target in state vector\n\n.. :class:`Index`");
-  str_interface(error);
 
-  py::bind_vector<std::vector<Jacobian::AtmTarget>>(m, "ArrayOfAtmTargets")
-      .doc() = "List of atmospheric targets";
-  py::bind_vector<std::vector<Jacobian::SurfaceTarget>>(m,
-                                                        "ArrayOfSurfaceTarget")
-      .doc() = "List of surface targets";
-  py::bind_vector<std::vector<Jacobian::LineTarget>>(m, "ArrayOfLineTarget")
-      .doc() = "List of line targets";
-  py::bind_vector<std::vector<Jacobian::SensorTarget>>(m, "ArrayOfSensorTarget")
-      .doc() = "List of sensor targets";
-  py::bind_vector<std::vector<Jacobian::ErrorTarget>>(m, "ArrayOfErrorTarget")
-      .doc() = "List of error targets";
+  auto atm_targets =
+      py::bind_vector<std::vector<Jacobian::AtmTarget>>(m, "ArrayOfAtmTargets");
+  atm_targets.doc() = "List of atmospheric targets";
+  auto surf_targets = py::bind_vector<std::vector<Jacobian::SurfaceTarget>>(
+      m, "ArrayOfSurfaceTarget");
+  surf_targets.doc() = "List of surface targets";
+  auto line_targets  = py::bind_vector<std::vector<Jacobian::LineTarget>>(
+      m, "ArrayOfLineTarget");
+  line_targets.doc()  = "List of line targets";
+  auto sensor_targets = py::bind_vector<std::vector<Jacobian::SensorTarget>>(
+      m, "ArrayOfSensorTarget");
+  sensor_targets.doc() = "List of sensor targets";
+  auto error_targets   = py::bind_vector<std::vector<Jacobian::ErrorTarget>>(
+      m, "ArrayOfErrorTarget");
+  error_targets.doc() = "List of error targets";
+
+  generic_interface(atm_targets);
+  generic_interface(surf_targets);
+  generic_interface(line_targets);
+  generic_interface(sensor_targets);
+  generic_interface(error_targets);
 
   py::class_<JacobianTargets> jacs(m, "JacobianTargets");
   generic_interface(jacs);
