@@ -75,6 +75,7 @@ if(SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/source/ ${WITH_PLOTS}
     COMMENT "Generating examples RST files"
   )
+  add_dependencies(gen_examples_rst pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   #
   # Clean
