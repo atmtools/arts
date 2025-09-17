@@ -146,6 +146,8 @@ void py_sensor(py::module_& m) try {
                             py::rv_policy::reference_internal>(
       m, "ArrayOfSensorPosLosVector");
   a0.doc() = "Array of SensorPosLosVector";
+  generic_interface(a0);
+  vector_interface(a0);
 
   auto a1 =
       py::bind_vector<ArrayOfSensorObsel, py::rv_policy::reference_internal>(

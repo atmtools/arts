@@ -10,7 +10,6 @@
 namespace Python {
 void py_path(py::module_& m) try {
   py::class_<PropagationPathPoint> pppp(m, "PropagationPathPoint");
-
   generic_interface(pppp);
 
   pppp.def_rw("pos_type",

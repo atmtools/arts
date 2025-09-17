@@ -2,6 +2,7 @@
 
 #include <arts_constants.h>
 #include <arts_constexpr_math.h>
+#include <arts_conversions.h>
 #include <debug.h>
 #include <double_imanip.h>
 #include <hitran_species.h>
@@ -289,7 +290,38 @@ Size count_lines(
 }
 }  // namespace lbl
 
+namespace {
+std::string to_educational_string_frequency(Numeric f0) {
+  auto [unit, value] = Conversion::metric_prefix(f0);
+  return std::format("{:.2f}{}{}Hz", value, unit != ' ' ? " "sv : ""sv, unit);
+}
+
+std::string to_educational_string_energy(Numeric e0) {
+  auto [unit, value] = Conversion::metric_prefix(e0);
+  return std::format("{:.2f}{}{}J", value, unit != ' ' ? " "sv : ""sv, unit);
+}
+}  // namespace
+
 std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
+  if (tags.help) {
+    return tags.vformat("Line center: "sv,
+                        to_educational_string_frequency(v.f0),
+                        "; Einstein A coefficient: "sv,
+                        to_educational_string_frequency(v.a),
+                        "; Lower level energy: "sv,
+                        to_educational_string_energy(v.e0),
+                        "; Upper level degeneracy: "sv,
+                        v.gu,
+                        "; Lower level degeneracy: "sv,
+                        v.gl,
+                        "; Zeeman model: "sv,
+                        v.z,
+                        "; Line shape: "sv,
+                        v.ls,
+                        "; Quantum state: "sv,
+                        v.qn);
+  }
+
   if (tags.io) {
     return tags.vformat(v.f0,
                         ' ',
@@ -318,6 +350,17 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
 
 std::string std::formatter<lbl::band_data>::to_string(
     const lbl::band_data& v) const {
+  if (tags.help) {
+    return tags.vformat("Line shape: "sv,
+                        v.lineshape,
+                        "; Cutoff type: "sv,
+                        v.cutoff,
+                        "; Cutoff value: "sv,
+                        to_educational_string_frequency(v.cutoff_value),
+                        "; Lines: "sv,
+                        v.lines);
+  }
+
   if (tags.io) {
     return tags.vformat(v.lineshape, ' ', v.cutoff, ' ', v.cutoff_value);
   }
@@ -427,4 +470,17 @@ void xml_io_stream<LblLineKey>::read(std::istream& is,
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error reading LblLineKey:\n{}", e.what()));
+}
+
+template <>
+std::optional<std::string> to_helper_string<AbsorptionBands>(
+    const AbsorptionBands& bands) {
+  std::string out{};
+
+  std::string_view x = ""sv;
+  for (auto& [qid, data] : bands) {
+    out += std::format("{}{:h}: {:h}", std::exchange(x, "\n"sv), qid, data);
+  }
+
+  return out;
 }

@@ -3,6 +3,7 @@
 #include <matpack.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/pair.h>
+#include <hpy_arts.h>
 #include <wigner_functions.h>
 
 #include <utility>
@@ -239,8 +240,9 @@ w : list[float]
     The weights
 )");
 
-  py::class_<Legendre::SchmidtMatrix>(math, "SchmidtMatrix")
-      .def(py::init<Size>(), "N"_a, "Default Schmidt matrix")
+  py::class_<Legendre::SchmidtMatrix> sm(math, "SchmidtMatrix");
+  generic_interface(sm);
+  sm.def(py::init<Size>(), "N"_a, "Default Schmidt matrix")
       .def(
           "__getitem__",
           [](const Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx) {

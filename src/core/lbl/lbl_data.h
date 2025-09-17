@@ -397,3 +397,7 @@ struct xml_io_stream<LblLineKey> {
 
   static void read(std::istream& is, LblLineKey& x, bifstream* pbifs = nullptr);
 };
+
+template <>
+std::optional<std::string> to_helper_string<AbsorptionBands>(
+    const AbsorptionBands&);

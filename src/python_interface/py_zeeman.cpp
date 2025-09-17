@@ -5,6 +5,7 @@
 
 #include <sstream>
 
+#include "hpy_arts.h"
 #include "lbl_zeeman.h"
 #include "python_interface.h"
 
@@ -32,14 +33,15 @@ void py_zeeman(py::module_& m) try {
   auto zee  = m.def_submodule("zeeman");
   zee.doc() = "Zeeman effect calculations";
 
-  py::class_<lbl::zeeman::pol>(zee, "PolarizationState")
-      .def(
-          "__init__",
-          [](lbl::zeeman::pol* out, const std::string& val) {
-            auto x = to(val);
-            new (out) lbl::zeeman::pol{x};
-          },
-          "val"_a = std::string{"no"})
+  py::class_<lbl::zeeman::pol> zze(zee, "PolarizationState");
+  generic_interface(zze);
+  zze.def(
+         "__init__",
+         [](lbl::zeeman::pol* out, const std::string& val) {
+           auto x = to(val);
+           new (out) lbl::zeeman::pol{x};
+         },
+         "val"_a = std::string{"no"})
       .def_static(
           "get_options",
           []() {
@@ -102,8 +104,9 @@ void py_zeeman(py::module_& m) try {
       .doc() = "Polarization state of Zeeman calculations";
   py::implicitly_convertible<const std::string&, lbl::zeeman::pol>();
 
-  py::class_<lbl::zeeman::magnetic_angles>(zee, "MagneticAngles")
-      .def(py::init<Vector3, Vector2>())
+  py::class_<lbl::zeeman::magnetic_angles> zzma(zee, "MagneticAngles");
+  generic_interface(zzma);
+  zzma.def(py::init<Vector3, Vector2>())
       .def_ro("u",
               &lbl::zeeman::magnetic_angles::u,
               "Magnetic u\n\n.. :class:`Numeric`")

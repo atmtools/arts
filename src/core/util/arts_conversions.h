@@ -12,6 +12,7 @@
 #define CONVERSIONS_IN_ARTS_H
 
 #include <cmath>
+#include <utility>
 
 #include "arts_constants.h"
 
@@ -164,6 +165,11 @@ constexpr auto angstrom2meter(auto x) noexcept { return x * 1e-10; }
 
 /** Conversion from meter to Å **/
 constexpr auto meter2angstrom(auto x) noexcept { return x * 1e10; }
+
+//! Converts the number to a metric prefix (kilo:=k, Mega:=M, nano:=n, etc)
+// And empty char (' ') is used when no conversion happens.  The function returns a pair
+// containing the prefix character and the scaled value.
+std::pair<char, Numeric> metric_prefix(Numeric);
 };  // namespace Conversion
 
 #endif

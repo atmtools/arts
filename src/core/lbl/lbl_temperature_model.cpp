@@ -2,9 +2,12 @@
 
 #include <debug.h>
 #include <double_imanip.h>
+#include <lbl_data.h>
 
 #include <limits>
 #include <utility>
+
+#include "arts_conversions.h"
 
 namespace lbl::temperature {
 static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
@@ -323,4 +326,187 @@ void xml_io_stream<lbl::temperature::data>::read(std::istream& is,
 } catch (const std::exception& e) {
   throw std::runtime_error(
       std::format("Error reading {}:\n{}", type_name, e.what()));
+}
+
+namespace {
+std::string metric_unit_x0(const Numeric x,
+                           const std::optional<LineShapeModelVariable>& type) {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+
+  if (type) {
+    const auto [c, v] = Conversion::metric_prefix(x);
+    switch (*type) {
+      case G0:
+      case D0:
+      case G2:
+      case D2:
+      case FVC:
+        return std::format("{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
+      case ETA: return std::format("{}", x);
+      case DV:
+        return std::format("{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+      case G:
+        return std::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+      case Y:
+        return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
+    }
+  }
+
+  return std::format("{}", x);
+}
+
+std::string metric_unit_x1(const Numeric x,
+                           LineShapeModelType t,
+                           const std::optional<LineShapeModelVariable>& type) {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+
+  if (type) {
+    const auto [c, v] = Conversion::metric_prefix(x);
+    switch (*type) {
+      case G0:
+      case D0:
+      case G2:
+      case D2:
+      case FVC:
+        switch (t) {
+          case T0:
+          case T1:
+          case T2:
+          case T5:
+          case DPL:
+          case POLY: return std::format("{}", x);
+          case T3:
+          case T4:
+          case AER:
+            return std::format(
+                "{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
+        }
+      case ETA: return std::format("{}", x);
+      case DV:
+        switch (t) {
+          case T0:
+          case T1:
+          case T2:
+          case T5:
+          case DPL:
+          case POLY: return std::format("{}", x);
+          case T3:
+            return std::format(
+                "{:.2f}{}{}Hz/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
+          case T4:
+          case AER:
+            return std::format(
+                "{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+        }
+      case G:
+        switch (t) {
+          case T0:
+          case T1:
+          case T2:
+          case T5:
+          case DPL:
+          case POLY: return std::format("{}", x);
+          case T3:
+            return std::format(
+                "{:.2f}{}{}/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
+          case T4:
+          case AER:
+            return std::format(
+                "{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+        }
+      case Y:
+        switch (t) {
+          case T0:
+          case T1:
+          case T2:
+          case T5:
+          case DPL:
+          case POLY: return std::format("{}", x);
+          case T3:
+            return std::format(
+                "{:.2f}{}{}/Pa/K", v, c == ' ' ? ""sv : " "sv, c);
+          case T4:
+          case AER:
+            return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
+        }
+    }
+  }
+
+  return std::format("{}", x);
+}
+}  // namespace
+
+std::string to_educational_string(const lbl::temperature::data& data,
+                                  std::optional<LineShapeModelVariable> type) {
+  switch (data.Type()) {
+    using enum LineShapeModelType;
+    using enum LineShapeModelCoefficient;
+    case T0:
+      return std::format("LineShapeModelType::T0: {}",
+                         metric_unit_x0(data.X(X0), type));
+    case T1:
+      return std::format("LineShapeModelType::T1: {} * pow(T0 / T, {})",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type));
+    case T2:
+      return std::format(
+          "LineShapeModelType::T2: {} * pow(T0 / T, {}) * (1 + {} * log(T / T0))",
+          metric_unit_x0(data.X(X0), type),
+          metric_unit_x1(data.X(X1), data.Type(), type),
+          data.X(X2));
+    case T3:
+      return std::format("LineShapeModelType::T3: {} + {} * (T - T0)",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type));
+    case T4:
+      return std::format(
+          "LineShapeModelType::T4: ({0} + {1} * (T0 / T - 1)) * pow(T0 / T, {2})",
+          metric_unit_x0(data.X(X0), type),
+          metric_unit_x1(data.X(X1), data.Type(), type),
+          data.X(X2));
+    case T5:
+      return std::format(
+          "LineShapeModelType::T5: {} * pow(T0 / T, 0.25 + 1.5 * {})",
+          metric_unit_x0(data.X(X0), type),
+          metric_unit_x1(data.X(X1), data.Type(), type));
+    case AER:
+      return std::format(
+          "LineShapeModelType::AER: (T < 250.0) ? "
+          "{0} + (T - 200.0) * ({1} - {0}) / (250.0 - 200.0) : "
+          "(T > 296.0) ? "
+          "{2} + (T - 296.0) * ({3} - {2}) / (340.0 - 296.0) : "
+          "{1} + (T - 250.0) * ({2} - {1}) / (296.0 - 250.0)",
+          metric_unit_x0(data.X(X0), type),
+          metric_unit_x0(data.X(X1), type),
+          metric_unit_x0(data.X(X2), type),
+          metric_unit_x0(data.X(X3), type));
+    case DPL:
+      return std::format(
+          "LineShapeModelType::DPL: {} * pow(T0 / T, {}) + {} * pow(T0 / T, {})",
+          metric_unit_x0(data.X(X0), type),
+          metric_unit_x1(data.X(X1), data.Type(), type),
+          metric_unit_x0(data.X(X2), type),
+          metric_unit_x1(data.X(X3), data.Type(), type));
+    case POLY: {
+      std::string s{};
+      Size i{};
+      std::string res{"LineShapeModelType::POLY: "};
+      std::string_view x = ""sv;
+      for (auto& v : data.X()) {
+        res += std::format("{}{}{}{}",
+                           std::exchange(x, " + "sv),
+                           metric_unit_x0(v, type),
+                           i == 0   ? ""s
+                           : i == 1 ? "/K"s
+                                    : std::format("/K^{}", i),
+                           s);
+        s   += " * T";
+        i++;
+      }
+      return res;
+    }
+  }
+  std::unreachable();
 }

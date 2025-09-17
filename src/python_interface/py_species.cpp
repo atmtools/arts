@@ -61,6 +61,7 @@ std::string docs_isotopes() {
 namespace Python {
 void py_species(py::module_& m) try {
   py::class_<SpeciesIsotopologueRatios> sirs(m, "SpeciesIsotopologueRatios");
+  generic_interface(sirs);
   sirs.doc() = "Isotopologue ratios for a species";
   sirs.def(
           "__init__",
@@ -240,6 +241,7 @@ Returns
       py::bind_vector<Array<SpeciesTag>, py::rv_policy::reference_internal>(
           m, "_ArrayOfSpeciesTag");
   vector_interface(tmp1_);
+  generic_interface(tmp1_);
 
   //////////////////////////////////////////////////////////////////////
 
@@ -308,6 +310,7 @@ Returns
                                py::rv_policy::reference_internal>(
       m, "_ArrayOfArrayOfSpeciesTag");
   vector_interface(tmp2_);
+  generic_interface(tmp2_);
 
   //////////////////////////////////////////////////////////////////////
 

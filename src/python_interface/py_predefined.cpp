@@ -16,9 +16,10 @@
 
 namespace Python {
 void internalCKDMT400(py::module_& m) {
-  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>(
-      m, "MTCKD400WaterData")
-      .def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mm(
+      m, "MTCKD400WaterData");
+  generic_interface(mm);
+  mm.def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
       .def_rw("ref_temp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp,
               "Reference temperature\n\n.. :class:`Numeric`")
@@ -915,8 +916,9 @@ abs_coef : ~pyarts3.arts.Vector
 )--");
 }
 void internalNamedModel(py::module_& m) {
-  py::class_<Absorption::PredefinedModel::ModelName>(m, "ModelName")
-      .def(py::init<Absorption::PredefinedModel::ModelName>())
+  py::class_<Absorption::PredefinedModel::ModelName> mm(m, "ModelName");
+  generic_interface(mm);
+  mm.def(py::init<Absorption::PredefinedModel::ModelName>())
       .def("__getstate__",
            [](const Absorption::PredefinedModel::ModelName&) {
              return py::make_tuple();

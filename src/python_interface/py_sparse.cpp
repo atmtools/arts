@@ -415,7 +415,9 @@ arr : :class:`scipy.sparse.csr_matrix`
   generic_interface(a1);
   vector_interface(a1);
 
-  py::class_<Block>(m, "Block")
+  py::class_<Block> block(m, "Block");
+  generic_interface(block);
+  block
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(),
            "By value, dense")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(),

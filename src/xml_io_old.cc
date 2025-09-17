@@ -134,19 +134,15 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
       // Set line shape computer
       output.data.ls.single_models[0].species = isotopologue.spec;
-      output.data.ls.single_models[0].data.emplace_back(
-          LineShapeModelVariable::G0,
-          lbl::temperature::data{LineShapeModelType::T1, Vector{sgam, nair}});
-      output.data.ls.single_models[0].data.emplace_back(
-          LineShapeModelVariable::D0,
-          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}});
+      output.data.ls.single_models[0].data[LineShapeModelVariable::G0] =
+          lbl::temperature::data{LineShapeModelType::T1, Vector{sgam, nair}};
+      output.data.ls.single_models[0].data[LineShapeModelVariable::D0] =
+          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
       output.data.ls.single_models[1].species = SpeciesEnum::Bath;
-      output.data.ls.single_models[1].data.emplace_back(
-          LineShapeModelVariable::G0,
-          lbl::temperature::data{LineShapeModelType::T1, Vector{agam, nair}});
-      output.data.ls.single_models[1].data.emplace_back(
-          LineShapeModelVariable::D0,
-          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}});
+      output.data.ls.single_models[1].data[LineShapeModelVariable::G0] =
+          lbl::temperature::data{LineShapeModelType::T1, Vector{agam, nair}};
+      output.data.ls.single_models[1].data[LineShapeModelVariable::D0] =
+          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
 
       if (not(output.data.gu > 0.0)) output.data.gu = 1.;
       if (not(output.data.gl > 0.0)) output.data.gl = 1.;
@@ -188,31 +184,32 @@ lbl::line_shape::model from_artscat4(std::istream& is,
   out.single_models[6].species = to<SpeciesEnum>("He");
 
   for (auto& v : out.single_models) {
-    v.data.emplace_back(
-        LineShapeModelVariable::G0,
-        lbl::temperature::data{LineShapeModelType::T1, Vector{0, 0}});
-    v.data.emplace_back(
-        LineShapeModelVariable::D0,
-        lbl::temperature::data{LineShapeModelType::T5, Vector{0, 0}});
+    v.data[LineShapeModelVariable::G0] =
+        lbl::temperature::data{LineShapeModelType::T1, Vector{0, 0}};
+    v.data[LineShapeModelVariable::D0] =
+        lbl::temperature::data{LineShapeModelType::T5, Vector{0, 0}};
   }
 
   // G0 main coefficient
   for (auto& v : out.single_models) {
-    is >> double_imanip() >> v.data[0].second.X(LineShapeModelCoefficient::X0);
+    is >> double_imanip() >>
+        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X0);
   };
 
   // G0 exponent is same as D0 exponent
   for (auto& v : out.single_models) {
-    is >> double_imanip() >> v.data[0].second.X(LineShapeModelCoefficient::X1);
-    v.data[1].second.X(LineShapeModelCoefficient::X1) =
-        v.data[0].second.X(LineShapeModelCoefficient::X1);
+    is >> double_imanip() >>
+        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X1);
+    v.data[LineShapeModelVariable::D0].X(LineShapeModelCoefficient::X1) =
+        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X1);
   };
 
   // D0 coefficient
-  out.single_models.front().data.back().second.X(
+  out.single_models.front().data[LineShapeModelVariable::D0].X(
       LineShapeModelCoefficient::X0) = 0;
   for (auto& v : out.single_models | stdv::drop(1)) {
-    is >> double_imanip() >> v.data[1].second.X(LineShapeModelCoefficient::X0);
+    is >> double_imanip() >>
+        v.data[LineShapeModelVariable::D0].X(LineShapeModelCoefficient::X0);
   }
 
   // Remove duplicate species

@@ -40,6 +40,7 @@ void py_disort(py::module_& m) try {
           "y"_a);
   generic_interface(bdrfop);  // FIXME OLE
   py::implicitly_convertible<DisortBDRFOperator::func_t, DisortBDRFOperator>();
+
   py::class_<DisortBDRF> disbdrf(m, "DisortBDRF");
   disbdrf
       .def(
@@ -219,6 +220,7 @@ void py_disort(py::module_& m) try {
           },
           "tau"_a,
           "Compute the downward flux");
+  generic_interface(x);
 
   py::class_<DisortSettings> disort_settings(m, "DisortSettings");
   generic_interface(disort_settings);

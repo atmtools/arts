@@ -5,26 +5,22 @@
 
 #include <ranges>
 
-namespace {
-std::istream& operator>>(
-    std::istream& is,
-    std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
-  String name;
-  is >> name >> x.second;
+#include "lbl_temperature_model.h"
 
-  x.first = to<LineShapeModelVariable>(name);
-
-  return is;
-}
-}  // namespace
-
-std::istream& operator>>(
-    std::istream& is,
-    std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x) {
+std::istream& operator>>(std::istream& is,
+                         lbl::line_shape::species_model::map_t& x) {
   Size n;
   is >> n;
-  x.resize(n);
-  for (auto& y : x) is >> y;
+
+  x.clear();
+  x.reserve(n);
+
+  for (Size i = 0; i < n; i++) {
+    LineShapeModelVariable var;
+    lbl::temperature::data temp_data;
+    is >> var >> temp_data;
+    x[var] = temp_data;
+  }
   return is;
 }
 
@@ -326,3 +322,20 @@ void model::clear_zeroes() {
   }
 }
 }  // namespace lbl::line_shape
+
+template <>
+std::optional<std::string>
+to_helper_string<lbl::line_shape::species_model::map_t>(
+    const lbl::line_shape::species_model::map_t& map) {
+  std::string out{};
+
+  std::string_view x = ""sv;
+  for (const auto& [key, value] : map) {
+    out += std::format("{}{}: {}",
+                       std::exchange(x, "; "sv),
+                       key,
+                       to_educational_string(value, key));
+  }
+
+  return out;
+}

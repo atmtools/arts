@@ -464,7 +464,14 @@ struct std::formatter<lbl::zeeman::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::zeeman::model &v,
                               FmtContext &ctx) const {
-    if (tags.io) {
+    if (tags.help) {
+      if (v.on) {
+        tags.format(
+            ctx, "<on>; Upper state: "sv, v.gu(), "; Lower state: "sv, v.gl());
+      } else {
+        tags.format(ctx, "<off>"sv);
+      }
+    } else if (tags.io) {
       tags.format(ctx, Index{v.on}, ' ', v.gu(), ' ', v.gl());
     } else {
       const auto sep = tags.sep();
