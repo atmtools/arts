@@ -1,7 +1,6 @@
 # Import the module
-import pyarts3 as pyarts
 import numpy as np  # For some of the examples
-
+import pyarts3 as pyarts
 
 # Create a workspace
 ws = pyarts.Workspace()
@@ -34,7 +33,7 @@ numpy array, etc.
 ws.num = pyarts.arts.Numeric(9.81)  # from builtin float
 print("Should contain 9.81:        ", ws.num)
 
-ws.num = 10   # from builtin int
+ws.num = 10  # from builtin int
 print("Should contain 10:          ", ws.num)
 
 ws.num = np.float64(9.81)  # from numpy float

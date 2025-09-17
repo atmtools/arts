@@ -1,7 +1,6 @@
 # Import the module
 import pyarts3 as pyarts
 
-
 # Create a workspace
 ws = pyarts.Workspace()
 
@@ -23,9 +22,7 @@ Before showing you how to creating your own iy_space_agenda,
 this method call can do it for you, and it will probably do
 it faster and safer than any manual approach:
 """
-ws.spectral_radiance_space_agendaSet(
-    option="UniformCosmicBackground"
-)
+ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 
 """
 That said, we provide interpreted ways to create agendas manually.
@@ -79,9 +76,11 @@ results if the agenda is ever changed in a future update of ARTS as the method
 will simply append all new input.  Still, it is convenient:
 """
 
+
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def spectral_radiance_space_agenda(ws):
     ws.spectral_radianceUniformCosmicBackground()
     ws.spectral_radiance_jacobianEmpty()
+
 
 print(spectral_radiance_space_agenda)

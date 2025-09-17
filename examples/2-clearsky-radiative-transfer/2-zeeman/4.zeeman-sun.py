@@ -1,16 +1,14 @@
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
-
 line_f0 = 118750348044.712
 ws.frequency_grid = [line_f0]
 
 # %% Species and line absorption
-
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
@@ -21,7 +19,6 @@ ws.WignerInit()
 ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
-
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
@@ -30,18 +27,15 @@ ws.atmospheric_fieldRead(
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Add a sun
-
 ws.sunBlackbody()
 ws.suns = [ws.sun]
 
 # %% Checks and settings
-
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="SunOrCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core calculations
-
 pos = [90e3, 0, 0]
 zas = np.linspace(0, 2, 21)
 aas = np.linspace(-180, 180, 21)

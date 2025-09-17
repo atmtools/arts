@@ -1,11 +1,11 @@
-import pyarts3 as pyarts
-import numpy as np
-import xarray as xa
-from dataclasses import dataclass
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 if pyarts.arts.globals.data.is_lgpl:
-    print("CKDMT models are not available in LGPL mode, compile with -DENABLE_ARTS_LGPL=0")
+    print(
+        "CKDMT models are not available in LGPL mode, compile with -DENABLE_ARTS_LGPL=0"
+    )
     exit(0)
 
 NQuad = 16
@@ -70,8 +70,12 @@ ws.disort_settings_agendaSetup(
 
 ws.disort_spectral_flux_fieldFromAgenda()
 
-plt.semilogy(pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
-            ws.disort_spectral_flux_field.down_diffuse)
+fig, ax = plt.subplots()
+ax.semilogy(
+    pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
+    ws.disort_spectral_flux_field.down_diffuse,
+)
 
-f, s = pyarts.plots.AtmField.plot(ws.atmospheric_field,
-                        alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere))
+f, s = pyarts.plots.AtmField.plot(
+    ws.atmospheric_field, alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
+)

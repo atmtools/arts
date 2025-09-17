@@ -1,8 +1,7 @@
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
-PLOT = True
 toa = 120e3
 lat = 0
 lon = 0
@@ -11,12 +10,10 @@ NQuad = 40
 ws = pyarts.Workspace()
 
 # %% Sampled frequency range
-
 line_f0 = 118750348044.712
 ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
 # %% Species and line absorption
-
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
@@ -24,7 +21,6 @@ ws.ReadCatalogData()
 ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
-
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
@@ -33,13 +29,11 @@ ws.atmospheric_fieldRead(
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
-
 ws.disort_settings_agendaSetup()
 
 ws.disort_spectral_radiance_fieldProfile(
@@ -51,7 +45,6 @@ ws.disort_spectral_radiance_fieldProfile(
 )
 
 # %% Equivalent ARTS calculations
-
 ws.ray_pathGeometricDownlooking(
     latitude=lat,
     longitude=lon,
@@ -60,37 +53,34 @@ ws.ray_pathGeometricDownlooking(
 ws.spectral_radianceClearskyEmission()
 
 # %% Plot results
+f = ws.frequency_grid - line_f0
 
-if PLOT:
-    f = ws.frequency_grid - line_f0
-
-    plt.semilogy(
-        f,
-        ws.disort_spectral_radiance_field.data[:, 0, 0, : (NQuad // 2)],
-        label="disort",
-    )
-    plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
-    plt.semilogy(
-        f,
-        ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
-        "g:",
-        lw=3,
-    )
-    plt.semilogy(
-        f,
-        ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
-        "m:",
-        lw=3,
-    )
-    plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
-    plt.xlabel("Dirac frequency [index count]")
-    plt.title("Downlooking")
+fig, ax = plt.subplots()
+ax.semilogy(
+    f,
+    ws.disort_spectral_radiance_field.data[:, 0, 0, : (NQuad // 2)],
+    label="disort",
+)
+ax.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+ax.semilogy(
+    f,
+    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
+    "g:",
+    lw=3,
+)
+ax.semilogy(
+    f,
+    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
+    "m:",
+    lw=3,
+)
+ax.set_ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
+ax.set_xlabel("Dirac frequency [index count]")
+ax.set_title("Downlooking")
 
 # %% The last test should be that we are close to the correct values
-
 assert np.allclose(
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0]
-    / ws.spectral_radiance[:, 0],
+    ws.disort_spectral_radiance_field.data[:, 0, 0, 0] / ws.spectral_radiance[:, 0],
     1,
     rtol=1e-3,
 ), "Bad results, clearsky calculations are not close between DISORT and ARTS"

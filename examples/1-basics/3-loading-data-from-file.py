@@ -1,7 +1,6 @@
 # Import the module
 import pyarts3 as pyarts
 
-
 # Create a workspace
 ws = pyarts.Workspace()
 

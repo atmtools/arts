@@ -1,6 +1,6 @@
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 toa = 100e3
 lat = 0
@@ -10,13 +10,11 @@ NQuad = 40
 ws = pyarts.Workspace()
 
 # %% Sampled frequency range
-
 line_f0 = 118750348044.712
 ws.frequency_grid = [line_f0]
 ws.frequency_grid = np.linspace(-20e9, 2e6, 5) + line_f0
 
 # %% Species and line absorption
-
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
@@ -24,7 +22,6 @@ ws.ReadCatalogData()
 ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
-
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
@@ -34,13 +31,11 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
 
 # %% Checks and settings
-
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
-
 ws.disort_settings_agendaSetup()
 
 ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_step=40_000)
@@ -52,8 +47,11 @@ ws.disort_spectral_flux_fieldFromAgenda(
 )
 
 assert np.allclose(
-    np.append(ws.disort_spectral_flux_field.up,
-              ws.disort_spectral_flux_field.down_diffuse, axis=1).flatten()
+    np.append(
+        ws.disort_spectral_flux_field.up,
+        ws.disort_spectral_flux_field.down_diffuse,
+        axis=1,
+    ).flatten()
     / np.array(
         [
             2.65924430e-15,

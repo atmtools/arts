@@ -1,7 +1,6 @@
 # Import the module
 import pyarts3 as pyarts
 
-
 # Create a workspace
 ws = pyarts.Workspace()
 
@@ -20,9 +19,7 @@ You can call workspace methods with named or positional arguments or any
 combination thereof that python accepts
 """
 # 1)  Name some arguments
-ws.spectral_radiance_space_agendaSet(
-    option="UniformCosmicBackground"
-)
+ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 # 2)  Name some arguments, use positional for the others
 ws.spectral_radiance_space_agendaSet(
     ws.spectral_radiance_space_agenda,

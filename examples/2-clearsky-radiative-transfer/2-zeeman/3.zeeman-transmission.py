@@ -1,17 +1,15 @@
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
-
 line_f0 = 118750348044.712
 nf = 1001
 ws.frequency_grid = np.linspace(-50e6, 50e6, nf) + line_f0
 
 # %% Species and line absorption
-
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
@@ -22,7 +20,6 @@ ws.WignerInit()
 ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
-
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
@@ -31,26 +28,23 @@ ws.atmospheric_fieldRead(
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-
 ws.spectral_radiance_space_agendaSet(option="Transmission")
 ws.spectral_radiance_surface_agendaSet(option="Transmission")
 
 # %% Core calculations
-
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
 ws.spectral_radianceClearskyTransmission()
 
 # %% Show results
-
-plt.semilogy((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
-plt.xlabel("Frequency offset [MHz]")
-plt.ylabel("Spectral radiance [K]")
-plt.title(f"Zeeman effect of {round(line_f0/1e6)} MHz O$_2$ line")
+fig, ax = plt.subplots()
+ax.semilogy((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
+ax.set_xlabel("Frequency offset [MHz]")
+ax.set_ylabel("Spectral radiance [K]")
+ax.set_title(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")
 
 # %% Test
-
 assert np.allclose(
     ws.spectral_radiance[::100],
     np.array(

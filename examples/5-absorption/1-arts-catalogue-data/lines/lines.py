@@ -1,5 +1,4 @@
 """
-
 This file will showcase how you can load line data from arts-cat-data into the
 workspace and do the required setups to perform a simple forward calculations
 using this data
@@ -14,18 +13,16 @@ set by adding the following two lines at the top of this pyarts-controlfile:
 import os
 print(os.environ.get("ARTS_DATA_PATH"))
 ```
-
 """
 
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
 
 """
-
 Set ws.abs_species to the species tags that you wish to use.  Pure line-by-line
 calculations sets the species by an expanded form of the AFGL tag system in
 ARTS.  This example sets the isotopologue to O16-O16, "O2-66", to include all
@@ -122,7 +119,6 @@ or to 2) compute the absorption on-the-fly
 ws.propagation_matrix_agendaAuto()
 
 """
-
 Compute absorption
 
 Now we can use the propagation_matrix_agenda to compute the absorption of O2-66.
@@ -131,37 +127,30 @@ absorption calculations, but that is for other examples
 
 To just execute the agenda we need to still define its both its inputs and the
 inputs required to initialize the propagation matrix
-
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.frequency_grid = np.linspace(
-    40e9, 120e9, 11
-)  # Frequencies between 40 and 120 GHz
+ws.frequency_grid = np.linspace(40e9, 120e9, 11)  # Frequencies between 40 and 120 GHz
 ws.ray_path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point["O2"] = (
-    0.21  # At 21% atmospheric Oxygen
-)
+ws.atmospheric_point["O2"] = 0.21  # At 21% atmospheric Oxygen
 
 # Call the agenda with inputs above
 ws.propagation_matrix_agendaExecute()
 
 # Plot the absorption of this example
-plt.figure(1)
-plt.clf()
-plt.semilogy(ws.frequency_grid.value / 1e9, ws.propagation_matrix)
-plt.xlabel("Frequency [GHz]")
-plt.ylabel("Absorption [1/m]")
-plt.title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
+fig, ax = plt.subplots()
+ax.semilogy(ws.frequency_grid.value / 1e9, ws.propagation_matrix)
+ax.set_xlabel("Frequency [GHz]")
+ax.set_ylabel("Absorption [1/m]")
+ax.set_title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
 
 """
 That's it!  You are done and have reached the end of this example.  Everything
 below here is just to ensure that ARTS does not break in the future.  It can
 be safely ignored
-
 """
 # Save test results
 # ws.propagation_matrix.savexml("lines_test_result.xml", type="ascii")

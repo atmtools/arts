@@ -17,9 +17,9 @@ print(os.environ.get("ARTS_DATA_PATH"))
 
 """
 
-import pyarts3 as pyarts
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pyarts
 
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
@@ -90,25 +90,26 @@ inputs required to initialize the propagation matrix
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.frequency_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
+ws.frequency_grid = pyarts.arts.convert.wavelen2freq(
+    np.linspace(6900e-9, 5900e-9, 1001)
+)
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
 ws.atmospheric_point["O2"] = 0.21  # At 21% atmospheric Oxygen
-ws.ray_path_point # No particular POSLOS
+ws.ray_path_point  # No particular POSLOS
 
 # Call the agenda with inputs above
 ws.propagation_matrix_agendaExecute()
 
 # Plot the absorption of this example
-plt.figure(1)
-plt.clf()
-plt.plot(
+fig, ax = plt.subplots()
+ax.plot(
     1e9 * pyarts.arts.convert.freq2wavelen(ws.frequency_grid.value),
     ws.propagation_matrix[:, 0],
 )
-plt.xlabel("Wavelength [nm]")
-plt.ylabel("Absorption [1/m]")
-plt.title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
+ax.set_xlabel("Wavelength [nm]")
+ax.set_ylabel("Absorption [1/m]")
+ax.set_title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
 
 """
 That's it!  You are done and have reached the end of this example.  Everything
@@ -120,8 +121,7 @@ be safely ignored
 # ws.propagation_matrix.savexml("cia_test_result.xml", type="ascii")
 
 # test that we are still OK
-propagation_matrix_agenda = \
-    pyarts.arts.PropmatVector.fromxml("cia_test_result.xml")
-assert np.allclose(
-    propagation_matrix_agenda, ws.propagation_matrix
-), "O2 Absorption has changed"
+propagation_matrix_agenda = pyarts.arts.PropmatVector.fromxml("cia_test_result.xml")
+assert np.allclose(propagation_matrix_agenda, ws.propagation_matrix), (
+    "O2 Absorption has changed"
+)
