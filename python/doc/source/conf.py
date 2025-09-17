@@ -344,7 +344,7 @@ plot_rcparams = {
     'figure.facecolor': (1,1,1,0),
 }
 
-plot_formats = [('svg', 48), ('pdf', 48)]
+plot_formats = [('svg', 96), ('pdf', 96)]
 
 # -- Favicon ----------------------------------------------------------------
 favicons = [
