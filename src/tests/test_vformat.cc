@@ -29,12 +29,10 @@ lbl::line get_lbl_line() {
   l.ls.T0         = 300.0;
   auto& mod       = l.ls.single_models.emplace_back("H2O"_spec);
 
-  mod.data.emplace_back(
-      LineShapeModelVariable::G0,
-      lbl::temperature::data{LineShapeModelType::T0, Vector{6.0}});
-  mod.data.emplace_back(
-      LineShapeModelVariable::D0,
-      lbl::temperature::data{LineShapeModelType::T1, Vector{7.0, 8.0}});
+  mod.data[LineShapeModelVariable::G0] =
+      lbl::temperature::data{LineShapeModelType::T0, Vector{6.0}};
+  mod.data[LineShapeModelVariable::D0] =
+      lbl::temperature::data{LineShapeModelType::T1, Vector{7.0, 8.0}};
 
   l.z.gu(6.0);
   l.z.gl(7.0);

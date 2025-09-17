@@ -17,12 +17,12 @@ namespace lbl::line_shape {
 struct species_model {
   SpeciesEnum species{};
 
-  std::vector<std::pair<LineShapeModelVariable, temperature::data>> data{};
+  using map_t = std::unordered_map<LineShapeModelVariable, temperature::data>;
+  map_t data{};
 
   //! Removes the variables from the model.
   template <LineShapeModelVariable... V>
-  std::vector<std::pair<LineShapeModelVariable, temperature::data>>::size_type
-  remove_variables() {
+  map_t::size_type remove_variables() {
     return (... + std::erase_if(
                       data, [v = V](const auto& x) { return x.first == v; }));
   }
@@ -274,21 +274,31 @@ struct std::formatter<lbl::line_shape::model> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::line_shape::model& v,
                               FmtContext& ctx) const {
-    if (tags.io) {
-      tags.format(ctx,
-                  v.T0,
-                  ' ',
-                  Index{v.one_by_one},
-                  ' ',
-                  v.single_models.size(),
-                  ' ',
-                  v.single_models);
-    } else {
-      const auto sep = tags.sep();
-      tags.add_if_bracket(ctx, '[');
-      tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
-      tags.add_if_bracket(ctx, ']');
+    if (tags.help) {
+      return tags.format(ctx,
+                         "Reference temperature: "sv,
+                         v.T0,
+                         " K; One-by-one: "sv,
+                         v.one_by_one ? "<on>"sv : "<off>"sv,
+                         "; Single models: "sv,
+                         v.single_models);
     }
+
+    if (tags.io) {
+      return tags.format(ctx,
+                         v.T0,
+                         ' ',
+                         Index{v.one_by_one},
+                         ' ',
+                         v.single_models.size(),
+                         ' ',
+                         v.single_models);
+    }
+
+    const auto sep = tags.sep();
+    tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
+    tags.add_if_bracket(ctx, ']');
 
     return ctx.out();
   }

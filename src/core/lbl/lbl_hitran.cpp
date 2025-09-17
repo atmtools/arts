@@ -182,22 +182,18 @@ line hitran_record::from(HitranLineStrengthOption ls,
   l.ls.single_models.resize(2);
 
   l.ls.single_models[0].species = qid.isot.spec;
-  l.ls.single_models[0].data.emplace_back(
-      LineShapeModelVariable::G0,
-      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_self, n}});
+  l.ls.single_models[0].data[LineShapeModelVariable::G0] =
+      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_self, n}};
 
   l.ls.single_models[1].species = SpeciesEnum::Bath;
-  l.ls.single_models[1].data.emplace_back(
-      LineShapeModelVariable::G0,
-      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_air, n}});
+  l.ls.single_models[1].data[LineShapeModelVariable::G0] =
+      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_air, n}};
 
   if (delta != 0) {
-    l.ls.single_models[0].data.emplace_back(
-        LineShapeModelVariable::D0,
-        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}});
-    l.ls.single_models[1].data.emplace_back(
-        LineShapeModelVariable::D0,
-        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}});
+    l.ls.single_models[0].data[LineShapeModelVariable::D0] =
+        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
+    l.ls.single_models[1].data[LineShapeModelVariable::D0] =
+        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
   }
 
   l.qn = std::move(local);

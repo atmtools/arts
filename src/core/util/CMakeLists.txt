@@ -1,5 +1,6 @@
 add_library(util STATIC
   arts_omp.cc
+  arts_conversions.cpp
   debug.cpp
   format_tags.cpp
   planet_data.cpp

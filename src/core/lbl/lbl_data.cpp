@@ -2,6 +2,7 @@
 
 #include <arts_constants.h>
 #include <arts_constexpr_math.h>
+#include <arts_conversions.h>
 #include <debug.h>
 #include <double_imanip.h>
 #include <hitran_species.h>
@@ -289,43 +290,17 @@ Size count_lines(
 }
 }  // namespace lbl
 
+namespace {
 std::string to_educational_string_frequency(Numeric f0) {
-  if (f0 == 0.0) return "0 Hz";
-
-  constexpr std::array<std::pair<std::string_view, Numeric>, 10> high_units = {
-      {{"QHz"sv, 1e30},
-       {"RHz"sv, 1e27},
-       {"YHz"sv, 1e24},
-       {"ZHz"sv, 1e21},
-       {"EHz"sv, 1e18},
-       {"PHz"sv, 1e15},
-       {"THz"sv, 1e12},
-       {"GHz"sv, 1e9},
-       {"MHz"sv, 1e6},
-       {"kHz"sv, 1e3}}};
-
-  for (const auto& [unit, factor] : high_units) {
-    if (f0 > factor) return std::format("{:.2f} {}", f0 / factor, unit);
-  }
-
-  constexpr std::array<std::pair<std::string_view, Numeric>, 10> low_units = {
-      {{"qHz"sv, 1e-30 * 1000},
-       {"rHz"sv, 1e-27 * 1000},
-       {"yHz"sv, 1e-24 * 1000},
-       {"zHz"sv, 1e-21 * 1000},
-       {"aHz"sv, 1e-18 * 1000},
-       {"fHz"sv, 1e-15 * 1000},
-       {"pHz"sv, 1e-12 * 1000},
-       {"nHz"sv, 1e-9 * 1000},
-       {"μHz"sv, 1e-6 * 1000},
-       {"mHz"sv, 1e-3 * 1000}}};
-
-  for (const auto& [unit, factor] : low_units) {
-    if (f0 < factor) return std::format("{:.2f} {}", 1000 * f0 / factor, unit);
-  }
-
-  return std::format("{:.2f} Hz", f0);
+  auto [unit, value] = Conversion::metric_prefix(f0);
+  return std::format("{:.2f}{}{}Hz", value, unit != ' ' ? " "sv : ""sv, unit);
 }
+
+std::string to_educational_string_energy(Numeric e0) {
+  auto [unit, value] = Conversion::metric_prefix(e0);
+  return std::format("{:.2f}{}{}J", value, unit != ' ' ? " "sv : ""sv, unit);
+}
+}  // namespace
 
 std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
   if (tags.help) {
@@ -334,7 +309,7 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
                         "; Einstein A coefficient: "sv,
                         to_educational_string_frequency(v.a),
                         "; Lower level energy: "sv,
-                        v.e0,
+                        to_educational_string_energy(v.e0),
                         "; Upper level degeneracy: "sv,
                         v.gu,
                         "; Lower level degeneracy: "sv,

@@ -5,26 +5,19 @@
 
 #include <ranges>
 
-namespace {
-std::istream& operator>>(
-    std::istream& is,
-    std::pair<LineShapeModelVariable, lbl::temperature::data>& x) {
-  String name;
-  is >> name >> x.second;
-
-  x.first = to<LineShapeModelVariable>(name);
-
-  return is;
-}
-}  // namespace
-
-std::istream& operator>>(
-    std::istream& is,
-    std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x) {
+std::istream& operator>>(std::istream& is,
+                         lbl::line_shape::species_model::map_t& x) {
   Size n;
   is >> n;
-  x.resize(n);
-  for (auto& y : x) is >> y;
+
+  x.clear();
+  x.reserve(n);
+
+  for (Size i = 0; i < n; i++) {
+    LineShapeModelVariable var;
+    lbl::temperature::data temp_data;
+    is >> var >> x[var];
+  }
   return is;
 }
 
