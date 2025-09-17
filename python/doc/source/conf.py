@@ -328,7 +328,7 @@ intersphinx_mapping = {
     'skimage': ('https://scikit-image.org/docs/stable/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-    'xarray': ('https://xarray.pydata.org/en/stable/', None),
+    'xarray': ('https://docs.xarray.dev/en/stable/', None),
 }
 
 # -- Plots ----------------------------------------------------------------
