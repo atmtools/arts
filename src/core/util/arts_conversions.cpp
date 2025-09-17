@@ -9,7 +9,7 @@ namespace Conversion {
 std::pair<char, Numeric> metric_prefix(Numeric x) {
   if (x == 0.0) return {' ', 0.0};
 
-  constexpr std::array<std::pair<char, Numeric>, 11> high_units = {
+  constexpr std::array<std::pair<char, Numeric>, 10> high_units = {
       {{'Q', 1e30},
        {'R', 1e27},
        {'Y', 1e24},
@@ -19,14 +19,13 @@ std::pair<char, Numeric> metric_prefix(Numeric x) {
        {'T', 1e12},
        {'G', 1e9},
        {'M', 1e6},
-       {'k', 1e3},
-       {'h', 1e2}}};
+       {'k', 1e3}}};
 
   for (const auto& [unit, factor] : high_units) {
     if (nonstd::abs(x) > factor) return {unit, x / factor};
   }
 
-  constexpr std::array<std::pair<char, Numeric>, 12> low_units = {
+  constexpr std::array<std::pair<char, Numeric>, 10> low_units = {
       {{'q', 1e-30 * 1000},
        {'r', 1e-27 * 1000},
        {'y', 1e-24 * 1000},
@@ -36,14 +35,12 @@ std::pair<char, Numeric> metric_prefix(Numeric x) {
        {'p', 1e-12 * 1000},
        {'n', 1e-9 * 1000},
        {'u', 1e-6 * 1000},
-       {'m', 1e-3 * 1000},
-       {'c', 1e-2 * 1000},
-       {'d', 1e-1 * 1000}}};
+       {'m', 1e-3 * 1000}}};
 
   for (const auto& [unit, factor] : low_units) {
     if (nonstd::abs(x) < factor) return {unit, 1000.0 * x / factor};
   }
 
-  return {' ', 0.0};
+  return {' ', x};
 }
 };  // namespace Conversion
