@@ -7,6 +7,7 @@
 #include <functional>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <print>
 #include <set>
 #include <span>
@@ -17,6 +18,11 @@
 #include <variant>
 
 using namespace std::literals;
+
+template <typename T>
+std::optional<std::string> to_helper_string(const T&) {
+  return std::nullopt;
+}
 
 struct format_tags;
 template <typename T>
@@ -279,6 +285,10 @@ struct std::formatter<std::variant<WTs...>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::variant<WTs...>& v,
                               FmtContext& ctx) const {
+    if (tags.help) {
+      if (auto x = to_helper_string(v); x) return tags.format(ctx, *x);
+    }
+
     const auto call = []<typename T>(const format_tags& tags,
                                      FmtContext& ctx,
                                      const T* const e) -> bool {
@@ -308,6 +318,10 @@ struct std::formatter<std::unordered_map<Key, Value>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
                               FmtContext& ctx) const {
+    if (tags.help) {
+      if (auto x = to_helper_string(v); x) return tags.format(ctx, *x);
+    }
+
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -330,8 +344,12 @@ struct std::formatter<std::map<Key, Value>> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const std::unordered_map<Key, Value>& v,
+  FmtContext::iterator format(const std::map<Key, Value>& v,
                               FmtContext& ctx) const {
+    if (tags.help) {
+      if (auto x = to_helper_string(v); x) return tags.format(ctx, *x);
+    }
+
     tags.add_if_bracket(ctx, '{');
     format_map_iterable(ctx, inner_fmt().tags, v);
     tags.add_if_bracket(ctx, '}');
@@ -356,6 +374,11 @@ struct std::formatter<std::span<T>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::span<T>& v, FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -380,6 +403,11 @@ struct std::formatter<std::set<T>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::set<T>& v, FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -405,6 +433,11 @@ struct std::formatter<std::unordered_set<T>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::unordered_set<T>& v,
                               FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -430,6 +463,11 @@ struct std::formatter<std::vector<T, Allocator>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::vector<T, Allocator>& v,
                               FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -455,6 +493,11 @@ struct std::formatter<std::array<T, N>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::array<T, N>& v,
                               FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     inner_fmt().tags.add_if_bracket(ctx, '[');
     format_value_iterable(ctx, inner_fmt().tags, v);
     inner_fmt().tags.add_if_bracket(ctx, ']');
@@ -476,6 +519,11 @@ struct std::formatter<std::pair<A, B>> {
 
   template <class FmtContext>
   FmtContext::iterator format(const std::pair<A, B>& v, FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     tags.add_if_bracket(ctx, '(');
     tags.format(ctx, v.first, tags.sep(), v.second);
     tags.add_if_bracket(ctx, ')');
@@ -509,6 +557,11 @@ struct std::formatter<std::tuple<WT...>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::tuple<WT...>& v,
                               FmtContext& ctx) const {
+    if (inner_fmt().tags.help) {
+      if (auto x = to_helper_string(v); x)
+        return inner_fmt().tags.format(ctx, *x);
+    }
+
     tags.add_if_bracket(ctx, '(');
     format(ctx, std::index_sequence_for<WT...>{}, v);
     tags.add_if_bracket(ctx, ')');

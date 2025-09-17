@@ -303,3 +303,7 @@ struct std::formatter<lbl::line_shape::model> {
     return ctx.out();
   }
 };
+
+template <>
+std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_t>(
+    const lbl::line_shape::species_model::map_t&);

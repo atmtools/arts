@@ -6,6 +6,7 @@
 #include <xml.h>
 
 #include <limits>
+#include <optional>
 
 namespace lbl::temperature {
 inline constexpr std::size_t LineShapeModelTypeSize = 9;
@@ -244,7 +245,9 @@ class data {
 };
 }  // namespace lbl::temperature
 
-std::string to_educational_string(const lbl::temperature::data&);
+std::string to_educational_string(
+    const lbl::temperature::data&,
+    std::optional<LineShapeModelVariable> = std::nullopt);
 
 template <>
 struct std::formatter<lbl::temperature::data> {
@@ -261,9 +264,9 @@ struct std::formatter<lbl::temperature::data> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::temperature::data& v,
                               FmtContext& ctx) const {
-if (tags.help) {
-  tags.format(ctx, "Equation: "sv, to_educational_string(v));
-} else if (tags.io) {
+    if (tags.help) {
+      tags.format(ctx, "Equation: "sv, to_educational_string(v));
+    } else if (tags.io) {
       tags.format(ctx, v.Type(), ' ');
       if (lbl::temperature::model_size(v.Type()) ==
           std::numeric_limits<Size>::max())

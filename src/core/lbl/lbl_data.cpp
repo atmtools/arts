@@ -471,3 +471,16 @@ void xml_io_stream<LblLineKey>::read(std::istream& is,
   throw std::runtime_error(
       std::format("Error reading LblLineKey:\n{}", e.what()));
 }
+
+template <>
+std::optional<std::string> to_helper_string<AbsorptionBands>(
+    const AbsorptionBands& bands) {
+  std::string out{};
+
+  std::string_view x = ""sv;
+  for (auto& [qid, data] : bands) {
+    out += std::format("{}{:h}: {:h}", std::exchange(x, "\n"sv), qid, data);
+  }
+
+  return out;
+}

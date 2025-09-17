@@ -5,6 +5,8 @@
 
 #include <ranges>
 
+#include "lbl_temperature_model.h"
+
 std::istream& operator>>(std::istream& is,
                          lbl::line_shape::species_model::map_t& x) {
   Size n;
@@ -319,3 +321,20 @@ void model::clear_zeroes() {
   }
 }
 }  // namespace lbl::line_shape
+
+template <>
+std::optional<std::string>
+to_helper_string<lbl::line_shape::species_model::map_t>(
+    const lbl::line_shape::species_model::map_t& map) {
+  std::string out{};
+
+  std::string_view x = ""sv;
+  for (const auto& [key, value] : map) {
+    out += std::format("{}{}: {}",
+                       std::exchange(x, "; "sv),
+                       key,
+                       to_educational_string(value, key));
+  }
+
+  return out;
+}

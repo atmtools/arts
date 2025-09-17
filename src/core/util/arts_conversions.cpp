@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include "nonstd.h"
+
 /** Namespace containing several practical unit conversions, physical and mathematical **/
 namespace Conversion {
 std::pair<char, Numeric> metric_prefix(Numeric x) {
@@ -21,7 +23,7 @@ std::pair<char, Numeric> metric_prefix(Numeric x) {
        {'h', 1e2}}};
 
   for (const auto& [unit, factor] : high_units) {
-    if (x > factor) return {unit, x / factor};
+    if (nonstd::abs(x) > factor) return {unit, x / factor};
   }
 
   constexpr std::array<std::pair<char, Numeric>, 12> low_units = {
@@ -39,7 +41,7 @@ std::pair<char, Numeric> metric_prefix(Numeric x) {
        {'d', 1e-1 * 1000}}};
 
   for (const auto& [unit, factor] : low_units) {
-    if (x < factor) return {unit, 1000 * x / factor};
+    if (nonstd::abs(x) < factor) return {unit, 1000.0 * x / factor};
   }
 
   return {' ', 0.0};
