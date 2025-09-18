@@ -350,10 +350,10 @@ struct single_shape_builder {
       : spec(s),
         ln(l),
         atm(a),
-        f0(line_center_calc(ln, atm)),
+        f0(line_center_calc(l, atm)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / s.mass)),
-        G0(ln.ls.G0(atm)) {}
+        G0(l.ls.G0(atm)) {}
 
   single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
@@ -362,11 +362,11 @@ struct single_shape_builder {
       : spec(s),
         ln(l),
         atm(a),
-        f0(line_center_calc(ln, atm, is)),
+        f0(line_center_calc(l, atm, is)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / s.mass)),
-        G0(ln.ls.single_models.at(is).G0(
-            ln.ls.T0, atm.temperature, atm.pressure)),
+        G0(l.ls.single_models.at(is).G0(
+            l.ls.T0, atm.temperature, atm.pressure)),
         ispec(is) {}
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
@@ -1402,13 +1402,11 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
       dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
                                line.ls.dG0_dVMR(atm, target_spec)};
     } else {
-      const auto ls_spec = pos[i].spec;
-
       dz_fac[i] = 0;
 
-      if (target_spec == ls_spec) {
+      if (target_spec == pos[i].spec) {
         ds[i] = lshp.s * (1 + (target_spec == spec.spec)) / x;
-      } else if (ls_spec == SpeciesEnum::Bath) {
+      } else if (pos[i].spec == SpeciesEnum::Bath) {
         const Numeric v =
             1.0 - std::transform_reduce(line.ls.single_models.begin(),
                                         line.ls.single_models.end(),

@@ -191,8 +191,7 @@ VARIABLE(T0);
                                                                               \
     const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
                                                                               \
-    const auto bth = single_models.find(SpeciesEnum::Bath);                   \
-    if (spec == SpeciesEnum::Bath and bth != single_models.end()) {           \
+    if (spec == SpeciesEnum::Bath) {                                          \
       const Numeric vmr = std::transform_reduce(                              \
           single_models.begin(),                                              \
           single_models.end(),                                                \
@@ -204,6 +203,7 @@ VARIABLE(T0);
       return (1 - vmr) * x;                                                   \
     }                                                                         \
                                                                               \
+    const auto bth = single_models.find(SpeciesEnum::Bath);                   \
     if (bth != single_models.end()) return atm[spec] * x;                     \
                                                                               \
     const Numeric vmr =                                                       \

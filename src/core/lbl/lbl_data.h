@@ -219,7 +219,7 @@ struct line_key {
   Size line{std::numeric_limits<Size>::max()};
 
   //! The species (if ls_var is not invalid)
-  SpeciesEnum spec{SpeciesEnum::Bath};
+  SpeciesEnum spec{SpeciesEnum::unused};
 
   /* The variable to be used for the line shape derivative
 
