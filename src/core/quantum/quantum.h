@@ -21,10 +21,10 @@ struct Value {
 
   Value();
 
-  explicit Value(String);    // Default initialize by string
-  explicit Value(Rational);  // Default initialize by rational
-  explicit Value(const std::integral auto& x) : value(Rational(x, 1)) {}
-  explicit Value(QuantumNumberType);  // Default initialize by type
+  Value(String);             // Default initialize by string
+  Value(Index);              // Default initialize by index
+  Value(Rational);           // Default initialize by rational
+  Value(QuantumNumberType);  // Default initialize by type
   Value(const Value&)                = default;
   Value(Value&&) noexcept            = default;
   Value& operator=(const Value&)     = default;
@@ -365,11 +365,15 @@ struct std::formatter<QuantumIdentifier> {
   FmtContext::iterator format(const QuantumIdentifier& q,
                               FmtContext& ctx) const {
     if (tags.help) {
-      return tags.format(ctx,
-                         "QuantumIdentifier: Species: "sv,
-                         q.isot,
-                         "; Symbol: ",
-                         to_educational_string(q));
+      tags.format(ctx, "Species: "sv, q.isot, " Quantum Numbers:"sv);
+      for (auto& [k, v] : q.state) {
+        tags.format(ctx, ' ', k, ": "sv, v, ',');
+      }
+      return ctx.out();
+    }
+
+    if (tags.depth > 0) {
+      return tags.format(ctx, to_educational_string(q));
     }
 
     tags.format(ctx, q.isot);

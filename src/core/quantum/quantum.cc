@@ -23,6 +23,8 @@ using enum QuantumNumberType;
 
 Value::Value(String x) : value(std::move(x)) {}
 
+Value::Value(Index x) : value(Rational(x, 1)) {}
+
 Value::Value(Rational x) : value(x) {}
 
 Value::Value() : Value(Rational{}) {}
@@ -914,7 +916,6 @@ void xml_io_stream<QuantumLevelIdentifier>::read(std::istream& is_xml,
 } catch (const std::exception& e) {
   ARTS_USER_ERROR("Error reading QuantumLevelIdentifier:\n{}", e.what())
 }
-
 
 std::string to_educational_string(const QuantumIdentifier& q) {
   return Quantum::Helpers::molecular_term_symbol(q);

@@ -321,7 +321,8 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
                         "; Line shape: "sv,
                         v.ls,
                         "; Quantum state: "sv,
-                        v.qn);
+                        v.qn,
+                        ';');
   }
 
   if (tags.io) {
@@ -353,14 +354,18 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
 std::string std::formatter<lbl::band_data>::to_string(
     const lbl::band_data& v) const {
   if (tags.help) {
-    return tags.vformat("Line shape: "sv,
-                        v.lineshape,
-                        "; Cutoff type: "sv,
-                        v.cutoff,
-                        "; Cutoff value: "sv,
-                        to_educational_string_frequency(v.cutoff_value),
-                        "; Lines: "sv,
-                        v.lines);
+    return tags.vformat(
+        "Line shape: "sv,
+        v.lineshape,
+        "; Cutoff: "sv,
+        v.cutoff == LineByLineCutoffType::None
+            ? "<off>"s
+            : std::format("{} at {}",
+                          v.cutoff,
+                          to_educational_string_frequency(v.cutoff_value)),
+        "; Lines: ["sv,
+        v.lines,
+        ']');
   }
 
   if (tags.io) {
@@ -481,7 +486,7 @@ std::optional<std::string> to_helper_string<AbsorptionBands>(
 
   std::string_view x = ""sv;
   for (auto& [qid, data] : bands) {
-    out += std::format("{}{:h}: {:h}", std::exchange(x, "\n"sv), qid, data);
+    out += std::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data);
   }
 
   return out;

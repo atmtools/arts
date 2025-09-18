@@ -10,6 +10,9 @@
 
 namespace {
 ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+
   // Default data and values for this type
   ArtscatMeta output{};
   output.data.ls.one_by_one = false;
@@ -133,18 +136,12 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
       }
 
       // Set line shape computer
-      output.data.ls.single_models[isotopologue.spec]
-          .data[LineShapeModelVariable::G0] =
-          lbl::temperature::data{LineShapeModelType::T1, Vector{sgam, nair}};
-      output.data.ls.single_models[isotopologue.spec]
-          .data[LineShapeModelVariable::D0] =
-          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
-      output.data.ls.single_models[SpeciesEnum::Bath]
-          .data[LineShapeModelVariable::G0] =
-          lbl::temperature::data{LineShapeModelType::T1, Vector{agam, nair}};
-      output.data.ls.single_models[SpeciesEnum::Bath]
-          .data[LineShapeModelVariable::D0] =
-          lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
+      auto& self    = output.data.ls.single_models[isotopologue.spec];
+      auto& air     = output.data.ls.single_models[SpeciesEnum::Bath];
+      self.data[G0] = {T1, Vector{sgam, nair}};
+      self.data[D0] = {T5, Vector{psf, nair}};
+      air.data[G0]  = {T1, Vector{agam, nair}};
+      air.data[D0]  = {T5, Vector{psf, nair}};
 
       if (not(output.data.gu > 0.0)) output.data.gu = 1.;
       if (not(output.data.gl > 0.0)) output.data.gl = 1.;

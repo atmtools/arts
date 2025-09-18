@@ -20,9 +20,10 @@
 namespace Python {
 void py_quantum(py::module_& m) try {
   py::class_<Quantum::Value> qval(m, "QuantumValue");
-  qval.def(py::init<String>())
-      .def(py::init<Rational>())
-      .def(py::init<QuantumNumberType>())
+  qval.def(py::init_implicit<String>())
+      .def(py::init_implicit<Index>())
+      .def(py::init_implicit<Rational>())
+      .def(py::init_implicit<QuantumNumberType>())
       .def_rw(
           "value",
           &Quantum::Value::value,

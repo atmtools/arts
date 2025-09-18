@@ -15,7 +15,7 @@ static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
 
 data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
   ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
-  ARTS_USER_ERROR_IF(auto n = model_size(t);
+  ARTS_USER_ERROR_IF(Size n = model_size(t);
                      n != std::numeric_limits<Size>::max() and
                          n != static_cast<Size>(x.size()),
                      "Invalid number of parameters for model {}"
@@ -443,37 +443,32 @@ std::string to_educational_string(const lbl::temperature::data& data,
   switch (data.Type()) {
     using enum LineShapeModelType;
     using enum LineShapeModelCoefficient;
-    case T0:
-      return std::format("LineShapeModelType::T0: {}",
-                         metric_unit_x0(data.X(X0), type));
+    case T0: return std::format("{}", metric_unit_x0(data.X(X0), type));
     case T1:
-      return std::format("LineShapeModelType::T1: {} * pow(T0 / T, {})",
+      return std::format("{} * pow(T0 / T, {})",
                          metric_unit_x0(data.X(X0), type),
                          metric_unit_x1(data.X(X1), data.Type(), type));
     case T2:
-      return std::format(
-          "LineShapeModelType::T2: {} * pow(T0 / T, {}) * (1 + {} * log(T / T0))",
-          metric_unit_x0(data.X(X0), type),
-          metric_unit_x1(data.X(X1), data.Type(), type),
-          data.X(X2));
+      return std::format("{} * pow(T0 / T, {}) * (1 + {} * log(T / T0))",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type),
+                         data.X(X2));
     case T3:
-      return std::format("LineShapeModelType::T3: {} + {} * (T - T0)",
+      return std::format("{} + {} * (T - T0)",
                          metric_unit_x0(data.X(X0), type),
                          metric_unit_x1(data.X(X1), data.Type(), type));
     case T4:
-      return std::format(
-          "LineShapeModelType::T4: ({0} + {1} * (T0 / T - 1)) * pow(T0 / T, {2})",
-          metric_unit_x0(data.X(X0), type),
-          metric_unit_x1(data.X(X1), data.Type(), type),
-          data.X(X2));
+      return std::format("({0} + {1} * (T0 / T - 1)) * pow(T0 / T, {2})",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type),
+                         data.X(X2));
     case T5:
-      return std::format(
-          "LineShapeModelType::T5: {} * pow(T0 / T, 0.25 + 1.5 * {})",
-          metric_unit_x0(data.X(X0), type),
-          metric_unit_x1(data.X(X1), data.Type(), type));
+      return std::format("{} * pow(T0 / T, 0.25 + 1.5 * {})",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type));
     case AER:
       return std::format(
-          "LineShapeModelType::AER: (T < 250.0) ? "
+          "(T < 250.0) ? "
           "{0} + (T - 200.0) * ({1} - {0}) / (250.0 - 200.0) : "
           "(T > 296.0) ? "
           "{2} + (T - 296.0) * ({3} - {2}) / (340.0 - 296.0) : "
@@ -483,16 +478,15 @@ std::string to_educational_string(const lbl::temperature::data& data,
           metric_unit_x0(data.X(X2), type),
           metric_unit_x0(data.X(X3), type));
     case DPL:
-      return std::format(
-          "LineShapeModelType::DPL: {} * pow(T0 / T, {}) + {} * pow(T0 / T, {})",
-          metric_unit_x0(data.X(X0), type),
-          metric_unit_x1(data.X(X1), data.Type(), type),
-          metric_unit_x0(data.X(X2), type),
-          metric_unit_x1(data.X(X3), data.Type(), type));
+      return std::format("{} * pow(T0 / T, {}) + {} * pow(T0 / T, {})",
+                         metric_unit_x0(data.X(X0), type),
+                         metric_unit_x1(data.X(X1), data.Type(), type),
+                         metric_unit_x0(data.X(X2), type),
+                         metric_unit_x1(data.X(X3), data.Type(), type));
     case POLY: {
       std::string s{};
       Size i{};
-      std::string res{"LineShapeModelType::POLY: "};
+      std::string res{""};
       std::string_view x = ""sv;
       for (auto& v : data.X()) {
         res += std::format("{}{}{}{}",

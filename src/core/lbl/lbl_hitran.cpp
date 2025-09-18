@@ -141,6 +141,9 @@ hitran_data read_hitran_par(std::istream&& file,
 line hitran_record::from(HitranLineStrengthOption ls,
                          QuantumState&& local,
                          bool do_zeeman) const {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+
   line l;
   l.a  = A;
   l.f0 = f0;
@@ -181,17 +184,14 @@ line hitran_record::from(HitranLineStrengthOption ls,
   l.ls.one_by_one = false;
   l.ls.single_models.reserve(2);
 
-  l.ls.single_models[qid.isot.spec].data[LineShapeModelVariable::G0] =
-      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_self, n}};
-
-  l.ls.single_models[SpeciesEnum::Bath].data[LineShapeModelVariable::G0] =
-      lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_air, n}};
+  auto& self    = l.ls.single_models[qid.isot.spec];
+  auto& air     = l.ls.single_models[SpeciesEnum::Bath];
+  self.data[G0] = {T1, Vector{gamma_self, n}};
+  air.data[G0]  = {T1, Vector{gamma_air, n}};
 
   if (delta != 0) {
-    l.ls.single_models[qid.isot.spec].data[LineShapeModelVariable::D0] =
-        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
-    l.ls.single_models[SpeciesEnum::Bath].data[LineShapeModelVariable::D0] =
-        lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
+    self.data[D0] = {T0, Vector{delta}};
+    air.data[D0]  = {T0, Vector{delta}};
   }
 
   l.qn = std::move(local);

@@ -15,17 +15,33 @@
 #include <stdexcept>
 #include <unordered_map>
 
+#include "enumsLineShapeModelVariable.h"
+#include "enumsSpeciesEnum.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
+#include "lbl_lineshape_model.h"
 #include "partfun.h"
 #include "quantum.h"
+
+NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
+NB_MAKE_OPAQUE(lbl::line_shape::model::map_t)
 
 namespace Python {
 void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
+
+  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t>(
+      lbl, "LineShapeSpeciesModelMap");
+  lssmm.doc() = "A map from model variable to line shape models";
+  generic_interface(lssmm);
+
+  auto lsmm =
+      py::bind_map<lbl::line_shape::model::map_t>(lbl, "LineShapeModelMap");
+  lsmm.doc() = "A map from species to species line shape models";
+  generic_interface(lsmm);
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
   generic_interface(line_key);
@@ -366,16 +382,17 @@ other : AbsorptionBands
   aoab.def(
       "clear_linemixing",
       [](AbsorptionBands& self) {
+        using enum LineShapeModelVariable;
+
         Size sum = 0;
-        for (auto& [_, band] : self) {
+        for (auto& band : self | stdv::values) {
           for (auto& line : band.lines) {
             for (auto& lsm : line.ls.single_models | stdv::values) {
-              sum += lsm.remove_variables<LineShapeModelVariable::Y,
-                                          LineShapeModelVariable::G,
-                                          LineShapeModelVariable::DV>();
+              sum += lsm.remove_variables<Y, G, DV>();
             }
           }
         }
+
         return sum;
       },
       R"(Clear the linemixing data from all bands by removing it from the inner line shape models

@@ -6,43 +6,39 @@ QuantumIdentifier get_quantum_identifier() {
   QuantumIdentifier qid{};
   qid.isot = "H2O-161"_isot;
   qid.state.emplace(QuantumNumberType::J,
-                    Quantum::UpperLower{.upper = Quantum::Value{1},
-                                        .lower = Quantum::Value{1}});
+                    Quantum::UpperLower{.upper = 1, .lower = 1});
   qid.state.emplace(QuantumNumberType::K,
-                    Quantum::UpperLower{.upper = Quantum::Value{0},
-                                        .lower = Quantum::Value{0}});
+                    Quantum::UpperLower{.upper = 0, .lower = 0});
   return qid;
 }
 
-lbl::line get_lbl_line() {
-  lbl::line l{};
-  l.f0 = 1.0;
-  l.a  = 2.0;
-  l.e0 = 3.0;
-  l.gu = 4.0;
-  l.gl = 5.0;
-  l.qn.emplace(QuantumNumberType::J,
-               Quantum::UpperLower{.upper = Quantum::Value{1},
-                                   .lower = Quantum::Value{1}});
+AbsorptionLine get_lbl_line() {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+  using enum QuantumNumberType;
 
-  l.ls.one_by_one = false;
-  l.ls.T0         = 300.0;
-  auto& mod       = l.ls.single_models["H2O"_spec];
+  AbsorptionLine line{};
+  line.f0 = 1.0;
+  line.a  = 2.0;
+  line.e0 = 3.0;
+  line.gu = 4.0;
+  line.gl = 5.0;
+  line.qn.emplace(J, Quantum::UpperLower{.upper = 1, .lower = 1});
 
-  mod.data[LineShapeModelVariable::G0] =
-      lbl::temperature::data{LineShapeModelType::T0, Vector{6.0}};
-  mod.data[LineShapeModelVariable::D0] =
-      lbl::temperature::data{LineShapeModelType::T1, Vector{7.0, 8.0}};
+  line.ls.one_by_one = false;
+  line.ls.T0         = 300.0;
+  auto& mod          = line.ls.single_models["H2O"_spec];
+  mod.data[G0]       = {T0, Vector{6.0}};
+  mod.data[D0]       = {T1, Vector{7.0, 8.0}};
+  line.z.gu(6.0);
+  line.z.gl(7.0);
+  line.z.on = true;
 
-  l.z.gu(6.0);
-  l.z.gl(7.0);
-  l.z.on = true;
-
-  return l;
+  return line;
 }
 
-lbl::band_data get_lbl_band_data() {
-  lbl::band_data b{};
+AbsorptionBand get_lbl_band_data() {
+  AbsorptionBand b{};
 
   b.lines.emplace_back(get_lbl_line());
 
