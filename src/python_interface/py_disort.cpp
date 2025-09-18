@@ -110,7 +110,7 @@ for the matrix decomposition that's been ported and optimized in C++.
 .. warning::
 
     The internals of this implementation calls LAPACK routines.  Please
-    ensure that you LAPACK installation is either single threaded or uses
+    ensure that your LAPACK installation is either single threaded or uses
     OpenMP.  Mixing multiple threading implementations will lead to
     significant slowdowns (or a complete stall of the program).
 
