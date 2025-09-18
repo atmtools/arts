@@ -300,8 +300,13 @@ Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 template <>
 struct std::hash<lbl::line_key> {
   Size operator()(const lbl::line_key& x) const {
-    return (std::hash<QuantumIdentifier>{}(x.band) << 32) ^
-           std::hash<Size>{}(x.line) ^ std::hash<SpeciesEnum>{}(x.spec);
+    std::size_t seed = 0;
+
+    boost::hash_combine(seed, std::hash<QuantumIdentifier>{}(x.band));
+    boost::hash_combine(seed, std::hash<Size>{}(x.line));
+    boost::hash_combine(seed, std::hash<SpeciesEnum>{}(x.spec));
+
+    return seed;
   }
 };
 

@@ -5,6 +5,7 @@
 #include <isotopologues.h>
 #include <mystring.h>
 
+#include <boost/container_hash/hash.hpp>
 #include <set>
 
 namespace Species {
@@ -163,9 +164,13 @@ namespace std {
 template <>
 struct hash<SpeciesTag> {
   std::size_t operator()(const SpeciesTag& g) const {
-    return std::hash<Index>{}(g.spec_ind) ^
-           (std::hash<SpeciesTagType>{}(g.type) << 20) ^
-           (std::hash<SpeciesEnum>{}(g.cia_2nd_species) << 24);
+    std::size_t seed = 0;
+
+    boost::hash_combine(seed, std::hash<Index>{}(g.spec_ind));
+    boost::hash_combine(seed, std::hash<SpeciesTagType>{}(g.type));
+    boost::hash_combine(seed, std::hash<SpeciesEnum>{}(g.cia_2nd_species));
+
+    return seed;
   }
 };
 

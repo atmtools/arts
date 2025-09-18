@@ -6,6 +6,7 @@
 #include <rational.h>
 #include <xml.h>
 
+#include <boost/container_hash/hash.hpp>
 #include <concepts>
 #include <unordered_map>
 #include <utility>
@@ -244,13 +245,93 @@ using ArrayOfQuantumIdentifier      = Array<QuantumIdentifier>;
 using ArrayOfQuantumLevelIdentifier = Array<QuantumLevelIdentifier>;
 
 template <>
+struct std::hash<Quantum::Value> {
+  std::size_t operator()(const Quantum::Value& g) const {
+    if (auto* ptr = std::get_if<String>(&g.value))
+      return std::hash<String>{}(*ptr);
+    if (auto* ptr = std::get_if<Rational>(&g.value)) {
+      std::size_t seed{};
+
+      boost::hash_combine(seed, ptr->numer);
+      boost::hash_combine(seed, ptr->denom);
+
+      return seed;
+    }
+    return 0;
+  }
+};
+
+template <>
+struct std::hash<Quantum::UpperLower> {
+  std::size_t operator()(const Quantum::UpperLower& g) const {
+    std::size_t seed{};
+
+    boost::hash_combine(seed, std::hash<Quantum::Value>{}(g.upper));
+    boost::hash_combine(seed, std::hash<Quantum::Value>{}(g.lower));
+
+    return seed;
+  }
+};
+
+template <>
+struct std::hash<QuantumLevel> {
+  std::size_t operator()(const QuantumLevel& g) const {
+    std::size_t seed{};
+
+    // Has to be ordered or it will affect the hash
+    for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
+      if (auto iter = g.find(qns); iter != g.end()) {
+        boost::hash_combine(seed, iter->first);
+        boost::hash_combine(seed, std::hash<Quantum::Value>{}(iter->second));
+      }
+    }
+
+    return seed;
+  }
+};
+
+template <>
+struct std::hash<QuantumState> {
+  std::size_t operator()(const QuantumState& g) const {
+    std::size_t seed{};
+
+    // Has to be ordered or it will affect the hash
+    for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
+      if (auto iter = g.find(qns); iter != g.end()) {
+        boost::hash_combine(seed, iter->first);
+        boost::hash_combine(seed,
+                            std::hash<Quantum::UpperLower>{}(iter->second));
+      }
+    }
+
+    return seed;
+  }
+};
+
+template <>
 struct std::hash<QuantumLevelIdentifier> {
-  std::size_t operator()(const QuantumLevelIdentifier& g) const;
+  std::size_t operator()(const QuantumLevelIdentifier& g) const {
+    std::size_t seed{};
+
+    boost::hash_combine(seed, g.isot.spec);
+    boost::hash_combine(seed, g.isot.isotname);
+    boost::hash_combine(seed, std::hash<QuantumLevel>{}(g.state));
+
+    return seed;
+  }
 };
 
 template <>
 struct std::hash<QuantumIdentifier> {
-  std::size_t operator()(const QuantumIdentifier& g) const;
+  std::size_t operator()(const QuantumIdentifier& g) const {
+    std::size_t seed{};
+
+    boost::hash_combine(seed, g.isot.spec);
+    boost::hash_combine(seed, g.isot.isotname);
+    boost::hash_combine(seed, std::hash<QuantumState>{}(g.state));
+
+    return seed;
+  }
 };
 
 template <>

@@ -383,6 +383,7 @@ std::string metric_unit_x1(const Numeric x,
             return std::format(
                 "{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
         }
+        break;
       case ETA: return std::format("{}", x);
       case DV:
         switch (t) {
@@ -400,6 +401,7 @@ std::string metric_unit_x1(const Numeric x,
             return std::format(
                 "{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
         }
+        break;
       case G:
         switch (t) {
           case T0:
@@ -416,6 +418,7 @@ std::string metric_unit_x1(const Numeric x,
             return std::format(
                 "{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
         }
+        break;
       case Y:
         switch (t) {
           case T0:
