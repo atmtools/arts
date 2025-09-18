@@ -79,3 +79,4 @@ ax.semilogy(
 f, s = pyarts.plots.AtmField.plot(
     ws.atmospheric_field, alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
 )
+f.suptitle("Atmospheric field")
