@@ -94,7 +94,7 @@ a from scratch reimplementation of DISORT in Python.  The interface here is
 mostly mimicking the Pythonic-DISORT interface, with some exceptions to
 improve performance and usability.
 
-The two main differences are that we use a custon Legendre-Gauss quadrature
+The two main differences are that we use a custom Legendre-Gauss quadrature
 implementation, that we use the BandMatrix LAPACK solver for the left-hand
 side of the linear system, and that we use a pure real eigenvalue solver
 for the matrix decomposition that's been ported and optimized in C++.
