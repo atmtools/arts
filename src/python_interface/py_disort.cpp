@@ -4,7 +4,9 @@
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
+#include <pydocs.h>
 
+#include <concepts>
 #include <optional>
 
 #include "configtypes.h"
@@ -80,7 +82,46 @@ void py_disort(py::module_& m) try {
   generic_interface(vecs);
 
   py::class_<disort::main_data> x(m, "cppdisort");
-  x.doc() = "A DISORT object";
+  x.doc() = unwrap_stars(R"(A DISORT object.
+
+This offers a low level interface to the DISORT solver.  See *DisortSettings*
+for a higher level interface.  Especially, see the workspace variables for the
+type as the workspace methods that operate on them explains the interface on a
+higher level.
+
+The implementation is based on the Pythonic-DISORT implementation, which is
+a from scratch reimplementation of DISORT in Python.  The interface here is
+mostly mimicking the Pythonic-DISORT interface, with some exceptions to
+improve performance and usability.
+
+The two main differences are that we use a custom Legendre-Gauss quadrature
+implementation, that we use the BandMatrix LAPACK solver for the left-hand
+side of the linear system, and that we use a pure real eigenvalue solver
+for the matrix decomposition that's been ported and optimized in C++.
+
+.. warning::
+
+    The DISORT implementation is still being tested.  Initial results look
+    promising, but please report any issues you find.  Initial tests show
+    that the implementation is about 6x faster than CDISORT.  We do not
+    have numbers on the performance compared to Pythonic-DISORT because
+    Pythonic-DISORT is not optimized for speed.
+
+.. warning::
+
+    The internals of this implementation calls LAPACK routines.  Please
+    ensure that your LAPACK installation is either single threaded or uses
+    OpenMP.  Mixing multiple threading implementations will lead to
+    significant slowdowns (or a complete stall of the program).
+
+The relevant references are:
+
+- Pythonic-DISORT: :cite:t:`Ho2024`
+- Original DISORT: :cite:t:`Stamnes88`
+- Legendre-Gauss quadrature: :cite:t:`Bogaert2014`
+- BandMatrix solver: :cite:t:`Barrett1994`
+- Real eigenvalue solver (original sources, the executed code is ported to C++): :cite:t:`buras2011`, :cite:t:`Dongarra1984`, :cite:t:`Parlett1969`, :cite:t:`Mitchell1967`
+)");
   x.def(
       "__init__",
       [](disort::main_data* n,
