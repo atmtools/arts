@@ -5,6 +5,7 @@
 
 #include <ranges>
 #include <unordered_map>
+#include <utility>
 
 #include "enumsSpeciesEnum.h"
 #include "lbl_temperature_model.h"
@@ -87,7 +88,7 @@ VARIABLE(X3);
   Numeric model::mod(const AtmPoint& atm) const {                         \
     Numeric vmr = 0.0;                                                    \
     Numeric res = 0.0;                                                    \
-    Numeric bth = -1.0;                                                   \
+    Numeric bth = NAN;                                                    \
                                                                           \
     for (auto& [s, m] : single_models) {                                  \
       const Numeric this_res = m.mod(T0, atm.temperature, atm.pressure);  \
@@ -100,7 +101,7 @@ VARIABLE(X3);
       }                                                                   \
     }                                                                     \
                                                                           \
-    if (bth >= 0) return res + (1.0 - vmr) * bth;                         \
+    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;           \
                                                                           \
     return res / vmr;                                                     \
   }                                                                       \
@@ -144,7 +145,7 @@ VARIABLE(DV);
   Numeric model::d##mod##_d##deriv(const AtmPoint& atm) const {   \
     Numeric vmr = 0.0;                                            \
     Numeric res = 0.0;                                            \
-    Numeric bth = -1.0;                                           \
+    Numeric bth = NAN;                                            \
                                                                   \
     for (auto& [s, m] : single_models) {                          \
       const Numeric this_res =                                    \
@@ -158,7 +159,7 @@ VARIABLE(DV);
       }                                                           \
     }                                                             \
                                                                   \
-    if (bth >= 0.0) return res + (1.0 - vmr) * bth;               \
+    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;   \
                                                                   \
     return res / vmr;                                             \
   }
@@ -245,7 +246,7 @@ VARIABLE(X3);
       case LineShapeModelCoefficient::X2: return d##name##_dX2(atm, spec); \
       case LineShapeModelCoefficient::X3: return d##name##_dX3(atm, spec); \
     }                                                                      \
-    return 0.0;                                                            \
+    std::unreachable();                                                    \
   }                                                                        \
   Numeric species_model::d##name##_dX(                                     \
       Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)   \
@@ -256,7 +257,7 @@ VARIABLE(X3);
       case LineShapeModelCoefficient::X2: return d##name##_dX2(T0, T, P);  \
       case LineShapeModelCoefficient::X3: return d##name##_dX3(T0, T, P);  \
     }                                                                      \
-    return 0.0;                                                            \
+    std::unreachable();                                                    \
   }
 
 VARIABLE(G0);
