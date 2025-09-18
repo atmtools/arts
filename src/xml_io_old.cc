@@ -13,7 +13,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
   // Default data and values for this type
   ArtscatMeta output{};
   output.data.ls.one_by_one = false;
-  output.data.ls.single_models.resize(2);
+  output.data.ls.single_models.reserve(2);
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -133,15 +133,17 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
       }
 
       // Set line shape computer
-      output.data.ls.single_models[0].species = isotopologue.spec;
-      output.data.ls.single_models[0].data[LineShapeModelVariable::G0] =
+      output.data.ls.single_models[isotopologue.spec]
+          .data[LineShapeModelVariable::G0] =
           lbl::temperature::data{LineShapeModelType::T1, Vector{sgam, nair}};
-      output.data.ls.single_models[0].data[LineShapeModelVariable::D0] =
+      output.data.ls.single_models[isotopologue.spec]
+          .data[LineShapeModelVariable::D0] =
           lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
-      output.data.ls.single_models[1].species = SpeciesEnum::Bath;
-      output.data.ls.single_models[1].data[LineShapeModelVariable::G0] =
+      output.data.ls.single_models[SpeciesEnum::Bath]
+          .data[LineShapeModelVariable::G0] =
           lbl::temperature::data{LineShapeModelType::T1, Vector{agam, nair}};
-      output.data.ls.single_models[1].data[LineShapeModelVariable::D0] =
+      output.data.ls.single_models[SpeciesEnum::Bath]
+          .data[LineShapeModelVariable::D0] =
           lbl::temperature::data{LineShapeModelType::T5, Vector{psf, nair}};
 
       if (not(output.data.gu > 0.0)) output.data.gu = 1.;
@@ -168,55 +170,46 @@ The error is:
 }
 
 lbl::line_shape::model from_artscat4(std::istream& is,
-                                     const Numeric T0,
+                                     const Numeric T0_,
                                      const QuantumIdentifier& qid) {
+  using enum LineShapeModelVariable;
+  using enum LineShapeModelType;
+  using enum LineShapeModelCoefficient;
+
   lbl::line_shape::model out;
   out.one_by_one = false;
-  out.T0         = T0;
-  out.single_models.resize(7);
+  out.T0         = T0_;
+  out.single_models.reserve(7);
 
-  out.single_models[0].species = qid.isot.spec;
-  out.single_models[1].species = to<SpeciesEnum>("N2");
-  out.single_models[2].species = to<SpeciesEnum>("O2");
-  out.single_models[3].species = to<SpeciesEnum>("H2O");
-  out.single_models[4].species = to<SpeciesEnum>("CO2");
-  out.single_models[5].species = to<SpeciesEnum>("H2");
-  out.single_models[6].species = to<SpeciesEnum>("He");
+  const std::array<SpeciesEnum, 7> species = {qid.isot.spec,
+                                              to<SpeciesEnum>("N2"),
+                                              to<SpeciesEnum>("O2"),
+                                              to<SpeciesEnum>("H2O"),
+                                              to<SpeciesEnum>("CO2"),
+                                              to<SpeciesEnum>("H2"),
+                                              to<SpeciesEnum>("He")};
 
-  for (auto& v : out.single_models) {
-    v.data[LineShapeModelVariable::G0] =
-        lbl::temperature::data{LineShapeModelType::T1, Vector{0, 0}};
-    v.data[LineShapeModelVariable::D0] =
-        lbl::temperature::data{LineShapeModelType::T5, Vector{0, 0}};
+  for (auto& spec : species) {
+    out.single_models[spec].data[G0] = lbl::temperature::data{T1, Vector{0, 0}};
+    out.single_models[spec].data[D0] = lbl::temperature::data{T5, Vector{0, 0}};
   }
 
   // G0 main coefficient
-  for (auto& v : out.single_models) {
-    is >> double_imanip() >>
-        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X0);
+  for (auto& spec : species) {
+    is >> double_imanip() >> out.single_models[spec].data[G0].X(X0);
   };
 
   // G0 exponent is same as D0 exponent
-  for (auto& v : out.single_models) {
-    is >> double_imanip() >>
-        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X1);
-    v.data[LineShapeModelVariable::D0].X(LineShapeModelCoefficient::X1) =
-        v.data[LineShapeModelVariable::G0].X(LineShapeModelCoefficient::X1);
+  for (auto& spec : species) {
+    is >> double_imanip() >> out.single_models[spec].data[G0].X(X1);
+    out.single_models[spec].data[D0].X(X1) =
+        out.single_models[spec].data[G0].X(X1);
   };
 
   // D0 coefficient
-  out.single_models.front().data[LineShapeModelVariable::D0].X(
-      LineShapeModelCoefficient::X0) = 0;
-  for (auto& v : out.single_models | stdv::drop(1)) {
-    is >> double_imanip() >>
-        v.data[LineShapeModelVariable::D0].X(LineShapeModelCoefficient::X0);
-  }
-
-  // Remove duplicate species
-  if (std::get<0>(stdr::unique(
-          out.single_models, {}, &lbl::line_shape::species_model::species)) !=
-      stdr::end(out.single_models)) {
-    out.single_models.pop_back();
+  out.single_models[species[0]].data[D0].X(X0) = 0;
+  for (auto& spec : species | stdv::drop(1)) {
+    is >> double_imanip() >> out.single_models[spec].data[D0].X(X0);
   }
 
   return out;

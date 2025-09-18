@@ -30,6 +30,9 @@
 #include <span>
 #include <unordered_map>
 
+#include "compare.h"
+#include "species.h"
+
 namespace {
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
                                                       const Index n) {
@@ -497,11 +500,10 @@ void absorption_bandsLineMixingAdaptation(
         "Inconsistent line shape models - all lines must be consistently set to use one-by-one or not")
 
     ARTS_USER_ERROR_IF(
-        not std::ranges::equal(line.ls.single_models,
-                               orig_front_ls.single_models,
-                               [](const auto& lsl, const auto& lsr) {
-                                 return lsl.species == lsr.species;
-                               }),
+        stdr::any_of(line.ls.single_models | stdv::keys,
+                     [&other = orig_front_ls.single_models](SpeciesEnum x) {
+                       return not other.contains(x);
+                     }),
         "Inconsistent line shape models, all lines must have the same broadening species")
 
     line.ls.one_by_one = true;
@@ -537,12 +539,15 @@ void absorption_bandsLineMixingAdaptation(
   }
 
   for (auto& line : band.lines) {
-    for (auto& lsm : line.ls.single_models) {
+    for (auto& lsm : line.ls.single_models | stdv::values) {
       lsm.remove_variables<LineShapeModelVariable::Y,
                            LineShapeModelVariable::G,
                            LineShapeModelVariable::DV>();
     }
   }
+
+  const ArrayOfSpeciesEnum specs{
+      std::from_range, band.lines.front().ls.single_models | stdv::keys};
 
   ComplexTensor3 lbl_val(M, K, N);
   for (Size i = 0; i < M; i++) {
@@ -550,10 +555,10 @@ void absorption_bandsLineMixingAdaptation(
       for (Size k = 0; k < N; k++) {
         auto& line       = band.lines[k];
         lbl_val[i, j, k] = Complex{
-            line.f0 + line.ls.single_models[j].D0(line.ls.T0,
-                                                  temperatures[i],
-                                                  atmospheric_point.pressure),
-            line.ls.single_models[j].G0(
+            line.f0 +
+                line.ls.single_models.at(specs[j]).D0(
+                    line.ls.T0, temperatures[i], atmospheric_point.pressure),
+            line.ls.single_models.at(specs[j]).G0(
                 line.ls.T0, temperatures[i], atmospheric_point.pressure)};
       }
     }
@@ -587,7 +592,9 @@ void absorption_bandsLineMixingAdaptation(
             temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not yfit, "Cannot fit y for line {} of band {}", k, band_key)
-        band.lines[k].ls.single_models[j].data[LineShapeModelVariable::Y] =
+        band.lines[k]
+            .ls.single_models.at(specs[j])
+            .data[LineShapeModelVariable::Y] =
             lbl::temperature::data{LineShapeModelType::POLY, *yfit};
       }
 
@@ -596,14 +603,18 @@ void absorption_bandsLineMixingAdaptation(
             temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not gfit, "Cannot fit g for line {} of band {}", k, band_key)
-        band.lines[k].ls.single_models[j].data[LineShapeModelVariable::G] =
+        band.lines[k]
+            .ls.single_models.at(specs[j])
+            .data[LineShapeModelVariable::G] =
             lbl::temperature::data{LineShapeModelType::POLY, *gfit};
 
         auto dfit = polyfit(
             temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
         ARTS_USER_ERROR_IF(
             not dfit, "Cannot fit dv for line {} of band {}", k, band_key)
-        band.lines[k].ls.single_models[j].data[LineShapeModelVariable::DV] =
+        band.lines[k]
+            .ls.single_models.at(specs[j])
+            .data[LineShapeModelVariable::DV] =
             lbl::temperature::data{LineShapeModelType::POLY, *dfit};
       }
     }

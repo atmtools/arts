@@ -11,6 +11,7 @@
 #include <limits>
 #include <numeric>
 
+#include "enumsSpeciesEnum.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
 
@@ -143,21 +144,24 @@ Complex line_strength_calc(const Numeric inv_gd,
                            const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
-                           const Size ispec) {
-  const auto& ls   = line.ls.single_models[ispec];
+                           const SpeciesEnum ispec) {
+  const auto& ls   = line.ls.single_models.at(ispec);
   const Numeric T0 = line.ls.T0;
   const Numeric T  = atm.temperature;
   const Numeric P  = atm.pressure;
   const Numeric x  = atm[spec.spec];
   const Numeric r  = atm[spec];
-  const Numeric v  = ls.species == SpeciesEnum::Bath
-                         ? 1 - std::transform_reduce(
-                                  line.ls.single_models.begin(),
-                                  line.ls.single_models.end() - 1,
-                                  0.0,
-                                  std::plus<>{},
-                                  [&atm](auto& s) { return atm[s.species]; })
-                         : atm[ls.species];
+  const Numeric v =
+      ispec == SpeciesEnum::Bath
+          ? 1 - std::transform_reduce(
+                    line.ls.single_models.begin(),
+                    line.ls.single_models.end(),
+                    0.0,
+                    std::plus<>{},
+                    [&atm](auto& s) {
+                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
+                    })
+          : atm[ispec];
 
   const auto s = line.s(T, PartitionFunctions::Q(T, spec));
 
@@ -173,19 +177,21 @@ Complex dline_strength_calc_dG(const Numeric dG,
                                const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
-                               const Size ispec) {
-  const auto& ls  = line.ls.single_models[ispec];
+                               const SpeciesEnum ispec) {
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == SpeciesEnum::Bath
-                        ? 1 - std::transform_reduce(
-                                  line.ls.single_models.begin(),
-                                  line.ls.single_models.end() - 1,
-                                  0.0,
-                                  std::plus<>{},
-                                  [&atm](auto& s) { return atm[s.species]; })
-                        : atm[ls.species];
+  const Numeric v =
+      ispec == SpeciesEnum::Bath
+          ? 1 - std::transform_reduce(
+                    line.ls.single_models.begin(),
+                    line.ls.single_models.end(),
+                    0.0,
+                    std::plus<>{},
+                    [&atm](auto& s) {
+                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
+                    })
+          : atm[ispec];
 
   const auto s = line.s(T, PartitionFunctions::Q(T, spec));
 
@@ -199,19 +205,21 @@ Complex dline_strength_calc_dY(const Numeric dY,
                                const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
-                               const Size ispec) {
-  const auto& ls  = line.ls.single_models[ispec];
+                               const SpeciesEnum ispec) {
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == SpeciesEnum::Bath
-                        ? 1 - std::transform_reduce(
-                                  line.ls.single_models.begin(),
-                                  line.ls.single_models.end() - 1,
-                                  0.0,
-                                  std::plus<>{},
-                                  [&atm](auto& s) { return atm[s.species]; })
-                        : atm[ls.species];
+  const Numeric v =
+      ispec == SpeciesEnum::Bath
+          ? 1 - std::transform_reduce(
+                    line.ls.single_models.begin(),
+                    line.ls.single_models.end(),
+                    0.0,
+                    std::plus<>{},
+                    [&atm](auto& s) {
+                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
+                    })
+          : atm[ispec];
 
   const auto s = line.s(T, PartitionFunctions::Q(T, spec));
 
@@ -225,21 +233,24 @@ Complex dline_strength_calc_df0(const Numeric f0,
                                 const SpeciesIsotope& spec,
                                 const line& line,
                                 const AtmPoint& atm,
-                                const Size ispec) {
-  const auto& ls   = line.ls.single_models[ispec];
+                                const SpeciesEnum ispec) {
+  const auto& ls   = line.ls.single_models.at(ispec);
   const Numeric T0 = line.ls.T0;
   const Numeric T  = atm.temperature;
   const Numeric P  = atm.pressure;
   const Numeric x  = atm[spec.spec];
   const Numeric r  = atm[spec];
-  const Numeric v  = ls.species == SpeciesEnum::Bath
-                         ? 1 - std::transform_reduce(
-                                  line.ls.single_models.begin(),
-                                  line.ls.single_models.end() - 1,
-                                  0.0,
-                                  std::plus<>{},
-                                  [&atm](auto& s) { return atm[s.species]; })
-                         : atm[ls.species];
+  const Numeric v =
+      ispec == SpeciesEnum::Bath
+          ? 1 - std::transform_reduce(
+                    line.ls.single_models.begin(),
+                    line.ls.single_models.end(),
+                    0.0,
+                    std::plus<>{},
+                    [&atm](auto& s) {
+                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
+                    })
+          : atm[ispec];
   const auto s =
       line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
   const auto ds = line.ds_df0_s_ratio() * s;
@@ -256,21 +267,24 @@ Complex dline_strength_calc_dT(const Numeric f0,
                                const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
-                               const Size ispec) {
-  const auto& ls   = line.ls.single_models[ispec];
+                               const SpeciesEnum ispec) {
+  const auto& ls   = line.ls.single_models.at(ispec);
   const Numeric T0 = line.ls.T0;
   const Numeric T  = atm.temperature;
   const Numeric P  = atm.pressure;
   const Numeric x  = atm[spec.spec];
   const Numeric r  = atm[spec];
-  const Numeric v  = ls.species == SpeciesEnum::Bath
-                         ? 1 - std::transform_reduce(
-                                  line.ls.single_models.begin(),
-                                  line.ls.single_models.end() - 1,
-                                  0.0,
-                                  std::plus<>{},
-                                  [&atm](auto& s) { return atm[s.species]; })
-                         : atm[ls.species];
+  const Numeric v =
+      ispec == SpeciesEnum::Bath
+          ? 1 - std::transform_reduce(
+                    line.ls.single_models.begin(),
+                    line.ls.single_models.end(),
+                    0.0,
+                    std::plus<>{},
+                    [&atm](auto& s) {
+                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
+                    })
+          : atm[ispec];
 
   const auto s  = line.s(T, PartitionFunctions::Q(T, spec));
   const auto ds = line.ds_dT(
@@ -307,30 +321,13 @@ Numeric dline_center_calc_dVMR(const line& line,
   return line.ls.dD0_dVMR(atm, spec) + line.ls.dDV_dVMR(atm, spec);
 }
 
-Numeric line_center_calc(const line& line, const AtmPoint& atm, Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+Numeric line_center_calc(const line& line,
+                         const AtmPoint& atm,
+                         SpeciesEnum ispec) {
+  const auto& ls = line.ls.single_models.at(ispec);
   return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure) +
          ls.DV(line.ls.T0, atm.temperature, atm.pressure);
 }
-
-// Numeric dline_center_calc_dT(const line& line,
-//                              const AtmPoint& atm,
-//                              Size ispec) {
-//   const auto& ls = line.ls.single_models[ispec];
-//   return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure) +
-//          ls.dDV_dT(line.ls.T0, atm.temperature, atm.pressure);
-// }
-
-// Numeric dline_center_calc_dVMR(const line& line,
-//                                const SpeciesEnum spec,
-//                                const AtmPoint& atm,
-//                                Size ispec) {
-//   const auto& ls = line.ls.single_models[ispec];
-//   return ls.species == spec
-//              ? ls.D0(line.ls.T0, atm.temperature, atm.pressure) +
-//                    ls.DV(line.ls.T0, atm.temperature, atm.pressure)
-//              : 0;
-// }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
   constexpr auto c = Constant::doppler_broadening_const_squared;
@@ -345,7 +342,7 @@ struct single_shape_builder {
   Numeric f0;
   Numeric scaled_gd_part;
   Numeric G0;
-  Size ispec{std::numeric_limits<Size>::max()};
+  SpeciesEnum ispec{SpeciesEnum::unused};
 
   single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
@@ -361,14 +358,15 @@ struct single_shape_builder {
   single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
                        const AtmPoint& a,
-                       const Size is)
+                       const SpeciesEnum is)
       : spec(s),
         ln(l),
         atm(a),
         f0(line_center_calc(ln, atm, is)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / s.mass)),
-        G0(ln.ls.single_models[is].G0(ln.ls.T0, atm.temperature, atm.pressure)),
+        G0(ln.ls.single_models.at(is).G0(
+            ln.ls.T0, atm.temperature, atm.pressure)),
         ispec(is) {}
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
@@ -379,7 +377,7 @@ struct single_shape_builder {
     s.inv_gd = 1.0 / (scaled_gd_part * f0);
     s.z_imag = G0 * s.inv_gd;
     s.s      = ln.z.Strength(ln.qn, pol, iz) *
-          (ispec == std::numeric_limits<Size>::max()
+          (ispec == SpeciesEnum::unused
                ? line_strength_calc(s.inv_gd, spec, ln, atm)
                : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
     return s;
@@ -390,7 +388,7 @@ struct single_shape_builder {
     s.f0     = f0;
     s.inv_gd = 1.0 / (scaled_gd_part * f0);
     s.z_imag = G0 * s.inv_gd;
-    s.s      = (ispec == std::numeric_limits<Size>::max()
+    s.s      = (ispec == SpeciesEnum::unused
                     ? line_strength_calc(s.inv_gd, spec, ln, atm)
                     : line_strength_calc(s.inv_gd, spec, ln, atm, ispec));
     return s;
@@ -416,12 +414,12 @@ single_shape::single_shape(const SpeciesIsotope& spec,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
                            const Index iz,
-                           const Size ispec)
+                           const SpeciesEnum ispec)
     : f0(line_center_calc(line, atm, ispec) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
              line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, spec.mass, f0)),
-      z_imag(line.ls.single_models[ispec].G0(
+      z_imag(line.ls.single_models.at(ispec).G0(
                  line.ls.T0, atm.temperature, atm.pressure) *
              inv_gd),
       s(line.z.Strength(line.qn, pol, iz) *
@@ -545,7 +543,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
                       const line& line,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
-                      const Size ispec,
+                      const SpeciesEnum ispec,
                       const Size iline) {
   if (pol == zeeman::pol::no) {
     lines.emplace_back(s);
@@ -573,16 +571,16 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const zeeman::pol pol,
                      const Size iline) {
   if (line.ls.one_by_one) {
-    for (Size i = 0; i < line.ls.single_models.size(); ++i) {
+    for (auto& ispec : line.ls.single_models | stdv::keys) {
       if ((line.z.on and pol != zeeman::pol::no) or
           (not line.z.on and pol == zeeman::pol::no)) {
         zeeman_push_back(lines,
                          pos,
-                         single_shape_builder{spec, line, atm, i},
+                         single_shape_builder{spec, line, atm, ispec},
                          line,
                          atm,
                          pol,
-                         i,
+                         ispec,
                          iline);
       }
     }
@@ -595,7 +593,7 @@ void lines_push_back(std::vector<single_shape>& lines,
                        line,
                        atm,
                        pol,
-                       std::numeric_limits<Size>::max(),
+                       SpeciesEnum::unused,
                        iline);
     }
   }
@@ -1219,7 +1217,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       dz_fac[i] =
           (-2 * T * line.ls.dD0_dT(atm) - 2 * T * line.ls.dDV_dT(atm) - f0) /
           (2 * T * f0);
@@ -1230,7 +1228,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
       dz[i] = inv_gd *
               Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
     } else {
-      const auto& ls = line.ls.single_models[pos[i].spec];
+      const auto& ls = line.ls.single_models.at(pos[i].spec);
 
       dz_fac[i] = (-2 * T * ls.dD0_dT(line.ls.T0, T, atm.pressure) -
                    2 * T * ls.dDV_dT(line.ls.T0, T, atm.pressure) - f0) /
@@ -1392,7 +1390,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       dz_fac[i] = -(line.ls.dD0_dVMR(atm, target_spec) +
                     line.ls.dDV_dVMR(atm, target_spec)) /
                   f0;
@@ -1404,19 +1402,23 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
       dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
                                line.ls.dG0_dVMR(atm, target_spec)};
     } else {
-      const auto ls_spec = line.ls.single_models[pos[i].spec].species;
+      const auto ls_spec = pos[i].spec;
 
       dz_fac[i] = 0;
 
       if (target_spec == ls_spec) {
         ds[i] = lshp.s * (1 + (target_spec == spec.spec)) / x;
       } else if (ls_spec == SpeciesEnum::Bath) {
-        const Numeric v = 1.0 - std::transform_reduce(
-                                    line.ls.single_models.begin(),
-                                    line.ls.single_models.end() - 1,
-                                    0.0,
-                                    std::plus<>{},
-                                    [&atm](auto& s) { return atm[s.species]; });
+        const Numeric v =
+            1.0 - std::transform_reduce(line.ls.single_models.begin(),
+                                        line.ls.single_models.end(),
+                                        0.0,
+                                        std::plus<>{},
+                                        [&atm](auto& s) {
+                                          return s.first == SpeciesEnum::Bath
+                                                     ? 0.0
+                                                     : atm[s.first];
+                                        });
         ds[i] = lshp.s * (v - x) / (x * v);
       } else {
         ds[i] = 0;
@@ -1450,8 +1452,7 @@ void ComputeData::set_filter(const line_key& key) {
   if (not good_enum(key.var)) {
     for (Size i = 0; i < pos.size(); i++) {
       if (pos[i].line == key.line and
-          (pos[i].spec == key.spec or
-           pos[i].spec == std::numeric_limits<Size>::max()))
+          (pos[i].spec == key.spec or pos[i].spec == SpeciesEnum::unused))
         filter.push_back(i);
     }
   } else {
@@ -1478,7 +1479,7 @@ void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       dz_fac[i] = -1.0 / f0;
 
       ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
@@ -1572,15 +1573,15 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
   for (Size i : filter) {
     const auto& ls = bnd.lines[pos[i].line].ls;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       dz[i] = Complex(
           0, shp.lines[i].inv_gd * ls.dG0_dX(atm, key.spec, key.ls_coeff));
     } else {
-      dz[i] =
-          Complex(0,
-                  shp.lines[i].inv_gd *
-                      ls.single_models[pos[i].spec].dG0_dX(
-                          ls.T0, atm.temperature, atm.pressure, key.ls_coeff));
+      dz[i] = Complex(
+          0,
+          shp.lines[i].inv_gd *
+              ls.single_models.at(pos[i].spec)
+                  .dG0_dX(ls.T0, atm.temperature, atm.pressure, key.ls_coeff));
     }
   }
 
@@ -1611,7 +1612,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       const Numeric d = ls.dD0_dX(atm, key.spec, key.ls_coeff);
 
       dz_fac[i] = -d / f0;
@@ -1620,8 +1621,9 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 
       dz[i] = -d * inv_gd;
     } else {
-      const Numeric d = ls.single_models[pos[i].spec].dD0_dX(
-          ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
+      const Numeric d =
+          ls.single_models.at(pos[i].spec)
+              .dD0_dX(ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
 
       dz_fac[i] = -d / f0;
 
@@ -1657,7 +1659,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
     const auto& line = bnd.lines[pos[i].line];
     const auto& lshp = shp.lines[i];
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
                                      lshp.inv_gd,
@@ -1665,15 +1667,17 @@ void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
                                      line,
                                      atm);
     } else {
-      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
-              dline_strength_calc_dY(
-                  line.ls.single_models[pos[i].spec].dY_dX(
+      ds[i] =
+          line.z.Strength(line.qn, pol, pos[i].iz) *
+          dline_strength_calc_dY(
+              line.ls.single_models.at(pos[i].spec)
+                  .dY_dX(
                       line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
-                  lshp.inv_gd,
-                  spec,
-                  line,
-                  atm,
-                  pos[i].spec);
+              lshp.inv_gd,
+              spec,
+              line,
+              atm,
+              pos[i].spec);
     }
   }
 
@@ -1703,7 +1707,7 @@ void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
     const auto& line = bnd.lines[pos[i].line];
     const auto& lshp = shp.lines[i];
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
               dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
                                      lshp.inv_gd,
@@ -1711,15 +1715,17 @@ void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
                                      line,
                                      atm);
     } else {
-      ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
-              dline_strength_calc_dG(
-                  line.ls.single_models[pos[i].spec].dG_dX(
+      ds[i] =
+          line.z.Strength(line.qn, pol, pos[i].iz) *
+          dline_strength_calc_dG(
+              line.ls.single_models.at(pos[i].spec)
+                  .dG_dX(
                       line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
-                  lshp.inv_gd,
-                  spec,
-                  line,
-                  atm,
-                  pos[i].spec);
+              lshp.inv_gd,
+              spec,
+              line,
+              atm,
+              pos[i].spec);
     }
   }
 
@@ -1752,7 +1758,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       const Numeric d = ls.dDV_dX(atm, key.spec, key.ls_coeff);
 
       dz_fac[i] = -d / f0;
@@ -1761,8 +1767,9 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
       dz[i] = -d * inv_gd;
     } else {
-      const Numeric d = ls.single_models[pos[i].spec].dDV_dX(
-          ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
+      const Numeric d =
+          ls.single_models.at(pos[i].spec)
+              .dDV_dX(ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
 
       dz_fac[i] = -d / f0;
 

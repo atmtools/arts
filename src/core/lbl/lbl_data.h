@@ -19,6 +19,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "enumsSpeciesEnum.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 
@@ -205,7 +206,7 @@ struct band_data {
 
 struct line_pos {
   Size line;
-  Size spec{std::numeric_limits<Size>::max()};
+  SpeciesEnum spec{SpeciesEnum::unused};
   Size iz{std::numeric_limits<Size>::max()};
 };
 
@@ -217,8 +218,8 @@ struct line_key {
   //! The line count within the band
   Size line{std::numeric_limits<Size>::max()};
 
-  //! The species index if (ls_var is not invalid)
-  Size spec{std::numeric_limits<Size>::max()};
+  //! The species (if ls_var is not invalid)
+  SpeciesEnum spec{SpeciesEnum::Bath};
 
   /* The variable to be used for the line shape derivative
 
@@ -300,7 +301,7 @@ template <>
 struct std::hash<lbl::line_key> {
   Size operator()(const lbl::line_key& x) const {
     return (std::hash<QuantumIdentifier>{}(x.band) << 32) ^
-           std::hash<Size>{}(x.line) ^ std::hash<Size>{}(x.spec);
+           std::hash<Size>{}(x.line) ^ std::hash<SpeciesEnum>{}(x.spec);
   }
 };
 

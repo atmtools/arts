@@ -128,6 +128,7 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
       deal_with_spec(rain);
       deal_with_spec(free_electrons);
       deal_with_spec(particles);
+      deal_with_spec(unused);
   }
 
 #undef deal_with_spec

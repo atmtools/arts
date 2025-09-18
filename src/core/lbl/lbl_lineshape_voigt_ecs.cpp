@@ -14,9 +14,11 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <ranges>
 #include <stdexcept>
 
 #include "lbl_lineshape_linemixing.h"
+#include "lbl_lineshape_model.h"
 #include "lbl_lineshape_voigt_ecs_hartmann.h"
 #include "lbl_lineshape_voigt_ecs_makarov.h"
 
@@ -117,6 +119,25 @@ void ComputeData::core_calc(const ConstVectorView& f_grid) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
+namespace {
+void get_vmrs(VectorView vmrs,
+              const line_shape::model::map_t& mod,
+              const AtmPoint& atm) {
+  std::transform(mod.begin(), mod.end(), vmrs.begin(), [&atm](auto& m) {
+    return m.first == SpeciesEnum::Bath ? 0.0 : atm[m.first];
+  });
+
+  const Size bath_spec =
+      std::distance(mod.begin(), mod.find(SpeciesEnum::Bath));
+
+  if (bath_spec != mod.size()) {
+    vmrs[bath_spec] = 1 - sum(vmrs);
+  } else {
+    vmrs /= sum(vmrs);
+  }
+}
+}  // namespace
+
 void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
                               const band_data& bnd,
                               const LinemixingSpeciesEcsData& rovib_data,
@@ -210,26 +231,25 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
                               std::logical_or<>(),
 
                               [](const auto& lsl, const auto& lsr) {
-                                return lsl.species == lsr.species;
+                                return lsl.first == lsr.first;
                               });
 
     ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
   }
 
-  for (Size i = 0; i < m; i++) {
-    const auto spec = bnd.front().ls.single_models[i].species;
+  get_vmrs(vmrs, bnd.front().ls.single_models, atm);
 
+  Size i = 0;
+  for (auto& spec : bnd.front().ls.single_models | stdv::keys) {
     const auto& rovib_data_it = rovib_data.find(spec);
     ARTS_USER_ERROR_IF(
         rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
-    vmrs[i] = spec == SpeciesEnum::Bath ? 1 - sum(vmrs) : atm[spec];
-
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models[i].G0(
+      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).G0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
-      Ws[i][k, k] = bnd.lines[sort[k]].ls.single_models[i].D0(
+      Ws[i][k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).D0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
@@ -244,6 +264,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     }
 
     Ws[i].imag() = Wimag;
+    i++;
   }
 
   for (Size i = 0; i < n; i++) {
@@ -342,25 +363,25 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
                               std::logical_or<>(),
 
                               [](const auto& lsl, const auto& lsr) {
-                                return lsl.species == lsr.species;
+                                return lsl.first == lsr.first;
                               });
 
     ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
   }
 
-  Numeric vmr = 0;
-  for (Size i = 0; i < bnd.front().ls.single_models.size(); i++) {
-    const auto spec = bnd.front().ls.single_models[i].species;
+  get_vmrs(vmrs, bnd.front().ls.single_models, atm);
 
+  Size i = 0;
+  for (auto& spec : bnd.front().ls.single_models | stdv::keys) {
     const auto& rovib_data_it = rovib_data.find(spec);
     ARTS_USER_ERROR_IF(
         rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
-    const Numeric this_vmr = spec == SpeciesEnum::Bath ? 1 - vmr : atm[spec];
+    const Numeric this_vmr = vmrs[i];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models[i].G0(
+      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).G0(
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
@@ -380,10 +401,8 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       }
     }
 
-    vmr += this_vmr;
+    i++;
   }
-
-  if (vmr != 1.0) Ws[0] /= vmr;
 
   for (Size i = 0; i < n; i++) {
     real_val(Ws[0][i, i]) =

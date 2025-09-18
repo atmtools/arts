@@ -179,20 +179,18 @@ line hitran_record::from(HitranLineStrengthOption ls,
   l.ls            = line_shape::model{};
   l.ls.T0         = 296.0;
   l.ls.one_by_one = false;
-  l.ls.single_models.resize(2);
+  l.ls.single_models.reserve(2);
 
-  l.ls.single_models[0].species = qid.isot.spec;
-  l.ls.single_models[0].data[LineShapeModelVariable::G0] =
+  l.ls.single_models[qid.isot.spec].data[LineShapeModelVariable::G0] =
       lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_self, n}};
 
-  l.ls.single_models[1].species = SpeciesEnum::Bath;
-  l.ls.single_models[1].data[LineShapeModelVariable::G0] =
+  l.ls.single_models[SpeciesEnum::Bath].data[LineShapeModelVariable::G0] =
       lbl::temperature::data{LineShapeModelType::T1, Vector{gamma_air, n}};
 
   if (delta != 0) {
-    l.ls.single_models[0].data[LineShapeModelVariable::D0] =
+    l.ls.single_models[qid.isot.spec].data[LineShapeModelVariable::D0] =
         lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
-    l.ls.single_models[1].data[LineShapeModelVariable::D0] =
+    l.ls.single_models[SpeciesEnum::Bath].data[LineShapeModelVariable::D0] =
         lbl::temperature::data{LineShapeModelType::T0, Vector{delta}};
   }
 

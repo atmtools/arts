@@ -647,6 +647,8 @@ inline constexpr std::array Isotopologues{
     deal_with_spec(free_electrons),
     deal_with_spec(particles),
     /** Model species **/
+    // Special, leave last - control-flow species
+    deal_with_spec(unused),
 };
 
 #undef deal_with_spec

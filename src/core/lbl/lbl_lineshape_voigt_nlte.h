@@ -44,7 +44,7 @@ struct single_shape {
                const AtmPoint&,
                const zeeman::pol,
                const Index,
-               const Size);
+               const SpeciesEnum);
 
   [[nodiscard]] constexpr Complex z(Numeric f) const {
     return Complex{inv_gd * (f - f0), z_imag};

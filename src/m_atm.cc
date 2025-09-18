@@ -112,7 +112,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 
     for (auto &line : value.lines) {
       for (auto &ls : line.ls.single_models) {
-        ++keys[ls.species];
+        ++keys[ls.first];
       }
     }
   }
