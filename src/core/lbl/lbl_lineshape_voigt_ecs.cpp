@@ -369,7 +369,8 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
   }
 
-  get_vmrs(vmrs, bnd.front().ls.single_models, atm);
+  Vector vmrs_v(bnd.front().ls.single_models.size());
+  get_vmrs(vmrs_v, bnd.front().ls.single_models, atm);
 
   Size i = 0;
   for (auto& spec : bnd.front().ls.single_models | stdv::keys) {
@@ -377,7 +378,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     ARTS_USER_ERROR_IF(
         rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
-    const Numeric this_vmr = vmrs[i];
+    const Numeric this_vmr = vmrs_v[i];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
