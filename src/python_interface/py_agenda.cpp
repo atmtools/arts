@@ -23,8 +23,6 @@
 #include "hpy_vector.h"
 #include "python_interface.h"
 
-NB_MAKE_OPAQUE(std::unordered_map<std::string, Wsv>);
-
 extern Parameters parameters;
 
 namespace Python {
@@ -187,7 +185,7 @@ allow_errors : bool, optional
 )");
   wsvmap.def(
       "write_split",
-      [](const std::unordered_map<std::string, Wsv>& map,
+      [](std::unordered_map<std::string, Wsv>& map,
          std::optional<std::string> basename,
          FileType ftype,
          bool clobber) {

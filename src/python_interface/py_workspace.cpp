@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "hpy_arts.h"
+#include "hpy_vector.h"
 #include "python_interface.h"
 #include "python_interface_value_type.h"
 
