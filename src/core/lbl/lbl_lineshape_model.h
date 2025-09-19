@@ -9,14 +9,12 @@
 
 #include <format>
 #include <iosfwd>
-#include <vector>
+#include <unordered_map>
 
 #include "lbl_temperature_model.h"
 
 namespace lbl::line_shape {
 struct species_model {
-  SpeciesEnum species{};
-
   using map_t = std::unordered_map<LineShapeModelVariable, temperature::data>;
   map_t data{};
 
@@ -116,7 +114,8 @@ struct model {
 
   Numeric T0{0};
 
-  std::vector<species_model> single_models{};
+  using map_t = std::unordered_map<SpeciesEnum, species_model>;
+  map_t single_models{};
 
   friend std::istream& operator>>(std::istream& is, model& x);
 
@@ -155,24 +154,25 @@ struct model {
 
 #undef DERIVATIVE
 
-#define DERIVATIVE(name)                                                   \
-  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm, const Size spec)  \
-      const;                                                               \
-  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm, const Size spec)  \
-      const;                                                               \
-  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm, const Size spec)  \
-      const;                                                               \
-  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm, const Size spec)  \
-      const;                                                               \
-  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm, const Size spec) \
-      const;                                                               \
-  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm, const Size spec) \
-      const;                                                               \
-  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm, const Size spec)   \
-      const;                                                               \
-  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm, const Size spec)   \
-      const;                                                               \
-  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm, const Size spec) const
+#define DERIVATIVE(name)                                            \
+  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm,            \
+                                    const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm,            \
+                                    const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm,            \
+                                    const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm,            \
+                                    const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm,           \
+                                     const SpeciesEnum spec) const; \
+  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm,           \
+                                     const SpeciesEnum spec) const; \
+  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm,             \
+                                   const SpeciesEnum spec) const;   \
+  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm,             \
+                                   const SpeciesEnum spec) const;   \
+  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm,            \
+                                    const SpeciesEnum spec) const
 
   DERIVATIVE(X0);
   DERIVATIVE(X1);
@@ -184,51 +184,48 @@ struct model {
 #undef DERIVATIVE
 
   [[nodiscard]] Numeric dG0_dX(const AtmPoint& atm,
-                               const Size spec,
+                               const SpeciesEnum spec,
                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD0_dX(const AtmPoint& atm,
-                               const Size spec,
+                               const SpeciesEnum spec,
                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG2_dX(const AtmPoint& atm,
-                               const Size spec,
+                               const SpeciesEnum spec,
                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dD2_dX(const AtmPoint& atm,
-                               const Size spec,
+                               const SpeciesEnum spec,
                                LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dETA_dX(const AtmPoint& atm,
-                                const Size spec,
+                                const SpeciesEnum spec,
                                 LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm,
-                                const Size spec,
+                                const SpeciesEnum spec,
                                 LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dY_dX(const AtmPoint& atm,
-                              const Size spec,
+                              const SpeciesEnum spec,
                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dG_dX(const AtmPoint& atm,
-                              const Size spec,
+                              const SpeciesEnum spec,
                               LineShapeModelCoefficient coeff) const;
 
   [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm,
-                               const Size spec,
+                               const SpeciesEnum spec,
                                LineShapeModelCoefficient coeff) const;
 
   //! Remove all line shape variables that evaluate unconditionally to 0
   void clear_zeroes();
 };
 
-std::istream& operator>>(std::istream& is, std::vector<species_model>& x);
+std::istream& operator>>(std::istream& is,
+                         std::unordered_map<SpeciesEnum, species_model>& x);
 }  // namespace lbl::line_shape
-
-std::istream& operator>>(
-    std::istream& is,
-    std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
 
 template <>
 struct std::formatter<lbl::line_shape::species_model> {
@@ -246,12 +243,12 @@ struct std::formatter<lbl::line_shape::species_model> {
   FmtContext::iterator format(const lbl::line_shape::species_model& v,
                               FmtContext& ctx) const {
     if (tags.help) {
-      tags.format(ctx, "Species: "sv, v.species, "; Data: "sv, v.data);
+      tags.format(ctx, "Data: "sv, v.data);
     } else if (tags.io) {
-      tags.format(ctx, v.species, ' ', v.data.size(), ' ', v.data);
+      tags.format(ctx, v.data.size(), ' ', v.data);
     } else {
       tags.add_if_bracket(ctx, '[');
-      tags.format(ctx, v.species, tags.sep(), v.data);
+      tags.format(ctx, v.data);
       tags.add_if_bracket(ctx, ']');
     }
 
@@ -305,5 +302,6 @@ struct std::formatter<lbl::line_shape::model> {
 };
 
 template <>
-std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_t>(
+std::optional<std::string>
+to_helper_string<lbl::line_shape::species_model::map_t>(
     const lbl::line_shape::species_model::map_t&);

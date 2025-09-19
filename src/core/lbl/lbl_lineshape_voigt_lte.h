@@ -43,7 +43,7 @@ struct single_shape {
                const AtmPoint&,
                const zeeman::pol,
                const Index,
-               const Size);
+               const SpeciesEnum);
 
   [[nodiscard]] constexpr Complex z(Numeric f) const {
     return Complex{inv_gd * (f - f0), z_imag};
@@ -254,8 +254,7 @@ struct band_shape {
                            const ConstComplexVectorView& dz_dH,
                            const Numeric f) const;
 
-  void dH(ComplexVectorView cut,
-          const ConstComplexVectorView& df0_dH) const;
+  void dH(ComplexVectorView cut, const ConstComplexVectorView& df0_dH) const;
 
   [[nodiscard]] Complex dT(const ConstComplexVectorView& cut,
                            const ConstComplexVectorView& ds_dT,
@@ -371,8 +370,8 @@ struct ComputeData {
 
   Size filtered_line{std::numeric_limits<
       Size>::max()};  //! filter is for this and filtered_spec
-  Size filtered_spec{std::numeric_limits<
-      Size>::max()};  //! filter is for this and filtered_spec
+  SpeciesEnum filtered_spec{
+      SpeciesEnum::unused};  //! filter is for this and filtered_spec
   std::vector<Size>
       filter;  //! Filter for line parameters; resized all the time but reserves size of line shapes
 

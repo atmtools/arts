@@ -6,6 +6,7 @@
 #include <xml.h>
 
 #include <algorithm>
+#include <boost/container_hash/hash.hpp>
 #include <string_view>
 
 #include "mystring.h"
@@ -31,8 +32,10 @@ namespace std {
 template <>
 struct hash<ScatteringSpeciesProperty> {
   std::size_t operator()(const ScatteringSpeciesProperty& ssp) const {
-    return std::hash<String>{}(ssp.species_name +
-                               std::string(toString(ssp.pproperty)));
+    std::size_t seed = 0;
+    boost::hash_combine(seed, ssp.species_name);
+    boost::hash_combine(seed, ssp.pproperty);
+    return seed;
   }
 };
 }  // namespace std

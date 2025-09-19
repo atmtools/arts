@@ -84,7 +84,7 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
                                                    const QuantumIdentifier& qid,
                                                    const line& line,
                                                    const AtmPoint& atm,
-                                                   const Size ispec) {
+                                                   const SpeciesEnum ispec) {
   using Constant::h, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
@@ -99,7 +99,7 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
   const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
   const Numeric dinv_b = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
 
-  const auto& ls    = line.ls.single_models[ispec];
+  const auto& ls    = line.ls.single_models.at(ispec);
   const Numeric T0  = line.ls.T0;
   const Numeric P   = atm.pressure;
   const Numeric dD0 = ls.dD0_dT(T0, T, P);
@@ -129,26 +129,12 @@ Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
 //   return line.ls.dD0_dVMR(atm, spec);
 // }
 
-Numeric line_center_calc(const line& line, const AtmPoint& atm, Size ispec) {
-  const auto& ls = line.ls.single_models[ispec];
+Numeric line_center_calc(const line& line,
+                         const AtmPoint& atm,
+                         SpeciesEnum ispec) {
+  const auto& ls = line.ls.single_models.at(ispec);
   return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure);
 }
-
-// Numeric dline_center_calc_dT(const line& line,
-//                              const AtmPoint& atm,
-//                              Size ispec) {
-//   const auto& ls = line.ls.single_models[ispec];
-//   return ls.dD0_dT(line.ls.T0, atm.temperature, atm.pressure);
-// }
-//
-// Numeric dline_center_calc_dVMR(const line& line,
-//                                const SpeciesEnum spec,
-//                                const AtmPoint& atm,
-//                                Size ispec) {
-//   const auto& ls = line.ls.single_models[ispec];
-//   return ls.species == spec ? ls.D0(line.ls.T0, atm.temperature, atm.pressure)
-//                             : 0;
-// }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
   constexpr auto c = Constant::doppler_broadening_const_squared;
@@ -163,7 +149,7 @@ struct single_shape_builder {
   Numeric f0;
   Numeric scaled_gd_part;
   Numeric G0;
-  Size ispec{std::numeric_limits<Size>::max()};
+  SpeciesEnum ispec{SpeciesEnum::unused};
 
   single_shape_builder(const QuantumIdentifier& id,
                        const line& l,
@@ -179,14 +165,15 @@ struct single_shape_builder {
   single_shape_builder(const QuantumIdentifier& id,
                        const line& l,
                        const AtmPoint& a,
-                       const Size is)
+                       const SpeciesEnum is)
       : qid(id),
         ln(l),
         atm(a),
         f0(line_center_calc(ln, atm, is)),
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / id.isot.mass)),
-        G0(ln.ls.single_models[is].G0(ln.ls.T0, atm.temperature, atm.pressure)),
+        G0(ln.ls.single_models.at(is).G0(
+            ln.ls.T0, atm.temperature, atm.pressure)),
         ispec(is) {}
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
@@ -235,12 +222,12 @@ single_shape::single_shape(const QuantumIdentifier& qid,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
                            const Index iz,
-                           const Size ispec)
+                           const SpeciesEnum ispec)
     : f0(line_center_calc(line, atm, ispec) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
              line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
-      z_imag(line.ls.single_models[ispec].G0(
+      z_imag(line.ls.single_models.at(ispec).G0(
                  line.ls.T0, atm.temperature, atm.pressure) *
              inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
@@ -371,7 +358,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
                       const line& line,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
-                      const Size ispec,
+                      const SpeciesEnum ispec,
                       const Size iline) {
   if (pol == zeeman::pol::no) {
     lines.emplace_back(s);
@@ -399,16 +386,16 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const zeeman::pol pol,
                      const Size iline) {
   if (line.ls.one_by_one) {
-    for (Size i = 0; i < line.ls.single_models.size(); ++i) {
+    for (auto& ispec : line.ls.single_models | stdv::keys) {
       if ((line.z.on and pol != zeeman::pol::no) or
           (not line.z.on and pol == zeeman::pol::no)) {
         zeeman_push_back(lines,
                          pos,
-                         single_shape_builder{qid, line, atm, i},
+                         single_shape_builder{qid, line, atm, ispec},
                          line,
                          atm,
                          pol,
-                         i,
+                         ispec,
                          iline);
       }
     }
@@ -421,7 +408,7 @@ void lines_push_back(std::vector<single_shape>& lines,
                        line,
                        atm,
                        pol,
-                       std::numeric_limits<Size>::max(),
+                       SpeciesEnum::unused,
                        iline);
     }
   }
@@ -706,7 +693,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+    if (pos[i].spec == SpeciesEnum::unused) {
       dz_fac[i] = (-2 * T * line.ls.dD0_dT(atm) - f0) / (2 * T * f0);
 
       const auto [dkp, dep] =
@@ -717,7 +704,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
       dz[i] = inv_gd *
               Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
     } else {
-      const auto& ls = line.ls.single_models[pos[i].spec];
+      const auto& ls = line.ls.single_models.at(pos[i].spec);
 
       dz_fac[i] =
           (-2 * T * ls.dD0_dT(line.ls.T0, T, atm.pressure) - f0) / (2 * T * f0);

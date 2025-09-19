@@ -22,6 +22,8 @@
 #include "jacobian_names.h"
 #include "xml_io_stream_functional.h"
 
+#include <boost/container_hash/hash.hpp>
+
 struct ErrorKey {
   Size y_start;
 
@@ -35,7 +37,10 @@ struct ErrorKey {
 template <>
 struct std::hash<ErrorKey> {
   std::size_t operator()(const ErrorKey& g) const {
-    return std::hash<Size>{}(g.y_start) ^ (std::hash<Size>{}(g.y_size) << 32);
+    std::size_t seed = 0;
+    boost::hash_combine(seed, g.y_start);
+    boost::hash_combine(seed, g.y_size);
+    return seed;
   }
 };
 

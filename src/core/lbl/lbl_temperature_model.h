@@ -14,15 +14,19 @@ inline constexpr std::size_t LineShapeModelTypeSize = 9;
 //! The number of parameters per model type (max() means and arbitrary number)
 constexpr Size model_size(LineShapeModelType type) {
   switch (type) {
-    case LineShapeModelType::T0:   return 1;
-    case LineShapeModelType::T1:   return 2;
-    case LineShapeModelType::T2:   return 3;
-    case LineShapeModelType::T3:   return 2;
-    case LineShapeModelType::T4:   return 3;
-    case LineShapeModelType::T5:   return 2;
-    case LineShapeModelType::AER:  return 4;
-    case LineShapeModelType::DPL:  return 4;
-    case LineShapeModelType::POLY: return std::numeric_limits<Size>::max();
+    using enum LineShapeModelType;
+    case T0:  return 1;
+    case T1:  return 2;
+    case T2:  return 3;
+    case T3:  return 2;
+    case T4:  return 3;
+    case T5:  return 2;
+    case AER: return 4;
+    case DPL: return 4;
+    case POLY:
+      return std::numeric_limits<Size>::max();
+      // Please also fix the static_assert further down if you encounter this
+      // because you added a new model type
   }
   std::unreachable();
 }
@@ -178,50 +182,56 @@ class data {
   data(LineShapeModelType type = LineShapeModelType::T0, Vector X = {0.0});
 
   template <LineShapeModelType mod>
-  [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
+  [[nodiscard]] constexpr Numeric operator()(Numeric T0_ [[maybe_unused]],
                                              Numeric T [[maybe_unused]]) const {
-    if constexpr (mod == LineShapeModelType::T0)
+    using enum LineShapeModelType;
+    if constexpr (mod == T0)
       return model::T0(x[0]);
-    else if constexpr (mod == LineShapeModelType::T1)
-      return model::T1(x[0], x[1], T0, T);
-    else if constexpr (mod == LineShapeModelType::T2)
-      return model::T2(x[0], x[1], x[2], T0, T);
-    else if constexpr (mod == LineShapeModelType::T3)
-      return model::T3(x[0], x[1], T0, T);
-    else if constexpr (mod == LineShapeModelType::T4)
-      return model::T4(x[0], x[1], x[2], T0, T);
-    else if constexpr (mod == LineShapeModelType::T5)
-      return model::T5(x[0], x[1], T0, T);
-    else if constexpr (mod == LineShapeModelType::AER)
+    else if constexpr (mod == T1)
+      return model::T1(x[0], x[1], T0_, T);
+    else if constexpr (mod == T2)
+      return model::T2(x[0], x[1], x[2], T0_, T);
+    else if constexpr (mod == T3)
+      return model::T3(x[0], x[1], T0_, T);
+    else if constexpr (mod == T4)
+      return model::T4(x[0], x[1], x[2], T0_, T);
+    else if constexpr (mod == T5)
+      return model::T5(x[0], x[1], T0_, T);
+    else if constexpr (mod == AER)
       return model::AER(x[0], x[1], x[2], x[3], T);
-    else if constexpr (mod == LineShapeModelType::DPL)
-      return model::DPL(x[0], x[1], x[2], x[3], T0, T);
-    else if constexpr (mod == LineShapeModelType::POLY)
+    else if constexpr (mod == DPL)
+      return model::DPL(x[0], x[1], x[2], x[3], T0_, T);
+    else if constexpr (mod == POLY)
       return model::POLY(x, T);
+    else
+      static_assert(mod == T0 and mod != T0, "Missing case in pseudo-switch");
   }
 
-#define DERIVATIVE(name)                                                      \
-  template <LineShapeModelType mod>                                           \
-  [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]],        \
-                                          Numeric T [[maybe_unused]]) const { \
-    if constexpr (mod == LineShapeModelType::T0)                              \
-      return model::dT0_d##name(x[0]);                                        \
-    else if constexpr (mod == LineShapeModelType::T1)                         \
-      return model::dT1_d##name(x[0], x[1], T0, T);                           \
-    else if constexpr (mod == LineShapeModelType::T2)                         \
-      return model::dT2_d##name(x[0], x[1], x[2], T0, T);                     \
-    else if constexpr (mod == LineShapeModelType::T3)                         \
-      return model::dT3_d##name(x[0], x[1], T0, T);                           \
-    else if constexpr (mod == LineShapeModelType::T4)                         \
-      return model::dT4_d##name(x[0], x[1], x[2], T0, T);                     \
-    else if constexpr (mod == LineShapeModelType::T5)                         \
-      return model::dT5_d##name(x[0], x[1], T0, T);                           \
-    else if constexpr (mod == LineShapeModelType::AER)                        \
-      return model::dAER_d##name(x[0], x[1], x[2], x[3], T);                  \
-    else if constexpr (mod == LineShapeModelType::DPL)                        \
-      return model::dDPL_d##name(x[0], x[1], x[2], x[3], T0, T);              \
-    else if constexpr (mod == LineShapeModelType::POLY)                       \
-      return model::dPOLY_d##name(x, T);                                      \
+#define DERIVATIVE(name)                                                       \
+  template <LineShapeModelType mod>                                            \
+  [[nodiscard]] constexpr Numeric d##name(Numeric T0_ [[maybe_unused]],        \
+                                          Numeric T [[maybe_unused]]) const {  \
+    using enum LineShapeModelType;                                             \
+    if constexpr (mod == T0)                                                   \
+      return model::dT0_d##name(x[0]);                                         \
+    else if constexpr (mod == T1)                                              \
+      return model::dT1_d##name(x[0], x[1], T0_, T);                           \
+    else if constexpr (mod == T2)                                              \
+      return model::dT2_d##name(x[0], x[1], x[2], T0_, T);                     \
+    else if constexpr (mod == T3)                                              \
+      return model::dT3_d##name(x[0], x[1], T0_, T);                           \
+    else if constexpr (mod == T4)                                              \
+      return model::dT4_d##name(x[0], x[1], x[2], T0_, T);                     \
+    else if constexpr (mod == T5)                                              \
+      return model::dT5_d##name(x[0], x[1], T0_, T);                           \
+    else if constexpr (mod == AER)                                             \
+      return model::dAER_d##name(x[0], x[1], x[2], x[3], T);                   \
+    else if constexpr (mod == DPL)                                             \
+      return model::dDPL_d##name(x[0], x[1], x[2], x[3], T0_, T);              \
+    else if constexpr (mod == POLY)                                            \
+      return model::dPOLY_d##name(x, T);                                       \
+    else                                                                       \
+      static_assert(mod == T0 and mod != T0, "Missing case in pseudo-switch"); \
   }
 
   DERIVATIVE(X0)

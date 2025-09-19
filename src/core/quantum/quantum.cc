@@ -6,8 +6,6 @@
 #include <nonstd.h>
 #include <rational.h>
 
-#include <boost/container_hash/hash.hpp>
-#include <boost/functional/hash.hpp>
 #include <compare>
 #include <exception>
 #include <initializer_list>
@@ -22,6 +20,8 @@ namespace Quantum {
 using enum QuantumNumberType;
 
 Value::Value(String x) : value(std::move(x)) {}
+
+Value::Value(Index x) : value(Rational(x, 1)) {}
 
 Value::Value(Rational x) : value(x) {}
 
@@ -704,92 +704,6 @@ bool vamdcCheck(const State& st, VAMDC type) {
 }
 }  // namespace Quantum
 
-template <>
-struct std::hash<Quantum::Value> {
-  std::size_t operator()(const Quantum::Value& g) const {
-    if (auto* ptr = std::get_if<String>(&g.value))
-      return std::hash<String>{}(*ptr);
-    if (auto* ptr = std::get_if<Rational>(&g.value)) {
-      std::size_t seed{};
-
-      boost::hash_combine(seed, ptr->numer);
-      boost::hash_combine(seed, ptr->denom);
-
-      return seed;
-    }
-    return 0;
-  }
-};
-
-template <>
-struct std::hash<Quantum::UpperLower> {
-  std::size_t operator()(const Quantum::UpperLower& g) const {
-    std::size_t seed{};
-
-    boost::hash_combine(seed, std::hash<Quantum::Value>{}(g.upper));
-    boost::hash_combine(seed, std::hash<Quantum::Value>{}(g.lower));
-
-    return seed;
-  }
-};
-
-template <>
-struct std::hash<QuantumLevel> {
-  std::size_t operator()(const QuantumLevel& g) const {
-    std::size_t seed{};
-
-    // Has to be ordered or it will affect the hash
-    for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
-      if (auto iter = g.find(qns); iter != g.end()) {
-        boost::hash_combine(seed, iter->first);
-        boost::hash_combine(seed, std::hash<Quantum::Value>{}(iter->second));
-      }
-    }
-
-    return seed;
-  }
-};
-
-template <>
-struct std::hash<QuantumState> {
-  std::size_t operator()(const QuantumState& g) const {
-    std::size_t seed{};
-
-    // Has to be ordered or it will affect the hash
-    for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
-      if (auto iter = g.find(qns); iter != g.end()) {
-        boost::hash_combine(seed, iter->first);
-        boost::hash_combine(seed,
-                            std::hash<Quantum::UpperLower>{}(iter->second));
-      }
-    }
-
-    return seed;
-  }
-};
-
-std::size_t std::hash<QuantumLevelIdentifier>::operator()(
-    const QuantumLevelIdentifier& g) const {
-  std::size_t seed{};
-
-  boost::hash_combine(seed, g.isot.spec);
-  boost::hash_combine(seed, g.isot.isotname);
-  boost::hash_combine(seed, std::hash<QuantumLevel>{}(g.state));
-
-  return seed;
-}
-
-std::size_t std::hash<QuantumIdentifier>::operator()(
-    const QuantumIdentifier& g) const {
-  std::size_t seed{};
-
-  boost::hash_combine(seed, g.isot.spec);
-  boost::hash_combine(seed, g.isot.isotname);
-  boost::hash_combine(seed, std::hash<QuantumState>{}(g.state));
-
-  return seed;
-}
-
 void xml_io_stream<QuantumLevel>::parse(std::span<QuantumLevel> qns,
                                         std::istream& is_xml) {
   std::string str;
@@ -914,7 +828,6 @@ void xml_io_stream<QuantumLevelIdentifier>::read(std::istream& is_xml,
 } catch (const std::exception& e) {
   ARTS_USER_ERROR("Error reading QuantumLevelIdentifier:\n{}", e.what())
 }
-
 
 std::string to_educational_string(const QuantumIdentifier& q) {
   return Quantum::Helpers::molecular_term_symbol(q);

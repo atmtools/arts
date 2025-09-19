@@ -6,6 +6,7 @@
 #include <rtepack.h>
 #include <xml.h>
 
+#include <boost/container_hash/hash.hpp>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -175,9 +176,11 @@ struct SensorKey {
 template <>
 struct std::hash<SensorKey> {
   std::size_t operator()(const SensorKey& g) const {
-    return std::hash<SensorKeyType>{}(g.type) ^
-           (std::hash<Index>{}(g.measurement_elem)
-            << (8 * (sizeof(SensorKeyType) + sizeof(SensorJacobianModelType))));
+    std::size_t seed = 0;
+    boost::hash_combine(seed, std::hash<SensorKeyType>{}(g.type));
+    boost::hash_combine(seed, std::hash<Index>{}(g.sensor_elem));
+    boost::hash_combine(seed, std::hash<Index>{}(g.measurement_elem));
+    return seed;
   }
 };
 

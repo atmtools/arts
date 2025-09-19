@@ -15,17 +15,33 @@
 #include <stdexcept>
 #include <unordered_map>
 
+#include "enumsLineShapeModelVariable.h"
+#include "enumsSpeciesEnum.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
+#include "lbl_lineshape_model.h"
 #include "partfun.h"
 #include "quantum.h"
+
+NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
+NB_MAKE_OPAQUE(lbl::line_shape::model::map_t)
 
 namespace Python {
 void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
+
+  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t>(
+      lbl, "LineShapeSpeciesModelMap");
+  lssmm.doc() = "A map from model variable to line shape models";
+  generic_interface(lssmm);
+
+  auto lsmm =
+      py::bind_map<lbl::line_shape::model::map_t>(lbl, "LineShapeModelMap");
+  lsmm.doc() = "A map from species to species line shape models";
+  generic_interface(lsmm);
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
   generic_interface(line_key);
@@ -78,43 +94,9 @@ void py_lbl(py::module_& m) try {
            })
       .doc() = "Temperature model";
 
-  using pair_vector_type =
-      std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
-  auto lsvtml =
-      py::bind_vector<pair_vector_type, py::rv_policy::reference_internal>(
-          m, "LineShapeVariableTemperatureModelList")
-          .def("__getitem__",
-               [](pair_vector_type& self,
-                  LineShapeModelVariable x) -> lbl::temperature::data& {
-                 for (auto& [var, data] : self) {
-                   if (var == x) {
-                     return data;
-                   }
-                 }
-                 throw std::out_of_range(std::format("\"{}\"", x));
-               })
-          .def("__setitem__",
-               [](pair_vector_type& self,
-                  LineShapeModelVariable x,
-                  const lbl::temperature::data& y) {
-                 for (auto& [var, data] : self) {
-                   if (var == x) {
-                     data = y;
-                     return;
-                   }
-                 }
-                 self.emplace_back(x, y);
-               });
-  lsvtml.doc() = "A list of line shape models with temperature coefficients";
-  vector_interface(lsvtml);
-  generic_interface(lsvtml);
-
   py::class_<lbl::line_shape::species_model> lssm(m, "LineShapeSpeciesModel");
   generic_interface(lssm);
-  lssm.def_rw("species",
-              &lbl::line_shape::species_model::species,
-              "The species\n\n.. :class:`SpeciesEnum`")
-      .def_rw(
+  lssm.def_rw(
           "data",
           &lbl::line_shape::species_model::data,
           "The data\n\n.. :class:`list[tuple[LineShapeModelVariable, TemperatureModel]]`")
@@ -207,11 +189,9 @@ void py_lbl(py::module_& m) try {
       .def(
           "remove",
           [](lbl::line_shape::model& self, LineShapeModelVariable x) {
-            for (auto& specmod : self.single_models) {
-              auto ptr = std::find_if(specmod.data.begin(),
-                                      specmod.data.end(),
-                                      [x](auto& y) { return y.first == x; });
-              if (ptr != specmod.data.end()) specmod.data.erase(ptr);
+            for (auto& mod : self.single_models | stdv::values) {
+              auto ptr = mod.data.find(x);
+              if (ptr != mod.data.end()) mod.data.erase(ptr);
             }
           },
           "x"_a,
@@ -225,8 +205,8 @@ void py_lbl(py::module_& m) try {
   py::class_<lbl::zeeman::model> zlm(m, "ZeemanLineModel");
   generic_interface(zlm);
   zlm.def_rw("on",
-              &lbl::zeeman::model::on,
-              "If True, the Zeeman effect is included\n\n.. :class:`bool`")
+             &lbl::zeeman::model::on,
+             "If True, the Zeeman effect is included\n\n.. :class:`bool`")
       .def_prop_rw(
           "gl",
           [](lbl::zeeman::model& z) { return z.gl(); },
@@ -265,8 +245,8 @@ void py_lbl(py::module_& m) try {
   py::class_<lbl::line> al(m, "AbsorptionLine");
   generic_interface(al);
   al.def_rw("a",
-             &lbl::line::a,
-             "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
+            &lbl::line::a,
+            "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
       .def_rw("f0",
               &lbl::line::f0,
               "The line center frequency [Hz]\n\n.. :class:`Numeric`")
@@ -402,16 +382,17 @@ other : AbsorptionBands
   aoab.def(
       "clear_linemixing",
       [](AbsorptionBands& self) {
+        using enum LineShapeModelVariable;
+
         Size sum = 0;
-        for (auto& [_, band] : self) {
+        for (auto& band : self | stdv::values) {
           for (auto& line : band.lines) {
-            for (auto& lsm : line.ls.single_models) {
-              sum += lsm.remove_variables<LineShapeModelVariable::Y,
-                                          LineShapeModelVariable::G,
-                                          LineShapeModelVariable::DV>();
+            for (auto& lsm : line.ls.single_models | stdv::values) {
+              sum += lsm.remove_variables<Y, G, DV>();
             }
           }
         }
+
         return sum;
       },
       R"(Clear the linemixing data from all bands by removing it from the inner line shape models

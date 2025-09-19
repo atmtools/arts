@@ -120,22 +120,28 @@ auto local_get_value(T& absorption_bands, const line_key& type)
 
   if (good_enum(type.ls_var)) {
     auto& line_ls_data = line.ls.single_models;
-    ARTS_USER_ERROR_IF(type.spec >= line_ls_data.size(),
-                       "Not enough line data for line: {}"
-                       " for quantum identifier: {}",
+    const auto ptr     = line_ls_data.find(type.spec);
+    ARTS_USER_ERROR_IF(ptr == line_ls_data.end(),
+                       R"(Missing data.
+Species: {}
+Line:    {}
+Band:    {}
+)",
+                       type.spec,
                        line,
                        type.band);
 
-    auto& ls_data = line_ls_data[type.spec].data;
-    auto ls_ptr   = std::ranges::find_if(
-        ls_data, [var = type.ls_var](auto& x) { return x.first == var; });
+    auto& ls_data = ptr->second.data;
+    auto ls_ptr   = ls_data.find(type.ls_var);
     ARTS_USER_ERROR_IF(ls_ptr == ls_data.end(),
-                       "No line shape parameter: \"{}"
-                       "\" for species: \"{}"
-                       "\" in line: {}"
-                       " for quantum identifier: {}",
+                       R"(Missing data.
+Line Shape Model Variable: {}
+Species:                   {}
+Line:                      {}
+Band:                      {}
+)",
                        type.ls_var,
-                       line_ls_data[type.spec].species,
+                       type.spec,
                        line,
                        type.band);
 
@@ -200,11 +206,7 @@ std::unordered_set<SpeciesEnum> species_in_bands(
     out.insert(key.isot.spec);
 
     for (auto& line : data.lines) {
-      for (auto spec :
-           line.ls.single_models |
-               std::views::transform([](auto& x) { return x.species; })) {
-        out.insert(spec);
-      }
+      out.insert_range(line.ls.single_models | stdv::keys);
     }
   }
   return out;
@@ -319,7 +321,8 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
                         "; Line shape: "sv,
                         v.ls,
                         "; Quantum state: "sv,
-                        v.qn);
+                        v.qn,
+                        ';');
   }
 
   if (tags.io) {
@@ -351,14 +354,18 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
 std::string std::formatter<lbl::band_data>::to_string(
     const lbl::band_data& v) const {
   if (tags.help) {
-    return tags.vformat("Line shape: "sv,
-                        v.lineshape,
-                        "; Cutoff type: "sv,
-                        v.cutoff,
-                        "; Cutoff value: "sv,
-                        to_educational_string_frequency(v.cutoff_value),
-                        "; Lines: "sv,
-                        v.lines);
+    return tags.vformat(
+        "Line shape: "sv,
+        v.lineshape,
+        "; Cutoff: "sv,
+        v.cutoff == LineByLineCutoffType::None
+            ? "<off>"s
+            : std::format("{} at {}",
+                          v.cutoff,
+                          to_educational_string_frequency(v.cutoff_value)),
+        "; Lines: ["sv,
+        v.lines,
+        ']');
   }
 
   if (tags.io) {
@@ -479,7 +486,7 @@ std::optional<std::string> to_helper_string<AbsorptionBands>(
 
   std::string_view x = ""sv;
   for (auto& [qid, data] : bands) {
-    out += std::format("{}{:h}: {:h}", std::exchange(x, "\n"sv), qid, data);
+    out += std::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data);
   }
 
   return out;

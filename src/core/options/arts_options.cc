@@ -422,6 +422,7 @@ parameters that are mapped to the species identifier.
               Value{"rain", "rain", "rain tag"},
               Value{"free_electrons", "free_electrons", "free electrons tag"},
               Value{"particles", "particles", "particles tag"},
+              Value{"unused", "unused", "unused tag (used internally)"},
           },
       .preferred_print = 1,
   });
@@ -606,9 +607,8 @@ parameters that are mapped to the species identifier.
       .values_and_desc =
           {
               Value{"None", "No cutoff"},
-              Value{
-                  "ByLine",
-                  "Line's are cut 1-by-1 around f0 in *AbsorptionLine*"},
+              Value{"ByLine",
+                    "Line's are cut 1-by-1 around f0 in *AbsorptionLine*"},
           },
   });
 

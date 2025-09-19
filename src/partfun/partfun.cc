@@ -122,7 +122,8 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {
       deal_with_spec(icecloud);
       deal_with_spec(rain);
       deal_with_spec(free_electrons);
-      deal_with_spec(particles)
+      deal_with_spec(particles);
+      deal_with_spec(unused);
   }
 
 #undef deal_with_spec
@@ -261,7 +262,8 @@ bool has_partfun(const SpeciesIsotope& ir) noexcept {
       deal_with_spec(icecloud);
       deal_with_spec(rain);
       deal_with_spec(free_electrons);
-      deal_with_spec(particles)
+      deal_with_spec(particles);
+      deal_with_spec(unused);
   }
 
 #undef deal_with_spec
