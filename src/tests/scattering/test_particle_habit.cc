@@ -4,7 +4,7 @@
 #include "test_utils.h"
 #include "xml_io.h"
 
-bool test_particle_habit_from_legacy_tro() {
+// bool test_particle_habit_from_legacy_tro() {
 
   // std::string meta_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/ScatteringMetaFile_allH2Oice.xml");
   // std::string data_path = std::string(TEST_DATA_PATH) + std::string("arts-xml-data/scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml");
@@ -38,7 +38,7 @@ bool test_particle_habit_from_legacy_tro() {
   //   }
   // }
   // return true;
-}
+// }
 
 int main() {
   // bool passed = false;
