@@ -319,7 +319,23 @@ void wsv_implement_from_named_type(std::ostream& os) {
 
   std::println(
       os,
-      "throw std::runtime_error(std::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}");
+      "throw std::runtime_error(std::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}\n");
+
+  std::println(os, R"(Wsv Wsv::from_index(Index x) {{
+  switch (x) {{)");
+
+  for (auto& group : groups()) {
+    std::println(
+        os,
+        "    case WorkspaceGroupInfo<{0}>::index: return Wsv {{ {0}{{}} }};",
+        group);
+  }
+
+  std::println(
+      os,
+      R"xyz(    default: throw std::runtime_error(std::format("Unknown Workspace Group Index: ", x));
+  }}
+}})xyz");
 }
 
 void wsv_implement_type_name(std::ostream& os) {
@@ -388,7 +404,21 @@ void wsv_implement_write_to_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  return os;\n}}");
+  std::println(os, "  }}\n  return os;\n}}\n");
+
+  std::println(
+      os,
+      "std::string Wsv::write_to_file(const std::string& fn, FileType ftype, bool clobber) const {{\n  switch(index) {{");
+
+  for (size_t i = 0; i < grps.size(); ++i) {
+    std::println(
+        os,
+        R"(    case {1}: return xml_write_to_file(fn, get_unsafe<{0}>(), ftype, clobber ? 0 : 1); break;)",
+        grps[i],
+        i);
+  }
+
+  std::println(os, "  }}\n  std::unreachable();\n}}");
 }
 
 void wsv_implement_read_from_stream(std::ostream& os) {
@@ -406,7 +436,21 @@ void wsv_implement_read_from_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  return is;\n}}");
+  std::println(os, "  }}\n  return is;\n}}\n");
+
+  std::println(
+      os,
+      "std::string Wsv::read_from_file(const std::string& fn) {{\n  switch(index) {{");
+
+  for (size_t i = 0; i < grps.size(); ++i) {
+    std::println(
+        os,
+        R"(    case {1}: return xml_read_from_file(fn, get_unsafe<{0}>());)",
+        grps[i],
+        i);
+  }
+
+  std::println(os, "  }}\n  throw std::logic_error(\"bad read_file\");\n}}");
 }
 
 void wsv_implement_includes(std::ostream& os) {

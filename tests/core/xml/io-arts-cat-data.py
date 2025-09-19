@@ -13,25 +13,31 @@ for path in pyarts.arts.globals.parameters.datapath:
 if test:
     print("arts-cat-data found in datapath - commenceing test run")
 
+    cia_files = []
     cia = os.path.join(path, "cia")
     for file in os.listdir(cia):
         if file.endswith(".xml"):
             filepath = os.path.join(cia, file)
-            print(f"Reading {filepath}")
-            x = pyarts.arts.CIARecord.fromxml(filepath)
-            if resave:
-                x.savexml(filepath)
+            print(f"Found {filepath}")
+            cia_files.append(filepath)
+    cia = pyarts.arts.ArrayOfCIARecord.fromxmls(cia_files)
+    if resave:
+        for i, file in enumerate(cia_files):
+            cia[i].savexml(file)
     print("All CIA files read successfully.")
     print()
 
+    xsec_files = []
     xsec = os.path.join(path, "xsec")
     for file in os.listdir(xsec):
         if file.endswith(".xml"):
             filepath = os.path.join(xsec, file)
-            print(f"Reading {filepath}")
-            x = pyarts.arts.XsecRecord.fromxml(filepath)
-            if resave:
-                x.savexml(filepath)
+            print(f"Found {filepath}")
+            xsec_files.append(filepath)
+    xsec = pyarts.arts.ArrayOfXsecRecord.fromxmls(xsec_files)
+    if resave:
+        for i, file in enumerate(xsec_files):
+            xsec[i].savexml(file)
     print("All xsec files read successfully.")
     print()
 

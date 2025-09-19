@@ -15,6 +15,7 @@
 #include <config.h>
 #include <enumsFileType.h>
 #include <mystring.h>
+#include <time_report.h>
 
 #include <memory>
 #include <sstream>
@@ -232,8 +233,10 @@ void xml_read_from_file_base(const String& filename, T& type) {
   // Read the file into memory first to significantly speed up
   // the parsing (13x to 18x faster).
   std::stringstream buffer;
-  buffer << ifs->rdbuf();
-
+  {
+    ARTS_NAMED_TIME_REPORT("XmlBuffering")
+    buffer << ifs->rdbuf();
+  }
   // No need to check for error, because xml_open_input_file throws a
   // runtime_error with an appropriate error message.
 
@@ -241,6 +244,7 @@ void xml_read_from_file_base(const String& filename, T& type) {
   // because then we can issue a nicer error message that includes the
   // filename.
   try {
+    ARTS_NAMED_TIME_REPORT("XmlStreaming")
     FileType ftype;
     NumericType ntype;
     EndianType etype;

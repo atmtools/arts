@@ -1,3 +1,5 @@
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
@@ -7,8 +9,10 @@
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
 #include <workspace.h>
+#include <workspace_groups.h>
 
 #include <algorithm>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
@@ -17,7 +21,7 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
-#include "nanobind/nanobind.h"
+#include "pydocs.h"
 #include "python_interface.h"
 
 extern Parameters parameters;
@@ -118,6 +122,115 @@ void py_agenda(py::module_& m) try {
           [](const Method& method) { return method.get_name(); },
           "The name of the method.\n\n.. :class:`str`")
       .doc() = "The method class of ARTS";
+
+  auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>>(m, "WsvMap");
+  wsvmap.doc() = unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
+  wsvmap.def(
+      "__init__",
+      [](std::unordered_map<std::string, Wsv>* m,
+         const std::vector<std::string>& files,
+         bool allow_errors) {
+        new (m) std::unordered_map<std::string, Wsv>{};
+        auto& map = *m;
+
+        std::vector<std::string> actual_error{};
+        std::size_t n = internal_workspace_groups().size();
+
+        for (std::size_t i = 0; i < files.size(); ++i) {
+          bool happy = false;
+
+          for (std::size_t iwsv = 0; iwsv < n; iwsv++) {
+            try {
+              auto wsv = Wsv::from_index(iwsv);
+              auto f   = wsv.read_from_file(files[i]);
+              map.emplace(std::move(f), std::move(wsv));
+              happy = true;
+              break;
+            } catch (std::exception&) {
+              // Ignore, try next
+            }
+          }
+
+          if (not happy) {
+            actual_error.push_back(files[i]);
+          }
+        }
+
+        if (not actual_error.empty()) {
+          if (allow_errors) {
+            if (map.contains("errors")) return;
+            map.emplace("errors", Wsv{actual_error});
+          } else {
+            throw std::runtime_error(std::format(
+                "Could not read {}/{} files as a workspace group:\n{:B,}",
+                actual_error.size(),
+                files.size(),
+                actual_error));
+          }
+        }
+      },
+      "files"_a,
+      "allow_errors"_a = false,
+      R"(Initialize from a list of files
+
+The keys are going to be the file names after the internal
+pathing has been applied.
+
+Parameters
+----------
+files : list of str
+    The files to read
+allow_errors : bool, optional
+    If False (default) then an exception is thrown if any file cannot be read.
+    Otherwise the files that cannot be read are put into the workspace variable "errors" as a list of strings.
+)");
+  wsvmap.def(
+      "write_split",
+      [](std::unordered_map<std::string, Wsv>& map,
+         std::optional<std::string> basename,
+         FileType ftype,
+         bool clobber) {
+        std::vector<std::string> files;
+
+        for (const auto& [key, value] : map) {
+          try {
+            String filename = key;
+            if (basename) filename = *basename + key;
+            value.write_to_file(filename, ftype, clobber);
+            files.push_back(std::move(filename));
+          } catch (std::exception&) {
+            // Ignore write errors
+          }
+        }
+
+        return files;
+      },
+      "basename"_a = std::nullopt,
+      "ftype"_a    = FileType::ascii,
+      "clobber"_a  = true,
+      R"(Write the workspace variables to files
+
+The variables are written to the files named by the keys.
+
+Parameters
+----------
+basename : str, optional
+    The base name to use for the output files. The key is appended to this to form the file name.
+    If not provided (default) the key is used as the file name.
+    Note that it is not ``basename`` + ``"/"`` ``key``, but just ``basename + key``, so if you want
+    a directory separator you must provide it.
+ftype : FileType, optional
+    The file type to write, default is ascii.
+clobber : bool, optional
+    If True (default) overwrite existing files, if False use a unique file name.
+
+Returns
+-------
+list of str
+    The list of files written.  If basename is provided, the key is appended to it.
+    If not, the key is the file name.  If file writing fails an exception is not thrown,
+    but the file is not in the returned list.
+)");
 
   py::class_<Agenda> ag(m, "Agenda");
   generic_interface(ag);

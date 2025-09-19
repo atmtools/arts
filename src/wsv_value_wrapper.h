@@ -88,6 +88,9 @@ public:
   //! Get a Wsv that holds the named type
   static Wsv from_named_type(const std::string_view);
 
+  //! Get a Wsv that holds the named type
+  static Wsv from_index(Index);
+
   //! Get the type name of the variant
   [[nodiscard]] std::string_view type_name() const;
 
@@ -97,7 +100,15 @@ public:
   [[nodiscard]] Wsv shared() const { return *this; }
   [[nodiscard]] Wsv copied() const;
 
+  //! Write to an existing stream (only the type is written, nothing about Wsv)
   std::ostream& write_to_stream(std::ostream&, bofstream*, const std::string&) const;
 
+  //! Write to a file (only the type is written, nothing about Wsv)
+  std::string write_to_file(const std::string& fn, FileType ftype, bool clobber) const;
+
+  //! Read from an existing stream (only the type is read, nothing about Wsv)
   std::istream& read_from_stream(std::istream&, bifstream*);
+
+  //! Read from a file (only the type is read, nothing about Wsv)
+  std::string read_from_file(const std::string& fn);
 };

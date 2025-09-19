@@ -14,6 +14,7 @@
 
 #include <debug.h>
 #include <file.h>
+#include <time_report.h>
 
 #include <type_traits>
 
@@ -59,6 +60,8 @@ template <arts_xml_ioable T>
 String xml_read_from_file(const String& filename, T& type)
   requires(std::same_as<T, std::remove_const_t<T>>)
 try {
+  ARTS_TIME_REPORT
+
   String xml_file = filename;
   find_xml_file(xml_file);
   xml_read_from_file_base(xml_file, type);
@@ -86,6 +89,8 @@ String xml_write_to_file(const String& filename,
                          const T& type,
                          const FileType ftype,
                          const Index no_clobber) try {
+  ARTS_TIME_REPORT
+
   String efilename{add_basedir(filename)};
 
   std::unique_ptr<std::ostream> ofs;
