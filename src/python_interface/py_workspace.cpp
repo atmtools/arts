@@ -78,6 +78,7 @@ void py_auto_wsm(py::class_<Workspace>& ws);
 
 void py_workspace(py::class_<Workspace>& ws) try {
   generic_interface(ws);
+  ws.def_rw("wsv", &Workspace::wsv, "The workspace variables");
   ws.def(
         "__init__",
         [](Workspace* w, bool with_defaults) {
