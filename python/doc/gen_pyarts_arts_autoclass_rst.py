@@ -1,3 +1,4 @@
+import re
 import pyarts3
 import pyarts3.arts as cxx
 import sys
@@ -61,8 +62,6 @@ def typesof(v):
     return classes
 
 
-import re
-
 def retypeof(v):
     x = v.split(" | ")
 
@@ -97,6 +96,7 @@ def retypeof(v):
             out += fixcur(cur)
 
     return out
+
 
 def func(name, var):
     try:
@@ -225,6 +225,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 str += f"      - {functions[n]['short']}\n"
 
             for n in attributes:
+                assert attributes[n]["types"] is not None, f"{cls.__name__}.{attributes[n]['name']} lacks type-info - add '.. :class:`class-information`' to a newline of the docstring"
                 str += f"    * - {retypeof(attributes[n]["types"])}\n"
                 str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
                 str += f"      - {attributes[n]['short']}\n"

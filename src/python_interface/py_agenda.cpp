@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
+#include "pydocs.h"
 #include "python_interface.h"
 
 extern Parameters parameters;
@@ -123,7 +124,7 @@ void py_agenda(py::module_& m) try {
       .doc() = "The method class of ARTS";
 
   auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>>(m, "WsvMap");
-  wsvmap.doc() = "A helper to speed up file IO of workspace groups";
+  wsvmap.doc() = unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
   wsvmap.def(
       "__init__",
       [](std::unordered_map<std::string, Wsv>* m,
