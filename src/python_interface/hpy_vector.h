@@ -32,6 +32,37 @@ void vector_interface(py::class_<Array<T>, Ts...> &c) {
 
   c.def("__setstate__",
         [](Vec &v, const std::tuple<Vec> &x) { new (&v) Vec{std::get<0>(x)}; });
+
+  if constexpr (arts_xml_ioable<T>) {
+    c.def_static(
+        "fromxmls",
+        [](const std::vector<std::string> &files) {
+          Vec out(files.size());
+          for (size_t i = 0; i < files.size(); ++i)
+            xml_read_from_file<T>(files[i], out[i]);
+          return out;
+        },
+        "files"_a,
+        R"(Create variable from file.
+
+Like :func:`fromxml` but for split/multiple files.
+
+Parameters
+----------
+files : list[str]
+    A list of files that can be read
+
+Raises
+------
+  RuntimeError
+      For any failure to read.
+
+Return
+------
+artstype : T
+    The variable created from the file.
+)");
+  }
 }
 
 // THIS IS A DIRECT COPY OF THE FUNCTION FROM bind_vector.h

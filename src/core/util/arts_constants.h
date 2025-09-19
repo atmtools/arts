@@ -63,7 +63,7 @@ inline constexpr Numeric inv_pi = std::numbers::inv_pi;
 inline constexpr Numeric two_pi = 2 * pi;
 
 /** Inverse of two pi **/
-inline constexpr Numeric inv_two_pi = 0.5 * inv_pi;
+inline constexpr Numeric inv_two_pi = inv_pi / 2;
 
 /** Square root of pi */
 inline constexpr Numeric sqrt_pi = 1.0 / std::numbers::inv_sqrtpi;
@@ -87,13 +87,13 @@ inline constexpr Numeric ln_10 = std::numbers::ln10;
 inline constexpr Numeric sqrt_2 = std::numbers::sqrt2;
 
 /** Inverse of the square root of 2 */
-inline constexpr Numeric inv_sqrt_2 = 1.0 / sqrt_2;
+inline constexpr Numeric inv_sqrt_2 = sqrt_2 / 2;
 
 /** Natural logarithm of 2 */
 inline constexpr Numeric ln_2 = std::numbers::ln2;
 
 /** Inverse of the natural logarithm of 2 */
-inline constexpr Numeric inv_ln_2 = 1.0 / ln_2;
+inline constexpr Numeric inv_ln_2 = std::numbers::log2e;
 
 /** Square root of natural logarithm of 2 */
 inline constexpr Numeric sqrt_ln_2 =
