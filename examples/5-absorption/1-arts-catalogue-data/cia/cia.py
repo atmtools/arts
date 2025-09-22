@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
 
+# Download catalogs
+pyarts.data.download()
+
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
 

@@ -3,6 +3,9 @@
 import matplotlib.pyplot as plt
 import pyarts3 as pyarts
 
+# Download catalogs
+pyarts.data.download()
+
 # %% Initialize the operator
 fop = pyarts.recipe.AtmosphericFlux(
     species=["H2O-161", "O2-66", "N2-44", "CO2-626", "O3-XFIT"],

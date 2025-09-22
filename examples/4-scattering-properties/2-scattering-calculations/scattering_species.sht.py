@@ -13,6 +13,9 @@ import numpy as np
 import pyarts3 as pyarts
 from pyarts3.arts import ArrayOfScatteringSpecies, HenyeyGreensteinScatterer
 
+# Download catalogs
+pyarts.data.download()
+
 # %% Set up a 1D atmosphere
 ws = pyarts.Workspace()
 ws.surface_fieldPlanet(option="Earth")

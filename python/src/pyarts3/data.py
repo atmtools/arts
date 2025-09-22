@@ -157,14 +157,21 @@ def _download_arts_data(catname, download_dir=None, version=None, verbose=False)
             print(f"Checking out {catname} from SVN")
             svn_path = f"https://radiativetransfer.org/svn/rt/{catname}/trunk/"
             command = ["svn", "checkout", svn_path, catdir]
-            subprocess.run(command)
+            try:
+                subprocess.run(command)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(
+                    "svn command not found, cannot check out from SVN"
+                ) from e
         else:
             _download_and_extract(
                 GITHUB_URL + fullcatname + ".zip", download_dir, verbose=verbose
             )
 
     if USE_SVN:
-        print(f"Using {catname} from SVN, update manually if needed: `svn update {catdir}`")
+        print(
+            f"Using {catname} from SVN, update manually if needed: `svn update {catdir}`"
+        )
 
     parameters.datapath.append(catdir)
 

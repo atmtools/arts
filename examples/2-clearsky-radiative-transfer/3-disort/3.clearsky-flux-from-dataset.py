@@ -8,6 +8,9 @@ if pyarts.arts.globals.data.is_lgpl:
     )
     exit(0)
 
+# Download catalogs
+pyarts.data.download()
+
 NQuad = 16
 max_level_step = 1e3
 atm_latitude = 0.0

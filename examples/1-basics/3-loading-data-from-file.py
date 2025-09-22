@@ -1,6 +1,24 @@
 # Import the module
 import pyarts3 as pyarts
 
+"""
+ARTS relies heavily on data provided by two catalogs: arts-xml-data and
+arts-cat-data, they provide absorption lines, atmospheric profiles,
+and other data.
+
+The download method automatically retrieves the correct catalogs for
+your pyarts version.  It also sets the search paths described below
+correctly.  The method should always be called at the beginning of
+your script right after importing pyarts.  It will only download
+the catalogs if they are not already present.  But it is still
+important to call it, since it will set the search paths correctly.
+
+By default, the catalogs are stored in your home directory in the
+`~/.cache/arts/` folder.
+"""
+pyarts.data.download()
+
+
 # Create a workspace
 ws = pyarts.Workspace()
 
@@ -45,15 +63,10 @@ print("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
 
 
 """
-The following examples assumes that you have a copy of the arts-cat-data
-and arts-xml-data repositories in the search paths.  If you do not have
-these, you can download them from: https://www.radiativetransfer.org/tools/
-
-It demonstrates different ways that you can load data from a file into
+There are different ways that you can load data from a file into
 the workspace.  There is no "best" way to do this, it depends on the
 context, and what you find most readable.
 """
-
 # Call the WorkspaceVariable member method "readxml" to load data from file
 ws.absorption_bands.readxml("lines/O2-66.xml")
 

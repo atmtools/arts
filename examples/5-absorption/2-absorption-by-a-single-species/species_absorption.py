@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
 
+# Download catalogs
+pyarts.data.download()
+
 # %% Select absorption species
 species = "O2-66"  # Main isotope of O2
 

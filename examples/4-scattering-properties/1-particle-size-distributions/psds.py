@@ -10,6 +10,9 @@ from pyarts3.arts import (
     SizeParameter,
 )
 
+# Download catalogs
+pyarts.data.download()
+
 # %% Atmosphere
 ws = pyarts.Workspace()
 ws.surface_fieldPlanet(option="Earth")

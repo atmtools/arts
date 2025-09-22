@@ -16,6 +16,9 @@ from pyarts3.arts import (
 )
 from pyarts3.xml import load
 
+# Download catalogs
+pyarts.data.download()
+
 toa = 100e3
 lat = 0
 lon = 0

@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
 
+# Download catalogs
+pyarts.data.download()
+
 toa = 100e3
 lat = 0
 lon = 0

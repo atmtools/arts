@@ -1,6 +1,9 @@
 import numpy as np
 import pyarts3 as pyarts
 
+# Download catalogs
+pyarts.data.download()
+
 # Use default atmosphere
 ws = pyarts.Workspace()
 ws.absorption_speciesSet(species=["O2", "CO2"])

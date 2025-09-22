@@ -5,6 +5,9 @@ import numpy as np
 import pyarts3 as pyarts
 from matplotlib import ticker
 
+# Download catalogs
+pyarts.data.download()
+
 # %% Initialize the operator
 #
 fop = pyarts.recipe.SpectralAtmosphericFlux(
