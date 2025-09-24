@@ -76,14 +76,10 @@ void header(std::ostream& os) {
 )--";
 
   for (const auto& [file, groups] : files()) {
-    os << "// ";
-    for (const auto& group : groups) {
-      os << group << ", ";
-    }
-    os << std::format("\n#include <{0}>\n\n", file);
+    std::println(os, "#include <{0}>", file);
   }
 
-  os << "template <typename T>\nconcept WorkspaceGroup = false";
+  os << "\ntemplate <typename T>\nconcept WorkspaceGroup = false";
   for (auto& group : groups()) {
     os << std::format("\n  || std::is_same_v<T, {0}>", group);
   }

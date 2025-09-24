@@ -483,3 +483,5 @@ struct std::formatter<lbl::zeeman::model> {
     return ctx.out();
   }
 };
+
+using ZeemanLineModel = lbl::zeeman::model;

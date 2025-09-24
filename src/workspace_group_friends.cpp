@@ -10,10 +10,17 @@ namespace {
 std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
 
+wsg_data["Block"] = {
+      .file = "covariance_matrix.h",
+      .desc =
+          R"(This holds a *BlockMatrix* and two *Range* objects and two indices to indicate the position in the *CovarianceMatrix*.
+)",
+  };
+
   wsg_data["AbsorptionBand"] = {
       .file = "lbl.h",
       .desc =
-          R"(Contains all information about bands of related absorption lines.
+          R"(Contains information about a band of related absorption lines.
 
 This information includes
 
@@ -22,12 +29,11 @@ This information includes
 #. The line shape profile model.  See *LineByLineLineshape* for available line shape profiles.
 
 #. The frequency cutoff value in [Hz] and type.  See *LineByLineCutoffType* for available cutoff types.
-)",
-  };
 
-  wsg_data["ArrayOfIndex"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Index*\n",
+.. note::
+    This type does not know about the species that the absorption band/lines belongs to.
+    This is why it is often required to keep the *AbsorptionBands* object around.
+)",
   };
 
   wsg_data["CIARecord"] = {
@@ -43,71 +49,86 @@ with physical units of [m :math:`^5` per molecule :math:`^2`].
 )--",
   };
 
-  wsg_data["AbsorptionLine"] = {
+  wsg_data["ZeemanLineModel"] = {
       .file = "lbl.h",
-      .desc =
-          R"(Contains all information about related absorption lines.
+      .desc = R"(Contains information about the Zeeman effect for a single line.
+
+This includes
+
+#. A boolean to indicate if the Zeeman effect is on or off.
+#. The upper and lower level statistical weights as *Numeric*.
 )",
   };
 
-  wsg_data["ArrayOfArrayOfGriddedField1"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField1*\n",
+  wsg_data["QuantumState"] = {
+      .file = "lbl.h",
+      .desc =
+          R"(A map of *QuantumNumberType* to quantum number values in an object with an upper and lower state.
+)",
   };
 
-  wsg_data["ArrayOfArrayOfGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField2*\n",
+  wsg_data["TemperatureModel"] = {
+      .file = "lbl.h",
+      .desc =
+          R"(Contains information about how a line shape model variable depends on temperature.
+
+See *LineShapeModelType* for available temperature model types.
+)",
   };
 
-  wsg_data["ArrayOfArrayOfGriddedField3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField3*\n",
+  wsg_data["LineShapeSpeciesModel"] = {
+      .file = "lbl.h",
+      .desc =
+          R"(Contains information about the line shape for a single line for a single species (or broadener).
+
+This includes information is in the form of a map from *LineShapeModelVariable*
+to *TemperatureModel*.
+)",
   };
 
-  wsg_data["ArrayOfArrayOfIndex"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfIndex*\n",
+  wsg_data["LineShapeModel"] = {
+      .file = "lbl.h",
+      .desc = R"(Contains information about the line shape for a single line.
+
+This includes
+
+#. A boolean to indicate if the line-by-line calculations are per species.  This is an experimental feature and should normally be false.
+#. The reference temperature as *Numeric*.
+#. A map of *LineShapeSpeciesModel* objects for each species in the mixture.
+)",
   };
 
-  wsg_data["ArrayOfArrayOfMatrix"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfMatrix*\n",
-  };
+  wsg_data["AbsorptionLine"] = {
+      .file = "lbl.h",
+      .desc =
+          R"(Contains information about related absorption lines.
 
-  wsg_data["ArrayOfArrayOfScatteringMetaData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ArrayOfScatteringMetaData*\n",
-  };
+This type is often found as a member of *AbsorptionBand*.  It contains
 
-  wsg_data["ArrayOfArrayOfSingleScatteringData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ArrayOfSingleScatteringData*\n",
-  };
+#. Einstein A coefficient as *Numeric*.
 
-  wsg_data["ArrayOfArrayOfString"] = {
-      .file = "mystring.h",
-      .desc = "A list of *ArrayOfString*\n",
-  };
+#. Lower level energy as *Numeric*.
 
-  wsg_data["ArrayOfArrayOfTensor3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfTensor3*\n",
-  };
+#. Upper level statistical weight as *Numeric*.
 
-  wsg_data["ArrayOfArrayOfTensor6"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfTensor6*\n",
-  };
+#. Lower level statistical weight as *Numeric*.
 
-  wsg_data["ArrayOfArrayOfTime"] = {
-      .file = "artstime.h",
-      .desc = "A list of *ArrayOfTime*\n",
+#. Zeeman model as *ZeemanLineModel*.
+
+#. Line shape model as *LineShapeModel*.
+
+#. Quantum numbers local to this line as *QuantumState*.
+
+
+.. note::
+    This type does not know about the species that the absorption band/lines belongs to.
+    This is why it is often required to keep the *AbsorptionBands* object around.
+)",
   };
 
   wsg_data["XsecRecord"] = {
       .file = "xsec_fit.h",
-      .desc = R"(A single cross-section record
+      .desc = R"(A single cross-section record.
 
 These cross-section records contains information about the valid temperature and
 pressure ranges as well as well as the fitting coefficients used to compute
@@ -117,27 +138,42 @@ and interpolate the cross-section to other temperatures and pressures
 
   wsg_data["Tensor3"] = {
       .file = "matpack.h",
-      .desc = "A 3 dimensional array of *Numeric*\n",
+      .desc = R"(A 3 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)",
   };
 
   wsg_data["Tensor4"] = {
       .file = "matpack.h",
-      .desc = "A 4 dimensional array of *Numeric*\n",
+      .desc = R"(A 4 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)",
   };
 
   wsg_data["Tensor5"] = {
       .file = "matpack.h",
-      .desc = "A 5 dimensional array of *Numeric*\n",
+      .desc = R"(A 5 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)",
   };
 
   wsg_data["Tensor6"] = {
       .file = "matpack.h",
-      .desc = "A 6 dimensional array of *Numeric*\n",
+      .desc = R"(A 6 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)",
   };
 
   wsg_data["Tensor7"] = {
       .file = "matpack.h",
-      .desc = "A 7 dimensional array of *Numeric*\n",
+      .desc = R"(A 7 dimensional array of *Numeric*..
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)"
   };
 
   wsg_data["SurfacePoint"] = {
@@ -145,38 +181,61 @@ and interpolate the cross-section to other temperatures and pressures
       .desc =
           R"--(A surface point.
 
-This keeps two things:
+This keeps four things:
+
+#. The elevation in meters as *Numeric*.
+
+#. The temperature in Kelvin as *Numeric*.
 
 #. The local normal vector.
 
-#. A map of the same keys as *SurfaceField* but towards *Numeric* data.
-   It is similar to how *AtmPoint* is towards *AtmField*.
+#. A map of the same keys as *SurfaceField* (bar those in *SurfaceKey* that are extracted as above) but towards *Numeric* data.
+
+.. note::
+    It is required to keep the *SurfaceField* around if the reference ellipsoid is required.
 )--",
   };
 
   wsg_data["StokvecTensor3"] = {
       .file = "rtepack.h",
-      .desc = "A *Tensor3* but of *Stokvec*.\n",
+      .desc = R"(A *Tensor3* but holds *Stokvec*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 4-dimensional array with the last dimension of size 4.
+)",
   };
 
   wsg_data["StokvecTensor4"] = {
       .file = "rtepack.h",
-      .desc = "A *Tensor4* but of *Stokvec*.\n",
+      .desc = R"(A *Tensor4* but holds *Stokvec*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 5-dimensional array with the last dimension of size 4.
+)",
   };
 
   wsg_data["StokvecTensor5"] = {
       .file = "rtepack.h",
-      .desc = "A *Tensor5* but of *Stokvec*.\n",
+      .desc = R"(A *Tensor5* but holds *Stokvec*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 6-dimensional array with the last dimension of size 4.
+)",
   };
 
   wsg_data["StokvecTensor6"] = {
       .file = "rtepack.h",
-      .desc = "A *Tensor6* but of *Stokvec*.\n",
+      .desc = R"(A *Tensor6* but holds *Stokvec*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 7-dimensional array with the last dimension of size 4.
+)",
   };
 
   wsg_data["Specmat"] = {
       .file = "rtepack.h",
-      .desc = "A single Complex Mueller 4x4 matrix.\n",
+      .desc = R"(A single Complex Mueller 4x4 matrix.
+)",
   };
 
   wsg_data["SpeciesTag"] = {
@@ -185,22 +244,60 @@ This keeps two things:
 
 These tags are used to help ARTS identify the species
 so that reading routines can find the correct data files.
+
+.. note::
+    In previous versions of ARTS, this type had computational meaning.
+    This is no longer the case and the type is now only used to help with file IO.
 )",
   };
 
+  wsg_data["Range"] = {
+      .file = "matpack.h",
+      .desc = R"(A data type to index a contiguous range inside the multidimensional structures; e.g., *Vector*, *Matrix*, etc.
+)",
+  };
+
+  wsg_data["SurfaceData"] = {
+      .file = "subsurface.h",
+      .desc = R"(A data structure for surface field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *GeodeticField2*, or *NumericBinaryOperator*.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
+
   wsg_data["SubsurfaceData"] = {
-      .file        = "subsurface.h",
-      .desc        = "A data structure for subsurface field information.\n",
+      .file = "subsurface.h",
+      .desc = R"(A data structure for subsurface field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *GeodeticField3*, or *NumericTernaryOperator*.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
   };
 
   wsg_data["SubsurfacePoint"] = {
-      .file        = "subsurface.h",
-      .desc        = "A point in the subsurface.\n",
+      .file = "subsurface.h",
+      .desc = R"--(A subsurface point.
+
+This keeps three things:
+
+#. The subsurface temperature as *Numeric*.
+#. The subsurface density as *Numeric*.
+#. A map of the same keys as *SubsurfaceField* (bar those in *SubsurfaceKey* that are extracted as above) but towards *Numeric* data.
+)--",
   };
 
   wsg_data["Sparse"] = {
       .file = "matpack_sparse.h",
-      .desc = "A sparse version of *Matrix*\n",
+      .desc = R"(A sparse version of *Matrix*
+
+This maps to :class:`scipy.sparse.csr_matrix`.
+)",
   };
 
   wsg_data["ScatteringMetaData"] = {
@@ -215,17 +312,34 @@ so that reading routines can find the correct data files.
 
   wsg_data["SensorPosLos"] = {
       .file = "obsel.h",
-      .desc = "A position and line-of-sight of a sensor.\n",
+      .desc = R"(A position and line-of-sight of a sensor.
+
+This maps to a 5-long :class:`numpy.ndarray` with the first three values
+being the position in geodetics [altitude in meters, latitude in degrees, longitude in degrees]
+nd the last two values being the line-of-sight
+in terms of zenith and azimuth angles [both degrees].
+)",
   };
 
   wsg_data["SensorPosLosVector"] = {
       .file = "obsel.h",
-      .desc = "Vector of *SensorPosLos*.\n",
+      .desc = R"(Vector of *SensorPosLos*.
+
+This maps to a 2-dimensional :class:`numpy.ndarray` with shape (N, 5)
+where N is the number of *SensorPosLos* in the vector.
+)",
   };
 
   wsg_data["Rational"] = {
       .file = "matpack.h",
-      .desc = "Holds a rational number as two *Index* n / d\n",
+      .desc = R"(Holds a rational number as two *Index*
+
+.. math::
+
+    x = \frac{a}{b}
+
+where :math:`a` is the numerator and :math:`b` is the denominator.
+)",
   };
 
   wsg_data["QuantumIdentifierNumericMap"] = {
@@ -233,7 +347,8 @@ so that reading routines can find the correct data files.
       .desc =
           R"--(A map from *QuantumIdentifier* to *Numeric*.
 )--",
-      .map_type = true};
+      .map_type = true,
+  };
 
   wsg_data["PredefinedModelDataVariant"] = {
       .file = "predef.h",
@@ -242,12 +357,17 @@ so that reading routines can find the correct data files.
 
 #. :class:`~pyarts3.arts.predef.PredefinedModelDataName`
 #. :class:`~pyarts3.arts.predef.PredefinedModelDataWaterDataMTCKD4`
+
+This is used when using predefined models to allow for different types of data
+input.  Several types of predefined models have this data built into the code
+and will use it directly but must live in the *absorption_predefined_model_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
 )--",
   };
 
   wsg_data["PairOfBlockMatrix"] = {
       .file = "retrieval_target.h",
-      .desc = R"--(A pair of *BlockMatrix* objects)--",
+      .desc = R"--(A pair of *BlockMatrix* objects.
+)--",
   };
 
   wsg_data["NumericBinaryOperator"] = {
@@ -291,7 +411,7 @@ to produce another *Numeric*.
 
 The grid is a combination of 4 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -302,7 +422,7 @@ Both the data and the grid may be named
 
 The grid is a combination of 5 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -313,98 +433,13 @@ Both the data and the grid may be named
 
 The grid is a combination of 6 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
   wsg_data["DisortBDRF"] = {
       .file = "disort.h",
       .desc = "A bidirectional reflectance function\n",
-  };
-
-  wsg_data["ArrayOfTensor3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor3*\n",
-  };
-
-  wsg_data["ArrayOfTensor4"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor4*\n",
-  };
-
-  wsg_data["ArrayOfTensor5"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor5*\n",
-  };
-
-  wsg_data["ArrayOfTensor6"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor6*\n",
-  };
-
-  wsg_data["ArrayOfTensor7"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor7*\n",
-  };
-
-  wsg_data["ArrayOfSubsurfacePoint"] = {
-      .file = "subsurface.h",
-      .desc =
-          R"--(A list of *SubsurfacePoint*
-)--",
-  };
-
-  wsg_data["ArrayOfStokvecTensor3"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *StokvecTensor3*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfSpeciesTag"] = {
-      .file = "species_tags.h",
-      .desc = R"--(A list of *SpeciesTag*
-)--",
-  };
-
-  wsg_data["ArrayOfSpeciesIsotope"] = {
-      .file = "isotopologues.h",
-      .desc = "List of *SpeciesIsotope*.\n",
-  };
-
-  wsg_data["ArrayOfSparse"] = {
-      .file = "matpack_sparse.h",
-      .desc = "A list of *Sparse*\n",
-  };
-
-  wsg_data["ArrayOfNamedGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *NamedGriddedField2*\n",
-  };
-
-  wsg_data["ArrayOfMuelmatMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *MuelmatMatrix*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfGriddedField3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField3*\n",
-  };
-
-  wsg_data["ArrayOfGriddedField4"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField4*\n",
-  };
-
-  wsg_data["ArrayOfGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField2*\n",
-  };
-
-  wsg_data["ArrayOfGriddedField1"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField1*\n",
   };
 
   wsg_data["AbsorptionLookupTable"] = {
@@ -414,58 +449,6 @@ Both the data and the grid may be named
 Effectively holds a *Tensor4* of pre-computed cross-section data.
 This table is used to interpole to a pressure, temperature, water vmr, and frequency grid.
 )",
-  };
-
-  wsg_data["ArrayOfArrayOfMuelmatMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfMuelmatMatrix*.\n",
-      .array_depth = 2,
-  };
-
-  wsg_data["ArrayOfArrayOfMuelmatVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfMuelmatVector*.\n",
-      .array_depth = 2,
-  };
-
-  wsg_data["ArrayOfArrayOfVector"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfVector*\n",
-  };
-
-  wsg_data["ArrayOfGriddedField1Named"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField1Named*\n",
-  };
-
-  wsg_data["ArrayOfMatrix"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Matrix*\n",
-  };
-
-  wsg_data["ArrayOfQuantumIdentifier"] = {
-      .file = "quantum.h",
-      .desc = "A list of *QuantumIdentifier*\n",
-  };
-
-  wsg_data["ArrayOfScatteringMetaData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ScatteringMetaData*\n",
-  };
-
-  wsg_data["ArrayOfSingleScatteringData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *SingleScatteringData*\n",
-  };
-
-  wsg_data["ArrayOfTime"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Time*\n",
-  };
-
-  wsg_data["ArrayOfVector"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector*\n",
   };
 
   wsg_data["AtmData"] = {
@@ -500,24 +483,20 @@ It holds essentially two things:
 
 The grid is a combination of 2 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
   wsg_data["JacobianTargetType"] = {
       .file = "jacobian.h",
-      .desc = R"--(A type of target for use in Jacobian Matrix calculations
-)--",
-  };
+      .desc = R"--(A type of target for use in Jacobian Matrix calculations.
 
-  wsg_data["SubsurfacePoint"] = {
-      .file = "subsurface.h",
-      .desc =
+Common for all targets is that they map data to and from the model state to
+the model field.  That is they can transform a *Vector* to values in, e.g.,
+an *AtmField*, *SurfaceField*, etc., and vice versa they can transform the fields
+to values in a *Vector*.
 
-          R"--(A surface point.
-
-This keeps a map of the same keys as *SubsurfaceField* but towards *Numeric* data.
-It is similar to how *AtmPoint* is towards *AtmField*.
+See *model_state_vector* and method involving it for more information.
 )--",
   };
 
@@ -575,7 +554,7 @@ of this term multiplied by a negative distance.
 
 The grid is a combination of 1 *ArrayOfString* and 2 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -586,7 +565,7 @@ Both the data and the grid may be named
 
 The grid is a combination of 3 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -597,23 +576,22 @@ Both the data and the grid may be named
 
 The grid is a combination of 1 *ArrayOfString* and 3 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
   wsg_data["MuelmatTensor3"] = {
       .file = "rtepack.h",
-      .desc = "A *Tensor3* of *Muelmat*.\n",
+      .desc = R"(A *Tensor3* of *Muelmat*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 5-dimensional array with the last two dimensions of size 4.
+)",
   };
 
   wsg_data["Muelmat"] = {
       .file = "rtepack.h",
       .desc = "A single Mueller 4x4 matrix.\n",
-  };
-
-  wsg_data["ArrayOfVector2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector2*\n",
   };
 
   wsg_data["GriddedField1"] = {
@@ -623,7 +601,8 @@ Both the data and the grid may be named
 
 The grid is 1 *Vector*
 
-Both the data and the grid may be named)--",
+Both the data and the grid may be named.  The grid is not sorted.
+)--",
   };
 
   wsg_data["GriddedField1Named"] = {
@@ -633,7 +612,7 @@ Both the data and the grid may be named)--",
 
 The grid is a combination of 1 *Vector* and 1 *ArrayOfString*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -642,9 +621,53 @@ Both the data and the grid may be named
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
 The grids are *altitude_grid* x *latitude_grid* x *longitude_grid*.
-The types are *AscendingGrid* x *LatGrid* x *LonGrid*.
+The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
 )--",
   };
+
+  add_arrays_of(wsg_data,
+                {
+                    "Index",
+                    "ArrayOfGriddedField1",
+                    "ArrayOfGriddedField2",
+                    "ArrayOfGriddedField3",
+                    "ArrayOfIndex",
+                    "ArrayOfMatrix",
+                    "ArrayOfScatteringMetaData",
+                    "ArrayOfSingleScatteringData",
+                    "ArrayOfString",
+                    "ArrayOfTensor3",
+                    "ArrayOfTensor6",
+                    "ArrayOfTime",
+                    "Tensor3",
+                    "Tensor4",
+                    "Tensor5",
+                    "Tensor6",
+                    "Tensor7",
+                    "SubsurfacePoint",
+                    "StokvecTensor3",
+                    "SpeciesTag",
+                    "SpeciesIsotope",
+                    "Sparse",
+                    "NamedGriddedField2",
+                    "MuelmatMatrix",
+                    "GriddedField3",
+                    "GriddedField4",
+                    "GriddedField2",
+                    "GriddedField1",
+                    "ArrayOfMuelmatMatrix",
+                    "ArrayOfMuelmatVector",
+                    "ArrayOfVector",
+                    "GriddedField1Named",
+                    "Matrix",
+                    "QuantumIdentifier",
+                    "ScatteringMetaData",
+                    "SingleScatteringData",
+                    "Time",
+                    "Vector",
+                    "Vector2",
+                },
+                {});
 
   for (auto& g : internal_options()) {
     if (wsg_data.find(g.name) != wsg_data.end())

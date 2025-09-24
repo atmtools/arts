@@ -305,3 +305,5 @@ struct xml_io_stream<lbl::temperature::data> {
                    lbl::temperature::data& x,
                    bifstream* pbifs = nullptr);
 };
+
+using TemperatureModel = lbl::temperature::data;

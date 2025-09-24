@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 struct WorkspaceGroupRecord {
   std::string file;
@@ -19,3 +20,8 @@ struct WorkspaceGroupRecord {
 
 const std::unordered_map<std::string, WorkspaceGroupRecord>&
 internal_workspace_groups();
+
+void add_arrays_of(
+    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
+    const std::vector<std::string>& types,
+    std::vector<std::string> extra_headers);

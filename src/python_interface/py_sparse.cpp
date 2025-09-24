@@ -3,10 +3,12 @@
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
+#include <nanobind/stl/vector.h>
 
 #include <memory>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "covariance_matrix.h"
 #include "hpy_arts.h"
@@ -477,6 +479,13 @@ arr : :class:`scipy.sparse.csr_matrix`
                                std::make_shared<Matrix>(std::get<Matrix>(mat)));
           })
       .doc() = "A single block matrix";
+
+  auto aob =
+      py::bind_vector<std::vector<Block>, py::rv_policy::reference_internal>(
+          m, "ArrayOfBlock");
+  aob.doc() = "A list of blocks";
+  vector_interface(aob);
+  generic_interface(aob);
 
   py::class_<BlockMatrix> bm(m, "BlockMatrix");
   bm.def(py::init_implicit<Matrix>());

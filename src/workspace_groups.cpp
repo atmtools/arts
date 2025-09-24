@@ -4,8 +4,25 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 #include "workspace_agendas.h"
+
+void add_arrays_of(
+    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
+    const std::vector<std::string>& types,
+    std::vector<std::string> extra_headers) {
+  for (const auto& type : types) {
+    auto& v = wsg_data["ArrayOf" + type] = {
+        .file = "vector",
+        .desc = "A list of *" + type + "*\n",
+    };
+    if (not extra_headers.empty()) {
+      v.file = extra_headers.back();
+      extra_headers.pop_back();
+    }
+  }
+}
 
 namespace {
 void add_select_options(
@@ -77,30 +94,9 @@ does not change the global workspace while minimizing the number of variables th
           "Meta type for any workspace group (see :doc:`workspace.groups`)\n",
   };
 
-  wsg_data["ArrayOfArrayOfSpeciesTag"] = {
-      .file = "species_tags.h",
-      .desc = "A list of *ArrayOfSpeciesTag*\n",
-  };
-
-  wsg_data["ArrayOfAtmPoint"] = {
-      .file = "atm.h",
-      .desc = "A list of *AtmPoint*\n",
-  };
-
-  wsg_data["ArrayOfCIARecord"] = {
-      .file = "cia.h",
-      .desc = R"(A list of *CIARecord*
-)",
-  };
-
-  wsg_data["ArrayOfQuantumLevelIdentifier"] = {
-      .file = "quantum.h",
-      .desc = "A list of *QuantumLevelIdentifier*\n",
-  };
-
   wsg_data["ArrayOfScatteringSpecies"] = {
       .file = "scattering/scattering_species.h",
-      .desc = "Represents species of scattering paritlces in the atmosphere.",
+      .desc = "Represents species of scattering particles in the atmosphere.",
   };
 
   wsg_data["ScatteringSpeciesProperty"] = {
@@ -128,12 +124,6 @@ They will generally throw an error if you lack the data.
 )--",
   };
 
-  wsg_data["ArrayOfSpeciesEnum"] = {
-      .file = "species.h",
-      .desc = R"--(A list of *SpeciesEnum*
-)--",
-  };
-
   wsg_data["Sun"] = {
       .file = "sun.h",
       .desc = R"-x-(A single sun.
@@ -144,23 +134,6 @@ temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type)-x-",
   };
 
-  wsg_data["ArrayOfSun"] = {
-      .file = "sun.h",
-      .desc = "A list of *Sun*\n",
-  };
-
-  wsg_data["ArrayOfString"] = {
-      .file = "mystring.h",
-      .desc = "A list of *String*\n",
-  };
-
-  wsg_data["ArrayOfXsecRecord"] = {
-      .file = "xsec_fit.h",
-      .desc =
-          R"--(A list of *XsecRecord*
-)--",
-  };
-
   wsg_data["AtmField"] = {
       .file = "atm.h",
       .desc = R"--(An atmospheric field.
@@ -169,19 +142,17 @@ An atmospheric field holds two things:
 
 #. The top of the atmosphere altitude, which is the altitude at which the atmosphere ends.  Unit: m
 
-#. A map of *AtmData*.  The available types of keys are:
+#. A virtual map of *AtmData*.  The available types of keys are:
 
-   #. *AtmKey*
+   #. *AtmKey* - holds basic data temperature, pressure, wind, and magnetic field.
 
-   #. *SpeciesEnum*
+   #. *SpeciesEnum* - holds volume mixing ratios of absorption species.  Some species might have a different unit.
 
-   #. *SpeciesIsotope*
+   #. *SpeciesIsotope* - holds isotopologue ratios of absorption species.  Defaults to built-in values
 
-   #. *QuantumLevelIdentifier*
+   #. *QuantumLevelIdentifier* - holds Non-LTE data - i.e., the direct ratios of upper and lower states (which are instead computed on-the-fly when LTE conditions are assumed).
 
-   #. *ScatteringSpeciesProperty*
-
-   See each key for more information on what type of data it allows holding.
+   #. *ScatteringSpeciesProperty* - holds data required for scattering calculations.  The units and type of data are free-form and depend on the scattering model/method.
 )--",
   };
 
@@ -194,6 +165,9 @@ at a single altitude-latitude-longitude coordinate.
 It, like *AtmField* also acts like a map.  They keys are the same as for *AtmField*. However,
 the values are simply the *Numeric* data at that point in the atmosphere.
 
+Always holds an acceptable representation of temperature, pressure, wind, and magnetic field,
+although these might be 0 or NaN.
+
 See *AtmField* for the type of data that the atmospheric point can
 contain.
 )--",
@@ -201,19 +175,20 @@ contain.
 
   wsg_data["CallbackOperator"] = {
       .file = "callback.h",
-      .desc = R"(Used to inject custom code into *Agenda*
+      .desc = R"(Used to inject custom code into *Agenda*.
 
-This completely breaks the type system of ARTS and should only be used.
-You are on your own when things go wrong with this.
+.. warning::
+    This completely breaks the type system of ARTS and should only be used.
+    You are on your own when things go wrong with this.
 )",
   };
 
   wsg_data["BlockMatrix"] = {
       .file = "covariance_matrix.h",
       .desc =
-          R"(The data for a single :class:`~pyarts3.arts.Block`, likely part of a *CovarianceMatrix*.
+          R"(The data for a single *Block*, likely part of a *CovarianceMatrix*.
 
-This holds either a *Matrix* or a *Sparse* matrix.
+This holds either a shared *Matrix* or a shared *Sparse* matrix.
 )",
   };
 
@@ -224,7 +199,7 @@ This holds either a *Matrix* or a *Sparse* matrix.
 
 Please see the different workspace variables of this type for more information.
 
-In ARTS, this square matrix is represented by two lists of :class:`~pyarts3.arts.Block`.
+In ARTS, this square matrix is represented by two lists of *Block*.
 These are used to give both the covariance matrix and the inverse covariance matrix.
 The block-structure allows for efficient storage and computation of the covariance matrix.
 )",
@@ -237,7 +212,7 @@ The block-structure allows for efficient storage and computation of the covarian
 
 The grid is a combination of 2 *Vector*
 
-Both the data and the grid may be named
+Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
@@ -271,7 +246,10 @@ Both the data and the grid may be named
 
   wsg_data["Matrix"] = {
       .file = "matpack.h",
-      .desc = "A 2 dimensional array of *Numeric*\n",
+      .desc = R"(A 2 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)"
   };
 
   wsg_data["Numeric"] = {
@@ -340,13 +318,11 @@ A surface field effectively holds two things:
 
 #. A *Vector2* of the ellipsoid.  a and b parameters.  Unit: m
 
-#. A map of :class:`~pyarts3.arts.SurfaceData`.  The available types of keys are:
+#. A map of *SurfaceData*.  The available types of keys are:
 
-   #. *SurfaceKey*
+   #. *SurfaceKey* - holds basic surface data like elevation and temperature.
 
-   #. *SurfacePropertyTag*
-
-   See each key for more information on what type of data it allows holding.
+   #. *SurfacePropertyTag* - holds free-form surface properties.  The type of data is free-form and depends on the surface model/method.
 )--",
   };
 
@@ -391,7 +367,10 @@ They will generally throw an error if you lack the data.
 
   wsg_data["Vector"] = {
       .file = "matpack.h",
-      .desc = "A 1 dimensional array of *Numeric*\n",
+      .desc = R"(A 1 dimensional array of *Numeric*.
+
+The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
+)",
   };
 
   wsg_data["Stokvec"] = {
@@ -407,56 +386,79 @@ The Stokes vector is used to represent the state of polarization of light.
 
 The components of the Stokes vector are:
 
-#. :math:`I` - the total intensity of the light
+#. :math:`I` - the total intensity of the light.
 
-#. :math:`Q` - the difference in intensity between horizontally and vertically polarized light
+#. :math:`Q` - the difference in intensity between horizontally and vertically polarized light.
 
-#. :math:`U` - the difference in intensity between light polarized at +45 degrees and -45 degrees
+#. :math:`U` - the difference in intensity between light polarized at +45 degrees and -45 degrees.
 
-#. :math:`V` - the difference in intensity between right and left circularly polarized light
+#. :math:`V` - the difference in intensity between right and left circularly polarized light.
+
+The python mapping allows treating this 4-long :class:`~numpy.ndarray` in python.
 )",
   };
 
   wsg_data["PropmatVector"] = {
       .file = "rtepack.h",
-      .desc = "A vector of *Propmat*.\n",
+      .desc = R"(A vector of *Propmat*.
+
+The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 7 as columns.
+)"
   };
 
   wsg_data["MuelmatVector"] = {
       .file = "rtepack.h",
-      .desc = "A vector of *Muelmat*.\n",
+      .desc = R"(A vector of *Muelmat*.
+
+The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
+)"
   };
 
   wsg_data["MuelmatMatrix"] = {
       .file = "rtepack.h",
-      .desc = "A matrix of *Muelmat*.\n",
+      .desc = R"(A matrix of *Muelmat*..
+
+The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
+)"
   };
 
   wsg_data["StokvecVector"] = {
       .file = "rtepack.h",
-      .desc = "A vector of *Stokvec*.\n",
+      .desc = R"(A vector of *Stokvec*.
+
+The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 4 as columns.
+)"
   };
 
   wsg_data["PropmatMatrix"] = {
       .file = "rtepack.h",
-      .desc = "A matrix of *Propmat*.\n",
+      .desc = R"(A matrix of *Propmat*.
+
+The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 7 as columns.
+)"
   };
 
   wsg_data["SpecmatMatrix"] = {
       .file = "rtepack.h",
-      .desc = "A matrix of *Muelmat*.\n",
+      .desc = R"(A matrix of *Muelmat*.
+
+The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
+)",
   };
 
   wsg_data["StokvecMatrix"] = {
       .file = "rtepack.h",
-      .desc = "A matrix of *Stokvec*.\n",
+      .desc = R"(A matrix of *Stokvec*.
+
+The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 4 for columns.
+)",
   };
 
   wsg_data["StokvecSortedGriddedField1"] = {
       .file = "rtepack.h",
       .desc = R"--(A 1-dimensional grid of *Stokvec*.
 
-The grids are 1 *AscendingGrid*.
+The grids are 1 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -464,7 +466,7 @@ The grids are 1 *AscendingGrid*.
       .file = "rtepack.h",
       .desc = R"--(A 2-dimensional grid of *Stokvec*.
 
-The grids are 2 *AscendingGrid*.
+The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -472,7 +474,7 @@ The grids are 2 *AscendingGrid*.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional grid of *Stokvec*.
 
-The grids are 3 *AscendingGrid*.
+The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -480,7 +482,7 @@ The grids are 3 *AscendingGrid*.
       .file = "rtepack.h",
       .desc = R"--(A 4-dimensional grid of *Stokvec*.
 
-The grids are 4 *AscendingGrid*.
+The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -488,7 +490,7 @@ The grids are 4 *AscendingGrid*.
       .file = "rtepack.h",
       .desc = R"--(A 5-dimensional grid of *Stokvec*.
 
-The grids are 5 *AscendingGrid*.
+The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -496,7 +498,7 @@ The grids are 5 *AscendingGrid*.
       .file = "rtepack.h",
       .desc = R"--(A 6-dimensional gridof *Stokvec*.
 
-The grids are 6 *AscendingGrid*.
+The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -506,79 +508,8 @@ The grids are 6 *AscendingGrid*.
 
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
 *AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
+The grids are fully sorted.
 )--",
-  };
-
-  wsg_data["ArrayOfSubsurfacePoint"] = {
-      .file        = "subsurface.h",
-      .desc        = "A list of *SubsurfacePoint*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfPropmatVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *PropmatVector*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfMuelmatVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *MuelmatVector*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfStokvecVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *StokvecVector*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfPropmatMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *PropmatMatrix*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfSpecmatMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *SpecmatMatrix*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfMuelmatTensor3"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *MuelmatTensor3*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfStokvecMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *StokvecMatrix*.\n",
-      .array_depth = 1,
-  };
-
-  wsg_data["ArrayOfArrayOfPropmatVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfPropmatVector*.\n",
-      .array_depth = 2,
-  };
-
-  wsg_data["ArrayOfArrayOfStokvecVector"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfStokvecVector*.\n",
-      .array_depth = 2,
-  };
-
-  wsg_data["ArrayOfArrayOfPropmatMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfPropmatMatrix*.\n",
-      .array_depth = 2,
-  };
-
-  wsg_data["ArrayOfArrayOfStokvecMatrix"] = {
-      .file        = "rtepack.h",
-      .desc        = "A list of *ArrayOfStokvecMatrix*.\n",
-      .array_depth = 2,
   };
 
   wsg_data["NumericUnaryOperator"] = {
@@ -638,49 +569,40 @@ radiation.
 )--",
   };
 
-  wsg_data["ArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *PropagationPathPoint*.\n",
-  };
-
-  wsg_data["ArrayOfArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *ArrayOfPropagationPathPoint*.\n",
-  };
-
-  wsg_data["ArrayOfArrayOfArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *ArrayOfArrayOfPropagationPathPoint*.\n",
-  };
-
   wsg_data["Vector3"] = {
       .file = "matpack.h",
-      .desc = "A fixed-size 3D version of *Vector*.\n",
+      .desc = R"(A fixed-size 3D version of *Vector*.
+
+The python mapping allows treating this as a 3-long :class:`~numpy.ndarray`.
+)",
   };
 
   wsg_data["Vector2"] = {
       .file = "matpack.h",
-      .desc = "A fixed-size 2D version of *Vector*.\n",
-  };
+      .desc = R"(A fixed-size 2D version of *Vector*.
 
-  wsg_data["ArrayOfVector3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector3*\n",
+The python mapping allows treating this as a 3-long :class:`~numpy.ndarray`.
+)",
   };
 
   wsg_data["DescendingGrid"] = {
       .file = "matpack.h",
-      .desc = "A sorted *Vector* of always descending values.\n",
+      .desc = R"(A sorted *Vector* of always descending values.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.
+But because it has to be sorted in descending order,
+modifying the values are not allowed.
+)",
   };
 
   wsg_data["AscendingGrid"] = {
       .file = "matpack.h",
-      .desc = "A sorted *Vector* of always ascending values.\n",
-  };
+      .desc = R"(A sorted *Vector* of always ascending values.
 
-  wsg_data["ArrayOfAscendingGrid"] = {
-      .file = "matpack.h",
-      .desc = "A list of *AscendingGrid*.\n",
+The python mapping allows treating this as a :class:`~numpy.ndarray`.
+But because it has to be sorted in ascending order,
+modifying the values are not allowed.
+)",
   };
 
   wsg_data["SpectralRadianceOperator"] = {
@@ -708,11 +630,6 @@ and returns any associated data.
 For *AtmField* and *AtmPoint*, this identifies the isotopologue ratio by name
 and returns any associated data.
 )",
-  };
-
-  wsg_data["ArrayOfSensorObsel"] = {
-      .file = "obsel.h",
-      .desc = "List of *SensorObsel*.\n",
   };
 
   wsg_data["DisortFlux"] = {
@@ -772,7 +689,7 @@ and returns any associated data.
       .file = "matpack.h",
       .desc = R"--(A 1-dimensional gridof *Numeric*.
 
-The grids are 1 *ZenithGrid*.
+The grids are 1 *ZenithGrid*.  This grid is sorted.
 )--",
   };
 
@@ -780,7 +697,7 @@ The grids are 1 *ZenithGrid*.
       .file = "matpack.h",
       .desc = R"--(A 1-dimensional gridof *Numeric*.
 
-The grids are 1 *AscendingGrid*.
+The grids are 1 *AscendingGrid*.  This grid is sorted.
 )--",
   };
 
@@ -788,7 +705,7 @@ The grids are 1 *AscendingGrid*.
       .file = "matpack.h",
       .desc = R"--(A 2-dimensional gridof *Numeric*.
 
-The grids are 2 *AscendingGrid*.
+The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -797,7 +714,7 @@ The grids are 2 *AscendingGrid*.
       .desc = R"--(A 2-dimensional gridof *Numeric*.
 
 The grids are *latitude_grid* x *longitude_grid*.
-The types are *LatGrid* x *LonGrid*.
+The types are *LatGrid* x *LonGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -805,7 +722,7 @@ The types are *LatGrid* x *LonGrid*.
       .file = "matpack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The grids are 3 *AscendingGrid*.
+The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -813,7 +730,7 @@ The grids are 3 *AscendingGrid*.
       .file = "matpack.h",
       .desc = R"--(A 4-dimensional gridof *Numeric*.
 
-The grids are 4 *AscendingGrid*.
+The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -821,7 +738,7 @@ The grids are 4 *AscendingGrid*.
       .file = "matpack.h",
       .desc = R"--(A 5-dimensional gridof *Numeric*.
 
-The grids are 5 *AscendingGrid*.
+The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -829,7 +746,7 @@ The grids are 5 *AscendingGrid*.
       .file = "matpack.h",
       .desc = R"--(A 6-dimensional gridof *Numeric*.
 
-The grids are 6 *AscendingGrid*.
+The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
@@ -837,6 +754,11 @@ The grids are 6 *AscendingGrid*.
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 180].
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
 )--",
   };
 
@@ -844,6 +766,11 @@ The grids are 6 *AscendingGrid*.
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 360).
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
 )--",
   };
 
@@ -851,6 +778,11 @@ The grids are 6 *AscendingGrid*.
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-180, 180).
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
 )--",
   };
 
@@ -858,6 +790,11 @@ The grids are 6 *AscendingGrid*.
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [-90, 90].
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
 )--",
   };
 
@@ -897,6 +834,39 @@ ray_path_point : PropagationPathPoint
                      });
 
   agenda_operators(wsg_data);
+
+  add_arrays_of(wsg_data,
+                {
+                    "AtmPoint",
+                    "SensorObsel",
+                    "ArrayOfSpeciesTag",
+                    "CIARecord",
+                    "SpeciesEnum",
+                    "QuantumLevelIdentifier",
+                    "XsecRecord",
+                    "Sun",
+                    "String",
+                    "SubsurfacePoint",
+                    "PropmatVector",
+                    "MuelmatVector",
+                    "StokvecVector",
+                    "PropmatMatrix",
+                    "SpecmatMatrix",
+                    "MuelmatTensor3",
+                    "StokvecMatrix",
+                    "ArrayOfPropmatVector",
+                    "ArrayOfStokvecVector",
+                    "ArrayOfPropmatMatrix",
+                    "ArrayOfStokvecMatrix",
+                    "PropagationPathPoint",
+                    "ArrayOfPropagationPathPoint",
+                    "ArrayOfArrayOfPropagationPathPoint",
+                    "Vector3",
+                    "AscendingGrid",
+                },
+                {
+                    "optproperties.h",
+                });
 
   return wsg_data;
 }
