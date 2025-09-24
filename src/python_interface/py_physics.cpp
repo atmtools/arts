@@ -46,6 +46,10 @@ Returns
       "temperature"_a,
       R"--(Calculates the Planck function.
 
+.. math::
+    I =\frac{2h\nu^3}{c^2} \frac{1}{e^{\frac{h\nu}{kT}} - 1},
+where :math:`\nu` is the frequency and :math:`T` is the temperature.
+
 Parameters
 ----------
   frequency : Numeric or numpy.ndarray

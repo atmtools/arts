@@ -187,24 +187,6 @@ void propagation_matrixAddCIA(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_cia_dataAddCIARecord(  // WS Output:
-    ArrayOfCIARecord& absorption_cia_data,
-    // WS GInput:
-    const CIARecord& cia_record,
-    const Index& clobber) {
-  ARTS_TIME_REPORT
-
-  Index cia_index = cia_get_index(
-      absorption_cia_data, cia_record.Species(0), cia_record.Species(1));
-  if (cia_index == -1)
-    absorption_cia_data.push_back(cia_record);
-  else if (clobber)
-    absorption_cia_data[cia_index] = cia_record;
-  else
-    absorption_cia_data[cia_index].AppendDataset(cia_record);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_cia_dataReadFromCIA(  // WS Output:
     ArrayOfCIARecord& absorption_cia_data,
     // WS Input:

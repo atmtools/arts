@@ -93,11 +93,6 @@ does not change the global workspace while minimizing the number of variables th
 )",
   };
 
-  wsg_data["ArrayOfIndex"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Index*\n",
-  };
-
   wsg_data["ArrayOfQuantumLevelIdentifier"] = {
       .file = "quantum.h",
       .desc = "A list of *QuantumLevelIdentifier*\n",
@@ -201,19 +196,6 @@ the values are simply the *Numeric* data at that point in the atmosphere.
 
 See *AtmField* for the type of data that the atmospheric point can
 contain.
-)--",
-  };
-
-  wsg_data["CIARecord"] = {
-      .file = "cia.h",
-      .desc =
-          R"--(Contains information to compute collision induced absorption (CIA) for a pair of species.
-
-A record holds a list of *GriddedField2* objects,
-each which describe a separate band of absorption with dimensions of
-frequency times temperature.  The *Matrix* objects in the *GriddedField2*
-simply holds data to be interpolated in the frequency and temperature
-with physical units of [m :math:`^5` per molecule :math:`^2`].
 )--",
   };
 

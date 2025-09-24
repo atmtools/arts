@@ -104,6 +104,42 @@ void py_atm(py::module_ &m) try {
       .def_prop_ro("data_type",
                    &Atm::Data::data_type,
                    "The data type\n\n.. :class:`~pyarts3.arts.String`")
+      .def(
+          "regrid",
+          [](AtmData &data,
+             const AscendingGrid &alt,
+             const LatGrid &lat,
+             const LonGrid &lon,
+             const InterpolationExtrapolation &extrapolation) {
+            data.regrid(alt, lat, lon);
+            data.alt_upp = extrapolation;
+            data.alt_low = extrapolation;
+            data.lat_upp = extrapolation;
+            data.lat_low = extrapolation;
+            data.lon_upp = extrapolation;
+            data.lon_low = extrapolation;
+          },
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "extrapolation"_a = InterpolationExtrapolation::Nearest,
+          R"(Regrid the data to a new grid.
+
+This will convert the data to a *GeodeticField3* if it is not already.
+It will not respect the existing extrapolation settings, so these must be set
+manually after calling this method.
+
+Parameters
+----------
+alt : AscendingGrid
+    The new altitude grid.
+lat : LatGrid
+    The new latitude grid.
+lon : LonGrid
+    The new longitude grid.
+extrapolation : InterpolationExtrapolation
+    The extrapolation method to use.  Defaults to Nearest
+)")
       .def("__getstate__",
            [](const Atm::Data &t) {
              return std::make_tuple(t.data,
@@ -148,6 +184,115 @@ void py_atm(py::module_ &m) try {
 
   auto fld = py::class_<AtmField>(m, "AtmField");
   generic_interface(fld);
+
+  fld.def(
+      "regrid",
+      [](AtmField &atm,
+         const AscendingGrid &alt,
+         const LatGrid &lat,
+         const LonGrid &lon,
+         const InterpolationExtrapolation extrapolation,
+         bool do_atmkeys,
+         bool do_species,
+         bool do_isotopologues,
+         bool do_nlte,
+         bool do_scattering) {
+        if (do_atmkeys) {
+          for (auto &val : atm.other | stdv::values) {
+            val.regrid(alt, lat, lon);
+            val.alt_upp = extrapolation;
+            val.alt_low = extrapolation;
+            val.lat_upp = extrapolation;
+            val.lat_low = extrapolation;
+            val.lon_upp = extrapolation;
+            val.lon_low = extrapolation;
+          }
+        }
+
+        if (do_species) {
+          for (auto &val : atm.specs | stdv::values) {
+            val.regrid(alt, lat, lon);
+            val.alt_upp = extrapolation;
+            val.alt_low = extrapolation;
+            val.lat_upp = extrapolation;
+            val.lat_low = extrapolation;
+            val.lon_upp = extrapolation;
+            val.lon_low = extrapolation;
+          }
+        }
+
+        if (do_isotopologues) {
+          for (auto &val : atm.isots | stdv::values) {
+            val.regrid(alt, lat, lon);
+            val.alt_upp = extrapolation;
+            val.alt_low = extrapolation;
+            val.lat_upp = extrapolation;
+            val.lat_low = extrapolation;
+            val.lon_upp = extrapolation;
+            val.lon_low = extrapolation;
+          }
+        }
+
+        if (do_nlte) {
+          for (auto &val : atm.nlte | stdv::values) {
+            val.regrid(alt, lat, lon);
+            val.alt_upp = extrapolation;
+            val.alt_low = extrapolation;
+            val.lat_upp = extrapolation;
+            val.lat_low = extrapolation;
+            val.lon_upp = extrapolation;
+            val.lon_low = extrapolation;
+          }
+        }
+
+        if (do_scattering) {
+          for (auto &val : atm.ssprops | stdv::values) {
+            val.regrid(alt, lat, lon);
+            val.alt_upp = extrapolation;
+            val.alt_low = extrapolation;
+            val.lat_upp = extrapolation;
+            val.lat_low = extrapolation;
+            val.lon_upp = extrapolation;
+            val.lon_low = extrapolation;
+          }
+        }
+      },
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      "extrapolation"_a    = InterpolationExtrapolation::Nearest,
+      "do_atmkeys"_a       = true,
+      "do_species"_a       = true,
+      "do_isotopologues"_a = false,
+      "do_nlte"_a          = true,
+      "do_scattering"_a    = true,
+      R"(Regrid all fields to a new grid.
+
+This will convert the data to a *GeodeticField3* if it is not already.
+It will not respect the existing extrapolation settings, so these must be set
+manually after calling this method.
+
+Parameters
+----------
+alt : AscendingGrid
+    The new altitude grid.
+lat : LatGrid
+    The new latitude grid.
+lon : LonGrid
+    The new longitude grid.
+extrapolation : InterpolationExtrapolation
+    The extrapolation method to use.  The default is Nearest.
+do_atmkeys : bool
+    If true, regrid the basic atmospheric keys (temperature, pressure, magnetic field, wind).  Default is true.
+do_species : bool
+    If true, regrid the species VMRs.  Default is true.
+do_isotopologues : bool
+    If true, regrid the isotopologue ratios.  Default is false.
+do_nlte : bool
+    If true, regrid the NLTE values.  Default is true.
+do_scattering : bool
+    If true, regrid the scattering species properties.  Default is true.
+)");
 
   pnt.def_rw("temperature",
              &AtmPoint::temperature,

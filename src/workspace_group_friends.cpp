@@ -25,6 +25,24 @@ This information includes
 )",
   };
 
+  wsg_data["ArrayOfIndex"] = {
+      .file = "matpack.h",
+      .desc = "A list of *Index*\n",
+  };
+
+  wsg_data["CIARecord"] = {
+      .file = "cia.h",
+      .desc =
+          R"--(Contains information to compute collision induced absorption (CIA) for a pair of species.
+
+A record holds a list of *GriddedField2* objects,
+each which describe a separate band of absorption with dimensions of
+frequency times temperature.  The *Matrix* objects in the *GriddedField2*
+simply holds data to be interpolated in the frequency and temperature
+with physical units of [m :math:`^5` per molecule :math:`^2`].
+)--",
+  };
+
   wsg_data["AbsorptionLine"] = {
       .file = "lbl.h",
       .desc =

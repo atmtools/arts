@@ -173,21 +173,6 @@ void propagation_matrixAddLookup(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atmospheric_profileExtendInPressure(
-    ArrayOfAtmPoint& atmospheric_profile,
-    const Numeric& extended_max_pressure,
-    const Numeric& extended_min_pressure,
-    const String& extrapolation_option) try {
-  ARTS_TIME_REPORT
-
-  lookup::extend_atmosphere(
-      atmospheric_profile,
-      to<InterpolationExtrapolation>(extrapolation_option),
-      extended_max_pressure,
-      extended_min_pressure);
-}
-ARTS_METHOD_ERROR_CATCH
-
 void absorption_lookup_tablePrecompute(
     AbsorptionLookupTables& absorption_lookup_table,
     const ArrayOfAtmPoint& atmospheric_profile,

@@ -237,6 +237,10 @@ struct Data {
       const Vector3 pos) const;
 
   [[nodiscard]] bool ok() const;
+
+  void regrid(const AscendingGrid &alt,
+              const LatGrid &lat,
+              const LonGrid &lon);
 };
 
 template <typename T>

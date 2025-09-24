@@ -1,5 +1,6 @@
 #include "atm_field.h"
 
+#include <arts_omp.h>
 #include <compare.h>
 #include <configtypes.h>
 #include <debug.h>
@@ -11,6 +12,7 @@
 #include <physics_funcs.h>
 
 #include <algorithm>
+#include <exception>
 #include <limits>
 #include <optional>
 #include <stdexcept>
@@ -748,6 +750,35 @@ bool Data::ok() const {
   }
 
   return true;
+}
+
+void Data::regrid(const AscendingGrid &alt,
+                  const LatGrid &lat,
+                  const LonGrid &lon) {
+  GeodeticField3 new_data{.data_name = "regridded_data",
+                          .data = Tensor3(alt.size(), lat.size(), lon.size()),
+                          .grid_names = {"alt", "lat", "lon"},
+                          .grids      = {alt, lat, lon}};
+
+  std::string error{};
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3)
+  for (Size i = 0; i < alt.size(); ++i) {
+    for (Size j = 0; j < lat.size(); ++j) {
+      for (Size k = 0; k < lon.size(); ++k) {
+        try {
+          new_data[i, j, k] = at(alt[i], lat[j], lon[k]);
+        } catch (std::exception &e) {
+#pragma omp critical
+          if (error.empty()) error = e.what();
+        }
+      }
+    }
+  }
+
+  ARTS_USER_ERROR_IF(not error.empty(), "Error during regridding: {}", error)
+
+  data = std::move(new_data);
 }
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
