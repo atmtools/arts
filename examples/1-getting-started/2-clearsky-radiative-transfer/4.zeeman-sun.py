@@ -32,7 +32,7 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Add a sun
 
 ws.sunBlackbody()
-ws.sunsAddSun(suns=ws.suns)
+ws.suns = [ws.sun]
 
 # %% Checks and settings
 

@@ -29,7 +29,7 @@ ws.subsurface_field["t"].alt_low = "Linear"
 ws.subsurface_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
-ws.disort_spectral_radiance_fieldSubsurfaceProfile(
+ws.disort_spectral_radiance_fieldDepthProfile(
     disort_fourier_mode_dimension=1,
     disort_legendre_polynomial_dimension=1,
     disort_quadrature_dimension=NQUAD,

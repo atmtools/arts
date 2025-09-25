@@ -46,17 +46,22 @@ Returns
       "temperature"_a,
       R"--(Calculates the Planck function.
 
+.. math::
+    I =\frac{2h\nu^3}{c^2} \frac{1}{e^{\frac{h\nu}{kT}} - 1},
+
+where :math:`\nu` is the frequency and :math:`T` is the temperature.
+
 Parameters
 ----------
-  frequency : Numeric or numpy.ndarray
+frequency : Numeric or numpy.ndarray
     Frequency [Hz]
 
-  temperature : Numeric or numpy.ndarray
+temperature : Numeric or numpy.ndarray
     Temperature [K]
 
 Returns
 -------
-  B : Numeric or numpy.ndarray
+B : Numeric or numpy.ndarray
     Planck function [W/(m² Hz sr)]
 )--");
 } catch (std::exception& e) {

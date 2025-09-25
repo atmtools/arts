@@ -144,7 +144,7 @@ The following types of keys are available:
   As for VMRs they need not sum up to 1 per species for practical reasons.
   These are defaulted to values extracted from `HITRAN <https://hitran.org/>`_,
   complemented by other sources as necessary.
-- :class:`~pyarts3.arts.QuantumIdentifier`: Non-LTE data.
+- :class:`~pyarts3.arts.QuantumLevelIdentifier`: Non-LTE data.
   These are the state distributions of energy levels of molecules required for non-LTE calculations.
 - :class:`~pyarts3.arts.ScatteringSpeciesProperty`: Scattering properties of the atmosphere.
   These are properties of the atmosphere that are relevant for scattering calculations.
@@ -162,7 +162,7 @@ Shorthand graph for ``key`` of different types:
     "b0" [ label = "AtmKey" shape = "ellipse" ];
     "b1" [ label = "SpeciesEnum" shape = "ellipse" ];
     "b2" [ label = "SpeciesIsotope" shape = "ellipse" ];
-    "b3" [ label = "QuantumIdentifier" shape = "ellipse" ];
+    "b3" [ label = "QuantumLevelIdentifier" shape = "ellipse" ];
     "b4" [ label = "ScatteringSpeciesProperty" shape = "ellipse" ];
     "c0" [ label = "T, P, Mag, Wind" ];
     "c1" [ label = "VMR of O2, H2O, N2, CO2, ..." ];
@@ -309,15 +309,15 @@ An example of using :class:`~pyarts3.arts.Numeric` as atmospheric field data is 
   [sub.set_xlabel("Field strength [T]") for sub in subs]
   plt.show()
 
-SortedGriddedField3
-^^^^^^^^^^^^^^^^^^^
+GeodeticField3
+^^^^^^^^^^^^^^
 
-If the atmospheric data is of the type :class:`~pyarts3.arts.SortedGriddedField3`,
+If the atmospheric data is of the type :class:`~pyarts3.arts.GeodeticField3`,
 the data is defined on a grid of altitude, geodetic latitude, and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate between [-180, 180) - please ensure your grid is defined accordingly.
 This data type fully respects the rules of extrapolation outside its grid.
-An example of using :class:`~pyarts3.arts.SortedGriddedField3` as atmospheric field data is given in the following code block.
+An example of using :class:`~pyarts3.arts.GeodeticField3` as atmospheric field data is given in the following code block.
 
 .. plot::
   :include-source:
@@ -327,9 +327,9 @@ An example of using :class:`~pyarts3.arts.SortedGriddedField3` as atmospheric fi
   import pyarts3 as pyarts
 
   atm_field = pyarts.arts.AtmField(toa=100e3)
-  atm_field["t"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/t.xml")
-  atm_field["O2"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/O2.xml")
-  atm_field["H2O"] = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/H2O.xml")
+  atm_field["t"] = pyarts.arts.GeodeticField3.fromxml("planets/Earth/afgl/tropical/t.xml")
+  atm_field["O2"] = pyarts.arts.GeodeticField3.fromxml("planets/Earth/afgl/tropical/O2.xml")
+  atm_field["H2O"] = pyarts.arts.GeodeticField3.fromxml("planets/Earth/afgl/tropical/H2O.xml")
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["t", "O2", "H2O"])
@@ -345,13 +345,13 @@ An example of using :class:`~pyarts3.arts.SortedGriddedField3` as atmospheric fi
 
 .. tip::
 
-  It is possible to use any number of 1-long grids in a :class:`~pyarts3.arts.SortedGriddedField3` meant for use as a :class:`~pyarts3.arts.AtmData`.
+  It is possible to use any number of 1-long grids in a :class:`~pyarts3.arts.GeodeticField3` meant for use as a :class:`~pyarts3.arts.AtmData`.
   The 1-long grids will by default apply the "nearest" interpolation rule for those grids, potentially reducing the atmospheric data
   to a 1D profile if only the altitude is given, or even a constant if all three grids are 1-long.
 
 .. note::
 
-  If the :class:`~pyarts3.arts.SortedGriddedField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
+  If the :class:`~pyarts3.arts.GeodeticField3` does not cover the full range of the atmosphere, the extrapolation rules will be used to
   extrapolate it.  By default, these rules are set to not allow any extrapolation.  This can be changed by setting the
   extrapolation settings as needed.  See headers `Extrapolation rules`_ and `Atmospheric field data`_ for more information.
 
@@ -378,8 +378,8 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
   import numpy as np
   import pyarts3 as pyarts
 
-  h = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").grids[0]
-  p = pyarts.arts.SortedGriddedField3.fromxml("planets/Earth/afgl/tropical/p.xml").data.flatten()
+  h = pyarts.arts.GeodeticField3.fromxml("planets/Earth/afgl/tropical/p.xml").grids[0]
+  p = pyarts.arts.GeodeticField3.fromxml("planets/Earth/afgl/tropical/p.xml").data.flatten()
 
   def h2p(alt, *args):
       return np.interp(alt, h, p)

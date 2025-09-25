@@ -53,13 +53,8 @@ if test:
     print()
 
     lines = os.path.join(path, "lines")
-    for file in os.listdir(lines):
-        if file.endswith(".xml"):
-            filepath = os.path.join(lines, file)
-            print(f"Reading {filepath}")
-            x = pyarts.arts.AbsorptionBands.fromxml(filepath)
-            if resave:
-                x.savexml(filepath)
+    ws = pyarts.Workspace()
+    ws.absorption_bandsReadSplit(dir=lines)
     print("All line files read successfully.")
     print()
 

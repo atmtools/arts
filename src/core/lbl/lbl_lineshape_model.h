@@ -227,8 +227,12 @@ std::istream& operator>>(std::istream& is,
                          std::unordered_map<SpeciesEnum, species_model>& x);
 }  // namespace lbl::line_shape
 
+using LineShapeSpeciesModel = lbl::line_shape::species_model;
+
+using LineShapeModel = lbl::line_shape::model;
+
 template <>
-struct std::formatter<lbl::line_shape::species_model> {
+struct std::formatter<LineShapeSpeciesModel> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -240,7 +244,7 @@ struct std::formatter<lbl::line_shape::species_model> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lbl::line_shape::species_model& v,
+  FmtContext::iterator format(const LineShapeSpeciesModel& v,
                               FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Data: "sv, v.data);
@@ -302,6 +306,5 @@ struct std::formatter<lbl::line_shape::model> {
 };
 
 template <>
-std::optional<std::string>
-to_helper_string<lbl::line_shape::species_model::map_t>(
-    const lbl::line_shape::species_model::map_t&);
+std::optional<std::string> to_helper_string<LineShapeSpeciesModel::map_t>(
+    const LineShapeSpeciesModel::map_t&);

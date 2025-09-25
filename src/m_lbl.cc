@@ -98,83 +98,6 @@ void absorption_bandsSelectFrequencyByBand(AbsorptionBands& absorption_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void absorption_bandsRemoveID(AbsorptionBands& absorption_bands,
-                              const QuantumIdentifier& id) try {
-  ARTS_TIME_REPORT
-
-  absorption_bands.erase(id);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
-                        const AbsorptionBands& absorption_bands,
-                        const String& criteria,
-                        const Index& reverse,
-                        const Numeric& temperature) try {
-  ARTS_TIME_REPORT
-
-  struct order {
-    QuantumIdentifier qid;
-    Numeric value;
-    Index idx;
-  };
-
-  std::vector<order> qid_sorter;
-  qid_sorter.reserve(absorption_bands.size());
-
-  const auto sort_opt = to<AbsorptionBandSortingOption>(criteria);
-
-  for (auto& [key, band] : absorption_bands) {
-    auto& v = qid_sorter.emplace_back(key, 0.0, qid_sorter.size()).value;
-
-    switch (sort_opt) {
-      case AbsorptionBandSortingOption::IntegratedIntensity:
-        v = std::transform_reduce(
-            band.lines.begin(),
-            band.lines.end(),
-            Numeric{0},
-            std::plus<>{},
-            [T = temperature](const lbl::line& l) {
-              return -l.f0 *
-                     std::expm1(-Constant::h * l.f0 / (Constant::k * T)) *
-                     l.s(T, 1);
-            });
-        break;
-      case AbsorptionBandSortingOption::FrontFrequency:
-        if (band.size()) v = band.lines.front().f0;
-        break;
-      case AbsorptionBandSortingOption::None: break;
-    }
-  }
-
-  std::ranges::sort(qid_sorter, {}, &order::qid);
-
-  Size i = 0;
-  while (i < qid_sorter.size()) {
-    auto [first, last] =
-        std::ranges::equal_range(qid_sorter | std::views::drop(i),
-                                 qid_sorter[i],
-                                 [](const auto& p1, const auto& p2) {
-                                   return p1.qid.isot < p2.qid.isot;
-                                 });
-
-    auto span  = std::span{first, last};
-    i         += span.size();
-
-    if (reverse) {
-      std::ranges::sort(span | std::views::reverse, {}, &order::value);
-    } else {
-      std::ranges::sort(span, {}, &order::value);
-    }
-  }
-
-  sorted_idxs.resize(0);
-  sorted_idxs.reserve(qid_sorter.size());
-  std::ranges::move(qid_sorter | std::views::transform(&order::idx),
-                    std::back_inserter(sorted_idxs));
-}
-ARTS_METHOD_ERROR_CATCH
-
 void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
                             const QuantumIdentifier& id,
                             const Index& line) try {
@@ -278,13 +201,16 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
       });
   std::ranges::sort(paths);
 
-  std::vector<AbsorptionBands> splitbands(paths.size());
   std::string error{};
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
   for (Size i = 0; i < paths.size(); i++) {
     try {
-      xml_read_from_file(paths[i].string(), splitbands[i]);
+      AbsorptionBands bands;
+      xml_read_from_file(paths[i].string(), bands);
+#pragma omp critical
+      absorption_bands.insert(std::make_move_iterator(bands.begin()),
+                              std::make_move_iterator(bands.end()));
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -292,21 +218,6 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
   }
 
   if (not error.empty()) throw std::runtime_error(error);
-
-  absorption_bands.reserve(std::transform_reduce(
-      splitbands.begin(),
-      splitbands.end(),
-      Size{0},
-      std::plus<>{},
-      [](const AbsorptionBands& bands) { return bands.size(); }));
-  for (auto& bands : splitbands) {
-    for (auto& [key, data] : bands) {
-      ARTS_USER_ERROR_IF(absorption_bands.find(key) != absorption_bands.end(),
-                         "Read multiple bands of ID: {}",
-                         key)
-      absorption_bands[key] = std::move(data);
-    }
-  }
 }
 ARTS_METHOD_ERROR_CATCH
 

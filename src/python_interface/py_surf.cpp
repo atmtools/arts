@@ -6,6 +6,7 @@
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
+#include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <species_tags.h>
 #include <subsurface_field.h>
@@ -117,6 +118,13 @@ void py_surf(py::module_ &m) try {
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
   generic_interface(surfdata);
+
+  auto aosd =
+      py::bind_vector<Array<SurfaceData>, py::rv_policy::reference_internal>(
+          m, "ArrayOfSurfaceData");
+  aosd.doc() = "A list of surface data";
+  vector_interface(aosd);
+  generic_interface(aosd);
 
   py::class_<SurfacePropertyTag> spt =
       py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");

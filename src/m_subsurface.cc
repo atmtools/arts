@@ -66,7 +66,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   AtmField atm_field                            = atmospheric_field;
   SurfaceField surf_field                       = surface_field;
   SubsurfaceField subsurf_field                 = subsurface_field;
-  const AzimuthGrid phis = Vector{ray_path_point.azimuth()};
+  const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
 
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
                                     frequency_grid.size());
@@ -88,8 +88,8 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       ray_path_point,
       subsurface_field,
       surface_field,
-      phis,
-      depth_profile);
+      depth_profile,
+      azimuth_grid);
 
   model_state_vectorPerturbations(model_state_vector_perturbation,
                                   jacobian_targets);
@@ -156,8 +156,8 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
           ray_path_point,
           subsurf_field,
           surf_field,
-          phis,
-          depth_profile);
+          depth_profile,
+          azimuth_grid);
 
       std::transform(spectral_radiance2.begin(),
                      spectral_radiance2.end(),

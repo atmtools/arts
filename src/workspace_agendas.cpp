@@ -11,7 +11,7 @@ internal_workspace_agendas_creator() {
 
   wsa_data["propagation_matrix_agenda"] = {
       .desc =
-          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives.
+          R"--(Computes the propagation matrix, the non-LTE source vector, and their derivatives.
 
 The intent of this agenda is to be the workhorse for the propagation matrix
 calculations that are happening deep in your ARTS method calls.
@@ -56,7 +56,7 @@ calculations that are happening deep in your ARTS method calls.
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
       .desc =
-          R"--(Get the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
+          R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
       .output = {"propagation_matrix_scattering",
                  "absorption_vector_scattering",
@@ -84,7 +84,7 @@ calculations that are happening deep in your ARTS method calls.
 
   wsa_data["propagation_matrix_scattering_agenda"] = {
       .desc =
-          R"--(Compute the part of the propagation matrix that relates to scattering.
+          R"--(Computes the part of the propagation matrix that relates to scattering.
 )--",
       .output       = {"propagation_matrix_scattering"},
       .input        = {"frequency_grid", "atmospheric_point"},
@@ -100,7 +100,7 @@ calculations that are happening deep in your ARTS method calls.
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc   = R"--(Get the propagation path as it is obeserved.
+      .desc   = R"--(Gets the propagation path as it is obeserved.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
@@ -115,14 +115,14 @@ position and line of sight.
 
   wsa_data["spectral_radiance_observer_agenda"] = {
       .desc =
-          R"--(Spectral radiance as seen from the input position and environment.
+          R"--(Computes spectral radiance as seen from the input position and environment.
 
 The intent of this agenda is to provide the spectral radiance as seen from the observer
 position and line of sight.
 
 It also outputs the *ray_path* as seen from the observer position and line of sight.
 This is useful in-case a call to the destructive *spectral_radianceApplyUnitFromSpectralRadiance*
-is warranted
+is warranted.
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
       .input  = {"frequency_grid",
@@ -149,7 +149,7 @@ is warranted
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {
-      .desc         = R"--(Spectral radiance as seen of space.
+      .desc         = R"--(Gets spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
 One common use-case is to provide a background spectral radiance.
@@ -175,14 +175,16 @@ The input path point should be as if it is looking at space.
       }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc               = R"--(Spectral radiance as seen of the surface.
+      .desc               = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at the surface.
 
-Subsurface calculations are also supported through this agenda.
+Subsurface calculations are also supported through this agenda,
+but might require setting *spectral_radiance_closed_surface_agenda*
+as well.
 )--",
       .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
       .input              = {"frequency_grid",
