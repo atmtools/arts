@@ -1,5 +1,7 @@
 """Atmospheric flux operator"""
 
+import os
+
 import matplotlib.pyplot as plt
 import pyarts3 as pyarts
 
@@ -41,3 +43,6 @@ ax2.legend(["up", "down"])
 ax2.set_ylabel("Altitude [km]")
 ax2.set_xlabel("Flux [W / m$^2$]")
 ax2.set_title("Thermal flux")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

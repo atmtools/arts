@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -83,3 +85,6 @@ f, s = pyarts.plots.AtmField.plot(
     ws.atmospheric_field, alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
 )
 f.suptitle("Atmospheric field")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

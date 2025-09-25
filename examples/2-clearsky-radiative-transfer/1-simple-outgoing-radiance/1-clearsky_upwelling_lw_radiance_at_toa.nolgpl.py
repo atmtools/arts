@@ -5,9 +5,11 @@ is a standard tropical atmosphere, containing only water vapor, carbon dioxide a
 as trace gases. The water vapor absorption continuum is included.
 """
 
-import pyarts3 as pa
-import numpy as np
+import os
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pyarts3 as pa
 
 # Download ARTS catalogs if they are not already present
 pa.data.download()
@@ -66,3 +68,6 @@ ax.plot(kayser_grid, ws.spectral_radiance[:, 0])
 ax.set_xlabel("Frequency / Kayser (cm$^{-1}$)")
 ax.set_ylabel("Spectral radiance /")
 ax.set_title("Clear sky outgoing radiance")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

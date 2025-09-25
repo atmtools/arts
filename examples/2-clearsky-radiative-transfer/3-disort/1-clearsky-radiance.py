@@ -1,3 +1,5 @@
+import  os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -80,6 +82,9 @@ ax.semilogy(
 ax.set_ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
 ax.set_xlabel("Dirac frequency [index count]")
 ax.set_title("Downlooking")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 # %% The last test should be that we are close to the correct values
 assert np.allclose(

@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -49,6 +51,9 @@ ax.set_ylabel("Spectral radiance [K]")
 ax.set_title(
     f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line with Gaussian channels on individual grids"
 )
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 # %% Test
 assert np.allclose(

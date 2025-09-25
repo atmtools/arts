@@ -1,5 +1,7 @@
 """Absorption by a single species"""
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -44,6 +46,9 @@ ax.legend(
     ncols=4,
     loc="lower center",
 )
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 # %% Integration test by ensuring some statistics look good
 assert np.isclose(6.792977548868407e-28 / xsec.mean(), 1)

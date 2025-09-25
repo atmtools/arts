@@ -17,6 +17,8 @@ print(os.environ.get("ARTS_DATA_PATH"))
 
 """
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -113,6 +115,9 @@ ax.plot(
 ax.set_xlabel("Wavelength [nm]")
 ax.set_ylabel("Absorption [1/m]")
 ax.set_title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 """
 That's it!  You are done and have reached the end of this example.  Everything

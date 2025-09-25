@@ -1,5 +1,7 @@
 """Spectral atmospheric flux operator"""
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -49,3 +51,6 @@ ax.set_xlabel("Kaysers [cm$^{-1}$]")
 ax.set_ylabel("Altitude [km]")
 ax.set_title("Downgoing spectral irradiance")
 fig.colorbar(cx, label="Flux [W / m$^2$ Hz]")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

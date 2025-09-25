@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -58,6 +60,9 @@ for iza in range(len(zas)):
 r, theta = np.meshgrid(zas, np.rad2deg(aas))
 fig, ax = plt.subplots(subplot_kw=dict(projection="polar"))
 ax.contourf(theta, r, res.T)
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 assert np.allclose(
     res[1::3, 1::7],

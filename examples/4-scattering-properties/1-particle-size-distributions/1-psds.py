@@ -1,5 +1,7 @@
 """Particle Size Distributions"""
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -59,3 +61,6 @@ ax.set_xscale("log")
 ax.set_xlabel("Particle Size")
 ax.set_ylabel("Particle Number Density")
 ax.set_title("Binned particles size distribution")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -46,6 +48,9 @@ ax.semilogy((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
 ax.set_title(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 # %% Test
 assert np.allclose(

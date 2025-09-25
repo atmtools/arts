@@ -8,6 +8,8 @@ from one or several fields of *scattering species properties* to *scattering
 properties* which form the input to the actual scattering calculation.
 """
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -148,3 +150,6 @@ ax.plot(
 ax.plot(pm_gridded.flatten()[::6], ls="--", label="Gridded")
 ax.set_title("Henyey-Greenstein phase function")
 ax.legend()
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()

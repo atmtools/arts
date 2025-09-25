@@ -4,6 +4,8 @@ workspace and do the required setups to perform a simple forward calculations
 using this data.
 """
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
@@ -138,6 +140,9 @@ ax.semilogy(ws.frequency_grid.value / 1e9, ws.propagation_matrix)
 ax.set_xlabel("Frequency [GHz]")
 ax.set_ylabel("Absorption [1/m]")
 ax.set_title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.show()
 
 """
 That's it!  You are done and have reached the end of this example.  Everything
