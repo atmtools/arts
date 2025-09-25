@@ -18,9 +18,9 @@ including the normal of the surface at that point.
 
 Key notations:
 
-- :class:`~pyarts3.arts.SurfaceField` - The surface field.  An instance is in this text named: `surf_field`.
-- :class:`~pyarts3.arts.SurfaceData` - The surface field data.  An instance is in this text named: `surf_data`.
-- :class:`~pyarts3.arts.SurfacePoint` - The local surface state.  An instance is in this text named: `surf_point`.
+- :class:`~pyarts3.arts.SurfaceField` - The surface field.  An instance is in this text named: ``surf_field``.
+- :class:`~pyarts3.arts.SurfaceData` - The surface field data.  An instance is in this text named: ``surf_data``.
+- :class:`~pyarts3.arts.SurfacePoint` - The local surface state.  An instance is in this text named: ``surf_point``.
 
 .. note::
 
@@ -269,10 +269,10 @@ An example of using :class:`~pyarts3.arts.Numeric` as surface field data is give
 
   print(surf_field(0, 0))
 
-SortedGriddedField2
-^^^^^^^^^^^^^^^^^^^
+GeodeticField2
+^^^^^^^^^^^^^^
 
-If the surface data is of the type :class:`~pyarts3.arts.SortedGriddedField2`,
+If the surface data is of the type :class:`~pyarts3.arts.GeodeticField2`,
 the data is defined on a grid of geodetic latitude and longitude.
 It interpolates linearly between the grid points when extracting point-wise data.
 For sake of this linear interpolation, longitude is treated as a cyclic coordinate between [-180, 180) - please ensure your grid is defined accordingly.
@@ -280,7 +280,7 @@ This data type fully respects the rules of extrapolation outside its grid.
 
 .. note::
 
-  If the :class:`~pyarts3.arts.SortedGriddedField2` does not cover the full range of the surface, the extrapolation rules will be used to
+  If the :class:`~pyarts3.arts.GeodeticField2` does not cover the full range of the surface, the extrapolation rules will be used to
   extrapolate it.  By default, these rules are set to not allow any extrapolation.  This can be changed by setting the
   extrapolation settings as needed.  See headers `Extrapolation rules`_ and `surface field data`_ for more information.
 

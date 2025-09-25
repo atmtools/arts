@@ -23,6 +23,7 @@ The subsections below are given in no particular order.
    
    user.atmospheric_field
    user.surface_field
+   user.subsurface_field
    user.sensors
    
    concepts

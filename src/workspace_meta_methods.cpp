@@ -16,7 +16,12 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimple",
-      .desc    = R"(Creates a single simple dirac-opening sensor)",
+      .desc    = R"(Creates a single simple Dirac-opening sensor
+
+This means that the sensor has no bandwidth per channel, i.e., only one
+frequency point is used to simulate the spectral radiance before being
+averaged into a channel.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
       .out     = {"measurement_sensor"},
@@ -24,7 +29,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimpleGaussian",
-      .desc    = "Creates a single simple Gaussian-opening sensor",
+      .desc    = R"(Creates a single simple Gaussian-opening sensor.
+
+This means that the sensor has a Gaussian bandwidth per channel.
+That is, multiple frequency points are used to simulate the spectral
+radiance before being averaged into a channel.  The bandwidth of each
+channel is the same.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit",
                   "measurement_sensorAddSimpleGaussian"},
@@ -33,7 +44,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorVectorGaussian",
-      .desc    = "Creates a single simple Gaussian-opening sensor",
+      .desc    = R"(Creates a single simple Gaussian-opening sensor.
+
+This means that the sensor has a Gaussian bandwidth per channel.
+That is, multiple frequency points are used to simulate the spectral
+radiance before being averaged into a channel.  The bandwidth of each
+channel is independent.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit",
                   "measurement_sensorAddVectorGaussian"},
@@ -42,7 +59,11 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "disort_spectral_flux_fieldFromAgenda",
-      .desc    = "Use Disort for clearsky calculations of spectral flux field",
+      .desc    = R"(Use Disort for clearsky calculations of spectral flux field.
+
+The agenda is used to setup Disort, i.e., to compute the *disort_settings*
+that governs how the solver is run.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_flux_fieldCalc"},
@@ -52,7 +73,11 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_flux_fieldProfile",
       .desc =
-          "Extract a 1D path through the atmospheric field and calculate spectral flux using Disort",
+          R"(Extract a 1D path through the atmosphere and calculate spectral flux using Disort.
+
+This wrapper helps setting up a downlooking ray path through the atmosphere to form the
+basis for the agenda to setup the Disort calculations.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
                   "disort_spectral_flux_fieldFromAgenda"},
@@ -61,7 +86,11 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_radiance_fieldFromAgenda",
-      .desc   = "Use the disort settings agenda to calculate spectral radiance",
+      .desc    = R"(Use Disort for clearsky calculations of spectral radiance field.
+
+The agenda is used to setup Disort, i.e., to compute the *disort_settings*
+that governs how the solver is run.
+)",
       .author = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_radiance_fieldCalc"},
@@ -71,7 +100,11 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_radiance_fieldProfile",
       .desc =
-          "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
+          R"(Extract a 1D path through the atmosphere and calculate spectral radiance using Disort.
+
+This wrapper helps setting up a downlooking ray path through the atmosphere to form the
+basis for the agenda to setup the Disort calculations.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
                   "disort_spectral_radiance_fieldFromAgenda"},
@@ -81,9 +114,13 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_radiance_fieldSubsurfaceProfile",
+      .name = "disort_spectral_radiance_fieldDepthProfile",
       .desc =
-          "Extract a 1D path through the subsurface field and calculate spectral radiance using Disort",
+          R"(Sets a ray path from a point and depth profile and calculates spectral radiance using Disort.
+
+This wrapper helps setting up a downlooking ray path to form the
+basis for the agenda to setup the Disort calculations.
+)",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathFromPointAndDepth",
                   "disort_spectral_radiance_fieldFromAgenda"},

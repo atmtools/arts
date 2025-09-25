@@ -30,6 +30,8 @@ internal_workspace_variables_creator() {
           R"--(Bands of absorption lines for line-by-line (LBL) calculations.
 
 See methods that consume this variable for more details on its content.
+
+Also see :doc:`concept.absorption.lbl` for more information on LBL calculations.
 )--",
       .type = "AbsorptionBands",
   };
@@ -40,6 +42,8 @@ See methods that consume this variable for more details on its content.
 
 Precomputing this table replaces the need for the calculation of scalar gas line-by-line
 absorption.
+
+See :doc:`concept.absorption.lookup` for more information on lookup table calculations.
 )--",
       .type = "AbsorptionLookupTables",
   };
@@ -48,10 +52,7 @@ absorption.
       .desc = R"--(HITRAN Collision-Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
-cross-sections). The data itself is described in: Richard, C. et al.
-(2012), New section of the HITRAN database: Collision-induced
-absorption (CIA), J. Quant. Spectrosc. Radiat. Transfer, 113,
-1276-1285, doi:10.1016/j.jqsrt.2011.11.004.
+cross-sections). The data itself is described in :cite:t:`Richard2012`.
 
 The binary absorption cross-sections have to be multiplied with the
 densities of both molecules to get a scalar absorption coefficient.
@@ -61,6 +62,8 @@ Dimensions:
 The length of this array should be equal to the number of pairs
 of molecules that have CIA data available.
 Some methods that split the data might not work as intended otherwise.
+
+See also :doc:`concept.absorption.cia` for more information on CIA calculations.
 )--",
       .type = "ArrayOfCIARecord",
   };
@@ -124,6 +127,8 @@ The atmospheric field may, but does not have to, consist of the following:
 -  Isotopologue ratios             - The isotopologue ratios of various species.  See *SpeciesIsotope* for more details.
 -  Non-local thermodynamics ratios - Unitless [pure-style] OR Kelvin [vibrational-style] ratios replacing the Boltzman distribution used in the LTE calculations.
 -  Scattering species content      - See user guide for more information.  This is custom data to aid scattering calculations.
+
+For more information, see :doc:`user.atmospheric_field`.
 )--",
       .type = "AtmField",
   };
@@ -137,6 +142,8 @@ at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
 at a single altitude-latitude-longitude but may of course be generated manually.
 
 See *atmospheric_field* for the data that may be available in the atmospheric point.
+
+For more information, see :doc:`user.atmospheric_field`.
 )--",
       .type = "AtmPoint",
   };
@@ -145,6 +152,9 @@ See *atmospheric_field* for the data that may be available in the atmospheric po
       .desc =
           R"--(An atmospheric profile in ARTS.
 
+This exists to interface between the fully 3D atmospheric field native to ARTS
+and various 1D and 2D solvers that make use of profiles for fixed geometries.
+
 The atmospheric profile consists of all the relevant atmospheric field data
 at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
 at a single latitude-longitude coordinate but may of course be generated manually.
@@ -152,6 +162,8 @@ at a single latitude-longitude coordinate but may of course be generated manuall
 See *atmospheric_field* for the data that may be available in the atmospheric point.
 
 The size of the profile is the same as *altitude_grid*.
+
+For more information, see :doc:`user.atmospheric_field`.
 )--",
       .type = "ArrayOfAtmPoint",
   };
@@ -193,7 +205,10 @@ Used because all methods inside *propagation_matrix_agenda* work on
 the frequency grid, not on the actual wind speed for the sake of
 wind shift Jacobian calculations.
 
-The order is ``[df_du, df_dv, df_fw]``
+The order is
+
+.. math::
+    \left[ \begin{array}{c} \frac{\partial f}{\partial u} \\ \frac{\partial f}{\partial v} \\ \frac{\partial f}{\partial w} \end{array} \right]
 )--",
       .type          = "Vector3",
       .default_value = "0.0, 0.0, 0.0",
@@ -257,6 +272,8 @@ XsecRecord:
 
 fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures
 are not used to apply the model and solely serve for informational purposes.
+
+See also :doc:`concept.absorption.xsec` for more information on these calculations.
 )--",
       .type = "ArrayOfXsecRecord",
   };
@@ -304,6 +321,8 @@ Usage: Output of radiative transfer methods.
           R"--(This contains predefined model data.
 
 Can currently only contain data for new MT CKD models of water.
+
+See :doc:`concept.absorption.predef` for more information on predefined model calculations.
 )--",
       .type = "PredefinedModelData",
   };
@@ -349,14 +368,16 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .default_value = "SpeciesEnum::Bath",
   };
 
-  wsv_data["select_species_list"] = {.desc = R"--(Species selection.
+  wsv_data["select_species_list"] = {
+      .desc = R"--(Species selection when multiple species must be chosen.
 )--",
-                                     .type = "ArrayOfSpeciesEnum"};
+      .type = "ArrayOfSpeciesEnum",
+  };
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
-Shape: NJAC x *frequency_grid*
+Shape: *model_state_vector* x *frequency_grid*
 )--",
       .type = "StokvecMatrix",
   };
@@ -529,7 +550,9 @@ The order of the elements is such that index zero is closest to the obeserver.
 
   wsv_data["subsurface_profile"] = {
       .desc =
-          R"--(A subsurface profile.  Supposed to be ordered from top to bottom.
+          R"--(A profile of subsurface points.  Supposed to be ordered from top to bottom.
+
+For more information, see :doc:`user.subsurface_field`.
 )--",
       .type = "ArrayOfSubsurfacePoint",
   };
@@ -541,7 +564,9 @@ This contains the global surface values, such as elevation and
 temperature but also entirely abstract properties and types that
 are used by specific surface-related methods.
 
-It is a 2D field with latitude, and longitude dimensions.
+It is a 2D field with *latitude* , and *longitude* dimensions.
+
+For more information, see :doc:`user.surface_field`.
 )--",
       .type = "SurfaceField",
   };
@@ -552,10 +577,14 @@ It is a 2D field with latitude, and longitude dimensions.
 It behave exactly like *spectral_radiance_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
 *spectral_radiance_surface_agenda* variable is the first interface
-and can chain into another surface agenda.
+and can chain into another surface agenda - this one.
 
-Thus this agenda must be "closed".  It cannot call *spectral_radiance_surface_agenda*,
-whereas *spectral_radiance_surface_agenda* can call this agenda.
+Thus this agenda must be "closed".  It cannot call another *spectral_radiance_surface_agenda*,
+whereas *spectral_radiance_surface_agenda* can call this agenda.  Imagine a chain where
+the *spectral_radiance_surface_agenda* gets the reflectance from a land surface model
+and calls the *spectral_radiance_observer_agenda* to compute the downwelling radiation at the surface.
+It can in turn call *spectral_radiance_closed_surface_agenda* to get the upwelling radiation from the surface
+that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
       .type          = "Agenda",
       .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
@@ -568,7 +597,9 @@ This contains global subsurface properties, such as temperature.
 It also contains many properties that are used by specific
 subsurface-related methods.
 
-It is a 3D field with altitude, latitude, and longitude dimensions.
+It is a 3D field with *altitude*, *latitude*, and *longitude* dimensions.
+
+For more information, see :doc:`user.subsurface_field`.
 )--",
       .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
@@ -577,7 +608,7 @@ It is a 3D field with altitude, latitude, and longitude dimensions.
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
 
-Usage: gravity = gravity_operator(altitude, latitude, longitude).
+Usage: gravity = *gravity_operator* ( *altitude*, *latitude*, *longitude* ).
 
 Parameters
 ----------
@@ -591,7 +622,7 @@ longitude : Numeric
 Returns
 -------
 gravity : Numeric
-    The gravity in m/s :math:`^2`.
+    The gravity in :math:`\textrm{m/s}^2`.
 )--",
       .type = "NumericTernaryOperator",
   };
@@ -664,6 +695,14 @@ size of the local *spectral_radiance* as columns.
 
   wsv_data["jacobian_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
+
+See *JacobianTargetType* for more information.  The targets are
+sorted by their type.  A target must have information about its
+position in the target count, as well as the number of parameters
+it contributes to the *model_state_vector*.  It must know these
+things because it is able to map data between the *model_state_vector*
+and the actual model field, e.g., the *atmospheric_field*, the *surface_field*,
+the *subsurface_field*, the *absorption_bands*, the *measurement_sensor*, etc.
 )--",
       .type = "JacobianTargets",
       .default_value = " ",
@@ -671,6 +710,18 @@ size of the local *spectral_radiance* as columns.
 
   wsv_data["ray_path_point"] = {
       .desc = R"--(A single path point.
+
+This consists of
+
+#. The altitude in meters as a *Numeric* .
+#. The latitude in degrees as a *Numeric* .
+#. The longitude in degrees as a *Numeric* .
+#. The zenith angle in degrees as a *Numeric* .
+#. The azimuth angle in degrees as a *Numeric* .
+#. The *PathPositionType* of the path if it moves forward along its line of sight.
+#. The *PathPositionType* of the of the path at its current position.
+#. Bulk refractive index at the path point as a *Numeric* .
+#. Group refractive index at the path point as a *Numeric* .
 )--",
       .type = "PropagationPathPoint",
   };
@@ -708,6 +759,8 @@ Units: degrees
   wsv_data["ray_path_field"] = {
       .desc =
           R"--(A list of *ray_path* intended to build up a field of observations.
+
+This is used by some methods to set up representative fields to help speed up computations.
 )--",
       .type = "ArrayOfArrayOfPropagationPathPoint",
   };
@@ -992,7 +1045,8 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
   };
 
   wsv_data["disort_quadrature_dimension"] = {
-      .desc = R"(The quadrature size for Disort.)",
+      .desc = R"(The quadrature size for Disort.
+)",
       .type = "Index",
   };
 
