@@ -234,7 +234,7 @@ void xml_read_from_file_base(const String& filename, T& type) {
   // the parsing (13x to 18x faster).
   std::stringstream buffer;
   {
-    ARTS_NAMED_TIME_REPORT("XmlBuffering")
+    ARTS_NAMED_TIME_REPORT("XmlBuffering of " + std::string{xml_io_stream<T>::type_name})
     buffer << ifs->rdbuf();
   }
   // No need to check for error, because xml_open_input_file throws a
@@ -244,7 +244,7 @@ void xml_read_from_file_base(const String& filename, T& type) {
   // because then we can issue a nicer error message that includes the
   // filename.
   try {
-    ARTS_NAMED_TIME_REPORT("XmlStreaming")
+    ARTS_NAMED_TIME_REPORT("XmlStreaming of " + std::string{xml_io_stream<T>::type_name})
     FileType ftype;
     NumericType ntype;
     EndianType etype;
