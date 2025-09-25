@@ -170,7 +170,7 @@ The python mapping allows treating this as a same rank :class:`~numpy.ndarray` i
 
   wsg_data["Tensor7"] = {
       .file = "matpack.h",
-      .desc = R"(A 7 dimensional array of *Numeric*..
+      .desc = R"(A 7 dimensional array of *Numeric*.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
 )"
