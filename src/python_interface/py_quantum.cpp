@@ -51,13 +51,21 @@ void py_quantum(py::module_& m) try {
 
   auto qlvl = py::bind_map<QuantumLevel, py::rv_policy::reference_internal>(
       m, "QuantumLevel");
+  qlvl.def("__init__", [](QuantumLevel* qs, std::string_view x) {
+    new (qs) QuantumLevel{Quantum::level_from(x)};
+  });
   generic_interface(qlvl);
   qlvl.doc() = "A map of level quantum number data";
+  py::implicitly_convertible<std::string_view, QuantumLevel>();
 
   auto qstate = py::bind_map<QuantumState, py::rv_policy::reference_internal>(
       m, "QuantumState");
+  qstate.def("__init__", [](QuantumState* qs, std::string_view x) {
+    new (qs) QuantumState{Quantum::state_from(x)};
+  });
   generic_interface(qstate);
   qstate.doc() = "A map of two-levels quantum number data";
+  py::implicitly_convertible<std::string_view, QuantumState>();
 
   py::class_<QuantumIdentifier> qid(m, "QuantumIdentifier");
   qid.def(py::init_implicit<const std::string_view>());

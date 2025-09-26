@@ -124,19 +124,7 @@ void py_species(py::module_& m) try {
           },
           "isot"_a = 0,
           "From position")
-      .def(
-          "__init__",
-          [](SpeciesIsotope* self, const std::string& c) {
-            try {
-              auto i = Species::find_species_index(c);
-              auto x = Species::Isotopologues.at(i);
-              new (self) SpeciesIsotope(x);
-            } catch (std::exception& e) {
-              throw std::runtime_error(
-                  std::format("No species {}. Error:\n{}", c, e.what()));
-            }
-          },
-          "From :class:`str`")
+      .def(py::init_implicit<const std::string_view>())
       .def(
           "Q",
           [](const SpeciesIsotope& self, Numeric T) {
@@ -179,8 +167,7 @@ void py_species(py::module_& m) try {
                                        std::get<1>(state),
                                        std::get<2>(state),
                                        std::get<3>(state));
-           })
-      .def(py::init_implicit<std::string>());
+           });
 
   auto a1 =
       py::bind_vector<ArrayOfSpeciesIsotope, py::rv_policy::reference_internal>(

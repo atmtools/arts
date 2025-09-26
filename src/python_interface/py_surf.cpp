@@ -126,8 +126,7 @@ void py_surf(py::module_ &m) try {
   vector_interface(aosd);
   generic_interface(aosd);
 
-  py::class_<SurfacePropertyTag> spt =
-      py::class_<SurfacePropertyTag>(m, "SurfacePropertyTag");
+  py::class_<SurfacePropertyTag> spt(m, "SurfacePropertyTag");
   generic_interface(spt);
   spt.def_rw("name",
              &SurfacePropertyTag::name,

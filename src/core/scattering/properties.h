@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <boost/container_hash/hash.hpp>
+#include <string>
 #include <string_view>
 
 #include "mystring.h"
@@ -26,6 +27,9 @@ struct ScatteringSpeciesProperty {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const ScatteringSpeciesProperty& ssp);
+
+  // inverse of formatting
+  static ScatteringSpeciesProperty from_string(const std::string_view);
 };
 
 namespace std {

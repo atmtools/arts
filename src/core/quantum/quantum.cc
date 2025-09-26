@@ -188,19 +188,13 @@ void Value::set(const std::string_view x) {
   std::visit([x]<typename T>(T& v) { v = T{x}; }, value);
 }
 
-Identifier::Identifier(std::string_view s_) try {
-  std::string_view s = s_;
-  Size n             = count(s);
+State state_from(std::string_view s) {
+  Size n = count(s);
 
-  if (n % 3 != 1) {
-    throw std::runtime_error("Bad count of items, must be 1 + 3N");
-  }
-
-  isot = SpeciesIsotope(next(s));
+  if (n % 3) throw std::runtime_error("Bad state, must be from 3N items");
 
   n /= 3;
-
-  state.reserve(n);
+  State state{n};
 
   for (Size i = 0; i < n; i++) {
     QuantumNumberType qn = to<QuantumNumberType>(next(s));
@@ -209,6 +203,15 @@ Identifier::Identifier(std::string_view s_) try {
     it->second.upper.set(next(s));
     it->second.lower.set(next(s));
   }
+
+  return state;
+}
+
+Identifier::Identifier(std::string_view s_) try {
+  std::string_view s = s_;
+
+  isot  = SpeciesIsotope(next(s));
+  state = state_from(s);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
       "Cannot construct QuantumIdentifier from \"{}\", got error:\n{}",
@@ -216,25 +219,27 @@ Identifier::Identifier(std::string_view s_) try {
       e.what()));
 }
 
-LevelIdentifier::LevelIdentifier(const std::string_view s_) try {
-  std::string_view s = s_;
-  Size n             = count(s);
+Level level_from(std::string_view s) {
+  Size n = count(s);
 
-  if (n % 2 != 1) {
-    throw std::runtime_error("Bad count of items, must be 1 + 2N");
-  }
+  if (n % 2) throw std::runtime_error("Bad level, must be from 2N items");
 
   n /= 2;
-
-  state.reserve(n - 1);
-
-  isot = SpeciesIsotope(next(s));
+  Level state{n};
 
   for (Size i = 0; i < n; i++) {
     QuantumNumberType qn = to<QuantumNumberType>(next(s));
     auto [it, _]         = state.emplace(qn, Value(qn));
     it->second.set(next(s));
   }
+
+  return state;
+}
+
+LevelIdentifier::LevelIdentifier(const std::string_view s_) try {
+  std::string_view s = s_;
+  isot               = SpeciesIsotope(next(s));
+  state              = level_from(s);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
       "Cannot construct QuantumLevelIdentifier from \"{}\", got error:\n{}",

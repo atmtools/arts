@@ -239,6 +239,18 @@ void str_interface(py::class_<T>& c) {
   });
 }
 
+template <typename T, class... E>
+void boolean_compare(py::class_<T, E...>& c [[maybe_unused]]) {
+  if constexpr (std::three_way_comparable<T>) {
+    c.def(py::self == py::self);
+    c.def(py::self != py::self);
+    c.def(py::self <= py::self);
+    c.def(py::self >= py::self);
+    c.def(py::self < py::self);
+    c.def(py::self > py::self);
+  }
+}
+
 template <WorkspaceGroup T, class... E>
 void generic_interface(py::class_<ValueHolder<T>, E...>& c) {
   using U = ValueHolder<T>;
@@ -269,6 +281,8 @@ void generic_interface(py::class_<T, E...>& c) {
   if constexpr (arts_formattable_or_value_type<T>) str_interface(c);
 
   if constexpr (arts_xml_ioable<T>) xml_interface(c);
+
+  boolean_compare(c);
 
   if constexpr (requires { PythonWorkspaceGroupInfo<T>::desc(); })
     c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};

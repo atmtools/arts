@@ -8,6 +8,7 @@
 
 #include <boost/container_hash/hash.hpp>
 #include <concepts>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -55,6 +56,10 @@ struct UpperLower {
 using Level = std::unordered_map<QuantumNumberType, Value>;
 
 using State = std::unordered_map<QuantumNumberType, UpperLower>;
+
+Level level_from(const std::string_view);
+
+State state_from(const std::string_view);
 
 [[nodiscard]] Level upper_level(const State& state);
 [[nodiscard]] Level lower_level(const State& state);
