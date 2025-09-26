@@ -5,6 +5,7 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
@@ -342,6 +343,12 @@ void py_scattering_species(py::module_& m) try {
       .def_rw("pproperty",
               &ScatteringSpeciesProperty::pproperty,
               "Particulate property\n\n.. :class:`ParticulateProperty`");
+  ssp.def("__init__",
+          [](ScatteringSpeciesProperty* self, std::string_view name) {
+            new (self) ScatteringSpeciesProperty{
+                ScatteringSpeciesProperty::from_string(name)};
+          });
+  py::implicitly_convertible<std::string_view, ScatteringSpeciesProperty>();
 
   //   using BulkScatteringPropertiesTROSpectral =
   //       std::variant<scattering::BulkScatteringProperties<

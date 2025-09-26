@@ -290,7 +290,7 @@ void py_lbl(py::module_& m) try {
       .doc() = "A single absorption line";
 
   auto ll  = py::bind_vector<std::vector<lbl::line>,
-                             py::rv_policy::reference_internal>(m, "LineList");
+                             py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLine");
   ll.doc() = "A list of :class:`AbsorptionLine`";
   vector_interface(ll);
   generic_interface(ll);
@@ -299,7 +299,7 @@ void py_lbl(py::module_& m) try {
   generic_interface(ab);
   ab.def_rw("lines",
             &AbsorptionBand::lines,
-            "The lines in the band\n\n.. :class:`LineList`")
+            "The lines in the band\n\n.. :class:`ArrayOfAbsorptionLine`")
       .def_rw("lineshape",
               &AbsorptionBand::lineshape,
               "The lineshape type\n\n.. :class:`LineByLineLineshape`")
