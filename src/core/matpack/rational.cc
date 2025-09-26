@@ -37,14 +37,14 @@ std::istream& operator>>(std::istream& is, Rational& a) {
   return is;
 }
 
-Rational::Rational(const String& s) {
+Rational::Rational(const std::string_view s) {
   auto len = s.length();
 
   if (len) {
     auto dot_pos   = s.find('.');
     auto slash_pos = s.find('/');
     if (len > dot_pos) {
-      *this = numeric2rational(std::stod(s), len - dot_pos - 1);
+      *this = numeric2rational(std::stod(std::string{s}), len - dot_pos - 1);
     } else if (len > slash_pos) {
       const String a{s.substr(0, slash_pos)};
       const String b{s.substr(slash_pos + 1, len)};
@@ -58,7 +58,7 @@ Rational::Rational(const String& s) {
       }
     } else {
       try {
-        *this = Rational(std::stoi(s));
+        *this = Rational(std::stoi(std::string{s}));
       } catch (...) {
         ARTS_USER_ERROR("Cannot interpret '{}' as an integer", s);
       }

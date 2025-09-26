@@ -1131,10 +1131,10 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
   }
   out += std::format(
       R"(
-  throw std::runtime_error(R"-x-(Bad value.
+  throw std::runtime_error(std::format(R"-x-(Bad input "{{}}"
 
-See https://atmtools.github.io/arts-docs-master/pyarts.arts.{0}.html for valid options.
-)-x-");
+See https://atmtools.github.io/arts-docs-master/pyarts3.arts.{0}.html for valid options.
+)-x-", x));
 }}
 
 namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
@@ -1241,12 +1241,7 @@ std::ostream &operator<<(std::ostream &os, const {0} x) {{
 std::istream &operator>>(std::istream &is, {0}& x) {{
   std::string s;
   is >> s;
-  try {{
-    x = to<{0}>(s);
-  }} catch (const std::exception &e) {{
-    throw std::runtime_error(
-        std::format("Failed to read {0} from input stream value \"{{}}\":\n{{}}", x, e.what()));
-  }}
+  x = to<{0}>(s);
   return is;
 }}
 

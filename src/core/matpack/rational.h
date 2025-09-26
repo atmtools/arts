@@ -51,7 +51,7 @@ struct Rational {
    * 
    * @param[in] s String of the value
    */
-  explicit Rational(const String& s);
+  explicit Rational(const std::string_view s);
 
   /** Simplify by reducing the values locally */
   void simplify_in_place() noexcept;

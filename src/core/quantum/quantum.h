@@ -36,6 +36,8 @@ struct Value {
     return std::get<T>(value);
   }
 
+  void set(const std::string_view);
+
   std::strong_ordering operator<=>(const Value& l) const = default;
 
   friend std::istream& operator>>(std::istream&, Value&);

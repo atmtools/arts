@@ -158,72 +158,88 @@ std::istream& operator>>(std::istream& is, State& state) {
 }
 
 namespace {
-Size count_items(std::string_view s) noexcept {
-  // Checks if we are in-between items, we start true as we are inbetween items
-  bool last_space = true;
+Size count(const std::string_view s) {
+  if (s.empty()) return 0;
 
-  Size count = 0;
-  for (auto& x : s) {
-    const bool this_space = nonstd::isspace(x);
+  bool is_space = nonstd::isspace(s.front());
+  Size nelem    = not is_space;
+  for (Size i = 1; i < s.size(); i++) {
+    bool this_space = nonstd::isspace(s[i]);
 
-    // If we had a space and now no longer do, we are in an item
-    if (last_space and not this_space) count++;
+    nelem += (is_space and not this_space);
 
-    // The current state must be remembere
-    last_space = this_space;
+    is_space = this_space;
   }
-  return count;
+
+  return nelem;
+}
+
+std::string_view next(std::string_view& s) {
+  Size len = 0, st = 0;
+  while ((st + len) < s.size() and nonstd::isspace(s[st + len])) st++;
+  while ((st + len) < s.size() and not nonstd::isspace(s[st + len])) len++;
+  std::string_view out = s.substr(st, len);
+  s.remove_prefix(st + len);
+  return out;
 }
 }  // namespace
 
-Identifier::Identifier(const std::string_view s) try {
-  std::istringstream is(String{s});  //! Fixme when view-streams are a thing
+void Value::set(const std::string_view x) {
+  std::visit([x]<typename T>(T& v) { v = T{x}; }, value);
+}
 
-  String str;
+Identifier::Identifier(std::string_view s_) try {
+  std::string_view s = s_;
+  Size n             = count(s);
 
-  is >> str;
-  isot = SpeciesIsotope(str);
+  if (n % 3 != 1) {
+    throw std::runtime_error("Bad count of items, must be 1 + 3N");
+  }
 
-  Size n = count_items(s) - 1;
-  if (n % 3) throw std::runtime_error("Bad count of items, must be 1 + 3N");
+  isot = SpeciesIsotope(next(s));
+
   n /= 3;
 
   state.reserve(n);
 
-  QuantumNumberType qn;
   for (Size i = 0; i < n; i++) {
-    is >> qn;
+    QuantumNumberType qn = to<QuantumNumberType>(next(s));
     auto [it, _] =
         state.emplace(qn, UpperLower{.upper = Value(qn), .lower = Value(qn)});
-    is >> it->second;
+    it->second.upper.set(next(s));
+    it->second.lower.set(next(s));
   }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
       "Cannot construct QuantumIdentifier from \"{}\", got error:\n{}",
-      s,
+      s_,
       e.what()));
 }
 
-LevelIdentifier::LevelIdentifier(const std::string_view s) {
-  std::istringstream is(String{s});  //! Fixme when view-streams are a thing
+LevelIdentifier::LevelIdentifier(const std::string_view s_) try {
+  std::string_view s = s_;
+  Size n             = count(s);
 
-  String str;
+  if (n % 2 != 1) {
+    throw std::runtime_error("Bad count of items, must be 1 + 2N");
+  }
 
-  is >> str;
-  isot = SpeciesIsotope(str);
-
-  Size n = count_items(s) - 1;
-  if (n % 2) throw std::runtime_error("Bad count of items, must be 1 + 2N");
   n /= 2;
 
-  state.reserve(n);
+  state.reserve(n - 1);
 
-  QuantumNumberType qn;
+  isot = SpeciesIsotope(next(s));
+
   for (Size i = 0; i < n; i++) {
-    is >> qn;
-    auto [it, _] = state.emplace(qn, Value(qn));
-    is >> it->second;
+    QuantumNumberType qn = to<QuantumNumberType>(next(s));
+    auto [it, _]         = state.emplace(qn, Value(qn));
+    it->second.set(next(s));
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format(
+      "Cannot construct QuantumLevelIdentifier from \"{}\", got error:\n{}",
+      s_,
+      e.what()));
 }
 
 Identifier::Identifier(const SpeciesIsotope s) : isot(s), state{} {}
