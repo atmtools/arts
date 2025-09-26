@@ -368,15 +368,16 @@ std::string std::formatter<lbl::band_data>::to_string(
         ']');
   }
 
-  if (tags.io) {
-    return tags.vformat(v.lineshape, ' ', v.cutoff, ' ', v.cutoff_value);
-  }
-
   const auto sep = tags.sep();
 
   std::string out =
       tags.vformat(v.lineshape, sep, v.cutoff, sep, v.cutoff_value);
-  if (not tags.short_str) out += tags.vformat(sep, v.lines);
+
+  if (not tags.short_str) {
+    out += tags.vformat(sep, v.lines);
+  } else {
+    out += tags.vformat(sep, v.lines.size(), " lines"sv);
+  }
 
   return out;
 }

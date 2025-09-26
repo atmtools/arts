@@ -224,7 +224,7 @@ void str_interface(py::class_<T>& c) {
 
   c.def("__str__", [](const T& x) {
     if constexpr (std::formattable<T, char>) {
-      return std::format("{:qNB,}", x);
+      return std::format("{:B,}", x);
     } else {
       return std::format("{}", x);
     }
@@ -232,7 +232,7 @@ void str_interface(py::class_<T>& c) {
 
   c.def("__repr__", [](const T& x) {
     if constexpr (std::formattable<T, char>) {
-      return std::format("{:sqNB,}", x);
+      return std::format("{:sB,}", x);
     } else {
       return std::format("{}", x);
     }
