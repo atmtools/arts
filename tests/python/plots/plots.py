@@ -8,7 +8,7 @@ errors = []
 for plotting_routine in routines:
     if plotting_routine not in builtin:
         errors.append(
-            f"The plotting routine {plotting_routine} is not a bultin group, it should not be where it is in the pyarts3 structure")
+            f"The plotting routine {plotting_routine} is not a builtin group, it should not be where it is in the pyarts3 structure")
         continue
 
     v = getattr(pyarts3.plots, plotting_routine)
