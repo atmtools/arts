@@ -225,13 +225,13 @@ def to_atmospheric_field(
         dict should contain {..., 'alt': 'Alt', ...}.
     ignore : None | list[str], optional
         Ignore keys listed from assignment into the atmospheric field.
-    atm : None | pyarts.arts.AtmField
+    atm : None | pyarts3.arts.AtmField
         The default atmospheric field to use.  Defaults to None to use default-
         constructed atmospheric field object.
 
     Returns
     -------
-    atm : pyarts.arts.AtmField
+    atm : pyarts3.arts.AtmField
         An atmospheric field
 
     """
@@ -299,11 +299,11 @@ def to_absorption_species(
     The scan is done over files in an arts-cat-data like directory structure.
 
     Args:
-        atm_field (pyarts.arts.AtmField): A relevant atmospheric field.
+        atm_field (pyarts3.arts.AtmField): A relevant atmospheric field.
 
     Returns:
-        pyarts.arts.ArrayOfArrayOfSpeciesTag: All found species tags.
-        The intent is that this is enough information to use pyarts.workspace.Workspace.ReadCatalogData
+        pyarts3.arts.ArrayOfArrayOfSpeciesTag: All found species tags.
+        The intent is that this is enough information to use pyarts3.Workspace.ReadCatalogData
     """
     species = atm_field.species_keys()
 

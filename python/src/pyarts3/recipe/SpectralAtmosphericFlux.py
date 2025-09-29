@@ -130,7 +130,7 @@ class SpectralAtmosphericFlux:
         """Get the total flux profile
 
         Args:
-            frequency_grid (pyarts.arts.AscendingGrid): The frequency grid
+            frequency_grid (pyarts3.arts.AscendingGrid): The frequency grid
             atmospheric_profile (dict, optional): The atmospheric profile. Defaults to {}.
             surface_temperature (float, optional): The surface temperature. Defaults to None.
 

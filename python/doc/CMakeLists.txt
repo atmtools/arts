@@ -17,6 +17,7 @@ if(SPHINX_FOUND)
     pyarts 
     gen_pyarts_arts_rst 
     gen_arts_overview_rst
+    gen_pyarts3_plots
     pyarts_docs_copy_guide
     pyarts_docs_copy_python
     gen_examples_rst
@@ -57,6 +58,12 @@ if(SPHINX_FOUND)
     COMMENT "Generating overview RST files"
   )
   add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
+
+  add_custom_target(gen_pyarts3_plots
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts3_plots.py ${CMAKE_CURRENT_BINARY_DIR}/source/
+    COMMENT "Generating pyarts3 plots RST files"
+  )
+  add_dependencies(gen_pyarts3_plots pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_examples_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/source/

@@ -1,4 +1,4 @@
-""" Plotting routine for profiles of the atmospheric field """
+""" Plotting routine for profiles of the subsurface field """
 
 import pyarts3 as pyarts
 import numpy as np
@@ -10,35 +10,21 @@ __all__ = [
 
 
 def plot(
-    atm_field: pyarts.arts.AtmField,
+    subsurf_field: pyarts.arts.SubsurfaceField,
     *,
     fig=None,
-    alts: np.ndarray | float = np.linspace(0, 1e5, 51),
+    alts: np.ndarray | float = np.linspace(-1, 0, 3),
     lats: np.ndarray | float = 0,
     lons: np.ndarray | float = 0,
     ygrid: np.ndarray | None = None,
     keys: list[str] | None = None,
 ):
-    """Plot select atmospheric field parameters by extracting a profile.
-
-    .. rubric:: Example
-
-    .. plot::
-        :include-source:
-
-        import pyarts3 as pyarts
-        import numpy as np
-
-        ws = pyarts.Workspace()
-
-        ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
-
-        pyarts.plots.AtmField.plot(ws.atmospheric_field, keys=["p", "t"])
+    """Plot select subsurface field parameters by extracting a profile.
 
     Parameters
     ----------
-    atm_field : ~pyarts3.arts.AtmField
-        An atmospheric field
+    subsurf_field : ~pyarts3.arts.SubsurfaceField
+        A subsurface field
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     alts : :class:`~numpy.ndarray` | :class:`float`, optional
@@ -50,7 +36,7 @@ def plot(
     ygrid : :class:`~numpy.ndarray` | :class:`None`, optional
         Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
     keys : list, optional
-        A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.AtmField.keys`.
+        A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.SubsurfaceField.keys`.
 
     Returns
     -------
@@ -60,7 +46,7 @@ def plot(
         As input.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
-    v = atm_field(alts, lats, lons)
+    v = subsurf_field(alts, lats, lons)
 
     keys = v[0].keys() if keys is None else keys
     N = len(keys)

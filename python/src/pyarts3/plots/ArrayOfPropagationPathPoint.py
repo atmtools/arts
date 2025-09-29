@@ -1,11 +1,11 @@
-""" Functions to plot :class:`pyarts.arts.ray_path` in different ways """
+""" Plotting routine the propagation path in polar coordinates """
 
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
 __all__ = [
-    'polar_ray_path',
+    'plot',
 ]
 
 
@@ -24,7 +24,7 @@ def polar_ray_path_helper(rad, tht, planetary_radius, rscale, ax=None):
         This will rescale values.  As rad is in meters, rscale=1000 means that
         the scale is now in kilometers.  See :func:`polar_ray_path_rad_unit` for
         good options
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a default
         polar coordinate.
 
@@ -88,7 +88,7 @@ def polar_ray_path_lat(rad, lat, planetary_radius, rscale, ax=None):
     rscale : A rescaler for the radius
         This will rescale values.  If rad is in meters, rscale=1000
         means that the scale is now in kilometers
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -104,7 +104,7 @@ def polar_ray_path_lat(rad, lat, planetary_radius, rscale, ax=None):
     ax = polar_ray_path_helper(rad, lat, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
     ax.set_title(
-        "Latitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+        "Latitude vs " f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
     )
     ax.set_thetalim(-np.pi / 2, np.pi / 2)
     ax.set_thetagrids(np.arange(-90, 91, 45))
@@ -126,7 +126,7 @@ def polar_ray_path_lon(rad, lon, planetary_radius, rscale, ax=None):
     rscale : A rescaler for the radius
         This will rescale values.  If rad is in meters, rscale=1000
         means that the scale is now in kilometers
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -142,7 +142,7 @@ def polar_ray_path_lon(rad, lon, planetary_radius, rscale, ax=None):
     ax = polar_ray_path_helper(rad, lon, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
     ax.set_title(
-        "Longitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+        "Longitude vs " f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
     )
     ax.set_theta_zero_location("S")
     ax.set_thetagrids(np.arange(-180, 179, 45))
@@ -160,7 +160,7 @@ def polar_ray_path_map(lat, lon, ax=None):
         List of latitudes [in degrees]
     lon : np.array
         List of longitudes [in degrees].
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -201,7 +201,7 @@ def polar_ray_path_za(za, ax=None):
     ----------
     za : np.array
         List of Zenith angles [in radians]
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -232,7 +232,7 @@ def polar_ray_path_aa(aa, ax=None):
     ----------
     aa : np.array
         List of Azimuth angles [in radians]
-    ax : Axes, optional
+    ax : subs, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -304,8 +304,8 @@ def polar_ray_path_default_figure(figure_kwargs):
     return plt.figure(**figure_kwargs)
 
 
-def polar_ray_path_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
-    """Get the default axes
+def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
+    """Get the default subs
 
     Parameters
     ----------
@@ -321,7 +321,7 @@ def polar_ray_path_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
 
     Returns
     -------
-    A list of five Axes
+    A list of five subs
         A tuple of five axis.
 
         The order is [lat, lon, map, za, aa]
@@ -350,16 +350,17 @@ def polar_ray_path_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
     return [ax_lat, ax_lon, ax_map, ax_za, ax_aa]
 
 
-def polar_ray_path(
-    ray_path,
-    planetary_radius=0.0,
-    rscale=1000,
-    figure_kwargs={"dpi": 300},
-    draw_lat_lon=True,
-    draw_map=True,
-    draw_za_aa=False,
+def plot(
+    ray_path: pyarts.arts.ArrayOfPropagationPathPoint,
+    *,
+    planetary_radius: float = 0.0,
+    rscale: float = 1000,
+    figure_kwargs: dict = {"dpi": 300},
+    draw_lat_lon: bool = True,
+    draw_map: bool = True,
+    draw_za_aa: bool = False,
     fig=None,
-    axes=None,
+    subs=None
 ):
     """Plots a single observation in a polar coordinate system
 
@@ -376,14 +377,38 @@ def polar_ray_path(
     degrees between ray_path points will wrap around, or rather, create separate
     entries of the lat-lons.
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        ws = pyarts.Workspace()
+
+        ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
+        ws.surface_fieldEarth()
+        ws.ray_path_observer_agendaSetGeometric(
+            add_crossings=True, remove_non_crossings=True
+        )
+        ws.ray_path_observersFieldProfilePseudo2D(nup=3, nlimb=3, ndown=3)
+        ws.ray_path_fieldFromObserverAgenda()
+
+        f, a = None, None
+        for x in ws.ray_path_field:
+            f, a = pyarts.plots.ArrayOfPropagationPathPoint.plot(
+                x, draw_za_aa=True, draw_map=False, fig=f, subs=a
+            )
+
     Parameters
     ----------
-    ray_path : pyarts.arts.ArrayOfPropagationPathPoint
+    ray_path : ~pyarts3.arts.ArrayOfPropagationPathPoint
         A single propagation path object
     planetary_radius : float, optional
-        See :func:`polar_ray_path_helper`
+        See ``polar_ray_path_helper`` in source tree
     rscale : float, optional
-        See :func:`polar_ray_path_helper`
+        See ``polar_ray_path_helper`` in source tree
     figure_kwargs : dict, optional
         Arguments to put into plt.figure(). The default is {"dpi": 300}.
     draw_lat_lon : bool, optional
@@ -395,23 +420,23 @@ def polar_ray_path(
         Whether or not Zenith and Azimuth angles are drawn.  Def: False
     fig : Figure, optional
         A figure. The default is None, which generates a new figure.
-    axes : A list of five Axes, optional
-        A tuple of five axis. The default is None, which generates new axes.
+    subs : A list of five subaxis, optional
+        A tuple of five subaxis. The default is None, which generates new subs.
         The order is [lat, lon, map, za, aa]
 
     Returns
     -------
     fig : As input
         As input.
-    axes : As input
+    subs : As input
         As input.
 
     """
     if fig is None:
         fig = polar_ray_path_default_figure(figure_kwargs)
 
-    if axes is None:
-        axes = polar_ray_path_default_axes(
+    if subs is None:
+        subs = polar_ray_path_default_subs(
             fig, draw_lat_lon, draw_map, draw_za_aa
         )
 
@@ -421,28 +446,27 @@ def polar_ray_path(
     londeg = np.array([x.pos[2] for x in ray_path])
     zadeg = np.array([x.los[0] for x in ray_path])
     aadeg = np.array([x.los[1] for x in ray_path])
-   
+
     lat = np.deg2rad(latdeg)
     lon = np.deg2rad(londeg)
     za = np.deg2rad(zadeg)
     aa = np.deg2rad(aadeg)
 
     if draw_lat_lon:
-        axes[0] = polar_ray_path_lat(rad, lat, planetary_radius, rscale, axes[0])
-        axes[0].set_ylabel(
-            f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+        subs[0] = polar_ray_path_lat(rad, lat, planetary_radius, rscale, subs[0])
+        subs[0].set_ylabel(
+            f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
             f" [{polar_ray_path_rad_unit(rscale)}]"
         )
-        axes[1] = polar_ray_path_lon(rad, lon, planetary_radius, rscale, axes[1])
+        subs[1] = polar_ray_path_lon(rad, lon, planetary_radius, rscale, subs[1])
 
     if draw_map:
-        axes[2] = polar_ray_path_map(latdeg, londeg, axes[2])
+        subs[2] = polar_ray_path_map(latdeg, londeg, subs[2])
 
     if draw_za_aa:
-        axes[3] = polar_ray_path_za(za, axes[3])
-        axes[3].set_ylabel("Arbitrary unit [-]")
-        axes[4] = polar_ray_path_aa(aa, axes[4])
+        subs[3] = polar_ray_path_za(za, subs[3])
+        subs[3].set_ylabel("Arbitrary unit [-]")
+        subs[4] = polar_ray_path_aa(aa, subs[4])
 
     # Return incase people want to modify more
-    return fig, axes
-
+    return fig, subs
