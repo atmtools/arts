@@ -155,6 +155,7 @@ void py_surf(py::module_ &m) try {
           "ellipsoid",
           &SurfaceField::ellipsoid,
           "Ellipsoid parameters (semi-major axis, semi-minor axis)\n\n.. :class:`Vector2`");
+  fld.def("keys", &SurfaceField::keys, "Available keys");
   generic_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 
@@ -178,7 +179,7 @@ void py_surf(py::module_ &m) try {
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
-           [](SurfacePoint &surf, const SurfaceKeyVal& x, Numeric data) {
+           [](SurfacePoint &surf, const SurfaceKeyVal &x, Numeric data) {
              surf[x] = data;
            })
       .def(
@@ -218,11 +219,12 @@ void py_surf(py::module_ &m) try {
                    [&](auto &&key) -> Numeric & { return s->operator[](key); },
                    k[i]) = v[i];
              }
-           });
+           })
+      .def("keys", &SurfacePoint::keys, "Available keys");
 
   fld.def(
          "__getitem__",
-         [](SurfaceField &surf, const SurfaceKeyVal& x) -> Surf::Data & {
+         [](SurfaceField &surf, const SurfaceKeyVal &x) -> Surf::Data & {
            if (not surf.contains(x)) {
              const auto error_message = std::format("{}", x);
              throw py::key_error(error_message.c_str());
@@ -231,9 +233,9 @@ void py_surf(py::module_ &m) try {
          },
          py::rv_policy::reference_internal)
       .def("__setitem__",
-           [](SurfaceField &surf, const SurfaceKeyVal& x, const Surf::Data &data) {
-             surf[x] = data;
-           })
+           [](SurfaceField &surf,
+              const SurfaceKeyVal &x,
+              const Surf::Data &data) { surf[x] = data; })
       .def(
           "__call__",
           [](const SurfaceField &surf, Numeric lat, Numeric lon) {
@@ -381,7 +383,7 @@ void py_surf(py::module_ &m) try {
          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SubsurfaceField &surf,
-              const SubsurfaceKeyVal& x,
+              const SubsurfaceKeyVal &x,
               const SubsurfaceData &data) { surf[x] = data; })
       .def(
           "__getitem__",
@@ -394,6 +396,7 @@ void py_surf(py::module_ &m) try {
             return surf[x];
           },
           py::rv_policy::reference_internal);
+  ssf.def("keys", &SubsurfaceField::keys, "Available keys");
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
@@ -416,6 +419,7 @@ void py_surf(py::module_ &m) try {
           [](SubsurfacePoint &self, const SubsurfaceKeyVal &key, Numeric x) {
             self[key] = x;
           });
+  ssp.def("keys", &SubsurfacePoint::keys, "Available keys");
   generic_interface(ssp);
 
   py::class_<SubsurfaceData> ssd(m, "SubsurfaceData");

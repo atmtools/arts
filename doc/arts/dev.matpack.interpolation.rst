@@ -120,7 +120,7 @@ the dimension is fixed.) So the structure ``GridPos`` looks like:
                             (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
   };
 
-For example, ``idx``=3 and ``fd``=0.5 means that this interpolation point is
+For example, ``idx=3`` and ``fd=0.5`` means that this interpolation point is
 half-way between index 3 and 4 of the original grid.  Note, that
 "below" in the first paragraph means "with a lower index". If the
 original grid is sorted in descending order, the value at the grid

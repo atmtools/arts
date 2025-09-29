@@ -1,13 +1,19 @@
+""" Plotting routine for the sensor response """
+
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = [
+    'plot',
+]
 
-def plot(measurement_sensor, *, fig=None, keys="f", pol="I"):
-    """Plot the sensor obsel array in a default manner.
+
+def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I"):
+    """Plot the sensor observational element array.
 
     .. note::
-        Any option other than "f" will sort the sensor obsel array by the
+        Any option other than "f" will sort the sensor observational element array by the
         corresponding key. The object lives via a pointer, so the original
         measurement_sensor is modified in-place.
 
@@ -15,15 +21,38 @@ def plot(measurement_sensor, *, fig=None, keys="f", pol="I"):
         but it might result in different results down on the floating point
         epsilon error level.
 
-    Args:
-        measurement_sensor (pyarts.arts.MeasurementSensor): A sensor observation element array
-        fig (optional): The matplotlib figure to draw on. Defaults to None for new figure.
-        subs (optional): List of subplots to add to. Defaults to None for a new subplot.
-        keys (str, list): The keys to use for plotting. Options are in pyarts.arts.SensorKeyType.
-        pol (str): The polarization to use for plotting. Defaults to "I", constructs a pyarts.arts.Stokvec.
-    Returns:
-        fig: as input or a new figure
-        subs: list of subplots
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        ws = pyarts.Workspace()
+        ws.measurement_sensorSimpleGaussian(std = 10e6, pos = [100e3, 0, 0], los = [180.0, 0.0],
+                                            frequency_grid = np.linspace(-50e6, 50e6, 101))
+        pyarts.plots.ArrayOfSensorObsel.plot(ws.measurement_sensor)
+
+    Parameters
+    ----------
+    measurement_sensor : ~pyarts3.arts.ArrayOfSensorObsel
+        A sensor observation element array.
+    fig : Figure, optional
+        The matplotlib figure to draw on. Defaults to None for new figure.
+    subs : Subaxis, optional
+        List of subplots to add to. Defaults to None for a new subplot.
+    keys : str | list
+        The keys to use for plotting. Options are in :class:`~pyarts3.arts.SensorKeyType`.
+    pol : str | pyarts3.arts.Stokvec
+        The polarization to use for plotting. Defaults to "I", constructs a :class:`~pyarts3.arts.Stokvec`.
+
+    Returns
+    -------
+    fig : As input
+        As input.
+    subs : As input
+        As input.
     """
 
     if isinstance(keys, str):

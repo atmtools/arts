@@ -1,30 +1,63 @@
+""" Plotting routine for profiles of the atmospheric field """
+
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = [
+    'plot',
+]
+
+
 def plot(
-    atm_field,
+    atm_field: pyarts.arts.AtmField,
     *,
     fig=None,
-    alts=np.linspace(0, 1e5),
-    lats=0,
-    lons=0,
-    ygrid=None,
-    keys=None,
+    alts: np.ndarray | float = np.linspace(0, 1e5, 51),
+    lats: np.ndarray | float = 0,
+    lons: np.ndarray | float = 0,
+    ygrid: np.ndarray | None = None,
+    keys: list[str] | None = None,
 ):
-    """Plot the atmospheric field parameters in a default manner.
+    """Plot select atmospheric field parameters by extracting a profile.
 
-    Args:
-        atm_field (pyarts.arts.AtmField): An atmospheric field
-        fig (optional): The matplotlib figure to draw on. Defaults to None for new figure.
-        alts (optional): A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5).
-        lats (optional): A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
-        lons (optional): A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
-        ygrid (optional): Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
-        keys (optional): A list of keys to plot. Defaults to None for all keys in keys().
+    .. rubric:: Example
 
-    Returns:
-        fig: as input or a new figure
-        subs: list of subplots
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        ws = pyarts.Workspace()
+
+        ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
+
+        pyarts.plots.AtmField.plot(ws.atmospheric_field, keys=["p", "t"])
+
+    Parameters
+    ----------
+    atm_field : ~pyarts3.arts.AtmField
+        An atmospheric field
+    fig : Figure, optional
+        The matplotlib figure to draw on. Defaults to None for new figure.
+    alts : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5, 51).
+    lats : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
+    lons : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
+    ygrid : :class:`~numpy.ndarray` | :class:`None`, optional
+        Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
+    keys : list, optional
+        A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.AtmField.keys`.
+
+    Returns
+    -------
+    fig : As input
+        As input.
+    subs : As input
+        As input.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
     v = atm_field(alts, lats, lons)

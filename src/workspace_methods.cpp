@@ -5453,29 +5453,9 @@ the smallest possible numerical offset from that angle in the signed direction.
     overlap, the limb zentih angle grid is divided into `nlimb+1` segments.
     The 90 degree angle is then discarded.
 
-Below is an example using this method to create a *ray_path_field*.
+.. seealso::
 
-.. plot::
-    :include-source:
-
-    import pyarts3 as pyarts
-    import numpy as np
-
-    ws = pyarts.Workspace()
-
-    ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
-    ws.surface_fieldEarth()
-    ws.ray_path_observer_agendaSetGeometric(
-        add_crossings=True, remove_non_crossings=True
-    )
-    ws.ray_path_observersFieldProfilePseudo2D(nup=3, nlimb=3, ndown=3)
-    ws.ray_path_fieldFromObserverAgenda()
-
-    f, a = None, None
-    for x in ws.ray_path_field:
-        f, a = pyarts.plots.ArrayOfPropagationPathPoint.plot(
-            x, draw_za_aa=True, draw_map=False, fig=f, subs=a
-        )
+    :func:`pyarts3.plots.ArrayOfPropagationPathPoint.plot` for a visualization of the geometry.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path_observers"},

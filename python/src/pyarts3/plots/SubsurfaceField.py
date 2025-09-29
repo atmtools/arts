@@ -1,30 +1,49 @@
+""" Plotting routine for profiles of the subsurface field """
+
+import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = [
+    'plot',
+]
+
+
 def plot(
-    subsurf_field,
+    subsurf_field: pyarts.arts.SubsurfaceField,
     *,
     fig=None,
-    alts=np.linspace(0, 1e5),
-    lats=0,
-    lons=0,
-    ygrid=None,
-    keys=None,
+    alts: np.ndarray | float = np.linspace(-1, 0, 3),
+    lats: np.ndarray | float = 0,
+    lons: np.ndarray | float = 0,
+    ygrid: np.ndarray | None = None,
+    keys: list[str] | None = None,
 ):
-    """Plot the subsurface field parameters in a default manner.
+    """Plot select subsurface field parameters by extracting a profile.
 
-    Args:
-        subsurf_field (pyarts3.arts.SubsurfaceField): A subsurface field
-        fig (optional): The matplotlib figure to draw on. Defaults to None for new figure.
-        alts (optional): A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5).
-        lats (optional): A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
-        lons (optional): A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
-        ygrid (optional): Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
-        keys (optional): A list of keys to plot. Defaults to None for all keys in keys().
+    Parameters
+    ----------
+    subsurf_field : ~pyarts3.arts.SubsurfaceField
+        A subsurface field
+    fig : Figure, optional
+        The matplotlib figure to draw on. Defaults to None for new figure.
+    alts : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5, 51).
+    lats : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
+    lons : :class:`~numpy.ndarray` | :class:`float`, optional
+        A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
+    ygrid : :class:`~numpy.ndarray` | :class:`None`, optional
+        Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
+    keys : list, optional
+        A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.SubsurfaceField.keys`.
 
-    Returns:
-        fig: as input or a new figure
-        subs: list of subplots
+    Returns
+    -------
+    fig : As input
+        As input.
+    subs : As input
+        As input.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
     v = subsurf_field(alts, lats, lons)

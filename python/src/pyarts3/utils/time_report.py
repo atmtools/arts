@@ -8,21 +8,32 @@ def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
     """Plots the time report.
 
     The time report is available only when
-    ARTS has been compiled with the CMake option ``-DENABLE_ARTS_PROFILING=OFF``,
+    ARTS has been compiled with the CMake option ``-DENABLE_ARTS_PROFILING=ON``,
     which is not part of the default distribution.
 
     Nevertheless, there is enough helpful parts in being able to see the
     state of parallelism and report the time of internal methods that
     this method is part of the distribution.
 
+    There is a cost in terms of performance to having the time report
+    enabled, so it should not be used in production runs.
+
     Parameters
     ----------
+    mode : str, optional
+        The mode of output.  Options are "plot" and "table".  Default is "plot".
     clear : bool, optional
         Whether or not to clear the time-report.  Default is True.
     scale : float, optional
-        The scale of the time axis, defaults to 1.0.
+        The scale of the time axis, defaults to 1.0.  Special values are 1e3 for
+        milliseconds and 1e6 for microseconds.
     fig : matplotlib figure, optional
         The figure to draw on in a plotting mode.  By default creates a new figure.
+    mintime : float, optional
+        The minimum time in seconds for a method to be included in the report.
+        This is useful to filter out methods that are called often but take
+        very little time, and thus clutter the report.  Default is None to include
+        all methods.  mintime is applied after scaling.
 
     Return
     ------

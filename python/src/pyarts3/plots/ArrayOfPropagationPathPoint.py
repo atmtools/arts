@@ -1,4 +1,4 @@
-""" Functions to plot :class:`pyarts.arts.ray_path` in different ways """
+""" Plotting routine the propagation path in polar coordinates """
 
 import pyarts3 as pyarts
 import numpy as np
@@ -104,7 +104,7 @@ def polar_ray_path_lat(rad, lat, planetary_radius, rscale, ax=None):
     ax = polar_ray_path_helper(rad, lat, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
     ax.set_title(
-        "Latitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+        "Latitude vs " f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
     )
     ax.set_thetalim(-np.pi / 2, np.pi / 2)
     ax.set_thetagrids(np.arange(-90, 91, 45))
@@ -142,7 +142,7 @@ def polar_ray_path_lon(rad, lon, planetary_radius, rscale, ax=None):
     ax = polar_ray_path_helper(rad, lon, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
     ax.set_title(
-        "Longitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+        "Longitude vs " f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
     )
     ax.set_theta_zero_location("S")
     ax.set_thetagrids(np.arange(-180, 179, 45))
@@ -351,16 +351,16 @@ def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
 
 
 def plot(
-    ray_path,
+    ray_path: pyarts.arts.ArrayOfPropagationPathPoint,
     *,
-    planetary_radius=0.0,
-    rscale=1000,
-    figure_kwargs={"dpi": 300},
-    draw_lat_lon=True,
-    draw_map=True,
-    draw_za_aa=False,
+    planetary_radius: float = 0.0,
+    rscale: float = 1000,
+    figure_kwargs: dict = {"dpi": 300},
+    draw_lat_lon: bool = True,
+    draw_map: bool = True,
+    draw_za_aa: bool = False,
     fig=None,
-    subs=None,
+    subs=None
 ):
     """Plots a single observation in a polar coordinate system
 
@@ -377,14 +377,38 @@ def plot(
     degrees between ray_path points will wrap around, or rather, create separate
     entries of the lat-lons.
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        ws = pyarts.Workspace()
+
+        ws.atmospheric_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
+        ws.surface_fieldEarth()
+        ws.ray_path_observer_agendaSetGeometric(
+            add_crossings=True, remove_non_crossings=True
+        )
+        ws.ray_path_observersFieldProfilePseudo2D(nup=3, nlimb=3, ndown=3)
+        ws.ray_path_fieldFromObserverAgenda()
+
+        f, a = None, None
+        for x in ws.ray_path_field:
+            f, a = pyarts.plots.ArrayOfPropagationPathPoint.plot(
+                x, draw_za_aa=True, draw_map=False, fig=f, subs=a
+            )
+
     Parameters
     ----------
-    ray_path : pyarts.arts.ArrayOfPropagationPathPoint
+    ray_path : ~pyarts3.arts.ArrayOfPropagationPathPoint
         A single propagation path object
     planetary_radius : float, optional
-        See :func:`polar_ray_path_helper`
+        See ``polar_ray_path_helper`` in source tree
     rscale : float, optional
-        See :func:`polar_ray_path_helper`
+        See ``polar_ray_path_helper`` in source tree
     figure_kwargs : dict, optional
         Arguments to put into plt.figure(). The default is {"dpi": 300}.
     draw_lat_lon : bool, optional
@@ -422,7 +446,7 @@ def plot(
     londeg = np.array([x.pos[2] for x in ray_path])
     zadeg = np.array([x.los[0] for x in ray_path])
     aadeg = np.array([x.los[1] for x in ray_path])
-   
+
     lat = np.deg2rad(latdeg)
     lon = np.deg2rad(londeg)
     za = np.deg2rad(zadeg)
@@ -431,7 +455,7 @@ def plot(
     if draw_lat_lon:
         subs[0] = polar_ray_path_lat(rad, lat, planetary_radius, rscale, subs[0])
         subs[0].set_ylabel(
-            f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+            f"{'Altitude' if planetary_radius == 0 else 'Radius'}"
             f" [{polar_ray_path_rad_unit(rscale)}]"
         )
         subs[1] = polar_ray_path_lon(rad, lon, planetary_radius, rscale, subs[1])
@@ -446,4 +470,3 @@ def plot(
 
     # Return incase people want to modify more
     return fig, subs
-
