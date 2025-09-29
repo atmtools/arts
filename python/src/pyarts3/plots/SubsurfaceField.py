@@ -14,7 +14,7 @@ def plot(
     """Plot the subsurface field parameters in a default manner.
 
     Args:
-        subsurf_field (pyarts3.arts.SubsurfaceField): An subsurface field
+        subsurf_field (pyarts3.arts.SubsurfaceField): A subsurface field
         fig (optional): The matplotlib figure to draw on. Defaults to None for new figure.
         alts (optional): A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5).
         lats (optional): A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
