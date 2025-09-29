@@ -3,6 +3,7 @@
 """This module contains convenience functions for any purposes.
 """
 from pyarts3.utils.common import *  # noqa
+from pyarts3.utils.time_report import time_report # noqa
 from pyarts3.utils.workspace import *  # noqa
 
 

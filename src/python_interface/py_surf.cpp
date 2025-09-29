@@ -178,7 +178,7 @@ void py_surf(py::module_ &m) try {
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
-           [](SurfacePoint &surf, SurfaceKey x, Numeric data) {
+           [](SurfacePoint &surf, const SurfaceKeyVal& x, Numeric data) {
              surf[x] = data;
            })
       .def(
@@ -191,10 +191,6 @@ void py_surf(py::module_ &m) try {
             return surf[x];
           },
           py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](SurfacePoint &surf, const SurfacePropertyTag &x, Numeric data) {
-             surf[x] = data;
-           })
       .def(
           "__getstate__",
           [](const SurfacePoint &t) {
@@ -226,7 +222,7 @@ void py_surf(py::module_ &m) try {
 
   fld.def(
          "__getitem__",
-         [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
+         [](SurfaceField &surf, const SurfaceKeyVal& x) -> Surf::Data & {
            if (not surf.contains(x)) {
              const auto error_message = std::format("{}", x);
              throw py::key_error(error_message.c_str());
@@ -235,23 +231,9 @@ void py_surf(py::module_ &m) try {
          },
          py::rv_policy::reference_internal)
       .def("__setitem__",
-           [](SurfaceField &surf, SurfaceKey x, const Surf::Data &data) {
+           [](SurfaceField &surf, const SurfaceKeyVal& x, const Surf::Data &data) {
              surf[x] = data;
            })
-      .def(
-          "__getitem__",
-          [](SurfaceField &surf, const SurfacePropertyTag &x) -> Surf::Data & {
-            if (not surf.contains(x)) {
-              const auto error_message = std::format("{}", x);
-              throw py::key_error(error_message.c_str());
-            }
-            return surf[x];
-          },
-          py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](SurfaceField &surf,
-              const SurfacePropertyTag &x,
-              const Surf::Data &data) { surf[x] = data; })
       .def(
           "__call__",
           [](const SurfaceField &surf, Numeric lat, Numeric lon) {
@@ -330,6 +312,13 @@ void py_surf(py::module_ &m) try {
   generic_interface(sptag);
 
   py::class_<SubsurfaceField> ssf(m, "SubsurfaceField");
+  ssf.def(
+      "__init__",
+      [](SubsurfaceField *sf, Numeric bottom_depth) {
+        new (sf) SubsurfaceField();
+        sf->bottom_depth = bottom_depth;
+      },
+      "bottom_depth"_a);
   ssf.def_rw(
       "other",
       &SubsurfaceField::other,
@@ -343,6 +332,44 @@ void py_surf(py::module_ &m) try {
       &SubsurfaceField::bottom_depth,
       "The depth of the bottom of the subsurface [m]\n\n.. :class:`Numeric`");
   ssf.def(
+      "__call__",
+      [](const SubsurfaceField &d, Numeric alt, Numeric lat, Numeric lon) {
+        return d.at(alt, lat, lon);
+      },
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      "Get a point of data at the position");
+  ssf.def(
+      "__call__",
+      [](const SubsurfaceField &atm,
+         const Vector &hv,
+         const Vector &latv,
+         const Vector &lonv) {
+        const Size N = hv.size();
+        if (latv.size() != lonv.size() or N != latv.size())
+          throw std::logic_error(std::format(R"(Not same size:
+  h:   {:B,} (size: {})
+  lat: {:B,} (size: {})
+  lon: {:B,} (size: {})
+)",
+                                             hv,
+                                             hv.size(),
+                                             latv,
+                                             latv.size(),
+                                             lonv,
+                                             lonv.size()));
+        ArrayOfSubsurfacePoint out;
+        out.reserve(N);
+        for (Size i = 0; i < N; i++)
+          out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
+        return out;
+      },
+      "h"_a,
+      "lat"_a,
+      "lon"_a,
+      "Get the data as a list");
+  ssf.def(
          "__getitem__",
          [](SubsurfaceField &surf, SubsurfaceKey x) -> SubsurfaceData & {
            if (not surf.contains(x)) {
@@ -354,23 +381,19 @@ void py_surf(py::module_ &m) try {
          py::rv_policy::reference_internal)
       .def("__setitem__",
            [](SubsurfaceField &surf,
-              SubsurfaceKey x,
+              const SubsurfaceKeyVal& x,
               const SubsurfaceData &data) { surf[x] = data; })
       .def(
           "__getitem__",
           [](SubsurfaceField &surf,
-             const SubsurfacePropertyTag &x) -> SubsurfaceData & {
+             const SubsurfaceKeyVal &x) -> SubsurfaceData & {
             if (not surf.contains(x)) {
               const auto error_message = std::format("{}", x);
               throw py::key_error(error_message.c_str());
             }
             return surf[x];
           },
-          py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](SubsurfaceField &surf,
-              const SubsurfacePropertyTag &x,
-              const SubsurfaceData &data) { surf[x] = data; });
+          py::rv_policy::reference_internal);
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
@@ -384,6 +407,15 @@ void py_surf(py::module_ &m) try {
       "prop",
       &SubsurfacePoint::prop,
       "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");
+  ssp.def("__getitem__",
+          [](SubsurfacePoint &self, const SubsurfaceKeyVal &key) {
+            if (self.contains(key)) return self[key];
+            throw py::key_error(std::format("{}", key).c_str());
+          });
+  ssp.def("__setitem__",
+          [](SubsurfacePoint &self, const SubsurfaceKeyVal &key, Numeric x) {
+            self[key] = x;
+          });
   generic_interface(ssp);
 
   py::class_<SubsurfaceData> ssd(m, "SubsurfaceData");

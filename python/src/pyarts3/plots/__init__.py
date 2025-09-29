@@ -1,10 +1,13 @@
-"""This module provides functions related to plotting ARTS data."""
+"""  Plotting ARTS data
 
-from pyarts3.plots.ray_path import *  # noqa
-from pyarts3.plots.ppvar_atm import * # noqa
-from pyarts3.plots.time_report import time_report # noqa
+This module provides functions related to plotting ARTS data
+based only on the type of the data.  Each submodule provides a plot()
+function that takes the data type as its first argument and optional
+arguments to control the plotting.  The plot() functions return the
+figure, a list of subplots, and nothing more.
+"""
 
 from . import AtmField
 from . import ArrayOfSensorObsel
-
-__all__ = [s for s in dir() if not s.startswith("_")]
+from . import SubsurfaceField
+from . import ArrayOfPropagationPathPoint

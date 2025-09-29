@@ -30,6 +30,9 @@ def __getattr__(attr):
     elif attr == "math":
         import pyarts3.math as math
         return math
+    elif attr == "utils":
+        import pyarts3.utils as utils
+        return utils
     
     raise AttributeError("module {!r} has no attribute "
                           "{!r}".format(__name__, attr))
@@ -45,6 +48,7 @@ def __dir__():
         "version",
         "workspace",
         "xml",
+        "utils",
         ]
 
 __all__ = [s for s in dir() if not s.startswith("_")]

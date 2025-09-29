@@ -1473,301 +1473,160 @@ but adds further contributions.
 
 Only supports temperature and wind speed derivatives
 
-Available models:
-
-- O2-MPM2020:
-  60 GHz and 118 GHz lines only (no continua, no higher Hz line centers) 
-
-  Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020, Revision of the 
-  60-GHz atmospheric oxygen absorption band models for practical use, 
-  https://doi.org/10.1016/j.jqsrt.2019.106798
-
-- H2O-ForeignContCKDMT350:
-  Foreign continua.  Expects H2O line center cutoff at 25 cm-1
-
-  CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- H2O-SelfContCKDMT350:
-  Self continua.  Expects H2O line center cutoff at 25 cm-1
-
-  CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- H2O-ForeignContCKDMT320:
-  Foreign continua.  Expects H2O line center cutoff at 25 cm-1
-
-  CKD_MTv3.20 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- H2O-SelfContCKDMT320:
-  Self continua.  Expects H2O line center cutoff at 25 cm-1
-
-  CKD_MTv3.20 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- H2O-SelfContCKDMT400:
-  Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
-
-  Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
-
-  Note that this model comes with the copyright statement [1].
-
-  Note also that this model requires *absorption_predefined_model_data* to contain relevant data set either using
-  *absorption_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
-
-- H2O-ForeignContCKDMT400:
-  Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
-
-  Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
-
-  Note that this model comes with the copyright statement [1].
-
-  Note also that this model requires *absorption_predefined_model_data* to contain relevant data set either using
-  *absorption_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
-
-- H2O-ForeignContStandardType:
-  Water microwave continua
-
-  P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-  Radio Science, Vol. 34(4), 1025, 1999.
-
-- H2O-SelfContStandardType:
-  Water microwave continua
-
-  P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-  Radio Science, Vol. 34(4), 1025, 1999.
-
-- H2O-MPM89:
-  Microwave water absorption model
-
-  H. J. Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631.
-
-- H2O-PWR98:
-  Microwave water absorption model
-
-  P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-  Radio Science, Vol. 34(4), 1025, 1999.
-
-- H2O-PWR2021:
-  Microwave water absorption model developed by P.W. Rosenkranz.
-
-  Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-- H2O-PWR2022:
-  Microwave water absorption model developed by P.W. Rosenkranz.
-
-  Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-- CO2-CKDMT252:
-  MT CKD absorption for CO2
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 2.50 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- O2-CIAfunCKDMT100:
-  CIA for oxygen from MT CKD
-
-  F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
-  J.-M. Hartmann, Ch. Boulet,<br>
-  Infrared collision-induced absorption by O2 near 6.4 microns for
-  atmospheric applications: measurements and emprirical modeling,<br>
-  Appl. Optics, 35, 5911-5917, (1996).
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 1.00 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- O2-MPM89:
-  Oxygen microwave absorption model
-
-  Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-  <i>Propagation modeling of moist air and suspended water/ice
-  particles at frequencies below 1000 GHz</i>,<br>
-  AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-  Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-
-- O2-PWR98:
-  Oxygen microwave absorption model
-
-  P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
-  BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
-  H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
-  M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
-  SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
-
-- O2-PWR2021:
-  Oxygen microwave absorption model developed by P.W. Rosenkranz.
-
-  Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-- O2-PWR2022:
-  Oxygen microwave absorption model developed by P.W. Rosenkranz.
-
-  Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-- O2-SelfContStandardType:
-  Microwave continua term
-
-  Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
-  <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
-  John Wiley & Sons, Inc., 1993.<br>
-  <br>
-  Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-  <i>Propagation modeling of moist air and suspended water/ice
-  particles at frequencies below 1000 GHz</i>,<br>
-  AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-  Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-
-- O2-TRE05:
-  Oxygen microwave absorption model
-
-  References: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-  <i>Propagation modeling of moist air and suspended water/ice
-  particles at frequencies below 1000 GHz</i>,<br>
-  AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-  Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-
-  M.Yu. Tretyakov, M.A. Koshelev, V.V. Dorovskikh,
-  D.S. Makarov, P.W. Rosenkranz; 60-GHz oxygen band: precise broadening and central frequencies
-  of fine-structure lines, absolute absorption profile
-  at atmospheric pressure, and revision of mixing coefficients
-  doi:10.1016/j.jms.2004.11.011
-
-- O2-v0v0CKDMT100:
-  MT CKD
-
-  CKD_MT 1.00 implementation of oxygen collision induced fundamental model of
-  O2 continuum formulated by
-  Mate et al. over the spectral region 7550-8486 cm-1:
-  B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
-  "Absolute Intensities for the O2 1.27 micron
-  continuum absorption",
-  J. Geophys. Res., 104, 30,585-30,590, 1999.
-
-  Also, refer to the paper "Observed  Atmospheric
-  Collision Induced Absorption in Near Infrared Oxygen Bands",
-  Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
-  Journal of Geophysical Research (1997).
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 1.00 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html<br>
-  <br>
-
-- O2-v1v0CKDMT100:
-  MT CKD
-
-  Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
-  Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
-  J. Geophys. Res., 103, D4, 3859-3863, 1998.
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 1.00 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html<br>
-
-- O2-visCKDMT252:
-  MT CKD
-
-  O2 continuum formulated by Greenblatt et al. over the spectral region
-  8797-29870 cm-1:  "Absorption Coefficients of Oxygen Between 
-  330 and 1140 nm, G.D. Green blatt, J.J. Orlando, J.B. Burkholder,
-  and A.R. Ravishabkara,  J. Geophys. Res., 95, 18577-18582, 1990.
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 2.50 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html<br>
-
-- N2-CIAfunCKDMT252:
-  MT CKD
-
-  Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
-  J._M. Hartmann,<br>
-  Infrared collision-induced absorption by
-  N2 near 4.3 microns for atmospheric applications:
-  Measurements and emprirical modeling, <br>
-  Appl. Optics, 35, 5911-5917, (1996)
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 1.00 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- N2-CIArotCKDMT252:
-  MT CKD
-
-  Borysow, A, and L. Frommhold,<br>
-  Collision-induced rototranslational absorption spectra of N2-N2
-  pairs for temperatures from 50 to 300 K,<br>
-  The Astrophysical Journal, 311, 1043-1057, 1986.
-
-  This absorption model is taken from the FORTRAN77 code of
-  CKD_MT version 1.00 written by<br>
-  Atmospheric and Environmental Research Inc. (AER),<br>
-  Radiation and Climate Group<br>
-  131 Hartwell Avenue<br>
-  Lexington, MA 02421, USA<br>
-  http://www.rtweb.aer.com/continuum_frame.html
-
-- N2-SelfContStandardType:
-  Microwave nitrogen absorption continua
-
-  Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
-  <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
-  John Wiley & Sons, Inc., 1993.
-
-- N2-SelfContMPM93:
-  Microwave nitrogen absorption continua from MPM93 model
-
-  Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-  <i>Propagation modeling of moist air and suspended water/ice
-  particles at frequencies below 1000 GHz</i>,<br>
-  AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-  Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-
-- N2-SelfContPWR2021:
-  Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
-
-  Note that this also includes O2-N2 and O2-O2 collision-induced absorption and is
-  only applicable to Earth
-
-  Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-- liquidcloud-ELL07:
-  Water droplet absorption
-
-  W. J. Ellison, <br>
-  <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
-  Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
-  J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+.. |br| raw:: html
+
+   <br />
+
+Available models
+
+.. list-table::
+  :width: 0.5
+  :widths: auto
+  :align: left
+  :header-rows: 1
+
+  * - Model name
+    - Description and limitations
+    - Reference(s)
+
+  * - ``H2O-ForeignContCKDMT320``
+    - Foreign continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT320``.
+    - :cite:p:`MTCKD`
+
+  * - ``H2O-ForeignContCKDMT350``
+    - MT CKD 3.5 foreign continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT350``.
+    - :cite:p:`MTCKD`
+
+  * - ``H2O-ForeignContCKDMT400``
+    - MT CKD 4 foreign continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT350``. |br|
+      Requires an external data source.
+    - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
+
+  * - ``H2O-ForeignContStandardType``
+    - Water microwave continua for foreign species.
+    - :cite:t:`pwr:98`
+
+  * - ``H2O-MPM89``
+    - Microwave water absorption model.
+    - :cite:t:`liebe:89`
+
+  * - ``H2O-PWR2021``
+    - Microwave water absorption model |br|
+      developed by P.W. Rosenkranz.
+    - :cite:t:`RosenkranzSoftware`.
+
+  * - ``H2O-PWR2022``
+    - Microwave water absorption model |br|
+      developed by P.W. Rosenkranz.
+    - :cite:t:`RosenkranzSoftware`.
+
+  * - ``H2O-PWR98``
+    - Microwave water absorption model.
+    - :cite:t:`pwr:98`
+
+  * - ``H2O-SelfContCKDMT320``
+    - Self continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-ForeignContCKDMT320``.
+    - :cite:p:`MTCKD`
+
+  * - ``H2O-SelfContCKDMT350``
+    - MT CKD 3.5 self continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-ForeignContCKDMT350``.
+    - :cite:p:`MTCKD`
+
+  * - ``H2O-SelfContCKDMT400``
+    - MT CKD 4 self continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT350``. |br|
+      Requires an external data source.
+    - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
+
+  * - ``H2O-SelfContStandardType``
+    - Water microwave continua for self.
+    - :cite:t:`pwr:98`
+
+  * - ``CO2-CKDMT252``
+    - MT CKD absorption for CO2 version 2.52.
+    - :cite:p:`MTCKD`
+
+  * - ``O2-CIAfunCKDMT100``
+    - CIA for oxygen from MT CKD.
+    - :cite:p:`Thibault1997` and :cite:p:`MTCKD`
+
+  * - ``O2-MPM2020``
+    - 60 GHz and 118 GHz lines only. |br|
+      Do not include the v 0 0 oxygen band manually.
+    - :cite:t:`Makarov2020`
+
+  * - ``O2-MPM89``
+    - Oxygen microwave absorption model.
+    - :cite:t:`liebeetal:93`
+
+  * - ``O2-PWR2021``
+    - Oxygen microwave absorption model |br|
+      developed by P.W. Rosenkranz.
+    - :cite:t:`pwr:98`
+
+  * - ``O2-PWR2022``
+    - Oxygen microwave absorption model |br|
+      developed by P.W. Rosenkranz.
+    - :cite:t:`pwr:98`
+
+  * - ``O2-PWR98``
+    - Oxygen microwave absorption model.
+    - :cite:t:`pwr:93` and :cite:t:`liebeetal:92` and |br|
+      M.J. Schwartz, Ph.D. thesis, M.I.T. (1997) and |br|
+      :cite:t:`Rothman1998`.
+
+  * - ``O2-SelfContStandardType``
+    - Microwave continua term.
+    - :cite:t:`pwr:93` and :cite:t:`liebeetal:93`
+
+  * - ``O2-TRE05``
+    - Oxygen microwave absorption model.
+    - :cite:t:`liebeetal:93` and :cite:t:`tretyakov05:_60-ghz_jms`
+
+  * - ``O2-v0v0CKDMT100``
+    - CKD_MT 1.00 implementation of oxygen |br|
+      collision-induced fundamental model.
+    - :cite:p:`MTCKD` and :cite:p:`Mate1999` and :cite:t:`Mlawer1998`
+
+  * - ``O2-v1v0CKDMT100``
+    - MT CKD.
+    - :cite:p:`MTCKD` and :cite:t:`Mlawer1998`
+
+  * - ``O2-visCKDMT252``
+    - MT CKD.
+    - :cite:p:`MTCKD` and :cite:t:`Greenblatt1990`
+
+  * - ``N2-CIAfunCKDMT252``
+    - MT CKD.
+    - :cite:p:`MTCKD` and :cite:t:`Lafferty1996`
+
+  * - ``N2-CIArotCKDMT252``
+    - MT CKD.
+    - :cite:p:`MTCKD` and :cite:t:`borysow:86`
+
+  * - ``N2-SelfContMPM93``
+    - Microwave nitrogen absorption continua |br|
+      from MPM93 model.
+    - :cite:t:`liebeetal:93`
+
+  * - ``N2-SelfContPWR2021``
+    - Microwave nitrogen absorption continua |br|
+      developed by P.W. Rosenkranz. |br|
+      This includes O2-N2 and O2-O2 CIA (only applicable to Earth).
+    - :cite:t:`pwr:98`
+
+  * - ``N2-SelfContStandardType``
+    - Microwave nitrogen absorption continua.
+    - :cite:t:`pwr:93`
+
+  * - ``liquidcloud-ELL07``
+    - Water droplet absorption.
+    - :cite:t:`Ellison2007`
 )--",
       .author = {"Richard Larsson"},
       .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
@@ -5614,8 +5473,8 @@ Below is an example using this method to create a *ray_path_field*.
 
     f, a = None, None
     for x in ws.ray_path_field:
-        f, a = pyarts.plots.ray_path.polar_ray_path(
-            x, draw_za_aa=True, draw_map=False, fig=f, axes=a
+        f, a = pyarts.plots.ArrayOfPropagationPathPoint.plot(
+            x, draw_za_aa=True, draw_map=False, fig=f, subs=a
         )
 )",
       .author    = {"Richard Larsson"},
