@@ -241,7 +241,7 @@ String to_defval_str(const Wsv& wsv, const std::string_view x) try {
     if (group == "Numeric" or group == "Index")
       return std::format("{0}0{0}", x);
 
-    return std::format("{1}pyarts.arts.{0}(){1}", group, x);
+    return std::format("{1}pyarts3.arts.{0}(){1}", group, x);
   }
 
   return std::format("{1}{0}{1}", out, x);
