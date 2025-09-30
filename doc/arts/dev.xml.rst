@@ -244,7 +244,7 @@ in ``xml_io_stream_tuple.h``.
 Both ``A`` and ``B`` must  be ``arts_xml_ioable``.
 Binary-compatibility and parseability is taken into account and forwarded
 to nested types, with specialization if both ``A`` and ``B`` are the same type,
-if, and only if, both ``A`` and ``B``share this property.
+if, and only if, both ``A`` and ``B`` share this property.
 
 ``std::variant<T...>``
 ^^^^^^^^^^^^^^^^^^^^^^
