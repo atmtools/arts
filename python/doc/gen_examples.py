@@ -45,6 +45,7 @@ def all_files(path):
 
 
 def filename_from_path(path, prefix, save_path, fileending, suffix):
+    prefix = os.path.normpath(prefix) + os.path.sep
     path = path.removeprefix(prefix).removesuffix(suffix) + fileending
     path = path.replace(os.path.sep, ".")
     return os.path.join(save_path, path)
