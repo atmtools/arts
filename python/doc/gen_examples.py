@@ -98,7 +98,7 @@ def combine_rstpy(rsts, pyfiles, out=None):
     return out
 
 
-def from_list(lst, path, with_plots):
+def from_list(lst, path, save_path, with_plots):
     """Converts a list of paths to rst string"""
 
     assert isinstance(lst, list), "Expected a list of paths"
@@ -114,6 +114,12 @@ def from_list(lst, path, with_plots):
     # Gather all notebooks
     notebooks = [item for item in lst if item.endswith(".ipynb")]
     notebooks.sort()
+
+    otherfiles = [
+        item
+        for item in lst
+        if item.endswith(".xml") or item.endswith(".bin") or item.endswith(".nc")
+    ]
 
     # E.g., if it is a test-data folder, we can have no files
     if len(rsts) == 0 and len(pyfiles) == 0 and len(notebooks) == 0:
@@ -154,7 +160,7 @@ def from_list(lst, path, with_plots):
 
         if py:
             if with_plots:
-                out += f".. plot:: {os.path.join(path, py)}\n"
+                out += f".. plot:: {os.path.relpath(os.path.join(path, py), start=save_path)}\n"
                 out += "    :include-source:\n\n"
             else:
                 out += f".. code-block:: python\n"
@@ -163,10 +169,13 @@ def from_list(lst, path, with_plots):
                     for line in pyfile.read().split("\n"):
                         out += f"    {line}\n"
 
+    for item in otherfiles:
+        out += f".. |{item}| replace::\n"
+        out += f"   :download:`{item} <{os.path.relpath(os.path.join(path, item), start=save_path)}>`\n"
     return rst(out)
 
 
-def generate_texts(paths, with_plots=False):
+def generate_texts(paths, save_path, with_plots=False):
     out = {}
 
     for path in paths:
@@ -175,11 +184,11 @@ def generate_texts(paths, with_plots=False):
         data = paths[path]
 
         if isinstance(data, dict):
-            x = generate_texts(data, with_plots)
+            x = generate_texts(data, save_path, with_plots)
             if len(x) != 0:
                 out[path] = x
         elif isinstance(data, list):
-            x = from_list(data, path, with_plots)
+            x = from_list(data, path, save_path, with_plots)
 
             if x is not None:
                 out[path] = x
@@ -288,7 +297,7 @@ if __name__ == "__main__":
     examplepath = os.path.join(arts_path, "examples")
 
     files = all_files(examplepath)
-    text = generate_texts(files, with_plots)
+    text = generate_texts(files, save_path, with_plots)
     filetrees = generate_filetrees(files, examplepath)
     toctrees = filetrees_to_toctrees(filetrees, arts_path)
 
