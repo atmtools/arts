@@ -24,6 +24,12 @@ if(SPHINX_FOUND)
     check-deps
   )
 
+  add_custom_target(
+    pyarts_docs_copy_examples
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${ARTS_SOURCE_DIR}/examples/ ${ARTS_BINARY_DIR}/examples/
+    COMMENT "Copying examples directory"
+  )
+
   file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/source/*")
   add_custom_target(
     pyarts_docs_copy_python
@@ -72,10 +78,14 @@ if(SPHINX_FOUND)
   endif()
 
   add_custom_target(gen_examples_rst
-    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_SOURCE_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/source/ ${WITH_PLOTS}
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_examples.py ${ARTS_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/source/ ${WITH_PLOTS}
     COMMENT "Generating examples RST files"
   )
-  add_dependencies(gen_examples_rst pyarts_docs_gen_copy_python pyarts_docs_copy_python)
+  add_dependencies(gen_examples_rst
+    pyarts_docs_gen_copy_python
+    pyarts_docs_copy_python
+    pyarts_docs_copy_examples
+  )
 
   #
   # Clean
