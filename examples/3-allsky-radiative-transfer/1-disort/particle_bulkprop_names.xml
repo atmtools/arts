@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<arts format="binary" version="1">
-<ArrayOfString type="String" nelem="2">
+<arts version="3" format="ascii">
+<ArrayOfString nelem="2" type="String">
 <String>
-"RWC"
-</String>
+"RWC"</String>
+
 <String>
-"IWC"
-</String>
+"IWC"</String>
+
 </ArrayOfString>
 </arts>
