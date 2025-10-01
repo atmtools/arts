@@ -16,14 +16,11 @@ Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   }
 }
 
-Workspace::Workspace(std::unordered_map<std::string, Wsv> wsv)
-    : wsv(std::move(wsv)) {};
-
 const Wsv& Workspace::share(const std::string& name) const try {
   return wsv.at(name);
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      std::format("Undefined workspace variable \"{}\"", name));
+      std::format("Cannot share workspace variable \"{}\" - is not set", name));
 }
 
 Wsv Workspace::copy(const std::string& name) const {
@@ -90,8 +87,9 @@ Size Workspace::erase(const std::string& name) { return wsv.erase(name); }
 void Workspace::init(const std::string& name) try {
   set(name, Wsv::from_named_type(workspace_variables().at(name).type));
 } catch (std::out_of_range&) {
-  throw std::runtime_error(
-      std::format("Undefined workspace variable \"{}\"", name));
+  throw std::runtime_error(std::format(
+      "Cannot initialize workspace variable \"{}\" - it is not a workspace variable",
+      name));
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("Error setting '{}'\n{}", name, e.what()));

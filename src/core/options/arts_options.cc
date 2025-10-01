@@ -990,6 +990,7 @@ radiation).
                  "InterceptParameter",
                  "PSD intercept parameter in arbitary units."}},
   });
+
   opts.emplace_back(EnumeratedOption{
       .name = "SizeParameter",
       .desc =
@@ -1000,6 +1001,17 @@ radiation).
                           Value{"DVeq",
                                 "d_veq",
                                 "Volume-equivalent diameter in m"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "WorkspaceInitialization",
+      .desc = "A flag for how initialize a new workspace.\n",
+      .values_and_desc =
+          {Value{
+               "FromGlobalDefaults",
+               "Initialize from the global default workspace - these are the variables that have defaults."},
+           Value{"Empty",
+                 "Initialize an empty workspace - no variables are set."}},
   });
 
   fix_static(opts);

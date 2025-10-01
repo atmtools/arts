@@ -152,9 +152,7 @@ Agenda required output: {:B,}
                                        std::string_view(e.what())));
 }
 
-template <>
-void Agenda::copy_workspace<true>(Workspace& out, const Workspace& in) const
-    try {
+void Agenda::share_workspace(Workspace& out, const Workspace& in) const try {
   for (auto& str : share) {
     if (not out.contains(str)) out.set(str, in.share(str));
   }
@@ -186,7 +184,7 @@ startover:
       if (not handle.has(var.first)) {
         auto& ag = var.second.get<Agenda>();
         handle.set(var.first);
-        ag.copy_workspace<true>(out, in);
+        ag.share_workspace(out, in);
         goto startover;
       }
     }
@@ -194,9 +192,7 @@ startover:
 }
 }  // namespace
 
-template <>
-void Agenda::copy_workspace<false>(Workspace& out, const Workspace& in) const
-    try {
+void Agenda::copy_workspace(Workspace& out, const Workspace& in) const try {
   for (auto& str : share) out.set(str, in.share(str));
 
   //! If copy and share are the same, copy will overwrite share (keep them unique!)
@@ -212,6 +208,29 @@ void Agenda::copy_workspace<false>(Workspace& out, const Workspace& in) const
   WorkspaceAgendaBoolHandler handle;
   handle.set(name);
   agenda_add_inner_logic(out, in, handle);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format(
+      R"(
+Error with workspace copying in Agenda "{}"
+
+Workspace contains:
+{:s}
+
+{})",
+      name,
+      in,
+      e.what()));
+}
+
+void Agenda::copy_only_workspace(Workspace& out, const Workspace& in) const
+    try {
+  for (auto& str : copy) {
+    if (out.contains(str)) {
+      out.overwrite(str, out.copy(str));
+    } else {
+      out.set(str, in.copy(str));
+    }
+  }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
       R"(

@@ -178,7 +178,7 @@ template <> {0}& Workspace::get_or<{0}>(const std::string& name) {{
 template <> {0}& Workspace::get<{0}>(const std::string& name) const try {{
   return wsv.at(name).get<{0}>();
 }} catch (std::out_of_range&) {{
-  throw std::runtime_error(std::format("Undefined workspace variable \"{{0}}\"", name));
+  throw std::runtime_error(std::format("Cannot get workspace variable \"{{0}}\" - it is not yet set on the workspace", name));
 }} catch (std::exception& e) {{
   throw std::runtime_error(std::format("Error getting workspace variable \"{{0}}\":\n{{1}}", name, std::string_view(e.what())));
 }}

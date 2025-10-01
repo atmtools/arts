@@ -112,6 +112,11 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
   std::string doc{};
 
+  if (name.size() > 7 and wsa.contains(name.substr(0, name.size() - 7)) and
+      name.substr(name.size() - 7) == "Execute") {
+    return doc;
+  }
+
   if (has_any()) {
     doc += "template <WorkspaceGroup T>\n";
   }
@@ -160,12 +165,6 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     if (wsv_ptr != wsv.end()) {
       doc += std::format(
           "{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
-      continue;
-    }
-
-    auto wsa_ptr = wsa.find(str);
-    if (wsa_ptr != wsa.end()) {
-      doc += std::format("{}const Agenda& {}", comma(first, spaces), str);
       continue;
     }
 

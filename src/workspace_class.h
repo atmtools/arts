@@ -1,20 +1,17 @@
 #pragma once
 
+#include <enumsWorkspaceInitialization.h>
 #include <format_tags.h>
 #include <wsv_value_wrapper.h>
 
 #include <memory>
 #include <unordered_map>
 
-enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
-
 struct Workspace {
   std::unordered_map<std::string, Wsv> wsv;
 
   Workspace(WorkspaceInitialization how_to_initialize =
                 WorkspaceInitialization::FromGlobalDefaults);
-
-  Workspace(std::unordered_map<std::string, Wsv>);
 
   //! Returns a shared pointer to the workspace variable with the given name.
   [[nodiscard]] const Wsv& share(const std::string& name) const;
