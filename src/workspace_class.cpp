@@ -72,10 +72,6 @@ void Workspace::overwrite(const std::string& name, const Wsv& data) try {
       data.type_name()));
 }
 
-std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
-  return os << std::format("{:s,}", ws);
-}
-
 bool Workspace::contains(const std::string& name) const {
   return wsv.contains(name);
 }
@@ -88,6 +84,8 @@ bool Workspace::wsv_and_contains(const std::string& name) const {
       name)
   return contains(name);
 }
+
+Size Workspace::erase(const std::string& name) { return wsv.erase(name); }
 
 void Workspace::init(const std::string& name) try {
   set(name, Wsv::from_named_type(workspace_variables().at(name).type));

@@ -82,7 +82,8 @@ struct Workspace {
   //! As contains, but also checks if the variable is a workspace variable
   [[nodiscard]] bool wsv_and_contains(const std::string& name) const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
+  //! Removes the workspace variable with the given name.
+  Size erase(const std::string& name);
 
   [[nodiscard]] auto begin() { return wsv.begin(); }
 

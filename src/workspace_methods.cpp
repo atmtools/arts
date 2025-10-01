@@ -105,7 +105,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
 
-  const std::string spaces(name.size() + 6, ' ');
+  const std::string spaces(name.size() + return_type.size() + 2, ' ');
 
   const auto overloads = generic_overloads();
   int GVAR             = 0;
@@ -116,7 +116,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     doc += "template <WorkspaceGroup T>\n";
   }
 
-  doc += std::format("void {}(", name);
+  doc += std::format("{} {}(", return_type, name);
 
   bool first = true;
   if (pass_workspace) {
@@ -214,7 +214,7 @@ int WorkspaceMethodInternalRecord::count_overloads() const try {
 
 std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
     try {
-  const std::string spaces(6, ' ');
+  const std::string spaces(return_type.size() + 2, ' ');
 
   std::string doc = std::format("  {}(\n      ", name);
 
@@ -281,10 +281,11 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     input_op.push_back(agname + "_operator");
 
     wsm_data[agname + "Execute"] = {
-        .desc   = "Executes *" + agname + "*, see it for more details\n",
-        .author = {"``Automatically Generated``"},
-        .out    = ag.output,
-        .in     = input,
+        .desc        = "Executes *" + agname + "*, see it for more details\n",
+        .author      = {"``Automatically Generated``"},
+        .return_type = "Workspace",
+        .out         = ag.output,
+        .in          = input,
         .pass_workspace = true,
     };
 
@@ -874,7 +875,7 @@ returned as well.
       .gin = {"key"},
       .gin_type  = {"AtmKey"},
       .gin_value = {AtmKey::t},
-      .gin_desc  = {"Key to find the *GeodeticField3* in the atmospheric field"},
+      .gin_desc = {"Key to find the *GeodeticField3* in the atmospheric field"},
   };
 
   wsm_data["atmospheric_profileFitNonLTE"] = {
@@ -1928,7 +1929,7 @@ ice and supercooled water for atmospheric applications. Quarterly
 Journal of the Royal Meteorological Society, 131(608), 1539-1565.
 )--",
       .author    = {"Patrick Eriksson", "Richard Larsson"},
-      .out      = {"water_equivalent_pressure_operator"},
+      .out       = {"water_equivalent_pressure_operator"},
       .gin       = {"only_liquid"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -3226,7 +3227,8 @@ minor changes, like removing absorption lines outside of some frequency span.
   };
 
   wsm_data["absorption_bandsReadSplit"] = {
-      .desc      = R"--(Reads all xml-files in a given directory and puts them into *absorption_bands*.
+      .desc =
+          R"--(Reads all xml-files in a given directory and puts them into *absorption_bands*.
 
 .. note::
     The ``dir`` path has to be absolute or relative to the working path, the environment

@@ -31,12 +31,9 @@ class Agenda {
   void finalize(bool fix = false);
 
   //! Copies the required workspace variables from the agenda
+  template<bool share_only>
   void copy_workspace(Workspace& out,
-                      const Workspace& in,
-                      bool share_only = false) const;
-
-  //! Copies the required workspace variables from the agenda
-  [[nodiscard]] Workspace copy_workspace(const Workspace& in) const;
+                      const Workspace& in) const;
 
   //! Executes the agenda without checks on the current workspace
   void execute(Workspace& ws) const;

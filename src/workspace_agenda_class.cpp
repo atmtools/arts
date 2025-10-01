@@ -152,52 +152,15 @@ Agenda required output: {:B,}
                                        std::string_view(e.what())));
 }
 
-namespace {
-void agenda_add_inner_logic(Workspace& out,
-                            const Workspace& in,
-                            WorkspaceAgendaBoolHandler handle) {
-startover:
-  for (auto& var : out) {
-    if (var.second.holds<Agenda>()) {
-      if (not handle.has(var.first)) {
-        auto& ag = var.second.get<Agenda>();
-        handle.set(var.first);
-        ag.copy_workspace(out, in, true);
-        goto startover;
-      }
-    }
+template <>
+void Agenda::copy_workspace<true>(Workspace& out, const Workspace& in) const
+    try {
+  for (auto& str : share) {
+    if (not out.contains(str)) out.set(str, in.share(str));
   }
-}
-}  // namespace
 
-void Agenda::copy_workspace(Workspace& out,
-                            const Workspace& in,
-                            bool share_only) const try {
-  if (share_only) {
-    for (auto& str : share) {
-      if (not out.contains(str)) out.set(str, in.share(str));
-    }
-    for (auto& str : copy) {
-      if (not out.contains(str)) out.set(str, in.share(str));
-    }
-  } else {
-    for (auto& str : share) {
-      out.set(str, in.share(str));
-    }
-
-    for (auto& str : copy) {
-      if (out.contains(str)) {
-        //! If copy and share are the same, copy will overwrite share (keep them unique!)
-        //! Also if named-agenda call has set output variable, copy will take a copy of variable
-        out.overwrite(str, out.copy(str));
-      } else {
-        out.set(str, in.copy(str));
-      }
-    }
-
-    WorkspaceAgendaBoolHandler handle;
-    handle.set(name);
-    agenda_add_inner_logic(out, in, handle);
+  for (auto& str : copy) {
+    if (not out.contains(str)) out.set(str, in.share(str));
   }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(
@@ -213,16 +176,58 @@ Workspace contains:
       e.what()));
 }
 
-Workspace Agenda::copy_workspace(const Workspace& in) const {
-  Workspace out{WorkspaceInitialization::Empty};
-  copy_workspace(out, in);
-  return out;
+namespace {
+void agenda_add_inner_logic(Workspace& out,
+                            const Workspace& in,
+                            WorkspaceAgendaBoolHandler handle) {
+startover:
+  for (auto& var : out) {
+    if (var.second.holds<Agenda>()) {
+      if (not handle.has(var.first)) {
+        auto& ag = var.second.get<Agenda>();
+        handle.set(var.first);
+        ag.copy_workspace<true>(out, in);
+        goto startover;
+      }
+    }
+  }
+}
+}  // namespace
+
+template <>
+void Agenda::copy_workspace<false>(Workspace& out, const Workspace& in) const
+    try {
+  for (auto& str : share) out.set(str, in.share(str));
+
+  //! If copy and share are the same, copy will overwrite share (keep them unique!)
+  //! Also if named-agenda call has set output variable, copy will take a copy of variable
+  for (auto& str : copy) {
+    if (out.contains(str)) {
+      out.overwrite(str, out.copy(str));
+    } else {
+      out.set(str, in.copy(str));
+    }
+  }
+
+  WorkspaceAgendaBoolHandler handle;
+  handle.set(name);
+  agenda_add_inner_logic(out, in, handle);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format(
+      R"(
+Error with workspace copying in Agenda "{}"
+
+Workspace contains:
+{:s}
+
+{})",
+      name,
+      in,
+      e.what()));
 }
 
 void Agenda::execute(Workspace& ws) const try {
-  for (auto& method : methods) {
-    method(ws);
-  }
+  for (auto& method : methods) method(ws);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format(R"(Error executing agenda "{}"
 
@@ -234,9 +239,7 @@ void Agenda::execute(Workspace& ws) const try {
 
 bool Agenda::has_method(const std::string& method) const {
   for (auto& m : methods) {
-    if (m.get_name() == method) {
-      return true;
-    }
+    if (m.get_name() == method) return true;
   }
   return false;
 }

@@ -474,7 +474,7 @@ std::string method_resolution_simple(const std::string& name,
                                      const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
-  os << "        " << name << "(";
+  os << "        return " << name << "(";
 
   bool any = false;
   if (wsm.pass_workspace) {
@@ -655,7 +655,7 @@ std::string method_argument_documentation(
 std::string method(const std::string& name,
                    const WorkspaceMethodInternalRecord& wsm) {
   return std::format(
-      R"-x-(  ws.def("{0}",[]({1}) -> void {{
+      R"-x-(  ws.def("{0}",[]({1}) -> {7} {{
     try {{
 {2}{3}
     }} catch (std::exception& e) {{
@@ -672,7 +672,8 @@ std::string method(const std::string& name,
       method_resolution(name, wsm),
       method_error(name, wsm),
       method_argument_documentation(wsm),
-      method_docs(name));
+      method_docs(name),
+    wsm.return_type);
 }
 
 void methods(int nfiles) {
