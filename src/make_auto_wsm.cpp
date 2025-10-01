@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "workspace_group_friends.h"
 #include "workspace_groups.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
@@ -630,10 +631,41 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
   throw std::runtime_error("Error in implementation():\n\n" +
                            std::string(e.what()));
 }
+
+void various_checks_or_throw() {
+  ArrayOfString errors{};
+  for (auto& [name, wsmr] : internal_workspace_methods()) {
+    bool is_void = wsmr.return_type == "void";
+    if (not is_void) {
+      bool is_workspace = wsmr.return_type == "Workspace";
+      bool is_wsg = internal_workspace_groups().contains(wsmr.return_type);
+      bool is_wsg_friend = workspace_group_friends().contains(wsmr.return_type);
+      if (not is_workspace and not is_wsg and not is_wsg_friend) {
+        errors.push_back(std::format(
+            "Method {} has a return type.  Its return type \"{}\" is not void or Workspace, and it is not a workspace group (or friend of one).",
+            wsmr.return_type,
+            name));
+      }
+
+      if (wsmr.return_desc.empty()) {
+        errors.push_back(std::format(
+            "Method {} has a return type.  It lacks a return description.",
+            name));
+      }
+    }
+  }
+
+  if (not errors.empty()) {
+    throw std::runtime_error(
+        std::format("Errors found in workspace methods:\n\n{:n}", errors));
+  }
+}
 }  // namespace
 
 int main(int argc, char** argv) try {
   if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");
+
+  various_checks_or_throw();
 
   const int num_methods = std::stoi(argv[1]);
   std::ofstream head("auto_wsm.h");

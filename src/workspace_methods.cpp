@@ -284,6 +284,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
         .desc        = "Executes *" + agname + "*, see it for more details\n",
         .author      = {"``Automatically Generated``"},
         .return_type = "Workspace",
+        .return_desc = "The internal workspace, cleaned from all input/output.",
         .out         = ag.output,
         .in          = input,
         .pass_workspace = true,
