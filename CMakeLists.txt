@@ -68,7 +68,6 @@ option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" 
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
-option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 option (ARTS_SANITIZE "Turn on undefined behavior sanitizers" OFF)
 
@@ -178,11 +177,6 @@ add_definitions (-DEIGEN_DONT_PARALLELIZE)
 if (NO_ASSERT)
   add_definitions (-DNDEBUG)
 endif (NO_ASSERT)
-
-if (NO_USER_ERRORS)
-  message(STATUS "Experimental reckless build enabled (-DNO_USER_ERRORS=0 to disable)")
-  add_definitions (-DNO_ARTS_USER_ERRORS)
-endif (NO_USER_ERRORS)
 
 ########### ccache Support ##########
 
@@ -372,11 +366,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (fcx-fortran-rules)
     ARTS_ADD_COMPILER_FLAG (DNDEBUG)
 endif ()
-
-if (NO_USER_ERRORS)
-  ARTS_ADD_COMPILER_FLAG (Wno-unused-parameter)
-  ARTS_ADD_COMPILER_FLAG (Wno-unused-variable)
-endif (NO_USER_ERRORS)
 
 if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)

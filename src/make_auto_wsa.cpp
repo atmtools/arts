@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <map>
+#include <ranges>
 #include <utility>
 
 #include "workspace_agendas.h"
@@ -30,8 +31,13 @@ void helper_auto_ag(std::ostream& os,
   if (ptr == wsv.end()) {
     auto ag_ptr = wsa.find(var);
     if (ag_ptr == wsa.end()) {
-      os << R"(static_assert(false, "\n\nCould not find workspace variable \")"
-         << var << R"(\" of agenda \")" << name << "\\\"\\n\\n\");\n";
+      std::print(os,
+                 R"X(static_assert(false, R"-err-(
+
+Could not find workspace variable "{}" of agenda "{}"
+)-err-");)X",
+                 var,
+                 name);
     } else {
       vars.emplace_back("Agenda", var);
     }
@@ -88,33 +94,40 @@ void header_docstring(std::ostream& os,
     if (not is_output(name)) os << "\n  @param[in] " << name << " As WSV";
   }
 
-  os << "\n  @param[in] " << agname << " As WSV"
+  os << "\n  @param[in] " << agname << " As WSV";
+  os << "\n  @param[in] local_workspace_pointer - will be moved from if given";
+  os << "\n  @return Workspace - the shared and copied values of all the work the agenda performed"
      << "\n*/\n";
 }
 
 void call_operator(std::ostream& os,
                    const auto_ag& ag,
-                   const std::string& agname) {
+                   const std::string& agname,
+                   bool is_header) {
   const auto is_output = [&ag](auto& v) {
     return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o) {
              return o.second == v;
            }) != ag.o.end();
   };
 
-  const std::string spaces(5 + agname.size() + 8, ' ');
+  const std::string spaces(18 + agname.size(), ' ');
 
-  os << "void " << agname << "Execute(const Workspace& ws";
+  std::print(os, "Workspace {}Execute(const Workspace& ws", agname);
 
   for (auto& [type, name] : ag.o) {
-    os << ",\n" << spaces << type << "& " << name;
+    std::print(os, ",\n{}{}& {}", spaces, type, name);
   }
 
   for (auto& [type, name] : ag.i) {
     if (not is_output(name))
-      os << ",\n" << spaces << "const " << type << "& " << name;
+      std::print(os, ",\n{}const {}& {}", spaces, type, name);
   }
 
-  os << ",\n" << spaces << "const Agenda& " << agname << ")";
+  std::print(os,
+             ",\n{0}const Agenda& {1},\n{0}Workspace* _lws_ptr{2})",
+             spaces,
+             agname,
+             is_header ? " = nullptr"sv : ""sv);
 }
 
 void header(std::ostream& os) {
@@ -159,7 +172,7 @@ struct WorkspaceAgendaBoolHandler {
 
   for (auto& ag : agmap) {
     header_docstring(os, ag.second, ag.first);
-    call_operator(os, ag.second, ag.first);
+    call_operator(os, ag.second, ag.first, true);
     os << ";\n\n";
   }
 
@@ -210,25 +223,49 @@ std::string double_curly(std::string s) {
 void workspace_setup_and_exec(std::ostream& os,
                               const std::string& name,
                               const auto_ag& ag) {
-  os << "\n  Workspace _lws{WorkspaceInitialization::Empty};\n\n";
+  std::println(os, R"(
+  // Create a local workspace upon need or get the data from the pointer
+  Workspace _lws = _lws_ptr ? std::move(*_lws_ptr) : Workspace(WorkspaceInitialization::Empty);
+  const bool empty = _lws.wsv.empty();
 
-  os << "  // Always share original data here\n";
-
-  // FIXME: This should be overwrite, no?  And then if it exists we should copy over it?
+  // Name the original data here)");
   for (auto& i : ag.i) {
-    os << "  _lws.set(" << std::format(R"("{}")", i.second) << ", const_cast<"
-       << i.first << "*>(&" << i.second << "));\n";
+    std::println(
+        os, R"(  static const std::string _wsv_{0} = "{0}";)", i.second);
   }
 
-  os << "\n"
-        "  // Copy and share data from old workspace (this will copy pure inputs that are modified)\n  ";
-  os << name;
-  os << ".copy_workspace(_lws, ws);\n";
-
-  os << "\n  // Modified data must be copied here\n";
   for (auto& o : ag.o) {
-    os << "  _lws.overwrite(" << std::format(R"("{}")", o.second) << ", &"
-       << o.second << ");\n";
+    if (stdr::find_if(ag.i, [&o](auto& v) { return v.second == o.second; }) !=
+        ag.i.end())
+      continue;
+    std::println(
+        os, R"(  static const std::string _wsv_{0} = "{0}";)", o.second);
+  }
+
+  std::println(os, R"(
+  // Always share original data here)");
+  for (auto& i : ag.i) {
+    std::println(os,
+                 R"(  _lws.set(_wsv_{1}, const_cast<{0}*>(&{1}));)",
+                 i.first,
+                 i.second);
+  }
+
+  std::println(os,
+               R"(
+  // Copy and share data from old workspace (this will copy pure inputs that are modified)
+  if (empty)
+    {0}.copy_workspace(_lws, ws);
+  else
+    {0}.copy_only_workspace(_lws, ws);
+
+  // Modified data must be copied here)",
+               name);
+  for (auto& o : ag.o) {
+    std::println(os,
+                 R"(  _lws.overwrite(_wsv_{1}, const_cast<{0}*>(&{1}));)",
+                 o.first,
+                 o.second);
   }
 
   os << "\n  // Run all the methods\n  " << name;
@@ -260,6 +297,21 @@ void workspace_setup_and_exec(std::ostream& os,
                  constraint.printables);
     }
   }
+
+  std::println(os, R"(
+  // Remove the unsafe content (false sharing pointers))");
+  for (auto& i : ag.i) {
+    std::println(os, R"(  _lws.erase(_wsv_{1});)", i.first, i.second);
+  }
+
+  for (auto& i : ag.o) {
+    if (stdr::find_if(ag.i, [&i](auto& v) { return v.second == i.second; }) !=
+        ag.i.end())
+      continue;
+    std::println(os, R"(  _lws.erase(_wsv_{1});)", i.first, i.second);
+  }
+
+  std::println(os, "\n  return _lws;");
 }
 
 void implementation(std::ostream& os) {
@@ -339,7 +391,7 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
 
 )--";
   for (const auto& [name, ag] : agmap) {
-    call_operator(os, ag, name);
+    call_operator(os, ag, name, false);
     os << " try {\n  ARTS_TIME_REPORT\n\n";
     agenda_checker(os, name);
     workspace_setup_and_exec(os, name, ag);

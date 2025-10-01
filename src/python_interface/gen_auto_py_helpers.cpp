@@ -373,6 +373,19 @@ String method_docs(const String& name) try {
                        optval);
   }
 
+  if (method.return_type != "void") {
+    out += std::format(
+        R"(
+Returns
+-------
+opt : {0}
+    {1})",
+        std::format("~pyarts3.arts.{}{}",
+                    method.return_type == "Workspace" ? "Cxx"sv : ""sv,
+                    method.return_type),
+        unwrap_stars(until_first_newline(method.return_desc)));
+  }
+
   fix();
 
   if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {

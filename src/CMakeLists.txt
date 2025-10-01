@@ -12,6 +12,7 @@ add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 add_library(workspace_core STATIC
   workspace_agendas.cpp
   workspace_groups.cpp
+  workspace_group_friends.cpp
   workspace_variables.cpp
 )
 target_link_libraries(workspace_core PRIVATE arts_options)
@@ -159,7 +160,6 @@ add_library(artsworkspace STATIC
   workspace_method_class.cpp
   workspace_method_extra_doc.cpp
   workspace_class.cpp
-  workspace_group_friends.cpp
   m_abs.cc
   m_atm.cc
   m_atm_profile.cc

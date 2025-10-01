@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "workspace_group_friends.h"
 #include "workspace_groups.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
@@ -324,6 +325,59 @@ std::vector<std::vector<std::string>> all_gets(
   return out;
 }
 
+std::string error_signature(const std::string& name,
+                            const WorkspaceMethodInternalRecord& wsmr) {
+  const auto& wsvs = internal_workspace_variables();
+
+  std::size_t type_spaces = 0;
+  for (auto& wsv : wsmr.out) type_spaces = std::max(type_spaces, wsv.size());
+  for (auto& wsv : wsmr.in) type_spaces = std::max(type_spaces, wsv.size());
+  for (auto& wsv : wsmr.gout) type_spaces = std::max(type_spaces, wsv.size());
+  for (auto& wsv : wsmr.gin) type_spaces = std::max(type_spaces, wsv.size());
+  const std::string spaces(name.size() + 3, ' ');
+
+  std::string out = "  " + name + "(";
+
+  std::string sep       = "";
+  std::string other_sep = ",\n" + spaces;
+
+  for (auto& wsv : wsmr.out) {
+    out += std::format("{}{}{} : {}",
+                       std::exchange(sep, other_sep),
+                       wsv,
+                       std::string(type_spaces - wsv.size(), ' '),
+                       wsvs.at(wsv).type);
+  }
+
+  for (auto& wsv : wsmr.in) {
+    if (std::ranges::any_of(wsmr.out, Cmp::eq(wsv))) continue;
+    out += std::format("{}{}{} : {}",
+                       std::exchange(sep, other_sep),
+                       wsv,
+                       std::string(type_spaces - wsv.size(), ' '),
+                       wsvs.at(wsv).type);
+  }
+
+  for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
+    out += std::format("{}{}{} : {}",
+                       std::exchange(sep, other_sep),
+                       wsmr.gout[i],
+                       std::string(type_spaces - wsmr.gout[i].size(), ' '),
+                       wsmr.gout_type[i]);
+  }
+
+  for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
+    if (std::ranges::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
+    out += std::format("{}{}{} : {}",
+                       std::exchange(sep, other_sep),
+                       wsmr.gin[i],
+                       std::string(type_spaces - wsmr.gin[i].size(), ' '),
+                       wsmr.gin_type[i]);
+  }
+
+  return out + ')';
+}
+
 void call_function(std::ostream& os,
                    const std::string& name,
                    const WorkspaceMethodInternalRecord& wsmr) try {
@@ -333,6 +387,7 @@ void call_function(std::ostream& os,
     const std::string first = first_generic(wsmr.gout_type, wsmr.gin_type);
 
     os << "[](Workspace& ws [[maybe_unused]], const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
+    os << "    try {\n";
 
     std::println(os, "      auto& _first = ws.share({0});", first);
 
@@ -354,8 +409,17 @@ void call_function(std::ostream& os,
       ++i;
       std::println(os, ");");
     }
-    std::println(os, R"(      }}
-    }})");
+    std::println(os,
+                 R"(      }}
+    }} catch (std::exception& e) {{
+      throw std::runtime_error(std::format(R"-x-(Error in agenda call to generic method
+
+{}
+
+{{}})-x-", e.what()));
+    }}
+  }})",
+                 error_signature(name, wsmr));
   } else if (wsmr.has_overloads()) {
     os << "[map = std::unordered_map<std::string_view, std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)>>{\n";
 
@@ -422,6 +486,7 @@ void call_function(std::ostream& os,
 )--";
   } else {
     os << "[](Workspace& ws [[maybe_unused]], const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
+    os << "    try {\n";
 
     bool first = true;
     os << "      " << name << "(";
@@ -463,7 +528,12 @@ void call_function(std::ostream& os,
          << in_count++ << "]) /* gin */";
     }
 
-    os << "\n      );\n    }";
+    os << "\n      );\n"
+          "    } catch (std::exception& e) {\n"
+          "      throw std::runtime_error(std::format(R\"-x-(Error in agenda call to specific method\n\n"
+       << error_signature(name, wsmr)
+       << "\n\n{})-x-\", e.what()));\n"
+          "    }\n  }\n";
   }
 } catch (std::exception& e) {
   throw std::runtime_error("Error in call_function():\n\n" +
@@ -630,10 +700,41 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
   throw std::runtime_error("Error in implementation():\n\n" +
                            std::string(e.what()));
 }
+
+void various_checks_or_throw() {
+  ArrayOfString errors{};
+  for (auto& [name, wsmr] : internal_workspace_methods()) {
+    bool is_void = wsmr.return_type == "void";
+    if (not is_void) {
+      bool is_workspace = wsmr.return_type == "Workspace";
+      bool is_wsg = internal_workspace_groups().contains(wsmr.return_type);
+      bool is_wsg_friend = workspace_group_friends().contains(wsmr.return_type);
+      if (not is_workspace and not is_wsg and not is_wsg_friend) {
+        errors.push_back(std::format(
+            "Method {} has a return type.  Its return type \"{}\" is not void or Workspace, and it is not a workspace group (or friend of one).",
+            name,
+            wsmr.return_type));
+      }
+
+      if (wsmr.return_desc.empty()) {
+        errors.push_back(std::format(
+            "Method {} has a return type.  It lacks a return description.",
+            name));
+      }
+    }
+  }
+
+  if (not errors.empty()) {
+    throw std::runtime_error(
+        std::format("Errors found in workspace methods:\n\n{:n}", errors));
+  }
+}
 }  // namespace
 
 int main(int argc, char** argv) try {
   if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");
+
+  various_checks_or_throw();
 
   const int num_methods = std::stoi(argv[1]);
   std::ofstream head("auto_wsm.h");

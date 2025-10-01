@@ -30,13 +30,14 @@ class Agenda {
   //! Must be called before named agendas, will deal with input and output variables for copy_workspace
   void finalize(bool fix = false);
 
-  //! Copies the required workspace variables from the agenda
-  void copy_workspace(Workspace& out,
-                      const Workspace& in,
-                      bool share_only = false) const;
+  //! Copies the required workspace variables from the agenda (shares workspace variables not required to be copied)
+  void copy_workspace(Workspace& out, const Workspace& in) const;
 
-  //! Copies the required workspace variables from the agenda
-  [[nodiscard]] Workspace copy_workspace(const Workspace& in) const;
+  //! Share the required workspace variables from the agenda
+  void share_workspace(Workspace& out, const Workspace& in) const;
+
+  //! Only copy the required workspace variables (ignores shared workspace variables)
+  void copy_only_workspace(Workspace& out, const Workspace& in) const;
 
   //! Executes the agenda without checks on the current workspace
   void execute(Workspace& ws) const;

@@ -10,6 +10,8 @@
 struct WorkspaceMethodInternalRecord {
   std::string desc;
   std::vector<std::string> author;
+  std::string return_type{"void"};
+  std::string return_desc{};
   std::vector<std::string> out{};
   std::vector<std::string> gout{};
   std::vector<std::string> gout_type{};
