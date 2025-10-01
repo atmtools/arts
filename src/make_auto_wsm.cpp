@@ -712,8 +712,8 @@ void various_checks_or_throw() {
       if (not is_workspace and not is_wsg and not is_wsg_friend) {
         errors.push_back(std::format(
             "Method {} has a return type.  Its return type \"{}\" is not void or Workspace, and it is not a workspace group (or friend of one).",
-            wsmr.return_type,
-            name));
+            name,
+            wsmr.return_type));
       }
 
       if (wsmr.return_desc.empty()) {

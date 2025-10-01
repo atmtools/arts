@@ -57,7 +57,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
   ARTS_USER_ERROR_IF(n != stds.size(),
                      "Must have a standard deviation for each frequency point")
   ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le(0)),
-                     "No negative standard deviation not allowed.\nstds := {:B,}", stds)
+                     "Standard deviation must be positive.\nstds := {:B,}", stds)
   ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
 
   measurement_sensor.resize(sz + n);
