@@ -81,7 +81,7 @@ struct format_tags {
 
   template <class FmtContext>
   void add_if_bracket(FmtContext& ctx, char x) const {
-    if (bracket) std::format_to(ctx.out(), "{}", x);
+    if (bracket) ctx.out() += x;
   }
 
   template <class FmtContext>

@@ -451,6 +451,8 @@ struct std::formatter<Atm::Data> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Atm::Data &v, FmtContext &ctx) const {
+    if (tags.short_str) return tags.format(ctx, v.data);
+
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
     tags.format(ctx, v.data, sep);
