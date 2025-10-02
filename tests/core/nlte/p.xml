@@ -1,20 +1,28 @@
 <?xml version="1.0"?>
-<arts version="1" format="ascii">
-<GriddedField N="3", name="" version="2">
-<String name="Name of Data">"Pressure"</String>
-<String>"Altitude"</String>
-<String>"Latitude"</String>
-<String>"Longitude"</String>
-<Vector rank="1" type="Numeric" shape="101" name="" version="2">
+<arts version="3" format="ascii">
+<GriddedField version="2" N="3">
+<String name="Name of Data">
+"Pressure"</String>
+
+<String>
+"Altitude"</String>
+
+<String>
+"Latitude"</String>
+
+<String>
+"Longitude"</String>
+
+<Vector version="2" type="Numeric" rank="1" shape="101">
 0 2750 7250 11750 16250 20750 25250 29750 34250 38750 43250 47750 52250 56750 61250 65750 70250 74750 79250 83750 88250 92750 97250 101750 106250 110750 115250 119750 124250 128750 133250 137750 142250 146750 151250 155750 160250 164750 169250 173750 178250 182750 187250 191750 196250 200750 205250 209750 214250 218750 223250 227750 232250 236750 241250 245750 250250 254750 259250 263750 268250 272750 277250 281750 286250 290750 295250 299750 304250 308750 313250 317750 322250 326750 331250 335750 340250 344750 349250 353750 358250 362750 367250 371750 376250 380750 385250 389750 394250 398750 403250 407750 412250 416750 421250 425750 430250 434750 439250 443750 448250
 </Vector>
-<Vector rank="1" type="Numeric" shape="1" name="" version="2">
+<Vector version="2" type="Numeric" rank="1" shape="1">
 0
 </Vector>
-<Vector rank="1" type="Numeric" shape="1" name="" version="2">
+<Vector version="2" type="Numeric" rank="1" shape="1">
 0
 </Vector>
-<Tensor3 rank="3" type="Numeric" shape="101 1 1" name="Data" version="2">
+<Tensor3 version="2" type="Numeric" rank="3" shape="101 1 1" name="Data">
 1.787829e-06 
 1.7878112e-06 
 1.6371722e-06 
