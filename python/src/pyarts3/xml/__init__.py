@@ -86,6 +86,8 @@ def _get_arts_type_from_file(filename):
                     break
                 else:
                     event, elem = get_next_tag(context)
+            if elem.tag == "Map":
+                raise TypeError("Map type not supported by xml.load")
             if elem.tag == "GriddedField":
                     tag += f"GriddedField{elem.attrib['N']}"
             elif elem.tag == "Matpack":
