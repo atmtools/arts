@@ -80,7 +80,12 @@ def _get_arts_type_from_file(filename):
             event, elem = get_next_tag(context)
             while elem.tag == "Array":
                 tag += "ArrayOf"
-                event, elem = get_next_tag(context)
+                if elem.attrib["type"] == "Index":
+                    elem.tag = "Index"
+                    elem.attrib = {}
+                    break
+                else:
+                    event, elem = get_next_tag(context)
             if elem.tag == "Matpack":
                 if elem.attrib["type"] != "Numeric":
                     tag += elem.attrib["type"]
