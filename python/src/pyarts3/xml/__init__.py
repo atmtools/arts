@@ -81,7 +81,17 @@ def _get_arts_type_from_file(filename):
             while elem.tag == "Array":
                 tag += "ArrayOf"
                 event, elem = get_next_tag(context)
-            tag += elem.tag
+            if elem.tag == "Matpack":
+                if elem.attrib["type"] != "Numeric":
+                    tag += elem.attrib["type"]
+                if elem.attrib["rank"] == "1":
+                    tag += "Vector"
+                elif elem.attrib["rank"] == "2":
+                    tag += "Matrix"
+                else:
+                    tag += f"Tensor{elem.attrib['rank']}"
+            else:
+                tag += elem.tag
         except StopIteration:
             raise RuntimeError(f"No ARTS type found in file {filename}")
     return tag
