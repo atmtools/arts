@@ -26,7 +26,10 @@ remove_lines_percentile = 70
 sunfile = "star/Sun/solar_spectrum_QUIET.xml"
 planet = "Earth"
 
-xarr = pyarts.data.xarray_open_dataset("atm.nc")
+# Input file names are prefixed with the example number
+prefix = "3-"
+
+xarr = pyarts.data.xarray_open_dataset(prefix + "atmosphere.nc")
 
 ws = pyarts.Workspace()
 

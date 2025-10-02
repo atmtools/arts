@@ -5,6 +5,8 @@ This script demonstrates how to simulate brightness temperatures of cloudy
 skies using the DISORT scattering solver.
 """
 
+import os
+
 import numpy as np
 import pyarts3 as pyarts
 from pyarts3.arts import (
@@ -15,6 +17,9 @@ from pyarts3.arts import (
     ScatteringHabit,
 )
 from pyarts3.xml import load
+
+# Input file names are prefixed with the example number
+prefix = "1-"
 
 # Download catalogs
 pyarts.data.download()
@@ -41,8 +46,8 @@ ws.propagation_matrix_agendaAuto()
 # We load scattering and scattering meta data from the ARTS .xml format. The
 # scattering and scattering meta data arrays contain scattering data for rain
 # particles (index 0) and ice particle (index 1).
-scat_data_raw = load("scat_data.xml")
-scat_data_meta = load("scat_meta.xml")
+scat_data_raw = load(prefix + "scat_data.xml")
+scat_data_meta = load(prefix + "scat_meta.xml")
 
 t_grid = scat_data_raw[0][0].T_grid
 f_grid = scat_data_raw[0][0].f_grid
@@ -82,12 +87,12 @@ point[rain_first_moment] = 1e-4
 bulk_props = rain.get_bulk_scattering_properties_tro_spectral(point, f_grid, 1)
 
 # %% Grids and Planet
-p_grid = load("p_grid.xml")
-t_field = load("t_field.xml")
-z_field = load("z_field.xml")
-vmr_field = load("vmr_field.xml")
-pbf_field = load("particle_bulkprop_field.xml")
-pbf_names = load("particle_bulkprop_names.xml")
+p_grid = load(prefix + "p_grid.xml")
+t_field = load(prefix + "t_field.xml")
+z_field = load(prefix + "z_field.xml")
+vmr_field = load(prefix + "vmr_field.xml")
+pbf_field = load(prefix + "particle_bulkprop_field.xml")
+pbf_names = load(prefix + "particle_bulkprop_names.xml")
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
 
