@@ -86,7 +86,9 @@ def _get_arts_type_from_file(filename):
                     break
                 else:
                     event, elem = get_next_tag(context)
-            if elem.tag == "Matpack":
+            if elem.tag == "GriddedField":
+                    tag += f"GriddedField{elem.attrib['N']}"
+            elif elem.tag == "Matpack":
                 if elem.attrib["type"] != "Numeric":
                     tag += elem.attrib["type"]
                 if elem.attrib["rank"] == "1":
