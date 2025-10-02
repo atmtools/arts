@@ -9,6 +9,7 @@ Created on Sat Jul  1 10:59:55 2023
 import os
 import re
 import sys
+import zipfile
 
 
 INTROFILE = "README.rst"
@@ -26,7 +27,7 @@ def title_to_heading(title):
         pos = len(m.group(0))
         ret = ret[:pos] + ret[pos].upper() + ret[pos + 1 :]
     else:
-        ret = ret[0].upper() + ret[1 :]
+        ret = ret[0].upper() + ret[1:]
     return ret.replace("-", " ")
 
 
@@ -157,6 +158,37 @@ def from_list(lst, path, save_path, with_plots):
    :backlinks: none
 
 """
+            else:
+                # If an example needs input files, create download links and
+                # a zip file if more than one file is needed
+                rstf_prefix = rstf.split("-")[0]
+                inputfiles = sorted(
+                    [
+                        otherfile
+                        for otherfile in otherfiles
+                        if otherfile.startswith(rstf_prefix)
+                    ]
+                )
+                if len(inputfiles):
+                    out += f"This example requires the following input file{'s' if len(inputfiles) > 1 else ''}:\n\n"
+                    out += "* " + ", ".join(
+                        [
+                            f":download:`{inputfile} <{os.path.relpath(os.path.join(path, inputfile), start=save_path)}>`"
+                            for inputfile in inputfiles
+                        ]
+                    )
+                    if len(inputfiles) > 1:
+                        zip_name = os.path.splitext(rstf)[0] + "-inputfiles.zip"
+                        zip_fullpath = os.path.join(save_path, zip_name)
+                        with zipfile.ZipFile(
+                            zip_fullpath, "w", zipfile.ZIP_DEFLATED
+                        ) as zipf:
+                            for inputfile in inputfiles:
+                                zipf.write(
+                                    os.path.join(path, inputfile), arcname=inputfile
+                                )
+                        out += f"\n* All inputfiles in one zip file: :download:`{zip_name} <{zip_name}>`"
+                    out += "\n\n"
 
         if py:
             if with_plots:
@@ -169,9 +201,6 @@ def from_list(lst, path, save_path, with_plots):
                     for line in pyfile.read().split("\n"):
                         out += f"    {line}\n"
 
-    for item in otherfiles:
-        out += f".. |{item}| replace::\n"
-        out += f"   :download:`{item} <{os.path.relpath(os.path.join(path, item), start=save_path)}>`\n"
     return rst(out)
 
 
@@ -225,12 +254,10 @@ def filetrees_to_toctrees(filetree, arts_path):
         if isinstance(data, dict):
             out[path] = filetrees_to_toctrees(data, arts_path)
         elif isinstance(data, list):
-            text =  ".. toctree::\n"
+            text = ".. toctree::\n"
             text += "   :maxdepth: 2\n\n"
             for item in data:
-                text += (
-                    f"   {filename_from_path(path+"."+item, arts_path, "", "", "")}\n"
-                )
+                text += f"   {filename_from_path(path + '.' + item, arts_path, '', '', '')}\n"
             out[path] = rst(text)
 
     return out
