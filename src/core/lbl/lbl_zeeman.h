@@ -6,6 +6,7 @@
 #include <rtepack.h>
 
 #include <limits>
+#include <utility>
 
 /** Implements Zeeman modeling */
 namespace lbl::zeeman {
@@ -16,22 +17,22 @@ enum class pol : char { sm, pi, sp, no };
  * 
  * @param[in] type The polarization type
  * 
- * @return The change in M
+ * @return The change from Ml to Mu (Mu - Ml)
  */
 constexpr Index dM(pol type) noexcept {
   switch (type) {
-    case pol::sm: return -1;
+    case pol::sm: return 1;
     case pol::pi: return 0;
-    case pol::sp: return 1;
+    case pol::sp: return -1;
     case pol::no: return 0;
   }
-  return std::numeric_limits<Index>::max();
+  std::unreachable();
 }
 
-/** Gives the lowest M for a polarization type of this transition
+/** Gives the lowest Ml for a polarization type of this transition
  * 
  * Since the polarization determines the change in M, this
- * function gives the first M of interest in the range of M
+ * function gives the first Ml of interest in the range of Ml
  * possible for a given transition
  * 
  * The user has to ensure that Ju and Jl is a valid transition
@@ -40,28 +41,22 @@ constexpr Index dM(pol type) noexcept {
  * @param[in] Jl J of the upper state
  * @param[in] type The polarization type
  * 
- * @return The lowest M value
+ * @return The lowest Ml value
  */
-constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
+constexpr Rational Ml_begin(Rational , Rational Jl, pol type) noexcept {
   switch (type) {
     case pol::sm:
-      if (Ju < Jl)
-        return -Ju;
-      else if (Ju == Jl)
-        return -Ju + 1;
-      else
-        return -Ju + 2;
-    case pol::pi: return -minr(Ju, Jl);
-    case pol::sp: return -Ju;
+    case pol::pi:
+    case pol::sp: return -Jl;
     case pol::no: return 0;
   }
-  return std::numeric_limits<Index>::max();
+  std::unreachable();
 }
 
-/** Gives the largest M for a polarization type of this transition
+/** Gives the largest Mu for a polarization type of this transition
  * 
  * Since the polarization determines the change in M, this
- * function gives the last M of interest in the range of M
+ * function gives the last Ml of interest in the range of Ml
  * possible for a given transition
  * 
  * The user has to ensure that Ju and Jl is a valid transition
@@ -70,22 +65,16 @@ constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
  * @param[in] Jl J of the upper state
  * @param[in] type The polarization type
  * 
- * @return The largest M value
+ * @return The largest Ml value
  */
-constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
+constexpr Rational Ml_end(Rational , Rational Jl, pol type) noexcept {
   switch (type) {
-    case pol::sm: return Ju + 1;
-    case pol::pi: return minr(Ju, Jl);
-    case pol::sp:
-      if (Ju < Jl)
-        return Ju + 1;
-      else if (Ju == Jl)
-        return Ju;
-      else
-        return Jl;
+    case pol::sm:
+    case pol::pi:
+    case pol::sp: return Jl;
     case pol::no: return 0;
   }
-  return std::numeric_limits<Index>::max();
+  std::unreachable();
 }
 
 /** Gives the number of elements of the polarization type of this transition
@@ -99,24 +88,7 @@ constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
  * @return The number of elements
  */
 constexpr Index size(Rational Ju, Rational Jl, pol type) noexcept {
-  return (end(Ju, Jl, type) - start(Ju, Jl, type)).toIndex() + 1;
-}
-
-/** Gives the upper state M value at an index
- * 
- * The user has to ensure that Ju and Jl is a valid transition
- * 
- * The user has to ensure n is less than the number of elements
- * 
- * @param[in] Ju J of the upper state
- * @param[in] Jl J of the upper state
- * @param[in] type The polarization type
- * @param[in] n The position
- * 
- * @return The upper state M
- */
-constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
-  return start(Ju, Jl, type) + n;
+  return (Ml_end(Ju, Jl, type) - Ml_begin(Ju, Jl, type)).toIndex() + 1;
 }
 
 /** Gives the lower state M value at an index
@@ -133,7 +105,24 @@ constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
  * @return The lower state M
  */
 constexpr Rational Ml(Rational Ju, Rational Jl, pol type, Index n) noexcept {
-  return Mu(Ju, Jl, type, n) + dM(type);
+  return Ml_begin(Ju, Jl, type) + n;
+}
+
+/** Gives the upper state M value at an index
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * The user has to ensure n is less than the number of elements
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * @param[in] n The position
+ * 
+ * @return The upper state M
+ */
+constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
+  return Ml(Ju, Jl, type, n) + dM(type);
 }
 
 /** The renormalization factor of a polarization type
@@ -343,9 +332,8 @@ struct model {
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
 
-    return (type == pol::no)
-               ? 0.0
-               : C * (Ml(Ju, Jl, type, n) * gl() - Mu(Ju, Jl, type, n) * gu());
+    if (type == pol::no) return 0.0;
+    return C * (Mu(Ju, Jl, type, n) * gu() - Ml(Ju, Jl, type, n) * gl());
   }
 
   /** Gives the splitting of one subline of a given polarization

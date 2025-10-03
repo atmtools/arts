@@ -108,6 +108,10 @@ std::istream& operator>>(std::istream& is, Value& v) {
                     v.value);
 }
 
+Value::operator Rational() const { return get<Rational>(); }
+
+Value::operator String() const { return get<String>(); }
+
 std::istream& operator>>(std::istream& is, UpperLower& ul) {
   return is >> ul.upper >> ul.lower;
 }

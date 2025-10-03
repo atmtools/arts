@@ -16,6 +16,8 @@ NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::identity>>);
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::loncross>>);
 NB_MAKE_OPAQUE(Array<Array<SpeciesTag>>);
 NB_MAKE_OPAQUE(std::unordered_map<std::string, Wsv>);
+NB_MAKE_OPAQUE(QuantumLevel);
+NB_MAKE_OPAQUE(QuantumState);
 
 namespace Python {
 namespace py = nanobind;

@@ -186,6 +186,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_module.cpp
     py_file.cpp
     py_nlte.cpp
+    py_geodesy.cpp
 )
 
 if(ENABLE_PCH)
@@ -206,6 +207,7 @@ arts_add_cpp_stubs(
   convert
   disort
   file
+  geodetic
   globals
   hitran
   interp

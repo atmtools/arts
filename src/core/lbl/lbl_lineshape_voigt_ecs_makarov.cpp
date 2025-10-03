@@ -104,9 +104,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const AtmPoint& atm) try {
   using Conversion::kelvin2joule;
 
-  ARTS_USER_ERROR_IF(bnd_qid.isot != "O2-66"_isot,
-                     "Bad isotopologue: {}",
-                     bnd_qid.isot)
+  ARTS_USER_ERROR_IF(
+      bnd_qid.isot != "O2-66"_isot, "Bad isotopologue: {}", bnd_qid.isot)
 
   if (bnd.size() == 0) return;
 
@@ -114,9 +113,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S            = bnd_qid.state.at(QuantumNumberType::S);
-  const Rational Si = S.upper.get<Rational>();
-  const Rational Sf = S.lower.get<Rational>();
+  auto& S           = bnd_qid.state.at(QuantumNumberType::S);
+  const Rational Si = S.upper;
+  const Rational Sf = S.lower;
 
   const std::array rats{
       bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
@@ -148,10 +147,10 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     auto& J = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
     auto& N = bnd.lines[sorting[i]].qn.at(QuantumNumberType::N);
 
-    const Rational Ji = J.upper.get<Rational>();
-    const Rational Jf = J.lower.get<Rational>();
-    const Rational Ni = N.upper.get<Rational>();
-    const Rational Nf = N.lower.get<Rational>();
+    const Rational Ji = J.upper;
+    const Rational Jf = J.lower;
+    const Rational Ni = N.upper;
+    const Rational Nf = N.lower;
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
@@ -159,10 +158,10 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       auto& J_p = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
       auto& N_p = bnd.lines[sorting[j]].qn.at(QuantumNumberType::N);
 
-      const Rational Ji_p = J_p.upper.get<Rational>();
-      const Rational Jf_p = J_p.lower.get<Rational>();
-      const Rational Ni_p = N_p.upper.get<Rational>();
-      const Rational Nf_p = N_p.lower.get<Rational>();
+      const Rational Ji_p = J_p.upper;
+      const Rational Jf_p = J_p.lower;
+      const Rational Ni_p = N_p.upper;
+      const Rational Nf_p = N_p.lower;
 
       if (Jf_p > Jf) continue;
 

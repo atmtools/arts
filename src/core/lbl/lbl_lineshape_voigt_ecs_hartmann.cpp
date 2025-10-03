@@ -73,8 +73,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   // These are constant for a band
   auto& l2     = bnd_qid.state.at(QuantumNumberType::l2);
-  Rational li = l2.upper.get<Rational>();
-  Rational lf = l2.lower.get<Rational>();
+  Rational li = l2.upper;
+  Rational lf = l2.lower;
 
   using std::swap;
   const bool swap_order = li > lf;
@@ -113,15 +113,15 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
     auto& J     = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
-    Rational Ji = J.upper.get<Rational>();
-    Rational Jf = J.lower.get<Rational>();
+    Rational Ji = J.upper;
+    Rational Jf = J.lower;
     if (swap_order) swap(Ji, Jf);
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
       auto& J_p     = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
-      Rational Ji_p = J_p.upper.get<Rational>();
-      Rational Jf_p = J_p.lower.get<Rational>();
+      Rational Ji_p = J_p.upper;
+      Rational Jf_p = J_p.lower;
       if (swap_order) swap(Ji_p, Jf_p);
 
       // Select upper quantum number
@@ -172,11 +172,11 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     }
 
     const Rational Ji =
-        bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower.get<Rational>();
+        bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower;
     for (Size j = i + 1; j < n; j++) {
       const Rational Jj = bnd.lines[sorting[j]]
                               .qn.at(QuantumNumberType::J)
-                              .lower.get<Rational>();
+                              .lower;
       if (sumlw == 0) {
         W[j, i] = 0.0;
         W[i, j] = 0.0;

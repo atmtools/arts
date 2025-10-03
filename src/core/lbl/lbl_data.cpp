@@ -83,11 +83,11 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
 Rational band_data::max(QuantumNumberType x) const try {
   ARTS_USER_ERROR_IF(lines.empty(), "Must have lines")
 
-  Rational out{maxr(lines.front().qn.at(x).upper.get<Rational>(),
-                    lines.front().qn.at(x).lower.get<Rational>())};
+  Rational out{
+      maxr(lines.front().qn.at(x).upper, lines.front().qn.at(x).lower)};
   for (auto& line : lines | stdv::drop(1)) {
     auto& qn = line.qn.at(x);
-    out = maxr(out, maxr(qn.upper.get<Rational>(), qn.lower.get<Rational>()));
+    out      = maxr(out, maxr(qn.upper, qn.lower));
   }
   return out;
 } catch (std::out_of_range&) {
