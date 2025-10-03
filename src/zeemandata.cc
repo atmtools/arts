@@ -297,10 +297,10 @@ Zeeman::Derived Zeeman::FromGrids(
     const Eigen::Vector3d inplane = nH - nH.dot(n) * n;
     const Numeric y = ev.cross(inplane).dot(n);
     const Numeric x = ev.dot(inplane);
-    output.eta = std::atan2(y, x);
+    output.eta = -std::atan2(y, x);
     if (x not_eq 0 or y not_eq 0) {
       const Eigen::Vector3d deta =
-          n.cross(nH) / (output.H * (Math::pow2(x) + Math::pow2(y)));
+          nH.cross(n) / (output.H * (Math::pow2(x) + Math::pow2(y)));
       output.deta_dv = deta[0];
       output.deta_du = deta[1];
       output.deta_dw = deta[2];
