@@ -53,7 +53,7 @@ jobs:
 
           - name: mac-default-clang
             os: macos-15-intel
-            preset: macintel-clang-conda
+            preset: default-clang-conda
             pyarts: "yes"
             check: "yes"
             doc: "no"
