@@ -41,7 +41,7 @@ def interp(y, *args):
     y : numpy.ndarray-like (e.g., Vector, Matrix, ..., or pure numpy.ndarray)
         A set of data.
     *args : Lagrange or LagrangeCyclic
-        A single ARTS Lagrange interpolants.  See pyarts.arts.interp
+        A single ARTS Lagrange interpolants.  See pyarts3.arts.interp
 
     Returns
     -------
@@ -86,7 +86,7 @@ def reinterp(y, *args):
     y : numpy.ndarray-like (e.g., Vector, Matrix, ..., or pure numpy.ndarray)
         A set of data.
     *args : ArrayOfLagrange or ArrayOfLagrangeCyclic
-        A list of ARTS Lagrange interpolants.  See pyarts.arts.interp
+        A list of ARTS Lagrange interpolants.  See pyarts3.arts.interp
 
     Returns
     -------

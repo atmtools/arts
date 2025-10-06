@@ -67,7 +67,7 @@ def plot(
     n = int(np.ceil(np.sqrt(N))) + 1
 
     if fig is None:
-        fig = plt.figure(figsize=(5 * n, 5 * n))
+        fig = plt.figure(figsize=(4 * n, 4 * n), constrained_layout=True)
 
     subs = []
     for i in range(N):

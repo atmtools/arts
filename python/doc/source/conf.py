@@ -328,7 +328,7 @@ intersphinx_mapping = {
     'skimage': ('https://scikit-image.org/docs/stable/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-    'xarray': ('https://xarray.pydata.org/en/stable/', None),
+    'xarray': ('https://docs.xarray.dev/en/stable/', None),
 }
 
 # -- Plots ----------------------------------------------------------------
@@ -344,7 +344,7 @@ plot_rcparams = {
     'figure.facecolor': (1,1,1,0),
 }
 
-plot_formats = [('svg', 48), ('pdf', 48)]
+plot_formats = [('svg', 96), ('pdf', 96)]
 
 # -- Favicon ----------------------------------------------------------------
 favicons = [

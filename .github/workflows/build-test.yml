@@ -13,7 +13,7 @@ jobs:
         include:
           - name: linux-docs
             os: ubuntu-24.04
-            preset: default-gcc-conda
+            preset: doc-gcc-conda
             pyarts: "yes"
             check: "no"
             doc: "yes"

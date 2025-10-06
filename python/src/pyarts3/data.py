@@ -136,19 +136,41 @@ def _download_arts_data(catname, download_dir=None, version=None, verbose=False)
 
         version = __version__
 
+    USE_SVN = False
     GITHUB_URL = f"https://github.com/atmtools/arts/releases/download/v{version}/"
     if int(version[-1]) % 2:
-        raise RuntimeError(
-            f"Version {version} is not a release version.\n"
-            f"Please check out the current catalogs with svn instead."
-        )
+        if "CI" not in os.environ:
+            USE_SVN = True
+        else:
+            raise RuntimeError(
+                f"Version {version} is not a release version.\n"
+                f"CI environment detected, SVN checkout prevented."
+            )
 
-    catname = catname + "-" + version
-    catdir = os.path.join(download_dir, catname)
+    fullcatname = catname + "-" + version if not USE_SVN else catname + "-trunk"
+    catdir = os.path.join(download_dir, fullcatname)
     if not os.path.exists(catdir):
         os.makedirs(download_dir, exist_ok=True)
-        _download_and_extract(
-            GITHUB_URL + catname + ".zip", download_dir, verbose=verbose
+        if USE_SVN:
+            import subprocess
+
+            print(f"Checking out {catname} from SVN")
+            svn_path = f"https://radiativetransfer.org/svn/rt/{catname}/trunk/"
+            command = ["svn", "checkout", svn_path, catdir]
+            try:
+                subprocess.run(command)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(
+                    "svn command not found, cannot check out from SVN"
+                ) from e
+        else:
+            _download_and_extract(
+                GITHUB_URL + fullcatname + ".zip", download_dir, verbose=verbose
+            )
+
+    if USE_SVN:
+        print(
+            f"Using {catname} from SVN, update manually if needed: `svn update {catdir}`"
         )
 
     parameters.datapath.append(catdir)
@@ -266,7 +288,7 @@ def to_atmospheric_field(
 
     if atm is None:
         atm = pyarts.arts.AtmField()
-    
+
     if hasattr(data, "top_of_atmosphere"):
         atm.top_of_atmosphere = data.top_of_atmosphere
     else:
@@ -332,6 +354,7 @@ def to_absorption_species(
 
     return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
 
+
 def xarray_open_dataset(filename_or_obj, *args, **kwargs):
     """Wraps xarray.open_dataset to search for files in the current and in ARTS' data path.
 
@@ -355,8 +378,12 @@ def xarray_open_dataset(filename_or_obj, *args, **kwargs):
 
     for p in parameters.datapath:
         try:
-            return xarray.open_dataset(os.path.join(p, filename_or_obj), *args, **kwargs)
+            return xarray.open_dataset(
+                os.path.join(p, filename_or_obj), *args, **kwargs
+            )
         except FileNotFoundError:
             pass
 
-    raise FileNotFoundError(f"File not found in ARTS data path ({parameters.datapath}): {filename_or_obj}")
+    raise FileNotFoundError(
+        f"File not found in ARTS data path ({parameters.datapath}): {filename_or_obj}"
+    )

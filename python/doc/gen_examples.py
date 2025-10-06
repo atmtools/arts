@@ -9,6 +9,7 @@ Created on Sat Jul  1 10:59:55 2023
 import os
 import re
 import sys
+import zipfile
 
 
 INTROFILE = "README.rst"
@@ -20,11 +21,13 @@ def title_to_heading(title):
         ret = title[0].upper() + title[1:]
     else:
         ret = title[pos + 1].upper() + title[pos + 2 :]
-    ret = re.sub(r"^(\d+)-", r"\1. ", ret)
+    ret = re.sub(r"^(\d+)-", r"", ret)
     m = re.match(r"^\d+\. ", ret)
     if m:
         pos = len(m.group(0))
         ret = ret[:pos] + ret[pos].upper() + ret[pos + 1 :]
+    else:
+        ret = ret[0].upper() + ret[1:]
     return ret.replace("-", " ")
 
 
@@ -43,6 +46,7 @@ def all_files(path):
 
 
 def filename_from_path(path, prefix, save_path, fileending, suffix):
+    prefix = os.path.normpath(prefix) + os.path.sep
     path = path.removeprefix(prefix).removesuffix(suffix) + fileending
     path = path.replace(os.path.sep, ".")
     return os.path.join(save_path, path)
@@ -95,7 +99,7 @@ def combine_rstpy(rsts, pyfiles, out=None):
     return out
 
 
-def from_list(lst, path):
+def from_list(lst, path, save_path, with_plots):
     """Converts a list of paths to rst string"""
 
     assert isinstance(lst, list), "Expected a list of paths"
@@ -111,6 +115,12 @@ def from_list(lst, path):
     # Gather all notebooks
     notebooks = [item for item in lst if item.endswith(".ipynb")]
     notebooks.sort()
+
+    otherfiles = [
+        item
+        for item in lst
+        if item.endswith(".xml") or item.endswith(".bin") or item.endswith(".nc")
+    ]
 
     # E.g., if it is a test-data folder, we can have no files
     if len(rsts) == 0 and len(pyfiles) == 0 and len(notebooks) == 0:
@@ -141,17 +151,60 @@ def from_list(lst, path):
         if rstf:
             with open(os.path.join(path, rstf), "r") as f:
                 out += f.read() + "\n"
+            if rstf == INTROFILE:
+                out += """.. contents::
+   :depth: 1
+   :local:
+   :backlinks: none
+
+"""
+            else:
+                # If an example needs input files, create download links and
+                # a zip file if more than one file is needed
+                rstf_prefix = rstf.split("-")[0]
+                inputfiles = sorted(
+                    [
+                        otherfile
+                        for otherfile in otherfiles
+                        if otherfile.startswith(rstf_prefix)
+                    ]
+                )
+                if len(inputfiles):
+                    out += f"This example requires the following input file{'s' if len(inputfiles) > 1 else ''}:\n\n"
+                    out += "* " + ", ".join(
+                        [
+                            f":download:`{inputfile} <{os.path.relpath(os.path.join(path, inputfile), start=save_path)}>`"
+                            for inputfile in inputfiles
+                        ]
+                    )
+                    if len(inputfiles) > 1:
+                        zip_name = os.path.splitext(rstf)[0] + "-inputfiles.zip"
+                        zip_fullpath = os.path.join(save_path, zip_name)
+                        with zipfile.ZipFile(
+                            zip_fullpath, "w", zipfile.ZIP_DEFLATED
+                        ) as zipf:
+                            for inputfile in inputfiles:
+                                zipf.write(
+                                    os.path.join(path, inputfile), arcname=inputfile
+                                )
+                        out += f"\n* All inputfiles in one zip file: :download:`{zip_name} <{zip_name}>`"
+                    out += "\n\n"
+
         if py:
-            out += f".. code-block:: python\n"
-            out += "    :linenos:\n\n"
-            with open(os.path.join(path, py), "r") as pyfile:
-                for line in pyfile.read().split("\n"):
-                    out += f"    {line}\n"
+            if with_plots:
+                out += f".. plot:: {os.path.relpath(os.path.join(path, py), start=save_path)}\n"
+                out += "    :include-source:\n\n"
+            else:
+                out += f".. code-block:: python\n"
+                out += "    :linenos:\n\n"
+                with open(os.path.join(path, py), "r") as pyfile:
+                    for line in pyfile.read().split("\n"):
+                        out += f"    {line}\n"
 
     return rst(out)
 
 
-def generate_texts(paths):
+def generate_texts(paths, save_path, with_plots=False):
     out = {}
 
     for path in paths:
@@ -160,11 +213,11 @@ def generate_texts(paths):
         data = paths[path]
 
         if isinstance(data, dict):
-            x = generate_texts(data)
+            x = generate_texts(data, save_path, with_plots)
             if len(x) != 0:
                 out[path] = x
         elif isinstance(data, list):
-            x = from_list(data, path)
+            x = from_list(data, path, save_path, with_plots)
 
             if x is not None:
                 out[path] = x
@@ -202,10 +255,9 @@ def filetrees_to_toctrees(filetree, arts_path):
             out[path] = filetrees_to_toctrees(data, arts_path)
         elif isinstance(data, list):
             text = ".. toctree::\n"
+            text += "   :maxdepth: 2\n\n"
             for item in data:
-                text += (
-                    f"    {filename_from_path(path+"."+item, arts_path, "", "", "")}\n"
-                )
+                text += f"   {filename_from_path(path + '.' + item, arts_path, '', '', '')}\n"
             out[path] = rst(text)
 
     return out
@@ -268,10 +320,11 @@ def generate_docfiles(flat_toc, flat_txt, arts_path, save_path):
 if __name__ == "__main__":
     arts_path = sys.argv[1]
     save_path = sys.argv[2]
+    with_plots = True if len(sys.argv) >= 4 and sys.argv[3] == "plots" else False
     examplepath = os.path.join(arts_path, "examples")
 
     files = all_files(examplepath)
-    text = generate_texts(files)
+    text = generate_texts(files, save_path, with_plots)
     filetrees = generate_filetrees(files, examplepath)
     toctrees = filetrees_to_toctrees(filetrees, arts_path)
 

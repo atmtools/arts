@@ -1,0 +1,354 @@
+<?xml version="1.0"?>
+<arts version="3" format="ascii">
+<Array nelem="2" type="Array">
+<Array nelem="6" type="ScatteringMetaData">
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+1.0054340696807714e-15
+</Numeric>
+<Numeric>
+1.2429442751509313e-06
+</Numeric>
+<Numeric>
+1.2429442751509313e-06
+</Numeric>
+<Numeric>
+1.2429442751509313e-06
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+8.067557930029063e-13
+</Numeric>
+<Numeric>
+1.15499779936069e-05
+</Numeric>
+<Numeric>
+1.15499779936069e-05
+</Numeric>
+<Numeric>
+1.15499779936069e-05
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+1.2430413130741846e-09
+</Numeric>
+<Numeric>
+0.00013340199165280342
+</Numeric>
+<Numeric>
+0.00013340199165280342
+</Numeric>
+<Numeric>
+0.00013340199165280342
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+2.2545910410154837e-06
+</Numeric>
+<Numeric>
+0.0016268832390863427
+</Numeric>
+<Numeric>
+0.0016268832390863427
+</Numeric>
+<Numeric>
+0.0016268832390863427
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+0.003473851483157668
+</Numeric>
+<Numeric>
+0.018790465609615153
+</Numeric>
+<Numeric>
+0.018790465609615153
+</Numeric>
+<Numeric>
+0.018790465609615153
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Liquid sphere"</String>
+
+<String>
+"location: Chalmers"</String>
+
+<String>
+"water_ellison07"</String>
+
+<Numeric>
+0.06544984694978731
+</Numeric>
+<Numeric>
+0.04999999999999999
+</Numeric>
+<Numeric>
+0.04999999999999999
+</Numeric>
+<Numeric>
+0.04999999999999999
+</Numeric>
+</ScatteringMetaData>
+</Array>
+<Array nelem="9" type="ScatteringMetaData">
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+4.799829975909607e-13
+</Numeric>
+<Numeric>
+1.9428670866986266e-05
+</Numeric>
+<Numeric>
+1e-05
+</Numeric>
+<Numeric>
+1.455369252186907e-05
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+1.0367632747964753e-10
+</Numeric>
+<Numeric>
+0.00011657202520191759
+</Numeric>
+<Numeric>
+6.000000000000001e-05
+</Numeric>
+<Numeric>
+8.732215513121442e-05
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+7.798108328052216e-10
+</Numeric>
+<Numeric>
+0.0002284007686995643
+</Numeric>
+<Numeric>
+0.0001175586175005256
+</Numeric>
+<Numeric>
+0.00017109119723986656
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+5.782011735593267e-09
+</Numeric>
+<Numeric>
+0.0004453766690207727
+</Numeric>
+<Numeric>
+0.0002292368181384807
+</Numeric>
+<Numeric>
+0.0003339414930952783
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+4.287149947670556e-08
+</Numeric>
+<Numeric>
+0.0008684750863030593
+</Numeric>
+<Numeric>
+0.0004470069477468973
+</Numeric>
+<Numeric>
+0.0006526647701137531
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+3.1787646781601924e-07
+</Numeric>
+<Numeric>
+0.0016935080528296075
+</Numeric>
+<Numeric>
+0.0008716540953438373
+</Numeric>
+<Numeric>
+0.0012748158060142086
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+2.3569375931460545e-06
+</Numeric>
+<Numeric>
+0.0033023048907564576
+</Numeric>
+<Numeric>
+0.0016997070532332845
+</Numeric>
+<Numeric>
+0.002486606292060015
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+1.7613629313434452e-05
+</Numeric>
+<Numeric>
+0.006456305774456835
+</Numeric>
+<Numeric>
+0.0033230815523400373
+</Numeric>
+<Numeric>
+0.00486305304281631
+</Numeric>
+</ScatteringMetaData>
+<ScatteringMetaData>
+<String>
+"Meta data for Hexagonal column aggregate, using Hong parametrization (Hong 2007)."</String>
+
+<String>
+"location: Chalmers, software: Snowflake-toolkit (Rathsman 2016), parameterization: Hong 2007."</String>
+
+<String>
+"Matzler 2006"</String>
+
+<Numeric>
+5.9997874698870045e-05
+</Numeric>
+<Numeric>
+0.009714335433493126
+</Numeric>
+<Numeric>
+0.004999999999999999
+</Numeric>
+<Numeric>
+0.007317083505506899
+</Numeric>
+</ScatteringMetaData>
+</Array>
+</Array>
+</arts>
