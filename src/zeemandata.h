@@ -12,17 +12,17 @@
 #ifndef zeemandata_h
 #define zeemandata_h
 
+#include <limits>
+
 #include "arts_conversions.h"
 #include "file.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
 #include "quantum_numbers.h"
 
-#include <limits>
-
 /** Implements Zeeman modeling */
 namespace Zeeman {
-  
+
 /** Zeeman polarization selection */
 enum class Polarization : char { SigmaMinus, Pi, SigmaPlus, None };
 
@@ -60,19 +60,12 @@ constexpr Index dM(Polarization type) noexcept {
  * 
  * @return The lowest M value
  */
-constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Rational Ml_begin(Rational, Rational Jl, Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
-      if (Ju < Jl)
-        return -Ju;
-      else if (Ju == Jl)
-        return -Ju + 1;
-      else
-        return -Ju + 2;
     case Polarization::Pi:
-      return -min(Ju, Jl);
     case Polarization::SigmaPlus:
-      return -Ju;
+      return -Jl;
     case Polarization::None:
       return 0;
   }
@@ -93,19 +86,12 @@ constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
  * 
  * @return The largest M value
  */
-constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Rational Ml_end(Rational, Rational Jl, Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
-      return Ju + 1;
     case Polarization::Pi:
-      return min(Ju, Jl);
     case Polarization::SigmaPlus:
-      if (Ju < Jl)
-        return Ju + 1;
-      else if (Ju == Jl)
-        return Ju;
-      else
-        return Jl;
+      return Jl;
     case Polarization::None:
       return 0;
   }
@@ -123,7 +109,27 @@ constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
  * @return The number of elements
  */
 constexpr Index nelem(Rational Ju, Rational Jl, Polarization type) noexcept {
-  return (end(Ju, Jl, type) - start(Ju, Jl, type)).toIndex() + 1;
+  return (Ml_end(Ju, Jl, type) - Ml_begin(Ju, Jl, type)).toIndex() + 1;
+}
+
+/** Gives the lower state M value at an index
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * The user has to ensure n is less than the number of elements
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * @param[in] n The position
+ * 
+ * @return The lower state M
+ */
+constexpr Rational Ml(Rational Ju,
+                      Rational Jl,
+                      Polarization type,
+                      Index n) noexcept {
+  return Ml_begin(Ju, Jl, type) + n;
 }
 
 /** Gives the upper state M value at an index
@@ -143,28 +149,7 @@ constexpr Rational Mu(Rational Ju,
                       Rational Jl,
                       Polarization type,
                       Index n) noexcept {
-  return start(Ju, Jl, type) + n;
-}
-
-
-/** Gives the lower state M value at an index
- * 
- * The user has to ensure that Ju and Jl is a valid transition
- * 
- * The user has to ensure n is less than the number of elements
- * 
- * @param[in] Ju J of the upper state
- * @param[in] Jl J of the upper state
- * @param[in] type The polarization type
- * @param[in] n The position
- * 
- * @return The lower state M
- */
-constexpr Rational Ml(Rational Ju,
-                      Rational Jl,
-                      Polarization type,
-                      Index n) noexcept {
-  return Mu(Ju, Jl, type, n) + dM(type);
+  return Ml(Ju, Jl, type, n) + dM(type);
 }
 
 /** The renormalization factor of a polarization type
@@ -217,13 +202,12 @@ constexpr Numeric SimpleGCaseB(Rational N,
   auto SS = S * (S + 1);
   auto LL = Lambda * Lambda;
 
-  if (JJ == 0)
-    return 0.0;
+  if (JJ == 0) return 0.0;
   if (NN not_eq 0) {
     auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
     auto T2 = ((JJ - SS + NN) * LL / NN / JJ / 2).toNumeric();
     return GS * T1 + GL * T2;
-  }      
+  }
   auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
   return GS * T1;
 }
@@ -250,13 +234,11 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
                                Numeric GL) noexcept {
   auto JJ = J * (J + 1);
 
-  if (JJ == Rational(0))
-    return 0.0;
+  if (JJ == Rational(0)) return 0.0;
   auto DIV = Omega / JJ;
   auto T1 = (Sigma * DIV).toNumeric();
   auto T2 = (Lambda * DIV).toNumeric();
   return GS * T1 + GL * T2;
- 
 }
 
 /** Main storage for Zeeman splitting coefficients
@@ -281,12 +263,13 @@ class Model {
   SplittingData mdata;
 
  public:
-   /** Default copy/init of Model from its only private variable */
-   constexpr Model(SplittingData gs = {NAN, NAN}) noexcept : mdata(gs) {}
-   
-   /** Default copy/init of Model from its only private variable */
-   constexpr Model(Numeric gu, Numeric gl) noexcept : Model(SplittingData{gu, gl}) {}
-  
+  /** Default copy/init of Model from its only private variable */
+  constexpr Model(SplittingData gs = {NAN, NAN}) noexcept : mdata(gs) {}
+
+  /** Default copy/init of Model from its only private variable */
+  constexpr Model(Numeric gu, Numeric gl) noexcept
+      : Model(SplittingData{gu, gl}) {}
+
   /** Attempts to compute Zeeman input if available
    * 
    * Will first attempt advanced initialization from
@@ -306,19 +289,19 @@ class Model {
 
   /** Returns the upper state g */
   constexpr Numeric& gu() noexcept { return mdata.gu; }
-  
+
   /** Returns the lower state g */
   constexpr Numeric& gl() noexcept { return mdata.gl; }
 
   /** Sets the upper state g */
   constexpr void gu(Numeric x) noexcept { mdata.gu = x; }
-  
+
   /** Sets the lower state g */
   constexpr void gl(Numeric x) noexcept { mdata.gl = x; }
-  
+
   /** Returns the upper state g */
   [[nodiscard]] constexpr Numeric gu() const noexcept { return mdata.gu; }
-  
+
   /** Returns the lower state g */
   [[nodiscard]] constexpr Numeric gl() const noexcept { return mdata.gl; }
 
@@ -335,8 +318,11 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const ARTS_NOEXCEPT;
-  
+  [[nodiscard]] Numeric Strength(Rational Ju,
+                                 Rational Jl,
+                                 Polarization type,
+                                 Index n) const ARTS_NOEXCEPT;
+
   /** Gives the splitting of one subline of a given polarization
    * 
    * The user has to ensure that Ju and Jl is a valid transition
@@ -350,24 +336,26 @@ class Model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] constexpr Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
-      noexcept {
+  [[nodiscard]] constexpr Numeric Splitting(Rational Ju,
+                                            Rational Jl,
+                                            Polarization type,
+                                            Index n) const noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
-
-    return C * (Ml(Ju, Jl, type, n) * gl() - Mu(Ju, Jl, type, n) * gu());
+    if (type == Polarization::None) return 0.0;
+    return C * (Mu(Ju, Jl, type, n) * gu() - Ml(Ju, Jl, type, n) * gl());
   }
 
   /** Output operator for Zeeman::Model */
   friend std::ostream& operator<<(std::ostream& os, const Model& m);
-  
+
   /** Input operator for Zeeman::Model */
   friend std::istream& operator>>(std::istream& is, Model& m);
-  
+
   /** Output operator for Zeeman::Model */
   friend std::ostream& operator<<(bofstream& bof, const Model& m);
-  
+
   /** Input operator for Zeeman::Model */
   friend std::istream& operator>>(bifstream& bif, Model& m);
 };  // Model;
@@ -433,8 +421,7 @@ struct AllPolarizationVectors {
  * 
  * @return The polarization vectors of all Zeeman polarization
  */
-AllPolarizationVectors AllPolarization(Numeric theta,
-                                       Numeric eta) noexcept;
+AllPolarizationVectors AllPolarization(Numeric theta, Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt theta
  * 
@@ -443,8 +430,8 @@ AllPolarizationVectors AllPolarization(Numeric theta,
  * 
  * @return The derivative of AllPolarization wrt theta
  */
-AllPolarizationVectors AllPolarization_dtheta(
-    Numeric theta, const Numeric eta) noexcept;
+AllPolarizationVectors AllPolarization_dtheta(Numeric theta,
+                                              const Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt eta
  * 
@@ -461,8 +448,8 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
  * @param[in] data The pre-computed polarization vectors
  * @param[in] type The type of polarization to select
  */
-const PolarizationVector& SelectPolarization(
-    const AllPolarizationVectors& data, Polarization type) noexcept;
+const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
+                                             Polarization type);
 
 /** Sums the Zeeman components into a propagation matrix
  * 
@@ -470,7 +457,10 @@ const PolarizationVector& SelectPolarization(
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase=true) ARTS_NOEXCEPT;
+void sum(PropagationMatrix& pm,
+         const ComplexVectorView& abs,
+         const PolarizationVector& polvec,
+         const bool do_phase = true) ARTS_NOEXCEPT;
 
 /** Sums the Zeeman components derivatives into a propagation matrix
  * 
@@ -492,7 +482,8 @@ void dsum(PropagationMatrix& dpm,
           const PolarizationVector& dpolvec_deta,
           const Numeric dH,
           const Numeric dtheta,
-          const Numeric deta, const bool do_phase=true) ARTS_NOEXCEPT;
+          const Numeric deta,
+          const bool do_phase = true) ARTS_NOEXCEPT;
 
 /** Contains derived values useful for Zeeman calculations
  * 
@@ -509,27 +500,6 @@ struct Derived {
 
 /** Computes the derived plane from ARTS grids
  * 
- * When done and if everything is well-defined:
- * \f[ H = \sqrt{u^2 + v^2 + w^2}, \f]
- * \f[ \theta = \arccos \left( \vec{n} \cdot \vec{n}_H \right), \f]
- * \f[ \eta = \arctan\left( \frac{y}{x} \right), \f]
- * \f[ \frac{\partial H}{\partial \vec{H}} = \vec{n}_H, \f]
- * \f[ \frac{\partial \theta}{\partial \vec{H}} = \frac{\vec{n}_H \cos{\theta} - \vec{n}}{H\sin\theta}, \f]
- * \f[ \frac{\partial \eta}{\partial \vec{H}} = \frac{\vec{n}\times\vec{n}_H}{H\left(x^2 + y^2\right)} \f]
- * 
- * With these helpers (some defined, others not):
- * \f[ \vec{H} = \left[\begin{array}{l} v \\ u \\ w \end{array}\right], \f]
- * \f[ \vec{n}_H = \frac{\vec{H}}{H} , \f]
- * \f[ \vec{n} = \left[\begin{array}{r} \cos a \sin z \\ \sin a\sin z \\ \cos z \end{array}\right], \f]
- * \f[ \vec{e}_v = \left[\begin{array}{r} \cos a \cos z \\ \sin a\cos z \\ -\sin z \end{array}\right], \f]
- * \f[ y = \left\{\vec{e}_v \times \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right]\right\} \cdot \vec{n}, \f]
- * \f[ x = \vec{e}_v \cdot \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right] \f]
- * 
- * Note that all other values are zero if \f$ H \f$ is zero, that \f$ \frac{\partial \theta}{\partial \vec{H}} \f$
- * is zero if \f$ \sin{\theta} \f$ is zero, that \f$ \frac{\partial \eta}{\partial \vec{H}} \f$ is zero
- * if \f$ x \f$ and \f$ y \f$ are zero, and that the atan2(y, x) function is used for \f$ \eta \f$ to
- * compensate for when \f$ x \f$ is zero.
- * 
  * @param[in] u Magnetic field u-parameter
  * @param[in] v Magnetic field b-parameter
  * @param[in] w Magnetic field w-parameter
@@ -538,7 +508,8 @@ struct Derived {
  * 
  * @return The derived plane
  */
-Derived FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept;
+Derived FromGrids(
+    Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept;
 
 /** Sets Derived from predefined Derived parameters
  * 
@@ -551,7 +522,18 @@ Derived FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcep
 constexpr Derived FromPreDerived(Numeric H,
                                  Numeric theta,
                                  Numeric eta) noexcept {
-  return {H, theta, eta, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  return {.H = H,
+          .theta = theta,
+          .eta = eta,
+          .dH_du = 0,
+          .dH_dv = 0,
+          .dH_dw = 0,
+          .dtheta_du = 0,
+          .dtheta_dv = 0,
+          .dtheta_dw = 0,
+          .deta_du = 0,
+          .deta_dv = 0,
+          .deta_dw = 0};
 }
 };  // namespace Zeeman
 
