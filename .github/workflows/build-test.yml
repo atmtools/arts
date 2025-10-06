@@ -57,7 +57,7 @@ jobs:
             jcheck: 2
 
           - name: mac-default-clang
-            os: macos-13
+            os: macos-15-intel
             preset: default-clang-conda
             check: "yes"
             doc: "no"
