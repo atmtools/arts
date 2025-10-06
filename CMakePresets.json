@@ -110,13 +110,6 @@
       }
     },
     {
-      "name": "macintel-clang-conda",
-      "inherits": "default-clang-conda",
-      "cacheVariables": {
-        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.5"
-      }
-    },
-    {
       "name": "mac-gcc13-hb-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
