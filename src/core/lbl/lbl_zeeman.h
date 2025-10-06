@@ -21,9 +21,9 @@ enum class pol : char { sm, pi, sp, no };
  */
 constexpr Index dM(pol type) noexcept {
   switch (type) {
-    case pol::sm: return 1;
+    case pol::sm: return -1;
     case pol::pi: return 0;
-    case pol::sp: return -1;
+    case pol::sp: return 1;
     case pol::no: return 0;
   }
   std::unreachable();
@@ -43,7 +43,7 @@ constexpr Index dM(pol type) noexcept {
  * 
  * @return The lowest Ml value
  */
-constexpr Rational Ml_begin(Rational , Rational Jl, pol type) noexcept {
+constexpr Rational Ml_begin(Rational, Rational Jl, pol type) noexcept {
   switch (type) {
     case pol::sm:
     case pol::pi:
@@ -67,7 +67,7 @@ constexpr Rational Ml_begin(Rational , Rational Jl, pol type) noexcept {
  * 
  * @return The largest Ml value
  */
-constexpr Rational Ml_end(Rational , Rational Jl, pol type) noexcept {
+constexpr Rational Ml_end(Rational, Rational Jl, pol type) noexcept {
   switch (type) {
     case pol::sm:
     case pol::pi:
