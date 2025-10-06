@@ -52,7 +52,7 @@ jobs:
             jcheck: 2
 
           - name: mac-default-clang
-            os: macos-13
+            os: macos-15-intel
             preset: macintel-clang-conda
             pyarts: "yes"
             check: "yes"
