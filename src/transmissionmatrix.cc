@@ -407,7 +407,7 @@ void RadiationVector::setDerivReflection(const RadiationVector& I,
   for (size_t i = 0; i < R2.size(); i++)
     R2[i] = PiT.Mat2(i) * (Z.Mat2(i) * R2[i] + dZ.Mat2(i) * I.R2[i]);
   for (size_t i = 0; i < R1.size(); i++)
-    R4[i][0] =
+    R1[i][0] =
         PiT.Mat1(i)[0] * (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
 }
 
