@@ -725,6 +725,7 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
     for (Index j=0; j<nz; j++) {
       const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, j);
       const Numeric dzeeman = H * band.ZeemanSplitting(i, zeeman_polarization, j);
+    if (Sz == 0.0) continue;
       
       if (band.lineshapetype == LineShape::Type::LP) {
         for (Index iv=0; iv<f_grid.nelem(); iv++) {
