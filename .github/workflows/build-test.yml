@@ -82,7 +82,7 @@ jobs:
             jcheck: 2
 
           - name: windows-default-msvc
-            os: windows-2022
+            os: windows-2025
             preset: default-msvc-conda
             pyarts: "yes"
             check: "yes"
