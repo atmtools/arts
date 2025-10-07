@@ -347,36 +347,38 @@ std::istream& operator>>(bifstream& bif, Model& m) {
 AllPolarizationVectors AllPolarization(Numeric theta, Numeric eta) noexcept {
   const Numeric CT = std::cos(theta);
   const Numeric ST2 = Math::pow2(std::sin(theta));
-  const Numeric BW = ST2 * std::cos(2 * eta);
-  const Numeric CV = ST2 * std::sin(2 * eta);
+  const Numeric Q = ST2 * std::cos(2 * eta);
+  const Numeric U = ST2 * std::sin(2 * eta);
 
-  return {.sm = {2 - ST2, -BW, -CV, -2 * CT, -2 * CT, CV, -BW},
-          .pi = {ST2, BW, CV, 0, 0, -CV, BW},
-          .sp = {2 - ST2, -BW, -CV, 2 * CT, 2 * CT, CV, -BW}};
+  return {
+      .sm = {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q},
+      .pi = {ST2, -Q, U, 0, 0, U, Q},
+      .sp = {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q},
+  };
 }
 
 AllPolarizationVectors AllPolarization_dtheta(Numeric theta,
                                               const Numeric eta) noexcept {
   const Numeric ST = std::sin(theta);
   const Numeric dST2 = 2 * std::cos(theta) * ST;
-  const Numeric dBW = std::cos(2 * eta) * dST2;
-  const Numeric dCV = std::sin(2 * eta) * dST2;
+  const Numeric dQ = std::cos(2 * eta) * dST2;
+  const Numeric dU = std::sin(2 * eta) * dST2;
   const Numeric dCT = -ST;
 
-  return {.sm = {-dST2, -dBW, -dCV, -2 * dCT, -2 * dCT, dCV, -dBW},
-          .pi = {dST2, dBW, dCV, 0, 0, -dCV, dBW},
-          .sp = {-dST2, -dBW, -dCV, 2 * dCT, 2 * dCT, dCV, -dBW}};
+  return {.sm = {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ},
+          .pi = {dST2, -dQ, dU, 0, 0, dU, dQ},
+          .sp = {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ}};
 }
 
 AllPolarizationVectors AllPolarization_deta(Numeric theta,
                                             Numeric eta) noexcept {
   const Numeric ST2 = Math::pow2(std::sin(theta));
-  const Numeric dBW = -2 * std::sin(2 * eta) * ST2;
-  const Numeric dCV = 2 * std::cos(2 * eta) * ST2;
+  const Numeric dQ = -2 * std::sin(2 * eta) * ST2;
+  const Numeric dU = 2 * std::cos(2 * eta) * ST2;
 
-  return {.sm = {0, -dBW, -dCV, 0, 0, dCV, -dBW},
-          .pi = {0, dBW, dCV, 0, 0, -dCV, dBW},
-          .sp = {0, -dBW, -dCV, 0, 0, dCV, -dBW}};
+  return {.sm = {0, dQ, -dU, 0, 0, -dU, -dQ},
+          .pi = {0, -dQ, dU, 0, 0, dU, dQ},
+          .sp = {0, dQ, -dU, 0, 0, -dU, -dQ}};
 }
 
 const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
