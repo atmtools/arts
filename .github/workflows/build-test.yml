@@ -51,9 +51,9 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: mac-default-clang
-            os: macos-13
-            preset: macintel-clang-conda
+          - name: macintel-default-clang
+            os: macos-15-intel
+            preset: default-clang-conda
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -61,7 +61,7 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: macm1-default-clang
+          - name: mac-default-clang
             os: macos-15
             preset: default-clang-conda
             pyarts: "yes"
@@ -71,7 +71,7 @@ jobs:
             jbuild: 2
             jcheck: 2
 
-          - name: macm1-reldeb-clang
+          - name: mac-reldeb-clang
             os: macos-15
             preset: reldeb-clang-conda
             pyarts: "yes"
