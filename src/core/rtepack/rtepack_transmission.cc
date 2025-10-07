@@ -84,6 +84,15 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
   // The first "1.0" is the trick for above limits
   inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);
 
+  /* FIXME:
+    C0 can expand as (1.0 + x2 * y2 / 24.0)
+    C1 can expand as (1.0 + x2 * y2 / 120.0)
+    C2 can expand as (0.5 + (x2 - y2) / 24.0)
+    C3 can expand as (1.0/6.0 + (x2 - y2) / 120.0)
+    to avoid numerical issues when x2 and y2 are small, but 
+    this is not implemented yet because the derivatives get messed up.
+  */
+
   C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
   C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
   C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;

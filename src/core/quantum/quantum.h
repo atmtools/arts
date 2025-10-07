@@ -37,6 +37,9 @@ struct Value {
     return std::get<T>(value);
   }
 
+  operator Rational() const;
+  operator String() const;
+
   void set(const std::string_view);
 
   std::strong_ordering operator<=>(const Value& l) const = default;

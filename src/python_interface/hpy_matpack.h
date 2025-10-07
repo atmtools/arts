@@ -112,6 +112,11 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
   c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 
   c.def(
+      "norm",
+      [](const mtype& v) { return v / hypot(v); },
+      "Return normalized version of self");
+
+  c.def(
       "__array__",
       [](mtype& v,
          py::object dtype,

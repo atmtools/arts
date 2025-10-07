@@ -48,6 +48,7 @@ void py_zeeman(py::module_& m);
 void py_retrieval(py::module_& m);
 void py_lookup(py::module_& m);
 void py_file(py::module_& m);
+void py_geodesy(py::module_& m);
 void py_auto_agenda_operators(py::module_& m);
 
 /** Construct a new nanobind module object to hold all the Arts types and functions
@@ -122,6 +123,7 @@ NB_MODULE(arts, m) try {
   py_workspace(ws);
 
   // Extras calling pure internal functions
+  py_geodesy(m);
   py_constants(m);
   py_conversions(m);
   py_physics(m);

@@ -45,18 +45,10 @@ lbl::zeeman::data SimpleG(const QuantumState& qns,
     auto& J      = qns.at(QuantumNumberType::J);
     auto& Lambda = qns.at(QuantumNumberType::Lambda);
     auto& S      = qns.at(QuantumNumberType::S);
-    return {.gu = lbl::zeeman::SimpleGCaseA(Omega.upper.get<Rational>(),
-                                            J.upper.get<Rational>(),
-                                            Lambda.upper.get<Rational>(),
-                                            S.upper.get<Rational>(),
-                                            GS,
-                                            GL),
-            .gl = lbl::zeeman::SimpleGCaseA(Omega.lower.get<Rational>(),
-                                            J.lower.get<Rational>(),
-                                            Lambda.lower.get<Rational>(),
-                                            S.lower.get<Rational>(),
-                                            GS,
-                                            GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseA(
+                Omega.upper, J.upper, Lambda.upper, S.upper, GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseA(
+                Omega.lower, J.lower, Lambda.lower, S.lower, GS, GL)};
   }
 
   if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hundb) and
@@ -68,18 +60,10 @@ lbl::zeeman::data SimpleG(const QuantumState& qns,
     auto& J      = qns.at(QuantumNumberType::J);
     auto& Lambda = qns.at(QuantumNumberType::Lambda);
     auto& S      = qns.at(QuantumNumberType::S);
-    return {.gu = lbl::zeeman::SimpleGCaseB(N.upper.get<Rational>(),
-                                            J.upper.get<Rational>(),
-                                            Lambda.upper.get<Rational>(),
-                                            S.upper.get<Rational>(),
-                                            GS,
-                                            GL),
-            .gl = lbl::zeeman::SimpleGCaseB(N.lower.get<Rational>(),
-                                            J.lower.get<Rational>(),
-                                            Lambda.lower.get<Rational>(),
-                                            S.lower.get<Rational>(),
-                                            GS,
-                                            GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseB(
+                N.upper, J.upper, Lambda.upper, S.upper, GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseB(
+                N.lower, J.lower, Lambda.lower, S.lower, GS, GL)};
   }
 
   return {};
@@ -168,10 +152,10 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
 
         const auto& J = qid.state.at(QuantumNumberType::J);
         const auto& N = qid.state.at(QuantumNumberType::N);
-        auto JU       = J.upper.get<Rational>();
-        auto NU       = N.upper.get<Rational>();
-        auto JL       = J.lower.get<Rational>();
-        auto NL       = N.lower.get<Rational>();
+        auto JU       = J.upper;
+        auto NU       = N.upper;
+        auto JL       = J.lower;
+        auto NL       = N.lower;
 
         Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -201,10 +185,10 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
 
         const auto& J = qid.state.at(QuantumNumberType::J);
         const auto& N = qid.state.at(QuantumNumberType::N);
-        auto JU       = J.upper.get<Rational>();
-        auto NU       = N.upper.get<Rational>();
-        auto JL       = J.lower.get<Rational>();
-        auto NL       = N.lower.get<Rational>();
+        auto JU       = J.upper;
+        auto NU       = N.upper;
+        auto JL       = J.lower;
+        auto NL       = N.lower;
 
         Numeric gu = ::case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -230,10 +214,10 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         qid.state.contains(QuantumNumberType::Ka)) {
       const auto& J  = qid.state.at(QuantumNumberType::J);
       const auto& Ka = qid.state.at(QuantumNumberType::K);
-      auto JU        = J.upper.get<Rational>();
-      auto KU        = Ka.upper.get<Rational>();
-      auto JL        = J.lower.get<Rational>();
-      auto KL        = Ka.lower.get<Rational>();
+      auto JU        = J.upper;
+      auto KU        = Ka.upper;
+      auto JL        = J.lower;
+      auto KL        = Ka.lower;
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -250,10 +234,10 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         qid.state.contains(QuantumNumberType::Ka)) {
       const auto& J  = qid.state.at(QuantumNumberType::J);
       const auto& Ka = qid.state.at(QuantumNumberType::K);
-      auto JU        = J.upper.get<Rational>();
-      auto KU        = Ka.upper.get<Rational>();
-      auto JL        = J.lower.get<Rational>();
-      auto KL        = Ka.lower.get<Rational>();
+      auto JU        = J.upper;
+      auto KU        = Ka.upper;
+      auto JL        = J.lower;
+      auto KL        = Ka.lower;
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -270,10 +254,10 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         qid.state.contains(QuantumNumberType::Ka)) {
       const auto& J  = qid.state.at(QuantumNumberType::J);
       const auto& Ka = qid.state.at(QuantumNumberType::K);
-      auto JU        = J.upper.get<Rational>();
-      auto KU        = Ka.upper.get<Rational>();
-      auto JL        = J.lower.get<Rational>();
-      auto KL        = Ka.lower.get<Rational>();
+      auto JU        = J.upper;
+      auto KU        = Ka.upper;
+      auto JL        = J.lower;
+      auto KL        = Ka.lower;
 
       return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -293,13 +277,16 @@ model::model(const QuantumIdentifier& qid) noexcept {
 Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
   using Math::pow2;
 
+  if (type == pol::no) return 1.0;
+
   auto ml = Ml(Ju, Jl, type, n);
   auto mu = Mu(Ju, Jl, type, n);
-  auto dm = Rational(dM(type));
-  return type == pol::no
-             ? 1.0
-             : polarization_factor(type) *
-                   pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
+
+  if (abs(ml) > Jl or abs(mu) > Ju) return 0.0;
+
+  auto dm         = Rational(dM(type));
+  const Numeric C = polarization_factor(type);
+  return C * pow2(wigner3j(Jl, Rational(1), Ju, ml, dm, -mu));
 }
 
 Numeric model::Strength(const QuantumState& qn, pol type, Index n) const {
@@ -307,7 +294,7 @@ Numeric model::Strength(const QuantumState& qn, pol type, Index n) const {
 
   const auto& J = qn.at(QuantumNumberType::J);
 
-  return Strength(J.upper.get<Rational>(), J.lower.get<Rational>(), type, n);
+  return Strength(J.upper, J.lower, type, n);
 }
 
 Numeric model::Splitting(const QuantumState& qn,
@@ -316,8 +303,7 @@ Numeric model::Splitting(const QuantumState& qn,
   if (type == pol::no) return 0.0;
 
   const auto& J = qn.at(QuantumNumberType::J);
-
-  return Splitting(J.upper.get<Rational>(), J.lower.get<Rational>(), type, n);
+  return Splitting(J.upper, J.lower, type, n);
 }
 
 Index model::size(const QuantumState& qn, pol type) const noexcept {
@@ -326,7 +312,7 @@ Index model::size(const QuantumState& qn, pol type) const noexcept {
 
     const auto& J = qn.at(QuantumNumberType::J);
 
-    return zeeman::size(J.upper.get<Rational>(), J.lower.get<Rational>(), type);
+    return zeeman::size(J.upper, J.lower, type);
   }
 
   return static_cast<Index>(type == pol::no);
@@ -351,8 +337,35 @@ magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)
       sz(std::sin(Conversion::deg2rad(los[0]))),
       cz(std::cos(Conversion::deg2rad(los[0]))),
       H(std::hypot(u, v, w)),
-      uct(ca * sz * v + cz * w + sa * sz * u),
-      duct(u * sa * cz + v * ca * cz - w * sz) {}
+      uct(sz * sa * u + sz * ca * v + cz * w),
+      duct(u * sa * cz + v * ca * cz - w * sz) {
+  /**
+    * Defines the geometry for the Zeeman effect angles theta and eta.
+    * The coordinate system is (x=East, y=North, z=Up).
+    * LOS (k) is the line-of-sight vector, B is the magnetic field vector.
+    * uct = B · k, which gives theta = acos((B·k)/|B|).
+    *
+    * k_x = sin(z) * sin(a)
+    * k_y = sin(z) * cos(a)
+    * k_z = cos(z)
+    *
+    * B_x = u
+    * B_y = v
+    * B_z = w
+    *
+    * For eta, we define a basis on the plane perpendicular to k:
+    * e1 ('projected up') = (-cz*sa, -cz*ca, sz)
+    * e2 ('right')        = (ca, -sa, 0)
+    *
+    * The components of the projected B-field on this basis are:
+    * B1 = B · e1 = -u*cz*sa - v*cz*ca + w*sz
+    * B2 = B · e2 = u*ca - v*sa
+    *
+    * Note: the code's `duct` variable is equal to -B1.
+    * The clockwise angle eta is -atan2(B2, B1), which is implemented as
+    * -atan2( (u*ca-v*sa), -duct ).
+    */
+}
 
 Numeric magnetic_angles::theta() const {
   return H == 0 ? 0 : std::acos(uct / H);
@@ -386,18 +399,18 @@ Numeric magnetic_angles::dtheta_dw() const {
 }
 
 Numeric magnetic_angles::eta() const {
-  return std::atan2(u * ca - v * sa, duct);
+  return -std::atan2(ca * u - sa * v, -duct);
 }
 
 Numeric magnetic_angles::deta_du() const {
   return H == 0 ? 0
-                : (-ca * sz * w + cz * v) /
+                : (cz * v - ca * sz * w) /
                       (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
 Numeric magnetic_angles::deta_dv() const {
   return H == 0 ? 0
-                : (-cz * u + sa * sz * w) /
+                : (sa * sz * w - cz * u) /
                       (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
@@ -408,40 +421,42 @@ Numeric magnetic_angles::deta_dw() const {
 }
 
 Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
+  /* The propagation matrix elemets for different polarizaitions.
+
+  The 7-element returned vector represents the symmetric matrix
+  [[A,B,C,D],[B,A,U,V],[C,-U,A,W],[D,-V,-W,A]], in order [A,B,C,D,U,V,W].
+  PI is scaled by 1/2, SM and SP by 1/4 elsewhere.
+
+  PI:
+        sin^2(theta)              ; -sin^2(theta) cos(2 eta) ;  sin^2(theta) sin(2 eta) ;  0                       ;
+       -sin^2(theta) cos(2 eta)   ;  sin^2(theta)            ;  0                       ;  sin^2(theta) sin(2 eta) ;
+        sin^2(theta) sin(2 eta)   ;  0                       ;  sin^2(theta)            ;  sin^2(theta) cos(2 eta) ;
+        0                         ; -sin^2(theta) sin(2 eta) ; -sin^2(theta) cos(2 eta) ;  sin^2(theta)            ;
+
+  SM:
+        1 + cos^2(theta)          ;  sin^2(theta) cos(2 eta) ; -sin^2(theta) sin(2 eta) ;  2 cos(theta)            ;
+        sin^2(theta) cos(2 eta)   ;  1 + cos^2(theta)        ; -2 cos(theta)            ; -sin^2(theta) sin(2 eta) ;
+       -sin^2(theta) sin(2 eta)   ;  2 cos(theta)            ;  1 + cos^2(theta)        ; -sin^2(theta) cos(2 eta) ;
+        2 cos(theta)              ;  sin^2(theta) sin(2 eta) ;  sin^2(theta) cos(2 eta) ;  1 + cos^2(theta)        ;
+
+  SP:
+        1 + cos^2(theta)          ;  sin^2(theta) cos(2 eta) ; -sin^2(theta) sin(2 eta) ; -2 cos(theta)            ;
+        sin^2(theta) cos(2 eta)   ;  1 + cos^2(theta)        ;  2 cos(theta)            ; -sin^2(theta) sin(2 eta) ;
+       -sin^2(theta) sin(2 eta)   ; -2 cos(theta)            ;  1 + cos^2(theta)        ; -sin^2(theta) cos(2 eta) ;
+       -2 cos(theta)              ;  sin^2(theta) sin(2 eta) ;  sin^2(theta) cos(2 eta) ;  1 + cos^2(theta)        ;
+  */
+
   const magnetic_angles ma(mag, los);
   const Numeric theta = ma.theta();
   const Numeric eta   = ma.eta();
-
-  const Numeric CT  = std::cos(theta);
-  const Numeric ST  = std::sin(theta);
-  const Numeric C2E = std::cos(2 * eta);
-  const Numeric S2E = std::sin(2 * eta);
-
+  const Numeric CT    = std::cos(theta);
+  const Numeric ST2   = Math::pow2(std::sin(theta));
+  const Numeric Q     = ST2 * std::cos(2 * eta);
+  const Numeric U     = ST2 * std::sin(2 * eta);
   switch (p) {
-    case pol::pi:
-      return {ST * ST,
-              -ST * ST * C2E,
-              -S2E * ST * ST,
-              0,
-              0,
-              -2 * S2E * ST * ST,
-              2 * ST * ST * C2E};
-    case pol::sm:
-      return {CT * CT + 1,
-              ST * ST * C2E,
-              S2E * ST * ST,
-              2 * CT,
-              4 * CT,
-              2 * S2E * ST * ST,
-              -2 * ST * ST * C2E};
-    case pol::sp:
-      return {CT * CT + 1,
-              ST * ST * C2E,
-              S2E * ST * ST,
-              -2 * CT,
-              -4 * CT,
-              2 * S2E * ST * ST,
-              -2 * ST * ST * C2E};
+    case pol::pi: return {ST2, -Q, U, 0, 0, U, Q};
+    case pol::sm: return {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q};
+    case pol::sp: return {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q};
     case pol::no: return {1, 0, 0, 0, 0, 0, 0};
   }
 
@@ -454,38 +469,20 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
   const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_du();
   const Numeric deta   = ma.deta_du();
-
-  const Numeric CT  = std::cos(theta);
-  const Numeric ST  = std::sin(theta);
-  const Numeric S2T = 2 * ST * CT;
-  const Numeric C2E = std::cos(2 * eta);
-  const Numeric S2E = std::sin(2 * eta);
+  const Numeric CT     = std::cos(theta);
+  const Numeric ST     = std::sin(theta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi:
-      return {S2T * dtheta,
-              2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
-              2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              0,
-              0,
-              4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
-    case pol::sm:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              -2 * ST * dtheta,
-              -4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
-    case pol::sp:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              2 * ST * dtheta,
-              4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
@@ -498,38 +495,20 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
   const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_dv();
   const Numeric deta   = ma.deta_dv();
-
-  const Numeric CT  = std::cos(theta);
-  const Numeric ST  = std::sin(theta);
-  const Numeric S2T = 2 * ST * CT;
-  const Numeric C2E = std::cos(2 * eta);
-  const Numeric S2E = std::sin(2 * eta);
+  const Numeric CT     = std::cos(theta);
+  const Numeric ST     = std::sin(theta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi:
-      return {S2T * dtheta,
-              2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
-              2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              0,
-              0,
-              4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
-    case pol::sm:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              -2 * ST * dtheta,
-              -4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
-    case pol::sp:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              2 * ST * dtheta,
-              4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
@@ -542,38 +521,20 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
   const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_dw();
   const Numeric deta   = ma.deta_dw();
-
-  const Numeric CT  = std::cos(theta);
-  const Numeric ST  = std::sin(theta);
-  const Numeric S2T = 2 * ST * CT;
-  const Numeric C2E = std::cos(2 * eta);
-  const Numeric S2E = std::sin(2 * eta);
+  const Numeric CT     = std::cos(theta);
+  const Numeric ST     = std::sin(theta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi:
-      return {S2T * dtheta,
-              2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
-              2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              0,
-              0,
-              4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
-              4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
-    case pol::sm:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              -2 * ST * dtheta,
-              -4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
-    case pol::sp:
-      return {-S2T * dtheta,
-              2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
-              2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              2 * ST * dtheta,
-              4 * ST * dtheta,
-              4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
-              4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 

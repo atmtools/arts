@@ -180,18 +180,13 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
       auto& N  = bnd.lines[i].qn.at(QuantumNumberType::N);
-      dipr[i]  = makarov::reduced_dipole(J.upper.get<Rational>(),
-                                        J.lower.get<Rational>(),
-                                        N.upper.get<Rational>());
+      dipr[i]  = makarov::reduced_dipole(J.upper, J.lower, N.upper);
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
-      dipr[i]   = hartmann::reduced_dipole(J.upper.get<Rational>(),
-                                         J.lower.get<Rational>(),
-                                         l2.upper.get<Rational>(),
-                                         l2.lower.get<Rational>());
-      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -312,18 +307,13 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
       auto& N  = bnd.lines[i].qn.at(QuantumNumberType::N);
-      dipr[i]  = makarov::reduced_dipole(J.upper.get<Rational>(),
-                                        J.lower.get<Rational>(),
-                                        N.upper.get<Rational>());
+      dipr[i]  = makarov::reduced_dipole(J.upper, J.lower, N.upper);
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
-      dipr[i]   = hartmann::reduced_dipole(J.upper.get<Rational>(),
-                                         J.lower.get<Rational>(),
-                                         l2.upper.get<Rational>(),
-                                         l2.lower.get<Rational>());
-      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 

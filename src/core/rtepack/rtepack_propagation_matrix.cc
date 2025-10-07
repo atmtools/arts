@@ -1,10 +1,6 @@
 #include "rtepack_propagation_matrix.h"
 
 namespace rtepack {
-bool propmat::is_polarized() const {
-  return std::ranges::any_of(begin() + 1, end(), Cmp::ne(0.0));
-};
-
 propmat_vector operator*(Numeric x, const propmat_vector_const_view &y) {
   propmat_vector z(y.size());
   for (Size i = 0; i < y.size(); ++i) {

@@ -7,115 +7,6 @@
 #include "rtepack_transmission.h"
 
 namespace rtepack {
-stokvec linear_step(const muelmat &T, const stokvec &I, const stokvec &J) {
-  return T * (I - J) + J;
-}
-
-stokvec two_level_linear_step(stokvec_vector_view &dI1,
-                              stokvec_vector_view &dI2,
-                              const muelmat &T,
-                              const muelmat &PiT,
-                              const stokvec &I,
-                              const stokvec &J1,
-                              const stokvec &J2,
-                              const muelmat_vector_const_view &dT1,
-                              const muelmat_vector_const_view &dT2,
-                              const stokvec_vector_const_view &dJ1,
-                              const stokvec_vector_const_view &dJ2) {
-  assert(dI1.size() == dI2.size() and dT1.size() == dT2.size() and
-         dJ1.size() == dJ2.size() and dI1.size() == dT1.size());
-
-  const auto J = avg(J1, J2);
-
-  for (Size k = 0; k < dT1.size(); k++) {
-    dI1[k] += PiT * (dT1[k] * (I - J) + dJ1[k] - T * dJ1[k]);
-    dI2[k] += PiT * (dT2[k] * (I - J) + dJ2[k] - T * dJ2[k]);
-  }
-
-  return linear_step(T, I, J);
-}
-
-void two_level_linear_emission_step(stokvec_vector_view I,
-                                    stokvec_matrix_view dI1,
-                                    stokvec_matrix_view dI2,
-                                    const stokvec_vector_const_view &J1,
-                                    const stokvec_vector_const_view &J2,
-                                    const stokvec_matrix_const_view &dJ1,
-                                    const stokvec_matrix_const_view &dJ2,
-                                    const muelmat_vector_const_view &T,
-                                    const muelmat_vector_const_view &PiT,
-                                    const muelmat_matrix_const_view &dT1,
-                                    const muelmat_matrix_const_view &dT2) {
-  const Size N = I.size();
-  const Size M = dI1.nrows();
-
-  assert(N == static_cast<Size>(dI1.ncols()) and
-         N == static_cast<Size>(dI2.ncols()) and N == J1.size() and
-         N == J2.size() and N == static_cast<Size>(dJ1.ncols()) and
-         N == static_cast<Size>(dJ2.ncols()) and N == T.size() and
-         N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
-         N == static_cast<Size>(dT2.ncols()));
-  assert(M == static_cast<Size>(dI2.nrows()) and
-         M == static_cast<Size>(dJ1.nrows()) and
-         M == static_cast<Size>(dJ2.nrows()) and
-         M == static_cast<Size>(dT1.nrows()) and
-         M == static_cast<Size>(dT2.nrows()));
-
-  for (Size i = 0; i < N; i++) {
-    const auto J = avg(J1[i], J2[i]);
-    I[i]         = I[i] - J;
-
-    for (Size j = 0; j < M; j++) {
-      dI1[j, i] += PiT[i] * dT1[j, i] * I[i] + dJ1[j, i] - T[i] * dJ1[j, i];
-      dI2[j, i] += PiT[i] * dT2[j, i] * I[i] + dJ2[j, i] - T[i] * dJ2[j, i];
-    }
-
-    I[i] = T[i] * I[i] + J;
-  }
-}
-
-void two_level_linear_emission_step(stokvec_vector_view I,
-                                    const stokvec_vector_const_view &J1,
-                                    const stokvec_vector_const_view &J2,
-                                    const muelmat_vector_const_view &T) {
-  const Size N = I.size();
-  assert(N == J1.size() and N == J2.size() and N == T.size());
-
-  for (Size i = 0; i < N; i++) {
-    const auto J = avg(J1[i], J2[i]);
-    I[i]         = T[i] * (I[i] - J) + J;
-  }
-}
-
-void two_level_linear_transmission_step(stokvec_vector_view I,
-                                        stokvec_matrix_view dI1,
-                                        stokvec_matrix_view dI2,
-                                        const muelmat_vector_const_view &T,
-                                        const muelmat_vector_const_view &PiT,
-                                        const muelmat_matrix_const_view &dT1,
-                                        const muelmat_matrix_const_view &dT2) {
-  const Size N = I.size();
-  const Size M = dI1.nrows();
-  assert(N == static_cast<Size>(dI1.ncols()) and
-         N == static_cast<Size>(dI2.ncols()) and N == T.size() and
-         N == PiT.size() and N == static_cast<Size>(dT1.ncols()) and
-         N == static_cast<Size>(dT2.ncols()));
-  assert(M == static_cast<Size>(dI2.nrows()) and
-         M == static_cast<Size>(dT1.nrows()) and
-         M == static_cast<Size>(dT2.nrows()));
-
-  for (Size j = 0; j < M; j++) {
-    for (Size i = 0; i < N; i++) {
-      dI1[j, i] += PiT[i] * dT1[j, i] * I[i];
-      dI2[j, i] += PiT[i] * dT2[j, i] * I[i];
-    }
-  }
-
-  for (Size i = 0; i < N; i++) {
-    I[i] = T[i] * I[i];
-  }
-}
-
 void two_level_linear_emission_step_by_step_full(
     stokvec_vector &I,
     std::vector<stokvec_matrix> &dI,
@@ -292,7 +183,7 @@ void two_level_linear_transmission_step(stokvec_vector &I,
     I[iv] = Pi.back()[iv] * I0[iv];
   }
 
-  if (nq == 0) return;
+  if (nq == 0 or N == 1) return;
 
   // Add transmittance background
 #pragma omp parallel for if (not arts_omp_in_parallel())
@@ -315,6 +206,7 @@ void two_level_linear_transmission_step(stokvec_vector &I,
     }
   }
 }
+
 void nlte_step(stokvec_vector_view I,
                const Vector &f,
                const propmat_vector_const_view &K0,
