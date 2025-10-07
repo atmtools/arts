@@ -421,25 +421,29 @@ Numeric magnetic_angles::deta_dw() const {
 }
 
 Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
-  /* The propagation matrix elemets for different polarizaitions.  PI is scaled by 1/2, SM and SP by 1/4
+  /* The propagation matrix elemets for different polarizaitions.
+
+  The 7-element returned vector represents the symmetric matrix
+  [[A,B,C,D],[B,A,U,V],[C,-U,A,W],[D,-V,-W,A]], in order [A,B,C,D,U,V,W].
+  PI is scaled by 1/2, SM and SP by 1/4 elsewhere.
 
   PI:
-        sin^2(theta)            ;   sin^2(theta) cos(2 eta) ;   sin^2(theta) sin(2 eta) ;   0                       ;
-        sin^2(theta) cos(2 eta) ;   sin^2(theta)            ;   0                       ; - sin^2(theta) sin(2 eta) ;
-        sin^2(theta) sin(2 eta) ;   0                       ;   sin^2(theta)            ;   sin^2(theta) cos(2 eta) ;
-        0                       ;   sin^2(theta) sin(2 eta) ; - sin^2(theta) cos(2 eta) ;   sin^2(theta)            ;
+        sin^2(theta)              ; -sin^2(theta) cos(2 eta) ;  sin^2(theta) sin(2 eta) ;  0                       ;
+       -sin^2(theta) cos(2 eta)   ;  sin^2(theta)            ;  0                       ;  sin^2(theta) sin(2 eta) ;
+        sin^2(theta) sin(2 eta)   ;  0                       ;  sin^2(theta)            ;  sin^2(theta) cos(2 eta) ;
+        0                         ; -sin^2(theta) sin(2 eta) ; -sin^2(theta) cos(2 eta) ;  sin^2(theta)            ;
 
   SM:
-        1 + cos^2(theta)        ; - sin^2(theta) cos(2 eta) ; - sin^2(theta) sin(2 eta) ; - 2 cos(theta)            ;
-      - sin^2(theta) cos(2 eta) ;   1 + cos^2(theta)        ; - 2 cos(theta)            ;   sin^2(theta) sin(2 eta) ;
-      - sin^2(theta) sin(2 eta) ;   2 cos(theta)            ;   1 + cos^2(theta)        ; - sin^2(theta) cos(2 eta) ;
-      - 2 cos(theta)            ; - sin^2(theta) sin(2 eta) ;   sin^2(theta) cos(2 eta) ;   1 + cos^2(theta)        ;
+        1 + cos^2(theta)          ;  sin^2(theta) cos(2 eta) ; -sin^2(theta) sin(2 eta) ;  2 cos(theta)            ;
+        sin^2(theta) cos(2 eta)   ;  1 + cos^2(theta)        ; -2 cos(theta)            ; -sin^2(theta) sin(2 eta) ;
+       -sin^2(theta) sin(2 eta)   ;  2 cos(theta)            ;  1 + cos^2(theta)        ; -sin^2(theta) cos(2 eta) ;
+        2 cos(theta)              ;  sin^2(theta) sin(2 eta) ;  sin^2(theta) cos(2 eta) ;  1 + cos^2(theta)        ;
 
   SP:
-        1 + cos^2(theta)        ; - sin^2(theta) cos(2 eta) ; - sin^2(theta) sin(2 eta) ;   2 cos(theta)            ;
-      - sin^2(theta) cos(2 eta) ;   1 + cos^2(theta)        ;   2 cos(theta)            ;   sin^2(theta) sin(2 eta) ;
-      - sin^2(theta) sin(2 eta) ; - 2 cos(theta)            ;   1 + cos^2(theta)        ; - sin^2(theta) cos(2 eta) ;
-        2 cos(theta)            ; - sin^2(theta) sin(2 eta) ;   sin^2(theta) cos(2 eta) ;   1 + cos^2(theta)        ;
+        1 + cos^2(theta)          ;  sin^2(theta) cos(2 eta) ; -sin^2(theta) sin(2 eta) ; -2 cos(theta)            ;
+        sin^2(theta) cos(2 eta)   ;  1 + cos^2(theta)        ;  2 cos(theta)            ; -sin^2(theta) sin(2 eta) ;
+       -sin^2(theta) sin(2 eta)   ; -2 cos(theta)            ;  1 + cos^2(theta)        ; -sin^2(theta) cos(2 eta) ;
+       -2 cos(theta)              ;  sin^2(theta) sin(2 eta) ;  sin^2(theta) cos(2 eta) ;  1 + cos^2(theta)        ;
   */
 
   const magnetic_angles ma(mag, los);
@@ -447,12 +451,12 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
   const Numeric eta   = ma.eta();
   const Numeric CT    = std::cos(theta);
   const Numeric ST2   = Math::pow2(std::sin(theta));
-  const Numeric BW    = ST2 * std::cos(2 * eta);
-  const Numeric CV    = ST2 * std::sin(2 * eta);
+  const Numeric Q     = ST2 * std::cos(2 * eta);
+  const Numeric U     = ST2 * std::sin(2 * eta);
   switch (p) {
-    case pol::pi: return {ST2, BW, CV, 0, 0, -CV, BW};
-    case pol::sm: return {2 - ST2, -BW, -CV, -2 * CT, -2 * CT, CV, -BW};
-    case pol::sp: return {2 - ST2, -BW, -CV, 2 * CT, 2 * CT, CV, -BW};
+    case pol::pi: return {ST2, -Q, U, 0, 0, U, Q};
+    case pol::sm: return {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q};
+    case pol::sp: return {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q};
     case pol::no: return {1, 0, 0, 0, 0, 0, 0};
   }
 
@@ -467,18 +471,18 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
   const Numeric deta   = ma.deta_du();
   const Numeric CT     = std::cos(theta);
   const Numeric ST     = std::sin(theta);
-  const Numeric S2T    = 2 * ST * CT;
-  const Numeric C2E    = std::cos(2 * eta);
-  const Numeric S2E    = std::sin(2 * eta);
-  const Numeric dST2   = S2T * dtheta;
-  const Numeric dCT2   = 2 * ST * dtheta;
-  const Numeric dCV    = 2 * ST * (CT * S2E * dtheta + ST * C2E * deta);
-  const Numeric dBW    = 2 * ST * (CT * C2E * dtheta - ST * S2E * deta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, dBW, dCV, 0, 0, -dCV, dBW};
-    case pol::sm: return {-dST2, -dBW, -dCV, dCT2, dCT2, dCV, -dBW};
-    case pol::sp: return {-dST2, -dBW, -dCV, -dCT2, -dCT2, dCV, -dBW};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
@@ -493,18 +497,18 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
   const Numeric deta   = ma.deta_dv();
   const Numeric CT     = std::cos(theta);
   const Numeric ST     = std::sin(theta);
-  const Numeric S2T    = 2 * ST * CT;
-  const Numeric C2E    = std::cos(2 * eta);
-  const Numeric S2E    = std::sin(2 * eta);
-  const Numeric dST2   = S2T * dtheta;
-  const Numeric dCT2   = 2 * ST * dtheta;
-  const Numeric dCV    = 2 * ST * (CT * S2E * dtheta + ST * C2E * deta);
-  const Numeric dBW    = 2 * ST * (CT * C2E * dtheta - ST * S2E * deta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, dBW, dCV, 0, 0, -dCV, dBW};
-    case pol::sm: return {-dST2, -dBW, -dCV, dCT2, dCT2, dCV, -dBW};
-    case pol::sp: return {-dST2, -dBW, -dCV, -dCT2, -dCT2, dCV, -dBW};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
@@ -519,18 +523,18 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
   const Numeric deta   = ma.deta_dw();
   const Numeric CT     = std::cos(theta);
   const Numeric ST     = std::sin(theta);
-  const Numeric S2T    = 2 * ST * CT;
-  const Numeric C2E    = std::cos(2 * eta);
-  const Numeric S2E    = std::sin(2 * eta);
-  const Numeric dST2   = S2T * dtheta;
-  const Numeric dCT2   = 2 * ST * dtheta;
-  const Numeric dCV    = 2 * ST * (CT * S2E * dtheta + ST * C2E * deta);
-  const Numeric dBW    = 2 * ST * (CT * C2E * dtheta - ST * S2E * deta);
+  const Numeric CE     = std::cos(2 * eta);
+  const Numeric SE     = std::sin(2 * eta);
+  const Numeric ST2    = Math::pow2(ST);
+  const Numeric dST2   = 2 * dtheta * ST * CT;
+  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, dBW, dCV, 0, 0, -dCV, dBW};
-    case pol::sm: return {-dST2, -dBW, -dCV, dCT2, dCT2, dCV, -dBW};
-    case pol::sp: return {-dST2, -dBW, -dCV, -dCT2, -dCT2, dCV, -dBW};
+    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
     case pol::no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
