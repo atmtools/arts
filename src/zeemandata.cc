@@ -11,6 +11,11 @@
 
 #include "zeemandata.h"
 
+#include <cstdio>
+#include <stdexcept>
+
+#include "arts_constexpr_math.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "matpack_data.h"
 #include "matpack_eigen.h"
@@ -29,9 +34,9 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
     auto& J = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
     auto& S = qns[QuantumNumberType::S];
-    return {Zeeman::SimpleGCaseA(
+    return {.gu = Zeeman::SimpleGCaseA(
                 Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-            Zeeman::SimpleGCaseA(
+            .gl = Zeeman::SimpleGCaseA(
                 Omega.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
   }
 
@@ -44,9 +49,10 @@ Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
     auto& J = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
     auto& S = qns[QuantumNumberType::S];
-    return {
-        Zeeman::SimpleGCaseB(N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
-        Zeeman::SimpleGCaseB(N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+    return {.gu = Zeeman::SimpleGCaseB(
+                N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
+            .gl = Zeeman::SimpleGCaseB(
+                N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
   }
 
   return {NAN, NAN};
@@ -194,7 +200,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "OCS-624") {
     constexpr Numeric gperp =
@@ -211,7 +217,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "CO2-626") {
     constexpr Numeric gperp =
@@ -228,7 +234,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara)};
+              closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   }
 
@@ -242,73 +248,58 @@ Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
   *this = m;
 }
 
-Eigen::Vector3d los_xyz_by_uvw_local(Numeric u, Numeric v, Numeric w) {
-  return Eigen::Vector3d(v, u, w).normalized();
-}
-
-Eigen::Vector3d los_xyz_by_za_local(Numeric z, Numeric a) {
-  using std::cos;
-  using std::sin;
-  return Eigen::Vector3d(cos(a) * sin(z), sin(a) * sin(z), cos(z)).normalized();
-}
-
-Eigen::Vector3d ev_xyz_by_za_local(Numeric z, Numeric a) {
-  using std::cos;
-  using std::sin;
-  return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z)).normalized();
-}
-
 Zeeman::Derived Zeeman::FromGrids(
     Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept {
+  using Math::pow2, Math::pow3, Conversion::sind, Conversion::cosd;
+  using std::acos, std::hypot, std::sqrt, std::atan2;
+
   Derived output;
+  const Numeric sa = sind(a);
+  const Numeric ca = cosd(a);
+  const Numeric sz = sind(z);
+  const Numeric cz = cosd(z);
+  const Numeric H = hypot(u, v, w);
+  const Numeric uct = ca * sz * v + cz * w + sa * sz * u;
+  const Numeric duct = u * sa * cz + v * ca * cz - w * sz;
 
-  // If there is no magnetic field, bailout quickly
-  output.H = std::hypot(u, v, w);
-  if (output.H == 0) {
-    output = FromPreDerived(0, 0, 0);
+  output.H = H;
+  if (H == 0) {
+    output.dH_du = 0;
+    output.dH_dv = 0;
+    output.dH_dw = 0;
   } else {
-    // XYZ vectors normalized
-    const Eigen::Vector3d n = los_xyz_by_za_local(z, a);
-    const Eigen::Vector3d ev = ev_xyz_by_za_local(z, a);
-    const Eigen::Vector3d nH = los_xyz_by_uvw_local(u, v, w);
+    const Numeric inv = 1.0 / H;
+    output.dH_du = u * inv;
+    output.dH_dv = v * inv;
+    output.dH_dw = w * inv;
+  }
 
-    // Normalized vector (which are also the magnetic field derivatives)
-    output.dH_dv = nH[0];
-    output.dH_du = nH[1];
-    output.dH_dw = nH[2];
+  output.theta = H == 0 ? 0 : acos(uct / H);
+  const Numeric rat = pow2(uct / H);
+  if (H == 0.0 or rat == 1.0) {
+    output.dtheta_du = 0;
+    output.dtheta_dv = 0;
+    output.dtheta_dw = 0;
+  } else {
+    const Numeric inv = 1.0 / (sqrt(1.0 - rat) * pow3(H));
+    const Numeric nomu = u * uct - sa * sz * pow2(H);
+    const Numeric nomv = v * uct - ca * sz * pow2(H);
+    const Numeric nomw = w * uct - cz * pow2(H);
+    output.dtheta_du = nomu * inv;
+    output.dtheta_dv = nomv * inv;
+    output.dtheta_dw = nomw * inv;
+  }
 
-    // Compute theta (and its derivatives if possible)
-    const Numeric cos_theta = n.dot(nH);
-    const Numeric sin_theta = std::sqrt(1 - Math::pow2(cos_theta));
-    output.theta = std::acos(cos_theta);
-    if (sin_theta not_eq 0) {
-      const Eigen::Vector3d dtheta =
-          (nH * cos_theta - n) / (output.H * sin_theta);
-      output.dtheta_dv = dtheta[0];
-      output.dtheta_du = dtheta[1];
-      output.dtheta_dw = dtheta[2];
-    } else {
-      output.dtheta_dv = 0;
-      output.dtheta_du = 0;
-      output.dtheta_dw = 0;
-    }
-
-    // Compute eta (and its derivatives if possible)
-    const Eigen::Vector3d inplane = nH - nH.dot(n) * n;
-    const Numeric y = ev.cross(inplane).dot(n);
-    const Numeric x = ev.dot(inplane);
-    output.eta = std::atan2(y, x);
-    if (x not_eq 0 or y not_eq 0) {
-      const Eigen::Vector3d deta =
-          n.cross(nH) / (output.H * (Math::pow2(x) + Math::pow2(y)));
-      output.deta_dv = deta[0];
-      output.deta_du = deta[1];
-      output.deta_dw = deta[2];
-    } else {
-      output.deta_dv = 0;
-      output.deta_du = 0;
-      output.deta_dw = 0;
-    }
+  output.eta = -atan2(ca * u - sa * v, -duct);
+  if (H == 0.0) {
+    output.deta_du = 0;
+    output.deta_dv = 0;
+    output.deta_dw = 0;
+  } else {
+    const Numeric inv = 1.0 / (pow2(ca * u - sa * v) + pow2(duct));
+    output.deta_du = (cz * v - ca * sz * w) * inv;
+    output.deta_dv = (sa * sz * w - cz * u) * inv;
+    output.deta_dw = sz * (ca * u - sa * v) * inv;
   }
 
   return output;
@@ -319,14 +310,18 @@ Numeric Model::Strength(Rational Ju,
                         Rational Jl,
                         Zeeman::Polarization type,
                         Index n) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(type not_eq Zeeman::Polarization::None);
+  if (type == Zeeman::Polarization::None) return 1.0;
+
   using Math::pow2;
 
   auto ml = Ml(Ju, Jl, type, n);
   auto mu = Mu(Ju, Jl, type, n);
+
+  if (abs(ml) > Jl or abs(mu) > Ju) return 0.0;
+
   auto dm = Rational(dM(type));
-  return PolarizationFactor(type) *
-         pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
+  const Numeric C = PolarizationFactor(type);
+  return C * pow2(wigner3j(Jl, Rational(1), Ju, ml, dm, -mu));
 }
 
 std::ostream& operator<<(std::ostream& os, const Model& m) {
@@ -350,57 +345,44 @@ std::istream& operator>>(bifstream& bif, Model& m) {
 }
 
 AllPolarizationVectors AllPolarization(Numeric theta, Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), CT = std::cos(theta), ST2 = ST * ST,
-                CT2 = CT * CT, ST2C2E = ST2 * std::cos(2 * eta),
-                ST2S2E = ST2 * std::sin(2 * eta);
+  const Numeric CT = std::cos(theta);
+  const Numeric ST2 = Math::pow2(std::sin(theta));
+  const Numeric Q = ST2 * std::cos(2 * eta);
+  const Numeric U = ST2 * std::sin(2 * eta);
 
-  AllPolarizationVectors pv;
-  pv.sm = PolarizationVector(
-      1 + CT2, ST2C2E, ST2S2E, 2 * CT, 4 * CT, 2 * ST2S2E, -2 * ST2C2E);
-  pv.pi =
-      PolarizationVector(ST2, -ST2C2E, -ST2S2E, 0, 0, -2 * ST2S2E, 2 * ST2C2E);
-  pv.sp = PolarizationVector(
-      1 + CT2, ST2C2E, ST2S2E, -2 * CT, -4 * CT, 2 * ST2S2E, -2 * ST2C2E);
-  return pv;
+  return {
+      .sm = {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q},
+      .pi = {ST2, -Q, U, 0, 0, U, Q},
+      .sp = {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q},
+  };
 }
 
 AllPolarizationVectors AllPolarization_dtheta(Numeric theta,
                                               const Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), CT = std::cos(theta),
-                C2E = std::cos(2 * eta), S2E = std::sin(2 * eta), dST = CT,
-                dST2 = 2 * ST * dST, dCT = -ST, dST2C2E = dST2 * C2E,
-                dST2S2E = dST2 * S2E, dCT2 = 2 * CT * dCT;
+  const Numeric ST = std::sin(theta);
+  const Numeric dST2 = 2 * std::cos(theta) * ST;
+  const Numeric dQ = std::cos(2 * eta) * dST2;
+  const Numeric dU = std::sin(2 * eta) * dST2;
+  const Numeric dCT = -ST;
 
-  AllPolarizationVectors pv;
-  pv.sm = PolarizationVector(
-      dCT2, dST2C2E, dST2S2E, 2 * dCT, 4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
-  pv.pi = PolarizationVector(
-      dST2, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
-  pv.sp = PolarizationVector(
-      dCT2, dST2C2E, dST2S2E, -2 * dCT, -4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
-  return pv;
+  return {.sm = {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ},
+          .pi = {dST2, -dQ, dU, 0, 0, dU, dQ},
+          .sp = {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ}};
 }
 
 AllPolarizationVectors AllPolarization_deta(Numeric theta,
                                             Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), ST2 = ST * ST, C2E = std::cos(2 * eta),
-                S2E = std::sin(2 * eta), dST2C2E = -2 * ST2 * S2E,
-                dST2S2E = 2 * ST2 * C2E;
+  const Numeric ST2 = Math::pow2(std::sin(theta));
+  const Numeric dQ = -2 * std::sin(2 * eta) * ST2;
+  const Numeric dU = 2 * std::cos(2 * eta) * ST2;
 
-  AllPolarizationVectors pv;
-  pv.sm =
-      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
-  pv.pi = PolarizationVector(
-      0, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
-  pv.sp =
-      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
-  return pv;
+  return {.sm = {0, dQ, -dU, 0, 0, -dU, -dQ},
+          .pi = {0, -dQ, dU, 0, 0, dU, dQ},
+          .sp = {0, dQ, -dU, 0, 0, -dU, -dQ}};
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
-                                             Polarization type) noexcept {
+                                             Polarization type) {
   switch (type) {
     case Polarization::SigmaMinus:
       return data.sm;
@@ -408,11 +390,10 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
       return data.pi;
     case Polarization::SigmaPlus:
       return data.sp;
-    case Polarization::None:
-      return data.sm;  //! This should never be reached
+    case Polarization::None:;
   }
+  throw std::logic_error("Unknown polarization type");
 }
-#pragma GCC diagnostic pop
 
 void sum(PropagationMatrix& pm,
          const ComplexVectorView& abs,
@@ -428,7 +409,8 @@ void sum(PropagationMatrix& pm,
   const ExhaustiveConstVectorView pol_imag(polvec.dis);
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * matpack::eigen::col_vec(pol_real);
+  matpack::eigen::mat(out).leftCols<4>().noalias() +=
+      matpack::eigen::row_vec(abs.real()) * matpack::eigen::col_vec(pol_real);
   if (do_phase)
     matpack::eigen::mat(out).rightCols<3>().noalias() +=
         matpack::eigen::row_vec(abs.imag()) * matpack::eigen::col_vec(pol_imag);
@@ -457,16 +439,20 @@ void dsum(PropagationMatrix& pm,
   const ExhaustiveConstVectorView dpolvec_deta_real(dpolvec_deta.att);
   const ExhaustiveConstVectorView dpolvec_deta_imag(dpolvec_deta.dis);
 
-  auto da_r =
-      (dt * matpack::eigen::col_vec(dpolvec_dtheta_real) + de * matpack::eigen::col_vec(dpolvec_deta_real));
-  auto da_i =
-      (dt * matpack::eigen::col_vec(dpolvec_dtheta_imag) + de * matpack::eigen::col_vec(dpolvec_deta_imag));
+  auto da_r = (dt * matpack::eigen::col_vec(dpolvec_dtheta_real) +
+               de * matpack::eigen::col_vec(dpolvec_deta_real));
+  auto da_i = (dt * matpack::eigen::col_vec(dpolvec_dtheta_imag) +
+               de * matpack::eigen::col_vec(dpolvec_deta_imag));
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
   matpack::eigen::mat(out).leftCols<4>().noalias() +=
-      dH * matpack::eigen::row_vec(dabs.real()) * matpack::eigen::col_vec(pol_real) + matpack::eigen::row_vec(abs.real()) * da_r;
+      dH * matpack::eigen::row_vec(dabs.real()) *
+          matpack::eigen::col_vec(pol_real) +
+      matpack::eigen::row_vec(abs.real()) * da_r;
   if (do_phase)
     matpack::eigen::mat(out).rightCols<3>().noalias() +=
-        dH * matpack::eigen::row_vec(dabs.imag()) * matpack::eigen::col_vec(pol_imag) + matpack::eigen::row_vec(abs.imag()) * da_i;
+        dH * matpack::eigen::row_vec(dabs.imag()) *
+            matpack::eigen::col_vec(pol_imag) +
+        matpack::eigen::row_vec(abs.imag()) * da_i;
 }
 }  // namespace Zeeman

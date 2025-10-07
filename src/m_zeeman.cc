@@ -239,8 +239,8 @@ void zeeman_magnetic_fieldCalc(Workspace& ws,
                   deta_dw] = Zeeman::FromGrids(ppvar_mag(0, ip),
                                                ppvar_mag(1, ip),
                                                ppvar_mag(2, ip),
-                                               deg2rad(rtp_los[0]),
-                                               deg2rad(rtp_los[1]));
+                                               rtp_los[0],
+                                               rtp_los[1]);
       zeeman_magnetic_field[ipath](ip, 0) = H;
       zeeman_magnetic_field[ipath](ip, 1) = rad2deg(theta);
       zeeman_magnetic_field[ipath](ip, 2) = rad2deg(eta);

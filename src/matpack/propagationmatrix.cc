@@ -1920,8 +1920,8 @@ void PropagationMatrix::MatrixAtPosition(MatrixView ret,
       ret(0, 3) = ret(3, 0) = mdata(ia, iz, iv, 3); /* FALLTHROUGH */
     case 3:
       ret(2, 2) = mdata(ia, iz, iv, 0);
-      ret(2, 1) = -mdata(ia, iz, iv, 3);
-      ret(1, 2) = mdata(ia, iz, iv, 3);
+      ret(2, 1) = -mdata(ia, iz, iv, mstokes_dim);
+      ret(1, 2) = mdata(ia, iz, iv, mstokes_dim);
       ret(2, 0) = ret(0, 2) = mdata(ia, iz, iv, 2); /* FALLTHROUGH */
     case 2:
       ret(1, 1) = mdata(ia, iz, iv, 0);

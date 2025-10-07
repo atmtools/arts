@@ -82,8 +82,8 @@ void zeeman_on_the_fly(
           : Zeeman::FromGrids(rtp_mag[0],
                               rtp_mag[1],
                               rtp_mag[2],
-                              Conversion::deg2rad(rtp_los[0]),
-                              Conversion::deg2rad(rtp_los[1]));
+                              rtp_los[0],
+                              rtp_los[1]);
 
   // Polarization
   const auto polarization_scale_data = Zeeman::AllPolarization(X.theta, X.eta);

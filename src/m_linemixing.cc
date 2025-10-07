@@ -248,11 +248,8 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                      "Please set lbl_checked true to use this function");
 
   // Polarization
-  const auto Z = Zeeman::FromGrids(rtp_mag[0],
-                                   rtp_mag[1],
-                                   rtp_mag[2],
-                                   Conversion::deg2rad(rtp_los[0]),
-                                   Conversion::deg2rad(rtp_los[1]));
+  const auto Z = Zeeman::FromGrids(
+      rtp_mag[0], rtp_mag[1], rtp_mag[2], rtp_los[0], rtp_los[1]);
   const auto polarization_scale_data = Zeeman::AllPolarization(Z.theta, Z.eta);
   const auto polarization_scale_dtheta_data =
       Zeeman::AllPolarization_dtheta(Z.theta, Z.eta);

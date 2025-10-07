@@ -64,6 +64,7 @@ arts.Copy(arts.ppath_agenda, ppath_agenda_step_by_step)
 
 arts.mat = pyarts.arts.Matrix()
 
+
 @pyarts.workspace.arts_agenda(ws=arts)
 def iy_main_agenda_emission(arts):
     arts.ppathCalc()
@@ -176,7 +177,8 @@ arts.sensor_pos = np.zeros((NR, 3))
 arts.sensor_pos.value.value[:, 0] = 300e3
 arts.sensor_pos.value.value[:, 1] = np.linspace(-80, 80, NR)
 arts.sensor_los = np.zeros((NR, 2))
-arts.sensor_los.value.value[:, 0] = 180
+arts.sensor_los.value.value[:, 0] = 170
+arts.sensor_los.value.value[:, 1] = 45
 arts.sensorOff()
 
 # %% Computechecks
@@ -273,15 +275,7 @@ arts.zeeman_magnetic_fieldCalc(matx, path)
 
 assert np.allclose(
     [x[0, 0] for x in matx],
-    [
-        4.414169339007655e-05,
-        2.924084795330217e-05,
-        2.3345231233672053e-05,
-        2.7087530308000868e-05,
-        3.015775010835977e-05,
-        3.4444079230109504e-05,
-        4.283875296168632e-05,
-        4.8730077343922454e-05,
-        5.253072559785391e-05,
-    ],
+    [4.40001161e-05, 2.91362731e-05, 2.33472791e-05, 2.71573445e-05,
+     3.01990652e-05, 3.45677435e-05, 4.29422942e-05, 4.87887356e-05,
+     5.25797748e-05],
 ), "Magnetic field strength incorrect"

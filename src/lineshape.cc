@@ -3120,6 +3120,7 @@ void cutoff_loop_sparse_linear(
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
+    if (Sz == 0.0) continue;
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H,
                   band.mirroring == Absorption::MirroringType::Manual);
@@ -3204,6 +3205,7 @@ void cutoff_loop_sparse_triple(
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
+    if (Sz == 0.0) continue;
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H,
                   band.mirroring == Absorption::MirroringType::Manual);
@@ -3312,6 +3314,7 @@ void cutoff_loop(ComputeData &com, Normalizer ls_norm,
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
+    if (Sz == 0.0) continue;
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H,
                   band.mirroring == Absorption::MirroringType::Manual);
