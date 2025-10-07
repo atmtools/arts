@@ -500,11 +500,11 @@ struct Derived {
 
 /** Computes the derived plane from ARTS grids
  * 
- * @param[in] u Magnetic field u-parameter
- * @param[in] v Magnetic field b-parameter
- * @param[in] w Magnetic field w-parameter
- * @param[in] z Zenith angle
- * @param[in] a Azimuth angle
+ * @param[in] u Magnetic field u-parameter in teslas - east-positive
+ * @param[in] v Magnetic field b-parameter in teslas - north-positive
+ * @param[in] w Magnetic field w-parameter in teslas - up-positive
+ * @param[in] z Zenith angle in degrees
+ * @param[in] a Azimuth angle in degrees
  * 
  * @return The derived plane
  */
