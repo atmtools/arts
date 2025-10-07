@@ -56,8 +56,8 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: mac-default-clang
-            os: macos-13
+          - name: macintel-default-clang
+            os: macos-15-intel
             preset: default-clang-conda
             check: "yes"
             doc: "no"
@@ -65,7 +65,7 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: macm1-default-clang
+          - name: mac-default-clang
             os: macos-14
             preset: default-clang-conda
             check: "yes"
@@ -74,7 +74,7 @@ jobs:
             jbuild: 2
             jcheck: 2
 
-          - name: macm1-debug-clang
+          - name: mac-debug-clang
             os: macos-14
             preset: debug-clang-conda
             check: "yes"
