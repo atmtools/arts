@@ -64,9 +64,9 @@ class rst:
 
 def pyrst(str):
     if str.endswith(".py"):
-        stem = str.rstrip(".py")
+        stem = str.removesuffix(".py")
     elif str.endswith(".rst"):
-        stem = str.rstrip(".rst")
+        stem = str.removesuffix(".rst")
     return stem + ".py", stem + ".rst"
 
 
@@ -144,7 +144,7 @@ def from_list(lst, path, save_path, with_plots):
 
         if len(files) > 1 and rstf != INTROFILE:
             heading = title_to_heading(
-                rstf.rstrip(".rst") if rstf else py.rstrip(".py")
+                rstf.removesuffix(".rst") if rstf else py.removesuffix(".py")
             )
             out += f"{heading}\n{'-' * len(heading)}\n\n"
 
