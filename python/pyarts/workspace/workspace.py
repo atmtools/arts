@@ -1,7 +1,7 @@
 import os
 import sys
 from ast import parse, Call, Name, Expression, Expr, FunctionDef, \
-    Starred, Module, Str
+    Starred, Module, Constant
 from inspect import getsource, getclosurevars, ismodule, isclass
 from copy import copy
 from typing import Callable
@@ -254,7 +254,7 @@ you might call. Everything else is undefined behaviour. ;-)
             call = e.value
 
         if not isinstance(call, Call):
-            if isinstance(call, Str):
+            if isinstance(call, Constant):
                 continue
             elif allow_callbacks:
                 callback_body += [e]
