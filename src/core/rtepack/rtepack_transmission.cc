@@ -91,7 +91,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
     C3 can expand as (1.0/6.0 + (x2 - y2) / 120.0)
     to avoid numerical issues when x2 and y2 are small.
 
-    The derivatives are not 
+    The derivatives are not as simple and may require separate expansions for numerical stability.
   */
 
   C0 = either_zero ? (1.0 + x2 * y2 / 24.0) : (cy * x2 + cx * y2) * inv_x2y2;
@@ -439,7 +439,7 @@ void two_level_exp(std::vector<muelmat_vector> &T,
 
   ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(r.size()),
                      "Must have one fewer layer distances ({}) than levels ({}) in K",
-                     N-1,
+                     (N - 1),
                      N);
 
   ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(dr.nrows()),
@@ -496,8 +496,8 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                   dK[i - 1],
                   dK[i],
                   r[i-1],
-                  dr[0][i-1],
-                  dr[1][i-1]);
+                  dr[0][i - 1],
+                  dr[1][i - 1]);
   }
 }
 }  // namespace rtepack

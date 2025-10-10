@@ -45,8 +45,8 @@ def plot(
     
     if freqs is None:
         freqs = np.arange(len(transmission_matrix))
-    assert len(freqs) == len(transmission_matrix), \
-            "Length of freqs must match length of transmission_matrix"
+    if len(freqs) != len(transmission_matrix):
+        raise ValueError("Length of freqs must match length of transmission_matrix")
     
     if fig is None:
         if not is_polar:
