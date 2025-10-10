@@ -1,6 +1,7 @@
 #include "rtepack_transmission.h"
 
 #include <arts_constexpr_math.h>
+#include <arts_omp.h>
 
 #include <algorithm>
 
@@ -10,21 +11,18 @@
 namespace rtepack {
 static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
-tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
-  a     = -0.5 * r * (k1.A() + k2.A());
-  b     = -0.5 * r * (k1.B() + k2.B());
-  c     = -0.5 * r * (k1.C() + k2.C());
-  d     = -0.5 * r * (k1.D() + k2.D());
-  u     = -0.5 * r * (k1.U() + k2.U());
-  v     = -0.5 * r * (k1.V() + k2.V());
-  w     = -0.5 * r * (k1.W() + k2.W());
-  exp_a = std::exp(a);
+tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
+    : a{-0.5 * r * (k1.A() + k2.A())},
+      exp_a{std::exp(a)},
+      polarized(k1.is_polarized() or k2.is_polarized()) {
+  if (not polarized) return;
 
-  unpolarized =
-      b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.;
-  if (unpolarized) {
-    return;
-  }
+  b = -0.5 * r * (k1.B() + k2.B());
+  c = -0.5 * r * (k1.C() + k2.C());
+  d = -0.5 * r * (k1.D() + k2.D());
+  u = -0.5 * r * (k1.U() + k2.U());
+  v = -0.5 * r * (k1.V() + k2.V());
+  w = -0.5 * r * (k1.W() + k2.W());
 
   b2 = b * b;
   c2 = c * c;
@@ -94,11 +92,10 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
     The derivatives are not as simple and may require separate expansions for numerical stability.
   */
 
-  C0 = either_zero ? (1.0 + x2 * y2 / 24.0) : (cy * x2 + cx * y2) * inv_x2y2;
-  C1 = either_zero ? (1.0 + x2 * y2 / 120.0)
-                   : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
-  C2 = both_zero ? (0.5 + (x2 - y2) / 24.0) : (cx - cy) * inv_x2y2;
-  C3 = both_zero ? (1.0 / 6.0 + (x2 - y2) / 120.0)
+  C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
+  C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+  C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
+  C3 = both_zero ? 1.0 / 6.0
                  : (x_zero   ? 1.0 - sy * iy
                     : y_zero ? sx * ix - 1.0
                              : sx * ix - sy * iy) *
@@ -107,7 +104,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
 
 muelmat tran::operator()() const noexcept {
   // Do the calculation exp(a) * (C0 * I + C1 * K + C2 * K^2 + C3 * K^3)
-  return unpolarized
+  return not polarized
              ? muelmat{exp_a}
              : muelmat{
                    exp_a * (C0 + C2 * (b2 + c2 + d2)),
@@ -159,9 +156,7 @@ muelmat tran::deriv(const muelmat &t,
                     const Numeric r,
                     const Numeric dr) const {
   const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A()));
-  if (unpolarized) {
-    return {da * exp_a};
-  }
+  if (not polarized) return {da * exp_a};
 
   const Numeric db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B()));
   const Numeric dc = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C()));
@@ -437,15 +432,17 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   ARTS_USER_ERROR_IF(
       N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
 
-  ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(r.size()),
-                     "Must have one fewer layer distances ({}) than levels ({}) in K",
-                     (N - 1),
-                     N);
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(r.size()),
+      "Must have one fewer layer distances ({}) than levels ({}) in K",
+      (N - 1),
+      N);
 
-  ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(dr.nrows()),
-                     "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
-                     N-1,
-                     N);
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(dr.nrows()),
+      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
+      N - 1,
+      N);
 
   T.resize(N);
 
@@ -487,6 +484,7 @@ void two_level_exp(std::vector<muelmat_vector> &T,
       "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
       dr.npages());
 
+#pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
     two_level_exp(T[i],
                   dT[i - 1][0],
@@ -495,9 +493,9 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                   K[i],
                   dK[i - 1],
                   dK[i],
-                  r[i-1],
-                  dr[0][i - 1],
-                  dr[1][i - 1]);
+                  r[i - 1],
+                  dr[0, i - 1],
+                  dr[1, i - 1]);
   }
 }
 }  // namespace rtepack
