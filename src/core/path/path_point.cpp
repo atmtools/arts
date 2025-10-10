@@ -38,29 +38,28 @@ Vector2 mirror(const Vector2 los) {
 }
 
 namespace {
-constexpr Numeric surface_altitude(const SurfaceField& surface_field,
-                                   const Numeric lat,
-                                   const Numeric lon) {
+Numeric surface_altitude(const SurfaceField& surface_field,
+                         const Numeric lat,
+                         const Numeric lon) {
   return surface_field.contains(SurfaceKey::h)
              ? surface_field.single_value(SurfaceKey::h, lat, lon)
              : 0.0;
 }
 
-constexpr std::pair<Numeric, Numeric> minmax_surface_altitude(
+std::pair<Numeric, Numeric> minmax_surface_altitude(
     const SurfaceField& surface_field) {
   return surface_field.contains(SurfaceKey::h)
              ? surface_field.minmax_single_value(SurfaceKey::h)
              : std::pair<Numeric, Numeric>{0.0, 0.0};
 }
 
-constexpr Numeric find_crossing_with_surface_z(
-    const Vector3 pos,
-    const Vector2 los,
-    const Vector3 ecef,
-    const Vector3 decef,
-    const SurfaceField& surface_field,
-    const Numeric& safe_search_accuracy,
-    const bool search_safe) {
+Numeric find_crossing_with_surface_z(const Vector3 pos,
+                                     const Vector2 los,
+                                     const Vector3 ecef,
+                                     const Vector3 decef,
+                                     const SurfaceField& surface_field,
+                                     const Numeric& safe_search_accuracy,
+                                     const bool search_safe) {
   // Find min and max surface altitude
   const auto [z_min, z_max] = minmax_surface_altitude(surface_field);
 
@@ -212,7 +211,7 @@ PropagationPathPoint init(const Vector3& pos,
 namespace {
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
-constexpr const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
+const Numeric& min_geq0(const Numeric& a, const Numeric& b) noexcept {
   const bool at = a > 0;
   const bool bt = b > 0;
   return at and bt ? std::min(a, b) : at ? a : bt ? b : nan;
@@ -252,7 +251,7 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
 }
 
 namespace {
-constexpr std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
+std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
     const Numeric lat,
     const Vector3 ecef,
     const Vector3 decef,
@@ -320,11 +319,11 @@ constexpr std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
   return {l, (&l == &l1) ? l2 : l1};
 }
 
-constexpr Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
-                                                     const Vector3 pos,
-                                                     const Vector2 los,
-                                                     const Vector3 ecef,
-                                                     const Vector3 decef) {
+Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
+                                           const Vector3 pos,
+                                           const Vector2 los,
+                                           const Vector3 ecef,
+                                           const Vector3 decef) {
   if ((los[1] == 0) or (nonstd::abs(los[1]) == 180) or
       (pos[2] > lon and los[1] > 0) or (pos[2] < lon and los[1] < 0)) {
     return nan;
@@ -335,12 +334,12 @@ constexpr Numeric line_ellipsoid_longitude_intersect(const Numeric lon,
 }
 
 template <bool mirror_los = true>
-constexpr PropagationPathPoint path_at_distance(const Vector3 ecef,
-                                                const Vector3 decef,
-                                                const Vector2 ell,
-                                                const Numeric l,
-                                                const PathPositionType start,
-                                                const PathPositionType end) {
+PropagationPathPoint path_at_distance(const Vector3 ecef,
+                                      const Vector3 decef,
+                                      const Vector2 ell,
+                                      const Numeric l,
+                                      const PathPositionType start,
+                                      const PathPositionType end) {
   const auto [pos, los] = poslos_at_distance(ecef, decef, ell, l);
 
   if constexpr (mirror_los)
@@ -479,7 +478,7 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
   ARTS_USER_ERROR("Invalid start position type");
 }
 
-constexpr bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
+bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
 }  // namespace
 
 ArrayOfPropagationPathPoint& set_geometric_extremes(
