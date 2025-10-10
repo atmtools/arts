@@ -5,6 +5,7 @@
 #include <atm.h>
 #include <configtypes.h>
 #include <debug.h>
+#include <geodetic.h>
 #include <nonstd.h>
 #include <surf.h>
 
@@ -37,319 +38,6 @@ Vector2 mirror(const Vector2 los) {
 }
 
 namespace {
-/** Size of north and south poles
-  
-    Latitudes with an absolute value > POLELAT are considered to be on
-    the south or north pole. This is needed for definition of azimuth.
-*/
-constexpr Numeric POLELAT = 90.0 - 1e-8;
-
-/** Threshold for non-spherical ellipsoid
-
-    If the two radii of an ellipsoid differ with less than this value, it is
-    treated as spherical for efficiency reasons.
-*/
-constexpr Numeric ellipsoid_radii_threshold = 1e-3;
-
-constexpr bool is_polar_ecef(const Vector3 ecef) {
-  constexpr Numeric test = 1e-8;
-  return nonstd::abs(ecef[0]) < test and nonstd::abs(ecef[1]) < test;
-}
-
-Vector3 los2enu(const Vector2 los) {
-  const Numeric zarad = Conversion::deg2rad(los[0]);
-  const Numeric aarad = Conversion::deg2rad(los[1]);
-  const Numeric st    = std::sin(zarad);
-  return {st * std::sin(aarad), st * std::cos(aarad), std::cos(zarad)};
-}
-
-Vector3 geocentric2ecef(const Vector3 pos) {
-  const Numeric latrad = Conversion::deg2rad(pos[1]);
-  const Numeric lonrad = Conversion::deg2rad(pos[2]);
-  Vector3 ecef;
-  ecef[0] = pos[0] * std::cos(latrad);  // Common term for x and z
-  ecef[1] = ecef[0] * std::sin(lonrad);
-  ecef[0] = ecef[0] * std::cos(lonrad);
-  ecef[2] = pos[0] * std::sin(latrad);
-  return ecef;
-}
-
-constexpr bool is_ellipsoid_spherical(const Vector2 ellipsoid) {
-  return nonstd::abs(ellipsoid[0] - ellipsoid[1]) < ellipsoid_radii_threshold;
-}
-
-constexpr Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
-  Vector3 ecef;
-
-  // Use geocentric function if geoid is spherical
-  if (is_ellipsoid_spherical(refellipsoid)) {
-    ecef = geocentric2ecef({pos[0] + refellipsoid[0], pos[1], pos[2]});
-  } else {
-    // See https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
-    const Numeric latrad = Conversion::deg2rad(pos[1]);
-    const Numeric lonrad = Conversion::deg2rad(pos[2]);
-    const Numeric sinlat = std::sin(latrad);
-    const Numeric coslat = std::cos(latrad);
-    const Numeric a2     = refellipsoid[0] * refellipsoid[0];
-    const Numeric b2     = refellipsoid[1] * refellipsoid[1];
-    const Numeric N =
-        a2 / std::sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
-    const Numeric nhcos = (N + pos[0]) * coslat;
-    ecef[0]             = nhcos * std::cos(lonrad);
-    ecef[1]             = nhcos * std::sin(lonrad);
-    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
-  }
-
-  return ecef;
-}
-}  // namespace
-
-std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
-                                                 const Vector2 los,
-                                                 const Vector2 ell) noexcept {
-  // lat = +-90
-  // For lat = +- 90 the azimuth angle gives the longitude along which the
-  // LOS goes
-  // At the poles, no difference between geocentric and geodetic zenith
-  Vector3 ecef, decef;
-  if (nonstd::abs(pos[1]) > POLELAT) {
-    const Numeric s     = sign(pos[1]);
-    const Numeric zarad = Conversion::deg2rad(los[0]);
-    const Numeric aarad = Conversion::deg2rad(los[1]);
-    ecef[0]             = 0;
-    ecef[1]             = 0;
-    ecef[2]             = s * (pos[0] + ell[1]);
-    decef[2]            = s * std::cos(zarad);
-    decef[0]            = std::sin(zarad);
-    decef[1]            = decef[0] * std::sin(aarad);
-    decef[0]            = decef[0] * std::cos(aarad);
-  }
-
-  else {
-    const Numeric latrad = Conversion::deg2rad(pos[1]);
-    const Numeric lonrad = Conversion::deg2rad(pos[2]);
-    const Numeric coslat = std::cos(latrad);
-    const Numeric sinlat = std::sin(latrad);
-    const Numeric coslon = std::cos(lonrad);
-    const Numeric sinlon = std::sin(lonrad);
-
-    ecef = geodetic2ecef(pos, ell);
-
-    const Vector3 enu = los2enu(los);
-
-    // See
-    // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-    decef[0] =
-        -sinlon * enu[0] - sinlat * coslon * enu[1] + coslat * coslon * enu[2];
-    decef[1] =
-        coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2];
-    decef[2] = coslat * enu[1] + sinlat * enu[2];
-  }
-
-  return {ecef, decef};
-}
-
-Numeric intersection_altitude(const Vector3 ecef,
-                              const Vector3 decef,
-                              const Vector2 refellipsoid,
-                              const Numeric altitude,
-                              const Numeric l_min) {
-  Numeric l;
-  Vector2 ellipsoid{refellipsoid};
-  ellipsoid += altitude;
-
-  // Code taken from Atmlab's ellipsoid_intersection
-
-  // Spherical case
-  if (is_ellipsoid_spherical(ellipsoid)) {
-    const Numeric p =
-        ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
-    const Numeric pp = p * p;
-    const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
-                      ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
-    if (q > pp)
-      l = l_min - 1.0;
-    else {
-      const Numeric sq = std::sqrt(pp - q);
-      l                = min_geq(-p - sq, -p + sq, l_min);
-    }
-  }
-
-  // Ellipsoid case
-  else {
-    // Based on https://medium.com/@stephenhartzell/
-    // satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
-    const Numeric a   = ellipsoid[0];
-    const Numeric b   = ellipsoid[0];
-    const Numeric c   = ellipsoid[1];
-    const Numeric a2  = a * a;
-    const Numeric b2  = b * b;
-    const Numeric c2  = c * c;
-    const Numeric x2  = ecef[0] * ecef[0];
-    const Numeric y2  = ecef[1] * ecef[1];
-    const Numeric z2  = ecef[2] * ecef[2];
-    const Numeric dx2 = decef[0] * decef[0];
-    const Numeric dy2 = decef[1] * decef[1];
-    const Numeric dz2 = decef[2] * decef[2];
-    const Numeric rad = a2 * b2 * dz2 + a2 * c2 * dy2 - a2 * dy2 * z2 +
-                        2 * a2 * decef[1] * decef[2] * ecef[1] * ecef[2] -
-                        a2 * dz2 * y2 + b2 * c2 * dx2 - b2 * dx2 * z2 +
-                        2 * b2 * decef[0] * decef[2] * ecef[0] * ecef[2] -
-                        b2 * dz2 * x2 - c2 * dx2 * y2 +
-                        2 * c2 * decef[0] * decef[1] * ecef[0] * ecef[1] -
-                        c2 * dy2 * x2;
-    if (rad < 0)
-      l = -1.0;
-    else {
-      const Numeric val = -a2 * b2 * decef[2] * ecef[2] -
-                          a2 * c2 * decef[1] * ecef[1] -
-                          b2 * c2 * decef[0] * ecef[0];
-      const Numeric mag = a2 * b2 * dz2 + a2 * c2 * dy2 + b2 * c2 * dx2;
-      const Numeric abc = a * b * c * std::sqrt(rad);
-      l                 = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
-    }
-  }
-  return l;
-}
-
-namespace {
-Vector3 ecef2geocentric(const Vector3 ecef) {
-  assert(dot(ecef, ecef) > 0);
-
-  Vector3 pos;
-  pos[0] = std::hypot(ecef[0], ecef[1], ecef[2]);
-  pos[1] = Conversion::asind(ecef[2] / pos[0]);
-  pos[2] = Conversion::atan2d(ecef[1], ecef[0]);
-  return pos;
-}
-
-constexpr Vector3 ecef2geodetic(const Vector3 ecef,
-                                const Vector2 refellipsoid) {
-  using Math::pow2, Math::pow3;
-
-  assert(not nonstd::isnan(dot(ecef, ecef)));
-  assert(stdr::all_of(refellipsoid, Cmp::gt(0)));
-
-  Vector3 pos;
-  // Use geocentric function if geoid is spherical
-  if (is_ellipsoid_spherical(refellipsoid)) {
-    pos     = ecef2geocentric(ecef);
-    pos[0] -= refellipsoid[0];
-
-    // The general algorithm not stable for lat=+-90. Catch these cases
-  } else if (is_polar_ecef(ecef)) {
-    pos[0] = nonstd::abs(ecef[2]) - refellipsoid[1];
-    pos[1] = ecef[2] >= 0 ? 90 : -90;
-    pos[2] = 0;
-
-    // General algorithm
-  } else {
-    // From https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#The_application_of_Ferrari's_solution
-    const Numeric a = refellipsoid[0];
-    const Numeric b = refellipsoid[1];
-    const Numeric X = ecef[0];
-    const Numeric Y = ecef[1];
-    const Numeric Z = ecef[2];
-
-    const Numeric a2  = pow2(a);
-    const Numeric b2  = pow2(b);
-    const Numeric e2  = (a2 - b2) / a2;
-    const Numeric DZ2 = (1 - e2) * Z * Z;
-    const Numeric r   = std::hypot(X, Y);
-    const Numeric e2p = (a2 - b2) / b2;
-    const Numeric F   = 54 * pow2(b * Z);
-    const Numeric G   = pow2(r) + DZ2 - e2 * (a2 - b2);
-    const Numeric c   = pow2(e2) * F * pow2(r) / pow3(G);
-    const Numeric s   = std::cbrt(1 + c + std::sqrt(pow2(c) + 2 * c));
-    const Numeric fP  = F / (3 * pow2(G * (s + 1 / s + 1)));
-    const Numeric Q   = std::sqrt(1 + 2 * pow2(e2) * fP);
-    const Numeric r0  = (-fP * e2 * r) / (1 + Q) +
-                       std::sqrt(0.5 * a2 * (1 + 1 / Q) -
-                                 fP * DZ2 / (Q * (1 + Q)) - 0.5 * fP * pow2(r));
-    const Numeric U  = std::hypot(r - e2 * r0, Z);
-    const Numeric V  = std::sqrt(pow2(r - e2 * r0) + DZ2);
-    const Numeric z0 = b2 * Z / (a * V);
-
-    pos[0] = U * (1 - b2 / (a * V));
-    pos[1] = Conversion::atan2d(Z + e2p * z0, r);
-    pos[2] = Conversion::atan2d(Y, X);
-  }
-
-  return pos;
-}
-
-constexpr Vector3 ecef_at_distance(const Vector3 ecef0,
-                                   const Vector3 decef,
-                                   const Numeric l) {
-  return {ecef0[0] + l * decef[0],
-          ecef0[1] + l * decef[1],
-          ecef0[2] + l * decef[2]};
-}
-
-constexpr Vector3 pos_at_distance(const Vector3 ecef,
-                                  const Vector3 decef,
-                                  const Vector2 refellipsoid,
-                                  const Numeric l) {
-  return ecef2geodetic(ecef_at_distance(ecef, decef, l), refellipsoid);
-}
-
-Numeric ecef_distance(const Vector3 ecef1, const Vector3 ecef2) {
-  return std::hypot(
-      ecef2[0] - ecef1[0], ecef2[1] - ecef1[1], ecef2[2] - ecef1[2]);
-}
-
-constexpr Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
-                                                   const Vector3 decef,
-                                                   const Vector2 refellipsoid) {
-  // Spherical case (length simply obtained by dot product)
-  if (is_ellipsoid_spherical(refellipsoid)) {
-    return ecef_at_distance(ecef, decef, -(dot(decef, ecef)));
-  }
-
-  // General case
-  // The algorithm used for non-spherical cases is derived by Nick Lloyd at
-  // University of Saskatchewan, Canada (nick.lloyd@usask.ca), and is part of
-  // the operational code for both OSIRIS and SMR on-board- the Odin
-  // satellite.
-
-  // It seems that there is some numerical inaccuracy if the observation is
-  // done from above one of the poles (lat = +-90deg)
-
-  const Numeric a2 = refellipsoid[0] * refellipsoid[0];
-  const Numeric b2 = refellipsoid[1] * refellipsoid[1];
-  Vector3 yunit, zunit;
-
-  zunit  = cross(decef, ecef);
-  zunit /= std::hypot(zunit[0], zunit[1], zunit[2]);
-  yunit  = cross(zunit, decef);
-  yunit /= std::hypot(yunit[0], yunit[1], yunit[2]);
-
-  const Numeric yr = dot(ecef, yunit);
-  const Numeric xr = dot(ecef, decef);
-  const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
-                           (decef[2] * yunit[2]) / b2);
-  Numeric xx;
-  if (B == 0.0) {
-    xx = 0.0;
-  } else {
-    const Numeric A = (decef[0] * decef[0] + decef[1] * decef[1]) / a2 +
-                      decef[2] * decef[2] / b2;
-    const Numeric C = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
-                      yunit[2] * yunit[2] / b2;
-    const Numeric K      = -2.0 * A / B;
-    const Numeric factor = 1.0 / (A + (B + C * K) * K);
-    xx                   = std::sqrt(factor);
-    const Numeric yy     = K * ecef[0];
-    const Numeric dist1  = (xr - xx) * (xr - xx) + (yr - yy) * (yr - yy);
-    const Numeric dist2  = (xr + xx) * (xr + xx) + (yr + yy) * (yr + yy);
-    if (dist1 > dist2) xx = -xx;
-  }
-
-  return {decef[0] * xx + yunit[0] * yr,
-          decef[1] * xx + yunit[1] * yr,
-          decef[2] * xx + yunit[2] * yr};
-}
-
 constexpr Numeric surface_altitude(const SurfaceField& surface_field,
                                    const Numeric lat,
                                    const Numeric lon) {
@@ -489,64 +177,6 @@ constexpr Numeric find_crossing_with_surface_z(
   }
   return std::midpoint(l_min, l_max);
 }
-
-Vector2 enu2los(const Vector3 enu) {
-  // los[0] came out as Nan for a case as enu[2] was just below -1
-  // So let's be safe and normalise enu[2], and get a cheap assert for free
-  const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
-  assert(nonstd::abs(twonorm - 1.0) < 1e-6);
-  return {Conversion::acosd(enu[2] / twonorm),
-          Conversion::atan2d(enu[0], enu[1])};
-}
-}  // namespace
-
-std::pair<Vector3, Vector2> ecef2geodetic_poslos(
-    const Vector3 ecef,
-    const Vector3 decef,
-    const Vector2 refellipsoid) noexcept {
-  // Catch nans and zero
-  assert(nonstd::abs(dot(decef, decef)) > 0);
-  assert(not nonstd::isnan(dot(ecef, ecef)));
-
-  const Vector3 pos = ecef2geodetic(ecef, refellipsoid);
-
-  const Numeric latrad = Conversion::deg2rad(pos[1]);
-  const Numeric lonrad = Conversion::deg2rad(pos[2]);
-  const Numeric coslat = std::cos(latrad);
-  const Numeric sinlat = std::sin(latrad);
-  const Numeric coslon = std::cos(lonrad);
-  const Numeric sinlon = std::sin(lonrad);
-
-  // See
-  // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-  Vector3 enu;
-  enu[0] = -sinlon * decef[0] + coslon * decef[1];
-  enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] +
-           coslat * decef[2];
-  enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] +
-           sinlat * decef[2];
-
-  Vector2 los = enu2los(enu);
-
-  // Azimuth at poles needs special treatment
-  if (nonstd::abs(pos[1]) > POLELAT) {
-    los[1] = Conversion::atan2d(decef[1], decef[0]);
-  }
-
-  return {pos, los};
-}
-
-namespace {
-std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
-                                               const Vector3 decef,
-                                               const Vector2 ell,
-                                               const Numeric distance) {
-  assert(not nonstd::isnan(distance));
-  const Vector3 new_ecef{ecef[0] + distance * decef[0],
-                         ecef[1] + distance * decef[1],
-                         ecef[2] + distance * decef[2]};
-  return ecef2geodetic_poslos(new_ecef, decef, ell);
-}
 }  // namespace
 
 PropagationPathPoint init(const Vector3& pos,
@@ -622,11 +252,6 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
 }
 
 namespace {
-constexpr Vector3 ecef_vector_distance(const Vector3 ecef0,
-                                       const Vector3 ecef1) {
-  return {ecef1[0] - ecef0[0], ecef1[1] - ecef0[1], ecef1[2] - ecef0[2]};
-}
-
 constexpr std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
     const Numeric lat,
     const Vector3 ecef,
@@ -640,7 +265,7 @@ constexpr std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(
     // Calculate normal to ellipsoid at (0,lat,0) and use it to determine z
     // of cone tip. The distance from (0,lat,0) to z-axis is l=x/dx, so
     // z of cone tip is z-l*dz.
-    const auto [ecefn, n] = geodetic_poslos2ecef({0, lat, 0}, {0, 0}, ell);
+    const auto [ecefn, n] = geodetic_los2ecef({0, lat, 0}, {0, 0}, ell);
     const Numeric l2axis  = ecefn[0] / n[0];
     C[2]                  = ecefn[2] - l2axis * n[2];
   }
@@ -752,7 +377,7 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
 
   const auto looking_los = mirror(path.los);
   const auto x =
-      geodetic_poslos2ecef(path.pos, looking_los, surface_field.ellipsoid);
+      geodetic_los2ecef(path.pos, looking_los, surface_field.ellipsoid);
 
   const bool looking_down = path.los[0] < 90;
 
@@ -898,7 +523,7 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     const auto& p2 = path[i + 1];
     if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [rad_start, rad_dir] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+          geodetic_los2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance = ecef_distance(
           rad_start, geodetic2ecef(p1.pos, surface_field.ellipsoid));
       if (distance <= max_step) continue;
@@ -933,7 +558,7 @@ ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
 
     if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [rad_start, rad_dir] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+          geodetic_los2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance = ecef_distance(
           rad_start, geodetic2ecef(p1.pos, surface_field.ellipsoid));
 
@@ -973,7 +598,7 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
     const auto& p2 = path[i + 1];
     if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+          geodetic_los2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
           ecef_distance(geodetic2ecef(p1.pos, surface_field.ellipsoid), ecef);
 
@@ -1025,7 +650,7 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
     const auto& p2 = path[i + 1];
     if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+          geodetic_los2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
           ecef_distance(geodetic2ecef(p1.pos, surface_field.ellipsoid), ecef);
 
@@ -1076,7 +701,7 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
     const auto& p2 = path[i + 1];
     if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+          geodetic_los2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
           ecef_distance(geodetic2ecef(p1.pos, surface_field.ellipsoid), ecef);
 
@@ -1246,7 +871,7 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
 
   const auto intersects = [pos, alt, azimuth, ell](const Numeric za) {
     const auto [ecef, decef] =
-        geodetic_poslos2ecef(pos, mirror({za, azimuth}), ell);
+        geodetic_los2ecef(pos, mirror({za, azimuth}), ell);
     const auto [l0, l1] =
         line_ellipsoid_altitude_intersect(alt, ecef, decef, ell);
     return l0 > 0 and l1 > 0;

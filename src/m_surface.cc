@@ -1,4 +1,5 @@
 #include <arts_omp.h>
+#include <geodetic.h>
 #include <workspace.h>
 
 namespace {
@@ -6,8 +7,8 @@ Vector2 specular_losNormal(const Vector2& normal,
                            const Vector2& los,
                            const Vector3& pos,
                            const Vector2& ell) {
-  const auto [ecef_pos, ecef_los] = path::geodetic_poslos2ecef(pos, los, ell);
-  const auto [_, ecef_normal] = path::geodetic_poslos2ecef(pos, normal, ell);
+  const auto [ecef_pos, ecef_los] = geodetic_los2ecef(pos, los, ell);
+  const auto [_, ecef_normal]     = geodetic_los2ecef(pos, normal, ell);
 
   // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
   const Numeric fac       = 2 * dot(ecef_normal, ecef_los);
@@ -15,8 +16,7 @@ Vector2 specular_losNormal(const Vector2& normal,
                              fac * ecef_normal[1] - ecef_los[1],
                              fac * ecef_normal[2] - ecef_los[2]};
 
-  return path::ecef2geodetic_poslos(ecef_pos, normalized(ecef_spec), ell)
-      .second;
+  return ecef2geodetic_los(ecef_pos, normalized(ecef_spec), ell).second;
 }
 }  // namespace
 
@@ -63,9 +63,8 @@ surface_field:
   const auto [Rv, Rh] = fresnel(
       n1,
       n2,
-      std::acos(dot(
-          path::geodetic_poslos2ecef(pos, los, ell).second,
-          path::geodetic_poslos2ecef(pos, surface_point.normal, ell).second)));
+      std::acos(dot(geodetic_los2ecef(pos, los, ell).second,
+                    geodetic_los2ecef(pos, surface_point.normal, ell).second)));
 
   const Muelmat R              = rtepack::fresnel_reflectance(Rv, Rh);
   surface_reflectance          = R;
@@ -73,13 +72,12 @@ surface_field:
 
   for (auto& target : jacobian_targets.surf) {
     if (target.type == refraction_target) {
-      const auto [Rv2, Rh2] =
-          fresnel(n1,
-                  n2 + 1e-3,
-                  std::acos(dot(
-                      path::geodetic_poslos2ecef(pos, los, ell).second,
-                      path::geodetic_poslos2ecef(pos, surface_point.normal, ell)
-                          .second)));
+      const auto [Rv2, Rh2] = fresnel(
+          n1,
+          n2 + 1e-3,
+          std::acos(
+              dot(geodetic_los2ecef(pos, los, ell).second,
+                  geodetic_los2ecef(pos, surface_point.normal, ell).second)));
 
       const Muelmat dR = 1000. * (rtepack::fresnel_reflectance(Rv2, Rh2) - R);
 

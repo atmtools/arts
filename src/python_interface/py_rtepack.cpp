@@ -247,6 +247,9 @@ void py_rtepack(py::module_ &m) try {
   py::class_<Muelmat> mm(m, "Muelmat");
   mm.def(py::init_implicit<Numeric>())
       .def(py::init_implicit<std::array<Numeric, 16>>())
+      .def("is_polarized",
+           &Muelmat::is_polarized,
+           "Check if the Mueller matrix represents a polarized state.")
       .def(
           "__array__",
           [](Muelmat &x,
@@ -287,6 +290,13 @@ void py_rtepack(py::module_ &m) try {
   amm.doc() = "A list of :class:`~pyarts3.arts.Muelmat`";
 
   py::class_<MuelmatVector> vmm(m, "MuelmatVector");
+  vmm.def(
+      "is_polarized",
+      [](const MuelmatVector &m) {
+        return stdr::any_of(
+            m, [](const Muelmat &mm) { return mm.is_polarized(); });
+      },
+      "Check if the Mueller matrix represents a polarized state.");
   vmm.def(py::init_implicit<std::vector<Numeric>>())
       .def(py::init_implicit<std::vector<Muelmat>>());
   rtepack_array<Muelmat, 1, 4, 4>(vmm);
@@ -384,6 +394,13 @@ void py_rtepack(py::module_ &m) try {
   auto b1 =
       py::bind_vector<ArrayOfMuelmatVector, py::rv_policy::reference_internal>(
           m, "ArrayOfMuelmatVector");
+  b1.def(
+      "is_polarized",
+      [](const ArrayOfMuelmatVector &m) {
+        return stdr::any_of(
+            m, [](const MuelmatVector &mm) { return stdr::any_of(mm, [](const Muelmat &m) { return m.is_polarized(); }); });
+      },
+      "Check if the Mueller matrix represents a polarized state.");
   generic_interface(b1);
   vector_interface(b1);
   auto b2 = py::bind_vector<ArrayOfArrayOfMuelmatVector,

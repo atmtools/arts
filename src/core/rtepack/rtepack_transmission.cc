@@ -89,14 +89,16 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r) {
     C1 can expand as (1.0 + x2 * y2 / 120.0)
     C2 can expand as (0.5 + (x2 - y2) / 24.0)
     C3 can expand as (1.0/6.0 + (x2 - y2) / 120.0)
-    to avoid numerical issues when x2 and y2 are small, but 
-    this is not implemented yet because the derivatives get messed up.
+    to avoid numerical issues when x2 and y2 are small.
+
+    The derivatives are not 
   */
 
-  C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
-  C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
-  C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
-  C3 = both_zero ? 1.0 / 6.0
+  C0 = either_zero ? (1.0 + x2 * y2 / 24.0) : (cy * x2 + cx * y2) * inv_x2y2;
+  C1 = either_zero ? (1.0 + x2 * y2 / 120.0)
+                   : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+  C2 = both_zero ? (0.5 + (x2 - y2) / 24.0) : (cx - cy) * inv_x2y2;
+  C3 = both_zero ? (1.0 / 6.0 + (x2 - y2) / 120.0)
                  : (x_zero   ? 1.0 - sy * iy
                     : y_zero ? sx * ix - 1.0
                              : sx * ix - sy * iy) *
@@ -435,12 +437,14 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   ARTS_USER_ERROR_IF(
       N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
 
-  ARTS_USER_ERROR_IF(N != static_cast<Size>(r.size()),
-                     "Must have same number of levels ({}) in K and r",
+  ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(r.size()),
+                     "Must have one fewer layer distances ({}) than levels ({}) in K",
+                     N-1,
                      N);
 
-  ARTS_USER_ERROR_IF(N != static_cast<Size>(dr.nrows()),
-                     "Must have same number of levels ({}) in K and dr",
+  ARTS_USER_ERROR_IF((N-1) != static_cast<Size>(dr.nrows()),
+                     "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
+                     N-1,
                      N);
 
   T.resize(N);
@@ -491,9 +495,9 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                   K[i],
                   dK[i - 1],
                   dK[i],
-                  r[i],
-                  dr[0][i],
-                  dr[1][i]);
+                  r[i-1],
+                  dr[0][i-1],
+                  dr[1][i-1]);
   }
 }
 }  // namespace rtepack

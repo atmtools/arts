@@ -48,23 +48,18 @@ ray_path_atmospheric_point.size()           = {})",
 
   const Index nq = jacobian_targets.target_count();
 
-  Vector ray_path_distance(N, 0.0);
-  Tensor3 ray_path_distance_jacobian(2, N, nq, 0.0);
-
-  for (Size ip = 1; ip < N; ip++) {
-    ray_path_distance = path::distance(
-        ray_path[ip - 1].pos, ray_path[ip].pos, surface_field.ellipsoid);
-  }
+  const Vector ray_path_distance = distance(ray_path, surface_field.ellipsoid);
+  Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
 
   // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
   if (hse_derivative and temperature_derivative_position >= 0) {
-    for (Size ip = 1; ip < N; ip++) {
+    for (Size ip = 0; ip < N - 1; ip++) {
       ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
           ray_path_distance[ip] /
-          (2.0 * ray_path_atmospheric_point[ip - 1].temperature);
+          (2.0 * ray_path_atmospheric_point[ip].temperature);
       ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
           ray_path_distance[ip] /
-          (2.0 * ray_path_atmospheric_point[ip].temperature);
+          (2.0 * ray_path_atmospheric_point[ip + 1].temperature);
     }
   }
 

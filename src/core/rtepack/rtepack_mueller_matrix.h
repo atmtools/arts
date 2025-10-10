@@ -126,6 +126,13 @@ struct muelmat final : mat44 {
                     a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
                     a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
   }
+
+  [[nodiscard]] constexpr bool is_polarized() const noexcept {
+    return data[1] != 0.0 or data[2] != 0.0 or data[3] != 0.0 or
+           data[4] != 0.0 or data[6] != 0.0 or data[7] != 0.0 or
+           data[8] != 0.0 or data[9] != 0.0 or data[11] != 0.0 or
+           data[12] != 0.0 or data[13] != 0.0 or data[14] != 0.0;
+  }
 };
 
 //! Addition between muelmat matrices

@@ -290,30 +290,6 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
                                  const Numeric alt,
                                  const Numeric azimuth = 0);
 
-/** Find the distance to propagate decef from ecef to find the intersection with
- * the input altitude.
- * 
- * @param ecef Position in ECEF coordinates
- * @param decef Line-of-sight in ECEF coordinates
- * @param refellipsoid Reference ellipsoid [a, b]
- * @param altitude Intersection altitude
- * @param l_min Safety distance to move away from "here" (e.g., for limb-finding)
- * @return Numeric 
- */
-Numeric intersection_altitude(const Vector3 ecef,
-                              const Vector3 decef,
-                              const Vector2 refellipsoid,
-                              const Numeric altitude,
-                              const Numeric l_min);
-
-std::pair<Vector3, Vector3> geodetic_poslos2ecef(const Vector3 pos,
-                                                 const Vector2 los,
-                                                 const Vector2 ell) noexcept;
-std::pair<Vector3, Vector2> ecef2geodetic_poslos(
-    const Vector3 ecef,
-    const Vector3 decef,
-    const Vector2 refellipsoid) noexcept;
-
 /*! Remove all propagation path points that are not looking at or are in the atmosphere
  *
  * The PropagationPathPoint::has function is used to determine if a point is

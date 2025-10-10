@@ -112,7 +112,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 
     for (auto &line : value.lines) {
       for (auto &ls : line.ls.single_models) {
-        ++keys[ls.first];
+        if (ls.first != "AIR"_spec) ++keys[ls.first];
       }
     }
   }
@@ -142,7 +142,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   if (absorption_species.empty()) return;
 
   for (auto &species_tags : absorption_species) {
-    ++keys[species_tags.Species()];
+    if (species_tags.Species() != "AIR"_spec) ++keys[species_tags.Species()];
   }
 }
 
@@ -152,8 +152,8 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 
   for (auto &cia_record : absorption_cia_data) {
     const auto [spec1, spec2] = cia_record.TwoSpecies();
-    ++keys[spec1];
-    ++keys[spec2];
+    if (spec1 != "AIR"_spec) ++keys[spec1];
+    if (spec2 != "AIR"_spec) ++keys[spec2];
   }
 }
 
@@ -162,7 +162,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   if (absorption_lookup_table.empty()) return;
 
   for (auto &&spec : absorption_lookup_table | stdv::keys) {
-    ++keys[spec];
+    if (spec != "AIR"_spec) ++keys[spec];
   }
 }
 
@@ -171,7 +171,7 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   if (absorption_xsec_fit_data.empty()) return;
 
   for (auto &xsec_record : absorption_xsec_fit_data) {
-    ++keys[xsec_record.Species()];
+    if (xsec_record.Species() != "AIR"_spec) ++keys[xsec_record.Species()];
   }
 }
 
@@ -180,7 +180,8 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
   if (absorption_predefined_model_data.empty()) return;
 
   for (auto &predef_record : absorption_predefined_model_data) {
-    ++keys[predef_record.first.spec];
+    if (predef_record.first.spec != "AIR"_spec)
+      ++keys[predef_record.first.spec];
   }
 }
 }  // namespace
