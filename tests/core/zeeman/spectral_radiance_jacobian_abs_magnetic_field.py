@@ -73,7 +73,7 @@ ws.measurement_sensorSimple(pos=pos, los=los)
 ws.measurement_vectorFromSensor()
 
 ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-ws.measurement_vector += np.random.normal(0, noise, NF)
+y = 1.0*ws.measurement_vector
 
 orig = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
 
@@ -88,7 +88,8 @@ ws.atmospheric_field["mag_v"].set_extrapolation(extrapolation="Nearest")
 ws.atmospheric_field["mag_w"].set_extrapolation(extrapolation="Nearest")
 ws.atmospheric_fieldAbsoluteMagneticField()
 
-modified = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
+modified = np.sqrt(mag_u.data[0, 0, 0]**2 +
+                   mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
 
 print(
     f"Original Magnetic Field: {orig * 1e9:.2f} nT, Modified Magnetic Field: {modified * 1e9:.2f} nT"
@@ -102,6 +103,7 @@ ws.RetrievalFinalizeDiagonal()
 fail = True
 
 for i in range(LIMIT):
+    ws.measurement_vector = y + np.random.normal(0, noise, NF)
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
@@ -110,7 +112,7 @@ for i in range(LIMIT):
 
     ws.OEM(method="gn")
 
-    absdiff = round(abs(orig- ws.model_state_vector[0]) * 1e9)
+    absdiff = round(abs(orig - ws.model_state_vector[0]) * 1e9)
 
     print(
         f"Input {round(orig*1e9)} nT, Output {round(ws.model_state_vector[0]*1e9)} nT, AbsDiff {absdiff} nT"

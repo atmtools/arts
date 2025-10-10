@@ -15,3 +15,4 @@ from . import AtmField
 from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
 from . import SubsurfaceField
+from . import MuelmatVector

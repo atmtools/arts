@@ -1,5 +1,6 @@
 #include <array_algo.h>
 #include <arts_omp.h>
+#include <geodetic.h>
 #include <math_funcs.h>
 #include <workspace.h>
 
@@ -238,7 +239,7 @@ Atmospheric point grid size: {}
     const Vector2 los_end{zenith_grid[iz], azimuth};
 
     const auto [ecef, decef] =
-        path::geodetic_poslos2ecef(pos_end, path::mirror(los_end), ell);
+        geodetic_los2ecef(pos_end, path::mirror(los_end), ell);
 
     const auto [r0, r1] =
         path::line_ellipsoid_altitude_intersect(alt_beg, ecef, decef, ell);
@@ -247,11 +248,11 @@ Atmospheric point grid size: {}
     const Numeric r = (r0 < minimal_r) ? r1 : r0;
 
     // Again, fix for limb because it might be missed for std::nextafter(90., 0);
-    const Numeric za = std::isnan(r)
-                           ? 90.0
-                           : path::mirror(path::ecef2geodetic_poslos(
-                                              ecef + r * decef, decef, ell)
-                                              .second)[0];
+    const Numeric za =
+        std::isnan(r)
+            ? 90.0
+            : path::mirror(
+                  ecef2geodetic_los(ecef + r * decef, decef, ell).second)[0];
 
     StokvecVector I = interp(srad[beg], zenith_grid, za);
 
