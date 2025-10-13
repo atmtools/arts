@@ -6,7 +6,7 @@ endif()
 
 project (ARTS VERSION 3.0.0 LANGUAGES C CXX)
 
-set(ARTS_DEV_TAG "dev7")
+set(ARTS_DEV_TAG "dev8")
 set (ARTS_VERSION "${ARTS_VERSION}${ARTS_DEV_TAG}")
 
 message(STATUS "ARTS version: ${ARTS_VERSION}")
