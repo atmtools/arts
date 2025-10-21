@@ -40,7 +40,6 @@ of the map and the object is a struct with the following fields:
 
 - ``file`` - the main header file that must be included to use the workspace group.
 - ``desc`` - a description of the variable as a string.
-- ``array_depth`` - an integer defining the depth of the array.  You can recursively access data of this type of array using the ``[]`` operator using an integer or range type.  Remember that the ``value_type`` of the array should also be a workspace group.
 - ``value_type`` - a boolean that defines whether a workspace group instance of this type is copyable in python.  You cannot copy python types such as ``int`` and ``str``.
 - ``map_type`` - a boolean that defines whether the workspace group is a map.  Maps can be accessed via the ``[]`` operator using the key type.  Remember that both the ``mapped_type`` and the ``key_type`` of the map should also be workspace groups.
 

@@ -104,10 +104,9 @@ concept WorkspaceGroupIsCopyable = requires(T a) {
   os << R"(
 template <typename T> struct WorkspaceGroupInfo {
   static constexpr std::string_view name = "<Unknown>";
-  static constexpr std::string_view file = "<Unknown>";
+  static constexpr std::size_t index     = -1;
+  static constexpr bool value_type       = false;
   static std::string_view desc();
-  static constexpr bool map_or_vector = false;
-  static constexpr bool value_type = false;
 };
 
 )";
@@ -117,17 +116,12 @@ template <typename T> struct WorkspaceGroupInfo {
     os << std::format(R"(
 template <> struct WorkspaceGroupInfo<{0}> {{
   static constexpr std::string_view name = "{0}";
-  static constexpr std::string_view file = "{1}";
-  static constexpr std::size_t index     =  {5};
-  static constexpr bool map_or_vector     = {3};
-  static constexpr bool value_type        = {4};
+  static constexpr std::size_t index     = {2};
+  static constexpr bool value_type       = {1};
   static std::string_view desc();
 }};
 )",
                       group,
-                      data.at(group).file,
-                      data.at(group).desc,
-                      data.at(group).array_depth > 0 or data.at(group).map_type,
                       data.at(group).value_type,
                       index);
     index++;

@@ -10,13 +10,20 @@ __all__ = [
 
 def rot(x, y, ang, clockwise=False):
     """Calculates a rotation matrix to rotate vector x towards vector y."""
-    axis = np.cross(x, y)
+    if clockwise:
+        if ang >= 0:
+            axis = np.cross(y, x)
+            ang = -ang
+        else:
+            axis = np.cross(x, y)
+            ang = 2 * np.pi - ang
+    else:
+        axis = np.cross(x, y)
+
     if np.linalg.norm(axis) < 1e-9:  # Handle collinear vectors
         return np.diag([1, 1, 1])
     axis = axis / np.linalg.norm(axis)
     K = np.array([[0, -axis[2], axis[1]], [axis[2], 0, -axis[0]], [-axis[1], axis[0], 0]])
-    if clockwise:
-        ang = -ang
     R = np.diag([1, 1, 1]) + np.sin(ang) * K + (1 - np.cos(ang)) * (K @ K)
     return R
 
@@ -67,8 +74,9 @@ def plot(ang: MagneticAngles,
     B_norm = B_vec.norm()
 
     # Setup 3D subplot
+    azimuth_angle_deg = np.rad2deg(np.arctan2(ang.sa, ang.ca)) % 360
     ax.set_title(
-        f"za={round(np.rad2deg(np.arccos(ang.cz)), 1)}°, aa={round(np.rad2deg(np.arccos(ang.ca)), 1)}°")
+        f"za={round(np.rad2deg(np.arccos(ang.cz)), 1)}°, aa={round(azimuth_angle_deg, 1)}°")
     ax.set_xlim([-1.1, 1.1])
     ax.set_ylim([-1.1, 1.1])
     ax.set_zlim([-1.1, 1.1])
