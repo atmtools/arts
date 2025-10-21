@@ -386,12 +386,6 @@ Numeric magnetic_angles::dtheta_dw() const {
 
 Numeric magnetic_angles::eta() const {
   return -std::atan2(ca * u - sa * v, -duct);
-  // if (e < 0) {
-  //   e += 2 * Constant::pi;
-  // } else {
-  //   e = 2 * Constant::pi - e;
-  // }
-  // return e;
 }
 
 Numeric magnetic_angles::deta_du() const {
