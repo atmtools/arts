@@ -1,4 +1,3 @@
-from matplotlib import cm
 from pyarts3.arts import AbsorptionBands, AscendingGrid, AtmPoint, AtmField, Propmat, SpeciesEnum, PropagationPathPoint
 import pyarts3 as pyarts
 import matplotlib.pyplot as plt
