@@ -33,7 +33,7 @@ def plot(ang: MagneticAngles,
 
     Parameters
     ----------
-    absorption_bands : ~pyarts3.arts.zeeman.MagneticAngles
+    ang : ~pyarts3.arts.zeeman.MagneticAngles
         The MagneticAngles object containing the data to plot.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
