@@ -454,7 +454,7 @@ atm : ~pyarts3.arts.AtmPoint
 Returns
 -------
 Numeric or array-like
-    The DV coefficient(s) [Hz]
+    The D0 coefficient(s) [Hz]
 )",
            "atm"_a)
       .def("DV",
