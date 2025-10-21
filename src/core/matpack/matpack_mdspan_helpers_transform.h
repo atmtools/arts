@@ -28,4 +28,11 @@ constexpr auto reverse(const Self& self) {
   reverse_inplace(out);
   return out;
 }
+
+/** Projects a on b */
+template <any_md Self>
+constexpr auto proj(const Self& a, Self b) {
+  b *= dot(a, b) / dot(b, b);
+  return b;
+}
 }  // namespace matpack

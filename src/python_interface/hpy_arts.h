@@ -284,7 +284,8 @@ void generic_interface(py::class_<T, E...>& c) {
 
   boolean_compare(c);
 
-  if constexpr (requires { PythonWorkspaceGroupInfo<T>::desc(); })
+  if constexpr (requires { PythonWorkspaceGroupInfo<T>::desc(); }) {
     c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
+  }
 }
 }  // namespace Python

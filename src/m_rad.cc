@@ -374,7 +374,8 @@ void measurement_vectorFromSensor(
 
   std::string error{};
 
-#pragma omp parallel for if (not arts_omp_in_parallel() and N > 1)
+  //! Dynamic scheduling as some simulations may take much longer time than others
+#pragma omp parallel for schedule(dynamic) if (arts_omp_parallel(N > 1))
   for (Size i = 0; i < N; i++) {
     try {
       const unflatten_data unflat(simulations, i);

@@ -230,9 +230,7 @@ void groups(const std::string& fname) {
   for (auto& [group, wsg] :
        std::array{wsgs, workspace_group_friends()} | stdv::join) {
     hos << "NB_MAKE_OPAQUE(Array<" << group << ">);\n";
-    if (wsg.map_type) {
-      hos << "NB_MAKE_OPAQUE(" << group << ");\n";
-    }
+    if (wsg.map_type) hos << "NB_MAKE_OPAQUE(" << group << ");\n";
   }
 
   hos << R"--(

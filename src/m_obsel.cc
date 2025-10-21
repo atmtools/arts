@@ -5,6 +5,7 @@
 #include <workspace.h>
 
 #include <boost/math/distributions/normal.hpp>
+#include <memory>
 #include <stdexcept>
 
 void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
@@ -57,7 +58,8 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
   ARTS_USER_ERROR_IF(n != stds.size(),
                      "Must have a standard deviation for each frequency point")
   ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le(0)),
-                     "Standard deviation must be positive.\nstds := {:B,}", stds)
+                     "Standard deviation must be positive.\nstds := {:B,}",
+                     stds)
   ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
 
   measurement_sensor.resize(sz + n);
@@ -103,46 +105,81 @@ void measurement_sensorAddSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
 }
 
 namespace {
-std::span<SensorObsel> get_span(ArrayOfSensorObsel& measurement_sensor,
-                                const Index& start,
-                                const Index& end) {
-  ARTS_USER_ERROR_IF(
-      start > end,
-      "Start index ({}) must not be greater than end index ({}).",
-      start,
-      end)
+void measurement_sensorAddZenithResponse(
+    ArrayOfSensorObsel& measurement_sensor,
+    const std::shared_ptr<const AscendingGrid>& f,
+    const Vector3& pos,
+    const Vector2& los,
+    const Stokvec& pol,
+    const AscendingGrid& dza_grid,
+    const Vector& za_weights) {
+  const Size n_freq = f->size();
+  const Size n_za   = dza_grid.size();
+  const Size sz     = measurement_sensor.size();
 
-  ARTS_USER_ERROR_IF(
-      start > static_cast<Index>(measurement_sensor.size()),
-      "Start index ({}) must not be greater than the size of the measurement sensor ({}).",
-      start,
-      measurement_sensor.size())
+  ARTS_USER_ERROR_IF(n_za != za_weights.size(),
+                     "dza_grid and za_weights must have same size");
+  const Size nonzero = pol.nonzero_components();
+  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
 
-  ARTS_USER_ERROR_IF(
-      end > static_cast<Index>(measurement_sensor.size()),
-      "End index ({}) must not be greater than the size of the measurement sensor ({}).",
-      end,
-      measurement_sensor.size())
+  measurement_sensor.resize(sz + n_freq);
 
-  auto first = measurement_sensor.begin() + (start > 0) * start;
-  auto last =
-      (end < 0) ? measurement_sensor.end() : measurement_sensor.begin() + end;
+  auto p_vec = SensorPosLosVector(n_za);
+  for (Size i = 0; i < n_za; ++i) {
+    p_vec[i] = SensorPosLos(pos, los + Vector2{dza_grid[i], 0.0});
+  }
+  auto p = std::make_shared<const SensorPosLosVector>(p_vec);
 
-  return {first, last};
+  String error;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i = 0; i < n_freq; i++) {
+    try {
+      sensor::SparseStokvecMatrix w(n_za, n_freq);
+      for (Size j = 0; j < n_za; j++) w[j, i] = za_weights[j] * pol;
+      measurement_sensor[i + sz] = {f, p, std::move(w)};
+      measurement_sensor[i + sz].normalize(pol);
+    } catch (std::runtime_error& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+  ARTS_USER_ERROR_IF(error.size(), "{}", error)
 }
 }  // namespace
 
-void measurement_sensorMakeExclusive(ArrayOfSensorObsel& measurement_sensor,
-                                     const Index& start,
-                                     const Index& end) try {
+void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel& measurement_sensor,
+                                         const AscendingGrid& frequency_grid,
+                                         const Vector3& pos,
+                                         const Vector2& los,
+                                         const Stokvec& pol,
+                                         const AscendingGrid& dza_grid,
+                                         const Numeric& std_za) try {
   ARTS_TIME_REPORT
 
-  make_exclusive(get_span(measurement_sensor, start, end));
+  using gauss = boost::math::normal_distribution<Numeric>;
+  using boost::math::pdf;
+
+  ARTS_USER_ERROR_IF(std_za <= 0, "Standard deviation must be positive.");
+  ARTS_USER_ERROR_IF(dza_grid.size() == 0, "dza_grid cannot be empty.");
+
+  Vector za_weights(dza_grid.size());
+  const gauss dist(0.0, std_za);
+  for (Size i = 0; i < dza_grid.size(); ++i) {
+    za_weights[i] = pdf(dist, dza_grid[i]);
+  }
+
+  measurement_sensorAddZenithResponse(
+      measurement_sensor,
+      std::make_shared<const AscendingGrid>(frequency_grid),
+      pos,
+      los,
+      pol,
+      dza_grid,
+      za_weights);
 }
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-
 template <typename T, typename... Grids>
 void measurement_sensorAddRawSensorTmpl(
     ArrayOfSensorObsel& measurement_sensor,

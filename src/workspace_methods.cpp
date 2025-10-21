@@ -4240,6 +4240,28 @@ All elements share position, line-of-sight, and frequency grid.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
+  wsm_data["measurement_sensorAddGaussianZenith"] = {
+      .desc =
+          R"--(Add a sensor to *measurement_sensor* that has a Gaussian zenith response.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "frequency_grid"},
+      .gin       = {"pos", "los", "pol", "dza_grid", "std_za"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I),
+                    std::nullopt,
+                    std::nullopt},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whos dot-product with the spectral radiance becomes the measurement",
+           "The delta zenith grid for the Gaussian response",
+           "The standard deviation for the Gaussian response"},
+  };
+
   wsm_data["measurement_sensorAddSimpleGaussian"] = {
       .desc =
           R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
@@ -4315,24 +4337,6 @@ The quoted strings must be used as the grid names of the gridded field.
            "A line of sight [zenith, azimuth]",
            "The sensor perturbation grid",
            "Whether or not to normalize the perturbation to 1.0 for each element"},
-  };
-
-  wsm_data["measurement_sensorMakeExclusive"] = {
-      .desc =
-          R"--(Make the *measurement_sensor* excluive.
-
-This means that there will no overlapping frequency grids
-for any observation geometries.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor"},
-      .in        = {"measurement_sensor"},
-      .gin       = {"start", "end"},
-      .gin_type  = {"Index", "Index"},
-      .gin_value = {Index{-1}, Index{-1}},
-      .gin_desc =
-          {"The start index for *measurement_sensor* elements to exclude, negative means first element",
-           "The end index for *measurement_sensor* elements to exclude, negative means all element"},
   };
 
   wsm_data["sun_pathFromObserverAgenda"] = {

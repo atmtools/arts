@@ -79,6 +79,8 @@ void append_data(
   x.alt_low = x.alt_upp = x.lat_low = x.lat_upp = x.lon_low = x.lon_upp =
       to<InterpolationExtrapolation>(extrapolation);
 
+  std::vector<std::string> error{};
+
   for (const auto &[key, _] : keys) {
     String filename = std::format("{}{}.xml", my_base, to_string(key));
 
@@ -92,15 +94,13 @@ void append_data(
         atmospheric_field[key] = x;
       } else if (static_cast<bool>(ignore_missing)) {
       } else {
-        ARTS_USER_ERROR_IF(
-            not atmospheric_field.contains(key),
-            "Filename: \"{}\" does not exist"
-            " and no options for workarounds are given.  Cannot populate atmospheric_field with key: {}",
-            filename,
-            to_string(key))
+        if (error.empty()) error.emplace_back("Missing species / files:");
+        error.emplace_back(std::format("  {}", filename));
       }
     }
   }
+
+  ARTS_USER_ERROR_IF(not error.empty(), "{:n}", error)
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,

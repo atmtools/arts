@@ -11,8 +11,10 @@ arguments to control the plotting.  The plot() functions return the
 figure, a list of subplots, and nothing more.
 """
 
+from . import AbsorptionBands
 from . import AtmField
 from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
-from . import SubsurfaceField
+from . import MagneticAngles
 from . import MuelmatVector
+from . import SubsurfaceField

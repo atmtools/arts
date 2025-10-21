@@ -137,6 +137,31 @@ struct std::formatter<Agenda> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      tags.format(ctx, v.get_name(), '\n');
+
+      std::vector<std::string> setvals;
+      for (auto& method : v.get_methods()) {
+        if (method.get_setval().has_value()) {
+          auto x = method.get_setval()->vformat("({})"sv);
+          x.replace(x.find('\n'), 1, " "sv);
+          if (x.size() > 50) x = x.substr(0, 47) + "...";
+          setvals.push_back(
+              std::format("{} = {}", method.get_name().substr(1), x));
+        } else {
+          tags.format(ctx,
+                      "  "sv,
+                      method.get_name(),
+                      '(',
+                      std::format("{:,}", setvals),
+                      ")\n"sv);
+          setvals.clear();
+        }
+      }
+
+      return tags.format(ctx, std::format("{:n}", setvals));
+    }
+
     tags.add_if_bracket(ctx, '[');
 
     const std::string_view sep   = tags.sep();

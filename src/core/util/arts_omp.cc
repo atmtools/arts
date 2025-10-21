@@ -83,9 +83,7 @@ int arts_omp_get_nested() {
 
   \param i Turn on nested parallelism with 1, turn off with 0.
 */
-void arts_omp_set_nested(int i [[maybe_unused]])
-{
-
+void arts_omp_set_nested(int i [[maybe_unused]]) {
 #ifdef _OPENMP
   omp_set_nested(i);
 #else
@@ -99,12 +97,23 @@ void arts_omp_set_nested(int i [[maybe_unused]])
 
   \param i Turn on dynamic parallelism with 1, turn off with 0.
 */
-void arts_omp_set_dynamic(int i [[maybe_unused]])
-{
-
+void arts_omp_set_dynamic(int i [[maybe_unused]]) {
 #ifdef _OPENMP
   omp_set_dynamic(i);
 #else
   // Nothing to do here.
 #endif
+}
+
+//! Wrapper for omp_in_parallel.
+/*!
+  This wrapper works with and without OMP support.
+
+  \param additional_condition Additional condition that must be true to return true.
+  \return Returns true if not already in a parallel region, the maximum number of threads is
+          larger than 1, and additional_condition is true.
+*/
+bool arts_omp_parallel(bool additional_condition) {
+  return additional_condition and not arts_omp_in_parallel() and
+         arts_omp_get_max_threads() > 1;
 }

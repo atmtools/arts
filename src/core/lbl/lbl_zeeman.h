@@ -131,7 +131,13 @@ constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
  * returns the factor we need to compute that geometry and to
  * turn it into something that normalizes every possible M
  * for this type into some strength that sums to unity
- *  
+ *
+ * These expressions come from the fact that the sum of
+ * (:::)**2 is 1/3 for each polarization type, and pi has
+ * total strength 1/2 and the others 1/4 each.
+ * (To be completely obvious, 3/2 * 1/3 = 1/2 and 3/4 * 1/3 = 1/4,
+ * which are the numbers below.)
+ *
  * @param[in] type The polarization type
  * 
  * @return Rescale factor

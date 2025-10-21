@@ -8,9 +8,6 @@ struct WorkspaceGroupRecord {
   std::string file;
   std::string desc;
 
-  //! Set to level of array nesting (0 is not an array)
-  int array_depth{0};
-
   //! Set to true if python must treat this as a value
   bool value_type{false};
 

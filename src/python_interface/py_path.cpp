@@ -51,39 +51,6 @@ void py_path(py::module_& m) try {
   auto path  = m.def_submodule("path");
   path.doc() = "Submodule for path-related functionality";
 
-  path.def(
-      "geometric_tangent_zenith",
-      [](Vector3 pos, Vector2 ell, Numeric alt, Numeric aa) {
-        return path::geometric_tangent_zenith(pos, ell, alt, aa);
-      },
-      "pos"_a,
-      "ell"_a,
-      "alt"_a,
-      "aa"_a = 0.0,
-      R"-x-(Get the zenith angle at position for radiation passing the limb altitude
-
-.. note::
-
-           An observer at the position ``pos`` looking at the horizon
-           will have a line of sight that is the mirror of [za, aa].
-
-Parameters
-----------
-pos : Vector3
-    Position vector [alt, lat, lon].
-ell : Vector2
-    Ellipsoid parameters (semi-major axis, semi-minor axis).
-alt : Numeric
-    Altitude above the ellipsoid.
-aa : Numeric, optional
-    Azimuth angle in radians.  Defaults to 0.0.
-
-Returns
--------
-za : Numeric
-    Geometric tangent zenith angle in radians.
-)-x-");
-
   path.def("mirror", &path::mirror, "los"_a, "Mirror the line of sight");
 
   path.def(

@@ -1,4 +1,12 @@
+#include <enumsLineShapeModelVariable.h>
+#include <enumsSpeciesEnum.h>
+#include <hpy_arts.h>
+#include <hpy_numpy.h>
+#include <hpy_vector.h>
+#include <isotopologues.h>
 #include <lbl.h>
+#include <lbl_data.h>
+#include <lbl_lineshape_model.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/map.h>
@@ -8,23 +16,14 @@
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
+#include <partfun.h>
 #include <python_interface.h>
+#include <quantum.h>
 
 #include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-
-#include "enumsLineShapeModelVariable.h"
-#include "enumsSpeciesEnum.h"
-#include "hpy_arts.h"
-#include "hpy_numpy.h"
-#include "hpy_vector.h"
-#include "isotopologues.h"
-#include "lbl_data.h"
-#include "lbl_lineshape_model.h"
-#include "partfun.h"
-#include "quantum.h"
 
 NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
 NB_MAKE_OPAQUE(lbl::line_shape::model::map_t)
@@ -99,7 +98,7 @@ void py_lbl(py::module_& m) try {
   lssm.def_rw(
           "data",
           &lbl::line_shape::species_model::data,
-          "The data\n\n.. :class:`list[tuple[LineShapeModelVariable, TemperatureModel]]`")
+          "The data\n\n.. :class:`dict[tuple[LineShapeModelVariable, TemperatureModel]]`")
       .def("__getitem__",
            [](py::object& x, const py::object& key) {
              return x.attr("data").attr("__getitem__")(key);
@@ -122,25 +121,55 @@ void py_lbl(py::module_& m) try {
                 T,
                 P);
           },
-          "The G0 coefficient",
+          R"(Computes the G0 coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The G0 coefficient(s) [Hz]
+)",
           "T0"_a,
           "T"_a,
           "P"_a)
       .def(
-          "Y",
+          "G2",
           [](const lbl::line_shape::species_model& self,
              py::object& T0,
              py::object& T,
              py::object& P) {
             return vectorize(
                 [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.Y(t0, t, p);
+                  return self.G2(t0, t, p);
                 },
                 T0,
                 T,
                 P);
           },
-          "The Y coefficient",
+          R"(Computes the G2 coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The G2 coefficient(s) [Hz]
+)",
           "T0"_a,
           "T"_a,
           "P"_a)
@@ -158,7 +187,220 @@ void py_lbl(py::module_& m) try {
                 T,
                 P);
           },
-          "The D0 coefficient",
+          R"(Computes the D0 coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The D0 coefficient(s) [Hz]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "D2",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.D2(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the D2 coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The D2 coefficient(s) [Hz]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "ETA",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.ETA(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the ETA coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The ETA coefficient(s) [dimensionless]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "G",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.G(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the G coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The G coefficient(s) [dimensionless]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "Y",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.Y(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the Y coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The Y coefficient(s) [dimensionless]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "DV",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.DV(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the DV coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The DV coefficient(s) [Hz]
+)",
+          "T0"_a,
+          "T"_a,
+          "P"_a)
+      .def(
+          "FVC",
+          [](const lbl::line_shape::species_model& self,
+             py::object& T0,
+             py::object& T,
+             py::object& P) {
+            return vectorize(
+                [&self](Numeric t0, Numeric t, Numeric p) {
+                  return self.FVC(t0, t, p);
+                },
+                T0,
+                T,
+                P);
+          },
+          R"(Computes the FVC coefficient for the given conditions.
+
+Parameters
+----------
+T0 : Numeric or array-like
+    The reference temperature(s) [K]
+T : Numeric or array-like
+    The temperature(s) [K]
+P : Numeric or array-like
+    The pressure(s) [Pa]
+
+Returns
+-------
+Numeric or array-like
+    The FVC coefficient(s) [Hz]
+)",
           "T0"_a,
           "T"_a,
           "P"_a)
@@ -174,18 +416,152 @@ void py_lbl(py::module_& m) try {
 
   py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
   generic_interface(lsm);
-  lsm.def_rw("one_by_one",
-             &lbl::line_shape::model::one_by_one,
-             "If true, the lines are treated one by one\n\n.. :class:`bool`")
+  lsm.def_rw(
+         "one_by_one",
+         &lbl::line_shape::model::one_by_one,
+         "If true, the lines are treated one by one - this is an experimental feature\n\n.. :class:`bool`")
       .def_rw("T0",
               &lbl::line_shape::model::T0,
-              "The reference temperature\n\n.. :class:`Numeric`")
-      .def_rw("single_models",
-              &lbl::line_shape::model::single_models,
-              "The single models\n\n.. :class:`list[LineShapeSpeciesModel]`")
-      .def("G0", &lbl::line_shape::model::G0, "The G0 coefficient", "atm"_a)
-      .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", "atm"_a)
-      .def("D0", &lbl::line_shape::model::D0, "The D0 coefficient", "atm"_a)
+              "The reference temperature [K]\n\n.. :class:`Numeric`")
+      .def_rw(
+          "single_models",
+          &lbl::line_shape::model::single_models,
+          "The single models\n\n.. :class:`dict[SpeciesEnum, LineShapeSpeciesModel]`")
+      .def("G0",
+           &lbl::line_shape::model::G0,
+           R"(Computes the G0 coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The G0 coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("D0",
+           &lbl::line_shape::model::D0,
+           R"(Computes the D0 coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The D0 coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("DV",
+           &lbl::line_shape::model::DV,
+           R"(Computes the DV coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The DV coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("D2",
+           &lbl::line_shape::model::D2,
+           R"(Computes the D2 coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The D2 coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("G2",
+           &lbl::line_shape::model::G2,
+           R"(Computes the G2 coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The G2 coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("FVC",
+           &lbl::line_shape::model::FVC,
+           R"(Computes the FVC coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The FVC coefficient(s) [Hz]
+)",
+           "atm"_a)
+      .def("G",
+           &lbl::line_shape::model::G,
+           R"(Computes the G coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The G coefficient(s) [dimensionless]
+)",
+           "atm"_a)
+      .def("Y",
+           &lbl::line_shape::model::Y,
+           R"(Computes the Y coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The Y coefficient(s) [dimensionless]
+)",
+           "atm"_a)
+      .def("ETA",
+           &lbl::line_shape::model::ETA,
+           R"(Computes the ETA coefficient
+
+Parameters
+----------
+atm : ~pyarts3.arts.AtmPoint
+    The atmospheric point - must contain pressure and temperature and VMR of all species in the model
+
+Returns
+-------
+Numeric or array-like
+    The ETA coefficient(s) [dimensionless]
+)",
+           "atm"_a)
       .def(
           "remove",
           [](lbl::line_shape::model& self, LineShapeModelVariable x) {
@@ -195,11 +571,17 @@ void py_lbl(py::module_& m) try {
             }
           },
           "x"_a,
-          "Remove a variable")
+          R"(Remove a type of variable from the line shape model.
+
+Parameters
+----------
+x : LineShapeModelVariable
+    The variable to remove
+)")
       .def(
           "remove_zeros",
           [](lbl::line_shape::model& self) { self.clear_zeroes(); },
-          "Remove zero coefficients")
+          "Remove zero coefficients from the line shape model")
       .doc() = "Line shape model";
 
   py::class_<lbl::zeeman::model> zlm(m, "ZeemanLineModel");
@@ -239,7 +621,16 @@ void py_lbl(py::module_& m) try {
 
             return out;
           },
-          "The number of Zeeman lines")
+          "qn"_a,
+          R"(The relative strengths of the Zeeman components for the given quantum numbers state.
+Parameters
+----------
+qn : QuantumState
+    The quantum numbers of the line. Must be an instance of the QuantumState class as provided by this module.
+Returns
+-------
+dict[str, list[float]]
+)")
       .doc() = "Zeeman model";
 
   py::class_<lbl::line> al(m, "AbsorptionLine");
@@ -278,7 +669,19 @@ void py_lbl(py::module_& m) try {
           },
           "T"_a,
           "Q"_a,
-          "The line strength")
+          R"(The line strength
+Parameters
+----------
+T : Numeric or array-like
+    The temperature(s) [K]
+Q : Numeric or array-like
+    The partition function(s) [dimensionless]
+
+Returns
+-------
+Numeric or array-like
+    The line strength(s)
+)")
       .def(
           "hitran_s",
           [](const lbl::line& self, const SpeciesIsotope& isot, Numeric T0) {
@@ -286,17 +689,44 @@ void py_lbl(py::module_& m) try {
           },
           "isot"_a,
           "T0"_a = 296.0,
-          "The HITRAN-like line strength")
+          R"(The HITRAN-like line strength
+Parameters
+----------
+isot : SpeciesIsotope
+    The species and isotope of the line.
+T0 : Numeric
+    The reference temperature [K]. Defaults to 296.0 K.
+
+Returns
+-------
+Numeric
+    The HITRAN-like line strength
+)")
       .doc() = "A single absorption line";
 
-  auto ll  = py::bind_vector<std::vector<lbl::line>,
-                             py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLine");
+  auto ll = py::bind_vector<std::vector<lbl::line>,
+                            py::rv_policy::reference_internal>(
+      m, "ArrayOfAbsorptionLine");
   ll.doc() = "A list of :class:`AbsorptionLine`";
   vector_interface(ll);
   generic_interface(ll);
 
   py::class_<AbsorptionBand> ab(m, "AbsorptionBand");
   generic_interface(ab);
+  ab.def(
+      "__getitem__",
+      [](const py::object& x, py::object& i) {
+        return x.attr("lines").attr("__getitem__")(i);
+      },
+      py::rv_policy::reference_internal);
+  ab.def("__setitem__",
+         [](py::object& x, const py::object& i, const py::object& v) {
+           x.attr("lines").attr("__setitem__")(i, v);
+         });
+  ab.def(
+      "__len__",
+      [](const AbsorptionBand& x) { return x.lines.size(); },
+      "Return the number of lines in the band");
   ab.def_rw("lines",
             &AbsorptionBand::lines,
             "The lines in the band\n\n.. :class:`ArrayOfAbsorptionLine`")
@@ -345,6 +775,41 @@ void py_lbl(py::module_& m) try {
            [](AbsorptionBands& x, const lbl::line_key& key, Numeric v) {
              key.get_value(x) = v;
            });
+  aoab.def(
+      "extract_species",
+      [](const AbsorptionBands& x,
+         const std::variant<SpeciesEnum, SpeciesIsotope>& vkey)
+          -> AbsorptionBands {
+        AbsorptionBands out;
+        std::visit(
+            [&]<typename T>(const T& key) {
+              if constexpr (std::same_as<T, SpeciesEnum>) {
+                for (auto& [k, v] : x) {
+                  if (k.isot.spec == key) out.try_emplace(k, v);
+                }
+              } else {
+                for (auto& [k, v] : x) {
+                  if (k.isot == key) out.try_emplace(k, v);
+                }
+              }
+            },
+            vkey);
+
+        return out;
+      },
+      "spec"_a,
+      R"(Extract absorption bands for a given species or isotope.
+
+Parameters
+----------
+vkey : SpeciesEnum or SpeciesIsotope
+    The species or isotope to extract
+
+Returns
+-------
+AbsorptionBands
+    The extracted absorption bands
+)");
   aoab.def(
       "merge",
       [](AbsorptionBands& self,
