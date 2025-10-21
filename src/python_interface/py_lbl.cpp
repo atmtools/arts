@@ -626,7 +626,7 @@ x : LineShapeModelVariable
 Parameters
 ----------
 qn : QuantumState
-    The quantum numbers of the line
+    The quantum numbers of the line. Must be an instance of the QuantumState class as provided by this module.
 Returns
 -------
 dict[str, list[float]]
