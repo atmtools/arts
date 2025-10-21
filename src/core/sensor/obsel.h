@@ -91,9 +91,7 @@ class Obsel {
   std::shared_ptr<const PosLosVector> poslos{
       std::shared_ptr<const PosLosVector>(new PosLosVector{})};
 
-  //! FIXME: This should be made a variant of sparse/non-sparse!  Do this if/when we see an actual slowdown cf ARTS2.
-  // (The type should be "std::variant<StokvecMatrix, std::array<Sparse, 4>>", where the "4" is for the 4 Stokes components.)
-  // A matrix size of poslos_grid.size() x f_grid.size() with the polarized weight of the sensor
+  //! poslos x frequency sparse matrix of Stokvec weights
   SparseStokvecMatrix w{};
 
  public:

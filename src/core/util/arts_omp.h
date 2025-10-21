@@ -33,4 +33,6 @@ void arts_omp_set_nested(int i);
 
 void arts_omp_set_dynamic(int i);
 
+bool arts_omp_parallel(bool additional_condition=true);
+
 #endif  // arts_omp_h

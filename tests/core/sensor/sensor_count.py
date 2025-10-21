@@ -52,19 +52,19 @@ assert len(ws.measurement_sensor.unique_frequency_grids()) == 3
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 3
 
 ws.measurement_sensor.collect_frequency_grids()
-assert len(ws.measurement_sensor.unique_frequency_grids()) == 2
+assert len(ws.measurement_sensor.unique_frequency_grids()) == 1
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 3
 
 fn = ws.measurement_sensor.savexml("sensor_count.xml")
 ws.measurement_sensor.readxml("sensor_count.xml")
 
-assert len(ws.measurement_sensor.unique_frequency_grids()) == 2
+assert len(ws.measurement_sensor.unique_frequency_grids()) == 1
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 3
 
 ws.measurement_sensor.collect_poslos_grids()
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 1
-assert len(ws.measurement_sensor.unique_frequency_grids()) == 2
+assert len(ws.measurement_sensor.unique_frequency_grids()) == 1
 
 ws.measurement_sensor.collect_frequency_grids()
 assert len(ws.measurement_sensor.unique_poslos_grids()) == 1
-assert len(ws.measurement_sensor.unique_frequency_grids()) == 2
+assert len(ws.measurement_sensor.unique_frequency_grids()) == 1

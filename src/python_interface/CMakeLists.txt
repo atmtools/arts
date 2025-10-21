@@ -187,6 +187,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_file.cpp
     py_nlte.cpp
     py_geodesy.cpp
+    py_planets.cpp
 )
 
 if(ENABLE_PCH)

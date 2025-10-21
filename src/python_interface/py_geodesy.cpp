@@ -188,6 +188,41 @@ decef : ~pyarts3.arts.Vector3
   Normalised direction vector (dx,dy,dz)
 )");
 
+  geo.def("geometric_tangent_zenith",
+          &path::geometric_tangent_zenith,
+          "pos"_a,
+          "ell"_a,
+          "alt"_a,
+          "azimuth"_a = 0.0,
+          R"(Calculates the geometrical tangent point, iteratively
+
+The algorithm uses a binary-reduction approach to hone into the closest
+solution that can be represented by a Numeric.
+
+.. note::
+
+           An observer at the position ``pos`` looking at the horizon
+           will have a line of sight that is the mirror of [za, aa].
+           That is, [180-za, aa + 180] (though you might want to
+           wrap the azimuth to -180..180).
+
+Parameters
+----------
+pos : ~pyarts3.arts.Vector3
+  Geodetic position (h,lat,lon)
+ell : ~pyarts3.arts.Vector2
+  Ellipsoid (a,b)
+alt : ~pyarts3.arts.Numeric
+  Altitude (h)
+azimuth : ~pyarts3.arts.Numeric
+  Azimuth angle (aa)
+
+Returns
+-------
+zenith : ~pyarts3.arts.Numeric
+  Tangent zenith angle (za)
+)");
+
   geo.def("approx_geometrical_tangent_point",
           &approx_geometrical_tangent_point,
           "ecef"_a,

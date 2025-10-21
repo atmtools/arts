@@ -179,6 +179,8 @@ void py_species(py::module_& m) try {
   generic_interface(stag);
   stag.def_rw(
           "spec_ind", &SpeciesTag::spec_ind, "Species index\n\n.. :class:`int`")
+      .def_prop_ro(
+          "spec", &SpeciesTag::Spec, "Species\n\n.. :class:`SpeciesEnum`")
       .def_rw("type",
               &SpeciesTag::type,
               "Type of tag\n\n.. :class:`~pyarts3.arts.SpeciesTagType`")

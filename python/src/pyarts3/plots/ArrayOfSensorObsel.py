@@ -84,9 +84,11 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: 
 
         subs.append(fig.add_subplot(1, N, isub + 1))
         for elem in measurement_sensor:
-            v = np.einsum(
-                "ijk,k->j" if i is None else "ijk,k->i", elem.weight_matrix, pol
-            )
+            if i is None:
+                v = elem.weight_matrix.reduce(pol, along_poslos=True)
+            else:
+                v = elem.weight_matrix.reduce(pol, along_freq=True)
+
             x = elem.f_grid if i is None else elem.poslos[:, i]
 
             if len(x) == 1:
