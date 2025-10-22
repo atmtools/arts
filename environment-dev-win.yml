@@ -23,7 +23,7 @@ dependencies:
         - requests
         - scipy
         - setuptools
-        - sphinx >=8,<8.2.0
+        - sphinx=8.2.3
         - sphinx-copybutton
         - sphinx-favicon
         - sphinx-rtd-theme=3
