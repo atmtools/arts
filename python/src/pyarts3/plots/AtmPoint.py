@@ -13,10 +13,14 @@ def plot(
     atm_point: pyarts.arts.AtmPoint,
     *,
     fig=None,
+    ax=None,
     keys: list[str] | None = None,
     **kwargs
 ):
     """Plot atmospheric point parameters as a bar chart.
+    
+    Note: This function creates multiple subplots, so the ax parameter is accepted
+    for API consistency but not used.
 
     .. rubric:: Example
 
@@ -48,7 +52,7 @@ def plot(
     -------
     fig : As input
         The matplotlib figure.
-    axes : list
+    ax : list
         List of matplotlib axes objects.
     """
     if keys is None:
@@ -60,23 +64,26 @@ def plot(
     if fig is None:
         fig = plt.figure(figsize=(4 * n, 3 * n), constrained_layout=True)
     
-    axes = []
+    if ax is None:
+        ax = []
+        for i, key in enumerate(keys):
+            ax.append(fig.add_subplot(n, n, i + 1))
+    
     for i, key in enumerate(keys):
-        ax = fig.add_subplot(n, n, i + 1)
+        subplot = ax[i] if isinstance(ax, list) else ax
         value = atm_point[key]
         
         # Handle different value types
         if isinstance(value, (float, int)):
-            ax.bar([key], [value], **kwargs)
-            ax.set_ylabel("Value")
+            subplot.bar([key], [value], **kwargs)
+            subplot.set_ylabel("Value")
         else:
             # For array-like values, plot as line
-            ax.plot(value, **kwargs)
-            ax.set_ylabel(key)
-            ax.set_xlabel("Index")
+            subplot.plot(value, **kwargs)
+            subplot.set_ylabel(key)
+            subplot.set_xlabel("Index")
         
-        ax.set_title(key)
-        ax.grid(True, alpha=0.3)
-        axes.append(ax)
+        subplot.set_title(key)
+        subplot.grid(True, alpha=0.3)
     
-    return fig, axes
+    return fig, ax

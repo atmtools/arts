@@ -57,7 +57,8 @@ def plot(
     if fig is None:
         fig = plt.figure(figsize=(10, 8))
     
-    ax = fig.add_subplot(1, 1, 1)
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
     
     # Extract 2D slice by fixing two dimensions
     shape = tensor.shape

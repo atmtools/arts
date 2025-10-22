@@ -13,6 +13,7 @@ def plot(
     stokvec_vector: pyarts.arts.StokvecVector,
     *,
     fig=None,
+    ax=None,
     freqs: np.ndarray | None = None,
     xlabel: str = "Index",
     ylabel: str = "Value",
@@ -44,6 +45,8 @@ def plot(
         A vector of Stokes vectors (each with 4 components: I, Q, U, V)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : Axes, optional
+        Not used (function creates its own subplots). Accepted for API consistency.
     freqs : :class:`~numpy.ndarray` | None, optional
         Frequency or position grid for x-axis. If None, uses indices. Defaults to None.
     xlabel : str, optional
@@ -61,25 +64,28 @@ def plot(
     -------
     fig : As input
         The matplotlib figure.
-    axes : list
+    ax : list
         List of matplotlib axes objects (4 subplots).
     """
     if fig is None:
         fig = plt.figure(figsize=(12, 10), constrained_layout=True)
     
-    axes = []
+    if ax is None:
+        ax = []
+        for i in range(4):
+            ax.append(fig.add_subplot(2, 2, i + 1))
+    
     if freqs is None:
         freqs = np.arange(len(stokvec_vector))
     
     for i, label in enumerate(labels):
-        ax = fig.add_subplot(2, 2, i + 1)
+        subplot = ax[i] if isinstance(ax, list) else ax
         data = stokvec_vector[:, i]
-        ax.plot(freqs, data, label=label, **kwargs)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_title(f"{title} - {label}")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        axes.append(ax)
+        subplot.plot(freqs, data, label=label, **kwargs)
+        subplot.set_xlabel(xlabel)
+        subplot.set_ylabel(ylabel)
+        subplot.set_title(f"{title} - {label}")
+        subplot.legend()
+        subplot.grid(True, alpha=0.3)
     
-    return fig, axes
+    return fig, ax

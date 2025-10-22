@@ -13,6 +13,7 @@ def plot(
     surface_field: pyarts.arts.SurfaceField,
     *,
     fig=None,
+    ax=None,
     lats: np.ndarray | None = None,
     lons: np.ndarray | None = None,
     keys: list[str] | None = None,
@@ -26,6 +27,8 @@ def plot(
         A surface field containing surface parameters
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : Axes, optional
+        Not used (function creates its own subplots). Accepted for API consistency.
     lats : :class:`~numpy.ndarray` | None, optional
         Latitude grid for sampling. Defaults to None for automatic grid.
     lons : :class:`~numpy.ndarray` | None, optional
@@ -39,7 +42,7 @@ def plot(
     -------
     fig : As input
         The matplotlib figure.
-    axes : list
+    ax : list
         List of matplotlib axes objects.
     """
     if keys is None:
@@ -58,10 +61,12 @@ def plot(
     if fig is None:
         fig = plt.figure(figsize=(5 * n, 4 * n), constrained_layout=True)
     
-    axes = []
+    if ax is None:
+        ax = []
+        for i in range(N):
+            ax.append(fig.add_subplot(n, n, i + 1))
+    
     for i, key in enumerate(keys):
-        ax = fig.add_subplot(n, n, i + 1)
-        
         # Sample the surface field at grid points
         values = np.zeros_like(lat_grid)
         for ii in range(lat_grid.shape[0]):
@@ -69,11 +74,10 @@ def plot(
                 point = surface_field(lat_grid[ii, jj], lon_grid[ii, jj])
                 values[ii, jj] = point[key] if key in point else np.nan
         
-        im = ax.pcolormesh(lon_grid, lat_grid, values, cmap='viridis', shading='auto', **kwargs)
-        plt.colorbar(im, ax=ax, label=key)
-        ax.set_xlabel('Longitude [°]')
-        ax.set_ylabel('Latitude [°]')
-        ax.set_title(key)
-        axes.append(ax)
+        im = ax[i].pcolormesh(lon_grid, lat_grid, values, cmap='viridis', shading='auto', **kwargs)
+        plt.colorbar(im, ax=ax[i], label=key)
+        ax[i].set_xlabel('Longitude [°]')
+        ax[i].set_ylabel('Latitude [°]')
+        ax[i].set_title(key)
     
-    return fig, axes
+    return fig, ax

@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I", **kwargs):
+def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, ax=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I", **kwargs):
     """Plot the sensor observational element array.
 
     .. note::
@@ -40,8 +40,8 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: 
         A sensor observation element array.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    subs : Subaxis, optional
-        List of subplots to add to. Defaults to None for a new subplot.
+    ax : Axes, optional
+        Not used (function creates its own subplots). Accepted for API consistency.
     keys : str | list
         The keys to use for plotting. Options are in :class:`~pyarts3.arts.SensorKeyType`.
     pol : str | pyarts3.arts.Stokvec
@@ -51,8 +51,8 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: 
     -------
     fig : As input
         As input.
-    subs : As input
-        As input.
+    ax : list
+        List of matplotlib axes objects.
     """
 
     if isinstance(keys, str):
@@ -76,13 +76,15 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: 
         pyarts.arts.SensorKeyType.aa: 4,
     }
 
-    subs = []
+    if ax is None:
+        ax = []
+        for isub in range(N):
+            ax.append(fig.add_subplot(1, N, isub + 1))
+    
     for isub in range(N):
         key = pyarts.arts.SensorKeyType(keys[isub])
 
         i = map[key]
-
-        subs.append(fig.add_subplot(1, N, isub + 1))
         for elem in measurement_sensor:
             if i is None:
                 v = elem.weight_matrix.reduce(pol, along_poslos=True)
@@ -92,8 +94,8 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: 
             x = elem.f_grid if i is None else elem.poslos[:, i]
 
             if len(x) == 1:
-                subs[-1].plot(x, v, marker="o", linestyle="None")
+                ax[isub].plot(x, v, marker="o", linestyle="None")
             else:
-                subs[-1].plot(x, v)
+                ax[isub].plot(x, v)
 
-    return fig, subs
+    return fig, ax

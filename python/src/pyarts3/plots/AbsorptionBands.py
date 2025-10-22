@@ -100,8 +100,11 @@ def plot(absorption_bands: AbsorptionBands,
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 
-    if fig is None and ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    if fig is None:
+        fig = plt.figure(figsize=(6, 4))
+    
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
 
     pm = absorption_bands.propagation_matrix(
         f=freqs, atm=atm, spec=species, path_point=path_point)

@@ -13,6 +13,7 @@ def plot(
     tensor: pyarts.arts.Tensor3,
     *,
     fig=None,
+    ax=None,
     slice_dim: int = 0,
     slice_idx: int = 0,
     xlabel: str = "Dimension 2",
@@ -49,6 +50,8 @@ def plot(
         A 3D array of numeric values
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : Axes, optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     slice_dim : int, optional
         Which dimension to slice (0, 1, or 2). Defaults to 0.
     slice_idx : int, optional
@@ -76,7 +79,8 @@ def plot(
     if fig is None:
         fig = plt.figure(figsize=(10, 8))
     
-    ax = fig.add_subplot(1, 1, 1)
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
     
     # Extract 2D slice
     if slice_dim == 0:

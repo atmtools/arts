@@ -13,6 +13,7 @@ def plot(
     stokvec_matrix: pyarts.arts.StokvecMatrix,
     *,
     fig=None,
+    ax=None,
     component: int = 0,
     xlabel: str = "Column",
     ylabel: str = "Row",
@@ -49,6 +50,8 @@ def plot(
         A matrix of Stokes vectors (4 components each)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : Axes, optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     component : int, optional
         Which Stokes component to plot (0=I, 1=Q, 2=U, 3=V). Defaults to 0.
     xlabel : str, optional
@@ -76,7 +79,8 @@ def plot(
     if fig is None:
         fig = plt.figure(figsize=(10, 8))
     
-    ax = fig.add_subplot(1, 1, 1)
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
     
     # Extract component from stokvec matrix
     data = stokvec_matrix[:, :, component]

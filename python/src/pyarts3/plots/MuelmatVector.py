@@ -13,6 +13,7 @@ def plot(
     transmission_matrix: pyarts.arts.MuelmatVector,
     *,
     fig=None,
+    ax=None,
     freqs: np.ndarray | float = None,
     is_polar: bool | None = None,
     **kwargs,
@@ -27,6 +28,9 @@ def plot(
         A vector of Mueller matrices representing the transmission properties.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : Axes or list, optional
+        The matplotlib axes to draw on. For 1D plot: single axes. For 4x4 plot: 16 axes.
+        Defaults to None for new axes.
     freqs : list, optional
         A list of frequencies to plot. Defaults to None for no frequency grid.
     is_polar : bool, optional
@@ -38,8 +42,8 @@ def plot(
     -------
     fig : As input
         As input.
-    subs : As input
-        As input.
+    ax : As input
+        As input. Single axis for 1D plot, or list of 16 axes for 4x4 plot.
     """
     if is_polar is None:
         is_polar = transmission_matrix.is_polarized()
@@ -51,22 +55,26 @@ def plot(
     
     if fig is None:
         if not is_polar:
-            fig, subs = plt.subplots(1, 1, figsize=(6, 4))
+            fig = plt.figure(figsize=(6, 4))
         else:
-            fig, subs = plt.subplots(4, 4, figsize=(12, 12), constrained_layout=True)
-    else:
-        subs = fig.axes
-        if not is_polar and len(subs) != 1:
-            raise ValueError("Figure must have exactly one axis for 1D transmission matrix")
-        elif len(subs) != 16:
-            raise ValueError("Figure must have exactly 16 axes for 4x4 transmission matrix")
+            fig = plt.figure(figsize=(12, 12), constrained_layout=True)
+    
+    if ax is None:
+        if not is_polar:
+            ax = fig.add_subplot(1, 1, 1)
+        else:
+            ax = []
+            for i in range(4):
+                row = []
+                for j in range(4):
+                    row.append(fig.add_subplot(4, 4, i*4 + j + 1))
+                ax.append(row)
 
     if not is_polar:
-        subs.plot(freqs, [m[0, 0] for m in transmission_matrix], label='I')
+        ax.plot(freqs, [m[0, 0] for m in transmission_matrix], label='I', **kwargs)
     else:
         for i in range(4):
             for j in range(4):
-                ax = subs[i, j]
-                ax.plot(freqs, [m[i, j] for m in transmission_matrix])
+                ax[i][j].plot(freqs, [m[i, j] for m in transmission_matrix], **kwargs)
 
-    return fig, subs
+    return fig, ax
