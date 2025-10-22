@@ -60,7 +60,15 @@ def plot(
     if ax is None:
         ax = fig.add_subplot(1, 1, 1)
     
-    ax.bar(labels, stokvec, **kwargs)
+    # Ensure we have a flat 4-vector
+    try:
+        vals = np.asarray(stokvec)
+        if vals.shape != (4,):
+            vals = np.array([stokvec[i] for i in range(4)])
+    except Exception:
+        vals = np.array([stokvec[i] for i in range(4)])
+
+    ax.bar(labels, vals, **kwargs)
     ax.set_ylabel("Value")
     ax.set_title(title)
     ax.grid(True, alpha=0.3, axis='y')

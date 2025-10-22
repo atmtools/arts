@@ -82,8 +82,23 @@ def plot(
     if ax is None:
         ax = fig.add_subplot(1, 1, 1)
     
-    # Extract component from stokvec matrix
-    data = stokvec_matrix[:, :, component]
+    # Extract component from stokvec matrix, supporting wrapped data
+    data = None
+    try:
+        arr = np.asarray(stokvec_matrix)
+        if arr.ndim == 3 and arr.shape[2] == 4:
+            data = arr[:, :, component]
+    except Exception:
+        data = None
+
+    if data is None:
+        # Fallback: iterate to build 2D array
+        nx = len(stokvec_matrix)
+        ny = len(stokvec_matrix[0]) if nx > 0 else 0
+        data = np.empty((nx, ny))
+        for i in range(nx):
+            for j in range(ny):
+                data[i, j] = stokvec_matrix[i][j][component]
     
     im = ax.imshow(data, aspect='auto', cmap=cmap, origin='lower', **kwargs)
     
