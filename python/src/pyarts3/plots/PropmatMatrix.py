@@ -3,6 +3,7 @@
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 __all__ = [
     'plot',
@@ -79,13 +80,30 @@ def plot(
 
     if component is None and element is None:
         # Grid of plots: each subplot shows one matrix element (4x4)
-        if ax is None:
-            ax = []
-            for i in range(4):
-                row = []
-                for j in range(4):
-                    row.append(fig.add_subplot(4, 4, i*4 + j + 1))
-                ax.append(row)
+        def to_grid_axes(ax_in):
+            if ax_in is None:
+                grid = []
+                for i in range(4):
+                    row = []
+                    for j in range(4):
+                        row.append(fig.add_subplot(4, 4, i*4 + j + 1))
+                    row = row
+                    grid.append(row)
+                return grid
+            if isinstance(ax_in, Axes):
+                return to_grid_axes(None)
+            try:
+                if len(ax_in) == 4 and all(hasattr(ax_in[i], '__len__') and len(ax_in[i]) == 4 for i in range(4)):
+                    return ax_in
+            except Exception:
+                pass
+            try:
+                if hasattr(ax_in, '__len__') and len(ax_in) == 16:
+                    return [list(ax_in[i*4:(i+1)*4]) for i in range(4)]
+            except Exception:
+                pass
+        
+        ax = to_grid_axes(ax)
         for i in range(4):
             for j in range(4):
                 data = np.empty((nx, ny))
@@ -118,7 +136,13 @@ def plot(
                     dot[x, y] = np.dot(arr.flatten(), expand7(component).flatten())
                 else:
                     dot[x, y] = np.dot(np.asarray(propmat_matrix[x][y]).flatten(), np.asarray(component).flatten())
-        if ax is None:
+        # Normalize to a single axes
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            try:
+                ax = ax[0][0] if hasattr(ax[0], '__len__') else ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         im = ax.imshow(dot, aspect='auto', cmap=cmap, origin='lower', **kwargs)
         if colorbar:
@@ -140,7 +164,12 @@ def plot(
                     data[x, y] = arr[i, j]
                 else:
                     data[x, y] = propmat_matrix[x][y][i, j]
-        if ax is None:
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            try:
+                ax = ax[0][0] if hasattr(ax[0], '__len__') else ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         im = ax.imshow(data, aspect='auto', cmap=cmap, origin='lower', **kwargs)
         if colorbar:
@@ -154,7 +183,12 @@ def plot(
         if component is None:
             component = 0
         data = np.asarray(propmat_matrix[:, :, component])
-        if ax is None:
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            try:
+                ax = ax[0][0] if hasattr(ax[0], '__len__') else ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         im = ax.imshow(data, aspect='auto', cmap=cmap, origin='lower', **kwargs)
         if colorbar:

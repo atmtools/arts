@@ -3,6 +3,7 @@
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 __all__ = [
     'plot',
@@ -78,13 +79,36 @@ def plot(
 
     if component is None and element is None:
         # Grid of plots: each subplot shows one matrix element (4x4)
-        if ax is None:
-            ax = []
-            for i in range(4):
-                row = []
-                for j in range(4):
-                    row.append(fig.add_subplot(4, 4, i*4 + j + 1))
-                ax.append(row)
+        # Normalize axes to a 4x4 grid (create if needed)
+        def to_grid_axes(ax_in):
+            if ax_in is None:
+                grid = []
+                for i in range(4):
+                    row = []
+                    for j in range(4):
+                        row.append(fig.add_subplot(4, 4, i*4 + j + 1))
+                    grid.append(row)
+                return grid
+            if isinstance(ax_in, Axes):
+                # Provided a single axes; create a full grid for grid mode
+                return to_grid_axes(None)
+            # List or array-like
+            try:
+                # nested list-of-lists
+                if len(ax_in) == 4 and all(hasattr(ax_in[i], '__len__') and len(ax_in[i]) == 4 for i in range(4)):
+                    return ax_in
+            except Exception:
+                pass
+            try:
+                # flat list of 16 axes
+                if hasattr(ax_in, '__len__') and len(ax_in) == 16:
+                    return [list(ax_in[i*4:(i+1)*4]) for i in range(4)]
+            except Exception:
+                pass
+            # Fallback: create new grid
+            return to_grid_axes(None)
+
+        ax = to_grid_axes(ax)
         for i in range(4):
             for j in range(4):
                 series = []
@@ -118,7 +142,14 @@ def plot(
                 dot.append(np.dot(np.asarray(m).flatten(), np.asarray(component).flatten()))
         data = np.asarray(dot)
         f = freqs if freqs is not None else np.arange(n)
-        if ax is None:
+        # Normalize to a single axes
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            # If ax is a list (grid from previous call), pick the first
+            try:
+                ax = ax[0][0] if hasattr(ax[0], '__len__') else ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         ax.plot(f, data, **kwargs)
         ax.set_xlabel(xlabel)
@@ -141,7 +172,13 @@ def plot(
                 series.append(m[i, j])
         data = np.asarray(series)
         f = freqs if freqs is not None else np.arange(n)
-        if ax is None:
+        # Normalize to a single axes
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            try:
+                ax = ax[0][0] if hasattr(ax[0], '__len__') else ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         ax.plot(f, data, **kwargs)
         ax.set_title(f"{title} (M[{i},{j}])")

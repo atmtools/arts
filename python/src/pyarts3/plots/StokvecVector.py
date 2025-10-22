@@ -3,6 +3,7 @@
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 __all__ = [
     'plot',
@@ -68,10 +69,18 @@ def plot(
 
     if component is None:
         # Grid of plots: each subplot shows one Stokes component
-        if ax is None:
-            ax = []
-            for i in range(4):
-                ax.append(fig.add_subplot(2, 2, i + 1))
+        def to_grid_axes(ax_in):
+            if ax_in is None:
+                return [fig.add_subplot(2, 2, i + 1) for i in range(4)]
+            if isinstance(ax_in, Axes):
+                return to_grid_axes(None)
+            try:
+                if hasattr(ax_in, '__len__') and len(ax_in) == 4 and not hasattr(ax_in[0], '__len__'):
+                    return ax_in
+            except Exception:
+                pass
+            return to_grid_axes(None)
+        ax = to_grid_axes(ax)
         # Robust extraction: support wrapped 4x1 objects
         data_ok = False
         try:
@@ -107,7 +116,13 @@ def plot(
                 dot.append(np.dot(np.array([sv[i] for i in range(4)]), component))
         data = np.asarray(dot)
         f = freqs if freqs is not None else np.arange(n)
-        if ax is None:
+        # Normalize to a single axes (pick first if a list of axes was provided)
+        if ax is None or (hasattr(ax, '__len__') and len(ax) != 0):
+            try:
+                ax = ax[0]
+            except Exception:
+                ax = fig.add_subplot(1, 1, 1)
+        elif not isinstance(ax, Axes):
             ax = fig.add_subplot(1, 1, 1)
         ax.plot(f, data, **kwargs)
         ax.set_xlabel(xlabel)
