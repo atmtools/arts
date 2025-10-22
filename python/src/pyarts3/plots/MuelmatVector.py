@@ -15,6 +15,7 @@ def plot(
     fig=None,
     freqs: np.ndarray | float = None,
     is_polar: bool | None = None,
+    **kwargs,
 ):
     """Plot the transmission matrix elements.
 

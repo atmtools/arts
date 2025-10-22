@@ -18,6 +18,7 @@ def plot(
     lons: np.ndarray | float = 0,
     ygrid: np.ndarray | None = None,
     keys: list[str] | None = None,
+    **kwargs,
 ):
     """Plot select subsurface field parameters by extracting a profile.
 

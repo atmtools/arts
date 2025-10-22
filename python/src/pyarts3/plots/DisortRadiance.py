@@ -21,6 +21,7 @@ def plot(
     title: str | None = None,
     colorbar: bool = True,
     cmap: str = "viridis",
+    **kwargs,
 ):
     """Plot DISORT radiance results.
 
@@ -46,6 +47,8 @@ def plot(
         Whether to show colorbar. Defaults to True.
     cmap : str, optional
         Colormap name. Defaults to "viridis".
+    **kwargs
+        Additional keyword arguments passed to matplotlib pcolormesh function.
 
     Returns
     -------
@@ -72,7 +75,7 @@ def plot(
     # Create meshgrid for plotting
     zen_mesh, azi_mesh = np.meshgrid(zenith_grid, azimuth_grid, indexing='ij')
     
-    im = ax.pcolormesh(azi_mesh, zen_mesh, data_slice, cmap=cmap, shading='auto')
+    im = ax.pcolormesh(azi_mesh, zen_mesh, data_slice, cmap=cmap, shading='auto', **kwargs)
     
     if colorbar:
         plt.colorbar(im, ax=ax, label='Radiance')

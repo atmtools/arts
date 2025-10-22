@@ -18,6 +18,7 @@ def plot(
     ylabel: str = "Value",
     title: str = "Stokes Vector Components",
     labels: list[str] = ['I', 'Q', 'U', 'V'],
+    **kwargs
 ):
     """Plot a vector of Stokes vectors showing all 4 components.
 
@@ -53,6 +54,8 @@ def plot(
         Plot title. Defaults to "Stokes Vector Components".
     labels : list[str], optional
         Labels for the 4 Stokes parameters. Defaults to ['I', 'Q', 'U', 'V'].
+    **kwargs
+        Additional keyword arguments passed to matplotlib plot()
 
     Returns
     -------
@@ -71,7 +74,7 @@ def plot(
     for i, label in enumerate(labels):
         ax = fig.add_subplot(2, 2, i + 1)
         data = stokvec_vector[:, i]
-        ax.plot(freqs, data, label=label)
+        ax.plot(freqs, data, label=label, **kwargs)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(f"{title} - {label}")

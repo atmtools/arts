@@ -33,7 +33,8 @@ def plot(ang: MagneticAngles,
          mode='normal',
          fig=None,
          ax=None,
-         N: int = 50):
+         N: int = 50,
+         **kwargs):
     """Plots the magnetic angles in 3D.  The axis should be 3D.
 
     The N parameter controls the number of points used to draw the angle arcs.

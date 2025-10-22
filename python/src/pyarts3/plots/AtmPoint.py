@@ -14,6 +14,7 @@ def plot(
     *,
     fig=None,
     keys: list[str] | None = None,
+    **kwargs
 ):
     """Plot atmospheric point parameters as a bar chart.
 
@@ -40,6 +41,8 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     keys : list[str] | None, optional
         List of keys to plot. If None, plots all available keys. Defaults to None.
+    **kwargs
+        Additional keyword arguments passed to matplotlib plotting functions
 
     Returns
     -------
@@ -64,11 +67,11 @@ def plot(
         
         # Handle different value types
         if isinstance(value, (float, int)):
-            ax.bar([key], [value])
+            ax.bar([key], [value], **kwargs)
             ax.set_ylabel("Value")
         else:
             # For array-like values, plot as line
-            ax.plot(value)
+            ax.plot(value, **kwargs)
             ax.set_ylabel(key)
             ax.set_xlabel("Index")
         

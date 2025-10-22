@@ -20,7 +20,8 @@ def plot(absorption_bands: AbsorptionBands,
          species: SpeciesEnum = SpeciesEnum.AIR,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          min_pm: float = None,
-         cm_key: str = 'viridis'):
+         cm_key: str = 'viridis',
+         **kwargs):
     """Creates a plot of the absorption by the bands in the AbsorptionBands object.
 
     If freqs is and index, this is the number of frequency points between the lowest

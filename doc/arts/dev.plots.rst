@@ -42,6 +42,8 @@ All plot modules follow a consistent pattern with the ``plot()`` function:
             Matplotlib figure (None creates new)
         ax : Axes, optional
             Matplotlib axes (None creates new)
+        **kwargs
+            Additional keyword arguments passed to underlying matplotlib functions
 
         Returns
         -------
@@ -52,6 +54,11 @@ All plot modules follow a consistent pattern with the ``plot()`` function:
         """
         # Implementation
         return fig, ax
+
+**Critical:** All plot functions must accept ``**kwargs`` and pass them to the
+underlying matplotlib plotting functions. This allows GUI frameworks to pass
+arbitrary styling parameters without knowing the specific parameters each plot
+type uses.
 
 Usage Examples
 --------------

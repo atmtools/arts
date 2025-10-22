@@ -15,6 +15,7 @@ def plot(
     fig=None,
     ax=None,
     show_info: bool = True,
+    **kwargs,
 ):
     """Plot a propagation path point showing position on a map.
 
@@ -42,6 +43,8 @@ def plot(
         The matplotlib axes to draw on. Defaults to None for new axes.
     show_info : bool, optional
         Whether to display info text box with position and LOS details. Defaults to True.
+    **kwargs
+        Additional keyword arguments passed to matplotlib functions (ax.plot, ax.arrow, etc.).
 
     Returns
     -------
@@ -69,7 +72,7 @@ def plot(
     azimuth = los[1]   # degrees (0° = North, 90° = East)
     
     # Plot position on map with a big cross
-    ax.plot(longitude, latitude, 'rx', markersize=20, markeredgewidth=3, label='Position')
+    ax.plot(longitude, latitude, 'rx', markersize=20, markeredgewidth=3, label='Position', **kwargs)
     
     # Add arrow showing line-of-sight direction (horizontal projection)
     # Convert azimuth to standard mathematical angle: 0° = North → 90° math angle
@@ -83,7 +86,7 @@ def plot(
     
     ax.arrow(longitude, latitude, dx, dy, 
              head_width=0.5, head_length=0.3, fc='blue', ec='blue', 
-             linewidth=2, alpha=0.7, label='LOS direction')
+             linewidth=2, alpha=0.7, label='LOS direction', **kwargs)
     
     # Set reasonable axis limits around the point
     lat_range = 5.0  # degrees

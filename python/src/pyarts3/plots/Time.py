@@ -17,6 +17,7 @@ def plot(
     title: str = "Time",
     format: str = "%Y-%m-%d %H:%M:%S",
     show_info: bool = True,
+    **kwargs,
 ):
     """Display a Time object as a formatted text plot.
 
@@ -45,7 +46,9 @@ def plot(
     format : str, optional
         Time format string. Defaults to "%Y-%m-%d %H:%M:%S".
     show_info : bool, optional
-        Whether to display the time text box. Defaults to True.
+        Whether to display the time info text box. Defaults to True.
+    **kwargs
+        Additional keyword arguments passed to matplotlib text function.
 
     Returns
     -------
@@ -77,7 +80,8 @@ def plot(
                 fontsize=20,
                 verticalalignment='center',
                 horizontalalignment='center',
-                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8),
+                **kwargs)
     
     ax.set_title(title)
     

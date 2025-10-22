@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I"):
+def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I", **kwargs):
     """Plot the sensor observational element array.
 
     .. note::

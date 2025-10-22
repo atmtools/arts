@@ -16,6 +16,7 @@ def plot(
     ax=None,
     labels: list[str] = ['I', 'Q', 'U', 'V'],
     title: str = "Stokes Vector",
+    **kwargs
 ):
     """Plot a Stokes vector as a bar chart.
 
@@ -43,6 +44,8 @@ def plot(
         Labels for the 4 Stokes parameters. Defaults to ['I', 'Q', 'U', 'V'].
     title : str, optional
         Plot title. Defaults to "Stokes Vector".
+    **kwargs
+        Additional keyword arguments passed to matplotlib bar()
 
     Returns
     -------
@@ -57,7 +60,7 @@ def plot(
     if ax is None:
         ax = fig.add_subplot(1, 1, 1)
     
-    ax.bar(labels, stokvec)
+    ax.bar(labels, stokvec, **kwargs)
     ax.set_ylabel("Value")
     ax.set_title(title)
     ax.grid(True, alpha=0.3, axis='y')

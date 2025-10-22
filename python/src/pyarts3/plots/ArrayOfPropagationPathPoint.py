@@ -360,7 +360,8 @@ def plot(
     draw_map: bool = True,
     draw_za_aa: bool = False,
     fig=None,
-    subs=None
+    subs=None,
+    **kwargs
 ):
     """Plots a single observation in a polar coordinate system
 

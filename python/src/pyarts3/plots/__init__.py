@@ -44,3 +44,104 @@ from . import Tensor4
 from . import Time
 from . import Vector
 from . import ZenithGrid
+
+import sys
+
+
+def plot(data, **kwargs):
+    """Generic plotting function that dispatches to the appropriate plot module.
+    
+    This function automatically determines the type of the input data and calls
+    the corresponding plot module's plot() function. All keyword arguments are
+    forwarded to the specific plotting function.
+    
+    Parameters
+    ----------
+    data : ARTS workspace type
+        Any ARTS data type that has a corresponding plot module.
+    **kwargs
+        All keyword arguments are forwarded to the specific plot function.
+        Common kwargs include:
+        - fig : matplotlib Figure, optional
+        - ax : matplotlib Axes, optional
+        - Additional plot-specific parameters
+    
+    Returns
+    -------
+    fig : matplotlib Figure
+        The matplotlib figure object.
+    ax : matplotlib Axes or list of Axes
+        The matplotlib axes object(s).
+    
+    Raises
+    ------
+    TypeError
+        If no plot module exists for the given data type.
+    
+    Examples
+    --------
+    >>> import pyarts3 as pyarts
+    >>> vec = pyarts.arts.Vector([1, 2, 3, 4])
+    >>> fig, ax = pyarts.plots.plot(vec)
+    
+    >>> mat = pyarts.arts.Matrix([[1, 2], [3, 4]])
+    >>> fig, ax = pyarts.plots.plot(mat, cmap='viridis')
+    """
+    # Get the type name of the data
+    type_name = type(data).__name__
+    
+    # Get the current module (pyarts3.plots)
+    current_module = sys.modules[__name__]
+    
+    # Check if we have a submodule with the same name as the type
+    if hasattr(current_module, type_name):
+        plot_module = getattr(current_module, type_name)
+        
+        # Check if the submodule has a plot function
+        if hasattr(plot_module, 'plot'):
+            return plot_module.plot(data, **kwargs)
+        else:
+            raise TypeError(f"Plot module '{type_name}' exists but has no plot() function")
+    else:
+        raise TypeError(
+            f"No plot module found for type '{type_name}'. "
+            f"Available plot modules: {', '.join([name for name in dir(current_module) if not name.startswith('_') and name != 'plot' and name != 'sys'])}"
+        )
+
+
+__all__ = [
+    'plot',
+    'AbsorptionBands',
+    'ArrayOfPropagationPathPoint',
+    'ArrayOfSensorObsel',
+    'AscendingGrid',
+    'AtmField',
+    'AtmPoint',
+    'AzimuthGrid',
+    'DisortFlux',
+    'DisortRadiance',
+    'GeodeticField2',
+    'GriddedField2',
+    'LatGrid',
+    'LonGrid',
+    'MagneticAngles',
+    'Matrix',
+    'MuelmatVector',
+    'PropagationPathPoint',
+    'PropmatMatrix',
+    'PropmatVector',
+    'SortedGriddedField1',
+    'SortedGriddedField2',
+    'SortedGriddedField3',
+    'Stokvec',
+    'StokvecMatrix',
+    'StokvecVector',
+    'SubsurfaceField',
+    'Sun',
+    'SurfaceField',
+    'Tensor3',
+    'Tensor4',
+    'Time',
+    'Vector',
+    'ZenithGrid',
+]

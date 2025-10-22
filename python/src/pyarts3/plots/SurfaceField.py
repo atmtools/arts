@@ -16,6 +16,7 @@ def plot(
     lats: np.ndarray | None = None,
     lons: np.ndarray | None = None,
     keys: list[str] | None = None,
+    **kwargs,
 ):
     """Plot surface field parameters on a grid.
 
@@ -31,6 +32,8 @@ def plot(
         Longitude grid for sampling. Defaults to None for automatic grid.
     keys : list[str] | None, optional
         List of keys to plot. If None, plots all available keys. Defaults to None.
+    **kwargs
+        Additional keyword arguments passed to matplotlib pcolormesh function.
 
     Returns
     -------
@@ -66,7 +69,7 @@ def plot(
                 point = surface_field(lat_grid[ii, jj], lon_grid[ii, jj])
                 values[ii, jj] = point[key] if key in point else np.nan
         
-        im = ax.pcolormesh(lon_grid, lat_grid, values, cmap='viridis', shading='auto')
+        im = ax.pcolormesh(lon_grid, lat_grid, values, cmap='viridis', shading='auto', **kwargs)
         plt.colorbar(im, ax=ax, label=key)
         ax.set_xlabel('Longitude [°]')
         ax.set_ylabel('Latitude [°]')
