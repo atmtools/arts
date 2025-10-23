@@ -34,6 +34,13 @@ from . import Rational
 from . import AtmPoint
 from . import AtmField
 from . import AtmData
+from . import SubsurfacePoint
+from . import SubsurfaceField
+from . import SubsurfaceData
+from . import SurfacePoint
+from . import SurfaceField
+from . import SurfaceData
+from . import Time
 try:
     from . import NDarray  # Preferred: renamed file
 except Exception:  # Fallback for case-insensitive FS where file is still lowercase

@@ -23,6 +23,8 @@ __all__ = [
     'edit_griddedfield',
     'edit_maplike',
     'create_atm_keys_table',
+    'create_subsurface_keys_table',
+    'create_surface_keys_table',
 ]
 
 
@@ -1328,4 +1330,259 @@ def create_atm_keys_table(keys_list, parent=None):
     layout.addWidget(QLabel(f"Atmospheric keys. Double-click to edit."))
     layout.addWidget(table)
     
+    return widget, dict_items, refresh_table
+
+
+def create_subsurface_keys_table(keys_list, default_value_factory, parent=None):
+    """
+    Create a table widget for editing subsurface keys (used by SubsurfacePoint and SubsurfaceField).
+    
+    Handles key types: SubsurfaceKey, SubsurfacePropertyTag.
+    
+    Parameters
+    ----------
+    keys_list : list[(key, value)]
+        Initial list of pairs (key, value)
+    default_value_factory : callable
+        A function returning a default value when adding a new entry (e.g., Numeric(0.0) or SubsurfaceData(Numeric(0.0)))
+    parent : QWidget, optional
+        Parent widget
+        
+    Returns
+    -------
+    tuple(widget, dict_items, refresh_callback)
+        widget: QWidget to add to layouts
+        dict_items: mutable list of (key, value)
+        refresh_callback: function to refresh table contents
+    """
+    from PyQt5.QtWidgets import (
+        QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem,
+        QToolBar, QComboBox, QLabel, QMessageBox, QAction, QHeaderView
+    )
+    from PyQt5.QtCore import Qt
+    from pyarts3 import arts
+    from pyarts3.gui.edit import edit as dispatch_edit
+    
+    widget = QWidget(parent)
+    layout = QVBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+    
+    dict_items = list(keys_list)
+    
+    table = QTableWidget()
+    table.setColumnCount(3)
+    table.setHorizontalHeaderLabels(["Key Type", "Key", "Value"])
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    table.setSelectionBehavior(QTableWidget.SelectRows)
+    table.setSelectionMode(QTableWidget.SingleSelection)
+    
+    def refresh_table():
+        table.setRowCount(len(dict_items))
+        for row, (key, val) in enumerate(dict_items):
+            # Key type
+            key_type = type(key).__name__
+            item = QTableWidgetItem(key_type)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 0, item)
+            
+            # Key
+            item = QTableWidgetItem(str(key))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 1, item)
+            
+            # Value
+            item = QTableWidgetItem(str(val))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 2, item)
+    
+    def on_cell_double_clicked(row, col):
+        if row >= len(dict_items):
+            return
+        key, val = dict_items[row]
+        
+        if col == 2:  # Edit value
+            result = dispatch_edit(val, parent=widget)
+            if result is not None:
+                dict_items[row] = (key, result)
+                refresh_table()
+        elif col == 1:  # Edit key
+            result = dispatch_edit(key, parent=widget)
+            if result is not None:
+                dict_items[row] = (result, val)
+                refresh_table()
+    
+    table.cellDoubleClicked.connect(on_cell_double_clicked)
+    
+    toolbar = QToolBar()
+    key_type_combo = QComboBox()
+    key_type_combo.addItems(["SubsurfaceKey", "SubsurfacePropertyTag"]) 
+    toolbar.addWidget(QLabel("New key type:"))
+    toolbar.addWidget(key_type_combo)
+    
+    add_action = QAction("+ Add", widget)
+    
+    def add_entry():
+        key_type_name = key_type_combo.currentText()
+        try:
+            if key_type_name == "SubsurfaceKey":
+                new_key = arts.SubsurfaceKey.temperature
+            elif key_type_name == "SubsurfacePropertyTag":
+                new_key = arts.SubsurfacePropertyTag("custom")
+            else:
+                return
+            edited_key = dispatch_edit(new_key, parent=widget)
+            if edited_key is not None:
+                new_value = default_value_factory()
+                dict_items.append((edited_key, new_value))
+                refresh_table()
+        except Exception as e:
+            QMessageBox.warning(widget, "Error", f"Failed to create key: {e}")
+    
+    add_action.triggered.connect(add_entry)
+    toolbar.addAction(add_action)
+    
+    remove_action = QAction("− Remove", widget)
+    remove_action.setToolTip("Remove selected entry")
+    
+    def remove_entry():
+        current_row = table.currentRow()
+        if 0 <= current_row < len(dict_items):
+            dict_items.pop(current_row)
+            refresh_table()
+    
+    remove_action.triggered.connect(remove_entry)
+    toolbar.addAction(remove_action)
+    
+    layout.addWidget(toolbar)
+    layout.addWidget(QLabel("Subsurface keys. Double-click to edit."))
+    layout.addWidget(table)
+    
+    return widget, dict_items, refresh_table
+
+
+def create_surface_keys_table(keys_list, default_value_factory, parent=None):
+    """
+    Create a table widget for editing surface keys (used by SurfacePoint and SurfaceField).
+
+    Handles key types: SurfaceKey, SurfacePropertyTag.
+
+    Parameters
+    ----------
+    keys_list : list[(key, value)]
+        Initial list of pairs (key, value)
+    default_value_factory : callable
+        A function returning a default value when adding a new entry (e.g., Numeric(0.0) or SurfaceData(Numeric(0.0)))
+    parent : QWidget, optional
+        Parent widget
+
+    Returns
+    -------
+    tuple(widget, dict_items, refresh_callback)
+        widget: QWidget to add to layouts
+        dict_items: mutable list of (key, value)
+        refresh_callback: function to refresh table contents
+    """
+    from PyQt5.QtWidgets import (
+        QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem,
+        QToolBar, QComboBox, QLabel, QMessageBox, QAction, QHeaderView
+    )
+    from PyQt5.QtCore import Qt
+    from pyarts3 import arts
+    from pyarts3.gui.edit import edit as dispatch_edit
+
+    widget = QWidget(parent)
+    layout = QVBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+
+    dict_items = list(keys_list)
+
+    table = QTableWidget()
+    table.setColumnCount(3)
+    table.setHorizontalHeaderLabels(["Key Type", "Key", "Value"])
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    table.setSelectionBehavior(QTableWidget.SelectRows)
+    table.setSelectionMode(QTableWidget.SingleSelection)
+
+    def refresh_table():
+        table.setRowCount(len(dict_items))
+        for row, (key, val) in enumerate(dict_items):
+            # Key type
+            key_type = type(key).__name__
+            item = QTableWidgetItem(key_type)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 0, item)
+
+            # Key
+            item = QTableWidgetItem(str(key))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 1, item)
+
+            # Value
+            item = QTableWidgetItem(str(val))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 2, item)
+
+    def on_cell_double_clicked(row, col):
+        if row >= len(dict_items):
+            return
+        key, val = dict_items[row]
+
+        if col == 2:  # Edit value
+            result = dispatch_edit(val, parent=widget)
+            if result is not None:
+                dict_items[row] = (key, result)
+                refresh_table()
+        elif col == 1:  # Edit key
+            result = dispatch_edit(key, parent=widget)
+            if result is not None:
+                dict_items[row] = (result, val)
+                refresh_table()
+
+    table.cellDoubleClicked.connect(on_cell_double_clicked)
+
+    toolbar = QToolBar()
+    key_type_combo = QComboBox()
+    key_type_combo.addItems(["SurfaceKey", "SurfacePropertyTag"])  
+    toolbar.addWidget(QLabel("New key type:"))
+    toolbar.addWidget(key_type_combo)
+
+    add_action = QAction("+ Add", widget)
+
+    def add_entry():
+        key_type_name = key_type_combo.currentText()
+        try:
+            if key_type_name == "SurfaceKey":
+                # Choose a sensible default
+                new_key = arts.SurfaceKey.t
+            elif key_type_name == "SurfacePropertyTag":
+                new_key = arts.SurfacePropertyTag("custom")
+            else:
+                return
+            edited_key = dispatch_edit(new_key, parent=widget)
+            if edited_key is not None:
+                new_value = default_value_factory()
+                dict_items.append((edited_key, new_value))
+                refresh_table()
+        except Exception as e:
+            QMessageBox.warning(widget, "Error", f"Failed to create key: {e}")
+
+    add_action.triggered.connect(add_entry)
+    toolbar.addAction(add_action)
+
+    remove_action = QAction("− Remove", widget)
+    remove_action.setToolTip("Remove selected entry")
+
+    def remove_entry():
+        current_row = table.currentRow()
+        if 0 <= current_row < len(dict_items):
+            dict_items.pop(current_row)
+            refresh_table()
+
+    remove_action.triggered.connect(remove_entry)
+    toolbar.addAction(remove_action)
+
+    layout.addWidget(toolbar)
+    layout.addWidget(QLabel("Surface keys. Double-click to edit."))
+    layout.addWidget(table)
+
     return widget, dict_items, refresh_table
