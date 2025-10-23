@@ -40,7 +40,7 @@ from matplotlib.patches import Rectangle
 from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QHBoxLayout, QPushButton, 
                               QWidget, QListWidget, QLabel, QDialog, QLineEdit, 
                               QDialogButtonBox, QFormLayout, QListWidgetItem, QMenu, QAction,
-                              QMessageBox)
+                              QMessageBox, QTextEdit)
 from PyQt5.QtCore import Qt
 import numpy as np
 from . import edit as editors
@@ -132,7 +132,9 @@ class PlotGui(QWidget):
             # Populate Simulation Settings list
             self.simulation_list.clear()
             for key, value in self.simulation_settings.items():
-                self.simulation_list.addItem(f"{key}: {value}")
+                # Show only key and type name in list
+                type_name = type(value).__name__
+                self.simulation_list.addItem(f"{key}: <{type_name}>")
 
             # Step 1: Get Results kwargs from plot_kwarg_func, passing Simulation Settings
             self.results_kwargs = self.plot_kwarg_func(**self.simulation_settings)
@@ -140,11 +142,9 @@ class PlotGui(QWidget):
             # Populate the Results list
             self.results_list.clear()
             for key, value in self.results_kwargs.items():
-                # Show abbreviated value for display
-                value_str = str(value)
-                if len(value_str) > 30:
-                    value_str = value_str[:27] + "..."
-                self.results_list.addItem(f"{key}: {value_str}")
+                # Show only key and type name in list
+                type_name = type(value).__name__
+                self.results_list.addItem(f"{key}: <{type_name}>")
 
             # Populate Additional Options list
             self.update_options_display()
@@ -184,14 +184,24 @@ class PlotGui(QWidget):
             self.canvas.draw()
 
         except Exception as e:
-            # Show error dialog
-            error_msg = f"Error while plotting:\n\n{type(e).__name__}: {str(e)}"
+            # Show error dialog with scrollable text
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            
+            # Extract last line for main display
+            error_lines = error_msg.split('\n')
+            last_line = error_lines[-1].strip() if error_lines else error_msg
 
             msg_box = QMessageBox(self)
             msg_box.setIcon(QMessageBox.Critical)
             msg_box.setWindowTitle("Plot Error")
-            msg_box.setText(error_msg)
+            msg_box.setText(f"An error occurred while plotting:\n\n{last_line}")
+            
+            # Use detailed text which is automatically scrollable
+            msg_box.setDetailedText(error_msg)
             msg_box.addButton(QMessageBox.Ok)
+            
+            # Set a reasonable size for the dialog
+            msg_box.setStyleSheet("QTextEdit { min-width: 600px; min-height: 300px; }")
             msg_box.exec_()
     
     def on_item_selected(self, list_type, item):
@@ -239,21 +249,20 @@ class PlotGui(QWidget):
         if new_value is not None:
             if list_type == "simulation":
                 self.simulation_settings[key] = new_value
-                # Update display
+                # Update display - show only type name
                 self.simulation_list.clear()
                 for k, v in self.simulation_settings.items():
-                    self.simulation_list.addItem(f"{k}: {v}")
+                    type_name = type(v).__name__
+                    self.simulation_list.addItem(f"{k}: <{type_name}>")
                 # Re-run plot to regenerate results
                 self.run_plot()
             elif list_type == "results":
                 self.results_kwargs[key] = new_value
-                # Update display
+                # Update display - show only type name
                 self.results_list.clear()
                 for k, v in self.results_kwargs.items():
-                    value_str = str(v)
-                    if len(value_str) > 30:
-                        value_str = value_str[:27] + "..."
-                    self.results_list.addItem(f"{k}: {value_str}")
+                    type_name = type(v).__name__
+                    self.results_list.addItem(f"{k}: <{type_name}>")
                 # Replot with updated results
                 self.replot()
             elif list_type == "options":
@@ -421,13 +430,20 @@ class PlotGui(QWidget):
             self.canvas.draw()
             
         except Exception as e:
-            # Show error dialog with option to delete or edit last addition
-            error_msg = f"Error while plotting:\n\n{type(e).__name__}: {str(e)}"
+            # Show error dialog with scrollable text and option to delete or edit last addition
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            
+            # Extract last line for main display
+            error_lines = error_msg.split('\n')
+            last_line = error_lines[-1].strip() if error_lines else error_msg
             
             msg_box = QMessageBox(self)
             msg_box.setIcon(QMessageBox.Critical)
             msg_box.setWindowTitle("Plot Error")
-            msg_box.setText(error_msg)
+            msg_box.setText(f"An error occurred while plotting:\n\n{last_line}")
+            
+            # Use detailed text which is automatically scrollable
+            msg_box.setDetailedText(error_msg)
             
             # Only show "Delete" and "Edit" if we have a last added option
             if self.last_added_option and self.last_added_option in self.additional_options:
@@ -437,6 +453,9 @@ class PlotGui(QWidget):
                 msg_box.setDefaultButton(edit_btn)
             else:
                 msg_box.addButton(QMessageBox.Ok)
+            
+            # Set a reasonable size for the dialog
+            msg_box.setStyleSheet("QTextEdit { min-width: 600px; min-height: 300px; }")
             
             result = msg_box.exec_()
             
