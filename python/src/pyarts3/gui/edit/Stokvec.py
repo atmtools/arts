@@ -58,5 +58,10 @@ def edit(value, parent=None):
     dialog.setLayout(layout)
     
     if dialog.exec_() == QDialog.Accepted:
-        return np.array([spin.value() for spin in spin_boxes])
+        values = [spin.value() for spin in spin_boxes]
+        # Preserve original ARTS type if possible
+        try:
+            return type(value)(values)
+        except Exception:
+            return np.array(values)
     return None

@@ -69,12 +69,20 @@ def edit(value, parent=None):
     dialog.setLayout(layout)
     
     if dialog.exec_() == QDialog.Accepted:
-        result = np.zeros(data.shape)
+        # Build a nested Python list to feed back to original type constructor
+        result = []
         for i in range(data.shape[0]):
+            row = []
             for j in range(data.shape[1]):
                 try:
-                    result[i, j] = float(table.item(i, j).text())
+                    row.append(float(table.item(i, j).text()))
                 except (ValueError, AttributeError):
-                    result[i, j] = data[i, j]  # Keep original on error
-        return result
+                    row.append(float(data[i, j]))  # Keep original on error
+            result.append(row)
+        # Preserve original ARTS type if possible
+        try:
+            return type(value)(result)
+        except Exception:
+            # Fallback to numpy array
+            return np.array(result)
     return None

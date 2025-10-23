@@ -40,6 +40,8 @@ def edit(ws, parent=None):
 
     dialog = QDialog(parent)
     dialog.setWindowTitle("Workspace Variables")
+    # Set minimum size to handle different DPI scaling across platforms
+    dialog.setMinimumSize(800, 500)
     dialog.resize(900, 600)  # Wide enough for ~100 char variable names
 
     main = QVBoxLayout()
@@ -118,7 +120,9 @@ def edit(ws, parent=None):
         # Add "+ Add workspace variable..." sentinel at bottom
         add_item = QListWidgetItem("+ Add workspace variable...")
         add_item.setData(Qt.UserRole, None)
-        add_item.setForeground(Qt.gray)
+        # Use a lighter gray that works across themes (Windows compatibility)
+        from PyQt5.QtGui import QColor
+        add_item.setForeground(QColor(128, 128, 128))
         lst.addItem(add_item)
 
         # Set info (exclude the sentinel from count)
@@ -133,6 +137,7 @@ def edit(ws, parent=None):
     def open_add_dialog():
         add_dlg = QDialog(dialog)
         add_dlg.setWindowTitle("Add workspace variable")
+        add_dlg.setMinimumSize(800, 500)
         add_dlg.resize(900, 600)  # Match main dialog width for consistency
         add_layout = QVBoxLayout()
 
@@ -167,6 +172,7 @@ def edit(ws, parent=None):
 
             # Determine editor availability based on declared group name
             import pyarts3.gui.edit as editors_mod
+            from PyQt5.QtGui import QColor
             for name in names:
                 tname = _group_name(name)
                 has_mod = hasattr(editors_mod, tname) and hasattr(getattr(editors_mod, tname), 'edit')
@@ -174,7 +180,8 @@ def edit(ws, parent=None):
                 it = QListWidgetItem(text)
                 it.setData(Qt.UserRole, (name, tname, has_mod))
                 if not has_mod:
-                    it.setForeground(Qt.gray)
+                    # Use explicit gray color for cross-platform consistency
+                    it.setForeground(QColor(128, 128, 128))
                 add_list.addItem(it)
 
         def on_add_double_clicked(it: QListWidgetItem):

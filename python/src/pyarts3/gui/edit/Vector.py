@@ -67,11 +67,16 @@ def edit(value, parent=None):
     dialog.setLayout(layout)
     
     if dialog.exec_() == QDialog.Accepted:
-        result = np.zeros(len(data))
+        result = []
         for i in range(table.rowCount()):
             try:
-                result[i] = float(table.item(i, 1).text())
+                result.append(float(table.item(i, 1).text()))
             except (ValueError, AttributeError):
-                result[i] = data[i]  # Keep original on error
-        return result
+                result.append(float(data[i]))  # Keep original on error
+        # Preserve original ARTS type if possible
+        try:
+            return type(value)(result)
+        except Exception:
+            # Fallback to numpy array
+            return np.array(result)
     return None
