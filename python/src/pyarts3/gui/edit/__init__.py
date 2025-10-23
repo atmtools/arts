@@ -25,6 +25,7 @@ from . import Numeric
 from . import String
 from . import ArrayOf
 from . import Options
+from . import bool
 from . import Workspace
 from . import QuantumIdentifier
 from . import QuantumUpperLower
@@ -49,6 +50,11 @@ from . import JacobianTargets
 from . import DisortSettings
 from . import AbsorptionBand
 from . import AbsorptionLine
+from . import ScatteringMetaData
+from . import ZeemanLineModel
+from . import CIARecord
+from . import XsecRecord
+from . import LineShapeModel
 try:
     from . import NDarray  # Preferred: renamed file
 except Exception:  # Fallback for case-insensitive FS where file is still lowercase
