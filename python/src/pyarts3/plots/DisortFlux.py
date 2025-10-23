@@ -75,6 +75,9 @@ def plot(
     else:
         # Plot all frequencies as 2D
         # Use imshow for proper data/grid alignment
+        # Note: alt_grid values are reversed in 'extent' ([alt_grid[-1], alt_grid[0]])
+        # to ensure altitude increases upwards in the plot (matplotlib's 'imshow' by default
+        # places the origin at the lower left, so this sets y-axis from lowest to highest altitude).
         extent = [freq_grid[0], freq_grid[-1], alt_grid[-1], alt_grid[0]]
         
         im1 = ax[0].imshow(upwelling.T, aspect='auto', cmap='viridis', 

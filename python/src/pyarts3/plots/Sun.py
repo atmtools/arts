@@ -76,7 +76,7 @@ def plot(
         ax = fig.add_subplot(1, 1, 1)
     
     # spectrum is a Matrix (nfreq x 4 Stokes), use first Stokes dimension
-    spectrum = sun.spectrum[:, 0] if sun.spectrum.shape[1] > 0 else sun.spectrum[:, 0]
+    spectrum = sun.spectrum[:, 0]
     
     if freqs is None:
         freqs = np.arange(len(spectrum))

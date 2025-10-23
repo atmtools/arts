@@ -87,7 +87,6 @@ def plot(
                     row = []
                     for j in range(4):
                         row.append(fig.add_subplot(4, 4, i*4 + j + 1))
-                    row = row
                     grid.append(row)
                 return grid
             if isinstance(ax_in, Axes):
