@@ -42,6 +42,9 @@ from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QHBoxLayout, QPushButton
                               QDialogButtonBox, QFormLayout, QListWidgetItem, QMenu, QAction,
                               QMessageBox)
 from PyQt5.QtCore import Qt
+import numpy as np
+from . import edit as editors
+
 
 class PlotGui(QWidget):
     def __init__(self, plot_kwarg_func, plot_func, simulation_settings=None, post=None, *args, **kwargs):
@@ -92,6 +95,7 @@ class PlotGui(QWidget):
         right_panel.addWidget(sim_label)
         self.simulation_list = QListWidget()
         self.simulation_list.itemClicked.connect(lambda item: self.on_item_selected("simulation", item))
+        self.simulation_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("simulation", item))
         right_panel.addWidget(self.simulation_list)
         
         # Results list
@@ -99,6 +103,7 @@ class PlotGui(QWidget):
         right_panel.addWidget(results_label)
         self.results_list = QListWidget()
         self.results_list.itemClicked.connect(lambda item: self.on_item_selected("results", item))
+        self.results_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("results", item))
         right_panel.addWidget(self.results_list)
         
         # Additional Options list
@@ -110,7 +115,7 @@ class PlotGui(QWidget):
         self.options_list.setMaximumHeight(200)
         self.options_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.options_list.customContextMenuRequested.connect(self.show_options_context_menu)
-        self.options_list.itemDoubleClicked.connect(self.edit_option)
+        self.options_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("options", item))
         self.options_list.itemClicked.connect(self.on_options_item_clicked)
         right_panel.addWidget(self.options_list)
         
@@ -192,6 +197,70 @@ class PlotGui(QWidget):
     def on_item_selected(self, list_type, item):
         """Handle selection of an item from any of the three lists."""
         print(f"Selected from {list_type}: {item.text()}")
+    
+    def on_item_double_clicked(self, list_type, item):
+        """Handle double-click on an item from any of the three lists."""
+        # Parse the item text to extract key and value
+        text = item.text()
+        
+        # Check if it's the "+ Add option..." item
+        if text.startswith("+ Add option"):
+            self.add_option()
+            return
+        
+        # Parse "key: value" or "key: value (type)" format
+        if ": " not in text:
+            return
+        
+        key, rest = text.split(": ", 1)
+        
+        # Get the actual value from the appropriate dict
+        if list_type == "simulation":
+            value = self.simulation_settings.get(key)
+        elif list_type == "results":
+            value = self.results_kwargs.get(key)
+        elif list_type == "options":
+            # For options list, the key is stored in UserRole
+            key = item.data(Qt.UserRole)
+            if key is None:  # "+ Add option..." item
+                self.add_option()
+                return
+            value = self.additional_options.get(key)
+        else:
+            return
+        
+        if value is None:
+            return
+        
+        # Open editor (will automatically detect type and fall back to generic viewer)
+        new_value = editors.edit(value, self)
+        
+        # Update the value if changed
+        if new_value is not None:
+            if list_type == "simulation":
+                self.simulation_settings[key] = new_value
+                # Update display
+                self.simulation_list.clear()
+                for k, v in self.simulation_settings.items():
+                    self.simulation_list.addItem(f"{k}: {v}")
+                # Re-run plot to regenerate results
+                self.run_plot()
+            elif list_type == "results":
+                self.results_kwargs[key] = new_value
+                # Update display
+                self.results_list.clear()
+                for k, v in self.results_kwargs.items():
+                    value_str = str(v)
+                    if len(value_str) > 30:
+                        value_str = value_str[:27] + "..."
+                    self.results_list.addItem(f"{k}: {value_str}")
+                # Replot with updated results
+                self.replot()
+            elif list_type == "options":
+                self.additional_options[key] = new_value
+                self.update_options_display()
+                # Replot with updated options
+                self.replot()
     
     def show_options_context_menu(self, position):
         """Show context menu for Additional Options list."""
