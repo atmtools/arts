@@ -6,8 +6,8 @@ Displays a list of elements. Double-click an element to open its editor
 
 from PyQt5.QtWidgets import (
     QApplication,
-    QDialog, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
-    QDialogButtonBox
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
+    QDialogButtonBox, QPushButton, QMessageBox
 )
 from PyQt5.QtCore import Qt
 
@@ -52,8 +52,15 @@ def edit(value, parent=None):
         # Fallback: try index-based access
         original = [x for x in value]
 
-    n = len(original)
+    # Track edits and deletions
     edits = {}  # index -> new value
+    deleted = set()  # indices to delete
+    added = []  # new elements to append
+
+    # Track edits and deletions
+    edits = {}  # index -> new value
+    deleted = set()  # indices to delete
+    added = []  # new elements to append
 
     # Lazy import to avoid circular imports
     from . import edit as dispatch_edit
@@ -64,31 +71,53 @@ def edit(value, parent=None):
 
     layout = QVBoxLayout()
 
-    info = QLabel(f"Size: {n}")
+    def refresh_table():
+        """Rebuild table from current state"""
+        # Compute current working list
+        working = [edits.get(i, original[i]) for i in range(len(original)) if i not in deleted]
+        working.extend(added)
+        
+        n = len(working)
+        info.setText(f"Size: {n}")
+        
+        table.setRowCount(n)
+        for i, v in enumerate(working):
+            # Index
+            idx_it = QTableWidgetItem(str(i))
+            idx_it.setFlags(idx_it.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 0, idx_it)
+            # Type
+            tname = type(v).__name__
+            typ_it = QTableWidgetItem(tname)
+            typ_it.setFlags(typ_it.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 1, typ_it)
+            # Summary
+            val_it = QTableWidgetItem(_summarize(v))
+            val_it.setData(Qt.UserRole, v)  # store original object
+            val_it.setFlags(val_it.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 2, val_it)
+
+    info = QLabel()
     info.setStyleSheet("color: #555;")
     layout.addWidget(info)
+
+    # Add/Remove buttons in a toolbar-style layout
+    toolbar_layout = QHBoxLayout()
+    add_btn = QPushButton("+ Add")
+    add_btn.setToolTip("Add a new element to the list")
+    remove_btn = QPushButton("− Remove")
+    remove_btn.setToolTip("Remove the currently selected row")
+    toolbar_layout.addWidget(add_btn)
+    toolbar_layout.addWidget(remove_btn)
+    toolbar_layout.addStretch()
+    layout.addLayout(toolbar_layout)
 
     table = QTableWidget()
     table.setColumnCount(3)
     table.setHorizontalHeaderLabels(["Index", "Type", "Value"])
     table.horizontalHeader().setStretchLastSection(True)
-    table.setRowCount(n)
-
-    for i, v in enumerate(original):
-        # Index
-        idx_it = QTableWidgetItem(str(i))
-        idx_it.setFlags(idx_it.flags() & ~Qt.ItemIsEditable)
-        table.setItem(i, 0, idx_it)
-        # Type
-        tname = type(v).__name__
-        typ_it = QTableWidgetItem(tname)
-        typ_it.setFlags(typ_it.flags() & ~Qt.ItemIsEditable)
-        table.setItem(i, 1, typ_it)
-        # Summary
-        val_it = QTableWidgetItem(_summarize(v))
-        val_it.setData(Qt.UserRole, v)  # store original object
-        val_it.setFlags(val_it.flags() & ~Qt.ItemIsEditable)
-        table.setItem(i, 2, val_it)
+    table.setSelectionBehavior(QTableWidget.SelectRows)
+    table.setSelectionMode(QTableWidget.SingleSelection)
 
     def on_cell_double_clicked(row, col):
         # Allow double-click anywhere on the row to edit that element
@@ -107,13 +136,103 @@ def edit(value, parent=None):
                 except Exception:
                     # If conversion fails, use new_obj as-is
                     pass
-            edits[row] = new_obj
-            # Update display
-            it.setData(Qt.UserRole, new_obj)
-            it.setText(_summarize(new_obj))
-            table.item(row, 1).setText(type(new_obj).__name__)
+            
+            # Determine if this is an added element or original
+            working = [edits.get(i, original[i]) for i in range(len(original)) if i not in deleted]
+            num_original_remaining = len(working)
+            
+            if row < num_original_remaining:
+                # Find the actual original index
+                original_idx = 0
+                for i in range(len(original)):
+                    if i not in deleted:
+                        if original_idx == row:
+                            edits[i] = new_obj
+                            break
+                        original_idx += 1
+            else:
+                # It's an added element
+                added_idx = row - num_original_remaining
+                added[added_idx] = new_obj
+            
+            refresh_table()
 
+    def on_add_element():
+        """Add a new element to the list"""
+        # Try to determine the element type
+        element_type = None
+        
+        # Check if we can infer element type from container type name
+        container_type_name = type(value).__name__
+        if container_type_name.startswith("ArrayOf"):
+            element_type_name = container_type_name[7:]  # Remove "ArrayOf" prefix
+            
+            # Try to find the type in arts
+            try:
+                from pyarts3 import arts
+                if hasattr(arts, element_type_name):
+                    element_type = getattr(arts, element_type_name)
+            except Exception:
+                pass
+        
+        # If we have existing elements, use their type
+        if element_type is None and len(original) > 0:
+            element_type = type(original[0])
+        
+        if element_type is None and len(added) > 0:
+            element_type = type(added[0])
+        
+        # Create a default instance
+        if element_type is not None:
+            try:
+                new_element = element_type()
+            except Exception:
+                QMessageBox.warning(dialog, "Cannot Create Element", 
+                                  f"Could not create a default instance of {element_type.__name__}")
+                return
+        else:
+            QMessageBox.warning(dialog, "Cannot Determine Type", 
+                              "Could not determine the element type for this container")
+            return
+        
+        # Edit the new element
+        edited_element = dispatch_edit(new_element, parent=dialog)
+        if edited_element is not None:
+            added.append(edited_element)
+            refresh_table()
+
+    def on_remove_element():
+        """Remove the selected element"""
+        current_row = table.currentRow()
+        if current_row < 0:
+            QMessageBox.information(dialog, "No Selection", "Please select a row to remove")
+            return
+        
+        # Determine if this is an added element or original
+        working = [edits.get(i, original[i]) for i in range(len(original)) if i not in deleted]
+        num_original_remaining = len(working)
+        
+        if current_row < num_original_remaining:
+            # Find the actual original index and mark as deleted
+            original_idx = 0
+            for i in range(len(original)):
+                if i not in deleted:
+                    if original_idx == current_row:
+                        deleted.add(i)
+                        break
+                    original_idx += 1
+        else:
+            # It's an added element
+            added_idx = current_row - num_original_remaining
+            del added[added_idx]
+        
+        refresh_table()
+
+    # Connect signals
     table.cellDoubleClicked.connect(on_cell_double_clicked)
+    add_btn.clicked.connect(on_add_element)
+    remove_btn.clicked.connect(on_remove_element)
+    
     layout.addWidget(table)
 
     buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -122,10 +241,14 @@ def edit(value, parent=None):
     layout.addWidget(buttons)
 
     dialog.setLayout(layout)
+    
+    # Initial table population
+    refresh_table()
 
     if dialog.exec_() == QDialog.Accepted:
-        # Build final list, applying edits
-        final = [edits.get(i, original[i]) for i in range(n)]
+        # Build final list: non-deleted originals (with edits) + added elements
+        final = [edits.get(i, original[i]) for i in range(len(original)) if i not in deleted]
+        final.extend(added)
         try:
             return type(value)(final)
         except Exception:

@@ -180,6 +180,23 @@ def edit(value, parent=None):
         except Exception:
             pass  # Not an option group, continue to other checks
         
+        # Check if this is a gridded field (before generic array check)
+        # GriddedFields have: grids, gridnames, dataname properties and __array__
+        is_griddedfield = False
+        try:
+            is_griddedfield = (
+                hasattr(value, '__array__') and
+                hasattr(value, 'grids') and
+                hasattr(value, 'gridnames') and
+                hasattr(value, 'dataname')
+            )
+        except Exception:
+            pass
+        
+        if is_griddedfield:
+            from ..common import edit_griddedfield
+            return edit_griddedfield(value, parent=parent)
+        
         # Route generic array-like objects to NDarray editor
         try:
             has_array = hasattr(value, '__array__')

@@ -20,6 +20,7 @@ __all__ = [
     'edit_string',
     'edit_listlike',
     'edit_ndarraylike',
+    'edit_griddedfield',
 ]
 
 
@@ -703,3 +704,198 @@ def edit_ndarraylike(value, parent=None):
                     return result_array
             return result_array
         return None
+
+
+def edit_griddedfield(value, parent=None):
+    """
+    Edit a GriddedField* value.
+    
+    GriddedFields have:
+    - grids: list of grid vectors (one per dimension)
+    - gridnames: list of names for each grid dimension
+    - dataname: name of the data field
+    - data: the n-dimensional data array
+    
+    Parameters
+    ----------
+    value : GriddedField instance
+        A gridded field object (GriddedField1, GriddedField2, etc.)
+    parent : QWidget, optional
+        Parent widget for the dialog
+    
+    Returns
+    -------
+    same-type-as-input or None
+        The edited gridded field if accepted, None if cancelled
+    """
+    from PyQt5.QtWidgets import QApplication
+    
+    # Ensure a QApplication exists
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    
+    original_type = type(value)
+    
+    # Remember if grids/gridnames were tuples
+    grids_was_tuple = isinstance(value.grids, tuple) if hasattr(value, 'grids') else False
+    gridnames_was_tuple = isinstance(value.gridnames, tuple) if hasattr(value, 'gridnames') else False
+    
+    dialog = QDialog(parent)
+    dialog.setWindowTitle(f"Edit {original_type.__name__}")
+    dialog.resize(800, 600)
+    
+    layout = QVBoxLayout()
+    
+    # Info label
+    dim = getattr(original_type, 'dim', len(value.grids))
+    info = QLabel(f"GriddedField with {dim} dimension(s), data shape: {value.data.shape}")
+    info.setStyleSheet("color: #555; font-weight: bold;")
+    layout.addWidget(info)
+    
+    # Data name
+    dataname_layout = QHBoxLayout()
+    dataname_layout.addWidget(QLabel("Data Name:"))
+    dataname_edit = QLineEdit(value.dataname)
+    dataname_layout.addWidget(dataname_edit)
+    dataname_layout.addStretch()
+    layout.addLayout(dataname_layout)
+    
+    # Grids section
+    grids_label = QLabel("Grids (double-click 'Grid Name' or 'Values' to edit):")
+    grids_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+    layout.addWidget(grids_label)
+    
+    # Store edited grids and gridnames (convert to list if tuple)
+    edited_grids = list(value.grids) if value.grids else []
+    edited_gridnames = list(value.gridnames) if value.gridnames else []
+    
+    grids_table = QTableWidget()
+    grids_table.setColumnCount(4)
+    grids_table.setHorizontalHeaderLabels(["Dim", "Grid Name", "Size", "Values"])
+    grids_table.horizontalHeader().setStretchLastSection(True)
+    
+    def refresh_grids_table():
+        grids_table.setRowCount(len(edited_grids))
+        for i, (grid, name) in enumerate(zip(edited_grids, edited_gridnames)):
+            # Dimension
+            dim_item = QTableWidgetItem(str(i))
+            dim_item.setFlags(dim_item.flags() & ~Qt.ItemIsEditable)
+            grids_table.setItem(i, 0, dim_item)
+            
+            # Grid name (editable)
+            name_item = QTableWidgetItem(name)
+            grids_table.setItem(i, 1, name_item)
+            
+            # Size
+            size_item = QTableWidgetItem(str(len(grid)))
+            size_item.setFlags(size_item.flags() & ~Qt.ItemIsEditable)
+            grids_table.setItem(i, 2, size_item)
+            
+            # Values summary (click to edit)
+            grid_array = np.array(grid)
+            if len(grid_array) <= 5:
+                summary = str(list(grid_array))
+            else:
+                summary = f"[{grid_array[0]}, {grid_array[1]}, ..., {grid_array[-1]}]"
+            values_item = QTableWidgetItem(summary)
+            values_item.setData(Qt.UserRole, grid)
+            values_item.setFlags(values_item.flags() & ~Qt.ItemIsEditable)
+            grids_table.setItem(i, 3, values_item)
+    
+    def on_grid_cell_changed(row, col):
+        if col == 1:  # Grid name changed
+            item = grids_table.item(row, 1)
+            if item is not None:
+                edited_gridnames[row] = item.text()
+    
+    def on_grid_double_clicked(row, col):
+        if col == 3:  # Values column - edit the grid vector
+            item = grids_table.item(row, 3)
+            if item is None:
+                return
+            current_grid = item.data(Qt.UserRole)
+            # Use edit_ndarraylike directly to avoid circular import issues
+            new_grid = edit_ndarraylike(current_grid, parent=dialog)
+            if new_grid is not None:
+                edited_grids[row] = new_grid
+                refresh_grids_table()
+    
+    grids_table.cellChanged.connect(on_grid_cell_changed)
+    grids_table.cellDoubleClicked.connect(on_grid_double_clicked)
+    
+    refresh_grids_table()
+    layout.addWidget(grids_table)
+    
+    # Data section
+    data_label = QLabel("Data array (double-click to edit):")
+    data_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+    layout.addWidget(data_label)
+    
+    # Store edited data
+    edited_data = [value.data]  # Use list to allow mutation in nested function
+    
+    # Data info table (single row, double-click to edit)
+    data_table = QTableWidget()
+    data_table.setColumnCount(3)
+    data_table.setHorizontalHeaderLabels(["Type", "Shape", "Summary"])
+    data_table.horizontalHeader().setStretchLastSection(True)
+    data_table.setRowCount(1)
+    
+    def refresh_data_table():
+        data = edited_data[0]
+        # Type
+        type_item = QTableWidgetItem(type(data).__name__)
+        type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable)
+        data_table.setItem(0, 0, type_item)
+        
+        # Shape
+        shape_item = QTableWidgetItem(str(data.shape))
+        shape_item.setFlags(shape_item.flags() & ~Qt.ItemIsEditable)
+        data_table.setItem(0, 1, shape_item)
+        
+        # Summary
+        data_array = np.array(data)
+        summary = f"min={data_array.min():.3g}, max={data_array.max():.3g}, mean={data_array.mean():.3g}"
+        summary_item = QTableWidgetItem(summary)
+        summary_item.setData(Qt.UserRole, data)
+        summary_item.setFlags(summary_item.flags() & ~Qt.ItemIsEditable)
+        data_table.setItem(0, 2, summary_item)
+    
+    def on_data_double_clicked(row, col):
+        item = data_table.item(0, 2)
+        if item is None:
+            return
+        current_data = item.data(Qt.UserRole)
+        # Use edit_ndarraylike directly
+        new_data = edit_ndarraylike(current_data, parent=dialog)
+        if new_data is not None:
+            edited_data[0] = new_data
+            refresh_data_table()
+    
+    data_table.cellDoubleClicked.connect(on_data_double_clicked)
+    refresh_data_table()
+    layout.addWidget(data_table)
+    
+    # Dialog buttons
+    buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    layout.addWidget(buttons)
+    
+    dialog.setLayout(layout)
+    
+    if dialog.exec_() == QDialog.Accepted:
+        # Build result gridded field
+        try:
+            result = original_type()
+            # Convert back to original container type if needed
+            result.grids = tuple(edited_grids) if grids_was_tuple else edited_grids
+            result.gridnames = tuple(edited_gridnames) if gridnames_was_tuple else edited_gridnames
+            result.dataname = dataname_edit.text()
+            result.data = edited_data[0]
+            return result
+        except Exception as e:
+            print(f"Error creating gridded field: {e}")
+            return None
+    return None
