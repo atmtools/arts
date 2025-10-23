@@ -11,6 +11,7 @@ Behavior
 
 import numpy as np
 from PyQt5.QtWidgets import (
+    QApplication,
     QDialog, QVBoxLayout, QLabel, QTextEdit, QDialogButtonBox, QMessageBox
 )
 from PyQt5.QtCore import Qt
@@ -47,8 +48,34 @@ def edit(value, parent=None):
         The edited value if evaluation succeeds and OK is pressed; None if
         cancelled or evaluation fails.
     """
+    # Ensure a QApplication exists to avoid Qt crashes in scripts/notebooks
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+
     original_type = type(value)
     type_name = original_type.__name__
+
+    # Fast-path: basic types should use the simple editors
+    try:
+        import numpy as _np
+    except Exception:
+        _np = None
+
+    # Defer import to avoid cycles
+    from pyarts3.gui.common import edit_index as _edit_index, edit_numeric as _edit_numeric, edit_string as _edit_string
+
+    # Integers (Python int, numpy integer subclasses)
+    if isinstance(value, int) or (_np is not None and isinstance(value, _np.integer)):
+        return _edit_index(value, parent)
+
+    # Floats (Python float, numpy floating subclasses)
+    if isinstance(value, float) or (_np is not None and isinstance(value, _np.floating)):
+        return _edit_numeric(value, parent)
+
+    # Strings
+    if isinstance(value, str):
+        return _edit_string(value, parent)
 
     # Prefer a specialized editor if one exists in this package
     try:

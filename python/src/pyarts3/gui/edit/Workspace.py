@@ -192,12 +192,11 @@ def edit(ws, parent=None):
                 names = [n for n in names if ft in n.lower()]
             names.sort()
 
-            # Determine editor availability based on declared group name
-            import pyarts3.gui.edit as editors_mod
+            # Determine editor availability using comprehensive type check
             from PyQt5.QtGui import QColor
             for name in names:
                 tname = _group_name(name)
-                has_mod = hasattr(editors_mod, tname) and hasattr(getattr(editors_mod, tname), 'edit')
+                has_mod = editors.can_edit(tname)
                 text = f"{name}  —  {tname}"
                 it = QListWidgetItem(text)
                 it.setData(Qt.UserRole, (name, tname, has_mod))

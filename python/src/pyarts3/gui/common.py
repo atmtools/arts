@@ -441,11 +441,34 @@ def edit_ndarraylike(value, parent=None):
     
     layout = QVBoxLayout()
     
+    # Capture original type for reconstruction
+    original_type = type(value)
+    
     # Convert to numpy array if needed
     if hasattr(value, '__array__'):
         data = np.array(value)
     else:
         data = np.array(value)
+    
+    # Handle 0D arrays (scalars) - dispatch back to edit() to preserve type
+    if data.ndim == 0:
+        # Import here to avoid circular dependency
+        from . import edit as edit_module
+        # Extract scalar value (preserves int/float type)
+        scalar_value = data.item()
+        result = edit_module.edit(scalar_value, parent=parent)
+        if result is None:
+            return None
+        # Reconstruct original type if it changed
+        original_type = type(value)
+        result_type = type(result)
+        if original_type != result_type:
+            try:
+                return original_type(result)
+            except Exception:
+                # If conversion fails, return as-is
+                return result
+        return result
     
     # Handle 1D arrays
     if data.ndim == 1:
@@ -503,7 +526,14 @@ def edit_ndarraylike(value, parent=None):
                 item = table.item(i, 1)
                 # Use stored original value (which gets updated on edit)
                 result.append(item.data(Qt.UserRole))
-            return np.array(result)
+            result_array = np.array(result)
+            # Reconstruct original type if needed
+            if original_type != np.ndarray:
+                try:
+                    return original_type(result_array)
+                except Exception:
+                    return result_array
+            return result_array
         return None
     
     # Handle 2D arrays
@@ -559,7 +589,14 @@ def edit_ndarraylike(value, parent=None):
                     item = table.item(i, j)
                     row.append(item.data(Qt.UserRole))
                 result.append(row)
-            return np.array(result)
+            result_array = np.array(result)
+            # Reconstruct original type if needed
+            if original_type != np.ndarray:
+                try:
+                    return original_type(result_array)
+                except Exception:
+                    return result_array
+            return result_array
         return None
     
     # Handle higher dimensions (3D+) - reshape to 2D with index labels
@@ -658,5 +695,11 @@ def edit_ndarraylike(value, parent=None):
             
             # Reshape back to original shape
             result_array = np.array(result).reshape(original_shape)
+            # Reconstruct original type if needed
+            if original_type != np.ndarray:
+                try:
+                    return original_type(result_array)
+                except Exception:
+                    return result_array
             return result_array
         return None
