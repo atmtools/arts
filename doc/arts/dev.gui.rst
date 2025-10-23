@@ -53,10 +53,3 @@ Extending the GUI
 - Add new editors under ``python/src/pyarts3/gui/edit/`` (see ``dev.edit``).
 - Wire custom post-callbacks or additional UI affordances in
   ``qt_plot_gui.py``.
-
-Testing
--------
-
-See ``/Users/richard/Work/arts/test_magneticangles_gui.py`` for an
-example that wires ``Vector2``/``Vector3`` simulation settings to a plot
-and exercises editor integration.
