@@ -40,7 +40,7 @@ def edit(ws, parent=None):
 
     dialog = QDialog(parent)
     dialog.setWindowTitle("Workspace Variables")
-    dialog.resize(500, 600)
+    dialog.resize(900, 600)  # Wide enough for ~100 char variable names
 
     main = QVBoxLayout()
 
@@ -133,6 +133,7 @@ def edit(ws, parent=None):
     def open_add_dialog():
         add_dlg = QDialog(dialog)
         add_dlg.setWindowTitle("Add workspace variable")
+        add_dlg.resize(900, 600)  # Match main dialog width for consistency
         add_layout = QVBoxLayout()
 
         add_info = QLabel("Double-click a variable to initialize and edit it")
