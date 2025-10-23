@@ -19,5 +19,7 @@ and how to use existing features.
    dev.matpack
    dev.workspace
    dev.plots
+   dev.edit
+   dev.gui
    dev.doc
    dev.xml
