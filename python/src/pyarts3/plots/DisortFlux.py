@@ -43,10 +43,10 @@ def plot(
         fig = plt.figure(figsize=(14, 5), constrained_layout=True)
     
     freq_grid = disort_flux.frequency_grid
-    alt_grid = disort_flux.level_altitude_grid
-    upwelling = disort_flux.upwelling_flux
-    downwelling_diffuse = disort_flux.diffuse_downwelling_flux
-    downwelling_direct = disort_flux.direct_downwelling_flux
+    alt_grid = disort_flux.altitude_grid
+    upwelling = disort_flux.up
+    downwelling_diffuse = disort_flux.down_diffuse
+    downwelling_direct = disort_flux.down_direct
     
     if ax is None:
         ax = []
@@ -74,19 +74,25 @@ def plot(
         ax[2].grid(True, alpha=0.3)
     else:
         # Plot all frequencies as 2D
-        im1 = ax[0].pcolormesh(freq_grid, alt_grid, upwelling.T, cmap='viridis', shading='auto', **kwargs)
+        # Use imshow for proper data/grid alignment
+        extent = [freq_grid[0], freq_grid[-1], alt_grid[-1], alt_grid[0]]
+        
+        im1 = ax[0].imshow(upwelling.T, aspect='auto', cmap='viridis', 
+                          extent=extent, origin='lower', **kwargs)
         plt.colorbar(im1, ax=ax[0], label='Flux')
         ax[0].set_xlabel('Frequency [Hz]')
         ax[0].set_ylabel('Altitude [m]')
         ax[0].set_title('Upwelling Flux')
         
-        im2 = ax[1].pcolormesh(freq_grid, alt_grid, downwelling_diffuse.T, cmap='viridis', shading='auto', **kwargs)
+        im2 = ax[1].imshow(downwelling_diffuse.T, aspect='auto', cmap='viridis',
+                          extent=extent, origin='lower', **kwargs)
         plt.colorbar(im2, ax=ax[1], label='Flux')
         ax[1].set_xlabel('Frequency [Hz]')
         ax[1].set_ylabel('Altitude [m]')
         ax[1].set_title('Diffuse Downwelling Flux')
         
-        im3 = ax[2].pcolormesh(freq_grid, alt_grid, downwelling_direct.T, cmap='viridis', shading='auto', **kwargs)
+        im3 = ax[2].imshow(downwelling_direct.T, aspect='auto', cmap='viridis',
+                          extent=extent, origin='lower', **kwargs)
         plt.colorbar(im3, ax=ax[2], label='Flux')
         ax[2].set_xlabel('Frequency [Hz]')
         ax[2].set_ylabel('Altitude [m]')
