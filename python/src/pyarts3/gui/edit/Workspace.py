@@ -67,17 +67,36 @@ def edit(ws, parent=None):
     main.addWidget(info)
 
     # Buttons
+    button_layout = QHBoxLayout()
+    
+    # Add "Call Methods" button
+    from PyQt5.QtWidgets import QPushButton
+    methods_btn = QPushButton("Call Methods...")
+    methods_btn.clicked.connect(lambda: _open_methods_dialog())
+    button_layout.addWidget(methods_btn)
+    
+    button_layout.addStretch()
+    
     buttons = QDialogButtonBox(QDialogButtonBox.Close)
     buttons.rejected.connect(dialog.reject)  # Just in case
     buttons.accepted.connect(dialog.accept)
     buttons.button(QDialogButtonBox.Close).clicked.connect(dialog.accept)
-    main.addWidget(buttons)
+    button_layout.addWidget(buttons)
+    
+    main.addLayout(button_layout)
 
     dialog.setLayout(main)
 
     # Prepare variable metadata
     wsvars = cxx.globals.workspace_variables()  # name -> descriptor with .group
     all_wsv_names = list(wsvars.keys())  # Full list of all workspace variables
+    
+    def _open_methods_dialog():
+        """Open the workspace methods dialog."""
+        from pyarts3.gui.methods import show_methods_dialog
+        show_methods_dialog(ws, parent=dialog)
+        # Refresh variable list after methods dialog closes
+        refresh_list(search.text())
 
     def _group_name(name: str) -> str:
         """Return the declared workspace group/type name for variable name."""
