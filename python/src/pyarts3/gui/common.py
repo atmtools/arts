@@ -21,6 +21,8 @@ __all__ = [
     'edit_listlike',
     'edit_ndarraylike',
     'edit_griddedfield',
+    'edit_maplike',
+    'create_atm_keys_table',
 ]
 
 
@@ -748,8 +750,57 @@ def edit_griddedfield(value, parent=None):
     layout = QVBoxLayout()
     
     # Info label
-    dim = getattr(original_type, 'dim', len(value.grids))
-    info = QLabel(f"GriddedField with {dim} dimension(s), data shape: {value.data.shape}")
+    # Determine dimensions robustly
+    dim = getattr(original_type, 'dim', None)
+    if dim is None:
+        try:
+            dim = len(value.grids) if getattr(value, 'grids', None) is not None else 0
+        except Exception:
+            dim = 0
+        # Fallback: parse trailing number from class name (e.g., GeodeticField3)
+        if dim == 0:
+            import re
+            m = re.search(r"(\d+)$", original_type.__name__)
+            if m:
+                dim = int(m.group(1))
+    if not dim:
+        dim = 1
+    
+    # Prepare safe defaults if value is empty/uninitialized
+    def _default_gridnames(n):
+        if original_type.__name__ == 'GeodeticField3' and n == 3:
+            return ["Altitude", "Latitude", "Longitude"]
+        return [f"Dim {i+1}" for i in range(n)]
+    
+    def _ensure_list(v):
+        try:
+            return list(v) if v is not None else []
+        except Exception:
+            return []
+    
+    # Store edited grids and gridnames (convert to list if tuple), with fallbacks
+    raw_grids = getattr(value, 'grids', None)
+    edited_grids = _ensure_list(raw_grids)
+    if len(edited_grids) == 0:
+        edited_grids = [np.array([0.0])] * int(dim)
+    raw_gridnames = getattr(value, 'gridnames', None)
+    edited_gridnames = _ensure_list(raw_gridnames)
+    if len(edited_gridnames) != len(edited_grids):
+        edited_gridnames = _default_gridnames(len(edited_grids))
+    
+    # Compute a safe data array
+    raw_data = getattr(value, 'data', None)
+    try:
+        data_shape = tuple(len(g) for g in edited_grids) if edited_grids else getattr(raw_data, 'shape', (0,))
+    except Exception:
+        data_shape = getattr(raw_data, 'shape', (0,))
+    if not hasattr(raw_data, 'shape') or any(s == 0 for s in data_shape):
+        safe_shape = tuple(max(1, int(len(g))) for g in edited_grids) or (1,)
+        edited_data = [np.zeros(safe_shape)]
+    else:
+        edited_data = [raw_data]
+    
+    info = QLabel(f"GriddedField with {dim} dimension(s), data shape: {edited_data[0].shape}")
     info.setStyleSheet("color: #555; font-weight: bold;")
     layout.addWidget(info)
     
@@ -766,9 +817,7 @@ def edit_griddedfield(value, parent=None):
     grids_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
     layout.addWidget(grids_label)
     
-    # Store edited grids and gridnames (convert to list if tuple)
-    edited_grids = list(value.grids) if value.grids else []
-    edited_gridnames = list(value.gridnames) if value.gridnames else []
+    # edited_grids and edited_gridnames prepared above
     
     grids_table = QTableWidget()
     grids_table.setColumnCount(4)
@@ -832,8 +881,7 @@ def edit_griddedfield(value, parent=None):
     data_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
     layout.addWidget(data_label)
     
-    # Store edited data
-    edited_data = [value.data]  # Use list to allow mutation in nested function
+    # edited_data prepared above; use list to allow mutation in nested function
     
     # Data info table (single row, double-click to edit)
     data_table = QTableWidget()
@@ -856,7 +904,10 @@ def edit_griddedfield(value, parent=None):
         
         # Summary
         data_array = np.array(data)
-        summary = f"min={data_array.min():.3g}, max={data_array.max():.3g}, mean={data_array.mean():.3g}"
+        try:
+            summary = f"min={data_array.min():.3g}, max={data_array.max():.3g}, mean={data_array.mean():.3g}"
+        except Exception:
+            summary = "(uninitialized)"
         summary_item = QTableWidgetItem(summary)
         summary_item.setData(Qt.UserRole, data)
         summary_item.setFlags(summary_item.flags() & ~Qt.ItemIsEditable)
@@ -899,3 +950,382 @@ def edit_griddedfield(value, parent=None):
             print(f"Error creating gridded field: {e}")
             return None
     return None
+
+
+def edit_maplike(value, parent=None):
+    """
+    Edit a map-like value (dict-like with keys(), items(), values()).
+    
+    Map-like types have:
+    - keys(): iterator over keys
+    - items(): iterator over (key, value) pairs
+    - values(): iterator over values
+    - __getitem__, __setitem__, __delitem__
+    
+    Parameters
+    ----------
+    value : map-like instance
+        Any ARTS map type (e.g., QuantumIdentifierNumericMap, WsvMap, etc.)
+    parent : QWidget, optional
+        Parent widget for the dialog
+    
+    Returns
+    -------
+    same-type-as-input or None
+        The edited map if accepted, None if cancelled
+    """
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    
+    # Ensure a QApplication exists
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    
+    original_type = type(value)
+    
+    dialog = QDialog(parent)
+    dialog.setWindowTitle(f"Edit {original_type.__name__}")
+    dialog.resize(900, 600)
+    
+    layout = QVBoxLayout()
+    
+    # Info label
+    info = QLabel(f"Map with {len(value)} entries")
+    info.setStyleSheet("color: #555; font-weight: bold;")
+    layout.addWidget(info)
+    
+    # Store edited entries
+    # Convert to list of (key, value) pairs for editing
+    edited_entries = list(value.items()) if len(value) > 0 else []
+    deleted_indices = set()
+    
+    # Table for entries
+    table = QTableWidget()
+    table.setColumnCount(3)
+    table.setHorizontalHeaderLabels(["Key", "Value", "Types"])
+    table.horizontalHeader().setStretchLastSection(True)
+    table.setSelectionBehavior(QTableWidget.SelectRows)
+    table.setSelectionMode(QTableWidget.SingleSelection)
+    
+    def _summarize(obj, max_len=80):
+        try:
+            s = str(obj)
+        except Exception:
+            s = f"<{type(obj).__name__}>"
+        if len(s) > max_len:
+            s = s[:max_len-1] + "…"
+        return s
+    
+    def refresh_table():
+        # Filter out deleted entries
+        active_entries = [e for i, e in enumerate(edited_entries) if i not in deleted_indices]
+        
+        n = len(active_entries)
+        info.setText(f"Map with {n} entries")
+        
+        table.setRowCount(n)
+        for i, (key, val) in enumerate(active_entries):
+            # Key
+            key_item = QTableWidgetItem(_summarize(key))
+            key_item.setData(Qt.UserRole, key)
+            key_item.setFlags(key_item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 0, key_item)
+            
+            # Value
+            val_item = QTableWidgetItem(_summarize(val))
+            val_item.setData(Qt.UserRole, val)
+            val_item.setFlags(val_item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 1, val_item)
+            
+            # Types
+            types_item = QTableWidgetItem(f"K:{type(key).__name__}, V:{type(val).__name__}")
+            types_item.setFlags(types_item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 2, types_item)
+    
+    def on_cell_double_clicked(row, col):
+        # Double-click to edit key or value
+        active_entries = [e for i, e in enumerate(edited_entries) if i not in deleted_indices]
+        if row >= len(active_entries):
+            return
+        
+        key, val = active_entries[row]
+        
+        # Find the original index in edited_entries
+        original_idx = 0
+        for i, (k, v) in enumerate(edited_entries):
+            if i not in deleted_indices:
+                if original_idx == row:
+                    original_idx = i
+                    break
+                original_idx += 1
+        
+        if col == 0:  # Edit key
+            new_key = edit_ndarraylike(key, parent=dialog)
+            if new_key is not None:
+                edited_entries[i] = (new_key, val)
+                refresh_table()
+        elif col == 1:  # Edit value
+            new_val = edit_ndarraylike(val, parent=dialog)
+            if new_val is not None:
+                edited_entries[i] = (key, new_val)
+                refresh_table()
+    
+    def on_add_entry():
+        """Add a new entry to the map"""
+        # Try to infer key/value types from existing entries
+        key_type = None
+        val_type = None
+        
+        if len(edited_entries) > 0:
+            first_entry = edited_entries[0]
+            key_type = type(first_entry[0])
+            val_type = type(first_entry[1])
+        
+        # Create default instances
+        try:
+            if key_type is not None:
+                new_key = key_type()
+            else:
+                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine key type for empty map")
+                return
+                
+            if val_type is not None:
+                new_val = val_type()
+            else:
+                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine value type for empty map")
+                return
+        except Exception as e:
+            QMessageBox.warning(dialog, "Cannot Create", f"Could not create default instances: {e}")
+            return
+        
+        # Edit the new key and value
+        edited_key = edit_ndarraylike(new_key, parent=dialog)
+        if edited_key is None:
+            return
+        
+        edited_val = edit_ndarraylike(new_val, parent=dialog)
+        if edited_val is None:
+            return
+        
+        edited_entries.append((edited_key, edited_val))
+        refresh_table()
+    
+    def on_remove_entry():
+        """Remove the selected entry"""
+        current_row = table.currentRow()
+        if current_row < 0:
+            QMessageBox.information(dialog, "No Selection", "Please select a row to remove")
+            return
+        
+        # Find the original index
+        active_idx = 0
+        for i in range(len(edited_entries)):
+            if i not in deleted_indices:
+                if active_idx == current_row:
+                    deleted_indices.add(i)
+                    break
+                active_idx += 1
+        
+        refresh_table()
+    
+    table.cellDoubleClicked.connect(on_cell_double_clicked)
+    
+    # Add/Remove buttons
+    toolbar_layout = QHBoxLayout()
+    add_btn = QPushButton("+ Add")
+    add_btn.setToolTip("Add a new key-value pair")
+    remove_btn = QPushButton("− Remove")
+    remove_btn.setToolTip("Remove the currently selected entry")
+    toolbar_layout.addWidget(add_btn)
+    toolbar_layout.addWidget(remove_btn)
+    toolbar_layout.addStretch()
+    layout.addLayout(toolbar_layout)
+    
+    layout.addWidget(table)
+    
+    add_btn.clicked.connect(on_add_entry)
+    remove_btn.clicked.connect(on_remove_entry)
+    
+    # Dialog buttons
+    buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    layout.addWidget(buttons)
+    
+    dialog.setLayout(layout)
+    
+    # Initial population
+    refresh_table()
+    
+    if dialog.exec_() == QDialog.Accepted:
+        # Build result map
+        try:
+            result = original_type()
+            active_entries = [e for i, e in enumerate(edited_entries) if i not in deleted_indices]
+            for key, val in active_entries:
+                result[key] = val
+            return result
+        except Exception as e:
+            print(f"Error creating map: {e}")
+            return None
+    return None
+
+
+def create_atm_keys_table(keys_list, parent=None):
+    """
+    Create a table widget for editing atmospheric keys (used by AtmPoint and AtmField).
+    
+    This handles the variant key types: SpeciesEnum, SpeciesIsotope, AtmKey, 
+    QuantumIdentifier, ScatteringSpeciesProperty.
+    
+    Parameters
+    ----------
+    keys_list : list of (key, value) tuples
+        Initial list of (key, AtmData or Numeric) pairs
+    parent : QWidget, optional
+        Parent widget
+        
+    Returns
+    -------
+    tuple of (QWidget, list, callable)
+        Returns (widget, dict_items list, refresh_callback)
+        - widget: The table widget to add to a layout
+        - dict_items: Mutable list of (key, value) pairs
+        - refresh_callback: Function to call to refresh the table display
+    """
+    from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem,
+                                  QToolBar, QComboBox, QLabel, QMessageBox, QAction)
+    from PyQt5.QtCore import Qt
+    
+    widget = QWidget(parent)
+    layout = QVBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+    
+    # Import arts here to avoid circular imports
+    from pyarts3 import arts
+    from pyarts3.gui.edit import edit as dispatch_edit
+    
+    # Store as list of (key, value) pairs for editing
+    dict_items = list(keys_list)
+    
+    # Table for atmospheric keys
+    table = QTableWidget()
+    table.setColumnCount(3)
+    table.setHorizontalHeaderLabels(["Key Type", "Key", "Value"])
+    from PyQt5.QtWidgets import QHeaderView
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    table.setSelectionBehavior(QTableWidget.SelectRows)
+    table.setSelectionMode(QTableWidget.SingleSelection)
+    
+    def refresh_table():
+        table.setRowCount(len(dict_items))
+        for row, (key, val) in enumerate(dict_items):
+            # Key type
+            key_type = type(key).__name__
+            item = QTableWidgetItem(key_type)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 0, item)
+            
+            # Key
+            item = QTableWidgetItem(str(key))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 1, item)
+            
+            # Value - check if it's AtmData or just Numeric
+            if hasattr(val, 'data_type'):  # AtmData
+                value_str = f"AtmData ({val.data_type})"
+            else:  # Numeric
+                value_str = str(val)
+            item = QTableWidgetItem(value_str)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 2, item)
+    
+    # Double-click to edit
+    def on_cell_double_clicked(row, col):
+        if row >= len(dict_items):
+            return
+        key, val = dict_items[row]
+        
+        if col == 2:  # Edit value
+            result = dispatch_edit(val, parent=widget)
+            if result is not None:
+                dict_items[row] = (key, result)
+                refresh_table()
+        elif col == 1:  # Edit key
+            result = dispatch_edit(key, parent=widget)
+            if result is not None:
+                dict_items[row] = (result, val)
+                refresh_table()
+    
+    table.cellDoubleClicked.connect(on_cell_double_clicked)
+    
+    # Toolbar for add/remove
+    toolbar = QToolBar()
+    
+    # Key type selector for adding new entries
+    key_type_combo = QComboBox()
+    key_type_combo.addItems([
+        "AtmKey",
+        "SpeciesEnum", 
+        "SpeciesIsotope",
+        "QuantumIdentifier",
+        "ScatteringSpeciesProperty"
+    ])
+    toolbar.addWidget(QLabel("New key type:"))
+    toolbar.addWidget(key_type_combo)
+    
+    # Add button
+    add_action = QAction("+ Add", widget)
+    
+    def add_entry():
+        key_type_name = key_type_combo.currentText()
+        
+        # Create a default key based on type
+        try:
+            if key_type_name == "AtmKey":
+                new_key = arts.AtmKey.t  # temperature
+            elif key_type_name == "SpeciesEnum":
+                new_key = arts.SpeciesEnum.Water
+            elif key_type_name == "SpeciesIsotope":
+                new_key = arts.SpeciesIsotope("H2O-161")
+            elif key_type_name == "QuantumIdentifier":
+                new_key = arts.QuantumIdentifier("H2O-161")
+            elif key_type_name == "ScatteringSpeciesProperty":
+                QMessageBox.warning(widget, "Not Implemented", 
+                                   "ScatteringSpeciesProperty add not yet implemented")
+                return
+            else:
+                return
+            
+            # Edit the key before adding
+            edited_key = dispatch_edit(new_key, parent=widget)
+            if edited_key is not None:
+                # Create default value (Numeric for AtmPoint, AtmData for AtmField)
+                # Caller can specify what to use
+                new_value = 0.0  # Default to Numeric
+                dict_items.append((edited_key, new_value))
+                refresh_table()
+        except Exception as e:
+            QMessageBox.warning(widget, "Error", f"Failed to create key: {e}")
+    
+    add_action.triggered.connect(add_entry)
+    toolbar.addAction(add_action)
+    
+    # Remove button
+    remove_action = QAction("− Remove", widget)
+    remove_action.setToolTip("Remove selected entry")
+    
+    def remove_entry():
+        current_row = table.currentRow()
+        if current_row >= 0 and current_row < len(dict_items):
+            dict_items.pop(current_row)
+            refresh_table()
+    
+    remove_action.triggered.connect(remove_entry)
+    toolbar.addAction(remove_action)
+    
+    layout.addWidget(toolbar)
+    layout.addWidget(QLabel(f"Atmospheric keys. Double-click to edit."))
+    layout.addWidget(table)
+    
+    return widget, dict_items, refresh_table

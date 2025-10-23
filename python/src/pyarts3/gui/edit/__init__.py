@@ -26,6 +26,14 @@ from . import String
 from . import ArrayOf
 from . import Options
 from . import Workspace
+from . import QuantumIdentifier
+from . import QuantumUpperLower
+from . import QuantumValue
+from . import SpeciesIsotope
+from . import Rational
+from . import AtmPoint
+from . import AtmField
+from . import AtmData
 try:
     from . import NDarray  # Preferred: renamed file
 except Exception:  # Fallback for case-insensitive FS where file is still lowercase
@@ -83,6 +91,31 @@ def get_editable_types():
             if type_name.startswith('ArrayOf'):
                 editable.add(type_name)
                 continue
+            
+            # Check if this type is a gridded field
+            try:
+                instance = type_class()
+                if (hasattr(instance, '__array__') and 
+                    hasattr(instance, 'grids') and 
+                    hasattr(instance, 'gridnames') and 
+                    hasattr(instance, 'dataname')):
+                    editable.add(type_name)
+                    continue
+            except Exception:
+                pass
+            
+            # Check if this type is map-like
+            try:
+                instance = type_class()
+                if (hasattr(instance, 'keys') and 
+                    hasattr(instance, 'items') and 
+                    hasattr(instance, 'values') and
+                    hasattr(instance, '__getitem__') and
+                    hasattr(instance, '__setitem__')):
+                    editable.add(type_name)
+                    continue
+            except Exception:
+                pass
             
             # Check if this type has __array__ support (can use NDarray editor)
             if hasattr(type_class, '__array__'):
@@ -196,6 +229,24 @@ def edit(value, parent=None):
         if is_griddedfield:
             from ..common import edit_griddedfield
             return edit_griddedfield(value, parent=parent)
+        
+        # Check if this is a map-like object (before generic array check)
+        # Map-like objects have: keys, items, values methods
+        is_maplike = False
+        try:
+            is_maplike = (
+                hasattr(value, 'keys') and
+                hasattr(value, 'items') and
+                hasattr(value, 'values') and
+                hasattr(value, '__getitem__') and
+                hasattr(value, '__setitem__')
+            )
+        except Exception:
+            pass
+        
+        if is_maplike:
+            from ..common import edit_maplike
+            return edit_maplike(value, parent=parent)
         
         # Route generic array-like objects to NDarray editor
         try:
