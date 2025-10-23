@@ -1,9 +1,7 @@
 """Editor for Vector3 (3D vector) values."""
 
 import numpy as np
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QDoubleSpinBox, 
-                              QDialogButtonBox)
-from PyQt5.QtCore import Qt
+from ..common import edit_ndarraylike
 
 __all__ = ['edit']
 
@@ -24,44 +22,14 @@ def edit(value, parent=None):
     numpy.ndarray or None
         The edited value if accepted, None if cancelled
     """
-    dialog = QDialog(parent)
-    dialog.setWindowTitle("Edit Vector3")
+    result = edit_ndarraylike(value, parent)
+    if result is None:
+        return None
     
-    layout = QVBoxLayout()
-    
-    # Convert to numpy array if needed
-    if hasattr(value, '__array__'):
-        data = np.array(value)
-    else:
-        data = np.array(value)
-    
-    form = QFormLayout()
-    spin_boxes = []
-    
-    labels = ["X", "Y", "Z"]
-    
-    for label, val in zip(labels, data):
-        spin = QDoubleSpinBox()
-        spin.setRange(-1e308, 1e308)
-        spin.setDecimals(10)
-        spin.setValue(float(val))
-        form.addRow(f"{label}:", spin)
-        spin_boxes.append(spin)
-    
-    layout.addLayout(form)
-    
-    buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    buttons.accepted.connect(dialog.accept)
-    buttons.rejected.connect(dialog.reject)
-    layout.addWidget(buttons)
-    
-    dialog.setLayout(layout)
-    
-    if dialog.exec_() == QDialog.Accepted:
-        values = [spin.value() for spin in spin_boxes]
-        # Preserve original ARTS type if possible
-        try:
-            return type(value)(values)
-        except Exception:
-            return np.array(values)
-    return None
+    # Preserve original ARTS type if possible
+    try:
+        # Convert to list for ARTS constructor
+        result_list = result.tolist()
+        return type(value)(result_list)
+    except Exception:
+        return result

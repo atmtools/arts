@@ -25,6 +25,7 @@ from . import Matrix
 from . import Numeric
 from . import Stokvec
 from . import String
+from . import Tensor3
 from . import Vector
 from . import Vector2
 from . import Vector3

@@ -1,4 +1,4 @@
-"""Editor for Vector (1D array) values."""
+"""Editor for Tensor3 (3D array) values."""
 
 import numpy as np
 from ..common import edit_ndarraylike
@@ -8,12 +8,12 @@ __all__ = ['edit']
 
 def edit(value, parent=None):
     """
-    Edit a Vector (1D array) value.
+    Edit a Tensor3 (3D array) value.
     
     Parameters
     ----------
-    value : Vector or array-like
-        The vector value to edit
+    value : Tensor3 or 3D array-like
+        The 3D tensor to edit
     parent : QWidget, optional
         Parent widget for the dialog
     
@@ -28,7 +28,7 @@ def edit(value, parent=None):
     
     # Preserve original ARTS type if possible
     try:
-        # Convert to list for ARTS constructor
+        # Convert to nested list for ARTS constructor
         result_list = result.tolist()
         return type(value)(result_list)
     except Exception:

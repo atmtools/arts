@@ -27,6 +27,12 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
+from pyarts3.gui.common import (
+    create_details_button,
+    create_description_dialog,
+    create_parameter_row_with_details
+)
+
 
 __all__ = ['show_methods_dialog']
 
@@ -289,39 +295,18 @@ def call_method_dialog(ws, method_name, method_obj, parent=None):
             if inp in wsvars:
                 wsvar = wsvars[inp]
                 if hasattr(wsvar, 'desc') and wsvar.desc:
-                    input_details_btn = QPushButton("?")
-                    input_details_btn.setMaximumWidth(30)
-                    input_details_btn.setToolTip("Show variable description")
+                    input_details_btn = create_details_button("Show variable description")
                     
                     def make_input_details_handler(var_name, var_obj):
                         def show_details():
-                            details_dialog = QDialog(dialog)
-                            details_dialog.setWindowTitle(f"Variable: {var_name}")
-                            details_dialog.setMinimumWidth(500)
-                            
-                            details_layout = QVBoxLayout()
-                            
-                            # Variable name and type
-                            name_label = QLabel(f"<b>{var_name}</b>")
-                            details_layout.addWidget(name_label)
-                            
-                            type_label = QLabel(f"Type: <code>{var_obj.type}</code>")
-                            type_label.setWordWrap(True)
-                            details_layout.addWidget(type_label)
-                            
-                            # Description
-                            desc_label = QLabel(f"<br><b>Description:</b><br>{var_obj.desc}")
-                            desc_label.setWordWrap(True)
-                            desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                            details_layout.addWidget(desc_label)
-                            
-                            # Close button
-                            close_btn = QDialogButtonBox(QDialogButtonBox.Ok)
-                            close_btn.accepted.connect(details_dialog.accept)
-                            details_layout.addWidget(close_btn)
-                            
-                            details_dialog.setLayout(details_layout)
-                            details_dialog.exec_()
+                            desc_dlg = create_description_dialog(
+                                f"Variable: {var_name}",
+                                var_name,
+                                var_obj.type,
+                                var_obj.desc,
+                                dialog
+                            )
+                            desc_dlg.exec_()
                         return show_details
                     
                     input_details_btn.clicked.connect(make_input_details_handler(inp, wsvar))
@@ -486,36 +471,20 @@ def call_method_dialog(ws, method_name, method_obj, parent=None):
                 
                 def make_details_handler(param_name, param_desc, param_types):
                     def show_details():
-                        details_dialog = QDialog(dialog)
-                        details_dialog.setWindowTitle(f"Parameter: {param_name}")
-                        details_dialog.setMinimumWidth(500)
-                        
-                        details_layout = QVBoxLayout()
-                        
-                        # Parameter name and type
-                        name_label = QLabel(f"<b>{param_name}</b>")
-                        details_layout.addWidget(name_label)
-                        
+                        # Format type string for display
                         if len(param_types) == 1:
-                            type_label = QLabel(f"Type: <code>{param_types[0]}</code>")
+                            type_str = param_types[0]
                         else:
-                            type_label = QLabel(f"Types: <code>{', '.join(param_types)}</code>")
-                        type_label.setWordWrap(True)
-                        details_layout.addWidget(type_label)
+                            type_str = ', '.join(param_types)
                         
-                        # Description
-                        desc_label = QLabel(f"<br><b>Description:</b><br>{param_desc}")
-                        desc_label.setWordWrap(True)
-                        desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                        details_layout.addWidget(desc_label)
-                        
-                        # Close button
-                        close_btn = QDialogButtonBox(QDialogButtonBox.Ok)
-                        close_btn.accepted.connect(details_dialog.accept)
-                        details_layout.addWidget(close_btn)
-                        
-                        details_dialog.setLayout(details_layout)
-                        details_dialog.exec_()
+                        desc_dlg = create_description_dialog(
+                            f"Parameter: {param_name}",
+                            param_name,
+                            type_str,
+                            param_desc,
+                            dialog
+                        )
+                        desc_dlg.exec_()
                     return show_details
                 
                 details_btn.clicked.connect(make_details_handler(gin_name, gin_desc, available_types))
@@ -567,33 +536,14 @@ def call_method_dialog(ws, method_name, method_obj, parent=None):
                     
                     def make_output_details_handler(var_name, var_obj):
                         def show_details():
-                            details_dialog = QDialog(dialog)
-                            details_dialog.setWindowTitle(f"Variable: {var_name}")
-                            details_dialog.setMinimumWidth(500)
-                            
-                            details_layout = QVBoxLayout()
-                            
-                            # Variable name and type
-                            name_label = QLabel(f"<b>{var_name}</b>")
-                            details_layout.addWidget(name_label)
-                            
-                            type_label = QLabel(f"Type: <code>{var_obj.type}</code>")
-                            type_label.setWordWrap(True)
-                            details_layout.addWidget(type_label)
-                            
-                            # Description
-                            desc_label = QLabel(f"<br><b>Description:</b><br>{var_obj.desc}")
-                            desc_label.setWordWrap(True)
-                            desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                            details_layout.addWidget(desc_label)
-                            
-                            # Close button
-                            close_btn = QDialogButtonBox(QDialogButtonBox.Ok)
-                            close_btn.accepted.connect(details_dialog.accept)
-                            details_layout.addWidget(close_btn)
-                            
-                            details_dialog.setLayout(details_layout)
-                            details_dialog.exec_()
+                            desc_dlg = create_description_dialog(
+                                f"Variable: {var_name}",
+                                var_name,
+                                var_obj.type,
+                                var_obj.desc,
+                                dialog
+                            )
+                            desc_dlg.exec_()
                         return show_details
                     
                     output_details_btn.clicked.connect(make_output_details_handler(out, wsvar))
@@ -634,33 +584,14 @@ def call_method_dialog(ws, method_name, method_obj, parent=None):
                 
                 def make_gout_details_handler(param_name, param_type, param_desc):
                     def show_details():
-                        details_dialog = QDialog(dialog)
-                        details_dialog.setWindowTitle(f"Output: {param_name}")
-                        details_dialog.setMinimumWidth(500)
-                        
-                        details_layout = QVBoxLayout()
-                        
-                        # Parameter name and type
-                        name_label = QLabel(f"<b>{param_name}</b>")
-                        details_layout.addWidget(name_label)
-                        
-                        type_label = QLabel(f"Type: <code>{param_type}</code>")
-                        type_label.setWordWrap(True)
-                        details_layout.addWidget(type_label)
-                        
-                        # Description
-                        desc_label = QLabel(f"<br><b>Description:</b><br>{param_desc}")
-                        desc_label.setWordWrap(True)
-                        desc_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                        details_layout.addWidget(desc_label)
-                        
-                        # Close button
-                        close_btn = QDialogButtonBox(QDialogButtonBox.Ok)
-                        close_btn.accepted.connect(details_dialog.accept)
-                        details_layout.addWidget(close_btn)
-                        
-                        details_dialog.setLayout(details_layout)
-                        details_dialog.exec_()
+                        desc_dlg = create_description_dialog(
+                            f"Output: {param_name}",
+                            param_name,
+                            param_type,
+                            param_desc,
+                            dialog
+                        )
+                        desc_dlg.exec_()
                     return show_details
                 
                 gout_details_btn.clicked.connect(make_gout_details_handler(default_name, gout_type, gout_desc))

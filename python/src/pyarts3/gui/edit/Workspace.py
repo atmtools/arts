@@ -3,7 +3,7 @@
 from PyQt5.QtWidgets import (
     QApplication,
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem,
-    QLabel, QLineEdit, QDialogButtonBox, QMessageBox
+    QLabel, QLineEdit, QDialogButtonBox, QMessageBox, QMenu
 )
 from PyQt5.QtCore import Qt
 
@@ -37,6 +37,7 @@ def edit(ws, parent=None):
     # Lazy import to avoid circulars
     import pyarts3.gui.edit as editors
     import pyarts3.arts as cxx
+    from pyarts3.gui.common import create_description_dialog
 
     dialog = QDialog(parent)
     dialog.setWindowTitle("Workspace Variables")
@@ -47,7 +48,7 @@ def edit(ws, parent=None):
     main = QVBoxLayout()
 
     # Header
-    header = QLabel("Double-click a variable to view/edit its value")
+    header = QLabel("Double-click to edit • Right-click for description")
     header.setStyleSheet("color: #555;")
     main.addWidget(header)
 
@@ -59,6 +60,7 @@ def edit(ws, parent=None):
     # List of variables
     lst = QListWidget()
     lst.setSelectionMode(QListWidget.SingleSelection)
+    lst.setContextMenuPolicy(Qt.CustomContextMenu)
     main.addWidget(lst)
 
     # Footer info label
@@ -160,7 +162,7 @@ def edit(ws, parent=None):
         add_dlg.resize(900, 600)  # Match main dialog width for consistency
         add_layout = QVBoxLayout()
 
-        add_info = QLabel("Double-click a variable to initialize and edit it")
+        add_info = QLabel("Double-click to initialize and edit • Right-click for description")
         add_info.setStyleSheet("color: #555;")
         add_layout.addWidget(add_info)
 
@@ -169,6 +171,7 @@ def edit(ws, parent=None):
         add_layout.addWidget(add_search)
 
         add_list = QListWidget()
+        add_list.setContextMenuPolicy(Qt.CustomContextMenu)
         add_layout.addWidget(add_list)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
@@ -236,6 +239,45 @@ def edit(ws, parent=None):
         add_list.itemDoubleClicked.connect(on_add_double_clicked)
         add_search.textChanged.connect(lambda s: refresh_add_list(s))
 
+        # Context menu for showing descriptions in add dialog
+        def on_add_context_menu(pos):
+            item = add_list.itemAt(pos)
+            if not item:
+                return
+            
+            data = item.data(Qt.UserRole)
+            if not data:
+                return
+            
+            name, tname, has_mod = data
+            
+            menu = QMenu(add_list)
+            show_desc_action = menu.addAction("Show Description")
+            
+            action = menu.exec_(add_list.mapToGlobal(pos))
+            if action == show_desc_action:
+                # Check if this is a workspace variable
+                var_desc = wsvars.get(name)
+                if var_desc and hasattr(var_desc, 'desc'):
+                    # It's a workspace variable with description
+                    desc_dlg = create_description_dialog(
+                        f"Variable: {name}",
+                        name,
+                        tname,
+                        var_desc.desc,
+                        add_dlg
+                    )
+                    desc_dlg.exec_()
+                else:
+                    # Not a workspace variable or no description
+                    QMessageBox.information(
+                        add_dlg,
+                        "Not a workspace variable",
+                        f"'{name}' is not a predefined workspace variable and has no description."
+                    )
+        
+        add_list.customContextMenuRequested.connect(on_add_context_menu)
+
         refresh_add_list()
         add_dlg.exec_()
 
@@ -299,6 +341,45 @@ def edit(ws, parent=None):
         item.setText(f"{name}  —  {tname}  ({status})")
 
     lst.itemDoubleClicked.connect(on_item_double_clicked)
+
+    # Context menu for showing descriptions
+    def on_context_menu(pos):
+        item = lst.itemAt(pos)
+        if not item:
+            return
+        
+        name = item.data(Qt.UserRole)
+        if not name:
+            # Sentinel item - no context menu
+            return
+        
+        menu = QMenu(lst)
+        show_desc_action = menu.addAction("Show Description")
+        
+        action = menu.exec_(lst.mapToGlobal(pos))
+        if action == show_desc_action:
+            # Check if this is a workspace variable
+            var_desc = wsvars.get(name)
+            if var_desc and hasattr(var_desc, 'desc'):
+                # It's a workspace variable with description
+                tname = _group_name(name)
+                desc_dlg = create_description_dialog(
+                    f"Variable: {name}",
+                    name,
+                    tname,
+                    var_desc.desc,
+                    dialog
+                )
+                desc_dlg.exec_()
+            else:
+                # Not a workspace variable or no description
+                QMessageBox.information(
+                    dialog,
+                    "Not a workspace variable",
+                    f"'{name}' is not a predefined workspace variable and has no description."
+                )
+    
+    lst.customContextMenuRequested.connect(on_context_menu)
 
     dialog.exec_()
 
