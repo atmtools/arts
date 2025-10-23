@@ -545,6 +545,18 @@ def edit_ndarraylike(value, parent=None):
     elif data.ndim == 2:
         dialog.resize(800, 600)
         
+        # Handle empty arrays
+        if data.size == 0:
+            layout.addWidget(QLabel(f"Empty array with shape: {data.shape}"))
+            layout.addWidget(QLabel("Cannot edit empty arrays."))
+            layout.addWidget(QLabel("Please reshape or populate the array first."))
+            buttons = QDialogButtonBox(QDialogButtonBox.Ok)
+            buttons.accepted.connect(dialog.accept)
+            layout.addWidget(buttons)
+            dialog.setLayout(layout)
+            dialog.exec_()
+            return None
+        
         # Info label
         info = QLabel(f"Shape: {data.shape[0]} × {data.shape[1]}")
         layout.addWidget(info)
@@ -612,6 +624,19 @@ def edit_ndarraylike(value, parent=None):
         import itertools
         
         original_shape = data.shape
+        
+        # Handle empty arrays
+        if data.size == 0:
+            layout.addWidget(QLabel(f"Empty array with shape: {original_shape}"))
+            layout.addWidget(QLabel("Cannot edit empty multi-dimensional arrays."))
+            layout.addWidget(QLabel("Please reshape or populate the array first."))
+            buttons = QDialogButtonBox(QDialogButtonBox.Ok)
+            buttons.accepted.connect(dialog.accept)
+            layout.addWidget(buttons)
+            dialog.setLayout(layout)
+            dialog.exec_()
+            return None
+        
         last_dim_size = original_shape[-1]  # Columns
         
         # Reshape: flatten all but last dimension

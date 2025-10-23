@@ -41,6 +41,14 @@ from . import SurfacePoint
 from . import SurfaceField
 from . import SurfaceData
 from . import Time
+from . import Sun
+from . import PropagationPathPoint
+from . import SpeciesTag
+from . import SensorObsel
+from . import JacobianTargets
+from . import DisortSettings
+from . import AbsorptionBand
+from . import AbsorptionLine
 try:
     from . import NDarray  # Preferred: renamed file
 except Exception:  # Fallback for case-insensitive FS where file is still lowercase
