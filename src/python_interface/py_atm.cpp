@@ -306,6 +306,22 @@ do_scattering : bool
       .def_rw("wind",
               &AtmPoint::wind,
               "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw(
+          "nlte",
+          &AtmPoint::nlte,
+          "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.Numeric]`")
+      .def_rw(
+          "specs",
+          &AtmPoint::specs,
+          "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.Numeric]`")
+      .def_rw(
+          "isots",
+          &AtmPoint::isots,
+          "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.Numeric]`")
+      .def_rw(
+          "ssprops",
+          &AtmPoint::ssprops,
+          "Scattering species properties data\n\n.. :class:`dict[~pyarts3.arts.ScatteringSpeciesProperty, ~pyarts3.arts.Numeric]`")
       .def(
           "number_density",
           [](AtmPoint &atm, std::variant<SpeciesEnum, SpeciesIsotope> key) {
@@ -336,53 +352,6 @@ Returns
 nd : float
     The number density [1 / :math:`\textrm{m}^3`] of the species or isotopologue.
 )")
-      .def(
-          "species_vmr",
-          [](AtmPoint &atm, SpeciesEnum s) {
-            if (not atm.has(s))
-              throw py::key_error(std::format("{}", s).c_str());
-            return atm[s];
-          },
-          "spec"_a,
-          "Get the VMR of the species")
-      .def(
-          "set_species_vmr",
-          [](AtmPoint &atm, SpeciesEnum s, Numeric x) { atm[s] = x; },
-          "spec"_a,
-          "x"_a,
-          "Set the VMR of the species")
-      .def(
-          "isotopologue_ratio",
-          [](AtmPoint &atm, SpeciesIsotope s) {
-            if (not atm.has(s))
-              throw py::key_error(std::format("{}", s).c_str());
-            return atm[s];
-          },
-          "isot"_a,
-          "Get the isotopologue ratio")
-      .def(
-          "set_isotopologue_ratio",
-          [](AtmPoint &atm, SpeciesIsotope s, Numeric x) { atm[s] = x; },
-          "isot"_a,
-          "x"_a,
-          "Set the isotopologue ratio")
-      .def(
-          "nlte_value",
-          [](AtmPoint &atm, const QuantumLevelIdentifier &s) {
-            if (not atm.has(s))
-              throw py::key_error(std::format("{}", s).c_str());
-            return atm[s];
-          },
-          "qid"_a,
-          "Get the NLTE value")
-      .def(
-          "set_nlte_value",
-          [](AtmPoint &atm, const QuantumLevelIdentifier &s, Numeric x) {
-            atm[s] = x;
-          },
-          "qid"_a,
-          "x"_a,
-          "Set the NLTE value")
       .def("__getitem__",
            [](AtmPoint &self, const AtmKeyVal &key) {
              if (self.contains(key)) return self[key];

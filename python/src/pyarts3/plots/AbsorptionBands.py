@@ -20,7 +20,8 @@ def plot(absorption_bands: AbsorptionBands,
          species: SpeciesEnum = SpeciesEnum.AIR,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          min_pm: float = None,
-         cm_key: str = 'viridis'):
+         cm_key: str = 'viridis',
+         **kwargs):
     """Creates a plot of the absorption by the bands in the AbsorptionBands object.
 
     If freqs is and index, this is the number of frequency points between the lowest
@@ -99,8 +100,11 @@ def plot(absorption_bands: AbsorptionBands,
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 
-    if fig is None and ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    if fig is None:
+        fig = plt.figure(figsize=(6, 4))
+    
+    if ax is None:
+        ax = fig.add_subplot(1, 1, 1)
 
     pm = absorption_bands.propagation_matrix(
         f=freqs, atm=atm, spec=species, path_point=path_point)

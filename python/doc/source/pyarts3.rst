@@ -7,11 +7,13 @@ API Reference
 
    pyarts3.arts
    pyarts3.data
+   pyarts3.gui
    pyarts3.hitran
    pyarts3.math
    pyarts3.plots
    pyarts3.recipe
    pyarts3.utils
+   pyarts3.spectroscopy
    pyarts3.workspace
    pyarts3.xml
 
@@ -22,11 +24,13 @@ API Reference
 
    pyarts3.arts
    pyarts3.data
+   pyarts3.gui
    pyarts3.hitran
    pyarts3.math
    pyarts3.plots
    pyarts3.recipe
    pyarts3.utils
+   pyarts3.spectroscopy
    pyarts3.workspace
    pyarts3.xml
 
