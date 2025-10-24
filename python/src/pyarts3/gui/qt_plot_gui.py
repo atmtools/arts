@@ -26,14 +26,6 @@ if sys.platform == "darwin":
 import matplotlib
 matplotlib.use("Qt5Agg", force=True)
  
-# Diagnose stdlib xml shadowing before importing Qt backends
-try:
-    import xml  # noqa: F401
-    import inspect as _inspect
-    print("[diagnostic] xml module path:", getattr(xml, "__file__", "<builtin>"))
-except Exception as _e:
-    print("[diagnostic] importing stdlib 'xml' failed:", _e)
-    raise
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
@@ -203,10 +195,6 @@ class PlotGui(QWidget):
             # Set a reasonable size for the dialog
             msg_box.setStyleSheet("QTextEdit { min-width: 600px; min-height: 300px; }")
             msg_box.exec_()
-    
-    def on_item_selected(self, list_type, item):
-        """Handle selection of an item from any of the three lists."""
-        print(f"Selected from {list_type}: {item.text()}")
     
     def on_item_double_clicked(self, list_type, item):
         """Handle double-click on an item from any of the three lists."""

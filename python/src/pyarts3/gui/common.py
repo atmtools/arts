@@ -973,8 +973,7 @@ def edit_griddedfield(value, parent=None):
             result.dataname = dataname_edit.text()
             result.data = edited_data[0]
             return result
-        except Exception as e:
-            print(f"Error creating gridded field: {e}")
+        except Exception:
             return None
     return None
 
@@ -1342,8 +1341,7 @@ def edit_maplike(value, parent=None):
             for key, val in active_entries:
                 result[key] = val
             return result
-        except Exception as e:
-            print(f"Error creating map: {e}")
+        except Exception:
             return None
     return None
 

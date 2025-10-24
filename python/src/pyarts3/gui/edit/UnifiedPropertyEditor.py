@@ -429,8 +429,9 @@ class PropertyEditor(QDialog):
         target_obj = self._resolve_current()
         try:
             setattr(target_obj, prop_name, new_value)
-        except Exception as e:
-            print(f"Warning: Could not set {prop_name} on {type(target_obj).__name__}: {e}")
+        except Exception:
+            # Silently ignore errors; some properties may be read-only or have validation
+            pass
 
     def get_result(self):
         return self._root
