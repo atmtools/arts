@@ -24,10 +24,6 @@ from . import ArrayOf
 from . import Options
 from . import Time  # Treat Time as a basic type with its own simple editor
 from . import UnifiedPropertyEditor
-try:
-    from . import NDarray  # Preferred: renamed file
-except Exception:  # Fallback for case-insensitive FS where file is still lowercase
-    from . import ndarray as NDarray
 
 
 def get_editable_types():
@@ -207,52 +203,38 @@ def edit(value, parent=None):
             return ArrayOf.edit(value, parent=parent)
         
         # Check if this is an option group enum
-        try:
-            import pyarts3.arts as arts
-            option_groups = arts.globals.option_groups()
-            if type_name in option_groups:
-                return Options.edit(value, parent=parent)
-        except Exception:
-            pass
+        import pyarts3.arts as arts
+        option_groups = arts.globals.option_groups()
+        if type_name in option_groups:
+            return Options.edit(value, parent=parent)
         
         # Check if this is a gridded field
-        is_griddedfield = False
-        try:
-            is_griddedfield = (
-                hasattr(value, '__array__') and
-                hasattr(value, 'grids') and
-                hasattr(value, 'gridnames') and
-                hasattr(value, 'dataname')
-            )
-        except Exception:
-            pass
+        is_griddedfield = (
+            hasattr(value, '__array__') and
+            hasattr(value, 'grids') and
+            hasattr(value, 'gridnames') and
+            hasattr(value, 'dataname')
+        )
         
         if is_griddedfield:
             from ..common import edit_griddedfield
             return edit_griddedfield(value, parent=parent)
         
         # Check if this is a map-like object
-        is_maplike = False
-        try:
-            is_maplike = (
-                hasattr(value, 'keys') and
-                hasattr(value, 'items') and
-                hasattr(value, 'values') and
-                hasattr(value, '__getitem__') and
-                hasattr(value, '__setitem__')
-            )
-        except Exception:
-            pass
+        is_maplike = (
+            hasattr(value, 'keys') and
+            hasattr(value, 'items') and
+            hasattr(value, 'values') and
+            hasattr(value, '__getitem__') and
+            hasattr(value, '__setitem__')
+        )
         
         if is_maplike:
             from ..common import edit_maplike
             return edit_maplike(value, parent=parent)
         
         # Route generic array-like objects to NDarray editor
-        try:
-            has_array = hasattr(value, '__array__')
-        except Exception:
-            has_array = False
+        has_array = hasattr(value, '__array__')
         if has_array:
             return NDarray.edit(value, parent=parent)
         

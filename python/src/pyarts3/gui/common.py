@@ -1001,7 +1001,145 @@ def edit_maplike(value, parent=None):
     same-type-as-input or None
         The edited map if accepted, None if cancelled
     """
-    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from PyQt5.QtWidgets import QApplication, QMessageBox, QComboBox, QLabel
+    from pyarts3.gui.edit import edit as dispatch_edit
+    
+    def _parse_nb_signature_params(sig_obj):
+        """
+        Try to extract parameter type names from a nanobind __nb_signature__ entry.
+        Returns a list of strings for parameter types (excluding return type).
+        """
+        try:
+            # Expected shape from tests: iterable of tuples, first item is signature string
+            sig = sig_obj[0] if isinstance(sig_obj, (list, tuple)) else str(sig_obj)
+            # Find parameter list between the first '(' and the last ')'
+            l = sig.find('(')
+            r = sig.rfind(')')
+            if l == -1 or r == -1 or r <= l:
+                return []
+            params_str = sig[l+1:r].strip()
+            if not params_str:
+                return []
+            # Split parameters by comma, strip qualifiers like const&, &&, & and default names
+            params = []
+            for p in params_str.split(','):
+                p = p.strip()
+                # Drop common qualifiers
+                p = p.replace('const', '').replace('&', '').replace('&&', '').strip()
+                # Remove possible parameter names after a space
+                # e.g., "Index i" -> "Index"
+                if ' ' in p:
+                    p = p.split(' ')[0]
+                params.append(p)
+            return [p for p in params if p]
+        except Exception:
+            return []
+    
+    def _resolve_type_name(name):
+        """Resolve a C++/nanobind-exposed type name to a Python class or builtin."""
+        try:
+            # Common builtins mapping
+            if name in ('int', 'size_t', 'Index'):
+                # ARTS Index is exposed, try that first then fallback to int
+                try:
+                    import pyarts3.arts as arts
+                    return getattr(arts, 'Index')
+                except Exception:
+                    return int
+            if name in ('double', 'float', 'Numeric'):
+                try:
+                    import pyarts3.arts as arts
+                    return getattr(arts, 'Numeric')
+                except Exception:
+                    return float
+            if name in ('std::string', 'String', 'string', 'str'):
+                try:
+                    import pyarts3.arts as arts
+                    return getattr(arts, 'String')
+                except Exception:
+                    return str
+            # Try to resolve against pyarts3.arts namespace
+            import pyarts3.arts as arts
+            if hasattr(arts, name):
+                return getattr(arts, name)
+        except Exception:
+            pass
+        return None
+    
+    def _infer_map_types(m):
+        """
+        Infer possible (key_types, value_types) from __getitem__/__setitem__ nanobind signatures.
+        Returns two lists of Python classes (may be empty).
+        """
+        key_types = []
+        val_types = []
+        try:
+            getitem = getattr(type(m), '__getitem__', None) or getattr(m, '__getitem__', None)
+            if getitem is not None and hasattr(getitem, '__nb_signature__'):
+                for entry in getattr(getitem, '__nb_signature__'):
+                    params = _parse_nb_signature_params(entry)
+                    # Ignore 'self' if present and extract first parameter as key type
+                    if len(params) >= 1:
+                        t = _resolve_type_name(params[0])
+                        if t and t not in key_types:
+                            key_types.append(t)
+        except Exception:
+            pass
+        try:
+            setitem = getattr(type(m), '__setitem__', None) or getattr(m, '__setitem__', None)
+            if setitem is not None and hasattr(setitem, '__nb_signature__'):
+                for entry in getattr(setitem, '__nb_signature__'):
+                    params = _parse_nb_signature_params(entry)
+                    # Expect (key, value) parameters
+                    if len(params) >= 2:
+                        t = _resolve_type_name(params[1])
+                        if t and t not in val_types:
+                            val_types.append(t)
+        except Exception:
+            pass
+        return key_types, val_types
+    
+    def _choose_type_dialog(type_list, title, parent_dialog):
+        """Prompt the user to choose a type from a list. Returns the chosen class or None."""
+        if not type_list:
+            return None
+        if len(type_list) == 1:
+            return type_list[0]
+        # Build a small modal dialog with a combo box
+        dlg = QDialog(parent_dialog)
+        dlg.setWindowTitle(title)
+        v = QVBoxLayout(dlg)
+        v.addWidget(QLabel("Select a type:"))
+        combo = QComboBox(dlg)
+        names = [t.__name__ if hasattr(t, '__name__') else str(t) for t in type_list]
+        combo.addItems(names)
+        v.addWidget(combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        v.addWidget(buttons)
+        if dlg.exec_() == QDialog.Accepted:
+            return type_list[combo.currentIndex()]
+        return None
+    
+    def _construct_default(t):
+        """Try to construct a sensible default instance for type t."""
+        try:
+            return t()
+        except Exception:
+            # Fallback for some simple exposed types
+            if t in (int, float, str):
+                return t()
+            # Try Numeric/Index explicit constructors
+            try:
+                import pyarts3.arts as arts
+                if t is getattr(arts, 'Numeric', None):
+                    return t(0.0)
+                if t is getattr(arts, 'Index', None):
+                    return t(0)
+            except Exception:
+                pass
+        return None
     
     # Ensure a QApplication exists
     app = QApplication.instance()
@@ -1078,23 +1216,25 @@ def edit_maplike(value, parent=None):
         key, val = active_entries[row]
         
         # Find the original index in edited_entries
-        original_idx = 0
+        idx = 0
+        active_idx = 0
         for i, (k, v) in enumerate(edited_entries):
-            if i not in deleted_indices:
-                if original_idx == row:
-                    original_idx = i
-                    break
-                original_idx += 1
+            if i in deleted_indices:
+                continue
+            if active_idx == row:
+                idx = i
+                break
+            active_idx += 1
         
         if col == 0:  # Edit key
-            new_key = edit_ndarraylike(key, parent=dialog)
+            new_key = dispatch_edit(key, parent=dialog)
             if new_key is not None:
-                edited_entries[i] = (new_key, val)
+                edited_entries[idx] = (new_key, val)
                 refresh_table()
         elif col == 1:  # Edit value
-            new_val = edit_ndarraylike(val, parent=dialog)
+            new_val = dispatch_edit(val, parent=dialog)
             if new_val is not None:
-                edited_entries[i] = (key, new_val)
+                edited_entries[idx] = (key, new_val)
                 refresh_table()
     
     def on_add_entry():
@@ -1107,30 +1247,40 @@ def edit_maplike(value, parent=None):
             first_entry = edited_entries[0]
             key_type = type(first_entry[0])
             val_type = type(first_entry[1])
+        else:
+            # For empty maps, try to infer from nanobind signatures
+            inferred_keys, inferred_vals = _infer_map_types(value)
+            if inferred_keys:
+                key_type = _choose_type_dialog(inferred_keys, "Select key type", dialog)
+            if inferred_vals:
+                val_type = _choose_type_dialog(inferred_vals, "Select value type", dialog)
         
         # Create default instances
         try:
             if key_type is not None:
-                new_key = key_type()
+                new_key = _construct_default(key_type)
             else:
-                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine key type for empty map")
+                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine key type for this map")
                 return
                 
             if val_type is not None:
-                new_val = val_type()
+                new_val = _construct_default(val_type)
             else:
-                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine value type for empty map")
+                QMessageBox.warning(dialog, "Cannot Add", "Cannot determine value type for this map")
+                return
+            if new_key is None or new_val is None:
+                QMessageBox.warning(dialog, "Cannot Create", "Could not create default instances for the selected types")
                 return
         except Exception as e:
             QMessageBox.warning(dialog, "Cannot Create", f"Could not create default instances: {e}")
             return
         
         # Edit the new key and value
-        edited_key = edit_ndarraylike(new_key, parent=dialog)
+        edited_key = dispatch_edit(new_key, parent=dialog)
         if edited_key is None:
             return
         
-        edited_val = edit_ndarraylike(new_val, parent=dialog)
+        edited_val = dispatch_edit(new_val, parent=dialog)
         if edited_val is None:
             return
         
