@@ -214,7 +214,7 @@ def create_parameter_row_with_details(
 
 def create_numeric_spinbox(value=0.0):
     """
-    Create a configured QDoubleSpinBox for numeric editing.
+    Create a configured spinbox for numeric editing with scientific notation support.
     
     Parameters
     ----------
@@ -223,19 +223,69 @@ def create_numeric_spinbox(value=0.0):
     
     Returns
     -------
-    QDoubleSpinBox
-        Configured spinbox widget
+    ScientificDoubleSpinBox
+        Configured spinbox widget with arrows and flexible text input
     """
-    spin_box = QDoubleSpinBox()
-    spin_box.setRange(-1e308, 1e308)
-    spin_box.setDecimals(10)
+    spin_box = ScientificDoubleSpinBox()
     spin_box.setValue(float(value))
     return spin_box
 
 
+class ScientificDoubleSpinBox(QDoubleSpinBox):
+    """QDoubleSpinBox that accepts scientific notation in text input.
+    
+    This widget provides the best of both worlds:
+    - Arrow buttons for incrementing/decrementing
+    - Text input that accepts intermediate invalid states like "1e" while typing "1e3"
+    
+    Unlike the default QDoubleSpinBox, this allows typing scientific notation
+    naturally without validation errors.
+    """
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        from PyQt5.QtGui import QDoubleValidator
+        from PyQt5.QtCore import QLocale
+        
+        # Configure for large range
+        self.setRange(-1e308, 1e308)
+        self.setDecimals(10)
+        self.setKeyboardTracking(False)
+        
+        # Replace the default validator with one that accepts scientific notation
+        # and intermediate states
+        validator = QDoubleValidator()
+        validator.setNotation(QDoubleValidator.ScientificNotation)
+        validator.setLocale(QLocale.c())
+        self.lineEdit().setValidator(validator)
+    
+    def textFromValue(self, value):
+        """Format value for display - use scientific notation for large/small values."""
+        if abs(value) >= 1e6 or (abs(value) < 1e-3 and value != 0):
+            return f"{value:.6e}"
+        else:
+            return f"{value:.10g}"
+    
+    def valueFromText(self, text):
+        """Parse text to value - supports scientific notation."""
+        text = text.strip()
+        if not text:
+            return 0.0
+        try:
+            return float(text)
+        except ValueError:
+            # If parsing fails, return current value
+            return self.value()
+
+
 def edit_numeric(value, parent=None):
     """
-    Edit a numeric value using a double spin box.
+    Edit a numeric value with arrows and flexible text input.
+    
+    Provides a spinbox that:
+    - Has arrow buttons for incrementing/decrementing
+    - Accepts scientific notation in text field (e.g., 1e3, 2.5e-10)
+    - Allows intermediate invalid states while typing (e.g., "1e" while typing "1e3")
     
     Parameters
     ----------
@@ -249,7 +299,8 @@ def edit_numeric(value, parent=None):
     float or None
         Edited value if accepted, None if cancelled
     """
-    spin_box = create_numeric_spinbox(value)
+    spin_box = ScientificDoubleSpinBox()
+    spin_box.setValue(float(value))
     
     return create_simple_editor_dialog(
         "Edit Numeric",
