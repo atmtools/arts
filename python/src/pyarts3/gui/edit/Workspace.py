@@ -37,7 +37,7 @@ def edit(ws, parent=None):
     # Lazy import to avoid circulars
     import pyarts3.gui.edit as editors
     import pyarts3.arts as cxx
-    from pyarts3.gui.common import create_description_dialog
+    from .common import create_description_dialog
 
     dialog = QDialog(parent)
     dialog.setWindowTitle("Workspace Variables")
@@ -68,6 +68,18 @@ def edit(ws, parent=None):
     info.setStyleSheet("color: #777;")
     main.addWidget(info)
 
+    # Prepare variable metadata (needed by various functions below)
+    wsvars = cxx.globals.workspace_variables()  # name -> descriptor with .group
+    all_wsv_names = list(wsvars.keys())  # Full list of all workspace variables
+    
+    # Define helper function for calling methods
+    def _open_methods_dialog():
+        """Open the workspace methods dialog."""
+        from .methods import show_methods_dialog
+        show_methods_dialog(ws, parent=dialog)
+        # Refresh variable list after methods dialog closes
+        refresh_list(search.text())
+
     # Buttons
     button_layout = QHBoxLayout()
     
@@ -88,17 +100,6 @@ def edit(ws, parent=None):
     main.addLayout(button_layout)
 
     dialog.setLayout(main)
-
-    # Prepare variable metadata
-    wsvars = cxx.globals.workspace_variables()  # name -> descriptor with .group
-    all_wsv_names = list(wsvars.keys())  # Full list of all workspace variables
-    
-    def _open_methods_dialog():
-        """Open the workspace methods dialog."""
-        from pyarts3.gui.methods import show_methods_dialog
-        show_methods_dialog(ws, parent=dialog)
-        # Refresh variable list after methods dialog closes
-        refresh_list(search.text())
 
     def _group_name(name: str) -> str:
         """Return the declared workspace group/type name for variable name."""

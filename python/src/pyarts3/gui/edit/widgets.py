@@ -116,7 +116,7 @@ def edit_numeric(value, parent=None):
     float or None
         Edited value if accepted, None if cancelled
     """
-    from ..common import create_simple_editor_dialog
+    from .common import create_simple_editor_dialog
     
     spin_box = ScientificDoubleSpinBox()
     spin_box.setValue(float(value))
@@ -145,7 +145,7 @@ def edit_index(value, parent=None):
     int or None
         Edited value if accepted, None if cancelled
     """
-    from ..common import create_simple_editor_dialog
+    from .common import create_simple_editor_dialog
     
     spin_box = QSpinBox()
     spin_box.setRange(-2147483648, 2147483647)
@@ -175,7 +175,7 @@ def edit_string(value, parent=None):
     str or None
         Edited value if accepted, None if cancelled
     """
-    from ..common import create_simple_editor_dialog
+    from .common import create_simple_editor_dialog
     
     line_edit = QLineEdit()
     line_edit.setText(str(value))

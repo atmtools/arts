@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
-from pyarts3.gui.common import (
+from .common import (
     create_details_button,
     create_description_dialog,
     create_parameter_row_with_details

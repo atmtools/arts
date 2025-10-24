@@ -40,7 +40,7 @@ def edit(value, parent=None):
         options = option_type.get_options()
     except Exception as e:
         # Fallback: if get_options() doesn't work, can't edit
-        from ..common import create_description_dialog
+        from .common import create_description_dialog
         dialog = create_description_dialog(
             title="Cannot Edit Option",
             name=type_name,
