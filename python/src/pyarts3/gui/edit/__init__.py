@@ -29,91 +29,33 @@ def get_editable_types():
     """
     Get a set of all type names that can be edited.
     
-    Uses pyarts3.utils.builtin_groups() as the authoritative source of ARTS types,
-    then determines which can be edited based on:
-    - Explicit editor modules (Index, Numeric, String, ArrayOf, Options)
-    - Option group enums (from arts.globals.option_groups())
-    - Types with __array__ support (can use NDarray editor)
-    - All ArrayOf* variants (can use ArrayOf editor)
+    With the UnifiedPropertyEditor, virtually all ARTS types can be edited:
+    - Terminal types (Numeric, Index, String, etc.) use specialized editors
+    - ArrayOf* types use the ArrayOf editor
+    - Option enums use the Options editor
+    - Types with properties use the UnifiedPropertyEditor
+    - Array-like, GriddedField, and map-like types use specialized editors
+    
+    Returns all types from builtin_groups() since the unified editor can handle
+    anything - it will show properties for complex types and route terminals
+    to appropriate editors.
     
     Returns
     -------
     set of str
-        Set of all editable type names (typically 210+ types)
+        Set of all ARTS type names (typically 348 types from builtin_groups)
     """
     editable = set()
     
-    # 1. Add explicit editor modules (excluding special ones)
-    import sys
-    current_module = sys.modules[__name__]
-    for name in dir(current_module):
-        if name.startswith('_'):
-            continue
-        if name in ('edit', 'get_editable_types', 'can_edit', 'Generic', 'Workspace', 'NDarray', 'ndarray'):
-            continue
-        attr = getattr(current_module, name)
-        if hasattr(attr, 'edit'):
-            editable.add(name)
-    
-    # 2. Add all option group enums
-    try:
-        import pyarts3.arts as arts
-        option_groups = arts.globals.option_groups()
-        editable.update(option_groups)
-    except Exception:
-        pass
-    
-    # 3. Use builtin_groups() as the authoritative source of ARTS types
-    # This is the complete list of all ARTS builtin types (348 types)
+    # Use builtin_groups() as the authoritative source of ARTS types
+    # The unified editor can handle all of these
     try:
         from pyarts3.utils import builtin_groups
         builtin_types = builtin_groups()
         
         for type_class in builtin_types:
             type_name = type_class.__name__
-            
-            # All ArrayOf* types can be edited via ArrayOf editor
-            if type_name.startswith('ArrayOf'):
-                editable.add(type_name)
-                continue
-            
-            # Check if this type is a gridded field
-            try:
-                instance = type_class()
-                if (hasattr(instance, '__array__') and 
-                    hasattr(instance, 'grids') and 
-                    hasattr(instance, 'gridnames') and 
-                    hasattr(instance, 'dataname')):
-                    editable.add(type_name)
-                    continue
-            except Exception:
-                pass
-            
-            # Check if this type is map-like
-            try:
-                instance = type_class()
-                if (hasattr(instance, 'keys') and 
-                    hasattr(instance, 'items') and 
-                    hasattr(instance, 'values') and
-                    hasattr(instance, '__getitem__') and
-                    hasattr(instance, '__setitem__')):
-                    editable.add(type_name)
-                    continue
-            except Exception:
-                pass
-            
-            # Check if this type has __array__ support (can use NDarray editor)
-            if hasattr(type_class, '__array__'):
-                editable.add(type_name)
-                continue
-            
-            # Try to create an instance and check for __array__
-            try:
-                instance = type_class()
-                if hasattr(instance, '__array__'):
-                    editable.add(type_name)
-            except Exception:
-                pass  # Can't instantiate or no __array__, skip
+            editable.add(type_name)
     except Exception:
         pass
     
