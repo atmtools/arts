@@ -22,7 +22,6 @@ Or directly:
 from . import Generic
 from . import ArrayOf
 from . import Options
-from . import Time  # Treat Time as a basic type with its own simple editor
 from . import UnifiedPropertyEditor
 
 
@@ -149,7 +148,7 @@ def edit(value, parent=None):
     1. For terminal types (Numeric, Index, String, ArrayOf*, Options, arrays, 
        Python built-ins), uses specialized editors
     2. For complex types with properties, uses the unified property editor
-       with tabbed navigation
+       with breadcrumb navigation
 
     Parameters
     ----------
@@ -172,88 +171,14 @@ def edit(value, parent=None):
 
     >>> # Complex types use unified property editor
     >>> sun = pyarts.arts.Sun()
-    >>> new_sun = edit.edit(sun)  # Opens tabbed property interface
+    >>> new_sun = edit.edit(sun)  # Opens breadcrumb property interface
     """
-    import sys
-    
     # Special-case: Workspace must use its dedicated editor (never unified)
     type_name = type(value).__name__
     if type_name == 'Workspace':
         from . import Workspace as WorkspaceEditor
         return WorkspaceEditor.edit(value, parent=parent)
 
-    # Try unified property editor first for complex ARTS types
-    from .UnifiedPropertyEditor import edit as unified_edit, is_terminal_type, inspect_type
-    
-    # Get the type name of the value
-    
-    # For terminal types, use specialized editors
-    if is_terminal_type(value):
-        # Route to specialized editors
-        current_module = sys.modules[__name__]
-        
-        # Check if we have a specific editor module
-        if hasattr(current_module, type_name):
-            edit_module = getattr(current_module, type_name)
-            if hasattr(edit_module, 'edit'):
-                return edit_module.edit(value, parent=parent)
-        
-        # Route ArrayOf* to the generic ArrayOf editor
-        if type_name.startswith('ArrayOf'):
-            return ArrayOf.edit(value, parent=parent)
-        
-        # Check if this is an option group enum
-        import pyarts3.arts as arts
-        option_groups = arts.globals.option_groups()
-        if type_name in option_groups:
-            return Options.edit(value, parent=parent)
-        
-        # Check if this is a gridded field
-        is_griddedfield = (
-            hasattr(value, '__array__') and
-            hasattr(value, 'grids') and
-            hasattr(value, 'gridnames') and
-            hasattr(value, 'dataname')
-        )
-        
-        if is_griddedfield:
-            from ..common import edit_griddedfield
-            return edit_griddedfield(value, parent=parent)
-        
-        # Check if this is a map-like object
-        is_maplike = (
-            hasattr(value, 'keys') and
-            hasattr(value, 'items') and
-            hasattr(value, 'values') and
-            hasattr(value, '__getitem__') and
-            hasattr(value, '__setitem__')
-        )
-        
-        if is_maplike:
-            from ..common import edit_maplike
-            return edit_maplike(value, parent=parent)
-        
-        # Route generic array-like objects to NDarray editor
-        has_array = hasattr(value, '__array__')
-        if has_array:
-            return NDarray.edit(value, parent=parent)
-        
-        # Fallback to Generic editor for other terminal types
-        return Generic.edit(value, parent=parent)
-    
-    # For complex types with properties, use unified property editor
-    ro_props, rw_props = inspect_type(value)
-    
-    if ro_props or rw_props:
-        # Has properties - use unified editor
-        return unified_edit(value, parent=parent)
-    
-    # No properties - try specialized editor or generic
-    current_module = sys.modules[__name__]
-    if hasattr(current_module, type_name):
-        edit_module = getattr(current_module, type_name)
-        if hasattr(edit_module, 'edit'):
-            return edit_module.edit(value, parent=parent)
-    
-    # Final fallback to Generic
-    return Generic.edit(value, parent=parent)
+    # Use unified editor's logic for all routing
+    from .UnifiedPropertyEditor import edit as unified_edit
+    return unified_edit(value, parent=parent)

@@ -197,7 +197,16 @@ def is_terminal_type(value):
 
 
 def edit_terminal(value, parent=None):
-    """Edit a terminal type using the existing specialized editors.
+    """Edit a terminal type using the appropriate specialized editor.
+    
+    This function routes terminal types to their specialized editors:
+    - ARTS: Numeric, Index, String, Time → dedicated module editors
+    - ArrayOf* → ArrayOf editor
+    - Options enums → Options editor
+    - GriddedField → edit_griddedfield
+    - Map-like → edit_maplike
+    - Array-like → edit_ndarraylike
+    - Python primitives → Generic editor
     
     Parameters
     ----------
@@ -211,9 +220,70 @@ def edit_terminal(value, parent=None):
     any or None
         Edited value if accepted, None if cancelled
     """
-    # Import the existing dispatch system
-    from . import edit as dispatch_edit
-    return dispatch_edit(value, parent=parent)
+    import sys
+    from . import Generic, ArrayOf, Options
+    
+    type_name = type(value).__name__
+    current_module = sys.modules['pyarts3.gui.edit']
+    
+    # Check if we have a specific editor module for this type
+    if hasattr(current_module, type_name):
+        edit_module = getattr(current_module, type_name)
+        if hasattr(edit_module, 'edit'):
+            return edit_module.edit(value, parent=parent)
+    
+    # Route ArrayOf* to the generic ArrayOf editor
+    if type_name.startswith('ArrayOf'):
+        return ArrayOf.edit(value, parent=parent)
+    
+    # Check if this is an option group enum
+    try:
+        import pyarts3.arts as arts
+        option_groups = arts.globals.option_groups()
+        if type_name in option_groups:
+            return Options.edit(value, parent=parent)
+    except Exception:
+        pass
+    
+    # Check if this is a gridded field
+    try:
+        is_griddedfield = (
+            hasattr(value, '__array__') and
+            hasattr(value, 'grids') and
+            hasattr(value, 'gridnames') and
+            hasattr(value, 'dataname')
+        )
+        if is_griddedfield:
+            from ..common import edit_griddedfield
+            return edit_griddedfield(value, parent=parent)
+    except Exception:
+        pass
+    
+    # Check if this is a map-like object
+    try:
+        is_maplike = (
+            hasattr(value, 'keys') and
+            hasattr(value, 'items') and
+            hasattr(value, 'values') and
+            hasattr(value, '__getitem__') and
+            hasattr(value, '__setitem__')
+        )
+        if is_maplike:
+            from ..common import edit_maplike
+            return edit_maplike(value, parent=parent)
+    except Exception:
+        pass
+    
+    # Route generic array-like objects to ndarraylike editor
+    try:
+        if hasattr(value, '__array__'):
+            from ..common import edit_ndarraylike
+            return edit_ndarraylike(value, parent=parent)
+    except Exception:
+        pass
+    
+    # Fallback to Generic editor for other terminal types
+    return Generic.edit(value, parent=parent)
 
 
 class PropertyEditor(QDialog):
