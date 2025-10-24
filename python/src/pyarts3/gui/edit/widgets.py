@@ -185,10 +185,14 @@ def edit_string(value, parent=None):
     )
 
 
-def edit_listlike(value, parent=None):
+def edit_listlike(value, parent=None, allowed_item_types=None):
     """
     Edit a list-like value (list, tuple, etc.) in a simple table.
     Shows index and value columns with inline editing.
+    
+    Contract (mirrors edit_maplike/edit_ndarraylike):
+    - If allowed_item_types is None: read-only (no add/remove/edit operations)
+    - If allowed_item_types is provided: add/remove/edit enabled with type constraints
     
     Parameters
     ----------
@@ -196,6 +200,9 @@ def edit_listlike(value, parent=None):
         The list-like value to edit
     parent : QWidget, optional
         Parent widget
+    allowed_item_types : list[type] | None, optional
+        List of allowed item types. If None, list is read-only (no modifications).
+        If provided, enables add/remove/edit with type selection from this list.
     
     Returns
     -------
@@ -210,48 +217,128 @@ def edit_listlike(value, parent=None):
         app = QApplication([])
     
     dialog = QDialog(parent)
-    dialog.setWindowTitle("Edit List")
+    dialog.setWindowTitle("Edit List" + (" (read-only)" if allowed_item_types is None else ""))
+    dialog.setMinimumSize(800, 500)  # Make dialog wider and taller
     
     layout = QVBoxLayout()
     
     # Convert to list for editing
     data = list(value)
     
+    # Toolbar (only if editable)
+    if allowed_item_types is not None:
+        toolbar = QToolBar()
+        
+        add_action = QAction("Add Item", dialog)
+        add_action.triggered.connect(lambda: on_add_item())
+        toolbar.addAction(add_action)
+        
+        remove_action = QAction("Remove Item", dialog)
+        remove_action.triggered.connect(lambda: on_remove_item())
+        toolbar.addAction(remove_action)
+        
+        layout.addWidget(toolbar)
+    
     # Table
     table = QTableWidget()
-    table.setColumnCount(2)
-    table.setHorizontalHeaderLabels(["Index", "Value"])
+    table.setColumnCount(3 if allowed_item_types is not None else 2)
+    headers = ["Index", "Value"]
+    if allowed_item_types is not None:
+        headers.append("Type")
+    table.setHorizontalHeaderLabels(headers)
     table.horizontalHeader().setStretchLastSection(True)
     
-    table.setRowCount(len(data))
-    for i, val in enumerate(data):
-        # Index (read-only)
-        idx_item = QTableWidgetItem(str(i))
-        idx_item.setFlags(idx_item.flags() & ~Qt.ItemIsEditable)
-        table.setItem(i, 0, idx_item)
-        
-        # Value (editable) - try to format nicely
-        if isinstance(val, (int, float)):
-            val_item = QTableWidgetItem(f"{val:.10g}" if isinstance(val, float) else str(val))
-        else:
-            val_item = QTableWidgetItem(str(val))
-        table.setItem(i, 1, val_item)
+    def refresh_table():
+        table.setRowCount(len(data))
+        for i, val in enumerate(data):
+            # Index (read-only)
+            idx_item = QTableWidgetItem(str(i))
+            idx_item.setFlags(idx_item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 0, idx_item)
+            
+            # Value preview (always read-only - edit via double-click)
+            val_str = _summarize_value(val)
+            val_item = QTableWidgetItem(val_str)
+            val_item.setFlags(val_item.flags() & ~Qt.ItemIsEditable)
+            table.setItem(i, 1, val_item)
+            
+            # Type (if editable)
+            if allowed_item_types is not None:
+                type_item = QTableWidgetItem(type(val).__name__)
+                type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable)
+                table.setItem(i, 2, type_item)
     
-    # Add double-click handler for numeric editing if all values are numeric
-    all_numeric = all(isinstance(v, (int, float, np.number)) for v in data)
-    if all_numeric:
-        def on_cell_double_clicked(row, col):
-            if col == 1:  # Only value column
-                try:
-                    current_val = float(table.item(row, 1).text())
-                    new_val = edit_numeric(current_val, dialog)
-                    if new_val is not None:
-                        table.item(row, 1).setText(f"{new_val:.10g}")
-                except (ValueError, TypeError):
-                    pass  # Skip if not numeric
-        
-        table.cellDoubleClicked.connect(on_cell_double_clicked)
+    def _summarize_value(val, maxlen=80):
+        try:
+            if isinstance(val, (int, float)):
+                return f"{val:.10g}" if isinstance(val, float) else str(val)
+            s = str(val)
+            if len(s) > maxlen:
+                s = s[:maxlen - 3] + "..."
+            return s
+        except Exception:
+            return "<error>"
     
+    def _choose_type_dialog(types):
+        if not types:
+            return None
+        if len(types) == 1:
+            return types[0]
+        from PyQt5.QtWidgets import QInputDialog
+        names = [t.__name__ for t in types]
+        choice, ok = QInputDialog.getItem(dialog, "Select Type", "Choose item type:", names, 0, False)
+        if ok:
+            return types[names.index(choice)]
+        return None
+    
+    def _construct_default(typ):
+        try:
+            return typ()
+        except Exception:
+            # Fallback defaults for common types
+            if typ in (int, getattr(__builtins__, 'int', int)):
+                return 0
+            if typ in (float, getattr(__builtins__, 'float', float)):
+                return 0.0
+            if typ in (str, getattr(__builtins__, 'str', str)):
+                return ""
+            return None
+    
+    def on_add_item():
+        if not allowed_item_types:
+            return
+        chosen_type = _choose_type_dialog(allowed_item_types)
+        if chosen_type is None:
+            return
+        new_val = _construct_default(chosen_type)
+        if new_val is None:
+            QMessageBox.warning(dialog, "Error", f"Cannot default-construct {chosen_type.__name__}")
+            return
+        data.append(new_val)
+        refresh_table()
+    
+    def on_remove_item():
+        current_row = table.currentRow()
+        if current_row >= 0 and current_row < len(data):
+            del data[current_row]
+            refresh_table()
+    
+    def on_cell_double_clicked(row, col):
+        if col != 1 or row >= len(data):
+            return
+        if allowed_item_types is None:
+            return  # Read-only
+        current_val = data[row]
+        # Import here to avoid circular dependency
+        from .UnifiedPropertyEditor import edit
+        new_val = edit(current_val, parent=dialog)
+        if new_val is not None:
+            data[row] = new_val
+            refresh_table()
+    
+    table.cellDoubleClicked.connect(on_cell_double_clicked)
+    
+    refresh_table()
     layout.addWidget(table)
     
     buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -262,22 +349,7 @@ def edit_listlike(value, parent=None):
     dialog.setLayout(layout)
     
     if dialog.exec_() == QDialog.Accepted:
-        result = []
-        for i in range(table.rowCount()):
-            text = table.item(i, 1).text()
-            # Try to preserve type
-            if all_numeric:
-                try:
-                    # Try int first, then float
-                    if '.' not in text and 'e' not in text.lower():
-                        result.append(int(text))
-                    else:
-                        result.append(float(text))
-                except (ValueError, AttributeError):
-                    result.append(data[i])  # Keep original on error
-            else:
-                result.append(text)
-        return result
+        return list(data)
     return None
 
 

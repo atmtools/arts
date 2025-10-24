@@ -233,9 +233,27 @@ def edit_terminal(value, parent=None, owner=None, prop_name=None):
         if hasattr(edit_module, 'edit'):
             return edit_module.edit(value, parent=parent)
     
-    # Route ArrayOf* to the generic ArrayOf editor
+    # Route ArrayOf* to the generic ArrayOf editor with type constraints
     if type_name.startswith('ArrayOf'):
-        return ArrayOf.edit(value, parent=parent)
+        # Extract inner type from __doc__ (e.g., 'A list of :class:`~pyarts3.arts.Index`')
+        allowed_item_types = None
+        try:
+            doc = type(value).__doc__
+            if doc:
+                # Look for :class:`~pyarts3.arts.TypeName` pattern
+                import re
+                match = re.search(r':class:`~pyarts3\.arts\.(\w+)`', doc)
+                if match:
+                    inner_type_name = match.group(1)
+                    import pyarts3.arts as arts
+                    if hasattr(arts, inner_type_name):
+                        allowed_item_types = [getattr(arts, inner_type_name)]
+        except Exception:
+            pass
+        
+        # Use edit_listlike with type constraints instead of dedicated ArrayOf editor
+        from .widgets import edit_listlike
+        return edit_listlike(value, parent=parent, allowed_item_types=allowed_item_types)
     
     # Check if this is an option group enum
     try:
