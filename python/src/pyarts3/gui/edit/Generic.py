@@ -63,7 +63,7 @@ def edit(value, parent=None):
         _np = None
 
     # Defer import to avoid cycles
-    from pyarts3.gui.common import edit_index as _edit_index, edit_numeric as _edit_numeric, edit_string as _edit_string
+    from .widgets import edit_index as _edit_index, edit_numeric as _edit_numeric, edit_string as _edit_string
 
     # Booleans must be handled BEFORE integers (bool is a subclass of int)
     if isinstance(value, bool):
@@ -72,7 +72,7 @@ def edit(value, parent=None):
             return bool_editor.edit(value, parent)
         except Exception:
             # Fallback: map to simple Yes/No via index editor (0/1)
-            from pyarts3.gui.common import edit_index as _edit_index
+            from .widgets import edit_index as _edit_index
             return bool(_edit_index(int(value), parent))
 
     # Integers (Python int, numpy integer subclasses)

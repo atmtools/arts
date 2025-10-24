@@ -1,6 +1,6 @@
 """Editor for String values."""
 
-from pyarts3.gui.common import edit_string
+from .widgets import edit_string
 
 __all__ = ['edit']
 

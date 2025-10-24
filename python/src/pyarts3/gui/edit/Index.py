@@ -1,6 +1,6 @@
 """Editor for Index (integer) values."""
 
-from pyarts3.gui.common import edit_index
+from .widgets import edit_index
 
 __all__ = ['edit']
 

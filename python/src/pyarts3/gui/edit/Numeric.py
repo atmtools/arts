@@ -1,6 +1,6 @@
 """Editor for Numeric (floating point) values."""
 
-from pyarts3.gui.common import edit_numeric
+from .widgets import edit_numeric
 
 __all__ = ['edit']
 

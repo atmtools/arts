@@ -109,7 +109,7 @@ def is_terminal_type(value):
     """Check if a value is a terminal type that can be edited directly.
     
     Terminal types are:
-    - ARTS: Numeric, Index, String
+    - ARTS: Numeric, Index, String, Time
     - Python: int, float, bool, str
     - NumPy: integer, floating types
     - NumPy: ndarray
@@ -222,6 +222,7 @@ def edit_terminal(value, parent=None):
     """
     import sys
     from . import Generic, ArrayOf, Options
+    from . import Index, Numeric, String, Time
     
     type_name = type(value).__name__
     current_module = sys.modules['pyarts3.gui.edit']
@@ -254,7 +255,7 @@ def edit_terminal(value, parent=None):
             hasattr(value, 'dataname')
         )
         if is_griddedfield:
-            from ..common import edit_griddedfield
+            from .widgets import edit_griddedfield
             return edit_griddedfield(value, parent=parent)
     except Exception:
         pass
@@ -269,7 +270,7 @@ def edit_terminal(value, parent=None):
             hasattr(value, '__setitem__')
         )
         if is_maplike:
-            from ..common import edit_maplike
+            from .widgets import edit_maplike
             return edit_maplike(value, parent=parent)
     except Exception:
         pass
@@ -277,7 +278,7 @@ def edit_terminal(value, parent=None):
     # Route generic array-like objects to ndarraylike editor
     try:
         if hasattr(value, '__array__'):
-            from ..common import edit_ndarraylike
+            from .widgets import edit_ndarraylike
             return edit_ndarraylike(value, parent=parent)
     except Exception:
         pass
