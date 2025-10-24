@@ -22,6 +22,7 @@ Or directly:
 from . import Generic
 from . import ArrayOf
 from . import Options
+from . import Time  # Treat Time as a basic type with its own simple editor
 from . import UnifiedPropertyEditor
 try:
     from . import NDarray  # Preferred: renamed file

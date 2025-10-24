@@ -18,7 +18,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QWidget,
     QPushButton, QDialogButtonBox, QLabel, QScrollArea,
-    QTableWidget, QTableWidgetItem, QHeaderView
+    QTableWidget, QTableWidgetItem, QHeaderView, QApplication
 )
 from PyQt5.QtCore import Qt
 
@@ -134,7 +134,7 @@ def is_terminal_type(value):
     type_name = type(value).__name__
     
     # ARTS terminal types
-    if type_name in ('Numeric', 'Index', 'String'):
+    if type_name in ('Numeric', 'Index', 'String', 'Time'):
         return True
     
     # ArrayOf types
@@ -420,22 +420,17 @@ class PropertyEditor(QDialog):
         self._push_path(name, rw_props)
 
     def _set_current_property(self, prop_name: str, new_value):
-        """Set property on the object at current path (parent level)."""
-        # Resolve parent object (one level up)
-        parent_obj = self._root
-        if len(self._path) > 0:
-            for name in self._path[:-1]:
-                parent_obj = getattr(parent_obj, name)
-        target_obj = self._resolve_current() if len(self._path) == 0 else parent_obj
+        """Set a property on the current object in the navigation path.
 
+        Always set on the CURRENT object, not the parent. This avoids collisions
+        when parent and child share property names (e.g., AbsorptionLine.gl vs
+        ZeemanLineModel.gl when editing 'z.gl').
+        """
+        target_obj = self._resolve_current()
         try:
             setattr(target_obj, prop_name, new_value)
         except Exception as e:
-            # Fallback: if setting failed on parent/target logic, try direct
-            try:
-                setattr(self._resolve_current(), prop_name, new_value)
-            except Exception:
-                print(f"Warning: Could not set {prop_name}: {e}")
+            print(f"Warning: Could not set {prop_name} on {type(target_obj).__name__}: {e}")
 
     def get_result(self):
         return self._root
@@ -460,6 +455,11 @@ def edit(value, parent=None):
     any or None
         Edited value if accepted, None if cancelled
     """
+    # Ensure a QApplication exists to avoid Qt aborts in scripts/REPL
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+
     # Guard: Workspace must not be handled by unified; delegate to dedicated editor
     if type(value).__name__ == 'Workspace':
         try:
