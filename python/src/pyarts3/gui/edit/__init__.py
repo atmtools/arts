@@ -20,41 +20,9 @@ Or directly:
 
 # Import available editor modules
 from . import Generic
-from . import Index
-from . import Numeric
-from . import String
 from . import ArrayOf
 from . import Options
-from . import bool
-from . import Workspace
-from . import QuantumIdentifier
-from . import QuantumUpperLower
-from . import QuantumValue
-from . import SpeciesIsotope
-from . import Rational
-from . import AtmPoint
-from . import AtmField
-from . import AtmData
-from . import SubsurfacePoint
-from . import SubsurfaceField
-from . import SubsurfaceData
-from . import SurfacePoint
-from . import SurfaceField
-from . import SurfaceData
-from . import Time
-from . import Sun
-from . import PropagationPathPoint
-from . import SpeciesTag
-from . import SensorObsel
-from . import JacobianTargets
-from . import DisortSettings
-from . import AbsorptionBand
-from . import AbsorptionLine
-from . import ScatteringMetaData
-from . import ZeemanLineModel
-from . import CIARecord
-from . import XsecRecord
-from . import LineShapeModel
+from . import UnifiedPropertyEditor
 try:
     from . import NDarray  # Preferred: renamed file
 except Exception:  # Fallback for case-insensitive FS where file is still lowercase
@@ -175,10 +143,16 @@ def can_edit(type_name):
 
 def edit(value, parent=None):
     """
-    Generic edit function that dispatches to the appropriate editor module.
+    Generic edit function that dispatches to the appropriate editor.
 
-    This function automatically determines the type of the input value and calls
-    the corresponding editor module's edit() function.
+    Uses the unified property-based editor for ARTS types with properties,
+    and delegates to specialized editors for terminal types.
+
+    This function automatically determines the type of the input value and:
+    1. For terminal types (Numeric, Index, String, ArrayOf*, Options, arrays, 
+       Python built-ins), uses specialized editors
+    2. For complex types with properties, uses the unified property editor
+       with tabbed navigation
 
     Parameters
     ----------
@@ -199,29 +173,35 @@ def edit(value, parent=None):
     >>> vec = pyarts.arts.Vector([1, 2, 3, 4])
     >>> new_vec = edit.edit(vec)
 
-    >>> num = pyarts.arts.Numeric(3.14)
-    >>> new_num = edit.edit(num)
+    >>> # Complex types use unified property editor
+    >>> sun = pyarts.arts.Sun()
+    >>> new_sun = edit.edit(sun)  # Opens tabbed property interface
     """
     import sys
-
-    # Get the type name of the value
+    
+    # Special-case: Workspace must use its dedicated editor (never unified)
     type_name = type(value).__name__
+    if type_name == 'Workspace':
+        from . import Workspace as WorkspaceEditor
+        return WorkspaceEditor.edit(value, parent=parent)
 
-    # Get the current module (pyarts3.gui.edit)
-    current_module = sys.modules[__name__]
-
-    # Check if we have a submodule with the same name as the type
-    if hasattr(current_module, type_name):
-        edit_module = getattr(current_module, type_name)
-
-        # Check if the submodule has an edit function
-        if hasattr(edit_module, 'edit'):
-            return edit_module.edit(value, parent=parent)
-        else:
-            # Shouldn't happen, but fallback to Generic
-            return Generic.edit(value, parent=parent)
-    else:
-        # Route any ArrayOf* to the generic ArrayOf editor
+    # Try unified property editor first for complex ARTS types
+    from .UnifiedPropertyEditor import edit as unified_edit, is_terminal_type, inspect_type
+    
+    # Get the type name of the value
+    
+    # For terminal types, use specialized editors
+    if is_terminal_type(value):
+        # Route to specialized editors
+        current_module = sys.modules[__name__]
+        
+        # Check if we have a specific editor module
+        if hasattr(current_module, type_name):
+            edit_module = getattr(current_module, type_name)
+            if hasattr(edit_module, 'edit'):
+                return edit_module.edit(value, parent=parent)
+        
+        # Route ArrayOf* to the generic ArrayOf editor
         if type_name.startswith('ArrayOf'):
             return ArrayOf.edit(value, parent=parent)
         
@@ -232,10 +212,9 @@ def edit(value, parent=None):
             if type_name in option_groups:
                 return Options.edit(value, parent=parent)
         except Exception:
-            pass  # Not an option group, continue to other checks
+            pass
         
-        # Check if this is a gridded field (before generic array check)
-        # GriddedFields have: grids, gridnames, dataname properties and __array__
+        # Check if this is a gridded field
         is_griddedfield = False
         try:
             is_griddedfield = (
@@ -251,8 +230,7 @@ def edit(value, parent=None):
             from ..common import edit_griddedfield
             return edit_griddedfield(value, parent=parent)
         
-        # Check if this is a map-like object (before generic array check)
-        # Map-like objects have: keys, items, values methods
+        # Check if this is a map-like object
         is_maplike = False
         try:
             is_maplike = (
@@ -276,5 +254,23 @@ def edit(value, parent=None):
             has_array = False
         if has_array:
             return NDarray.edit(value, parent=parent)
-        # No specific editor found, use generic viewer
+        
+        # Fallback to Generic editor for other terminal types
         return Generic.edit(value, parent=parent)
+    
+    # For complex types with properties, use unified property editor
+    ro_props, rw_props = inspect_type(value)
+    
+    if ro_props or rw_props:
+        # Has properties - use unified editor
+        return unified_edit(value, parent=parent)
+    
+    # No properties - try specialized editor or generic
+    current_module = sys.modules[__name__]
+    if hasattr(current_module, type_name):
+        edit_module = getattr(current_module, type_name)
+        if hasattr(edit_module, 'edit'):
+            return edit_module.edit(value, parent=parent)
+    
+    # Final fallback to Generic
+    return Generic.edit(value, parent=parent)
