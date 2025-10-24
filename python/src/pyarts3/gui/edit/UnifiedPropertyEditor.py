@@ -196,7 +196,7 @@ def is_terminal_type(value):
     return False
 
 
-def edit_terminal(value, parent=None):
+def edit_terminal(value, parent=None, owner=None, prop_name=None):
     """Edit a terminal type using the appropriate specialized editor.
     
     This function routes terminal types to their specialized editors:
@@ -270,8 +270,119 @@ def edit_terminal(value, parent=None):
             hasattr(value, '__setitem__')
         )
         if is_maplike:
+            # Contract: Derive allowed types from:
+            # 1. Property getter signature if owner/prop_name provided (dict[K, V] form)
+            # 2. Direct type's __getitem__.__doc__ for builtin dict types
+            # Otherwise read-only.
+            def _resolve_type(name):
+                try:
+                    # Remove pyarts3.arts. prefix if present
+                    if name.startswith('pyarts3.arts.'):
+                        name = name[len('pyarts3.arts.'):]
+                    # Try to resolve against pyarts3.arts namespace
+                    import pyarts3.arts as arts
+                    if hasattr(arts, name):
+                        return getattr(arts, name)
+                except Exception:
+                    pass
+                return None
+
+            allowed_key_types = None
+            allowed_value_types = None
+            
+            # Strategy 1: Parse property getter signature (for dict properties)
+            try:
+                if owner is not None and prop_name:
+                    owner_cls = type(owner)
+                    desc = getattr(owner_cls, prop_name, None)
+                    if desc is not None:
+                        fget = getattr(desc, 'fget', None)
+                        if fget is not None and hasattr(fget, '__nb_signature__'):
+                            sigs = getattr(fget, '__nb_signature__')
+                            for entry in sigs:
+                                sig = entry[0] if isinstance(entry, (list, tuple)) else str(entry)
+                                # Look for '-> dict[KeyType, ValueType]'
+                                arrow = sig.find('->')
+                                if arrow == -1:
+                                    continue
+                                ret_type = sig[arrow + 2:].strip()
+                                # Parse dict[K, V] form
+                                if ret_type.startswith('dict['):
+                                    inside = ret_type[5:]  # skip 'dict['
+                                    if inside.endswith(']'):
+                                        inside = inside[:-1]
+                                    # Split by comma at top level
+                                    parts = []
+                                    buf = []
+                                    depth = 0
+                                    for ch in inside:
+                                        if ch == '[':
+                                            depth += 1
+                                        elif ch == ']':
+                                            depth -= 1
+                                        if ch == ',' and depth == 0:
+                                            parts.append(''.join(buf).strip())
+                                            buf = []
+                                        else:
+                                            buf.append(ch)
+                                    if buf:
+                                        parts.append(''.join(buf).strip())
+                                    if len(parts) >= 2:
+                                        key_name = parts[0]
+                                        val_name = parts[1]
+                                        kt = _resolve_type(key_name)
+                                        vt = _resolve_type(val_name)
+                                        if kt:
+                                            allowed_key_types = [kt]
+                                        if vt:
+                                            allowed_value_types = [vt]
+                                        break
+            except Exception:
+                pass
+            
+            # Strategy 2: Parse __getitem__.__doc__ for builtin dict types
+            if allowed_key_types is None or allowed_value_types is None:
+                try:
+                    t = type(value)
+                    getitem = getattr(t, '__getitem__', None)
+                    if getitem is not None:
+                        doc = getattr(getitem, '__doc__', None)
+                        if doc:
+                            # Parse: __getitem__(self, arg: KeyType, /) -> ValueType
+                            arrow = doc.find('->')
+                            if arrow != -1:
+                                # Extract value type from return
+                                ret_part = doc[arrow + 2:].strip()
+                                # Remove trailing period if present
+                                if ret_part.endswith('.'):
+                                    ret_part = ret_part[:-1]
+                                vt = _resolve_type(ret_part)
+                                if vt and allowed_value_types is None:
+                                    allowed_value_types = [vt]
+                            
+                            # Extract key type from arg:
+                            arg_start = doc.find('arg:')
+                            if arg_start != -1:
+                                arg_part = doc[arg_start + 4:].strip()
+                                # Find end (comma or slash)
+                                for end_char in [',', '/']:
+                                    end_idx = arg_part.find(end_char)
+                                    if end_idx != -1:
+                                        arg_part = arg_part[:end_idx].strip()
+                                        break
+                                kt = _resolve_type(arg_part)
+                                if kt and allowed_key_types is None:
+                                    allowed_key_types = [kt]
+                except Exception:
+                    pass
+
             from .widgets import edit_maplike
-            return edit_maplike(value, parent=parent)
+            return edit_maplike(
+                value,
+                parent=parent,
+                allowed_key_types=allowed_key_types,
+                allowed_value_types=allowed_value_types,
+            )
     except Exception:
         pass
     
@@ -279,7 +390,31 @@ def edit_terminal(value, parent=None):
     try:
         if hasattr(value, '__array__'):
             from .widgets import edit_ndarraylike
-            return edit_ndarraylike(value, parent=parent)
+            # Attempt to determine allowed_shape for ARTS-derived arrays.
+            # Strategy: default-construct the type and read its shape; per design,
+            # zeros indicate dynamic dims and non-zeros are fixed.
+            allowed_shape = None
+            try:
+                t = type(value)
+                # Avoid numpy.ndarray default construction which is not supported
+                is_numpy_arr = (t is getattr(np, 'ndarray', None))
+            except Exception:
+                is_numpy_arr = False
+            if not is_numpy_arr:
+                try:
+                    default_inst = type(value)()
+                    shp = getattr(default_inst, 'shape', None)
+                    if shp is None:
+                        try:
+                            shp = np.array(default_inst).shape
+                        except Exception:
+                            shp = None
+                    if shp and isinstance(shp, tuple) and len(shp) == np.array(value).ndim:
+                        # Normalize to ints
+                        allowed_shape = tuple(int(x) for x in shp)
+                except Exception:
+                    allowed_shape = None
+            return edit_ndarraylike(value, parent=parent, allowed_shape=allowed_shape)
     except Exception:
         pass
     
@@ -478,9 +613,9 @@ class PropertyEditor(QDialog):
         if is_terminal_type(val):
             if effective_ro:
                 # View-only: still allow opening the editor but do not set back
-                _ = edit_terminal(val, parent=self)
+                _ = edit_terminal(val, parent=self, owner=current_obj, prop_name=name)
                 return
-            new_val = edit_terminal(val, parent=self)
+            new_val = edit_terminal(val, parent=self, owner=current_obj, prop_name=name)
             if new_val is not None:
                 self._set_current_property(name, new_val)
                 self._refresh_view()
