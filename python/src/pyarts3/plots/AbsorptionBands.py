@@ -1,15 +1,15 @@
 from pyarts3.arts import AbsorptionBands, AscendingGrid, AtmPoint, AtmField, Propmat, SpeciesEnum, PropagationPathPoint
 import pyarts3 as pyarts
-import matplotlib.pyplot as plt
-from matplotlib import colormaps as cm
+import matplotlib
 import numpy as np
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
 ]
 
 
-def plot(absorption_bands: AbsorptionBands,
+def plot(data: AbsorptionBands,
          *,
          mode='normal',
          fig=None,
@@ -20,7 +20,9 @@ def plot(absorption_bands: AbsorptionBands,
          species: SpeciesEnum = SpeciesEnum.AIR,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          min_pm: float = None,
-         cm_key: str = 'viridis'):
+         cm: matplotlib.colors.ListedColormap = matplotlib.colormaps.get_cmap(
+             'viridis'),
+         **kwargs):
     """Creates a plot of the absorption by the bands in the AbsorptionBands object.
 
     If freqs is and index, this is the number of frequency points between the lowest
@@ -49,7 +51,7 @@ def plot(absorption_bands: AbsorptionBands,
 
     Parameters
     ----------
-    absorption_bands : ~pyarts3.arts.AbsorptionBands
+    data : ~pyarts3.arts.AbsorptionBands
         The AbsorptionBands object containing the data to plot.
     mode : str, optional
         The mode to use for the plot - see text for descriptions. Defaults to 'normal'.
@@ -70,8 +72,10 @@ def plot(absorption_bands: AbsorptionBands,
     min_pm : float, optional
         The minimum absorption to consider a band important.  Only used in 'important Y X' modes.
         Defaults to 1% of the minimum absorption in the full propagation matrix.
-    cm_key : str, optional
-        The matplotlib colormap key to use for coloring in "important Y X" mode  Must be resampable.  Defaults to 'viridis'.
+    cm : ~matplotlib.colors.ListedColormap, optional
+        The matplotlib colormap to use for coloring in "important Y X" mode  Must be resampable.  Defaults to 'viridis'.
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
@@ -83,15 +87,15 @@ def plot(absorption_bands: AbsorptionBands,
     if isinstance(freqs, int):
         f0 = 1e99
         f1 = -1e99
-        for band in absorption_bands:
-            for line in absorption_bands[band].lines:
+        for band in data:
+            for line in data[band].lines:
                 f0 = min(f0, line.f0)
                 f1 = max(f1, line.f0)
         freqs = AscendingGrid(np.linspace(f0, f1, freqs))
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{band.isot}" for band in absorption_bands])
+        ws.absorption_speciesSet(species=[f"{band.isot}" for band in data])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
@@ -99,46 +103,50 @@ def plot(absorption_bands: AbsorptionBands,
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 
-    if fig is None and ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={'figsize': (6, 4)})
 
-    pm = absorption_bands.propagation_matrix(
+    pm = data.propagation_matrix(
         f=freqs, atm=atm, spec=species, path_point=path_point)
     pm = np.einsum('ij,j->i', pm, pol)
 
+    # Plots a simple line plot of the total absorption
     if mode == 'normal':
-        ax.plot(freqs, pm, color='black')
+        select_flat_ax(ax, 0).plot(freqs, pm, color='black', **kwargs)
 
+    # Separates the absorption into important bands/species/isotopes
     elif mode.startswith('important'):
         pm_bands = {}
         keys = None
 
-        if mode.endswith('isotopes') or mode.endswith('species'):
+        # Extracts keys based on mode, computing their propagation matrices on-the-fly
+        if mode.endswith('isotopes') or \
+           mode.endswith('species'):
             keys = [band.isot if mode.endswith(
-                'isotopes') else band.isot.spec for band in absorption_bands]
+                'isotopes') else band.isot.spec for band in data]
             keys = list(set(keys))
             for key in keys:
-                bands = absorption_bands.extract_species(key)
+                bands = data.extract_species(key)
                 pm_band = bands.propagation_matrix(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)
         elif mode.endswith('bands'):
-            keys = [band for band in absorption_bands]
+            keys = [band for band in data]
             for key in keys:
-                bands = AbsorptionBands({key: absorption_bands[key]})
+                bands = AbsorptionBands({key: data[key]})
                 pm_band = bands.propagation_matrix(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)
 
-        if min_pm is None:
-            min_pm = 0.01 * min(pm)
+        min_pm = 0.01 * min(pm) if min_pm is None else min_pm
 
+        # Filter out bands below the minimum propagation matrix value (and set values to NaN)
         for key in keys:
             if max(pm_bands[key]) < min_pm:
                 del pm_bands[key]
             else:
                 pm_bands[key][pm_bands[key] < min_pm] = np.nan
 
+        # Sort bands so stronger are first (this helps with visibility when plotting)
         pm_keys = list(pm_bands.keys())
         order = []
         for key in pm_keys:
@@ -147,18 +155,19 @@ def plot(absorption_bands: AbsorptionBands,
         order = np.argsort(order)[::-1]
         keys = np.array(pm_keys)[order]
 
-        colors = cm.get_cmap(cm_key).resampled(len(pm_bands))
-        if "fill" in mode:
-            ax.fill_between(freqs, 0, pm, color='black', label='Total')
-            for i, key in enumerate(keys):
-                ax.fill_between(freqs, 0, pm_bands[key],
-                                color=colors.colors[i], label=str(key))
-        else:
-            ax.plot(freqs, pm, color='black', label='Total')
-            for i, key in enumerate(keys):
-                ax.plot(freqs, pm_bands[key], color=colors.colors[i], label=str(key))
+        colors = cm.resampled(len(pm_bands))
 
-    ax.set_xlabel('Frequency [Hz]')
-    ax.set_ylabel('Absorption [1/m]')
+        if "fill" in mode:
+            select_flat_ax(ax, 0).fill_between(
+                freqs, 0, pm, color='black', label='Total', **kwargs)
+            for i, key in enumerate(keys):
+                select_flat_ax(ax, 0).fill_between(freqs, 0, pm_bands[key],
+                                                   color=colors.colors[i], label=str(key), **kwargs)
+        else:
+            select_flat_ax(ax, 0).plot(
+                freqs, pm, color='black', label='Total', **kwargs)
+            for i, key in enumerate(keys):
+                select_flat_ax(ax, 0).plot(freqs, pm_bands[key],
+                                           color=colors.colors[i], label=str(key), **kwargs)
 
     return fig, ax

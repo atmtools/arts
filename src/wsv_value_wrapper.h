@@ -8,9 +8,6 @@ class Wsv {
   std::shared_ptr<void> data;  // A shared_ptr custom variant
   std::size_t index;           // The index of the variant
 
-  struct our_little_secret {};
-  Wsv(our_little_secret) : data(nullptr), index(-1) {}
-
 public:
 
   std::size_t value_index() const noexcept {
@@ -71,7 +68,7 @@ public:
   //! Unsafely reference into the variant (this may segfault)
   template <WorkspaceGroup T> [[nodiscard]] T& get_unsafe() const {
     assert(holds<T>());
-    return *static_cast<T*>(data.get());
+    return *share_unsafe<T>();
   }
 
   //! Safely reference into the variant (this may throw)

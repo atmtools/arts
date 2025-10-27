@@ -3,6 +3,11 @@ import inspect
 
 builtin = [v.__name__ for v in pyarts3.utils.builtin_groups()]
 routines = [r for r in dir(pyarts3.plots) if not r.startswith("_")]
+ignore = ["plot", "common"]
+
+for ig in ignore:
+    if ig in routines:
+        routines.remove(ig)
 
 errors = []
 for plotting_routine in routines:

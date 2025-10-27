@@ -27,34 +27,29 @@ std::string variable(const std::string& name,
   const auto& wsgs = internal_workspace_groups();
   std::ostringstream os;
 
-  os << "  ws.def_prop_rw(\"" << name << "\",";
-  os << R"--(
-    [](Workspace& w) -> )--"
-     << share_type(wsv.type) << R"--( {
-      return w.share_or<)--"
-     << wsv.type << ">(\"" << name << R"--(");
-    },
-    [](Workspace& w, )--"
-     << share_type(wsv.type) << R"--( val) -> void {
-      w.set(")--"
-     << name << R"--(", Wsv{std::move(val)--";
-  if (wsgs.at(wsv.type).value_type) os << ".val";
-  os << R"--()});
-)--";
+  std::print(os,
+             R"(  ws.def_prop_rw("{0}", [](Workspace& w) -> {1} {{
+    auto v = w.share_or<{2}>("{0}");{3}
+    return v;
+  }}, [](Workspace& w, {1} val) -> void {{
+    w.set("{0}", Wsv{{std::move(val){5}}});{4}
+  }})",
+             name,
+             share_type(wsv.type),
+             wsv.type,
+             (wsv.type != "Agenda") ? ""s
+                                    : std::format(R"(
+    v->set_name("{}");)",
+                                                  name),
+             (wsv.type != "Agenda") ? ""s
+                                    : std::format(R"(
+    auto& ws_val = w.get<Agenda>("{0}");
+    ws_val.set_name("{0}");
+    ws_val.finalize();)",
+                                                  name),
+             wsgs.at(wsv.type).value_type ? ".val"sv : ""sv);
 
-  if (wsv.type == "Agenda") {
-    if (extra_names.contains(name)) {
-      os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
-         << "\");\n      ws_val.set_name(\"" << extra_names.at(name)
-         << "\");\n      ws_val.finalize();\n";
-    } else {
-      os << "      auto& ws_val = w.get<" << wsv.type << ">(\"" << name
-         << "\");\n      ws_val.set_name(\"" << name
-         << "\");\n      ws_val.finalize();\n";
-    }
-  }
-
-  os << "    }, R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
+  os << ", R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
   if (wsv.type == "Agenda") {
     if (not extra_names.contains(name))

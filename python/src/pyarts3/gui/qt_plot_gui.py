@@ -1,0 +1,738 @@
+"""
+Minimal Qt GUI starter for ARTS plots integration.
+
+Usage:
+    from pyarts3.qt_plot_gui import start_plot_gui
+    start_plot_gui(plot_kwarg_func)
+
+Where plot_kwarg_func is a callable (with __call__(self, **kwargs)) that returns a dict of kwargs for plots.plot().
+"""
+import os
+import sys
+import platform as _platform
+import pyarts3
+
+# macOS-specific: ensure platform.mac_ver() reports a version for Qt/Matplotlib compatibility
+if sys.platform == "darwin":
+    os.environ.setdefault("SYSTEM_VERSION_COMPAT", "1")
+    os.environ.setdefault("MPLBACKEND", "Qt5Agg")
+    os.environ.setdefault("QT_API", "PyQt5")
+    # Work around matplotlib parsing of platform.mac_ver() returning '' on some setups
+    try:
+        if not _platform.mac_ver()[0]:
+            _platform.mac_ver = lambda: ("10.16", ("", "", ""), "")  # type: ignore
+    except Exception:
+        pass
+
+import matplotlib
+matplotlib.use("Qt5Agg", force=True)
+ 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle
+from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QHBoxLayout, QPushButton, 
+                              QWidget, QListWidget, QLabel, QDialog, QLineEdit, 
+                              QDialogButtonBox, QFormLayout, QListWidgetItem, QMenu, QAction,
+                              QMessageBox, QTextEdit, QTabWidget, QTabBar)
+from PyQt5.QtCore import Qt
+import numpy as np
+from . import edit as editors
+
+
+class PlotGui(QWidget):
+    def __init__(self, plot_kwarg_func, plot_func, simulation_settings=None, post=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.plot_kwarg_func = plot_kwarg_func
+        self.plot_func = plot_func
+        self.simulation_settings = simulation_settings or {}
+        self.simulation_results = {}  # Results from running simulation
+        self.selected_plot_key = None  # Selected key when results is a dict
+        self.plot_settings = {}  # Additional kwargs for plot function
+        self.post_settings = {}  # Additional kwargs for post function
+        self.last_added_option = None  # Track last added option for error recovery
+        self.post = post
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("ARTS GUI")
+        self.fig = Figure(figsize=(16, 12), constrained_layout=True)
+        self.canvas = FigureCanvas(self.fig)
+        self.canvas.setMinimumSize(800, 600)
+        # Enable native matplotlib pan/zoom interactions
+        self.canvas.mpl_connect('scroll_event', self.on_scroll)
+        self.canvas.mpl_connect('button_press_event', self.on_press)
+        self.canvas.mpl_connect('button_release_event', self.on_release)
+        self.canvas.mpl_connect('motion_notify_event', self.on_motion)
+        self._panning = False
+        self._pan_start = None
+        self._zooming = False
+        self._zoom_start = None
+        self._zoom_rect = None
+        self._zoom_axes = None
+        self._original_limits = {}  # Store original axis limits for reset
+        self.ax = None
+        
+        # Create main horizontal layout
+        main_layout = QHBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Left side: selection tab bar above canvas
+        left_container = QWidget()
+        left_layout = QVBoxLayout()
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        self.plot_tabbar = QTabBar()
+        self.plot_tabbar.setExpanding(False)
+        self.plot_tabbar.setMovable(False)
+        self.plot_tabbar.setTabsClosable(False)
+        self.plot_tabbar.currentChanged.connect(self.on_plot_tab_changed)
+        self.plot_tabbar.hide()  # Hidden unless we have multiple results
+        left_layout.addWidget(self.plot_tabbar)
+        left_layout.addWidget(self.canvas, stretch=1)
+        left_container.setLayout(left_layout)
+        main_layout.addWidget(left_container, stretch=1)
+        
+        # Right side: control panel with tabs
+        right_panel = QVBoxLayout()
+        self.run_btn = QPushButton("Run Simulation")
+        self.run_btn.clicked.connect(self.run_simulation)
+        right_panel.addWidget(self.run_btn)
+        
+        # Create tab widget
+        self.tabs = QTabWidget()
+        
+        # Tab 1: Simulation Settings
+        sim_tab = QWidget()
+        sim_layout = QVBoxLayout()
+        self.simulation_list = QListWidget()
+        self.simulation_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("simulation", item))
+        sim_layout.addWidget(self.simulation_list)
+        sim_tab.setLayout(sim_layout)
+        self.tabs.addTab(sim_tab, "Simulation Settings")
+        
+        # Tab 2: Simulation Results
+        results_tab = QWidget()
+        results_layout = QVBoxLayout()
+        self.results_list = QListWidget()
+        self.results_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("results", item))
+        results_layout.addWidget(self.results_list)
+        results_tab.setLayout(results_layout)
+        self.tabs.addTab(results_tab, "Simulation Results")
+        
+        # Tab 4: Plot Settings
+        plot_tab = QWidget()
+        plot_layout = QVBoxLayout()
+        self.plot_settings_list = QListWidget()
+        self.plot_settings_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.plot_settings_list.customContextMenuRequested.connect(lambda pos: self.show_options_context_menu(pos, "plot"))
+        self.plot_settings_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("plot", item))
+        self.plot_settings_list.itemClicked.connect(lambda item: self.on_settings_item_clicked(item, "plot"))
+        plot_layout.addWidget(self.plot_settings_list)
+        plot_tab.setLayout(plot_layout)
+        self.tabs.addTab(plot_tab, "Plot Settings")
+        
+        # Tab 5: Post Settings
+        post_tab = QWidget()
+        post_layout = QVBoxLayout()
+        self.post_settings_list = QListWidget()
+        self.post_settings_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.post_settings_list.customContextMenuRequested.connect(lambda pos: self.show_options_context_menu(pos, "post"))
+        self.post_settings_list.itemDoubleClicked.connect(lambda item: self.on_item_double_clicked("post", item))
+        self.post_settings_list.itemClicked.connect(lambda item: self.on_settings_item_clicked(item, "post"))
+        post_layout.addWidget(self.post_settings_list)
+        post_tab.setLayout(post_layout)
+        self.tabs.addTab(post_tab, "Post Settings")
+        
+        right_panel.addWidget(self.tabs)
+        
+        main_layout.addLayout(right_panel)
+        self.setLayout(main_layout)
+
+        # Initialize settings lists with "+ Add option..." placeholder
+        self.update_settings_display("plot")
+        self.update_settings_display("post")
+
+    def run_simulation(self):
+        """Run the simulation function to generate results."""
+        try:
+            # Populate Simulation Settings list
+            self.simulation_list.clear()
+            for key, value in self.simulation_settings.items():
+                type_name = type(value).__name__
+                self.simulation_list.addItem(f"{key}: <{type_name}>")
+
+            # Run simulation to get results
+            self.simulation_results = self.plot_kwarg_func(**self.simulation_settings)
+
+            # Populate the Results list
+            self.results_list.clear()
+            if isinstance(self.simulation_results, dict):
+                for key, value in self.simulation_results.items():
+                    type_name = type(value).__name__
+                    self.results_list.addItem(f"{key}: <{type_name}>")
+                # Populate top tab bar and preserve previous selection if possible
+                prev = self.selected_plot_key
+                # Clear all tabs
+                while self.plot_tabbar.count() > 0:
+                    self.plot_tabbar.removeTab(0)
+                keys = list(self.simulation_results.keys())
+                index_for_prev = -1
+                for i, key in enumerate(keys):
+                    self.plot_tabbar.addTab(str(key))
+                    if key == prev:
+                        index_for_prev = i
+                # Determine new index
+                if index_for_prev == -1:
+                    index_for_prev = 0 if keys else -1
+                if index_for_prev != -1:
+                    self.plot_tabbar.setCurrentIndex(index_for_prev)
+                    self.selected_plot_key = keys[index_for_prev]
+                    self.plot_tabbar.show()
+                else:
+                    self.selected_plot_key = None
+                    self.plot_tabbar.hide()
+            else:
+                # Single result
+                type_name = type(self.simulation_results).__name__
+                self.results_list.addItem(f"data: <{type_name}>")
+                # Hide the tab bar for single-result mode
+                self.selected_plot_key = None
+                self.plot_tabbar.hide()
+            
+            # Automatically run plot after simulation
+            self.run_plot()
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(self, "Simulation Error", f"Error running simulation:\n{traceback.format_exc()}")
+
+    def run_plot(self):
+        """Run the plot function with current results and settings."""
+        try:
+            # Clear figure completely
+            self.fig.clear()
+            self.ax = None
+            self._original_limits.clear()
+
+            if not self.simulation_results:
+                QMessageBox.information(self, "No Results", "Please run simulation first")
+                return
+
+            # Check if results is a dict (multiple data) and plot the selected one only
+            if isinstance(self.simulation_results, dict):
+                if len(self.simulation_results) == 0:
+                    return
+                if not self.selected_plot_key or self.selected_plot_key not in self.simulation_results:
+                    # No selection yet - do not plot until user selects
+                    return
+                data = self.simulation_results[self.selected_plot_key]
+                plot_kwargs = {**self.plot_settings}
+                plot_kwargs['data'] = data
+                plot_kwargs['fig'] = self.fig
+                plot_kwargs['ax'] = None
+                _, self.ax = self.plot_func(**plot_kwargs)
+            else:
+                # Single result - pass as data parameter
+                plot_kwargs = {**self.plot_settings}
+                plot_kwargs['data'] = self.simulation_results
+                plot_kwargs['fig'] = self.fig
+                plot_kwargs['ax'] = None
+                
+                _, self.ax = self.plot_func(**plot_kwargs)
+
+            # Call post processing if provided
+            if callable(self.post):
+                self.post(self.fig, self.ax, **self.post_settings)
+
+            # Remove any empty/unused axes that might have been created
+            for ax in self.fig.get_axes():
+                if not ax.has_data() and not ax.get_title() and not ax.get_xlabel() and not ax.get_ylabel():
+                    self.fig.delaxes(ax)
+            # Store original limits for all axes
+            for ax in self.fig.get_axes():
+                self._original_limits[ax] = {
+                    'xlim': ax.get_xlim(),
+                    'ylim': ax.get_ylim()
+                }
+            self.canvas.draw()
+
+        except Exception as e:
+            # Show error dialog with scrollable text
+            error_msg = f"{type(e).__name__}: {str(e)}"            # Extract last line for main display
+            error_lines = error_msg.split('\n')
+            last_line = error_lines[-1].strip() if error_lines else error_msg
+
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Critical)
+            msg_box.setWindowTitle("Plot Error")
+            msg_box.setText(f"An error occurred while plotting:\n\n{last_line}")
+            
+            # Use detailed text which is automatically scrollable
+            msg_box.setDetailedText(error_msg)
+            msg_box.addButton(QMessageBox.Ok)
+            
+            # Set a reasonable size for the dialog
+            msg_box.setStyleSheet("QTextEdit { min-width: 600px; min-height: 300px; }")
+            msg_box.exec_()
+
+    def on_plot_tab_changed(self, index):
+        """Handle change of the plot selection tab above the canvas."""
+        if index is None or index < 0:
+            return
+        # Guard against race conditions where results changed
+        try:
+            key = self.plot_tabbar.tabText(index)
+        except Exception:
+            return
+        self.selected_plot_key = key
+        self.run_plot()
+    
+    def on_item_double_clicked(self, list_type, item):
+        """Handle double-click on an item from any of the lists."""
+        # Parse the item text to extract key and value
+        text = item.text()
+        
+        # Check if it's the "+ Add option..." item
+        if text.startswith("+ Add"):
+            if list_type == "plot":
+                self.add_option("plot")
+            elif list_type == "post":
+                self.add_option("post")
+            return
+        
+        # Parse "key: value" or "key: value (type)" format
+        if ": " not in text:
+            return
+        
+        key, rest = text.split(": ", 1)
+        
+        # Get the actual value from the appropriate dict
+        if list_type == "simulation":
+            value = self.simulation_settings.get(key)
+        elif list_type == "results":
+            # Results are read-only, just view
+            if isinstance(self.simulation_results, dict):
+                value = self.simulation_results.get(key)
+            else:
+                return  # Can't edit single result
+        elif list_type == "plot":
+            # For plot settings list, the key is stored in UserRole
+            key = item.data(Qt.UserRole)
+            if key is None:  # "+ Add option..." item
+                self.add_option("plot")
+                return
+            value = self.plot_settings.get(key)
+        elif list_type == "post":
+            # For post settings list, the key is stored in UserRole
+            key = item.data(Qt.UserRole)
+            if key is None:  # "+ Add option..." item
+                self.add_option("post")
+                return
+            value = self.post_settings.get(key)
+        else:
+            return
+        
+        if value is None:
+            return
+        
+        # Open editor (will automatically detect type and fall back to generic viewer)
+        new_value = editors.edit(value, self)
+        
+        # Update the value if changed
+        if new_value is not None:
+            if list_type == "simulation":
+                self.simulation_settings[key] = new_value
+                # Update display - show only type name
+                self.simulation_list.clear()
+                for k, v in self.simulation_settings.items():
+                    type_name = type(v).__name__
+                    self.simulation_list.addItem(f"{k}: <{type_name}>")
+                # Re-run simulation to regenerate results
+                self.run_simulation()
+            elif list_type == "plot":
+                self.plot_settings[key] = new_value
+                self.update_settings_display("plot")
+                # Replot with updated plot settings
+                self.run_plot()
+            elif list_type == "post":
+                self.post_settings[key] = new_value
+                self.update_settings_display("post")
+                # Replot with updated post settings
+                self.run_plot()
+    
+    def show_options_context_menu(self, position, settings_type):
+        """Show context menu for Plot Settings or Post Settings list.
+        
+        Args:
+            position: Position where menu was requested
+            settings_type: Either "plot" or "post"
+        """
+        menu = QMenu()
+        
+        # Get the appropriate list widget
+        list_widget = self.plot_settings_list if settings_type == "plot" else self.post_settings_list
+        
+        # Always show "Add Option"
+        add_action = QAction("Add Option...", self)
+        add_action.triggered.connect(lambda: self.add_option(settings_type))
+        menu.addAction(add_action)
+        
+        # Show "Edit Option" and "Remove Option" only if a real item is selected
+        item = list_widget.itemAt(position)
+        if item and item.data(Qt.UserRole) is not None:
+            edit_action = QAction("Edit Option...", self)
+            edit_action.triggered.connect(lambda: self.edit_option(settings_type))
+            menu.addAction(edit_action)
+            
+            remove_action = QAction("Remove Option", self)
+            remove_action.triggered.connect(lambda: self.remove_option(settings_type))
+            menu.addAction(remove_action)
+        
+        # Show menu at cursor position
+        menu.exec_(list_widget.mapToGlobal(position))
+    
+    def update_settings_display(self, settings_type):
+        """Refresh the Plot Settings or Post Settings display.
+        
+        Args:
+            settings_type: Either "plot" or "post"
+        """
+        if settings_type == "plot":
+            list_widget = self.plot_settings_list
+            settings_dict = self.plot_settings
+        else:  # "post"
+            list_widget = self.post_settings_list
+            settings_dict = self.post_settings
+        
+        list_widget.clear()
+        for key, value in settings_dict.items():
+            type_name = type(value).__name__
+            item = QListWidgetItem(f"{key}: {value} ({type_name})")
+            item.setData(Qt.UserRole, key)  # Store key for removal
+            list_widget.addItem(item)
+        
+        # Add a "+ Add option..." item at the end
+        add_item = QListWidgetItem("+ Add option...")
+        add_item.setData(Qt.UserRole, None)  # Mark as the add button
+        add_item.setForeground(Qt.gray)
+        list_widget.addItem(add_item)
+    
+    def on_settings_item_clicked(self, item, settings_type):
+        """Handle click on settings list items.
+        
+        Args:
+            item: The clicked item
+            settings_type: Either "plot" or "post"
+        """
+        # Check if it's the "+ Add option..." item
+        if item.data(Qt.UserRole) is None:
+            self.add_option(settings_type)
+    
+    def add_option(self, settings_type):
+        """Show dialog to add a new Plot or Post Setting.
+        
+        Args:
+            settings_type: Either "plot" or "post"
+        """
+        settings_dict = self.plot_settings if settings_type == "plot" else self.post_settings
+        
+        dialog = AddOptionDialog(self, existing_keys=settings_dict.keys())
+        if dialog.exec_() == QDialog.Accepted:
+            key, value = dialog.get_values()
+            if key:
+                settings_dict[key] = value
+                self.last_added_option = (settings_type, key)  # Track for error recovery
+                self.update_settings_display(settings_type)
+                # Replot with new settings
+                self.run_plot()
+    
+    def edit_option(self, settings_type):
+        """Edit an existing Plot or Post Setting.
+        
+        Args:
+            settings_type: Either "plot" or "post"
+        """
+        list_widget = self.plot_settings_list if settings_type == "plot" else self.post_settings_list
+        settings_dict = self.plot_settings if settings_type == "plot" else self.post_settings
+        
+        current_item = list_widget.currentItem()
+        if current_item:
+            key = current_item.data(Qt.UserRole)
+            # Don't edit if it's the add button
+            if key is not None and key in settings_dict:
+                current_value = settings_dict[key]
+                # Pass existing keys except the one being edited
+                other_keys = [k for k in settings_dict.keys() if k != key]
+                dialog = AddOptionDialog(
+                    self, 
+                    existing_keys=other_keys, 
+                    edit_mode=True, 
+                    initial_key=key, 
+                    initial_value=current_value
+                )
+                result = dialog.exec_()
+                if dialog.deleted:
+                    # Delete was clicked
+                    del settings_dict[key]
+                    # Clear last_added_option if we deleted it
+                    if self.last_added_option == (settings_type, key):
+                        self.last_added_option = None
+                    self.update_settings_display(settings_type)
+                    # Replot after deletion
+                    self.run_plot()
+                elif result == QDialog.Accepted:
+                    new_key, new_value = dialog.get_values()
+                    if new_key:
+                        # Remove old key if it changed
+                        if new_key != key:
+                            del settings_dict[key]
+                            # Update last_added_option if key changed
+                            if self.last_added_option == (settings_type, key):
+                                self.last_added_option = (settings_type, new_key)
+                        settings_dict[new_key] = new_value
+                        self.update_settings_display(settings_type)
+                        # Replot with modified settings
+                        self.run_plot()
+    
+    def remove_option(self, settings_type):
+        """Remove the selected Plot or Post Setting.
+        
+        Args:
+            settings_type: Either "plot" or "post"
+        """
+        list_widget = self.plot_settings_list if settings_type == "plot" else self.post_settings_list
+        settings_dict = self.plot_settings if settings_type == "plot" else self.post_settings
+        
+        current_item = list_widget.currentItem()
+        if current_item:
+            key = current_item.data(Qt.UserRole)
+            # Don't remove if it's the add button
+            if key is not None and key in settings_dict:
+                del settings_dict[key]
+                # Clear last_added_option if we removed it
+                if self.last_added_option == (settings_type, key):
+                    self.last_added_option = None
+                self.update_settings_display(settings_type)
+                # Replot after removal
+                self.run_plot()
+
+    def on_scroll(self, event):
+        """Handle mouse scroll for zooming."""
+        if event.inaxes is None:
+            return
+        ax = event.inaxes
+        # Get current limits
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        # Calculate zoom factor
+        zoom_factor = 1.2 if event.button == 'down' else 0.8
+        # Get mouse position in data coordinates
+        xdata = event.xdata
+        ydata = event.ydata
+        # Calculate new limits centered on mouse position
+        x_left = xdata - (xdata - xlim[0]) * zoom_factor
+        x_right = xdata + (xlim[1] - xdata) * zoom_factor
+        y_bottom = ydata - (ydata - ylim[0]) * zoom_factor
+        y_top = ydata + (ylim[1] - ydata) * zoom_factor
+        # Apply new limits
+        ax.set_xlim([x_left, x_right])
+        ax.set_ylim([y_bottom, y_top])
+        self.canvas.draw_idle()
+
+    def on_press(self, event):
+        """Handle mouse button press for panning, zooming, and reset."""
+        if event.inaxes is None:
+            return
+        # Double-click to restore original view
+        if event.dblclick and event.inaxes in self._original_limits:
+            ax = event.inaxes
+            limits = self._original_limits[ax]
+            ax.set_xlim(limits['xlim'])
+            ax.set_ylim(limits['ylim'])
+            self.canvas.draw_idle()
+            return
+        # Left-click for panning
+        if event.button == 1:
+            self._panning = True
+            self._pan_start = (event.xdata, event.ydata)
+            self._pan_axes = event.inaxes
+        # Right-click for zoom-to-rectangle
+        elif event.button == 3:
+            self._zooming = True
+            self._zoom_start = (event.xdata, event.ydata)
+            self._zoom_axes = event.inaxes
+            # Create a rectangle patch for visual feedback
+            self._zoom_rect = Rectangle(
+                (event.xdata, event.ydata), 0, 0,
+                fill=False, edgecolor='red', linewidth=2, linestyle='--'
+            )
+            event.inaxes.add_patch(self._zoom_rect)
+            self.canvas.draw_idle()
+
+    def on_release(self, event):
+        """Handle mouse button release."""
+        # Handle zoom rectangle completion
+        if self._zooming and self._zoom_rect is not None and event.inaxes == self._zoom_axes:
+            # Remove the rectangle
+            self._zoom_rect.remove()
+            self._zoom_rect = None
+            # Apply zoom if we have valid coordinates
+            if (event.xdata is not None and event.ydata is not None and 
+                self._zoom_start is not None):
+                x0, y0 = self._zoom_start
+                x1, y1 = event.xdata, event.ydata
+                # Make sure we have a proper rectangle (not just a click)
+                if abs(x1 - x0) > 0.01 * (self._zoom_axes.get_xlim()[1] - self._zoom_axes.get_xlim()[0]) and \
+                   abs(y1 - y0) > 0.01 * (self._zoom_axes.get_ylim()[1] - self._zoom_axes.get_ylim()[0]):
+                    # Set new limits (ensure proper ordering)
+                    self._zoom_axes.set_xlim([min(x0, x1), max(x0, x1)])
+                    self._zoom_axes.set_ylim([min(y0, y1), max(y0, y1)])
+            self.canvas.draw_idle()
+            self._zooming = False
+            self._zoom_start = None
+            self._zoom_axes = None
+        # Handle panning release
+        self._panning = False
+        self._pan_start = None
+
+    def on_motion(self, event):
+        """Handle mouse motion for panning and zoom rectangle."""
+        # Handle zoom rectangle drawing
+        if self._zooming and self._zoom_rect is not None:
+            if event.xdata is not None and event.ydata is not None and self._zoom_start is not None:
+                x0, y0 = self._zoom_start
+                width = event.xdata - x0
+                height = event.ydata - y0
+                self._zoom_rect.set_width(width)
+                self._zoom_rect.set_height(height)
+                self.canvas.draw_idle()
+            return
+        # Handle panning
+        if not self._panning or event.inaxes != self._pan_axes:
+            return
+        if event.xdata is None or event.ydata is None or self._pan_start is None:
+            return
+        # Calculate delta
+        dx = self._pan_start[0] - event.xdata
+        dy = self._pan_start[1] - event.ydata
+        # Update limits
+        ax = self._pan_axes
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        ax.set_xlim([xlim[0] + dx, xlim[1] + dx])
+        ax.set_ylim([ylim[0] + dy, ylim[1] + dy])
+        self.canvas.draw_idle()
+
+
+class AddOptionDialog(QDialog):
+    """Dialog for adding a new Additional Option with type inference."""
+    
+    def __init__(self, parent=None, existing_keys=None, edit_mode=False, initial_key=None, initial_value=None, allow_name_edit=False):
+        super().__init__(parent)
+        self.existing_keys = set(existing_keys) if existing_keys else set()
+        self.edit_mode = edit_mode
+        self.initial_key = initial_key
+        self.allow_name_edit = allow_name_edit
+        
+        if edit_mode:
+            self.setWindowTitle("Edit Additional Option")
+        else:
+            self.setWindowTitle("Add Additional Option")
+        
+        layout = QFormLayout()
+        
+        self.key_input = QLineEdit()
+        self.key_input.setPlaceholderText("Option name")
+        if edit_mode and initial_key:
+            self.key_input.setText(initial_key)
+            # Only gray out if not allowing name edit
+            if not allow_name_edit:
+                self.key_input.setEnabled(False)  # Gray out in edit mode
+                self.key_input.setStyleSheet("QLineEdit { background-color: #f0f0f0; color: #888; }")
+        self.key_input.textChanged.connect(self.check_duplicate)
+        layout.addRow("Name:", self.key_input)
+        
+        self.warning_label = QLabel("")
+        self.warning_label.setStyleSheet("QLabel { color: red; font-size: 10px; }")
+        layout.addRow("", self.warning_label)
+        
+        self.value_input = QLineEdit()
+        self.value_input.setPlaceholderText("Value (auto-typed; empty → None)")
+        if edit_mode and initial_value is not None:
+            self.value_input.setText(str(initial_value))
+        layout.addRow("Value:", self.value_input)
+        
+        # Buttons
+        if edit_mode:
+            self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            delete_btn = self.buttons.addButton("Delete", QDialogButtonBox.DestructiveRole)
+            delete_btn.clicked.connect(self.delete_option)
+        else:
+            self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        
+        self.ok_button = self.buttons.button(QDialogButtonBox.Ok)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+        layout.addRow(self.buttons)
+        
+        self.setLayout(layout)
+        self.deleted = False
+        
+        # Initial duplicate check if in edit mode
+        if not edit_mode:
+            self.check_duplicate()
+    
+    def check_duplicate(self):
+        """Check if the key already exists and show warning."""
+        key = self.key_input.text().strip()
+        if key in self.existing_keys:
+            self.warning_label.setText("Duplicate name")
+            self.key_input.setStyleSheet("QLineEdit { border: 1px solid red; }")
+            self.ok_button.setEnabled(False)
+        else:
+            self.warning_label.setText("")
+            self.key_input.setStyleSheet("")
+            self.ok_button.setEnabled(True)
+    
+    def delete_option(self):
+        """Mark option for deletion and close dialog."""
+        self.deleted = True
+        self.reject()
+    
+    def get_values(self):
+        """Return the key and inferred-type value."""
+        if self.deleted:
+            return None, None
+        
+        key = self.key_input.text().strip()
+        value_str = self.value_input.text().strip()
+        
+        # Infer type
+        value = self._infer_type(value_str)
+        
+        return key, value
+    
+    def _infer_type(self, value_str):
+        """Infer type using eval with fallback to string; empty -> None.
+
+        Behavior:
+        - Empty string: return None
+        - Non-empty: try eval(value_str); on any error, return the original string
+        """
+        # Empty string -> None
+        if value_str == "":
+            return None
+
+        try:
+            # Use eval to allow Python literals/expressions (e.g., lists, dicts, None, True, False)
+            # Intentionally not restricting builtins here as this is user-entered config in a local GUI.
+            return eval(value_str)
+        except Exception:
+            # Fallback to raw string if eval fails
+            return value_str
+
+
+def start_gui(plot_kwarg_func, plot_func=pyarts3.plots.plot, simulation_settings=None, post=None):
+    app = QApplication.instance() or QApplication(sys.argv)
+    gui = PlotGui(plot_kwarg_func, plot_func, simulation_settings=simulation_settings, post=post)
+    gui.show()
+    app.exec_()

@@ -2,7 +2,7 @@
 
 import pyarts3 as pyarts
 import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -10,14 +10,16 @@ __all__ = [
 
 
 def plot(
-    atm_field: pyarts.arts.AtmField,
+    data: pyarts.arts.AtmField,
     *,
     fig=None,
-    alts: np.ndarray | float = np.linspace(0, 1e5, 51),
-    lats: np.ndarray | float = 0,
-    lons: np.ndarray | float = 0,
-    ygrid: np.ndarray | None = None,
+    ax=None,
+    alts: pyarts.arts.AscendingGrid | float = np.linspace(0, 1e5, 51),
+    lats: pyarts.arts.LatGrid | float = 0,
+    lons: pyarts.arts.LonGrid | float = 0,
+    ygrid: pyarts.arts.Vector | None = None,
     keys: list[str] | None = None,
+    **kwargs,
 ):
     """Plot select atmospheric field parameters by extracting a profile.
 
@@ -37,45 +39,47 @@ def plot(
 
     Parameters
     ----------
-    atm_field : ~pyarts3.arts.AtmField
+    data : ~pyarts3.arts.AtmField
         An atmospheric field
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    alts : :class:`~numpy.ndarray` | :class:`float`, optional
+    ax : Axes, optional
+        Not used (function creates its own subplots). Accepted for API consistency.
+    alts : ~pyarts3.arts.AscendingGrid | float, optional
         A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5, 51).
-    lats : :class:`~numpy.ndarray` | :class:`float`, optional
+    lats : ~pyarts3.arts.LatGrid | float, optional
         A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
-    lons : :class:`~numpy.ndarray` | :class:`float`, optional
+    lons : ~pyarts3.arts.LonGrid | float, optional
         A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
-    ygrid : :class:`~numpy.ndarray` | :class:`None`, optional
+    ygrid : ~pyarts3.arts.Vector | :class:`None`, optional
         Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
     keys : list, optional
         A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.AtmField.keys`.
+    **kwargs : keyword arguments
+        Additional keyword arguments passed to plot()
 
     Returns
     -------
     fig : As input
         As input.
-    subs : As input
-        As input.
+    ax : list
+        List of matplotlib axes objects.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
-    v = atm_field(alts, lats, lons)
+    v = data(alts, lats, lons)
 
     keys = v[0].keys() if keys is None else keys
     N = len(keys)
     n = int(np.ceil(np.sqrt(N))) + 1
 
-    if fig is None:
-        fig = plt.figure(figsize=(4 * n, 4 * n), constrained_layout=True)
+    fig, ax = default_fig_ax(fig, ax, n, n, N=N, fig_kwargs={
+                             'figsize': (4 * n, 4 * n), 'constrained_layout': True})
 
-    subs = []
     for i in range(N):
-        subs.append(fig.add_subplot(n, n, i + 1))
-        subs[-1].plot(
+        select_flat_ax(ax, i).plot(
             [x[keys[i]] for x in v],
             alts if ygrid is None else ygrid,
             label=keys[i],
+            **kwargs
         )
-        subs[-1].legend()
-    return fig, subs
+    return fig, ax
