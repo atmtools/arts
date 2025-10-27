@@ -131,8 +131,8 @@ def test_plot_function_signatures_detailed():
     print(f"\n{'='*70}")
     print(f"Plot Function Signature Test Summary")
     print(f"{'='*70}")
-    print(f"✓ Correct: {len(results['correct'])}")
-    print(f"✗ Incorrect: {len(results['incorrect'])}")
+    print(f"Correct: {len(results['correct'])}")
+    print(f"Incorrect: {len(results['incorrect'])}")
     
     if results['incorrect']:
         print(f"\n{'='*70}")
@@ -160,9 +160,9 @@ if __name__ == "__main__":
     print("Running plot function signature tests...")
     try:
         test_plot_function_signatures()
-        print("✓ All plot functions have correct signatures!")
+        print("All plot functions have correct signatures!")
     except AssertionError as e:
-        print(f"✗ Test failed:\n{e}")
+        print(f"Test failed:\n{e}")
         exit(1)
     
     # Run detailed test for summary
@@ -170,5 +170,5 @@ if __name__ == "__main__":
     try:
         test_plot_function_signatures_detailed()
     except AssertionError as e:
-        print(f"\n✗ Detailed test failed:\n{e}")
+        print(f"\nDetailed test failed:\n{e}")
         exit(1)
