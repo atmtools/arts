@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    disort_flux: pyarts.arts.DisortFlux,
+    data: pyarts.arts.DisortFlux,
     *,
     fig=None,
     ax=None,
@@ -20,7 +20,7 @@ def plot(
 
     Parameters
     ----------
-    disort_flux : ~pyarts3.arts.DisortFlux
+    data : ~pyarts3.arts.DisortFlux
         A DisortFlux object containing flux results
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -39,11 +39,11 @@ def plot(
         List of matplotlib axes objects.
     """
 
-    freq_grid = disort_flux.frequency_grid
-    alt_grid = disort_flux.altitude_grid
-    upwelling = disort_flux.up
-    downwelling_diffuse = disort_flux.down_diffuse
-    downwelling_direct = disort_flux.down_direct
+    freq_grid = data.frequency_grid
+    alt_grid = data.altitude_grid
+    upwelling = data.up
+    downwelling_diffuse = data.down_diffuse
+    downwelling_direct = data.down_direct
 
     fig, ax = default_fig_ax(fig, ax, 1, 3, fig_kwargs={
                              'figsize': (14, 5), 'constrained_layout': True})

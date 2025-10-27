@@ -19,7 +19,7 @@ absorption = pyarts.recipe.SingleSpeciesAbsorption(species=species)
 
 # %% Select a single temperature, a VMR value, and a range of pressures
 atm = pyarts.arts.AtmPoint()
-atm.set_species_vmr("O2", 0.2095)
+atm["O2"] = 0.2095
 atm.temperature = 273
 ps = np.logspace(5, -2, 8)
 

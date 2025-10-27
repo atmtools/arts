@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    atm_field: pyarts.arts.AtmField,
+    data: pyarts.arts.AtmField,
     *,
     fig=None,
     ax=None,
@@ -39,7 +39,7 @@ def plot(
 
     Parameters
     ----------
-    atm_field : ~pyarts3.arts.AtmField
+    data : ~pyarts3.arts.AtmField
         An atmospheric field
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -66,7 +66,7 @@ def plot(
         List of matplotlib axes objects.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
-    v = atm_field(alts, lats, lons)
+    v = data(alts, lats, lons)
 
     keys = v[0].keys() if keys is None else keys
     N = len(keys)

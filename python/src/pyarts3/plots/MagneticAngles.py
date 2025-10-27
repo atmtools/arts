@@ -27,7 +27,7 @@ def rot(x, y, ang, clockwise=False):
     return R
 
 
-def plot(ang: pyarts.arts.zeeman.MagneticAngles,
+def plot(data: pyarts.arts.zeeman.MagneticAngles,
          *,
          mode='normal',
          fig=None,
@@ -40,7 +40,7 @@ def plot(ang: pyarts.arts.zeeman.MagneticAngles,
 
     Parameters
     ----------
-    ang : ~pyarts3.arts.zeeman.MagneticAngles
+    data : ~pyarts3.arts.zeeman.MagneticAngles
         The MagneticAngles object containing the data to plot.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -59,13 +59,13 @@ def plot(ang: pyarts.arts.zeeman.MagneticAngles,
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={
                              "figsize": (8, 8)}, ax_kwargs={"projection": '3d'})
 
-    k = ang.k.norm()
-    e1 = ang.e1.norm()
+    k = data.k.norm()
+    e1 = data.e1.norm()
 
     # Correctly handle vector assignments and normalization
-    b_vec = pyarts.arts.Vector3([ang.u * 1e6, ang.v * 1e6, ang.w * 1e6])
+    b_vec = pyarts.arts.Vector3([data.u * 1e6, data.v * 1e6, data.w * 1e6])
     H_vec = b_vec
-    B_vec = ang.B_projected
+    B_vec = data.B_projected
 
     H_norm = H_vec.norm()
     B_norm = B_vec.norm()
@@ -80,16 +80,16 @@ def plot(ang: pyarts.arts.zeeman.MagneticAngles,
     select_flat_ax(ax, 0).quiver(0, 0, 0, B_norm[0], B_norm[1], B_norm[2],
                                  color="orange", label="B_norm (PROJ)", **kwargs)
 
-    rotation_eta = [rot(e1, B_norm, eta, True) for eta in np.linspace(0, ang.eta, N)]
+    rotation_eta = [rot(e1, B_norm, eta, True) for eta in np.linspace(0, data.eta, N)]
     v_eta = np.array([r @ e1 / 4 for r in rotation_eta])
     select_flat_ax(ax, 0).plot(v_eta[:, 0], v_eta[:, 1], v_eta[:, 2],
-                               label=f"eta={round(np.rad2deg(ang.eta), 1)}°", color="magenta", **kwargs)
+                               label=f"eta={round(np.rad2deg(data.eta), 1)}°", color="magenta", **kwargs)
 
     # Plot theta arc (rotation from H_norm to k)
     rotation_theta = [rot(H_norm, k, theta)
-                      for theta in np.linspace(0, ang.theta, N)]
+                      for theta in np.linspace(0, data.theta, N)]
     v_theta = np.array([r @ H_norm / 2 for r in rotation_theta])
     select_flat_ax(ax, 0).plot(v_theta[:, 0], v_theta[:, 1], v_theta[:, 2],
-                               label=f"theta={round(np.rad2deg(ang.theta), 1)}°", color="gray", **kwargs)
+                               label=f"theta={round(np.rad2deg(data.theta), 1)}°", color="gray", **kwargs)
 
     return fig, ax

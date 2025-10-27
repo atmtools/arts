@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    propmat_matrix: pyarts.arts.PropmatMatrix,
+    data: pyarts.arts.PropmatMatrix,
     *,
     fig=None,
     ax=None,
@@ -24,7 +24,7 @@ def plot(
 
     Parameters
     ----------
-    propmat_matrix : ~pyarts3.arts.PropmatMatrix
+    data : ~pyarts3.arts.PropmatMatrix
         A matrix of propagation matrices (7-vector or 4x4 each)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -47,7 +47,7 @@ def plot(
         List of axes (grid mode) or single axes (dot product/element/component mode).
     """
 
-    return Matrix.plot(np.einsum("ijk,k->ij", propmat_matrix, component),
+    return Matrix.plot(np.einsum("ijk,k->ij", data, component),
                        fig=fig,
                        ax=ax,
                        xgrid=xgrid,

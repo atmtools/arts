@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    stokvec_vector: pyarts.arts.StokvecVector,
+    data: pyarts.arts.StokvecVector,
     *,
     fig=None,
     ax=None,
@@ -23,7 +23,7 @@ def plot(
 
     Parameters
     ----------
-    stokvec_vector : ~pyarts3.arts.StokvecVector
+    data : ~pyarts3.arts.StokvecVector
         A vector of Stokes vectors (each with 4 components: I, Q, U, V)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -44,16 +44,19 @@ def plot(
         List of axes (grid mode) or single axes (dot product mode).
     """
 
-    freqs = np.arange(stokvec_vector.shape[0]) if freqs is None else freqs
+    freqs = np.arange(data.shape[0]) if freqs is None else freqs
 
     if component is None:
         fig, ax = default_fig_ax(fig, ax, 4, 1, fig_kwargs={
                                  'figsize': (8, 24), 'constrained_layout': True})
-
-        plot(stokvec_vector, fig, select_flat_ax(ax, 0), freqs=freqs, component=pyarts.arts.Stokvec("I"), **kwargs)
-        plot(stokvec_vector, fig, select_flat_ax(ax, 1), freqs=freqs, component=pyarts.arts.Stokvec("Q"), **kwargs)
-        plot(stokvec_vector, fig, select_flat_ax(ax, 2), freqs=freqs, component=pyarts.arts.Stokvec("U"), **kwargs)
-        plot(stokvec_vector, fig, select_flat_ax(ax, 3), freqs=freqs, component=pyarts.arts.Stokvec("V"), **kwargs)
+        select_flat_ax(ax, 0).plot(freqs, data[:, 0], label="I", **kwargs)
+        select_flat_ax(ax, 1).plot(freqs, data[:, 1], label="Q", **kwargs)
+        select_flat_ax(ax, 2).plot(freqs, data[:, 2], label="U", **kwargs)
+        select_flat_ax(ax, 3).plot(freqs, data[:, 3], label="V", **kwargs)
     else:
+        component = pyarts.arts.Stokvec(component)
         fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={'figsize': (8, 6)})
-        select_flat_ax(ax, 0).plot(freqs, np.einsum('ij,j->i', stokvec_vector, component), **kwargs)
+        select_flat_ax(ax, 0).plot(freqs, np.einsum(
+            'ij,j->i', data, component), **kwargs)
+
+    return fig, ax

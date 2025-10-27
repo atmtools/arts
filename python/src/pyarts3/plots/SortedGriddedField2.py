@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    gridded_field: pyarts.arts.SortedGriddedField2,
+    data: pyarts.arts.SortedGriddedField2,
     *,
     fig=None,
     ax=None,
@@ -19,7 +19,7 @@ def plot(
 
     Parameters
     ----------
-    gridded_field : ~pyarts3.arts.SortedGriddedField2
+    data : ~pyarts3.arts.SortedGriddedField2
         A 2D sorted gridded field with ascending grids
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -38,9 +38,9 @@ def plot(
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 6)})
 
     # Get grids and data
-    xgrid = gridded_field.grids[0]
-    ygrid = gridded_field.grids[1]
-    data = gridded_field.data
+    xgrid = data.grids[0]
+    ygrid = data.grids[1]
+    data = data.data
 
     # Plot using pcolormesh
     select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, data, **kwargs)

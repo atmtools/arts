@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    sun: pyarts.arts.Sun,
+    data: pyarts.arts.Sun,
     *,
     fig=None,
     ax=None,
@@ -39,7 +39,7 @@ def plot(
 
     Parameters
     ----------
-    sun : ~pyarts3.arts.Sun
+    data : ~pyarts3.arts.Sun
         A Sun object containing spectrum and properties
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -60,7 +60,7 @@ def plot(
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 6)})
 
     # spectrum is a Matrix (nfreq x 4 Stokes), use first Stokes dimension
-    spectrum = sun.spectrum[:, 0]
+    spectrum = data.spectrum[:, 0]
 
     freqs = np.arange(len(spectrum)) if freqs is None else freqs
 

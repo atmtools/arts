@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    surface_field: pyarts.arts.SurfaceField,
+    data: pyarts.arts.SurfaceField,
     *,
     fig=None,
     ax=None,
@@ -23,7 +23,7 @@ def plot(
 
     Parameters
     ----------
-    surface_field : ~pyarts3.arts.SurfaceField
+    data : ~pyarts3.arts.SurfaceField
         A surface field containing surface parameters
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -45,7 +45,7 @@ def plot(
     ax : list
         List of matplotlib axes objects.
     """
-    keys = list(surface_field.keys()) if keys is None else keys
+    keys = list(data.keys()) if keys is None else keys
     lats = pyarts.arts.LatGrid(np.linspace(-90, 90, 50)) if lats is None else lats
     lons = pyarts.arts.LonGrid(np.linspace(-180, 180, 100)) if lons is None else lons
     lon_grid, lat_grid = np.meshgrid(lons, lats)
@@ -61,7 +61,7 @@ def plot(
         values = np.zeros_like(lat_grid)
         for ii in range(lat_grid.shape[0]):
             for jj in range(lat_grid.shape[1]):
-                point = surface_field(lat_grid[ii, jj], lon_grid[ii, jj])
+                point = data(lat_grid[ii, jj], lon_grid[ii, jj])
                 values[ii, jj] = point[key] if key in point else np.nan
 
         select_flat_ax(ax, i).pcolormesh(lon_grid, lat_grid, values, **kwargs)

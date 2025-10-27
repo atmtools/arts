@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    propmat_vector: pyarts.arts.PropmatVector,
+    data: pyarts.arts.PropmatVector,
     *,
     fig=None,
     ax=None,
@@ -23,7 +23,7 @@ def plot(
 
     Parameters
     ----------
-    propmat_vector : ~pyarts3.arts.PropmatVector
+    data : ~pyarts3.arts.PropmatVector
         A vector of propagation matrices
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -48,16 +48,16 @@ def plot(
                              1 if component is not None else 4,
                              fig_kwargs={'figsize': (10, 6) if component is not None else (12, 12), 'constrained_layout': True})
 
-    freqs = np.arange(len(propmat_vector)) if freqs is None else freqs
+    freqs = np.arange(len(data)) if freqs is None else freqs
 
     if component is None:
-        A = propmat_vector[:, 0]
-        B = propmat_vector[:, 1]
-        C = propmat_vector[:, 2]
-        D = propmat_vector[:, 3]
-        U = propmat_vector[:, 4]
-        V = propmat_vector[:, 5]
-        W = propmat_vector[:, 6]
+        A = data[:, 0]
+        B = data[:, 1]
+        C = data[:, 2]
+        D = data[:, 3]
+        U = data[:, 4]
+        V = data[:, 5]
+        W = data[:, 6]
         M = [A,  B,  C,  D,
              B,  A,  U,  V,
              C, -U,  A,  W,
@@ -65,7 +65,8 @@ def plot(
         for i in range(16):
             select_flat_ax(ax, i).plot(freqs, M[i], **kwargs)
     else:
+        print (data.shape, component.shape)
         select_flat_ax(ax, 0).plot(freqs, np.einsum(
-            "ij,j->i", propmat_vector, component), **kwargs)
+            "ij,j->i", data, component), **kwargs)
 
     return fig, ax

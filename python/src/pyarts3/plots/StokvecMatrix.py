@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    stokvec_matrix: pyarts.arts.StokvecMatrix,
+    data: pyarts.arts.StokvecMatrix,
     *,
     fig=None,
     ax=None,
@@ -42,7 +42,7 @@ def plot(
 
     Parameters
     ----------
-    stokvec_matrix : ~pyarts3.arts.StokvecMatrix
+    data : ~pyarts3.arts.StokvecMatrix
         A matrix of Stokes vectors (4 components each)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -65,7 +65,7 @@ def plot(
         The matplotlib axes.
     """
 
-    return Matrix.plot(np.einsum("ijk,k->ij", stokvec_matrix, component),
+    return Matrix.plot(np.einsum("ijk,k->ij", data, component),
                        fig=fig,
                        ax=ax,
                        xgrid=xgrid,

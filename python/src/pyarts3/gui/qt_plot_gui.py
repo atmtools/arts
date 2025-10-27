@@ -10,6 +10,7 @@ Where plot_kwarg_func is a callable (with __call__(self, **kwargs)) that returns
 import os
 import sys
 import platform as _platform
+import pyarts3
 
 # macOS-specific: ensure platform.mac_ver() reports a version for Qt/Matplotlib compatibility
 if sys.platform == "darwin":
@@ -144,20 +145,12 @@ class PlotGui(QWidget):
             # Step 2: Merge Additional Options into Results (Additional Options override)
             plot_kwargs = {**self.results_kwargs, **self.additional_options}
 
-            # Extract 'y' as first positional argument if it exists
-            y_data = plot_kwargs.pop('y', None)
-            # Ensure no 'post' is forwarded to the plotting function; GUI handles post-callback itself
-            plot_kwargs.pop('post', None)
-
             # Step 3: Inject fig/ax
             plot_kwargs['fig'] = self.fig
             plot_kwargs['ax'] = None  # Let plot create axes as needed
 
             # Step 4: Call plot function with y as first arg (if exists), rest as kwargs
-            if y_data is not None:
-                _, self.ax = self.plot_func(y_data, **plot_kwargs)
-            else:
-                _, self.ax = self.plot_func(**plot_kwargs)
+            _, self.ax = self.plot_func(**plot_kwargs)
 
             # Step 5: Call post (if provided) inside the GUI, passing additional options
             if callable(self.post):
@@ -386,20 +379,12 @@ class PlotGui(QWidget):
             # Step 2: Merge Additional Options into Results (Additional Options override)
             plot_kwargs = {**self.results_kwargs, **self.additional_options}
 
-            # Extract 'y' as first positional argument if it exists
-            y_data = plot_kwargs.pop('y', None)
-            # Ensure no 'post' is forwarded to the plotting function; GUI handles post-callback itself
-            plot_kwargs.pop('post', None)
-
             # Step 3: Inject fig/ax
             plot_kwargs['fig'] = self.fig
             plot_kwargs['ax'] = None  # Let plot create axes as needed
 
             # Step 4: Call plot function with y as first arg (if exists), rest as kwargs
-            if y_data is not None:
-                _, self.ax = self.plot_func(y_data, **plot_kwargs)
-            else:
-                _, self.ax = self.plot_func(**plot_kwargs)
+            _, self.ax = self.plot_func(**plot_kwargs)
             
             # Step 5: Call post (if provided) inside the GUI, passing additional options
             if callable(self.post):
@@ -710,7 +695,7 @@ class AddOptionDialog(QDialog):
             return value_str
 
 
-def start_gui(plot_kwarg_func, plot_func, simulation_settings=None, post=None):
+def start_gui(plot_kwarg_func, plot_func=pyarts3.plots.plot, simulation_settings=None, post=None):
     app = QApplication.instance() or QApplication(sys.argv)
     gui = PlotGui(plot_kwarg_func, plot_func, simulation_settings=simulation_settings, post=post)
     gui.show()

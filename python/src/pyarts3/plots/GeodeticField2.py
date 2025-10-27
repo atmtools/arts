@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    gridded_field: pyarts.arts.GeodeticField2,
+    data: pyarts.arts.GeodeticField2,
     *,
     fig=None,
     ax=None,
@@ -43,7 +43,7 @@ def plot(
 
     Parameters
     ----------
-    gridded_field : ~pyarts3.arts.GeodeticField2
+    data : ~pyarts3.arts.GeodeticField2
         A 2D geodetic field with lat/lon grids
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -61,9 +61,9 @@ def plot(
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={"figsize": (12, 8)})
 
-    lat_grid = gridded_field.grids[0]
-    lon_grid = gridded_field.grids[1]
-    data = gridded_field.data
+    lat_grid = data.grids[0]
+    lon_grid = data.grids[1]
+    data = data.data
     lon_mesh, lat_mesh = np.meshgrid(lon_grid, lat_grid)
 
     select_flat_ax(ax, 0).pcolormesh(lon_mesh, lat_mesh, data, **kwargs)

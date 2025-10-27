@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    grid: pyarts.arts.AscendingGrid,
+    data: pyarts.arts.AscendingGrid,
     *,
     fig=None,
     ax=None,
@@ -33,7 +33,7 @@ def plot(
 
     Parameters
     ----------
-    grid : ~pyarts3.arts.AscendingGrid
+    data : ~pyarts3.arts.AscendingGrid
         A sorted ascending grid of values
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -52,7 +52,7 @@ def plot(
     fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={
                              'figsize': (10, 6), 'constrained_layout': True})
 
-    indices = np.arange(len(grid))
-    select_flat_ax(ax, 0).plot(indices, grid, **kwargs)
+    indices = np.arange(len(data))
+    select_flat_ax(ax, 0).plot(indices, data, **kwargs)
 
     return fig, ax

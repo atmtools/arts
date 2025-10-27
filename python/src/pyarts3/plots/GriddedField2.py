@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    gridded_field: pyarts.arts.GriddedField2,
+    data: pyarts.arts.GriddedField2,
     *,
     fig=None,
     ax=None,
@@ -20,7 +20,7 @@ def plot(
 
     Parameters
     ----------
-    gridded_field : ~pyarts3.arts.GriddedField2
+    data : ~pyarts3.arts.GriddedField2
         A 2D gridded field with named grids
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -38,9 +38,9 @@ def plot(
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={"figsize": (12, 8)})
 
-    xgrid = gridded_field.grids[0]
-    ygrid = gridded_field.grids[1]
-    data = gridded_field.data
+    xgrid = data.grids[0]
+    ygrid = data.grids[1]
+    data = data.data
     y_mesh, x_mesh = np.meshgrid(ygrid, xgrid)
 
     select_flat_ax(ax, 0).pcolormesh(x_mesh, y_mesh, data, **kwargs)

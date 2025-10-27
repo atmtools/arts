@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    gridded_field: pyarts.arts.SortedGriddedField1,
+    data: pyarts.arts.SortedGriddedField1,
     *,
     fig=None,
     ax=None,
@@ -39,7 +39,7 @@ def plot(
 
     Parameters
     ----------
-    gridded_field : ~pyarts3.arts.SortedGriddedField1
+    data : ~pyarts3.arts.SortedGriddedField1
         A 1D sorted gridded field with named grid
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -58,9 +58,9 @@ def plot(
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 6)})
 
     # Get grid and data
-    xgrid = gridded_field.grids[0]
-    data = gridded_field.data
+    xgrid = data.grids[0]
+    data = data.data
 
-    select_flat_ax(ax, 0).plot(xgrid, data, label=gridded_field.dataname, **kwargs)
+    select_flat_ax(ax, 0).plot(xgrid, data, label=data.dataname, **kwargs)
 
     return fig, ax

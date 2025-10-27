@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def default_fig_ax(fig=None, ax=None, nrows=1, ncols=1, N=-1, fig_kwargs={}, ax_kwargs={}):
@@ -24,11 +25,11 @@ def default_fig_ax(fig=None, ax=None, nrows=1, ncols=1, N=-1, fig_kwargs={}, ax_
     """
     fig = plt.figure(**fig_kwargs) if fig is None else fig
     if ax is None:
-      ax = fig.subplots(nrows, ncols, **ax_kwargs)
-      if N >= 0:
-          for a in ax.flatten()[N:]:
-              fig.delaxes(a)
-        
+        ax = fig.subplots(nrows, ncols, **ax_kwargs)
+        if N >= 0:
+            for a in ax.flatten()[N:]:
+                fig.delaxes(a)
+
     return fig, ax
 
 
@@ -49,8 +50,8 @@ def select_flat_ax(ax, index):
     """
     if isinstance(ax, plt.Axes):
         return ax
-    elif hasattr(ax, 'ndim') and ax.ndim == 1:
-        return ax[index]
+    elif isinstance(ax, np.ndarray):
+        return ax.flat[index]
     elif isinstance(ax, (list, tuple)):
         return ax[index]
     else:

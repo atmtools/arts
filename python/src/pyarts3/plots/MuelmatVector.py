@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    transmission_matrix: pyarts.arts.MuelmatVector,
+    data: pyarts.arts.MuelmatVector,
     *,
     fig=None,
     ax=None,
@@ -24,7 +24,7 @@ def plot(
 
     Parameters
     ----------
-    transmission_matrix : ~pyarts3.arts.MuelmatVector
+    data : ~pyarts3.arts.MuelmatVector
         A vector of Mueller matrices representing the transmission properties.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -46,7 +46,7 @@ def plot(
     ax : As input
         As input. Single axis for 1D plot, or list of 16 axes for 4x4 plot.
     """
-    freqs = np.arange(len(transmission_matrix)) if freqs is None else freqs
+    freqs = np.arange(len(data)) if freqs is None else freqs
 
     fig, ax = default_fig_ax(fig, ax,
                              1 if component is None else 4,
@@ -55,11 +55,11 @@ def plot(
 
     if component is None:
         select_flat_ax(ax, 0).plot(freqs, np.einsum(
-            "ijk,jk->i", transmission_matrix, component), **kwargs)
+            "ik,k->i", data, component), **kwargs)
     else:
         for i in range(4):
             for j in range(4):
                 select_flat_ax(ax, i*4 + j).plot(freqs,
-                                                 transmission_matrix[:, i, j], **kwargs)
+                                                 data[:, i, j], **kwargs)
 
     return fig, ax

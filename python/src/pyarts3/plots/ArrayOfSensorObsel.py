@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel,
+def plot(data: pyarts.arts.ArrayOfSensorObsel,
          *,
          fig=None,
          ax=None,
@@ -20,7 +20,7 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel,
     .. note::
         Any option other than "f" will sort the sensor observational element array by the
         corresponding key. The object lives via a pointer, so the original
-        measurement_sensor is modified in-place.
+        data is modified in-place.
 
         This should not massively affect any radiative transfer computations,
         but it might result in different results down on the floating point
@@ -41,7 +41,7 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel,
 
     Parameters
     ----------
-    measurement_sensor : ~pyarts3.arts.ArrayOfSensorObsel
+    data : ~pyarts3.arts.ArrayOfSensorObsel
         A sensor observation element array.
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -85,7 +85,7 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel,
         key = pyarts.arts.SensorKeyType(keys[isub])
 
         i = map[key]
-        for elem in measurement_sensor:
+        for elem in data:
             v = elem.weight_matrix.reduce(pol,
                                           along_poslos=i is None,
                                           along_freq=i is not None)

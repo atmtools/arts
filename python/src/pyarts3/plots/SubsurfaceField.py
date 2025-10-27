@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    subsurf_field: pyarts.arts.SubsurfaceField,
+    data: pyarts.arts.SubsurfaceField,
     *,
     fig=None,
     ax=None,
@@ -25,7 +25,7 @@ def plot(
 
     Parameters
     ----------
-    subsurf_field : ~pyarts3.arts.SubsurfaceField
+    data : ~pyarts3.arts.SubsurfaceField
         A subsurface field
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -52,7 +52,7 @@ def plot(
         List of matplotlib axes objects.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)
-    v = subsurf_field(alts, lats, lons)
+    v = data(alts, lats, lons)
 
     keys = v[0].keys() if keys is None else keys
     N = len(keys)

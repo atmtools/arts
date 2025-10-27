@@ -335,7 +335,7 @@ def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
 
 
 def plot(
-    ray_path: pyarts.arts.ArrayOfPropagationPathPoint,
+    data: pyarts.arts.ArrayOfPropagationPathPoint,
     *,
     fig=None,
     ax=None,
@@ -352,13 +352,13 @@ def plot(
 
     The polar plots' central point is at the surface of the planet, i.e., at
     planetary_radius/rscale.  The radius of these plots are the scaled down
-    radiuses of the input ray_path[0].pos[0] / rscale + planetary_radius/rscale.
+    radiuses of the input data[0].pos[0] / rscale + planetary_radius/rscale.
     The default radius value is thus just the altitude in kilometers.  If you
     put, e.g., 6371e3 as the planetary_radius, the radius values will be the
     radius from the surface to the highest altitude
 
     Note also that longitudes are unwrapped, e.g. a step longer than 180
-    degrees between ray_path points will wrap around, or rather, create separate
+    degrees between data points will wrap around, or rather, create separate
     entries of the lat-lons.
 
     .. rubric:: Example
@@ -387,7 +387,7 @@ def plot(
 
     Parameters
     ----------
-    ray_path : ~pyarts3.arts.ArrayOfPropagationPathPoint
+    data : ~pyarts3.arts.ArrayOfPropagationPathPoint
         A single propagation path object
     fig : Figure, optional
         A figure. The default is None, which generates a new figure.
@@ -422,11 +422,11 @@ def plot(
     ) if ax is None else ax
 
     # Set radius and convert degrees
-    rad = np.array([x.pos[0] for x in ray_path])
-    latdeg = np.array([x.pos[1] for x in ray_path])
-    londeg = np.array([x.pos[2] for x in ray_path])
-    zadeg = np.array([x.los[0] for x in ray_path])
-    aadeg = np.array([x.los[1] for x in ray_path])
+    rad = np.array([x.pos[0] for x in data])
+    latdeg = np.array([x.pos[1] for x in data])
+    londeg = np.array([x.pos[2] for x in data])
+    zadeg = np.array([x.los[0] for x in data])
+    aadeg = np.array([x.los[1] for x in data])
 
     lat = np.deg2rad(latdeg)
     lon = np.deg2rad(londeg)

@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    disort_radiance: pyarts.arts.DisortRadiance,
+    data: pyarts.arts.DisortRadiance,
     *,
     fig=None,
     ax=None,
@@ -21,7 +21,7 @@ def plot(
 
     Parameters
     ----------
-    disort_radiance : ~pyarts3.arts.DisortRadiance
+    data : ~pyarts3.arts.DisortRadiance
         A DisortRadiance object containing radiance results
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -41,11 +41,11 @@ def plot(
     ax : list
         List of two matplotlib axes objects [ax_up, ax_down].
     """
-    freq_grid = disort_radiance.frequency_grid
-    alt_grid = disort_radiance.altitude_grid
-    azimuth_grid = disort_radiance.azimuth_grid
-    zenith_grid = disort_radiance.zenith_grid
-    radiance = disort_radiance.data
+    freq_grid = data.frequency_grid
+    alt_grid = data.altitude_grid
+    azimuth_grid = data.azimuth_grid
+    zenith_grid = data.zenith_grid
+    radiance = data.data
 
     # Data shape is [freq, alt, azimuth, zenith]
     # Extract slice: all frequencies, given altitude, given azimuth, all zeniths

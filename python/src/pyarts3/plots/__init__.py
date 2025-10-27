@@ -101,5 +101,5 @@ def plot(data, *, fig=None, ax=None, **kwargs):
     else:
         raise TypeError(
             f"No plot module found for type '{type_name}'. "
-            f"Available plot modules: {', '.join([name for name in dir(current_module) if not name.startswith('_') and name != 'plot' and name != 'sys'])}"
+            f"Available plot modules: {', '.join([name for name in dir(current_module) if not name.startswith('_') and name != 'plot' and name != 'sys' and name != 'common'])}"
         )

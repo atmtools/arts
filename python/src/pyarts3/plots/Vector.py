@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    vector: pyarts.arts.Vector,
+    data: pyarts.arts.Vector,
     *,
     fig=None,
     ax=None,
@@ -32,7 +32,7 @@ def plot(
 
     Parameters
     ----------
-    vector : ~pyarts3.arts.Vector
+    data : ~pyarts3.arts.Vector
         A 1D array of numeric values
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -51,6 +51,6 @@ def plot(
 
     fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={"figsize": (8, 6)})
 
-    select_flat_ax(ax, 0).plot(vector, **kwargs)
+    select_flat_ax(ax, 0).plot(data, **kwargs)
 
     return fig, ax

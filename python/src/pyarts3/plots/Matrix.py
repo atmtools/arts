@@ -9,7 +9,7 @@ __all__ = [
 
 
 def plot(
-    matrix: pyarts.arts.Matrix,
+    data: pyarts.arts.Matrix,
     *,
     fig=None,
     ax=None,
@@ -36,7 +36,7 @@ def plot(
 
     Parameters
     ----------
-    matrix : ~pyarts3.arts.Matrix
+    data : ~pyarts3.arts.Matrix
         A 2D array of numeric values
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -57,10 +57,10 @@ def plot(
         The matplotlib axes.
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 8)})
-    
+
     if xgrid is not None and ygrid is not None:
-        select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, matrix, **kwargs)
+        select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, data, **kwargs)
     else:
-        select_flat_ax(ax, 0).imshow(matrix, **kwargs)
-    
+        select_flat_ax(ax, 0).imshow(data, **kwargs)
+
     return fig, ax

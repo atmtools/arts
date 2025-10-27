@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def plot(absorption_bands: AbsorptionBands,
+def plot(data: AbsorptionBands,
          *,
          mode='normal',
          fig=None,
@@ -51,7 +51,7 @@ def plot(absorption_bands: AbsorptionBands,
 
     Parameters
     ----------
-    absorption_bands : ~pyarts3.arts.AbsorptionBands
+    data : ~pyarts3.arts.AbsorptionBands
         The AbsorptionBands object containing the data to plot.
     mode : str, optional
         The mode to use for the plot - see text for descriptions. Defaults to 'normal'.
@@ -87,15 +87,15 @@ def plot(absorption_bands: AbsorptionBands,
     if isinstance(freqs, int):
         f0 = 1e99
         f1 = -1e99
-        for band in absorption_bands:
-            for line in absorption_bands[band].lines:
+        for band in data:
+            for line in data[band].lines:
                 f0 = min(f0, line.f0)
                 f1 = max(f1, line.f0)
         freqs = AscendingGrid(np.linspace(f0, f1, freqs))
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{band.isot}" for band in absorption_bands])
+        ws.absorption_speciesSet(species=[f"{band.isot}" for band in data])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
@@ -105,7 +105,7 @@ def plot(absorption_bands: AbsorptionBands,
 
     fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={'figsize': (6, 4)})
 
-    pm = absorption_bands.propagation_matrix(
+    pm = data.propagation_matrix(
         f=freqs, atm=atm, spec=species, path_point=path_point)
     pm = np.einsum('ij,j->i', pm, pol)
 
@@ -122,17 +122,17 @@ def plot(absorption_bands: AbsorptionBands,
         if mode.endswith('isotopes') or \
            mode.endswith('species'):
             keys = [band.isot if mode.endswith(
-                'isotopes') else band.isot.spec for band in absorption_bands]
+                'isotopes') else band.isot.spec for band in data]
             keys = list(set(keys))
             for key in keys:
-                bands = absorption_bands.extract_species(key)
+                bands = data.extract_species(key)
                 pm_band = bands.propagation_matrix(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)
         elif mode.endswith('bands'):
-            keys = [band for band in absorption_bands]
+            keys = [band for band in data]
             for key in keys:
-                bands = AbsorptionBands({key: absorption_bands[key]})
+                bands = AbsorptionBands({key: data[key]})
                 pm_band = bands.propagation_matrix(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)

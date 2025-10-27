@@ -10,7 +10,7 @@ __all__ = [
 
 
 def plot(
-    grid: pyarts.arts.AzimuthGrid,
+    data: pyarts.arts.AzimuthGrid,
     *,
     fig=None,
     ax=None,
@@ -42,7 +42,7 @@ def plot(
 
     Parameters
     ----------
-    grid : ~pyarts3.arts.AzimuthGrid
+    data : ~pyarts3.arts.AzimuthGrid
         A sorted grid of azimuth angles [0, 360)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -64,8 +64,8 @@ def plot(
                              'figsize': (10, 8) if polar else (10, 6)})
 
     if polar:
-        select_flat_ax(ax, 0).plot(np.deg2rad(grid), np.ones_like(grid), **kwargs)
+        select_flat_ax(ax, 0).plot(np.deg2rad(data), np.ones_like(data), **kwargs)
     else:
-        select_flat_ax(ax, 0).plot(np.arange(len(grid)), grid, **kwargs)
+        select_flat_ax(ax, 0).plot(np.arange(len(data)), data, **kwargs)
 
     return fig, ax
