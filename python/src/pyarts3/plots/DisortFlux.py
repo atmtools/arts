@@ -29,7 +29,7 @@ def plot(
     freq_idx : int | None, optional
         Frequency index to plot. If None, plots all frequencies. Defaults to None.
     **kwargs
-        Additional keyword arguments passed to matplotlib plot/pcolormesh functions.
+        Additional keyword arguments passed to matplotlib ploting functions.
 
     Returns
     -------
@@ -53,9 +53,8 @@ def plot(
         select_flat_ax(ax, 1).plot(downwelling_diffuse[freq_idx, :], alt_grid, **kwargs)
         select_flat_ax(ax, 2).plot(downwelling_direct[freq_idx, :], alt_grid, **kwargs)
     else:
-        extent = [freq_grid[0], freq_grid[-1], alt_grid[-1], alt_grid[0]]
-        select_flat_ax(ax, 0).imshow(upwelling.T, extent=extent, **kwargs)
-        select_flat_ax(ax, 1).imshow(downwelling_diffuse.T, extent=extent, **kwargs)
-        select_flat_ax(ax, 2).imshow(downwelling_direct.T, extent=extent, **kwargs)
+        select_flat_ax(ax, 0).contourf(freq_grid, alt_grid[:-1], upwelling.T, **kwargs)
+        select_flat_ax(ax, 1).contourf(freq_grid, alt_grid[:-1], downwelling_diffuse.T,  **kwargs)
+        select_flat_ax(ax, 2).contourf(freq_grid, alt_grid[:-1], downwelling_direct.T, **kwargs)
 
     return fig, ax

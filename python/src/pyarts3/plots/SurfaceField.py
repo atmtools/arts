@@ -36,7 +36,7 @@ def plot(
     keys : list[str] | None, optional
         List of keys to plot. If None, plots all available keys. Defaults to None.
     **kwargs
-        Additional keyword arguments passed to matplotlib pcolormesh function.
+        Additional keyword arguments passed to matplotlib plotting function.
 
     Returns
     -------
@@ -56,6 +56,7 @@ def plot(
     fig, ax = default_fig_ax(fig, ax, n, n, N=N, fig_kwargs={
                              "figsize": (5 * n, 4 * n), "constrained_layout": True})
 
+    lon_mesh, lat_mesh = np.meshgrid(lon_grid, lat_grid)
     for i, key in enumerate(keys):
         # Sample the surface field at grid points
         values = np.zeros_like(lat_grid)
@@ -64,6 +65,6 @@ def plot(
                 point = data(lat_grid[ii, jj], lon_grid[ii, jj])
                 values[ii, jj] = point[key] if key in point else np.nan
 
-        select_flat_ax(ax, i).pcolormesh(lon_grid, lat_grid, values, **kwargs)
+        select_flat_ax(ax, i).pcolormesh(lon_mesh, lat_mesh, values, **kwargs)
 
     return fig, ax

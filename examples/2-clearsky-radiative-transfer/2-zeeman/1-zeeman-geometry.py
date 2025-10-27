@@ -28,11 +28,13 @@ for i in range(N):
         # Plot and store angles
         ang = pyarts.arts.zeeman.MagneticAngles(mag, los)
         pyarts.plots.MagneticAngles.plot(ang, fig=fig, ax=ax, N=50)
+        ax.set_ylim(-1.2, 1.2)
+        ax.set_xlim(-1.2, 1.2)
+        ax.set_zlim(-1.2, 1.2)
         angles.append([ang.eta, ang.theta])
 
-fig.tight_layout()
-
 if "ARTS_HEADLESS" not in os.environ:
+    plt.tight_layout()
     plt.show()
 
 assert np.allclose(angles,

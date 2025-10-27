@@ -57,7 +57,7 @@ def plot(data: pyarts.arts.zeeman.MagneticAngles,
         As input.
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={
-                             "figsize": (8, 8)}, ax_kwargs={"projection": '3d'})
+                             "figsize": (8, 8)}, ax_kwargs={"subplot_kw": {"projection": '3d'}})
 
     k = data.k.norm()
     e1 = data.e1.norm()

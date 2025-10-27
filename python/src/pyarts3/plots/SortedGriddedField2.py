@@ -1,6 +1,7 @@
 """ Plotting routine for SortedGriddedField2 """
 
 import pyarts3 as pyarts
+import numpy as np
 from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
@@ -26,7 +27,7 @@ def plot(
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     **kwargs
-        Additional keyword arguments passed to pcolormesh()
+        Additional keyword arguments passed to matplotlib ploting functions.
 
     Returns
     -------
@@ -41,8 +42,8 @@ def plot(
     xgrid = data.grids[0]
     ygrid = data.grids[1]
     data = data.data
+    y_mesh, x_mesh = np.meshgrid(ygrid, xgrid)
 
-    # Plot using pcolormesh
-    select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, data, **kwargs)
+    select_flat_ax(ax, 0).pcolormesh(x_mesh, y_mesh, data, **kwargs)
 
     return fig, ax

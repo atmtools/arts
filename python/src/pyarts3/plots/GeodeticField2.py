@@ -50,7 +50,7 @@ def plot(
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     **kwargs
-        Additional keyword arguments passed to pcolormesh()
+        Additional keyword arguments passed to matplotlib ploting functions.
 
     Returns
     -------

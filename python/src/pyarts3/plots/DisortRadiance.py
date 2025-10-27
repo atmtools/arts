@@ -32,7 +32,7 @@ def plot(
     azi_idx : int, optional
         Azimuth index to use. Defaults to 0.
     **kwargs
-        Additional keyword arguments passed to matplotlib imshow function.
+        Additional keyword arguments passed to matplotlib plotting function.
 
     Returns
     -------
@@ -68,13 +68,9 @@ def plot(
                              'figsize': (14, 6), 'constrained_layout': True})
 
     # Plot upward radiation
-    extent_up = [freq_grid[0], freq_grid[-1], upward_zenith[0], upward_zenith[-1]]
-    select_flat_ax(ax, 0).imshow(upward_data,
-                                 extent=extent_up, **kwargs)
+    select_flat_ax(ax, 0).contourf(freq_grid, upward_zenith, upward_data, **kwargs)
 
     # Plot downward radiation
-    extent_down = [freq_grid[0], freq_grid[-1], downward_zenith[0], downward_zenith[-1]]
-    select_flat_ax(ax, 1).imshow(downward_data,
-                                 extent=extent_down, **kwargs)
+    select_flat_ax(ax, 1).contourf(freq_grid, downward_zenith, downward_data, **kwargs)
 
     return fig, ax

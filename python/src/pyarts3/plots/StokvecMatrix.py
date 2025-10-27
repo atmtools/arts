@@ -55,7 +55,7 @@ def plot(
     component : ~pyarts3.arts.Stokvec, optional
         Which Stokes component to plot. Defaults to I.
     **kwargs
-        Additional keyword arguments passed to imshow()
+        Additional keyword arguments passed to matplotlib plotting function.
 
     Returns
     -------

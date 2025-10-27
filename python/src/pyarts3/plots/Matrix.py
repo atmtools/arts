@@ -47,7 +47,7 @@ def plot(
     ygrid : ~pyarts3.arts.Vector | None = None,
         Y-axis values. If None, uses row indices. Defaults to None.
     **kwargs
-        Additional keyword arguments passed to imshow()
+        Additional keyword arguments passed to matplotlib plotting function.
 
     Returns
     -------
@@ -58,9 +58,6 @@ def plot(
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 8)})
 
-    if xgrid is not None and ygrid is not None:
-        select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, data, **kwargs)
-    else:
-        select_flat_ax(ax, 0).imshow(data, **kwargs)
+    select_flat_ax(ax, 0).contourf(xgrid, ygrid, data, **kwargs)
 
     return fig, ax

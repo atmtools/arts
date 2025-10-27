@@ -37,7 +37,7 @@ def plot(
     component : ~pyarts3.arts.Propmat, optional
         Choice of polarization for the heatmap.
     **kwargs
-        Additional keyword arguments passed to imshow().
+        Additional keyword arguments passed to matplotlib plotting function.
 
     Returns
     -------
