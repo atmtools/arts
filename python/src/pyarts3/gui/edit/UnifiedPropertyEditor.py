@@ -109,7 +109,7 @@ def is_terminal_type(value):
     """Check if a value is a terminal type that can be edited directly.
     
     Terminal types are:
-    - ARTS: Numeric, Index, String, Time, SpeciesIsotope
+    - ARTS: Numeric, Index, String, Time, SpeciesIsotope, Agenda
     - Python: int, float, bool, str
     - NumPy: integer, floating types
     - NumPy: ndarray
@@ -134,7 +134,7 @@ def is_terminal_type(value):
     type_name = type(value).__name__
     
     # ARTS terminal types
-    if type_name in ('Numeric', 'Index', 'String', 'Time', 'SpeciesIsotope'):
+    if type_name in ('Numeric', 'Index', 'String', 'Time', 'SpeciesIsotope', 'Agenda'):
         return True
     
     # ArrayOf types
@@ -200,7 +200,7 @@ def edit_terminal(value, parent=None, owner=None, prop_name=None):
     """Edit a terminal type using the appropriate specialized editor.
     
     This function routes terminal types to their specialized editors:
-    - ARTS: Numeric, Index, String, Time, SpeciesIsotope → dedicated module editors
+    - ARTS: Numeric, Index, String, Time, SpeciesIsotope, Agenda → dedicated module editors
     - ArrayOf* → ArrayOf editor
     - Options enums → Options editor
     - GriddedField → edit_griddedfield
@@ -222,7 +222,7 @@ def edit_terminal(value, parent=None, owner=None, prop_name=None):
     """
     import sys
     from . import Generic, ArrayOf, Options
-    from . import Index, Numeric, String, Time, SpeciesIsotope
+    from . import Index, Numeric, String, Time, SpeciesIsotope, Agenda
     
     type_name = type(value).__name__
     current_module = sys.modules['pyarts3.gui.edit']

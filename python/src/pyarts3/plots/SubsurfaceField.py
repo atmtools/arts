@@ -2,7 +2,7 @@
 
 import pyarts3 as pyarts
 import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,10 +14,10 @@ def plot(
     *,
     fig=None,
     ax=None,
-    alts: np.ndarray | float = np.linspace(-1, 0, 3),
-    lats: np.ndarray | float = 0,
-    lons: np.ndarray | float = 0,
-    ygrid: np.ndarray | None = None,
+    alts: pyarts.arts.AscendingGrid | float = np.linspace(-1, 0, 3),
+    lats: pyarts.arts.LatGrid | float = 0,
+    lons: pyarts.arts.LonGrid | float = 0,
+    ygrid: pyarts.arts.Vector | None = None,
     keys: list[str] | None = None,
     **kwargs,
 ):
@@ -31,16 +31,18 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes or list of Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    alts : :class:`~numpy.ndarray` | :class:`float`, optional
+    alts : ~pyarts3.arts.AscendingGrid | float, optional
         A grid to plot on - must after broadcast with lats and lons be 1D. Defaults to np.linspace(0, 1e5, 51).
-    lats : :class:`~numpy.ndarray` | :class:`float`, optional
+    lats : ~pyarts3.arts.LatGrid | float, optional
         A grid to plot on - must after broadcast with alts and lons be 1D. Defaults to 0.
-    lons : :class:`~numpy.ndarray` | :class:`float`, optional
+    lons : ~pyarts3.arts.LonGrid | float, optional
         A grid to plot on - must after broadcast with alts and lats be 1D. Defaults to 0.
-    ygrid : :class:`~numpy.ndarray` | :class:`None`, optional
+    ygrid : ~pyarts3.arts.Vector | :class:`None`, optional
         Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
     keys : list, optional
         A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.SubsurfaceField.keys`.
+    **kwargs : keyword arguments
+        Additional keyword arguments passed to plot()
 
     Returns
     -------
@@ -56,20 +58,13 @@ def plot(
     N = len(keys)
     n = int(np.ceil(np.sqrt(N))) + 1
 
-    if fig is None:
-        fig = plt.figure(figsize=(5 * n, 5 * n))
+    fig, ax = default_fig_ax(fig, ax, n, n, N=N, fig_kwargs={'figsize': (5 * n, 5 * n)})
 
-    if ax is None:
-        ax = []
-        for i in range(N):
-            ax.append(fig.add_subplot(n, n, i + 1))
-    
     for i in range(N):
-        ax[i].plot(
+        select_flat_ax(ax, i).plot(
             [x[keys[i]] for x in v],
             alts if ygrid is None else ygrid,
             label=keys[i],
             **kwargs,
         )
-        ax[i].legend()
     return fig, ax

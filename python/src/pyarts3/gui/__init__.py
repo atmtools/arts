@@ -9,3 +9,5 @@ from .qt_plot_gui import PlotGui, start_gui
 from . import edit
 
 __all__ = ["start_gui", "PlotGui", "edit"]
+
+print ("WARNING: Using this GUI module is highly experimental and may lead to crashes.")

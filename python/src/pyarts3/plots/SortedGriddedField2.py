@@ -1,8 +1,7 @@
 """ Plotting routine for SortedGriddedField2 """
 
 import pyarts3 as pyarts
-import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,11 +13,6 @@ def plot(
     *,
     fig=None,
     ax=None,
-    xlabel: str | None = None,
-    ylabel: str | None = None,
-    title: str | None = None,
-    colorbar: bool = True,
-    cmap: str = "viridis",
     **kwargs
 ):
     """Plot a SortedGriddedField2 as a 2D heatmap using its sorted grids.
@@ -31,16 +25,6 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xlabel : str | None, optional
-        Label for x-axis. If None, uses grid name. Defaults to None.
-    ylabel : str | None, optional
-        Label for y-axis. If None, uses grid name. Defaults to None.
-    title : str | None, optional
-        Plot title. If None, uses data name. Defaults to None.
-    colorbar : bool, optional
-        Whether to show colorbar. Defaults to True.
-    cmap : str, optional
-        Colormap name. Defaults to "viridis".
     **kwargs
         Additional keyword arguments passed to pcolormesh()
 
@@ -51,25 +35,14 @@ def plot(
     ax : As input
         The matplotlib axes.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(10, 8))
-    
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1)
-    
+    fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 6)})
+
     # Get grids and data
     xgrid = gridded_field.grids[0]
     ygrid = gridded_field.grids[1]
     data = gridded_field.data
-    
+
     # Plot using pcolormesh
-    im = ax.pcolormesh(xgrid, ygrid, data, cmap=cmap, **kwargs)
-    
-    if colorbar:
-        plt.colorbar(im, ax=ax, label=gridded_field.dataname if title is None else title)
-    
-    ax.set_xlabel(xlabel if xlabel is not None else gridded_field.gridnames[0])
-    ax.set_ylabel(ylabel if ylabel is not None else gridded_field.gridnames[1])
-    ax.set_title(title if title is not None else gridded_field.dataname)
-    
+    select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, data, **kwargs)
+
     return fig, ax

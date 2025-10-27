@@ -2,7 +2,7 @@
 
 import pyarts3 as pyarts
 import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -15,10 +15,6 @@ def plot(
     fig=None,
     ax=None,
     polar: bool = False,
-    xlabel: str = "Index",
-    ylabel: str = "Zenith Angle [°]",
-    title: str = "Zenith Grid",
-    marker: str = 'o',
     **kwargs
 ):
     """Plot a ZenithGrid showing zenith angles.
@@ -46,14 +42,6 @@ def plot(
         The matplotlib axes to draw on. Defaults to None for new axes.
     polar : bool, optional
         If True, use polar plot. Defaults to False.
-    xlabel : str, optional
-        Label for x-axis (not used in polar). Defaults to "Index".
-    ylabel : str, optional
-        Label for y-axis (not used in polar). Defaults to "Zenith Angle [°]".
-    title : str, optional
-        Plot title. Defaults to "Zenith Grid".
-    marker : str, optional
-        Marker style. Defaults to 'o'.
     **kwargs
         Additional keyword arguments passed to plot()
 
@@ -64,37 +52,12 @@ def plot(
     ax : As input
         The matplotlib axes.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(10, 8) if polar else (10, 6))
-    
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1, polar=polar)
-    
+    fig, ax = default_fig_ax(fig, ax, ax_kwargs={"subplot_kw": {'polar': polar}}, fig_kwargs={
+                             'figsize': (10, 8) if polar else (10, 6)})
+
     if polar:
-        # Convert degrees to radians for polar plot
-        # Zenith 0° = up, 180° = down (half circle)
-        angles_rad = np.deg2rad(grid)
-        radii = np.ones_like(grid)
-        ax.plot(angles_rad, radii, marker=marker, **kwargs)
-        ax.set_ylim(0, 1.2)
-        ax.set_theta_zero_location("N")  # 0° at top
-        ax.set_theta_direction(-1)  # Clockwise
-        ax.set_thetamin(0)  # Limit to half circle
-        ax.set_thetamax(180)
-        ax.set_title(title)
+        select_flat_ax(ax, 0).plot(np.deg2rad(grid), np.ones_like(grid), **kwargs)
     else:
-        indices = np.arange(len(grid))
-        ax.plot(indices, grid, marker=marker, **kwargs)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_title(title)
-        ax.set_ylim(0, 180)
-        ax.grid(True, alpha=0.3)
-        
-        # Add horizontal lines at key angles
-        ax.axhline(0, color='r', linestyle='--', alpha=0.3, label='Zenith (0°)')
-        ax.axhline(90, color='g', linestyle='--', alpha=0.3, label='Horizon (90°)')
-        ax.axhline(180, color='b', linestyle='--', alpha=0.3, label='Nadir (180°)')
-        ax.legend()
-    
+        select_flat_ax(ax, 0).plot(np.arange(len(grid)), grid, **kwargs)
+
     return fig, ax

@@ -1,8 +1,7 @@
 """ Plotting routine for SortedGriddedField1 """
 
 import pyarts3 as pyarts
-import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,9 +13,6 @@ def plot(
     *,
     fig=None,
     ax=None,
-    xlabel: str | None = None,
-    ylabel: str | None = None,
-    title: str | None = None,
     **kwargs
 ):
     """Plot a SortedGriddedField1 as a line plot using its grid.
@@ -32,7 +28,7 @@ def plot(
         # Create a gridded field
         freqs = pyarts.arts.AscendingGrid(np.linspace(1e9, 1e12, 100))
         data = pyarts.arts.Vector(np.exp(-((freqs - 5e11)/1e11)**2))
-        
+
         field = pyarts.arts.SortedGriddedField1()
         field.grids = (freqs,)
         field.data = data
@@ -49,12 +45,6 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xlabel : str | None, optional
-        Label for x-axis. If None, uses grid name. Defaults to None.
-    ylabel : str | None, optional
-        Label for y-axis. If None, uses data name. Defaults to None.
-    title : str | None, optional
-        Plot title. If None, uses data name. Defaults to None.
     **kwargs
         Additional keyword arguments passed to plot()
 
@@ -65,20 +55,12 @@ def plot(
     ax : As input
         The matplotlib axes.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(8, 6))
-    
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1)
-    
+    fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 6)})
+
     # Get grid and data
     xgrid = gridded_field.grids[0]
     data = gridded_field.data
-    
-    ax.plot(xgrid, data, **kwargs)
-    ax.set_xlabel(xlabel if xlabel is not None else gridded_field.gridnames[0])
-    ax.set_ylabel(ylabel if ylabel is not None else gridded_field.dataname)
-    ax.set_title(title if title is not None else gridded_field.dataname)
-    ax.grid(True, alpha=0.3)
-    
+
+    select_flat_ax(ax, 0).plot(xgrid, data, label=gridded_field.dataname, **kwargs)
+
     return fig, ax

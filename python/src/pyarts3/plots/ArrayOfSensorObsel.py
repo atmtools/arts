@@ -1,15 +1,20 @@
 """ Plotting routine for the sensor response """
 
 import pyarts3 as pyarts
-import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
 ]
 
 
-def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, ax=None, keys: str | list = "f", pol: str | pyarts.arts.Stokvec = "I", **kwargs):
+def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel,
+         *,
+         fig=None,
+         ax=None,
+         keys: str | list = "f",
+         pol: str | pyarts.arts.Stokvec = "I",
+         **kwargs):
     """Plot the sensor observational element array.
 
     .. note::
@@ -44,8 +49,10 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, ax=Non
         Not used (function creates its own subplots). Accepted for API consistency.
     keys : str | list
         The keys to use for plotting. Options are in :class:`~pyarts3.arts.SensorKeyType`.
-    pol : str | pyarts3.arts.Stokvec
+    pol : str | ~pyarts3.arts.Stokvec
         The polarization to use for plotting. Defaults to "I", constructs a :class:`~pyarts3.arts.Stokvec`.
+    **kwargs : keyword arguments
+        Additional keyword arguments passed to the plotting function.
 
     Returns
     -------
@@ -55,15 +62,13 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, ax=Non
         List of matplotlib axes objects.
     """
 
-    if isinstance(keys, str):
-        keys = [keys]
+    keys = [keys] if isinstance(keys, str) else keys
     N = len(keys)
 
     if N == 0:
-        return fig, None
+        return fig, ax
 
-    if fig is None:
-        fig = plt.figure(figsize=(10 * N, 10))
+    fig, ax = default_fig_ax(fig, ax, 1, N, fig_kwargs={'figsize': (10 * N, 10)})
 
     pol = pyarts.arts.Stokvec(pol)
 
@@ -76,26 +81,17 @@ def plot(measurement_sensor: pyarts.arts.ArrayOfSensorObsel, *, fig=None, ax=Non
         pyarts.arts.SensorKeyType.aa: 4,
     }
 
-    if ax is None:
-        ax = []
-        for isub in range(N):
-            ax.append(fig.add_subplot(1, N, isub + 1))
-    
     for isub in range(N):
         key = pyarts.arts.SensorKeyType(keys[isub])
 
         i = map[key]
         for elem in measurement_sensor:
-            if i is None:
-                v = elem.weight_matrix.reduce(pol, along_poslos=True)
-            else:
-                v = elem.weight_matrix.reduce(pol, along_freq=True)
+            v = elem.weight_matrix.reduce(pol,
+                                          along_poslos=i is None,
+                                          along_freq=i is not None)
 
             x = elem.f_grid if i is None else elem.poslos[:, i]
 
-            if len(x) == 1:
-                ax[isub].plot(x, v, marker="o", linestyle="None")
-            else:
-                ax[isub].plot(x, v)
+            select_flat_ax(ax, isub).plot(x, v, **kwargs)
 
     return fig, ax

@@ -1,8 +1,7 @@
 """ Plotting routine for Vector """
 
 import pyarts3 as pyarts
-import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,10 +13,6 @@ def plot(
     *,
     fig=None,
     ax=None,
-    xgrid: np.ndarray | None = None,
-    xlabel: str = "Index",
-    ylabel: str = "Value",
-    title: str = "Vector",
     **kwargs
 ):
     """Plot a Vector as a line plot.
@@ -33,7 +28,7 @@ def plot(
         # Create a simple vector
         vec = pyarts.arts.Vector(np.sin(np.linspace(0, 2*np.pi, 50)))
 
-        pyarts.plots.Vector.plot(vec, xlabel="Sample", ylabel="Amplitude")
+        pyarts.plots.Vector.plot(vec)
 
     Parameters
     ----------
@@ -43,14 +38,6 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xgrid : :class:`~numpy.ndarray` | None, optional
-        X-axis values. If None, uses indices. Defaults to None.
-    xlabel : str, optional
-        Label for x-axis. Defaults to "Index".
-    ylabel : str, optional
-        Label for y-axis. Defaults to "Value".
-    title : str, optional
-        Plot title. Defaults to "Vector".
     **kwargs
         Additional keyword arguments passed to plot()
 
@@ -61,19 +48,9 @@ def plot(
     ax : As input
         The matplotlib axes.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(8, 6))
-    
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1)
-    
-    if xgrid is None:
-        xgrid = np.arange(len(vector))
-    
-    ax.plot(xgrid, vector, **kwargs)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
-    
+
+    fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={"figsize": (8, 6)})
+
+    select_flat_ax(ax, 0).plot(vector, **kwargs)
+
     return fig, ax

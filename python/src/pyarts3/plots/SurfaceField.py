@@ -2,7 +2,7 @@
 
 import pyarts3 as pyarts
 import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,8 +14,8 @@ def plot(
     *,
     fig=None,
     ax=None,
-    lats: np.ndarray | None = None,
-    lons: np.ndarray | None = None,
+    lats: pyarts.arts.LatGrid | None = None,
+    lons: pyarts.arts.LonGrid | None = None,
     keys: list[str] | None = None,
     **kwargs,
 ):
@@ -29,9 +29,9 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional
         Not used (function creates its own subplots). Accepted for API consistency.
-    lats : :class:`~numpy.ndarray` | None, optional
+    lats : ~pyarts3.arts.LatGrid | None, optional
         Latitude grid for sampling. Defaults to None for automatic grid.
-    lons : :class:`~numpy.ndarray` | None, optional
+    lons : ~pyarts3.arts.LonGrid | None, optional
         Longitude grid for sampling. Defaults to None for automatic grid.
     keys : list[str] | None, optional
         List of keys to plot. If None, plots all available keys. Defaults to None.
@@ -45,27 +45,17 @@ def plot(
     ax : list
         List of matplotlib axes objects.
     """
-    if keys is None:
-        keys = list(surface_field.keys())
-    
-    if lats is None:
-        lats = np.linspace(-90, 90, 50)
-    if lons is None:
-        lons = np.linspace(-180, 180, 100)
-    
+    keys = list(surface_field.keys()) if keys is None else keys
+    lats = pyarts.arts.LatGrid(np.linspace(-90, 90, 50)) if lats is None else lats
+    lons = pyarts.arts.LonGrid(np.linspace(-180, 180, 100)) if lons is None else lons
     lon_grid, lat_grid = np.meshgrid(lons, lats)
-    
+
     N = len(keys)
     n = int(np.ceil(np.sqrt(N)))
-    
-    if fig is None:
-        fig = plt.figure(figsize=(5 * n, 4 * n), constrained_layout=True)
-    
-    if ax is None:
-        ax = []
-        for i in range(N):
-            ax.append(fig.add_subplot(n, n, i + 1))
-    
+
+    fig, ax = default_fig_ax(fig, ax, n, n, N=N, fig_kwargs={
+                             "figsize": (5 * n, 4 * n), "constrained_layout": True})
+
     for i, key in enumerate(keys):
         # Sample the surface field at grid points
         values = np.zeros_like(lat_grid)
@@ -73,11 +63,7 @@ def plot(
             for jj in range(lat_grid.shape[1]):
                 point = surface_field(lat_grid[ii, jj], lon_grid[ii, jj])
                 values[ii, jj] = point[key] if key in point else np.nan
-        
-        im = ax[i].pcolormesh(lon_grid, lat_grid, values, cmap='viridis', shading='auto', **kwargs)
-        plt.colorbar(im, ax=ax[i], label=key)
-        ax[i].set_xlabel('Longitude [°]')
-        ax[i].set_ylabel('Latitude [°]')
-        ax[i].set_title(key)
-    
+
+        select_flat_ax(ax, i).pcolormesh(lon_grid, lat_grid, values, **kwargs)
+
     return fig, ax

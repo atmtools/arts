@@ -1,7 +1,6 @@
-from pyarts3.arts.zeeman import MagneticAngles
-from pyarts3.arts import Vector3
-import matplotlib.pyplot as plt
+import pyarts3 as pyarts
 import numpy as np
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -28,7 +27,7 @@ def rot(x, y, ang, clockwise=False):
     return R
 
 
-def plot(ang: MagneticAngles,
+def plot(ang: pyarts.arts.zeeman.MagneticAngles,
          *,
          mode='normal',
          fig=None,
@@ -57,52 +56,40 @@ def plot(ang: MagneticAngles,
     ax : As input
         As input.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(8, 8))
-
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1, projection='3d')
+    fig, ax = default_fig_ax(fig, ax, fig_kwargs={
+                             "figsize": (8, 8)}, ax_kwargs={"projection": '3d'})
 
     k = ang.k.norm()
     e1 = ang.e1.norm()
 
     # Correctly handle vector assignments and normalization
-    b_vec = Vector3([ang.u * 1e6, ang.v * 1e6, ang.w * 1e6])
+    b_vec = pyarts.arts.Vector3([ang.u * 1e6, ang.v * 1e6, ang.w * 1e6])
     H_vec = b_vec
     B_vec = ang.B_projected
 
     H_norm = H_vec.norm()
     B_norm = B_vec.norm()
 
-    # Setup 3D subplot
-    azimuth_angle_deg = np.rad2deg(np.arctan2(ang.sa, ang.ca)) % 360
-    ax.set_title(
-        f"za={round(np.rad2deg(np.arccos(ang.cz)), 1)}°, aa={round(azimuth_angle_deg, 1)}°")
-    ax.set_xlim([-1.1, 1.1])
-    ax.set_ylim([-1.1, 1.1])
-    ax.set_zlim([-1.1, 1.1])
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
-
     # Plot vectors
-    ax.quiver(0, 0, 0, k[0], k[1], k[2], color="blue", label="k (LOS)")
-    ax.quiver(0, 0, 0, e1[0], e1[1], e1[2], color="green", label="e1 (UP)")
-    ax.quiver(0, 0, 0, H_norm[0], H_norm[1], H_norm[2], color="red", label="H_norm")
-    ax.quiver(0, 0, 0, B_norm[0], B_norm[1], B_norm[2],
-              color="orange", label="B_norm (PROJ)")
+    select_flat_ax(ax, 0).quiver(
+        0, 0, 0, k[0], k[1], k[2], color="blue", label="k (LOS)", **kwargs)
+    select_flat_ax(ax, 0).quiver(
+        0, 0, 0, e1[0], e1[1], e1[2], color="green", label="e1 (UP)", **kwargs)
+    select_flat_ax(ax, 0).quiver(
+        0, 0, 0, H_norm[0], H_norm[1], H_norm[2], color="red", label="H_norm", **kwargs)
+    select_flat_ax(ax, 0).quiver(0, 0, 0, B_norm[0], B_norm[1], B_norm[2],
+                                 color="orange", label="B_norm (PROJ)", **kwargs)
 
     rotation_eta = [rot(e1, B_norm, eta, True) for eta in np.linspace(0, ang.eta, N)]
     v_eta = np.array([r @ e1 / 4 for r in rotation_eta])
-    ax.plot(v_eta[:, 0], v_eta[:, 1], v_eta[:, 2],
-            label=f"eta={round(np.rad2deg(ang.eta), 1)}°", color="magenta")
+    select_flat_ax(ax, 0).plot(v_eta[:, 0], v_eta[:, 1], v_eta[:, 2],
+                               label=f"eta={round(np.rad2deg(ang.eta), 1)}°", color="magenta", **kwargs)
 
     # Plot theta arc (rotation from H_norm to k)
     rotation_theta = [rot(H_norm, k, theta)
                       for theta in np.linspace(0, ang.theta, N)]
     v_theta = np.array([r @ H_norm / 2 for r in rotation_theta])
-    ax.plot(v_theta[:, 0], v_theta[:, 1], v_theta[:, 2],
-            label=f"theta={round(np.rad2deg(ang.theta), 1)}°", color="gray")
-    ax.legend(ncol=1)
+    select_flat_ax(ax, 0).plot(v_theta[:, 0], v_theta[:, 1], v_theta[:, 2],
+                               label=f"theta={round(np.rad2deg(ang.theta), 1)}°", color="gray", **kwargs)
 
     return fig, ax

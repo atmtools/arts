@@ -16,7 +16,6 @@ from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
 from . import AscendingGrid
 from . import AtmField
-from . import AtmPoint
 from . import AzimuthGrid
 from . import DisortFlux
 from . import DisortRadiance
@@ -27,21 +26,15 @@ from . import LonGrid
 from . import MagneticAngles
 from . import Matrix
 from . import MuelmatVector
-from . import PropagationPathPoint
 from . import PropmatMatrix
 from . import PropmatVector
 from . import SortedGriddedField1
 from . import SortedGriddedField2
-from . import SortedGriddedField3
-from . import Stokvec
 from . import StokvecMatrix
 from . import StokvecVector
 from . import SubsurfaceField
 from . import Sun
 from . import SurfaceField
-from . import Tensor3
-from . import Tensor4
-from . import Time
 from . import Vector
 from . import ZenithGrid
 
@@ -52,6 +45,15 @@ def plot(data, *, fig=None, ax=None, **kwargs):
     This function automatically determines the type of the input data and calls
     the corresponding plot module's plot() function. All keyword arguments are
     forwarded to the specific plotting function.
+
+    Examples
+    --------
+    >>> import pyarts3 as pyarts
+    >>> vec = pyarts.arts.Vector([1, 2, 3, 4])
+    >>> fig, ax = pyarts.plots.plot(vec)
+
+    >>> mat = pyarts.arts.Matrix([[1, 2], [3, 4]])
+    >>> fig, ax = pyarts.plots.plot(mat, cmap='viridis')
 
     Parameters
     ----------
@@ -76,19 +78,9 @@ def plot(data, *, fig=None, ax=None, **kwargs):
     ------
     TypeError
         If no plot module exists for the given data type.
-
-    Examples
-    --------
-    >>> import pyarts3 as pyarts
-    >>> vec = pyarts.arts.Vector([1, 2, 3, 4])
-    >>> fig, ax = pyarts.plots.plot(vec)
-
-    >>> mat = pyarts.arts.Matrix([[1, 2], [3, 4]])
-    >>> fig, ax = pyarts.plots.plot(mat, cmap='viridis')
     """
 
     import sys
-
 
     # Get the type name of the data
     type_name = type(data).__name__

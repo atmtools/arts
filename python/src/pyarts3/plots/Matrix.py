@@ -1,8 +1,7 @@
 """ Plotting routine for Matrix """
 
 import pyarts3 as pyarts
-import numpy as np
-import matplotlib.pyplot as plt
+from .common import default_fig_ax, select_flat_ax
 
 __all__ = [
     'plot',
@@ -14,13 +13,8 @@ def plot(
     *,
     fig=None,
     ax=None,
-    xgrid: np.ndarray | None = None,
-    ygrid: np.ndarray | None = None,
-    xlabel: str = "Column",
-    ylabel: str = "Row",
-    title: str = "Matrix",
-    colorbar: bool = True,
-    cmap: str = "viridis",
+    xgrid: pyarts.arts.Vector | None = None,
+    ygrid: pyarts.arts.Vector | None = None,
     **kwargs
 ):
     """Plot a Matrix as a 2D heatmap.
@@ -37,7 +31,8 @@ def plot(
         x, y = np.meshgrid(np.linspace(-2, 2, 30), np.linspace(-2, 2, 30))
         mat = pyarts.arts.Matrix(np.exp(-(x**2 + y**2)))
 
-        pyarts.plots.Matrix.plot(mat, title="2D Gaussian")
+        fig, ax = pyarts.plots.Matrix.plot(mat)
+        ax.set_title("2D Gaussian Matrix")
 
     Parameters
     ----------
@@ -47,20 +42,10 @@ def plot(
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xgrid : :class:`~numpy.ndarray` | None, optional
+    xgrid : ~pyarts3.arts.Vector | None = None,
         X-axis values. If None, uses column indices. Defaults to None.
-    ygrid : :class:`~numpy.ndarray` | None, optional
+    ygrid : ~pyarts3.arts.Vector | None = None,
         Y-axis values. If None, uses row indices. Defaults to None.
-    xlabel : str, optional
-        Label for x-axis. Defaults to "Column".
-    ylabel : str, optional
-        Label for y-axis. Defaults to "Row".
-    title : str, optional
-        Plot title. Defaults to "Matrix".
-    colorbar : bool, optional
-        Whether to show colorbar. Defaults to True.
-    cmap : str, optional
-        Colormap name. Defaults to "viridis".
     **kwargs
         Additional keyword arguments passed to imshow()
 
@@ -71,23 +56,11 @@ def plot(
     ax : As input
         The matplotlib axes.
     """
-    if fig is None:
-        fig = plt.figure(figsize=(10, 8))
+    fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 8)})
     
-    if ax is None:
-        ax = fig.add_subplot(1, 1, 1)
-    
-    # Use pcolormesh if grids are provided, otherwise use imshow
     if xgrid is not None and ygrid is not None:
-        im = ax.pcolormesh(xgrid, ygrid, matrix, cmap=cmap, **kwargs)
+        select_flat_ax(ax, 0).pcolormesh(xgrid, ygrid, matrix, **kwargs)
     else:
-        im = ax.imshow(matrix, aspect='auto', cmap=cmap, origin='lower', **kwargs)
-    
-    if colorbar:
-        plt.colorbar(im, ax=ax)
-    
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
+        select_flat_ax(ax, 0).imshow(matrix, **kwargs)
     
     return fig, ax

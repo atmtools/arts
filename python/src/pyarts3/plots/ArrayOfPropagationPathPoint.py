@@ -288,22 +288,6 @@ def unwrap_lon(lon, lat):
     return out
 
 
-def polar_ray_path_default_figure(figure_kwargs):
-    """Get the default figure by standard inputs
-
-    Parameters
-    ----------
-    figure_kwargs : dict, optional
-        Arguments to put into plt.figure().
-
-    Returns
-    -------
-    A matplotlib figure, optional
-        A figure
-    """
-    return plt.figure(**figure_kwargs)
-
-
 def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
     """Get the default subplot axes
 
@@ -353,14 +337,13 @@ def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
 def plot(
     ray_path: pyarts.arts.ArrayOfPropagationPathPoint,
     *,
+    fig=None,
+    ax=None,
     planetary_radius: float = 0.0,
     rscale: float = 1000,
-    figure_kwargs: dict = {"dpi": 300},
     draw_lat_lon: bool = True,
     draw_map: bool = True,
     draw_za_aa: bool = False,
-    fig=None,
-    ax=None,
     **kwargs
 ):
     """Plots a single observation in a polar coordinate system
@@ -406,12 +389,15 @@ def plot(
     ----------
     ray_path : ~pyarts3.arts.ArrayOfPropagationPathPoint
         A single propagation path object
+    fig : Figure, optional
+        A figure. The default is None, which generates a new figure.
+    ax : A list of five subplots, optional
+        A list of five subplot axes. The default is None, which generates new axes.
+        The order is [lat, lon, map, za, aa]
     planetary_radius : float, optional
         See ``polar_ray_path_helper`` in source tree
     rscale : float, optional
         See ``polar_ray_path_helper`` in source tree
-    figure_kwargs : dict, optional
-        Arguments to put into plt.figure(). The default is {"dpi": 300}.
     draw_lat_lon : bool, optional
         Whether or not latitude and longitude vs radius angles are drawn.
         Def: True
@@ -419,11 +405,8 @@ def plot(
         Whether or not latitude and longitude map is drawn.  Def: True
     draw_za_aa : bool, optional
         Whether or not Zenith and Azimuth angles are drawn.  Def: False
-    fig : Figure, optional
-        A figure. The default is None, which generates a new figure.
-    ax : A list of five subplots, optional
-        A list of five subplot axes. The default is None, which generates new axes.
-        The order is [lat, lon, map, za, aa]
+    **kwargs : keyword arguments
+        Additional keyword arguments (currently unused).
 
     Returns
     -------
@@ -433,13 +416,10 @@ def plot(
         As input.
 
     """
-    if fig is None:
-        fig = polar_ray_path_default_figure(figure_kwargs)
-
-    if ax is None:
-        ax = polar_ray_path_default_subs(
-            fig, draw_lat_lon, draw_map, draw_za_aa
-        )
+    fig = plt.figure() if fig is None else fig
+    ax = polar_ray_path_default_subs(
+        fig, draw_lat_lon, draw_map, draw_za_aa
+    ) if ax is None else ax
 
     # Set radius and convert degrees
     rad = np.array([x.pos[0] for x in ray_path])
