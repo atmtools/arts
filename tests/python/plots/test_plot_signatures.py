@@ -12,7 +12,6 @@ import importlib.util
 
 
 def get_plot_modules():
-    """Get all plot module files from pyarts3.plots."""
     plots_dir = Path(__file__).parent.parent.parent / "src" / "pyarts3" / "plots"
     
     # Get all .py files except __init__.py
@@ -127,48 +126,10 @@ def test_plot_function_signatures_detailed():
                 else:
                     results['incorrect'].append((plot_file.name, sig_str, error_msg))
     
-    # Print summary
-    print(f"\n{'='*70}")
-    print(f"Plot Function Signature Test Summary")
-    print(f"{'='*70}")
-    print(f"Correct: {len(results['correct'])}")
-    print(f"Incorrect: {len(results['incorrect'])}")
-    
-    if results['incorrect']:
-        print(f"\n{'='*70}")
-        print("INCORRECT SIGNATURES:")
-        print(f"{'='*70}")
-        for filename, sig, error in results['incorrect']:
-            print(f"\n{filename}")
-            print(f"  {sig}")
-            print(f"  Error: {error}")
-    
-    if results['correct']:
-        print(f"\n{'='*70}")
-        print("CORRECT SIGNATURES (sample):")
-        print(f"{'='*70}")
-        for filename, sig in results['correct'][:5]:
-            print(f"{filename}: {sig}")
-        if len(results['correct']) > 5:
-            print(f"... and {len(results['correct']) - 5} more")
-    
     # Fail if there are incorrect signatures
     assert len(results['incorrect']) == 0, f"Found {len(results['incorrect'])} functions with incorrect signatures"
 
 
 if __name__ == "__main__":
-    print("Running plot function signature tests...")
-    try:
-        test_plot_function_signatures()
-        print("All plot functions have correct signatures!")
-    except AssertionError as e:
-        print(f"Test failed:\n{e}")
-        exit(1)
-    
-    # Run detailed test for summary
-    print("\nRunning detailed signature analysis...")
-    try:
-        test_plot_function_signatures_detailed()
-    except AssertionError as e:
-        print(f"\nDetailed test failed:\n{e}")
-        exit(1)
+    test_plot_function_signatures()
+    test_plot_function_signatures_detailed()
