@@ -73,87 +73,31 @@ When Zeeman effect is considered, there are effectively 3 separate kinds of pola
 and from this, the full matrix contribution is
 
 .. math::
-
-  \mathbf{K}_{z} =
-  \sum_\pm \left(
-  \mathrm{Re} K_{\sigma_\pm,z} \left[
-  \begin{array}{rrrr}
-  1 + \cos^2\theta_m &
-  \sin^2\theta_m\cos 2\eta_m &
-  \sin^2\theta_m\sin 2\eta_m &
-  \mp 2\cos\theta_m \\
-  \sin^2\theta_m\cos 2\eta_m  &
-  1 + \cos^2\theta_m  &
-  0 &
-  0 \\
-  \sin^2\theta_m\sin 2\eta_m &
-  0 &
-  1 + \cos^2\theta_m &
-  0 \\
-  \mp 2\cos\theta_m &
-  0 &
-  0 &
-  1 + \cos^2\theta_m 
-  \end{array}  \right] +
-  \mathrm{Im} K_{\sigma_\pm,z} \left[
-  \begin{array}{rrrr}
-  0 &
-  0 &
-  0 &
-  0 \\
-  0 &
-  0 &
-  \mp 4\cos\theta_m &
-  2\sin^2\theta_m\sin 2\eta_m  \\
-  0 &
-  \pm 4\cos\theta_m  &
-  0 &
-  - 2 \sin^2\theta_m\cos 2\eta_m \\
-  0 &
-  - 2\sin^2\theta_m\sin 2\eta_m &
-  2 \sin^2\theta_m\cos 2\eta_m &
-  0
-  \end{array}  \right]
-  \right) +
-  \\
-  \mathrm{Re} K_{\pi,z} \left[
-  \begin{array}{rrrr}
-  \sin^2\theta_m &
-  - \sin^2\theta_m\cos 2\eta_m  &
-  - \sin^2\theta_m\sin 2\eta_m  &
-  0 \\
-  - \sin^2\theta_m\cos 2\eta_m  &
-  \sin^2\theta_m  &
-  0 &
-  0 \\
-  - \sin^2\theta_m\sin 2\eta_m  &
-  0 &
-  \sin^2\theta_m  &
-  0 \\
-  0 &
-  0 &
-  0 &
-  \sin^2\theta_m 
-  \end{array}  \right] +
-  \mathrm{Im} K_{\pi,z} \left[
-  \begin{array}{rrrr}
-  0 &
-  0 &
-  0 &
-  0 \\
-  0 &
-  0 &
-  0 &
-  - 2\sin^2\theta_m\sin 2\eta_m \\
-  0 &
-  0 &
-  0 &
-  2 \sin^2\theta_m\cos 2\eta_m \\
-  0 &
-  2\sin^2\theta_m\sin 2\eta_m &
-  - 2 \sin^2\theta_m\cos 2\eta_m &
-  0
-  \end{array}  \right],
+     \mathbf{K}_{z} =\sum_\pm\left(\\
+     \mathrm{Re} K_{\sigma_\pm,z} \left[\begin{array}{llll}
+          1 + \cos^2\theta_m           &  \sin^2\theta_m \cos 2 \eta_m & -\sin^2 \theta_m \sin 2 \eta_m & \mp 2 \cos \theta_m  \\
+          \sin^2\theta_m \cos 2 \eta_m &  1 + \cos^2 \theta_m          &  0                             &     0                \\
+         -\sin^2\theta_m \sin 2 \eta_m &  0                            &  1 + \cos^2 \theta_m           &     0                \\
+         \mp 2 \cos\theta_m            &  0                            &  0                             &     1 + \cos^2 \theta_m
+      \end{array}\right] +
+       \mathrm{Im} K_{\sigma_\pm,z} \left[\begin{array}{llll}
+          0 &  0                           &      0                      &  0                             \\
+          0 &  0                           &  \pm 2 \cos \theta_m        & -\sin^2 \theta_m \sin 2 \eta_m \\
+          0 & \mp 2 \cos \theta_m          &      0                      & -\sin^2 \theta_m \cos 2 \eta_m \\
+          0 & \sin^2\theta_m \sin 2 \eta_m &  \sin^2\theta_m \cos 2 \eta_m &  0
+      \end{array}\right] \right)  +\\
+     \mathrm{Re} K_{\pi,z} \left[\begin{array}{llll}
+         \sin^2\theta_m               &  -\sin^2\theta_m \cos 2 \eta_m &  \sin^2 \theta_m \sin 2 \eta_m &   0 \\
+        -\sin^2\theta_m \cos 2 \eta_m &   \sin^2\theta_m               &  0                             &   0 \\
+         \sin^2\theta_m \sin 2 \eta_m &   0                            &  \sin^2\theta_m                &   0 \\
+         0                            &   0                            &  0                             &  \sin^2\theta_m
+      \end{array}\right] +
+       \mathrm{Im} K_{\pi,z} \left[ \begin{array}{llll}
+          0 &  0                            &      0                         &  0                           \\
+          0 &  0                            &      0                         & \sin^2 \theta_m \sin 2 \eta_m \\
+          0 &  0                            &      0                         & \sin^2 \theta_m \cos 2 \eta_m \\
+          0 & -\sin^2\theta_m \sin 2 \eta_m &  -\sin^2\theta_m \cos 2 \eta_m &  0
+      \end{array}\right],
 
 where the somewhat weird :math:`\pm`-sum is over the sigma components.
 Here the angles :math:`\theta_m` and :math:`\eta_m` are the angles with regards to the magnetic field.
@@ -166,7 +110,7 @@ these angles are given by
 
   \theta_m = \arccos\left(\frac{B_v \cos\eta_a \sin\theta_z + B_u \sin\eta_a \sin\theta_z + B_w \cos\theta_z}{ \sqrt{B_w^2 + B_u^2 + B_v^2} } \right)
   \\
-  \eta_m = \mathrm{atan2}\left(B_u \cos\eta_a - B_v \sin\eta_a,\; B_w \cos\eta_a\cos\theta_z + B_u\sin\eta_a\cos\theta_z - B_w\sin\theta_z \right)
+  \eta_m = -\mathrm{atan2}\left(B_u \cos \eta_a-B_v \sin\eta_a,\; B_u \cos\theta_z \sin\eta_a + B_v \cos\theta_z\cos\eta_a - B_w\sin\theta_z \right)
 
 .. _lbl-line-shape:
 
