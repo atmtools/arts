@@ -45,7 +45,7 @@ void compute(PropagationMatrix& propmat_clearsky,
   constexpr Numeric LIQUID_AND_ICE_TREAT_AS_ZERO = 1e-10;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
 
-  if (lwc < LIQUID_AND_ICE_TREAT_AS_ZERO) {
+  if (lwc < LIQUID_AND_ICE_TREAT_AS_ZERO or t < 230 or t > 373) {
     return;
   }
 
@@ -105,12 +105,6 @@ void compute(PropagationMatrix& propmat_clearsky,
   ARTS_USER_ERROR_IF(std::any_of(f_grid.begin(), f_grid.end(), gt(25e12)),
                      "Liquid cloud absorption model ELL07 only valid at\n"
                      "frequencies up to 25THz. Yours are above.")
-
-  ARTS_USER_ERROR_IF(
-      t < 210 or t > 373,
-      "Only valid for temperatures 210-373 K, not for your value of ",
-      t,
-      " K")
 
   // Temperature in celsius
   const Numeric t_cels = t - 273.15;
