@@ -28,11 +28,16 @@ In ARTS, the spectral radiance is represented by the Stokes vector, which is a 4
 where 
 :math:`I_I` is the total spectral radiance,
 :math:`I_Q` is the difference in spectral radiance between horizontal and vertical linear polarizations,
-:math:`I_U` is the difference in spectral radiance between plus 45 and minus 45 linear polarizations, and
-:math:`I_V` is the difference in spectral radiance between right and left circular polarizations.
+:math:`I_U` is the difference in spectral radiance between plus 45° and minus 45° linear polarizations, and
+:math:`I_V` is the difference in spectral radiance between left and right circular polarizations.
 The unit of all of these is W sr :math:`^{-1}` m :math:`^{-2}` Hz :math:`^{-1}`.
 
-This is the same definition as, e.g., :cite:t:`Mishchenko:02`.
+By definition, :math:`I_I` is always non-negative, while :math:`I_Q`, :math:`I_U`, and :math:`I_V` can be both positive and negative.
+In particular, positive :math:`I_Q` indicate vertical linear polarization and negative horizontal polarization.
+Positive :math:`I_U` indicate 45° linear polarization and negative -45° polarization.
+Positive :math:`I_V` indicate left circular polarization and negative right circular polarization.
+
+This is the same definition as, e.g., :cite:t:`Mishchenko:02` pp. 22-24.
 
 .. tip::
 
@@ -124,10 +129,10 @@ with strict symmetries, and it has the form
 where
 :math:`K_A` describes the total power reduction,
 :math:`K_B` describes the difference in power reduction between horizontal and vertical linear polarizations,
-:math:`K_C` describes the difference in power reduction between plus 45 and minus 45 linear polarizations,
+:math:`K_C` describes the difference in power reduction between plus 45° and minus 45° linear polarizations,
 :math:`K_D` describes the difference in power reduction between right and left circular polarizations,
 :math:`K_U` describes the phase delay between right and left circular polarizations,
-:math:`K_V` describes the phase delay between plus 45 and minus 45 linear polarizations, and
+:math:`K_V` describes the phase delay between plus 45° and minus 45° linear polarizations, and
 :math:`K_W` describes the phase delay between horizontal and vertical linear polarizations.
 The unit of all of these is m :math:`^{-1}`.
 
