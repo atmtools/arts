@@ -44,6 +44,7 @@ using Conversion::deg2rad;
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -1611,6 +1612,31 @@ void iySurfaceRtpropAgenda(Workspace& ws,
 
   // Add up
   surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void specular_losLambertianWeighted(Vector& specular_los,
+                                    const Numeric& lambertian_weight,
+                                    const Numeric& lambertian_angle,
+                                    const Verbosity&) {
+  chk_if_in_range("lambertian_weight", lambertian_weight, 0, 1);
+  chk_if_in_range("lambertian_angle", lambertian_angle, 0, 90);
+
+  // Full Lambertian?
+  if (lambertian_weight == 1) {
+    specular_los[0] = lambertian_angle;
+    return;
+  }
+
+  // Continue to use specular angle?
+  if (lambertian_weight == 0) {
+    return;
+  }
+
+  // Otherwise, weighted average of 1/cos
+  Numeric w1 = lambertian_weight / cos(DEG2RAD * lambertian_angle);
+  Numeric w2 = (1 - lambertian_weight) / cos(DEG2RAD * specular_los[0]);
+  specular_los[0] = RAD2DEG * acos(1 / (w1 + w2));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

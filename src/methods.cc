@@ -19635,6 +19635,35 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("specular_losLambertianWeighted"),
+      DESCRIPTION(
+          "Adjusts specular_los to mimic a semi-Lambertian calculation.\n"
+          "\n"
+          "The GIN ``lambertian_weight`` allows to move from assuming a pure\n"
+          "specular (weight 0) to assuming a Lambertian (weight 1) surface.\n"
+          "Further, it is assumed that a Lambertian surface can be approximated\n"
+          "by calculating the downwelling radiation using ``lambertian_angle``.\n"
+          "\n"
+          "For intermediate values of ``lambertian_weight``, the zenith angle in\n"
+          "*specular_los is set by a weighting of 1/cos of the two angles.\n"
+          "This is similar to Eq 6 in Guedj et al. (2010), but the weighting is\n"
+          "performed in air mass factors, not in downwelling radiation.\n"
+          "\n"
+          "The default values of GINs correspond to a fully Lambertian\n"
+          "calculation, using a common value for effective angle.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("specular_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("specular_los"),
+      GIN("lambertian_weight", "lambertian_angle"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("1.0", "55"),
+      GIN_DESC("Weighting between specular and Lambertian [0, 1].",
+               "The angle for approximating the Lambertian case.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleBlackbody"),
       DESCRIPTION("Adds a single blackbody to *suns*\n"
                   "\n"
