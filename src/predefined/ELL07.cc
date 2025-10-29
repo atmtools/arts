@@ -8,31 +8,24 @@
 #include "debug.h"
 
 namespace Absorption::PredefinedModel::ELL07 {
-//! Ported from legacy continua.  Original documentation
-//! ELL07WaterDropletAbs
+//! liquidcloud-ELL07
 /*!
-   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
-                            water clouds according to ELL07 [1/m]
-   \param    model          allows choice of
-                            pre-defined parameters of specific models (see note below).
-   \param    f_grid         predefined frequency grid       [Hz]
-   \param    abs_p          predefined pressure grid        [Pa]
-   \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile [kg/m³]
-                            (valid range (Tab.1 of MPM93): 0-0.005)
+  \param[out] propmat_clearsky  Resulting propagation matrix
+  \param    f_grid              Frequency grid.
+                                Valid range is 0 to 25 THz.
+  \param    t                   Temperature. For t <230 and t>373 lwc
+                                is assumed to be zero (input lwc is ignored).
+  \param    LWC                 Liquid water content.
+                                Valid range is 0 to 5 g/m3.
 
-   \note     Allowed models: 'ELL07'.
-             See the user guide for detailed explanations.
+  \remark   Reference: W. J. Ellison, <br>
+           <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+            Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+            J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
 
-   \remark   Reference: W. J. Ellison, <br>
-            <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
-             Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
-             J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
-
-   \author Stuart Fox
-   \date 2015-06-03
- */
-//! New implementation
+  \author Stuart Fox
+  \date 2015-06-03
+*/
 void compute(PropagationMatrix& propmat_clearsky,
              const Vector& f_grid,
              const Numeric t,
@@ -45,7 +38,7 @@ void compute(PropagationMatrix& propmat_clearsky,
   constexpr Numeric LIQUID_AND_ICE_TREAT_AS_ZERO = 1e-10;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
 
-  if (lwc < LIQUID_AND_ICE_TREAT_AS_ZERO) {
+  if (lwc < LIQUID_AND_ICE_TREAT_AS_ZERO or t < 230 or t > 373) {
     return;
   }
 
@@ -105,12 +98,6 @@ void compute(PropagationMatrix& propmat_clearsky,
   ARTS_USER_ERROR_IF(std::any_of(f_grid.begin(), f_grid.end(), gt(25e12)),
                      "Liquid cloud absorption model ELL07 only valid at\n"
                      "frequencies up to 25THz. Yours are above.")
-
-  ARTS_USER_ERROR_IF(
-      t < 210 or t > 373,
-      "Only valid for temperatures 210-373 K, not for your value of ",
-      t,
-      " K")
 
   // Temperature in celsius
   const Numeric t_cels = t - 273.15;
