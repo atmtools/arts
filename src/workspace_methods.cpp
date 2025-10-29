@@ -2087,6 +2087,43 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
       .in     = {"frequency_grid", "jacobian_targets"},
   };
 
+  wsm_data["spectral_radianceSetToBackground"] = {
+      .desc =
+          R"--(Set the spectral radiance to the background values.
+
+.. note::
+    This method is compositional and useful inside other agendas or meta-methods.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in     = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
+  };
+
+  wsm_data["spectral_radianceSinglePathEmissionFrequencyLoop"] = {
+      .desc =
+          R"--(Computes the spectral radiance by looping over frequencies for a single path.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in        = {"spectral_radiance",
+                    "spectral_radiance_jacobian",
+                    "jacobian_targets",
+                    "ray_path",
+                    "ray_path_frequency_grid",
+                    "ray_path_atmospheric_point",
+                    "ray_path_propagation_matrix",
+                    "ray_path_propagation_matrix_source_vector_nonlte",
+                    "ray_path_propagation_matrix_jacobian",
+                    "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
+                    "surface_field",
+                    "atmospheric_field"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
+  };
+
   wsm_data["spectral_radianceUniformCosmicBackground"] = {
       .desc =
           R"--(Background spectral radiance is from a uniform cosmic background temperature.

@@ -1120,6 +1120,58 @@ Units: degrees
       .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
   };
 
+  wsv_data["single_radiance"] = {
+      .desc = R"(A single radiance value.
+)",
+      .type = "Stokvec",
+  };
+
+  wsv_data["single_radiance_jacobian"] = {
+      .desc = R"(A single set of radiance Jacobian.
+
+Dimensions: [ jacobian_targets.target_size() ]
+)",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["ray_path_single_frequency"] = {
+      .desc = R"(The frequency along the path.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["ray_path_single_propagation_matrix"] = {
+      .desc = R"(The propagation matrix along the path.
+
+Dimensions: [ ray_path.size() ]
+)",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["ray_path_single_propagation_matrix_jacobian"] = {
+      .desc = R"(The propagation matrix Jacobian along the path.
+
+Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+)",
+      .type = "PropmatMatrix",
+  };
+
+  wsv_data["ray_path_single_propagation_matrix_nonlte"] = {
+      .desc = R"(The propagation matrix along the path for nonlte source vector.
+
+Dimensions: [ ray_path.size() ]
+)",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["ray_path_single_propagation_matrix_nonlte_jacobian"] = {
+      .desc = R"(The propagation matrix Jacobian along the path for nonlte source.
+
+Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+)",
+      .type = "StokvecMatrix",
+  };
+
   agendas(wsv_data);
 
   return wsv_data;
