@@ -30,9 +30,6 @@
 #include <span>
 #include <unordered_map>
 
-#include "compare.h"
-#include "species.h"
-
 namespace {
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
                                                       const Index n) {
@@ -605,6 +602,160 @@ void absorption_bandsReadSpeciesSplitARTSCAT(
     for (auto& m : am) {
       absorption_bands[std::move(m.quantumidentity)].emplace_back(
           std::move(m.data));
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+namespace {
+void sumup_zeeman(PropmatVector& propagation_matrix,
+                  PropmatMatrix& propagation_matrix_jacobian,
+                  Vector& dispersion,
+                  Matrix& dispersion_jacobian,
+                  ComplexVector& pm,
+                  ComplexMatrix& dpm,
+                  const AbsorptionBands& absorption_bands,
+                  const AscendingGrid& frequency_grid,
+                  const JacobianTargets& jacobian_targets,
+                  const AtmPoint& atm_point,
+                  const SpeciesEnum& species,
+                  const Index& no_negative_absorption,
+                  const Vector3& mag,
+                  const Vector2& los,
+                  const lbl::zeeman::pol pol) {
+  using enum lbl::zeeman::pol;
+  using namespace lbl::zeeman;
+
+  pm  = 0;
+  dpm = 0;
+  lbl::voigt::lte::calculate(pm,
+                             dpm,
+                             absorption_bands,
+                             frequency_grid,
+                             jacobian_targets,
+                             atm_point,
+                             pol,
+                             species,
+                             no_negative_absorption);
+  const Propmat npm     = norm_view(pol, mag, los);
+  const Propmat dnpm_du = dnorm_view_du(pol, mag, los);
+  const Propmat dnpm_dv = dnorm_view_dv(pol, mag, los);
+  const Propmat dnpm_dw = dnorm_view_dw(pol, mag, los);
+
+  for (Size i = 0; i < pm.size(); i++) {
+    propagation_matrix[i] += scale(npm, pm[i]);
+    dispersion[i]         -= npm.A() * pm[i].imag();
+
+    for (auto& atm_target : jacobian_targets.atm) {
+      const Size j = atm_target.target_pos;
+
+      std::visit(
+          [&,
+           &x = propagation_matrix_jacobian[j, i],
+           &y = dispersion_jacobian[j, i]]<typename T>(const T& type) {
+            if constexpr (std::same_as<T, AtmKey>) {
+              if (type == AtmKey::mag_u) {
+                x += scale(npm, dnpm_du, pm[i], dpm[j, i]);
+                return;
+              }
+              if (type == AtmKey::mag_v) {
+                x += scale(npm, dnpm_dv, pm[i], dpm[j, i]);
+                return;
+              }
+              if (type == AtmKey::mag_w) {
+                x += scale(npm, dnpm_dw, pm[i], dpm[j, i]);
+                return;
+              }
+            }
+            x += scale(npm, dpm[j, i]);
+            y -= npm.A() * dpm[j, i].imag();
+          },
+          atm_target.type);
+    }
+  }
+}
+}  // namespace
+
+void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
+                                   PropmatMatrix& propagation_matrix_jacobian,
+                                   Vector& dispersion,
+                                   Matrix& dispersion_jacobian,
+                                   const AscendingGrid& frequency_grid,
+                                   const JacobianTargets& jacobian_targets,
+                                   const SpeciesEnum& species,
+                                   const AbsorptionBands& absorption_bands,
+                                   const AtmPoint& atm_point,
+                                   const PropagationPathPoint& path_point,
+                                   const Index& no_negative_absorption) try {
+  ARTS_TIME_REPORT
+
+  //! FIXME: these should be part of workspace once things work
+  dispersion.resize(frequency_grid.size());
+  dispersion_jacobian.resize(jacobian_targets.atm.size(),
+                             frequency_grid.size());
+  dispersion          = 0;
+  dispersion_jacobian = 0;
+
+  ARTS_USER_ERROR_IF(
+      propagation_matrix.shape() != dispersion.shape() or
+          propagation_matrix.shape() != frequency_grid.shape() or
+          propagation_matrix_jacobian.shape() != dispersion_jacobian.shape(),
+      R"(Inconsistent shapes:
+
+propagation_matrix:          {:B,}
+dispersion:                  {:B,}
+frequency_grid:              {:B,}
+propagation_matrix_jacobian: {:B,}
+dispersion_jacobian:         {:B,}
+)",
+      propagation_matrix.shape(),
+      dispersion.shape(),
+      frequency_grid.shape(),
+      propagation_matrix_jacobian.shape(),
+      dispersion_jacobian.shape());
+
+  const Size nf = frequency_grid.size();
+  const Size nt = propagation_matrix_jacobian.nrows();
+  if (nf == 0) return;
+
+  ComplexVector pm(nf, 0.0);
+  ComplexMatrix dpm(nt, nf, 0.0);
+
+  bool has_zeeman = lbl::voigt::lte::calculate(pm,
+                                               dpm,
+                                               absorption_bands,
+                                               frequency_grid,
+                                               jacobian_targets,
+                                               atm_point,
+                                               lbl::zeeman::pol::no,
+                                               species,
+                                               no_negative_absorption);
+
+  propagation_matrix          += pm.real();
+  propagation_matrix_jacobian += dpm.real();
+  dispersion                  -= pm.imag();
+  dispersion_jacobian         -= dpm.imag();
+
+  if (has_zeeman) {
+    const auto mag = atm_point.mag;
+    const auto los = path_point.los;
+    for (auto pol :
+         {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
+      sumup_zeeman(propagation_matrix,
+                   propagation_matrix_jacobian,
+                   dispersion,
+                   dispersion_jacobian,
+                   pm,
+                   dpm,
+                   absorption_bands,
+                   frequency_grid,
+                   jacobian_targets,
+                   atm_point,
+                   species,
+                   no_negative_absorption,
+                   mag,
+                   los,
+                   pol);
     }
   }
 }

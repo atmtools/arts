@@ -2405,6 +2405,35 @@ See :doc:`concept.absorption.lbl` for details.
           {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
+  wsm_data["propagation_matrixAddVoigtLTE"] = {
+      .desc      = R"--(Add line-by-line absorption to the propagation matrix.
+
+See :doc:`concept.absorption.lbl` for details.
+
+This is only for LTE lines in Voigt.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
+      .gout      = {"dispersion", "dispersion_jacobian"},
+      .gout_type = {"Vector", "Matrix"},
+      .gout_desc =
+          {"Dispersion vector - only the main component (i.e., imag(A) of the Propmat",
+           "Dispersion Jacobian matrix - only the main component (i.e., imag(A) of the Propmat"},
+      .in        = {"propagation_matrix",
+                    "propagation_matrix_jacobian",
+                    "frequency_grid",
+                    "jacobian_targets",
+                    "select_species",
+                    "absorption_bands",
+                    "atmospheric_point",
+                    "ray_path_point"},
+      .gin       = {"no_negative_absorption"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Turn off to allow individual absorbers to have negative absorption"},
+  };
+
   wsm_data["propagation_matrixAddLookup"] = {
       .desc     = R"--(Add line-by-line absorption to the propagation matrix.
 
@@ -4281,11 +4310,11 @@ All elements share position, line-of-sight, and frequency grid.
       .desc =
           R"--(Add a sensor to *measurement_sensor* that has a Gaussian zenith response.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor"},
-      .in        = {"measurement_sensor", "frequency_grid"},
-      .gin       = {"pos", "los", "pol", "dza_grid", "std_za"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
+      .author   = {"Richard Larsson"},
+      .out      = {"measurement_sensor"},
+      .in       = {"measurement_sensor", "frequency_grid"},
+      .gin      = {"pos", "los", "pol", "dza_grid", "std_za"},
+      .gin_type = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I),

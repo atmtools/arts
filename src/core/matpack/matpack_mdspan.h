@@ -5,4 +5,4 @@
 #include "matpack_mdspan_math.h"
 #include "matpack_mdspan_strided_view_t.h"
 #include "matpack_mdspan_view_t.h"
-
+#include "matpack_mdspan_algorithm.h"

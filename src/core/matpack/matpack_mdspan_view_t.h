@@ -82,6 +82,9 @@ struct view_t final : public mdview_t<T, N> {
       : base(x.base_md()) {}
 
   explicit constexpr view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
+  explicit constexpr view_t(const T& v)
+    requires(is_const)
+      : base(&v, std::array<Index, 1>{1}) {}
 
   explicit constexpr view_t(std::vector<value_type>& v)
     requires(N == 1)

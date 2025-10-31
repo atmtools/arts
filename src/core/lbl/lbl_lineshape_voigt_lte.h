@@ -2,6 +2,7 @@
 
 #include <arts_constants.h>
 #include <atm.h>
+#include <enumsSpeciesEnum.h>
 #include <matpack.h>
 #include <rtepack.h>
 
@@ -31,6 +32,13 @@ struct single_shape {
   Complex s{};
 
   constexpr single_shape() = default;
+
+  //! Updates the single shape to the given iz (iz==0 returns *this)
+  [[nodiscard]] single_shape update_iz(const SpeciesIsotope&,
+                                       const line&,
+                                       const AtmPoint&,
+                                       const zeeman::pol,
+                                       const Index iz) const;
 
   single_shape(const SpeciesIsotope&,
                const line&,
@@ -524,5 +532,16 @@ void calculate(PropmatVectorView pm,
                const band_data& bnd,
                const AtmPoint& atm,
                const zeeman::pol pol,
+               const bool no_negative_absorption);
+
+//! returns true if number of Zeeman lines is 0
+bool calculate(ComplexVectorView pm,
+               ComplexMatrixView dpm,
+               const AbsorptionBands& bands,
+               const ConstVectorView f_grid,
+               const Jacobian::Targets& jacobian_targets,
+               const AtmPoint& atm,
+               const zeeman::pol pol,
+               const SpeciesEnum spec,
                const bool no_negative_absorption);
 }  // namespace lbl::voigt::lte
