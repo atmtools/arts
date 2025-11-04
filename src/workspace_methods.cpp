@@ -835,6 +835,15 @@ absorption line in the *absorption_bands* variable.
            R"--(Number of frequency points per line.  The step between frequency grid points will be :math:`2\frac{\delta f}{N - 1}`, where this is :math:`N`.)--"},
   };
 
+  wsm_data["frequency_gridFromSingleFrequency"] = {
+      .desc =
+          R"(Composition method, creates a frequency grid from a single frequency.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"frequency_grid"},
+      .in     = {"frequency"},
+  };
+
   wsm_data["atmospheric_fieldFromProfile"] = {
       .desc =
           R"--(Sets the atmospheric field to be the 1D atmospheric profile.
@@ -1091,13 +1100,22 @@ This is based on the work of :cite:t:`Rodrigues1997`.
       .desc =
           R"--(Applies wind shift to the *frequency_grid* for the local frequency grid.
 
-Also sets *frequency_grid_wind_shift_jacobian*.
+Also sets *frequency_wind_shift_jacobian*.
 
 If the wind is 0 or nan, the *frequency_grid* remains unchanged.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid", "frequency_grid_wind_shift_jacobian"},
+      .out    = {"frequency_grid", "frequency_wind_shift_jacobian"},
       .in     = {"frequency_grid", "atmospheric_point", "ray_path_point"},
+  };
+
+  wsm_data["frequencyWindShift"] = {
+      .desc =
+          R"--(Same as *frequency_gridWindShift* but for single frequency values.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"frequency", "frequency_wind_shift_jacobian"},
+      .in     = {"frequency", "atmospheric_point", "ray_path_point"},
   };
 
   wsm_data["ray_path_atmospheric_pointFromProfile"] = {
@@ -1138,7 +1156,7 @@ See *propagation_matrix_jacobianWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_frequency_grid",
-                 "ray_path_frequency_grid_wind_shift_jacobian"},
+                 "ray_path_frequency_wind_shift_jacobian"},
       .in     = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
   };
 
@@ -1157,7 +1175,7 @@ Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
       .in             = {"propagation_matrix_agenda",
                          "ray_path_frequency_grid",
-                         "ray_path_frequency_grid_wind_shift_jacobian",
+                         "ray_path_frequency_wind_shift_jacobian",
                          "jacobian_targets",
                          "ray_path",
                          "ray_path_atmospheric_point"},
@@ -1189,7 +1207,7 @@ are as per *ray_path_propagation_matrixFromPath*.
            R"--(Jacobian of non-LTE source vector for selected species)--"},
       .in             = {"propagation_matrix_agenda",
                          "ray_path_frequency_grid",
-                         "ray_path_frequency_grid_wind_shift_jacobian",
+                         "ray_path_frequency_wind_shift_jacobian",
                          "jacobian_targets",
                          "ray_path",
                          "ray_path_atmospheric_point",
@@ -2048,6 +2066,99 @@ Gets the ellispoid from *surface_field*
                  "frequency_grid"},
   };
 
+  wsm_data["single_spectral_radianceClearskyEmissionPropagation"] = {
+      .desc =
+          R"--(Computes the spectral radiance for a single frequency using clear-sky emission propagation.
+
+The path is built based on current optical properties and the radiative transfer
+equation is solved along the path.  This means that the path is not precomputed
+but built on-the-fly, allowing per-frequency refraction.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"single_spectral_radiance",
+                 "single_spectral_radiance_jacobian",
+                 "ray_path"},
+      .in     = {"atmospheric_field",
+                 "frequency",
+                 "jacobian_targets",
+                 "single_spectral_radiance_space_agenda",
+                 "single_spectral_radiance_surface_agenda",
+                 "propagation_matrix_single_agenda",
+                 "ray_path_point_back_propagation_agenda",
+                 "subsurface_field",
+                 "surface_field",
+                 "ray_path_point",
+                 "max_stepsize"},
+      .gin = {"polarization", "max_tau", "cutoff_tau", "hse_derivative", "N"},
+      .gin_type  = {"Propmat", "Numeric", "Numeric", "Index", "Index"},
+      .gin_value = {Propmat{0, 0, 0, 0, 0, 0, 0},
+                    Numeric{0.01},
+                    Numeric{14.0},
+                    Index{0},
+                    Index{1}},
+      .gin_desc =
+          {"Delta of the dispersion in polarizized form.  "
+            "The dot-product of this and the propagation matrix is added to the internal *dispersion_single* variable.",
+           "The maximum optical thickness per step, min of local *Propmat* A divided by ``max_tau`` "
+           "and *max_stepsize* is passed to *ray_path_point_back_propagation_agendaExecute*.  "
+           "Note that this is an approximation that will fail for highly non-linear absorption profiles.  "
+           "As implemented, it takes too long steps if going from low to high absorption, and "
+           "too short steps when going from high to low absorption.  See it as an approximation.",
+           "Cutoff optical thickness for terminating the integration, "
+           "computed as total *Propmat* A times distance.  "
+           "If exceeded, the atmosphere is considered opaque and the temperature at that coordinate "
+           "is used for the background radiation.  "
+           "If not exceeded, the actual background is considered.  "
+           "Note that errors will be large if exp(-``cutoff_tau``) is not small.",
+           "Flag to compute the hypsometric distance derivatives",
+           "Number of points to reserve in the ray path"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radianceClearskyEmissionPropagation"] = {
+      .desc =
+          R"--(Wraps *single_spectral_radianceClearskyEmissionPropagation* for a vector of frequencies.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .gout           = {"ray_paths"},
+      .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
+      .gout_desc      = {"The ray paths for each frequency"},
+      .in             = {"atmospheric_field",
+                         "frequency_grid",
+                         "jacobian_targets",
+                         "single_spectral_radiance_space_agenda",
+                         "single_spectral_radiance_surface_agenda",
+                         "propagation_matrix_single_agenda",
+                         "ray_path_point_back_propagation_agenda",
+                         "subsurface_field",
+                         "surface_field",
+                         "ray_path_point",
+                         "max_stepsize"},
+      .pass_workspace = true,
+  };
+  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin =
+      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin;
+  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_type =
+      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_type;
+  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_value =
+      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_value;
+  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_desc =
+      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_desc;
+
+  wsm_data["single_spectral_radianceFromVector"] = {
+      .desc =
+          R"--(Composition method to extract a single spectral radiance from a vector.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"single_spectral_radiance", "single_spectral_radiance_jacobian"},
+      .in  = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .gin = {"index"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Index into the first dimension of the spectral radiance"},
+  };
+
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
       .desc           = R"--(Computes the background radiation.
 
@@ -2374,7 +2485,7 @@ matrix to be calculated will work.
                  "propagation_matrix_source_vector_nonlte_jacobian",
                  "frequency_grid",
                  "jacobian_targets",
-                 "frequency_grid_wind_shift_jacobian"},
+                 "frequency_wind_shift_jacobian"},
   };
 
   wsm_data["propagation_matrixAddLines"] = {
@@ -2417,11 +2528,52 @@ This is only for LTE lines in Voigt.
       .gout      = {"dispersion", "dispersion_jacobian"},
       .gout_type = {"Vector", "Matrix"},
       .gout_desc =
-          {"Dispersion vector - only the main component (i.e., imag(A) of the Propmat",
-           "Dispersion Jacobian matrix - only the main component (i.e., imag(A) of the Propmat"},
+          {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
+           "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
                     "frequency_grid",
+                    "jacobian_targets",
+                    "select_species",
+                    "absorption_bands",
+                    "atmospheric_point",
+                    "ray_path_point"},
+      .gin       = {"no_negative_absorption"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Turn off to allow individual absorbers to have negative absorption"},
+  };
+
+  wsm_data["propagation_matrix_singleInit"] = {
+      .desc   = R"--(Initialize single-point propagation matrix fields.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"propagation_matrix_single",
+                 "propagation_matrix_single_jacobian",
+                 "propagation_matrix_single_source_vector_nonlte",
+                 "propagation_matrix_single_source_vector_nonlte_jacobian",
+                 "dispersion_single",
+                 "dispersion_single_jacobian"},
+      .in     = {"jacobian_targets"}};
+
+  wsm_data["propagation_matrix_singleAddVoigtLTE"] = {
+      .desc      = R"--(Add line-by-line absorption to the propagation matrix.
+
+See :doc:`concept.absorption.lbl` for details.
+
+This is only for LTE lines in Voigt.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"propagation_matrix_single",
+                    "propagation_matrix_single_jacobian",
+                    "dispersion_single",
+                    "dispersion_single_jacobian"},
+      .in        = {"propagation_matrix_single",
+                    "propagation_matrix_single_jacobian",
+                    "dispersion_single",
+                    "dispersion_single_jacobian",
+                    "frequency",
                     "jacobian_targets",
                     "select_species",
                     "absorption_bands",
@@ -3348,36 +3500,28 @@ Points are added where the ray path crosses any of the three grids in pure geome
       .desc =
           R"--(Fill the path with geometric step points.
 
-If two path points are more than ``max_step`` apart, additional points are added
+If two path points are more than *max_stepsize* apart, additional points are added
 at half the distance between these two points.
 
 This process is repeated until there are no more neighboring points for which the premise is true.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path"},
-      .in        = {"ray_path", "surface_field"},
-      .gin       = {"max_step"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{1e3}},
-      .gin_desc  = {"The maximum step length"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "surface_field", "max_stepsize"},
   };
 
   wsm_data["ray_pathFillGeometricStepwise"] = {
       .desc =
           R"--(Fill the path with geometric step points.
 
-If two path points are more than ``max_step`` apart, additional points are added
-by propagating one of the points towards the other with a step length of ``max_step``.
+If two path points are more than *max_stepsize* apart, additional points are added
+by propagating one of the points towards the other with a step length of *max_stepsize*.
 
 This process is repeated until there are no more neighboring points for which the premise is true.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path"},
-      .in        = {"ray_path", "surface_field"},
-      .gin       = {"max_step"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{1e3}},
-      .gin_desc  = {"The maximum step length"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "surface_field", "max_stepsize"},
   };
 
   wsm_data["ray_pathFixUpdownAzimuth"] = {
@@ -3478,8 +3622,7 @@ The default settings essentially call the default settings for *ray_pathGeometri
 
 Options:
 
-- ``max_step_option`` and ``max_step``: Choose the maximum distance between two points.
-  The first string tells the behavior, and the second the distance.
+- ``max_step_option``: Choose the maximum distance between two points. Set *max_stepsize* for the distance.
 - ``surface_search_accuracy`` and ``surface_safe_search``: The accuracy to search for
   surface intersections and whether or not to do it at all. 
 - ``remove_nearby`` and ``remove_nearby_first``: The minimum distance between points, ignored if 0 or less.
@@ -3495,7 +3638,6 @@ Options:
       .out       = {"ray_path_observer_agenda"},
       .gin       = {"max_step_option",
                     "surface_search_accuracy",
-                    "max_step",
                     "remove_nearby",
                     "atm_key",
                     "surface_safe_search",
@@ -3508,7 +3650,6 @@ Options:
       .gin_type  = {"String",
                     "Numeric",
                     "Numeric",
-                    "Numeric",
                     "AtmKey",
                     "Index",
                     "Index",
@@ -3519,7 +3660,6 @@ Options:
                     "Index"},
       .gin_value = {String{"step"},
                     Numeric{0.1},
-                    Numeric{1e3},
                     Numeric{0.0},
                     AtmKey::t,
                     Index{1},
@@ -3532,7 +3672,6 @@ Options:
       .gin_desc =
           {"Option for max stepping.  See *ray_path_observer_agendaSetGeometricMaxStep*",
            "The accuracy to search for surface intersections",
-           "The distance to step in-case max stepping is required",
            "The minimum distance between points, ignroed if 0 or less",
            "The atmospheric field key for which the grid is expected if adding grid crossings is desired",
            "Whether or not to search for the surface intersection in a safer but slower manner",
@@ -3550,11 +3689,11 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
-      .gin    = {"max_step"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{1e3}},
-      .gin_desc  = {"The maximum step length"},
+      .in     = {"atmospheric_field",
+                 "surface_field",
+                 "latitude",
+                 "longitude",
+                 "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometricDownlooking"] = {
@@ -3563,11 +3702,11 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
-      .gin    = {"max_step"},
-      .gin_type  = {"Numeric"},
-      .gin_value = {Numeric{1e3}},
-      .gin_desc  = {"The maximum step length"},
+      .in     = {"atmospheric_field",
+                 "surface_field",
+                 "latitude",
+                 "longitude",
+                 "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometric"] = {
@@ -3581,10 +3720,10 @@ at the end of the path.  If ``as_observer`` is true, the ``los`` is therefore
 looking backwards along the path.  Basically, ``as_observer`` true means that
 ``pos`` and ``los`` behaves as sensor pos and los.
 
-The ``max_step`` is the maximum step length in meters.  The path is first
+The *max_stepsize* is the maximum step length in meters.  The path is first
 created between the two extremes of either space and/or surface.  Afterwards,
-there are additional points added every ``max_step`` meters between these
-points until no more fits (the last step is shorter or exactly ``max_step``).
+there are additional points added every *max_stepsize* meters between these
+points until no more fits (the last step is shorter or exactly *max_stepsize*).
 
 Upon closing the method, the following options are available to modify
 the output:
@@ -3604,10 +3743,9 @@ bad angles if this is turned off.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"atmospheric_field", "surface_field"},
+      .in        = {"atmospheric_field", "surface_field", "max_stepsize"},
       .gin       = {"pos",
                     "los",
-                    "max_step",
                     "surface_search_accuracy",
                     "as_observer",
                     "add_limb",
@@ -3617,7 +3755,6 @@ bad angles if this is turned off.
       .gin_type  = {"Vector3",
                     "Vector2",
                     "Numeric",
-                    "Numeric",
                     "Index",
                     "Index",
                     "Index",
@@ -3625,7 +3762,6 @@ bad angles if this is turned off.
                     "Index"},
       .gin_value = {std::nullopt,
                     std::nullopt,
-                    Numeric{1e3},
                     Numeric{0.1},
                     Index{1},
                     Index{0},
@@ -3635,7 +3771,6 @@ bad angles if this is turned off.
       .gin_desc =
           {"The origo of the radiation path",
            "The line of sight of the radiation path",
-           "The maximum step length",
            "The accuracy within which the surface intersection is counted as a hit",
            "Whether or not the path is as seen by the sensor or by the radiation (see text)",
            "Wheter or not to add the limb point",
@@ -4149,6 +4284,35 @@ See *SpeciesIsotope* for valid ``species``
                     "Maximum line frequency to set Zeeman splitting for",
                     "On or off"},
   };
+
+  wsm_data["ray_path_pointPastGeometric"] = {
+      .desc =
+          R"--(Gets the previous geometric point along *ray_path*
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_point"},
+      .in  = {"ray_path", "atmospheric_field", "surface_field", "max_stepsize"},
+      .gin = {"surface_search_accuracy", "surface_safe_search"},
+      .gin_type  = {"Numeric", "Index"},
+      .gin_value = {Numeric{0.1}, Index{1}},
+      .gin_desc =
+          {"The accuracy within which the surface intersection is counted as a hit",
+           "Whether or not to search for the surface intersection in a safer but slower manner"},
+  };
+
+  wsm_data["ray_path_pointPastRefractive"] =
+      wsm_data["ray_path_pointPastGeometric"];
+  wsm_data["ray_path_pointPastRefractive"].desc =
+      R"--(Gets the previous refractive point along *ray_path*
+
+This basically wraps *ray_path_pointPastGeometric* but sets the zenith angle
+to the refracted zenith angle, i.e.,
+
+.. math::
+    
+    \theta_{refracted} = \arcsin\left(\frac{n_{current}}{n_{next}}\sin(\theta_{current})\right)
+)--";
+  wsm_data["ray_path_pointPastRefractive"].in.emplace_back("dispersion_single");
 
   wsm_data["ray_path_pointBackground"] = {
       .desc =

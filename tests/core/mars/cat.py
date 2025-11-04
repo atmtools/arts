@@ -63,7 +63,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
             missing_is_zero=True,
             extrapolation="Nearest",
         )
-    ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
+    ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
     ws.spectral_radianceClearskyEmission()
     ws.spectral_radianceApplyUnitFromSpectralRadiance()
 

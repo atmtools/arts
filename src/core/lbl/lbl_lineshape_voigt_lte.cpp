@@ -1,5 +1,6 @@
 #include "lbl_lineshape_voigt_lte.h"
 
+#include <arts_omp.h>
 #include <atm.h>
 #include <enumsSpeciesEnum.h>
 #include <jacobian.h>
@@ -2072,7 +2073,7 @@ void calculate(PropmatVectorView pm_,
 }
 
 namespace {
-void compute_derivative(auto&& dp,
+void compute_derivative(ComplexVectorView dp,
                         const ConstComplexVectorView&,
                         const ConstVectorView& f_grid,
                         const single_shape& shp,
@@ -2154,7 +2155,7 @@ void compute_derivative(auto&& dp,
   }
 }
 
-void compute_derivative(auto&& dp,
+void compute_derivative(ComplexVectorView dp,
                         const ConstComplexVectorView&,
                         const ConstVectorView& f_grid,
                         const single_shape& shp,
@@ -2182,7 +2183,7 @@ void compute_derivative(auto&& dp,
                  });
 }
 
-void compute_derivative(auto&& dp,
+void compute_derivative(ComplexVectorView dp,
                         const ConstVectorView& f_grid,
                         const single_shape& shp,
                         const QuantumIdentifier& qid,
@@ -2301,7 +2302,7 @@ void compute_derivative(auto&& dp,
   }
 }
 
-void compute_derivative(auto&& dp,
+void compute_derivative(ComplexVectorView dp,
                         const ConstComplexVectorView& p,
                         const ConstVectorView&,
                         const single_shape&,
@@ -2321,7 +2322,7 @@ void compute_derivative(auto&& dp,
   einsum<"i", "", "i">(dp, 1.0 / isorat, p);
 }
 
-void compute_derivative(auto&&,
+void compute_derivative(ComplexVectorView,
                         const ConstComplexVectorView&,
                         const ConstVectorView&,
                         const single_shape&,
@@ -2355,60 +2356,63 @@ bool calculate_shape(ComplexVectorView pm_,
   ComplexVector pm(nf, 0);
   ComplexMatrix dpm(nt, nf, 0);
 
-  const auto kernel =
-      [&](auto&& res, auto&& dres, const Size il, const ConstVectorView freqs) {
-        const auto& line = bnd.lines[il];
-        const Size nz    = line.z.size(line.qn, pol);
+  const auto kernel = [&](ComplexVectorView res,
+                          StridedComplexMatrixView dres,
+                          const Size il,
+                          const ConstVectorView freqs) {
+    const auto& line = bnd.lines[il];
+    const Size nz    = line.z.size(line.qn, pol);
 
-        if (nz == 0) return true;
+    if (nz == 0) return true;
 
-        const single_shape shp_(qid.isot, line, atm, pol, 0);
-        for (Size iz = 0; iz < nz; iz++) {
-          const single_shape shp = shp_.update_iz(qid.isot, line, atm, pol, iz);
-          if (shp.s.real() == 0) continue;
+    const single_shape shp_(qid.isot, line, atm, pol, 0);
+    for (Size iz = 0; iz < nz; iz++) {
+      const single_shape shp = shp_.update_iz(qid.isot, line, atm, pol, iz);
+      if (shp.s.real() == 0) continue;
 
-          std::transform(freqs.begin(),
-                         freqs.end(),
-                         res.begin(),
-                         res.begin(),
-                         [&shp](auto f, auto p) { return shp(f) + p; });
+      std::transform(freqs.begin(),
+                     freqs.end(),
+                     res.begin(),
+                     res.begin(),
+                     [&shp](auto f, auto p) { return shp(f) + p; });
 
-          for (auto& atm_target : jacobian_targets.atm) {
-            assert(atm_target.target_pos < nt);
-            std::visit(
-                [&](auto& target) {
-                  compute_derivative(dres[atm_target.target_pos],
-                                     res,
-                                     freqs,
-                                     shp,
-                                     qid,
-                                     line,
-                                     atm,
-                                     pol,
-                                     target,
-                                     il,
-                                     iz);
-                },
-                atm_target.type);
-          }
+      for (auto& atm_target : jacobian_targets.atm) {
+        assert(atm_target.target_pos < nt);
+        std::visit(
+            [&](auto& target) {
+              compute_derivative(
+                  dres[atm_target.target_pos].to_exhaustive_view(),
+                  res,
+                  freqs,
+                  shp,
+                  qid,
+                  line,
+                  atm,
+                  pol,
+                  target,
+                  il,
+                  iz);
+            },
+            atm_target.type);
+      }
 
-          for (auto& line_target : jacobian_targets.line) {
-            assert(line_target.target_pos < nt);
-            compute_derivative(dres[line_target.target_pos],
-                               freqs,
-                               shp,
-                               qid,
-                               line,
-                               atm,
-                               pol,
-                               line_target.type,
-                               il,
-                               iz);
-          }
-        }
+      for (auto& line_target : jacobian_targets.line) {
+        assert(line_target.target_pos < nt);
+        compute_derivative(dres[line_target.target_pos].to_exhaustive_view(),
+                           freqs,
+                           shp,
+                           qid,
+                           line,
+                           atm,
+                           pol,
+                           line_target.type,
+                           il,
+                           iz);
+      }
+    }
 
-        return false;
-      };
+    return false;
+  };
 
   bool has_pol = false;
   switch (bnd.cutoff) {
@@ -2514,22 +2518,52 @@ bool calculate(ComplexVectorView pm,
   assert(dpm.ncols() == static_cast<Index>(f_grid.size()));
   assert(dpm.nrows() == static_cast<Index>(jacobian_targets.target_count()));
 
+  const Size n = arts_omp_get_max_threads();
   bool has_pol = false;
-  for (auto& [qid, band] : bands) {
-    if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
-    if (spec != "AIR"_spec and spec != qid.isot.spec) continue;
+  if (arts_omp_parallel(pm.size() > n)) {
+    const auto f_ranges = matpack::omp_offset_count(f_grid.size(), n);
+    std::vector<Index> thread_has_pol(n, 0);
+    std::string error;
+#pragma omp parallel for
+    for (Size i = 0; i < n; i++) {
+      try {
+        for (auto& [qid, band] : bands) {
+          thread_has_pol[i] += calculate_shape(pm,
+                                               dpm,
+                                               f_grid,
+                                               f_ranges[i],
+                                               jacobian_targets,
+                                               qid,
+                                               band,
+                                               atm,
+                                               pol,
+                                               no_negative_absorption);
+        }
+      } catch (std::exception& e) {
+#pragma omp critical
+        if (error.empty()) error = e.what();
+      }
+    }
 
-    bool had_zeeman = calculate_shape(pm,
-                                      dpm,
-                                      f_grid,
-                                      Range{0, f_grid.size()},
-                                      jacobian_targets,
-                                      qid,
-                                      band,
-                                      atm,
-                                      pol,
-                                      no_negative_absorption);
-    has_pol         = has_pol or had_zeeman;
+    if (not error.empty()) throw std::runtime_error(error);
+    has_pol = std::ranges::any_of(thread_has_pol, [](auto v) { return v; });
+  } else {
+    for (auto& [qid, band] : bands) {
+      if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
+      if (spec != "AIR"_spec and spec != qid.isot.spec) continue;
+
+      has_pol = calculate_shape(pm,
+                                dpm,
+                                f_grid,
+                                Range{0, f_grid.size()},
+                                jacobian_targets,
+                                qid,
+                                band,
+                                atm,
+                                pol,
+                                no_negative_absorption) or
+                has_pol;
+    }
   }
 
   multiply_scale(pm, dpm, f_grid, jacobian_targets, atm);

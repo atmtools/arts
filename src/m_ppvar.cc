@@ -110,7 +110,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void ray_path_frequency_gridFromPath(
     ArrayOfAscendingGrid &ray_path_frequency_grid,
-    ArrayOfVector3 &ray_path_frequency_grid_wind_shift_jacobian,
+    ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
     const AscendingGrid &frequency_grid,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
@@ -119,13 +119,13 @@ void ray_path_frequency_gridFromPath(
   std::string error;
 
   ray_path_frequency_grid.resize(ray_path.size());
-  ray_path_frequency_grid_wind_shift_jacobian.resize(ray_path.size());
+  ray_path_frequency_wind_shift_jacobian.resize(ray_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < ray_path.size(); ip++) {
     try {
       frequency_gridWindShift(ray_path_frequency_grid[ip] = frequency_grid,
-                              ray_path_frequency_grid_wind_shift_jacobian[ip],
+                              ray_path_frequency_wind_shift_jacobian[ip],
                               ray_path_atmospheric_point[ip],
                               ray_path[ip]);
     } catch (std::exception &e) {

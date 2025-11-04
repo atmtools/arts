@@ -152,7 +152,7 @@ def calculate_tbs_disort():
         disort_quadrature_dimension=NQuad,
         disort_legendre_polynomial_dimension=40,
         disort_fourier_mode_dimension=1,
-        max_step=100,
+        max_stepsize=100,
     )
     disort_stokes = [
         [ws.disort_spectral_radiance_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0]

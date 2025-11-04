@@ -197,9 +197,9 @@ Used in line-by-line calculations requiring ECS data.
       .default_value = " ",
   };
 
-  wsv_data["frequency_grid_wind_shift_jacobian"] = {
+  wsv_data["frequency_wind_shift_jacobian"] = {
       .desc =
-          R"--(The frequency grid wind shift Jacobian.
+          R"--(The frequency wind shift Jacobian.
 
 Used because all methods inside *propagation_matrix_agenda* work on
 the frequency grid, not on the actual wind speed for the sake of
@@ -214,9 +214,9 @@ The order is
       .default_value = "0.0, 0.0, 0.0",
   };
 
-  wsv_data["ray_path_frequency_grid_wind_shift_jacobian"] = {
+  wsv_data["ray_path_frequency_wind_shift_jacobian"] = {
       .desc =
-          R"--(A list of *frequency_grid_wind_shift_jacobian* for a ray path.
+          R"--(A list of *frequency_wind_shift_jacobian* for a ray path.
 )--",
       .type = "ArrayOfVector3",
   };
@@ -1170,6 +1170,79 @@ Dimensions: [ ray_path.size() ]
 Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
 )",
       .type = "StokvecMatrix",
+  };
+
+  wsv_data["propagation_matrix_single"] = {
+      .desc = R"--(A single propagation matrix at a single *frequency* point.
+
+See *propagation_matrix* for more information.
+)--",
+      .type = "Propmat",
+  };
+
+  wsv_data["propagation_matrix_single_jacobian"] = {
+      .desc = R"--(A single propagation matrix Jacobian at a single *frequency* point.
+
+See *propagation_matrix_jacobian* for more information.
+
+Size is number of Jacobian targets.
+)--",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["propagation_matrix_single_source_vector_nonlte"] = {
+      .desc = R"--(A single non-LTE source vector at a single *frequency* point.
+
+See *propagation_matrix* for more information.
+)--",
+      .type = "Stokvec",
+  };
+
+  wsv_data["propagation_matrix_single_source_vector_nonlte_jacobian"] = {
+      .desc = R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
+
+See *propagation_matrix_jacobian* for more information.
+
+Size is number of Jacobian targets.
+)--",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["dispersion_single"] = {
+      .desc = R"--(A single dispersion at a single *frequency* point.
+)--",
+      .type = "Numeric",
+  };
+
+  wsv_data["dispersion_single_jacobian"] = {
+      .desc = R"--(A single dispersion Jacobian at a single *frequency* point.
+)--",
+      .type = "Vector",
+  };
+
+  wsv_data["frequency"] = {
+      .desc = R"--(A single frequency.
+)--",
+      .type = "Numeric",
+  };
+
+  wsv_data["single_spectral_radiance"] = {
+      .desc = R"--(Single value version of *spectral_radiance*.
+)--",
+      .type = "Stokvec",
+  };
+
+  wsv_data["single_spectral_radiance_jacobian"] = {
+      .desc = R"--(Single value version of *spectral_radiance_jacobian*.
+)--",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["max_stepsize"] = {
+      .desc = R"--(A control parameter for stepping through layers in ray tracing.
+)--",
+      .type = "Numeric",
+      .default_value = "1000.0",
   };
 
   agendas(wsv_data);

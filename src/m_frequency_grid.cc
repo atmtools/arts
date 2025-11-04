@@ -1,11 +1,12 @@
 #include <workspace.h>
 
-void frequency_gridWindShift(AscendingGrid& frequency_grid,
-                             Vector3& frequency_grid_wind_shift_jacobian,
-                             const AtmPoint& atmospheric_point,
-                             const PropagationPathPoint& ray_path_point) {
-  ARTS_TIME_REPORT
+#include "matpack_mdspan_helpers_grid_t.h"
 
+namespace {
+void wind_shift(VectorView frequency_grid,
+                Vector3& frequency_wind_shift_jacobian,
+                const AtmPoint& atmospheric_point,
+                const PropagationPathPoint& ray_path_point) {
   constexpr Numeric c = Constant::speed_of_light;
 
   const auto& [u, v, w] = atmospheric_point.wind;
@@ -41,16 +42,15 @@ ray_path_point.los:     {:B,}
 
   //! Zero shift if nan
   if (std::isnan(fac)) {
-    frequency_grid_wind_shift_jacobian = {0, 0, 0};
+    frequency_wind_shift_jacobian = {0, 0, 0};
     return;
   }
 
   // shift the frequency grid
   {
-    Vector tmp = std::move(frequency_grid).rvec();
-    stdr::transform(
-        tmp, tmp.begin(), [fac](const Numeric& f) { return fac * f; });
-    frequency_grid = std::move(tmp);
+    stdr::transform(frequency_grid,
+                    frequency_grid.begin(),
+                    [fac](const Numeric& f) { return fac * f; });
   }
 
   {
@@ -60,7 +60,7 @@ ray_path_point.los:     {:B,}
     const Numeric dcaa_du  = (u2v2 == 0) ? 0.0 : (v * saa / u2v2);
     const Numeric ddp_du =
         czap * dczaf_du + szap * caa * dszaf_du + szap * szaf * dcaa_du;
-    frequency_grid_wind_shift_jacobian[0] = -(dp * df_du + f * ddp_du) / c;
+    frequency_wind_shift_jacobian[0] = -(dp * df_du + f * ddp_du) / c;
   }
 
   {
@@ -70,7 +70,7 @@ ray_path_point.los:     {:B,}
     const Numeric dcaa_dv  = (u2v2 == 0) ? 0.0 : (-u * saa / u2v2);
     const Numeric ddp_dv =
         czap * dczaf_dv + szap * caa * dszaf_dv + szap * szaf * dcaa_dv;
-    frequency_grid_wind_shift_jacobian[1] = -(dp * df_dv + f * ddp_dv) / c;
+    frequency_wind_shift_jacobian[1] = -(dp * df_dv + f * ddp_dv) / c;
   }
 
   {
@@ -78,10 +78,35 @@ ray_path_point.los:     {:B,}
     const Numeric dczaf_dw = (f2 == 0) ? 0.0 : (-w * df_dw / f2 + 1.0 / f);
     const Numeric dszaf_dw = (scl == 0) ? 0.0 : ((w2 * df_dw - f * w) / scl);
     const Numeric ddp_dw   = czap * dczaf_dw + szap * caa * dszaf_dw;
-    frequency_grid_wind_shift_jacobian[2] = -(dp * df_dw + f * ddp_dw) / c;
+    frequency_wind_shift_jacobian[2] = -(dp * df_dw + f * ddp_dw) / c;
   }
 
-  frequency_grid_wind_shift_jacobian /= fac;
+  frequency_wind_shift_jacobian /= fac;
+}
+}  // namespace
+
+void frequency_gridWindShift(AscendingGrid& frequency_grid,
+                             Vector3& frequency_wind_shift_jacobian,
+                             const AtmPoint& atmospheric_point,
+                             const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
+  Vector tmp = std::move(frequency_grid).rvec();
+  wind_shift(
+      tmp, frequency_wind_shift_jacobian, atmospheric_point, ray_path_point);
+  frequency_grid = std::move(tmp);
+}
+
+void frequencyWindShift(Numeric& frequency,
+                        Vector3& frequency_wind_shift_jacobian,
+                        const AtmPoint& atmospheric_point,
+                        const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
+  wind_shift(VectorView{frequency},
+             frequency_wind_shift_jacobian,
+             atmospheric_point,
+             ray_path_point);
 }
 
 void propagation_matrix_jacobianWindFix(
@@ -89,14 +114,14 @@ void propagation_matrix_jacobianWindFix(
     StokvecMatrix& source_vector_nonlte_jacobian,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets,
-    const Vector3& frequency_grid_wind_shift_jacobian) {
+    const Vector3& frequency_wind_shift_jacobian) {
   ARTS_TIME_REPORT
 
   using enum AtmKey;
 
   const auto& atm = jacobian_targets.atm;
 
-  const auto [df_du, df_dv, df_dw] = frequency_grid_wind_shift_jacobian;
+  const auto [df_du, df_dv, df_dw] = frequency_wind_shift_jacobian;
 
   if (auto ptr = std::ranges::find_if(
           atm, Cmp::eq(wind_u), &Jacobian::AtmTarget::type);

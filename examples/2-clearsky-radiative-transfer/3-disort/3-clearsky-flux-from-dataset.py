@@ -67,7 +67,7 @@ ws.disort_legendre_polynomial_dimension = 1
 ws.ray_pathGeometricDownlooking(
     latitude=atm_latitude,
     longitude=atm_longitude,
-    max_step=max_level_step,
+    max_stepsize=max_level_step,
 )
 
 ws.disort_settings_agendaSetup(

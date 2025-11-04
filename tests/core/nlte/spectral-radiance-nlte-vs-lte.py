@@ -32,7 +32,7 @@ ws.propagation_matrix_agendaAuto()
 
 pos = [toa, 0, 0]
 los = [180.0, 0.0]
-ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
+ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 
 ws.spectral_radianceClearskyEmission()
 ws.spectral_radianceApplyUnitFromSpectralRadiance()

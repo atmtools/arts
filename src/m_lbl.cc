@@ -30,24 +30,7 @@
 #include <span>
 #include <unordered_map>
 
-namespace {
-std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
-                                                      const Index n) {
-  std::vector<std::pair<Index, Index>> result(n, {0, 0});
-  const Index dn        = N / n;
-  result.front().second = dn;
-
-  for (Index i = 1; i < n - 1; i++) {
-    result[i].first  = result[i - 1].first + dn;
-    result[i].second = dn;
-  }
-
-  result.back().first  = result[n - 2].first + dn;
-  result.back().second = N - result.back().first;
-
-  return result;
-}
-}  // namespace
+#include "matpack_mdspan_view_t.h"
 
 void absorption_bandsSelectFrequencyByLine(AbsorptionBands& absorption_bands,
                                            const Numeric& fmin,
@@ -295,20 +278,17 @@ void propagation_matrixAddLines(PropmatVector& pm,
                    path_point.los,
                    no_negative_absorption);
   } else {
-    const auto ompv = omp_offset_count(f_grid.size(), n);
+    const auto f_ranges = matpack::omp_offset_count(f_grid.size(), n);
     std::string error;
 #pragma omp parallel for
     for (Size i = 0; i < n; i++) {
       try {
-        const Index offset = ompv[i].first;
-        const Index nelem  = ompv[i].second;
-        const Range f_range(offset, nelem);
         lbl::calculate(pm,
                        sv,
                        dpm,
                        dsv,
                        f_grid,
-                       f_range,
+                       f_ranges[i],
                        jacobian_targets,
                        species,
                        absorption_bands,
@@ -608,14 +588,14 @@ void absorption_bandsReadSpeciesSplitARTSCAT(
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void sumup_zeeman(PropmatVector& propagation_matrix,
-                  PropmatMatrix& propagation_matrix_jacobian,
-                  Vector& dispersion,
-                  Matrix& dispersion_jacobian,
-                  ComplexVector& pm,
-                  ComplexMatrix& dpm,
+void sumup_zeeman(PropmatVectorView propagation_matrix,
+                  PropmatMatrixView propagation_matrix_jacobian,
+                  VectorView dispersion,
+                  MatrixView dispersion_jacobian,
+                  ComplexVectorView pm,
+                  ComplexMatrixView dpm,
                   const AbsorptionBands& absorption_bands,
-                  const AscendingGrid& frequency_grid,
+                  const ConstVectorView& frequency_grid,
                   const JacobianTargets& jacobian_targets,
                   const AtmPoint& atm_point,
                   const SpeciesEnum& species,
@@ -691,7 +671,7 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
 
   //! FIXME: these should be part of workspace once things work
   dispersion.resize(frequency_grid.size());
-  dispersion_jacobian.resize(jacobian_targets.atm.size(),
+  dispersion_jacobian.resize(jacobian_targets.target_count(),
                              frequency_grid.size());
   dispersion          = 0;
   dispersion_jacobian = 0;
@@ -720,6 +700,115 @@ dispersion_jacobian:         {:B,}
 
   ComplexVector pm(nf, 0.0);
   ComplexMatrix dpm(nt, nf, 0.0);
+
+  bool has_zeeman = lbl::voigt::lte::calculate(pm,
+                                               dpm,
+                                               absorption_bands,
+                                               frequency_grid,
+                                               jacobian_targets,
+                                               atm_point,
+                                               lbl::zeeman::pol::no,
+                                               species,
+                                               no_negative_absorption);
+
+  propagation_matrix          += pm.real();
+  propagation_matrix_jacobian += dpm.real();
+  dispersion                  -= pm.imag();
+  dispersion_jacobian         -= dpm.imag();
+
+  if (has_zeeman) {
+    const auto mag = atm_point.mag;
+    const auto los = path_point.los;
+    for (auto pol :
+         {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
+      sumup_zeeman(propagation_matrix,
+                   propagation_matrix_jacobian,
+                   dispersion,
+                   dispersion_jacobian,
+                   pm,
+                   dpm,
+                   absorption_bands,
+                   frequency_grid,
+                   jacobian_targets,
+                   atm_point,
+                   species,
+                   no_negative_absorption,
+                   mag,
+                   los,
+                   pol);
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void propagation_matrix_singleInit(
+    Propmat& propagation_matrix_single,
+    PropmatVector& propagation_matrix_single_jacobian,
+    Stokvec& propagation_matrix_single_source_vector_nonlte,
+    StokvecVector& propagation_matrix_single_source_vector_nonlte_jacobian,
+    Numeric& dispersion_single,
+    Vector& dispersion_single_jacobian,
+    const JacobianTargets& jacobian_targets) try {
+  ARTS_TIME_REPORT
+
+  const Size nt = jacobian_targets.target_count();
+
+  propagation_matrix_single = Propmat{};
+  propagation_matrix_single_jacobian.resize(nt);
+  propagation_matrix_single_jacobian = Propmat{};
+
+  propagation_matrix_single_source_vector_nonlte = Stokvec{};
+  propagation_matrix_single_source_vector_nonlte_jacobian.resize(nt);
+  propagation_matrix_single_source_vector_nonlte_jacobian = Stokvec{};
+
+  dispersion_single = 0;
+  dispersion_single_jacobian.resize(nt);
+  dispersion_single_jacobian = 0;
+}
+ARTS_METHOD_ERROR_CATCH
+
+void propagation_matrix_singleAddVoigtLTE(
+    Propmat& propagation_matrix_single,
+    PropmatVector& propagation_matrix_single_jacobian,
+    Numeric& dispersion_single,
+    Vector& dispersion_single_jacobian,
+    const Numeric& frequency,
+    const JacobianTargets& jacobian_targets,
+    const SpeciesEnum& species,
+    const AbsorptionBands& absorption_bands,
+    const AtmPoint& atm_point,
+    const PropagationPathPoint& path_point,
+    const Index& no_negative_absorption) try {
+  ARTS_TIME_REPORT
+
+  const Size nt = jacobian_targets.target_count();
+
+  //! FIXME: these should be part of workspace once things work
+  dispersion_single = 0;
+  dispersion_single_jacobian.resize(nt);
+  dispersion_single_jacobian = 0;
+
+  ARTS_USER_ERROR_IF(propagation_matrix_single_jacobian.shape() !=
+                         dispersion_single_jacobian.shape(),
+                     R"(Inconsistent shapes:
+
+propagation_matrix_single_jacobian: {:B,}
+dispersion_single_jacobian:         {:B,}
+)",
+                     propagation_matrix_single_jacobian.shape(),
+                     dispersion_single_jacobian.shape());
+
+  Complex pm_(0.0);
+  ComplexVector dpm_(nt, 0.0);
+
+  ComplexVectorView pm(pm_);
+  ComplexMatrixView dpm = dpm_.view_as(nt, 1);
+  const ConstVectorView frequency_grid(frequency);
+  PropmatVectorView propagation_matrix{propagation_matrix_single};
+  PropmatMatrixView propagation_matrix_jacobian{
+      propagation_matrix_single_jacobian.view_as(nt, 1)};
+  VectorView dispersion{dispersion_single};
+  MatrixView dispersion_jacobian{dispersion_single_jacobian.view_as(nt, 1)};
 
   bool has_zeeman = lbl::voigt::lte::calculate(pm,
                                                dpm,

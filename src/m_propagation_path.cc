@@ -2,6 +2,11 @@
 
 #include <algorithm>
 
+#include "atm_field.h"
+#include "enumsSurfaceKey.h"
+#include "geodetic.h"
+#include "path_point.h"
+
 void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const AtmField& atmospheric_field,
                   const SurfaceField& surface_field,
@@ -160,7 +165,6 @@ void ray_path_observer_agendaSetGeometric(
     Agenda& ray_path_observer_agenda,
     const String& max_step_option,
     const Numeric& surface_search_accuracy,
-    const Numeric& max_step,
     const Numeric& remove_nearby,
     const AtmKey& atm_key,
     const Index& surface_safe_search,
@@ -190,11 +194,10 @@ void ray_path_observer_agendaSetGeometric(
 
   switch (to<ray_path_observer_agendaSetGeometricMaxStep>(max_step_option)) {
     case ray_path_observer_agendaSetGeometricMaxStep::half:
-      creator.add("ray_pathFillGeometricMaxStep", SetWsv("max_step", max_step));
+      creator.add("ray_pathFillGeometricMaxStep");
       break;
     case ray_path_observer_agendaSetGeometricMaxStep::step:
-      creator.add("ray_pathFillGeometricStepwise",
-                  SetWsv("max_step", max_step));
+      creator.add("ray_pathFillGeometricStepwise");
       break;
     case ray_path_observer_agendaSetGeometricMaxStep::None: break;
   }
@@ -222,9 +225,9 @@ void ray_path_observer_agendaSetGeometric(
 void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
                        const AtmField& atmospheric_field,
                        const SurfaceField& surface_field,
+                       const Numeric& max_step,
                        const Vector3& pos,
                        const Vector2& los,
-                       const Numeric& max_step,
                        const Numeric& surface_search_accuracy,
                        const Index& as_sensor,
                        const Index& add_limb,
@@ -310,11 +313,11 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
       ray_path,
       atmospheric_field,
       surface_field,
+      max_step,
       {surface_field.single_value(SurfaceKey::h, latitude, longitude),
        latitude,
        longitude},
       {0, 0},
-      max_step,
       1.0,
       true,
       false,
@@ -339,13 +342,68 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
   ray_pathGeometric(ray_path,
                     atmospheric_field,
                     surface_field,
+                    max_step,
                     {atmospheric_field.top_of_atmosphere, latitude, longitude},
                     {180, 0},
-                    max_step,
                     1.0,
                     true,
                     false,
                     true,
                     true,
                     false);
+}
+
+void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
+                                 const ArrayOfPropagationPathPoint& ray_path,
+                                 const AtmField& atmospheric_field,
+                                 const SurfaceField& surface_field,
+                                 const Numeric& max_stepsize,
+                                 const Numeric& safe_search_accuracy,
+                                 const Index& search_safe) {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid);
+  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
+
+  ray_path_point = past_geometric(ray_path.back(),
+                                  atmospheric_field,
+                                  surface_field,
+                                  max_stepsize,
+                                  safe_search_accuracy,
+                                  search_safe);
+}
+
+void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
+                                  const ArrayOfPropagationPathPoint& ray_path,
+                                  const AtmField& atmospheric_field,
+                                  const SurfaceField& surface_field,
+                                  const Numeric& max_stepsize,
+                                  const Numeric& dispersion_single,
+                                  const Numeric& safe_search_accuracy,
+                                  const Index& search_safe) {
+  ARTS_TIME_REPORT
+
+  using Conversion::sind, Conversion::asind;
+
+  ARTS_USER_ERROR_IF(
+      surface_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surface_field.ellipsoid);
+  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
+
+  PropagationPathPoint future = ray_path.back();
+
+  future.zenith() =
+      asind((future.nreal / (1 + dispersion_single)) * sind(future.zenith()));
+  future.nreal = 1 + dispersion_single;
+
+  ray_path_point = past_geometric(ray_path.back(),
+                                  atmospheric_field,
+                                  surface_field,
+                                  max_stepsize,
+                                  safe_search_accuracy,
+                                  search_safe);
 }

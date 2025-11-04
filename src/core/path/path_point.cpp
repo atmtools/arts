@@ -935,6 +935,52 @@ bool is_valid_old_pos(const StridedConstVectorView& pos) {
 bool is_valid_old_pos(const Vector3& pos) {
   return is_valid_old_pos(pos.view());
 }
+
+PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
+                                    const AtmField& atmospheric_field,
+                                    const SurfaceField& surface_field,
+                                    const Numeric max_step,
+                                    const Numeric safe_search_accuracy,
+                                    const bool search_safe) {
+  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
+
+  const auto [ecef, decef] = geodetic_los2ecef(this_geometric.pos,
+                                               path::mirror(this_geometric.los),
+                                               surface_field.ellipsoid);
+
+  const auto [pos, los] = ecef2geodetic_los(
+      ecef + max_step * decef, decef, surface_field.ellipsoid);
+
+  PropagationPathPoint past_geometric{.pos_type = PathPositionType::atm,
+                                      .los_type = PathPositionType::atm,
+                                      .pos      = pos,
+                                      .los      = path::mirror(los),
+                                      .nreal    = this_geometric.nreal,
+                                      .ngroup   = this_geometric.ngroup};
+
+  if (past_geometric.altitude() > atmospheric_field.top_of_atmosphere or
+      past_geometric.altitude() <
+          surface_field.single_value(
+              SurfaceKey::h, past_geometric.pos[1], past_geometric.pos[2])) {
+    ArrayOfPropagationPathPoint path;
+    path.reserve(3);
+    path.emplace_back(init(this_geometric.pos,
+                           this_geometric.los,
+                           atmospheric_field,
+                           surface_field,
+                           false));
+    set_geometric_extremes(path,
+                           atmospheric_field,
+                           surface_field,
+                           safe_search_accuracy,
+                           search_safe);
+    past_geometric        = path.back();
+    past_geometric.nreal  = this_geometric.nreal;
+    past_geometric.ngroup = this_geometric.ngroup;
+  }
+
+  return past_geometric;
+}
 }  // namespace path
 
 void xml_io_stream<PropagationPathPoint>::write(std::ostream& os,
