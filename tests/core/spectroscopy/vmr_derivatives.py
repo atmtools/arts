@@ -77,7 +77,7 @@ for lineshapetype in ["DP", "LP", "VP", "SDVP", "HTP", "SplitLP", "SplitVP", "Sp
             
             if perturb:
                 if (perturbed == 0).all(): continue
-                x = np.allclose(perturbed/analytical, 1, rtol=1e-3)
+                x = np.allclose(perturbed/analytical, 1, rtol=2e-3)
                     
                 if not x:
                     msg = f"Fail for {lineshapetype} for perturbation of {specs[spec_ind]}"

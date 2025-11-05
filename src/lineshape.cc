@@ -34,7 +34,10 @@ Complex Doppler::operator()(Numeric f) noexcept {
 Complex Voigt::operator()(Numeric f) noexcept {
   real_val(z) = invGD * (f - mF0);
   F = inv_sqrt_pi * invGD * Faddeeva::w(z);
-  dF = 2 * invGD * (Complex(0, inv_pi * invGD) - z * F);
+  const Complex dz{std::max(1e-4 * z.real(), 1e-4),
+                   std::max(1e-4 * z.imag(), 1e-4)};
+  const Complex F_2 = inv_sqrt_pi * invGD * Faddeeva::w(z + dz);
+  dF = invGD * (F_2 - F) / dz;
   return F;
 }
 
