@@ -34,6 +34,58 @@ void py_path(py::module_& m) try {
   auto a1 = py::bind_vector<ArrayOfPropagationPathPoint,
                             py::rv_policy::reference_internal>(
       m, "ArrayOfPropagationPathPoint");
+  a1.def(
+      "distances",
+      [](const ArrayOfPropagationPathPoint& path, const Vector2& ellipsoid) {
+        return path::distance(path, ellipsoid);
+      },
+      "ellipsoid"_a,
+      "Calculate distances between neighboring points in the path");
+  a1.def(
+      "altitudes",
+      [](const ArrayOfPropagationPathPoint& path) {
+        return Vector{std::from_range,
+                      path | stdv::transform([](const PropagationPathPoint& p) {
+                        return p.altitude();
+                      })};
+      },
+      "Get all the altitudes in the path");
+  a1.def(
+      "latitudes",
+      [](const ArrayOfPropagationPathPoint& path) {
+        return Vector{std::from_range,
+                      path | stdv::transform([](const PropagationPathPoint& p) {
+                        return p.latitude();
+                      })};
+      },
+      "Get all the latitudes in the path");
+  a1.def(
+      "longitudes",
+      [](const ArrayOfPropagationPathPoint& path) {
+        return Vector{std::from_range,
+                      path | stdv::transform([](const PropagationPathPoint& p) {
+                        return p.longitude();
+                      })};
+      },
+      "Get all the longitudes in the path");
+  a1.def(
+      "zeniths",
+      [](const ArrayOfPropagationPathPoint& path) {
+        return Vector{std::from_range,
+                      path | stdv::transform([](const PropagationPathPoint& p) {
+                        return p.zenith();
+                      })};
+      },
+      "Get all the zeniths in the path");
+  a1.def(
+      "azimuths",
+      [](const ArrayOfPropagationPathPoint& path) {
+        return Vector{std::from_range,
+                      path | stdv::transform([](const PropagationPathPoint& p) {
+                        return p.azimuth();
+                      })};
+      },
+      "Get all the azimuths in the path");
   generic_interface(a1);
   vector_interface(a1);
 

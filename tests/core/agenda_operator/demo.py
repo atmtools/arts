@@ -43,7 +43,7 @@ ws = pyarts.Workspace()
 ws.propagation_matrix_agendaSetOperator(f=interface_function)
 
 ws.frequency_grid = [1, 2]
-ws.frequency_grid_wind_shift_jacobian
+ws.frequency_wind_shift_jacobian
 ws.ray_path_point
 ws.atmospheric_point
 

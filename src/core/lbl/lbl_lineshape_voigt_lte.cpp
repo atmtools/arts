@@ -1,17 +1,19 @@
 #include "lbl_lineshape_voigt_lte.h"
 
+#include <arts_omp.h>
 #include <atm.h>
+#include <enumsSpeciesEnum.h>
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
+#include <quantum.h>
 #include <sorting.h>
 
 #include <Faddeeva/Faddeeva.hh>
+#include <algorithm>
 #include <cmath>
-#include <limits>
 #include <numeric>
 
-#include "enumsSpeciesEnum.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
 
@@ -395,6 +397,25 @@ struct single_shape_builder {
   }
 };
 }  // namespace
+
+[[nodiscard]] single_shape single_shape::update_iz(const SpeciesIsotope& spec,
+                                                   const line& line,
+                                                   const AtmPoint& atm,
+                                                   const zeeman::pol pol,
+                                                   const Index iz) const {
+  single_shape out{*this};
+
+  if (iz != 0) {
+    out.f0 = line_center_calc(line, atm) +
+             std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
+                 line.z.Splitting(line.qn, pol, iz);
+    out.inv_gd = 1.0 / scaled_gd(atm.temperature, spec.mass, out.f0);
+    out.s      = line.z.Strength(line.qn, pol, iz) *
+            line_strength_calc(out.inv_gd, spec, line, atm);
+  }
+
+  return out;
+}
 
 single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
@@ -1866,9 +1887,7 @@ void compute_derivative(PropmatVectorView dpm,
 
   const Numeric isorat = atm[spec];
 
-  ARTS_USER_ERROR_IF(
-      isorat == 0,
-      "Does not support 0 for isotopologue ratios (may be added upon request)")
+  ARTS_USER_ERROR_IF(isorat == 0, "Does not support 0 for isotopologue ratios")
 
   for (Size i = 0; i < f_grid.size(); i++) {
     const auto dF  = com_data.scl[i] * com_data.shape[i] / isorat;
@@ -2051,5 +2070,503 @@ void calculate(PropmatVectorView pm_,
   }
 
   com_data.lines = std::move(shape.lines);
+}
+
+namespace {
+void compute_derivative(ComplexVectorView dp,
+                        const ConstComplexVectorView&,
+                        const ConstVectorView& f_grid,
+                        const single_shape& shp,
+                        const QuantumIdentifier& qid,
+                        const line& line,
+                        const AtmPoint& atm,
+                        const zeeman::pol pol,
+                        const AtmKey& key,
+                        const Size,
+                        const Index iz) {
+  using enum AtmKey;
+  switch (key) {
+    case t: {
+      std::transform(
+          f_grid.begin(),
+          f_grid.end(),
+          dp.begin(),
+          dp.begin(),
+          [&shp,
+           dz_fac = (-2 * atm.temperature * line.ls.dD0_dT(atm) -
+                     2 * atm.temperature * line.ls.dDV_dT(atm) - shp.f0) /
+                    (2 * atm.temperature * shp.f0),
+           ds = line.z.Strength(line.qn, pol, iz) *
+                dline_strength_calc_dT(shp.inv_gd, shp.f0, qid.isot, line, atm),
+           dz = shp.inv_gd *
+                Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)}](
+              auto f, auto d) { return shp.dT(ds, dz, dz_fac, f) + d; });
+
+    } break;
+    case p:     ARTS_USER_ERROR("Not implemented, pressure derivative"); break;
+    case mag_u: {
+      if (pol == zeeman::pol::no) return;
+      const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+      const Numeric dH_dmag_u = atm.mag[0] / H;
+      std::transform(
+          f_grid.begin(),
+          f_grid.end(),
+          dp.begin(),
+          dp.begin(),
+          [&shp,
+           dz = -shp.inv_gd * dH_dmag_u * line.z.Splitting(line.qn, pol, iz)](
+              auto f, auto d) { return shp.dH(dz, f) + d; });
+    } break;
+    case mag_v: {
+      if (pol == zeeman::pol::no) return;
+      const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+      const Numeric dH_dmag_v = atm.mag[1] / H;
+      std::transform(
+          f_grid.begin(),
+          f_grid.end(),
+          dp.begin(),
+          dp.begin(),
+          [&shp,
+           dz = -shp.inv_gd * dH_dmag_v * line.z.Splitting(line.qn, pol, iz)](
+              auto f, auto d) { return shp.dH(dz, f) + d; });
+    } break;
+    case mag_w: {
+      if (pol == zeeman::pol::no) return;
+      const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
+      const Numeric dH_dmag_w = atm.mag[2] / H;
+      std::transform(
+          f_grid.begin(),
+          f_grid.end(),
+          dp.begin(),
+          dp.begin(),
+          [&shp,
+           dz = -shp.inv_gd * dH_dmag_w * line.z.Splitting(line.qn, pol, iz)](
+              auto f, auto d) { return shp.dH(dz, f) + d; });
+    } break;
+    case wind_u:
+    case wind_v:
+    case wind_w: {
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp](auto f, auto d) { return shp.df(f) + d; });
+    } break;
+  }
+}
+
+void compute_derivative(ComplexVectorView dp,
+                        const ConstComplexVectorView&,
+                        const ConstVectorView& f_grid,
+                        const single_shape& shp,
+                        const QuantumIdentifier& qid,
+                        const line& line,
+                        const AtmPoint& atm,
+                        const zeeman::pol pol,
+                        const SpeciesEnum& key,
+                        const Size,
+                        const Index iz) {
+  const Numeric dz_fac =
+      -(line.ls.dD0_dVMR(atm, key) + line.ls.dDV_dVMR(atm, key)) / shp.f0;
+  const Complex ds =
+      line.z.Strength(line.qn, pol, iz) *
+      dline_strength_calc_dVMR(shp.inv_gd, shp.f0, qid.isot, key, line, atm);
+  const Complex dz =
+      shp.inv_gd * Complex{-dline_center_calc_dVMR(line, key, atm),
+                           line.ls.dG0_dVMR(atm, key)};
+  std::transform(f_grid.begin(),
+                 f_grid.end(),
+                 dp.begin(),
+                 dp.begin(),
+                 [&shp, dz, dz_fac, ds](auto f, auto d) {
+                   return shp.dVMR(ds, dz, dz_fac, f) + d;
+                 });
+}
+
+void compute_derivative(ComplexVectorView dp,
+                        const ConstVectorView& f_grid,
+                        const single_shape& shp,
+                        const QuantumIdentifier& qid,
+                        const line& line,
+                        const AtmPoint& atm,
+                        const zeeman::pol pol,
+                        const line_key& key,
+                        const Size il,
+                        const Index iz) {
+  if (key.line != il or key.band != qid) return;
+
+  switch (key.var) {
+    case LineByLineVariable::f0: {
+      const Numeric dz_fac = -1.0 / shp.f0;
+      const Complex ds =
+          line.z.Strength(line.qn, pol, iz) *
+          dline_strength_calc_df0(shp.f0, shp.inv_gd, qid.isot, line, atm);
+      const Complex dz = -shp.inv_gd;
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, dz, dz_fac, ds](auto f, auto d) {
+                       return shp.df0(ds, dz, dz_fac, f) + d;
+                     });
+    } break;
+    case LineByLineVariable::e0: {
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, ds = line.ds_de0_s_ratio(atm.temperature) * shp.s](
+                         auto f, auto d) { return shp.de0(ds, f) + d; });
+    } break;
+    case LineByLineVariable::a: {
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, ds = shp.s / line.a](auto f, auto d) {
+                       return shp.da(ds, f) + d;
+                     });
+    } break;
+  }
+
+  switch (key.ls_var) {
+    case LineShapeModelVariable::G0: {
+      std::transform(
+          f_grid.begin(),
+          f_grid.end(),
+          dp.begin(),
+          dp.begin(),
+          [&shp,
+           dz = Complex(
+               0, shp.inv_gd * line.ls.dG0_dX(atm, key.spec, key.ls_coeff))](
+              auto f, auto d) { return shp.dG0(dz, f) + d; });
+    } break;
+    case LineShapeModelVariable::D0: {
+      const Numeric dD0 = line.ls.dD0_dX(atm, key.spec, key.ls_coeff);
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp,
+                      dz_fac = -dD0 / shp.f0,
+                      ds     = -dD0 * shp.s / shp.f0,
+                      dz     = -dD0 * shp.inv_gd](auto f, auto d) {
+                       return shp.dD0(ds, dz, dz_fac, f) + d;
+                     });
+    } break;
+    case LineShapeModelVariable::G2:  break;
+    case LineShapeModelVariable::D2:  break;
+    case LineShapeModelVariable::FVC: break;
+    case LineShapeModelVariable::ETA: break;
+    case LineShapeModelVariable::Y:   {
+      const Complex ds =
+          line.z.Strength(line.qn, pol, iz) *
+          dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
+                                 shp.inv_gd,
+                                 qid.isot,
+                                 line,
+                                 atm);
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, ds](auto f, auto d) { return shp.dY(ds, f) + d; });
+    } break;
+    case LineShapeModelVariable::G: {
+      const Complex ds =
+          line.z.Strength(line.qn, pol, iz) *
+          dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
+                                 shp.inv_gd,
+                                 qid.isot,
+                                 line,
+                                 atm);
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, ds](auto f, auto d) { return shp.dG(ds, f) + d; });
+    } break;
+    case LineShapeModelVariable::DV: {
+      const Numeric d      = line.ls.dDV_dX(atm, key.spec, key.ls_coeff);
+      const Numeric dz_fac = -d / shp.f0;
+      const Complex ds     = shp.s * dz_fac;
+      const Complex dz     = -d * shp.inv_gd;
+      std::transform(f_grid.begin(),
+                     f_grid.end(),
+                     dp.begin(),
+                     dp.begin(),
+                     [&shp, ds, dz, dz_fac](auto f, auto d) {
+                       return shp.dDV(ds, dz, dz_fac, f) + d;
+                     });
+    } break;
+  }
+}
+
+void compute_derivative(ComplexVectorView dp,
+                        const ConstComplexVectorView& p,
+                        const ConstVectorView&,
+                        const single_shape&,
+                        const QuantumIdentifier& qid,
+                        const line&,
+                        const AtmPoint& atm,
+                        const zeeman::pol,
+                        const SpeciesIsotope& key,
+                        const Size,
+                        const Index) {
+  if (key != qid.isot) return;
+
+  const Numeric isorat = atm[key];
+
+  ARTS_USER_ERROR_IF(isorat == 0, "Does not support 0 for isotopologue ratios")
+
+  einsum<"i", "", "i">(dp, 1.0 / isorat, p);
+}
+
+void compute_derivative(ComplexVectorView,
+                        const ConstComplexVectorView&,
+                        const ConstVectorView&,
+                        const single_shape&,
+                        const QuantumIdentifier&,
+                        const line&,
+                        const AtmPoint&,
+                        const zeeman::pol,
+                        const auto&,
+                        const Size,
+                        const Index) {}
+
+bool calculate_shape(ComplexVectorView pm_,
+                     ComplexMatrixView dpm_,
+                     const ConstVectorView f_grid_,
+                     const Range& f_range,
+                     const JacobianTargets& jacobian_targets,
+                     const QuantumIdentifier& qid,
+                     const band_data& bnd,
+                     const AtmPoint& atm,
+                     const zeeman::pol pol,
+                     const bool no_negative_absorption) {
+  assert(pm_.size() == f_grid_.size());
+  assert(dpm_.ncols() == static_cast<Index>(f_grid_.size()));
+  assert(dpm_.nrows() == static_cast<Index>(jacobian_targets.target_count()));
+
+  const ConstVectorView f_grid = f_grid_[f_range];
+  const Size nf                = f_grid.size();
+  const Size nt                = dpm_.nrows();
+
+  //! Must have to remove negative absorption later (optimization when not?)
+  ComplexVector pm(nf, 0);
+  ComplexMatrix dpm(nt, nf, 0);
+
+  const auto kernel = [&](ComplexVectorView res,
+                          StridedComplexMatrixView dres,
+                          const Size il,
+                          const ConstVectorView freqs) {
+    const auto& line = bnd.lines[il];
+    const Size nz    = line.z.size(line.qn, pol);
+
+    if (nz == 0) return true;
+
+    const single_shape shp_(qid.isot, line, atm, pol, 0);
+    for (Size iz = 0; iz < nz; iz++) {
+      const single_shape shp = shp_.update_iz(qid.isot, line, atm, pol, iz);
+      if (shp.s.real() == 0) continue;
+
+      std::transform(freqs.begin(),
+                     freqs.end(),
+                     res.begin(),
+                     res.begin(),
+                     [&shp](auto f, auto p) { return shp(f) + p; });
+
+      for (auto& atm_target : jacobian_targets.atm) {
+        assert(atm_target.target_pos < nt);
+        std::visit(
+            [&](auto& target) {
+              compute_derivative(
+                  dres[atm_target.target_pos].to_exhaustive_view(),
+                  res,
+                  freqs,
+                  shp,
+                  qid,
+                  line,
+                  atm,
+                  pol,
+                  target,
+                  il,
+                  iz);
+            },
+            atm_target.type);
+      }
+
+      for (auto& line_target : jacobian_targets.line) {
+        assert(line_target.target_pos < nt);
+        compute_derivative(dres[line_target.target_pos].to_exhaustive_view(),
+                           freqs,
+                           shp,
+                           qid,
+                           line,
+                           atm,
+                           pol,
+                           line_target.type,
+                           il,
+                           iz);
+      }
+    }
+
+    return false;
+  };
+
+  bool has_pol = false;
+  switch (bnd.cutoff) {
+    case LineByLineCutoffType::None: {
+      for (Size il = 0; il < bnd.lines.size(); il++) {
+        has_pol = kernel(pm, dpm, il, f_grid) or has_pol;
+      }
+    } break;
+    case LineByLineCutoffType::ByLine: {
+      Complex cutoff = 0.0;
+      ComplexVector dcutoffs(nt, 0.0);
+      ComplexVectorView cut{cutoff};
+      ComplexMatrixView dcut = dcutoffs.view_as(nt, 1);
+
+      for (Size il = 0; il < bnd.lines.size(); il++) {
+        const Numeric l = bnd.lines[il].f0 - bnd.cutoff_value;
+        const Numeric u = bnd.lines[il].f0 + bnd.cutoff_value;
+        const ConstVectorView freq{u};
+        const auto in = sorted_range(f_grid, l, u);
+        has_pol = kernel(pm[in], dpm[joker, in], il, f_grid[in]) or has_pol;
+        has_pol = kernel(cut, dcut, il, freq) or has_pol;
+      }
+
+      pm -= cutoff;
+      for (Size i = 0; i < nt; i++) dpm[i] -= dcutoffs[i];
+    } break;
+  }
+
+  if (no_negative_absorption) {
+    for (Size i = 0; i < nf; i++) {
+      if (pm[i].real() < 0) {
+        pm[i]         = Complex{0, 0};
+        dpm[joker, i] = 0.0;
+      }
+    }
+  }
+
+  pm_[f_range]         += pm;
+  dpm_[joker, f_range] += dpm;
+
+  return has_pol;
+}
+
+void multiply_scale(ComplexVectorView pm,
+                    ComplexMatrixView dpm,
+                    const ConstVectorView f_grid,
+                    const JacobianTargets& jacobian_targets,
+                    const AtmPoint& atm) {
+  using Constant::pi, Constant::c, Constant::h, Constant::k;
+  constexpr Numeric sc = c * c / (8 * pi);
+
+  const Numeric T = atm.temperature;
+  const Numeric P = atm.pressure;
+  const Numeric N = number_density(P, T);
+
+  for (Size i = 0; i < pm.size(); i++) {
+    const auto f    = f_grid[i];
+    const Numeric r = (h * f) / (k * T);
+
+    const Numeric e   = std::expm1(-r);
+    const Numeric scl = -N * f * e * sc;
+
+    auto& p = pm[i];
+    for (auto& atm_target : jacobian_targets.atm) {
+      auto& dp  = dpm[atm_target.target_pos, i];
+      dp       *= scl;
+
+      std::visit(
+          [&]<typename U>(const U& key) {
+            if constexpr (std::same_as<U, AtmKey>) {
+              switch (key) {
+                case AtmKey::p: dp += p * scl / P; break;
+                case AtmKey::t:
+                  dp -= p * f * N * (r * (e + 1) - e) * sc / T;
+                  break;
+                case AtmKey::wind_u:
+                case AtmKey::wind_v:
+                case AtmKey::wind_w:
+                  dp += p * N * (r * (e + 1) - e) * sc;
+                  break;
+                default:;
+              }
+            }
+          },
+          atm_target.type);
+    }
+
+    p *= scl;
+  }
+}
+}  // namespace
+
+bool calculate(ComplexVectorView pm,
+               ComplexMatrixView dpm,
+               const AbsorptionBands& bands,
+               const ConstVectorView f_grid,
+               const JacobianTargets& jacobian_targets,
+               const AtmPoint& atm,
+               const zeeman::pol pol,
+               const SpeciesEnum spec,
+               const bool no_negative_absorption) {
+  assert(pm.size() == f_grid.size());
+  assert(dpm.ncols() == static_cast<Index>(f_grid.size()));
+  assert(dpm.nrows() == static_cast<Index>(jacobian_targets.target_count()));
+
+  const Size n = arts_omp_get_max_threads();
+  bool has_pol = false;
+  if (arts_omp_parallel(pm.size() > n)) {
+    const auto f_ranges = matpack::omp_offset_count(f_grid.size(), n);
+    std::vector<Index> thread_has_pol(n, 0);
+    std::string error;
+#pragma omp parallel for
+    for (Size i = 0; i < n; i++) {
+      try {
+        for (auto& [qid, band] : bands) {
+          thread_has_pol[i] += calculate_shape(pm,
+                                               dpm,
+                                               f_grid,
+                                               f_ranges[i],
+                                               jacobian_targets,
+                                               qid,
+                                               band,
+                                               atm,
+                                               pol,
+                                               no_negative_absorption);
+        }
+      } catch (std::exception& e) {
+#pragma omp critical
+        if (error.empty()) error = e.what();
+      }
+    }
+
+    if (not error.empty()) throw std::runtime_error(error);
+    has_pol = std::ranges::any_of(thread_has_pol, [](auto v) { return v; });
+  } else {
+    for (auto& [qid, band] : bands) {
+      if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
+      if (spec != "AIR"_spec and spec != qid.isot.spec) continue;
+
+      has_pol = calculate_shape(pm,
+                                dpm,
+                                f_grid,
+                                Range{0, f_grid.size()},
+                                jacobian_targets,
+                                qid,
+                                band,
+                                atm,
+                                pol,
+                                no_negative_absorption) or
+                has_pol;
+    }
+  }
+
+  multiply_scale(pm, dpm, f_grid, jacobian_targets, atm);
+  return has_pol;
 }
 }  // namespace lbl::voigt::lte

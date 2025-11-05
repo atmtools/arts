@@ -833,6 +833,29 @@ ray_path_point : PropagationPathPoint
                          "SpectralRadianceUnitType",
                      });
 
+  wsg_data["Propmat"] = {
+      .file = "rtepack.h",
+      .desc = R"--(A single propagation matrix.
+
+Due to the properties of a propagation matrix, only 7 independents need be stored.
+The propagation matrix is thus represented as:
+
+.. math::
+    \mathbf{K} = \left[ \begin {array} {rrrr}
+    A & B & C & D \\
+    B & A & U & V \\
+    C &-U & A & W \\
+    D &-V &-W & A
+    \end {array} \right]
+
+This type is related to *Stokvec* in that its first 4 elements are the same as
+the first 4 elements of *Stokvec* for pure clearsky radiative transfers.
+
+This type is also related to *Muelmat* because it is computed often as the exponent
+of this term multiplied by a negative distance.
+)--",
+  };
+
   agenda_operators(wsg_data);
 
   add_arrays_of(wsg_data,

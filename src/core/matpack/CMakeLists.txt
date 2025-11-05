@@ -15,6 +15,7 @@ add_library(matpack STATIC
   interpolation.cc
   minimize.cc
   lagrange_interp.cc
+  matpack_mdspan_algorithm.cc
 )
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)

@@ -90,7 +90,7 @@ class AtmosphericFlux:
         self.ws.ray_pathGeometricDownlooking(
             latitude=atm_latitude,
             longitude=atm_longitude,
-            max_step=max_level_step,
+            max_stepsize=max_level_step,
         )
 
         self.ws.ray_path_atmospheric_pointFromPath()

@@ -31,7 +31,7 @@ for e in itertools.product(u, v, w, z, a, f):
     ws.frequency_gridWindShift()
 
     f0 = ws.frequency_grid[0] * 1.0
-    df = 1.0 * ws.frequency_grid_wind_shift_jacobian * f0
+    df = 1.0 * ws.frequency_wind_shift_jacobian * f0
     df_p = [0, 0, 0]
 
     for i in range(3):

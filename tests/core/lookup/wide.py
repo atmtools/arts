@@ -42,7 +42,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
+ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 
 # %% Checks and settings for LBL
 for water_ratio in [5e-1, 5]:

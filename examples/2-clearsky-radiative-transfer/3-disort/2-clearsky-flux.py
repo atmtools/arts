@@ -40,7 +40,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()
 
-ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_step=40_000)
+ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_stepsize=40_000)
 
 ws.disort_spectral_flux_fieldFromAgenda(
     disort_quadrature_dimension=NQuad,

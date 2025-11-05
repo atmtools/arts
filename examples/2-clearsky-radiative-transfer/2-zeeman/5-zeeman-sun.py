@@ -48,7 +48,7 @@ res = np.empty((len(zas), len(aas)))
 for iza in range(len(zas)):
     for iaa in range(len(aas)):
         los = [zas[iza], aas[iaa]]
-        ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
+        ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
         ws.spectral_radianceClearskyEmission()
         ws.spectral_radianceApplyUnitFromSpectralRadiance()
         res[iza, iaa] = ws.spectral_radiance[0][0]

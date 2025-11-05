@@ -378,6 +378,12 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   [[nodiscard]] constexpr auto nshelves() const { return extent(N - 5); }
   [[nodiscard]] constexpr auto nvitrines() const { return extent(N - 6); }
   [[nodiscard]] constexpr auto nlibraries() const { return extent(N - 7); }
+
+  //! Convert to view_t
+  constexpr auto to_exhaustive_view() const {
+    assert(base(*this).is_exhaustive());
+    return view_t<std::conditional_t<is_const, const T, T>, N>{*this};
+  }
 };
 }  // namespace matpack
 

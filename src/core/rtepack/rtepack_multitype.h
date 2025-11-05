@@ -135,6 +135,9 @@ Matrix to_matrix(const propmat &v);
 //! Transform a Stokes (absorption) vector to a vector of shape (4)
 Vector to_vector(const stokvec &v);
 
+//! Transform a propmat to a stokvec
+stokvec to_stokvec(const propmat &a);
+
 //! Transform a matpack type to a stokvec
 stokvec to_stokvec(const ConstVectorView &a);
 

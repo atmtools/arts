@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -64,6 +65,10 @@ Matrix to_matrix(const propmat &v) {
 }
 
 Vector to_vector(const stokvec &v) { return {v.I(), v.Q(), v.U(), v.V()}; }
+
+stokvec to_stokvec(const propmat &a) {
+  return {a[0], a[1], a[2], a[3]};
+}
 
 stokvec to_stokvec(const ConstVectorView &a) {
   assert(a.size() == 4);

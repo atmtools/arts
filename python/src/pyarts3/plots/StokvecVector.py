@@ -47,12 +47,12 @@ def plot(
     freqs = np.arange(data.shape[0]) if freqs is None else freqs
 
     if component is None:
-        fig, ax = default_fig_ax(fig, ax, 4, 1, fig_kwargs={
-                                 'figsize': (8, 24), 'constrained_layout': True})
-        select_flat_ax(ax, 0).plot(freqs, data[:, 0], label="I", **kwargs)
-        select_flat_ax(ax, 1).plot(freqs, data[:, 1], label="Q", **kwargs)
-        select_flat_ax(ax, 2).plot(freqs, data[:, 2], label="U", **kwargs)
-        select_flat_ax(ax, 3).plot(freqs, data[:, 3], label="V", **kwargs)
+        fig, ax = default_fig_ax(fig, ax, 2, 2, fig_kwargs={
+                                 'figsize': (12, 12), 'constrained_layout': True})
+        select_flat_ax(ax, 0).plot(freqs, data[:, 0], **kwargs)
+        select_flat_ax(ax, 1).plot(freqs, data[:, 1], **kwargs)
+        select_flat_ax(ax, 2).plot(freqs, data[:, 2], **kwargs)
+        select_flat_ax(ax, 3).plot(freqs, data[:, 3], **kwargs)
     else:
         component = pyarts.arts.Stokvec(component)
         fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={'figsize': (8, 6)})

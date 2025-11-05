@@ -25,7 +25,7 @@ calculations that are happening deep in your ARTS method calls.
                        "propagation_matrix_jacobian",
                        "propagation_matrix_source_vector_nonlte_jacobian"},
       .input        = {"frequency_grid",
-                       "frequency_grid_wind_shift_jacobian",
+                       "frequency_wind_shift_jacobian",
                        "jacobian_targets",
                        "select_species",
                        "ray_path_point",
@@ -52,6 +52,31 @@ calculations that are happening deep in your ARTS method calls.
                "frequency_grid.size()",
                "jacobian_targets.target_count()"},
           },
+  };
+
+  wsa_data["propagation_matrix_single_agenda"] = {
+      .desc =
+          R"--(Computes the propagation matrix, the non-LTE source vector, the dispersion, and their derivatives.
+
+The intent of this agenda is to be the workhorse for the propagation matrix
+calculations that are happening deep in your ARTS method calls.  The methods
+in question here only compute a single frequency point at a time.
+
+If you do not need single-frequency-point calculations, consider using
+*propagation_matrix_agenda* instead as it will likely be more efficient.
+)--",
+      .output = {"propagation_matrix_single",
+                 "propagation_matrix_single_source_vector_nonlte",
+                 "dispersion_single",
+                 "propagation_matrix_single_jacobian",
+                 "propagation_matrix_single_source_vector_nonlte_jacobian",
+                 "dispersion_single_jacobian"},
+      .input  = {"frequency",
+                 "frequency_wind_shift_jacobian",
+                 "jacobian_targets",
+                 "select_species",
+                 "ray_path_point",
+                 "atmospheric_point"},
   };
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
@@ -113,6 +138,31 @@ position and line of sight.
                  "spectral_radiance_observer_line_of_sight"},
   };
 
+  wsa_data["ray_path_point_back_propagation_agenda"] = {
+      .desc =
+          R"--(Gets the next past point along a propagation path.
+
+*ray_path* must have a point already.  This point is propagated backwards.
+
+It is up to internal methods if they respect *dispersion_single* or not.
+
+It is up to internal methods if they respect *max_stepsize* or not.
+
+A special exception may be made for a 1-size *ray_path* that is in space or at the surface,
+where the next point may be the same point as the input.
+
+The end of the path is reached when the last point in *ray_path* is
+at *PathPositionType* ``space`` or ``surface``.
+)--",
+      .output       = {"ray_path_point"},
+      .input        = {"ray_path",
+                       "dispersion_single",
+                       "propagation_matrix_single",
+                       "max_stepsize"},
+      .enum_options = {"GeometricStepwise", "RefractiveStepwise"},
+      .enum_default = "GeometricStepwise",
+  };
+
   wsa_data["spectral_radiance_observer_agenda"] = {
       .desc =
           R"--(Computes spectral radiance as seen from the input position and environment.
@@ -148,6 +198,19 @@ is warranted.
           },
   };
 
+  wsa_data["single_spectral_radiance_space_agenda"] = {
+      .desc =
+          R"--(Gets spectral radiance as seen of space for a single frequency.
+
+Otherwise same as *spectral_radiance_space_agenda*.
+)--",
+      .output       = {"single_spectral_radiance",
+                       "single_spectral_radiance_jacobian"},
+      .input        = {"frequency", "jacobian_targets", "ray_path_point"},
+      .enum_options = {"WrapGrid"},
+      .enum_default = "WrapGrid",
+  };
+
   wsa_data["spectral_radiance_space_agenda"] = {
       .desc         = R"--(Gets spectral radiance as seen of space.
 
@@ -175,7 +238,7 @@ The input path point should be as if it is looking at space.
       }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc               = R"--(Computes spectral radiance as seen of the surface.
+      .desc         = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -186,14 +249,14 @@ Subsurface calculations are also supported through this agenda,
 but might require setting *spectral_radiance_closed_surface_agenda*
 as well.
 )--",
-      .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input              = {"frequency_grid",
-                             "jacobian_targets",
-                             "ray_path_point",
-                             "surface_field",
-                             "subsurface_field"},
-      .enum_options       = {"Blackbody", "Transmission", "SurfaceReflectance"},
-      .enum_default       = "Blackbody",
+      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .input        = {"frequency_grid",
+                       "jacobian_targets",
+                       "ray_path_point",
+                       "surface_field",
+                       "subsurface_field"},
+      .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .enum_default = "Blackbody",
       .output_constraints = {
           {"spectral_radiance.size() == frequency_grid.size()",
            "On output, *spectral_radiance* has the size of *frequency_grid*.",
@@ -205,6 +268,23 @@ as well.
            "frequency_grid.size()",
            "jacobian_targets.x_size()"},
       }};
+
+  wsa_data["single_spectral_radiance_surface_agenda"] = {
+      .desc =
+          R"--(Gets spectral radiance as seen of the surface for a single frequency.
+
+Otherwise same as *spectral_radiance_surface_agenda*.
+)--",
+      .output       = {"single_spectral_radiance",
+                       "single_spectral_radiance_jacobian"},
+      .input        = {"frequency",
+                       "jacobian_targets",
+                       "ray_path_point",
+                       "surface_field",
+                       "subsurface_field"},
+      .enum_options = {"WrapGrid"},
+      .enum_default = "WrapGrid",
+  };
 
   wsa_data["inversion_iterate_agenda"] = {
       .desc               = R"--(Work in progress ...

@@ -55,9 +55,9 @@ void ray_path_spectral_radianceClearskyEmission(
   ray_path_atmospheric_pointFromPath(
       ray_path_atmospheric_point, ray_path, atmospheric_field);
   ArrayOfAscendingGrid ray_path_frequency_grid;
-  ArrayOfVector3 ray_path_frequency_grid_wind_shift_jacobian;
+  ArrayOfVector3 ray_path_frequency_wind_shift_jacobian;
   ray_path_frequency_gridFromPath(ray_path_frequency_grid,
-                                  ray_path_frequency_grid_wind_shift_jacobian,
+                                  ray_path_frequency_wind_shift_jacobian,
                                   frequency_grid,
                                   ray_path,
                                   ray_path_atmospheric_point);
@@ -74,7 +74,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_propagation_matrix_source_vector_nonlte_jacobian,
       propagation_matrix_agenda,
       ray_path_frequency_grid,
-      ray_path_frequency_grid_wind_shift_jacobian,
+      ray_path_frequency_wind_shift_jacobian,
       {},
       ray_path,
       ray_path_atmospheric_point);

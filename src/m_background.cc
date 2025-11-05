@@ -195,3 +195,48 @@ void spectral_radianceDefaultTransmission(
   spectral_radiance.resize(nf);
   spectral_radiance = 1;
 }
+
+void single_spectral_radiance_backgroundAgendasAtEndOfPath(
+    const Workspace& ws,
+    Stokvec& single_spectral_radiance_background,
+    StokvecVector& single_spectral_radiance_background_jacobian,
+    const Numeric& frequency,
+    const JacobianTargets& jacobian_targets,
+    const PropagationPathPoint& ray_path_point,
+    const SurfaceField& surface_field,
+    const SubsurfaceField& subsurface_field,
+    const Agenda& single_spectral_radiance_space_agenda,
+    const Agenda& single_spectral_radiance_surface_agenda) try {
+  ARTS_TIME_REPORT
+
+  using enum PathPositionType;
+  switch (ray_path_point.los_type) {
+    case atm:
+      ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
+      break;
+    case unknown: ARTS_USER_ERROR("Undefined background type"); break;
+    case space:
+      single_spectral_radiance_space_agendaExecute(
+          ws,
+          single_spectral_radiance_background,
+          single_spectral_radiance_background_jacobian,
+          frequency,
+          jacobian_targets,
+          ray_path_point,
+          single_spectral_radiance_space_agenda);
+      break;
+    case surface:
+      single_spectral_radiance_surface_agendaExecute(
+          ws,
+          single_spectral_radiance_background,
+          single_spectral_radiance_background_jacobian,
+          frequency,
+          jacobian_targets,
+          ray_path_point,
+          surface_field,
+          subsurface_field,
+          single_spectral_radiance_surface_agenda);
+      break;
+  }
+}
+ARTS_METHOD_ERROR_CATCH

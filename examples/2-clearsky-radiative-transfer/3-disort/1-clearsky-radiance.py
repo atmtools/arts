@@ -53,7 +53,7 @@ ws.disort_spectral_radiance_fieldProfile(
 ws.ray_pathGeometricDownlooking(
     latitude=lat,
     longitude=lon,
-    max_step=1000.0,
+    max_stepsize=1000.0,
 )
 ws.spectral_radianceClearskyEmission()
 
