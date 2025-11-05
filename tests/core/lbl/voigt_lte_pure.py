@@ -50,7 +50,7 @@ ws.propagation_matrixAddVoigtLTE()
 d2 = ws.dispersion * 1.0
 pm2 = ws.propagation_matrix * 1.0
 dpm2 = (pm2 - pm) / 10
-f = ws.frequency_grid = f
+ws.frequency_grid = f
 
 # %% Standard code
 

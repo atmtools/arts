@@ -30,7 +30,7 @@ ws.propagation_matrix_agendaAuto()
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
-    toa=120e3, basename="planets/Earth/afgl/subarctic-winter/", missing_is_zero=1
+    toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 ws.atmospheric_fieldIGRF()
 
@@ -86,12 +86,12 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Tests
 
-assert np.allclose(geometric.flatten()[::21], [1.05936097e+02, -2.94133265e-04, -1.43256518e-03,  3.74373053e-01,
-                                               1.14603826e+02,  9.71356380e-02, -1.35513992e-02, -3.08284667e-01,
-                                               1.08782585e+02, -2.30422420e-04])
+assert np.allclose(geometric.flatten()[::21], [1.26516031e+02, -4.99448843e-04, -2.38994089e-03,  5.88143041e-01,
+                                               1.39502441e+02,  9.84298368e-02, -1.94638344e-02, -4.89492470e-01,
+                                               1.30367808e+02, -3.92928440e-04])
 
-assert np.allclose(refractive.flatten()[::21], [1.05990620e+02, -2.94006494e-04, -1.43197179e-03,  3.74215042e-01,
-                                                1.14655448e+02,  9.70970512e-02, -1.35451379e-02, -3.08153979e-01,
-                                                1.08837328e+02, -2.30330763e-04])
+assert np.allclose(refractive.flatten()[::21], [1.26573452e+02, -4.99213662e-04, -2.38899177e-03,  5.87893039e-01,
+                                                1.39555246e+02,  9.83904117e-02, -1.94546777e-02, -4.89281896e-01,
+                                                1.30425177e+02, -3.92760150e-04])
 
 assert not np.allclose(geometric, refractive)
