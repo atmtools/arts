@@ -381,7 +381,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
 
   //! Convert to view_t
   constexpr auto to_exhaustive_view() const {
-    assert(this->is_exhaustive());
+    assert(base(*this).is_exhaustive());
     return view_t<std::conditional_t<is_const, const T, T>, N>{*this};
   }
 };

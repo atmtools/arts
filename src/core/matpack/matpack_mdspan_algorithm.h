@@ -3,6 +3,7 @@
 #include <compare.h>
 
 #include <algorithm>
+#include <ranges>
 #include <vector>
 
 #include "matpack_mdspan_common.h"
@@ -27,7 +28,8 @@ std::vector<Range> omp_offset_count(const Index N, const Index n);
 template <any_md T>
 data_t<value_type<T>, 1 + rank<T>()> create(const std::vector<T>& vec) {
   assert(not vec.empty());
-  assert(not stdr::all_of(vec, Cmp::eq(vec[0].shape()), &T::shape));
+  assert(stdr::none_of(vec | stdv::transform([](auto& v) { return v.shape(); }),
+                       Cmp::ne(vec[0].shape())));
 
   constexpr Size new_rank = 1 + rank<T>();
 

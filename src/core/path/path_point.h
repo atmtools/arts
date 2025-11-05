@@ -63,7 +63,7 @@ using ArrayOfArrayOfArrayOfPropagationPathPoint =
  */
 Vector2 mirror(const Vector2 los);
 
-/** Initializes a propagation path point
+/** Initializes a propagation path point to an invalid state
  *
  * The point is initialized at the sensor or start of radiation as determined 
  * by the as_sensor flag.  If the path is initialized as a sensor
@@ -81,6 +81,24 @@ PropagationPathPoint init(const Vector3& pos,
                           const AtmField& atm_field,
                           const SurfaceField& surface_field,
                           bool as_sensor = true);
+
+/** Initializes a propagation path point to a valid state.
+ *
+ * First calls init(), then sets the geometric extremes of the path point,
+ * but only selects the first point returned
+ * 
+ * @param pos The sensor or radiation position of the path
+ * @param los The sensor or radiation line-of-sight
+ * @param atm_field The atmospheric field (as the WSV) 
+ * @param surface_field The surface field (as the WSV)
+ * @param as_sensor Treat as sensor flag
+ * @return A path point that may initialize a path
+ */
+PropagationPathPoint init_with_lostype(const Vector3& pos,
+                                       const Vector2& los,
+                                       const AtmField& atm_field,
+                                       const SurfaceField& surface_field,
+                                       bool as_sensor);
 
 /** Set the geometric extremes object
  * 

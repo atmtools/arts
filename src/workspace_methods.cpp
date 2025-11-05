@@ -2087,7 +2087,8 @@ but built on-the-fly, allowing per-frequency refraction.
                  "ray_path_point_back_propagation_agenda",
                  "subsurface_field",
                  "surface_field",
-                 "ray_path_point",
+                 "spectral_radiance_observer_position",
+                 "spectral_radiance_observer_line_of_sight",
                  "max_stepsize"},
       .gin = {"polarization", "max_tau", "cutoff_tau", "hse_derivative", "N"},
       .gin_type  = {"Propmat", "Numeric", "Numeric", "Index", "Index"},
@@ -2098,7 +2099,7 @@ but built on-the-fly, allowing per-frequency refraction.
                     Index{1}},
       .gin_desc =
           {"Delta of the dispersion in polarizized form.  "
-            "The dot-product of this and the propagation matrix is added to the internal *dispersion_single* variable.",
+           "The dot-product of this and the propagation matrix is added to the internal *dispersion_single* variable.",
            "The maximum optical thickness per step, min of local *Propmat* A divided by ``max_tau`` "
            "and *max_stepsize* is passed to *ray_path_point_back_propagation_agendaExecute*.  "
            "Note that this is an approximation that will fail for highly non-linear absorption profiles.  "
@@ -2115,7 +2116,7 @@ but built on-the-fly, allowing per-frequency refraction.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceClearskyEmissionPropagation"] = {
+  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"] = {
       .desc =
           R"--(Wraps *single_spectral_radianceClearskyEmissionPropagation* for a vector of frequencies.
 )--",
@@ -2133,17 +2134,22 @@ but built on-the-fly, allowing per-frequency refraction.
                          "ray_path_point_back_propagation_agenda",
                          "subsurface_field",
                          "surface_field",
-                         "ray_path_point",
+                         "spectral_radiance_observer_position",
+                         "spectral_radiance_observer_line_of_sight",
                          "max_stepsize"},
       .pass_workspace = true,
   };
-  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin =
+  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+      .gin =
       wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin;
-  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_type =
+  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+      .gin_type =
       wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_type;
-  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_value =
+  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+      .gin_value =
       wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_value;
-  wsm_data["spectral_radianceClearskyEmissionPropagation"].gin_desc =
+  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+      .gin_desc =
       wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_desc;
 
   wsm_data["single_spectral_radianceFromVector"] = {

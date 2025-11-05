@@ -386,7 +386,7 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
                                   const Index& search_safe) {
   ARTS_TIME_REPORT
 
-  using Conversion::sind, Conversion::asind;
+  using Conversion::cosd, Conversion::acosd;
 
   ARTS_USER_ERROR_IF(
       surface_field.bad_ellipsoid(),
@@ -395,12 +395,12 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
 
   PropagationPathPoint future = ray_path.back();
-
   future.zenith() =
-      asind((future.nreal / (1 + dispersion_single)) * sind(future.zenith()));
+      acosd((future.nreal / (1.0 + dispersion_single)) * cosd(future.zenith()));
+
   future.nreal = 1 + dispersion_single;
 
-  ray_path_point = past_geometric(ray_path.back(),
+  ray_path_point = past_geometric(future,
                                   atmospheric_field,
                                   surface_field,
                                   max_stepsize,

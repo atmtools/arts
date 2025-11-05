@@ -691,7 +691,8 @@ void single_spectral_radianceClearskyEmissionPropagation(
     const Agenda& ray_path_point_back_propagation_agenda,
     const SubsurfaceField& subsurface_field,
     const SurfaceField& surface_field,
-    const PropagationPathPoint& ray_path_point,
+    const Vector3& spectral_radiance_observer_position,
+    const Vector2& spectral_radiance_observer_line_of_sight,
     const Numeric& max_stepsize,
     const Propmat& polarization,
     const Numeric& max_tau,
@@ -732,25 +733,37 @@ void single_spectral_radianceClearskyEmissionPropagation(
   ray_path.clear();
   ray_path.reserve(N);
   ray_path.resize(1);
-  ray_path.front() = ray_path_point;
-  if (ray_path_point.pos_type != PathPositionType::atm) {
-    PropagationPathPoint tmp_point;
-    ray_path_point_back_propagation_agendaExecute(
-        ws,
-        tmp_point,
-        ray_path,
-        0.0,
-        0.0,
-        max_stepsize,
-        ray_path_point_back_propagation_agenda);
-    ray_path.pop_back();
-    ray_path.push_back(tmp_point);
+  ray_path[0] =
+      path::init_with_lostype(spectral_radiance_observer_position,
+                              spectral_radiance_observer_line_of_sight,
+                              atmospheric_field,
+                              surface_field,
+                              true);
 
-    if (ray_path.back().los_type == PathPositionType::space or
-        ray_path.back().los_type == PathPositionType::surface) {
-      //! FIXME: Must do background radiation at end of path
-      return;
-    }
+  if (ray_path.back().los_type == PathPositionType::space) {
+    single_spectral_radiance_space_agendaExecute(
+        ws,
+        single_spectral_radiance,
+        single_spectral_radiance_jacobian,
+        frequency_,
+        jacobian_targets,
+        ray_path.back(),
+        single_spectral_radiance_space_agenda);
+    return;
+  }
+
+  if (ray_path.back().los_type == PathPositionType::surface) {
+    single_spectral_radiance_surface_agendaExecute(
+        ws,
+        single_spectral_radiance,
+        single_spectral_radiance_jacobian,
+        frequency_,
+        jacobian_targets,
+        ray_path.back(),
+        surface_field,
+        subsurface_field,
+        single_spectral_radiance_surface_agenda);
+    return;
   }
 
   Numeric sumAr = 0.0;
@@ -877,7 +890,7 @@ void single_spectral_radianceClearskyEmissionPropagation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceClearskyEmissionPropagation(
+void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
     const Workspace& ws,
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
@@ -891,7 +904,8 @@ void spectral_radianceClearskyEmissionPropagation(
     const Agenda& ray_path_point_back_propagation_agenda,
     const SubsurfaceField& subsurface_field,
     const SurfaceField& surface_field,
-    const PropagationPathPoint& ray_path_point,
+    const Vector3& spectral_radiance_observer_position,
+    const Vector2& spectral_radiance_observer_line_of_sight,
     const Numeric& max_stepsize,
     const Propmat& polarization,
     const Numeric& max_tau,
@@ -904,6 +918,7 @@ void spectral_radianceClearskyEmissionPropagation(
   spectral_radiance.resize(nf);
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(), nf);
   spectral_radiance = 0.0;
+  ray_paths.clear();
   ray_paths.resize(nf);
 
   std::string error{};
@@ -927,7 +942,8 @@ void spectral_radianceClearskyEmissionPropagation(
           ray_path_point_back_propagation_agenda,
           subsurface_field,
           surface_field,
-          ray_path_point,
+          spectral_radiance_observer_position,
+          spectral_radiance_observer_line_of_sight,
           max_stepsize,
           polarization,
           max_tau,

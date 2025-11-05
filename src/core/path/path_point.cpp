@@ -15,6 +15,7 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
+#include <stdexcept>
 #include <utility>
 
 namespace path {
@@ -208,6 +209,31 @@ PropagationPathPoint init(const Vector3& pos,
                               .los      = as_sensor ? mirror(los) : los};
 }
 
+PropagationPathPoint init_with_lostype(const Vector3& pos,
+                                       const Vector2& los,
+                                       const AtmField& atm_field,
+                                       const SurfaceField& surface_field,
+                                       bool as_sensor) {
+  PropagationPathPoint p = init(pos, los, atm_field, surface_field, as_sensor);
+
+  using enum PathPositionType;
+  switch (p.pos_type) {
+    case atm:     [[fallthrough]];
+    case space:   [[fallthrough]];
+    case surface: {
+      ArrayOfPropagationPathPoint path{p};
+      set_geometric_extremes(path, atm_field, surface_field);
+      for (auto& pt : path) {
+        if (pt.los_type == atm) return pt;
+      }
+      return path[0];
+    } break;
+    case unknown:
+      throw std::runtime_error("Cannot set los_type for unknown position type");
+  }
+  std::unreachable();
+}
+
 namespace {
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
@@ -225,29 +251,51 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
     const Vector2 ell) {
   using Math::pow2;
 
-  const Numeric x0  = ecef[0];
-  const Numeric y0  = ecef[1];
-  const Numeric z0  = ecef[2];
-  const Numeric dx  = decef[0];
-  const Numeric dy  = decef[1];
-  const Numeric dz  = decef[2];
-  const Numeric a   = ell[0] + alt;
-  const Numeric b   = ell[1] + alt;
-  const Numeric a2  = pow2(a);
-  const Numeric b2  = pow2(b);
-  const Numeric den = a2 * pow2(dz) + b2 * (pow2(dx) + pow2(dy));
-  const Numeric sqr_a =
-      a2 * (den - pow2(dy * z0 - dz * y0) - pow2(dx * z0 - dz * x0));
-  const Numeric sqr_b  = b2 * pow2(dy * x0 - dx * y0);
-  const Numeric sqr    = std::sqrt(sqr_a - sqr_b);
-  const Numeric term   = -a2 * dz * z0 - b2 * (dx * x0 + dy * y0);
-  const Numeric invden = 1 / den;
-  const Numeric t0     = (term + b * sqr) * invden;
-  const Numeric t1     = (term - b * sqr) * invden;
-  const Numeric& t     = min_geq0(t0, t1);
+  // Normalize coordinates to the altitude-adjusted spheroid to keep numbers small
+  const Numeric a = ell[0] + alt;  // equatorial radius
+  const Numeric b = ell[1] + alt;  // polar radius
 
-  if (sqr == 0) return {t, nan};
-  return {t, (&t == &t0) ? t1 : t0};
+  const Numeric x0 = ecef[0] / a;
+  const Numeric y0 = ecef[1] / a;
+  const Numeric z0 = ecef[2] / b;
+  const Numeric dx = decef[0] / a;
+  const Numeric dy = decef[1] / a;
+  const Numeric dz = decef[2] / b;
+
+  // Quadratic coefficients in normalized space:
+  // A l^2 + B' l + C = 0, with
+  //   A = |d|^2, B' = 2 dot(d, x0), C = |x0|^2 - 1
+  const Numeric A   = pow2(dx) + pow2(dy) + pow2(dz);
+  const Numeric dot = dx * x0 + dy * y0 + dz * z0;  // half of B'
+  const Numeric C   = pow2(x0) + pow2(y0) + pow2(z0) - 1;
+
+  assert(std::isnormal(A));
+
+  // Discriminant in terms of 'dot' (since B' = 2*dot): D = B'^2 - 4AC = 4(dot^2 - A*C)
+  const Numeric Dhalf = dot * dot - A * C;  // equals D/4
+  if (Dhalf < 0) return {nan, nan};
+
+  const Numeric sqrtDhalf = std::sqrt(Dhalf);
+
+  // Robust quadratic solution (q-method) to avoid catastrophic cancellation
+  // For A l^2 + B' l + C = 0, let q' = -0.5*(B' + sign(B')*sqrt(D)),
+  // then roots are l1 = q'/A, l2 = C/q'. Using dot and sqrtDhalf avoids large values.
+  const Numeric q = -(dot + std::copysign(sqrtDhalf, dot));
+
+  Numeric l1, l2;
+  if (q == 0) {
+    // Tangent or near-tangent case: both roots equal -B'/(2A) = -dot/A
+    l1 = -dot / A;
+    l2 = l1;
+  } else {
+    l1 = q / A;
+    l2 = C / q;
+  }
+
+  // Select smallest positive root first
+  const Numeric& l = min_geq0(l1, l2);
+  if (Dhalf == 0) return {l, nan};
+  return {l, (&l == &l1) ? l2 : l1};
 }
 
 namespace {
@@ -416,14 +464,10 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
   switch (path.pos_type) {
     case unknown: ARTS_USER_ERROR("Unknown start position");
     case space:   {
-      if (not looking_down) {
-        return error(space);
-      }
+      if (not looking_down) return error(space);
 
       const auto [r_start_atm, r_end_atm] = get_r_atm();
-      if (nonstd::isnan(r_start_atm) or r_start_atm < 0) {
-        return error(space);
-      }
+      if (nonstd::isnan(r_start_atm) or r_start_atm < 0) return error(space);
 
       const Numeric r_surface = get_r_surface();
 
@@ -438,9 +482,7 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
               .second_is_valid = true};
     }
     case surface:
-      if (looking_down) {
-        return error(surface);
-      }
+      if (looking_down) return error(surface);
       [[fallthrough]];
     case atm: {
       const Numeric r_surface = get_r_surface();
@@ -458,14 +500,14 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
                 .second_is_valid = false};
       }
 
-      if (r1 < 0) {
-        return {.first           = get_point(r0, atm, space),
+      if (nonstd::isnan(r0) or r0 < 0) {
+        return {.first           = get_point(r1, atm, space),
                 .second          = path,
                 .second_is_valid = false};
       }
 
-      if (r0 < 0) {
-        return {.first           = get_point(r1, atm, space),
+      if (nonstd::isnan(r1) or r1 < 0) {
+        return {.first           = get_point(r0, atm, space),
                 .second          = path,
                 .second_is_valid = false};
       }
@@ -948,8 +990,8 @@ PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
                                                path::mirror(this_geometric.los),
                                                surface_field.ellipsoid);
 
-  const auto [pos, los] = ecef2geodetic_los(
-      ecef + max_step * decef, decef, surface_field.ellipsoid);
+  const auto [pos, los] =
+      poslos_at_distance(ecef, decef, surface_field.ellipsoid, max_step);
 
   PropagationPathPoint past_geometric{.pos_type = PathPositionType::atm,
                                       .los_type = PathPositionType::atm,
@@ -958,10 +1000,11 @@ PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
                                       .nreal    = this_geometric.nreal,
                                       .ngroup   = this_geometric.ngroup};
 
-  if (past_geometric.altitude() > atmospheric_field.top_of_atmosphere or
-      past_geometric.altitude() <
-          surface_field.single_value(
-              SurfaceKey::h, past_geometric.pos[1], past_geometric.pos[2])) {
+  if (past_geometric.altitude() >= atmospheric_field.top_of_atmosphere or
+      past_geometric.altitude() <=
+          surface_altitude(surface_field,
+                           past_geometric.latitude(),
+                           past_geometric.longitude())) {
     ArrayOfPropagationPathPoint path;
     path.reserve(3);
     path.emplace_back(init(this_geometric.pos,
