@@ -12,7 +12,7 @@ def plot(data: ArrayOfCIARecord,
          *,
          fig=None,
          ax=None,
-         same: bool = True,
+         same: bool = False,
          freqs: AscendingGrid = None,
          atm: AtmPoint | AtmField | None = None,
          path_point: PropagationPathPoint = PropagationPathPoint(),
@@ -80,7 +80,7 @@ def plot(data: ArrayOfCIARecord,
         del kwargs["label"]
 
     for i, v in enumerate(data):
-        CIARecord.plot(v, fig=fig, ax=select_flat_ax(ax, i if same else 0),
+        CIARecord.plot(v, fig=fig, ax=select_flat_ax(ax, 0 if same else i),
                         freqs=freqs, atm=atm, path_point=path_point,
                         T_extrapolfac=T_extrapolfac, label=f"{v.specs[0]}-CIA-{v.specs[1]}",
                         **kwargs)
