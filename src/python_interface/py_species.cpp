@@ -17,6 +17,7 @@
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "isotopologues.h"
+#include "nanobind/operators.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -168,6 +169,15 @@ void py_species(py::module_& m) try {
                                        std::get<2>(state),
                                        std::get<3>(state));
            });
+  siso.def(py::self == py::self);
+  siso.def(py::self != py::self);
+  siso.def(py::self <= py::self);
+  siso.def(py::self >= py::self);
+  siso.def(py::self < py::self);
+  siso.def(py::self > py::self);
+  siso.def("__hash__", [](const SpeciesIsotope& self) {
+    return std::hash<SpeciesIsotope>{}(self);
+  });
 
   auto a1 =
       py::bind_vector<ArrayOfSpeciesIsotope, py::rv_policy::reference_internal>(

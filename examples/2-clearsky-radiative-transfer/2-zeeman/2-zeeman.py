@@ -42,11 +42,11 @@ ws.spectral_radianceClearskyEmission()
 ws.spectral_radianceApplyUnitFromSpectralRadiance()
 
 # %% Show results
-fig, ax = plt.subplots()
-ax.plot((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance + 0)
-ax.set_xlabel("Frequency offset [MHz]")
-ax.set_ylabel("Spectral radiance [K]")
-ax.set_title(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")
+fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
+    ws.frequency_grid - line_f0) / 1e6)
+[a.set_xlabel("Frequency offset [MHz]") for a in ax.flatten()]
+[a.set_ylabel("Spectral radiance [K]") for a in ax.flatten()]
+fig.suptitle(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")
 
 if "ARTS_HEADLESS" not in os.environ:
     plt.show()

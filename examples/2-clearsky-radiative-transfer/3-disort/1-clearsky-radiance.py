@@ -1,4 +1,4 @@
-import  os
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -58,14 +58,10 @@ ws.ray_pathGeometricDownlooking(
 ws.spectral_radianceClearskyEmission()
 
 # %% Plot results
-f = ws.frequency_grid - line_f0
+f = ws.frequency_grid / 1e9
 
-fig, ax = plt.subplots()
-ax.semilogy(
-    f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, : (NQuad // 2)],
-    label="disort",
-)
+fig, ax = pyarts.plot(ws.disort_spectral_radiance_field,
+                      freqs=f, plotstyle='plot', select='down', alpha=0.5)
 ax.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
 ax.semilogy(
     f,
@@ -80,7 +76,7 @@ ax.semilogy(
     lw=3,
 )
 ax.set_ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
-ax.set_xlabel("Dirac frequency [index count]")
+ax.set_xlabel("Dirac frequency [GHz]")
 ax.set_title("Downlooking")
 
 if "ARTS_HEADLESS" not in os.environ:

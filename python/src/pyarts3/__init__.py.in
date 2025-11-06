@@ -15,6 +15,9 @@ def __getattr__(attr):
     elif attr == "plots":
         import pyarts3.plots as plots
         return plots
+    elif attr == "plot":
+        import pyarts3.plots as plots
+        return plots.plot
     elif attr == "workspace":
         import pyarts3.workspace as workspace
         return workspace

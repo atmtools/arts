@@ -12,11 +12,13 @@ figure, a list of subplots, and nothing more.
 """
 
 from . import AbsorptionBands
+from . import ArrayOfCIARecord
 from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
 from . import AscendingGrid
 from . import AtmField
 from . import AzimuthGrid
+from . import CIARecord
 from . import DisortFlux
 from . import DisortRadiance
 from . import GeodeticField2

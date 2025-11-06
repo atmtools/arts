@@ -25,7 +25,7 @@ def plot(data: AbsorptionBands,
          **kwargs):
     """Creates a plot of the absorption by the bands in the AbsorptionBands object.
 
-    If freqs is and index, this is the number of frequency points between the lowest
+    If freqs is an index, this is the number of frequency points between the lowest
     and highest frequency in the AbsorptionBands object.  If freqs is an AscendingGrid,
     it is used directly for the x-axis.
 
