@@ -12,6 +12,7 @@
 #include "hpy_arts.h"
 #include "isotopologues.h"
 #include "matpack_mdspan_helpers_grid_t.h"
+#include "matpack_mdspan_helpers_gridded_data_t.h"
 #include "physics_funcs.h"
 #include "species_tags.h"
 
@@ -24,9 +25,12 @@ void py_cia(py::module_& m) try {
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
           "The two species\n\n.. :class:`tuple[pyarts3.arts.SpeciesEnum, pyarts3.arts.SpeciesEnum]`")
-      .def_prop_ro(
+      .def_prop_rw(
           "data",
           [](const CIARecord& c) { return c.Data(); },
+          [](CIARecord& c, const ArrayOfGriddedField2& data) {
+            c.Data() = data;
+          },
           "Data by bands\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
           "propagation_matrix",

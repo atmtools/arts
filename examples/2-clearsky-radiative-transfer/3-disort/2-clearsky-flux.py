@@ -1,5 +1,7 @@
 import numpy as np
 import pyarts3 as pyarts
+import matplotlib.pyplot as plt
+import os
 
 # Download catalogs
 pyarts.data.download()
@@ -90,3 +92,20 @@ assert np.allclose(
     ),
     1,
 ), "Mismatch from historical Disort spectral fluxes"
+
+fig = plt.figure(figsize=(16, 5))
+fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig,
+                      alts=ws.disort_spectral_flux_field.altitude_grid / 1e3,
+                      freqs=ws.frequency_grid / 1e9, levels=50)
+fig.suptitle("Disort clearsky spectral fluxes")
+[a.set_ylabel("Altitude [km]") for a in ax]
+[a.set_xlabel("Frequency [GHz]") for a in ax]
+[fig.colorbar(a.get_children()[0], ax=a,
+              label="Spectral flux [W m$^{-2}$ Hz$^{-1}$]") for a in ax]
+ax[0].set_title("Upwelling spectral flux")
+ax[1].set_title("Downwelling diffuse spectral flux")
+ax[2].set_title("Downwelling direct spectral flux")
+
+if "ARTS_HEADLESS" not in os.environ:
+    plt.tight_layout()
+    plt.show()

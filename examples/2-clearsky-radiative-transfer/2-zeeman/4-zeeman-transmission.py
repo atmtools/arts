@@ -43,8 +43,9 @@ ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 ws.spectral_radianceClearskyTransmission()
 
 # %% Show results
-fig, ax = plt.subplots()
-ax.semilogy((ws.frequency_grid - line_f0) / 1e6, ws.spectral_radiance)
+fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
+    ws.frequency_grid - line_f0) / 1e6, component='I')
+ax.set_yscale('log')
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
 ax.set_title(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")

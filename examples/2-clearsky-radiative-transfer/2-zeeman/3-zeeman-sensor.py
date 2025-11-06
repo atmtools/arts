@@ -44,8 +44,8 @@ ws.measurement_sensorSimpleGaussian(std=1e5, pos=pos, los=los, pol="RC")
 ws.measurement_vectorFromSensor()
 
 # %% Show results
-fig, ax = plt.subplots()
-ax.plot((ws.frequency_grid - line_f0) / 1e6, ws.measurement_vector)
+fig, ax = pyarts.plot(ws.measurement_vector, xgrid=(
+    ws.frequency_grid - line_f0) / 1e6)
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
 ax.set_title(

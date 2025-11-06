@@ -23,113 +23,68 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
 
-# Download catalogs
-pyarts.data.download()
-
-# Initialize ARTS
+# Initialize ARTS workspace
 ws = pyarts.workspace.Workspace()
 
 """
+The workspace contains an absorption species helper list
+that allows it to understand what data and methods you
+will want to call.
 
-Set ws.abs_species to the species tags that you wish to use.  CIA tags are
-structured so that the main and secondary species are separated by the word
-"CIA"
-
-This example sets up self CIA by molecular oxygen
-
-CIA is not just self-induced but can occur between two different molecules.  In
-this case you can change the tag to read something like "O2-CIA-N2", though
-you must ensure that there also exists another N2 species in your ws.abs_species
-as this is the only way to pass the volume mixing ratio of the atmosphere into
-ARTS
+This example sets the absorption species to O2 collision-induced
+absorption (CIA) with self and also with N2
+"""
+ws.absorption_speciesSet(species=["O2-CIA-O2", "O2-CIA-N2"])
 
 """
-ws.absorption_speciesSet(species=["O2-CIA-O2"])
+We now need to load the data.
 
+ARTS comes with a lot of CIA data available
+in its arts-cat-data repository.  The first line below
+downloads that data to a local cache and allows you
+to run this script.
+
+You can also provide CIA data in other ways, e.g., by loading HITRAN
+or some other format.  What is important is to populate the absorption
+CIA data object with appropriate data.
 """
-
-Loads all CIA data from a given folder.  This command expects the file
-"cia/O2-CIA-O2.xml" to be found either by relative local path or in the
-user-defined search paths.
-
-"""
+pyarts.data.download()
 ws.absorption_cia_dataReadSpeciesSplitCatalog(basename="cia/")
 
-
 """
-
-This example does not deal with line-by-line absorption at all.  We must still
-ensure that the line-by-line catalog has the correct size and that it has been
-set so that our automatic agenda routine can do its work
-
-"""
-ws.absorption_bands = {}
-
-"""
-
-You should generally always call this after you are done setting up your
-ws.abs_species and ws.abs_lines_per_species.  It will deal with the internal
-ARTS setup for you.  Note that the flag use_abs_lookup=1 can be passed to this
-method call to set up the agenda for USING the the lookup-table.  Without the
-flag, ARTS should be configured correctly to either COMPUTE the lookup-table
-or to compute the absorption on-the-fly
-
-In this case, it turns out that the temparature extrapolation is not enough
-for a tropical atmosphere scenario below, so we extend it a small bit.  Play
-with this "T_extrapolfac" value to see the relevant error message
-
-"""
-ws.propagation_matrix_agendaAuto(T_extrapolfac=1)
-
-"""
-
 Compute absorption
 
-Now we can use the propagation_matrix_agenda to compute the absorption of O2-66.
-We can also use this agenda in more complicated setups that might require
-absorption calculations, but that is for other examples
+Now we can use any of the methods available to compute CIA absorption.
 
-To just execute the agenda we need to still define its both its inputs and the
-inputs required to initialize the propagation matrix
+Below we simply set a simple atmosphere and plot the resulting absorption.
 
+Please see other examples for more details on how to use CIA
+calculations in increasingly complex ways to solve your problem
 """
 
-ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.frequency_grid = pyarts.arts.convert.wavelen2freq(
-    np.linspace(6900e-9, 5900e-9, 1001)
-)
-ws.atmospheric_point.temperature = 295  # At room temperature
-ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point["O2"] = 0.21  # At 21% atmospheric Oxygen
-ws.ray_path_point  # No particular POSLOS
-
-# Call the agenda with inputs above
-ws.propagation_matrix_agendaExecute()
+# Initialize an atmospheric point
+atm = pyarts.arts.AtmPoint()
+atm.temperature = 295  # At room temperature
+atm.pressure = 1e5  # At 1 bar
+atm["O2"] = 0.21  # At 21% atmospheric Oxygen
+atm["N2"] = 0.78  # At 78% atmospheric Nitrogen
 
 # Plot the absorption of this example
-fig, ax = plt.subplots()
-ax.plot(
-    1e9 * pyarts.arts.convert.freq2wavelen(ws.frequency_grid.value),
-    ws.propagation_matrix[:, 0],
-)
-ax.set_xlabel("Wavelength [nm]")
-ax.set_ylabel("Absorption [1/m]")
-ax.set_title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
+fig, ax = pyarts.plot(ws.absorption_cia_data, atm=atm)
+for i, a in enumerate(ax.flatten()):
+    a.set_xlabel("Wavelength [nm]")
+    a.set_ylabel("Absorption [1/m]")
+    f0 = np.inf
+    f1 = -np.inf
+    for x in ws.absorption_cia_data[i].data:
+        f0 = min(f0, x.grids[0][0])
+        f1 = max(f1, x.grids[0][-1])
+    f = np.linspace(f0, f1, 7)
+    a.set_xticks(f, (pyarts.arts.convert.freq2wavelen(f)*1e9).round(1))
+    a.set_yscale('log')
+    a.set_title(a.get_lines()[0].get_label())
+fig.suptitle("CIA Absorption")
 
 if "ARTS_HEADLESS" not in os.environ:
+    plt.tight_layout()
     plt.show()
-
-"""
-That's it!  You are done and have reached the end of this example.  Everything
-below here is just to ensure that ARTS does not break in the future.  It can
-be safely ignored
-
-"""
-# Save test results
-# ws.propagation_matrix.savexml("cia_test_result.xml", type="ascii")
-
-# test that we are still OK
-propagation_matrix_agenda = pyarts.arts.PropmatVector.fromxml("cia_test_result.xml")
-assert np.allclose(propagation_matrix_agenda, ws.propagation_matrix), (
-    "O2 Absorption has changed"
-)

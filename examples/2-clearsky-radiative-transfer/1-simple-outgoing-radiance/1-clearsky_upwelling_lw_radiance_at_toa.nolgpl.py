@@ -63,8 +63,7 @@ ws.spectral_radianceClearskyEmission()
 
 # %% Show results
 
-fig, ax = plt.subplots()
-ax.plot(kayser_grid, ws.spectral_radiance[:, 0])
+fig, ax = pa.plot(ws.spectral_radiance, freqs=kayser_grid, component="I")
 ax.set_xlabel("Frequency / Kayser (cm$^{-1}$)")
 ax.set_ylabel("Spectral radiance /")
 ax.set_title("Clear sky outgoing radiance")

@@ -184,29 +184,22 @@ void cia_interpolation(VectorView result,
   // Do the rest of the interpolation.
   if (T_order == 0) {
     // No temperature interpolation in this case, just a frequency interpolation.
-    result_active =
-        reinterp(cia_data.data[joker, 0], reinterpweights(f_lag), f_lag);
+    result_active = reinterp(cia_data.data[joker, 0], f_lag);
   } else {
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::cdata_t<Numeric, 1>{temperature};
     if (T_order == 1) {
       const auto T_lag = lagrange_interp::make_lags<1>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active =
-          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
-              .reshape(f_lag.size());
+      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 2) {
       const auto T_lag = lagrange_interp::make_lags<2>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active =
-          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
-              .reshape(f_lag.size());
+      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 3) {
       const auto T_lag = lagrange_interp::make_lags<3>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active =
-          reinterp(cia_data.data, reinterpweights(f_lag, T_lag), f_lag, T_lag)
-              .reshape(f_lag.size());
+      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else {
       throw std::runtime_error(
           "Cannot have this T_order, you must update the code...");

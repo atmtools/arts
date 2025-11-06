@@ -9,6 +9,58 @@ __all__ = [
 ]
 
 
+def vmr_scale(unit):
+    scale = {
+        'm': '‰',
+        'µ': 'ppmv',
+        'n': 'ppbv',
+        'p': 'pptv',
+        'f': 'ppqv'
+    }
+
+    return scale.get(unit, f"{unit}VMR")
+
+
+def get_label(x, unit=''):
+    if isinstance(x, pyarts.arts.AtmKey):
+        match x:
+            case pyarts.arts.AtmKey.t: return f"Temperature [{unit}K]"
+            case pyarts.arts.AtmKey.p: return f"Pressure [{unit}Pa]"
+            case pyarts.arts.AtmKey.wind_u: return f"Wind field U [{unit}m/s]"
+            case pyarts.arts.AtmKey.wind_v: return f"Wind field V [{unit}m/s]"
+            case pyarts.arts.AtmKey.wind_w: return f"Wind field W [{unit}m/s]"
+            case pyarts.arts.AtmKey.mag_u: return f"Magnetic field U [{unit}T]"
+            case pyarts.arts.AtmKey.mag_v: return f"Magnetic field V [{unit}T]"
+            case pyarts.arts.AtmKey.mag_w: return f"Magnetic field W [{unit}T]"
+
+    if isinstance(x, pyarts.arts.SpeciesEnum) or isinstance(x, pyarts.arts.SpeciesIsotope):
+        return f"{x} [{vmr_scale(unit)}]"
+
+    return f"{x} [{unit if unit != '' else '-'}]"
+
+
+def natural_scale(x):
+    x = np.array(x)
+    ix = np.nonzero(x)[0]
+    if len(ix) == 0:
+        return '', x
+
+    xmin = x[ix].min()
+    [scl0, xmin0] = pyarts.arts.convert.metric_prefix(xmin)
+    scl0 = scl0 if scl0 != 'u' else 'µ'
+    scl0 = '' if scl0 == '' else scl0
+
+    xmax = x[ix].max()
+    [scl1, xmax0] = pyarts.arts.convert.metric_prefix(xmax)
+    scl1 = scl1 if scl1 != 'u' else 'µ'
+    scl1 = '' if scl1 == '' else scl1
+
+    if (scl0 == scl1) or (xmin < xmin0 and xmax < xmax0) or (xmin > xmin0 and xmax > xmax0):
+        return scl1, x / xmax * xmax0
+
+    return '', x
+
+
 def plot(
     data: pyarts.arts.AtmField,
     *,
@@ -19,6 +71,7 @@ def plot(
     lons: pyarts.arts.LonGrid | float = 0,
     ygrid: pyarts.arts.Vector | None = None,
     keys: list[str] | None = None,
+    apply_natural_scale: bool = False,
     **kwargs,
 ):
     """Plot select atmospheric field parameters by extracting a profile.
@@ -55,6 +108,8 @@ def plot(
         Choice of y-grid for plotting.  Uses broadcasted alts if None. Defaults to None.
     keys : list, optional
         A list of keys to plot. Defaults to None for all keys in :meth:`~pyarts3.arts.AtmField.keys`.
+    apply_natural_scale : bool, optional
+        Whether to apply natural scaling to each parameter. Defaults to False.
     **kwargs : keyword arguments
         Additional keyword arguments passed to plot()
 
@@ -76,10 +131,15 @@ def plot(
                              'figsize': (4 * n, 4 * n), 'constrained_layout': True})
 
     for i in range(N):
+        if apply_natural_scale:
+            unit, x = natural_scale([x[keys[i]] for x in v])
+        else:
+            unit = ''
+            x = [x[keys[i]] for x in v]
         select_flat_ax(ax, i).plot(
-            [x[keys[i]] for x in v],
+            x,
             alts if ygrid is None else ygrid,
-            label=keys[i],
+            label=get_label(keys[i], unit),
             **kwargs
         )
     return fig, ax

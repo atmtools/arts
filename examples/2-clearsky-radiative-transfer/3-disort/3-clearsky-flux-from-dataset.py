@@ -78,15 +78,31 @@ ws.disort_settings_agendaSetup(
 
 ws.disort_spectral_flux_fieldFromAgenda()
 
-fig, ax = plt.subplots()
-ax.semilogy(
-    pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
-    ws.disort_spectral_flux_field.down_diffuse,
+f, s = pyarts.plot(
+    ws.disort_spectral_flux_field,
+    freqs=pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
+    alts=ws.disort_spectral_flux_field.altitude_grid/1e3,
+    select='down_diffuse',
+    plotstyle='plot',
 )
+s.set_xlabel("Kaysers [cm$^{-1}$]")
+s.set_ylabel("Altitude [km]")
+s.set_title("Downward diffuse spectral flux from DISORT")
 
-f, s = pyarts.plots.AtmField.plot(
-    ws.atmospheric_field, alts=np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
+ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+
+alts = np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
+f, s = pyarts.plot(
+    ws.atmospheric_field,
+    alts=alts,
+    ygrid=alts/1e3,
+    apply_natural_scale=True,
 )
+for a in s.flatten():
+    a.set_ylabel("Altitude [km]")
+    lines = a.get_lines()
+    if len(lines) > 0:
+        a.set_xlabel(lines[0].get_label())
 f.suptitle("Atmospheric field")
 
 if "ARTS_HEADLESS" not in os.environ:

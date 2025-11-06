@@ -21,9 +21,13 @@
 #include <quantum.h>
 
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
+
+#include "matpack_mdspan_common_complex.h"
+#include "matpack_mdspan_helpers_grid_t.h"
 
 NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
 NB_MAKE_OPAQUE(lbl::line_shape::model::map_t)
@@ -951,6 +955,24 @@ T0 : float
 )",
       "approximate_percentile"_a,
       "T0"_a = 296.0);
+  aoab.def("keep_frequencies",
+           [](AbsorptionBands& bands,
+              const Numeric& fmin,
+              const Numeric& fmax) {
+             absorption_bandsSelectFrequencyByLine(
+                 bands, fmin, fmax);
+           },
+           "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
+           "fmax"_a = std::numeric_limits<Numeric>::infinity(),
+           R"(Keep the frequencies within the specified range
+
+Parameters
+----------
+fmin : ~pyarts3.arts.Numeric
+    Minimum frequency
+fmax : ~pyarts3.arts.Numeric
+    Maximum frequency
+)");
 
   py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
   generic_interface(ed);

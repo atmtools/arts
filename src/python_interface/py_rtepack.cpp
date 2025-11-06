@@ -75,7 +75,7 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
         std::ranges::copy(v.shape(), shape.begin());
         std::ranges::copy(std::array{N...}, shape.begin() + M);
         auto np = py::module_::import_("numpy");
-        auto x  = nd(v.data_handle(), n, shape.data(), py::cast(v));
+        auto x  = nd(v.data_handle(), n, shape.data(), py::cast(&v));
 
         if (not dtype.is_none()) {
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
@@ -137,7 +137,7 @@ void py_rtepack(py::module_ &m) try {
             auto np                     = py::module_::import_("numpy");
             auto x =
                 py::ndarray<py::numpy, Numeric, py::shape<4>, py::c_contig>(
-                    v.data.data(), 1, shape.data(), py::cast(v));
+                    v.data.data(), 1, shape.data(), py::cast(&v));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
@@ -204,7 +204,7 @@ void py_rtepack(py::module_ &m) try {
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<7>, py::c_contig>(
-                    x.data.data(), 1, shape.data(), py::cast(x));
+                    x.data.data(), 1, shape.data(), py::cast(&x));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
@@ -263,7 +263,7 @@ void py_rtepack(py::module_ &m) try {
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<4, 4>, py::c_contig>(
-                    x.data.data(), 2, shape.data(), py::cast(x));
+                    x.data.data(), 2, shape.data(), py::cast(&x));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
@@ -326,7 +326,7 @@ void py_rtepack(py::module_ &m) try {
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Complex, py::shape<4, 4>, py::c_contig>(
-                    x.data.data(), 2, shape.data(), py::cast(x));
+                    x.data.data(), 2, shape.data(), py::cast(&x));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);

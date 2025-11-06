@@ -1,6 +1,7 @@
 #include <arts_conversions.h>
 #include <debug.h>
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 
 #include "hpy_numpy.h"
 
@@ -86,6 +87,16 @@ These all should work with any array-like type
                          "Energy [J]",
                          "j_cgs",
                          "j");
+  PythonInterfaceConvert(
+      rad2deg, Numeric, "radians [rad]", "degrees [deg]", "rad", "deg");
+  PythonInterfaceConvert(
+      deg2rad, Numeric, "degrees [deg]", "radians [rad]", "deg", "rad");
+
+  convert.def(
+      "metric_prefix",
+      [](Numeric x) { return Conversion::metric_prefix(x); },
+      "x"_a,
+      "Returns a suitable metric prefix for the given value x, also returns the scaled value");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize convert\n{}", e.what()));
