@@ -1,7 +1,5 @@
-from pyarts3.arts import ArrayOfCIARecord, AscendingGrid, AtmPoint, AtmField, Propmat, SpeciesEnum, PropagationPathPoint
+from pyarts3.arts import ArrayOfCIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
 import pyarts3 as pyarts
-import matplotlib
-import numpy as np
 from .common import default_fig_ax, select_flat_ax
 from . import CIARecord
 
@@ -27,7 +25,7 @@ def plot(data: ArrayOfCIARecord,
     If freqs is given, this range will be used, otherwise the built-in frequency range
     is used.
 
-    If atm is None, and atmospheric point is created by reading the tropical standard atmosphere
+    If atm is None, an atmospheric point is created by reading the tropical standard atmosphere
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
@@ -75,7 +73,7 @@ def plot(data: ArrayOfCIARecord,
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 
-    n = 1 if not same else len(data)
+    n = 1 if same else len(data)
     fig, ax = default_fig_ax(fig, ax, n, 1,  fig_kwargs={'figsize': (6, 4*n)})
 
     if "label" in kwargs:

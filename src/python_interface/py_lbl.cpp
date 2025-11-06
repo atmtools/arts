@@ -961,8 +961,10 @@ T0 : float
               const Numeric& fmax) {
              absorption_bandsSelectFrequencyByLine(
                  bands, fmin, fmax);
-           },"fmin"_a=-std::numeric_limits<Numeric>::infinity(), "fmax"_a=std::numeric_limits<Numeric>::infinity(),
-R"(Keep the frequencies within the specified range
+           },
+           "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
+           "fmax"_a = std::numeric_limits<Numeric>::infinity(),
+           R"(Keep the frequencies within the specified range
 
 Parameters
 ----------

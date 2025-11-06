@@ -1,7 +1,5 @@
-from pyarts3.arts import CIARecord, AscendingGrid, AtmPoint, AtmField, Propmat, SpeciesEnum, PropagationPathPoint
+from pyarts3.arts import CIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
 import pyarts3 as pyarts
-import matplotlib
-import numpy as np
 from .common import default_fig_ax, select_flat_ax
 from copy import deepcopy as copy
 
@@ -24,7 +22,7 @@ def plot(data: CIARecord,
     If freqs is given, this range will be used, otherwise the built-in frequency range
     is used.
 
-    If atm is None, and atmospheric point is created by reading the tropical standard atmosphere
+    If atm is None, an atmospheric point is created by reading the tropical standard atmosphere
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
@@ -60,7 +58,7 @@ def plot(data: CIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{band.isot}" for band in data])
+        ws.absorption_speciesSet(species=[f"{s}" for s in data.specs])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)

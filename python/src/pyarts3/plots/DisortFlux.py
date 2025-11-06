@@ -37,7 +37,7 @@ def plot(
         Which flux components to plot: 'up', 'down_diffuse', and/or 'down_direct'.
         Defaults to all three.
     **kwargs
-        Additional keyword arguments passed to matplotlib ploting functions.
+        Additional keyword arguments passed to matplotlib plotting functions.
 
     Returns
     -------
