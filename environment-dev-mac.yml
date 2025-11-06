@@ -1,5 +1,4 @@
 dependencies:
-        - boost
         - ccache
         - clang
         - clangxx
@@ -14,6 +13,7 @@ dependencies:
         - ipykernel
         - lark-parser
         - ld64
+        - libboost-devel
         - libclang
         - libcxx
         - libcxx-devel

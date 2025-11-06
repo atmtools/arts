@@ -1,6 +1,5 @@
 dependencies:
         - binutils
-        - boost
         - ccache
         - clang
         - clangxx
@@ -17,6 +16,7 @@ dependencies:
         - gxx
         - ipykernel
         - lark-parser
+        - libboost-devel
         - libclang
         - libcxx
         - libcxx-devel
