@@ -33,7 +33,7 @@ void py_sensor(py::module_& m) try {
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<5>, py::c_contig>(
-                    &x, 1, shape.data(), py::cast(x));
+                    &x, 1, shape.data(), py::cast(&x));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
@@ -95,7 +95,7 @@ void py_sensor(py::module_& m) try {
             auto np                     = py::module_::import_("numpy");
             auto w =
                 py::ndarray<py::numpy, Numeric, py::shape<-1, 5>, py::c_contig>(
-                    x.data_handle(), 2, shape.data(), py::cast(x));
+                    x.data_handle(), 2, shape.data(), py::cast(&x));
 
             if (not dtype.is_none()) {
               return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy);
