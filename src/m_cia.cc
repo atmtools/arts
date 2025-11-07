@@ -190,7 +190,7 @@ void propagation_matrixAddCIA(  // WS Output:
 void absorption_cia_dataReadFromCIA(  // WS Output:
     ArrayOfCIARecord& absorption_cia_data,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
   ARTS_TIME_REPORT
 
@@ -203,71 +203,67 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Size sp = 0; sp < abs_species.size(); sp++) {
-    for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
-      if (abs_species[sp][iso].Type() != SpeciesTagType::Cia) continue;
+  for (Size iso = 0; iso < abs_species.size(); iso++) {
+    if (abs_species[iso].Type() != SpeciesTagType::Cia) continue;
 
-      ArrayOfString cia_names;
+    ArrayOfString cia_names;
 
-      Index cia_index = cia_get_index(absorption_cia_data,
-                                      abs_species[sp][iso].Spec(),
-                                      abs_species[sp][iso].cia_2nd_species);
+    Index cia_index = cia_get_index(absorption_cia_data,
+                                    abs_species[iso].Spec(),
+                                    abs_species[iso].cia_2nd_species);
 
-      // If cia_index is not -1, we have already read this datafile earlier
-      if (cia_index != -1) continue;
+    // If cia_index is not -1, we have already read this datafile earlier
+    if (cia_index != -1) continue;
 
-      cia_names.push_back(
-          String(toString<1>(abs_species[sp][iso].Spec())) + "-" +
-          String(toString<1>(abs_species[sp][iso].cia_2nd_species)));
+    cia_names.push_back(String(toString<1>(abs_species[iso].Spec())) + "-" +
+                        String(toString<1>(abs_species[iso].cia_2nd_species)));
 
-      cia_names.push_back(
-          String(toString<1>(abs_species[sp][iso].cia_2nd_species)) + "-" +
-          String(toString<1>(abs_species[sp][iso].Spec())));
+    cia_names.push_back(String(toString<1>(abs_species[iso].cia_2nd_species)) +
+                        "-" + String(toString<1>(abs_species[iso].Spec())));
 
-      ArrayOfString checked_dirs;
+    ArrayOfString checked_dirs;
 
-      bool found = false;
-      for (Size fname = 0; !found && fname < cia_names.size(); fname++) {
-        const String& cia_name = cia_names[fname];
+    bool found = false;
+    for (Size fname = 0; !found && fname < cia_names.size(); fname++) {
+      const String& cia_name = cia_names[fname];
 
-        for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
-          ArrayOfString files;
-          checked_dirs.push_back(
-              std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
-          try {
-            files = list_directory(*(checked_dirs.end() - 1));
-          } catch (const std::runtime_error& e) {
-            continue;
-          }
+      for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
+        ArrayOfString files;
+        checked_dirs.push_back(
+            std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
+        try {
+          files = list_directory(*(checked_dirs.end() - 1));
+        } catch (const std::runtime_error& e) {
+          continue;
+        }
 
-          for (Index i = files.size() - 1; i >= 0; i--) {
-            if (files[i].find(cia_name) != 0 ||
-                files[i].rfind(".cia") != files[i].length() - 4) {
-              files.erase(files.begin() + i);
-            }
-          }
-          if (files.size()) {
-            CIARecord ciar;
-
-            found          = true;
-            String catfile = *(checked_dirs.end() - 1) + files[0];
-
-            ciar.SetSpecies(abs_species[sp][iso].Spec(),
-                            abs_species[sp][iso].cia_2nd_species);
-            ciar.ReadFromCIA(catfile);
-
-            absorption_cia_data.push_back(ciar);
+        for (Index i = files.size() - 1; i >= 0; i--) {
+          if (files[i].find(cia_name) != 0 ||
+              files[i].rfind(".cia") != files[i].length() - 4) {
+            files.erase(files.begin() + i);
           }
         }
-      }
+        if (files.size()) {
+          CIARecord ciar;
 
-      ARTS_USER_ERROR_IF(!found,
-                         "Error: No data file found for CIA species {}"
-                         "\n"
-                         "Looked in directories: {}",
-                         cia_names[0],
-                         checked_dirs)
+          found          = true;
+          String catfile = *(checked_dirs.end() - 1) + files[0];
+
+          ciar.SetSpecies(abs_species[iso].Spec(),
+                          abs_species[iso].cia_2nd_species);
+          ciar.ReadFromCIA(catfile);
+
+          absorption_cia_data.push_back(ciar);
+        }
+      }
     }
+
+    ARTS_USER_ERROR_IF(!found,
+                       "Error: No data file found for CIA species {}"
+                       "\n"
+                       "Looked in directories: {}",
+                       cia_names[0],
+                       checked_dirs)
   }
 }
 
@@ -275,7 +271,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
 void absorption_cia_dataReadFromXML(  // WS Output:
     ArrayOfCIARecord& absorption_cia_data,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& abs_species,
     const String& filename) {
   ARTS_TIME_REPORT
 
@@ -289,20 +285,18 @@ void absorption_cia_dataReadFromXML(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Size sp = 0; sp < abs_species.size(); sp++) {
-    for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
-      if (abs_species[sp][iso].Type() != SpeciesTagType::Cia) continue;
+  for (Size iso = 0; iso < abs_species.size(); iso++) {
+    if (abs_species[iso].Type() != SpeciesTagType::Cia) continue;
 
-      Index cia_index = cia_get_index(absorption_cia_data,
-                                      abs_species[sp][iso].Spec(),
-                                      abs_species[sp][iso].cia_2nd_species);
+    Index cia_index = cia_get_index(absorption_cia_data,
+                                    abs_species[iso].Spec(),
+                                    abs_species[iso].cia_2nd_species);
 
-      // If cia_index is -1, this CIA tag was not present in the input file
-      if (cia_index == -1) {
-        missing_tags.push_back(
-            String(toString<1>(abs_species[sp][iso].Spec())) + "-" +
-            String(toString<1>(abs_species[sp][iso].cia_2nd_species)));
-      }
+    // If cia_index is -1, this CIA tag was not present in the input file
+    if (cia_index == -1) {
+      missing_tags.push_back(
+          String(toString<1>(abs_species[iso].Spec())) + "-" +
+          String(toString<1>(abs_species[iso].cia_2nd_species)));
     }
   }
 
@@ -324,7 +318,7 @@ void absorption_cia_dataReadFromXML(  // WS Output:
 
 void absorption_cia_dataReadSpeciesSplitCatalog(
     ArrayOfCIARecord& absorption_cia_data,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
@@ -334,13 +328,11 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   ArrayOfString names{};
-  for (auto& spec : abs_species) {
-    for (auto& tag : spec) {
-      if (tag.type == SpeciesTagType::Cia) {
-        names.emplace_back(std::format("{}-CIA-{}",
-                                       toString<1>(tag.Spec()),
-                                       toString<1>(tag.cia_2nd_species)));
-      }
+  for (auto& tag : abs_species) {
+    if (tag.type == SpeciesTagType::Cia) {
+      names.emplace_back(std::format("{}-CIA-{}",
+                                     toString<1>(tag.Spec()),
+                                     toString<1>(tag.cia_2nd_species)));
     }
   }
 

@@ -237,121 +237,12 @@ Returns
   //////////////////////////////////////////////////////////////////////
 
   auto tmp1_ =
-      py::bind_vector<Array<SpeciesTag>, py::rv_policy::reference_internal>(
-          m, "_ArrayOfSpeciesTag");
+      py::bind_vector<ArrayOfSpeciesTag, py::rv_policy::reference_internal>(
+          m, "ArrayOfSpeciesTag");
   vector_interface(tmp1_);
   generic_interface(tmp1_);
 
   //////////////////////////////////////////////////////////////////////
-
-  py::class_<ArrayOfSpeciesTag> astag(m, "ArrayOfSpeciesTag");
-  generic_interface(astag);
-  astag.def(py::init_implicit<std::string>())
-      .def(py::init_implicit<Array<SpeciesTag>>())
-      .def(
-          "_inner",
-          [](ArrayOfSpeciesTag& s) -> Array<SpeciesTag>& { return s; },
-          py::rv_policy::reference_internal)
-      .def("__len__",
-           [](py::object& s) { return s.attr("_inner")().attr("__len__")(); })
-      .def("__getitem__",
-           [](py::object& s, py::object i) {
-             return s.attr("_inner")().attr("__getitem__")(i);
-           })
-      .def("__setitem__",
-           [](py::object& s, py::object i, py::object v) {
-             s.attr("_inner")().attr("__setitem__")(i, v);
-           })
-      .def(
-          "append",
-          [](py::object& s, py::object v) {
-            s.attr("_inner")().attr("append")(v);
-          },
-          "value"_a,
-          "Appends a value to the end of the list")
-      .def(
-          "pop",
-          [](py::object& s, py::object i) {
-            return s.attr("_inner")().attr("pop")(i);
-          },
-          "i"_a = -1,
-          "Pops an element from the list")
-      .def(py::self == py::self)
-      .def(py::self != py::self)
-      .def(
-          "__hash__",
-          [](const ArrayOfSpeciesTag& x) {
-            return std::hash<ArrayOfSpeciesTag>{}(x);
-          },
-          "Allows hashing")
-      .def(
-          "__getstate",
-          [](const ArrayOfSpeciesTag& x) {
-            return std::make_tuple(std::vector<SpeciesTag>(x.begin(), x.end()));
-          })
-      .def("__setstate__",
-           [](ArrayOfSpeciesTag* x,
-              const std::tuple<std::vector<SpeciesTag>>& v) {
-             new (x) ArrayOfSpeciesTag(std::get<0>(v));
-           })
-      .def("__init__", [](ArrayOfSpeciesTag* s, py::list l) {
-        auto x = py::cast<Array<SpeciesTag>>(l);
-        new (s) ArrayOfSpeciesTag();
-        for (auto& e : x) {
-          s->push_back(e);
-        }
-      });
-  py::implicitly_convertible<py::list, ArrayOfSpeciesTag>();
-
-  //////////////////////////////////////////////////////////////////////
-
-  auto tmp2_ = py::bind_vector<Array<Array<SpeciesTag>>,
-                               py::rv_policy::reference_internal>(
-      m, "_ArrayOfArrayOfSpeciesTag");
-  vector_interface(tmp2_);
-  generic_interface(tmp2_);
-
-  //////////////////////////////////////////////////////////////////////
-
-  auto b1 = py::bind_vector<ArrayOfArrayOfSpeciesTag,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfArrayOfSpeciesTag");
-  generic_interface(b1);
-  vector_interface(b1);
-  b1.def("__init__",
-         [](ArrayOfArrayOfSpeciesTag* s, const Array<Array<SpeciesTag>>& x) {
-           new (s) ArrayOfArrayOfSpeciesTag(x.size());
-           for (auto& v : x) {
-             s->emplace_back();
-             for (auto& e : v) {
-               s->back().push_back(e);
-             }
-           }
-         });
-  b1.def_static(
-      "all_isotopologues",
-      []() {
-        ArrayOfArrayOfSpeciesTag out;
-        for (auto& x : Species::Isotopologues) {
-          if (not x.is_normal()) continue;
-          out.emplace_back(Array<SpeciesTag>{SpeciesTag(x)});
-        }
-        return out;
-      },
-      "Return a list of all species tags");
-  py::implicitly_convertible<Array<Array<SpeciesTag>>,
-                             ArrayOfArrayOfSpeciesTag>();
-  b1.def("__init__", [](ArrayOfArrayOfSpeciesTag* s, py::list l) {
-    auto x = py::cast<Array<Array<SpeciesTag>>>(l);
-    new (s) ArrayOfArrayOfSpeciesTag(x.size());
-    for (auto& v : x) {
-      s->emplace_back();
-      for (auto& e : v) {
-        s->back().push_back(e);
-      }
-    }
-  });
-  py::implicitly_convertible<py::list, ArrayOfArrayOfSpeciesTag>();
 
   auto sev = py::bind_map<SpeciesEnumVectors>(m, "SpeciesEnumVectors");
   generic_interface(sev);

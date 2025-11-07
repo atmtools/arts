@@ -17,7 +17,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
     ArrayOfXsecRecord& absorption_xsec_fit_data,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
@@ -28,11 +28,9 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
 
   // Build a set of species indices. Duplicates are ignored.
   std::set<SpeciesEnum> unique_species;
-  for (auto& asp : abs_species) {
-    for (auto& sp : asp) {
-      if (sp.Type() == SpeciesTagType::XsecFit) {
-        unique_species.insert(sp.Spec());
-      }
+  for (auto& sp : abs_species) {
+    if (sp.Type() == SpeciesTagType::XsecFit) {
+      unique_species.insert(sp.Spec());
     }
   }
 

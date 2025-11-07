@@ -395,16 +395,17 @@ void single_radiance_jacobianAddPathPropagation(
 
   const Size np  = ray_path.size();
   const Index nt = jacobian_targets.target_count();
+  const Index nx = jacobian_targets.x_size();
 
   ARTS_USER_ERROR_IF(
-      single_radiance_jacobian.ncols() != nt or
+      single_radiance_jacobian.ncols() != nx or
           ray_path_single_radiance_jacobian.nrows() != static_cast<Index>(np) or
           ray_path_single_radiance_jacobian.ncols() != nt,
       R"(Not same sizes:
 
 ray_path:                            (np)     = [{}]
 jacobian_targets:                    (nq)     = [{}]
-single_radiance_jacobian:            (nq)     = {:B,}
+single_radiance_jacobian:            (nx)     = {:B,}
 ray_path_single_radiance_jacobian:   (np, nq) = {:B,}
 )",
       np,

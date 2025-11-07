@@ -10,7 +10,7 @@ namespace {
 std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
 
-wsg_data["Block"] = {
+  wsg_data["Block"] = {
       .file = "covariance_matrix.h",
       .desc =
           R"(This holds a *BlockMatrix* and two *Range* objects and two indices to indicate the position in the *CovarianceMatrix*.
@@ -168,13 +168,11 @@ The python mapping allows treating this as a same rank :class:`~numpy.ndarray` i
 )",
   };
 
-  wsg_data["Tensor7"] = {
-      .file = "matpack.h",
-      .desc = R"(A 7 dimensional array of *Numeric*.
+  wsg_data["Tensor7"] = {.file = "matpack.h",
+                         .desc = R"(A 7 dimensional array of *Numeric*.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
-)"
-  };
+)"};
 
   wsg_data["SurfacePoint"] = {
       .file = "surf.h",
@@ -253,7 +251,8 @@ so that reading routines can find the correct data files.
 
   wsg_data["Range"] = {
       .file = "matpack.h",
-      .desc = R"(A data type to index a contiguous range inside the multidimensional structures; e.g., *Vector*, *Matrix*, etc.
+      .desc =
+          R"(A data type to index a contiguous range inside the multidimensional structures; e.g., *Vector*, *Matrix*, etc.
 )",
   };
 
@@ -267,7 +266,6 @@ This includes:
 #. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
 )",
   };
-
 
   wsg_data["SubsurfaceData"] = {
       .file = "subsurface.h",
@@ -623,7 +621,6 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
                     "Tensor7",
                     "SubsurfacePoint",
                     "StokvecTensor3",
-                    "SpeciesTag",
                     "SpeciesIsotope",
                     "Sparse",
                     "NamedGriddedField2",
