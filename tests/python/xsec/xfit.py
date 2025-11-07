@@ -11,8 +11,8 @@ nd = atm.number_density("O3-666")
 
 ws.abs_speciesSet(species=["O3-XFIT"])
 ws.ReadCatalogData()
-f = ws.absorption_xsec_fit_data[0].fitcoeffs[0].grids[0]
-x = ws.absorption_xsec_fit_data.propagation_matrix(f=f, atm=atm) / nd
+f = ws.abs_xfit_data[0].fitcoeffs[0].grids[0]
+x = ws.abs_xfit_data.propagation_matrix(f=f, atm=atm) / nd
 
 assert np.allclose(
     x[::60000, 0],

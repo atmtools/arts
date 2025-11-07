@@ -1,10 +1,10 @@
+#include "workspace_variables_keywords.h"
+
 #include <algorithm>
 #include <array>
 #include <string_view>
 
-#include "workspace_variables_keywords.h"
-
-static constexpr std::array keywords{"absorption",
+static constexpr std::array keywords{"abs",
                                      "jacobian",
                                      "spectral_radiance",
                                      "propagation_matrix",

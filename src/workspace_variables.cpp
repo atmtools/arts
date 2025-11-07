@@ -48,7 +48,7 @@ See :doc:`concept.absorption.lookup` for more information on lookup table calcul
       .type = "AbsorptionLookupTables",
   };
 
-    wsv_data["abs_cia_data"] = {
+  wsv_data["abs_cia_data"] = {
       .desc = R"--(HITRAN Collision-Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
@@ -68,7 +68,7 @@ See also :doc:`concept.absorption.cia` for more information on CIA calculations.
       .type = "ArrayOfCIARecord",
   };
 
-  wsv_data["absorption_xsec_fit_data"] = {
+  wsv_data["abs_xfit_data"] = {
       .desc = R"--(Fitting model coefficients for cross section species.
 
 Dimensions: [ n_species ]
@@ -125,7 +125,7 @@ See also :doc:`concept.absorption.xsec` for more information on these calculatio
       .type = "ArrayOfXsecRecord",
   };
 
-    wsv_data["abs_species"] = {
+  wsv_data["abs_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
 This allows the user to set up groups of species tags that are used

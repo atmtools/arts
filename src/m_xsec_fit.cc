@@ -15,14 +15,13 @@
 #include <xsec_fit.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
-    ArrayOfXsecRecord& absorption_xsec_fit_data,
-    const ArrayOfSpeciesTag& abs_species,
-    const String& basename,
-    const Index& ignore_missing_) try {
+void abs_xfit_dataReadSpeciesSplitCatalog(ArrayOfXsecRecord& abs_xfit_data,
+                                          const ArrayOfSpeciesTag& abs_species,
+                                          const String& basename,
+                                          const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
-  absorption_xsec_fit_data.clear();
+  abs_xfit_data.clear();
 
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
@@ -39,8 +38,8 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
     tmpbasename += '.';
   }
 
-  // Read xsec data for all active species and collect them in absorption_xsec_fit_data
-  absorption_xsec_fit_data.clear();
+  // Read xsec data for all active species and collect them in abs_xfit_data
+  abs_xfit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
     String filename{std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
@@ -52,7 +51,7 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
 
     xml_read_from_file_base(filename, xsec_coeffs);
 
-    absorption_xsec_fit_data.push_back(std::move(xsec_coeffs));
+    abs_xfit_data.push_back(std::move(xsec_coeffs));
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -66,7 +65,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfXsecRecord& absorption_xsec_fit_data,
+    const ArrayOfXsecRecord& abs_xfit_data,
     const Numeric& force_p,
     const Numeric& force_t) {
   ARTS_TIME_REPORT
@@ -127,7 +126,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (auto& this_xdata : absorption_xsec_fit_data) {
+  for (auto& this_xdata : abs_xfit_data) {
     if (select_species != SpeciesEnum::Bath and
         this_xdata.Species() != select_species)
       continue;
