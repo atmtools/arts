@@ -12,7 +12,7 @@ ws.frequency_grid = [line_f0]
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations

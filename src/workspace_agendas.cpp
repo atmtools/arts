@@ -295,14 +295,14 @@ See *OEM*.
     The output *measurement_jacobian* size may depend on the *do_jacobian* input.
 )--",
       .output             = {"atmospheric_field",
-                             "absorption_bands",
+                             "abs_bands",
                              "measurement_sensor",
                              "surface_field",
                              "subsurface_field",
                              "measurement_vector_fitted",
                              "measurement_jacobian"},
       .input              = {"atmospheric_field",
-                             "absorption_bands",
+                             "abs_bands",
                              "measurement_sensor",
                              "surface_field",
                              "subsurface_field",
@@ -333,7 +333,7 @@ See *OEM*.
 It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
 current iteration of the inversion. The *measurement_vector_fitted* is the
 fitted measurement vector, i.e., the measurement vector that is expected to be
-observed given the current *atmospheric_field*, *absorption_bands*, *measurement_sensor*,
+observed given the current *atmospheric_field*, *abs_bands*, *measurement_sensor*,
 and *surface_field*.  It does not take these as explicit input but via the Workspace
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 

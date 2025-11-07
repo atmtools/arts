@@ -68,11 +68,11 @@ the workspace.  There is no "best" way to do this, it depends on the
 context, and what you find most readable.
 """
 # Call the WorkspaceVariable member method "readxml" to load data from file
-ws.absorption_bands.readxml("lines/O2-66.xml")
+ws.abs_bands.readxml("lines/O2-66.xml")
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
-assert len(ws.absorption_bands) > 0
+assert len(ws.abs_bands) > 0
 assert "/my_data" in pyarts.arts.globals.parameters.datapath
 # END TESTING

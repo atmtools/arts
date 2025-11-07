@@ -26,7 +26,7 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const AtmField& atmospheric_field,
                               const SurfaceField& surface_field,
                               const SubsurfaceField& subsurface_field,
-                              const AbsorptionBands& absorption_bands,
+                              const AbsorptionBands& abs_bands,
                               const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
@@ -38,7 +38,7 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
   jacobian_targets.finalize(atmospheric_field,
                             surface_field,
                             subsurface_field,
-                            absorption_bands,
+                            abs_bands,
                             measurement_sensor);
 }
 

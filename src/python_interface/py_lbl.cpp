@@ -959,7 +959,7 @@ T0 : float
            [](AbsorptionBands& bands,
               const Numeric& fmin,
               const Numeric& fmax) {
-             absorption_bandsSelectFrequencyByLine(
+             abs_bandsSelectFrequencyByLine(
                  bands, fmin, fmax);
            },
            "fmin"_a = -std::numeric_limits<Numeric>::infinity(),

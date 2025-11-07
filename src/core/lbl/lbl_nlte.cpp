@@ -44,7 +44,7 @@ GeodeticField3 level_density(const GeodeticField3& T,
 namespace lbl::nlte {
 std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
     const AtmField& atmospheric_field,
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const Numeric& normalizing_factor) {
   std::unordered_map<QuantumLevelIdentifier, AtmData> out;
 
@@ -53,7 +53,7 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 
   const AtmData& t_data = atmospheric_field[AtmKey::t];
 
-  for (const auto& [key, band] : absorption_bands) {
+  for (const auto& [key, band] : abs_bands) {
     ARTS_USER_ERROR_IF(band.size() != 1, "Only for single-line bands");
 
     const auto upp = key.upper();
@@ -158,11 +158,11 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
 }
 
 QuantumIdentifierNumericMap createAij(
-    const AbsorptionBands& absorption_bands) try {
+    const AbsorptionBands& abs_bands) try {
   QuantumIdentifierNumericMap Aij;
-  Aij.reserve(absorption_bands.size());
+  Aij.reserve(abs_bands.size());
 
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     Aij[key] = data.lines.front().a;
   }
@@ -172,15 +172,15 @@ QuantumIdentifierNumericMap createAij(
 ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierNumericMap createBij(
-    const AbsorptionBands& absorption_bands) try {
+    const AbsorptionBands& abs_bands) try {
   constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
 
   // Size of problem
   QuantumIdentifierNumericMap Bij;
-  Bij.reserve(absorption_bands.size());
+  Bij.reserve(abs_bands.size());
 
   // Base equation for single state:  B21 = A21 c^2 / 2 h f^3  (nb. SI, don't use this without checking your need)
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line = data.lines.front();
     Bij[key]         = line.a / (c0 * Math::pow3(line.f0));
@@ -192,11 +192,11 @@ ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierNumericMap createBji(
     const QuantumIdentifierNumericMap& Bij,
-    const AbsorptionBands& absorption_bands) try {
+    const AbsorptionBands& abs_bands) try {
   QuantumIdentifierNumericMap Bji(Bij);
 
   // Base equation for single state:  B12 = B21 g2 / g1
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line  = data.lines.front();
     Bji[key]         *= line.gu / line.gl;
@@ -207,11 +207,11 @@ QuantumIdentifierNumericMap createBji(
 ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierVectorMap createCij(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
     const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
-  QuantumIdentifierVectorMap Cij(absorption_bands.size());
-  for (const auto& [key, data] : absorption_bands) {
+  QuantumIdentifierVectorMap Cij(abs_bands.size());
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& coll = collision_data.at(key);
     Vector& x        = Cij[key];
@@ -231,12 +231,12 @@ ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierVectorMap createCji(
     const QuantumIdentifierVectorMap& Cij,
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
   using Constant::h, Constant::k;
 
   QuantumIdentifierVectorMap Cji(Cij);
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line = data.lines.front();
 
@@ -278,12 +278,12 @@ Size band_level_mapUniquestIndex(
 ARTS_METHOD_ERROR_CATCH
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const ArrayOfQuantumLevelIdentifier& level_keys) try {
   std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
-  band_level_map.reserve(absorption_bands.size());
+  band_level_map.reserve(abs_bands.size());
 
-  for (const auto& key : absorption_bands | stdv::keys) {
+  for (const auto& key : abs_bands | stdv::keys) {
     UppLow& ul = band_level_map[key];
 
     const auto lower      = key.lower();

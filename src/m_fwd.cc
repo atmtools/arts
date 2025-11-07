@@ -38,8 +38,8 @@ void spectral_radiance_operatorClearsky1D(
   using xsec_t   = ArrayOfXsecRecord;
   using predef_t = PredefinedModelData;
 
-  const String lines_str  = "absorption_bands";
-  const String cia_str    = "absorption_cia_data";
+  const String lines_str  = "abs_bands";
+  const String cia_str    = "abs_cia_data";
   const String xsec_str   = "absorption_xsec_fit_data";
   const String predef_str = "absorption_predefined_model_data";
 

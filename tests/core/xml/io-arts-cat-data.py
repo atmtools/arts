@@ -54,7 +54,7 @@ if test:
 
     lines = os.path.join(path, "lines")
     ws = pyarts.Workspace()
-    ws.absorption_bandsReadSplit(dir=lines)
+    ws.abs_bandsReadSplit(dir=lines)
     print("All line files read successfully.")
     print()
 

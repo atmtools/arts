@@ -303,7 +303,7 @@ struct Targets final {
   void finalize(const AtmField& atmospheric_field,
                 const SurfaceField& surface_field,
                 const SubsurfaceField& subsurface_field,
-                const AbsorptionBands& absorption_bands,
+                const AbsorptionBands& abs_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
   AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d = 0.0);

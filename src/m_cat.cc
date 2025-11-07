@@ -3,19 +3,19 @@
 
 void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
                      ArrayOfXsecRecord& absorption_xsec_fit_data,
-                     ArrayOfCIARecord& absorption_cia_data,
-                     AbsorptionBands& absorption_bands,
+                     ArrayOfCIARecord& abs_cia_data,
+                     AbsorptionBands& abs_bands,
                      const ArrayOfSpeciesTag& absorption_species,
                      const String& basename,
                      const Index& ignore_missing) try {
   ARTS_TIME_REPORT
 
-  absorption_bandsReadSpeciesSplitCatalog(absorption_bands,
+  abs_bandsReadSpeciesSplitCatalog(abs_bands,
                                           absorption_species,
                                           basename + "lines/",
                                           ignore_missing);
 
-  absorption_cia_dataReadSpeciesSplitCatalog(absorption_cia_data,
+  abs_cia_dataReadSpeciesSplitCatalog(abs_cia_data,
                                              absorption_species,
                                              basename + "cia/",
                                              ignore_missing);

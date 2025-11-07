@@ -5,33 +5,33 @@
 #include <jacobian.h>
 #include <workspace.h>
 
-void absorption_bandsSetNonLTE(AbsorptionBands& absorption_bands) {
+void abs_bandsSetNonLTE(AbsorptionBands& abs_bands) {
   ARTS_TIME_REPORT
 
-  for (auto& [_, band] : absorption_bands) {
+  for (auto& [_, band] : abs_bands) {
     band.lineshape = LineByLineLineshape::VP_LINE_NLTE;
   }
 }
 
 void atmospheric_fieldInitializeNonLTE(AtmField& atmospheric_field,
-                                       const AbsorptionBands& absorption_bands,
+                                       const AbsorptionBands& abs_bands,
                                        const Numeric& normalizing_factor) try {
   ARTS_TIME_REPORT
 
   atmospheric_field.nlte = lbl::nlte::from_lte(
-      atmospheric_field, absorption_bands, normalizing_factor);
+      atmospheric_field, abs_bands, normalizing_factor);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void frequency_gridFitNonLTE(AscendingGrid& frequency_grid,
-                             const AbsorptionBands& absorption_bands,
+                             const AbsorptionBands& abs_bands,
                              const Numeric& df,
                              const Index& nf) try {
   ARTS_TIME_REPORT
 
   Vector freq;
-  freq.reserve(count_lines(absorption_bands) * nf);
-  for (auto f0 : absorption_bands | stdv::values |
+  freq.reserve(count_lines(abs_bands) * nf);
+  for (auto f0 : abs_bands | stdv::values |
                      stdv::transform([](auto& x) { return x.lines; }) |
                      stdv::join |
                      stdv::transform([](auto& x) { return x.f0; })) {
@@ -49,7 +49,7 @@ ARTS_METHOD_ERROR_CATCH
 void atmospheric_profileFitNonLTE(
     const Workspace& ws,
     ArrayOfAtmPoint& atmospheric_profile,
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const Agenda& propagation_matrix_agenda,
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
@@ -75,15 +75,15 @@ void atmospheric_profileFitNonLTE(
                      "Convergence limit and iteration limit must be positive")
   ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
 
-  const auto Aij = createAij(absorption_bands);
-  const auto Bij = createBij(absorption_bands);
-  const auto Bji = createBji(Bij, absorption_bands);
+  const auto Aij = createAij(abs_bands);
+  const auto Bij = createBij(abs_bands);
+  const auto Bji = createBji(Bij, abs_bands);
   const auto Cij =
-      createCij(absorption_bands, collision_data, atmospheric_profile);
-  const auto Cji = createCji(Cij, absorption_bands, atmospheric_profile);
+      createCij(abs_bands, collision_data, atmospheric_profile);
+  const auto Cji = createCji(Cij, abs_bands, atmospheric_profile);
 
   const auto band_level_map =
-      band_level_mapFromLevelKeys(absorption_bands, levels);
+      band_level_mapFromLevelKeys(abs_bands, levels);
   const Size nlevels      = level_count(band_level_map);
   const Vector r_sum      = nlte_ratio_sum(atmospheric_profile, levels);
   const Size unique_level = band_level_mapUniquestIndex(band_level_map);
@@ -115,7 +115,7 @@ void atmospheric_profileFitNonLTE(
 
     nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
                                     spectral_flux_profile,
-                                    absorption_bands,
+                                    abs_bands,
                                     atmospheric_profile,
                                     frequency_grid);
 

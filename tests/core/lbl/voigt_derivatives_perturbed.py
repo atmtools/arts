@@ -13,11 +13,11 @@ if 0:
     
         def apply(self, ws, il):
             ws.atmospheric_point.pressure = self.pressure
-            ws.absorption_bands[0].data.lines[il].z.on = self.zeeman
-            for x in ws.absorption_bands[0].data.lines:
+            ws.abs_bands[0].data.lines[il].z.on = self.zeeman
+            for x in ws.abs_bands[0].data.lines:
                 x.ls.one_by_one = self.one_by_one
             ws.frequency_grid = self.frequency_grid
-            ws.absorption_bandsSetZeeman(
+            ws.abs_bandsSetZeeman(
                 species="O2-66",
                 fmin=50474199538.7676-1e6,
                 fmax=50474199538.7676+1e6,
@@ -96,21 +96,21 @@ if 0:
     ws.ReadCatalogData()
     bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
     il = 95
-    ws.absorption_bandsSelectFrequencyByBand(fmax=120e9)
-    ws.absorption_bandsKeepID(id=bandkey)
+    ws.abs_bandsSelectFrequencyByBand(fmax=120e9)
+    ws.abs_bandsKeepID(id=bandkey)
     
     # Write some data to fields that does not exist
     x = pyarts.arts.TemperatureModel("T0")
-    ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"] = x
-    ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"] = x
-    ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"] = x
-    ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"] = x
-    ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"] = x
-    ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[0]["D0"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[0]["G"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[1]["D0"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"] = x
+    ws.abs_bands[0].data.lines[il].ls.single_models[1]["G"] = x
     
-    assert np.allclose(ws.absorption_bands[0].data.lines[il].f0, lc), (
+    assert np.allclose(ws.abs_bands[0].data.lines[il].f0, lc), (
         "Line has changed, test is broken! "
-        + f"lc should be set to {ws.absorption_bands[0].data.lines[il].f0}"
+        + f"lc should be set to {ws.abs_bands[0].data.lines[il].f0}"
     )
     
     ws.WignerInit(symbol_type=3)
@@ -278,14 +278,14 @@ if 0:
     
         # line center
         d = 1e3
-        orig = ws.absorption_bands[0].data.lines[il].f0 * 1.0
-        ws.absorption_bands[0].data.lines[il].f0 += d
+        orig = ws.abs_bands[0].data.lines[il].f0 * 1.0
+        ws.abs_bands[0].data.lines[il].f0 += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].f0 = orig
+        ws.abs_bands[0].data.lines[il].f0 = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -294,14 +294,14 @@ if 0:
     
         # lower state energy
         d = 1e-26
-        orig = ws.absorption_bands[0].data.lines[il].e0 * 1.0
-        ws.absorption_bands[0].data.lines[il].e0 += d
+        orig = ws.abs_bands[0].data.lines[il].e0 * 1.0
+        ws.abs_bands[0].data.lines[il].e0 += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].e0 = orig
+        ws.abs_bands[0].data.lines[il].e0 = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -314,14 +314,14 @@ if 0:
     
         # einstein coefficient
         d = 1e-14
-        orig = ws.absorption_bands[0].data.lines[il].a * 1.0
-        ws.absorption_bands[0].data.lines[il].a += d
+        orig = ws.abs_bands[0].data.lines[il].a * 1.0
+        ws.abs_bands[0].data.lines[il].a += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].a = orig
+        ws.abs_bands[0].data.lines[il].a = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -334,10 +334,10 @@ if 0:
     
         # O2 G0 X0
         d = 1e-1
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -345,7 +345,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -354,10 +354,10 @@ if 0:
     
         # O2 G0 X1
         d = 1e-4
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"]
         data = copy(orig.data)
         data[1] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -365,7 +365,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -374,10 +374,10 @@ if 0:
     
         # Bath G0 X0
         d = 1e-3
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -385,7 +385,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -394,10 +394,10 @@ if 0:
     
         # Bath G0 X1
         d = 1e-3
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"]
         data = copy(orig.data)
         data[1] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -405,7 +405,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -414,10 +414,10 @@ if 0:
     
         # O2 Y X0
         d = 1e-10
-        orig = copy(ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"])
+        orig = copy(ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"])
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -425,7 +425,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -434,10 +434,10 @@ if 0:
     
         # O2 Y X1
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"]
         data = copy(orig.data)
         data[1] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -445,7 +445,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -454,10 +454,10 @@ if 0:
     
         # O2 Y X2
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"]
         data = copy(orig.data)
         data[2] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -465,7 +465,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -474,10 +474,10 @@ if 0:
     
         # O2 Y X3
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"]
         data = copy(orig.data)
         data[3] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -485,7 +485,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -494,10 +494,10 @@ if 0:
     
         # Bath Y X0
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -505,7 +505,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -514,10 +514,10 @@ if 0:
     
         # Bath Y X1
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"]
         data = copy(orig.data)
         data[1] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -525,7 +525,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -534,10 +534,10 @@ if 0:
     
         # O2 Y X2
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"]
         data = copy(orig.data)
         data[2] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -545,7 +545,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -554,10 +554,10 @@ if 0:
     
         # O2 Y X3
         d = 1e-10
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"]
         data = copy(orig.data)
         data[3] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -565,7 +565,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -574,10 +574,10 @@ if 0:
     
         # O2 D0 X0
         d = 1e-3
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["D0"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["D0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -585,7 +585,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["D0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["D0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -594,10 +594,10 @@ if 0:
     
         # Bath D0 X0
         d = 1e-3
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["D0"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["D0"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -605,7 +605,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["D0"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["D0"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -614,10 +614,10 @@ if 0:
     
         # O2 DV X0
         d = 1e-1 / ws.atmospheric_point.pressure
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -625,7 +625,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["DV"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -634,10 +634,10 @@ if 0:
     
         # Bath DV X0
         d = 1e4 / ws.atmospheric_point.pressure**2
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -645,7 +645,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["DV"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -654,10 +654,10 @@ if 0:
     
         # O2 G X0
         d = 1e-3
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["G"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -665,7 +665,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[0]["G"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[0]["G"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -674,10 +674,10 @@ if 0:
     
         # Bath G X0
         d = 1
-        orig = ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"]
+        orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["G"]
         data = copy(orig.data)
         data[0] += d
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"] = (
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G"] = (
             pyarts.arts.TemperatureModel(orig.type, data)
         )
     
@@ -685,7 +685,7 @@ if 0:
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.absorption_bands[0].data.lines[il].ls.single_models[1]["G"] = orig
+        ws.abs_bands[0].data.lines[il].ls.single_models[1]["G"] = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(

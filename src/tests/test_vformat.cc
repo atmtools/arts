@@ -45,7 +45,7 @@ AbsorptionBand get_lbl_band_data() {
   return b;
 }
 
-AbsorptionBands get_absorption_bands() {
+AbsorptionBands get_abs_bands() {
   return {{get_quantum_identifier(), get_lbl_band_data()}};
 }
 
@@ -61,7 +61,7 @@ AbsorptionBands get_absorption_bands() {
 TEST_MACRO(lbl_line)
 TEST_MACRO(lbl_band_data)
 TEST_MACRO(quantum_identifier)
-TEST_MACRO(absorption_bands)
+TEST_MACRO(abs_bands)
 
 #undef TEST_MACRO
 
@@ -73,6 +73,6 @@ int main() {
   TEST_MACRO(lbl_line)
   TEST_MACRO(lbl_band_data)
   TEST_MACRO(quantum_identifier)
-  TEST_MACRO(absorption_bands)
+  TEST_MACRO(abs_bands)
   std::println("-----------------------");
 }

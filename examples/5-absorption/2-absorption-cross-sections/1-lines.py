@@ -36,7 +36,7 @@ or some other format.  What is important is to populate the absorption
 bands with appropriate data.
 """
 pyarts.data.download()
-ws.absorption_bandsReadSpeciesSplitCatalog(basename="lines/")
+ws.abs_bandsReadSpeciesSplitCatalog(basename="lines/")
 
 """
 Compute absorption
@@ -58,11 +58,11 @@ atm["H2O"] = 0.001  # At 0.1% atmospheric Water Vapor
 
 # Set a frequency range and remove lines outside (to speed up calculations)
 freqs = np.linspace(1e9, 1000e9, 1001)
-ws.absorption_bands.keep_frequencies(fmax=freqs[-1])
+ws.abs_bands.keep_frequencies(fmax=freqs[-1])
 
 # Use available plotting routines to draw the results
 fig, ax = pyarts.plot(
-    ws.absorption_bands,
+    ws.abs_bands,
     freqs=freqs,
     atm=atm,
     mode='important fill isotopes',

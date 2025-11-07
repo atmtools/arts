@@ -267,7 +267,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                const AtmField& atmospheric_field,
                                const SurfaceField& surface_field,
                                const SubsurfaceField& subsurface_field,
-                               const AbsorptionBands& absorption_bands,
+                               const AbsorptionBands& abs_bands,
                                const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
@@ -280,7 +280,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                            atmospheric_field,
                            surface_field,
                            subsurface_field,
-                           absorption_bands,
+                           abs_bands,
                            measurement_sensor);
 
   for (auto& key_data : covariance_matrix_diagonal_blocks) {

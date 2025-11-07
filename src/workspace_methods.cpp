@@ -585,7 +585,7 @@ See *FileType* for valid ``output_file_format``.
            R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
   };
 
-  wsm_data["absorption_cia_dataReadFromCIA"] = {
+  wsm_data["abs_cia_dataReadFromCIA"] = {
       .desc =
           R"--(Read data from a CIA data file for all CIA molecules defined
 in *absorption_species*.
@@ -599,7 +599,7 @@ Upon reading we convert this to the ARTS internal SI units
 of Hz and :math:`\textrm{m}^{5} \, \textrm{molec}^{-2}`.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"absorption_cia_data"},
+      .out       = {"abs_cia_data"},
       .in        = {"absorption_species"},
       .gin       = {"catalogpath"},
       .gin_type  = {"String"},
@@ -607,15 +607,15 @@ of Hz and :math:`\textrm{m}^{5} \, \textrm{molec}^{-2}`.
       .gin_desc  = {R"--(Path to the CIA catalog directory.)--"},
   };
 
-  wsm_data["absorption_cia_dataReadFromXML"] = {
+  wsm_data["abs_cia_dataReadFromXML"] = {
       .desc =
           R"--(Read data from a CIA XML file and check that all CIA tags defined
 in *absorption_species* are present in the file.
 
-The units of the data are described in *absorption_cia_dataReadFromCIA*.
+The units of the data are described in *abs_cia_dataReadFromCIA*.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"absorption_cia_data"},
+      .out       = {"abs_cia_data"},
       .in        = {"absorption_species"},
       .gin       = {"filename"},
       .gin_type  = {"String"},
@@ -623,7 +623,7 @@ The units of the data are described in *absorption_cia_dataReadFromCIA*.
       .gin_desc  = {R"--(Name of the XML file.)--"},
   };
 
-  wsm_data["absorption_cia_dataReadSpeciesSplitCatalog"] = {
+  wsm_data["abs_cia_dataReadSpeciesSplitCatalog"] = {
       .desc      = R"--(Reads a species split CIA dataset.
 
 The file names are expected to be of the form:
@@ -644,7 +644,7 @@ involved in the CIA.
     than calling this method directly.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_cia_data"},
+      .out       = {"abs_cia_data"},
       .in        = {"absorption_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
@@ -812,7 +812,7 @@ The main purpose of this method is to retrieve the magnitude rather than the vec
       .desc      = R"(Frequency grid useful for *atmospheric_profileFitNonLTE*.
 
 This method creates a frequency grid around the line-center of each
-absorption line in the *absorption_bands* variable.
+absorption line in the *abs_bands* variable.
 
 .. note::
   For all sorted absorption line centers :math:`f_i`, the following should be 
@@ -826,7 +826,7 @@ absorption line in the *absorption_bands* variable.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"frequency_grid"},
-      .in        = {"absorption_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"df", "nf"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
@@ -928,7 +928,7 @@ The method used here is based on :cite:t:`Yamada2018`
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_profile"},
       .in        = {"atmospheric_profile",
-                    "absorption_bands",
+                    "abs_bands",
                     "propagation_matrix_agenda",
                     "surface_field",
                     "frequency_grid",
@@ -1394,14 +1394,14 @@ This is based on the works cited here: https://hitran.org/mtckd/
       .desc =
           R"--(Add absorption coefficients for HITRAN collision induced absorption (CIA).
 
-This interpolates the cross sections from *absorption_cia_data*.  If too few
+This interpolates the cross sections from *abs_cia_data*.  If too few
 temperature grid-points are available, its polynomial order of interpolation
 decreases to the maximum allowed.  Otherwise, both frequency and temperature
 are interpolated using third order polynomials.
 
 Given that the interpolation is :math:`\vec{x}_{ij} = f\left(T, \vec{f}\right)`,
 where the *atmospheric_point* temperature is :math:`T` and :math:`f` is the
-*frequency_grid*, :math:`i` is an index into the *absorption_cia_data* and :math:`j`
+*frequency_grid*, :math:`i` is an index into the *abs_cia_data* and :math:`j`
 is an index into the underlying :class:`~pyarts3.arts.CIARecord` data structure,
 the absorption coefficient from CIA is given by
 
@@ -1450,7 +1450,7 @@ thus not fail.
                     "jacobian_targets",
                     "frequency_grid",
                     "atmospheric_point",
-                    "absorption_cia_data"},
+                    "abs_cia_data"},
       .gin       = {"T_extrapolfac", "ignore_errors"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.5}, Index{0}},
@@ -2061,7 +2061,7 @@ Gets the ellispoid from *surface_field*
       .author = {"Richard Larsson"},
       .out    = {"nlte_line_flux_profile"},
       .in     = {"spectral_flux_profile",
-                 "absorption_bands",
+                 "abs_bands",
                  "atmospheric_profile",
                  "frequency_grid"},
   };
@@ -2511,7 +2511,7 @@ See :doc:`concept.absorption.lbl` for details.
                     "frequency_grid",
                     "jacobian_targets",
                     "select_species",
-                    "absorption_bands",
+                    "abs_bands",
                     "ecs_data",
                     "atmospheric_point",
                     "ray_path_point"},
@@ -2541,7 +2541,7 @@ This is only for LTE lines in Voigt.
                     "frequency_grid",
                     "jacobian_targets",
                     "select_species",
-                    "absorption_bands",
+                    "abs_bands",
                     "atmospheric_point",
                     "ray_path_point"},
       .gin       = {"no_negative_absorption"},
@@ -2582,7 +2582,7 @@ This is only for LTE lines in Voigt.
                     "frequency",
                     "jacobian_targets",
                     "select_species",
-                    "absorption_bands",
+                    "abs_bands",
                     "atmospheric_point",
                     "ray_path_point"},
       .gin       = {"no_negative_absorption"},
@@ -2604,7 +2604,7 @@ See :doc:`concept.absorption.lookup` for details.
                    "frequency_grid",
                    "jacobian_targets",
                    "select_species",
-                   "absorption_lookup_table",
+                   "abs_lookup_data",
                    "atmospheric_point"},
       .gin      = {"no_negative_absorption",
                    "p_interp_order",
@@ -2843,7 +2843,7 @@ building of an actual Jacobian matrix.
                  "atmospheric_field",
                  "surface_field",
                  "subsurface_field",
-                 "absorption_bands",
+                 "abs_bands",
                  "measurement_sensor"},
   };
 
@@ -3135,7 +3135,7 @@ See *SpeciesIsotope* for valid ``species``
   wsm_data["RetrievalAddSpeciesIsotopologueRatio"] =
       jac2ret("jacobian_targetsAddSpeciesIsotopologueRatio");
 
-  wsm_data["absorption_bandsReadHITRAN"] = {
+  wsm_data["abs_bandsReadHITRAN"] = {
       .desc =
           R"--(Reads HITRAN data from a file.
 
@@ -3167,7 +3167,7 @@ be computed from the line strength, or simply read from the Hitran data.
    complete.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
+      .out       = {"abs_bands"},
       .in        = {},
       .gin       = {"file",
                     "frequency_range",
@@ -3186,7 +3186,7 @@ be computed from the line strength, or simply read from the Hitran data.
            "Compute the Zeeman parameters from the HITRAN data (will not activate Zeeman calculations, this must be done manually afterwards)"},
   };
 
-  wsm_data["absorption_bandsLineMixingAdaptation"] = {
+  wsm_data["abs_bandsLineMixingAdaptation"] = {
       .desc =
           R"--(Adapts select band to use ordered Line mixing coefficients.
 
@@ -3195,8 +3195,8 @@ This is an experimental feature and might not work.
 The computations of line mixing are done on the grid of temperatures provided.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_bands", "ecs_data", "atmospheric_point"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands", "ecs_data", "atmospheric_point"},
       .gin       = {"temperatures",
                     "band_key",
                     "rosenkranz_fit_order",
@@ -3210,15 +3210,15 @@ The computations of line mixing are done on the grid of temperatures provided.
            "The highest order of the polynomial fit (2 means square, 3 means cubic, etc)"},
   };
 
-  wsm_data["absorption_bandsSelectFrequencyByLine"] = {
+  wsm_data["abs_bandsSelectFrequencyByLine"] = {
       .desc =
           R"--(Remove all lines that strictly falls outside a frequency range
 
 Also remove bands whose lines are all removed.
 )--",
       .author    = {"Richard Larsson", "Oliver Lemke"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_bands"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"fmin", "fmax"},
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
@@ -3226,13 +3226,13 @@ Also remove bands whose lines are all removed.
       .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
-  wsm_data["absorption_bandsSelectFrequencyByBand"] = {
+  wsm_data["abs_bandsSelectFrequencyByBand"] = {
       .desc =
           R"--(Remove all bands whose lines all strictly falls outside a frequency range
 )--",
       .author    = {"Richard Larsson", "Oliver Lemke"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_bands"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"fmin", "fmax"},
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
@@ -3240,38 +3240,38 @@ Also remove bands whose lines are all removed.
       .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
-  wsm_data["absorption_bandsKeepID"] = {
+  wsm_data["abs_bandsKeepID"] = {
       .desc      = R"--(Keeps first band of ID
 
 If ``line`` is positive, also keep only the line of this index
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_bands"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"id", "line"},
       .gin_type  = {"QuantumIdentifier", "Index"},
       .gin_value = {std::nullopt, Index{-1}},
       .gin_desc  = {"Band to keep", "Line to keep (if positive)"},
   };
 
-  wsm_data["absorption_lookup_tableInit"] = {
+  wsm_data["abs_lookup_dataInit"] = {
       .desc =
           R"--(Initialize an empty lookup table.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_lookup_table"},
+      .out    = {"abs_lookup_data"},
   };
 
-  wsm_data["absorption_lookup_tablePrecompute"] = {
+  wsm_data["abs_lookup_dataPrecompute"] = {
       .desc =
           R"--(Precompute the lookup table for a single species, adding it to the map.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_lookup_table"},
-      .in        = {"absorption_lookup_table",
+      .out       = {"abs_lookup_data"},
+      .in        = {"abs_lookup_data",
                     "atmospheric_profile",
                     "frequency_grid",
-                    "absorption_bands",
+                    "abs_bands",
                     "ecs_data",
                     "select_species"},
       .gin       = {"temperature_perturbation", "water_perturbation"},
@@ -3282,19 +3282,19 @@ If ``line`` is positive, also keep only the line of this index
            "Water vapor perturbation to use for the lookup table (makes the species nonlinear)"},
   };
 
-  wsm_data["absorption_lookup_tablePrecomputeAll"] = {
+  wsm_data["abs_lookup_dataPrecomputeAll"] = {
       .desc =
-          R"--(Compute the lookup table for all species in *absorption_bands*.
+          R"--(Compute the lookup table for all species in *abs_bands*.
 
-Wraps *absorption_lookup_tablePrecompute* for each species, passing ``water_perturbation`` along
+Wraps *abs_lookup_dataPrecompute* for each species, passing ``water_perturbation`` along
 for those species that are ``water_affected_species``.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_lookup_table"},
-      .in        = {"absorption_lookup_table",
+      .out       = {"abs_lookup_data"},
+      .in        = {"abs_lookup_data",
                     "atmospheric_profile",
                     "frequency_grid",
-                    "absorption_bands",
+                    "abs_bands",
                     "ecs_data"},
       .gin       = {"temperature_perturbation",
                     "water_perturbation",
@@ -3307,19 +3307,19 @@ for those species that are ``water_affected_species``.
            "A list of absorption species that are affected by water vapor perturbations nonlinearly"},
   };
 
-  wsm_data["absorption_lookup_tableFromProfiles"] = {
+  wsm_data["abs_lookup_dataFromProfiles"] = {
       .desc =
-          R"--(Compute the lookup table for all species in *absorption_bands*.
+          R"--(Compute the lookup table for all species in *abs_bands*.
 
-Wraps *absorption_lookup_tablePrecomputeAll* after creating a simple
+Wraps *abs_lookup_dataPrecomputeAll* after creating a simple
 *ray_path_atmospheric_point* from the input data.
 
-Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
-*absorption_lookup_table*
+Unlike *abs_lookup_dataPrecomputeAll*, this method will initialize
+*abs_lookup_data*
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_lookup_table"},
-      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
+      .out       = {"abs_lookup_data"},
+      .in        = {"frequency_grid", "abs_bands", "ecs_data"},
       .gin       = {"pressure_profile",
                     "temperature_profile",
                     "vmr_profiles",
@@ -3351,18 +3351,18 @@ Unlike *absorption_lookup_tablePrecomputeAll*, this method will initialize
            "Default isotopologue ratio option to initialize the *AtmPoint* with"},
   };
 
-  wsm_data["absorption_lookup_tableSimpleWide"] = {
+  wsm_data["abs_lookup_dataSimpleWide"] = {
       .desc =
-          R"--(Set up a simple wide lookup table for all species in *absorption_bands*.
+          R"--(Set up a simple wide lookup table for all species in *abs_bands*.
 
 This method simply computes the profiles for Earth-like atmospheres (by defaults)
-and pass them into *absorption_lookup_tableFromProfiles*.
+and pass them into *abs_lookup_dataFromProfiles*.
 
 The pressure range is set up logarithmically and all other ranges are set linearly.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_lookup_table"},
-      .in        = {"frequency_grid", "absorption_bands", "ecs_data"},
+      .out       = {"abs_lookup_data"},
+      .in        = {"frequency_grid", "abs_bands", "ecs_data"},
       .gin       = {"water_affected_species",
                     "pressure_range",
                     "temperature_range",
@@ -3402,7 +3402,7 @@ The pressure range is set up logarithmically and all other ranges are set linear
            "Number of steps in the water vapor perturbation"},
   };
 
-  wsm_data["absorption_bandsReadSpeciesSplitCatalog"] = {
+  wsm_data["abs_bandsReadSpeciesSplitCatalog"] = {
       .desc   = R"--(Reads all species in *absorption_species* from a basename
 
 basename follows the standard ARTS rules.
@@ -3416,7 +3416,7 @@ ignore missing files and continue.  If set to false, the method
 will throw an error if any file is missing.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_bands"},
+      .out    = {"abs_bands"},
       .in     = {"absorption_species"},
       .gin    = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
@@ -3425,9 +3425,9 @@ will throw an error if any file is missing.
                     "Ignore missing files instead of throwing an error"},
   };
 
-  wsm_data["absorption_bandsReadSpeciesSplitARTSCAT"] = {
+  wsm_data["abs_bandsReadSpeciesSplitARTSCAT"] = {
       .desc =
-          R"--(Same as *absorption_bandsReadSpeciesSplitCatalog* but for reading the old ARTSCAT format.
+          R"--(Same as *abs_bandsReadSpeciesSplitCatalog* but for reading the old ARTSCAT format.
 
 One key difference is that ARTSCAT were often stored in a single file per *SpeciesEnum*
 rather than per *SpeciesIsotope*, so the optional argument ``pure_species`` is available
@@ -3435,11 +3435,11 @@ and evaluates to true by default to use *SpeciesEnum*.  Switch this off to use t
 *SpeciesIsotope* instead.
 
 Note that ARTSCAT does not support many of the features of the modern line catalog format.
-This reading routine is intended for use-as-is of the produced *absorption_bands*.  Or after
+This reading routine is intended for use-as-is of the produced *abs_bands*.  Or after
 minor changes, like removing absorption lines outside of some frequency span.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
+      .out       = {"abs_bands"},
       .in        = {"absorption_species"},
       .gin       = {"basename", "ignore_missing", "pure_species"},
       .gin_type  = {"String", "Index", "Index"},
@@ -3450,24 +3450,24 @@ minor changes, like removing absorption lines outside of some frequency span.
            "Flag that when true uses *SpeciesEnum* instead of *SpeciesIsotope* for file names."},
   };
 
-  wsm_data["absorption_bandsReadSplit"] = {
+  wsm_data["abs_bandsReadSplit"] = {
       .desc =
-          R"--(Reads all xml-files in a given directory and puts them into *absorption_bands*.
+          R"--(Reads all xml-files in a given directory and puts them into *abs_bands*.
 
 .. note::
     The ``dir`` path has to be absolute or relative to the working path, the environment
     variables are not considered
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
+      .out       = {"abs_bands"},
       .gin       = {"dir"},
       .gin_type  = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Absolute or relative path to the directory"},
   };
 
-  wsm_data["absorption_bandsSaveSplit"] = {
-      .desc      = R"--(Saves all bands in *absorption_bands* to a directory
+  wsm_data["abs_bandsSaveSplit"] = {
+      .desc      = R"--(Saves all bands in *abs_bands* to a directory
 
 This will create the directory if it does not exist.  It will also create
 subdirectories that are the short-form of the isotopologue names.  The bands
@@ -3477,7 +3477,7 @@ The ``dir`` path has to be absolute or relative to the working path, the environ
 variables are not considered
 )--",
       .author    = {"Richard Larsson"},
-      .in        = {"absorption_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"dir"},
       .gin_type  = {"String"},
       .gin_value = {std::nullopt},
@@ -3977,7 +3977,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_bands"},
+      .in        = {"atmospheric_field", "abs_bands"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4007,7 +4007,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_bands"},
+      .in        = {"atmospheric_field", "abs_bands"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4038,7 +4038,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_bands"},
+      .in        = {"atmospheric_field", "abs_bands"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4098,7 +4098,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_cia_data"},
+      .in        = {"atmospheric_field", "abs_cia_data"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4158,7 +4158,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_lookup_table"},
+      .in        = {"atmospheric_field", "abs_lookup_data"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4214,12 +4214,12 @@ defining the relevant data fields.
 
 Wraps:
 
-- *atmospheric_fieldAppendLineSpeciesData* if the workspace contains *absorption_bands*
-- *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
-- *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendLineSpeciesData* if the workspace contains *abs_bands*
+- *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *abs_bands*
+- *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *abs_bands*
 - *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
-- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *absorption_lookup_table*
-- *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
+- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *abs_lookup_data*
+- *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *abs_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
 
@@ -4256,16 +4256,16 @@ See these individually for more details.
 
 Wraps:
 
-- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
-- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename``
+- *abs_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
+- *abs_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename``
 - *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
 - *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"absorption_predefined_model_data",
                     "absorption_xsec_fit_data",
-                    "absorption_cia_data",
-                    "absorption_bands"},
+                    "abs_cia_data",
+                    "abs_bands"},
       .in        = {"absorption_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
@@ -4274,14 +4274,14 @@ Wraps:
                     "Ignore missing files instead of throwing an error"},
   };
 
-  wsm_data["absorption_bandsSetZeeman"] = {
+  wsm_data["abs_bandsSetZeeman"] = {
       .desc = R"--(Set the Zeeman splitting for lines within the frequency range
 
 See *SpeciesIsotope* for valid ``species``
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_bands"},
-      .in        = {"absorption_bands"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
       .gin       = {"species", "fmin", "fmax", "on"},
       .gin_type  = {"SpeciesIsotope", "Numeric", "Numeric", "Index"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{1}},
@@ -4424,7 +4424,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .out    = {"measurement_jacobian"},
       .in     = {"measurement_jacobian",
                  "model_state_vector",
-                 "absorption_bands",
+                 "abs_bands",
                  "jacobian_targets"},
   };
 
@@ -4762,12 +4762,12 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
       .in     = {"subsurface_field", "model_state_vector", "jacobian_targets"},
   };
 
-  wsm_data["absorption_bandsFromModelState"] = {
-      .desc   = R"--(Sets *absorption_bands* to the state of the model.
+  wsm_data["abs_bandsFromModelState"] = {
+      .desc   = R"--(Sets *abs_bands* to the state of the model.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_bands"},
-      .in     = {"absorption_bands", "model_state_vector", "jacobian_targets"},
+      .out    = {"abs_bands"},
+      .in     = {"abs_bands", "model_state_vector", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorInit"] = {
@@ -4827,7 +4827,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "absorption_bands", "jacobian_targets"},
+      .in     = {"model_state_vector", "abs_bands", "jacobian_targets"},
   };
 
   wsm_data["ray_path_transmission_matrixFromPath"] = {
@@ -5012,7 +5012,7 @@ Description of the special input arguments:
                  "measurement_vector_fitted",
                  "measurement_jacobian",
                  "atmospheric_field",
-                 "absorption_bands",
+                 "abs_bands",
                  "measurement_sensor",
                  "surface_field",
                  "subsurface_field",
@@ -5027,7 +5027,7 @@ Description of the special input arguments:
                     "measurement_vector_fitted",
                     "measurement_jacobian",
                     "atmospheric_field",
-                    "absorption_bands",
+                    "abs_bands",
                     "measurement_sensor",
                     "surface_field",
                     "subsurface_field",
@@ -5644,17 +5644,17 @@ See *jacobian_targetsFinalize* for more information.
                  "atmospheric_field",
                  "surface_field",
                  "subsurface_field",
-                 "absorption_bands",
+                 "abs_bands",
                  "measurement_sensor"},
   };
 
-  wsm_data["absorption_bandsSetNonLTE"] = {
+  wsm_data["abs_bandsSetNonLTE"] = {
       .desc =
           R"--(Set all bands to use non-LTE calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_bands"},
-      .in     = {"absorption_bands"},
+      .out    = {"abs_bands"},
+      .in     = {"abs_bands"},
   };
 
   wsm_data["atmospheric_fieldInitializeNonLTE"] = {
@@ -5667,7 +5667,7 @@ This is because of how non-LTE is implemented in ARTS.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_bands"},
+      .in        = {"atmospheric_field", "abs_bands"},
       .gin       = {"normalization"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.0}},
@@ -5792,7 +5792,7 @@ Additional work is requires if proper coverage of the limb is required
           meta));
     }
 
-    std::vector<std::string> gin{"use_absorption_lookup_table"};
+    std::vector<std::string> gin{"use_abs_lookup_data"};
     std::vector<std::string> gin_type{"Index"};
     std::vector<std::string> gin_desc{
         "Whether or not to use the lookup table instead of pure line-by-line calculations"};
@@ -5858,7 +5858,7 @@ The following methods are considered for addition to the agenda:
 - *propagation_matrixAddXsecFit*
 - *propagation_matrixAddPredefined*
 
-If ``use_absorption_lookup_table`` evaluates to true, lookup table
+If ``use_abs_lookup_data`` evaluates to true, lookup table
 calculations, via *propagation_matrixAddLookup*, are used instead of *propagation_matrixAddLines*.
 
 Note that the signature of this method changes depending on the input methods.  This is important
@@ -5870,7 +5870,7 @@ for more information.
         .gout      = gout,
         .gout_type = gout_type,
         .gout_desc = gout_desc,
-        .in        = {"absorption_species", "absorption_bands"},
+        .in        = {"absorption_species", "abs_bands"},
         .gin       = gin,
         .gin_type  = gin_type,
         .gin_value = gin_value,

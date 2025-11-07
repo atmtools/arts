@@ -42,7 +42,7 @@ struct table {
   table(const SpeciesEnum& species,
         const ArrayOfAtmPoint& atmref,
         std::shared_ptr<const AscendingGrid> f_grid,
-        const AbsorptionBands& absorption_bands,
+        const AbsorptionBands& abs_bands,
         const LinemixingEcsData& ecs_data,
         std::shared_ptr<const AscendingGrid> t_pert = nullptr,
         std::shared_ptr<const AscendingGrid> w_pert = nullptr);

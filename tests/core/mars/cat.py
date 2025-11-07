@@ -28,8 +28,8 @@ out = []
 for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
     print(abs_scenario)
     if abs_scenario == "FullMars":
-        ws.absorption_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
-        ws.absorption_bands = ws.absorption_bands.extract_species("H2O-161")
+        ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
+        ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
         ws.propagation_matrix_agendaAuto()
         ws.atmospheric_fieldRead(
             toa=150e3,
@@ -44,8 +44,8 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
             ws.atmospheric_field.specs
         ), "Reading ARTSCAT-4 but not getting 6 species"
     elif abs_scenario == "IsotEarth":
-        ws.absorption_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
-        ws.absorption_bands = ws.absorption_bands.extract_species("H2O-161")
+        ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
+        ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
         ws.propagation_matrix_agendaAuto()
         ws.atmospheric_fieldRead(
             toa=150e3,
@@ -55,7 +55,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
         )
     elif abs_scenario == "FullEarth":
         ws.ReadCatalogData()
-        ws.absorption_bandsSelectFrequencyByLine(fmin=550e9, fmax=560e9)
+        ws.abs_bandsSelectFrequencyByLine(fmin=550e9, fmax=560e9)
         ws.propagation_matrix_agendaAuto()
         ws.atmospheric_fieldRead(
             toa=150e3,

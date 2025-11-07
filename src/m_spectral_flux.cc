@@ -237,7 +237,7 @@ void flux_profileIntegrate(Vector& flux_profile,
 void nlte_line_flux_profileIntegrate(
     QuantumIdentifierVectorMap& nlte_line_flux_profile,
     const Matrix& spectral_flux_profile,
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const AscendingGrid& frequency_grid) {
   ARTS_TIME_REPORT
@@ -253,7 +253,7 @@ void nlte_line_flux_profileIntegrate(
       "Atmospheric point and spectral flux profile size mismatch");
 
   nlte_line_flux_profile.clear();
-  for (const auto& [key, band] : absorption_bands) {
+  for (const auto& [key, band] : abs_bands) {
     ARTS_USER_ERROR_IF(band.size() != 1, "Only one line per band is supported");
 
     ARTS_USER_ERROR_IF(not is_voigt(band.lineshape),
