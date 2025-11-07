@@ -6,7 +6,7 @@ pyarts.data.download()
 
 # Use default atmosphere
 ws = pyarts.Workspace()
-ws.absorption_speciesSet(species=["O2", "CO2"])
+ws.abs_speciesSet(species=["O2", "CO2"])
 ws.atmospheric_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )

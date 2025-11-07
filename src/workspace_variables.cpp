@@ -68,7 +68,64 @@ See also :doc:`concept.absorption.cia` for more information on CIA calculations.
       .type = "ArrayOfCIARecord",
   };
 
-  wsv_data["absorption_species"] = {
+  wsv_data["absorption_xsec_fit_data"] = {
+      .desc = R"--(Fitting model coefficients for cross section species.
+
+Dimensions: [ n_species ]
+
+XsecRecord:
+
+- species: Name of species
+- version: Fit model version
+- fitcoeffs:
+
+  -  Fit model coefficients as an *ArrayOfGriddedField2*
+  -  Dimensions: [ n_bands ]
+
+    -   GriddedField2: [ n_band_frequencies, n_coeffs ]
+
+      -    The fit model:
+
+        -     z = p00 + p10*x + p01*y + p20*x^2
+        -     z = Xsec [m^2]
+        -     x = T / T0
+        -     y = P / P0
+        -     T0 = 1 [K]
+        -     P0 = 1 [Pa]
+        -     fitcoeffs(:, 0)           p00  [m^2]
+        -     fitcoeffs(:, 1)           p10  [m^2]
+        -     fitcoeffs(:, 2)           p01  [m^2]
+        -     fitcoeffs(:, 3)           p20  [m^2]
+
+- fitminpressures:
+
+  -  Minimum pressure available in source xsec data to generate the fit coefficients.
+  -  Dimensions: [ n_bands ]
+
+- fitmaxpressures:
+
+  -  Maximum pressure available in source xsec data to generate the fit coefficients.
+  -  Dimensions: [ n_bands ]
+
+- fitmintemperatures:
+
+  -  Minimum temperature available in source xsec data to generate the fit coefficients.
+  -  Dimensions: [ n_bands ]
+
+- fitmintemperatures:
+
+  -  Maximum temperature available in source xsec data to generate the fit coefficients.
+  -  Dimensions: [ n_bands ]
+
+fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures
+are not used to apply the model and solely serve for informational purposes.
+
+See also :doc:`concept.absorption.xsec` for more information on these calculations.
+)--",
+      .type = "ArrayOfXsecRecord",
+  };
+
+    wsv_data["abs_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
 This allows the user to set up groups of species tags that are used
@@ -219,63 +276,6 @@ The order is
           R"--(A list of *frequency_wind_shift_jacobian* for a ray path.
 )--",
       .type = "ArrayOfVector3",
-  };
-
-  wsv_data["absorption_xsec_fit_data"] = {
-      .desc = R"--(Fitting model coefficients for cross section species.
-
-Dimensions: [ n_species ]
-
-XsecRecord:
-
-- species: Name of species
-- version: Fit model version
-- fitcoeffs:
-
-  -  Fit model coefficients as an *ArrayOfGriddedField2*
-  -  Dimensions: [ n_bands ]
-
-    -   GriddedField2: [ n_band_frequencies, n_coeffs ]
-
-      -    The fit model:
-
-        -     z = p00 + p10*x + p01*y + p20*x^2
-        -     z = Xsec [m^2]
-        -     x = T / T0
-        -     y = P / P0
-        -     T0 = 1 [K]
-        -     P0 = 1 [Pa]
-        -     fitcoeffs(:, 0)           p00  [m^2]
-        -     fitcoeffs(:, 1)           p10  [m^2]
-        -     fitcoeffs(:, 2)           p01  [m^2]
-        -     fitcoeffs(:, 3)           p20  [m^2]
-
-- fitminpressures:
-
-  -  Minimum pressure available in source xsec data to generate the fit coefficients.
-  -  Dimensions: [ n_bands ]
-
-- fitmaxpressures:
-
-  -  Maximum pressure available in source xsec data to generate the fit coefficients.
-  -  Dimensions: [ n_bands ]
-
-- fitmintemperatures:
-
-  -  Minimum temperature available in source xsec data to generate the fit coefficients.
-  -  Dimensions: [ n_bands ]
-
-- fitmintemperatures:
-
-  -  Maximum temperature available in source xsec data to generate the fit coefficients.
-  -  Dimensions: [ n_bands ]
-
-fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures
-are not used to apply the model and solely serve for informational purposes.
-
-See also :doc:`concept.absorption.xsec` for more information on these calculations.
-)--",
-      .type = "ArrayOfXsecRecord",
   };
 
   wsv_data["propagation_matrix_source_vector_nonlte"] = {

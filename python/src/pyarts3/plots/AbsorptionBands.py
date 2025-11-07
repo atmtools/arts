@@ -95,7 +95,7 @@ def plot(data: AbsorptionBands,
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{band.isot}" for band in data])
+        ws.abs_speciesSet(species=[f"{band.isot}" for band in data])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)

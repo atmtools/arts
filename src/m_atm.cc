@@ -146,10 +146,10 @@ void keysNLTE(std::unordered_map<QuantumLevelIdentifier, Index> &keys,
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfSpeciesTag &absorption_species) {
-  if (absorption_species.empty()) return;
+                 const ArrayOfSpeciesTag &abs_species) {
+  if (abs_species.empty()) return;
 
-  for (auto &species_tags : absorption_species) {
+  for (auto &species_tags : abs_species) {
     if (species_tags.Spec() != "AIR"_spec) ++keys[species_tags.Spec()];
   }
 }
@@ -365,7 +365,7 @@ void atmospheric_fieldAppendLineLevelData(
 
 void atmospheric_fieldAppendTagsSpeciesData(
     AtmField &atmospheric_field,
-    const ArrayOfSpeciesTag &absorption_species,
+    const ArrayOfSpeciesTag &abs_species,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
@@ -373,7 +373,7 @@ void atmospheric_fieldAppendTagsSpeciesData(
   ARTS_TIME_REPORT
 
   std::unordered_map<SpeciesEnum, Index> keys;
-  keysSpecies(keys, absorption_species);
+  keysSpecies(keys, abs_species);
 
   append_data(atmospheric_field,
               basename,
@@ -583,12 +583,12 @@ void atmospheric_fieldAppendAuto(const Workspace &ws,
                                              replace_existing);
   }
 
-  if (const String species_str = "absorption_species";
+  if (const String species_str = "abs_species";
       ws.wsv_and_contains(species_str)) {
     using aospec_t                 = ArrayOfSpeciesTag;
-    const auto &absorption_species = ws.get<aospec_t>(species_str);
+    const auto &abs_species = ws.get<aospec_t>(species_str);
     atmospheric_fieldAppendTagsSpeciesData(atmospheric_field,
-                                           absorption_species,
+                                           abs_species,
                                            basename,
                                            extrapolation,
                                            missing_is_zero,

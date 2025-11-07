@@ -12,7 +12,7 @@ def calc(ws, lineshape=None):
 
 
 ws = pyarts.Workspace()
-ws.absorption_speciesSet(species=["CO2-626"])
+ws.abs_speciesSet(species=["CO2-626"])
 ws.ReadCatalogData()
 
 p = 1e5

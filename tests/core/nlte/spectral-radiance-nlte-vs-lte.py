@@ -3,7 +3,7 @@ import numpy as np
 
 ws = pyarts.Workspace()
 
-ws.absorption_speciesSet(species=["H2O"])
+ws.abs_speciesSet(species=["H2O"])
 
 ws.abs_bands.readxml("nlte_lines.xml")
 

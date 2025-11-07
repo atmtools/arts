@@ -21,7 +21,7 @@ will want to call.
 This example sets the absorption species to all oxygen
 and all water isotopologues (in their line-by-line mode).
 """
-ws.absorption_speciesSet(species=["O2-66", "H2O-161"])
+ws.abs_speciesSet(species=["O2-66", "H2O-161"])
 
 """
 We now need to load the data.

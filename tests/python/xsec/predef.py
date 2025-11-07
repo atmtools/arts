@@ -10,7 +10,7 @@ atm["O2"] = 0.21
 atm["H2O"] = 0.0
 nd = atm.number_density("O2-66")
 
-ws.absorption_speciesSet(species=["O2-PWR98"])
+ws.abs_speciesSet(species=["O2-PWR98"])
 ws.ReadCatalogData()
 f = np.linspace(50e9, 70e9, 10)
 x = ws.absorption_predefined_model_data.propagation_matrix(f=f, atm=atm) / nd

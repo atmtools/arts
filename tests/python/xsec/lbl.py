@@ -9,7 +9,7 @@ atm.temperature = 273.15
 atm["O2"] = 0.21
 nd = atm.number_density("O2-66")
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 f = np.linspace(50e9, 70e9, 10)
 x = ws.abs_bands.propagation_matrix(f=f, atm=atm) / nd

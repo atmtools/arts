@@ -36,9 +36,9 @@ ws = pyarts.Workspace()
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
 ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr)
 
-v = pyarts.data.to_absorption_species(ws.atmospheric_field)
+v = pyarts.data.to_abs_species(ws.atmospheric_field)
 
-ws.absorption_species = v
+ws.abs_species = v
 ws.ReadCatalogData(ignore_missing=True)
 ws.propagation_matrix_agendaAuto(T_extrapolfac=1e9)
 

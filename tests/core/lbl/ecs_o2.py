@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 ws = pyarts.Workspace()
 
-ws.absorption_speciesSet(species=["O2-66", "H2O-PWR98"])
+ws.abs_speciesSet(species=["O2-66", "H2O-PWR98"])
 ws.ReadCatalogData()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
@@ -92,7 +92,7 @@ plt.semilogy(
 )
 
 # Using PWR98
-ws.absorption_speciesSet(species=["O2-PWR98", "H2O-PWR98"])
+ws.abs_speciesSet(species=["O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
 plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="PWR98")
 

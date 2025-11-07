@@ -3,7 +3,7 @@ import numpy as np
 
 ws = pyarts.Workspace()
 
-ws.absorption_speciesSet(species=["H2O-161"])
+ws.abs_speciesSet(species=["H2O-161"])
 
 ws.surface_fieldMars()
 ws.surface_field["t"] = pyarts.arts.GriddedField2.fromxml(

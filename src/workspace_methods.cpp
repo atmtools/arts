@@ -420,7 +420,7 @@ extension.
       .desc      = R"--(Reads HITRAN Crosssection coefficients
 
 Reads coefficient files for HITRAN Xsec species defined
-in *absorption_species*.
+in *abs_species*.
 
 .. tip::
     A common and perhaps more convenient alternative to this method
@@ -434,7 +434,7 @@ in *absorption_species*.
 )--",
       .author    = {"Oliver Lemke"},
       .out       = {"absorption_xsec_fit_data"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
@@ -588,7 +588,7 @@ See *FileType* for valid ``output_file_format``.
   wsm_data["abs_cia_dataReadFromCIA"] = {
       .desc =
           R"--(Read data from a CIA data file for all CIA molecules defined
-in *absorption_species*.
+in *abs_species*.
 
 The units in the HITRAN file are:
 
@@ -600,7 +600,7 @@ of Hz and :math:`\textrm{m}^{5} \, \textrm{molec}^{-2}`.
 )--",
       .author    = {"Oliver Lemke"},
       .out       = {"abs_cia_data"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"catalogpath"},
       .gin_type  = {"String"},
       .gin_value = {std::nullopt},
@@ -610,13 +610,13 @@ of Hz and :math:`\textrm{m}^{5} \, \textrm{molec}^{-2}`.
   wsm_data["abs_cia_dataReadFromXML"] = {
       .desc =
           R"--(Read data from a CIA XML file and check that all CIA tags defined
-in *absorption_species* are present in the file.
+in *abs_species* are present in the file.
 
 The units of the data are described in *abs_cia_dataReadFromCIA*.
 )--",
       .author    = {"Oliver Lemke"},
       .out       = {"abs_cia_data"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"filename"},
       .gin_type  = {"String"},
       .gin_value = {String("")},
@@ -645,7 +645,7 @@ involved in the CIA.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_cia_data"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
@@ -656,7 +656,7 @@ involved in the CIA.
 
   wsm_data["absorption_predefined_model_dataReadSpeciesSplitCatalog"] = {
       .desc =
-          R"--(Reads *absorption_predefined_model_data* catalog but only for *absorption_species*
+          R"--(Reads *absorption_predefined_model_data* catalog but only for *abs_species*
 
 
 The file names are expected to be of the form:
@@ -664,7 +664,7 @@ The file names are expected to be of the form:
    <basename><Spec>-<Model>.xml
 
 where <Spec> is the *SpeciesEnum* names of the species
-and <Model> is the model name.  See *absorption_speciesSet* for more
+and <Model> is the model name.  See *abs_speciesSet* for more
 information on how to define a species with a predefined model.
 
 If ``name_missing`` is true, missing models are set to named model, which is the most
@@ -682,7 +682,7 @@ common form of a predefined model.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"absorption_predefined_model_data"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{1}, Index{0}},
@@ -692,15 +692,15 @@ common form of a predefined model.
            R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
   };
 
-  wsm_data["absorption_speciesDefineAll"] = {
-      .desc   = R"--(Sets *absorption_species* to contain all species in ARTS
+  wsm_data["abs_speciesDefineAll"] = {
+      .desc   = R"--(Sets *abs_species* to contain all species in ARTS
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_species"},
+      .out    = {"abs_species"},
   };
 
-  wsm_data["absorption_speciesSet"] = {
-      .desc      = R"--(Set *absorption_species* to the named species.
+  wsm_data["abs_speciesSet"] = {
+      .desc      = R"--(Set *abs_species* to the named species.
 
 The species that are defined by this method are used in various
 file reading routines to populate both atmosphere- and absorption-related
@@ -726,7 +726,7 @@ These are named:
     :func:`~pyarts3.data.download_arts_cat_data` for help to download and set it up.
 )--",
       .author    = {"Stefan Buehler", "Richard Larsson"},
-      .out       = {"absorption_species"},
+      .out       = {"abs_species"},
       .gin       = {"species"},
       .gin_type  = {"ArrayOfString"},
       .gin_value = {std::nullopt},
@@ -1488,7 +1488,7 @@ but adds further contributions.
 
   wsm_data["propagation_matrixAddPredefined"] = {
       .desc =
-          R"--(Adds all of the predefined models in *absorption_species* to the propagation_matrix
+          R"--(Adds all of the predefined models in *abs_species* to the propagation_matrix
 
 Only supports temperature and wind speed derivatives
 
@@ -3403,10 +3403,10 @@ The pressure range is set up logarithmically and all other ranges are set linear
   };
 
   wsm_data["abs_bandsReadSpeciesSplitCatalog"] = {
-      .desc   = R"--(Reads all species in *absorption_species* from a basename
+      .desc   = R"--(Reads all species in *abs_species* from a basename
 
 basename follows the standard ARTS rules.
-For example if *absorption_species* contains only ``H2O-161``, then a
+For example if *abs_species* contains only ``H2O-161``, then a
 basename of ``"lbl"`` will read the file ``"lbl.H2O-161.xml"``, and a
 basename of ``"lbl/"`` will read the file ``"lbl/H2O-161.xml"``.
 
@@ -3417,7 +3417,7 @@ will throw an error if any file is missing.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_bands"},
-      .in     = {"absorption_species"},
+      .in     = {"abs_species"},
       .gin    = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
@@ -3440,7 +3440,7 @@ minor changes, like removing absorption lines outside of some frequency span.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"basename", "ignore_missing", "pure_species"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{0}, Index{1}},
@@ -3996,7 +3996,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
-See *absorption_speciesSet* for valid isotopologue names.
+See *abs_speciesSet* for valid isotopologue names.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
 
@@ -4026,7 +4026,7 @@ exists in the atmospheric field.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
-See *absorption_speciesSet* for valid isotopologue names and
+See *abs_speciesSet* for valid isotopologue names and
 *QuantumLevelIdentifier* for constructing quantum numbers identifiers.
 
 See *InterpolationExtrapolation* for valid ``extrapolation``.
@@ -4053,7 +4053,7 @@ exists in the atmospheric field.
 
   wsm_data["atmospheric_fieldAppendTagsSpeciesData"] = {
       .desc =
-          R"--(Append species data to the atmospheric field based on *absorption_species*.
+          R"--(Append species data to the atmospheric field based on *abs_species*.
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
@@ -4068,7 +4068,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_species"},
+      .in        = {"atmospheric_field", "abs_species"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4217,7 +4217,7 @@ Wraps:
 - *atmospheric_fieldAppendLineSpeciesData* if the workspace contains *abs_bands*
 - *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *abs_bands*
 - *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *abs_bands*
-- *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
+- *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *abs_species*
 - *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *abs_lookup_data*
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *abs_cia_data*
 - *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
@@ -4266,7 +4266,7 @@ Wraps:
                     "absorption_xsec_fit_data",
                     "abs_cia_data",
                     "abs_bands"},
-      .in        = {"absorption_species"},
+      .in        = {"abs_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {String{}, Index{0}},
@@ -5870,7 +5870,7 @@ for more information.
         .gout      = gout,
         .gout_type = gout_type,
         .gout_desc = gout_desc,
-        .in        = {"absorption_species", "abs_bands"},
+        .in        = {"abs_species", "abs_bands"},
         .gin       = gin,
         .gin_type  = gin_type,
         .gin_value = gin_value,

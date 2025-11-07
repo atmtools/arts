@@ -619,7 +619,7 @@ line-of-sight to get the corresponding spectral radiance.
       .desc = R"(Contains name and data about an isotope.
 
 This is used to identify a specific isotope in a species.
-The allowed values for the isotope are predefined, see *absorption_speciesSet* for available species.
+The allowed values for the isotope are predefined, see *abs_speciesSet* for available species.
 
 For *PredefinedModelData*, this identifies the predefined model by name
 and return any associated data.

@@ -24,10 +24,10 @@ ws.frequency_grid = pa.arts.convert.kaycm2freq(kayser_grid)  # in Hz
 # Select absorption species and continuum model
 # This example uses a reduced set of species to speed up the calculation.
 # Use the second line for a more realistic setup.
-ws.absorption_speciesSet(
+ws.abs_speciesSet(
     species=["H2O-161", "H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400", "CO2-626"]
 )
-# ws.absorption_speciesSet(
+# ws.abs_speciesSet(
 #     species=["H2O", "H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400", "CO2", "O3"]
 # )
 
