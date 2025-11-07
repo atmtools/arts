@@ -64,7 +64,7 @@ class AtmosphericFlux:
         self.ws.disort_fourier_mode_dimension = 1
         self.ws.disort_legendre_polynomial_dimension = 1
 
-        self.ws.absorption_speciesSet(species=species)
+        self.ws.abs_speciesSet(species=species)
 
         self.ws.ReadCatalogData()
 

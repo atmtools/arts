@@ -40,7 +40,7 @@ def calc_hitran_line_strengths(lines, isotopologue, T0):
 
 
 # Load line catalog
-ws.absorption_speciesSet(species=[isotopologue])
+ws.abs_speciesSet(species=[isotopologue])
 ws.abs_bandsReadSpeciesSplitCatalog(basename="lines/")
 
 # Throw away lines outside the frequency range

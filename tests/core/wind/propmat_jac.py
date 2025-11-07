@@ -23,7 +23,7 @@ wind = [10, 10, 10]
 dx = 1e-1
 
 # Load spectroscopic data
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()

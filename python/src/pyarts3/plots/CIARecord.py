@@ -58,7 +58,7 @@ def plot(data: CIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{s}" for s in data.specs])
+        ws.abs_speciesSet(species=[f"{s}" for s in data.specs])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)

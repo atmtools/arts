@@ -133,8 +133,8 @@ Before that, a concise overview of what each option do is available by the types
   return doc;
 }
 
-std::string get_absorption_speciesSet_doc() {
-  const std::string method_name = "absorption_speciesSet";
+std::string get_abs_speciesSet_doc() {
+  const std::string method_name = "abs_speciesSet";
 
   std::string doc = R"(
 Below follows a complete list of all single species tags that can be set using this method.
@@ -179,7 +179,7 @@ workspace_method_extra_doc_internal() {
   docstr(doc, "disort_settings_agendaSetup") =
       get_disort_settings_agendaSetup_doc();
 
-  docstr(doc, "absorption_speciesSet") = get_absorption_speciesSet_doc();
+  docstr(doc, "abs_speciesSet") = get_abs_speciesSet_doc();
 
   return doc;
 }

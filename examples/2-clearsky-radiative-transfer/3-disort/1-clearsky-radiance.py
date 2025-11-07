@@ -19,7 +19,7 @@ line_f0 = 118750348044.712
 ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
 # %% Use the automatic agenda setter for propagation matrix calculations

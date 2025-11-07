@@ -34,7 +34,7 @@ will want to call.
 This example sets the absorption species to O2 collision-induced
 absorption (CIA) with self and also with N2
 """
-ws.absorption_speciesSet(species=["O2-CIA-O2", "O2-CIA-N2"])
+ws.abs_speciesSet(species=["O2-CIA-O2", "O2-CIA-N2"])
 
 """
 We now need to load the data.

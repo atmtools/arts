@@ -36,7 +36,7 @@ ws.frequency_grid = np.linspace(170, 194, N_freq) * 1e9
 frequency_grid = np.array(ws.frequency_grid)
 
 # Species and line absorption
-ws.absorption_speciesSet(species=["H2O-PWR2022"])
+ws.abs_speciesSet(species=["H2O-PWR2022"])
 ws.ReadCatalogData()
 
 # Use the automatic agenda setter for propagation matrix calculations

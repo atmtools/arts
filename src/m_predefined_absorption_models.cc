@@ -22,7 +22,7 @@
 
 void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     PredefinedModelData& absorption_predefined_model_data,
-    const ArrayOfSpeciesTag& absorption_species,
+    const ArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& name_missing_,
     const Index& ignore_missing_) try {
@@ -40,7 +40,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     tmpbasename += '.';
   }
 
-  for (auto& spec : absorption_species) {
+  for (auto& spec : abs_species) {
     if (not spec.Isotopologue().is_predefined()) continue;
 
     String filename = tmpbasename + spec.Isotopologue().FullName() + ".xml";

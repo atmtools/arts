@@ -313,7 +313,7 @@ def to_atmospheric_field(
     return atm
 
 
-def to_absorption_species(
+def to_abs_species(
     atm_field: pyarts.arts.AtmField,
 ) -> pyarts.arts.ArrayOfSpeciesTag:
     """Scans the ARTS data path for species relevant to the given atmospheric field.

@@ -35,7 +35,7 @@ pyarts.arts.globals.omp_set_num_threads(1)
 ws.frequency_grid = [31.5e9, 165e9, 666e9]
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
+ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
 ws.propagation_matrix_agendaAuto()
 

@@ -15,7 +15,7 @@ ws.frequency_grid = np.linspace(10e9, 400e9, NF)
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
+ws.abs_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
 ws.ReadCatalogData()
 ws.WignerInit()
 

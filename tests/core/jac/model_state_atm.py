@@ -64,7 +64,7 @@ ws.surface_field["h"] = pyarts.arts.GeodeticField2(
     grid_names=["Latitude", "Longitude"],
 )
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.abs_bandsSelectFrequencyByLine(fmin=100e9, fmax=120e9)
 ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)

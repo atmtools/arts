@@ -64,21 +64,21 @@ inline constexpr Numeric SPEED_OF_LIGHT      = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_speciesSet(ArrayOfSpeciesTag& absorption_species,
+void abs_speciesSet(ArrayOfSpeciesTag& abs_species,
                            const ArrayOfString& names) try {
   ARTS_TIME_REPORT
 
-  absorption_species.resize(names.size());
+  abs_species.resize(names.size());
 
   const auto op = [](const String& name) { return SpeciesTag{name}; };
 
-  stdr::transform(names, absorption_species.begin(), op);
+  stdr::transform(names, abs_species.begin(), op);
 }
 ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_speciesDefineAll(  // WS Output:
-    ArrayOfSpeciesTag& absorption_species) {
+void abs_speciesDefineAll(  // WS Output:
+    ArrayOfSpeciesTag& abs_species) {
   ARTS_TIME_REPORT
 
   // Species lookup data:
@@ -92,7 +92,7 @@ void absorption_speciesDefineAll(  // WS Output:
   }
 
   // Set the values
-  absorption_speciesSet(absorption_species, specs);
+  abs_speciesSet(abs_species, specs);
 }
 
 //======================================================================
@@ -136,7 +136,7 @@ void propagation_matrixInit(  //WS Output
 void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                                   PropmatMatrix& propagation_matrix_jacobian,
                                   const AscendingGrid& frequency_grid,
-                                  const SpeciesEnum& select_absorption_species,
+                                  const SpeciesEnum& select_abs_species,
                                   const JacobianTargets& jacobian_targets,
                                   const AtmPoint& atm_point,
                                   const PropagationPathPoint& path_point) {
@@ -144,8 +144,8 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
 
   constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
 
-  if (select_absorption_species != electrons_key or
-      select_absorption_species == SpeciesEnum::Bath) {
+  if (select_abs_species != electrons_key or
+      select_abs_species == SpeciesEnum::Bath) {
     // If the selected species is not free electrons, we do not add Faraday rotation.
     return;
   }
@@ -234,7 +234,7 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
 }
 
 void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
-                                   const ArrayOfSpeciesTag& absorption_species,
+                                   const ArrayOfSpeciesTag& abs_species,
                                    const AbsorptionBands& abs_bands,
                                    const Index& use_abs_lookup_data,
                                    const Numeric& T_extrapolfac,
@@ -251,7 +251,7 @@ void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
 
   AgendaCreator agenda("propagation_matrix_agenda");
 
-  const SpeciesTagTypeStatus any_species(absorption_species);
+  const SpeciesTagTypeStatus any_species(abs_species);
 
   // propagation_matrixInit
   agenda.add("propagation_matrixInit");
@@ -290,7 +290,7 @@ void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
   }
 
   //propagation_matrixAddFaraday
-  if (std::ranges::any_of(absorption_species, [](auto& spec) {
+  if (std::ranges::any_of(abs_species, [](auto& spec) {
         return spec.Spec() == "free_electrons"_spec;
       })) {
     agenda.add("propagation_matrixAddFaraday");

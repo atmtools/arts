@@ -10,7 +10,7 @@ ws.frequency_grid = np.linspace(118.5e9 - 30e9, 119e9 + 30e9, 14001)
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=120e9)
 del ws.abs_bands["O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 1 1"]

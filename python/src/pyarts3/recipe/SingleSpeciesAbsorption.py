@@ -14,13 +14,13 @@ class SingleSpeciesAbsorption:
         Parameters
         ----------
         species : str
-            See absorption_speciesSet for details.
+            See abs_speciesSet for details.
         cutoff : float
             The cutoff value for the absorption bands. Defaults to None for no cutoff.
         """
         self.ws = pyarts.Workspace()
         self.ws.WignerInit()
-        self.ws.absorption_speciesSet(species=[species])
+        self.ws.abs_speciesSet(species=[species])
         self.ws.ReadCatalogData()
         if cutoff is not None:
             for band in self.ws.abs_bands:
