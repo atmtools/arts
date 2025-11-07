@@ -106,7 +106,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsReadSpeciesSplitCatalog(
     AbsorptionBands& absorption_bands,
-    const ArrayOfArrayOfSpeciesTag& absorbtion_species,
+    const ArrayOfSpeciesTag& absorbtion_species,
     const String& basename,
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
@@ -118,18 +118,16 @@ void absorption_bandsReadSpeciesSplitCatalog(
   const String my_base = complete_basename(basename);
 
   std::set<SpeciesIsotope> isotopologues;
-  for (auto& specs : absorbtion_species) {
-    for (auto& spec : specs) {
-      if (spec.type == SpeciesTagType::Plain) {
-        if (spec.is_joker()) {
-          for (auto&& isot : Species::isotopologues(spec.Spec())) {
-            if (isot.is_predefined()) continue;
-            if (isot.is_joker()) continue;
-            isotopologues.insert(isot);
-          }
-        } else {
-          isotopologues.insert(spec.Isotopologue());
+  for (auto& spec : absorbtion_species) {
+    if (spec.type == SpeciesTagType::Plain) {
+      if (spec.is_joker()) {
+        for (auto&& isot : Species::isotopologues(spec.Spec())) {
+          if (isot.is_predefined()) continue;
+          if (isot.is_joker()) continue;
+          isotopologues.insert(isot);
         }
+      } else {
+        isotopologues.insert(spec.Isotopologue());
       }
     }
   }
@@ -507,7 +505,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsReadSpeciesSplitARTSCAT(
     AbsorptionBands& absorption_bands,
-    const ArrayOfArrayOfSpeciesTag& absorbtion_species,
+    const ArrayOfSpeciesTag& absorbtion_species,
     const String& basename,
     const Index& ignore_missing_,
     const Index& pure_species_) try {
@@ -526,11 +524,9 @@ void absorption_bandsReadSpeciesSplitARTSCAT(
 
   if (pure_species) {
     std::set<SpeciesEnum> specieses;
-    for (auto& specs : absorbtion_species) {
-      for (auto& spec : specs) {
-        if (spec.type == SpeciesTagType::Plain) {
-          specieses.insert(spec.Spec());
-        }
+    for (auto& spec : absorbtion_species) {
+      if (spec.type == SpeciesTagType::Plain) {
+        specieses.insert(spec.Spec());
       }
     }
 
@@ -546,18 +542,16 @@ void absorption_bandsReadSpeciesSplitARTSCAT(
     }
   } else {
     std::set<SpeciesIsotope> isotopologues;
-    for (auto& specs : absorbtion_species) {
-      for (auto& spec : specs) {
-        if (spec.type == SpeciesTagType::Plain) {
-          if (spec.is_joker()) {
-            for (auto&& isot : Species::isotopologues(spec.Spec())) {
-              if (isot.is_predefined()) continue;
-              if (isot.is_joker()) continue;
-              isotopologues.insert(isot);
-            }
-          } else {
-            isotopologues.insert(spec.Isotopologue());
+    for (auto& spec : absorbtion_species) {
+      if (spec.type == SpeciesTagType::Plain) {
+        if (spec.is_joker()) {
+          for (auto&& isot : Species::isotopologues(spec.Spec())) {
+            if (isot.is_predefined()) continue;
+            if (isot.is_joker()) continue;
+            isotopologues.insert(isot);
           }
+        } else {
+          isotopologues.insert(spec.Isotopologue());
         }
       }
     }

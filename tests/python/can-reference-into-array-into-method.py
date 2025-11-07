@@ -14,12 +14,11 @@ specs = pyarts.arts.ArrayOfArrayOfString([["O2"]])
 
 ws.absorption_speciesSet(species=specs[0])
 
-x = pyarts.arts.ArrayOfArrayOfSpeciesTag()
-
+x = pyarts.arts.ArrayOfSpeciesTag()
 ws.absorption_speciesSet(x, species=specs[0])
 
 assert x == ws.absorption_species
 
-x[0] = ["H2O"]
+x = pyarts.arts.ArrayOfSpeciesTag(["H2O"])
 
 assert x != ws.absorption_species

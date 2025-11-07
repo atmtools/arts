@@ -947,27 +947,24 @@ void py_predefined(py::module_& m) try {
   generic_interface(pdmd);
   pdmd.def_static(
           "fromcatalog",
-          [](const char* const basename,
-             const ArrayOfArrayOfSpeciesTag& specs) {
+          [](const char* const basename, const ArrayOfSpeciesTag& specs) {
             auto out = PredefinedModelData{};
-            for (auto& spec : specs) {
-              for (auto& mod : spec) {
-                if (mod.type == SpeciesTagType::Predefined) {
-                  String filename = (std::filesystem::path(basename) /
-                                     (mod.Isotopologue().FullName() + ".xml"))
-                                        .string();
-                  if (find_xml_file_existence(filename)) {
-                    PredefinedModelData data;
-                    xml_read_from_file(filename, data);
-                    std::visit(
-                        [&](auto& model) {
-                          out[mod.Isotopologue()].data = model;
-                        },
-                        data.at(mod.Isotopologue()).data);
-                  } else {
-                    out[mod.Isotopologue()].data =
-                        Absorption::PredefinedModel::ModelName{};
-                  }
+            for (auto& mod : specs) {
+              if (mod.type == SpeciesTagType::Predefined) {
+                String filename = (std::filesystem::path(basename) /
+                                   (mod.Isotopologue().FullName() + ".xml"))
+                                      .string();
+                if (find_xml_file_existence(filename)) {
+                  PredefinedModelData data;
+                  xml_read_from_file(filename, data);
+                  std::visit(
+                      [&](auto& model) {
+                        out[mod.Isotopologue()].data = model;
+                      },
+                      data.at(mod.Isotopologue()).data);
+                } else {
+                  out[mod.Isotopologue()].data =
+                      Absorption::PredefinedModel::ModelName{};
                 }
               }
             }

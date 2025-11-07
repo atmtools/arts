@@ -77,7 +77,7 @@ to load the correct data.
 It is only used to let data-reading methods know which
 species they should read from the available input files.
 )--",
-      .type = "ArrayOfArrayOfSpeciesTag",
+      .type = "ArrayOfSpeciesTag",
   };
 
   wsv_data["altitude"] = {
@@ -1165,7 +1165,8 @@ Dimensions: [ ray_path.size() ]
   };
 
   wsv_data["ray_path_single_propagation_matrix_nonlte_jacobian"] = {
-      .desc = R"(The propagation matrix Jacobian along the path for nonlte source.
+      .desc =
+          R"(The propagation matrix Jacobian along the path for nonlte source.
 
 Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
 )",
@@ -1181,7 +1182,8 @@ See *propagation_matrix* for more information.
   };
 
   wsv_data["propagation_matrix_single_jacobian"] = {
-      .desc = R"--(A single propagation matrix Jacobian at a single *frequency* point.
+      .desc =
+          R"--(A single propagation matrix Jacobian at a single *frequency* point.
 
 See *propagation_matrix_jacobian* for more information.
 
@@ -1199,7 +1201,8 @@ See *propagation_matrix* for more information.
   };
 
   wsv_data["propagation_matrix_single_source_vector_nonlte_jacobian"] = {
-      .desc = R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
+      .desc =
+          R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
 
 See *propagation_matrix_jacobian* for more information.
 
@@ -1239,9 +1242,10 @@ Size is number of Jacobian targets.
   };
 
   wsv_data["max_stepsize"] = {
-      .desc = R"--(A control parameter for stepping through layers in ray tracing.
+      .desc =
+          R"--(A control parameter for stepping through layers in ray tracing.
 )--",
-      .type = "Numeric",
+      .type          = "Numeric",
       .default_value = "1000.0",
   };
 

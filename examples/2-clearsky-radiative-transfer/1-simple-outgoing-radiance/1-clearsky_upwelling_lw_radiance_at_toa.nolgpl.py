@@ -25,10 +25,10 @@ ws.frequency_grid = pa.arts.convert.kaycm2freq(kayser_grid)  # in Hz
 # This example uses a reduced set of species to speed up the calculation.
 # Use the second line for a more realistic setup.
 ws.absorption_speciesSet(
-    species=["H2O-161, H2O-ForeignContCKDMT400, H2O-SelfContCKDMT400", "CO2-626"]
+    species=["H2O-161", "H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400", "CO2-626"]
 )
 # ws.absorption_speciesSet(
-#     species=["H2O, H2O-ForeignContCKDMT400, H2O-SelfContCKDMT400", "CO2", "O3"]
+#     species=["H2O", "H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400", "CO2", "O3"]
 # )
 
 # Read spectral line data from ARTS catalog

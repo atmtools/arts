@@ -49,115 +49,15 @@ struct Tag {
 };
 }  // namespace Species
 
-using SpeciesTag = Species::Tag;
-
-class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
- public:
-  ArrayOfSpeciesTag() noexcept : Array<SpeciesTag>() {}
-  explicit ArrayOfSpeciesTag(Index n) : Array<SpeciesTag>(n) {}
-  ArrayOfSpeciesTag(Index n, const SpeciesTag& fillvalue)
-      : Array<SpeciesTag>(n, fillvalue) {}
-  ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) = default;
-  ArrayOfSpeciesTag(ArrayOfSpeciesTag&& A) noexcept
-      : Array<SpeciesTag>(std::move(A)) {}
-  explicit ArrayOfSpeciesTag(std::vector<SpeciesTag> x)
-      : Array<SpeciesTag>(std::move(x)) {}
-
-  // Assignment operators:
-  ArrayOfSpeciesTag& operator=(SpeciesTag x);
-
-  ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A);
-
-  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept;
-
-  [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const;
-
-  ArrayOfSpeciesTag(std::string_view text);
-
-  /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesEnum Species() const;
-
-  //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] SpeciesTagType Type() const;
-
-  [[nodiscard]] String Name() const;
-
-  [[nodiscard]] bool Plain() const noexcept;
-
-  [[nodiscard]] bool RequireLines() const noexcept;
-
-  [[nodiscard]] bool FreeElectrons() const noexcept;
-
-  [[nodiscard]] bool Particles() const noexcept;
-};
-
+using SpeciesTag               = Species::Tag;
+using ArrayOfSpeciesTag        = Array<SpeciesTag>;
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a Speciestagtype
 struct SpeciesTagTypeStatus {
   bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false};
-  SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
+  SpeciesTagTypeStatus(const ArrayOfSpeciesTag& abs_species);
 };
-
-/*! Find the next species of this type inclusively after the start index
- * 
- * @param[in] abs_species As WSV
- * @param[in] spec A Species
- * @param[in] i The starting index in the outermost 
- * @return An index larger or equal to i pointing to the next species, or -1 if there's no next species
- */
-Index find_next_species(const ArrayOfArrayOfSpeciesTag& abs_species,
-                        SpeciesEnum spec,
-                        Index i) noexcept;
-
-/*! Find the first species of this type
- * 
- * @param[in] abs_species As WSV
- * @param[in] spec A Species
- * @return An index larger or equal to 0 pointing to the first species, or -1 if there's no such species
- */
-Index find_first_species(const ArrayOfArrayOfSpeciesTag& abs_species,
-                         SpeciesEnum spec) noexcept;
-
-/*! Find the first species tag of this type
- * 
- * @param[in] abs_species As WSV
- * @param[in] tag A Species tag
- * @return [i, j] so that abs_species[i][j] is tag, or [-1, -1] if there's no such thing
- */
-std::pair<Index, Index> find_first_species_tag(
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const SpeciesTag& tag) noexcept;
-
-/*! Find the first species tag of this type
- * 
- * @param[in] abs_species As WSV
- * @param[in] isot An isotopologue record
- * @return [i, j] so that abs_species[i][j] is the same isotopologue record as isot, or [-1, -1] if there's no such thing
- */
-std::pair<Index, Index> find_first_isotologue(
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const SpeciesIsotope& isot) noexcept;
-
-/*! Find species that requires line-by-line calculations
- * 
- * @param abs_species  As WSV
- * @return The set of unique species that requires line-by-line calculations
- */
-std::set<SpeciesEnum> lbl_species(const ArrayOfArrayOfSpeciesTag&) noexcept;
-
-namespace Species {
-/** Parse a list of species tags into an Array<Tag>
- *
- * This is the function call that ArrayOfSpeciesTag uses
- * to create itself from a string_view, but it also performs
- * vital error checking necessary for ARTS internals
- *
- * @param text A textual representation of comma-separated species tags
- * @return Array<Tag> List of species tags with no constraints
- */
-Array<Tag> parse_tags(std::string_view text);
-}  // namespace Species
 
 namespace std {
 //! Allow SpeciesTag to be used in hashes
@@ -171,20 +71,6 @@ struct hash<SpeciesTag> {
     boost::hash_combine(seed, std::hash<SpeciesEnum>{}(g.cia_2nd_species));
 
     return seed;
-  }
-};
-
-//! Allow ArrayOfSpeciesTag to be used in hashes
-template <>
-struct hash<ArrayOfSpeciesTag> {
-  std::size_t operator()(const ArrayOfSpeciesTag& g) const {
-    std::size_t out = 0;
-    std::size_t i   = 1;
-    for (auto& a : g) {
-      out ^= (std::hash<SpeciesTag>{}(a) << i);
-      i++;
-    }
-    return out;
   }
 };
 }  // namespace std
@@ -225,10 +111,6 @@ struct std::formatter<SpeciesTag> {
 };
 
 template <>
-struct std::formatter<ArrayOfSpeciesTag>
-    : std::formatter<std::vector<SpeciesTag>> {};
-
-template <>
 struct xml_io_stream<SpeciesTag> {
   static constexpr std::string_view type_name = "SpeciesTag"sv;
 
@@ -238,18 +120,4 @@ struct xml_io_stream<SpeciesTag> {
                     std::string_view name = ""sv);
 
   static void read(std::istream& is, SpeciesTag& x, bifstream* pbifs = nullptr);
-};
-
-template <>
-struct xml_io_stream<ArrayOfSpeciesTag> {
-  static constexpr std::string_view type_name = "ArrayOfSpeciesTag"sv;
-
-  static void write(std::ostream& os,
-                    const ArrayOfSpeciesTag& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
-
-  static void read(std::istream& is,
-                   ArrayOfSpeciesTag& x,
-                   bifstream* pbifs = nullptr);
 };

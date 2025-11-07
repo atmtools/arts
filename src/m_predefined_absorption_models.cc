@@ -22,7 +22,7 @@
 
 void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     PredefinedModelData& absorption_predefined_model_data,
-    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const ArrayOfSpeciesTag& absorption_species,
     const String& basename,
     const Index& name_missing_,
     const Index& ignore_missing_) try {
@@ -40,23 +40,21 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     tmpbasename += '.';
   }
 
-  for (auto& specs : absorption_species) {
-    for (auto& spec : specs) {
-      if (not spec.Isotopologue().is_predefined()) continue;
+  for (auto& spec : absorption_species) {
+    if (not spec.Isotopologue().is_predefined()) continue;
 
-      String filename = tmpbasename + spec.Isotopologue().FullName() + ".xml";
+    String filename = tmpbasename + spec.Isotopologue().FullName() + ".xml";
 
-      if (find_xml_file_existence(filename)) {
-        PredefinedModelData other;
-        xml_read_from_file(filename, other);
-        absorption_predefined_model_data.insert(other.begin(), other.end());
+    if (find_xml_file_existence(filename)) {
+      PredefinedModelData other;
+      xml_read_from_file(filename, other);
+      absorption_predefined_model_data.insert(other.begin(), other.end());
+    } else {
+      if (name_missing) {
+        absorption_predefined_model_data[spec.Isotopologue()].data =
+            Absorption::PredefinedModel::ModelName{};
       } else {
-        if (name_missing) {
-          absorption_predefined_model_data[spec.Isotopologue()].data =
-              Absorption::PredefinedModel::ModelName{};
-        } else {
-          ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
-        }
+        ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
       }
     }
   }

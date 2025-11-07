@@ -101,13 +101,13 @@ class TestGroups:
     def testArrayOfAtmPoint(self):
         x = cxx.ArrayOfAtmPoint.from_dict({"t": [1, 2, 3], "O2": [0, 1, 2]})
         assert x[0]["t"] == 1
-        
+
         y = x.to_dict()
-        
+
         y["p"] = 5 + y[cxx.AtmKey.t]
         y[cxx.AtmKey.t] += 2
         x.update(y)
-        
+
         assert x[1]["t"] == 4
 
     def testArrayOfAbsorptionLines(self):
@@ -242,16 +242,6 @@ class TestGroups:
     def testArrayOfArrayOfSingleScatteringData(self):
         x = cxx.ArrayOfArrayOfSingleScatteringData()
         test.io(x, delete=True)
-
-    def testArrayOfArrayOfSpeciesTag(self):
-        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-PWR98"])
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
-        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O", "H2O-PWR98"])
-        assert len(x) == 2
 
     def testArrayOfArrayOfString(self):
         x = cxx.ArrayOfArrayOfString([["OI"]])

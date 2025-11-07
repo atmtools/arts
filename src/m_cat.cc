@@ -5,7 +5,7 @@ void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
                      ArrayOfXsecRecord& absorption_xsec_fit_data,
                      ArrayOfCIARecord& absorption_cia_data,
                      AbsorptionBands& absorption_bands,
-                     const ArrayOfArrayOfSpeciesTag& absorption_species,
+                     const ArrayOfSpeciesTag& absorption_species,
                      const String& basename,
                      const Index& ignore_missing) try {
   ARTS_TIME_REPORT

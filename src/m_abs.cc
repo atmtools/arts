@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ranges>
 #include <utility>
 
 namespace {
@@ -63,28 +64,21 @@ inline constexpr Numeric SPEED_OF_LIGHT      = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_speciesSet(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& absorption_species,
-    // Control Parameters:
-    const ArrayOfString& names) try {
+void absorption_speciesSet(ArrayOfSpeciesTag& absorption_species,
+                           const ArrayOfString& names) try {
   ARTS_TIME_REPORT
+
   absorption_species.resize(names.size());
 
-  //cout << "Names: " << names << "\n";
+  const auto op = [](const String& name) { return SpeciesTag{name}; };
 
-  // Each element of the array of Strings names defines one tag
-  // group. Let's work through them one by one.
-  for (Size i = 0; i < names.size(); ++i) {
-    // This part has now been moved to array_species_tag_from_string.
-    // Call this function.
-    absorption_species[i] = ArrayOfSpeciesTag(names[i]);
-  }
+  stdr::transform(names, absorption_species.begin(), op);
 }
 ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_speciesDefineAll(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& absorption_species) {
+    ArrayOfSpeciesTag& absorption_species) {
   ARTS_TIME_REPORT
 
   // Species lookup data:
@@ -239,21 +233,20 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
   }
 }
 
-void propagation_matrix_agendaAuto(
-    Agenda& propagation_matrix_agenda,
-    const ArrayOfArrayOfSpeciesTag& absorption_species,
-    const AbsorptionBands& absorption_bands,
-    const Index& use_absorption_lookup_table,
-    const Numeric& T_extrapolfac,
-    const Index& ignore_errors,
-    const Index& no_negative_absorption,
-    const Numeric& force_p,
-    const Numeric& force_t,
-    const Index& p_interp_order,
-    const Index& t_interp_order,
-    const Index& water_interp_order,
-    const Index& f_interp_order,
-    const Numeric& extpolfac) {
+void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
+                                   const ArrayOfSpeciesTag& absorption_species,
+                                   const AbsorptionBands& absorption_bands,
+                                   const Index& use_absorption_lookup_table,
+                                   const Numeric& T_extrapolfac,
+                                   const Index& ignore_errors,
+                                   const Index& no_negative_absorption,
+                                   const Numeric& force_p,
+                                   const Numeric& force_t,
+                                   const Index& p_interp_order,
+                                   const Index& t_interp_order,
+                                   const Index& water_interp_order,
+                                   const Index& f_interp_order,
+                                   const Numeric& extpolfac) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("propagation_matrix_agenda");
@@ -297,8 +290,9 @@ void propagation_matrix_agendaAuto(
   }
 
   //propagation_matrixAddFaraday
-  if (std::ranges::any_of(absorption_species,
-                          [](auto& spec) { return spec.FreeElectrons(); })) {
+  if (std::ranges::any_of(absorption_species, [](auto& spec) {
+        return spec.Spec() == "free_electrons"_spec;
+      })) {
     agenda.add("propagation_matrixAddFaraday");
   }
 

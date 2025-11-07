@@ -184,141 +184,14 @@ Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 String Tag::Name() const { return std::format("{}", *this); }
 }  // namespace Species
 
-ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(SpeciesTag x) {
-  std::fill(this->begin(), this->end(), x);
-  return *this;
-}
-
-ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(const ArrayOfSpeciesTag& A) {
-  this->resize(A.size());
-  std::copy(A.begin(), A.end(), this->begin());
-  return *this;
-}
-
-ArrayOfSpeciesTag& ArrayOfSpeciesTag::operator=(
-    ArrayOfSpeciesTag&& A) noexcept {
-  Array<SpeciesTag>::operator=(std::move(A));
-  return *this;
-}
-
-bool ArrayOfSpeciesTag::operator==(const ArrayOfSpeciesTag& x) const {
-  return std::ranges::equal(*this, x);
-}
-
-SpeciesEnum ArrayOfSpeciesTag::Species() const {
-  assert(size() not_eq 0);
-  return operator[](0).Spec();
-}
-
-SpeciesTagType ArrayOfSpeciesTag::Type() const {
-  assert(size() not_eq 0);
-  return operator[](0).Type();
-}
-
-bool ArrayOfSpeciesTag::Plain() const noexcept {
-  return std::any_of(cbegin(), cend(), [](auto& spec) {
-    return spec.Type() == SpeciesTagType::Plain;
-  });
-}
-
-bool ArrayOfSpeciesTag::RequireLines() const noexcept { return Plain(); }
-
-bool ArrayOfSpeciesTag::FreeElectrons() const noexcept {
-  return std::any_of(cbegin(), cend(), [](auto& spec) {
-    return spec.Spec() == SpeciesEnum::free_electrons;
-  });
-}
-
-bool ArrayOfSpeciesTag::Particles() const noexcept {
-  return std::any_of(cbegin(), cend(), [](auto& spec) {
-    return spec.Spec() == SpeciesEnum::particles;
-  });
-}
-
-ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
-    : ArrayOfSpeciesTag(Species::parse_tags(text)) {
-  ARTS_USER_ERROR_IF(
-      size() and
-          std::any_of(begin(),
-                      end(),
-                      [front_species = front().Spec()](const SpeciesTag& tag) {
-                        return tag.Spec() not_eq front_species;
-                      }),
-      "All species in a group of tags must be the same\n"
-      "Your list of tags have been parsed as: {}",
-      "\nThe original tags-list read \"{}\"",
-      *this,
-      text);
-}
-
-Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
-                        SpeciesEnum spec,
-                        Index i) noexcept {
-  const Index n = static_cast<Index>(specs.size());
-  for (; i < n; i++)
-    if (specs[i].Species() == spec) return i;
-  return -1;
-}
-
-Index find_first_species(const ArrayOfArrayOfSpeciesTag& specs,
-                         SpeciesEnum spec) noexcept {
-  return find_next_species(specs, spec, 0);
-}
-
-std::pair<Index, Index> find_first_species_tag(
-    const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept {
-  for (Size i = 0; i < specs.size(); i++) {
-    if (auto ptr = std::find(specs[i].cbegin(), specs[i].cend(), tag);
-        ptr not_eq specs[i].cend())
-      return {i, std::distance(specs[i].cbegin(), ptr)};
-  }
-  return {-1, -1};
-}
-
-std::pair<Index, Index> find_first_isotologue(
-    const ArrayOfArrayOfSpeciesTag& specs,
-    const SpeciesIsotope& isot) noexcept {
-  for (Size i = 0; i < specs.size(); i++) {
-    if (auto ptr =
-            std::find_if(specs[i].cbegin(),
-                         specs[i].cend(),
-                         [&](auto& tag) { return tag.Isotopologue() == isot; });
-        ptr not_eq specs[i].cend())
-      return {i, std::distance(specs[i].cbegin(), ptr)};
-  }
-  return {-1, -1};
-}
-
-String ArrayOfSpeciesTag::Name() const {
-  String out = "";
-  bool first = true;
-  for (auto& x : *this) {
-    if (not first) out += ", ";
-    out   += x.Name();
-    first  = false;
-  }
-  return out;
-}
-
-std::set<SpeciesEnum> lbl_species(
-    const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
-  std::set<SpeciesEnum> unique_species;
-  for (auto& specs : abs_species) {
-    if (specs.RequireLines()) unique_species.insert(specs.front().Spec());
-  }
-  return unique_species;
-}
-
 SpeciesTagTypeStatus::SpeciesTagTypeStatus(
-    const ArrayOfArrayOfSpeciesTag& abs_species) {
-  for (auto& species_list : abs_species) {
-    for (auto& tag : species_list) {
-      switch (tag.type) {
-        case SpeciesTagType::Plain:      Plain = true; break;
-        case SpeciesTagType::Predefined: Predefined = true; break;
-        case SpeciesTagType::Cia:        Cia = true; break;
-        case SpeciesTagType::XsecFit:    XsecFit = true; break;
-      }
+    const ArrayOfSpeciesTag& abs_species) {
+  for (auto& tag : abs_species) {
+    switch (tag.type) {
+      case SpeciesTagType::Plain:      Plain = true; break;
+      case SpeciesTagType::Predefined: Predefined = true; break;
+      case SpeciesTagType::Cia:        Cia = true; break;
+      case SpeciesTagType::XsecFit:    XsecFit = true; break;
     }
   }
 }
@@ -352,17 +225,4 @@ void xml_io_stream<SpeciesTag>::read(std::istream& is,
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
-}
-
-void xml_io_stream<ArrayOfSpeciesTag>::write(std::ostream& os,
-                                             const ArrayOfSpeciesTag& x,
-                                             bofstream* pbofs,
-                                             std::string_view name) {
-  xml_io_stream<Array<SpeciesTag>>::write(os, x, pbofs, name);
-}
-
-void xml_io_stream<ArrayOfSpeciesTag>::read(std::istream& is,
-                                            ArrayOfSpeciesTag& x,
-                                            bifstream* pbifs) {
-  xml_io_stream<Array<SpeciesTag>>::read(is, x, pbifs);
 }

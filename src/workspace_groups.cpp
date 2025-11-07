@@ -249,7 +249,7 @@ Both the data and the grid may be named.  The grids are not sorted.
       .desc = R"(A 2 dimensional array of *Numeric*.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
-)"
+)",
   };
 
   wsg_data["Numeric"] = {
@@ -403,7 +403,7 @@ The python mapping allows treating this 4-long :class:`~numpy.ndarray` in python
       .desc = R"(A vector of *Propmat*.
 
 The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 7 as columns.
-)"
+)",
   };
 
   wsg_data["MuelmatVector"] = {
@@ -411,7 +411,7 @@ The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarra
       .desc = R"(A vector of *Muelmat*.
 
 The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
-)"
+)",
   };
 
   wsg_data["MuelmatMatrix"] = {
@@ -419,7 +419,7 @@ The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarra
       .desc = R"(A matrix of *Muelmat*..
 
 The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
-)"
+)",
   };
 
   wsg_data["StokvecVector"] = {
@@ -427,7 +427,7 @@ The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarra
       .desc = R"(A vector of *Stokvec*.
 
 The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 4 as columns.
-)"
+)",
   };
 
   wsg_data["PropmatMatrix"] = {
@@ -435,7 +435,7 @@ The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarra
       .desc = R"(A matrix of *Propmat*.
 
 The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 7 as columns.
-)"
+)",
   };
 
   wsg_data["SpecmatMatrix"] = {
@@ -862,7 +862,7 @@ of this term multiplied by a negative distance.
                 {
                     "AtmPoint",
                     "SensorObsel",
-                    "ArrayOfSpeciesTag",
+                    "SpeciesTag",
                     "CIARecord",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",

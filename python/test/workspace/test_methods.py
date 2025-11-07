@@ -35,15 +35,15 @@ class TestMethods:
         """
         ws = self.ws
         species = [
-            "H2O-SelfContStandardType, H2O-ForeignContStandardType, " "H2O",
+            "H2O-SelfContStandardType", "H2O-ForeignContStandardType", "H2O",
             "N2-SelfContStandardType",
             "O3",
         ]
-        
+
         ws.absorption_speciesSet(ws.absorption_species, species)
-        ws.absorption_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
+        ws.absorption_species_2 = pyarts.arts.ArrayOfSpeciesTag()
         ws.absorption_speciesSet(ws.absorption_species_2, species)
-        ws.absorption_species_3 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
+        ws.absorption_species_3 = pyarts.arts.ArrayOfSpeciesTag()
         ws.absorption_speciesSet(
             absorption_species=ws.absorption_species_3, species=species
         )

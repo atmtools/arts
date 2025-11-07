@@ -315,7 +315,7 @@ def to_atmospheric_field(
 
 def to_absorption_species(
     atm_field: pyarts.arts.AtmField,
-) -> pyarts.arts.ArrayOfArrayOfSpeciesTag:
+) -> pyarts.arts.ArrayOfSpeciesTag:
     """Scans the ARTS data path for species relevant to the given atmospheric field.
 
     The scan is done over files in an arts-cat-data like directory structure.
@@ -324,7 +324,7 @@ def to_absorption_species(
         atm_field (pyarts3.arts.AtmField): A relevant atmospheric field.
 
     Returns:
-        pyarts3.arts.ArrayOfArrayOfSpeciesTag: All found species tags.
+        pyarts3.arts.ArrayOfSpeciesTag: All found species tags.
         The intent is that this is enough information to use pyarts3.Workspace.ReadCatalogData
     """
     species = atm_field.species_keys()
@@ -352,7 +352,7 @@ def to_absorption_species(
         elif spec == pyarts.arts.SpeciesEnum.CarbonDioxide:
             out.append("CO2-CKDMT252")
 
-    return pyarts.arts.ArrayOfArrayOfSpeciesTag(np.unique(out))
+    return pyarts.arts.ArrayOfSpeciesTag(np.unique(out))
 
 
 def xarray_open_dataset(filename_or_obj, *args, **kwargs):
