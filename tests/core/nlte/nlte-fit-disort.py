@@ -4,7 +4,7 @@ ws = pyarts.Workspace()
 
 ws.absorption_speciesSet(species=["H2O"])
 
-ws.absorption_bands.readxml("nlte_lines.xml")
+ws.abs_bands.readxml("nlte_lines.xml")
 
 toa = 4.4825000e05
 ws.atmospheric_fieldInit(toa=toa)
@@ -21,7 +21,7 @@ ws.atmospheric_field["He"] = 0.0
 ws.surface_fieldGanymede()
 ws.surface_field["t"] = ws.atmospheric_field["t"].data[0, 0, 0]
 ws.atmospheric_fieldInitializeNonLTE(normalization=0.75)
-ws.absorption_bandsSetNonLTE()
+ws.abs_bandsSetNonLTE()
 
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")

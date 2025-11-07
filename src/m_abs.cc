@@ -235,8 +235,8 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
 
 void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
                                    const ArrayOfSpeciesTag& absorption_species,
-                                   const AbsorptionBands& absorption_bands,
-                                   const Index& use_absorption_lookup_table,
+                                   const AbsorptionBands& abs_bands,
+                                   const Index& use_abs_lookup_data,
                                    const Numeric& T_extrapolfac,
                                    const Index& ignore_errors,
                                    const Index& no_negative_absorption,
@@ -257,7 +257,7 @@ void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
   agenda.add("propagation_matrixInit");
 
   // propagation_matrixAddLines or propagation_matrixAddLookup
-  if (use_absorption_lookup_table) {
+  if (use_abs_lookup_data) {
     agenda.add("propagation_matrixAddLookup",
                SetWsv{"no_negative_absorption", no_negative_absorption},
                SetWsv{"p_interp_order", p_interp_order},
@@ -265,7 +265,7 @@ void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
                SetWsv{"water_interp_order", water_interp_order},
                SetWsv{"f_interp_order", f_interp_order},
                SetWsv{"extpolfac", extpolfac});
-  } else if (absorption_bands.size()) {
+  } else if (abs_bands.size()) {
     agenda.add("propagation_matrixAddLines",
                SetWsv{"no_negative_absorption", no_negative_absorption});
   }

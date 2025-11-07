@@ -23,9 +23,9 @@ class SingleSpeciesAbsorption:
         self.ws.absorption_speciesSet(species=[species])
         self.ws.ReadCatalogData()
         if cutoff is not None:
-            for band in self.ws.absorption_bands:
-                self.ws.absorption_bands[band].cutoff = "ByLine"
-                self.ws.absorption_bands[band].cutoff_value = cutoff
+            for band in self.ws.abs_bands:
+                self.ws.abs_bands[band].cutoff = "ByLine"
+                self.ws.abs_bands[band].cutoff_value = cutoff
         self.ws.propagation_matrix_agendaAuto()
         self.ws.ray_path_point = pyarts.arts.PropagationPathPoint()
 

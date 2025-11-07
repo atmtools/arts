@@ -77,13 +77,13 @@ void subsurface_fieldFromModelState(SubsurfaceField& subsurface_field,
   }
 }
 
-void absorption_bandsFromModelState(AbsorptionBands& absorption_bands,
+void abs_bandsFromModelState(AbsorptionBands& abs_bands,
                                     const Vector& model_state_vector,
                                     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.line) {
-    target.update_model(absorption_bands, model_state_vector);
+    target.update_model(abs_bands, model_state_vector);
   }
 }
 
@@ -130,12 +130,12 @@ void model_state_vectorFromSubsurface(Vector& model_state_vector,
 }
 
 void model_state_vectorFromBands(Vector& model_state_vector,
-                                 const AbsorptionBands& absorption_bands,
+                                 const AbsorptionBands& abs_bands,
                                  const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.line) {
-    target.update_state(model_state_vector, absorption_bands);
+    target.update_state(model_state_vector, abs_bands);
   }
 }
 

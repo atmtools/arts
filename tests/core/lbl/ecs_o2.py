@@ -8,19 +8,19 @@ ws.absorption_speciesSet(species=["O2-66", "H2O-PWR98"])
 ws.ReadCatalogData()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bandsSelectFrequencyByBand(fmax=120e9)
-ws.absorption_bandsKeepID(id=bandkey)
+ws.abs_bandsSelectFrequencyByBand(fmax=120e9)
+ws.abs_bandsKeepID(id=bandkey)
 
 t = []
-for a in ws.absorption_bands[bandkey].lines:
+for a in ws.abs_bands[bandkey].lines:
     if a.f0 > 5e9 and a.f0 < 120e9:
         t.append(a)
-ws.absorption_bands[bandkey].lines = t
+ws.abs_bands[bandkey].lines = t
 
 
 def calc(ws, lineshape=None):
     if lineshape is not None:
-        ws.absorption_bands[bandkey].lineshape = lineshape
+        ws.abs_bands[bandkey].lineshape = lineshape
     ws.propagation_matrixInit()
     ws.propagation_matrixAddLines()
     ws.propagation_matrixAddPredefined()
@@ -58,14 +58,14 @@ plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="Online", lw=3)
 plt.semilogy(ws.frequency_grid / 1e9, calc(ws, "VP_ECS_MAKAROV"), label="ECS")
 
 # Remove line mixing
-ws.absorption_bands.clear_linemixing()
+ws.abs_bands.clear_linemixing()
 plt.semilogy(
     ws.frequency_grid / 1e9, calc(ws, "VP_LTE"), label="No linemixing"
 )
 
 # 1st order line mixing
-ws.absorption_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
-ws.absorption_bandsLineMixingAdaptation(
+ws.abs_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
+ws.abs_bandsLineMixingAdaptation(
     temperatures=np.linspace(200, 350, 16),
     band_key=bandkey,
     rosenkranz_fit_order=1,
@@ -78,8 +78,8 @@ plt.semilogy(
 )
 
 # 2nd order line mixing
-ws.absorption_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
-ws.absorption_bandsLineMixingAdaptation(
+ws.abs_bands[bandkey].lineshape = "VP_ECS_MAKAROV"
+ws.abs_bandsLineMixingAdaptation(
     temperatures=np.linspace(200, 350, 16),
     band_key=bandkey,
     rosenkranz_fit_order=2,

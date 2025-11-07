@@ -40,7 +40,7 @@ def ops(ws, op):
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
     for key in ws.jacobian_targets.line:
-        x = op(x, ws.absorption_bands[key.type], key.x_start, key.x_size)
+        x = op(x, ws.abs_bands[key.type], key.x_start, key.x_size)
 
     return x
 
@@ -66,11 +66,11 @@ ws.surface_field["h"] = pyarts.arts.GeodeticField2(
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=100e9, fmax=120e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=100e9, fmax=120e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
+ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 
 # %% Temperature and pressure and VMR and ratios
 
@@ -100,7 +100,7 @@ ws.jacobian_targetsAddSpeciesIsotopologueRatio(species=isot)
 # %% Line center and Einstein and G0 and Y
 
 # FIXME: Make a better interface!
-# key = ws.absorption_bands[0].key
+# key = ws.abs_bands[0].key
 # ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
 # ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="a")
 # ws.jacobian_targetsAddLineParameter(

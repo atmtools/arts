@@ -42,11 +42,11 @@ ws.absorption_species = v
 ws.ReadCatalogData(ignore_missing=True)
 ws.propagation_matrix_agendaAuto(T_extrapolfac=1e9)
 
-for band in ws.absorption_bands:
-    ws.absorption_bands[band].cutoff = cutoff[0]
-    ws.absorption_bands[band].cutoff_value = cutoff[1]
+for band in ws.abs_bands:
+    ws.abs_bands[band].cutoff = cutoff[0]
+    ws.abs_bands[band].cutoff_value = cutoff[1]
 
-ws.absorption_bands.keep_hitran_s(remove_lines_percentile)
+ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 
 ws.surface_fieldPlanet(option=planet)
 

@@ -13,11 +13,11 @@ ws = pyarts.Workspace()
 ws.absorption_speciesSet(species=["CO2-626", "H2O-161"])
 
 ws.ReadCatalogData()
-for key in ws.absorption_bands:
-    ws.absorption_bands[key].cutoff = "ByLine"
-    ws.absorption_bands[key].cutoff_value = 750e9
+for key in ws.abs_bands:
+    ws.abs_bands[key].cutoff = "ByLine"
+    ws.abs_bands[key].cutoff_value = 750e9
 
-ws.absorption_bands.keep_hitran_s(70)
+ws.abs_bands.keep_hitran_s(70)
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field["t"] = 295.0
@@ -32,7 +32,7 @@ v = np.linspace(400, 2500, 101)
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(v)
 
 t = time()
-ws.absorption_lookup_tableFromProfiles(
+ws.abs_lookup_dataFromProfiles(
     pressure_profile=np.array(ws.atmospheric_field["p"].data.flatten()),
     temperature_profile=np.array(ws.atmospheric_field["t"].data.flatten()),
     vmr_profiles={"CO2": np.array(ws.atmospheric_field["CO2"].data.flatten()),
@@ -58,7 +58,7 @@ for water_ratio in [5e-1, 5]:
         ws.atmospheric_field["H2O"].data.data = wdata * water_ratio
 
         t = time()
-        ws.propagation_matrix_agendaAuto(use_absorption_lookup_table=0)
+        ws.propagation_matrix_agendaAuto(use_abs_lookup_data=0)
         ws.spectral_radianceClearskyEmission()
         ws.spectral_radianceApplyUnitFromSpectralRadiance()
         lbl = ws.spectral_radiance[:, 0] * 1.0
@@ -70,7 +70,7 @@ for water_ratio in [5e-1, 5]:
             p_interp_order=5,
             t_interp_order=4,
             water_interp_order=4,
-            use_absorption_lookup_table=1,
+            use_abs_lookup_data=1,
         )
         ws.spectral_radianceClearskyEmission()
         ws.spectral_radianceApplyUnitFromSpectralRadiance()

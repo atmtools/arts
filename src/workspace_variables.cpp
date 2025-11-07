@@ -25,7 +25,7 @@ std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
-  wsv_data["absorption_bands"] = {
+  wsv_data["abs_bands"] = {
       .desc =
           R"--(Bands of absorption lines for line-by-line (LBL) calculations.
 
@@ -36,7 +36,7 @@ Also see :doc:`concept.absorption.lbl` for more information on LBL calculations.
       .type = "AbsorptionBands",
   };
 
-  wsv_data["absorption_lookup_table"] = {
+  wsv_data["abs_lookup_data"] = {
       .desc =
           R"--(Absorption lookup table for scalar gas absorption coefficients.
 
@@ -48,7 +48,7 @@ See :doc:`concept.absorption.lookup` for more information on lookup table calcul
       .type = "AbsorptionLookupTables",
   };
 
-  wsv_data["absorption_cia_data"] = {
+    wsv_data["abs_cia_data"] = {
       .desc = R"--(HITRAN Collision-Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
@@ -702,7 +702,7 @@ position in the target count, as well as the number of parameters
 it contributes to the *model_state_vector*.  It must know these
 things because it is able to map data between the *model_state_vector*
 and the actual model field, e.g., the *atmospheric_field*, the *surface_field*,
-the *subsurface_field*, the *absorption_bands*, the *measurement_sensor*, etc.
+the *subsurface_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
       .type = "JacobianTargets",
       .default_value = " ",

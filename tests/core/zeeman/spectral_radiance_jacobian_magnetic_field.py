@@ -19,12 +19,12 @@ ws.frequency_grid = np.linspace(-5e6, 5e6, NF) + line_f0
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
+ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 
 # %% Use the automatic agenda setter for propagation matrix calculations
 ws.propagation_matrix_agendaAuto()

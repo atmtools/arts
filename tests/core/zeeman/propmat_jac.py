@@ -16,8 +16,8 @@ ws.frequency_grid = np.linspace(5e6, 6e6, 3) + line_f0
 
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 ws.surface_fieldEarth()

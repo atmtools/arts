@@ -29,7 +29,7 @@ NQUAD = 40
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 
 ws.absorption_species = []
-ws.absorption_bands = {}
+ws.abs_bands = {}
 ws.propagation_matrix_agendaAuto()
 ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()

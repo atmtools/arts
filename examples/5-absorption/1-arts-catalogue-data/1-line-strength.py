@@ -41,25 +41,25 @@ def calc_hitran_line_strengths(lines, isotopologue, T0):
 
 # Load line catalog
 ws.absorption_speciesSet(species=[isotopologue])
-ws.absorption_bandsReadSpeciesSplitCatalog(basename="lines/")
+ws.abs_bandsReadSpeciesSplitCatalog(basename="lines/")
 
 # Throw away lines outside the frequency range
-ws.absorption_bandsSelectFrequencyByLine(fmin=f_min, fmax=f_max)
+ws.abs_bandsSelectFrequencyByLine(fmin=f_min, fmax=f_max)
 
 # Bail out if no lines were found inside the frequency range
-if len(ws.absorption_bands) == 0:
+if len(ws.abs_bands) == 0:
     raise RuntimeError("No lines found in frequency range")
 
 # Get the intensity of the strongest line in each band
 max_strengths = [
     np.max(calc_hitran_line_strengths(b.lines, isotopologue, T0))
-    for b in ws.absorption_bands.values()
+    for b in ws.abs_bands.values()
 ]
 
 # Sort bands by descending maximum line strength
 indices = np.argsort(max_strengths)[::-1]
-keys = list(ws.absorption_bands.keys())
-sorted_bands = {keys[i]: ws.absorption_bands[keys[i]] for i in indices}
+keys = list(ws.abs_bands.keys())
+sorted_bands = {keys[i]: ws.abs_bands[keys[i]] for i in indices}
 
 # Enumerate bands
 enum_bands = list(enumerate(sorted_bands.items()))

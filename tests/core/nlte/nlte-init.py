@@ -5,7 +5,7 @@ ws = pyarts.Workspace()
 
 ws.absorption_speciesSet(species=["H2O"])
 
-ws.absorption_bands.readxml("nlte_lines.xml")
+ws.abs_bands.readxml("nlte_lines.xml")
 
 ws.atmospheric_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
 

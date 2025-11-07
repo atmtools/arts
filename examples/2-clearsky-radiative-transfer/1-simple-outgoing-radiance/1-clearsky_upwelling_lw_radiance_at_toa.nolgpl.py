@@ -38,12 +38,12 @@ ws.ReadCatalogData()
 # a cutoff of 25 Kayser is necessary. We set it here for all species, because it
 # also speeds up the calculation.
 cutoff = pa.arts.convert.kaycm2freq(25)
-for band in ws.absorption_bands:
-    ws.absorption_bands[band].cutoff = "ByLine"
-    ws.absorption_bands[band].cutoff_value = cutoff
+for band in ws.abs_bands:
+    ws.abs_bands[band].cutoff = "ByLine"
+    ws.abs_bands[band].cutoff_value = cutoff
 
 # Remove 90% of the lines to speed up the calculation
-ws.absorption_bands.keep_hitran_s(approximate_percentile=90)
+ws.abs_bands.keep_hitran_s(approximate_percentile=90)
 
 # Automatically set up the methods to compute absorption coefficients
 ws.propagation_matrix_agendaAuto()

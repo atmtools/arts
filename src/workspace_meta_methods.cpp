@@ -314,12 +314,12 @@ This method simply is a convenience wrapper for that use case.
       .desc =
           "Update state of the model in preparation for a forward model run",
       .author  = {"Richard Larsson"},
-      .methods = {"absorption_bandsFromModelState",
+      .methods = {"abs_bandsFromModelState",
                   "surface_fieldFromModelState",
                   "subsurface_fieldFromModelState",
                   "atmospheric_fieldFromModelState",
                   "measurement_sensorFromModelState"},
-      .out     = {"absorption_bands",
+      .out     = {"abs_bands",
                   "surface_field",
                   "subsurface_field",
                   "atmospheric_field",
@@ -362,18 +362,18 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "absorption_lookup_tableCalc",
-      .desc    = R"(Get *absorption_lookup_table* from available data.
+      .name    = "abs_lookup_dataCalc",
+      .desc    = R"(Get *abs_lookup_data* from available data.
 
-This method will use the *atmospheric_field* and *absorption_bands* to
-calculate the *absorption_lookup_table*.  The atmospheric field is first
+This method will use the *atmospheric_field* and *abs_bands* to
+calculate the *abs_lookup_data*.  The atmospheric field is first
 gridded using *atmospheric_profileExtract*.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"atmospheric_profileExtract",
-                  "absorption_lookup_tableInit",
-                  "absorption_lookup_tablePrecomputeAll"},
-      .out     = {"absorption_lookup_table"},
+                  "abs_lookup_dataInit",
+                  "abs_lookup_dataPrecomputeAll"},
+      .out     = {"abs_lookup_data"},
   });
 
   return wsm_meta;
