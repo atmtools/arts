@@ -40,7 +40,7 @@ void spectral_radiance_operatorClearsky1D(
 
   const String lines_str  = "abs_bands";
   const String cia_str    = "abs_cia_data";
-  const String xsec_str   = "absorption_xsec_fit_data";
+  const String xsec_str   = "abs_xfit_data";
   const String predef_str = "absorption_predefined_model_data";
 
   auto lines = ws.wsv_and_contains(lines_str)

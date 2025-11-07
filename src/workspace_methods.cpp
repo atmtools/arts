@@ -416,7 +416,7 @@ extension.
            R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
   };
 
-  wsm_data["absorption_xsec_fit_dataReadSpeciesSplitCatalog"] = {
+  wsm_data["abs_xfit_dataReadSpeciesSplitCatalog"] = {
       .desc      = R"--(Reads HITRAN Crosssection coefficients
 
 Reads coefficient files for HITRAN Xsec species defined
@@ -433,7 +433,7 @@ in *abs_species*.
     than calling this method directly.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"absorption_xsec_fit_data"},
+      .out       = {"abs_xfit_data"},
       .in        = {"abs_species"},
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
@@ -1662,7 +1662,7 @@ Available models
       .desc =
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
-This broadens the cross section data from *absorption_xsec_fit_data* and
+This broadens the cross section data from *abs_xfit_data* and
 interpolates it onto the current *frequency_grid*.
 )--",
       .author    = {"Oliver Lemke"},
@@ -1673,7 +1673,7 @@ interpolates it onto the current *frequency_grid*.
                     "jacobian_targets",
                     "frequency_grid",
                     "atmospheric_point",
-                    "absorption_xsec_fit_data"},
+                    "abs_xfit_data"},
       .gin       = {"force_p", "force_t"},
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {Numeric{-1}, Numeric{-1}},
@@ -3403,7 +3403,7 @@ The pressure range is set up logarithmically and all other ranges are set linear
   };
 
   wsm_data["abs_bandsReadSpeciesSplitCatalog"] = {
-      .desc   = R"--(Reads all species in *abs_species* from a basename
+      .desc      = R"--(Reads all species in *abs_species* from a basename
 
 basename follows the standard ARTS rules.
 For example if *abs_species* contains only ``H2O-161``, then a
@@ -3415,10 +3415,10 @@ ignore missing files or not.  If set to true, the method will
 ignore missing files and continue.  If set to false, the method
 will throw an error if any file is missing.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"abs_bands"},
-      .in     = {"abs_species"},
-      .gin    = {"basename", "ignore_missing"},
+      .author    = {"Richard Larsson"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_species"},
+      .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
       .gin_desc  = {"Absolute or relative path to the directory",
@@ -4128,7 +4128,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atmospheric_field"},
-      .in        = {"atmospheric_field", "absorption_xsec_fit_data"},
+      .in        = {"atmospheric_field", "abs_xfit_data"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4220,7 +4220,7 @@ Wraps:
 - *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *abs_species*
 - *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *abs_lookup_data*
 - *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *abs_cia_data*
-- *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
+- *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *abs_xfit_data*
 - *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
 
 See these individually for more details.
@@ -4258,12 +4258,12 @@ Wraps:
 
 - *abs_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
 - *abs_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename``
-- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
+- *abs_xfit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
 - *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"absorption_predefined_model_data",
-                    "absorption_xsec_fit_data",
+                    "abs_xfit_data",
                     "abs_cia_data",
                     "abs_bands"},
       .in        = {"abs_species"},
