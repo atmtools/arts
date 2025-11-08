@@ -979,7 +979,7 @@ bool is_valid_old_pos(const Vector3& pos) {
 }
 
 PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
-                                    const AtmField& atmospheric_field,
+                                    const AtmField& atm_field,
                                     const SurfaceField& surface_field,
                                     const Numeric max_step,
                                     const Numeric safe_search_accuracy,
@@ -1000,7 +1000,7 @@ PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
                                       .nreal    = this_geometric.nreal,
                                       .ngroup   = this_geometric.ngroup};
 
-  if (past_geometric.altitude() >= atmospheric_field.top_of_atmosphere or
+  if (past_geometric.altitude() >= atm_field.top_of_atmosphere or
       past_geometric.altitude() <=
           surface_altitude(surface_field,
                            past_geometric.latitude(),
@@ -1009,14 +1009,11 @@ PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
     path.reserve(3);
     path.emplace_back(init(this_geometric.pos,
                            this_geometric.los,
-                           atmospheric_field,
+                           atm_field,
                            surface_field,
                            false));
-    set_geometric_extremes(path,
-                           atmospheric_field,
-                           surface_field,
-                           safe_search_accuracy,
-                           search_safe);
+    set_geometric_extremes(
+        path, atm_field, surface_field, safe_search_accuracy, search_safe);
     past_geometric        = path.back();
     past_geometric.nreal  = this_geometric.nreal;
     past_geometric.ngroup = this_geometric.ngroup;

@@ -98,8 +98,8 @@ def plot(data: AbsorptionBands,
         ws.abs_speciesSet(species=[f"{band.isot}" for band in data])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
-        ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
-        atm = ws.atmospheric_field(*path_point.pos)
+        ws.atm_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
+        atm = ws.atm_field(*path_point.pos)
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 

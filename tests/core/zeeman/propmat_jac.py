@@ -28,15 +28,15 @@ dx = 1e-11
 B1 = [b for b in B]
 B1[2] += dx
 
-ws.atmospheric_field["mag_w"] = B[2]
+ws.atm_field["mag_w"] = B[2]
 ws.jacobian_targetsInit()
 ws.jacobian_targetsAddMagneticField(component="w")
 ws.jacobian_targetsFinalize(measurement_sensor=[])
 
-ws.atmospheric_point.temperature = 250
-ws.atmospheric_point.pressure = 1.0
-ws.atmospheric_point[pyarts.arts.SpeciesEnum.O2] = 0.2
-ws.atmospheric_point.mag = B
+ws.atm_point.temperature = 250
+ws.atm_point.pressure = 1.0
+ws.atm_point[pyarts.arts.SpeciesEnum.O2] = 0.2
+ws.atm_point.mag = B
 
 ws.ray_path_point.los = [40, 0]
 ws.ray_path_point.pos = [90e3, 0, 0]
@@ -50,7 +50,7 @@ dd = ws.propagation_matrix_jacobian[0] * 1.0
 ws.propagation_matrixInit()
 ws.propagation_matrixAddLines()
 
-ws.atmospheric_point.mag = B1
+ws.atm_point.mag = B1
 
 ws.propagation_matrixInit()
 ws.propagation_matrixAddLines()

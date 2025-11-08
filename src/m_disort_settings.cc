@@ -154,10 +154,10 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& ray_path_atm_point,
     const AscendingGrid& frequency_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, ray_path_atmospheric_point, frequency_grid);
+      disort_settings, ray_path_atm_point, frequency_grid);
 }
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
@@ -170,7 +170,7 @@ void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& ray_path_atm_point,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
@@ -178,7 +178,7 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
   ARTS_TIME_REPORT
 
   const Size nv = frequency_grid.size();
-  const Size N  = ray_path_atmospheric_point.size();
+  const Size N  = ray_path_atm_point.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -191,16 +191,16 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
       disort_settings.optical_thicknesses.shape());
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_atmospheric_point,
+      not arr::same_size(ray_path_atm_point,
                          ray_path_propagation_matrix,
                          ray_path_propagation_matrix_source_vector_nonlte),
       R"(Not same size:
 
-ray_path_atmospheric_point.size():   {}
+ray_path_atm_point.size():   {}
 ray_path_propagation_matrix.size():  {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-      ray_path_atmospheric_point.size(),
+      ray_path_atm_point.size(),
       ray_path_propagation_matrix.size(),
       ray_path_propagation_matrix_source_vector_nonlte.size());
 
@@ -220,8 +220,8 @@ ray_path_source_vector_nonlte.size(): {}
     const Numeric& f = frequency_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
+      const Numeric& t0 = ray_path_atm_point[i + 0].temperature;
+      const Numeric& t1 = ray_path_atm_point[i + 1].temperature;
 
       const Muelmat invK0 = inv(ray_path_propagation_matrix[i + 0][iv]);
       const Muelmat invK1 = inv(ray_path_propagation_matrix[i + 1][iv]);
@@ -356,7 +356,7 @@ void disort_settingsDownwellingObserver(
     DisortSettings& disort_settings,
     const AscendingGrid& frequency_grid,
     const ArrayOfPropagationPathPoint& ray_path,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
     const Agenda& spectral_radiance_observer_agenda,
@@ -405,7 +405,7 @@ void disort_settingsDownwellingObserver(
           jacobian_targets,
           ray_path_point.pos,
           {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
-          atmospheric_field,
+          atm_field,
           surface_field,
           subsurface_field,
           spectral_radiance_observer_agenda);
@@ -830,7 +830,7 @@ Agenda disort_settings_agendaSetup(
   agenda.add("jacobian_targetsOff");
 
   // Clearsky absorption
-  agenda.add("ray_path_atmospheric_pointFromPath");
+  agenda.add("ray_path_atm_pointFromPath");
   agenda.add("ray_path_frequency_gridFromPath");
   agenda.add("ray_path_propagation_matrixFromPath");
 

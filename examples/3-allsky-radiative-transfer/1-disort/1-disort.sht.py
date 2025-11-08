@@ -119,13 +119,13 @@ rwc = GriddedField3(
     "RWC", 1.0 * pbf_field[0], ["alt", "lon", "lat"], (z_grid, lon_grid, lat_grid)
 )
 
-ws.atmospheric_field["p"] = pressure
-ws.atmospheric_field["t"] = temperature
-ws.atmospheric_field["N2"] = n2
-ws.atmospheric_field["O2"] = o2
-ws.atmospheric_field["H2O"] = h2o
-ws.atmospheric_field[rain_first_moment] = rwc
-ws.atmospheric_field.top_of_atmosphere = 12.0e3
+ws.atm_field["p"] = pressure
+ws.atm_field["t"] = temperature
+ws.atm_field["N2"] = n2
+ws.atm_field["O2"] = o2
+ws.atm_field["H2O"] = h2o
+ws.atm_field[rain_first_moment] = rwc
+ws.atm_field.top_of_atmosphere = 12.0e3
 
 ws.propagation_matrix_scattering_spectral_agenda
 
@@ -180,6 +180,6 @@ tbs_cloudy
 # The clearsky brightness temperatures, however, agree well with the ARTS 2.6 results.
 
 # ARTS 2.6 results: ``298.566120236439 283.35611518369 251.643322551348``
-ws.atmospheric_field[rain_first_moment] = 0.0
+ws.atm_field[rain_first_moment] = 0.0
 tbs_clear = calculate_tbs_disort()
 tbs_clear

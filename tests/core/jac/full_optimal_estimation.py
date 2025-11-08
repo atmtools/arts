@@ -31,10 +31,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
@@ -50,11 +50,11 @@ grid = pyarts.arts.GriddedField3(
     grids=[[0, 50e3, 120e3], [0], [0]],
 )
 
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2] = grid
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lat_upp = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
+ws.atm_field[pyarts.arts.SpeciesEnum.O2] = grid
+ws.atm_field[pyarts.arts.SpeciesEnum.O2].lat_low = "Nearest"
+ws.atm_field[pyarts.arts.SpeciesEnum.O2].lat_upp = "Nearest"
+ws.atm_field[pyarts.arts.SpeciesEnum.O2].lon_low = "Nearest"
+ws.atm_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
 
 
 # %% Set up sensor
@@ -72,14 +72,14 @@ ws.RetrievalFinalizeDiagonal()
 # %% Core calculations
 
 for i in range(LIMIT):
-    ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data = grid
+    ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = grid
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
+    ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

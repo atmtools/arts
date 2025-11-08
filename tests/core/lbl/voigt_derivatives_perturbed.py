@@ -12,7 +12,7 @@ if 0:
             self.frequency_grid = frange
     
         def apply(self, ws, il):
-            ws.atmospheric_point.pressure = self.pressure
+            ws.atm_point.pressure = self.pressure
             ws.abs_bands[0].data.lines[il].z.on = self.zeeman
             for x in ws.abs_bands[0].data.lines:
                 x.ls.one_by_one = self.one_by_one
@@ -116,12 +116,12 @@ if 0:
     ws.WignerInit(symbol_type=3)
     
     ws.jacobian_targets = pyarts.arts.JacobianTargets()
-    ws.atmospheric_pointInit()
-    ws.atmospheric_point.temperature = 295  # At room temperature
-    ws.atmospheric_point[pyarts.arts.SpeciesEnum("Oxygen")] = (
+    ws.atm_pointInit()
+    ws.atm_point.temperature = 295  # At room temperature
+    ws.atm_point[pyarts.arts.SpeciesEnum("Oxygen")] = (
         0.21  # At 21% atmospheric Oxygen
     )
-    ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
+    ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
     ws.ray_path_point
     
     for setting in settings:
@@ -213,13 +213,13 @@ if 0:
         # ISOTOPOLOGUE RATIO
         d = 0.0001
         key = pyarts.arts.SpeciesIsotope("O2-66")
-        ws.atmospheric_point[key] += d
+        ws.atm_point[key] += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.atmospheric_point[key] -= d
+        ws.atm_point[key] -= d
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -233,13 +233,13 @@ if 0:
         # VMR
         d = 0.00001
         key = pyarts.arts.SpeciesEnum("O2")
-        ws.atmospheric_point[key] += d
+        ws.atm_point[key] += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.atmospheric_point[key] -= d
+        ws.atm_point[key] -= d
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(ws.frequency_grid, dpm[1][:, 0], dpm_dX[:, 0], "VMR", setting)
@@ -247,13 +247,13 @@ if 0:
         # Temperature
         d = 1e-6
         key = pyarts.arts.AtmKey.t
-        ws.atmospheric_point[key] += d
+        ws.atm_point[key] += d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.atmospheric_point[key] -= d
+        ws.atm_point[key] -= d
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
@@ -613,7 +613,7 @@ if 0:
         )
     
         # O2 DV X0
-        d = 1e-1 / ws.atmospheric_point.pressure
+        d = 1e-1 / ws.atm_point.pressure
         orig = ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"]
         data = copy(orig.data)
         data[0] += d
@@ -633,7 +633,7 @@ if 0:
         )
     
         # Bath DV X0
-        d = 1e4 / ws.atmospheric_point.pressure**2
+        d = 1e4 / ws.atm_point.pressure**2
         orig = ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"]
         data = copy(orig.data)
         data[0] += d

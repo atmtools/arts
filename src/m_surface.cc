@@ -144,7 +144,7 @@ void spectral_radianceSurfaceReflectance(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& frequency_grid,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
     const JacobianTargets& jacobian_targets,
@@ -194,7 +194,7 @@ void spectral_radianceSurfaceReflectance(
                                            jacobian_targets,
                                            ray_path_point.pos,
                                            los,
-                                           atmospheric_field,
+                                           atm_field,
                                            surface_field,
                                            subsurface_field,
                                            spectral_radiance_observer_agenda);

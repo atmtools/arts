@@ -29,7 +29,7 @@ calculations that are happening deep in your ARTS method calls.
                        "jacobian_targets",
                        "select_species",
                        "ray_path_point",
-                       "atmospheric_point"},
+                       "atm_point"},
       .enum_options = {"Empty"},
       .output_constraints =
           {
@@ -76,17 +76,17 @@ If you do not need single-frequency-point calculations, consider using
                  "jacobian_targets",
                  "select_species",
                  "ray_path_point",
-                 "atmospheric_point"},
+                 "atm_point"},
   };
 
   wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
       .desc =
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
-      .output = {"propagation_matrix_scattering",
-                 "absorption_vector_scattering",
-                 "phase_matrix_scattering_spectral"},
-      .input  = {"frequency_grid", "atmospheric_point", "legendre_degree"},
+      .output       = {"propagation_matrix_scattering",
+                       "absorption_vector_scattering",
+                       "phase_matrix_scattering_spectral"},
+      .input        = {"frequency_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
       .output_constraints =
@@ -112,7 +112,7 @@ If you do not need single-frequency-point calculations, consider using
           R"--(Computes the part of the propagation matrix that relates to scattering.
 )--",
       .output       = {"propagation_matrix_scattering"},
-      .input        = {"frequency_grid", "atmospheric_point"},
+      .input        = {"frequency_grid", "atm_point"},
       .enum_options = {"AirSimple"},
       .enum_default = "AirSimple",
       .output_constraints =
@@ -179,7 +179,7 @@ is warranted.
                  "jacobian_targets",
                  "spectral_radiance_observer_position",
                  "spectral_radiance_observer_line_of_sight",
-                 "atmospheric_field",
+                 "atm_field",
                  "surface_field",
                  "subsurface_field"},
       .enum_options = {"Emission", "EmissionNoSensor"},
@@ -294,14 +294,14 @@ See *OEM*.
 .. note::
     The output *measurement_jacobian* size may depend on the *do_jacobian* input.
 )--",
-      .output             = {"atmospheric_field",
+      .output             = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
                              "surface_field",
                              "subsurface_field",
                              "measurement_vector_fitted",
                              "measurement_jacobian"},
-      .input              = {"atmospheric_field",
+      .input              = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
                              "surface_field",
@@ -333,7 +333,7 @@ See *OEM*.
 It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
 current iteration of the inversion. The *measurement_vector_fitted* is the
 fitted measurement vector, i.e., the measurement vector that is expected to be
-observed given the current *atmospheric_field*, *abs_bands*, *measurement_sensor*,
+observed given the current *atm_field*, *abs_bands*, *measurement_sensor*,
 and *surface_field*.  It does not take these as explicit input but via the Workspace
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 
@@ -406,7 +406,7 @@ as a boundary condition to subsurface radiance calculation.
       .output = {"disort_settings"},
       .input  = {"frequency_grid",
                  "ray_path",
-                 "atmospheric_field",
+                 "atm_field",
                  "surface_field",
                  "subsurface_field",
                  "disort_quadrature_dimension",

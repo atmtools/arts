@@ -34,7 +34,7 @@ ws.abs_bands = {}
 ws.propagation_matrix_agendaAuto()
 ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
-ws.atmospheric_fieldInit(toa=0.0)
+ws.atm_fieldInit(toa=0.0)
 
 
 @pyarts.arts_agenda(ws=ws, fix=False)

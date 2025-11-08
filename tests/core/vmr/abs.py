@@ -26,7 +26,7 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 
@@ -40,8 +40,8 @@ los = [20.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
 RAT = 0.8
-field = copy(ws.atmospheric_field["H2O"])
-fieldg = copy(ws.atmospheric_field["H2O"])
+field = copy(ws.atm_field["H2O"])
+fieldg = copy(ws.atm_field["H2O"])
 
 fieldg.data /= RAT
 orig = field.data.data.flatten()
@@ -58,7 +58,7 @@ ws.measurement_vector_fitted = []
 ws.model_state_vector = []
 ws.measurement_jacobian = [[]]
 
-ws.atmospheric_field["H2O"] = fieldg
+ws.atm_field["H2O"] = fieldg
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vectorFromSensor()
 apri = ws.measurement_vector * 1.0

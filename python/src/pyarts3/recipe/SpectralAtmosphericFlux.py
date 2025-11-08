@@ -80,7 +80,7 @@ class SpectralAtmosphericFlux:
         self.ws.surface_field["t"] = surface_temperature
         self.ws.abs_bandsSelectFrequencyByLine(fmin=40e9)
 
-        self.ws.atmospheric_fieldRead(
+        self.ws.atm_fieldRead(
             toa=atmospheric_altitude,
             basename="planets/Earth/afgl/tropical/",
             missing_is_zero=1,
@@ -92,7 +92,7 @@ class SpectralAtmosphericFlux:
             max_stepsize=max_level_step,
         )
 
-        self.ws.ray_path_atmospheric_pointFromPath()
+        self.ws.ray_path_atm_pointFromPath()
 
         self.sun = pyarts.arts.GriddedField2.fromxml(
             "star/Sun/solar_spectrum_QUIET.xml"
@@ -116,7 +116,7 @@ class SpectralAtmosphericFlux:
             dict: Atmospheric field dictionary
         """
         return pyarts.arts.stringify_keys(
-            self.ws.ray_path_atmospheric_point.to_dict(
+            self.ws.ray_path_atm_point.to_dict(
                 core=core, specs=specs, nlte=nlte, ssprops=ssprops, isots=isots
             )
         )
@@ -124,14 +124,14 @@ class SpectralAtmosphericFlux:
     def __call__(
         self,
         frequency_grid: pyarts.arts.AscendingGrid,
-        atmospheric_profile: dict = {},
+        atm_profile: dict = {},
         surface_temperature: float = None,
     ):
         """Get the total flux profile
 
         Args:
             frequency_grid (pyarts3.arts.AscendingGrid): The frequency grid
-            atmospheric_profile (dict, optional): The atmospheric profile. Defaults to {}.
+            atm_profile (dict, optional): The atmospheric profile. Defaults to {}.
             surface_temperature (float, optional): The surface temperature. Defaults to None.
 
         Returns:
@@ -141,7 +141,7 @@ class SpectralAtmosphericFlux:
         if surface_temperature is not None:
             self.ws.surface_field["t"] = surface_temperature
 
-        self.ws.ray_path_atmospheric_point.update(atmospheric_profile)
+        self.ws.ray_path_atm_point.update(atm_profile)
 
         # Visible
         self.ws.frequency_grid = frequency_grid

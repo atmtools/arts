@@ -27,7 +27,7 @@ Numeric surface_tangent_zenithFromAgenda(const Workspace& ws,
 void ray_path_observersFieldProfilePseudo2D(
     const Workspace& ws,
     ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Agenda& ray_path_observer_agenda,
     const Numeric& latitude,
@@ -46,8 +46,7 @@ void ray_path_observersFieldProfilePseudo2D(
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 
-  const Vector3 top_pos = {
-      atmospheric_field.top_of_atmosphere, latitude, longitude};
+  const Vector3 top_pos = {atm_field.top_of_atmosphere, latitude, longitude};
   const Vector3 bot_pos = {surface_field[SurfaceKey::h].at(latitude, longitude),
                            latitude,
                            longitude};
@@ -90,7 +89,7 @@ void ray_path_observersFieldProfilePseudo2D(
 
 void ray_path_observersFluxProfile(
     ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const Numeric& azimuth,
     const Index& n,
     const AtmKey& atm_key) {
@@ -100,7 +99,7 @@ void ray_path_observersFluxProfile(
       n < 3 or (n % 2) == 0,
       "Must have at least 3 observers, and an uneven number of them.")
 
-  const auto& data = atmospheric_field[atm_key].get<GeodeticField3>();
+  const auto& data = atm_field[atm_key].get<GeodeticField3>();
 
   const auto& alt_g  = data.grid<0>();
   const auto& lat    = data.grid<1>()[0];
@@ -156,7 +155,7 @@ Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
 void ray_path_fieldFluxProfile(
     const Workspace& ws,
     ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const Agenda& ray_path_observer_agenda,
     const Numeric& azimuth,
     const Numeric& dza,
@@ -165,7 +164,7 @@ void ray_path_fieldFluxProfile(
 
   ray_path_field.clear();
 
-  const auto& data  = atmospheric_field[atm_key].get<GeodeticField3>();
+  const auto& data  = atm_field[atm_key].get<GeodeticField3>();
   const auto& alt_g = data.grid<0>();
   ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
                      "Data size does not match altitude grid size")

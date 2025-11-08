@@ -16,10 +16,10 @@ ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Set the atmosphere
-ws.atmospheric_point["t"] = 300.0
-ws.atmospheric_point["p"] = 1013.25e-2
-ws.atmospheric_point["O2"] = 0.2095
-ws.atmospheric_point.mag = [10e-6, 50e-6, 1e-6]
+ws.atm_point["t"] = 300.0
+ws.atm_point["p"] = 1013.25e-2
+ws.atm_point["O2"] = 0.2095
+ws.atm_point.mag = [10e-6, 50e-6, 1e-6]
 ws.ray_path_point.los = [180.0, 0.0]
 
 # %% Set the jacobian

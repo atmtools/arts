@@ -13,7 +13,7 @@ using QuantumIdentifierNumericMap =
 
 namespace lbl::nlte {
 std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const AbsorptionBands& abs_bands,
     const Numeric& normalizing_factor);
 
@@ -27,14 +27,13 @@ QuantumIdentifierNumericMap createBji(const QuantumIdentifierNumericMap& Bij,
 QuantumIdentifierVectorMap createCij(
     const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point);
+    const ArrayOfAtmPoint& ray_path_atm_point);
 
-QuantumIdentifierVectorMap createCji(
-    const QuantumIdentifierVectorMap& Cij,
-    const AbsorptionBands& abs_bands,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point);
+QuantumIdentifierVectorMap createCji(const QuantumIdentifierVectorMap& Cij,
+                                     const AbsorptionBands& abs_bands,
+                                     const ArrayOfAtmPoint& ray_path_atm_point);
 
-Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point,
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atm_point,
                       const ArrayOfQuantumLevelIdentifier& levels);
 
 struct UppLow {
@@ -62,7 +61,7 @@ Matrix statistical_equilibrium_equation(
     const Size atmi,
     const Size nlevels);
 
-Numeric set_nlte(AtmPoint& atmospheric_point,
+Numeric set_nlte(AtmPoint& atm_point,
                  const ArrayOfQuantumLevelIdentifier& level_keys,
                  const Vector& x);
 }  // namespace lbl::nlte

@@ -29,10 +29,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF()
+ws.atm_fieldIGRF()
 
 # %% Checks and settings
 

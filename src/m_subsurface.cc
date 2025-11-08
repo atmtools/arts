@@ -38,7 +38,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& frequency_grid,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field_,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
     const JacobianTargets& jacobian_targets,
@@ -63,7 +63,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   Vector model_state_vector                     = {};
   Vector model_state_vector_perturbation        = {};
   StokvecVector spectral_radiance2              = {};
-  AtmField atm_field                            = atmospheric_field;
+  AtmField atm_field                            = atm_field_;
   SurfaceField surf_field                       = surface_field;
   SubsurfaceField subsurf_field                 = subsurface_field;
   const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
@@ -78,7 +78,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       ray_path,
       disort_spectral_radiance_field,
       disort_quadrature,
-      atmospheric_field,
+      atm_field,
       disort_fourier_mode_dimension,
       disort_legendre_polynomial_dimension,
       disort_quadrature_dimension,
@@ -95,7 +95,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
                                   jacobian_targets);
   model_state_vectorInit(model_state_vector, jacobian_targets);
   model_state_vectorFromAtmosphere(
-      model_state_vector, atmospheric_field, jacobian_targets);
+      model_state_vector, atm_field, jacobian_targets);
   model_state_vectorFromSurface(
       model_state_vector, surface_field, jacobian_targets);
   model_state_vectorFromSubsurface(
@@ -134,8 +134,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
           surf_field, model_state_vector, jacobian_targets);
       subsurface_fieldFromModelState(
           subsurf_field, model_state_vector, jacobian_targets);
-      atmospheric_fieldFromModelState(
-          atm_field, model_state_vector, jacobian_targets);
+      atm_fieldFromModelState(atm_field, model_state_vector, jacobian_targets);
 
       model_state_vector[i] = orig;
 

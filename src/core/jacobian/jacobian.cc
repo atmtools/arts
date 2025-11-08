@@ -627,7 +627,7 @@ bool is_mag(const AtmTarget& t) {
          t.type == AtmKey::mag_w;
 }
 
-void Targets::finalize(const AtmField& atmospheric_field,
+void Targets::finalize(const AtmField& atm_field,
                        const SurfaceField& surface_field,
                        const SubsurfaceField& subsurface_field,
                        const AbsorptionBands&,
@@ -659,7 +659,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = atmospheric_field[t.type].flat_view().size();
+      t.x_size   = atm_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }

@@ -160,7 +160,7 @@ Unit: m
       .type = "AscendingGrid",
   };
 
-  wsv_data["atmospheric_field"] = {
+  wsv_data["atm_field"] = {
       .desc =
           R"--(An atmospheric field in ARTS.
 
@@ -168,7 +168,7 @@ The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
 calculations along a path through the atmosphere.  The field can be
 accessed at any altitude, latitude, longitude path that is within the
-atmosphere to access the relevant atmospheric point data (*atmospheric_point*).
+atmosphere to access the relevant atmospheric point data (*atm_point*).
 
 Note that constraints on the various field parameters may be imposed by
 extrapolation limitations on the field parameter itself, causing some or
@@ -190,7 +190,7 @@ For more information, see :doc:`user.atmospheric_field`.
       .type = "AtmField",
   };
 
-  wsv_data["atmospheric_point"] = {
+  wsv_data["atm_point"] = {
       .desc =
           R"--(An atmospheric point in ARTS.
 
@@ -198,14 +198,14 @@ The atmospheric point consists of all the relevant atmospheric field data
 at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
 at a single altitude-latitude-longitude but may of course be generated manually.
 
-See *atmospheric_field* for the data that may be available in the atmospheric point.
+See *atm_field* for the data that may be available in the atmospheric point.
 
 For more information, see :doc:`user.atmospheric_field`.
 )--",
       .type = "AtmPoint",
   };
 
-  wsv_data["atmospheric_profile"] = {
+  wsv_data["atm_profile"] = {
       .desc =
           R"--(An atmospheric profile in ARTS.
 
@@ -216,7 +216,7 @@ The atmospheric profile consists of all the relevant atmospheric field data
 at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
 at a single latitude-longitude coordinate but may of course be generated manually.
 
-See *atmospheric_field* for the data that may be available in the atmospheric point.
+See *atm_field* for the data that may be available in the atmospheric point.
 
 The size of the profile is the same as *altitude_grid*.
 
@@ -298,10 +298,10 @@ The unit is in *spectral_radiance* per meter.
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_atmospheric_point"] = {
+  wsv_data["ray_path_atm_point"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
-See *atmospheric_point* for information about atmospheric points
+See *atm_point* for information about atmospheric points
 
 Dimension: [ ppath.np ]
 
@@ -663,7 +663,8 @@ into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
 )",
       .type = "SpectralRadianceTransformOperator",
       .default_value =
-          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)"};
+          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
+  };
 
   wsv_data["spectral_radiance"] = {
       .desc = R"--(A spectral radiance vector.
@@ -701,7 +702,7 @@ sorted by their type.  A target must have information about its
 position in the target count, as well as the number of parameters
 it contributes to the *model_state_vector*.  It must know these
 things because it is able to map data between the *model_state_vector*
-and the actual model field, e.g., the *atmospheric_field*, the *surface_field*,
+and the actual model field, e.g., the *atm_field*, the *surface_field*,
 the *subsurface_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
       .type = "JacobianTargets",

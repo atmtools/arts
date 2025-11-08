@@ -22,10 +22,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Settings
 
@@ -45,12 +45,12 @@ ws.ray_path_observersFieldProfilePseudo2D(nup=nup, ndown=ndown, nlimb=nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 # Calculate spectral flux profile using the ray path and atmospheric data
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atmospheric_field["t"].data.grids[0]
+    altitude_grid=ws.atm_field["t"].data.grids[0]
 )
 
 # Atmospheric point definition along the ray path
-ws.atmospheric_profile = [
-    ws.atmospheric_field(x, 0, 0) for x in ws.atmospheric_field["t"].data.grids[0]
+ws.atm_profile = [
+    ws.atm_field(x, 0, 0) for x in ws.atm_field["t"].data.grids[0]
 ]
 
 # Integrate line flux profile for NLTE calculation

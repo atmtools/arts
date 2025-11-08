@@ -45,7 +45,7 @@ ws.propagation_matrix_agendaSetOperator(f=interface_function)
 ws.frequency_grid = [1, 2]
 ws.frequency_wind_shift_jacobian
 ws.ray_path_point
-ws.atmospheric_point
+ws.atm_point
 
 ws.propagation_matrix_agendaExecute()
 

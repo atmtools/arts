@@ -34,9 +34,9 @@ xarr = pyarts.data.xarray_open_dataset(prefix + "atmosphere.nc")
 ws = pyarts.Workspace()
 
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
-ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr)
+ws.atm_field = pyarts.data.to_atm_field(xarr)
 
-v = pyarts.data.to_abs_species(ws.atmospheric_field)
+v = pyarts.data.to_abs_species(ws.atm_field)
 
 ws.abs_species = v
 ws.ReadCatalogData(ignore_missing=True)
@@ -89,11 +89,11 @@ s.set_xlabel("Kaysers [cm$^{-1}$]")
 s.set_ylabel("Altitude [km]")
 s.set_title("Downward diffuse spectral flux from DISORT")
 
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
-alts = np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
+alts = np.linspace(0, ws.atm_field.top_of_atmosphere)
 f, s = pyarts.plot(
-    ws.atmospheric_field,
+    ws.atm_field,
     alts=alts,
     ygrid=alts/1e3,
     apply_natural_scale=True,

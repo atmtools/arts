@@ -33,8 +33,8 @@
 #include "matpack_mdspan_view_t.h"
 
 void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
-                                           const Numeric& fmin,
-                                           const Numeric& fmax) try {
+                                    const Numeric& fmin,
+                                    const Numeric& fmax) try {
   ARTS_TIME_REPORT
 
   std::vector<QuantumIdentifier> to_remove;
@@ -59,8 +59,8 @@ void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands,
-                                           const Numeric& fmin,
-                                           const Numeric& fmax) try {
+                                    const Numeric& fmin,
+                                    const Numeric& fmax) try {
   ARTS_TIME_REPORT
 
   std::vector<QuantumIdentifier> to_remove;
@@ -79,8 +79,8 @@ void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 void abs_bandsKeepID(AbsorptionBands& abs_bands,
-                            const QuantumIdentifier& id,
-                            const Index& line) try {
+                     const QuantumIdentifier& id,
+                     const Index& line) try {
   ARTS_TIME_REPORT
 
   if (auto ptr = abs_bands.find(id); ptr != abs_bands.end()) {
@@ -88,7 +88,7 @@ void abs_bandsKeepID(AbsorptionBands& abs_bands,
 
     QuantumIdentifier newk = key;
     AbsorptionBand newb    = band;
-    abs_bands       = {};
+    abs_bands              = {};
     AbsorptionBand& data   = abs_bands[newk];
     data                   = std::move(newb);
 
@@ -145,7 +145,7 @@ void abs_bandsReadSpeciesSplitCatalog(
         xml_read_from_file(filename, other);
 #pragma omp critical(abs_bandsReadSpeciesSplitCatalogInsert)
         abs_bands.insert(std::make_move_iterator(other.begin()),
-                                std::make_move_iterator(other.end()));
+                         std::make_move_iterator(other.end()));
       } else if (not ignore_missing) {
 #pragma omp critical(abs_bandsReadSpeciesSplitCatalogFileError)
         file_errors.push_back(filename);
@@ -164,8 +164,7 @@ void abs_bandsReadSpeciesSplitCatalog(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsReadSplit(AbsorptionBands& abs_bands,
-                               const String& dir) try {
+void abs_bandsReadSplit(AbsorptionBands& abs_bands, const String& dir) try {
   ARTS_TIME_REPORT
 
   abs_bands = {};
@@ -188,7 +187,7 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands,
       xml_read_from_file(paths[i].string(), bands);
 #pragma omp critical
       abs_bands.insert(std::make_move_iterator(bands.begin()),
-                              std::make_move_iterator(bands.end()));
+                       std::make_move_iterator(bands.end()));
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -200,7 +199,7 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 void abs_bandsSaveSplit(const AbsorptionBands& abs_bands,
-                               const String& dir) try {
+                        const String& dir) try {
   ARTS_TIME_REPORT
 
   auto create_if_not = [](const std::filesystem::path& path) {
@@ -225,10 +224,10 @@ void abs_bandsSaveSplit(const AbsorptionBands& abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 void abs_bandsSetZeeman(AbsorptionBands& abs_bands,
-                               const SpeciesIsotope& species,
-                               const Numeric& fmin,
-                               const Numeric& fmax,
-                               const Index& _on) try {
+                        const SpeciesIsotope& species,
+                        const Numeric& fmin,
+                        const Numeric& fmax,
+                        const Index& _on) try {
   ARTS_TIME_REPORT
 
   const bool on = static_cast<bool>(_on);
@@ -306,10 +305,10 @@ void propagation_matrixAddLines(PropmatVector& pm,
 ARTS_METHOD_ERROR_CATCH
 
 void abs_bandsReadHITRAN(AbsorptionBands& abs_bands,
-                                const String& filename,
-                                const Vector2& frequency_range,
-                                const String& line_strength_option,
-                                const Index& compute_zeeman_parameters) try {
+                         const String& filename,
+                         const Vector2& frequency_range,
+                         const String& line_strength_option,
+                         const Index& compute_zeeman_parameters) try {
   ARTS_TIME_REPORT
 
   using namespace Quantum;
@@ -353,14 +352,13 @@ T& get_value(const Key& k, std::unordered_map<Key, T>& m) {
 }
 }  // namespace
 
-void abs_bandsLineMixingAdaptation(
-    AbsorptionBands& abs_bands,
-    const LinemixingEcsData& ecs_data,
-    const AtmPoint& atmospheric_point,
-    const AscendingGrid& temperatures,
-    const QuantumIdentifier& band_key,
-    const Index& rosenkranz_fit_order,
-    const Index& polynomial_fit_degree) try {
+void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
+                                   const LinemixingEcsData& ecs_data,
+                                   const AtmPoint& atm_point,
+                                   const AscendingGrid& temperatures,
+                                   const QuantumIdentifier& band_key,
+                                   const Index& rosenkranz_fit_order,
+                                   const Index& polynomial_fit_degree) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(temperatures.empty() or temperatures.front() <= 0.0,
@@ -400,7 +398,7 @@ void abs_bandsLineMixingAdaptation(
   const Size M = temperatures.size();
   const Size N = band.lines.size();
 
-  lbl::voigt::ecs::ComputeData com_data({}, atmospheric_point);
+  lbl::voigt::ecs::ComputeData com_data({}, atm_point);
   ComplexTensor3 eqv_str(M, K, N), eqv_val(M, K, N);
 
   lbl::voigt::ecs::equivalent_values(eqv_str,
@@ -409,7 +407,7 @@ void abs_bandsLineMixingAdaptation(
                                      band_key,
                                      band,
                                      ecs_data.at(band_key.isot),
-                                     atmospheric_point,
+                                     atm_point,
                                      temperatures);
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
@@ -441,11 +439,10 @@ void abs_bandsLineMixingAdaptation(
       for (Size k = 0; k < N; k++) {
         auto& line       = band.lines[k];
         lbl_val[i, j, k] = Complex{
-            line.f0 +
-                line.ls.single_models.at(specs[j]).D0(
-                    line.ls.T0, temperatures[i], atmospheric_point.pressure),
+            line.f0 + line.ls.single_models.at(specs[j]).D0(
+                          line.ls.T0, temperatures[i], atm_point.pressure),
             line.ls.single_models.at(specs[j]).G0(
-                line.ls.T0, temperatures[i], atmospheric_point.pressure)};
+                line.ls.T0, temperatures[i], atm_point.pressure)};
       }
     }
   }
@@ -463,12 +460,12 @@ void abs_bandsLineMixingAdaptation(
 
   for (Size j = 0; j < K; j++) eqv_str[joker, j, joker] /= lbl_str;
 
-  eqv_val.real() /= Math::pow2(atmospheric_point.pressure);
-  eqv_val.imag() /= Math::pow3(atmospheric_point.pressure);
+  eqv_val.real() /= Math::pow2(atm_point.pressure);
+  eqv_val.imag() /= Math::pow3(atm_point.pressure);
 
   eqv_str.real() -= 1.0;
-  eqv_str.real() /= Math::pow2(atmospheric_point.pressure);
-  eqv_str.imag() /= atmospheric_point.pressure;
+  eqv_str.real() /= Math::pow2(atm_point.pressure);
+  eqv_str.imag() /= atm_point.pressure;
 
   using namespace Minimize;
   for (Size j = 0; j < K; j++) {
@@ -574,8 +571,7 @@ void abs_bandsReadSpeciesSplitARTSCAT(
 
   for (auto& am : meta) {
     for (auto& m : am) {
-      abs_bands[std::move(m.quantumidentity)].emplace_back(
-          std::move(m.data));
+      abs_bands[std::move(m.quantumidentity)].emplace_back(std::move(m.data));
     }
   }
 }

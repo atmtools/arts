@@ -33,10 +33,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
@@ -53,7 +53,7 @@ vmr_grid = pyarts.arts.GriddedField3(
     grids=[[0, 50e3, 120e3], [0], [0]],
 )
 
-ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2] = vmr_grid
+ws.atm_field[pyarts.arts.SpeciesEnum.O2] = vmr_grid
 
 # %% Artificial Temperature
 
@@ -65,11 +65,11 @@ temp_grid = pyarts.arts.GriddedField3(
     grids=[[0, 10e3, 30e3, 80e3, 120e3], [0], [0]],
 )
 
-ws.atmospheric_field[pyarts.arts.AtmKey.temperature] = temp_grid
-ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lat_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lat_upp = "Nearest"
-ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lon_low = "Nearest"
-ws.atmospheric_field[pyarts.arts.AtmKey.temperature].lon_upp = "Nearest"
+ws.atm_field[pyarts.arts.AtmKey.temperature] = temp_grid
+ws.atm_field[pyarts.arts.AtmKey.temperature].lat_low = "Nearest"
+ws.atm_field[pyarts.arts.AtmKey.temperature].lat_upp = "Nearest"
+ws.atm_field[pyarts.arts.AtmKey.temperature].lon_low = "Nearest"
+ws.atm_field[pyarts.arts.AtmKey.temperature].lon_upp = "Nearest"
 
 # %% Set up sensor
 
@@ -116,16 +116,16 @@ def condition(x, xas):
 works = False
 
 for i in range(LIMIT):
-    ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data = vmr_grid
-    ws.atmospheric_field[pyarts.arts.AtmKey.t].data = temp_grid
+    ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = vmr_grid
+    ws.atm_field[pyarts.arts.AtmKey.t].data = temp_grid
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     
     # Set the relevant atmospheric state to "weird", aka much different
-    ws.atmospheric_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
-    ws.atmospheric_field[pyarts.arts.AtmKey.t].data += 20
+    ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
+    ws.atm_field[pyarts.arts.AtmKey.t].data += 20
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

@@ -8,7 +8,7 @@
 #include "path_point.h"
 
 void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
-                  const AtmField& atmospheric_field,
+                  const AtmField& atm_field,
                   const SurfaceField& surface_field,
                   const Vector3& pos,
                   const Vector2& los,
@@ -30,7 +30,7 @@ los:      {:B,}
 
   ray_path.resize(1);
   ray_path[0] = path::init(
-      pos, los, atmospheric_field, surface_field, static_cast<bool>(as_sensor));
+      pos, los, atm_field, surface_field, static_cast<bool>(as_sensor));
 }
 
 void ray_pathRemoveNearby(ArrayOfPropagationPathPoint& ray_path,
@@ -48,7 +48,7 @@ void ray_pathRemoveNearby(ArrayOfPropagationPathPoint& ray_path,
 }
 
 void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atmospheric_field,
+                                  const AtmField& atm_field,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy,
                                   const Index& surface_safe_search) {
@@ -60,7 +60,7 @@ void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
       surface_field.ellipsoid)
 
   path::set_geometric_extremes(ray_path,
-                               atmospheric_field,
+                               atm_field,
                                surface_field,
                                surface_search_accuracy,
                                static_cast<bool>(surface_safe_search));
@@ -68,11 +68,11 @@ void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
 
 void ray_pathRemoveNonGeometricGridCrossings(
     ArrayOfPropagationPathPoint& ray_path,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const AtmKey& atm_key) {
   ARTS_TIME_REPORT
 
-  const auto& data = atmospheric_field[atm_key];
+  const auto& data = atm_field[atm_key];
   ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(data.data),
                      "The data for key {} is not a GeodeticField3",
                      atm_key);
@@ -89,7 +89,7 @@ void ray_pathRemoveNonGeometricGridCrossings(
 }
 
 void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
-                                       const AtmField& atmospheric_field,
+                                       const AtmField& atm_field,
                                        const SurfaceField& surface_field,
                                        const AtmKey& atm_key) {
   ARTS_TIME_REPORT
@@ -99,7 +99,7 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surface_field.ellipsoid)
 
-  const auto& data = atmospheric_field[atm_key];
+  const auto& data = atm_field[atm_key];
   ARTS_USER_ERROR_IF(not std::holds_alternative<GeodeticField3>(data.data),
                      "The data for key {} is not a GeodeticField3",
                      atm_key);
@@ -223,7 +223,7 @@ void ray_path_observer_agendaSetGeometric(
 }
 
 void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
-                       const AtmField& atmospheric_field,
+                       const AtmField& atm_field,
                        const SurfaceField& surface_field,
                        const Numeric& max_step,
                        const Vector3& pos,
@@ -241,9 +241,9 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surface_field.ellipsoid)
 
-  ray_pathInit(ray_path, atmospheric_field, surface_field, pos, los, as_sensor);
+  ray_pathInit(ray_path, atm_field, surface_field, pos, los, as_sensor);
   ray_pathSetGeometricExtremes(ray_path,
-                               atmospheric_field,
+                               atm_field,
                                surface_field,
                                surface_search_accuracy,
                                surface_safe_search);
@@ -297,7 +297,7 @@ void ray_path_pointHighestFromPath(
 }
 
 void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
-                                const AtmField& atmospheric_field,
+                                const AtmField& atm_field,
                                 const SurfaceField& surface_field,
                                 const Numeric& latitude,
                                 const Numeric& longitude,
@@ -311,7 +311,7 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
 
   ray_pathGeometric(
       ray_path,
-      atmospheric_field,
+      atm_field,
       surface_field,
       max_step,
       {surface_field.single_value(SurfaceKey::h, latitude, longitude),
@@ -327,7 +327,7 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
 }
 
 void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atmospheric_field,
+                                  const AtmField& atm_field,
                                   const SurfaceField& surface_field,
                                   const Numeric& latitude,
                                   const Numeric& longitude,
@@ -340,10 +340,10 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
       surface_field.ellipsoid)
 
   ray_pathGeometric(ray_path,
-                    atmospheric_field,
+                    atm_field,
                     surface_field,
                     max_step,
-                    {atmospheric_field.top_of_atmosphere, latitude, longitude},
+                    {atm_field.top_of_atmosphere, latitude, longitude},
                     {180, 0},
                     1.0,
                     true,
@@ -355,7 +355,7 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
 
 void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
                                  const ArrayOfPropagationPathPoint& ray_path,
-                                 const AtmField& atmospheric_field,
+                                 const AtmField& atm_field,
                                  const SurfaceField& surface_field,
                                  const Numeric& max_stepsize,
                                  const Numeric& safe_search_accuracy,
@@ -369,7 +369,7 @@ void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
 
   ray_path_point = past_geometric(ray_path.back(),
-                                  atmospheric_field,
+                                  atm_field,
                                   surface_field,
                                   max_stepsize,
                                   safe_search_accuracy,
@@ -378,7 +378,7 @@ void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
 
 void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
                                   const ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atmospheric_field,
+                                  const AtmField& atm_field,
                                   const SurfaceField& surface_field,
                                   const Numeric& max_stepsize,
                                   const Numeric& dispersion_single,
@@ -401,7 +401,7 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
   future.nreal = 1 + dispersion_single;
 
   ray_path_point = past_geometric(future,
-                                  atmospheric_field,
+                                  atm_field,
                                   surface_field,
                                   max_stepsize,
                                   safe_search_accuracy,

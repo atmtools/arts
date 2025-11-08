@@ -8,19 +8,19 @@ ws.abs_speciesSet(species=["H2O"])
 ws.abs_bands.readxml("nlte_lines.xml")
 
 toa = 4.4825000e05
-ws.atmospheric_fieldInit(toa=toa)
+ws.atm_fieldInit(toa=toa)
 
-ws.atmospheric_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
-ws.atmospheric_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
-ws.atmospheric_field["N2"] = 0.0
-ws.atmospheric_field["O2"] = 0.0
-ws.atmospheric_field["H2O"] = 1.0
-ws.atmospheric_field["CO2"] = 0.0
-ws.atmospheric_field["H2"] = 0.0
-ws.atmospheric_field["He"] = 0.0
+ws.atm_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
+ws.atm_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
+ws.atm_field["N2"] = 0.0
+ws.atm_field["O2"] = 0.0
+ws.atm_field["H2O"] = 1.0
+ws.atm_field["CO2"] = 0.0
+ws.atm_field["H2"] = 0.0
+ws.atm_field["He"] = 0.0
 
 ws.surface_fieldGanymede()
-ws.surface_field["t"] = ws.atmospheric_field["t"].data[0, 0, 0]
+ws.surface_field["t"] = ws.atm_field["t"].data[0, 0, 0]
 
 line_f0 = 556936000000.0
 ws.frequency_grid = np.linspace(-5e6, 5e6, 11) + line_f0
@@ -39,7 +39,7 @@ ws.spectral_radianceApplyUnitFromSpectralRadiance()
 lte = ws.spectral_radiance[:, 0] * 1.0
 
 ws.abs_bandsSetNonLTE()
-ws.atmospheric_fieldInitializeNonLTE()
+ws.atm_fieldInitializeNonLTE()
 ws.spectral_radianceClearskyEmission()
 ws.spectral_radianceApplyUnitFromSpectralRadiance()
 nlte = ws.spectral_radiance[:, 0] * 1.0

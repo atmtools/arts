@@ -17,7 +17,7 @@
 void spectral_radiance_operatorClearsky1D(
     const Workspace& ws,
     SpectralRadianceOperator& spectral_radiance_operator,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const SurfaceField& surface_field,
     const AscendingGrid& altitude_grid,
     const Numeric& latitude,
@@ -57,7 +57,7 @@ void spectral_radiance_operatorClearsky1D(
   spectral_radiance_operator = SpectralRadianceOperator(altitude_grid,
                                                         Vector{latitude},
                                                         Vector{longitude},
-                                                        atmospheric_field,
+                                                        atm_field,
                                                         surface_field,
                                                         lines,
                                                         cia,

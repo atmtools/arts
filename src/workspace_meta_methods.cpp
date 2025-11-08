@@ -61,13 +61,13 @@ channel is independent.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldFromAgenda",
-      .desc    = R"(Use Disort for clearsky calculations of spectral flux field.
+      .name   = "disort_spectral_flux_fieldFromAgenda",
+      .desc   = R"(Use Disort for clearsky calculations of spectral flux field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
-      .author  = {"Richard Larsson"},
+      .author = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_flux_fieldCalc"},
       .out     = {"disort_spectral_flux_field"},
@@ -88,13 +88,14 @@ basis for the agenda to setup the Disort calculations.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_radiance_fieldFromAgenda",
-      .desc    = R"(Use Disort for clearsky calculations of spectral radiance field.
+      .name = "disort_spectral_radiance_fieldFromAgenda",
+      .desc =
+          R"(Use Disort for clearsky calculations of spectral radiance field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
-      .author = {"Richard Larsson"},
+      .author  = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_radiance_fieldCalc"},
       .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
@@ -138,7 +139,7 @@ basis for the agenda to setup the Disort calculations.
       .desc   = "Use the disort settings agenda to calculate spectral radiance",
       .author = {"Oliver Lemke"},
       .methods = {"disort_settings_agendaExecute",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "disort_spectral_radiance_fieldCalcCdisort"},
       .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
@@ -175,7 +176,7 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "ray_path_propagation_matrixFromPath",
                   "ray_path_transmission_matrixFromPath",
@@ -194,7 +195,7 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "ray_path_propagation_matrixFromPath",
                   "spectral_radianceSetToBackground",
@@ -209,7 +210,7 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "ray_path_propagation_matrixFromPath",
                   "ray_path_propagation_matrix_scatteringFromPath",
@@ -232,7 +233,7 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "ray_path_propagation_matrixFromPath",
                   "ray_path_transmission_matrixFromPath",
@@ -259,7 +260,7 @@ This method simply is a convenience wrapper for that use case.
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
-                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_atm_pointFromPath",
                   "ray_path_frequency_gridFromPath",
                   "ray_path_propagation_matrixFromPath",
                   "ray_path_transmission_matrixFromPath",
@@ -272,13 +273,13 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name             = "atmospheric_fieldRead",
+      .name             = "atm_fieldRead",
       .desc             = "Read atmospheric data files from a directory",
       .author           = {"Richard Larsson"},
-      .methods          = {"atmospheric_fieldInit",
-                           "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAuto"},
-      .out              = {"atmospheric_field"},
+      .methods          = {"atm_fieldInit",
+                           "atm_fieldAppendBaseData",
+                           "atm_fieldAppendAuto"},
+      .out              = {"atm_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
@@ -300,13 +301,13 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "atmospheric_fieldFitNonLTE",
+      .name    = "atm_fieldFitNonLTE",
       .desc    = "Fits non-LTE atmospheric field values",
       .author  = {"Richard Larsson"},
-      .methods = {"atmospheric_profileFromGrid",
-                  "atmospheric_profileFitNonLTE",
-                  "atmospheric_fieldFromProfile"},
-      .out     = {"atmospheric_field"},
+      .methods = {"atm_profileFromGrid",
+                  "atm_profileFitNonLTE",
+                  "atm_fieldFromProfile"},
+      .out     = {"atm_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -317,12 +318,12 @@ This method simply is a convenience wrapper for that use case.
       .methods = {"abs_bandsFromModelState",
                   "surface_fieldFromModelState",
                   "subsurface_fieldFromModelState",
-                  "atmospheric_fieldFromModelState",
+                  "atm_fieldFromModelState",
                   "measurement_sensorFromModelState"},
       .out     = {"abs_bands",
                   "surface_field",
                   "subsurface_field",
-                  "atmospheric_field",
+                  "atm_field",
                   "measurement_sensor"},
   });
 
@@ -365,12 +366,12 @@ This method simply is a convenience wrapper for that use case.
       .name    = "abs_lookup_dataCalc",
       .desc    = R"(Get *abs_lookup_data* from available data.
 
-This method will use the *atmospheric_field* and *abs_bands* to
+This method will use the *atm_field* and *abs_bands* to
 calculate the *abs_lookup_data*.  The atmospheric field is first
-gridded using *atmospheric_profileExtract*.
+gridded using *atm_profileExtract*.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"atmospheric_profileExtract",
+      .methods = {"atm_profileExtract",
                   "abs_lookup_dataInit",
                   "abs_lookup_dataPrecomputeAll"},
       .out     = {"abs_lookup_data"},

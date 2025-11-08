@@ -81,7 +81,7 @@ class AtmosphericFlux:
         self.ws.surface_field["t"] = surface_temperature
         self.ws.abs_bandsSelectFrequencyByLine(fmin=40e9)
 
-        self.ws.atmospheric_fieldRead(
+        self.ws.atm_fieldRead(
             toa=atmospheric_altitude,
             basename="planets/Earth/afgl/tropical/",
             missing_is_zero=1,
@@ -93,7 +93,7 @@ class AtmosphericFlux:
             max_stepsize=max_level_step,
         )
 
-        self.ws.ray_path_atmospheric_pointFromPath()
+        self.ws.ray_path_atm_pointFromPath()
 
         self.visf = pyarts.arts.AscendingGrid.fromxml(
             "planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-f_grid.xml"
@@ -134,20 +134,20 @@ class AtmosphericFlux:
             dict: Atmospheric field dictionary
         """
         return pyarts.arts.stringify_keys(
-            self.ws.ray_path_atmospheric_point.to_dict(
+            self.ws.ray_path_atm_point.to_dict(
                 core=core, specs=specs, nlte=nlte, ssprops=ssprops, isots=isots
             )
         )
 
     def __call__(
         self,
-        atmospheric_profile: dict = {},
+        atm_profile: dict = {},
         surface_temperature: float = None,
     ):
         """Get the total flux profile
 
         Args:
-            atmospheric_profile (dict, optional): A dictionary of atmospheric data. Defaults to {}.
+            atm_profile (dict, optional): A dictionary of atmospheric data. Defaults to {}.
             surface_temperature (float, optional): A surface temperature. Defaults to None.
 
         Returns:
@@ -157,7 +157,7 @@ class AtmosphericFlux:
         if surface_temperature is not None:
             self.ws.surface_field["t"] = surface_temperature
 
-        self.ws.ray_path_atmospheric_point.update(atmospheric_profile)
+        self.ws.ray_path_atm_point.update(atm_profile)
 
         # Visible
         self.ws.frequency_grid = self.visf

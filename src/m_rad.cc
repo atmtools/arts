@@ -53,7 +53,7 @@ void spectral_radiance_jacobianAddPathPropagation(
     StokvecMatrix &spectral_radiance_jacobian,
     const ArrayOfStokvecMatrix &ray_path_spectral_radiance_jacobian,
     const JacobianTargets &jacobian_targets,
-    const AtmField &atmospheric_field,
+    const AtmField &atm_field,
     const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
 
@@ -95,10 +95,10 @@ void spectral_radiance_jacobianAddPathPropagation(
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jacobian_targets.atm) {
-    ARTS_USER_ERROR_IF(not atmospheric_field.contains(atm_block.type),
-                       "No {} in atmospheric_field but in jacobian_targets",
+    ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type),
+                       "No {} in atm_field but in jacobian_targets",
                        atm_block.type)
-    const auto &data = atmospheric_field[atm_block.type];
+    const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
       const auto &local  = ray_path_spectral_radiance_jacobian[ip];
@@ -176,7 +176,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const JacobianTargets &jacobian_targets,
     const Vector3 &pos,
     const Vector2 &los,
-    const AtmField &atmospheric_field,
+    const AtmField &atm_field,
     const SurfaceField &surface_field,
     const SubsurfaceField &subsurface_field,
     const Agenda &spectral_radiance_observer_agenda) try {
@@ -238,7 +238,7 @@ frequency_grid.size()              = {}
                                              jacobian_targets_empty,
                                              pos2,
                                              los2,
-                                             atmospheric_field,
+                                             atm_field,
                                              surface_field,
                                              subsurface_field,
                                              spectral_radiance_observer_agenda);
@@ -306,7 +306,7 @@ void measurement_vectorFromSensor(
     Matrix &measurement_jacobian,
     const ArrayOfSensorObsel &measurement_sensor,
     const JacobianTargets &jacobian_targets,
-    const AtmField &atmospheric_field,
+    const AtmField &atm_field,
     const SurfaceField &surface_field,
     const SubsurfaceField &subsurface_field,
     const SpectralRadianceTransformOperator
@@ -397,7 +397,7 @@ void measurement_vectorFromSensor(
           jacobian_targets,
           poslos.pos,
           poslos.los,
-          atmospheric_field,
+          atm_field,
           surface_field,
           subsurface_field,
           spectral_radiance_observer_agenda);
