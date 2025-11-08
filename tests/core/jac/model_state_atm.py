@@ -32,7 +32,7 @@ def ops(ws, op):
     x = ws.model_state_vector * 1.0
 
     for key in ws.jacobian_targets.atm:
-        data = np.asarray(ws.atmospheric_field[key.type].data)
+        data = np.asarray(ws.atm_field[key.type].data)
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
     for key in ws.jacobian_targets.surf:
@@ -51,7 +51,7 @@ ws.measurement_sensor = []
 
 ws.jacobian_targetsInit()
 
-ws.atmospheric_fieldInit(toa=toa)
+ws.atm_fieldInit(toa=toa)
 ws.surface_fieldEarth()
 ws.surface_field["t"] = 295
 ws.surface_field["h"] = pyarts.arts.GeodeticField2(
@@ -74,10 +74,10 @@ ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 
 # %% Temperature and pressure and VMR and ratios
 
-ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
+ws.atm_field[pyarts.arts.AtmKey.t] = 300.0
 ws.jacobian_targetsAddTemperature()
 
-ws.atmospheric_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
+ws.atm_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
     data=2 + np.random.random((nalt, nlat, nlon)),
     name="Pressure",
     grids=(
@@ -91,7 +91,7 @@ ws.atmospheric_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
 ws.jacobian_targetsAddPressure()
 
 spec = pyarts.arts.SpeciesEnum("H2O")
-ws.atmospheric_field[spec] = 0.1
+ws.atm_field[spec] = 0.1
 ws.jacobian_targetsAddSpeciesVMR(species=spec)
 
 isot = pyarts.arts.SpeciesIsotope("H2O-161")

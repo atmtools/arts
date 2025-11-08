@@ -31,13 +31,13 @@ ws.WignerInit()
 # Standard surface and atmospheric setup
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-ws.atmospheric_field["wind_u"] = wind[0]
-ws.atmospheric_field["wind_v"] = wind[1]
-ws.atmospheric_field["wind_w"] = wind[2]
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_field["wind_u"] = wind[0]
+ws.atm_field["wind_v"] = wind[1]
+ws.atm_field["wind_w"] = wind[2]
 
 # Set up a ray path point
 ws.ray_path_point.los = [40, 20]
@@ -50,7 +50,7 @@ for i in range(3):
     ws.jacobian_targetsFinalize(measurement_sensor=[])
 
     # Reset
-    ws.atmospheric_point = ws.atmospheric_field(*ws.ray_path_point.pos)
+    ws.atm_point = ws.atm_field(*ws.ray_path_point.pos)
 
     # Original
     ws.frequency_grid = f
@@ -64,7 +64,7 @@ for i in range(3):
     dd = ws.propagation_matrix_jacobian[0] * 1.0
 
     # Modify the wind field and calculate perturbed value
-    ws.atmospheric_point.wind[i] += dx
+    ws.atm_point.wind[i] += dx
     ws.frequency_grid = f
     ws.frequency_gridWindShift()
     ws.propagation_matrixInit()

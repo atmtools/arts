@@ -22,11 +22,11 @@ ws.abs_bands.keep_hitran_s(70)
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field["t"] = 295.0
 
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-tdata = pyarts.arts.Tensor3(ws.atmospheric_field["t"].data.data)
-wdata = pyarts.arts.Tensor3(ws.atmospheric_field["H2O"].data.data)
+tdata = pyarts.arts.Tensor3(ws.atm_field["t"].data.data)
+wdata = pyarts.arts.Tensor3(ws.atm_field["H2O"].data.data)
 
 v = np.linspace(400, 2500, 101)
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(v)
@@ -48,8 +48,8 @@ ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 for water_ratio in [5e-1, 5]:
     for temperature_offset in np.linspace(-20, 20, 5):
         print(water_ratio, temperature_offset)
-        ws.atmospheric_field["t"].data.data = tdata + temperature_offset
-        ws.atmospheric_field["H2O"].data.data = wdata * water_ratio
+        ws.atm_field["t"].data.data = tdata + temperature_offset
+        ws.atm_field["H2O"].data.data = wdata * water_ratio
 
         t = time()
         ws.propagation_matrix_agendaAuto(use_abs_lookup_data=0)

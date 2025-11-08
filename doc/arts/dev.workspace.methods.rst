@@ -211,7 +211,7 @@ This is the extration of the text in the ``workspace_methods.cpp`` file:
     )--",
         .author = {"Richard Larsson"},
         .out    = {"ray_path"},
-        .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
+        .in     = {"atm_field", "surface_field", "latitude", "longitude"},
         .gin    = {"max_step"},
         .gin_type  = {"Numeric"},
         .gin_value = {Numeric{1e3}},
@@ -223,7 +223,7 @@ The signature of the method is:
 .. code-block:: c++
 
   void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atmospheric_field,
+                                  const AtmField& atm_field,
                                   const SurfaceField& surface_field,
                                   const Numeric& latitude,
                                   const Numeric& longitude,
@@ -235,7 +235,7 @@ The first argument of the method is a reference to :attr:`~pyarts3.workspace.Wor
 Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
-The arguments :attr:`~pyarts3.workspace.Workspace.atmospheric_field`, :attr:`~pyarts3.workspace.Workspace.surface_field`,
+The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surface_field`,
 :attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
@@ -274,7 +274,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                     "select_species",
                     "absorption_bands",
                     "ecs_data",
-                    "atmospheric_point",
+                    "atm_point",
                     "ray_path_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
@@ -296,7 +296,7 @@ The signature of the method is:
                                   const SpeciesEnum& select_species,
                                   const AbsorptionBands& absorption_bands,
                                   const LinemixingEcsData& ecs_data,
-                                  const AtmPoint& atmospheric_point,
+                                  const AtmPoint& atm_point,
                                   const PropagationPathPoint& ray_path_point,
                                   const Index& no_negative_absorption);
 
@@ -316,7 +316,7 @@ The arguments
 :attr:`~pyarts3.workspace.Workspace.select_species`,
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,
 :attr:`~pyarts3.workspace.Workspace.ecs_data`,
-:attr:`~pyarts3.workspace.Workspace.atmospheric_point`, and
+:attr:`~pyarts3.workspace.Workspace.atm_point`, and
 :attr:`~pyarts3.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
@@ -353,7 +353,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .out            = {"measurement_vector", "measurement_jacobian"},
         .in             = {"measurement_sensor",
                           "jacobian_targets",
-                          "atmospheric_field",
+                          "atm_field",
                           "surface_field",
                           "spectral_radiance_unit",
                           "spectral_radiance_observer_agenda"},
@@ -369,7 +369,7 @@ The signature of the method is:
                                     Matrix& measurement_jacobian,
                                     const ArrayOfSensorObsel& measurement_sensor,
                                     const JacobianTargets& jacobian_targets,
-                                    const AtmField& atmospheric_field,
+                                    const AtmField& atm_field,
                                     const SurfaceField& surface_field,
                                     const SpectralRadianceUnitType& spectral_radiance_unit,
                                     const Agenda& spectral_radiance_observer_agenda);
@@ -390,7 +390,7 @@ it is expected that the method overwrite any existing values they might hold.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
-:attr:`~pyarts3.workspace.Workspace.atmospheric_field`,
+:attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surface_field`, 
 :attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and
 :attr:`~pyarts3.workspace.Workspace.spectral_radiance_observer_agenda`
@@ -410,13 +410,13 @@ This is the extraction of the text in the ``workspace_meta_methods.cpp`` file:
 .. code-block:: c++
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name             = "atmospheric_fieldRead",
+      .name             = "atm_fieldRead",
       .desc             = "Reads absorption file from a directory",
       .author           = {"Richard Larsson"},
-      .methods          = {"atmospheric_fieldInit",
-                           "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAuto"},
-      .out              = {"atmospheric_field"},
+      .methods          = {"atm_fieldInit",
+                           "atm_fieldAppendBaseData",
+                           "atm_fieldAppendAuto"},
+      .out              = {"atm_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
@@ -431,5 +431,5 @@ In other words, even if a sub-method has an output that is not in ``out``,
 it will not be passed to the user.
 
 The call order and documentation of
-See :meth:`~pyarts3.workspace.Workspace.atmospheric_fieldRead` 
+See :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
 makes it possible to follow the call order.

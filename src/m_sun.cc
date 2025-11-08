@@ -206,7 +206,7 @@ void propagation_matrix_scatteringInit(
 void propagation_matrix_scatteringAirSimple(
     PropmatVector& propagation_matrix_scattering,
     const AscendingGrid& frequency_grid,
-    const AtmPoint& atmospheric_point) {
+    const AtmPoint& atm_point) {
   const Size nf = frequency_grid.size();
   ARTS_USER_ERROR_IF(
       propagation_matrix_scattering.size() != nf,
@@ -215,8 +215,7 @@ void propagation_matrix_scatteringAirSimple(
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
-  const Numeric nd =
-      number_density(atmospheric_point.pressure, atmospheric_point.temperature);
+  const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
   for (Size f = 0; f < nf; f++) {
     const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
     Numeric sum           = 0;
@@ -235,13 +234,12 @@ void ray_path_propagation_matrix_scatteringFromPath(
     ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     const Agenda& propagation_matrix_scattering_agenda,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point) {
+    const ArrayOfAtmPoint& ray_path_atm_point) {
   ARTS_TIME_REPORT
 
   const Size np = ray_path_frequency_grid.size();
-  ARTS_USER_ERROR_IF(
-      np != ray_path_atmospheric_point.size(),
-      "Bad ray_path_atmospheric_point: incorrect number of path points")
+  ARTS_USER_ERROR_IF(np != ray_path_atm_point.size(),
+                     "Bad ray_path_atm_point: incorrect number of path points")
 
   ray_path_propagation_matrix_scattering.resize(np);
   if (arts_omp_in_parallel()) {
@@ -250,7 +248,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
           ws,
           ray_path_propagation_matrix_scattering[ip],
           ray_path_frequency_grid[ip],
-          ray_path_atmospheric_point[ip],
+          ray_path_atm_point[ip],
           propagation_matrix_scattering_agenda);
     }
   } else {
@@ -262,7 +260,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
             ws,
             ray_path_propagation_matrix_scattering[ip],
             ray_path_frequency_grid[ip],
-            ray_path_atmospheric_point[ip],
+            ray_path_atm_point[ip],
             propagation_matrix_scattering_agenda);
       } catch (const std::exception& e) {
 #pragma omp critical
@@ -337,7 +335,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     const JacobianTargets& jacobian_targets,
     // [nf]:
     const AscendingGrid& frequency_grid,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Agenda& propagation_matrix_agenda,
     const Numeric& depolarization_factor,
@@ -415,7 +413,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             ws,
             spectral_radiance,
             spectral_radiance_jacobian,
-            atmospheric_field,
+            atm_field,
             frequency_grid,
             jacobian_targets,
             propagation_matrix_agenda,

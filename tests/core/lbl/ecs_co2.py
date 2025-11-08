@@ -17,13 +17,13 @@ ws.ReadCatalogData()
 
 p = 1e5
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.atmospheric_pointInit()
-ws.atmospheric_point.temperature = 295  # At room temperature
-ws.atmospheric_point.pressure = p
-ws.atmospheric_point[pyarts.arts.SpeciesEnum("CO2")] = 400e-6
-ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
-ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
-ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
+ws.atm_pointInit()
+ws.atm_point.temperature = 295  # At room temperature
+ws.atm_point.pressure = p
+ws.atm_point[pyarts.arts.SpeciesEnum("CO2")] = 400e-6
+ws.atm_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
+ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
+ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
 ws.ray_path_point
 
 ws.jacobian_targetsInit()

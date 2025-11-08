@@ -47,13 +47,13 @@ void model_state_vectorPerturbations(Vector& model_state_vector,
 
 ////// Update the fields from the model state vector
 
-void atmospheric_fieldFromModelState(AtmField& atmospheric_field,
-                                     const Vector& model_state_vector,
-                                     const JacobianTargets& jacobian_targets) {
+void atm_fieldFromModelState(AtmField& atm_field,
+                             const Vector& model_state_vector,
+                             const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.atm) {
-    target.update_model(atmospheric_field, model_state_vector);
+    target.update_model(atm_field, model_state_vector);
   }
 }
 
@@ -78,8 +78,8 @@ void subsurface_fieldFromModelState(SubsurfaceField& subsurface_field,
 }
 
 void abs_bandsFromModelState(AbsorptionBands& abs_bands,
-                                    const Vector& model_state_vector,
-                                    const JacobianTargets& jacobian_targets) {
+                             const Vector& model_state_vector,
+                             const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.line) {
@@ -100,12 +100,12 @@ void measurement_sensorFromModelState(ArrayOfSensorObsel& measurement_sensor,
 ////// Update the model state vector from the fields
 
 void model_state_vectorFromAtmosphere(Vector& model_state_vector,
-                                      const AtmField& atmospheric_field,
+                                      const AtmField& atm_field,
                                       const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.atm) {
-    target.update_state(model_state_vector, atmospheric_field);
+    target.update_state(model_state_vector, atm_field);
   }
 }
 

@@ -23,7 +23,7 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 }
 
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
-                              const AtmField& atmospheric_field,
+                              const AtmField& atm_field,
                               const SurfaceField& surface_field,
                               const SubsurfaceField& subsurface_field,
                               const AbsorptionBands& abs_bands,
@@ -35,7 +35,7 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surface_field.ellipsoid)
 
-  jacobian_targets.finalize(atmospheric_field,
+  jacobian_targets.finalize(atm_field,
                             surface_field,
                             subsurface_field,
                             abs_bands,

@@ -51,7 +51,7 @@ ws.propagation_matrix_agendaAuto()
 # Set up a simple atmosphere
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pa.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 

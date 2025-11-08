@@ -5,11 +5,11 @@
 namespace {
 void wind_shift(VectorView frequency_grid,
                 Vector3& frequency_wind_shift_jacobian,
-                const AtmPoint& atmospheric_point,
+                const AtmPoint& atm_point,
                 const PropagationPathPoint& ray_path_point) {
   constexpr Numeric c = Constant::speed_of_light;
 
-  const auto& [u, v, w] = atmospheric_point.wind;
+  const auto& [u, v, w] = atm_point.wind;
   const auto [za, aa]   = path::mirror(ray_path_point.los);
 
   const Numeric u2v2 = u * u + v * v;
@@ -33,11 +33,11 @@ void wind_shift(VectorView frequency_grid,
   ARTS_USER_ERROR_IF(fac <= 0,
                      R"(Negative frequency scaling factor: {}
 
-atmospheric_point.wind: {:B,}
+atm_point.wind: {:B,}
 ray_path_point.los:     {:B,}
 )",
                      fac,
-                     atmospheric_point.wind,
+                     atm_point.wind,
                      ray_path_point.los);
 
   //! Zero shift if nan
@@ -87,25 +87,24 @@ ray_path_point.los:     {:B,}
 
 void frequency_gridWindShift(AscendingGrid& frequency_grid,
                              Vector3& frequency_wind_shift_jacobian,
-                             const AtmPoint& atmospheric_point,
+                             const AtmPoint& atm_point,
                              const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
   Vector tmp = std::move(frequency_grid).rvec();
-  wind_shift(
-      tmp, frequency_wind_shift_jacobian, atmospheric_point, ray_path_point);
+  wind_shift(tmp, frequency_wind_shift_jacobian, atm_point, ray_path_point);
   frequency_grid = std::move(tmp);
 }
 
 void frequencyWindShift(Numeric& frequency,
                         Vector3& frequency_wind_shift_jacobian,
-                        const AtmPoint& atmospheric_point,
+                        const AtmPoint& atm_point,
                         const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
   wind_shift(VectorView{frequency},
              frequency_wind_shift_jacobian,
-             atmospheric_point,
+             atm_point,
              ray_path_point);
 }
 

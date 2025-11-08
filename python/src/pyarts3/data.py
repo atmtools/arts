@@ -226,7 +226,7 @@ def download_arts_cat_data(download_dir=None, version=None, verbose=False):
     return _download_arts_data("arts-cat-data", download_dir, version, verbose)
 
 
-def to_atmospheric_field(
+def to_atm_field(
     data: xarray.Dataset,
     remap: None | dict[str, str] = None,
     ignore: None | list[str] = None,

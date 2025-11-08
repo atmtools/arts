@@ -16,9 +16,9 @@ An atmospheric point effectively holds the local state of the atmosphere at a sp
 
 Key notations:
 
-- :class:`~pyarts3.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_field`.
+- :class:`~pyarts3.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atm_field`.
 - :class:`~pyarts3.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.  These do not generally live on the workspace.
-- :class:`~pyarts3.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_point`.
+- :class:`~pyarts3.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atm_point`.
 
 .. note::
 
@@ -408,7 +408,7 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
 .. note::
 
   Some workspace methods populate parts of the atmospheric field with :class:`~pyarts3.arts.NumericTernaryOperator` objects.
-  One example is :func:`~pyarts3.workspace.Workspace.atmospheric_fieldIGRF`.
+  One example is :func:`~pyarts3.workspace.Workspace.atm_fieldIGRF`.
   These functions are generally faster than manually created :class:`~pyarts3.arts.NumericTernaryOperator` in python.
   They have 3 advantages: 1) C++ is faster than python, 2) there is no python wrapper overhead for the function call,
   and 3) we can know if these methods are safe for parallel execution, so we do not need to engage the python GIL.

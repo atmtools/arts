@@ -23,10 +23,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Settings
 
@@ -43,14 +43,14 @@ ndown = 120
 ws.ray_path_observersFieldProfilePseudo2D(nup=nup, ndown=ndown, nlimb=nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atmospheric_field["t"].data.grids[0]
+    altitude_grid=ws.atm_field["t"].data.grids[0]
 )
 a = np.array(ws.spectral_flux_profile)
 
 ws.ray_path_observersFieldProfilePseudo2D(nup=2 * nup, ndown=2 * ndown, nlimb=2 * nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atmospheric_field["t"].data.grids[0]
+    altitude_grid=ws.atm_field["t"].data.grids[0]
 )
 b = np.array(ws.spectral_flux_profile)
 

@@ -28,7 +28,7 @@ in the calculations.
 
   Use these methods to check the latitude grid for correctness:
 
-  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.atm_fieldCheck`
   - :func:`~pyarts3.workspace.Workspace.surface_fieldCheck`
   - :func:`~pyarts3.workspace.Workspace.subsurface_fieldCheck`
 
@@ -43,14 +43,14 @@ in the calculations.
 
   Use these methods to check the longitudes grid for correctness:
 
-  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldCheck`
+  - :func:`~pyarts3.workspace.Workspace.atm_fieldCheck`
   - :func:`~pyarts3.workspace.Workspace.surface_fieldCheck`
   - :func:`~pyarts3.workspace.Workspace.subsurface_fieldCheck`
 
   If these fail because of the longitude grid,
   there are methods to fix the cyclicity of the grid:
 
-  - :func:`~pyarts3.workspace.Workspace.atmospheric_fieldFixCyclicity`
+  - :func:`~pyarts3.workspace.Workspace.atm_fieldFixCyclicity`
   - :func:`~pyarts3.workspace.Workspace.surface_fieldFixCyclicity`
   - :func:`~pyarts3.workspace.Workspace.subsurface_fieldFixCyclicity`
 

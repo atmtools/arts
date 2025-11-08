@@ -472,15 +472,14 @@ nd : float
   m.def(
       "frequency_shift",
       [](AscendingGrid frequency_grid,
-         const AtmPoint &atmospheric_point,
+         const AtmPoint &atm_point,
          const PropagationPathPoint &ray_path_point) {
         Vector3 x;
-        frequency_gridWindShift(
-            frequency_grid, x, atmospheric_point, ray_path_point);
+        frequency_gridWindShift(frequency_grid, x, atm_point, ray_path_point);
         return frequency_grid;
       },
       "frequency_grid"_a,
-      "atmospheric_point"_a,
+      "atm_point"_a,
       "ray_path_point"_a,
       R"(Get the frequency-shifted frequency grid at a point in the atmosphere.
 
@@ -488,7 +487,7 @@ Parameters
 ----------
   frequency_grid : AscendingGrid
     The frequency grid to shift.
-  atmospheric_point : AtmPoint
+  atm_point : AtmPoint
     The point in the atmosphere.
   ray_path_point : PropagationPathPoint
     The point along the ray path.
@@ -662,7 +661,7 @@ Parameters
 
 Return
 ------
-  atmospheric_field : AtmField
+  atm_field : AtmField
     The atmospheric field created from the dictionary.
 )");
 
@@ -786,7 +785,7 @@ Parameters
 
 Return
 ------
-  py_atmospheric_field : dict
+  py_atm_field : dict
     A dictionary of atmospheric keys and corresponding data.  The keys are the string representations of the atmospheric field keys.
 )");
 
@@ -954,7 +953,7 @@ Parameters
 
 Return
 ------
-  atmospheric_point : AtmPoint
+  atm_point : AtmPoint
     The atmospheric point created from the dictionary.
 )");
 
@@ -1036,7 +1035,7 @@ Parameters
 
 Return
 ------
-  atmospheric_field : AtmField
+  atm_field : AtmField
     The atmospheric field created from the profile.
 )");
 
@@ -1187,7 +1186,7 @@ Parameters
 
 Return
 ------
-  atmospheric_profile : AtmProfile
+  atm_profile : AtmProfile
     The atmospheric profile created from the dictionary.
 )");
 

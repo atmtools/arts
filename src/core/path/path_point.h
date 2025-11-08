@@ -349,14 +349,14 @@ bool is_valid_old_pos(const StridedConstVectorView& pos);
  * Computes the past geometric path point based on the current point's position,
  *
  * @param this_geometric The current geometric path point
- * @param atmospheric_field The atmospheric field data
+ * @param atm_field The atmospheric field data
  * @param surface_field The surface field data
  * @param max_step The maximum step size for the propagation
  * @param safe_search_accuracy The safe search accuracy for the propagation
  * @return The next geometric path point
  */
 PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
-                                    const AtmField& atmospheric_field,
+                                    const AtmField& atm_field,
                                     const SurfaceField& surface_field,
                                     const Numeric max_step,
                                     const Numeric safe_search_accuracy,

@@ -13,25 +13,24 @@ void ray_path_propagation_matrixFromPath(
     const ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atmospheric_point) try {
+    const ArrayOfAtmPoint &ray_path_atm_point) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path,
-                         ray_path_atmospheric_point,
-                         ray_path_frequency_grid,
-                         ray_path_frequency_wind_shift_jacobian),
-      R"(Not same size:
+  ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
+                                        ray_path_atm_point,
+                                        ray_path_frequency_grid,
+                                        ray_path_frequency_wind_shift_jacobian),
+                     R"(Not same size:
 
 ray_path                               size: {} element(s)
-ray_path_atmospheric_point             size: {} element(s)
+ray_path_atm_point             size: {} element(s)
 ray_path_frequency_grid                size: {} element(s)
 ray_path_frequency_wind_shift_jacobian size: {} element(s)
 )",
-      ray_path.size(),
-      ray_path_atmospheric_point.size(),
-      ray_path_frequency_grid.size(),
-      ray_path_frequency_wind_shift_jacobian.size())
+                     ray_path.size(),
+                     ray_path_atm_point.size(),
+                     ray_path_frequency_grid.size(),
+                     ray_path_frequency_wind_shift_jacobian.size())
 
   const Size np = ray_path.size();
   ray_path_propagation_matrix.resize(np);
@@ -55,7 +54,7 @@ ray_path_frequency_wind_shift_jacobian size: {} element(s)
           jacobian_targets,
           {},
           ray_path[ip],
-          ray_path_atmospheric_point[ip],
+          ray_path_atm_point[ip],
           propagation_matrix_agenda);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
@@ -81,7 +80,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
     const ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atmospheric_point,
+    const ArrayOfAtmPoint &ray_path_atm_point,
     const ArrayOfSpeciesEnum &select_species_list) try {
   ARTS_TIME_REPORT
 
@@ -121,7 +120,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
             jacobian_targets,
             select_species_list[is],
             ray_path[ip],
-            ray_path_atmospheric_point[ip],
+            ray_path_atm_point[ip],
             propagation_matrix_agenda);
       } catch (const std::runtime_error &e) {
 #pragma omp critical

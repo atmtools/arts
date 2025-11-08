@@ -40,7 +40,7 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
     StokvecVector& absorption_vector_scattering,
     SpecmatMatrix& phase_matrix_scattering_spectral,
     const AscendingGrid& frequency_grid,
-    const AtmPoint& atmospheric_point,
+    const AtmPoint& atm_point,
     const ArrayOfScatteringSpecies& scattering_species) try {
   const Index L = phase_matrix_scattering_spectral.ncols();
 
@@ -50,7 +50,7 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(
-          atmospheric_point, frequency_grid, L - 1);
+          atm_point, frequency_grid, L - 1);
 
   ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(), "No phase matrix")
 
@@ -131,19 +131,19 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
     ArrayOfStokvecVector& ray_path_absorption_vector_scattering,
     ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral,
     const ArrayOfAscendingGrid& ray_path_frequency_grid,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& ray_path_atm_point,
     const Index& legendre_degree,
     const Agenda& propagation_matrix_scattering_spectral_agenda) try {
   const Size N = ray_path_frequency_grid.size();
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_frequency_grid, ray_path_atmospheric_point),
-      R"(The size of ray_path_frequency_grid and ray_path_atmospheric_point must be the same.
+      not arr::same_size(ray_path_frequency_grid, ray_path_atm_point),
+      R"(The size of ray_path_frequency_grid and ray_path_atm_point must be the same.
   ray_path_frequency_grid.size():    {}
-  ray_path_atmospheric_point.size(): {}
+  ray_path_atm_point.size(): {}
 )",
       ray_path_frequency_grid.size(),
-      ray_path_atmospheric_point.size());
+      ray_path_atm_point.size());
 
   ray_path_propagation_matrix_scattering.resize(N);
   ray_path_absorption_vector_scattering.resize(N);
@@ -159,7 +159,7 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
           ray_path_absorption_vector_scattering[i],
           ray_path_phase_matrix_scattering_spectral[i],
           ray_path_frequency_grid[i],
-          ray_path_atmospheric_point[i],
+          ray_path_atm_point[i],
           legendre_degree,
           propagation_matrix_scattering_spectral_agenda);
     } catch (const std::exception& e) {

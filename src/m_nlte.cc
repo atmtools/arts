@@ -13,13 +13,13 @@ void abs_bandsSetNonLTE(AbsorptionBands& abs_bands) {
   }
 }
 
-void atmospheric_fieldInitializeNonLTE(AtmField& atmospheric_field,
-                                       const AbsorptionBands& abs_bands,
-                                       const Numeric& normalizing_factor) try {
+void atm_fieldInitializeNonLTE(AtmField& atm_field,
+                               const AbsorptionBands& abs_bands,
+                               const Numeric& normalizing_factor) try {
   ARTS_TIME_REPORT
 
-  atmospheric_field.nlte = lbl::nlte::from_lte(
-      atmospheric_field, abs_bands, normalizing_factor);
+  atm_field.nlte =
+      lbl::nlte::from_lte(atm_field, abs_bands, normalizing_factor);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -46,9 +46,9 @@ void frequency_gridFitNonLTE(AscendingGrid& frequency_grid,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atmospheric_profileFitNonLTE(
+void atm_profileFitNonLTE(
     const Workspace& ws,
-    ArrayOfAtmPoint& atmospheric_profile,
+    ArrayOfAtmPoint& atm_profile,
     const AbsorptionBands& abs_bands,
     const Agenda& propagation_matrix_agenda,
     const SurfaceField& surface_field,
@@ -69,7 +69,7 @@ void atmospheric_profileFitNonLTE(
   using namespace lbl::nlte;
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(altitude_grid, atmospheric_profile),
+      not arr::same_size(altitude_grid, atm_profile),
       "Altitude grid and atmospheric point grid must have the same size")
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
@@ -78,15 +78,13 @@ void atmospheric_profileFitNonLTE(
   const auto Aij = createAij(abs_bands);
   const auto Bij = createBij(abs_bands);
   const auto Bji = createBji(Bij, abs_bands);
-  const auto Cij =
-      createCij(abs_bands, collision_data, atmospheric_profile);
-  const auto Cji = createCji(Cij, abs_bands, atmospheric_profile);
+  const auto Cij = createCij(abs_bands, collision_data, atm_profile);
+  const auto Cji = createCji(Cij, abs_bands, atm_profile);
 
-  const auto band_level_map =
-      band_level_mapFromLevelKeys(abs_bands, levels);
-  const Size nlevels      = level_count(band_level_map);
-  const Vector r_sum      = nlte_ratio_sum(atmospheric_profile, levels);
-  const Size unique_level = band_level_mapUniquestIndex(band_level_map);
+  const auto band_level_map = band_level_mapFromLevelKeys(abs_bands, levels);
+  const Size nlevels        = level_count(band_level_map);
+  const Vector r_sum        = nlte_ratio_sum(atm_profile, levels);
+  const Size unique_level   = band_level_mapUniquestIndex(band_level_map);
 
   Matrix A;
   Matrix spectral_flux_profile;
@@ -102,7 +100,7 @@ void atmospheric_profileFitNonLTE(
     spectral_flux_profilePseudo2D(ws,
                                   spectral_flux_profile,
                                   altitude_grid,
-                                  atmospheric_profile,
+                                  atm_profile,
                                   frequency_grid,
                                   latitude,
                                   longitude,
@@ -116,7 +114,7 @@ void atmospheric_profileFitNonLTE(
     nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
                                     spectral_flux_profile,
                                     abs_bands,
-                                    atmospheric_profile,
+                                    atm_profile,
                                     frequency_grid);
 
     for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
@@ -135,8 +133,7 @@ void atmospheric_profileFitNonLTE(
 
       solve(x, A, r);
 
-      const Numeric max_change_local =
-          set_nlte(atmospheric_profile[atmi], levels, x);
+      const Numeric max_change_local = set_nlte(atm_profile[atmi], levels, x);
 
       max_change = std::max(max_change, max_change_local);
     }

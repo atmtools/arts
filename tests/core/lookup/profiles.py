@@ -22,21 +22,21 @@ ws.abs_bands.keep_hitran_s(70)
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field["t"] = 295.0
 
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-tdata = pyarts.arts.Tensor3(ws.atmospheric_field["t"].data.data)
-wdata = pyarts.arts.Tensor3(ws.atmospheric_field["H2O"].data.data)
+tdata = pyarts.arts.Tensor3(ws.atm_field["t"].data.data)
+wdata = pyarts.arts.Tensor3(ws.atm_field["H2O"].data.data)
 
 v = np.linspace(400, 2500, 101)
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(v)
 
 t = time()
 ws.abs_lookup_dataFromProfiles(
-    pressure_profile=np.array(ws.atmospheric_field["p"].data.flatten()),
-    temperature_profile=np.array(ws.atmospheric_field["t"].data.flatten()),
-    vmr_profiles={"CO2": np.array(ws.atmospheric_field["CO2"].data.flatten()),
-                  "H2O": np.array(ws.atmospheric_field["H2O"].data.flatten())},
+    pressure_profile=np.array(ws.atm_field["p"].data.flatten()),
+    temperature_profile=np.array(ws.atm_field["t"].data.flatten()),
+    vmr_profiles={"CO2": np.array(ws.atm_field["CO2"].data.flatten()),
+                  "H2O": np.array(ws.atm_field["H2O"].data.flatten())},
     temperature_perturbation=np.linspace(-30, 30, 9),
     water_perturbation=np.logspace(-1, 1, 9),
     water_affected_species=["H2O"],
@@ -54,8 +54,8 @@ ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 # %% Checks and settings for LBL
 for water_ratio in [5e-1, 5]:
     for temperature_offset in np.linspace(-20, 20, 3):
-        ws.atmospheric_field["t"].data.data = tdata + temperature_offset
-        ws.atmospheric_field["H2O"].data.data = wdata * water_ratio
+        ws.atm_field["t"].data.data = tdata + temperature_offset
+        ws.atm_field["H2O"].data.data = wdata * water_ratio
 
         t = time()
         ws.propagation_matrix_agendaAuto(use_abs_lookup_data=0)

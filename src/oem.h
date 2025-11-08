@@ -479,7 +479,7 @@ class AgendaWrapper {
                 unsigned int state_space_dimension,
                 ::Matrix &arts_jacobian,
                 ::Vector &arts_y,
-                AtmField *atmospheric_field,
+                AtmField *atm_field,
                 AbsorptionBands *abs_bands,
                 ArrayOfSensorObsel *measurement_sensor,
                 SurfaceField *surface_field,
@@ -490,7 +490,7 @@ class AgendaWrapper {
         n(state_space_dimension),
         inversion_iterate_agenda_(inversion_iterate_agenda),
         jacs(jacobian_targets),
-        atm(atmospheric_field),
+        atm(atm_field),
         absdata(abs_bands),
         sensor(measurement_sensor),
         surf(surface_field),
@@ -696,7 +696,7 @@ void OEM_checks(const Workspace &ws,
                 Vector &x,
                 Vector &yf,
                 Matrix &jacobian,
-                AtmField &atmospheric_field,
+                AtmField &atm_field,
                 AbsorptionBands &abs_bands,
                 ArrayOfSensorObsel &measurement_sensor,
                 SurfaceField &surface_field,
@@ -790,7 +790,8 @@ void OEM_checks(const Workspace &ws,
       (method == "ml_cg")) {
     ARTS_USER_ERROR_IF(lm_ga_settings.size() != 6,
                        "When using \"ml\", *lm_ga_setings* must be a "
-                       "vector of length 6. lm_ga_setings.size(): {}", lm_ga_settings.size());
+                       "vector of length 6. lm_ga_setings.size(): {}",
+                       lm_ga_settings.size());
     ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
                        "The vector *lm_ga_setings* can not contain any "
                        "negative value. lm_ga_setings: {}",
@@ -810,7 +811,7 @@ void OEM_checks(const Workspace &ws,
   if (x.size() == 0) {
     x = xa;
     inversion_iterate_agendaExecute(ws,
-                                    atmospheric_field,
+                                    atm_field,
                                     abs_bands,
                                     measurement_sensor,
                                     surface_field,
@@ -825,7 +826,7 @@ void OEM_checks(const Workspace &ws,
   }
   if ((yf.size() == 0) || (jacobian.empty())) {
     inversion_iterate_agendaExecute(ws,
-                                    atmospheric_field,
+                                    atm_field,
                                     abs_bands,
                                     measurement_sensor,
                                     surface_field,

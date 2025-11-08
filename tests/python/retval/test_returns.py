@@ -4,7 +4,7 @@ import numpy as np
 
 ws = pyarts.Workspace()
 
-ws.atmospheric_fieldInit(toa=100e3)
+ws.atm_fieldInit(toa=100e3)
 ws.surface_fieldEarth()
 ws.ray_path_observer_agendaSetGeometric()
 
@@ -13,6 +13,6 @@ ws2 = ws.ray_path_observer_agendaExecute(
   spectral_radiance_observer_line_of_sight = [180.0, 0.0]
 )
 
-ws2.atmospheric_field["t"] = 123.4
+ws2.atm_field["t"] = 123.4
 
-assert ws.atmospheric_field["t"].data == 123.4, "Shared data not working"
+assert ws.atm_field["t"].data == 123.4, "Shared data not working"

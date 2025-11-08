@@ -34,10 +34,10 @@ ws.propagation_matrix_agendaAuto()
 
 ws.surface_fieldPlanet(option="Earth")
 ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
@@ -52,20 +52,20 @@ lon = 0.0
 uf = pyarts.arts.FieldComponent.U
 vf = pyarts.arts.FieldComponent.V
 wf = pyarts.arts.FieldComponent.W
-t3u = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_u"](alt, lat, lon)]]])
-t3v = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_v"](alt, lat, lon)]]])
-t3w = pyarts.arts.Tensor3([[[ws.atmospheric_field["mag_w"](alt, lat, lon)]]])
+t3u = pyarts.arts.Tensor3([[[ws.atm_field["mag_u"](alt, lat, lon)]]])
+t3v = pyarts.arts.Tensor3([[[ws.atm_field["mag_v"](alt, lat, lon)]]])
+t3w = pyarts.arts.Tensor3([[[ws.atm_field["mag_w"](alt, lat, lon)]]])
 g3 = ([alt], [lat], [lon])
 mag_u = pyarts.arts.GeodeticField3(data=t3u, grids=g3)
 mag_v = pyarts.arts.GeodeticField3(data=t3v, grids=g3)
 mag_w = pyarts.arts.GeodeticField3(data=t3w, grids=g3)
-ws.atmospheric_field["mag_u"] = mag_u
-ws.atmospheric_field["mag_v"] = mag_v
-ws.atmospheric_field["mag_w"] = mag_w
-ws.atmospheric_field["mag_u"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_field["mag_v"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_field["mag_w"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_fieldAbsoluteMagneticField()
+ws.atm_field["mag_u"] = mag_u
+ws.atm_field["mag_v"] = mag_v
+ws.atm_field["mag_w"] = mag_w
+ws.atm_field["mag_u"].set_extrapolation(extrapolation="Nearest")
+ws.atm_field["mag_v"].set_extrapolation(extrapolation="Nearest")
+ws.atm_field["mag_w"].set_extrapolation(extrapolation="Nearest")
+ws.atm_fieldAbsoluteMagneticField()
 
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
@@ -80,13 +80,13 @@ orig = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0
 mag_u.data += 5e-6
 mag_v.data += 5e-6
 mag_w.data += 5e-6
-ws.atmospheric_field["mag_u"] = mag_u
-ws.atmospheric_field["mag_v"] = mag_v
-ws.atmospheric_field["mag_w"] = mag_w
-ws.atmospheric_field["mag_u"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_field["mag_v"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_field["mag_w"].set_extrapolation(extrapolation="Nearest")
-ws.atmospheric_fieldAbsoluteMagneticField()
+ws.atm_field["mag_u"] = mag_u
+ws.atm_field["mag_v"] = mag_v
+ws.atm_field["mag_w"] = mag_w
+ws.atm_field["mag_u"].set_extrapolation(extrapolation="Nearest")
+ws.atm_field["mag_v"].set_extrapolation(extrapolation="Nearest")
+ws.atm_field["mag_w"].set_extrapolation(extrapolation="Nearest")
+ws.atm_fieldAbsoluteMagneticField()
 
 modified = np.sqrt(mag_u.data[0, 0, 0]**2 +
                    mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)

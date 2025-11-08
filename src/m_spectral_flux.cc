@@ -26,7 +26,7 @@ ARTS_METHOD_ERROR_CATCH
 void ray_path_spectral_radianceClearskyEmission(
     const Workspace& ws,
     ArrayOfStokvecVector& ray_path_spectral_radiance,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const AscendingGrid& frequency_grid,
     const Agenda& propagation_matrix_agenda,
     const ArrayOfPropagationPathPoint& ray_path,
@@ -51,16 +51,15 @@ void ray_path_spectral_radianceClearskyEmission(
       subsurface_field,
       spectral_radiance_space_agenda,
       spectral_radiance_surface_agenda);
-  ArrayOfAtmPoint ray_path_atmospheric_point;
-  ray_path_atmospheric_pointFromPath(
-      ray_path_atmospheric_point, ray_path, atmospheric_field);
+  ArrayOfAtmPoint ray_path_atm_point;
+  ray_path_atm_pointFromPath(ray_path_atm_point, ray_path, atm_field);
   ArrayOfAscendingGrid ray_path_frequency_grid;
   ArrayOfVector3 ray_path_frequency_wind_shift_jacobian;
   ray_path_frequency_gridFromPath(ray_path_frequency_grid,
                                   ray_path_frequency_wind_shift_jacobian,
                                   frequency_grid,
                                   ray_path,
-                                  ray_path_atmospheric_point);
+                                  ray_path_atm_point);
   ArrayOfPropmatVector ray_path_propagation_matrix;
   ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte;
   ArrayOfPropmatMatrix ray_path_propagation_matrix_jacobian;
@@ -77,7 +76,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_frequency_wind_shift_jacobian,
       {},
       ray_path,
-      ray_path_atmospheric_point);
+      ray_path_atm_point);
   ArrayOfMuelmatVector ray_path_transmission_matrix;
   ArrayOfMuelmatTensor3 ray_path_transmission_matrix_jacobian;
   ray_path_transmission_matrixFromPath(ray_path_transmission_matrix,
@@ -85,7 +84,7 @@ void ray_path_spectral_radianceClearskyEmission(
                                        ray_path_propagation_matrix,
                                        ray_path_propagation_matrix_jacobian,
                                        ray_path,
-                                       ray_path_atmospheric_point,
+                                       ray_path_atm_point,
                                        surface_field,
                                        {},
                                        0);
@@ -99,7 +98,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_propagation_matrix_jacobian,
       ray_path_propagation_matrix_source_vector_nonlte_jacobian,
       ray_path_frequency_grid,
-      ray_path_atmospheric_point,
+      ray_path_atm_point,
       {});
   ray_path_spectral_radianceStepByStepEmissionForwardOnly(
       ray_path_spectral_radiance,
@@ -114,7 +113,7 @@ void spectral_flux_profileFromPathField(
     const Workspace& ws,
     Matrix& spectral_flux_profile,
     const ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const Agenda& propagation_matrix_agenda,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
@@ -140,7 +139,7 @@ void spectral_flux_profileFromPathField(
       ray_path_spectral_radianceClearskyEmission(
           ws,
           ray_path_spectral_radiance_field[n],
-          atmospheric_field,
+          atm_field,
           frequency_grid,
           propagation_matrix_agenda,
           ray_path_field[n],
@@ -238,7 +237,7 @@ void nlte_line_flux_profileIntegrate(
     QuantumIdentifierVectorMap& nlte_line_flux_profile,
     const Matrix& spectral_flux_profile,
     const AbsorptionBands& abs_bands,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    const ArrayOfAtmPoint& ray_path_atm_point,
     const AscendingGrid& frequency_grid) {
   ARTS_TIME_REPORT
 
@@ -249,7 +248,7 @@ void nlte_line_flux_profileIntegrate(
                      "Frequency grid and spectral flux profile size mismatch")
 
   ARTS_USER_ERROR_IF(
-      ray_path_atmospheric_point.size() != K,
+      ray_path_atm_point.size() != K,
       "Atmospheric point and spectral flux profile size mismatch");
 
   nlte_line_flux_profile.clear();
@@ -265,7 +264,7 @@ void nlte_line_flux_profileIntegrate(
       lbl::compute_voigt(weighted_spectral_flux_profile[k],
                          band.lines.front(),
                          frequency_grid,
-                         ray_path_atmospheric_point[k],
+                         ray_path_atm_point[k],
                          key.isot.mass);
     }
 

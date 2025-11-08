@@ -8,20 +8,20 @@ ws.abs_speciesSet(species=["H2O"])
 ws.abs_bands.readxml("nlte_lines.xml")
 
 toa = 4.4825000e05
-ws.atmospheric_fieldInit(toa=toa)
+ws.atm_fieldInit(toa=toa)
 
-ws.atmospheric_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
-ws.atmospheric_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
-ws.atmospheric_field["N2"] = 0.0
-ws.atmospheric_field["O2"] = 0.0
-ws.atmospheric_field["H2O"] = 1.0
-ws.atmospheric_field["CO2"] = 0.0
-ws.atmospheric_field["H2"] = 0.0
-ws.atmospheric_field["He"] = 0.0
+ws.atm_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
+ws.atm_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
+ws.atm_field["N2"] = 0.0
+ws.atm_field["O2"] = 0.0
+ws.atm_field["H2O"] = 1.0
+ws.atm_field["CO2"] = 0.0
+ws.atm_field["H2"] = 0.0
+ws.atm_field["He"] = 0.0
 
 ws.surface_fieldGanymede()
-ws.surface_field["t"] = ws.atmospheric_field["t"].data[0, 0, 0]
-ws.atmospheric_fieldInitializeNonLTE(normalization=0.75)
+ws.surface_field["t"] = ws.atm_field["t"].data[0, 0, 0]
+ws.atm_fieldInitializeNonLTE(normalization=0.75)
 ws.abs_bandsSetNonLTE()
 
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
@@ -45,18 +45,18 @@ levels = pyarts.arts.ArrayOfQuantumLevelIdentifier(
     ]
 )
 
-ws.atmospheric_profileFromGrid()
-ws.atmospheric_profileFitNonLTE(
+ws.atm_profileFromGrid()
+ws.atm_profileFitNonLTE(
     collision_data=collision_data,
     levels=levels,
     dza=15,
     consider_limb=0,
     convergence_limit=1e-2,
 )
-ws.atmospheric_fieldFromProfile()
+ws.atm_fieldFromProfile()
 
 assert np.allclose(
-    ws.atmospheric_field.nlte[levels[0]].data.flatten(),
+    ws.atm_field.nlte[levels[0]].data.flatten(),
     np.array(
         [
             0.1471907,

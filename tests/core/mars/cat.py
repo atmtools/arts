@@ -31,23 +31,23 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
         ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
         ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
         ws.propagation_matrix_agendaAuto()
-        ws.atmospheric_fieldRead(
+        ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",
             missing_is_zero=True,
             extrapolation="Nearest",
         )
-        ws.atmospheric_fieldAppendLineIsotopologueData(
+        ws.atm_fieldAppendLineIsotopologueData(
             basename="planets/Mars/isotopologue_ratios/", replace_existing=True
         )
         assert 6 == len(
-            ws.atmospheric_field.specs
+            ws.atm_field.specs
         ), "Reading ARTSCAT-4 but not getting 6 species"
     elif abs_scenario == "IsotEarth":
         ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
         ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
         ws.propagation_matrix_agendaAuto()
-        ws.atmospheric_fieldRead(
+        ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",
             missing_is_zero=True,
@@ -57,7 +57,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
         ws.ReadCatalogData()
         ws.abs_bandsSelectFrequencyByLine(fmin=550e9, fmax=560e9)
         ws.propagation_matrix_agendaAuto()
-        ws.atmospheric_fieldRead(
+        ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",
             missing_is_zero=True,

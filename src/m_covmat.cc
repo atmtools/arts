@@ -264,7 +264,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
                                JacobianTargets& jacobian_targets,
                                const JacobianTargetsDiagonalCovarianceMatrixMap&
                                    covariance_matrix_diagonal_blocks,
-                               const AtmField& atmospheric_field,
+                               const AtmField& atm_field,
                                const SurfaceField& surface_field,
                                const SubsurfaceField& subsurface_field,
                                const AbsorptionBands& abs_bands,
@@ -277,7 +277,7 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
       surface_field.ellipsoid)
 
   jacobian_targetsFinalize(jacobian_targets,
-                           atmospheric_field,
+                           atm_field,
                            surface_field,
                            subsurface_field,
                            abs_bands,
