@@ -33,8 +33,8 @@ void ray_path_spectral_radClearskyEmission(
     const SubsurfaceField& subsurf_field) try {
   ARTS_TIME_REPORT
 
-  PropagationPathPoint ray_path_point;
-  ray_path_pointBackground(ray_path_point, ray_path);
+  PropagationPathPoint ray_point;
+  ray_pointBackground(ray_point, ray_path);
   StokvecVector spectral_rad_bkg;
   StokvecMatrix spectral_rad_bkg_jac;
   spectral_rad_bkgAgendasAtEndOfPath(ws,
@@ -42,7 +42,7 @@ void ray_path_spectral_radClearskyEmission(
                                      spectral_rad_bkg_jac,
                                      freq_grid,
                                      {},
-                                     ray_path_point,
+                                     ray_point,
                                      surf_field,
                                      subsurf_field,
                                      spectral_rad_space_agenda,

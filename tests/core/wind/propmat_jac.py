@@ -40,8 +40,8 @@ ws.atm_field["wind_v"] = wind[1]
 ws.atm_field["wind_w"] = wind[2]
 
 # Set up a ray path point
-ws.ray_path_point.los = [40, 20]
-ws.ray_path_point.pos = [30e3, 0, 0]
+ws.ray_point.los = [40, 20]
+ws.ray_point.pos = [30e3, 0, 0]
 
 for i in range(3):
     # Set up the wind field Jacobian
@@ -50,7 +50,7 @@ for i in range(3):
     ws.jac_targetsFinalize(measurement_sensor=[])
 
     # Reset
-    ws.atm_point = ws.atm_field(*ws.ray_path_point.pos)
+    ws.atm_point = ws.atm_field(*ws.ray_point.pos)
 
     # Original
     ws.freq_grid = f

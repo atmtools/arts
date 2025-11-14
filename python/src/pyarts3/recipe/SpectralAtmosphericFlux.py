@@ -158,7 +158,7 @@ class SpectralAtmosphericFlux:
         self.ws.disort_settingsOpticalThicknessFromPath()
         self.ws.disort_settingsLayerThermalEmissionLinearInTau()
         self.ws.disort_settingsSurfaceEmissionByTemperature(
-            ray_path_point=self.ws.ray_path[0]
+            ray_point=self.ws.ray_path[0]
         )
         self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
         self.ws.disort_settingsSurfaceLambertian(
@@ -167,7 +167,7 @@ class SpectralAtmosphericFlux:
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(ray_path_point=self.ws.ray_path[-1])
+        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
         self.ws.disort_spectral_flux_fieldCalc()
 
         # Shape is f x 3 x np, we want 3 x f x np

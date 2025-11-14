@@ -667,7 +667,7 @@ void single_radClearskyEmissionPropagation(
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
-    const Agenda& ray_path_point_back_propagation_agenda,
+    const Agenda& ray_point_back_propagation_agenda,
     const SubsurfaceField& subsurf_field,
     const SurfaceField& surf_field,
     const Vector3& obs_pos,
@@ -741,13 +741,12 @@ void single_radClearskyEmissionPropagation(
 
   Numeric sumAr = 0.0;
   while (true) {
-    const auto& ray_path_point = ray_path.back();
-    atm_path.emplace_back(atm_field.at(ray_path_point.pos));
+    const auto& ray_point = ray_path.back();
+    atm_path.emplace_back(atm_field.at(ray_point.pos));
 
     Numeric frequency = frequency_;
     Vector3 freq_wind_shift_jac;
-    freqWindShift(
-        frequency, freq_wind_shift_jac, atm_path.back(), ray_path_point);
+    freqWindShift(frequency, freq_wind_shift_jac, atm_path.back(), ray_point);
     single_freq_path.push_back(frequency);
 
     single_propmat_agendaExecute(ws,
@@ -761,7 +760,7 @@ void single_radClearskyEmissionPropagation(
                                  freq_wind_shift_jac,
                                  jac_targets,
                                  "AIR"_spec,
-                                 ray_path_point,
+                                 ray_point,
                                  atm_path.back(),
                                  single_propmat_agenda);
     single_dispersion += dot(polarization, single_propmat_path.back());
@@ -769,25 +768,25 @@ void single_radClearskyEmissionPropagation(
     const Numeric A = single_propmat_path.back().A();
     if (A == 0.0) {
       PropagationPathPoint tmp_point;
-      ray_path_point_back_propagation_agendaExecute(
+      ray_point_back_propagation_agendaExecute(
           ws,
           tmp_point,
           ray_path,
           single_dispersion,
           single_propmat_path.back(),
           max_stepsize,
-          ray_path_point_back_propagation_agenda);
+          ray_point_back_propagation_agenda);
       ray_path.push_back(tmp_point);
     } else {
       PropagationPathPoint tmp_point;
-      ray_path_point_back_propagation_agendaExecute(
+      ray_point_back_propagation_agendaExecute(
           ws,
           tmp_point,
           ray_path,
           single_dispersion,
           single_propmat_path.back(),
           std::min(max_tau / A, max_stepsize),
-          ray_path_point_back_propagation_agenda);
+          ray_point_back_propagation_agenda);
       ray_path.push_back(tmp_point);
     }
 
@@ -865,7 +864,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
-    const Agenda& ray_path_point_back_propagation_agenda,
+    const Agenda& ray_point_back_propagation_agenda,
     const SubsurfaceField& subsurf_field,
     const SurfaceField& surf_field,
     const Vector3& obs_pos,
@@ -891,28 +890,27 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
 #pragma omp parallel for firstprivate(single_rad_jac) if (arts_omp_parallel())
   for (Size f = 0; f < nf; f++) {
     try {
-      single_radClearskyEmissionPropagation(
-          ws,
-          spectral_rad[f],
-          single_rad_jac,
-          ray_paths[f],
-          atm_field,
-          freq_grid[f],
-          jac_targets,
-          single_rad_space_agenda,
-          single_rad_surface_agenda,
-          single_propmat_agenda,
-          ray_path_point_back_propagation_agenda,
-          subsurf_field,
-          surf_field,
-          obs_pos,
-          obs_los,
-          max_stepsize,
-          polarization,
-          max_tau,
-          cutoff_tau,
-          hse_derivative,
-          N);
+      single_radClearskyEmissionPropagation(ws,
+                                            spectral_rad[f],
+                                            single_rad_jac,
+                                            ray_paths[f],
+                                            atm_field,
+                                            freq_grid[f],
+                                            jac_targets,
+                                            single_rad_space_agenda,
+                                            single_rad_surface_agenda,
+                                            single_propmat_agenda,
+                                            ray_point_back_propagation_agenda,
+                                            subsurf_field,
+                                            surf_field,
+                                            obs_pos,
+                                            obs_los,
+                                            max_stepsize,
+                                            polarization,
+                                            max_tau,
+                                            cutoff_tau,
+                                            hse_derivative,
+                                            N);
 
       spectral_rad_jac[joker, f] = single_rad_jac;
     } catch (std::exception& e) {

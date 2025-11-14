@@ -130,7 +130,7 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radApplyUnit(StokvecVector &spectral_rad,
                            StokvecMatrix &spectral_rad_jac,
                            const AscendingGrid &freq_grid,
-                           const PropagationPathPoint &ray_path_point,
+                           const PropagationPathPoint &ray_point,
                            const SpectralRadianceTransformOperator
                                &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
@@ -140,13 +140,13 @@ void spectral_radApplyUnit(StokvecVector &spectral_rad,
   }
 
   spectral_rad_transform_operator(
-      spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
+      spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_radApplyForwardUnit(StokvecVector &spectral_rad,
                                   const AscendingGrid &freq_grid,
-                                  const PropagationPathPoint &ray_path_point,
+                                  const PropagationPathPoint &ray_point,
                                   const SpectralRadianceTransformOperator
                                       &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
@@ -154,7 +154,7 @@ void spectral_radApplyForwardUnit(StokvecVector &spectral_rad,
   StokvecMatrix spectral_rad_jac(0, freq_grid.size());
 
   spectral_rad_transform_operator(
-      spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
+      spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 ARTS_METHOD_ERROR_CATCH
 

@@ -818,8 +818,8 @@ spectral_rad_jac : StokvecMatrix
     As WSV *spectral_rad_jac* **[INOUT]**
 freq_grid : AscendingGrid
     As WSV *freq_grid* **[IN]**
-ray_path_point : PropagationPathPoint
-    As WSV *ray_path_point* **[IN]**
+ray_point : PropagationPathPoint
+    As WSV *ray_point* **[IN]**
 )--",
   };
 

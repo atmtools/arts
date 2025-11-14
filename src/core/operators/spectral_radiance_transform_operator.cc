@@ -174,8 +174,8 @@ void SpectralRadianceTransformOperator::operator()(
     StokvecVector& spectral_rad,
     StokvecMatrix& spectral_rad_jac,
     const AscendingGrid& freq_grid,
-    const PropagationPathPoint& ray_path_point) const {
-  f(spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
+    const PropagationPathPoint& ray_point) const {
+  f(spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 
 void xml_io_stream<SpectralRadianceTransformOperator>::write(

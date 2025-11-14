@@ -20,7 +20,7 @@ ws.atm_point["t"] = 300.0
 ws.atm_point["p"] = 1013.25e-2
 ws.atm_point["O2"] = 0.2095
 ws.atm_point.mag = [10e-6, 50e-6, 1e-6]
-ws.ray_path_point.los = [180.0, 0.0]
+ws.ray_point.los = [180.0, 0.0]
 
 # %% Set the jacobian
 ws.jac_targetsInit()

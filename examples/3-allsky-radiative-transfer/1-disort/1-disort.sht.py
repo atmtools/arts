@@ -159,7 +159,7 @@ def calculate_tbs_disort():
         for f_ind in range(3)
     ]
     ws.spectral_rad = disort_stokes
-    ws.spectral_radApplyForwardUnit(ray_path_point=ws.ray_path[0])
+    ws.spectral_radApplyForwardUnit(ray_point=ws.ray_path[0])
     return ws.spectral_rad.value.copy()[:, 0]
 
 

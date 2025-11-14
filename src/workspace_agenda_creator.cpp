@@ -227,14 +227,13 @@ Agenda get_single_rad_surface_agenda(const std::string_view option) {
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_ray_path_point_back_propagation_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("ray_path_point_back_propagation_agenda");
+Agenda get_ray_point_back_propagation_agenda(const std::string_view option) {
+  AgendaCreator agenda("ray_point_back_propagation_agenda");
 
-  using enum ray_path_point_back_propagation_agendaPredefined;
-  switch (to<ray_path_point_back_propagation_agendaPredefined>(option)) {
-    case GeometricStepwise:  agenda.add("ray_path_pointPastGeometric"); break;
-    case RefractiveStepwise: agenda.add("ray_path_pointPastRefractive"); break;
+  using enum ray_point_back_propagation_agendaPredefined;
+  switch (to<ray_point_back_propagation_agendaPredefined>(option)) {
+    case GeometricStepwise:  agenda.add("ray_pointPastGeometric"); break;
+    case RefractiveStepwise: agenda.add("ray_pointPastRefractive"); break;
   }
 
   return std::move(agenda).finalize(true);

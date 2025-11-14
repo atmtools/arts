@@ -40,7 +40,7 @@ ws.atm_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
 ws.atm_point[pyarts.arts.SpeciesEnum("H2O")] = 0.01  # At 1% Water
 ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
-ws.ray_path_point
+ws.ray_point
 
 ws.jac_targetsInit()
 

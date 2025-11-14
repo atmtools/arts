@@ -473,14 +473,14 @@ nd : float
       "frequency_shift",
       [](AscendingGrid freq_grid,
          const AtmPoint &atm_point,
-         const PropagationPathPoint &ray_path_point) {
+         const PropagationPathPoint &ray_point) {
         Vector3 x;
-        freq_gridWindShift(freq_grid, x, atm_point, ray_path_point);
+        freq_gridWindShift(freq_grid, x, atm_point, ray_point);
         return freq_grid;
       },
       "freq_grid"_a,
       "atm_point"_a,
-      "ray_path_point"_a,
+      "ray_point"_a,
       R"(Get the frequency-shifted frequency grid at a point in the atmosphere.
 
 Parameters
@@ -489,7 +489,7 @@ Parameters
     The frequency grid to shift.
   atm_point : AtmPoint
     The point in the atmosphere.
-  ray_path_point : PropagationPathPoint
+  ray_point : PropagationPathPoint
     The point along the ray path.
 
 Return

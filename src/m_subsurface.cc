@@ -20,12 +20,12 @@ void subsurf_profileFromPath(ArrayOfSubsurfacePoint& subsurf_profile,
 }
 
 void ray_pathFromPointAndDepth(ArrayOfPropagationPathPoint& ray_path,
-                               const PropagationPathPoint& ray_path_point,
+                               const PropagationPathPoint& ray_point,
                                const DescendingGrid& depth_profile) {
   ARTS_TIME_REPORT
 
-  const auto to_ppp = stdv::transform([ray_path_point](const auto& d) {
-    auto v    = ray_path_point;
+  const auto to_ppp = stdv::transform([ray_point](const auto& d) {
+    auto v    = ray_point;
     v.pos[0] += d;
     return v;
   });
@@ -42,7 +42,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
     const SurfaceField& surf_field_,
     const SubsurfaceField& subsurf_field_,
     const JacobianTargets& jac_targets,
-    const PropagationPathPoint& ray_path_point,
+    const PropagationPathPoint& ray_point,
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension,
     const Index& disort_legendre_polynomial_dimension,
@@ -66,7 +66,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
   AtmField atm_field                       = atm_field_;
   SurfaceField surf_field                  = surf_field_;
   SubsurfaceField subsurf_field            = subsurf_field_;
-  const AzimuthGrid azimuth_grid           = Vector{ray_path_point.azimuth()};
+  const AzimuthGrid azimuth_grid           = Vector{ray_point.azimuth()};
 
   spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
 
@@ -84,7 +84,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
       disort_settings_agenda,
       disort_settings_downwelling_wrapper_agenda,
       freq_grid,
-      ray_path_point,
+      ray_point,
       subsurf_field,
       surf_field,
       depth_profile,
@@ -147,7 +147,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
           disort_settings_agenda,
           disort_settings_downwelling_wrapper_agenda,
           freq_grid,
-          ray_path_point,
+          ray_point,
           subsurf_field,
           surf_field,
           depth_profile,

@@ -156,11 +156,11 @@ basis for the agenda to setup the Disort calculations.
       .name    = "spectral_radApplyUnitFromSpectralRadiance",
       .desc    = R"(Helper method for calling *spectral_radApplyUnit*.
 
-It is common that *ray_path* is defined but not *ray_path_point*.
+It is common that *ray_path* is defined but not *ray_point*.
 This method simply is a convenience wrapper for that use case.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointForeground", "spectral_radApplyUnit"},
+      .methods = {"ray_pointForeground", "spectral_radApplyUnit"},
       .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
@@ -168,7 +168,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "spectral_radClearskyEmission",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
+      .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
@@ -187,7 +187,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "spectral_radClearskyEmissionParFreq",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
+      .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
@@ -202,7 +202,7 @@ This method simply is a convenience wrapper for that use case.
       .desc =
           "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
+      .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
@@ -225,7 +225,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "spectral_radClearskyTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
+      .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
@@ -253,7 +253,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "spectral_radClearskyBackgroundTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
+      .methods = {"ray_pointBackground",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
                   "spectral_propmat_pathFromPath",

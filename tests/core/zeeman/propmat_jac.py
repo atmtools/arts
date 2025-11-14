@@ -38,8 +38,8 @@ ws.atm_point.pressure = 1.0
 ws.atm_point[pyarts.arts.SpeciesEnum.O2] = 0.2
 ws.atm_point.mag = B
 
-ws.ray_path_point.los = [40, 0]
-ws.ray_path_point.pos = [90e3, 0, 0]
+ws.ray_point.los = [40, 0]
+ws.ray_point.pos = [90e3, 0, 0]
 
 ws.spectral_propmatInit()
 ws.spectral_propmatAddLines()
