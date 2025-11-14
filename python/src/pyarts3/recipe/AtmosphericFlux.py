@@ -88,8 +88,8 @@ class AtmosphericFlux:
         )
 
         self.ws.ray_pathGeometricDownlooking(
-            latitude=atm_latitude,
-            longitude=atm_longitude,
+            lat=atm_latitude,
+            lon=atm_longitude,
             max_stepsize=max_level_step,
         )
 
@@ -112,10 +112,10 @@ class AtmosphericFlux:
 
         tmp = pyarts.arts.GriddedField2.fromxml("star/Sun/solar_spectrum_QUIET.xml")
         self.ws.sunFromGrid(
-            frequency_grid=self.visf,
+            freq_grid=self.visf,
             sun_spectrum_raw=tmp,
-            latitude=solar_latitude,
-            longitude=solar_longitude,
+            lat=solar_latitude,
+            lon=solar_longitude,
         )
 
     def get_atmosphere(
@@ -160,7 +160,7 @@ class AtmosphericFlux:
         self.ws.ray_path_atm_point.update(atm_profile)
 
         # Visible
-        self.ws.frequency_grid = self.visf
+        self.ws.freq_grid = self.visf
         self.ws.disort_settings_agendaSetup(
             layer_emission_setting="None",
             scattering_setting="None",
@@ -180,7 +180,7 @@ class AtmosphericFlux:
                           np.einsum("i,ik->k", self.visw, self.ws.disort_spectral_flux_field.down_direct))
 
         # IR
-        self.ws.frequency_grid = self.ir_f
+        self.ws.freq_grid = self.ir_f
         self.ws.disort_settings_agendaSetup(
             layer_emission_setting="LinearInTau",
             scattering_setting="None",

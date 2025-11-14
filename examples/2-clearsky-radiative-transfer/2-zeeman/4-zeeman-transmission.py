@@ -12,7 +12,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 line_f0 = 118750348044.712
 nf = 1001
-ws.frequency_grid = np.linspace(-50e6, 50e6, nf) + line_f0
+ws.freq_grid = np.linspace(-50e6, 50e6, nf) + line_f0
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])
@@ -44,7 +44,7 @@ ws.spectral_radianceClearskyTransmission()
 
 # %% Show results
 fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
-    ws.frequency_grid - line_f0) / 1e6, component='I')
+    ws.freq_grid - line_f0) / 1e6, component='I')
 ax.set_yscale('log')
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")

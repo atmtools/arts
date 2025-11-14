@@ -4,7 +4,6 @@
 #include <debug.h>
 #include <physics_funcs.h>
 
-
 namespace {
 struct spectral_unit_op {
   void operator()(StokvecVector& iy,
@@ -28,7 +27,7 @@ struct spectral_rjbt_op {
             static_cast<Size>(diy.ncols()) != freqs.size(),
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
-frequency_grid.size() = {}
+freq_grid.size() = {}
 iy.size()             = {}
 diy.shape()           = {:B} [column size must match frequency grid size]
 )",
@@ -54,7 +53,7 @@ struct spectral_planck_op {
             static_cast<Size>(diy.ncols()) != freqs.size(),
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
-frequency_grid.size() = {}
+freq_grid.size() = {}
 iy.size()             = {}
 diy.shape()           = {:B} [column size must match frequency grid size]
 )",
@@ -96,7 +95,7 @@ struct spectral_W_m2_m_sr_op {
             static_cast<Size>(diy.ncols()) != freqs.size(),
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
-frequency_grid.size() = {}
+freq_grid.size() = {}
 iy.size()             = {}
 diy.shape()           = {:B} [column size must match frequency grid size]
 )",
@@ -174,12 +173,9 @@ SpectralRadianceTransformOperator::SpectralRadianceTransformOperator(
 void SpectralRadianceTransformOperator::operator()(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point) const {
-  f(spectral_radiance,
-    spectral_radiance_jacobian,
-    frequency_grid,
-    ray_path_point);
+  f(spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
 }
 
 void xml_io_stream<SpectralRadianceTransformOperator>::write(

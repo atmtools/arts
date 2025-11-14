@@ -30,7 +30,7 @@ void disort_spectral_radiance_fieldCalc(
 
   //! Main output
   disort_spectral_radiance_field.resize(
-      disort_settings.frequency_grid,
+      disort_settings.freq_grid,
       disort_settings.alt_grid,
       phis,
       ZenithGrid{disort_quadrature.grid<0>()});
@@ -62,7 +62,7 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
 
   const Index nv = disort_settings.frequency_count();
 
-  disort_spectral_flux_field.resize(disort_settings.frequency_grid,
+  disort_spectral_flux_field.resize(disort_settings.freq_grid,
                                     disort_settings.alt_grid);
 
   disort::main_data dis = disort_settings.init();
@@ -98,10 +98,10 @@ void spectral_radianceFromDisort(
 
   ARTS_TIME_REPORT
 
-  const auto& f_grid   = disort_spectral_radiance_field.frequency_grid;
+  const auto& f_grid   = disort_spectral_radiance_field.freq_grid;
   const auto& alt_grid = disort_spectral_radiance_field.alt_grid;
   const auto& aa_grid  = disort_spectral_radiance_field.azimuth_grid;
-  const auto& za_grid  = disort_spectral_radiance_field.zenith_grid;
+  const auto& za_grid  = disort_spectral_radiance_field.za_grid;
   const auto& data     = disort_spectral_radiance_field.data;
 
   const Size nf = f_grid.size();
@@ -171,9 +171,9 @@ void disort_spectral_radiance_fieldApplyUnit(
   ARTS_TIME_REPORT
 
   StokvecVector spectral_radiance(
-      disort_spectral_radiance_field.frequency_grid.size());
+      disort_spectral_radiance_field.freq_grid.size());
   StokvecMatrix spectral_radiance_jacobian(
-      0, disort_spectral_radiance_field.frequency_grid.size());
+      0, disort_spectral_radiance_field.freq_grid.size());
 
   const Index nv = disort_spectral_radiance_field.data.nbooks();
   const Index np = disort_spectral_radiance_field.data.npages();
@@ -196,7 +196,7 @@ void disort_spectral_radiance_fieldApplyUnit(
           spectral_radiance_transform_operator(
               spectral_radiance,
               spectral_radiance_jacobian,
-              disort_spectral_radiance_field.frequency_grid,
+              disort_spectral_radiance_field.freq_grid,
               ray_path_point);
 
           for (Index v = 0; v < nv; v++) {

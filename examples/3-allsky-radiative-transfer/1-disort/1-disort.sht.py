@@ -32,7 +32,7 @@ ws = pyarts.Workspace()
 
 pyarts.arts.globals.omp_set_num_threads(1)
 
-ws.frequency_grid = [31.5e9, 165e9, 666e9]
+ws.freq_grid = [31.5e9, 165e9, 666e9]
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
@@ -147,8 +147,8 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 def calculate_tbs_disort():
     ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
     ws.disort_spectral_radiance_fieldProfile(
-        longitude=lon,
-        latitude=lat,
+        lon=lon,
+        lat=lat,
         disort_quadrature_dimension=NQuad,
         disort_legendre_polynomial_dimension=40,
         disort_fourier_mode_dimension=1,

@@ -31,7 +31,7 @@ ws.propagation_matrix_agendaAuto()
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 
-ws.frequency_gridFitNonLTE(nf=301, df=1e-4)
+ws.freq_gridFitNonLTE(nf=301, df=1e-4)
 
 levels = pyarts.arts.ArrayOfQuantumLevelIdentifier(
     [

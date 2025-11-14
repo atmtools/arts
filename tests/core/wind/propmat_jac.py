@@ -53,8 +53,8 @@ for i in range(3):
     ws.atm_point = ws.atm_field(*ws.ray_path_point.pos)
 
     # Original
-    ws.frequency_grid = f
-    ws.frequency_gridWindShift()
+    ws.freq_grid = f
+    ws.freq_gridWindShift()
     ws.propagation_matrixInit()
     ws.propagation_matrixAddLines()
     ws.propagation_matrix_jacobianWindFix()
@@ -65,8 +65,8 @@ for i in range(3):
 
     # Modify the wind field and calculate perturbed value
     ws.atm_point.wind[i] += dx
-    ws.frequency_grid = f
-    ws.frequency_gridWindShift()
+    ws.freq_grid = f
+    ws.freq_gridWindShift()
     ws.propagation_matrixInit()
     ws.propagation_matrixAddLines()
     ws.propagation_matrix_jacobianWindFix()

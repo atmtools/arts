@@ -8,7 +8,7 @@ namespace {
 auto ray_path_propagation_matrixProfile(
     const Workspace& ws,
     const Agenda& propagation_matrix_agenda,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const ArrayOfAtmPoint& ray_path_atm_point) {
   struct ray_path_propagation_matrixFromPathOutput {
     ArrayOfPropmatVector k;
@@ -34,7 +34,7 @@ auto ray_path_propagation_matrixProfile(
                                        out.s[ip],
                                        out.dk[ip],
                                        out.ds[ip],
-                                       frequency_grid,
+                                       freq_grid,
                                        {},
                                        {},
                                        {},
@@ -52,11 +52,11 @@ auto ray_path_propagation_matrixProfile(
 }
 
 StokvecVector interp(const StokvecConstMatrixView& data,
-                     const ZenithGrid& zenith_grid,
+                     const ZenithGrid& za_grid,
                      const Numeric& zenith) {
   const Size NF = data.shape().back();
 
-  const auto za = zenith_grid.lag<1>(zenith);
+  const auto za = za_grid.lag<1>(zenith);
 
   StokvecVector out(NF);
 
@@ -85,14 +85,14 @@ const Vector zenith_level_limb(const AscendingGrid& alt_grid,
 }
 }  // namespace
 
-void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
-                                const SurfaceField& surface_field,
-                                const AscendingGrid& alt_grid,
-                                const Numeric& latitude,
-                                const Numeric& longitude,
-                                const Numeric& dza,
-                                const Numeric& azimuth,
-                                const Index& consider_limb) {
+void za_gridProfilePseudo2D(ZenithGrid& za_grid,
+                            const SurfaceField& surface_field,
+                            const AscendingGrid& alt_grid,
+                            const Numeric& latitude,
+                            const Numeric& longitude,
+                            const Numeric& dza,
+                            const Numeric& azimuth,
+                            const Index& consider_limb) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -143,7 +143,7 @@ void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
 
   auto [it, _] = stdr::unique(out);
   auto s       = out | stdv::take(stdr::distance(out.begin(), it));
-  zenith_grid =
+  za_grid =
       Vector{AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{})};
 }
 
@@ -153,8 +153,8 @@ void spectral_radiance_fieldProfilePseudo2D(
     const Agenda& propagation_matrix_agenda,
     const ArrayOfAtmPoint& ray_path_atm_point,
     const SurfaceField& surface_field,
-    const AscendingGrid& frequency_grid,
-    const ZenithGrid& zenith_grid,
+    const AscendingGrid& freq_grid,
+    const ZenithGrid& za_grid,
     const AscendingGrid& alt_grid,
     const Numeric& latitude,
     const Numeric& longitude,
@@ -178,11 +178,11 @@ Atmospheric point grid size: {}
       alt_grid.size(),
       ray_path_atm_point.size())
 
-  ARTS_USER_ERROR_IF(zenith_grid.empty(), "Need some zenith angles")
+  ARTS_USER_ERROR_IF(za_grid.empty(), "Need some zenith angles")
 
   const Size NA = alt_grid.size();
-  const Size NZ = zenith_grid.size();
-  const Size NF = frequency_grid.size();
+  const Size NZ = za_grid.size();
+  const Size NF = freq_grid.size();
 
   spectral_radiance_field.data_name = "spectral_radiance_fieldProfilePseudo2D";
 
@@ -192,9 +192,9 @@ Atmospheric point grid size: {}
   spectral_radiance_field.grid<0>() = alt_grid;
   spectral_radiance_field.grid<1>() = Vector{latitude};
   spectral_radiance_field.grid<2>() = Vector{longitude};
-  spectral_radiance_field.grid<3>() = zenith_grid;
+  spectral_radiance_field.grid<3>() = za_grid;
   spectral_radiance_field.grid<4>() = Vector{azimuth};
-  spectral_radiance_field.grid<5>() = frequency_grid;
+  spectral_radiance_field.grid<5>() = freq_grid;
 
   spectral_radiance_field.gridname<0>() = "altitude";
   spectral_radiance_field.gridname<1>() = "latitude";
@@ -206,7 +206,7 @@ Atmospheric point grid size: {}
   if (NA == 0) return;
 
   const auto propmat_data = ray_path_propagation_matrixProfile(
-      ws, propagation_matrix_agenda, frequency_grid, ray_path_atm_point);
+      ws, propagation_matrix_agenda, freq_grid, ray_path_atm_point);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
   const Numeric t_surf = surface_field[SurfaceKey::t].at(latitude, longitude);
@@ -216,16 +216,16 @@ Atmospheric point grid size: {}
       zenith_level_limb(alt_grid, ell, latitude, longitude, azimuth);
 
   ARTS_USER_ERROR_IF(
-      zenith_grid.front() != 0.0 or zenith_grid.back() != 180.0 or
-          not stdr::contains(zenith_grid, 90.0),
+      za_grid.front() != 0.0 or za_grid.back() != 180.0 or
+          not stdr::contains(za_grid, 90.0),
       "Zenith grid must contain 0, 90, 180, beyond this it is free-form")
 
   auto srad = spectral_radiance_field.data.view_as(NA, NZ, NF);
 
   // Background radiation
   for (Size iv = 0; iv < NF; iv++) {
-    srad[0, joker, iv]      = planck(frequency_grid[iv], t_surf);
-    srad[NA - 1, joker, iv] = planck(frequency_grid[iv], t_spac);
+    srad[0, joker, iv]      = planck(freq_grid[iv], t_surf);
+    srad[NA - 1, joker, iv] = planck(freq_grid[iv], t_spac);
   }
 
   const auto update = [&](Size beg, Size end, Size iz) {
@@ -233,7 +233,7 @@ Atmospheric point grid size: {}
     const Numeric alt_end = alt_grid[end];
 
     const Vector3 pos_end{alt_end, latitude, longitude};
-    const Vector2 los_end{zenith_grid[iz], azimuth};
+    const Vector2 los_end{za_grid[iz], azimuth};
 
     const auto [ecef, decef] =
         geodetic_los2ecef(pos_end, path::mirror(los_end), ell);
@@ -251,7 +251,7 @@ Atmospheric point grid size: {}
             : path::mirror(
                   ecef2geodetic_los(ecef + r * decef, decef, ell).second)[0];
 
-    StokvecVector I = interp(srad[beg], zenith_grid, za);
+    StokvecVector I = interp(srad[beg], za_grid, za);
 
     if (r >= minimal_r) {
       const auto& K0 = propmat_data.k[beg];
@@ -261,7 +261,7 @@ Atmospheric point grid size: {}
       const auto& T0 = ray_path_atm_point[beg].temperature;
       const auto& T1 = ray_path_atm_point[end].temperature;
 
-      rtepack::nlte_step(I, frequency_grid, K0, K1, J0, J1, T0, T1, r);
+      rtepack::nlte_step(I, freq_grid, K0, K1, J0, J1, T0, T1, r);
     }
 
     return I;
@@ -271,7 +271,7 @@ Atmospheric point grid size: {}
   for (Size i = NA - 1; i > 0; i--) {
 #pragma omp parallel for if (not arts_omp_in_parallel())
     for (Size iz = 0; iz < NZ; iz++) {
-      if (zenith_grid[iz] < 90.0) continue;
+      if (za_grid[iz] < 90.0) continue;
       srad[i - 1, iz] = update(i, i - 1, iz);
     }
   }
@@ -280,7 +280,7 @@ Atmospheric point grid size: {}
   for (Size i = 0; i < NA - 1; i++) {
 #pragma omp parallel for if (not arts_omp_in_parallel())
     for (Size iz = 0; iz < NZ; iz++) {
-      if (zenith_grid[iz] >= 90.0) continue;
+      if (za_grid[iz] >= 90.0) continue;
       srad[i + 1, iz] = update(i, i + 1, iz);
     }
   }

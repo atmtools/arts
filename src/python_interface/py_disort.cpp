@@ -274,9 +274,8 @@ The relevant references are:
   disort_settings.def_rw("fourier_mode_dimension",
                          &DisortSettings::fourier_mode_dimension,
                          ".. :class:`Index`");
-  disort_settings.def_rw("frequency_grid",
-                         &DisortSettings::frequency_grid,
-                         ".. :class:`AscendingGrid`");
+  disort_settings.def_rw(
+      "freq_grid", &DisortSettings::freq_grid, ".. :class:`AscendingGrid`");
   disort_settings.def_rw(
       "alt_grid", &DisortSettings::alt_grid, ".. :class:`DescendingGrid`");
   disort_settings.def_rw("solar_azimuth_angle",
@@ -315,8 +314,8 @@ The relevant references are:
 
   py::class_<DisortFlux> df(m, "DisortFlux");
   generic_interface(df);
-  df.def_rw("frequency_grid",
-            &DisortFlux::frequency_grid,
+  df.def_rw("freq_grid",
+            &DisortFlux::freq_grid,
             "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
   df.def_rw(
       "alt_grid",
@@ -334,15 +333,15 @@ The relevant references are:
 
   py::class_<DisortRadiance> dr(m, "DisortRadiance");
   generic_interface(dr);
-  dr.def_rw("frequency_grid",
-            &DisortRadiance::frequency_grid,
+  dr.def_rw("freq_grid",
+            &DisortRadiance::freq_grid,
             "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
   dr.def_rw(
       "alt_grid",
       &DisortRadiance::alt_grid,
       "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
-  dr.def_rw("zenith_grid",
-            &DisortRadiance::zenith_grid,
+  dr.def_rw("za_grid",
+            &DisortRadiance::za_grid,
             "Zenith grid\n\n.. :class:`ZenithGrid`");
   dr.def_rw("azimuth_grid",
             &DisortRadiance::azimuth_grid,

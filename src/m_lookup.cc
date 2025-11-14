@@ -14,7 +14,7 @@ template <bool calc>
 std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     PropmatVector& propagation_matrix [[maybe_unused]],
     PropmatMatrix& propagation_matrix_jacobian [[maybe_unused]],
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets [[maybe_unused]],
     const SpeciesEnum& propagation_matrix_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
@@ -28,7 +28,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
   ARTS_TIME_REPORT
 
   if constexpr (calc) {
-    Vector absorption(frequency_grid.size(), 0.0);
+    Vector absorption(freq_grid.size(), 0.0);
 
     if (propagation_matrix_select_species == "Bath"_spec) {
       for (auto& [spec, data] : abs_lookup_data) {
@@ -39,7 +39,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
                         water_interp_order,
                         f_interp_order,
                         atm_point_,
-                        frequency_grid,
+                        freq_grid,
                         extpolfac);
       }
     } else {
@@ -51,7 +51,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
                       water_interp_order,
                       f_interp_order,
                       atm_point_,
-                      frequency_grid,
+                      freq_grid,
                       extpolfac);
     }
 
@@ -60,7 +60,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     const Vector absorption = _propagation_matrixAddLookup<not calc>(
         propagation_matrix,
         propagation_matrix_jacobian,
-        frequency_grid,
+        freq_grid,
         jacobian_targets,
         propagation_matrix_select_species,
         abs_lookup_data,
@@ -72,7 +72,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         f_interp_order,
         extpolfac);
 
-    for (Size i = 0; i < frequency_grid.size(); i++) {
+    for (Size i = 0; i < freq_grid.size(); i++) {
       if (no_negative_absorption == 0 or absorption[i] > 0.0) {
         propagation_matrix[i].A() += absorption[i];
       }
@@ -88,14 +88,14 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
             jacobian_target);
 
         if (is_wind(jacobian_target)) {
-          const AscendingGrid frequency_grid2(
-              frequency_grid.begin(),
-              frequency_grid.end(),
+          const AscendingGrid freq_grid2(
+              freq_grid.begin(),
+              freq_grid.end(),
               [d = jacobian_target.d](Numeric x) { return x + d; });
           d_absorption = _propagation_matrixAddLookup<not calc>(
               propagation_matrix,
               propagation_matrix_jacobian,
-              frequency_grid2,
+              freq_grid2,
               {},
               propagation_matrix_select_species,
               abs_lookup_data,
@@ -114,7 +114,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
           d_absorption = _propagation_matrixAddLookup<not calc>(
               propagation_matrix,
               propagation_matrix_jacobian,
-              frequency_grid,
+              freq_grid,
               {},
               propagation_matrix_select_species,
               abs_lookup_data,
@@ -128,7 +128,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         }
 
         const Numeric d_inv = 1.0 / jacobian_target.d;
-        for (Size i = 0; i < frequency_grid.size(); i++) {
+        for (Size i = 0; i < freq_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
             propagation_matrix_jacobian[jacobian_target.target_pos, i].A() =
                 (d_absorption[i] - absorption[i]) * d_inv;
@@ -143,7 +143,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
 void propagation_matrixAddLookup(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets,
     const SpeciesEnum& propagation_matrix_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
@@ -158,7 +158,7 @@ void propagation_matrixAddLookup(
 
   _propagation_matrixAddLookup<false>(propagation_matrix,
                                       propagation_matrix_jacobian,
-                                      frequency_grid,
+                                      freq_grid,
                                       jacobian_targets,
                                       propagation_matrix_select_species,
                                       abs_lookup_data,
@@ -174,7 +174,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
                                const ArrayOfAtmPoint& atm_profile,
-                               const AscendingGrid& frequency_grid,
+                               const AscendingGrid& freq_grid,
                                const AbsorptionBands& abs_bands,
                                const LinemixingEcsData& ecs_data,
                                const SpeciesEnum& select_species,
@@ -185,7 +185,7 @@ void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
   abs_lookup_data[select_species] = {
       select_species,
       atm_profile,
-      std::make_shared<const AscendingGrid>(frequency_grid),
+      std::make_shared<const AscendingGrid>(freq_grid),
       abs_bands,
       ecs_data,
       temperature_perturbation.empty()
@@ -199,7 +199,7 @@ void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
 void abs_lookup_dataPrecomputeAll(
     AbsorptionLookupTables& abs_lookup_data,
     const ArrayOfAtmPoint& atm_profile,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AbsorptionBands& abs_bands,
     const LinemixingEcsData& ecs_data,
     const AscendingGrid& temperature_perturbation,
@@ -237,7 +237,7 @@ void abs_lookup_dataPrecomputeAll(
         water_affected_species)
   }
 
-  const auto f = std::make_shared<const AscendingGrid>(frequency_grid);
+  const auto f = std::make_shared<const AscendingGrid>(freq_grid);
   const auto t =
       std::make_shared<const AscendingGrid>(temperature_perturbation);
   const auto w =
@@ -259,7 +259,7 @@ void abs_lookup_dataPrecomputeAll(
 
 void abs_lookup_dataFromProfiles(
     AbsorptionLookupTables& abs_lookup_data,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AbsorptionBands& abs_bands,
     const LinemixingEcsData& ecs_data,
     const DescendingGrid& pressure_profile,
@@ -298,7 +298,7 @@ void abs_lookup_dataFromProfiles(
 
   abs_lookup_dataPrecomputeAll(abs_lookup_data,
                                atm_profile,
-                               frequency_grid,
+                               freq_grid,
                                abs_bands,
                                ecs_data,
                                temperature_perturbation,
@@ -307,7 +307,7 @@ void abs_lookup_dataFromProfiles(
 }
 
 void abs_lookup_dataSimpleWide(AbsorptionLookupTables& abs_lookup_data,
-                               const AscendingGrid& frequency_grid,
+                               const AscendingGrid& freq_grid,
                                const AbsorptionBands& abs_bands,
                                const LinemixingEcsData& ecs_data,
                                const ArrayOfSpeciesEnum& water_affected_species,
@@ -373,7 +373,7 @@ void abs_lookup_dataSimpleWide(AbsorptionLookupTables& abs_lookup_data,
   }();
 
   abs_lookup_dataFromProfiles(abs_lookup_data,
-                              frequency_grid,
+                              freq_grid,
                               abs_bands,
                               ecs_data,
                               pressure_profile,

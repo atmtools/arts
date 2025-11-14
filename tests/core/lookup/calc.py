@@ -28,14 +28,14 @@ ws.atm_fieldRead(
 tdata = pyarts.arts.Tensor3(ws.atm_field["t"].data.data)
 wdata = pyarts.arts.Tensor3(ws.atm_field["H2O"].data.data)
 
-ws.frequency_grid = pyarts.arts.AscendingGrid.fromxml(
+ws.freq_grid = pyarts.arts.AscendingGrid.fromxml(
     "planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-f_grid.xml"
 )
 
 t = time()
 ws.abs_lookup_dataCalc(
-    latitude=0.0,
-    longitude=0.0,
+    lat=0.0,
+    lon=0.0,
     alt_grid=np.linspace(0, toa, 101),
     temperature_perturbation=np.linspace(-30, 30, 5),
     water_perturbation=np.logspace(-1, 1, 5),
@@ -80,7 +80,7 @@ for water_ratio in [5e-1, 5]:
 
         plt.figure()
         plt.plot(
-            pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
+            pyarts.arts.convert.freq2kaycm(ws.freq_grid),
             lbl - lut,
             label="LBL - LUT",
         )

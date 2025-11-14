@@ -18,7 +18,7 @@ ws.surface_field["h"].set_extrapolation("Nearest")
 pos = [200e3, 0, 0]
 los = [180, 0]
 f0 = 556.935985e9
-ws.frequency_grid = f0 + np.linspace(-5e9, 5e9, 101)
+ws.freq_grid = f0 + np.linspace(-5e9, 5e9, 101)
 
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")

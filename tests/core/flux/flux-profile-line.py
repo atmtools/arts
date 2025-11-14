@@ -6,7 +6,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(118.5e9 - 30e9, 119e9 + 30e9, 14001)
+ws.freq_grid = np.linspace(118.5e9 - 30e9, 119e9 + 30e9, 14001)
 
 # %% Species and line absorption
 

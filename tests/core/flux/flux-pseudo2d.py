@@ -6,7 +6,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
+ws.freq_grid = [line_f0]
 
 # %% Species and line absorption
 
@@ -30,7 +30,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Settings
 
 ws.atm_profileFromGrid()
-ws.zenith_gridProfilePseudo2D(dza=5)
+ws.za_gridProfilePseudo2D(dza=5)
 ws.spectral_radiance_fieldProfilePseudo2D()
 ws.spectral_flux_profileFromSpectralRadianceField()
 

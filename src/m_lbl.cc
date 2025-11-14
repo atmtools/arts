@@ -585,7 +585,7 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
                   ComplexVectorView pm,
                   ComplexMatrixView dpm,
                   const AbsorptionBands& abs_bands,
-                  const ConstVectorView& frequency_grid,
+                  const ConstVectorView& freq_grid,
                   const JacobianTargets& jacobian_targets,
                   const AtmPoint& atm_point,
                   const SpeciesEnum& species,
@@ -601,7 +601,7 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
   lbl::voigt::lte::calculate(pm,
                              dpm,
                              abs_bands,
-                             frequency_grid,
+                             freq_grid,
                              jacobian_targets,
                              atm_point,
                              pol,
@@ -650,7 +650,7 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
                                    PropmatMatrix& propagation_matrix_jacobian,
                                    Vector& dispersion,
                                    Matrix& dispersion_jacobian,
-                                   const AscendingGrid& frequency_grid,
+                                   const AscendingGrid& freq_grid,
                                    const JacobianTargets& jacobian_targets,
                                    const SpeciesEnum& species,
                                    const AbsorptionBands& abs_bands,
@@ -660,31 +660,30 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
   ARTS_TIME_REPORT
 
   //! FIXME: these should be part of workspace once things work
-  dispersion.resize(frequency_grid.size());
-  dispersion_jacobian.resize(jacobian_targets.target_count(),
-                             frequency_grid.size());
+  dispersion.resize(freq_grid.size());
+  dispersion_jacobian.resize(jacobian_targets.target_count(), freq_grid.size());
   dispersion          = 0;
   dispersion_jacobian = 0;
 
   ARTS_USER_ERROR_IF(
       propagation_matrix.shape() != dispersion.shape() or
-          propagation_matrix.shape() != frequency_grid.shape() or
+          propagation_matrix.shape() != freq_grid.shape() or
           propagation_matrix_jacobian.shape() != dispersion_jacobian.shape(),
       R"(Inconsistent shapes:
 
 propagation_matrix:          {:B,}
 dispersion:                  {:B,}
-frequency_grid:              {:B,}
+freq_grid:              {:B,}
 propagation_matrix_jacobian: {:B,}
 dispersion_jacobian:         {:B,}
 )",
       propagation_matrix.shape(),
       dispersion.shape(),
-      frequency_grid.shape(),
+      freq_grid.shape(),
       propagation_matrix_jacobian.shape(),
       dispersion_jacobian.shape());
 
-  const Size nf = frequency_grid.size();
+  const Size nf = freq_grid.size();
   const Size nt = propagation_matrix_jacobian.nrows();
   if (nf == 0) return;
 
@@ -694,7 +693,7 @@ dispersion_jacobian:         {:B,}
   bool has_zeeman = lbl::voigt::lte::calculate(pm,
                                                dpm,
                                                abs_bands,
-                                               frequency_grid,
+                                               freq_grid,
                                                jacobian_targets,
                                                atm_point,
                                                lbl::zeeman::pol::no,
@@ -718,7 +717,7 @@ dispersion_jacobian:         {:B,}
                    pm,
                    dpm,
                    abs_bands,
-                   frequency_grid,
+                   freq_grid,
                    jacobian_targets,
                    atm_point,
                    species,
@@ -791,7 +790,7 @@ single_dispersion_jac:         {:B,}
 
   ComplexVectorView pm(pm_);
   ComplexMatrixView dpm = dpm_.view_as(nt, 1);
-  const ConstVectorView frequency_grid(frequency);
+  const ConstVectorView freq_grid(frequency);
   PropmatVectorView propagation_matrix{single_propmat};
   PropmatMatrixView propagation_matrix_jacobian{
       single_propmat_jac.view_as(nt, 1)};
@@ -801,7 +800,7 @@ single_dispersion_jac:         {:B,}
   bool has_zeeman = lbl::voigt::lte::calculate(pm,
                                                dpm,
                                                abs_bands,
-                                               frequency_grid,
+                                               freq_grid,
                                                jacobian_targets,
                                                atm_point,
                                                lbl::zeeman::pol::no,
@@ -825,7 +824,7 @@ single_dispersion_jac:         {:B,}
                    pm,
                    dpm,
                    abs_bands,
-                   frequency_grid,
+                   freq_grid,
                    jacobian_targets,
                    atm_point,
                    species,

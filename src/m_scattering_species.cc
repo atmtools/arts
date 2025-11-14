@@ -19,15 +19,15 @@ void propagation_matrix_scatteringSpectralInit(
     PropmatVector& propagation_matrix_scattering,
     StokvecVector& absorption_vector_scattering,
     SpecmatMatrix& phase_matrix_scattering_spectral,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const Index& legendre_degree) {
   ARTS_USER_ERROR_IF(legendre_degree < 0,
                      "The legendre_degree must be non-negative, is {}",
                      legendre_degree)
 
-  propagation_matrix_scattering.resize(frequency_grid.size());
-  absorption_vector_scattering.resize(frequency_grid.size());
-  phase_matrix_scattering_spectral.resize(frequency_grid.size(),
+  propagation_matrix_scattering.resize(freq_grid.size());
+  absorption_vector_scattering.resize(freq_grid.size());
+  phase_matrix_scattering_spectral.resize(freq_grid.size(),
                                           legendre_degree + 1);
 
   propagation_matrix_scattering    = 0.0;
@@ -39,7 +39,7 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
     PropmatVector& propagation_matrix_scattering,
     StokvecVector& absorption_vector_scattering,
     SpecmatMatrix& phase_matrix_scattering_spectral,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AtmPoint& atm_point,
     const ArrayOfScatteringSpecies& scattering_species) try {
   const Index L = phase_matrix_scattering_spectral.ncols();
@@ -50,7 +50,7 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(
-          atm_point, frequency_grid, L - 1);
+          atm_point, freq_grid, L - 1);
 
   ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(), "No phase matrix")
 
@@ -77,7 +77,7 @@ Absorption vector shape (must match):
   absorption_vector_scattering.shape():     {5:B,}
 
 Supporting variable sizes:
-  frequency_grid.size():                    {6}
+  freq_grid.size():                    {6}
   scattering_species.size():                {7}
 )",
       phase_matrix.shape(),
@@ -86,7 +86,7 @@ Supporting variable sizes:
       propagation_matrix_scattering.shape(),
       absorption_vector.shape(),
       absorption_vector_scattering.shape(),
-      frequency_grid.size(),
+      freq_grid.size(),
       scattering_species.species.size())
 
   propagation_matrix_scattering    += extinction_matrix;
@@ -130,19 +130,19 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
     ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     ArrayOfStokvecVector& ray_path_absorption_vector_scattering,
     ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral,
-    const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
     const Index& legendre_degree,
     const Agenda& propagation_matrix_scattering_spectral_agenda) try {
-  const Size N = ray_path_frequency_grid.size();
+  const Size N = freq_grid_path.size();
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_frequency_grid, ray_path_atm_point),
-      R"(The size of ray_path_frequency_grid and ray_path_atm_point must be the same.
-  ray_path_frequency_grid.size():    {}
+      not arr::same_size(freq_grid_path, ray_path_atm_point),
+      R"(The size of freq_grid_path and ray_path_atm_point must be the same.
+  freq_grid_path.size():    {}
   ray_path_atm_point.size(): {}
 )",
-      ray_path_frequency_grid.size(),
+      freq_grid_path.size(),
       ray_path_atm_point.size());
 
   ray_path_propagation_matrix_scattering.resize(N);
@@ -158,7 +158,7 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
           ray_path_propagation_matrix_scattering[i],
           ray_path_absorption_vector_scattering[i],
           ray_path_phase_matrix_scattering_spectral[i],
-          ray_path_frequency_grid[i],
+          freq_grid_path[i],
           ray_path_atm_point[i],
           legendre_degree,
           propagation_matrix_scattering_spectral_agenda);

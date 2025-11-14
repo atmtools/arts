@@ -11,7 +11,7 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
+ws.freq_grid = [line_f0]
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])

@@ -6,7 +6,7 @@ ws = pyarts.Workspace()
 
 ws.disort_settings_agendaSubsurfaceSetup()
 
-ws.frequency_grid = [100e9]
+ws.freq_grid = [100e9]
 
 z = np.linspace(0, -30, 101)
 tf = pyarts.arts.GeodeticField3(

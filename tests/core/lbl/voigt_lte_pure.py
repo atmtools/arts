@@ -6,7 +6,7 @@ ws = pyarts.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-5e6, 5e6, 1001) + line_f0
+ws.freq_grid = np.linspace(-5e6, 5e6, 1001) + line_f0
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])
@@ -43,14 +43,14 @@ d = ws.dispersion * 1.0
 pm = ws.propagation_matrix * 1.0
 dpm = ws.propagation_matrix_jacobian * 1.0
 dd = ws.dispersion_jacobian * 1.0
-f = ws.frequency_grid * 1.0
-ws.frequency_grid = f + 10
+f = ws.freq_grid * 1.0
+ws.freq_grid = f + 10
 ws.propagation_matrixInit()
 ws.propagation_matrixAddVoigtLTE()
 d2 = ws.dispersion * 1.0
 pm2 = ws.propagation_matrix * 1.0
 dpm2 = (pm2 - pm) / 10
-ws.frequency_grid = f
+ws.freq_grid = f
 
 # %% Standard code
 
@@ -65,16 +65,16 @@ assert np.allclose(pm, ws.propagation_matrix)
 if "ARTS_HEADLESS" not in os.environ:
   import matplotlib.pyplot as plt
   fig, ax = plt.subplots(3, 1, figsize=(8, 12))
-  ax[0].plot(ws.frequency_grid/1e9, d)
-  ax[1].plot(ws.frequency_grid/1e9, pm)
-  ax[2].plot(ws.frequency_grid/1e9, ws.propagation_matrix )
+  ax[0].plot(ws.freq_grid/1e9, d)
+  ax[1].plot(ws.freq_grid/1e9, pm)
+  ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix )
 
   for i in range(dd.shape[0]):
     fig, ax = plt.subplots(3 + ("Wind" in x[i]), 1, figsize=(8, 12+ ("Wind" in x[i])*4))
-    ax[0].plot(ws.frequency_grid/1e9, dd[i])
-    ax[1].plot(ws.frequency_grid/1e9, dpm[i])
+    ax[0].plot(ws.freq_grid/1e9, dd[i])
+    ax[1].plot(ws.freq_grid/1e9, dpm[i])
     if "Wind" in x[i]:
-      ax[3].plot(ws.frequency_grid/1e9, dpm2)
-    ax[2].plot(ws.frequency_grid/1e9, ws.propagation_matrix_jacobian[i])
+      ax[3].plot(ws.freq_grid/1e9, dpm2)
+    ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix_jacobian[i])
     ax[0].set_title(f"Jacobian for {x[i]}")
 

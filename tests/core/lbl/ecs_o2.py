@@ -28,7 +28,7 @@ def calc(ws, lineshape=None):
 
 
 ws.WignerInit()
-ws.frequency_grid = np.linspace(20e9, 140e9, 10001)  # around the band
+ws.freq_grid = np.linspace(20e9, 140e9, 10001)  # around the band
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.atm_pointInit()
@@ -52,15 +52,15 @@ ws.ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
 plt.clf()
 
 # Online data
-plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="Online", lw=3)
+plt.semilogy(ws.freq_grid / 1e9, calc(ws), label="Online", lw=3)
 
 # ECS data
-plt.semilogy(ws.frequency_grid / 1e9, calc(ws, "VP_ECS_MAKAROV"), label="ECS")
+plt.semilogy(ws.freq_grid / 1e9, calc(ws, "VP_ECS_MAKAROV"), label="ECS")
 
 # Remove line mixing
 ws.abs_bands.clear_linemixing()
 plt.semilogy(
-    ws.frequency_grid / 1e9, calc(ws, "VP_LTE"), label="No linemixing"
+    ws.freq_grid / 1e9, calc(ws, "VP_LTE"), label="No linemixing"
 )
 
 # 1st order line mixing
@@ -71,7 +71,7 @@ ws.abs_bandsLineMixingAdaptation(
     rosenkranz_fit_order=1,
 )
 plt.semilogy(
-    ws.frequency_grid / 1e9,
+    ws.freq_grid / 1e9,
     calc(ws, "VP_LTE"),
     "--",
     label="1st Order Rosenkranz",
@@ -85,7 +85,7 @@ ws.abs_bandsLineMixingAdaptation(
     rosenkranz_fit_order=2,
 )
 plt.semilogy(
-    ws.frequency_grid / 1e9,
+    ws.freq_grid / 1e9,
     calc(ws, "VP_LTE"),
     ":",
     label="2nd Order Rosenkranz",
@@ -94,7 +94,7 @@ plt.semilogy(
 # Using PWR98
 ws.abs_speciesSet(species=["O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
-plt.semilogy(ws.frequency_grid / 1e9, calc(ws), label="PWR98")
+plt.semilogy(ws.freq_grid / 1e9, calc(ws), label="PWR98")
 
 plt.legend()
 

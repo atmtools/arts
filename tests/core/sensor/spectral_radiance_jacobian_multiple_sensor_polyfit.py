@@ -48,10 +48,10 @@ pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 
 ws.measurement_sensorSimpleGaussian(
-    frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
+    freq_grid=f, std=std, pos=pos, los=los, pol=pol1
 )
 ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
+    freq_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
 # %% Original calculations
@@ -60,10 +60,10 @@ ws.measurement_vectorFromSensor()
 orig = ws.measurement_vector * 1.0
 
 ws.measurement_sensorSimpleGaussian(
-    frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
+    freq_grid=f, std=std, pos=pos, los=los, pol=pol1
 )
 ws.measurement_sensorAddSimpleGaussian(
-    frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
+    freq_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
 ws.measurement_vectorFromSensor()
@@ -90,10 +90,10 @@ for i in range(LIMIT):
     ws.measurement_jacobian = [[]]
 
     ws.measurement_sensorSimpleGaussian(
-        frequency_grid=f, std=std, pos=pos, los=los, pol=pol1
+        freq_grid=f, std=std, pos=pos, los=los, pol=pol1
     )
     ws.measurement_sensorAddSimpleGaussian(
-        frequency_grid=f, std=std, pos=pos, los=los, pol=pol2
+        freq_grid=f, std=std, pos=pos, los=los, pol=pol2
     )
     ws.measurement_vectorFromSensor()
     ws.measurement_vector += np.random.normal(0, noise, 2 * NF)

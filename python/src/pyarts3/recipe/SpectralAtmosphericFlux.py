@@ -87,8 +87,8 @@ class SpectralAtmosphericFlux:
         )
 
         self.ws.ray_pathGeometricDownlooking(
-            latitude=atm_latitude,
-            longitude=atm_longitude,
+            lat=atm_latitude,
+            lon=atm_longitude,
             max_stepsize=max_level_step,
         )
 
@@ -123,14 +123,14 @@ class SpectralAtmosphericFlux:
 
     def __call__(
         self,
-        frequency_grid: pyarts.arts.AscendingGrid,
+        freq_grid: pyarts.arts.AscendingGrid,
         atm_profile: dict = {},
         surface_temperature: float = None,
     ):
         """Get the total flux profile
 
         Args:
-            frequency_grid (pyarts3.arts.AscendingGrid): The frequency grid
+            freq_grid (pyarts3.arts.AscendingGrid): The frequency grid
             atm_profile (dict, optional): The atmospheric profile. Defaults to {}.
             surface_temperature (float, optional): The surface temperature. Defaults to None.
 
@@ -144,15 +144,15 @@ class SpectralAtmosphericFlux:
         self.ws.ray_path_atm_point.update(atm_profile)
 
         # Visible
-        self.ws.frequency_grid = frequency_grid
+        self.ws.freq_grid = freq_grid
 
         self.ws.sunFromGrid(
             sun_spectrum_raw=self.sun,
-            latitude=self.solar_latitude,
-            longitude=self.solar_longitude,
+            lat=self.solar_latitude,
+            lon=self.solar_longitude,
         )
 
-        self.ws.ray_path_frequency_gridFromPath()
+        self.ws.freq_grid_pathFromPath()
         self.ws.ray_path_propagation_matrixFromPath()
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()

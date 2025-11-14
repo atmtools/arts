@@ -35,7 +35,7 @@ can be created by the following, decorated code:
 def cosmic_background(ws):
     ws.spectral_radianceUniformCosmicBackground(
         spectral_radiance=ws.spectral_radiance,
-        frequency_grid=ws.frequency_grid,
+        freq_grid=ws.freq_grid,
     )
     ws.spectral_radiance_jacobianEmpty()
     ws.Ignore(ws.ray_path_point)

@@ -808,7 +808,7 @@ The main purpose of this method is to retrieve the magnitude rather than the vec
       .in     = {"atm_field"},
   };
 
-  wsm_data["frequency_gridFitNonLTE"] = {
+  wsm_data["freq_gridFitNonLTE"] = {
       .desc      = R"(Frequency grid useful for *atm_profileFitNonLTE*.
 
 This method creates a frequency grid around the line-center of each
@@ -825,7 +825,7 @@ absorption line in the *abs_bands* variable.
   That is, the frequency ranges are not allowed to overlap.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"frequency_grid"},
+      .out       = {"freq_grid"},
       .in        = {"abs_bands"},
       .gin       = {"df", "nf"},
       .gin_type  = {"Numeric", "Index"},
@@ -835,13 +835,13 @@ absorption line in the *abs_bands* variable.
            R"--(Number of frequency points per line.  The step between frequency grid points will be :math:`2\frac{\delta f}{N - 1}`, where this is :math:`N`.)--"},
   };
 
-  wsm_data["frequency_gridFromSingleFrequency"] = {
+  wsm_data["freq_gridFromSingleFrequency"] = {
       .desc =
           R"(Composition method, creates a frequency grid from a single frequency.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid"},
-      .in     = {"frequency"},
+      .out    = {"freq_grid"},
+      .in     = {"freq"},
   };
 
   wsm_data["atm_fieldFromProfile"] = {
@@ -867,7 +867,7 @@ All atmospheric points in the profile must contain the same set of parameters.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atm_profile"},
-      .in     = {"atm_field", "alt_grid", "latitude", "longitude"},
+      .in     = {"atm_field", "alt_grid", "lat", "lon"},
   };
 
   wsm_data["atm_profileFromGrid"] = {
@@ -879,7 +879,7 @@ must form a profile.  The profile is extracted and returned.  The grids are
 returned as well.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"atm_profile", "alt_grid", "latitude", "longitude"},
+      .out       = {"atm_profile", "alt_grid", "lat", "lon"},
       .in        = {"atm_field"},
       .gin       = {"key"},
       .gin_type  = {"AtmKey"},
@@ -931,10 +931,10 @@ The method used here is based on :cite:t:`Yamada2018`
                     "abs_bands",
                     "propagation_matrix_agenda",
                     "surface_field",
-                    "frequency_grid",
+                    "freq_grid",
                     "alt_grid",
-                    "latitude",
-                    "longitude"},
+                    "lat",
+                    "lon"},
       .gin       = {"collision_data",
                     "levels",
                     "pol",
@@ -964,10 +964,10 @@ The method used here is based on :cite:t:`Yamada2018`
            "The order of the energy levels",
            "The polarization selection vector (use the default unless you know what you are doing)",
            "The azimuth of the radiation",
-           "The zenith angle limit for the internal call to *zenith_gridProfilePseudo2D*",
+           "The zenith angle limit for the internal call to *za_gridProfilePseudo2D*",
            "Convergence criterion for the energy level distribution",
            "Maximum number of iterations",
-           "Whether to add extra limb points in *zenith_gridProfilePseudo2D*"},
+           "Whether to add extra limb points in *za_gridProfilePseudo2D*"},
       .pass_workspace = true,
   };
 
@@ -1096,26 +1096,26 @@ This is based on the work of :cite:t:`Rodrigues1997`.
       .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
 
-  wsm_data["frequency_gridWindShift"] = {
+  wsm_data["freq_gridWindShift"] = {
       .desc =
-          R"--(Applies wind shift to the *frequency_grid* for the local frequency grid.
+          R"--(Applies wind shift to the *freq_grid* for the local frequency grid.
 
-Also sets *frequency_wind_shift_jacobian*.
+Also sets *freq_wind_shift_jac*.
 
-If the wind is 0 or nan, the *frequency_grid* remains unchanged.
+If the wind is 0 or nan, the *freq_grid* remains unchanged.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency_grid", "frequency_wind_shift_jacobian"},
-      .in     = {"frequency_grid", "atm_point", "ray_path_point"},
+      .out    = {"freq_grid", "freq_wind_shift_jac"},
+      .in     = {"freq_grid", "atm_point", "ray_path_point"},
   };
 
-  wsm_data["frequencyWindShift"] = {
+  wsm_data["freqWindShift"] = {
       .desc =
-          R"--(Same as *frequency_gridWindShift* but for single frequency values.
+          R"--(Same as *freq_gridWindShift* but for single frequency values.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"frequency", "frequency_wind_shift_jacobian"},
-      .in     = {"frequency", "atm_point", "ray_path_point"},
+      .out    = {"freq", "freq_wind_shift_jac"},
+      .in     = {"freq", "atm_point", "ray_path_point"},
   };
 
   wsm_data["ray_path_atm_pointFromProfile"] = {
@@ -1147,7 +1147,7 @@ in your own control-flow.
       .in     = {"ray_path_transmission_matrix"},
   };
 
-  wsm_data["ray_path_frequency_gridFromPath"] = {
+  wsm_data["freq_grid_pathFromPath"] = {
       .desc   = R"--(Gets the frequency grids along the path.
 
 The derivative transformation for wind parameters is also returned.
@@ -1155,9 +1155,8 @@ The derivative transformation for wind parameters is also returned.
 See *propagation_matrix_jacobianWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_frequency_grid",
-                 "ray_path_frequency_wind_shift_jacobian"},
-      .in     = {"frequency_grid", "ray_path", "ray_path_atm_point"},
+      .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
+      .in     = {"freq_grid", "ray_path", "ray_path_atm_point"},
   };
 
   wsm_data["ray_path_propagation_matrixFromPath"] = {
@@ -1166,7 +1165,7 @@ See *propagation_matrix_jacobianWindFix* for use of the wind shift data.
 
 The calculations are in parallel if the program is not in parallel already.
 
-Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
+Also outputs the *freq_grid_path* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"ray_path_propagation_matrix",
@@ -1174,8 +1173,8 @@ Also outputs the *ray_path_frequency_grid* as a side effect (of wind).
                          "ray_path_propagation_matrix_jacobian",
                          "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
       .in             = {"propagation_matrix_agenda",
-                         "ray_path_frequency_grid",
-                         "ray_path_frequency_wind_shift_jacobian",
+                         "freq_grid_path",
+                         "freq_wind_shift_jac_path",
                          "jacobian_targets",
                          "ray_path",
                          "ray_path_atm_point"},
@@ -1206,8 +1205,8 @@ are as per *ray_path_propagation_matrixFromPath*.
            R"--(Jacobian of propagation matrix for selected species)--",
            R"--(Jacobian of non-LTE source vector for selected species)--"},
       .in             = {"propagation_matrix_agenda",
-                         "ray_path_frequency_grid",
-                         "ray_path_frequency_wind_shift_jacobian",
+                         "freq_grid_path",
+                         "freq_wind_shift_jac_path",
                          "jacobian_targets",
                          "ray_path",
                          "ray_path_atm_point",
@@ -1224,7 +1223,7 @@ The calculations are in parallel if the program is not in parallel already.
       .author         = {"Richard Larsson"},
       .out            = {"ray_path_propagation_matrix_scattering"},
       .in             = {"propagation_matrix_scattering_agenda",
-                         "ray_path_frequency_grid",
+                         "freq_grid_path",
                          "ray_path_atm_point"},
       .pass_workspace = true,
   };
@@ -1314,13 +1313,13 @@ where:
     - *ray_path_atm_point*
     - The temperature at the atmospheric point along the path.
   * - :math:`f`
-    - *ray_path_frequency_grid*
+    - *freq_grid_path*
     - The frequency grid at the atmospheric point along the path.
 
 The output dimensions are:
 
-- *ray_path_spectral_radiance_source*: *ray_path* x *frequency_grid*
-- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *frequency_grid* x *jacobian_targets* (target count)
+- *ray_path_spectral_radiance_source*: *ray_path* x *freq_grid*
+- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *freq_grid* x *jacobian_targets* (target count)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_spectral_radiance_source",
@@ -1329,7 +1328,7 @@ The output dimensions are:
                  "ray_path_propagation_matrix_source_vector_nonlte",
                  "ray_path_propagation_matrix_jacobian",
                  "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
-                 "ray_path_frequency_grid",
+                 "freq_grid_path",
                  "ray_path_atm_point",
                  "jacobian_targets"},
   };
@@ -1401,7 +1400,7 @@ are interpolated using third order polynomials.
 
 Given that the interpolation is :math:`\vec{x}_{ij} = f\left(T, \vec{f}\right)`,
 where the *atm_point* temperature is :math:`T` and :math:`f` is the
-*frequency_grid*, :math:`i` is an index into the *abs_cia_data* and :math:`j`
+*freq_grid*, :math:`i` is an index into the *abs_cia_data* and :math:`j`
 is an index into the underlying :class:`~pyarts3.arts.CIARecord` data structure,
 the absorption coefficient from CIA is given by
 
@@ -1433,7 +1432,7 @@ use the computations anyways, set ``T_extrapolfac`` to a very large
 or infinite value.
 
 The frequnecy grid interpolation is limited to within the range
-of the available data. Any point in *frequency_grid* outside this
+of the available data. Any point in *freq_grid* outside this
 range will simply be ignored.  The frequency interpolation can
 thus not fail.
 
@@ -1448,7 +1447,7 @@ thus not fail.
                     "propagation_matrix_jacobian",
                     "select_species",
                     "jacobian_targets",
-                    "frequency_grid",
+                    "freq_grid",
                     "atm_point",
                     "abs_cia_data"},
       .gin       = {"T_extrapolfac", "ignore_errors"},
@@ -1479,7 +1478,7 @@ but adds further contributions.
       .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in     = {"propagation_matrix",
                  "propagation_matrix_jacobian",
-                 "frequency_grid",
+                 "freq_grid",
                  "select_species",
                  "jacobian_targets",
                  "atm_point",
@@ -1654,7 +1653,7 @@ Available models
                  "absorption_predefined_model_data",
                  "select_species",
                  "jacobian_targets",
-                 "frequency_grid",
+                 "freq_grid",
                  "atm_point"},
   };
 
@@ -1663,7 +1662,7 @@ Available models
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
 This broadens the cross section data from *abs_xfit_data* and
-interpolates it onto the current *frequency_grid*.
+interpolates it onto the current *freq_grid*.
 )--",
       .author    = {"Oliver Lemke"},
       .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
@@ -1671,7 +1670,7 @@ interpolates it onto the current *frequency_grid*.
                     "propagation_matrix_jacobian",
                     "select_species",
                     "jacobian_targets",
-                    "frequency_grid",
+                    "freq_grid",
                     "atm_point",
                     "abs_xfit_data"},
       .gin       = {"force_p", "force_t"},
@@ -1691,7 +1690,7 @@ This method must be used inside *propagation_matrix_scattering_spectral_agenda* 
       .out    = {"propagation_matrix_scattering",
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral"},
-      .in     = {"frequency_grid", "legendre_degree"},
+      .in     = {"freq_grid", "legendre_degree"},
   };
 
   wsm_data["legendre_degreeFromDisortSettings"] = {
@@ -1717,7 +1716,7 @@ Method is purely for convenience and composition.
       .in     = {"propagation_matrix_scattering",
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral",
-                 "frequency_grid",
+                 "freq_grid",
                  "atm_point",
                  "scattering_species"},
   };
@@ -1730,7 +1729,7 @@ Method is purely for convenience and composition.
       .out            = {"ray_path_propagation_matrix_scattering",
                          "ray_path_absorption_vector_scattering",
                          "ray_path_phase_matrix_scattering_spectral"},
-      .in             = {"ray_path_frequency_grid",
+      .in             = {"freq_grid_path",
                          "ray_path_atm_point",
                          "legendre_degree",
                          "propagation_matrix_scattering_spectral_agenda"},
@@ -1745,7 +1744,7 @@ This method must be used inside *propagation_matrix_scattering_agenda* and then 
 )--",
       .author = {"Richard Larsson"},
       .out    = {"propagation_matrix_scattering"},
-      .in     = {"frequency_grid"},
+      .in     = {"freq_grid"},
   };
 
   wsm_data["propagation_matrix_scatteringAirSimple"] = {
@@ -1754,7 +1753,7 @@ This method must be used inside *propagation_matrix_scattering_agenda* and then 
 )--",
       .author = {"Jon Petersen", "Richard Larsson"},
       .out    = {"propagation_matrix_scattering"},
-      .in = {"propagation_matrix_scattering", "frequency_grid", "atm_point"},
+      .in     = {"propagation_matrix_scattering", "freq_grid", "atm_point"},
   };
 
   wsm_data["propagation_matrixInit"] = {
@@ -1768,7 +1767,7 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
                  "propagation_matrix_source_vector_nonlte",
                  "propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in     = {"jacobian_targets", "frequency_grid"},
+      .in     = {"jacobian_targets", "freq_grid"},
   };
 
   wsm_data["surface_fieldPlanet"] = {
@@ -2024,7 +2023,7 @@ Gets the ellispoid from *surface_field*
                          "spectral_radiance_surface_agenda",
                          "surface_field",
                          "subsurface_field",
-                         "frequency_grid",
+                         "freq_grid",
                          "alt_grid"},
       .pass_workspace = true,
   };
@@ -2049,7 +2048,7 @@ Gets the ellispoid from *surface_field*
       .gout      = {"flux_profile"},
       .gout_type = {"Vector"},
       .gout_desc = {"The spectral flux profile"},
-      .in        = {"spectral_flux_profile", "frequency_grid"},
+      .in        = {"spectral_flux_profile", "freq_grid"},
   };
 
   wsm_data["nlte_line_flux_profileIntegrate"] = {
@@ -2058,10 +2057,7 @@ Gets the ellispoid from *surface_field*
 )--",
       .author = {"Richard Larsson"},
       .out    = {"nlte_line_flux_profile"},
-      .in     = {"spectral_flux_profile",
-                 "abs_bands",
-                 "atm_profile",
-                 "frequency_grid"},
+      .in = {"spectral_flux_profile", "abs_bands", "atm_profile", "freq_grid"},
   };
 
   wsm_data["single_radClearskyEmissionPropagation"] = {
@@ -2075,7 +2071,7 @@ but built on-the-fly, allowing per-frequency refraction.
       .author = {"Richard Larsson"},
       .out    = {"single_rad", "single_rad_jac", "ray_path"},
       .in     = {"atm_field",
-                 "frequency",
+                 "freq",
                  "jacobian_targets",
                  "single_rad_space_agenda",
                  "single_rad_surface_agenda",
@@ -2122,7 +2118,7 @@ but built on-the-fly, allowing per-frequency refraction.
       .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
       .gout_desc      = {"The ray paths for each frequency"},
       .in             = {"atm_field",
-                         "frequency_grid",
+                         "freq_grid",
                          "jacobian_targets",
                          "single_rad_space_agenda",
                          "single_rad_surface_agenda",
@@ -2175,7 +2171,7 @@ error is raised.  As is it if the background position is unknown.
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance_background",
                          "spectral_radiance_background_jacobian"},
-      .in             = {"frequency_grid",
+      .in             = {"freq_grid",
                          "jacobian_targets",
                          "ray_path_point",
                          "surface_field",
@@ -2193,7 +2189,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"frequency_grid", "jacobian_targets"},
+      .in     = {"freq_grid", "jacobian_targets"},
   };
 
   wsm_data["spectral_radianceSetToBackground"] = {
@@ -2219,7 +2215,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "spectral_radiance_jacobian",
                     "jacobian_targets",
                     "ray_path",
-                    "ray_path_frequency_grid",
+                    "freq_grid_path",
                     "ray_path_atm_point",
                     "ray_path_propagation_matrix",
                     "ray_path_propagation_matrix_source_vector_nonlte",
@@ -2244,7 +2240,7 @@ where :math:`T_c` is the cosmic microwave background temperature.  :math:`\nu` i
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"frequency_grid"},
+      .in     = {"freq_grid"},
   };
 
   wsm_data["spectral_radianceSurfaceBlackbody"] = {
@@ -2258,7 +2254,7 @@ where :math:`T_s` is the surface temperature extracted at the input *ray_path_po
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"frequency_grid",
+      .in     = {"freq_grid",
                  "surface_field",
                  "jacobian_targets",
                  "ray_path_point"},
@@ -2278,7 +2274,7 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in             = {"frequency_grid",
+      .in             = {"freq_grid",
                          "atm_field",
                          "surface_field",
                          "subsurface_field",
@@ -2305,7 +2301,7 @@ a modified *jacobian_targets*, making it safe to use this method inside
               "spectral_radiance_jacobian",
               "spectral_radiance",
               "measurement_sensor",
-              "frequency_grid",
+              "freq_grid",
               "jacobian_targets",
               "spectral_radiance_observer_position",
               "spectral_radiance_observer_line_of_sight",
@@ -2320,11 +2316,11 @@ a modified *jacobian_targets*, making it safe to use this method inside
   wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc   = R"--(Set the radiation derivative to empty.
 
-Size : (*jacobian_targets*, *frequency_grid*)
+Size : (*jacobian_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
-      .in     = {"frequency_grid", "jacobian_targets"},
+      .in     = {"freq_grid", "jacobian_targets"},
   };
 
   wsm_data["spectral_radiance_jacobianFromBackground"] = {
@@ -2379,7 +2375,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
           {
               "spectral_radiance",
               "spectral_radiance_jacobian",
-              "frequency_grid",
+              "freq_grid",
               "ray_path_point",
               "spectral_radiance_transform_operator",
           },
@@ -2394,7 +2390,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
       .in =
           {
               "spectral_radiance",
-              "frequency_grid",
+              "freq_grid",
               "ray_path_point",
               "spectral_radiance_transform_operator",
           },
@@ -2436,7 +2432,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .in     = {"frequency_grid",
+      .in     = {"freq_grid",
                  "surface_field",
                  "ray_path_point",
                  "jacobian_targets"},
@@ -2461,7 +2457,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .in     = {"frequency_grid",
+      .in     = {"freq_grid",
                  "surface_field",
                  "ray_path_point",
                  "jacobian_targets"},
@@ -2481,9 +2477,9 @@ matrix to be calculated will work.
                  "propagation_matrix_source_vector_nonlte_jacobian"},
       .in     = {"propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian",
-                 "frequency_grid",
+                 "freq_grid",
                  "jacobian_targets",
-                 "frequency_wind_shift_jacobian"},
+                 "freq_wind_shift_jac"},
   };
 
   wsm_data["propagation_matrixAddLines"] = {
@@ -2500,7 +2496,7 @@ See :doc:`concept.absorption.lbl` for details.
                     "propagation_matrix_source_vector_nonlte",
                     "propagation_matrix_jacobian",
                     "propagation_matrix_source_vector_nonlte_jacobian",
-                    "frequency_grid",
+                    "freq_grid",
                     "jacobian_targets",
                     "select_species",
                     "abs_bands",
@@ -2530,7 +2526,7 @@ This is only for LTE lines in Voigt.
            "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
-                    "frequency_grid",
+                    "freq_grid",
                     "jacobian_targets",
                     "select_species",
                     "abs_bands",
@@ -2571,7 +2567,7 @@ This is only for LTE lines in Voigt.
                     "single_propmat_jac",
                     "single_dispersion",
                     "single_dispersion_jac",
-                    "frequency",
+                    "freq",
                     "jacobian_targets",
                     "select_species",
                     "abs_bands",
@@ -2593,7 +2589,7 @@ See :doc:`concept.absorption.lookup` for details.
       .out      = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in       = {"propagation_matrix",
                    "propagation_matrix_jacobian",
-                   "frequency_grid",
+                   "freq_grid",
                    "jacobian_targets",
                    "select_species",
                    "abs_lookup_data",
@@ -3262,7 +3258,7 @@ If ``line`` is positive, also keep only the line of this index
       .out       = {"abs_lookup_data"},
       .in        = {"abs_lookup_data",
                     "atm_profile",
-                    "frequency_grid",
+                    "freq_grid",
                     "abs_bands",
                     "ecs_data",
                     "select_species"},
@@ -3285,7 +3281,7 @@ for those species that are ``water_affected_species``.
       .out       = {"abs_lookup_data"},
       .in        = {"abs_lookup_data",
                     "atm_profile",
-                    "frequency_grid",
+                    "freq_grid",
                     "abs_bands",
                     "ecs_data"},
       .gin       = {"temperature_perturbation",
@@ -3311,7 +3307,7 @@ Unlike *abs_lookup_dataPrecomputeAll*, this method will initialize
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"frequency_grid", "abs_bands", "ecs_data"},
+      .in        = {"freq_grid", "abs_bands", "ecs_data"},
       .gin       = {"pressure_profile",
                     "temperature_profile",
                     "vmr_profiles",
@@ -3354,7 +3350,7 @@ The pressure range is set up logarithmically and all other ranges are set linear
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"frequency_grid", "abs_bands", "ecs_data"},
+      .in        = {"freq_grid", "abs_bands", "ecs_data"},
       .gin       = {"water_affected_species",
                     "pressure_range",
                     "temperature_range",
@@ -3687,11 +3683,7 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atm_field",
-                 "surface_field",
-                 "latitude",
-                 "longitude",
-                 "max_stepsize"},
+      .in     = {"atm_field", "surface_field", "lat", "lon", "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometricDownlooking"] = {
@@ -3700,11 +3692,7 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atm_field",
-                 "surface_field",
-                 "latitude",
-                 "longitude",
-                 "max_stepsize"},
+      .in     = {"atm_field", "surface_field", "lat", "lon", "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometric"] = {
@@ -3790,7 +3778,7 @@ bad angles if this is turned off.
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
-      .desc   = R"--(Set up a 1D spectral radiance operator
+      .desc      = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
 a 1D atmospheric profile.
@@ -3799,14 +3787,14 @@ This method will share line-by-line,cross-section, collision-induced absorption,
 predefined model data with the workspace (if they exist already when this method is
 called).
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_operator"},
-      .in = {"atm_field", "surface_field", "alt_grid", "latitude", "longitude"},
-      .gin            = {"cia_extrapolation", "cia_robust"},
-      .gin_type       = {"Numeric", "Index"},
-      .gin_value      = {Numeric{0.0}, Index{0}},
-      .gin_desc       = {"The extrapolation distance for cia",
-                         "The robustness of the cia extrapolation"},
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_radiance_operator"},
+      .in        = {"atm_field", "surface_field", "alt_grid", "lat", "lon"},
+      .gin       = {"cia_extrapolation", "cia_robust"},
+      .gin_type  = {"Numeric", "Index"},
+      .gin_value = {Numeric{0.0}, Index{0}},
+      .gin_desc  = {"The extrapolation distance for cia",
+                    "The robustness of the cia extrapolation"},
       .pass_workspace = true,
   };
 
@@ -3818,18 +3806,18 @@ A profile is defined as having space blackbody emission from the top and surface
 blackbody emissision from the surface.
 
 Limb paths are only considered when the zenith angle misses the next lower level using the
-same mechanism as in *zenith_gridProfilePseudo2D*.
+same mechanism as in *za_gridProfilePseudo2D*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance_field"},
       .in             = {"propagation_matrix_agenda",
                          "atm_profile",
                          "surface_field",
-                         "frequency_grid",
-                         "zenith_grid",
+                         "freq_grid",
+                         "za_grid",
                          "alt_grid",
-                         "latitude",
-                         "longitude"},
+                         "lat",
+                         "lon"},
       .gin            = {"azimuth"},
       .gin_type       = {"Numeric"},
       .gin_value      = {Numeric{0}},
@@ -3837,13 +3825,13 @@ same mechanism as in *zenith_gridProfilePseudo2D*.
       .pass_workspace = true,
   };
 
-  wsm_data["zenith_gridProfilePseudo2D"] = {
+  wsm_data["za_gridProfilePseudo2D"] = {
       .desc =
           R"--(A custom zenith grid for *spectral_radiance_fieldProfilePseudo2D*
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"zenith_grid"},
-      .in        = {"surface_field", "alt_grid", "latitude", "longitude"},
+      .out       = {"za_grid"},
+      .in        = {"surface_field", "alt_grid", "lat", "lon"},
       .gin       = {"dza", "azimuth", "consider_limb"},
       .gin_type  = {"Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
@@ -3864,10 +3852,10 @@ Limitations:
 
 - The zenith grid is not allowed to contain the value 90 degrees.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_field"},
-      .in     = {"spectral_radiance_operator", "frequency_grid", "zenith_grid"},
-      .gin    = {"azimuth_grid"},
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_radiance_field"},
+      .in        = {"spectral_radiance_operator", "freq_grid", "za_grid"},
+      .gin       = {"azimuth_grid"},
       .gin_type  = {"AzimuthGrid"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The azimuth grid"},
@@ -3888,8 +3876,8 @@ the first 5 dimensions are computed in parallel.
       .out            = {"spectral_radiance_field"},
       .in             = {"spectral_radiance_operator",
                          "ray_path_observer_agenda",
-                         "frequency_grid",
-                         "zenith_grid"},
+                         "freq_grid",
+                         "za_grid"},
       .gin            = {"azimuth_grid"},
       .gin_type       = {"AzimuthGrid"},
       .gin_value      = {std::nullopt},
@@ -4452,7 +4440,7 @@ All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"measurement_sensor", "frequency_grid"},
+      .in        = {"measurement_sensor", "freq_grid"},
       .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
@@ -4470,7 +4458,7 @@ All elements share position, line-of-sight, and frequency grid.
 )--",
       .author   = {"Richard Larsson"},
       .out      = {"measurement_sensor"},
-      .in       = {"measurement_sensor", "frequency_grid"},
+      .in       = {"measurement_sensor", "freq_grid"},
       .gin      = {"pos", "los", "pol", "dza_grid", "std_za"},
       .gin_type = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
       .gin_value = {std::nullopt,
@@ -4499,7 +4487,7 @@ the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensor"},
-      .in        = {"measurement_sensor", "frequency_grid"},
+      .in        = {"measurement_sensor", "freq_grid"},
       .gin       = {"std", "pos", "los", "pol"},
       .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
       .gin_value = {std::nullopt,
@@ -4545,7 +4533,7 @@ The quoted strings must be used as the grid names of the gridded field.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor"},
-      .in     = {"measurement_sensor", "frequency_grid"},
+      .in     = {"measurement_sensor", "freq_grid"},
       .gin    = {"pos", "los", "raw_sensor_perturbation", "normalize"},
       .gin_type =
           {"Vector3",
@@ -4625,7 +4613,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"frequency_grid", "ray_path_point", "suns", "surface_field"},
+      .in     = {"freq_grid", "ray_path_point", "suns", "surface_field"},
   };
 
   wsm_data["spectral_radianceSunOrCosmicBackground"] = {
@@ -4634,7 +4622,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"frequency_grid", "sun_path", "sun", "surface_field"},
+      .in     = {"freq_grid", "sun_path", "sun", "surface_field"},
   };
 
   wsm_data["sunBlackbody"] = {
@@ -4649,7 +4637,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author    = {"Jon Petersen", "Richard Larsson"},
       .out       = {"sun"},
-      .in        = {"frequency_grid", "latitude", "longitude"},
+      .in        = {"freq_grid", "lat", "lon"},
       .gin       = {"radius", "distance", "temperature"},
       .gin_type  = {"Numeric", "Numeric", "Numeric"},
       .gin_value = {6.963242e8, 1.495978707e11, 5772.0},
@@ -4675,19 +4663,19 @@ Unit:
 
 - GriddedField2: [W m-2 Hz-1]
 
-- Vector *frequency_grid* [Hz]
+- Vector *freq_grid* [Hz]
 - Vector ``stokes_dim`` [1]
 
-Dimensions: [*frequency_grid*, stokes_dim]
+Dimensions: [*freq_grid*, stokes_dim]
 
-This method performs an interpolation onto the *frequency_grid*.
-The point of *frequency_grid* that are outside the data frequency grid
+This method performs an interpolation onto the *freq_grid*.
+The point of *freq_grid* that are outside the data frequency grid
 are initialized according to planck's law of the temperature variable.
-Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
+Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )",
       .author   = {"Jon Petersen", "Richard Larsson"},
       .out      = {"sun"},
-      .in       = {"frequency_grid", "latitude", "longitude"},
+      .in       = {"freq_grid", "lat", "lon"},
       .gin      = {"sun_spectrum_raw",
                    "radius",
                    "distance",
@@ -4714,7 +4702,7 @@ Hence, a temperature of 0 means 0s the edges of the *frequency_grid*.
                          "ray_path_suns_path",
                          "suns",
                          "jacobian_targets",
-                         "frequency_grid",
+                         "freq_grid",
                          "atm_field",
                          "surface_field",
                          "propagation_matrix_agenda"},
@@ -5203,7 +5191,7 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
       .in        = {"disort_settings",
-                    "frequency_grid",
+                    "freq_grid",
                     "ray_path",
                     "atm_field",
                     "surface_field",
@@ -5228,7 +5216,7 @@ The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbi
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in             = {"frequency_grid",
+      .in             = {"freq_grid",
                          "atm_field",
                          "surface_field",
                          "subsurface_field",
@@ -5368,7 +5356,7 @@ A description of the options is given below.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
-                 "frequency_grid",
+                 "freq_grid",
                  "surface_field",
                  "sun",
                  "ray_path_point"},
@@ -5390,7 +5378,7 @@ Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "ray_path_atm_point", "frequency_grid"},
+      .in     = {"disort_settings", "ray_path_atm_point", "freq_grid"},
   };
 
   wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
@@ -5401,7 +5389,7 @@ Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "subsurface_profile", "frequency_grid"},
+      .in     = {"disort_settings", "subsurface_profile", "freq_grid"},
   };
 
   wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
@@ -5416,7 +5404,7 @@ This is WIP and should not be used.
                  "ray_path_atm_point",
                  "ray_path_propagation_matrix",
                  "ray_path_propagation_matrix_source_vector_nonlte",
-                 "frequency_grid"},
+                 "freq_grid"},
   };
 
   wsm_data["disort_settingsNoSpaceEmission"] = {
@@ -5434,7 +5422,7 @@ This is WIP and should not be used.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "frequency_grid"},
+      .in     = {"disort_settings", "freq_grid"},
   };
 
   wsm_data["disort_settingsSubsurfaceEmissionByTemperature"] = {
@@ -5445,7 +5433,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "frequency_grid", "subsurface_profile"},
+      .in     = {"disort_settings", "freq_grid", "subsurface_profile"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -5462,10 +5450,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "frequency_grid",
-                 "ray_path_point",
-                 "surface_field"},
+      .in = {"disort_settings", "freq_grid", "ray_path_point", "surface_field"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
@@ -5526,7 +5511,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"frequency_grid",
+      .in     = {"freq_grid",
                  "ray_path",
                  "disort_quadrature_dimension",
                  "disort_legendre_polynomial_dimension",
@@ -5565,7 +5550,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings",
                     "ray_path_atm_point",
-                    "ray_path_frequency_grid",
+                    "freq_grid_path",
                     "ray_path",
                     "surface_field"},
       .gin       = {"azimuth_grid"},
@@ -5692,8 +5677,8 @@ the smallest possible numerical offset from that angle in the signed direction.
       .in        = {"atm_field",
                     "surface_field",
                     "ray_path_observer_agenda",
-                    "latitude",
-                    "longitude"},
+                    "lat",
+                    "lon"},
       .gin       = {"azimuth", "nup", "nlimb", "ndown"},
       .gin_type  = {"Numeric", "Index", "Index", "Index"},
       .gin_value = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},

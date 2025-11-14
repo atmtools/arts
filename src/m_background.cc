@@ -12,7 +12,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const Workspace& ws,
     StokvecVector& spectral_radiance_background,
     StokvecMatrix& spectral_radiance_background_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surface_field,
@@ -32,7 +32,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           ws,
           spectral_radiance_background,
           spectral_radiance_background_jacobian,
-          frequency_grid,
+          freq_grid,
           jacobian_targets,
           ray_path_point,
           spectral_radiance_space_agenda);
@@ -42,7 +42,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           ws,
           spectral_radiance_background,
           spectral_radiance_background_jacobian,
-          frequency_grid,
+          freq_grid,
           jacobian_targets,
           ray_path_point,
           surface_field,
@@ -54,46 +54,45 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-StokvecVector from_temp(const ConstVectorView& frequency_grid,
-                        const Numeric t) {
-  StokvecVector v(frequency_grid.size(), 0.0);
-  std::transform(frequency_grid.begin(),
-                 frequency_grid.end(),
-                 v.begin(),
-                 [t](auto f) -> Stokvec { return {planck(f, t), 0, 0, 0}; });
+StokvecVector from_temp(const ConstVectorView& freq_grid, const Numeric t) {
+  StokvecVector v(freq_grid.size(), 0.0);
+  std::transform(
+      freq_grid.begin(), freq_grid.end(), v.begin(), [t](auto f) -> Stokvec {
+        return {planck(f, t), 0, 0, 0};
+      });
   return v;
 }
 }  // namespace
 
-void spectral_radianceUniformCosmicBackground(
-    StokvecVector& spectral_radiance, const AscendingGrid& frequency_grid) {
+void spectral_radianceUniformCosmicBackground(StokvecVector& spectral_radiance,
+                                              const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   constexpr auto t  = Constant::cosmic_microwave_background_temperature;
-  spectral_radiance = from_temp(frequency_grid, t);
+  spectral_radiance = from_temp(freq_grid, t);
 }
 
 void spectral_radianceSunOrCosmicBackground(
     StokvecVector& spectral_radiance,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& sun_path,
     const Sun& sun,
     const SurfaceField& surface_field) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance.resize(frequency_grid.size());
+  spectral_radiance.resize(freq_grid.size());
 
   if (set_spectral_radiance_if_sun_intersection(
           spectral_radiance, sun, sun_path.back(), surface_field))
     return;
 
-  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+  spectral_radianceUniformCosmicBackground(spectral_radiance, freq_grid);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceSunsOrCosmicBackground(
     StokvecVector& spectral_radiance,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point,
     const ArrayOfSun& suns,
     const SurfaceField& surface_field) {
@@ -104,7 +103,7 @@ void spectral_radianceSunsOrCosmicBackground(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surface_field.ellipsoid)
 
-  spectral_radiance.resize(frequency_grid.size());
+  spectral_radiance.resize(freq_grid.size());
 
   for (auto& sun : suns) {
     if (set_spectral_radiance_if_sun_intersection(
@@ -113,13 +112,13 @@ void spectral_radianceSunsOrCosmicBackground(
     }
   }
 
-  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+  spectral_radianceUniformCosmicBackground(spectral_radiance, freq_grid);
 }
 
 void spectral_radianceSurfaceBlackbody(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point) {
@@ -132,10 +131,10 @@ void spectral_radianceSurfaceBlackbody(
 
   const auto t = surface_field.single_value(
       key, ray_path_point.pos[1], ray_path_point.pos[2]);
-  spectral_radiance = from_temp(frequency_grid, t);
+  spectral_radiance = from_temp(freq_grid, t);
 
   spectral_radiance_jacobianEmpty(
-      spectral_radiance_jacobian, frequency_grid, jacobian_targets);
+      spectral_radiance_jacobian, freq_grid, jacobian_targets);
 
   for (auto& target : jacobian_targets.surf) {
     if (target.type == SurfaceKey::t) {
@@ -144,8 +143,8 @@ void spectral_radianceSurfaceBlackbody(
       const auto ws =
           data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
 
-      for (Size i = 0; i < frequency_grid.size(); i++) {
-        const Numeric dBdt = dplanck_dt(frequency_grid[i], t);
+      for (Size i = 0; i < freq_grid.size(); i++) {
+        const Numeric dBdt = dplanck_dt(freq_grid[i], t);
         for (const auto& w : ws) {
           spectral_radiance_jacobian[w.first + target.x_start, i] +=
               w.second * dBdt;
@@ -182,11 +181,11 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radianceDefaultTransmission(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_background,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  const Index nf = frequency_grid.size();
+  const Index nf = freq_grid.size();
   const Index nq = jacobian_targets.x_size();
 
   spectral_radiance_background.resize(nq, nf);

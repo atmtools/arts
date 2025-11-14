@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsInit(DisortSettings& disort_settings,
-                         const AscendingGrid& frequency_grid,
+                         const AscendingGrid& freq_grid,
                          const ArrayOfPropagationPathPoint& ray_path,
                          const Index& quadrature_dimension,
                          const Index& legendre_polynomial_dimension,
@@ -35,7 +35,7 @@ void disort_settingsInit(DisortSettings& disort_settings,
   disort_settings.resize(quadrature_dimension,
                          legendre_polynomial_dimension,
                          fourier_mode_dimension,
-                         frequency_grid,
+                         freq_grid,
                          DescendingGrid{ray_path.begin(),
                                         ray_path.end(),
                                         [](auto& v) { return v.altitude(); }});
@@ -54,7 +54,7 @@ void disort_settingsNoSun(DisortSettings& disort_settings) {
 }
 
 void disort_settingsSetSun(DisortSettings& disort_settings,
-                           const AscendingGrid& frequency_grid,
+                           const AscendingGrid& freq_grid,
                            const SurfaceField& surface_field,
                            const Sun& sun,
                            const PropagationPathPoint& ray_path_point) {
@@ -75,13 +75,13 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
   const Numeric sin2_alpha =
       sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
 
-  const Size nv = frequency_grid.size();
+  const Size nv = freq_grid.size();
 
   ARTS_USER_ERROR_IF(disort_settings.solar_source.size() != nv or
                          static_cast<Size>(sun.spectrum.nrows()) != nv,
                      R"(Solar spectrum not agreeing with frequency grids:
 
-frequency_grid.size():               {}
+freq_grid.size():               {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",
@@ -113,10 +113,10 @@ template <typename T>
 void disort_settingsLayerThermalEmissionLinearInTauImpl(
     DisortSettings& disort_settings,
     const T& ray_path_points,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Size nv = frequency_grid.size();
+  const Size nv = freq_grid.size();
   const Size N  = ray_path_points.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
@@ -131,7 +131,7 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    const Numeric& f = frequency_grid[iv];
+    const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
       const Numeric& t0 = ray_path_points[i + 0].temperature;
@@ -155,17 +155,17 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, ray_path_atm_point, frequency_grid);
+      disort_settings, ray_path_atm_point, freq_grid);
 }
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfSubsurfacePoint& subsurface_profile,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, subsurface_profile, frequency_grid);
+      disort_settings, subsurface_profile, freq_grid);
 }
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
@@ -174,10 +174,10 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Size nv = frequency_grid.size();
+  const Size nv = freq_grid.size();
   const Size N  = ray_path_atm_point.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
@@ -217,7 +217,7 @@ ray_path_source_vector_nonlte.size(): {}
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    const Numeric& f = frequency_grid[iv];
+    const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
       const Numeric& t0 = ray_path_atm_point[i + 0].temperature;
@@ -261,12 +261,12 @@ void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
 
 void disort_settingsSurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surface_field) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
+  const auto nv = freq_grid.size();
 
   const Numeric T = surface_field.single_value(
       SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
@@ -284,17 +284,17 @@ void disort_settingsSurfaceEmissionByTemperature(
       "Must have at least one fourier mode to use the positive boundary condition.")
 
   for (Size iv = 0; iv < nv; iv++) {
-    limit[iv, 0, joker] = planck(frequency_grid[iv], T);
+    limit[iv, 0, joker] = planck(freq_grid[iv], T);
   }
 }
 
 void disort_settingsSubsurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const ArrayOfSubsurfacePoint& subsurface_profile) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
+  const auto nv = freq_grid.size();
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
@@ -313,7 +313,7 @@ void disort_settingsSubsurfaceEmissionByTemperature(
   const Numeric Tbot = subsurface_profile.back().temperature;
 
   for (Size iv = 0; iv < nv; iv++) {
-    limit[iv, 0, joker] = planck(frequency_grid[iv], Tbot);
+    limit[iv, 0, joker] = planck(freq_grid[iv], Tbot);
   }
 }
 
@@ -328,10 +328,10 @@ void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
 }
 
 void disort_settingsCosmicMicrowaveBackgroundRadiation(
-    DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
+    DisortSettings& disort_settings, const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Index nv = frequency_grid.size();
+  const Index nv = freq_grid.size();
 
   disort_settings.negative_boundary_condition = 0.0;
 
@@ -347,14 +347,14 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 
   for (Index iv = 0; iv < nv; iv++) {
     disort_settings.negative_boundary_condition[iv, 0, joker] = planck(
-        frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
+        freq_grid[iv], Constant::cosmic_microwave_background_temperature);
   }
 }
 
 void disort_settingsDownwellingObserver(
     const Workspace& ws,
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& ray_path,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
@@ -367,7 +367,7 @@ void disort_settingsDownwellingObserver(
 
   auto& limit = disort_settings.negative_boundary_condition = 0;
 
-  const Index nv = frequency_grid.size();
+  const Index nv = freq_grid.size();
   const Index N  = disort_settings.quadrature_dimension / 2;
 
   ARTS_USER_ERROR_IF(
@@ -401,7 +401,7 @@ void disort_settingsDownwellingObserver(
           spectral_radiance,
           spectral_radiance_jacobian,
           ray_path_up,
-          frequency_grid,
+          freq_grid,
           jacobian_targets,
           ray_path_point.pos,
           {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
@@ -831,7 +831,7 @@ Agenda disort_settings_agendaSetup(
 
   // Clearsky absorption
   agenda.add("ray_path_atm_pointFromPath");
-  agenda.add("ray_path_frequency_gridFromPath");
+  agenda.add("freq_grid_pathFromPath");
   agenda.add("ray_path_propagation_matrixFromPath");
 
   agenda.add("disort_settingsInit");

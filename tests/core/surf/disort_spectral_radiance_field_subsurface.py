@@ -6,7 +6,7 @@ ws = pyarts.Workspace()
 
 ws.disort_settings_agendaSubsurfaceSetup()
 
-ws.frequency_grid = [100e9]
+ws.freq_grid = [100e9]
 
 ws.ray_path_point.pos = [0, 0, 0]
 ws.ray_path_point.los = [0, 0]

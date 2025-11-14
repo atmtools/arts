@@ -15,8 +15,8 @@ ws = pyarts.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
-ws.frequency_grid = np.linspace(-20e9, 2e6, 5) + line_f0
+ws.freq_grid = [line_f0]
+ws.freq_grid = np.linspace(-20e9, 2e6, 5) + line_f0
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])
@@ -42,7 +42,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()
 
-ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_stepsize=40_000)
+ws.ray_pathGeometricDownlooking(lon=lon, lat=lat, max_stepsize=40_000)
 
 ws.disort_spectral_flux_fieldFromAgenda(
     disort_quadrature_dimension=NQuad,
@@ -96,7 +96,7 @@ assert np.allclose(
 fig = plt.figure(figsize=(16, 5))
 fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig,
                       alts=ws.disort_spectral_flux_field.alt_grid / 1e3,
-                      freqs=ws.frequency_grid / 1e9, levels=50)
+                      freqs=ws.freq_grid / 1e9, levels=50)
 fig.suptitle("Disort clearsky spectral fluxes")
 [a.set_ylabel("Altitude [km]") for a in ax]
 [a.set_xlabel("Frequency [GHz]") for a in ax]

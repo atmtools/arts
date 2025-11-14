@@ -9,14 +9,14 @@ if 0:
             self.pressure = pressure
             self.zeeman = zeeman
             self.one_by_one = one_by_one
-            self.frequency_grid = frange
+            self.freq_grid = frange
     
         def apply(self, ws, il):
             ws.atm_point.pressure = self.pressure
             ws.abs_bands[0].data.lines[il].z.on = self.zeeman
             for x in ws.abs_bands[0].data.lines:
                 x.ls.one_by_one = self.one_by_one
-            ws.frequency_grid = self.frequency_grid
+            ws.freq_grid = self.freq_grid
             ws.abs_bandsSetZeeman(
                 species="O2-66",
                 fmin=50474199538.7676-1e6,
@@ -30,7 +30,7 @@ if 0:
                 f"pressure: {self.pressure}; "
                 f"zeeman: {self.zeeman}; "
                 f"one-by-one: {self.one_by_one}; "
-                f"frequency_grid {self.frequency_grid[0]}-{self.frequency_grid[-1]}; "
+                f"freq_grid {self.freq_grid[0]}-{self.freq_grid[-1]}; "
             )
     
     
@@ -223,7 +223,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid,
+            ws.freq_grid,
             dpm[0][:, 0],
             dpm_dX[:, 0],
             "Isotopologue ratio",
@@ -242,7 +242,7 @@ if 0:
         ws.atm_point[key] -= d
     
         dpm_dX = (pm_d - pm) / d
-        compare_fn(ws.frequency_grid, dpm[1][:, 0], dpm_dX[:, 0], "VMR", setting)
+        compare_fn(ws.freq_grid, dpm[1][:, 0], dpm_dX[:, 0], "VMR", setting)
     
         # Temperature
         d = 1e-6
@@ -257,23 +257,23 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[2][:, 0], dpm_dX[:, 0], "Temperature", setting
+            ws.freq_grid, dpm[2][:, 0], dpm_dX[:, 0], "Temperature", setting
         )
     
         # Frequency
         d = 1e3
-        orig = ws.frequency_grid * 1.0
-        ws.frequency_grid = orig + d
+        orig = ws.freq_grid * 1.0
+        ws.freq_grid = orig + d
     
         ws.propagation_matrixInit()
         ws.propagation_matrixAddLines(no_negative_absorption=False)
     
         pm_d = ws.propagation_matrix * 1.0
-        ws.frequency_grid = orig
+        ws.freq_grid = orig
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[3][:, 0], dpm_dX[:, 0], "Frequency", setting
+            ws.freq_grid, dpm[3][:, 0], dpm_dX[:, 0], "Frequency", setting
         )
     
         # line center
@@ -289,7 +289,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[4][:, 0], dpm_dX[:, 0], "Line center", setting
+            ws.freq_grid, dpm[4][:, 0], dpm_dX[:, 0], "Line center", setting
         )
     
         # lower state energy
@@ -305,7 +305,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid,
+            ws.freq_grid,
             dpm[5][:, 0],
             dpm_dX[:, 0],
             "Lower state energy",
@@ -325,7 +325,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid,
+            ws.freq_grid,
             dpm[6][:, 0],
             dpm_dX[:, 0],
             "Einstein coefficient",
@@ -349,7 +349,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[7][:, 0], dpm_dX[:, 0], "O2 G0 X0", setting
+            ws.freq_grid, dpm[7][:, 0], dpm_dX[:, 0], "O2 G0 X0", setting
         )
     
         # O2 G0 X1
@@ -369,7 +369,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[8][:, 0], dpm_dX[:, 0], "O2 G0 X1", setting
+            ws.freq_grid, dpm[8][:, 0], dpm_dX[:, 0], "O2 G0 X1", setting
         )
     
         # Bath G0 X0
@@ -389,7 +389,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[9][:, 0], dpm_dX[:, 0], "Bath G0 X0", setting
+            ws.freq_grid, dpm[9][:, 0], dpm_dX[:, 0], "Bath G0 X0", setting
         )
     
         # Bath G0 X1
@@ -409,7 +409,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[10][:, 0], dpm_dX[:, 0], "Bath G0 X1", setting
+            ws.freq_grid, dpm[10][:, 0], dpm_dX[:, 0], "Bath G0 X1", setting
         )
     
         # O2 Y X0
@@ -429,7 +429,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[11][:, 0], dpm_dX[:, 0], "O2 Y X0", setting
+            ws.freq_grid, dpm[11][:, 0], dpm_dX[:, 0], "O2 Y X0", setting
         )
     
         # O2 Y X1
@@ -449,7 +449,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[12][:, 0], dpm_dX[:, 0], "O2 Y X1", setting
+            ws.freq_grid, dpm[12][:, 0], dpm_dX[:, 0], "O2 Y X1", setting
         )
     
         # O2 Y X2
@@ -469,7 +469,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[13][:, 0], dpm_dX[:, 0], "O2 Y X2", setting
+            ws.freq_grid, dpm[13][:, 0], dpm_dX[:, 0], "O2 Y X2", setting
         )
     
         # O2 Y X3
@@ -489,7 +489,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[14][:, 0], dpm_dX[:, 0], "O2 Y X3", setting
+            ws.freq_grid, dpm[14][:, 0], dpm_dX[:, 0], "O2 Y X3", setting
         )
     
         # Bath Y X0
@@ -509,7 +509,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[15][:, 0], dpm_dX[:, 0], "Bath Y X0", setting
+            ws.freq_grid, dpm[15][:, 0], dpm_dX[:, 0], "Bath Y X0", setting
         )
     
         # Bath Y X1
@@ -529,7 +529,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[16][:, 0], dpm_dX[:, 0], "Bath Y X1", setting
+            ws.freq_grid, dpm[16][:, 0], dpm_dX[:, 0], "Bath Y X1", setting
         )
     
         # O2 Y X2
@@ -549,7 +549,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[17][:, 0], dpm_dX[:, 0], "Bath Y X2", setting
+            ws.freq_grid, dpm[17][:, 0], dpm_dX[:, 0], "Bath Y X2", setting
         )
     
         # O2 Y X3
@@ -569,7 +569,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[18][:, 0], dpm_dX[:, 0], "Bath Y X3", setting
+            ws.freq_grid, dpm[18][:, 0], dpm_dX[:, 0], "Bath Y X3", setting
         )
     
         # O2 D0 X0
@@ -589,7 +589,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[19][:, 0], dpm_dX[:, 0], "O2 D0 X0", setting
+            ws.freq_grid, dpm[19][:, 0], dpm_dX[:, 0], "O2 D0 X0", setting
         )
     
         # Bath D0 X0
@@ -609,7 +609,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[20][:, 0], dpm_dX[:, 0], "Bath D0 X0", setting
+            ws.freq_grid, dpm[20][:, 0], dpm_dX[:, 0], "Bath D0 X0", setting
         )
     
         # O2 DV X0
@@ -629,7 +629,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[21][:, 0], dpm_dX[:, 0], "O2 DV X0", setting
+            ws.freq_grid, dpm[21][:, 0], dpm_dX[:, 0], "O2 DV X0", setting
         )
     
         # Bath DV X0
@@ -649,7 +649,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[22][:, 0], dpm_dX[:, 0], "Bath DV X0", setting
+            ws.freq_grid, dpm[22][:, 0], dpm_dX[:, 0], "Bath DV X0", setting
         )
     
         # O2 G X0
@@ -669,7 +669,7 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[23][:, 0], dpm_dX[:, 0], "O2 G X0", setting
+            ws.freq_grid, dpm[23][:, 0], dpm_dX[:, 0], "O2 G X0", setting
         )
     
         # Bath G X0
@@ -689,5 +689,5 @@ if 0:
     
         dpm_dX = (pm_d - pm) / d
         compare_fn(
-            ws.frequency_grid, dpm[24][:, 0], dpm_dX[:, 0], "Bath G X0", setting
+            ws.freq_grid, dpm[24][:, 0], dpm_dX[:, 0], "Bath G X0", setting
         )
