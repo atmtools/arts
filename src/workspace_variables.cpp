@@ -374,7 +374,7 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfSpeciesEnum",
   };
 
-  wsv_data["spectral_radiance_background_jacobian"] = {
+  wsv_data["spectral_rad_bkg_jac"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
 Shape: *model_state_vector* x *freq_grid*

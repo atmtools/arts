@@ -39,11 +39,11 @@ void ray_path_spectral_radianceClearskyEmission(
   PropagationPathPoint ray_path_point;
   ray_path_pointBackground(ray_path_point, ray_path);
   StokvecVector spectral_radiance_background;
-  StokvecMatrix spectral_radiance_background_jacobian;
+  StokvecMatrix spectral_rad_bkg_jac;
   spectral_radiance_backgroundAgendasAtEndOfPath(
       ws,
       spectral_radiance_background,
-      spectral_radiance_background_jacobian,
+      spectral_rad_bkg_jac,
       freq_grid,
       {},
       ray_path_point,

@@ -2154,7 +2154,7 @@ but built on-the-fly, allowing per-frequency refraction.
   };
 
   wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
-      .desc           = R"--(Computes the background radiation.
+      .desc   = R"--(Computes the background radiation.
 
 This method checks the back of the ray path and calls
 *spectral_radiance_space_agenda* and *spectral_radiance_surface_agenda* as needed.
@@ -2168,16 +2168,15 @@ error is raised.  As is it if the background position is unknown.
     but that would be circular.  Therefore, please consider using *spectral_radiance_closed_surface_agenda*
     to compute the surface emission without invoking recursion.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance_background",
-                         "spectral_radiance_background_jacobian"},
-      .in             = {"freq_grid",
-                         "jac_targets",
-                         "ray_path_point",
-                         "surf_field",
-                         "subsurf_field",
-                         "spectral_radiance_space_agenda",
-                         "spectral_radiance_surface_agenda"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance_background", "spectral_rad_bkg_jac"},
+      .in     = {"freq_grid",
+                 "jac_targets",
+                 "ray_path_point",
+                 "surf_field",
+                 "subsurf_field",
+                 "spectral_radiance_space_agenda",
+                 "spectral_radiance_surface_agenda"},
       .pass_workspace = true,
   };
 
@@ -2201,8 +2200,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background",
-                 "spectral_radiance_background_jacobian"},
+      .in     = {"spectral_radiance_background", "spectral_rad_bkg_jac"},
   };
 
   wsm_data["spectral_radianceSinglePathEmissionFrequencyLoop"] = {
@@ -2326,8 +2324,7 @@ Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background_jacobian",
-                 "transmission_matrix_background"},
+      .in     = {"spectral_rad_bkg_jac", "transmission_matrix_background"},
   };
 
   wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {

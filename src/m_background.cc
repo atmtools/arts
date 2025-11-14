@@ -11,7 +11,7 @@
 void spectral_radiance_backgroundAgendasAtEndOfPath(
     const Workspace& ws,
     StokvecVector& spectral_radiance_background,
-    StokvecMatrix& spectral_radiance_background_jacobian,
+    StokvecMatrix& spectral_rad_bkg_jac,
     const AscendingGrid& freq_grid,
     const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
@@ -28,26 +28,24 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
       break;
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
-      spectral_radiance_space_agendaExecute(
-          ws,
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          freq_grid,
-          jac_targets,
-          ray_path_point,
-          spectral_radiance_space_agenda);
+      spectral_radiance_space_agendaExecute(ws,
+                                            spectral_radiance_background,
+                                            spectral_rad_bkg_jac,
+                                            freq_grid,
+                                            jac_targets,
+                                            ray_path_point,
+                                            spectral_radiance_space_agenda);
       break;
     case surface:
-      spectral_radiance_surface_agendaExecute(
-          ws,
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          freq_grid,
-          jac_targets,
-          ray_path_point,
-          surf_field,
-          subsurf_field,
-          spectral_radiance_surface_agenda);
+      spectral_radiance_surface_agendaExecute(ws,
+                                              spectral_radiance_background,
+                                              spectral_rad_bkg_jac,
+                                              freq_grid,
+                                              jac_targets,
+                                              ray_path_point,
+                                              surf_field,
+                                              subsurf_field,
+                                              spectral_radiance_surface_agenda);
       break;
   }
 }

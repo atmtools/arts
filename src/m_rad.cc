@@ -22,25 +22,24 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_radiance_jacobianFromBackground(
     StokvecMatrix &spectral_radiance_jacobian,
-    const StokvecMatrix &spectral_radiance_background_jacobian,
+    const StokvecMatrix &spectral_rad_bkg_jac,
     const MuelmatVector &background_transmittance) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
+      static_cast<Size>(spectral_rad_bkg_jac.ncols()) !=
           background_transmittance.size(),
-      "spectral_radiance_background_jacobian must have same number of rows as the "
+      "spectral_rad_bkg_jac must have same number of rows as the "
       "size of jac_targets")
 
   //! The radiance derivative shape is the background shape
-  spectral_radiance_jacobian.resize(
-      spectral_radiance_background_jacobian.shape());
+  spectral_radiance_jacobian.resize(spectral_rad_bkg_jac.shape());
 
   //! Set the background radiance derivative as that which is seen after "this" swath
   for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
     std::transform(background_transmittance.begin(),
                    background_transmittance.end(),
-                   spectral_radiance_background_jacobian[i].begin(),
+                   spectral_rad_bkg_jac[i].begin(),
                    spectral_radiance_jacobian[i].begin(),
                    std::multiplies<>());
   }

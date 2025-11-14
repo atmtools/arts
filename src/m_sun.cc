@@ -373,7 +373,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
   StokvecVector spectral_radiance{};
   StokvecMatrix spectral_radiance_jacobian{};
   StokvecVector spectral_radiance_background{};
-  const StokvecMatrix spectral_radiance_background_jacobian(0, nf);
+  const StokvecMatrix spectral_rad_bkg_jac(0, nf);
 
   ray_path_spectral_radiance_scattering.resize(np);
   for (auto& p : ray_path_spectral_radiance_scattering) {
@@ -387,7 +387,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
         spectral_radiance,                \
             spectral_radiance_jacobian,   \
             spectral_radiance_background, \
-            spectral_radiance_background_jacobian) if (not arts_omp_in_parallel())
+            spectral_rad_bkg_jac) if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     try {
       auto& spectral_radiance_scattered =
@@ -414,8 +414,8 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             jac_targets,
             propagation_matrix_agenda,
             sun_path,
+            spectral_rad_bkg_jac,
             spectral_radiance_background,
-            spectral_radiance_background_jacobian,
             surf_field,
             hse_derivative);
 

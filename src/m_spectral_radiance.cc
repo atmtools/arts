@@ -493,11 +493,11 @@ void spectral_radianceSetToBackground(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const StokvecVector& spectral_radiance_background,
-    const StokvecMatrix& spectral_radiance_background_jacobian) try {
+    const StokvecMatrix& spectral_rad_bkg_jac) try {
   ARTS_TIME_REPORT
 
   spectral_radiance          = spectral_radiance_background;
-  spectral_radiance_jacobian = spectral_radiance_background_jacobian;
+  spectral_radiance_jacobian = spectral_rad_bkg_jac;
 }
 ARTS_METHOD_ERROR_CATCH
 
