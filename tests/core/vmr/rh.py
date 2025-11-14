@@ -50,7 +50,7 @@ ws.RetrievalInit()
 ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-2)
 ws.RetrievalFinalizeDiagonal()
 
-ws.jacobian_targetsToggleRelativeHumidityAtmTarget(key="H2O")
+ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
 ws.model_state_vectorFromData()
 orig = ws.model_state_vector * 1.0
 

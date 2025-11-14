@@ -227,16 +227,16 @@ For more information, see :doc:`user.atmospheric_field`.
 
   wsv_data["propagation_matrix_jacobian"] = {
       .desc =
-          R"--(Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
+          R"--(Partial derivative of the *propagation_matrix* with regards to *jac_targets*.
 
-The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
+The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
 )--",
       .type = "PropmatMatrix",
   };
 
   wsv_data["propagation_matrix_source_vector_nonlte_jacobian"] = {
       .desc =
-          R"--(Partial derivative of the *propagation_matrix_source_vector_nonlte* with regards to *jacobian_targets*.
+          R"--(Partial derivative of the *propagation_matrix_source_vector_nonlte* with regards to *jac_targets*.
 
 The units are *spectral_radiance_jacobian* per meter.
 )--",
@@ -401,7 +401,7 @@ Shape: *freq_grid*
   wsv_data["spectral_surf_refl_jac"] = {
       .desc = R"--(Spectral surface reflectance jacobian.
 
-Shape: *jacobian_targets* - target count x *freq_grid*
+Shape: *jac_targets* - target count x *freq_grid*
 )--",
       .type = "MuelmatMatrix",
   };
@@ -686,15 +686,15 @@ The size of this variable should be the size of the local *freq_grid*.
 
   wsv_data["spectral_radiance_jacobian"] = {
       .desc =
-          R"--(Jacobian of *spectral_radiance* with respect to *jacobian_targets*.
+          R"--(Jacobian of *spectral_radiance* with respect to *jac_targets*.
 
-The size of this variable should be the local *jacobian_targets* as rows times the
+The size of this variable should be the local *jac_targets* as rows times the
 size of the local *spectral_radiance* as columns.
 )--",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["jacobian_targets"] = {
+  wsv_data["jac_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
 
 See *JacobianTargetType* for more information.  The targets are
@@ -822,7 +822,7 @@ This represents the :emphasis:`chosen` state of the model.
 In the notation of *measurement_vector* and *OEM*,
 :math:`\vec{x}` is the *model_state_vector*.
 
-To choose the state of the model, you must setup *jacobian_targets* to
+To choose the state of the model, you must setup *jac_targets* to
 include the state parameters you want to be able to change.
 )",
       .type          = "Vector",
@@ -934,7 +934,7 @@ Usage: Used and set by inversion methods.
 
 This variable is limited to very few methods related to the inversion process for *OEM*.
 Note that deep code of ARTS will ignore this variable, so it is not a global switch.
-Instead, it is used as a switch to clear the *jacobian_targets* variable, which is used
+Instead, it is used as a switch to clear the *jac_targets* variable, which is used
 to determine the size of the *measurement_jacobian*.  It is important to be careful
 with this, as it will mess with the size of the *measurement_jacobian* and could
 thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
@@ -1138,7 +1138,7 @@ Dimensions: [ *ray_path* ]
   wsv_data["single_propmat_jac_path"] = {
       .desc = R"(The propagation matrix Jacobian along the path.
 
-Dimensions: [ *ray_path* x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
 )",
       .type = "PropmatMatrix",
   };
@@ -1155,7 +1155,7 @@ Dimensions: [ *ray_path* ]
       .desc =
           R"(The propagation matrix Jacobian along the path for nonlte source.
 
-Dimensions: [ *ray_path* x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
 )",
       .type = "StokvecMatrix",
   };

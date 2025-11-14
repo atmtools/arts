@@ -388,7 +388,7 @@ void disort_settingsDownwellingObserver(
   StokvecVector spectral_radiance;
   StokvecMatrix spectral_radiance_jacobian;
   ArrayOfPropagationPathPoint ray_path_up;
-  const JacobianTargets jacobian_targets{};
+  const JacobianTargets jac_targets{};
 
   String error{};
 
@@ -402,7 +402,7 @@ void disort_settingsDownwellingObserver(
           spectral_radiance_jacobian,
           ray_path_up,
           freq_grid,
-          jacobian_targets,
+          jac_targets,
           ray_path_point.pos,
           {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
           atm_field,
@@ -826,7 +826,7 @@ Agenda disort_settings_agendaSetup(
 
   AgendaCreator agenda("disort_settings_agenda");
 
-  agenda.add("jacobian_targetsOff");
+  agenda.add("jac_targetsOff");
 
   // Clearsky absorption
   agenda.add("ray_path_atm_pointFromPath");
@@ -921,7 +921,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
 
   AgendaCreator agenda("disort_settings_agenda");
 
-  agenda.add("jacobian_targetsOff");
+  agenda.add("jac_targetsOff");
 
   // Clearsky absorption
   agenda.add("subsurf_profileFromPath");

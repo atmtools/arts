@@ -78,9 +78,9 @@ table::table(const SpeciesEnum& species,
   StokvecVector sv(f_grid->size());
   PropmatMatrix dpm(0, f_grid->size());
   StokvecMatrix dsv(0, f_grid->size());
-  const JacobianTargets jacobian_targets = {};
-  const Vector2 los                      = {180, 0};
-  const bool no_negative_absorption      = true;
+  const JacobianTargets jac_targets = {};
+  const Vector2 los                 = {180, 0};
+  const bool no_negative_absorption = true;
 
   const AscendingGrid empty_water({1.0});
   const AscendingGrid empty_t_pert({0.0});
@@ -104,7 +104,7 @@ table::table(const SpeciesEnum& species,
                          dsv,
                          *f_grid,
                          Range(0, f_grid->size()),
-                         jacobian_targets,
+                         jac_targets,
                          species,
                          abs_bands,
                          ecs_data,

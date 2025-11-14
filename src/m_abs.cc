@@ -106,12 +106,12 @@ void propagation_matrixInit(  //WS Output
     PropmatMatrix& propagation_matrix_jacobian,
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   const Index nf = freq_grid.size();
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
@@ -137,7 +137,7 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                                   PropmatMatrix& propagation_matrix_jacobian,
                                   const AscendingGrid& freq_grid,
                                   const SpeciesEnum& select_abs_species,
-                                  const JacobianTargets& jacobian_targets,
+                                  const JacobianTargets& jac_targets,
                                   const AtmPoint& atm_point,
                                   const PropagationPathPoint& path_point) {
   ARTS_TIME_REPORT
@@ -159,14 +159,14 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                   (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY *
                    ELECTRON_MASS * ELECTRON_MASS));
 
-  const auto end  = jacobian_targets.atm.end();
-  const auto jacs = std::array{jacobian_targets.find(AtmKey::mag_u),
-                               jacobian_targets.find(AtmKey::mag_v),
-                               jacobian_targets.find(AtmKey::mag_w),
-                               jacobian_targets.find(AtmKey::wind_u),
-                               jacobian_targets.find(AtmKey::wind_v),
-                               jacobian_targets.find(AtmKey::wind_w),
-                               jacobian_targets.find(electrons_key)};
+  const auto end  = jac_targets.atm.end();
+  const auto jacs = std::array{jac_targets.find(AtmKey::mag_u),
+                               jac_targets.find(AtmKey::mag_v),
+                               jac_targets.find(AtmKey::mag_w),
+                               jac_targets.find(AtmKey::wind_u),
+                               jac_targets.find(AtmKey::wind_v),
+                               jac_targets.find(AtmKey::wind_w),
+                               jac_targets.find(electrons_key)};
 
   const Numeric dmag = jacs[0] != end   ? jacs[0]->d
                        : jacs[1] != end ? jacs[1]->d

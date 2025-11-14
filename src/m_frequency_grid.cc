@@ -110,13 +110,13 @@ void propagation_matrix_jacobianWindFix(
     PropmatMatrix& propagation_matrix_jacobian,
     StokvecMatrix& source_vector_nonlte_jacobian,
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Vector3& freq_wind_shift_jac) {
   ARTS_TIME_REPORT
 
   using enum AtmKey;
 
-  const auto& atm = jacobian_targets.atm;
+  const auto& atm = jac_targets.atm;
 
   const auto [df_du, df_dv, df_dw] = freq_wind_shift_jac;
 

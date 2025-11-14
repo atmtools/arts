@@ -29,7 +29,7 @@ void propagation_matrixAddCIA(  // WS Output:
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const SpeciesEnum& select_species,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
     const ArrayOfCIARecord& abs_cia_data,
@@ -40,14 +40,14 @@ void propagation_matrixAddCIA(  // WS Output:
 
   // Size of problem
   const Index nf = f_grid.size();
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(static_cast<Index>(propagation_matrix.size()) not_eq nf,
                      "*f_grid* must match *propagation_matrix*")
   ARTS_USER_ERROR_IF(
       propagation_matrix_jacobian.nrows() not_eq nq,
-      "*propagation_matrix_jacobian* must match derived form of *jacobian_targets*")
+      "*propagation_matrix_jacobian* must match derived form of *jac_targets*")
   ARTS_USER_ERROR_IF(
       propagation_matrix_jacobian.ncols() not_eq nf,
       "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
@@ -57,11 +57,11 @@ void propagation_matrixAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const auto end       = jacobian_targets.atm.end();
-  const auto jac_freqs = std::array{jacobian_targets.find(AtmKey::wind_u),
-                                    jacobian_targets.find(AtmKey::wind_v),
-                                    jacobian_targets.find(AtmKey::wind_w)};
-  const auto jac_temps = jacobian_targets.find(AtmKey::t);
+  const auto end       = jac_targets.atm.end();
+  const auto jac_freqs = std::array{jac_targets.find(AtmKey::wind_u),
+                                    jac_targets.find(AtmKey::wind_v),
+                                    jac_targets.find(AtmKey::wind_w)};
+  const auto jac_temps = jac_targets.find(AtmKey::t);
 
   const bool do_wind_jac =
       std::ranges::any_of(jac_freqs, [end](const auto& x) { return x != end; });
@@ -173,12 +173,12 @@ void propagation_matrixAddCIA(  // WS Output:
         }
       }
 
-      if (const auto j = jacobian_targets.find(this_cia.Species(0)); j != end) {
+      if (const auto j = jac_targets.find(this_cia.Species(0)); j != end) {
         const auto iq                            = j->target_pos;
         propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
-      if (const auto j = jacobian_targets.find(this_cia.Species(1)); j != end) {
+      if (const auto j = jac_targets.find(this_cia.Species(1)); j != end) {
         const auto iq                            = j->target_pos;
         propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
@@ -316,11 +316,10 @@ void abs_cia_dataReadFromXML(  // WS Output:
   }
 }
 
-void abs_cia_dataReadSpeciesSplitCatalog(
-    ArrayOfCIARecord& abs_cia_data,
-    const ArrayOfSpeciesTag& abs_species,
-    const String& basename,
-    const Index& ignore_missing_) try {
+void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
+                                         const ArrayOfSpeciesTag& abs_species,
+                                         const String& basename,
+                                         const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
   abs_cia_data.clear();

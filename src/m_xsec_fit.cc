@@ -62,7 +62,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const SpeciesEnum& select_species,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
     const ArrayOfXsecRecord& abs_xfit_data,
@@ -78,7 +78,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Derivatives and their error handling
   ARTS_USER_ERROR_IF(
       static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
-              jacobian_targets.target_count() or
+              jac_targets.target_count() or
           static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
               f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
@@ -89,11 +89,11 @@ void propagation_matrixAddXsecFit(  // WS Output:
   Vector dxsec_temp_dF;
   Vector dfreq;
   // Jacobian vectors END
-  const auto end      = jacobian_targets.atm.end();
-  const auto freq_jac = std::array{jacobian_targets.find(AtmKey::wind_u),
-                                   jacobian_targets.find(AtmKey::wind_v),
-                                   jacobian_targets.find(AtmKey::wind_w)};
-  const auto temp_jac = jacobian_targets.find(AtmKey::t);
+  const auto end      = jac_targets.atm.end();
+  const auto freq_jac = std::array{jac_targets.find(AtmKey::wind_u),
+                                   jac_targets.find(AtmKey::wind_v),
+                                   jac_targets.find(AtmKey::wind_w)};
+  const auto temp_jac = jac_targets.find(AtmKey::t);
   const bool do_freq_jac =
       std::ranges::any_of(freq_jac, [end](auto& x) { return x != end; });
   const bool do_temp_jac = temp_jac != end;
@@ -169,8 +169,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
         }
       }
 
-      if (const auto j = jacobian_targets.find(this_xdata.Species());
-          j != end) {
+      if (const auto j = jac_targets.find(this_xdata.Species()); j != end) {
         const auto iq                           = j->target_pos;
         propagation_matrix_jacobian[iq, f].A() += xsec_temp[f] * nd * vmr;
       }

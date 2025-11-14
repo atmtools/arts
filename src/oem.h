@@ -484,12 +484,12 @@ class AgendaWrapper {
                 ArrayOfSensorObsel *measurement_sensor,
                 SurfaceField *surf_field,
                 SubsurfaceField *subsurf_field,
-                const JacobianTargets *jacobian_targets,
+                const JacobianTargets *jac_targets,
                 const Agenda *inversion_iterate_agenda)
       : m(measurement_space_dimension),
         n(state_space_dimension),
         inversion_iterate_agenda_(inversion_iterate_agenda),
-        jacs(jacobian_targets),
+        jacs(jac_targets),
         atm(atm_field),
         absdata(abs_bands),
         sensor(measurement_sensor),
@@ -676,7 +676,7 @@ void Tensor4Clip(Tensor4 &x,
  * @param[in] y The observation vector to fit.
  * @param[in] covmat_se The observation error covariance matrix. Checked to
  * by square and consistent with y.
- * @param[in] jacobian_targets: The Jacobian quantities array checked to
+ * @param[in] jac_targets: The Jacobian quantities array checked to
  * be consistent with jacobian_indices
  * @param[in] method The method string. Checked to be a valid OEM method
  * string.
@@ -701,7 +701,7 @@ void OEM_checks(const Workspace &ws,
                 ArrayOfSensorObsel &measurement_sensor,
                 SurfaceField &surf_field,
                 SubsurfaceField &subsurf_field,
-                const JacobianTargets &jacobian_targets,
+                const JacobianTargets &jac_targets,
                 const Agenda &inversion_iterate_agenda,
                 const Vector &xa,
                 const CovarianceMatrix &covmat_sx,
@@ -818,7 +818,7 @@ void OEM_checks(const Workspace &ws,
                                     subsurf_field,
                                     yf,
                                     jacobian,
-                                    jacobian_targets,
+                                    jac_targets,
                                     xa,
                                     1,
                                     0,
@@ -833,7 +833,7 @@ void OEM_checks(const Workspace &ws,
                                     subsurf_field,
                                     yf,
                                     jacobian,
-                                    jacobian_targets,
+                                    jac_targets,
                                     x,
                                     1,
                                     0,

@@ -4,15 +4,15 @@
 #include <workspace.h>
 
 namespace {
-void jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTargetImpl(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const AtmKeyVal& key,
     const NumericUnaryOperator& psat,
     const Index& nonnegative) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm) {
+  for (auto& t : jac_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<rhinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -30,52 +30,52 @@ void jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
 
 // Atm
 
-void jacobian_targetsToggleRelativeHumidityAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
     const AtmKey& key,
     const Index& nonnegative) {
-  jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-      jacobian_targets, f, key, psat, nonnegative);
+  jac_targetsToggleRelativeHumidityAtmTargetImpl(
+      jac_targets, f, key, psat, nonnegative);
 }
 
-void jacobian_targetsToggleRelativeHumidityAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
     const SpeciesEnum& key,
     const Index& nonnegative) {
-  jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-      jacobian_targets, f, key, psat, nonnegative);
+  jac_targetsToggleRelativeHumidityAtmTargetImpl(
+      jac_targets, f, key, psat, nonnegative);
 }
 
-void jacobian_targetsToggleRelativeHumidityAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
     const SpeciesIsotope& key,
     const Index& nonnegative) {
-  jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-      jacobian_targets, f, key, psat, nonnegative);
+  jac_targetsToggleRelativeHumidityAtmTargetImpl(
+      jac_targets, f, key, psat, nonnegative);
 }
 
-void jacobian_targetsToggleRelativeHumidityAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
     const QuantumLevelIdentifier& key,
     const Index& nonnegative) {
-  jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-      jacobian_targets, f, key, psat, nonnegative);
+  jac_targetsToggleRelativeHumidityAtmTargetImpl(
+      jac_targets, f, key, psat, nonnegative);
 }
 
-void jacobian_targetsToggleRelativeHumidityAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeHumidityAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const NumericUnaryOperator& psat,
     const ScatteringSpeciesProperty& key,
     const Index& nonnegative) {
-  jacobian_targetsToggleRelativeHumidityAtmTargetImpl(
-      jacobian_targets, f, key, psat, nonnegative);
+  jac_targetsToggleRelativeHumidityAtmTargetImpl(
+      jac_targets, f, key, psat, nonnegative);
 }

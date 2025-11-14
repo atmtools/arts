@@ -29,9 +29,9 @@ B1 = [b for b in B]
 B1[2] += dx
 
 ws.atm_field["mag_w"] = B[2]
-ws.jacobian_targetsInit()
-ws.jacobian_targetsAddMagneticField(component="w")
-ws.jacobian_targetsFinalize(measurement_sensor=[])
+ws.jac_targetsInit()
+ws.jac_targetsAddMagneticField(component="w")
+ws.jac_targetsFinalize(measurement_sensor=[])
 
 ws.atm_point.temperature = 250
 ws.atm_point.pressure = 1.0
@@ -58,4 +58,4 @@ ws.propagation_matrixAddLines()
 x1 = ws.propagation_matrix * 1.0
 d = (x1 - x0) / dx
 
-assert np.allclose(d, dd, rtol = 1e-3)
+assert np.allclose(d, dd, rtol=1e-3)

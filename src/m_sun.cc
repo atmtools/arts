@@ -332,7 +332,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     // [nsuns]:
     const ArrayOfSun& suns,
     // [njac]:
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     // [nf]:
     const AscendingGrid& freq_grid,
     const AtmField& atm_field,
@@ -347,8 +347,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field.ellipsoid)
 
-  ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
-                     "Cannot have any Jacobian targets")
+  ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
 
   const Size np = ray_path.size();
   ARTS_USER_ERROR_IF(
@@ -412,7 +411,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             spectral_radiance_jacobian,
             atm_field,
             freq_grid,
-            jacobian_targets,
+            jac_targets,
             propagation_matrix_agenda,
             sun_path,
             spectral_radiance_background,

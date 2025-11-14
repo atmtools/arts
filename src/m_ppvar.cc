@@ -43,7 +43,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfAtmPoint &ray_path_atm_point,
-    const JacobianTargets &jacobian_targets) try {
+    const JacobianTargets &jac_targets) try {
   ARTS_TIME_REPORT
 
   String error{};
@@ -56,9 +56,9 @@ void ray_path_spectral_radiance_sourceFromPropmat(
   }
 
   const Index nf = ray_path_propagation_matrix.front().size();
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
-  const Index it = jacobian_targets.target_position(AtmKey::t);
+  const Index it = jac_targets.target_position(AtmKey::t);
 
   ray_path_spectral_radiance_source.resize(np);
   for (auto &t : ray_path_spectral_radiance_source) {

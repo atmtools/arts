@@ -26,7 +26,7 @@ calculations that are happening deep in your ARTS method calls.
                        "propagation_matrix_source_vector_nonlte_jacobian"},
       .input        = {"freq_grid",
                        "freq_wind_shift_jac",
-                       "jacobian_targets",
+                       "jac_targets",
                        "select_species",
                        "ray_path_point",
                        "atm_point"},
@@ -41,16 +41,16 @@ calculations that are happening deep in your ARTS method calls.
                "On output, *propagation_matrix_source_vector_nonlte* has the size of *freq_grid*.",
                "propagation_matrix_source_vector_nonlte.size()",
                "freq_grid.size()"},
-              {"matpack::same_shape<2>({jacobian_targets.target_count(), freq_grid.size()}, propagation_matrix_jacobian)",
-               "On output, *propagation_matrix_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *freq_grid*.",
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, propagation_matrix_jacobian)",
+               "On output, *propagation_matrix_jacobian* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
                "propagation_matrix_jacobian.shape()",
                "freq_grid.size()",
-               "jacobian_targets.target_count()"},
-              {"matpack::same_shape<2>({jacobian_targets.target_count(), freq_grid.size()}, propagation_matrix_source_vector_nonlte_jacobian)",
-               "On output, *propagation_matrix_source_vector_nonlte_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *freq_grid*.",
+               "jac_targets.target_count()"},
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, propagation_matrix_source_vector_nonlte_jacobian)",
+               "On output, *propagation_matrix_source_vector_nonlte_jacobian* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
                "propagation_matrix_source_vector_nonlte_jacobian.shape()",
                "freq_grid.size()",
-               "jacobian_targets.target_count()"},
+               "jac_targets.target_count()"},
           },
   };
 
@@ -73,7 +73,7 @@ If you do not need single-frequency-point calculations, consider using
                  "single_dispersion_jac"},
       .input  = {"freq",
                  "freq_wind_shift_jac",
-                 "jacobian_targets",
+                 "jac_targets",
                  "select_species",
                  "ray_path_point",
                  "atm_point"},
@@ -176,7 +176,7 @@ is warranted.
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
       .input  = {"freq_grid",
-                 "jacobian_targets",
+                 "jac_targets",
                  "spectral_radiance_observer_position",
                  "spectral_radiance_observer_line_of_sight",
                  "atm_field",
@@ -190,11 +190,11 @@ is warranted.
                "On output, *spectral_radiance* has the size of *freq_grid*.",
                "spectral_radiance.size()",
                "freq_grid.size()"},
-              {"matpack::same_shape<2>({jacobian_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-               "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *freq_grid*.",
+              {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
+               "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
                "spectral_radiance_jacobian.shape()",
                "freq_grid.size()",
-               "jacobian_targets.x_size()"},
+               "jac_targets.x_size()"},
           },
   };
 
@@ -205,7 +205,7 @@ is warranted.
 Otherwise same as *spectral_radiance_space_agenda*.
 )--",
       .output       = {"single_rad", "single_rad_jac"},
-      .input        = {"freq", "jacobian_targets", "ray_path_point"},
+      .input        = {"freq", "jac_targets", "ray_path_point"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -219,7 +219,7 @@ One common use-case is to provide a background spectral radiance.
 The input path point should be as if it is looking at space.
 )--",
       .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input              = {"freq_grid", "jacobian_targets", "ray_path_point"},
+      .input              = {"freq_grid", "jac_targets", "ray_path_point"},
       .enum_options       = {"UniformCosmicBackground",
                              "SunOrCosmicBackground",
                              "Transmission"},
@@ -229,11 +229,11 @@ The input path point should be as if it is looking at space.
            "On output, *spectral_radiance* has the size of *freq_grid*.",
            "spectral_radiance.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *freq_grid*.",
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
+           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
            "spectral_radiance_jacobian.shape()",
            "freq_grid.size()",
-           "jacobian_targets.x_size()"},
+           "jac_targets.x_size()"},
       }};
 
   wsa_data["spectral_radiance_surface_agenda"] = {
@@ -250,7 +250,7 @@ as well.
 )--",
       .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
       .input        = {"freq_grid",
-                       "jacobian_targets",
+                       "jac_targets",
                        "ray_path_point",
                        "surf_field",
                        "subsurf_field"},
@@ -261,11 +261,11 @@ as well.
            "On output, *spectral_radiance* has the size of *freq_grid*.",
            "spectral_radiance.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *freq_grid*.",
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
+           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
            "spectral_radiance_jacobian.shape()",
            "freq_grid.size()",
-           "jacobian_targets.x_size()"},
+           "jac_targets.x_size()"},
       }};
 
   wsa_data["single_rad_surface_agenda"] = {
@@ -276,7 +276,7 @@ Otherwise same as *spectral_radiance_surface_agenda*.
 )--",
       .output       = {"single_rad", "single_rad_jac"},
       .input        = {"freq",
-                       "jacobian_targets",
+                       "jac_targets",
                        "ray_path_point",
                        "surf_field",
                        "subsurf_field"},
@@ -304,7 +304,7 @@ See *OEM*.
                              "measurement_sensor",
                              "surf_field",
                              "subsurf_field",
-                             "jacobian_targets",
+                             "jac_targets",
                              "model_state_vector",
                              "do_jacobian",
                              "inversion_iterate_agenda_counter"},
@@ -316,11 +316,11 @@ See *OEM*.
            "measurement_vector_fitted.size()",
            "measurement_jacobian.nrows()",
            "do_jacobian == 0"},
-          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jacobian_targets.x_size() == model_state_vector.size())",
+          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jac_targets.x_size() == model_state_vector.size())",
            "On output, the model state vector and Jacobian must match expected size.",
            "model_state_vector.size()",
            "measurement_jacobian.ncols()",
-           "jacobian_targets.x_size()",
+           "jac_targets.x_size()",
            "do_jacobian == 0"},
       }};
 
@@ -342,7 +342,7 @@ evaluates false.  Also do not use this Agenda if you wish to squeeze out perform
 it does a lot of unnecessary checks and operations that are not always needed.
 )--",
       .output       = {"measurement_vector_fitted", "measurement_jacobian"},
-      .input        = {"jacobian_targets", "do_jacobian"},
+      .input        = {"jac_targets", "do_jacobian"},
       .enum_options = {"Standard"},
       .enum_default = "Standard",
       .output_constraints =
@@ -355,22 +355,19 @@ it does a lot of unnecessary checks and operations that are not always needed.
   };
 
   wsa_data["spectral_surf_refl_agenda"] = {
-      .desc               = R"--(An agenda to compute the surface reflectance.
+      .desc   = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output             = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .input              = {"freq_grid",
-                             "surf_field",
-                             "ray_path_point",
-                             "jacobian_targets"},
+      .output = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input  = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
       .enum_options       = {"FlatScalar", "FlatRealFresnel"},
       .output_constraints = {
           {"spectral_surf_refl.size() == freq_grid.size()",
            "*spectral_surf_refl* match *freq_grid* size",
            "spectral_surf_refl.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
-           "*spectral_surf_refl_jac* match *jacobian_targets* target count and *freq_grid* size",
-           "jacobian_targets.target_count()",
+          {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
+           "*spectral_surf_refl_jac* match *jac_targets* target count and *freq_grid* size",
+           "jac_targets.target_count()",
            "freq_grid.size()",
            "spectral_surf_refl_jac.shape()"}}};
 

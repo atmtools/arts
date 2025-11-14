@@ -955,16 +955,14 @@ T0 : float
 )",
       "approximate_percentile"_a,
       "T0"_a = 296.0);
-  aoab.def("keep_frequencies",
-           [](AbsorptionBands& bands,
-              const Numeric& fmin,
-              const Numeric& fmax) {
-             abs_bandsSelectFrequencyByLine(
-                 bands, fmin, fmax);
-           },
-           "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
-           "fmax"_a = std::numeric_limits<Numeric>::infinity(),
-           R"(Keep the frequencies within the specified range
+  aoab.def(
+      "keep_frequencies",
+      [](AbsorptionBands& bands, const Numeric& fmin, const Numeric& fmax) {
+        abs_bandsSelectFrequencyByLine(bands, fmin, fmax);
+      },
+      "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
+      "fmax"_a = std::numeric_limits<Numeric>::infinity(),
+      R"(Keep the frequencies within the specified range
 
 Parameters
 ----------
@@ -1062,14 +1060,14 @@ fmax : ~pyarts3.arts.Numeric
         StokvecVector nlte_vector(f.size());
         PropmatMatrix propagation_matrix_jacobian(0, f.size());
         StokvecMatrix nlte_matrix(0, f.size());
-        JacobianTargets jacobian_targets{};
+        JacobianTargets jac_targets{};
 
         propagation_matrixAddLines(propagation_matrix,
                                    nlte_vector,
                                    propagation_matrix_jacobian,
                                    nlte_matrix,
                                    f,
-                                   jacobian_targets,
+                                   jac_targets,
                                    spec,
                                    self,
                                    ecs_data,

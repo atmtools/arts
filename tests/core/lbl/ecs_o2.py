@@ -30,7 +30,7 @@ def calc(ws, lineshape=None):
 ws.WignerInit()
 ws.freq_grid = np.linspace(20e9, 140e9, 10001)  # around the band
 
-ws.jacobian_targets = pyarts.arts.JacobianTargets()
+ws.jac_targets = pyarts.arts.JacobianTargets()
 ws.atm_pointInit()
 ws.atm_point.temperature = 295  # At room temperature
 ws.atm_point.pressure = 1e5
@@ -42,7 +42,7 @@ ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
 ws.ray_path_point
 
-ws.jacobian_targetsInit()
+ws.jac_targetsInit()
 
 ws.ecs_dataInit()
 ws.ecs_dataAddMakarov2020()
@@ -98,7 +98,7 @@ plt.semilogy(ws.freq_grid / 1e9, calc(ws), label="PWR98")
 
 plt.legend()
 
-## Test here if we can save and load the workspace
+# Test here if we can save and load the workspace
 ws.savexml("test.xml")
 
 ws2 = pyarts.Workspace.fromxml("test.xml")

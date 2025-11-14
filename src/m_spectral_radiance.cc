@@ -27,7 +27,7 @@ void ray_path_transmission_matrixFromPath(
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
     const SurfaceField& surf_field,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
@@ -55,7 +55,7 @@ ray_path_atm_point.size()           = {})",
 
   // HSE variables
   const Index temperature_derivative_position =
-      jacobian_targets.target_position(AtmKey::t);
+      jac_targets.target_position(AtmKey::t);
 
   const Size N = ray_path.size();
 
@@ -64,7 +64,7 @@ ray_path_atm_point.size()           = {})",
 
   if (N == 0) return;
 
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
   const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
   Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
@@ -140,12 +140,12 @@ void ray_path_single_transmission_matrixFromPath(
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
     const SurfaceField& surf_field,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
   const Size N  = ray_path.size();
-  const Size nq = jacobian_targets.target_count();
+  const Size nq = jac_targets.target_count();
 
   ARTS_USER_ERROR_IF(
       single_propmat_path.size() != N or
@@ -155,7 +155,7 @@ void ray_path_single_transmission_matrixFromPath(
       R"(Not same sizes:
 
 ray_path:                                    (N)     = [{}]
-jacobian_targets:                            (nq)    = [{}]
+jac_targets:                            (nq)    = [{}]
 ray_path_atm_point:                  (N)     = [{}]
 single_propmat_path:          (N)     = {:B,}
 single_propmat_jac_path: (N, nq) = {:B,}
@@ -175,7 +175,7 @@ single_propmat_jac_path: (N, nq) = {:B,}
   Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
 
   const Index temperature_derivative_position =
-      jacobian_targets.target_position(AtmKey::t);
+      jac_targets.target_position(AtmKey::t);
   if (hse_derivative and temperature_derivative_position >= 0) {
     for (Size ip = 0; ip < N - 1; ip++) {
       ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
@@ -237,11 +237,11 @@ void ray_path_single_radiance_sourceFromPropmat(
     const StokvecMatrix& single_nlte_srcvec_jac_path,
     const Vector& single_freq_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const JacobianTargets& jacobian_targets) try {
+    const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
   const Index np = ray_path_atm_point.size();
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
   ARTS_USER_ERROR_IF(np != single_freq_path.ncols() or
                          np != single_propmat_path.ncols() or
@@ -252,7 +252,7 @@ void ray_path_single_radiance_sourceFromPropmat(
                          nq != single_nlte_srcvec_jac_path.ncols(),
                      R"(Not same sizes:
 
-jacobian_targets                                    (nq)     = [{}]
+jac_targets                                    (nq)     = [{}]
 single_freq_path                           (np)     = {:B,}
 ray_path_atm_point                          (np)     = [{}]
 single_propmat_path:                 (np)     = {:B,}
@@ -275,7 +275,7 @@ single_nlte_srcvec_jac_path: (np, nq) = {:B,}
 
   if (np == 0) return;
 
-  const Index it = jacobian_targets.target_position(AtmKey::t);
+  const Index it = jac_targets.target_position(AtmKey::t);
 
   for (Index i = 0; i < np; i++) {
     auto& J       = ray_path_single_radiance_source[i];
@@ -383,14 +383,14 @@ ARTS_METHOD_ERROR_CATCH
 void single_rad_jacAddPathPropagation(
     StokvecVector& single_rad_jac,
     const StokvecMatrix& ray_path_single_rad_jac,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AtmField& atm_field,
     const ArrayOfPropagationPathPoint& ray_path) try {
   ARTS_TIME_REPORT
 
   const Size np  = ray_path.size();
-  const Index nt = jacobian_targets.target_count();
-  const Index nx = jacobian_targets.x_size();
+  const Index nt = jac_targets.target_count();
+  const Index nx = jac_targets.x_size();
 
   ARTS_USER_ERROR_IF(
       single_rad_jac.ncols() != nx or
@@ -399,16 +399,16 @@ void single_rad_jacAddPathPropagation(
       R"(Not same sizes:
 
 ray_path:                            (np)     = [{}]
-jacobian_targets:                    (nq)     = [{}]
+jac_targets:                    (nq)     = [{}]
 single_rad_jac:            (nx)     = {:B,}
 ray_path_single_rad_jac:   (np, nq) = {:B,}
 )",
       np,
-      jacobian_targets.target_count(),
+      jac_targets.target_count(),
       single_rad_jac.shape(),
       ray_path_single_rad_jac.shape());
 
-  for (auto& atm_block : jacobian_targets.atm) {
+  for (auto& atm_block : jac_targets.atm) {
     const auto& data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
@@ -434,7 +434,7 @@ void single_radianceFromPropagation(
     MuelmatVector& ray_path_single_transmission_matrix,
     MuelmatVector& ray_path_single_transmission_matrix_cumulative,
     MuelmatTensor3& ray_path_single_transmission_matrix_jacobian,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const ArrayOfPropagationPathPoint& ray_path,
     const Vector& single_freq_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
@@ -455,7 +455,7 @@ void single_radianceFromPropagation(
       ray_path,
       ray_path_atm_point,
       surf_field,
-      jacobian_targets,
+      jac_targets,
       hse_derivative);
   ray_path_single_transmission_matrix_cumulativeFromPath(
       ray_path_single_transmission_matrix_cumulative,
@@ -471,7 +471,7 @@ void single_radianceFromPropagation(
       single_nlte_srcvec_jac_path,
       single_freq_path,
       ray_path_atm_point,
-      jacobian_targets);
+      jac_targets);
   single_radianceStepByStepEmission(
       single_radiance,
       ray_path_single_rad_jac,
@@ -484,7 +484,7 @@ void single_radianceFromPropagation(
                                transmission_single_matrix_background);
   single_rad_jacAddPathPropagation(single_rad_jac,
                                    ray_path_single_rad_jac,
-                                   jacobian_targets,
+                                   jac_targets,
                                    atm_field,
                                    ray_path);
 }
@@ -506,7 +506,7 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radianceSinglePathEmissionFrequencyLoop(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
@@ -523,8 +523,8 @@ void spectral_radianceSinglePathEmissionFrequencyLoop(
 
   const Size nf = spectral_radiance.size();
   const Size N  = ray_path.size();
-  const Size nq = jacobian_targets.target_count();
-  const Size nx = jacobian_targets.x_size();
+  const Size nq = jac_targets.target_count();
+  const Size nx = jac_targets.x_size();
 
   if (N == 0) return;
 
@@ -646,7 +646,7 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.shape() = {:B,}
           ray_path_single_transmission_matrix,
           ray_path_single_transmission_matrix_cumulative,
           ray_path_single_transmission_matrix_jacobian,
-          jacobian_targets,
+          jac_targets,
           ray_path,
           single_freq_path,
           ray_path_atm_point,
@@ -679,7 +679,7 @@ void single_radClearskyEmissionPropagation(
     ArrayOfPropagationPathPoint& ray_path,
     const AtmField& atm_field,
     const Numeric& frequency_,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
@@ -704,7 +704,7 @@ void single_radClearskyEmissionPropagation(
       max_tau,
       cutoff_tau);
 
-  const Size nt = jacobian_targets.x_size();
+  const Size nt = jac_targets.x_size();
   single_rad_jac.resize(nt);
   single_rad_jac = 0.0;
 
@@ -740,7 +740,7 @@ void single_radClearskyEmissionPropagation(
                                    single_rad,
                                    single_rad_jac,
                                    frequency_,
-                                   jacobian_targets,
+                                   jac_targets,
                                    ray_path.back(),
                                    single_rad_space_agenda);
     return;
@@ -751,7 +751,7 @@ void single_radClearskyEmissionPropagation(
                                      single_rad,
                                      single_rad_jac,
                                      frequency_,
-                                     jacobian_targets,
+                                     jac_targets,
                                      ray_path.back(),
                                      surf_field,
                                      subsurf_field,
@@ -781,7 +781,7 @@ void single_radClearskyEmissionPropagation(
                                  single_dispersion_jac,
                                  frequency,
                                  freq_wind_shift_jac,
-                                 jacobian_targets,
+                                 jac_targets,
                                  "AIR"_spec,
                                  ray_path_point,
                                  ray_path_atm_point.back(),
@@ -818,7 +818,7 @@ void single_radClearskyEmissionPropagation(
                                      single_rad,
                                      single_rad_jac,
                                      frequency,
-                                     jacobian_targets,
+                                     jac_targets,
                                      ray_path.back(),
                                      single_rad_space_agenda);
       break;
@@ -829,7 +829,7 @@ void single_radClearskyEmissionPropagation(
                                        single_rad,
                                        single_rad_jac,
                                        frequency,
-                                       jacobian_targets,
+                                       jac_targets,
                                        ray_path.back(),
                                        surf_field,
                                        subsurf_field,
@@ -862,7 +862,7 @@ void single_radClearskyEmissionPropagation(
                                  ray_path_single_transmission_matrix,
                                  ray_path_single_transmission_matrix_cumulative,
                                  ray_path_single_transmission_matrix_jacobian,
-                                 jacobian_targets,
+                                 jac_targets,
                                  ray_path,
                                  single_freq_path,
                                  ray_path_atm_point,
@@ -883,7 +883,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
     ArrayOfArrayOfPropagationPathPoint& ray_paths,
     const AtmField& atm_field,
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
@@ -902,7 +902,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
 
   const Size nf = freq_grid.size();
   spectral_radiance.resize(nf);
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(), nf);
+  spectral_radiance_jacobian.resize(jac_targets.x_size(), nf);
   spectral_radiance = 0.0;
   ray_paths.clear();
   ray_paths.resize(nf);
@@ -920,7 +920,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
           ray_paths[f],
           atm_field,
           freq_grid[f],
-          jacobian_targets,
+          jac_targets,
           single_rad_space_agenda,
           single_rad_surface_agenda,
           single_propmat_agenda,

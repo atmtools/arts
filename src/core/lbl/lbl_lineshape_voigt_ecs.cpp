@@ -407,7 +407,7 @@ void calculate(PropmatVectorView pm_,
                ComputeData& com_data,
                const ConstVectorView f_grid_,
                const Range& f_range,
-               const Jacobian::Targets& jacobian_targets,
+               const Jacobian::Targets& jac_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const LinemixingSpeciesEcsData& rovib_data,
@@ -425,8 +425,7 @@ void calculate(PropmatVectorView pm_,
   PropmatVectorView pm         = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];
 
-  ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
-                     "No Jacobian support.")
+  ARTS_USER_ERROR_IF(jac_targets.target_count() > 0, "No Jacobian support.")
 
   if (bnd.size() == 0) return;
 

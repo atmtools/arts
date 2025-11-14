@@ -60,7 +60,7 @@ ws.model_state_vector = []
 ws.measurement_jacobian = [[]]
 
 ws.atm_field["H2O"] = fieldg
-ws.jacobian_targetsToggleLogRelAtmTarget(key="H2O")
+ws.jac_targetsToggleLogRelAtmTarget(key="H2O")
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vectorFromSensor()
 apri = ws.measurement_vector * 1.0

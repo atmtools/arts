@@ -31,15 +31,15 @@ def noop(x, v, start, length):
 def ops(ws, op):
     x = ws.model_state_vector * 1.0
 
-    for key in ws.jacobian_targets.atm:
+    for key in ws.jac_targets.atm:
         data = np.asarray(ws.atm_field[key.type].data)
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
-    for key in ws.jacobian_targets.surf:
+    for key in ws.jac_targets.surf:
         data = np.asarray(ws.surf_field[key.type].data)
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
-    for key in ws.jacobian_targets.line:
+    for key in ws.jac_targets.line:
         x = op(x, ws.abs_bands[key.type], key.x_start, key.x_size)
 
     return x
@@ -49,7 +49,7 @@ ws = pyarts.Workspace()
 
 ws.measurement_sensor = []
 
-ws.jacobian_targetsInit()
+ws.jac_targetsInit()
 
 ws.atm_fieldInit(toa=toa)
 ws.surf_fieldEarth()
@@ -75,7 +75,7 @@ ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 # %% Temperature and pressure and VMR and ratios
 
 ws.atm_field[pyarts.arts.AtmKey.t] = 300.0
-ws.jacobian_targetsAddTemperature()
+ws.jac_targetsAddTemperature()
 
 ws.atm_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
     data=2 + np.random.random((nalt, nlat, nlon)),
@@ -88,44 +88,44 @@ ws.atm_field[pyarts.arts.AtmKey.p] = pyarts.arts.GeodeticField3(
     grid_names=["Altitude", "Latitude", "Longitude"],
 )
 
-ws.jacobian_targetsAddPressure()
+ws.jac_targetsAddPressure()
 
 spec = pyarts.arts.SpeciesEnum("H2O")
 ws.atm_field[spec] = 0.1
-ws.jacobian_targetsAddSpeciesVMR(species=spec)
+ws.jac_targetsAddSpeciesVMR(species=spec)
 
 isot = pyarts.arts.SpeciesIsotope("H2O-161")
-ws.jacobian_targetsAddSpeciesIsotopologueRatio(species=isot)
+ws.jac_targetsAddSpeciesIsotopologueRatio(species=isot)
 
 # %% Line center and Einstein and G0 and Y
 
 # FIXME: Make a better interface!
 # key = ws.abs_bands[0].key
-# ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
-# ws.jacobian_targetsAddLineParameter(id=key, line_index=0, parameter="a")
-# ws.jacobian_targetsAddLineParameter(
+# ws.jac_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
+# ws.jac_targetsAddLineParameter(id=key, line_index=0, parameter="a")
+# ws.jac_targetsAddLineParameter(
 #     id=key, line_index=0, parameter="G0", species="O2"
 # )
-# ws.jacobian_targetsAddLineParameter(
+# ws.jac_targetsAddLineParameter(
 #     id=key, line_index=0, parameter="Y", species="O2"
 # )
-# ws.jacobian_targetsAddLineParameter(
+# ws.jac_targetsAddLineParameter(
 #     id=key, line_index=0, parameter="G0", species="AIR"
 # )
-# ws.jacobian_targetsAddLineParameter(
+# ws.jac_targetsAddLineParameter(
 #     id=key, line_index=0, parameter="Y", species="AIR"
 # )
 
 
 # %% Surface temperature and altitude
 
-ws.jacobian_targetsAddSurface(target="t")
-ws.jacobian_targetsAddSurface(target="h")
+ws.jac_targetsAddSurface(target="t")
+ws.jac_targetsAddSurface(target="h")
 
 
 # %% Finalize
 
-ws.jacobian_targetsFinalize()
+ws.jac_targetsFinalize()
 
 # %% Set the model_state_vector
 

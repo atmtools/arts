@@ -10,14 +10,12 @@
 #include <algorithm>
 #include <exception>
 
-void spectral_radiance_jacobianEmpty(
-    StokvecMatrix &spectral_radiance_jacobian,
-    const AscendingGrid &freq_grid,
-    const JacobianTargets &jacobian_targets) try {
+void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
+                                     const AscendingGrid &freq_grid,
+                                     const JacobianTargets &jac_targets) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
-                                    freq_grid.size());
+  spectral_radiance_jacobian.resize(jac_targets.x_size(), freq_grid.size());
   spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 ARTS_METHOD_ERROR_CATCH
@@ -32,7 +30,7 @@ void spectral_radiance_jacobianFromBackground(
       static_cast<Size>(spectral_radiance_background_jacobian.ncols()) !=
           background_transmittance.size(),
       "spectral_radiance_background_jacobian must have same number of rows as the "
-      "size of jacobian_targets")
+      "size of jac_targets")
 
   //! The radiance derivative shape is the background shape
   spectral_radiance_jacobian.resize(
@@ -52,7 +50,7 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radiance_jacobianAddPathPropagation(
     StokvecMatrix &spectral_radiance_jacobian,
     const ArrayOfStokvecMatrix &ray_path_spectral_radiance_jacobian,
-    const JacobianTargets &jacobian_targets,
+    const JacobianTargets &jac_targets,
     const AtmField &atm_field,
     const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
@@ -60,17 +58,17 @@ void spectral_radiance_jacobianAddPathPropagation(
   const auto np = ray_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
   const auto nf = spectral_radiance_jacobian.ncols();
-  const auto nt = jacobian_targets.target_count();
+  const auto nt = jac_targets.target_count();
 
   if (nt == 0) return;
 
   ARTS_USER_ERROR_IF(
       static_cast<Size>(spectral_radiance_jacobian.nrows()) !=
-          jacobian_targets.x_size(),
-      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets. Sizes: "
+          jac_targets.x_size(),
+      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jac_targets. Sizes: "
       "{} != {}",
       spectral_radiance_jacobian.nrows(),
-      jacobian_targets.x_size())
+      jac_targets.x_size())
 
   ARTS_USER_ERROR_IF(
       ray_path.size() != np,
@@ -83,20 +81,20 @@ void spectral_radiance_jacobianAddPathPropagation(
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
         "ray_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
-        "jacobian_targets.  Sizes: "
+        "jac_targets.  Sizes: "
         "{:B,} != [{}, {}]",
         dr.shape(),
         nt,
         nf)
   }
 
-  //! Checks that the jacobian_targets can be used and throws if not
-  jacobian_targets.throwing_check(nj);
+  //! Checks that the jac_targets can be used and throws if not
+  jac_targets.throwing_check(nj);
 
   //! The derivative part from the atmosphere
-  for (auto &atm_block : jacobian_targets.atm) {
+  for (auto &atm_block : jac_targets.atm) {
     ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type),
-                       "No {} in atm_field but in jacobian_targets",
+                       "No {} in atm_field but in jac_targets",
                        atm_block.type)
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
@@ -169,7 +167,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const StokvecVector &spectral_radiance,
     const ArrayOfSensorObsel &measurement_sensor,
     const AscendingGrid &freq_grid,
-    const JacobianTargets &jacobian_targets,
+    const JacobianTargets &jac_targets,
     const Vector3 &pos,
     const Vector2 &los,
     const AtmField &atm_field,
@@ -184,15 +182,15 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
 
   However, the flag for bailing and stopping this recursion
   is that there are no more jacobian targets.  So it calls
-  itself always with an empty jacobian_targets.  This is how
+  itself always with an empty jac_targets.  This is how
   it bails out of the recursion.
 
   As this method is useless unless there are sensor elements,
-  we use empty Sensor targets rather than empty jacobian_targets
+  we use empty Sensor targets rather than empty jac_targets
   as a mini-optimization.
 
   */
-  if (jacobian_targets.sensor.empty()) return;
+  if (jac_targets.sensor.empty()) return;
 
   ARTS_USER_ERROR_IF(
       spectral_radiance.size() != freq_grid.size(),
@@ -205,19 +203,19 @@ freq_grid.size()    = {}
       freq_grid.size())
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>({jacobian_targets.x_size(), freq_grid.size()},
+      not same_shape<2>({jac_targets.x_size(), freq_grid.size()},
                         spectral_radiance_jacobian),
       R"(spectral_radiance_jacobian must be x-grid times frequency grid
 
 spectral_radiance_jacobian.shape() = {:B,},
-jacobian_targets.x_size()          = {},
+jac_targets.x_size()          = {},
 freq_grid.size()              = {}
 )",
       spectral_radiance_jacobian.shape(),
-      jacobian_targets.x_size(),
+      jac_targets.x_size(),
       freq_grid.size())
 
-  const JacobianTargets jacobian_targets_empty{};
+  const JacobianTargets jac_targets_empty{};
   StokvecMatrix spectral_radiance_jacobian_empty{};
   ArrayOfPropagationPathPoint ray_path{};
 
@@ -231,7 +229,7 @@ freq_grid.size()              = {}
                                              spectral_radiance_jacobian_empty,
                                              ray_path,
                                              freq_grid_2,
-                                             jacobian_targets_empty,
+                                             jac_targets_empty,
                                              pos2,
                                              los2,
                                              atm_field,
@@ -249,7 +247,7 @@ freq_grid.size()              = {}
   const auto *e = x.end();
 
   bool find_any = false;
-  for (auto &target : jacobian_targets.sensor) {
+  for (auto &target : jac_targets.sensor) {
     ARTS_USER_ERROR_IF(measurement_sensor.size() <=
                            static_cast<Size>(target.type.measurement_elem),
                        "Sensor element out of bounds");
@@ -301,7 +299,7 @@ void measurement_vectorFromSensor(
     Vector &measurement_vector,
     Matrix &measurement_jacobian,
     const ArrayOfSensorObsel &measurement_sensor,
-    const JacobianTargets &jacobian_targets,
+    const JacobianTargets &jac_targets,
     const AtmField &atm_field,
     const SurfaceField &surf_field,
     const SubsurfaceField &subsurf_field,
@@ -313,8 +311,7 @@ void measurement_vectorFromSensor(
   measurement_vector.resize(measurement_sensor.size());
   measurement_vector = 0.0;
 
-  measurement_jacobian.resize(measurement_sensor.size(),
-                              jacobian_targets.x_size());
+  measurement_jacobian.resize(measurement_sensor.size(), jac_targets.x_size());
   measurement_jacobian = 0.0;
 
   if (measurement_sensor.empty()) return;
@@ -390,7 +387,7 @@ void measurement_vectorFromSensor(
           spectral_radiance_jacobian,
           ray_path,
           *f_grid_ptr,
-          jacobian_targets,
+          jac_targets,
           poslos.pos,
           poslos.los,
           atm_field,
