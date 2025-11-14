@@ -8,10 +8,10 @@ void jac_targetsOff(JacobianTargets& jac_targets) {
 }
 
 void jac_targetsConditionalClear(JacobianTargets& jac_targets,
-                                 const Index& do_jacobian) {
+                                 const Index& do_jac) {
   ARTS_TIME_REPORT
 
-  if (do_jacobian == 0) jac_targetsOff(jac_targets);
+  if (do_jac == 0) jac_targetsOff(jac_targets);
 }
 
 void jac_targetsInit(JacobianTargets& jac_targets) {
