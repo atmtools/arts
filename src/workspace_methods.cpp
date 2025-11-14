@@ -2064,7 +2064,7 @@ Gets the ellispoid from *surface_field*
                  "frequency_grid"},
   };
 
-  wsm_data["single_spectral_radianceClearskyEmissionPropagation"] = {
+  wsm_data["single_radClearskyEmissionPropagation"] = {
       .desc =
           R"--(Computes the spectral radiance for a single frequency using clear-sky emission propagation.
 
@@ -2073,15 +2073,13 @@ equation is solved along the path.  This means that the path is not precomputed
 but built on-the-fly, allowing per-frequency refraction.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"single_spectral_radiance",
-                 "single_spectral_radiance_jacobian",
-                 "ray_path"},
+      .out    = {"single_rad", "single_rad_jac", "ray_path"},
       .in     = {"atm_field",
                  "frequency",
                  "jacobian_targets",
-                 "single_spectral_radiance_space_agenda",
-                 "single_spectral_radiance_surface_agenda",
-                 "propagation_matrix_single_agenda",
+                 "single_rad_space_agenda",
+                 "single_rad_surface_agenda",
+                 "single_propmat_agenda",
                  "ray_path_point_back_propagation_agenda",
                  "subsurface_field",
                  "surface_field",
@@ -2097,7 +2095,7 @@ but built on-the-fly, allowing per-frequency refraction.
                     Index{1}},
       .gin_desc =
           {"Delta of the dispersion in polarizized form.  "
-           "The dot-product of this and the propagation matrix is added to the internal *dispersion_single* variable.",
+           "The dot-product of this and the propagation matrix is added to the internal *single_dispersion* variable.",
            "The maximum optical thickness per step, min of local *Propmat* A divided by ``max_tau`` "
            "and *max_stepsize* is passed to *ray_path_point_back_propagation_agendaExecute*.  "
            "Note that this is an approximation that will fail for highly non-linear absorption profiles.  "
@@ -2116,7 +2114,7 @@ but built on-the-fly, allowing per-frequency refraction.
 
   wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"] = {
       .desc =
-          R"--(Wraps *single_spectral_radianceClearskyEmissionPropagation* for a vector of frequencies.
+          R"--(Wraps *single_radClearskyEmissionPropagation* for a vector of frequencies.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
@@ -2126,9 +2124,9 @@ but built on-the-fly, allowing per-frequency refraction.
       .in             = {"atm_field",
                          "frequency_grid",
                          "jacobian_targets",
-                         "single_spectral_radiance_space_agenda",
-                         "single_spectral_radiance_surface_agenda",
-                         "propagation_matrix_single_agenda",
+                         "single_rad_space_agenda",
+                         "single_rad_surface_agenda",
+                         "single_propmat_agenda",
                          "ray_path_point_back_propagation_agenda",
                          "subsurface_field",
                          "surface_field",
@@ -2138,26 +2136,22 @@ but built on-the-fly, allowing per-frequency refraction.
       .pass_workspace = true,
   };
   wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
-      .gin =
-      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin;
+      .gin = wsm_data["single_radClearskyEmissionPropagation"].gin;
   wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
-      .gin_type =
-      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_type;
+      .gin_type = wsm_data["single_radClearskyEmissionPropagation"].gin_type;
   wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
-      .gin_value =
-      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_value;
+      .gin_value = wsm_data["single_radClearskyEmissionPropagation"].gin_value;
   wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
-      .gin_desc =
-      wsm_data["single_spectral_radianceClearskyEmissionPropagation"].gin_desc;
+      .gin_desc = wsm_data["single_radClearskyEmissionPropagation"].gin_desc;
 
-  wsm_data["single_spectral_radianceFromVector"] = {
+  wsm_data["single_radFromVector"] = {
       .desc =
           R"--(Composition method to extract a single spectral radiance from a vector.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"single_spectral_radiance", "single_spectral_radiance_jacobian"},
-      .in  = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .gin = {"index"},
+      .author    = {"Richard Larsson"},
+      .out       = {"single_rad", "single_rad_jac"},
+      .in        = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .gin       = {"index"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
       .gin_desc  = {"Index into the first dimension of the spectral radiance"},
@@ -2549,19 +2543,19 @@ This is only for LTE lines in Voigt.
           {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
-  wsm_data["propagation_matrix_singleInit"] = {
+  wsm_data["single_propmatInit"] = {
       .desc   = R"--(Initialize single-point propagation matrix fields.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix_single",
-                 "propagation_matrix_single_jacobian",
-                 "propagation_matrix_single_source_vector_nonlte",
-                 "propagation_matrix_single_source_vector_nonlte_jacobian",
-                 "dispersion_single",
-                 "dispersion_single_jacobian"},
+      .out    = {"single_propmat",
+                 "single_propmat_jac",
+                 "single_nlte_srcvec",
+                 "single_nlte_srcvec_jac",
+                 "single_dispersion",
+                 "single_dispersion_jac"},
       .in     = {"jacobian_targets"}};
 
-  wsm_data["propagation_matrix_singleAddVoigtLTE"] = {
+  wsm_data["single_propmatAddVoigtLTE"] = {
       .desc      = R"--(Add line-by-line absorption to the propagation matrix.
 
 See :doc:`concept.absorption.lbl` for details.
@@ -2569,14 +2563,14 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix_single",
-                    "propagation_matrix_single_jacobian",
-                    "dispersion_single",
-                    "dispersion_single_jacobian"},
-      .in        = {"propagation_matrix_single",
-                    "propagation_matrix_single_jacobian",
-                    "dispersion_single",
-                    "dispersion_single_jacobian",
+      .out       = {"single_propmat",
+                    "single_propmat_jac",
+                    "single_dispersion",
+                    "single_dispersion_jac"},
+      .in        = {"single_propmat",
+                    "single_propmat_jac",
+                    "single_dispersion",
+                    "single_dispersion_jac",
                     "frequency",
                     "jacobian_targets",
                     "select_species",
@@ -4312,7 +4306,7 @@ to the refracted zenith angle, i.e.,
     
     \theta_{refracted} = \arcsin\left(\frac{n_{current}}{n_{next}}\sin(\theta_{current})\right)
 )--";
-  wsm_data["ray_path_pointPastRefractive"].in.emplace_back("dispersion_single");
+  wsm_data["ray_path_pointPastRefractive"].in.emplace_back("single_dispersion");
 
   wsm_data["ray_path_pointBackground"] = {
       .desc =

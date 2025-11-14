@@ -1121,60 +1121,46 @@ Units: degrees
       .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
   };
 
-  wsv_data["single_radiance"] = {
-      .desc = R"(A single radiance value.
-)",
-      .type = "Stokvec",
-  };
-
-  wsv_data["single_radiance_jacobian"] = {
-      .desc = R"(A single set of radiance Jacobian.
-
-Dimensions: [ jacobian_targets.target_size() ]
-)",
-      .type = "StokvecVector",
-  };
-
-  wsv_data["ray_path_single_frequency"] = {
+  wsv_data["single_freq_path"] = {
       .desc = R"(The frequency along the path.
 )",
       .type = "Vector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix"] = {
+  wsv_data["single_propmat_path"] = {
       .desc = R"(The propagation matrix along the path.
 
-Dimensions: [ ray_path.size() ]
+Dimensions: [ *ray_path* ]
 )",
       .type = "PropmatVector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_jacobian"] = {
+  wsv_data["single_propmat_jac_path"] = {
       .desc = R"(The propagation matrix Jacobian along the path.
 
-Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jacobian_targets.target_size() ]
 )",
       .type = "PropmatMatrix",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_nonlte"] = {
+  wsv_data["single_nlte_srcvec_path"] = {
       .desc = R"(The propagation matrix along the path for nonlte source vector.
 
-Dimensions: [ ray_path.size() ]
+Dimensions: [ *ray_path* ]
 )",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_nonlte_jacobian"] = {
+  wsv_data["single_nlte_srcvec_jac_path"] = {
       .desc =
           R"(The propagation matrix Jacobian along the path for nonlte source.
 
-Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jacobian_targets.target_size() ]
 )",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["propagation_matrix_single"] = {
+  wsv_data["single_propmat"] = {
       .desc = R"--(A single propagation matrix at a single *frequency* point.
 
 See *propagation_matrix* for more information.
@@ -1182,7 +1168,7 @@ See *propagation_matrix* for more information.
       .type = "Propmat",
   };
 
-  wsv_data["propagation_matrix_single_jacobian"] = {
+  wsv_data["single_propmat_jac"] = {
       .desc =
           R"--(A single propagation matrix Jacobian at a single *frequency* point.
 
@@ -1193,7 +1179,7 @@ Size is number of Jacobian targets.
       .type = "PropmatVector",
   };
 
-  wsv_data["propagation_matrix_single_source_vector_nonlte"] = {
+  wsv_data["single_nlte_srcvec"] = {
       .desc = R"--(A single non-LTE source vector at a single *frequency* point.
 
 See *propagation_matrix* for more information.
@@ -1201,7 +1187,7 @@ See *propagation_matrix* for more information.
       .type = "Stokvec",
   };
 
-  wsv_data["propagation_matrix_single_source_vector_nonlte_jacobian"] = {
+  wsv_data["single_nlte_srcvec_jac"] = {
       .desc =
           R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
 
@@ -1212,13 +1198,13 @@ Size is number of Jacobian targets.
       .type = "StokvecVector",
   };
 
-  wsv_data["dispersion_single"] = {
+  wsv_data["single_dispersion"] = {
       .desc = R"--(A single dispersion at a single *frequency* point.
 )--",
       .type = "Numeric",
   };
 
-  wsv_data["dispersion_single_jacobian"] = {
+  wsv_data["single_dispersion_jac"] = {
       .desc = R"--(A single dispersion Jacobian at a single *frequency* point.
 )--",
       .type = "Vector",
@@ -1230,13 +1216,13 @@ Size is number of Jacobian targets.
       .type = "Numeric",
   };
 
-  wsv_data["single_spectral_radiance"] = {
+  wsv_data["single_rad"] = {
       .desc = R"--(Single value version of *spectral_radiance*.
 )--",
       .type = "Stokvec",
   };
 
-  wsv_data["single_spectral_radiance_jacobian"] = {
+  wsv_data["single_rad_jac"] = {
       .desc = R"--(Single value version of *spectral_radiance_jacobian*.
 )--",
       .type = "StokvecVector",

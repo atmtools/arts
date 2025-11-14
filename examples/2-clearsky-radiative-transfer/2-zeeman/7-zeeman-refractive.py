@@ -40,9 +40,9 @@ ws.spectral_radiance_transform_operatorSet(option="Tb")
 
 
 @pyarts.arts_agenda(ws=ws, fix=True)
-def propagation_matrix_single_agenda(ws):
-    ws.propagation_matrix_singleInit()
-    ws.propagation_matrix_singleAddVoigtLTE()
+def single_propmat_agenda(ws):
+    ws.single_propmatInit()
+    ws.single_propmatAddVoigtLTE()
 
 
 # %% Calculate and compare refractive and geometric ray paths
