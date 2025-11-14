@@ -109,36 +109,35 @@ void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddPredefined(PropmatVector& propagation_matrix,
-                                     PropmatMatrix& propagation_matrix_jacobian,
-                                     const PredefinedModelData& abs_predef_data,
-                                     const SpeciesEnum& select_species,
-                                     const JacobianTargets& jac_targets,
-                                     const AscendingGrid& f_grid,
-                                     const AtmPoint& atm_point) {
+void spectral_propmatAddPredefined(PropmatVector& spectral_propmat,
+                                   PropmatMatrix& spectral_propmat_jac,
+                                   const PredefinedModelData& abs_predef_data,
+                                   const SpeciesEnum& select_species,
+                                   const JacobianTargets& jac_targets,
+                                   const AscendingGrid& f_grid,
+                                   const AtmPoint& atm_point) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      propagation_matrix.size() not_eq f_grid.size(),
+      spectral_propmat.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  if (propagation_matrix_jacobian.nrows()) {
+  if (spectral_propmat_jac.nrows()) {
     ARTS_USER_ERROR_IF(
-        static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
+        static_cast<Size>(spectral_propmat_jac.nrows()) not_eq
             jac_targets.target_count(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
-        static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
-            f_grid.size(),
+        static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
   for (auto& [isot, data] : abs_predef_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
-    Absorption::PredefinedModel::compute(propagation_matrix,
-                                         propagation_matrix_jacobian,
+    Absorption::PredefinedModel::compute(spectral_propmat,
+                                         spectral_propmat_jac,
                                          isot,
                                          f_grid,
                                          atm_point,

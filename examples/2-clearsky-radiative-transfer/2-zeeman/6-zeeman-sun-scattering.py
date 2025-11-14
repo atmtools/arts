@@ -20,7 +20,7 @@ ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 ws.surf_fieldPlanet(option="Earth")
@@ -39,7 +39,7 @@ ws.spectral_radiance_transform_operator = "Tb"
 ws.spectral_radiance_space_agendaSet(option="SunOrCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric()
-ws.propagation_matrix_scattering_agendaSet(option="AirSimple")
+ws.spectral_propmat_scat_agendaSet(option="AirSimple")
 
 # %% Core calculations
 pos = [90e3, 0, 0]

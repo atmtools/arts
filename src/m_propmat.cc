@@ -2,13 +2,13 @@
 #include <arts_omp.h>
 #include <workspace.h>
 
-void ray_path_propagation_matrixFromPath(
+void spectral_propmat_pathFromPath(
     const Workspace &ws,
-    ArrayOfPropmatVector &ray_path_propagation_matrix,
+    ArrayOfPropmatVector &spectral_propmat_path,
     ArrayOfStokvecVector &ray_path_source_vector_nonlte,
-    ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
+    ArrayOfPropmatMatrix &spectral_propmat_jac_path,
     ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
-    const Agenda &propagation_matrix_agenda,
+    const Agenda &spectral_propmat_agenda,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
@@ -32,9 +32,9 @@ freq_wind_shift_jac_path size: {} element(s)
       freq_wind_shift_jac_path.size())
 
   const Size np = ray_path.size();
-  ray_path_propagation_matrix.resize(np);
+  spectral_propmat_path.resize(np);
   ray_path_source_vector_nonlte.resize(np);
-  ray_path_propagation_matrix_jacobian.resize(np);
+  spectral_propmat_jac_path.resize(np);
   ray_path_source_vector_nonlte_jacobian.resize(np);
 
   String error{};
@@ -42,19 +42,18 @@ freq_wind_shift_jac_path size: {} element(s)
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     try {
-      propagation_matrix_agendaExecute(
-          ws,
-          ray_path_propagation_matrix[ip],
-          ray_path_source_vector_nonlte[ip],
-          ray_path_propagation_matrix_jacobian[ip],
-          ray_path_source_vector_nonlte_jacobian[ip],
-          freq_grid_path[ip],
-          freq_wind_shift_jac_path[ip],
-          jac_targets,
-          {},
-          ray_path[ip],
-          atm_point_path[ip],
-          propagation_matrix_agenda);
+      spectral_propmat_agendaExecute(ws,
+                                     spectral_propmat_path[ip],
+                                     ray_path_source_vector_nonlte[ip],
+                                     spectral_propmat_jac_path[ip],
+                                     ray_path_source_vector_nonlte_jacobian[ip],
+                                     freq_grid_path[ip],
+                                     freq_wind_shift_jac_path[ip],
+                                     jac_targets,
+                                     {},
+                                     ray_path[ip],
+                                     atm_point_path[ip],
+                                     spectral_propmat_agenda);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -65,16 +64,13 @@ freq_wind_shift_jac_path size: {} element(s)
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_propagation_matrix_species_splitFromPath(
+void spectral_propmat_path_species_splitFromPath(
     const Workspace &ws,
-    ArrayOfArrayOfPropmatVector &ray_path_propagation_matrix_species_split,
-    ArrayOfArrayOfStokvecVector
-        &ray_path_propagation_matrix_source_vector_nonlte_species_split,
-    ArrayOfArrayOfPropmatMatrix
-        &ray_path_propagation_matrix_jacobian_species_split,
-    ArrayOfArrayOfStokvecMatrix &
-        ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split,
-    const Agenda &propagation_matrix_agenda,
+    ArrayOfArrayOfPropmatVector &spectral_propmat_path_species_split,
+    ArrayOfArrayOfStokvecVector &spectral_srcvec_nlte_path_species_split,
+    ArrayOfArrayOfPropmatMatrix &spectral_propmat_jac_path_species_split,
+    ArrayOfArrayOfStokvecMatrix &spectral_srcvec_nlte_jac_path_species_split,
+    const Agenda &spectral_propmat_agenda,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
@@ -86,19 +82,14 @@ void ray_path_propagation_matrix_species_splitFromPath(
   const Size ns = select_species_list.size();
   const Size np = ray_path.size();
 
-  ray_path_propagation_matrix_species_split.resize(ns);
-  ray_path_propagation_matrix_source_vector_nonlte_species_split.resize(ns);
-  ray_path_propagation_matrix_jacobian_species_split.resize(ns);
-  ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split
-      .resize(ns);
-  for (auto &s : ray_path_propagation_matrix_species_split) s.resize(np);
-  for (auto &s : ray_path_propagation_matrix_source_vector_nonlte_species_split)
-    s.resize(np);
-  for (auto &s : ray_path_propagation_matrix_jacobian_species_split)
-    s.resize(np);
-  for (auto &s :
-       ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split)
-    s.resize(np);
+  spectral_propmat_path_species_split.resize(ns);
+  spectral_srcvec_nlte_path_species_split.resize(ns);
+  spectral_propmat_jac_path_species_split.resize(ns);
+  spectral_srcvec_nlte_jac_path_species_split.resize(ns);
+  for (auto &s : spectral_propmat_path_species_split) s.resize(np);
+  for (auto &s : spectral_srcvec_nlte_path_species_split) s.resize(np);
+  for (auto &s : spectral_propmat_jac_path_species_split) s.resize(np);
+  for (auto &s : spectral_srcvec_nlte_jac_path_species_split) s.resize(np);
 
   String error{};
 
@@ -106,21 +97,19 @@ void ray_path_propagation_matrix_species_splitFromPath(
   for (Size is = 0; is < ns; is++) {
     for (Size ip = 0; ip < np; ip++) {
       try {
-        propagation_matrix_agendaExecute(
+        spectral_propmat_agendaExecute(
             ws,
-            ray_path_propagation_matrix_species_split[is][ip],
-            ray_path_propagation_matrix_source_vector_nonlte_species_split[is]
-                                                                          [ip],
-            ray_path_propagation_matrix_jacobian_species_split[is][ip],
-            ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split
-                [is][ip],
+            spectral_propmat_path_species_split[is][ip],
+            spectral_srcvec_nlte_path_species_split[is][ip],
+            spectral_propmat_jac_path_species_split[is][ip],
+            spectral_srcvec_nlte_jac_path_species_split[is][ip],
             freq_grid_path[ip],
             freq_wind_shift_jac_path[ip],
             jac_targets,
             select_species_list[is],
             ray_path[ip],
             atm_point_path[ip],
-            propagation_matrix_agenda);
+            spectral_propmat_agenda);
       } catch (const std::runtime_error &e) {
 #pragma omp critical
         if (error.empty()) error = e.what();

@@ -20,7 +20,7 @@ ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
@@ -39,7 +39,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
+ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
 ws.disort_settings_agendaSetup()
 

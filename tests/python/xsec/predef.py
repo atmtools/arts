@@ -13,7 +13,7 @@ nd = atm.number_density("O2-66")
 ws.abs_speciesSet(species=["O2-PWR98"])
 ws.ReadCatalogData()
 f = np.linspace(50e9, 70e9, 10)
-x = ws.abs_predef_data.propagation_matrix(f=f, atm=atm) / nd
+x = ws.abs_predef_data.spectral_propmat(f=f, atm=atm) / nd
 
 assert np.allclose(
     x[:, 0],

@@ -30,7 +30,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
     if abs_scenario == "FullMars":
         ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
         ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
-        ws.propagation_matrix_agendaAuto()
+        ws.spectral_propmat_agendaAuto()
         ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",
@@ -46,7 +46,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
     elif abs_scenario == "IsotEarth":
         ws.abs_bandsReadSpeciesSplitARTSCAT(basename="spectroscopy/Perrin/")
         ws.abs_bands = ws.abs_bands.extract_species("H2O-161")
-        ws.propagation_matrix_agendaAuto()
+        ws.spectral_propmat_agendaAuto()
         ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",
@@ -56,7 +56,7 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
     elif abs_scenario == "FullEarth":
         ws.ReadCatalogData()
         ws.abs_bandsSelectFrequencyByLine(fmin=550e9, fmax=560e9)
-        ws.propagation_matrix_agendaAuto()
+        ws.spectral_propmat_agendaAuto()
         ws.atm_fieldRead(
             toa=150e3,
             basename="planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/",

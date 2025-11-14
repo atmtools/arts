@@ -5,20 +5,19 @@
 namespace {
 void ray_path_spectral_radianceStepByStepEmissionForwardOnly(
     ArrayOfStokvecVector& ray_path_spectral_radiance,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix,
-    const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
+    const ArrayOfMuelmatVector& spectral_tramat_path,
+    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
     const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  ray_path_spectral_radiance.resize(ray_path_transmission_matrix.size());
+  ray_path_spectral_radiance.resize(spectral_tramat_path.size());
   arr::elemwise_resize(spectral_rad_bkg.size(), ray_path_spectral_radiance);
 
   ray_path_spectral_radiance.back() = spectral_rad_bkg;
 
-  two_level_linear_emission_step_by_step_full(
-      ray_path_spectral_radiance,
-      ray_path_transmission_matrix,
-      ray_path_spectral_radiance_source);
+  two_level_linear_emission_step_by_step_full(ray_path_spectral_radiance,
+                                              spectral_tramat_path,
+                                              spectral_rad_srcvec_path);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -27,7 +26,7 @@ void ray_path_spectral_radianceClearskyEmission(
     ArrayOfStokvecVector& ray_path_spectral_radiance,
     const AtmField& atm_field,
     const AscendingGrid& freq_grid,
-    const Agenda& propagation_matrix_agenda,
+    const Agenda& spectral_propmat_agenda,
     const ArrayOfPropagationPathPoint& ray_path,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
@@ -58,50 +57,47 @@ void ray_path_spectral_radianceClearskyEmission(
                          freq_grid,
                          ray_path,
                          atm_point_path);
-  ArrayOfPropmatVector ray_path_propagation_matrix;
-  ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte;
-  ArrayOfPropmatMatrix ray_path_propagation_matrix_jacobian;
-  ArrayOfStokvecMatrix
-      ray_path_propagation_matrix_source_vector_nonlte_jacobian;
-  ray_path_propagation_matrixFromPath(
-      ws,
-      ray_path_propagation_matrix,
-      ray_path_propagation_matrix_source_vector_nonlte,
-      ray_path_propagation_matrix_jacobian,
-      ray_path_propagation_matrix_source_vector_nonlte_jacobian,
-      propagation_matrix_agenda,
-      freq_grid_path,
-      freq_wind_shift_jac_path,
-      {},
-      ray_path,
-      atm_point_path);
-  ArrayOfMuelmatVector ray_path_transmission_matrix;
-  ArrayOfMuelmatTensor3 ray_path_transmission_matrix_jacobian;
-  ray_path_transmission_matrixFromPath(ray_path_transmission_matrix,
-                                       ray_path_transmission_matrix_jacobian,
-                                       ray_path_propagation_matrix,
-                                       ray_path_propagation_matrix_jacobian,
-                                       ray_path,
-                                       atm_point_path,
-                                       surf_field,
-                                       {},
-                                       0);
-  ArrayOfStokvecVector ray_path_spectral_radiance_source;
-  ArrayOfStokvecMatrix ray_path_spectral_radiance_source_jacobian;
-  ray_path_spectral_radiance_sourceFromPropmat(
-      ray_path_spectral_radiance_source,
-      ray_path_spectral_radiance_source_jacobian,
-      ray_path_propagation_matrix,
-      ray_path_propagation_matrix_source_vector_nonlte,
-      ray_path_propagation_matrix_jacobian,
-      ray_path_propagation_matrix_source_vector_nonlte_jacobian,
-      freq_grid_path,
-      atm_point_path,
-      {});
+  ArrayOfPropmatVector spectral_propmat_path;
+  ArrayOfStokvecVector spectral_srcvec_nlte_path;
+  ArrayOfPropmatMatrix spectral_propmat_jac_path;
+  ArrayOfStokvecMatrix spectral_srcvec_nlte_jac_path;
+  spectral_propmat_pathFromPath(ws,
+                                spectral_propmat_path,
+                                spectral_srcvec_nlte_path,
+                                spectral_propmat_jac_path,
+                                spectral_srcvec_nlte_jac_path,
+                                spectral_propmat_agenda,
+                                freq_grid_path,
+                                freq_wind_shift_jac_path,
+                                {},
+                                ray_path,
+                                atm_point_path);
+  ArrayOfMuelmatVector spectral_tramat_path;
+  ArrayOfMuelmatTensor3 spectral_tramat_jac_path;
+  spectral_tramat_pathFromPath(spectral_tramat_path,
+                               spectral_tramat_jac_path,
+                               spectral_propmat_path,
+                               spectral_propmat_jac_path,
+                               ray_path,
+                               atm_point_path,
+                               surf_field,
+                               {},
+                               0);
+  ArrayOfStokvecVector spectral_rad_srcvec_path;
+  ArrayOfStokvecMatrix spectral_rad_srcvec_jac_path;
+  spectral_rad_srcvec_pathFromPropmat(spectral_rad_srcvec_path,
+                                      spectral_rad_srcvec_jac_path,
+                                      spectral_propmat_path,
+                                      spectral_srcvec_nlte_path,
+                                      spectral_propmat_jac_path,
+                                      spectral_srcvec_nlte_jac_path,
+                                      freq_grid_path,
+                                      atm_point_path,
+                                      {});
   ray_path_spectral_radianceStepByStepEmissionForwardOnly(
       ray_path_spectral_radiance,
-      ray_path_transmission_matrix,
-      ray_path_spectral_radiance_source,
+      spectral_tramat_path,
+      spectral_rad_srcvec_path,
       spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -112,7 +108,7 @@ void spectral_flux_profileFromPathField(
     Matrix& spectral_flux_profile,
     const ArrayOfArrayOfPropagationPathPoint& ray_path_field,
     const AtmField& atm_field,
-    const Agenda& propagation_matrix_agenda,
+    const Agenda& spectral_propmat_agenda,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surf_field,
@@ -139,7 +135,7 @@ void spectral_flux_profileFromPathField(
           ray_path_spectral_radiance_field[n],
           atm_field,
           freq_grid,
-          propagation_matrix_agenda,
+          spectral_propmat_agenda,
           ray_path_field[n],
           spectral_radiance_space_agenda,
           spectral_radiance_surface_agenda,

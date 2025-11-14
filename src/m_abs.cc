@@ -100,10 +100,10 @@ void abs_speciesDefineAll(  // WS Output:
 //======================================================================
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixInit(  //WS Output
-    PropmatVector& propagation_matrix,
+void spectral_propmatInit(  //WS Output
+    PropmatVector& spectral_propmat,
     StokvecVector& source_vector_nonlte,
-    PropmatMatrix& propagation_matrix_jacobian,
+    PropmatMatrix& spectral_propmat_jac,
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jac_targets,
@@ -115,17 +115,17 @@ void propagation_matrixInit(  //WS Output
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
-  // Set size of propagation_matrix and reset it's values
-  propagation_matrix.resize(nf);
-  propagation_matrix = 0.0;
+  // Set size of spectral_propmat and reset it's values
+  spectral_propmat.resize(nf);
+  spectral_propmat = 0.0;
 
   // Set size of source_vector_nonlte and reset it's values
   source_vector_nonlte.resize(nf);
   source_vector_nonlte = 0.0;
 
-  // Set size of propagation_matrix_jacobian and reset it's values
-  propagation_matrix_jacobian.resize(nq, nf);
-  propagation_matrix_jacobian = 0.0;
+  // Set size of spectral_propmat_jac and reset it's values
+  spectral_propmat_jac.resize(nq, nf);
+  spectral_propmat_jac = 0.0;
 
   // Set size of source_vector_nonlte_jacobian and reset it's values
   source_vector_nonlte_jacobian.resize(nq, nf);
@@ -133,13 +133,13 @@ void propagation_matrixInit(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
-                                  PropmatMatrix& propagation_matrix_jacobian,
-                                  const AscendingGrid& freq_grid,
-                                  const SpeciesEnum& select_abs_species,
-                                  const JacobianTargets& jac_targets,
-                                  const AtmPoint& atm_point,
-                                  const PropagationPathPoint& path_point) {
+void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
+                                PropmatMatrix& spectral_propmat_jac,
+                                const AscendingGrid& freq_grid,
+                                const SpeciesEnum& select_abs_species,
+                                const JacobianTargets& jac_targets,
+                                const AtmPoint& atm_point,
+                                const PropagationPathPoint& path_point) {
   ARTS_TIME_REPORT
 
   constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
@@ -208,57 +208,56 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
     }
 
     for (Size iv = 0; iv < freq_grid.size(); iv++) {
-      const Numeric f2            = freq_grid[iv] * freq_grid[iv];
-      const Numeric r             = ne * c1 / f2;
-      propagation_matrix[iv].U() += r;
+      const Numeric f2          = freq_grid[iv] * freq_grid[iv];
+      const Numeric r           = ne * c1 / f2;
+      spectral_propmat[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
         if (jacs[i] != end) {
-          propagation_matrix_jacobian[jacs[i]->target_pos, iv].U() +=
-              ne * dc1[i] / f2;
+          spectral_propmat_jac[jacs[i]->target_pos, iv].U() += ne * dc1[i] / f2;
         }
       }
 
       for (Size i = 3; i < 6; i++) {
         if (jacs[i] != end) {
-          propagation_matrix_jacobian[jacs[i]->target_pos, iv].U() +=
+          spectral_propmat_jac[jacs[i]->target_pos, iv].U() +=
               -2.0 * ne * r / freq_grid[iv];
         }
       }
 
       if (jacs[6] != end) {
-        propagation_matrix_jacobian[jacs[6]->target_pos, iv].U() += r;
+        spectral_propmat_jac[jacs[6]->target_pos, iv].U() += r;
       }
     }
   }
 }
 
-void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
-                                   const ArrayOfSpeciesTag& abs_species,
-                                   const AbsorptionBands& abs_bands,
-                                   const Index& use_abs_lookup_data,
-                                   const Numeric& T_extrapolfac,
-                                   const Index& ignore_errors,
-                                   const Index& no_negative_absorption,
-                                   const Numeric& force_p,
-                                   const Numeric& force_t,
-                                   const Index& p_interp_order,
-                                   const Index& t_interp_order,
-                                   const Index& water_interp_order,
-                                   const Index& f_interp_order,
-                                   const Numeric& extpolfac) {
+void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
+                                 const ArrayOfSpeciesTag& abs_species,
+                                 const AbsorptionBands& abs_bands,
+                                 const Index& use_abs_lookup_data,
+                                 const Numeric& T_extrapolfac,
+                                 const Index& ignore_errors,
+                                 const Index& no_negative_absorption,
+                                 const Numeric& force_p,
+                                 const Numeric& force_t,
+                                 const Index& p_interp_order,
+                                 const Index& t_interp_order,
+                                 const Index& water_interp_order,
+                                 const Index& f_interp_order,
+                                 const Numeric& extpolfac) {
   ARTS_TIME_REPORT
 
-  AgendaCreator agenda("propagation_matrix_agenda");
+  AgendaCreator agenda("spectral_propmat_agenda");
 
   const SpeciesTagTypeStatus any_species(abs_species);
 
-  // propagation_matrixInit
-  agenda.add("propagation_matrixInit");
+  // spectral_propmatInit
+  agenda.add("spectral_propmatInit");
 
-  // propagation_matrixAddLines or propagation_matrixAddLookup
+  // spectral_propmatAddLines or spectral_propmatAddLookup
   if (use_abs_lookup_data) {
-    agenda.add("propagation_matrixAddLookup",
+    agenda.add("spectral_propmatAddLookup",
                SetWsv{"no_negative_absorption", no_negative_absorption},
                SetWsv{"p_interp_order", p_interp_order},
                SetWsv{"t_interp_order", t_interp_order},
@@ -266,38 +265,38 @@ void propagation_matrix_agendaAuto(Agenda& propagation_matrix_agenda,
                SetWsv{"f_interp_order", f_interp_order},
                SetWsv{"extpolfac", extpolfac});
   } else if (abs_bands.size()) {
-    agenda.add("propagation_matrixAddLines",
+    agenda.add("spectral_propmatAddLines",
                SetWsv{"no_negative_absorption", no_negative_absorption});
   }
 
-  //propagation_matrixAddHitranXsec
+  //spectral_propmatAddHitranXsec
   if (any_species.XsecFit) {
-    agenda.add("propagation_matrixAddXsecFit",
+    agenda.add("spectral_propmatAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
   }
 
-  //propagation_matrixAddCIA
+  //spectral_propmatAddCIA
   if (any_species.Cia) {
-    agenda.add("propagation_matrixAddCIA",
+    agenda.add("spectral_propmatAddCIA",
                SetWsv{"T_extrapolfac", T_extrapolfac},
                SetWsv{"ignore_errors", ignore_errors});
   }
 
-  //propagation_matrixAddPredefined
+  //spectral_propmatAddPredefined
   if (any_species.Predefined) {
-    agenda.add("propagation_matrixAddPredefined");
+    agenda.add("spectral_propmatAddPredefined");
   }
 
-  //propagation_matrixAddFaraday
+  //spectral_propmatAddFaraday
   if (std::ranges::any_of(abs_species, [](auto& spec) {
         return spec.Spec() == "free_electrons"_spec;
       })) {
-    agenda.add("propagation_matrixAddFaraday");
+    agenda.add("spectral_propmatAddFaraday");
   }
 
-  agenda.add("propagation_matrix_jacobianWindFix");
+  agenda.add("spectral_propmat_jacWindFix");
 
   // Extra check (should really never ever fail when species exist)
-  propagation_matrix_agenda = std::move(agenda).finalize(true);
+  spectral_propmat_agenda = std::move(agenda).finalize(true);
 }

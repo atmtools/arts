@@ -715,7 +715,7 @@ These are named:
 #. Joker.  Example ``"H2O"``.  Selects all Normal Isotopologue of the provided *SpeciesEnum*.
 #. Normal Isotopologue.  Example ``"H2O-161"``.  Selects a specific Normal Isotopologue.
 #. Predefined Model.  Example ``"H2O-PWR2022"``.  Selects a specific Predefined Model.
-   For more information on Predefined Models, see *propagation_matrixAddPredefined*.
+   For more information on Predefined Models, see *spectral_propmatAddPredefined*.
 #. CIA.  Example ``"H2O-CIA-H2O"``.  Selects collusion-induced absorption between the two species.
    Any two *SpeciesEnum* in combination is valid.  The reverse combination is also valid and unique.
 #. XFIT.  Example ``"H2O-XFIT"``.  Selects using cross-section fits for the species.
@@ -929,7 +929,7 @@ The method used here is based on :cite:t:`Yamada2018`
       .out       = {"atm_profile"},
       .in        = {"atm_profile",
                     "abs_bands",
-                    "propagation_matrix_agenda",
+                    "spectral_propmat_agenda",
                     "surf_field",
                     "freq_grid",
                     "alt_grid",
@@ -1002,26 +1002,26 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
 
   wsm_data["spectral_tramat_bkgFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *spectral_tramat_bkg* to back of *ray_path_transmission_matrix_cumulative*.
+          R"--(Sets *spectral_tramat_bkg* to back of *spectral_tramat_cumulative_path*.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_tramat_bkg"},
-      .in     = {"ray_path_transmission_matrix_cumulative"},
+      .in     = {"spectral_tramat_cumulative_path"},
   };
 
   wsm_data["spectral_tramat_bkgFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *spectral_tramat_bkg* to front of *ray_path_transmission_matrix_cumulative*.
+          R"--(Sets *spectral_tramat_bkg* to front of *spectral_tramat_cumulative_path*.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_tramat_bkg"},
-      .in     = {"ray_path_transmission_matrix_cumulative"},
+      .in     = {"spectral_tramat_cumulative_path"},
   };
 
   wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
@@ -1138,13 +1138,13 @@ in your own control-flow.
       .in     = {"ray_path", "atm_field"},
   };
 
-  wsm_data["ray_path_transmission_matrix_cumulativeFromPath"] = {
+  wsm_data["spectral_tramat_cumulative_pathFromPath"] = {
       .desc =
-          R"--(Sets *ray_path_transmission_matrix_cumulative* by forward iteration of *ray_path_transmission_matrix*
+          R"--(Sets *spectral_tramat_cumulative_path* by forward iteration of *spectral_tramat_path*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_transmission_matrix_cumulative"},
-      .in     = {"ray_path_transmission_matrix"},
+      .out    = {"spectral_tramat_cumulative_path"},
+      .in     = {"spectral_tramat_path"},
   };
 
   wsm_data["freq_grid_pathFromPath"] = {
@@ -1152,14 +1152,14 @@ in your own control-flow.
 
 The derivative transformation for wind parameters is also returned.
 
-See *propagation_matrix_jacobianWindFix* for use of the wind shift data.
+See *spectral_propmat_jacWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
       .in     = {"freq_grid", "ray_path", "atm_point_path"},
   };
 
-  wsm_data["ray_path_propagation_matrixFromPath"] = {
+  wsm_data["spectral_propmat_pathFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix and non-LTE source term along the path.
 
@@ -1168,11 +1168,11 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *freq_grid_path* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_propagation_matrix",
-                         "ray_path_propagation_matrix_source_vector_nonlte",
-                         "ray_path_propagation_matrix_jacobian",
-                         "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
-      .in             = {"propagation_matrix_agenda",
+      .out            = {"spectral_propmat_path",
+                         "spectral_srcvec_nlte_path",
+                         "spectral_propmat_jac_path",
+                         "spectral_srcvec_nlte_jac_path"},
+      .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
                          "jac_targets",
@@ -1181,20 +1181,19 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
       .pass_workspace = true,
   };
 
-  wsm_data["ray_path_propagation_matrix_species_splitFromPath"] = {
+  wsm_data["spectral_propmat_path_species_splitFromPath"] = {
       .desc =
-          R"--(As *ray_path_propagation_matrixFromPath* but the output is split between the species in the
+          R"--(As *spectral_propmat_pathFromPath* but the output is split between the species in the
 *select_species_list*.
 
 The outer dimension of the output arrays are the size of the species selection list.  The inner dimensions
-are as per *ray_path_propagation_matrixFromPath*.
+are as per *spectral_propmat_pathFromPath*.
 )--",
-      .author = {"Richard Larsson"},
-      .gout =
-          {"ray_path_propagation_matrix_species_split",
-           "ray_path_propagation_matrix_source_vector_nonlte_species_split",
-           "ray_path_propagation_matrix_jacobian_species_split",
-           "ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split"},
+      .author    = {"Richard Larsson"},
+      .gout      = {"spectral_propmat_path_species_split",
+                    "spectral_srcvec_nlte_path_species_split",
+                    "spectral_propmat_jac_path_species_split",
+                    "spectral_srcvec_nlte_jac_path_species_split"},
       .gout_type = {"ArrayOfArrayOfPropmatVector",
                     "ArrayOfArrayOfStokvecVector",
                     "ArrayOfArrayOfPropmatMatrix",
@@ -1204,7 +1203,7 @@ are as per *ray_path_propagation_matrixFromPath*.
            R"--(Non-LTE source vector for selected species)--",
            R"--(Jacobian of propagation matrix for selected species)--",
            R"--(Jacobian of non-LTE source vector for selected species)--"},
-      .in             = {"propagation_matrix_agenda",
+      .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
                          "jac_targets",
@@ -1214,46 +1213,45 @@ are as per *ray_path_propagation_matrixFromPath*.
       .pass_workspace = true,
   };
 
-  wsm_data["ray_path_propagation_matrix_scatteringFromPath"] = {
+  wsm_data["spectral_propmat_scat_pathFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix for scattering along the path.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_propagation_matrix_scattering"},
-      .in             = {"propagation_matrix_scattering_agenda",
+      .out            = {"spectral_propmat_scat_path"},
+      .in             = {"spectral_propmat_scat_agenda",
                          "freq_grid_path",
                          "atm_point_path"},
       .pass_workspace = true,
   };
 
-  wsm_data["ray_path_propagation_matrixAddScattering"] = {
+  wsm_data["spectral_propmat_pathAddScattering"] = {
       .desc =
           R"--(Adds the scattering part of the propagation matrix to the rest along the path.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_propagation_matrix"},
-      .in     = {"ray_path_propagation_matrix",
-                 "ray_path_propagation_matrix_scattering"},
+      .out    = {"spectral_propmat_path"},
+      .in     = {"spectral_propmat_path", "spectral_propmat_scat_path"},
   };
 
-  wsm_data["ray_path_spectral_radiance_sourceAddScattering"] = {
+  wsm_data["spectral_rad_srcvec_pathAddScattering"] = {
       .desc =
           R"--(Adds the scattering part of the propagation matrix to the rest along the path.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance_source"},
-      .in     = {"ray_path_spectral_radiance_source",
+      .out    = {"spectral_rad_srcvec_path"},
+      .in     = {"spectral_rad_srcvec_path",
                  "ray_path_spectral_radiance_scattering",
-                 "ray_path_propagation_matrix"},
+                 "spectral_propmat_path"},
   };
 
-  wsm_data["ray_path_spectral_radiance_sourceFromPropmat"] = {
+  wsm_data["spectral_rad_srcvec_pathFromPropmat"] = {
       .desc   = R"--(Gets the source term along the path.
 
 Per *Stokvec* element (single frequency, single temperature, single derivative target),
@@ -1282,29 +1280,29 @@ where:
     - Extracted from ARTS parameter
     - Meaning
   * - :math:`\vec{J}`
-    - *ray_path_spectral_radiance_source*
+    - *spectral_rad_srcvec_path*
     - The spectral radiance source term along the path.
   * - :math:`B(T, f)`
     - ``None`` - this is computed locally
     - The Planck function at the temperature and frequency.
   * - :math:`\mathbf{K}`
-    - *ray_path_propagation_matrix*
+    - *spectral_propmat_path*
     - The propagation matrix along the path.
   * - :math:`\vec{S}`
-    - *ray_path_propagation_matrix_source_vector_nonlte*
+    - *spectral_srcvec_nlte_path*
     - The non-LTE source vector along the path.
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
-    - *ray_path_spectral_radiance_source_jacobian*
+    - *spectral_rad_srcvec_jac_path*
     - The Jacobian of the spectral radiance source term with respect to the
       *jac_targets*.
   * - :math:`\frac{\partial B(T, f)}{\partial x}`
     - ``None`` - this is computed locally
     - The Jacobian of the Planck function with respect to the *jac_targets*.  Only tempertature is supported.
   * - :math:`\frac{\partial \mathbf{K}}{\partial x}`
-    - *ray_path_propagation_matrix_jacobian*
+    - *spectral_propmat_jac_path*
     - The Jacobian of the propagation matrix with respect to the *jac_targets*.
   * - :math:`\frac{\partial \vec{S}}{\partial x}`
-    - *ray_path_propagation_matrix_source_vector_nonlte_jacobian*
+    - *spectral_srcvec_nlte_jac_path*
     - The Jacobian of the non-LTE source vector with respect to the *jac_targets*.
   * - :math:`x`
     - *jac_targets*
@@ -1318,16 +1316,15 @@ where:
 
 The output dimensions are:
 
-- *ray_path_spectral_radiance_source*: *ray_path* x *freq_grid*
-- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *freq_grid* x *jac_targets* (target count)
+- *spectral_rad_srcvec_path*: *ray_path* x *freq_grid*
+- *spectral_rad_srcvec_jac_path*: *ray_path* x *freq_grid* x *jac_targets* (target count)
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_spectral_radiance_source",
-                 "ray_path_spectral_radiance_source_jacobian"},
-      .in     = {"ray_path_propagation_matrix",
-                 "ray_path_propagation_matrix_source_vector_nonlte",
-                 "ray_path_propagation_matrix_jacobian",
-                 "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
+      .out    = {"spectral_rad_srcvec_path", "spectral_rad_srcvec_jac_path"},
+      .in     = {"spectral_propmat_path",
+                 "spectral_srcvec_nlte_path",
+                 "spectral_propmat_jac_path",
+                 "spectral_srcvec_nlte_jac_path",
                  "freq_grid_path",
                  "atm_point_path",
                  "jac_targets"},
@@ -1389,7 +1386,7 @@ This is based on the works cited here: https://hitran.org/mtckd/
       .out    = {"abs_predef_data"},
   };
 
-  wsm_data["propagation_matrixAddCIA"] = {
+  wsm_data["spectral_propmatAddCIA"] = {
       .desc =
           R"--(Add absorption coefficients for HITRAN collision induced absorption (CIA).
 
@@ -1442,9 +1439,9 @@ thus not fail.
     want to debug your results, but not if you want to use them.
 )--",
       .author    = {"Stefan Buehler, Oliver Lemke"},
-      .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_jacobian",
+      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_propmat_jac",
                     "select_species",
                     "jac_targets",
                     "freq_grid",
@@ -1458,7 +1455,7 @@ thus not fail.
            R"--(Set to 1 to suppress runtime errors (and return NAN values instead).)--"},
   };
 
-  wsm_data["propagation_matrixAddFaraday"] = {
+  wsm_data["spectral_propmatAddFaraday"] = {
       .desc   = R"--(Calculates absorption matrix describing Faraday rotation.
 
 Faraday rotation is a change of polarization state of an
@@ -1470,14 +1467,14 @@ held by *atm_point* (*SpeciesEnum* : ``free_electrons``).
 Faraday rotation affects Stokes parameters 2 and 3 (but not
 intensity!).
 
-Like all *propagation_matrix*-modifying methods, the method is additive,
-i.e., does not overwrite the propagation matrix *propagation_matrix*,
+Like all *spectral_propmat*-modifying methods, the method is additive,
+i.e., does not overwrite the propagation matrix *spectral_propmat*,
 but adds further contributions.
 )--",
       .author = {"Patrick Eriksson"},
-      .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in     = {"propagation_matrix",
-                 "propagation_matrix_jacobian",
+      .out    = {"spectral_propmat", "spectral_propmat_jac"},
+      .in     = {"spectral_propmat",
+                 "spectral_propmat_jac",
                  "freq_grid",
                  "select_species",
                  "jac_targets",
@@ -1485,9 +1482,9 @@ but adds further contributions.
                  "ray_path_point"},
   };
 
-  wsm_data["propagation_matrixAddPredefined"] = {
+  wsm_data["spectral_propmatAddPredefined"] = {
       .desc =
-          R"--(Adds all of the predefined models in *abs_species* to the propagation_matrix
+          R"--(Adds all of the predefined models in *abs_species* to the spectral_propmat
 
 Only supports temperature and wind speed derivatives
 
@@ -1647,9 +1644,9 @@ Available models
     - :cite:t:`Ellison2007`
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in     = {"propagation_matrix",
-                 "propagation_matrix_jacobian",
+      .out    = {"spectral_propmat", "spectral_propmat_jac"},
+      .in     = {"spectral_propmat",
+                 "spectral_propmat_jac",
                  "abs_predef_data",
                  "select_species",
                  "jac_targets",
@@ -1657,7 +1654,7 @@ Available models
                  "atm_point"},
   };
 
-  wsm_data["propagation_matrixAddXsecFit"] = {
+  wsm_data["spectral_propmatAddXsecFit"] = {
       .desc =
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
@@ -1665,9 +1662,9 @@ This broadens the cross section data from *abs_xfit_data* and
 interpolates it onto the current *freq_grid*.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_jacobian",
+      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_propmat_jac",
                     "select_species",
                     "jac_targets",
                     "freq_grid",
@@ -1680,14 +1677,14 @@ interpolates it onto the current *freq_grid*.
                     R"--(Positive value forces constant temperature [K].)--"},
   };
 
-  wsm_data["propagation_matrix_scatteringSpectralInit"] = {
+  wsm_data["spectral_propmat_scatSpectralInit"] = {
       .desc =
-          R"--(Initialize *propagation_matrix_scattering* and co to zeroes.
+          R"--(Initialize *spectral_propmat_scat* and co to zeroes.
 
-This method must be used inside *propagation_matrix_scattering_spectral_agenda* and then be called first.
+This method must be used inside *spectral_propmat_scat_spectral_agenda* and then be called first.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix_scattering",
+      .out    = {"spectral_propmat_scat",
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral"},
       .in     = {"freq_grid", "legendre_degree"},
@@ -1704,16 +1701,16 @@ Method is purely for convenience and composition.
       .in     = {"disort_settings"},
   };
 
-  wsm_data["propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO"] = {
+  wsm_data["spectral_propmat_scatAddSpectralScatteringSpeciesTRO"] = {
       .desc =
           R"--(Adds *scattering_species* results for totally random oriented spectral calculations to
-*propagation_matrix_scattering* and co.
+*spectral_propmat_scat* and co.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix_scattering",
+      .out    = {"spectral_propmat_scat",
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral"},
-      .in     = {"propagation_matrix_scattering",
+      .in     = {"spectral_propmat_scat",
                  "absorption_vector_scattering",
                  "phase_matrix_scattering_spectral",
                  "freq_grid",
@@ -1721,52 +1718,52 @@ Method is purely for convenience and composition.
                  "scattering_species"},
   };
 
-  wsm_data["ray_path_propagation_matrix_scatteringFromSpectralAgenda"] = {
+  wsm_data["spectral_propmat_scat_pathFromSpectralAgenda"] = {
       .desc =
-          R"--(Compute *ray_path_propagation_matrix_scattering* and co for a path.
+          R"--(Compute *spectral_propmat_scat_path* and co for a path.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_propagation_matrix_scattering",
+      .out            = {"spectral_propmat_scat_path",
                          "ray_path_absorption_vector_scattering",
                          "ray_path_phase_matrix_scattering_spectral"},
       .in             = {"freq_grid_path",
                          "atm_point_path",
                          "legendre_degree",
-                         "propagation_matrix_scattering_spectral_agenda"},
+                         "spectral_propmat_scat_spectral_agenda"},
       .pass_workspace = true,
   };
 
-  wsm_data["propagation_matrix_scatteringInit"] = {
+  wsm_data["spectral_propmat_scatInit"] = {
       .desc =
-          R"--(Initialize *propagation_matrix_scattering* to zeroes.
+          R"--(Initialize *spectral_propmat_scat* to zeroes.
 
-This method must be used inside *propagation_matrix_scattering_agenda* and then be called first.
+This method must be used inside *spectral_propmat_scat_agenda* and then be called first.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix_scattering"},
+      .out    = {"spectral_propmat_scat"},
       .in     = {"freq_grid"},
   };
 
-  wsm_data["propagation_matrix_scatteringAirSimple"] = {
+  wsm_data["spectral_propmat_scatAirSimple"] = {
       .desc =
-          R"--(Add simple air to *propagation_matrix_scattering*.
+          R"--(Add simple air to *spectral_propmat_scat*.
 )--",
       .author = {"Jon Petersen", "Richard Larsson"},
-      .out    = {"propagation_matrix_scattering"},
-      .in     = {"propagation_matrix_scattering", "freq_grid", "atm_point"},
+      .out    = {"spectral_propmat_scat"},
+      .in     = {"spectral_propmat_scat", "freq_grid", "atm_point"},
   };
 
-  wsm_data["propagation_matrixInit"] = {
+  wsm_data["spectral_propmatInit"] = {
       .desc =
-          R"--(Initialize *propagation_matrix*, *propagation_matrix_source_vector_nonlte*, and their derivatives to zeroes.
+          R"--(Initialize *spectral_propmat*, *spectral_srcvec_nlte*, and their derivatives to zeroes.
 
-This method must be used inside *propagation_matrix_agenda* and then be called first.
+This method must be used inside *spectral_propmat_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
-      .out    = {"propagation_matrix",
-                 "propagation_matrix_source_vector_nonlte",
-                 "propagation_matrix_jacobian",
-                 "propagation_matrix_source_vector_nonlte_jacobian"},
+      .out    = {"spectral_propmat",
+                 "spectral_srcvec_nlte",
+                 "spectral_propmat_jac",
+                 "spectral_srcvec_nlte_jac"},
       .in     = {"jac_targets", "freq_grid"},
   };
 
@@ -2018,7 +2015,7 @@ Gets the ellispoid from *surf_field*
       .out            = {"spectral_flux_profile"},
       .in             = {"ray_path_field",
                          "atm_field",
-                         "propagation_matrix_agenda",
+                         "spectral_propmat_agenda",
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda",
                          "surf_field",
@@ -2215,10 +2212,10 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "ray_path",
                     "freq_grid_path",
                     "atm_point_path",
-                    "ray_path_propagation_matrix",
-                    "ray_path_propagation_matrix_source_vector_nonlte",
-                    "ray_path_propagation_matrix_jacobian",
-                    "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
+                    "spectral_propmat_path",
+                    "spectral_srcvec_nlte_path",
+                    "spectral_propmat_jac_path",
+                    "spectral_srcvec_nlte_jac_path",
                     "surf_field",
                     "atm_field"},
       .gin       = {"hse_derivative"},
@@ -2451,39 +2448,38 @@ The reflectance matrix is
       .in     = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
   };
 
-  wsm_data["propagation_matrix_jacobianWindFix"] = {
+  wsm_data["spectral_propmat_jacWindFix"] = {
       .desc   = R"--(Fix for the wind field derivative.
 
-The *propagation_matrix_agenda* will set the wind derivatives to 
+The *spectral_propmat_agenda* will set the wind derivatives to 
 those of the frequency derivative if this method is not used.  This
 will cause the wind field to be treated as a frequency derivative,
 meaning no *OEM* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"propagation_matrix_jacobian",
-                 "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in     = {"propagation_matrix_jacobian",
-                 "propagation_matrix_source_vector_nonlte_jacobian",
+      .out    = {"spectral_propmat_jac", "spectral_srcvec_nlte_jac"},
+      .in     = {"spectral_propmat_jac",
+                 "spectral_srcvec_nlte_jac",
                  "freq_grid",
                  "jac_targets",
                  "freq_wind_shift_jac"},
   };
 
-  wsm_data["propagation_matrixAddLines"] = {
+  wsm_data["spectral_propmatAddLines"] = {
       .desc      = R"--(Add line-by-line absorption to the propagation matrix.
 
 See :doc:`concept.absorption.lbl` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian",
+      .out       = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2498,7 +2494,7 @@ See :doc:`concept.absorption.lbl` for details.
           {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
-  wsm_data["propagation_matrixAddVoigtLTE"] = {
+  wsm_data["spectral_propmatAddVoigtLTE"] = {
       .desc      = R"--(Add line-by-line absorption to the propagation matrix.
 
 See :doc:`concept.absorption.lbl` for details.
@@ -2506,14 +2502,14 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix", "propagation_matrix_jacobian"},
+      .out       = {"spectral_propmat", "spectral_propmat_jac"},
       .gout      = {"dispersion", "dispersion_jacobian"},
       .gout_type = {"Vector", "Matrix"},
       .gout_desc =
           {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
            "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_jacobian",
+      .in        = {"spectral_propmat",
+                    "spectral_propmat_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2568,15 +2564,15 @@ This is only for LTE lines in Voigt.
           {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
-  wsm_data["propagation_matrixAddLookup"] = {
+  wsm_data["spectral_propmatAddLookup"] = {
       .desc     = R"--(Add line-by-line absorption to the propagation matrix.
 
 See :doc:`concept.absorption.lookup` for details.
 )--",
       .author   = {"Richard Larsson"},
-      .out      = {"propagation_matrix", "propagation_matrix_jacobian"},
-      .in       = {"propagation_matrix",
-                   "propagation_matrix_jacobian",
+      .out      = {"spectral_propmat", "spectral_propmat_jac"},
+      .in       = {"spectral_propmat",
+                   "spectral_propmat_jac",
                    "freq_grid",
                    "jac_targets",
                    "select_species",
@@ -3794,7 +3790,7 @@ same mechanism as in *za_gridProfilePseudo2D*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_radiance_field"},
-      .in             = {"propagation_matrix_agenda",
+      .in             = {"spectral_propmat_agenda",
                          "atm_profile",
                          "surf_field",
                          "freq_grid",
@@ -4674,11 +4670,11 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
   };
 
   wsm_data["ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh"] = {
-      .desc           = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+      .desc           = R"--(Add *suns* to *spectral_rad_srcvec_path*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"ray_path_spectral_radiance_scattering"},
-      .in             = {"ray_path_propagation_matrix_scattering",
+      .in             = {"spectral_propmat_scat_path",
                          "ray_path",
                          "ray_path_suns_path",
                          "suns",
@@ -4686,7 +4682,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
                          "freq_grid",
                          "atm_field",
                          "surf_field",
-                         "propagation_matrix_agenda"},
+                         "spectral_propmat_agenda"},
       .gin            = {"depolarization_factor", "hse_derivative"},
       .gin_type       = {"Numeric", "Index"},
       .gin_value      = {Numeric{0.0}, Index{0}},
@@ -4787,7 +4783,7 @@ Then fills it with the perturbations from the *jac_targets*.
       .in     = {"model_state_vector", "abs_bands", "jac_targets"},
   };
 
-  wsm_data["ray_path_transmission_matrixFromPath"] = {
+  wsm_data["spectral_tramat_pathFromPath"] = {
       .desc      = R"--(Gets the transmission matrix in layers along the path.
 
 The assumption is that each path variable forms a layer from the 
@@ -4798,10 +4794,9 @@ The derivatives first dimensions are also 2, the first for the derivative wrt
 the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"ray_path_transmission_matrix",
-                    "ray_path_transmission_matrix_jacobian"},
-      .in        = {"ray_path_propagation_matrix",
-                    "ray_path_propagation_matrix_jacobian",
+      .out       = {"spectral_tramat_path", "spectral_tramat_jac_path"},
+      .in        = {"spectral_propmat_path",
+                    "spectral_propmat_jac_path",
                     "ray_path",
                     "atm_point_path",
                     "surf_field",
@@ -4819,11 +4814,11 @@ This uses a step-by-step solver to propagate background radiation along the path
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
-      .in     = {"ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian",
-                 "ray_path_spectral_radiance_source",
-                 "ray_path_spectral_radiance_source_jacobian",
+      .in     = {"spectral_tramat_path",
+                 "spectral_tramat_cumulative_path",
+                 "spectral_tramat_jac_path",
+                 "spectral_rad_srcvec_path",
+                 "spectral_rad_srcvec_jac_path",
                  "spectral_rad_bkg"},
   };
 
@@ -4835,9 +4830,9 @@ path parameters.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
-      .in     = {"ray_path_transmission_matrix",
-                 "ray_path_transmission_matrix_cumulative",
-                 "ray_path_transmission_matrix_jacobian",
+      .in     = {"spectral_tramat_path",
+                 "spectral_tramat_cumulative_path",
+                 "spectral_tramat_jac_path",
                  "spectral_rad_bkg"},
   };
 
@@ -5216,12 +5211,12 @@ The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbi
   };
 
   wsm_data["disort_settingsOpticalThicknessFromPath"] = {
-      .desc   = R"(Get optical thickness from path.
+      .desc      = R"(Get optical thickness from path.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings"},
-      .in     = {"disort_settings", "ray_path", "ray_path_propagation_matrix"},
-      .gin    = {"min_optical_depth"},
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings", "ray_path", "spectral_propmat_path"},
+      .gin       = {"min_optical_depth"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{1e-11}},
       .gin_desc =
@@ -5317,8 +5312,8 @@ A description of the options is given below.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
-                 "ray_path_propagation_matrix",
-                 "ray_path_propagation_matrix_scattering",
+                 "spectral_propmat_path",
+                 "spectral_propmat_scat_path",
                  "ray_path_absorption_vector_scattering"},
   };
 
@@ -5383,8 +5378,8 @@ This is WIP and should not be used.
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
                  "atm_point_path",
-                 "ray_path_propagation_matrix",
-                 "ray_path_propagation_matrix_source_vector_nonlte",
+                 "spectral_propmat_path",
+                 "spectral_srcvec_nlte_path",
                  "freq_grid"},
   };
 
@@ -5735,8 +5730,8 @@ Additional work is requires if proper coverage of the limb is required
 
   add_agenda_methods(wsm_data);
 
-  {  // propagation_matrix_agendaAuto
-    const std::string meta = "propagation_matrix_agendaAuto";
+  {  // spectral_propmat_agendaAuto
+    const std::string meta = "spectral_propmat_agendaAuto";
     if (wsm_data.contains(meta)) {
       throw std::runtime_error(std::format(
           "Method name collision: \"{}\" already exists in the workspace methods",
@@ -5752,13 +5747,13 @@ Additional work is requires if proper coverage of the limb is required
     std::vector<std::string> gout_type{};
     std::vector<std::string> gout_desc{};
 
-    for (auto& method : {"propagation_matrixInit",
-                         "propagation_matrixAddCIA",
-                         "propagation_matrixAddLines",
-                         "propagation_matrixAddFaraday",
-                         "propagation_matrixAddXsecFit",
-                         "propagation_matrixAddPredefined",
-                         "propagation_matrixAddLookup"}) {
+    for (auto& method : {"spectral_propmatInit",
+                         "spectral_propmatAddCIA",
+                         "spectral_propmatAddLines",
+                         "spectral_propmatAddFaraday",
+                         "spectral_propmatAddXsecFit",
+                         "spectral_propmatAddPredefined",
+                         "spectral_propmatAddLookup"}) {
       try {
         const auto& x = wsm_data.at(method);
 
@@ -5799,25 +5794,25 @@ cannot generate automatic method signature for "{}"
 
     wsm_data[meta] = {
         .desc =
-            R"--(Sets the *propagation_matrix_agenda* automatically from absorption data and species tag meta information.
+            R"--(Sets the *spectral_propmat_agenda* automatically from absorption data and species tag meta information.
 
 The following methods are considered for addition to the agenda:
 
-- *propagation_matrixAddCIA*
-- *propagation_matrixAddLines*
-- *propagation_matrixAddFaraday*
-- *propagation_matrixAddXsecFit*
-- *propagation_matrixAddPredefined*
+- *spectral_propmatAddCIA*
+- *spectral_propmatAddLines*
+- *spectral_propmatAddFaraday*
+- *spectral_propmatAddXsecFit*
+- *spectral_propmatAddPredefined*
 
 If ``use_abs_lookup_data`` evaluates to true, lookup table
-calculations, via *propagation_matrixAddLookup*, are used instead of *propagation_matrixAddLines*.
+calculations, via *spectral_propmatAddLookup*, are used instead of *spectral_propmatAddLines*.
 
 Note that the signature of this method changes depending on the input methods.  This is important
 because several generic input parameters are used in the methods.  Please see the individual methods
 for more information.
 )--",
         .author    = {"Richard Larsson"},
-        .out       = {"propagation_matrix_agenda"},
+        .out       = {"spectral_propmat_agenda"},
         .gout      = gout,
         .gout_type = gout_type,
         .gout_desc = gout_desc,

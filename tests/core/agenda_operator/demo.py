@@ -10,7 +10,7 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
     terminal or check in the pyarts documentation - especially the
     call-operator of agendaOperator classes describe in full the interface
 
-    Anyways, the agenda propagation_matrix_agenda takes:
+    Anyways, the agenda spectral_propmat_agenda takes:
         a frequency grid
         a wind-shift-jacobian
         the jacobian target lists
@@ -30,26 +30,26 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
     this up yourself!
     """
     ws = pyarts.Workspace()
-    ws.propagation_matrixInit(freq_grid=freq, jac_targets=jac)
-    ws.propagation_matrix[:, 0] = 1
+    ws.spectral_propmatInit(freq_grid=freq, jac_targets=jac)
+    ws.spectral_propmat[:, 0] = 1
     return (
-        ws.propagation_matrix,
-        ws.propagation_matrix_source_vector_nonlte,
-        ws.propagation_matrix_jacobian,
-        ws.propagation_matrix_source_vector_nonlte_jacobian,
+        ws.spectral_propmat,
+        ws.spectral_srcvec_nlte,
+        ws.spectral_propmat_jac,
+        ws.spectral_srcvec_nlte_jac,
     )
 
 
 ws = pyarts.Workspace()
-ws.propagation_matrix_agendaSetOperator(f=interface_function)
+ws.spectral_propmat_agendaSetOperator(f=interface_function)
 
 ws.freq_grid = [1, 2]
 ws.freq_wind_shift_jac
 ws.ray_path_point
 ws.atm_point
 
-ws.propagation_matrix_agendaExecute()
+ws.spectral_propmat_agendaExecute()
 
 assert np.allclose(
-    ws.propagation_matrix, [[1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]]
+    ws.spectral_propmat, [[1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]]
 )

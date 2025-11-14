@@ -16,7 +16,7 @@ ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=120e9)
 del ws.abs_bands["O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 1 1"]
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 

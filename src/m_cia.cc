@@ -24,9 +24,9 @@
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddCIA(  // WS Output:
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
+void spectral_propmatAddCIA(  // WS Output:
+    PropmatVector& spectral_propmat,
+    PropmatMatrix& spectral_propmat_jac,
     // WS Input:
     const SpeciesEnum& select_species,
     const JacobianTargets& jac_targets,
@@ -43,14 +43,14 @@ void propagation_matrixAddCIA(  // WS Output:
   const Index nq = jac_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(static_cast<Index>(propagation_matrix.size()) not_eq nf,
-                     "*f_grid* must match *propagation_matrix*")
+  ARTS_USER_ERROR_IF(static_cast<Index>(spectral_propmat.size()) not_eq nf,
+                     "*f_grid* must match *spectral_propmat*")
   ARTS_USER_ERROR_IF(
-      propagation_matrix_jacobian.nrows() not_eq nq,
-      "*propagation_matrix_jacobian* must match derived form of *jac_targets*")
+      spectral_propmat_jac.nrows() not_eq nq,
+      "*spectral_propmat_jac* must match derived form of *jac_targets*")
   ARTS_USER_ERROR_IF(
-      propagation_matrix_jacobian.ncols() not_eq nf,
-      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
+      spectral_propmat_jac.ncols() not_eq nf,
+      "*spectral_propmat_jac* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid.vec()),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
@@ -151,12 +151,12 @@ void propagation_matrixAddCIA(  // WS Output:
         dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
         atm_point[this_cia.Species(1)];
     for (Size iv = 0; iv < f_grid.size(); iv++) {
-      propagation_matrix[iv].A() +=
+      spectral_propmat[iv].A() +=
           nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
       if (jac_temps != end) {
         const auto iq = jac_temps->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() +=
+        spectral_propmat_jac[iq, iv].A() +=
             ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
               xsec_temp[iv] * dnd_dt_sec) *
                  nd +
@@ -167,20 +167,20 @@ void propagation_matrixAddCIA(  // WS Output:
       for (auto& j : jac_freqs) {
         if (j != end) {
           const auto iq = j->target_pos;
-          propagation_matrix_jacobian[iq, iv].A() +=
+          spectral_propmat_jac[iq, iv].A() +=
               nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
               atm_point[this_cia.Species(1)];
         }
       }
 
       if (const auto j = jac_targets.find(this_cia.Species(0)); j != end) {
-        const auto iq                            = j->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
+        const auto iq                     = j->target_pos;
+        spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
       if (const auto j = jac_targets.find(this_cia.Species(1)); j != end) {
-        const auto iq                            = j->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
+        const auto iq                     = j->target_pos;
+        spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
   }

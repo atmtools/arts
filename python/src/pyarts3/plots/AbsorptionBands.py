@@ -36,14 +36,14 @@ def plot(data: AbsorptionBands,
     pol is the dot product of the generated propagation matrix and defaults to the purely
     unpolarized case.
 
-    The species is passed directly to the AbsorptionBands.propagation_matrix() method and defaults
+    The species is passed directly to the AbsorptionBands.spectral_propmat() method and defaults
     to all species (AIR).
 
-    The path_point is passed directly to the AbsorptionBands.propagation_matrix() method and defaults
+    The path_point is passed directly to the AbsorptionBands.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
     The mode parameter controls the style of the plot.  In 'normal' mode, all absorption lines are plotted
-    as the sum of the call to AbsorptionBands.propagation_matrix().  In 'important Y X' modes, the full
+    as the sum of the call to AbsorptionBands.spectral_propmat().  In 'important Y X' modes, the full
     absorption is still shown, but the absorption bands object are split by X, where X is one of 'bands',
     'species', or 'isotopes'.  Y is either 'fill' or nothing.  If it is 'fill', matplotlib's
     fill_between() is used to color the regions, otherwise line plots are used to show the absorption
@@ -105,7 +105,7 @@ def plot(data: AbsorptionBands,
 
     fig, ax = default_fig_ax(fig, ax, 1, 1, fig_kwargs={'figsize': (6, 4)})
 
-    pm = data.propagation_matrix(
+    pm = data.spectral_propmat(
         f=freqs, atm=atm, spec=species, path_point=path_point)
     pm = np.einsum('ij,j->i', pm, pol)
 
@@ -126,14 +126,14 @@ def plot(data: AbsorptionBands,
             keys = list(set(keys))
             for key in keys:
                 bands = data.extract_species(key)
-                pm_band = bands.propagation_matrix(
+                pm_band = bands.spectral_propmat(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)
         elif mode.endswith('bands'):
             keys = [band for band in data]
             for key in keys:
                 bands = AbsorptionBands({key: data[key]})
-                pm_band = bands.propagation_matrix(
+                pm_band = bands.spectral_propmat(
                     f=freqs, atm=atm, spec=species, path_point=path_point)
                 pm_bands[key] = np.einsum('ij,j->i', pm_band, pol)
 

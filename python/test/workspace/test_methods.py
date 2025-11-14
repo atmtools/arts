@@ -81,7 +81,7 @@ class TestMethods:
             self.ws.Copy(self.ws.string_wsv, self.ws.numeric_wsv)
 
     def test_predefined_doc(self):
-        m = "propagation_matrixAddPredefined"
+        m = "spectral_propmatAddPredefined"
         isots = pyarts.arts.globals.all_isotopologues()
         desc = pyarts.arts.globals.workspace_methods()[m].desc
 
