@@ -974,25 +974,25 @@ void py_predefined(py::module_& m) try {
           "specs"_a,
           "Reads predefined models from catalog")
       .def(
-          "propagation_matrix",
+          "spectral_propmat",
           [](const PredefinedModelData& self,
              const AscendingGrid& f,
              const AtmPoint& atm,
              const SpeciesEnum& spec,
              const py::kwargs&) {
-            PropmatVector propagation_matrix(f.size());
-            PropmatMatrix propagation_matrix_jacobian(0, f.size());
+            PropmatVector spectral_propmat(f.size());
+            PropmatMatrix spectral_propmat_jac(0, f.size());
             JacobianTargets jac_targets{};
 
-            propagation_matrixAddPredefined(propagation_matrix,
-                                            propagation_matrix_jacobian,
-                                            self,
-                                            spec,
-                                            jac_targets,
-                                            f,
-                                            atm);
+            spectral_propmatAddPredefined(spectral_propmat,
+                                          spectral_propmat_jac,
+                                          self,
+                                          spec,
+                                          jac_targets,
+                                          f,
+                                          atm);
 
-            return propagation_matrix;
+            return spectral_propmat;
           },
           "f"_a,
           "atm"_a,
@@ -1011,7 +1011,7 @@ atm : AtmPoint
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--")

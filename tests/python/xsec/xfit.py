@@ -12,7 +12,7 @@ nd = atm.number_density("O3-666")
 ws.abs_speciesSet(species=["O3-XFIT"])
 ws.ReadCatalogData()
 f = ws.abs_xfit_data[0].fitcoeffs[0].grids[0]
-x = ws.abs_xfit_data.propagation_matrix(f=f, atm=atm) / nd
+x = ws.abs_xfit_data.spectral_propmat(f=f, atm=atm) / nd
 
 assert np.allclose(
     x[::60000, 0],

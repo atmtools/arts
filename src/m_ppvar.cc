@@ -34,12 +34,12 @@ void ray_path_zeeman_magnetic_fieldFromPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_spectral_radiance_sourceFromPropmat(
-    ArrayOfStokvecVector &ray_path_spectral_radiance_source,
-    ArrayOfStokvecMatrix &ray_path_spectral_radiance_source_jacobian,
-    const ArrayOfPropmatVector &ray_path_propagation_matrix,
+void spectral_rad_srcvec_pathFromPropmat(
+    ArrayOfStokvecVector &spectral_rad_srcvec_path,
+    ArrayOfStokvecMatrix &spectral_rad_srcvec_jac_path,
+    const ArrayOfPropmatVector &spectral_propmat_path,
     const ArrayOfStokvecVector &ray_path_source_vector_nonlte,
-    const ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
+    const ArrayOfPropmatMatrix &spectral_propmat_jac_path,
     const ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfAtmPoint &atm_point_path,
@@ -50,23 +50,23 @@ void ray_path_spectral_radiance_sourceFromPropmat(
 
   const Index np = atm_point_path.size();
   if (np == 0) {
-    ray_path_spectral_radiance_source.resize(0);
-    ray_path_spectral_radiance_source_jacobian.resize(0);
+    spectral_rad_srcvec_path.resize(0);
+    spectral_rad_srcvec_jac_path.resize(0);
     return;
   }
 
-  const Index nf = ray_path_propagation_matrix.front().size();
+  const Index nf = spectral_propmat_path.front().size();
   const Index nq = jac_targets.target_count();
 
   const Index it = jac_targets.target_position(AtmKey::t);
 
-  ray_path_spectral_radiance_source.resize(np);
-  for (auto &t : ray_path_spectral_radiance_source) {
+  spectral_rad_srcvec_path.resize(np);
+  for (auto &t : spectral_rad_srcvec_path) {
     t.resize(nf);
     t = 0;
   }
-  ray_path_spectral_radiance_source_jacobian.resize(np);
-  for (auto &t : ray_path_spectral_radiance_source_jacobian) {
+  spectral_rad_srcvec_jac_path.resize(np);
+  for (auto &t : spectral_rad_srcvec_jac_path) {
     t.resize(nq, nf);
     t = 0;
   }
@@ -75,16 +75,15 @@ void ray_path_spectral_radiance_sourceFromPropmat(
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ip = 0; ip < np; ip++) {
     try {
-      rtepack::source::level_nlte(
-          ray_path_spectral_radiance_source[ip],
-          ray_path_spectral_radiance_source_jacobian[ip],
-          ray_path_propagation_matrix[ip],
-          ray_path_source_vector_nonlte[ip],
-          ray_path_propagation_matrix_jacobian[ip],
-          ray_path_source_vector_nonlte_jacobian[ip],
-          freq_grid_path[ip],
-          atm_point_path[ip].temperature,
-          it);
+      rtepack::source::level_nlte(spectral_rad_srcvec_path[ip],
+                                  spectral_rad_srcvec_jac_path[ip],
+                                  spectral_propmat_path[ip],
+                                  ray_path_source_vector_nonlte[ip],
+                                  spectral_propmat_jac_path[ip],
+                                  ray_path_source_vector_nonlte_jacobian[ip],
+                                  freq_grid_path[ip],
+                                  atm_point_path[ip].temperature,
+                                  it);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -134,12 +133,12 @@ void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_transmission_matrix_cumulativeFromPath(
-    ArrayOfMuelmatVector &ray_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatVector &ray_path_transmission_matrix) try {
+void spectral_tramat_cumulative_pathFromPath(
+    ArrayOfMuelmatVector &spectral_tramat_cumulative_path,
+    const ArrayOfMuelmatVector &spectral_tramat_path) try {
   ARTS_TIME_REPORT
 
-  forward_cumulative_transmission(ray_path_transmission_matrix_cumulative,
-                                  ray_path_transmission_matrix);
+  forward_cumulative_transmission(spectral_tramat_cumulative_path,
+                                  spectral_tramat_path);
 }
 ARTS_METHOD_ERROR_CATCH

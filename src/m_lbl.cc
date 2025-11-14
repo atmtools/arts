@@ -244,18 +244,18 @@ void abs_bandsSetZeeman(AbsorptionBands& abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_matrixAddLines(PropmatVector& pm,
-                                StokvecVector& sv,
-                                PropmatMatrix& dpm,
-                                StokvecMatrix& dsv,
-                                const AscendingGrid& f_grid,
-                                const JacobianTargets& jac_targets,
-                                const SpeciesEnum& species,
-                                const AbsorptionBands& abs_bands,
-                                const LinemixingEcsData& ecs_data,
-                                const AtmPoint& atm_point,
-                                const PropagationPathPoint& path_point,
-                                const Index& no_negative_absorption) try {
+void spectral_propmatAddLines(PropmatVector& pm,
+                              StokvecVector& sv,
+                              PropmatMatrix& dpm,
+                              StokvecMatrix& dsv,
+                              const AscendingGrid& f_grid,
+                              const JacobianTargets& jac_targets,
+                              const SpeciesEnum& species,
+                              const AbsorptionBands& abs_bands,
+                              const LinemixingEcsData& ecs_data,
+                              const AtmPoint& atm_point,
+                              const PropagationPathPoint& path_point,
+                              const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   const Size n = arts_omp_get_max_threads();
@@ -578,8 +578,8 @@ void abs_bandsReadSpeciesSplitARTSCAT(
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void sumup_zeeman(PropmatVectorView propagation_matrix,
-                  PropmatMatrixView propagation_matrix_jacobian,
+void sumup_zeeman(PropmatVectorView spectral_propmat,
+                  PropmatMatrixView spectral_propmat_jac,
                   VectorView dispersion,
                   MatrixView dispersion_jacobian,
                   ComplexVectorView pm,
@@ -613,15 +613,15 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
   const Propmat dnpm_dw = dnorm_view_dw(pol, mag, los);
 
   for (Size i = 0; i < pm.size(); i++) {
-    propagation_matrix[i] += scale(npm, pm[i]);
-    dispersion[i]         -= npm.A() * pm[i].imag();
+    spectral_propmat[i] += scale(npm, pm[i]);
+    dispersion[i]       -= npm.A() * pm[i].imag();
 
     for (auto& atm_target : jac_targets.atm) {
       const Size j = atm_target.target_pos;
 
       std::visit(
           [&,
-           &x = propagation_matrix_jacobian[j, i],
+           &x = spectral_propmat_jac[j, i],
            &y = dispersion_jacobian[j, i]]<typename T>(const T& type) {
             if constexpr (std::same_as<T, AtmKey>) {
               if (type == AtmKey::mag_u) {
@@ -646,17 +646,17 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
 }
 }  // namespace
 
-void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
-                                   PropmatMatrix& propagation_matrix_jacobian,
-                                   Vector& dispersion,
-                                   Matrix& dispersion_jacobian,
-                                   const AscendingGrid& freq_grid,
-                                   const JacobianTargets& jac_targets,
-                                   const SpeciesEnum& species,
-                                   const AbsorptionBands& abs_bands,
-                                   const AtmPoint& atm_point,
-                                   const PropagationPathPoint& path_point,
-                                   const Index& no_negative_absorption) try {
+void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
+                                 PropmatMatrix& spectral_propmat_jac,
+                                 Vector& dispersion,
+                                 Matrix& dispersion_jacobian,
+                                 const AscendingGrid& freq_grid,
+                                 const JacobianTargets& jac_targets,
+                                 const SpeciesEnum& species,
+                                 const AbsorptionBands& abs_bands,
+                                 const AtmPoint& atm_point,
+                                 const PropagationPathPoint& path_point,
+                                 const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   //! FIXME: these should be part of workspace once things work
@@ -666,25 +666,25 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
   dispersion_jacobian = 0;
 
   ARTS_USER_ERROR_IF(
-      propagation_matrix.shape() != dispersion.shape() or
-          propagation_matrix.shape() != freq_grid.shape() or
-          propagation_matrix_jacobian.shape() != dispersion_jacobian.shape(),
+      spectral_propmat.shape() != dispersion.shape() or
+          spectral_propmat.shape() != freq_grid.shape() or
+          spectral_propmat_jac.shape() != dispersion_jacobian.shape(),
       R"(Inconsistent shapes:
 
-propagation_matrix:          {:B,}
+spectral_propmat:          {:B,}
 dispersion:                  {:B,}
 freq_grid:              {:B,}
-propagation_matrix_jacobian: {:B,}
+spectral_propmat_jac: {:B,}
 dispersion_jacobian:         {:B,}
 )",
-      propagation_matrix.shape(),
+      spectral_propmat.shape(),
       dispersion.shape(),
       freq_grid.shape(),
-      propagation_matrix_jacobian.shape(),
+      spectral_propmat_jac.shape(),
       dispersion_jacobian.shape());
 
   const Size nf = freq_grid.size();
-  const Size nt = propagation_matrix_jacobian.nrows();
+  const Size nt = spectral_propmat_jac.nrows();
   if (nf == 0) return;
 
   ComplexVector pm(nf, 0.0);
@@ -700,18 +700,18 @@ dispersion_jacobian:         {:B,}
                                                species,
                                                no_negative_absorption);
 
-  propagation_matrix          += pm.real();
-  propagation_matrix_jacobian += dpm.real();
-  dispersion                  -= pm.imag();
-  dispersion_jacobian         -= dpm.imag();
+  spectral_propmat     += pm.real();
+  spectral_propmat_jac += dpm.real();
+  dispersion           -= pm.imag();
+  dispersion_jacobian  -= dpm.imag();
 
   if (has_zeeman) {
     const auto mag = atm_point.mag;
     const auto los = path_point.los;
     for (auto pol :
          {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
-      sumup_zeeman(propagation_matrix,
-                   propagation_matrix_jacobian,
+      sumup_zeeman(spectral_propmat,
+                   spectral_propmat_jac,
                    dispersion,
                    dispersion_jacobian,
                    pm,
@@ -791,9 +791,8 @@ single_dispersion_jac:         {:B,}
   ComplexVectorView pm(pm_);
   ComplexMatrixView dpm = dpm_.view_as(nt, 1);
   const ConstVectorView freq_grid(frequency);
-  PropmatVectorView propagation_matrix{single_propmat};
-  PropmatMatrixView propagation_matrix_jacobian{
-      single_propmat_jac.view_as(nt, 1)};
+  PropmatVectorView spectral_propmat{single_propmat};
+  PropmatMatrixView spectral_propmat_jac{single_propmat_jac.view_as(nt, 1)};
   VectorView dispersion{single_dispersion};
   MatrixView dispersion_jacobian{single_dispersion_jac.view_as(nt, 1)};
 
@@ -807,18 +806,18 @@ single_dispersion_jac:         {:B,}
                                                species,
                                                no_negative_absorption);
 
-  propagation_matrix          += pm.real();
-  propagation_matrix_jacobian += dpm.real();
-  dispersion                  -= pm.imag();
-  dispersion_jacobian         -= dpm.imag();
+  spectral_propmat     += pm.real();
+  spectral_propmat_jac += dpm.real();
+  dispersion           -= pm.imag();
+  dispersion_jacobian  -= dpm.imag();
 
   if (has_zeeman) {
     const auto mag = atm_point.mag;
     const auto los = path_point.los;
     for (auto pol :
          {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
-      sumup_zeeman(propagation_matrix,
-                   propagation_matrix_jacobian,
+      sumup_zeeman(spectral_propmat,
+                   spectral_propmat_jac,
                    dispersion,
                    dispersion_jacobian,
                    pm,

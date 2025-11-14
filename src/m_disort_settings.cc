@@ -171,9 +171,8 @@ void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
 void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfAtmPoint& atm_point_path,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfStokvecVector&
-        ray_path_propagation_matrix_source_vector_nonlte,
+    const ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfStokvecVector& spectral_srcvec_nlte_path,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
@@ -191,29 +190,27 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
       disort_settings.optical_thicknesses.shape());
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(atm_point_path,
-                         ray_path_propagation_matrix,
-                         ray_path_propagation_matrix_source_vector_nonlte),
+      not arr::same_size(
+          atm_point_path, spectral_propmat_path, spectral_srcvec_nlte_path),
       R"(Not same size:
 
 atm_point_path.size():   {}
-ray_path_propagation_matrix.size():  {}
+spectral_propmat_path.size():  {}
 ray_path_source_vector_nonlte.size(): {}
 )",
       atm_point_path.size(),
-      ray_path_propagation_matrix.size(),
-      ray_path_propagation_matrix_source_vector_nonlte.size());
+      spectral_propmat_path.size(),
+      spectral_srcvec_nlte_path.size());
 
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(
-                         ray_path_propagation_matrix,
-                         ray_path_propagation_matrix_source_vector_nonlte),
+  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_path,
+                                                 spectral_srcvec_nlte_path),
                      R"(Not same size:
 
-ray_path_propagation_matrix.size():   {}
+spectral_propmat_path.size():   {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-                     ray_path_propagation_matrix.size(),
-                     ray_path_propagation_matrix_source_vector_nonlte.size());
+                     spectral_propmat_path.size(),
+                     spectral_srcvec_nlte_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
@@ -223,13 +220,11 @@ ray_path_source_vector_nonlte.size(): {}
       const Numeric& t0 = atm_point_path[i + 0].temperature;
       const Numeric& t1 = atm_point_path[i + 1].temperature;
 
-      const Muelmat invK0 = inv(ray_path_propagation_matrix[i + 0][iv]);
-      const Muelmat invK1 = inv(ray_path_propagation_matrix[i + 1][iv]);
+      const Muelmat invK0 = inv(spectral_propmat_path[i + 0][iv]);
+      const Muelmat invK1 = inv(spectral_propmat_path[i + 1][iv]);
 
-      const Stokvec& S0 =
-          ray_path_propagation_matrix_source_vector_nonlte[i + 0][iv];
-      const Stokvec& S1 =
-          ray_path_propagation_matrix_source_vector_nonlte[i + 1][iv];
+      const Stokvec& S0 = spectral_srcvec_nlte_path[i + 0][iv];
+      const Stokvec& S1 = spectral_srcvec_nlte_path[i + 1][iv];
 
       Numeric y0 = planck(f, t0) + (invK0 * S0).I();
       Numeric y1 = planck(f, t1) + (invK1 * S1).I();
@@ -454,26 +449,26 @@ void disort_settingsNoFractionalScattering(DisortSettings& disort_settings) {
 void disort_settingsOpticalThicknessFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfPropmatVector& spectral_propmat_path,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   const Index N  = disort_settings.layer_count();
   const Index nv = disort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != ray_path_propagation_matrix.size() or
+  ARTS_USER_ERROR_IF(ray_path.size() != spectral_propmat_path.size() or
                          ray_path.size() != static_cast<Size>(N + 1),
                      "Wrong path size.")
 
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>({nv}, ray_path_propagation_matrix),
+      not all_same_shape<1>({nv}, spectral_propmat_path),
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_propagation_matrix,
+      std::ranges::any_of(spectral_propmat_path,
                           [](const PropmatVector& pms) {
                             return std::ranges::any_of(
                                 pms, Cmp::eq(true), &Propmat::is_polarized);
@@ -503,10 +498,10 @@ ray_path: {:B,}
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
-      disort_settings.optical_thicknesses[iv, i] = std::max(
-          r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
-                               ray_path_propagation_matrix[i + 0][iv].A()),
-          min_optical_depth);
+      disort_settings.optical_thicknesses[iv, i] =
+          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1][iv].A(),
+                                        spectral_propmat_path[i + 0][iv].A()),
+                   min_optical_depth);
       if (i > 0) {
         disort_settings.optical_thicknesses[iv, i] +=
             disort_settings.optical_thicknesses[iv, i - 1];
@@ -516,7 +511,7 @@ ray_path: {:B,}
                            R"(
 Not strictly increasing optical thicknesses between layers.
 
-Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
+Check *spectral_propmat_path* contain zeroes or negative values for A().
 
 Value:                {}
 Frequency grid index: {}
@@ -732,8 +727,8 @@ ARTS_METHOD_ERROR_CATCH
 
 void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
+    const ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfPropmatVector& spectral_propmat_scat_path,
     const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
   ARTS_TIME_REPORT
 
@@ -741,24 +736,24 @@ void disort_settingsSingleScatteringAlbedoFromPath(
   const Index F = disort_settings.frequency_count();
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_propagation_matrix.size(),
-      R"(The number of levels in ray_path_propagation_matrix must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_propmat_path.size(),
+      R"(The number of levels in spectral_propmat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                          {}
-  ray_path_propagation_matrix.size(): {}
+  spectral_propmat_path.size(): {}
 )",
       N,
-      ray_path_propagation_matrix_scattering.size());
+      spectral_propmat_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_propagation_matrix_scattering.size(),
-      R"(The number of levels in ray_path_propagation_matrix_scattering must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_propmat_scat_path.size(),
+      R"(The number of levels in spectral_propmat_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                          {}
-  ray_path_propagation_matrix_scattering.size(): {}
+  spectral_propmat_scat_path.size(): {}
 )",
       N,
-      ray_path_propagation_matrix_scattering.size());
+      spectral_propmat_scat_path.size());
 
   ARTS_USER_ERROR_IF(
       (N + 1) != ray_path_absorption_vector_scattering.size(),
@@ -773,8 +768,8 @@ void disort_settingsSingleScatteringAlbedoFromPath(
   ARTS_USER_ERROR_IF(
       not all_same_shape<1>({F},
                             ray_path_absorption_vector_scattering,
-                            ray_path_propagation_matrix_scattering),
-      "The shape of ray_path_propagation_matrix_scattering and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
+                            spectral_propmat_scat_path),
+      "The shape of spectral_propmat_scat_path and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
@@ -786,17 +781,15 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext_upper = ray_path_propagation_matrix[i][iv][0];
+      const Numeric ext_upper = spectral_propmat_path[i][iv][0];
       const Numeric abs_scat_upper =
           ray_path_absorption_vector_scattering[i][iv][0];
-      const Numeric ext_scat_upper =
-          ray_path_propagation_matrix_scattering[i][iv][0];
+      const Numeric ext_scat_upper = spectral_propmat_scat_path[i][iv][0];
 
-      const Numeric ext_lower = ray_path_propagation_matrix[i + 1][iv][0];
+      const Numeric ext_lower = spectral_propmat_path[i + 1][iv][0];
       const Numeric abs_scat_lower =
           ray_path_absorption_vector_scattering[i + 1][iv][0];
-      const Numeric ext_scat_lower =
-          ray_path_propagation_matrix_scattering[i + 1][iv][0];
+      const Numeric ext_scat_lower = spectral_propmat_scat_path[i + 1][iv][0];
 
       const Numeric ext      = std::midpoint(ext_upper, ext_lower);
       const Numeric abs_scat = std::midpoint(abs_scat_upper, abs_scat_lower);
@@ -831,7 +824,7 @@ Agenda disort_settings_agendaSetup(
   // Clearsky absorption
   agenda.add("atm_point_pathFromPath");
   agenda.add("freq_grid_pathFromPath");
-  agenda.add("ray_path_propagation_matrixFromPath");
+  agenda.add("spectral_propmat_pathFromPath");
 
   agenda.add("disort_settingsInit");
 
@@ -839,8 +832,8 @@ Agenda disort_settings_agendaSetup(
     using enum disort_settings_agenda_setup_scattering_type;
     case ScatteringSpecies:
       agenda.add("legendre_degreeFromDisortSettings");
-      agenda.add("ray_path_propagation_matrix_scatteringFromSpectralAgenda");
-      agenda.add("ray_path_propagation_matrixAddScattering");
+      agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
+      agenda.add("spectral_propmat_pathAddScattering");
 
       agenda.add("disort_settingsNoFractionalScattering");
       agenda.add("disort_settingsLegendreCoefficientsFromPath");

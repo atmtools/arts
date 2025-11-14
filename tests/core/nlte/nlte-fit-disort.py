@@ -25,7 +25,7 @@ ws.abs_bandsSetNonLTE()
 
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
 ws.spectral_radiance_surface_agendaSet(option="Blackbody")
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 

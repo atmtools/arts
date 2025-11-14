@@ -46,7 +46,7 @@ for band in ws.abs_bands:
 ws.abs_bands.keep_hitran_s(approximate_percentile=90)
 
 # Automatically set up the methods to compute absorption coefficients
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # Set up a simple atmosphere
 ws.surf_fieldPlanet(option="Earth")

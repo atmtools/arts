@@ -11,12 +11,12 @@ void abs_lookup_dataInit(AbsorptionLookupTables& abs_lookup_data) {
 
 namespace {
 template <bool calc>
-std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
-    PropmatVector& propagation_matrix [[maybe_unused]],
-    PropmatMatrix& propagation_matrix_jacobian [[maybe_unused]],
+std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(
+    PropmatVector& spectral_propmat [[maybe_unused]],
+    PropmatMatrix& spectral_propmat_jac [[maybe_unused]],
     const AscendingGrid& freq_grid,
     const JacobianTargets& jac_targets [[maybe_unused]],
-    const SpeciesEnum& propagation_matrix_select_species,
+    const SpeciesEnum& spectral_propmat_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
     const AtmPoint& atm_point_,
     const Index& no_negative_absorption,
@@ -30,7 +30,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
   if constexpr (calc) {
     Vector absorption(freq_grid.size(), 0.0);
 
-    if (propagation_matrix_select_species == "Bath"_spec) {
+    if (spectral_propmat_select_species == "Bath"_spec) {
       for (auto& [spec, data] : abs_lookup_data) {
         data.absorption(absorption,
                         spec,
@@ -43,9 +43,9 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
                         extpolfac);
       }
     } else {
-      abs_lookup_data.at(propagation_matrix_select_species)
+      abs_lookup_data.at(spectral_propmat_select_species)
           .absorption(absorption,
-                      propagation_matrix_select_species,
+                      spectral_propmat_select_species,
                       p_interp_order,
                       t_interp_order,
                       water_interp_order,
@@ -57,24 +57,24 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
 
     return absorption;
   } else {
-    const Vector absorption = _propagation_matrixAddLookup<not calc>(
-        propagation_matrix,
-        propagation_matrix_jacobian,
-        freq_grid,
-        jac_targets,
-        propagation_matrix_select_species,
-        abs_lookup_data,
-        atm_point_,
-        no_negative_absorption,
-        p_interp_order,
-        t_interp_order,
-        water_interp_order,
-        f_interp_order,
-        extpolfac);
+    const Vector absorption =
+        _spectral_propmatAddLookup<not calc>(spectral_propmat,
+                                             spectral_propmat_jac,
+                                             freq_grid,
+                                             jac_targets,
+                                             spectral_propmat_select_species,
+                                             abs_lookup_data,
+                                             atm_point_,
+                                             no_negative_absorption,
+                                             p_interp_order,
+                                             t_interp_order,
+                                             water_interp_order,
+                                             f_interp_order,
+                                             extpolfac);
 
     for (Size i = 0; i < freq_grid.size(); i++) {
       if (no_negative_absorption == 0 or absorption[i] > 0.0) {
-        propagation_matrix[i].A() += absorption[i];
+        spectral_propmat[i].A() += absorption[i];
       }
     }
 
@@ -92,12 +92,12 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
               freq_grid.begin(),
               freq_grid.end(),
               [d = jacobian_target.d](Numeric x) { return x + d; });
-          d_absorption = _propagation_matrixAddLookup<not calc>(
-              propagation_matrix,
-              propagation_matrix_jacobian,
+          d_absorption = _spectral_propmatAddLookup<not calc>(
+              spectral_propmat,
+              spectral_propmat_jac,
               freq_grid2,
               {},
-              propagation_matrix_select_species,
+              spectral_propmat_select_species,
               abs_lookup_data,
               atm_point_,
               no_negative_absorption,
@@ -111,12 +111,12 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
           AtmPoint atm_point               = atm_point_;
           atm_point[jacobian_target.type] += jacobian_target.d;
 
-          d_absorption = _propagation_matrixAddLookup<not calc>(
-              propagation_matrix,
-              propagation_matrix_jacobian,
+          d_absorption = _spectral_propmatAddLookup<not calc>(
+              spectral_propmat,
+              spectral_propmat_jac,
               freq_grid,
               {},
-              propagation_matrix_select_species,
+              spectral_propmat_select_species,
               abs_lookup_data,
               atm_point,
               no_negative_absorption,
@@ -130,7 +130,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         const Numeric d_inv = 1.0 / jacobian_target.d;
         for (Size i = 0; i < freq_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
-            propagation_matrix_jacobian[jacobian_target.target_pos, i].A() =
+            spectral_propmat_jac[jacobian_target.target_pos, i].A() =
                 (d_absorption[i] - absorption[i]) * d_inv;
           }
         }
@@ -140,12 +140,12 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
 }
 }  // namespace
 
-void propagation_matrixAddLookup(
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
+void spectral_propmatAddLookup(
+    PropmatVector& spectral_propmat,
+    PropmatMatrix& spectral_propmat_jac,
     const AscendingGrid& freq_grid,
     const JacobianTargets& jac_targets,
-    const SpeciesEnum& propagation_matrix_select_species,
+    const SpeciesEnum& spectral_propmat_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
     const AtmPoint& atm_point,
     const Index& no_negative_absorption,
@@ -156,19 +156,19 @@ void propagation_matrixAddLookup(
     const Numeric& extpolfac) try {
   ARTS_TIME_REPORT
 
-  _propagation_matrixAddLookup<false>(propagation_matrix,
-                                      propagation_matrix_jacobian,
-                                      freq_grid,
-                                      jac_targets,
-                                      propagation_matrix_select_species,
-                                      abs_lookup_data,
-                                      atm_point,
-                                      no_negative_absorption,
-                                      p_interp_order,
-                                      t_interp_order,
-                                      water_interp_order,
-                                      f_interp_order,
-                                      extpolfac);
+  _spectral_propmatAddLookup<false>(spectral_propmat,
+                                    spectral_propmat_jac,
+                                    freq_grid,
+                                    jac_targets,
+                                    spectral_propmat_select_species,
+                                    abs_lookup_data,
+                                    atm_point,
+                                    no_negative_absorption,
+                                    p_interp_order,
+                                    t_interp_order,
+                                    water_interp_order,
+                                    f_interp_order,
+                                    extpolfac);
 }
 ARTS_METHOD_ERROR_CATCH
 

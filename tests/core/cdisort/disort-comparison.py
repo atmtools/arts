@@ -40,7 +40,7 @@ ws.abs_speciesSet(species=["H2O-PWR2022"])
 ws.ReadCatalogData()
 
 # Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # Grids and planet
 ws.surf_fieldPlanet(option="Earth")

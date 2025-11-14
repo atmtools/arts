@@ -75,7 +75,7 @@ class AtmosphericFlux:
         if remove_lines_percentile is not None:
             self.ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 
-        self.ws.propagation_matrix_agendaAuto()
+        self.ws.spectral_propmat_agendaAuto()
 
         self.ws.surf_fieldPlanet(option="Earth")
         self.ws.surf_field["t"] = surf_temperature

@@ -26,7 +26,7 @@ class SingleSpeciesAbsorption:
             for band in self.ws.abs_bands:
                 self.ws.abs_bands[band].cutoff = "ByLine"
                 self.ws.abs_bands[band].cutoff_value = cutoff
-        self.ws.propagation_matrix_agendaAuto()
+        self.ws.spectral_propmat_agendaAuto()
         self.ws.ray_path_point = pyarts.arts.PropagationPathPoint()
 
     def __call__(
@@ -45,16 +45,16 @@ class SingleSpeciesAbsorption:
 
         Returns
         -------
-        numpy.ndarray : propagation_matrix
+        numpy.ndarray : spectral_propmat
             The propagation matrix at the frequency and point of interest
             Note that the first dimention is the size of the frequency
             grid and that the second dimension contains 7 variables, the
             first of which is unpolarized absorption.
         """
 
-        self.ws.propagation_matrix_agendaExecute(
+        self.ws.spectral_propmat_agendaExecute(
             freq_grid=freq_grid,
             atm_point=atm_point,
         )
 
-        return 1.0 * self.ws.propagation_matrix[:, 0]
+        return 1.0 * self.ws.spectral_propmat[:, 0]

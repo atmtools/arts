@@ -1,10 +1,11 @@
 #include "workspace_variables.h"
 
+#include "unique_unordered_map.h"
 #include "workspace_agendas.h"
 
 namespace {
-void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
-                 wsv_data) {
+void agendas(
+    UniqueMap<std::string, WorkspaceVariableInternalRecord>& wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
     if (ag.enum_default.empty()) {
       wsv_data[name] = {
@@ -23,7 +24,7 @@ void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
 
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
-  std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
+  UniqueMap<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   wsv_data["abs_bands"] = {
       .desc =
@@ -225,18 +226,18 @@ For more information, see :doc:`user.atmospheric_field`.
       .type = "ArrayOfAtmPoint",
   };
 
-  wsv_data["propagation_matrix_jacobian"] = {
+  wsv_data["spectral_propmat_jac"] = {
       .desc =
-          R"--(Partial derivative of the *propagation_matrix* with regards to *jac_targets*.
+          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
 
 The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
 )--",
       .type = "PropmatMatrix",
   };
 
-  wsv_data["propagation_matrix_source_vector_nonlte_jacobian"] = {
+  wsv_data["spectral_srcvec_nlte_jac"] = {
       .desc =
-          R"--(Partial derivative of the *propagation_matrix_source_vector_nonlte* with regards to *jac_targets*.
+          R"--(Partial derivative of the *spectral_srcvec_nlte* with regards to *jac_targets*.
 
 The units are *spectral_radiance_jacobian* per meter.
 )--",
@@ -258,7 +259,7 @@ Used in line-by-line calculations requiring ECS data.
       .desc =
           R"--(The frequency wind shift Jacobian.
 
-Used because all methods inside *propagation_matrix_agenda* work on
+Used because all methods inside *spectral_propmat_agenda* work on
 the frequency grid, not on the actual wind speed for the sake of
 wind shift Jacobian calculations.
 
@@ -278,18 +279,18 @@ The order is
       .type = "ArrayOfVector3",
   };
 
-  wsv_data["propagation_matrix_source_vector_nonlte"] = {
+  wsv_data["spectral_srcvec_nlte"] = {
       .desc =
           R"--(The part of the source vector that is due to non-LTE.
 
-This is closely related to *propagation_matrix*.
+This is closely related to *spectral_propmat*.
 
 Gven the level source term:
 
 .. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
 
 this variable holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
-column of :math:`\mathbf{K}`, which is from the *propagation_matrix* variable.
+column of :math:`\mathbf{K}`, which is from the *spectral_propmat* variable.
 :math:`B` is the Planck function.  The ellipsis denotes other terms that can
 come from more sources, such as scattering and/or transmitting equipment.
 
@@ -327,7 +328,7 @@ See :doc:`concept.absorption.predef` for more information on predefined model ca
       .type = "PredefinedModelData",
   };
 
-  wsv_data["propagation_matrix"] = {
+  wsv_data["spectral_propmat"] = {
       .desc =
           R"--(This contains the fully polarized propagation matrix for the current path point.
 
@@ -345,12 +346,12 @@ Dimension: *freq_grid*.
       .type = "PropmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {
+  wsv_data["spectral_propmat_scat"] = {
       .desc =
           R"--(This contains the propagation matrix for scattering for the current path point.
 
 This needs to be used when scattering into the line of sight is considered. And it needs then to
-also be added to the *propagation_matrix*, which you should see for more information.
+also be added to the *spectral_propmat*, which you should see for more information.
 
 The unit is [1 / m].
 
@@ -412,20 +413,6 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {
-      .desc =
-          R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
-)--",
-      .type = "PropmatVector",
-  };
-
-  wsv_data["ray_path_propagation_matrix_scattering"] = {
-      .desc =
-          R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
-)--",
-      .type = "ArrayOfPropmatVector",
-  };
-
   wsv_data["absorption_vector_scattering"] = {
       .desc =
           R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
@@ -472,50 +459,50 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_propagation_matrix"] = {
+  wsv_data["spectral_propmat_path"] = {
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_scattering"] = {
+  wsv_data["spectral_propmat_scat_path"] = {
       .desc =
           R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_jacobian"] = {
+  wsv_data["spectral_propmat_jac_path"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix",
   };
 
-  wsv_data["ray_path_propagation_matrix_source_vector_nonlte"] = {
+  wsv_data["spectral_srcvec_nlte_path"] = {
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
+  wsv_data["spectral_srcvec_nlte_jac_path"] = {
       .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_spectral_radiance_source"] = {
+  wsv_data["spectral_rad_srcvec_path"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_spectral_radiance_source_jacobian"] = {
+  wsv_data["spectral_rad_srcvec_jac_path"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_transmission_matrix"] = {
+  wsv_data["spectral_tramat_path"] = {
       .desc = R"--(Transmission matrices along the propagation path.
 
 The outer dimension is the number of layers.
@@ -527,13 +514,13 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["ray_path_transmission_matrix_cumulative"] = {
+  wsv_data["spectral_tramat_cumulative_path"] = {
       .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["ray_path_transmission_matrix_jacobian"] = {
+  wsv_data["spectral_tramat_jac_path"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path.
 
 The outer dimension is the number of layers.
@@ -1163,7 +1150,7 @@ Dimensions: [ *ray_path* x jac_targets.target_size() ]
   wsv_data["single_propmat"] = {
       .desc = R"--(A propagation matrix at a single *freq* point.
 
-See *propagation_matrix* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "Propmat",
   };
@@ -1172,7 +1159,7 @@ See *propagation_matrix* for more information.
       .desc =
           R"--(A propagation matrix Jacobian at a single *freq* point.
 
-See *propagation_matrix_jacobian* for more information.
+See *spectral_propmat_jac* for more information.
 
 Size is number of Jacobian targets.
 )--",
@@ -1182,7 +1169,7 @@ Size is number of Jacobian targets.
   wsv_data["single_nlte_srcvec"] = {
       .desc = R"--(A non-LTE source vector at a single *freq* point.
 
-See *propagation_matrix* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "Stokvec",
   };
@@ -1191,7 +1178,7 @@ See *propagation_matrix* for more information.
       .desc =
           R"--(A non-LTE source vector Jacobian at a single *freq* point.
 
-See *propagation_matrix_jacobian* for more information.
+See *spectral_propmat_jac* for more information.
 
 Size is number of Jacobian targets.
 )--",

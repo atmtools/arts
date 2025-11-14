@@ -26,7 +26,7 @@ ws.WignerInit()
 qid = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
 ws.abs_bands = {qid: ws.abs_bands[qid]}
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 

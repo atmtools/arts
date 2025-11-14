@@ -30,7 +30,7 @@ ws.spectral_radiance_transform_operatorSet(option="Tb")
 
 ws.abs_species = []
 ws.abs_bands = {}
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)

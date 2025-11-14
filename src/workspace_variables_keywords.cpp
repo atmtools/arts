@@ -7,7 +7,7 @@
 static constexpr std::array keywords{"abs",
                                      "jacobian",
                                      "spectral_radiance",
-                                     "propagation_matrix",
+                                     "spectral_propmat",
                                      "source_vector",
                                      "nonlte",
                                      "ray_path",

@@ -37,7 +37,7 @@ ws.freq_grid = [31.5e9, 165e9, 666e9]
 # %% Species and line absorption
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Defining scattering species
 #
@@ -127,7 +127,7 @@ ws.atm_field["H2O"] = h2o
 ws.atm_field[rain_first_moment] = rwc
 ws.atm_field.top_of_atmosphere = 12.0e3
 
-ws.propagation_matrix_scattering_spectral_agenda
+ws.spectral_propmat_scat_spectral_agenda
 
 # %% Checks and settings
 ws.spectral_radiance_transform_operatorSet(option="Tb")
@@ -137,7 +137,7 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
 ws.disort_quadrature_dimension = 40
 ws.disort_fourier_mode_dimension = 1
-ws.propagation_matrix_scattering_spectral_agendaSet()
+ws.spectral_propmat_scat_spectral_agendaSet()
 ws.disort_legendre_polynomial_dimension = 40
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")

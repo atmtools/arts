@@ -26,7 +26,7 @@ def plot(data: CIARecord,
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
-    The path_point is passed directly to the CIARecord.propagation_matrix() method and defaults
+    The path_point is passed directly to the CIARecord.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
     Parameters
@@ -75,13 +75,13 @@ def plot(data: CIARecord,
             freqs = cia.data[0].grids[0]
             select_flat_ax(ax, 0).plot(
                 freqs,
-                cia.propagation_matrix(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
+                cia.spectral_propmat(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
                 **kwargs
             )
     else:
         select_flat_ax(ax, 0).plot(
             freqs,
-            data.propagation_matrix(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
+            data.spectral_propmat(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
             **kwargs
         )
 

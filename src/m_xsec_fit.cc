@@ -57,9 +57,9 @@ void abs_xfit_dataReadSpeciesSplitCatalog(ArrayOfXsecRecord& abs_xfit_data,
 ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddXsecFit(  // WS Output:
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
+void spectral_propmatAddXsecFit(  // WS Output:
+    PropmatVector& spectral_propmat,
+    PropmatMatrix& spectral_propmat_jac,
     // WS Input:
     const SpeciesEnum& select_species,
     const JacobianTargets& jac_targets,
@@ -72,15 +72,14 @@ void propagation_matrixAddXsecFit(  // WS Output:
 
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
-      propagation_matrix.size() not_eq f_grid.size(),
+      spectral_propmat.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
+      static_cast<Size>(spectral_propmat_jac.nrows()) not_eq
               jac_targets.target_count() or
-          static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
-              f_grid.size(),
+          static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
@@ -151,11 +150,11 @@ void propagation_matrixAddXsecFit(  // WS Output:
     Numeric dnd_dt =
         dnumber_density_dt(atm_point.pressure, atm_point.temperature);
     for (Size f = 0; f < f_grid.size(); f++) {
-      propagation_matrix[f].A() += xsec_temp[f] * nd * vmr;
+      spectral_propmat[f].A() += xsec_temp[f] * nd * vmr;
 
       if (temp_jac != end) {
         const auto iq = temp_jac->target_pos;
-        propagation_matrix_jacobian[iq, f].A() +=
+        spectral_propmat_jac[iq, f].A() +=
             ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
              xsec_temp[f] * dnd_dt) *
             vmr;
@@ -164,14 +163,14 @@ void propagation_matrixAddXsecFit(  // WS Output:
       for (auto& j : freq_jac) {
         if (j != end) {
           const auto iq = j->target_pos;
-          propagation_matrix_jacobian[iq, f].A() +=
+          spectral_propmat_jac[iq, f].A() +=
               (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
         }
       }
 
       if (const auto j = jac_targets.find(this_xdata.Species()); j != end) {
-        const auto iq                           = j->target_pos;
-        propagation_matrix_jacobian[iq, f].A() += xsec_temp[f] * nd * vmr;
+        const auto iq                    = j->target_pos;
+        spectral_propmat_jac[iq, f].A() += xsec_temp[f] * nd * vmr;
       }
     }
   }

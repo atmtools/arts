@@ -20,7 +20,7 @@ ws.ReadCatalogData()
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 

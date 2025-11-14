@@ -198,11 +198,11 @@ if 0:
             species="Bath",
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        dpm = ws.propagation_matrix_jacobian * 1.0
-        pm = ws.propagation_matrix * 1.0
+        dpm = ws.spectral_propmat_jac * 1.0
+        pm = ws.spectral_propmat * 1.0
         ws.jac_targetsInit()
 
         # ISOTOPOLOGUE RATIO
@@ -210,10 +210,10 @@ if 0:
         key = pyarts.arts.SpeciesIsotope("O2-66")
         ws.atm_point[key] += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.atm_point[key] -= d
 
         dpm_dX = (pm_d - pm) / d
@@ -230,10 +230,10 @@ if 0:
         key = pyarts.arts.SpeciesEnum("O2")
         ws.atm_point[key] += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.atm_point[key] -= d
 
         dpm_dX = (pm_d - pm) / d
@@ -244,10 +244,10 @@ if 0:
         key = pyarts.arts.AtmKey.t
         ws.atm_point[key] += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.atm_point[key] -= d
 
         dpm_dX = (pm_d - pm) / d
@@ -260,10 +260,10 @@ if 0:
         orig = ws.freq_grid * 1.0
         ws.freq_grid = orig + d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.freq_grid = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -276,10 +276,10 @@ if 0:
         orig = ws.abs_bands[0].data.lines[il].f0 * 1.0
         ws.abs_bands[0].data.lines[il].f0 += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].f0 = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -292,10 +292,10 @@ if 0:
         orig = ws.abs_bands[0].data.lines[il].e0 * 1.0
         ws.abs_bands[0].data.lines[il].e0 += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].e0 = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -312,10 +312,10 @@ if 0:
         orig = ws.abs_bands[0].data.lines[il].a * 1.0
         ws.abs_bands[0].data.lines[il].a += d
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].a = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -336,10 +336,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -356,10 +356,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["G0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -376,10 +376,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -396,10 +396,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["G0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -416,10 +416,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -436,10 +436,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -456,10 +456,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -476,10 +476,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -496,10 +496,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -516,10 +516,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -536,10 +536,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -556,10 +556,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["Y"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -576,10 +576,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["D0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -596,10 +596,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["D0"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -616,10 +616,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["DV"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -636,10 +636,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["DV"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -656,10 +656,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[0]["G"] = orig
 
         dpm_dX = (pm_d - pm) / d
@@ -676,10 +676,10 @@ if 0:
             pyarts.arts.TemperatureModel(orig.type, data)
         )
 
-        ws.propagation_matrixInit()
-        ws.propagation_matrixAddLines(no_negative_absorption=False)
+        ws.spectral_propmatInit()
+        ws.spectral_propmatAddLines(no_negative_absorption=False)
 
-        pm_d = ws.propagation_matrix * 1.0
+        pm_d = ws.spectral_propmat * 1.0
         ws.abs_bands[0].data.lines[il].ls.single_models[1]["G"] = orig
 
         dpm_dX = (pm_d - pm) / d

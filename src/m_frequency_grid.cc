@@ -106,12 +106,11 @@ void freqWindShift(Numeric& frequency,
       VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_path_point);
 }
 
-void propagation_matrix_jacobianWindFix(
-    PropmatMatrix& propagation_matrix_jacobian,
-    StokvecMatrix& source_vector_nonlte_jacobian,
-    const AscendingGrid& freq_grid,
-    const JacobianTargets& jac_targets,
-    const Vector3& freq_wind_shift_jac) {
+void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,
+                                 StokvecMatrix& source_vector_nonlte_jacobian,
+                                 const AscendingGrid& freq_grid,
+                                 const JacobianTargets& jac_targets,
+                                 const Vector3& freq_wind_shift_jac) {
   ARTS_TIME_REPORT
 
   using enum AtmKey;
@@ -128,8 +127,8 @@ void propagation_matrix_jacobianWindFix(
     std::transform(
         freq_grid.begin(),
         freq_grid.end(),
-        propagation_matrix_jacobian[i].begin(),
-        propagation_matrix_jacobian[i].begin(),
+        spectral_propmat_jac[i].begin(),
+        spectral_propmat_jac[i].begin(),
         [df_du](const Numeric f, const Propmat& x) { return x * f * df_du; });
     std::transform(
         freq_grid.begin(),
@@ -147,8 +146,8 @@ void propagation_matrix_jacobianWindFix(
     std::transform(
         freq_grid.begin(),
         freq_grid.end(),
-        propagation_matrix_jacobian[i].begin(),
-        propagation_matrix_jacobian[i].begin(),
+        spectral_propmat_jac[i].begin(),
+        spectral_propmat_jac[i].begin(),
         [df_dv](const Numeric f, const Propmat& x) { return x * f * df_dv; });
     std::transform(
         freq_grid.begin(),
@@ -166,8 +165,8 @@ void propagation_matrix_jacobianWindFix(
     std::transform(
         freq_grid.begin(),
         freq_grid.end(),
-        propagation_matrix_jacobian[i].begin(),
-        propagation_matrix_jacobian[i].begin(),
+        spectral_propmat_jac[i].begin(),
+        spectral_propmat_jac[i].begin(),
         [df_dw](const Numeric f, const Propmat& x) { return x * f * df_dw; });
     std::transform(
         freq_grid.begin(),

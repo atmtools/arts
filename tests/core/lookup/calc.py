@@ -59,14 +59,14 @@ for water_ratio in [5e-1, 5]:
         ws.atm_field["H2O"].data.data = wdata * water_ratio
 
         t = time()
-        ws.propagation_matrix_agendaAuto(use_abs_lookup_data=0)
+        ws.spectral_propmat_agendaAuto(use_abs_lookup_data=0)
         ws.spectral_radianceClearskyEmission()
         ws.spectral_radianceApplyUnitFromSpectralRadiance()
         lbl = ws.spectral_radiance[:, 0] * 1.0
         print(round(1000 * (time() - t)), "ms to compute the LBL spectral radiance")
 
         t = time()
-        ws.propagation_matrix_agendaAuto(
+        ws.spectral_propmat_agendaAuto(
             f_interp_order=0,
             p_interp_order=5,
             t_interp_order=4,

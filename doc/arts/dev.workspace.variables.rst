@@ -67,15 +67,15 @@ To allow searching and connecting different workspace variables to their intende
 we have reserved a set of terms that should be used in the names of related workspace variables.
 This list will connect workspace variables under a rubric ``Related workspace variables`` in the documentation.
 Please note that combining more than one of these terms is possible and highly encouraged.
-The workspace variable :attr:`~pyarts3.workspace.Workspace.propagation_matrix` along the :attr:`~pyarts3.workspace.Workspace.ray_path`
-is called :attr:`~pyarts3.workspace.Workspace.ray_path_propagation_matrix` to connect it to both concepts.
+The workspace variable :attr:`~pyarts3.workspace.Workspace.spectral_propmat` along the :attr:`~pyarts3.workspace.Workspace.ray_path`
+is called :attr:`~pyarts3.workspace.Workspace.spectral_propmat_path` to connect it to both concepts.
 The full list is available in the ``workspace_variables_keywords.cpp`` file.
 As of writing this, the list includes the following terms:
 
 - ``absorption`` - for workspace variables related to absorption.
 - ``jacobian`` - for workspace variables related to Jacobian.
 - ``spectral_radiance`` - for workspace variables related to spectral radiance.
-- ``propagation_matrix`` - for workspace variables related to propagation matrices.
+- ``spectral_propmat`` - for workspace variables related to propagation matrices.
 - ``source_vector`` - for workspace variables related to source vectors.
 - ``nonlte`` - for workspace variables related to non-local thermodynamic equilibrium.
 - ``ray_path`` - for workspace variables related to ray paths.

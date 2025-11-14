@@ -5,17 +5,17 @@
 #include <workspace.h>
 
 namespace {
-auto ray_path_propagation_matrixProfile(const Workspace& ws,
-                                        const Agenda& propagation_matrix_agenda,
-                                        const AscendingGrid& freq_grid,
-                                        const ArrayOfAtmPoint& atm_point_path) {
-  struct ray_path_propagation_matrixFromPathOutput {
+auto spectral_propmat_pathProfile(const Workspace& ws,
+                                  const Agenda& spectral_propmat_agenda,
+                                  const AscendingGrid& freq_grid,
+                                  const ArrayOfAtmPoint& atm_point_path) {
+  struct spectral_propmat_pathFromPathOutput {
     ArrayOfPropmatVector k;
     ArrayOfStokvecVector s;
     ArrayOfPropmatMatrix dk;
     ArrayOfStokvecMatrix ds;
   };
-  ray_path_propagation_matrixFromPathOutput out;
+  spectral_propmat_pathFromPathOutput out;
 
   const Size np = atm_point_path.size();
   out.k.resize(np);
@@ -28,18 +28,18 @@ auto ray_path_propagation_matrixProfile(const Workspace& ws,
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     try {
-      propagation_matrix_agendaExecute(ws,
-                                       out.k[ip],
-                                       out.s[ip],
-                                       out.dk[ip],
-                                       out.ds[ip],
-                                       freq_grid,
-                                       {},
-                                       {},
-                                       {},
-                                       {},
-                                       atm_point_path[ip],
-                                       propagation_matrix_agenda);
+      spectral_propmat_agendaExecute(ws,
+                                     out.k[ip],
+                                     out.s[ip],
+                                     out.dk[ip],
+                                     out.ds[ip],
+                                     freq_grid,
+                                     {},
+                                     {},
+                                     {},
+                                     {},
+                                     atm_point_path[ip],
+                                     spectral_propmat_agenda);
     } catch (const std::runtime_error& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -149,7 +149,7 @@ void za_gridProfilePseudo2D(ZenithGrid& za_grid,
 void spectral_radiance_fieldProfilePseudo2D(
     const Workspace& ws,
     GriddedSpectralField6& spectral_radiance_field,
-    const Agenda& propagation_matrix_agenda,
+    const Agenda& spectral_propmat_agenda,
     const ArrayOfAtmPoint& atm_point_path,
     const SurfaceField& surf_field,
     const AscendingGrid& freq_grid,
@@ -204,8 +204,8 @@ Atmospheric point grid size: {}
 
   if (NA == 0) return;
 
-  const auto propmat_data = ray_path_propagation_matrixProfile(
-      ws, propagation_matrix_agenda, freq_grid, atm_point_path);
+  const auto propmat_data = spectral_propmat_pathProfile(
+      ws, spectral_propmat_agenda, freq_grid, atm_point_path);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
   const Numeric t_surf     = surf_field[SurfaceKey::t].at(latitude, longitude);

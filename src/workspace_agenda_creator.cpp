@@ -45,40 +45,39 @@ Agenda AgendaCreator::finalize(bool fix) && {
   return ag;
 };
 
-Agenda get_propagation_matrix_scattering_agenda(const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_scattering_agenda");
+Agenda get_spectral_propmat_scat_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_propmat_scat_agenda");
 
-  using enum propagation_matrix_scattering_agendaPredefined;
-  switch (to<propagation_matrix_scattering_agendaPredefined>(option)) {
+  using enum spectral_propmat_scat_agendaPredefined;
+  switch (to<spectral_propmat_scat_agendaPredefined>(option)) {
     case AirSimple:
-      agenda.add("propagation_matrix_scatteringInit");
-      agenda.add("propagation_matrix_scatteringAirSimple");
+      agenda.add("spectral_propmat_scatInit");
+      agenda.add("spectral_propmat_scatAirSimple");
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_propagation_matrix_scattering_spectral_agenda(
+Agenda get_spectral_propmat_scat_spectral_agenda(
     const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_scattering_spectral_agenda");
+  AgendaCreator agenda("spectral_propmat_scat_spectral_agenda");
 
-  using enum propagation_matrix_scattering_spectral_agendaPredefined;
-  switch (to<propagation_matrix_scattering_spectral_agendaPredefined>(option)) {
+  using enum spectral_propmat_scat_spectral_agendaPredefined;
+  switch (to<spectral_propmat_scat_spectral_agendaPredefined>(option)) {
     case FromSpeciesTRO:
-      agenda.add("propagation_matrix_scatteringSpectralInit");
-      agenda.add(
-          "propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO");
+      agenda.add("spectral_propmat_scatSpectralInit");
+      agenda.add("spectral_propmat_scatAddSpectralScatteringSpeciesTRO");
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_propagation_matrix_agenda(const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_agenda");
+Agenda get_spectral_propmat_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_propmat_agenda");
 
-  using enum propagation_matrix_agendaPredefined;
-  switch (to<propagation_matrix_agendaPredefined>(option)) {
-    case Empty: agenda.add("propagation_matrixInit");
+  using enum spectral_propmat_agendaPredefined;
+  switch (to<spectral_propmat_agendaPredefined>(option)) {
+    case Empty: agenda.add("spectral_propmatInit");
   }
 
   return std::move(agenda).finalize(true);

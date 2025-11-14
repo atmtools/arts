@@ -40,7 +40,7 @@ v = pyarts.data.to_abs_species(ws.atm_field)
 
 ws.abs_species = v
 ws.ReadCatalogData(ignore_missing=True)
-ws.propagation_matrix_agendaAuto(T_extrapolfac=1e9)
+ws.spectral_propmat_agendaAuto(T_extrapolfac=1e9)
 
 for band in ws.abs_bands:
     ws.abs_bands[band].cutoff = cutoff[0]

@@ -29,7 +29,7 @@ def plot(data: ArrayOfCIARecord,
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
-    The path_point is passed directly to the ArrayOfCIARecord.propagation_matrix() method and defaults
+    The path_point is passed directly to the ArrayOfCIARecord.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
     same determines if each entry in the array is plotted onto the same plot or not.

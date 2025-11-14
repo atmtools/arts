@@ -21,10 +21,10 @@ ws.abs_bands[bandkey].lines = t
 def calc(ws, lineshape=None):
     if lineshape is not None:
         ws.abs_bands[bandkey].lineshape = lineshape
-    ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines()
-    ws.propagation_matrixAddPredefined()
-    return 1.0 * ws.propagation_matrix[:, 0]
+    ws.spectral_propmatInit()
+    ws.spectral_propmatAddLines()
+    ws.spectral_propmatAddPredefined()
+    return 1.0 * ws.spectral_propmat[:, 0]
 
 
 ws.WignerInit()

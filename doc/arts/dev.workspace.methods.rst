@@ -117,7 +117,7 @@ treated as normal workspace method.
 You need to do nothing to define these methods.  But please refrain from defining
 them manually as that may cause undefined naming conflicts.
 
-The expected signature of the method :func:`~pyarts3.workspace.Workspace.propagation_matrix_agendaAuto` is also
+The expected signature of the method :func:`~pyarts3.workspace.Workspace.spectral_propmat_agendaAuto` is also
 generated automatically near the end of ``workspace_methods.cpp``.  It takes
 its input and output from a list of other methods.  Feel free to add to this
 list but make sure that any naming conflicts regarding ``gin`` are resolved
@@ -157,10 +157,10 @@ in ``PascalCase``.
 A general rule of thumb is to use verbs for methods that modify the workspace
 variable and nouns for methods that create a new workspace variable.
 
-For example, :func:`~pyarts3.workspace.Workspace.propagation_matrixAddLines`
-has a main output of :attr:`~pyarts3.workspace.Workspace.propagation_matrix` and
+For example, :func:`~pyarts3.workspace.Workspace.spectral_propmatAddLines`
+has a main output of :attr:`~pyarts3.workspace.Workspace.spectral_propmat` and
 adds line absorption to it.  It needs to be preceded by a call to 
-:func:`~pyarts3.workspace.Workspace.propagation_matrixInit` which sets up the
+:func:`~pyarts3.workspace.Workspace.spectral_propmatInit` which sets up the
 propagation matrix to an initial state.
 
 Of course, every use-case is different, but please try to follow this convention.
@@ -257,18 +257,18 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
 .. code-block:: c++
 
-  wsm_data["propagation_matrixAddLines"] = {
+  wsm_data["spectral_propmatAddLines"] = {
       .desc      = R"--(Line-by-line calculations.
   )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian",
+      .out       = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -287,10 +287,10 @@ The signature of the method is:
 
 .. code-block:: c++
 
-  void propagation_matrixAddLines(PropmatVector& propagation_matrix,
-                                  StokvecVector& propagation_matrix_source_vector_nonlte,
-                                  PropmatMatrix& propagation_matrix_jacobian,
-                                  StokvecMatrix& propagation_matrix_source_vector_nonlte_jacobian,
+  void spectral_propmatAddLines(PropmatVector& spectral_propmat,
+                                  StokvecVector& spectral_srcvec_nlte,
+                                  PropmatMatrix& spectral_propmat_jac,
+                                  StokvecMatrix& spectral_srcvec_nlte_jac,
                                   const AscendingGrid& freq_grid,
                                   const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
@@ -303,10 +303,10 @@ The signature of the method is:
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
 The first four arguments of the method are references to
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix`.
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte`,
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_jacobian`, and
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte_jacobian`
+:attr:`~pyarts3.workspace.Workspace.spectral_propmat`.
+:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte`,
+:attr:`~pyarts3.workspace.Workspace.spectral_propmat_jac`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte_jac`
 are both output (``out``) and input (``in``).  The method is expected to modify the existing values
 of these workspace variables instead of creating new ones.
 
@@ -328,7 +328,7 @@ The ``no_negative_absorption`` argument is used to turn off the check for negati
 which is useful for debugging purposes.
 
 The other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts3.workspace.Workspace.propagation_matrixAddLines` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.spectral_propmatAddLines` for the full documentation.
 
 Method that uses a workspace agenda
 -----------------------------------

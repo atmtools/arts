@@ -1047,7 +1047,7 @@ fmax : ~pyarts3.arts.Numeric
       "T"_a);
 
   aoab.def(
-      "propagation_matrix",
+      "spectral_propmat",
       [](const AbsorptionBands& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
@@ -1056,26 +1056,26 @@ fmax : ~pyarts3.arts.Numeric
          const LinemixingEcsData& ecs_data,
          const Index& no_negative_absorption,
          const py::kwargs&) {
-        PropmatVector propagation_matrix(f.size());
+        PropmatVector spectral_propmat(f.size());
         StokvecVector nlte_vector(f.size());
-        PropmatMatrix propagation_matrix_jacobian(0, f.size());
+        PropmatMatrix spectral_propmat_jac(0, f.size());
         StokvecMatrix nlte_matrix(0, f.size());
         JacobianTargets jac_targets{};
 
-        propagation_matrixAddLines(propagation_matrix,
-                                   nlte_vector,
-                                   propagation_matrix_jacobian,
-                                   nlte_matrix,
-                                   f,
-                                   jac_targets,
-                                   spec,
-                                   self,
-                                   ecs_data,
-                                   atm,
-                                   path_point,
-                                   no_negative_absorption);
+        spectral_propmatAddLines(spectral_propmat,
+                                 nlte_vector,
+                                 spectral_propmat_jac,
+                                 nlte_matrix,
+                                 f,
+                                 jac_targets,
+                                 spec,
+                                 self,
+                                 ecs_data,
+                                 atm,
+                                 path_point,
+                                 no_negative_absorption);
 
-        return propagation_matrix;
+        return spectral_propmat;
       },
       "f"_a,
       "atm"_a,
@@ -1106,7 +1106,7 @@ no_negative_absorption : Index, optional
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");

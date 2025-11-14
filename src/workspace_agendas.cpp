@@ -9,7 +9,7 @@ std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
-  wsa_data["propagation_matrix_agenda"] = {
+  wsa_data["spectral_propmat_agenda"] = {
       .desc =
           R"--(Computes the propagation matrix, the non-LTE source vector, and their derivatives.
 
@@ -17,13 +17,13 @@ The intent of this agenda is to be the workhorse for the propagation matrix
 calculations that are happening deep in your ARTS method calls.
 
 .. tip::
-    Use *propagation_matrix_agendaAuto* after having defined
+    Use *spectral_propmat_agendaAuto* after having defined
     your absorption data to create this agenda.  It covers most use-cases.
 )--",
-      .output       = {"propagation_matrix",
-                       "propagation_matrix_source_vector_nonlte",
-                       "propagation_matrix_jacobian",
-                       "propagation_matrix_source_vector_nonlte_jacobian"},
+      .output       = {"spectral_propmat",
+                       "spectral_srcvec_nlte",
+                       "spectral_propmat_jac",
+                       "spectral_srcvec_nlte_jac"},
       .input        = {"freq_grid",
                        "freq_wind_shift_jac",
                        "jac_targets",
@@ -33,22 +33,22 @@ calculations that are happening deep in your ARTS method calls.
       .enum_options = {"Empty"},
       .output_constraints =
           {
-              {"propagation_matrix.size() == freq_grid.size()",
-               "On output, *propagation_matrix* has the size of *freq_grid*.",
-               "propagation_matrix.size()",
+              {"spectral_propmat.size() == freq_grid.size()",
+               "On output, *spectral_propmat* has the size of *freq_grid*.",
+               "spectral_propmat.size()",
                "freq_grid.size()"},
-              {"propagation_matrix_source_vector_nonlte.size() == freq_grid.size()",
-               "On output, *propagation_matrix_source_vector_nonlte* has the size of *freq_grid*.",
-               "propagation_matrix_source_vector_nonlte.size()",
+              {"spectral_srcvec_nlte.size() == freq_grid.size()",
+               "On output, *spectral_srcvec_nlte* has the size of *freq_grid*.",
+               "spectral_srcvec_nlte.size()",
                "freq_grid.size()"},
-              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, propagation_matrix_jacobian)",
-               "On output, *propagation_matrix_jacobian* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
-               "propagation_matrix_jacobian.shape()",
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_propmat_jac)",
+               "On output, *spectral_propmat_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
+               "spectral_propmat_jac.shape()",
                "freq_grid.size()",
                "jac_targets.target_count()"},
-              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, propagation_matrix_source_vector_nonlte_jacobian)",
-               "On output, *propagation_matrix_source_vector_nonlte_jacobian* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
-               "propagation_matrix_source_vector_nonlte_jacobian.shape()",
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_srcvec_nlte_jac)",
+               "On output, *spectral_srcvec_nlte_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
+               "spectral_srcvec_nlte_jac.shape()",
                "freq_grid.size()",
                "jac_targets.target_count()"},
           },
@@ -63,7 +63,7 @@ calculations that are happening deep in your ARTS method calls.  The methods
 in question here only compute a single frequency point at a time.
 
 If you do not need single-frequency-point calculations, consider using
-*propagation_matrix_agenda* instead as it will likely be more efficient.
+*spectral_propmat_agenda* instead as it will likely be more efficient.
 )--",
       .output = {"single_propmat",
                  "single_nlte_srcvec",
@@ -79,11 +79,11 @@ If you do not need single-frequency-point calculations, consider using
                  "atm_point"},
   };
 
-  wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
+  wsa_data["spectral_propmat_scat_spectral_agenda"] = {
       .desc =
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
-      .output       = {"propagation_matrix_scattering",
+      .output       = {"spectral_propmat_scat",
                        "absorption_vector_scattering",
                        "phase_matrix_scattering_spectral"},
       .input        = {"freq_grid", "atm_point", "legendre_degree"},
@@ -91,9 +91,9 @@ If you do not need single-frequency-point calculations, consider using
       .enum_default = "FromSpeciesTRO",
       .output_constraints =
           {
-              {"propagation_matrix_scattering.size() == freq_grid.size()",
-               "On output, *propagation_matrix_scattering* has the size of *freq_grid*.",
-               "propagation_matrix_scattering.size()",
+              {"spectral_propmat_scat.size() == freq_grid.size()",
+               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
+               "spectral_propmat_scat.size()",
                "freq_grid.size()"},
               {"absorption_vector_scattering.size() == freq_grid.size()",
                "On output, *absorption_vector_scattering* has the size of *freq_grid*.",
@@ -107,19 +107,19 @@ If you do not need single-frequency-point calculations, consider using
           },
   };
 
-  wsa_data["propagation_matrix_scattering_agenda"] = {
+  wsa_data["spectral_propmat_scat_agenda"] = {
       .desc =
           R"--(Computes the part of the propagation matrix that relates to scattering.
 )--",
-      .output       = {"propagation_matrix_scattering"},
+      .output       = {"spectral_propmat_scat"},
       .input        = {"freq_grid", "atm_point"},
       .enum_options = {"AirSimple"},
       .enum_default = "AirSimple",
       .output_constraints =
           {
-              {"propagation_matrix_scattering.size() == freq_grid.size()",
-               "On output, *propagation_matrix_scattering* has the size of *freq_grid*.",
-               "propagation_matrix_scattering.size()",
+              {"spectral_propmat_scat.size() == freq_grid.size()",
+               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
+               "spectral_propmat_scat.size()",
                "freq_grid.size()"},
           },
   };
