@@ -1,25 +1,17 @@
 #include "workspace_variables_keywords.h"
 
 #include <algorithm>
-#include <array>
+#include <ranges>
 #include <string_view>
+#include <vector>
 
-static constexpr std::array keywords{"abs",
-                                     "jacobian",
-                                     "spectral_rad",
-                                     "spectral_propmat",
-                                     "source_vector",
-                                     "nonlte",
-                                     "ray_path",
-                                     "scattering",
-                                     "grid",
-                                     "measurement",
-                                     "model_state",
-                                     "disort",
-                                     "flux"};
+#include "workspace_variable_shortnames.h"
 
 bool workspace_variables_keywords_match(const std::string_view some_wsv,
                                         const std::string_view this_name) {
+  static const std::vector<std::string> keywords = {
+      std::from_range, workspace_variables_shortnames() | std::views::keys};
+
   return some_wsv != this_name and
          (some_wsv.find(this_name) != some_wsv.npos or
           std::ranges::any_of(keywords,
