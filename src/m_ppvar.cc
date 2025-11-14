@@ -41,7 +41,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfStokvecVector &ray_path_source_vector_nonlte,
     const ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
     const ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
-    const ArrayOfAscendingGrid &ray_path_frequency_grid,
+    const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfAtmPoint &ray_path_atm_point,
     const JacobianTargets &jacobian_targets) try {
   ARTS_TIME_REPORT
@@ -82,7 +82,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
           ray_path_source_vector_nonlte[ip],
           ray_path_propagation_matrix_jacobian[ip],
           ray_path_source_vector_nonlte_jacobian[ip],
-          ray_path_frequency_grid[ip],
+          freq_grid_path[ip],
           ray_path_atm_point[ip].temperature,
           it);
     } catch (const std::runtime_error &e) {
@@ -105,26 +105,25 @@ void ray_path_atm_pointFromPath(ArrayOfAtmPoint &ray_path_atm_point,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_frequency_gridFromPath(
-    ArrayOfAscendingGrid &ray_path_frequency_grid,
-    ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
-    const AscendingGrid &frequency_grid,
-    const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atm_point) try {
+void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
+                            ArrayOfVector3 &freq_wind_shift_jac_path,
+                            const AscendingGrid &freq_grid,
+                            const ArrayOfPropagationPathPoint &ray_path,
+                            const ArrayOfAtmPoint &ray_path_atm_point) try {
   ARTS_TIME_REPORT
 
   std::string error;
 
-  ray_path_frequency_grid.resize(ray_path.size());
-  ray_path_frequency_wind_shift_jacobian.resize(ray_path.size());
+  freq_grid_path.resize(ray_path.size());
+  freq_wind_shift_jac_path.resize(ray_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < ray_path.size(); ip++) {
     try {
-      frequency_gridWindShift(ray_path_frequency_grid[ip] = frequency_grid,
-                              ray_path_frequency_wind_shift_jacobian[ip],
-                              ray_path_atm_point[ip],
-                              ray_path[ip]);
+      freq_gridWindShift(freq_grid_path[ip] = freq_grid,
+                         freq_wind_shift_jac_path[ip],
+                         ray_path_atm_point[ip],
+                         ray_path[ip]);
     } catch (std::exception &e) {
 #pragma omp critical
       error = e.what();

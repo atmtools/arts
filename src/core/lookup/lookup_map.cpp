@@ -144,13 +144,13 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::pressure_lagrange(
 ARTS_METHOD_ERROR_CATCH
 
 std::vector<lagrange_interp::lag_t<-1>> table::frequency_lagrange(
-    const Vector& frequency_grid,
+    const Vector& freq_grid,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_f(), "No frequency grid set.");
   const Vector& f_grid_v(*f_grid);
   return lagrange_interp::make_lags(f_grid_v,
-                                    frequency_grid,
+                                    freq_grid,
                                     interpolation_order,
                                     extpolation_factor,
                                     "Frequency");
@@ -159,7 +159,7 @@ ARTS_METHOD_ERROR_CATCH
 
 std::array<lagrange_interp::lag_t<-1>, 1> table::water_lagrange(
     const Numeric& water_vmr,
-    const std::array<lagrange_interp::lag_t<-1>, 1> & pressure_lagrange,
+    const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_w(), "No water grid set.");
@@ -173,7 +173,7 @@ ARTS_METHOD_ERROR_CATCH
 
 std::array<lagrange_interp::lag_t<-1>, 1> table::temperature_lagrange(
     const Numeric& temperature,
-    const std::array<lagrange_interp::lag_t<-1>, 1> & pressure_lagrange,
+    const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
     const Index interpolation_order,
     const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_t(), "No temperature grid set.");
@@ -192,21 +192,20 @@ void table::absorption(VectorView absorption,
                        const Index& water_interp_order,
                        const Index& f_interp_order,
                        const AtmPoint& atm_point,
-                       const AscendingGrid& frequency_grid,
+                       const AscendingGrid& freq_grid,
                        const Numeric& extpolfac) const try {
   check();
 
   if (xsec.empty()) return;
 
   // Frequency grid positions
-  const auto flag =
-      frequency_lagrange(frequency_grid, f_interp_order, extpolfac);
+  const auto flag = frequency_lagrange(freq_grid, f_interp_order, extpolfac);
 
   // Pressure grid positions
   const auto plag =
       pressure_lagrange(atm_point.pressure, p_interp_order, extpolfac);
 
-  Vector xsec_local(frequency_grid.size());
+  Vector xsec_local(freq_grid.size());
 
   // Optional grid positions by switching
   if (do_w() and do_t()) {
@@ -215,24 +214,22 @@ void table::absorption(VectorView absorption,
     const auto tlag = temperature_lagrange(
         atm_point.temperature, plag, t_interp_order, extpolfac);
     xsec_local =
-        reinterp(xsec, tlag, wlag, plag, flag).reshape(frequency_grid.size());
+        reinterp(xsec, tlag, wlag, plag, flag).reshape(freq_grid.size());
   } else if (do_w()) {
     const auto wlag = water_lagrange(
         atm_point["H2O"_spec], plag, water_interp_order, extpolfac);
-    xsec_local =
-        reinterp(xsec[0], wlag, plag, flag).reshape(frequency_grid.size());
+    xsec_local = reinterp(xsec[0], wlag, plag, flag).reshape(freq_grid.size());
   } else if (do_t()) {
     const auto tlag = temperature_lagrange(
         atm_point.temperature, plag, t_interp_order, extpolfac);
     xsec_local = reinterp(xsec[joker, 0, joker, joker], tlag, plag, flag)
-                     .reshape(frequency_grid.size());
+                     .reshape(freq_grid.size());
   } else {
-    xsec_local =
-        reinterp(xsec[0][0], plag, flag).reshape(frequency_grid.size());
+    xsec_local = reinterp(xsec[0][0], plag, flag).reshape(freq_grid.size());
   }
 
   const Numeric nd = atm_point.number_density(species);
-  for (Size i = 0; i < frequency_grid.size(); ++i) {
+  for (Size i = 0; i < freq_grid.size(); ++i) {
     absorption[i] += xsec_local[i] * nd;
   }
 }

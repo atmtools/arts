@@ -30,7 +30,7 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
     this up yourself!
     """
     ws = pyarts.Workspace()
-    ws.propagation_matrixInit(frequency_grid=freq, jacobian_targets=jac)
+    ws.propagation_matrixInit(freq_grid=freq, jacobian_targets=jac)
     ws.propagation_matrix[:, 0] = 1
     return (
         ws.propagation_matrix,
@@ -42,8 +42,8 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
 ws = pyarts.Workspace()
 ws.propagation_matrix_agendaSetOperator(f=interface_function)
 
-ws.frequency_grid = [1, 2]
-ws.frequency_wind_shift_jacobian
+ws.freq_grid = [1, 2]
+ws.freq_wind_shift_jac
 ws.ray_path_point
 ws.atm_point
 

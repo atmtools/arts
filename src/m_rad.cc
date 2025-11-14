@@ -12,12 +12,12 @@
 
 void spectral_radiance_jacobianEmpty(
     StokvecMatrix &spectral_radiance_jacobian,
-    const AscendingGrid &frequency_grid,
+    const AscendingGrid &freq_grid,
     const JacobianTargets &jacobian_targets) try {
   ARTS_TIME_REPORT
 
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
-                                    frequency_grid.size());
+                                    freq_grid.size());
   spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 ARTS_METHOD_ERROR_CATCH
@@ -133,37 +133,33 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceApplyUnit(StokvecVector &spectral_radiance,
                                 StokvecMatrix &spectral_radiance_jacobian,
-                                const AscendingGrid &frequency_grid,
+                                const AscendingGrid &freq_grid,
                                 const PropagationPathPoint &ray_path_point,
                                 const SpectralRadianceTransformOperator
                                     &spectral_radiance_transform_operator) try {
   ARTS_TIME_REPORT
 
   if (spectral_radiance_jacobian.empty()) {
-    spectral_radiance_jacobian.resize(0, frequency_grid.size());
+    spectral_radiance_jacobian.resize(0, freq_grid.size());
   }
 
-  spectral_radiance_transform_operator(spectral_radiance,
-                                       spectral_radiance_jacobian,
-                                       frequency_grid,
-                                       ray_path_point);
+  spectral_radiance_transform_operator(
+      spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceApplyForwardUnit(
     StokvecVector &spectral_radiance,
-    const AscendingGrid &frequency_grid,
+    const AscendingGrid &freq_grid,
     const PropagationPathPoint &ray_path_point,
     const SpectralRadianceTransformOperator
         &spectral_radiance_transform_operator) try {
   ARTS_TIME_REPORT
 
-  StokvecMatrix spectral_radiance_jacobian(0, frequency_grid.size());
+  StokvecMatrix spectral_radiance_jacobian(0, freq_grid.size());
 
-  spectral_radiance_transform_operator(spectral_radiance,
-                                       spectral_radiance_jacobian,
-                                       frequency_grid,
-                                       ray_path_point);
+  spectral_radiance_transform_operator(
+      spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -172,7 +168,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     StokvecMatrix &spectral_radiance_jacobian,
     const StokvecVector &spectral_radiance,
     const ArrayOfSensorObsel &measurement_sensor,
-    const AscendingGrid &frequency_grid,
+    const AscendingGrid &freq_grid,
     const JacobianTargets &jacobian_targets,
     const Vector3 &pos,
     const Vector2 &los,
@@ -199,34 +195,34 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
   if (jacobian_targets.sensor.empty()) return;
 
   ARTS_USER_ERROR_IF(
-      spectral_radiance.size() != frequency_grid.size(),
+      spectral_radiance.size() != freq_grid.size(),
       R"(spectral_radiance must have same size as element frequency grid
 
 spectral_radiance.size() = {},
-frequency_grid.size()    = {}
+freq_grid.size()    = {}
 )",
       spectral_radiance.size(),
-      frequency_grid.size())
+      freq_grid.size())
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()},
+      not same_shape<2>({jacobian_targets.x_size(), freq_grid.size()},
                         spectral_radiance_jacobian),
       R"(spectral_radiance_jacobian must be x-grid times frequency grid
 
 spectral_radiance_jacobian.shape() = {:B,},
 jacobian_targets.x_size()          = {},
-frequency_grid.size()              = {}
+freq_grid.size()              = {}
 )",
       spectral_radiance_jacobian.shape(),
       jacobian_targets.x_size(),
-      frequency_grid.size())
+      freq_grid.size())
 
   const JacobianTargets jacobian_targets_empty{};
   StokvecMatrix spectral_radiance_jacobian_empty{};
   ArrayOfPropagationPathPoint ray_path{};
 
   StokvecVector dsrad;
-  auto call = [&](const AscendingGrid &frequency_grid_2,
+  auto call = [&](const AscendingGrid &freq_grid_2,
                   const Vector3 &pos2,
                   const Vector2 &los2,
                   const Numeric d) {
@@ -234,7 +230,7 @@ frequency_grid.size()              = {}
                                              dsrad,
                                              spectral_radiance_jacobian_empty,
                                              ray_path,
-                                             frequency_grid_2,
+                                             freq_grid_2,
                                              jacobian_targets_empty,
                                              pos2,
                                              los2,
@@ -248,7 +244,7 @@ frequency_grid.size()              = {}
     dsrad /= d;
   };
 
-  const auto &x = frequency_grid;
+  const auto &x = freq_grid;
   const auto *b = x.begin();
   const auto *e = x.end();
 
@@ -265,7 +261,7 @@ frequency_grid.size()              = {}
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
     const Index iposlos = elem.find(pos, los);
     if (iposlos == SensorObsel::dont_have) continue;
-    if (elem.find(frequency_grid) == SensorObsel::dont_have) continue;
+    if (elem.find(freq_grid) == SensorObsel::dont_have) continue;
 
     find_any = true;
 
@@ -285,16 +281,16 @@ frequency_grid.size()              = {}
   ARTS_USER_ERROR_IF(not find_any,
                      R"(No sensor element found for pos-los/frequency grid pair
 
-  frequency_grid: {:Bs,}
+  freq_grid: {:Bs,}
   pos:            {:B,}
   los:            {:B,}
 
 Note: It is not allowed to change the frequency grid or the pos-los pair in an agenda
 that calls this function.  This is because the actual memory address is used to identify
-a sensor element.  Modifying pos, los or frequency_grid will copy the data to a new memory
+a sensor element.  Modifying pos, los or freq_grid will copy the data to a new memory
 location and the sensor element will not be found.
 )",
-                     frequency_grid,
+                     freq_grid,
                      pos,
                      los);
 }

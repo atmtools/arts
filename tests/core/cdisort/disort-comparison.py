@@ -32,8 +32,8 @@ N_freq = 50
 ws = pyarts.Workspace()
 
 # Sampled frequency range
-ws.frequency_grid = np.linspace(170, 194, N_freq) * 1e9
-frequency_grid = np.array(ws.frequency_grid)
+ws.freq_grid = np.linspace(170, 194, N_freq) * 1e9
+freq_grid = np.array(ws.freq_grid)
 
 # Species and line absorption
 ws.abs_speciesSet(species=["H2O-PWR2022"])
@@ -70,8 +70,8 @@ fig.set_size_inches(width_in_cm / 2.54, h=height_in_cm / 2.54)
 # cdisort calculation
 dt = datetime.now()
 ws.disort_spectral_radiance_fieldProfileCdisort(
-    longitude=lon,
-    latitude=lat,
+    lon=lon,
+    lat=lat,
     disort_quadrature_dimension=N_quad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -83,8 +83,8 @@ cdisort_spectral_radiance_field = ws.disort_spectral_radiance_field.data * 1.0
 # cppdisort calculation
 dt = datetime.now()
 ws.disort_spectral_radiance_fieldProfile(
-    longitude=lon,
-    latitude=lat,
+    lon=lon,
+    lat=lat,
     disort_quadrature_dimension=N_quad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -107,7 +107,7 @@ imax = np.unravel_index(
 )
 print(
     f"max location: {ws.ray_path[imax[1]].pos[0] / 1000:.1f} km, "
-    f"{ws.frequency_grid[imax[0]] / 1e9:.1f} GHz, "
+    f"{ws.freq_grid[imax[0]] / 1e9:.1f} GHz, "
     f"{ws.disort_quadrature.grids[0][imax[-1]]:.2f}°"
 )
 
@@ -136,13 +136,13 @@ def plot_field(fig, I, ax, title, reldiff=False):
     # plot spectral radiance TOA and SFC
     for i in range(np.size(I, -1)):
         ax[0].plot(
-            frequency_grid / 1e9,
+            freq_grid / 1e9,
             I[:, 0, i],
             label=f"{angles[i]:.2f}$^\\circ$",
             color=colors[i, :],
         )
         ax[1].plot(
-            frequency_grid / 1e9,
+            freq_grid / 1e9,
             I[:, -1, i],
             label=f"{angles[i]:.2f}$^\\circ$",
             color=colors[i, :],
@@ -181,4 +181,5 @@ if PLOT:
     # fig.savefig(f"disort-toa{toa / 1e3:.0f}km.pdf")
     plt.show()
 
-assert np.allclose(cdisort_spectral_radiance_field, ws.disort_spectral_radiance_field.data)
+assert np.allclose(cdisort_spectral_radiance_field,
+                   ws.disort_spectral_radiance_field.data)

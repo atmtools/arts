@@ -9,8 +9,8 @@ void ray_path_propagation_matrixFromPath(
     ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
     ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
     const Agenda &propagation_matrix_agenda,
-    const ArrayOfAscendingGrid &ray_path_frequency_grid,
-    const ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
+    const ArrayOfAscendingGrid &freq_grid_path,
+    const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atm_point) try {
@@ -18,19 +18,19 @@ void ray_path_propagation_matrixFromPath(
 
   ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
                                         ray_path_atm_point,
-                                        ray_path_frequency_grid,
-                                        ray_path_frequency_wind_shift_jacobian),
+                                        freq_grid_path,
+                                        freq_wind_shift_jac_path),
                      R"(Not same size:
 
 ray_path                               size: {} element(s)
 ray_path_atm_point             size: {} element(s)
-ray_path_frequency_grid                size: {} element(s)
-ray_path_frequency_wind_shift_jacobian size: {} element(s)
+freq_grid_path                size: {} element(s)
+freq_wind_shift_jac_path size: {} element(s)
 )",
                      ray_path.size(),
                      ray_path_atm_point.size(),
-                     ray_path_frequency_grid.size(),
-                     ray_path_frequency_wind_shift_jacobian.size())
+                     freq_grid_path.size(),
+                     freq_wind_shift_jac_path.size())
 
   const Size np = ray_path.size();
   ray_path_propagation_matrix.resize(np);
@@ -49,8 +49,8 @@ ray_path_frequency_wind_shift_jacobian size: {} element(s)
           ray_path_source_vector_nonlte[ip],
           ray_path_propagation_matrix_jacobian[ip],
           ray_path_source_vector_nonlte_jacobian[ip],
-          ray_path_frequency_grid[ip],
-          ray_path_frequency_wind_shift_jacobian[ip],
+          freq_grid_path[ip],
+          freq_wind_shift_jac_path[ip],
           jacobian_targets,
           {},
           ray_path[ip],
@@ -76,8 +76,8 @@ void ray_path_propagation_matrix_species_splitFromPath(
     ArrayOfArrayOfStokvecMatrix &
         ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split,
     const Agenda &propagation_matrix_agenda,
-    const ArrayOfAscendingGrid &ray_path_frequency_grid,
-    const ArrayOfVector3 &ray_path_frequency_wind_shift_jacobian,
+    const ArrayOfAscendingGrid &freq_grid_path,
+    const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jacobian_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atm_point,
@@ -115,8 +115,8 @@ void ray_path_propagation_matrix_species_splitFromPath(
             ray_path_propagation_matrix_jacobian_species_split[is][ip],
             ray_path_propagation_matrix_source_vector_nonlte_jacobian_species_split
                 [is][ip],
-            ray_path_frequency_grid[ip],
-            ray_path_frequency_wind_shift_jacobian[ip],
+            freq_grid_path[ip],
+            freq_wind_shift_jac_path[ip],
             jacobian_targets,
             select_species_list[is],
             ray_path[ip],

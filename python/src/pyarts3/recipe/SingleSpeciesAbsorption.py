@@ -31,14 +31,14 @@ class SingleSpeciesAbsorption:
 
     def __call__(
         self,
-        frequency_grid: pyarts.arts.AscendingGrid,
+        freq_grid: pyarts.arts.AscendingGrid,
         atm_point: pyarts.arts.AtmPoint,
     ):
         """Call operator to return a propagation matrix
 
         Parameters
         ----------
-        frequency_grid : ~pyarts3.arts.AscendingGrid
+        freq_grid : ~pyarts3.arts.AscendingGrid
             A list of frequency points.
         atm_point : ~pyarts3.arts.AtmPoint
             The state of the atmosphere at the point of interest
@@ -53,7 +53,7 @@ class SingleSpeciesAbsorption:
         """
 
         self.ws.propagation_matrix_agendaExecute(
-            frequency_grid=frequency_grid,
+            freq_grid=freq_grid,
             atm_point=atm_point,
         )
 

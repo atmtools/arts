@@ -15,18 +15,18 @@ void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor) {
 }
 
 void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
-                                 const AscendingGrid& frequency_grid,
+                                 const AscendingGrid& freq_grid,
                                  const Vector3& pos,
                                  const Vector2& los,
                                  const Stokvec& pol) try {
   ARTS_TIME_REPORT
 
-  const Index n = frequency_grid.size();
+  const Index n = freq_grid.size();
   const Size sz = measurement_sensor.size();
 
   measurement_sensor.resize(sz + n);
 
-  auto f = std::make_shared<const AscendingGrid>(frequency_grid);
+  auto f = std::make_shared<const AscendingGrid>(freq_grid);
   auto p = std::make_shared<const SensorPosLosVector>(
       SensorPosLosVector{{.pos = pos, .los = los}});
 
@@ -40,7 +40,7 @@ void measurement_sensorAddSimple(ArrayOfSensorObsel& measurement_sensor,
 ARTS_METHOD_ERROR_CATCH
 
 void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
-                                         const AscendingGrid& frequency_grid,
+                                         const AscendingGrid& freq_grid,
                                          const Vector& stds,
                                          const Vector3& pos,
                                          const Vector2& los,
@@ -50,7 +50,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  const Size n       = frequency_grid.size();
+  const Size n       = freq_grid.size();
   const Size sz      = measurement_sensor.size();
   const Size nonzero = pol.nonzero_components();
 
@@ -64,7 +64,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
 
   measurement_sensor.resize(sz + n);
 
-  auto f = std::make_shared<const AscendingGrid>(frequency_grid);
+  auto f = std::make_shared<const AscendingGrid>(freq_grid);
   auto p = std::make_shared<const SensorPosLosVector>(
       SensorPosLosVector{{.pos = pos, .los = los}});
 
@@ -74,9 +74,9 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
     try {
       StokvecMatrix w(1, n, pol);
 
-      const gauss dist(frequency_grid[i], stds[i]);
+      const gauss dist(freq_grid[i], stds[i]);
       for (Size j = 0; j < n; j++) {
-        w[0, j] *= pdf(dist, frequency_grid[j]);
+        w[0, j] *= pdf(dist, freq_grid[j]);
       }
 
       measurement_sensor[i + sz] = {f, p, w};
@@ -92,16 +92,16 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
 ARTS_METHOD_ERROR_CATCH
 
 void measurement_sensorAddSimpleGaussian(ArrayOfSensorObsel& measurement_sensor,
-                                         const AscendingGrid& frequency_grid,
+                                         const AscendingGrid& freq_grid,
                                          const Numeric& std,
                                          const Vector3& pos,
                                          const Vector2& los,
                                          const Stokvec& pol) {
   ARTS_TIME_REPORT
 
-  const Vector stds(frequency_grid.size(), std);
+  const Vector stds(freq_grid.size(), std);
   measurement_sensorAddVectorGaussian(
-      measurement_sensor, frequency_grid, stds, pos, los, pol);
+      measurement_sensor, freq_grid, stds, pos, los, pol);
 }
 
 namespace {
@@ -148,7 +148,7 @@ void measurement_sensorAddZenithResponse(
 }  // namespace
 
 void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel& measurement_sensor,
-                                         const AscendingGrid& frequency_grid,
+                                         const AscendingGrid& freq_grid,
                                          const Vector3& pos,
                                          const Vector2& los,
                                          const Stokvec& pol,
@@ -170,7 +170,7 @@ void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel& measurement_sensor,
 
   measurement_sensorAddZenithResponse(
       measurement_sensor,
-      std::make_shared<const AscendingGrid>(frequency_grid),
+      std::make_shared<const AscendingGrid>(freq_grid),
       pos,
       los,
       pol,
@@ -183,7 +183,7 @@ namespace {
 template <typename T, typename... Grids>
 void measurement_sensorAddRawSensorTmpl(
     ArrayOfSensorObsel& measurement_sensor,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const Vector3& pos,
     const Vector2& los,
     const matpack::gridded_data_t<T, Grids...>& raw_sensor,
@@ -309,9 +309,9 @@ Your sorting is not correct, and instead reads:
   StokvecMatrix w(NZA * NAA * NALT * NLAT * NLON, NF, Stokvec{0, 0, 0, 0});
   auto wview = w.view_as(NZA, NAA, NALT, NLAT, NLON, NF);
 
-  measurement_sensor.reserve(measurement_sensor.size() + frequency_grid.size());
+  measurement_sensor.reserve(measurement_sensor.size() + freq_grid.size());
 
-  for (auto f : frequency_grid) {
+  for (auto f : freq_grid) {
     for (Size ifreq = 0; ifreq < NF; ifreq++) {
       f_grid[ifreq] = f + grids[idf].get(ifreq);
 
@@ -349,7 +349,7 @@ Your sorting is not correct, and instead reads:
 #define AddRawSensor(T, ...)                                          \
   void measurement_sensorAddRawSensor(                                \
       ArrayOfSensorObsel& measurement_sensor,                         \
-      const AscendingGrid& frequency_grid,                            \
+      const AscendingGrid& freq_grid,                                 \
       const Vector3& pos,                                             \
       const Vector2& los,                                             \
       const matpack::gridded_data_t<T, __VA_ARGS__>& raw_sensor,      \
@@ -357,7 +357,7 @@ Your sorting is not correct, and instead reads:
     ARTS_TIME_REPORT                                                  \
                                                                       \
     measurement_sensorAddRawSensorTmpl(measurement_sensor,            \
-                                       frequency_grid,                \
+                                       freq_grid,                     \
                                        pos,                           \
                                        los,                           \
                                        raw_sensor,                    \

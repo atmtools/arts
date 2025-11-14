@@ -11,7 +11,7 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + line_f0
+ws.freq_grid = np.linspace(-50e6, 50e6, 1001) + line_f0
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])
@@ -43,7 +43,7 @@ ws.spectral_radianceApplyUnitFromSpectralRadiance()
 
 # %% Show results
 fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
-    ws.frequency_grid - line_f0) / 1e6)
+    ws.freq_grid - line_f0) / 1e6)
 [a.set_xlabel("Frequency offset [MHz]") for a in ax.flatten()]
 [a.set_ylabel("Spectral radiance [K]") for a in ax.flatten()]
 fig.suptitle(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")

@@ -12,7 +12,7 @@ ws.water_equivalent_pressure_operatorMK05()
 
 # %% Sampled frequency range
 
-ws.frequency_grid = np.linspace(10e9, 400e9, NF)
+ws.freq_grid = np.linspace(10e9, 400e9, NF)
 
 # %% Species and line absorption
 
@@ -76,9 +76,9 @@ ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 99])
 ws.model_state_vectorFromData()
 
 if PLOT:
-    plt.plot(ws.frequency_grid / 1e9, meas, label="orig")
-    plt.plot(ws.frequency_grid / 1e9, apri, label="apriori")
-    plt.plot(ws.frequency_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
+    plt.plot(ws.freq_grid / 1e9, meas, label="orig")
+    plt.plot(ws.freq_grid / 1e9, apri, label="apriori")
+    plt.plot(ws.freq_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
     plt.legend()
     plt.show()
     plt.semilogx(

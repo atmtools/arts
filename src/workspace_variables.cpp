@@ -254,7 +254,7 @@ Used in line-by-line calculations requiring ECS data.
       .default_value = " ",
   };
 
-  wsv_data["frequency_wind_shift_jacobian"] = {
+  wsv_data["freq_wind_shift_jac"] = {
       .desc =
           R"--(The frequency wind shift Jacobian.
 
@@ -271,9 +271,9 @@ The order is
       .default_value = "0.0, 0.0, 0.0",
   };
 
-  wsv_data["ray_path_frequency_wind_shift_jacobian"] = {
+  wsv_data["freq_wind_shift_jac_path"] = {
       .desc =
-          R"--(A list of *frequency_wind_shift_jacobian* for a ray path.
+          R"--(A list of *freq_wind_shift_jac* for a ray path.
 )--",
       .type = "ArrayOfVector3",
   };
@@ -310,8 +310,8 @@ Usage: Output of radiative transfer methods.
       .type = "ArrayOfAtmPoint",
   };
 
-  wsv_data["ray_path_frequency_grid"] = {
-      .desc = R"--(All *frequency_grid* along the propagation path.
+  wsv_data["freq_grid_path"] = {
+      .desc = R"--(All *freq_grid* along the propagation path.
 )--",
       .type = "ArrayOfAscendingGrid",
   };
@@ -340,7 +340,7 @@ over which it is considered constant.
 
 The unit is [1 / m].
 
-Dimension: *frequency_grid*.
+Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
   };
@@ -354,7 +354,7 @@ also be added to the *propagation_matrix*, which you should see for more informa
 
 The unit is [1 / m].
 
-Dimension: *frequency_grid*.
+Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
   };
@@ -377,7 +377,7 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
-Shape: *model_state_vector* x *frequency_grid*
+Shape: *model_state_vector* x *freq_grid*
 )--",
       .type = "StokvecMatrix",
   };
@@ -385,7 +385,7 @@ Shape: *model_state_vector* x *frequency_grid*
   wsv_data["spectral_radiance_background"] = {
       .desc = R"--(Spectral radiance from the background
 
-Shape: *frequency_grid*
+Shape: *freq_grid*
 )--",
       .type = "StokvecVector",
   };
@@ -393,7 +393,7 @@ Shape: *frequency_grid*
   wsv_data["surface_reflectance"] = {
       .desc = R"--(Spectral surface reflectance.
 
-Shape: *frequency_grid*
+Shape: *freq_grid*
 )--",
       .type = "MuelmatVector",
   };
@@ -401,7 +401,7 @@ Shape: *frequency_grid*
   wsv_data["surface_reflectance_jacobian"] = {
       .desc = R"--(Spectral surface reflectance jacobian.
 
-Shape: *jacobian_targets* - target count x *frequency_grid*
+Shape: *jacobian_targets* - target count x *freq_grid*
 )--",
       .type = "MuelmatMatrix",
   };
@@ -564,7 +564,7 @@ This contains the global surface values, such as elevation and
 temperature but also entirely abstract properties and types that
 are used by specific surface-related methods.
 
-It is a 2D field with *latitude* , and *longitude* dimensions.
+It is a 2D field with *lat*, and *lon* dimensions.
 
 For more information, see :doc:`user.surface_field`.
 )--",
@@ -597,7 +597,7 @@ This contains global subsurface properties, such as temperature.
 It also contains many properties that are used by specific
 subsurface-related methods.
 
-It is a 3D field with *alt*, *latitude*, and *longitude* dimensions.
+It is a 3D field with *alt*, *lat*, and *lon* dimensions.
 
 For more information, see :doc:`user.subsurface_field`.
 )--",
@@ -608,15 +608,15 @@ For more information, see :doc:`user.subsurface_field`.
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
 
-Usage: gravity = *gravity_operator* ( *alt*, *latitude*, *longitude* ).
+Usage: gravity = *gravity_operator* ( *alt*, *lat*, *lon* ).
 
 Parameters
 ----------
-altitude : Numeric
+alt : Numeric
     Altitude in meters.
-latitude : Numeric
+lat : Numeric
     Latitude in degrees.
-longitude : Numeric
+lon : Numeric
     Longitude in degrees.
 
 Returns
@@ -650,7 +650,7 @@ psat : Numeric
 
 *spectral_radiance* but for a field.
 
-Dimensions are *alt_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
+Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
 )",
       .type = "GriddedSpectralField6",
   };
@@ -679,7 +679,7 @@ e.g., *spectral_radianceApplyUnit*.  After conversion,
 the use of *spectral_radiance* in any method no marked as safe for different units,
 will lead to undefined behavior with possibly bad values being computed.
 
-The size of this variable should be the size of the local *frequency_grid*.
+The size of this variable should be the size of the local *freq_grid*.
 )--",
       .type = "StokvecVector",
   };
@@ -727,7 +727,7 @@ This consists of
       .type = "PropagationPathPoint",
   };
 
-  wsv_data["frequency_grid"] = {
+  wsv_data["freq_grid"] = {
       .desc = R"--(A single frequency grid.
 
 Units: Hz
@@ -739,7 +739,7 @@ Units: Hz
       .type = "AscendingGrid",
   };
 
-  wsv_data["zenith_grid"] = {
+  wsv_data["za_grid"] = {
       .desc = R"--(A single zenith angle grid.
 
 Units: degrees
@@ -1063,7 +1063,7 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .type = "Index",
   };
 
-  wsv_data["latitude"] = {
+  wsv_data["lat"] = {
       .desc =
           R"--(A single latitude.
 
@@ -1073,9 +1073,9 @@ Units: degrees
       .default_value = "0.0",
   };
 
-  wsv_data["latitude_grid"] = {
+  wsv_data["lat_grid"] = {
       .desc =
-          R"--(An ascending list of *latitude*.  Often related to a field or a profile.
+          R"--(An ascending list of *lat*.  Often related to a field or a profile.
 
 Units: degrees
 
@@ -1086,7 +1086,7 @@ Units: degrees
       .type = "LatGrid",
   };
 
-  wsv_data["longitude"] = {
+  wsv_data["lon"] = {
       .desc =
           R"--(A single longitude.
 
@@ -1096,9 +1096,9 @@ Units: degrees
       .default_value = "0.0",
   };
 
-  wsv_data["longitude_grid"] = {
+  wsv_data["lon_grid"] = {
       .desc =
-          R"--(An ascending list of *longitude*.  Often related to a field or a profile.
+          R"--(An ascending list of *lon*.  Often related to a field or a profile.
 
 Units: degrees
 
@@ -1122,7 +1122,7 @@ Units: degrees
   };
 
   wsv_data["single_freq_path"] = {
-      .desc = R"(The frequency along the path.
+      .desc = R"(The *freq* along the path.
 )",
       .type = "Vector",
   };
@@ -1161,7 +1161,7 @@ Dimensions: [ *ray_path* x jacobian_targets.target_size() ]
   };
 
   wsv_data["single_propmat"] = {
-      .desc = R"--(A single propagation matrix at a single *frequency* point.
+      .desc = R"--(A propagation matrix at a single *freq* point.
 
 See *propagation_matrix* for more information.
 )--",
@@ -1170,7 +1170,7 @@ See *propagation_matrix* for more information.
 
   wsv_data["single_propmat_jac"] = {
       .desc =
-          R"--(A single propagation matrix Jacobian at a single *frequency* point.
+          R"--(A propagation matrix Jacobian at a single *freq* point.
 
 See *propagation_matrix_jacobian* for more information.
 
@@ -1180,7 +1180,7 @@ Size is number of Jacobian targets.
   };
 
   wsv_data["single_nlte_srcvec"] = {
-      .desc = R"--(A single non-LTE source vector at a single *frequency* point.
+      .desc = R"--(A non-LTE source vector at a single *freq* point.
 
 See *propagation_matrix* for more information.
 )--",
@@ -1189,7 +1189,7 @@ See *propagation_matrix* for more information.
 
   wsv_data["single_nlte_srcvec_jac"] = {
       .desc =
-          R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
+          R"--(A non-LTE source vector Jacobian at a single *freq* point.
 
 See *propagation_matrix_jacobian* for more information.
 
@@ -1199,18 +1199,18 @@ Size is number of Jacobian targets.
   };
 
   wsv_data["single_dispersion"] = {
-      .desc = R"--(A single dispersion at a single *frequency* point.
+      .desc = R"--(A dispersion at a single *freq* point.
 )--",
       .type = "Numeric",
   };
 
   wsv_data["single_dispersion_jac"] = {
-      .desc = R"--(A single dispersion Jacobian at a single *frequency* point.
+      .desc = R"--(A dispersion Jacobian at a single *freq* point.
 )--",
       .type = "Vector",
   };
 
-  wsv_data["frequency"] = {
+  wsv_data["freq"] = {
       .desc = R"--(A single frequency.
 )--",
       .type = "Numeric",

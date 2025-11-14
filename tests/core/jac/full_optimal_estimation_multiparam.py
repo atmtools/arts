@@ -16,7 +16,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-40e6, 40e6, NFREQ) + line_f0
+ws.freq_grid = np.linspace(-40e6, 40e6, NFREQ) + line_f0
 
 # %% Species and line absorption
 
@@ -142,7 +142,7 @@ for i in range(LIMIT):
     print("WARNING: needed repeat run, poor condition")
 
 if PLOT:
-    f = (ws.frequency_grid - line_f0) / 1e6
+    f = (ws.freq_grid - line_f0) / 1e6
     plt.plot(f, ws.measurement_vector)
     plt.plot(f, ws.measurement_vector_fitted)
     plt.show()

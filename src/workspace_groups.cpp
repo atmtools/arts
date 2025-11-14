@@ -496,7 +496,7 @@ The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["StokvecSortedGriddedField6"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional gridof *Stokvec*.
+      .desc = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -504,7 +504,7 @@ The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["GriddedSpectralField6"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional gridof *Stokvec*.
+      .desc = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
 *AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
@@ -687,7 +687,7 @@ and returns any associated data.
 
   wsg_data["ZenithGriddedField1"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional gridof *Numeric*.
+      .desc = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *ZenithGrid*.  This grid is sorted.
 )--",
@@ -695,7 +695,7 @@ The grids are 1 *ZenithGrid*.  This grid is sorted.
 
   wsg_data["SortedGriddedField1"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional gridof *Numeric*.
+      .desc = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *AscendingGrid*.  This grid is sorted.
 )--",
@@ -703,7 +703,7 @@ The grids are 1 *AscendingGrid*.  This grid is sorted.
 
   wsg_data["SortedGriddedField2"] = {
       .file = "matpack.h",
-      .desc = R"--(A 2-dimensional gridof *Numeric*.
+      .desc = R"--(A 2-dimensional grid of *Numeric*.
 
 The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -711,16 +711,16 @@ The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["GeodeticField2"] = {
       .file = "matpack.h",
-      .desc = R"--(A 2-dimensional gridof *Numeric*.
+      .desc = R"--(A 2-dimensional grid of *Numeric*.
 
-The grids are *latitude_grid* x *longitude_grid*.
+The grids are *lat_grid* x *lon_grid*.
 The types are *LatGrid* x *LonGrid*.  The grids are fully sorted.
 )--",
   };
 
   wsg_data["SortedGriddedField3"] = {
       .file = "matpack.h",
-      .desc = R"--(A 3-dimensional gridof *Numeric*.
+      .desc = R"--(A 3-dimensional grid of *Numeric*.
 
 The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -728,7 +728,7 @@ The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField4"] = {
       .file = "matpack.h",
-      .desc = R"--(A 4-dimensional gridof *Numeric*.
+      .desc = R"--(A 4-dimensional grid of *Numeric*.
 
 The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -736,7 +736,7 @@ The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField5"] = {
       .file = "matpack.h",
-      .desc = R"--(A 5-dimensional gridof *Numeric*.
+      .desc = R"--(A 5-dimensional grid of *Numeric*.
 
 The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -744,7 +744,7 @@ The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField6"] = {
       .file = "matpack.h",
-      .desc = R"--(A 6-dimensional gridof *Numeric*.
+      .desc = R"--(A 6-dimensional grid of *Numeric*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -816,8 +816,8 @@ spectral_radiance : StokvecVector
     As WSV *spectral_radiance* **[INOUT]**
 spectral_radiance_jacobian : StokvecMatrix
     As WSV *spectral_radiance_jacobian* **[INOUT]**
-frequency_grid : AscendingGrid
-    As WSV *frequency_grid* **[IN]**
+freq_grid : AscendingGrid
+    As WSV *freq_grid* **[IN]**
 ray_path_point : PropagationPathPoint
     As WSV *ray_path_point* **[IN]**
 )--",

@@ -70,21 +70,21 @@ void spectral_radiance_operatorClearsky1D(
 void spectral_radiance_fieldFromOperatorPlanarGeometric(
     GriddedSpectralField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
-    const AscendingGrid& frequency_grid,
-    const ZenithGrid& zenith_grid,
+    const AscendingGrid& freq_grid,
+    const ZenithGrid& za_grid,
     const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
   const AscendingGrid& alt_grid = spectral_radiance_operator.altitude();
-  const LatGrid& latitude_grid  = spectral_radiance_operator.latitude();
-  const LonGrid& longitude_grid = spectral_radiance_operator.longitude();
+  const LatGrid& lat_grid       = spectral_radiance_operator.latitude();
+  const LonGrid& lon_grid       = spectral_radiance_operator.longitude();
 
-  const Index nza   = zenith_grid.size();
+  const Index nza   = za_grid.size();
   const Index naa   = azimuth_grid.size();
   const Index nalt  = alt_grid.size();
-  const Index nlat  = latitude_grid.size();
-  const Index nlon  = longitude_grid.size();
-  const Index nfreq = frequency_grid.size();
+  const Index nlat  = lat_grid.size();
+  const Index nlon  = lon_grid.size();
+  const Index nfreq = freq_grid.size();
 
   spectral_radiance_field = GriddedSpectralField6{
       .data_name = "Spectral Radiance Field",
@@ -96,22 +96,18 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
                      "Zenith angle",
                      "Azimuth angle",
                      "Frequency"},
-      .grids      = {alt_grid,
-                     latitude_grid,
-                     longitude_grid,
-                     zenith_grid,
-                     azimuth_grid,
-                     frequency_grid}};
+      .grids      = {
+          alt_grid, lat_grid, lon_grid, za_grid, azimuth_grid, freq_grid}};
 
   ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
-  ARTS_USER_ERROR_IF(latitude_grid.size() != 1, "Latitude must be scalar")
-  ARTS_USER_ERROR_IF(longitude_grid.size() != 1, "Longitude must be scalar")
-  ARTS_USER_ERROR_IF(std::ranges::binary_search(zenith_grid, 90.0),
+  ARTS_USER_ERROR_IF(lat_grid.size() != 1, "Latitude must be scalar")
+  ARTS_USER_ERROR_IF(lon_grid.size() != 1, "Longitude must be scalar")
+  ARTS_USER_ERROR_IF(std::ranges::binary_search(za_grid, 90.0),
                      "Zenith angle must not be 90 degrees")
   const Numeric alt_low  = alt_grid.front();
   const Numeric alt_high = alt_grid.back();
-  const Numeric lat      = latitude_grid[0];
-  const Numeric lon      = longitude_grid[0];
+  const Numeric lat      = lat_grid[0];
+  const Numeric lon      = lon_grid[0];
 
   const std::vector<fwd::path> upwards =
       spectral_radiance_operator.geometric_planar({alt_low, lat, lon},
@@ -150,10 +146,10 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Index i = 0; i < nza; ++i) {
       for (Index j = 0; j < naa; ++j) {
-        const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
+        const auto path = pathstep(za_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
           spectral_radiance_field.data[joker, 0, 0, i, j, n] =
-              freqstep(frequency_grid[n], zenith_grid[i], path);
+              freqstep(freq_grid[n], za_grid[i], path);
         }
       }
     }
@@ -164,10 +160,10 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
     for (Index i = 0; i < nza; ++i) {
       for (Index j = 0; j < naa; ++j) {
         try {
-          const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
+          const auto path = pathstep(za_grid[i], azimuth_grid[j]);
           for (Index n = 0; n < nfreq; ++n) {
             spectral_radiance_field.data[joker, 0, 0, i, j, n] =
-                freqstep(frequency_grid[n], zenith_grid[i], path);
+                freqstep(freq_grid[n], za_grid[i], path);
           }
         } catch (std::exception& e) {
 #pragma omp critical
@@ -185,21 +181,21 @@ void spectral_radiance_fieldFromOperatorPath(
     GriddedSpectralField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const Agenda& ray_path_observer_agenda,
-    const AscendingGrid& frequency_grid,
-    const ZenithGrid& zenith_grid,
+    const AscendingGrid& freq_grid,
+    const ZenithGrid& za_grid,
     const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
   const AscendingGrid& alt_grid = spectral_radiance_operator.altitude();
-  const LatGrid& latitude_grid  = spectral_radiance_operator.latitude();
-  const LonGrid& longitude_grid = spectral_radiance_operator.longitude();
+  const LatGrid& lat_grid       = spectral_radiance_operator.latitude();
+  const LonGrid& lon_grid       = spectral_radiance_operator.longitude();
 
-  const Index nza   = zenith_grid.size();
+  const Index nza   = za_grid.size();
   const Index naa   = azimuth_grid.size();
   const Index nalt  = alt_grid.size();
-  const Index nlat  = latitude_grid.size();
-  const Index nlon  = longitude_grid.size();
-  const Index nfreq = frequency_grid.size();
+  const Index nlat  = lat_grid.size();
+  const Index nlon  = lon_grid.size();
+  const Index nfreq = freq_grid.size();
 
   spectral_radiance_field = GriddedSpectralField6{
       .data_name = "spectral_radiance_fieldFromOperatorPath",
@@ -211,12 +207,8 @@ void spectral_radiance_fieldFromOperatorPath(
                      "Zenith angle",
                      "Azimuth angle",
                      "Frequency"},
-      .grids      = {alt_grid,
-                     latitude_grid,
-                     longitude_grid,
-                     zenith_grid,
-                     azimuth_grid,
-                     frequency_grid}};
+      .grids      = {
+          alt_grid, lat_grid, lon_grid, za_grid, azimuth_grid, freq_grid}};
 
   if (arts_omp_in_parallel()) {
     for (Index ialt = 0; ialt < nalt; ++ialt) {
@@ -228,11 +220,11 @@ void spectral_radiance_fieldFromOperatorPath(
               ray_path_observer_agendaExecute(
                   ws,
                   ray_path,
-                  {alt_grid[ialt], latitude_grid[ilat], longitude_grid[ilon]},
-                  {zenith_grid[iza], azimuth_grid[iaa]},
+                  {alt_grid[ialt], lat_grid[ilat], lon_grid[ilon]},
+                  {za_grid[iza], azimuth_grid[iaa]},
                   ray_path_observer_agenda);
               stdr::transform(
-                  frequency_grid,
+                  freq_grid,
                   spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
                       .begin(),
                   [path = spectral_radiance_operator.from_path(ray_path),
@@ -258,11 +250,11 @@ void spectral_radiance_fieldFromOperatorPath(
                 ray_path_observer_agendaExecute(
                     ws,
                     ray_path,
-                    {alt_grid[ialt], latitude_grid[ilat], longitude_grid[ilon]},
-                    {zenith_grid[iza], azimuth_grid[iaa]},
+                    {alt_grid[ialt], lat_grid[ilat], lon_grid[ilon]},
+                    {za_grid[iza], azimuth_grid[iaa]},
                     ray_path_observer_agenda);
                 stdr::transform(
-                    frequency_grid,
+                    freq_grid,
                     spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
                         .begin(),
                     [path = spectral_radiance_operator.from_path(ray_path),

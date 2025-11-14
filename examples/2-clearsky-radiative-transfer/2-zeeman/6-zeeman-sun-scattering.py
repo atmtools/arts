@@ -10,7 +10,7 @@ pyarts.data.download()
 ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
-ws.frequency_grid = [pyarts.arts.convert.wavelen2freq(700e-9)]
+ws.freq_grid = [pyarts.arts.convert.wavelen2freq(700e-9)]
 
 # %% Species and line absorption
 ws.abs_speciesSet(species=["O2-66"])

@@ -35,7 +35,7 @@ struct SpectralRadianceTransformOperator {
 
   void operator()(StokvecVector& spectral_radiance,
                   StokvecMatrix& spectral_radiance_jacobian,
-                  const AscendingGrid& frequency_grid,
+                  const AscendingGrid& freq_grid,
                   const PropagationPathPoint& ray_path_point) const;
 };
 

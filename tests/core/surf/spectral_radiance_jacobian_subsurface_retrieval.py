@@ -6,7 +6,7 @@ ws = pyarts.Workspace()
 
 ws.disort_settings_agendaSubsurfaceSetup()
 
-ws.frequency_grid = np.linspace(1, 2, 11)
+ws.freq_grid = np.linspace(1, 2, 11)
 
 z = np.linspace(0, -3, 6)
 tf = pyarts.arts.GeodeticField3(
@@ -60,7 +60,7 @@ ws.measurement_vectorFromSensor()
 
 noise = .01
 ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-epp = np.random.normal(0, noise, len(ws.frequency_grid))
+epp = np.random.normal(0, noise, len(ws.freq_grid))
 ws.measurement_vector += epp
 ws.subsurface_field["t"].data += 20
 ws.model_state_vector_aprioriFromData()
@@ -90,9 +90,9 @@ plt.plot(ws.measurement_averaging_kernel.T, z)
 plt.plot(ws.measurement_averaging_kernel.T @ np.ones_like(z), z, "k")
 
 plt.subplot(3, 1, 3)
-plt.plot(ws.frequency_grid, ws.measurement_vector, label="meas")
-plt.plot(ws.frequency_grid, ws.measurement_vector_fitted, label="fitted")
-plt.plot(ws.frequency_grid, ws.measurement_vector - epp, "k:", label="true")
+plt.plot(ws.freq_grid, ws.measurement_vector, label="meas")
+plt.plot(ws.freq_grid, ws.measurement_vector_fitted, label="fitted")
+plt.plot(ws.freq_grid, ws.measurement_vector - epp, "k:", label="true")
 plt.legend()
 
 plt.tight_layout()

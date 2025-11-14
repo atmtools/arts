@@ -26,21 +26,21 @@ COUNT = 0
 for e in itertools.product(u, v, w, z, a, f):
     ws.atm_point.wind = [e[0], e[1], e[2]]
     ws.ray_path_point.los = [e[3], e[4]]
-    ws.frequency_grid = [e[5]]
+    ws.freq_grid = [e[5]]
 
-    ws.frequency_gridWindShift()
+    ws.freq_gridWindShift()
 
-    f0 = ws.frequency_grid[0] * 1.0
-    df = 1.0 * ws.frequency_wind_shift_jacobian * f0
+    f0 = ws.freq_grid[0] * 1.0
+    df = 1.0 * ws.freq_wind_shift_jac * f0
     df_p = [0, 0, 0]
 
     for i in range(3):
         ws.ray_path_point.los = [e[3], e[4]]
         ws.atm_point.wind = [e[0], e[1], e[2]]
         ws.atm_point.wind[i] += dx
-        ws.frequency_grid = [e[5]]
-        ws.frequency_gridWindShift()
-        f1 = ws.frequency_grid[0] * 1.0
+        ws.freq_grid = [e[5]]
+        ws.freq_gridWindShift()
+        f1 = ws.freq_grid[0] * 1.0
         df_p[i] = (f1 - f0) / dx
     df_p = np.array(df_p)
 

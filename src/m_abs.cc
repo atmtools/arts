@@ -65,7 +65,7 @@ inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesSet(ArrayOfSpeciesTag& abs_species,
-                           const ArrayOfString& names) try {
+                    const ArrayOfString& names) try {
   ARTS_TIME_REPORT
 
   abs_species.resize(names.size());
@@ -107,10 +107,10 @@ void propagation_matrixInit(  //WS Output
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Index nf = frequency_grid.size();
+  const Index nf = freq_grid.size();
   const Index nq = jacobian_targets.target_count();
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
@@ -135,7 +135,7 @@ void propagation_matrixInit(  //WS Output
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                                   PropmatMatrix& propagation_matrix_jacobian,
-                                  const AscendingGrid& frequency_grid,
+                                  const AscendingGrid& freq_grid,
                                   const SpeciesEnum& select_abs_species,
                                   const JacobianTargets& jacobian_targets,
                                   const AtmPoint& atm_point,
@@ -207,8 +207,8 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                dmag;
     }
 
-    for (Size iv = 0; iv < frequency_grid.size(); iv++) {
-      const Numeric f2            = frequency_grid[iv] * frequency_grid[iv];
+    for (Size iv = 0; iv < freq_grid.size(); iv++) {
+      const Numeric f2            = freq_grid[iv] * freq_grid[iv];
       const Numeric r             = ne * c1 / f2;
       propagation_matrix[iv].U() += r;
 
@@ -222,7 +222,7 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
       for (Size i = 3; i < 6; i++) {
         if (jacs[i] != end) {
           propagation_matrix_jacobian[jacs[i]->target_pos, iv].U() +=
-              -2.0 * ne * r / frequency_grid[iv];
+              -2.0 * ne * r / freq_grid[iv];
         }
       }
 

@@ -37,7 +37,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
     const Workspace& ws,
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AtmField& atm_field_,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
@@ -69,7 +69,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
 
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
-                                    frequency_grid.size());
+                                    freq_grid.size());
 
   spectral_radianceSubsurfaceDisortEmission(
       ws,
@@ -84,7 +84,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       disort_quadrature_dimension,
       disort_settings_agenda,
       disort_settings_downwelling_wrapper_agenda,
-      frequency_grid,
+      freq_grid,
       ray_path_point,
       subsurface_field,
       surface_field,
@@ -151,7 +151,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
           disort_quadrature_dimension,
           disort_settings_agenda,
           disort_settings_downwelling_wrapper_agenda,
-          frequency_grid,
+          freq_grid,
           ray_path_point,
           subsurf_field,
           surf_field,

@@ -269,7 +269,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                     "propagation_matrix_source_vector_nonlte",
                     "propagation_matrix_jacobian",
                     "propagation_matrix_source_vector_nonlte_jacobian",
-                    "frequency_grid",
+                    "freq_grid",
                     "jacobian_targets",
                     "select_species",
                     "absorption_bands",
@@ -291,7 +291,7 @@ The signature of the method is:
                                   StokvecVector& propagation_matrix_source_vector_nonlte,
                                   PropmatMatrix& propagation_matrix_jacobian,
                                   StokvecMatrix& propagation_matrix_source_vector_nonlte_jacobian,
-                                  const AscendingGrid& frequency_grid,
+                                  const AscendingGrid& freq_grid,
                                   const JacobianTargets& jacobian_targets,
                                   const SpeciesEnum& select_species,
                                   const AbsorptionBands& absorption_bands,
@@ -311,7 +311,7 @@ are both output (``out``) and input (``in``).  The method is expected to modify 
 of these workspace variables instead of creating new ones.
 
 The arguments
-:attr:`~pyarts3.workspace.Workspace.frequency_grid`,
+:attr:`~pyarts3.workspace.Workspace.freq_grid`,
 :attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,

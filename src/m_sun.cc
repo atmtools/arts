@@ -72,7 +72,7 @@ void sunFromGrid(Sun& sun,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sunBlackbody(Sun& sun,
                   // Inputs:
-                  const AscendingGrid& frequency_grid,
+                  const AscendingGrid& freq_grid,
                   const Numeric& latitude,
                   const Numeric& longitude,
                   const Numeric& radius,
@@ -88,9 +88,9 @@ void sunBlackbody(Sun& sun,
                      radius)
 
   // spectrum
-  sun.spectrum = Matrix(frequency_grid.size(), 4, 0.);
+  sun.spectrum = Matrix(freq_grid.size(), 4, 0.);
 
-  planck(sun.spectrum[joker, 0], frequency_grid, temperature);
+  planck(sun.spectrum[joker, 0], freq_grid, temperature);
   sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 
   sun.description = "Blackbody sun";
@@ -196,28 +196,28 @@ void ray_path_suns_pathFromPathObserver(
 
 void propagation_matrix_scatteringInit(
     PropmatVector& propagation_matrix_scattering,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  propagation_matrix_scattering.resize(frequency_grid.size());
+  propagation_matrix_scattering.resize(freq_grid.size());
   propagation_matrix_scattering = 0.0;
 }
 
 void propagation_matrix_scatteringAirSimple(
     PropmatVector& propagation_matrix_scattering,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AtmPoint& atm_point) {
-  const Size nf = frequency_grid.size();
+  const Size nf = freq_grid.size();
   ARTS_USER_ERROR_IF(
       propagation_matrix_scattering.size() != nf,
-      "Mismatch in size of propagation_matrix_scattering and frequency_grid")
+      "Mismatch in size of propagation_matrix_scattering and freq_grid")
 
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
   const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
   for (Size f = 0; f < nf; f++) {
-    const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
+    const Numeric wavelen = Conversion::freq2wavelen(freq_grid[f]) * 1e6;
     Numeric sum           = 0;
     Numeric pows          = 1;
     for (auto& coef : coefficients) {
@@ -233,11 +233,11 @@ void ray_path_propagation_matrix_scatteringFromPath(
     const Workspace& ws,
     ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     const Agenda& propagation_matrix_scattering_agenda,
-    const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfAtmPoint& ray_path_atm_point) {
   ARTS_TIME_REPORT
 
-  const Size np = ray_path_frequency_grid.size();
+  const Size np = freq_grid_path.size();
   ARTS_USER_ERROR_IF(np != ray_path_atm_point.size(),
                      "Bad ray_path_atm_point: incorrect number of path points")
 
@@ -247,7 +247,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
       propagation_matrix_scattering_agendaExecute(
           ws,
           ray_path_propagation_matrix_scattering[ip],
-          ray_path_frequency_grid[ip],
+          freq_grid_path[ip],
           ray_path_atm_point[ip],
           propagation_matrix_scattering_agenda);
     }
@@ -259,7 +259,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
         propagation_matrix_scattering_agendaExecute(
             ws,
             ray_path_propagation_matrix_scattering[ip],
-            ray_path_frequency_grid[ip],
+            freq_grid_path[ip],
             ray_path_atm_point[ip],
             propagation_matrix_scattering_agenda);
       } catch (const std::exception& e) {
@@ -334,7 +334,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     // [njac]:
     const JacobianTargets& jacobian_targets,
     // [nf]:
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Agenda& propagation_matrix_agenda,
@@ -364,7 +364,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
                           &ArrayOfArrayOfPropagationPathPoint::size),
       "Bad ray_path_suns_path: incorrect number of suns")
 
-  const Size nf = frequency_grid.size();
+  const Size nf = freq_grid.size();
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(ray_path_spectral_radiance_scattering,
                           Cmp::ne(nf),
@@ -404,7 +404,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
         const auto& sun      = suns[isun];
 
         spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
-                                               frequency_grid,
+                                               freq_grid,
                                                sun_path,
                                                sun,
                                                surface_field);
@@ -414,7 +414,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             spectral_radiance,
             spectral_radiance_jacobian,
             atm_field,
-            frequency_grid,
+            freq_grid,
             jacobian_targets,
             propagation_matrix_agenda,
             sun_path,
@@ -423,13 +423,12 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             surface_field,
             hse_derivative);
 
-        ARTS_USER_ERROR_IF(
-            spectral_radiance.size() != nf,
-            "Bad size spectral_radiance (",
-            spectral_radiance.size(),
-            ").  It should have the same size as frequency_grid (",
-            nf,
-            ")")
+        ARTS_USER_ERROR_IF(spectral_radiance.size() != nf,
+                           "Bad size spectral_radiance (",
+                           spectral_radiance.size(),
+                           ").  It should have the same size as freq_grid (",
+                           nf,
+                           ")")
 
         // irradiance ratio
         const Numeric radiance_2_irradiance =

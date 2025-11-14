@@ -366,8 +366,8 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
   return (it == last) ? dont_have : std::distance(first, it);
 }
 
-Index Obsel::find(const AscendingGrid& frequency_grid) const {
-  return (f.get() != &frequency_grid) ? dont_have : 0;
+Index Obsel::find(const AscendingGrid& freq_grid) const {
+  return (f.get() != &freq_grid) ? dont_have : 0;
 }
 }  // namespace sensor
 

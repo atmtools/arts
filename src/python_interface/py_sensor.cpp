@@ -275,7 +275,7 @@ Numeric, Vector, or Matrix
   vector_interface(a1);
 
   a1.def(
-      "unique_frequency_grids",
+      "unique_freq_grids",
       [](const ArrayOfSensorObsel& x) {
         const SensorSimulations simuls = collect_simulations(x);
         std::vector<AscendingGrid> out;
@@ -302,7 +302,7 @@ Numeric, Vector, or Matrix
       "List of the unique poslos grids");
 
   a1.def(
-      "collect_frequency_grids",
+      "collect_freq_grids",
       [](ArrayOfSensorObsel& x) {
         if (x.empty()) return;
 

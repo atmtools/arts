@@ -12,7 +12,7 @@ import numpy as np
 ws = pyarts.Workspace()
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(5e6, 6e6, 3) + line_f0
+ws.freq_grid = np.linspace(5e6, 6e6, 3) + line_f0
 
 ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()

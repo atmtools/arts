@@ -27,7 +27,7 @@ void ray_path_spectral_radianceClearskyEmission(
     const Workspace& ws,
     ArrayOfStokvecVector& ray_path_spectral_radiance,
     const AtmField& atm_field,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const Agenda& propagation_matrix_agenda,
     const ArrayOfPropagationPathPoint& ray_path,
     const Agenda& spectral_radiance_space_agenda,
@@ -44,7 +44,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ws,
       spectral_radiance_background,
       spectral_radiance_background_jacobian,
-      frequency_grid,
+      freq_grid,
       {},
       ray_path_point,
       surface_field,
@@ -53,13 +53,13 @@ void ray_path_spectral_radianceClearskyEmission(
       spectral_radiance_surface_agenda);
   ArrayOfAtmPoint ray_path_atm_point;
   ray_path_atm_pointFromPath(ray_path_atm_point, ray_path, atm_field);
-  ArrayOfAscendingGrid ray_path_frequency_grid;
-  ArrayOfVector3 ray_path_frequency_wind_shift_jacobian;
-  ray_path_frequency_gridFromPath(ray_path_frequency_grid,
-                                  ray_path_frequency_wind_shift_jacobian,
-                                  frequency_grid,
-                                  ray_path,
-                                  ray_path_atm_point);
+  ArrayOfAscendingGrid freq_grid_path;
+  ArrayOfVector3 freq_wind_shift_jac_path;
+  freq_grid_pathFromPath(freq_grid_path,
+                         freq_wind_shift_jac_path,
+                         freq_grid,
+                         ray_path,
+                         ray_path_atm_point);
   ArrayOfPropmatVector ray_path_propagation_matrix;
   ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte;
   ArrayOfPropmatMatrix ray_path_propagation_matrix_jacobian;
@@ -72,8 +72,8 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_propagation_matrix_jacobian,
       ray_path_propagation_matrix_source_vector_nonlte_jacobian,
       propagation_matrix_agenda,
-      ray_path_frequency_grid,
-      ray_path_frequency_wind_shift_jacobian,
+      freq_grid_path,
+      freq_wind_shift_jac_path,
       {},
       ray_path,
       ray_path_atm_point);
@@ -97,7 +97,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_propagation_matrix_source_vector_nonlte,
       ray_path_propagation_matrix_jacobian,
       ray_path_propagation_matrix_source_vector_nonlte_jacobian,
-      ray_path_frequency_grid,
+      freq_grid_path,
       ray_path_atm_point,
       {});
   ray_path_spectral_radianceStepByStepEmissionForwardOnly(
@@ -119,13 +119,13 @@ void spectral_flux_profileFromPathField(
     const Agenda& spectral_radiance_surface_agenda,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AscendingGrid& alt_grid) try {
   ARTS_TIME_REPORT
 
   const Size N = ray_path_field.size();
   const Size M = alt_grid.size();
-  const Size K = frequency_grid.size();
+  const Size K = freq_grid.size();
 
   spectral_flux_profile.resize(M, K);
   spectral_flux_profile = 0.0;
@@ -140,7 +140,7 @@ void spectral_flux_profileFromPathField(
           ws,
           ray_path_spectral_radiance_field[n],
           atm_field,
-          frequency_grid,
+          freq_grid,
           propagation_matrix_agenda,
           ray_path_field[n],
           spectral_radiance_space_agenda,
@@ -210,12 +210,12 @@ ARTS_METHOD_ERROR_CATCH
 
 void flux_profileIntegrate(Vector& flux_profile,
                            const Matrix& spectral_flux_profile,
-                           const AscendingGrid& frequency_grid) {
+                           const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(frequency_grid.size()) !=
-                         spectral_flux_profile.extent(1),
-                     "Frequency grid and spectral flux profile size mismatch")
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(freq_grid.size()) != spectral_flux_profile.extent(1),
+      "Frequency grid and spectral flux profile size mismatch")
 
   const Size K = spectral_flux_profile.extent(0);
 
@@ -226,8 +226,8 @@ void flux_profileIntegrate(Vector& flux_profile,
   for (Size k = 0; k < K; k++) {
     auto s  = spectral_flux_profile[k];
     auto& y = flux_profile[k];
-    for (Size i = 0; i < frequency_grid.size() - 1; i++) {
-      const auto w  = 0.5 * (frequency_grid[i + 1] - frequency_grid[i]);
+    for (Size i = 0; i < freq_grid.size() - 1; i++) {
+      const auto w  = 0.5 * (freq_grid[i + 1] - freq_grid[i]);
       y            += w * (s[i] + s[i + 1]);
     }
   }
@@ -238,13 +238,13 @@ void nlte_line_flux_profileIntegrate(
     const Matrix& spectral_flux_profile,
     const AbsorptionBands& abs_bands,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const AscendingGrid& frequency_grid) {
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   const Size K = spectral_flux_profile.extent(0);
   const Size M = spectral_flux_profile.extent(1);
 
-  ARTS_USER_ERROR_IF(frequency_grid.size() != M,
+  ARTS_USER_ERROR_IF(freq_grid.size() != M,
                      "Frequency grid and spectral flux profile size mismatch")
 
   ARTS_USER_ERROR_IF(
@@ -263,16 +263,15 @@ void nlte_line_flux_profileIntegrate(
     for (Size k = 0; k < K; k++) {
       lbl::compute_voigt(weighted_spectral_flux_profile[k],
                          band.lines.front(),
-                         frequency_grid,
+                         freq_grid,
                          ray_path_atm_point[k],
                          key.isot.mass);
     }
 
     weighted_spectral_flux_profile *= spectral_flux_profile;
 
-    flux_profileIntegrate(nlte_line_flux_profile[key],
-                          weighted_spectral_flux_profile,
-                          frequency_grid);
+    flux_profileIntegrate(
+        nlte_line_flux_profile[key], weighted_spectral_flux_profile, freq_grid);
   }
 }
 

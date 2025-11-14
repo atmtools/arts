@@ -208,7 +208,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
     ZenithGriddedField1& disort_quadrature,
     const DisortSettings& disort_settings,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfPropagationPathPoint& ray_path,
     const SurfaceField& surface_field,
     const AzimuthGrid& phis) {
@@ -225,7 +225,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
                                  ray_path[ray_path.size() - 1].latitude(),
                                  ray_path[ray_path.size() - 1].longitude());
 
-  disort_spectral_radiance_field.resize(disort_settings.frequency_grid,
+  disort_spectral_radiance_field.resize(disort_settings.freq_grid,
                                         disort_settings.alt_grid,
                                         phis,
                                         disort_quadrature.grid<0>());
@@ -245,7 +245,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
       disort_settings.set_cdisort(dis, iv);
 
       setup_cdisort_for_frequency(
-          ds, dis, phis, ray_path_atm_point, ray_path_frequency_grid[0][iv]);
+          ds, dis, phis, ray_path_atm_point, freq_grid_path[0][iv]);
 
       run_cdisort(disort_spectral_radiance_field.data[iv], ds, out);
 

@@ -508,7 +508,7 @@ void spectral_radianceSinglePathEmissionFrequencyLoop(
     StokvecMatrix& spectral_radiance_jacobian,
     const JacobianTargets& jacobian_targets,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfStokvecVector&
@@ -542,7 +542,7 @@ Actual:   ({}, {})
   ARTS_USER_ERROR_IF(
       not arr::same_size(
           ray_path,
-          ray_path_frequency_grid,
+          freq_grid_path,
           ray_path_atm_point,
           ray_path_propagation_matrix,
           ray_path_propagation_matrix_source_vector_nonlte,
@@ -551,7 +551,7 @@ Actual:   ({}, {})
       R"(Not same sizes:
 
 ray_path.size()                                                  = {},
-ray_path_frequency_grid.size()                                   = {},
+freq_grid_path.size()                                   = {},
 ray_path_atm_point.size()                                = {},
 ray_path_propagation_matrix.size()                               = {},
 ray_path_propagation_matrix_source_vector_nonlte.size()          = {},
@@ -559,7 +559,7 @@ ray_path_propagation_matrix_jacobian.size()                      = {},
 ray_path_propagation_matrix_source_vector_nonlte_jacobian.size() = {}
 )",
       ray_path.size(),
-      ray_path_frequency_grid.size(),
+      freq_grid_path.size(),
       ray_path_atm_point.size(),
       ray_path_propagation_matrix.size(),
       ray_path_propagation_matrix_source_vector_nonlte.size(),
@@ -568,15 +568,15 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.size() = {}
 
   ARTS_USER_ERROR_IF(
       not arr::elemwise_same_size(
-          ray_path_frequency_grid,
+          freq_grid_path,
           ray_path_propagation_matrix,
           ray_path_propagation_matrix_source_vector_nonlte),
       R"(Not same sizes elemwise:
-ray_path_frequency_grid.size()                           = {}
+freq_grid_path.size()                           = {}
 ray_path_propagation_matrix.shape()                      = {:B,}
 ray_path_propagation_matrix_source_vector_nonlte.shape() = {:B,}
 )",
-      ray_path_frequency_grid.size(),
+      freq_grid_path.size(),
       ray_path_propagation_matrix[0].shape(),
       ray_path_propagation_matrix_source_vector_nonlte[0].shape());
 
@@ -623,7 +623,7 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.shape() = {:B,}
     try {
       Stokvec& single_radiance = spectral_radiance[f];
       for (Size i = 0; i < N; i++) {
-        single_freq_path[i]    = ray_path_frequency_grid[i][f];
+        single_freq_path[i]    = freq_grid_path[i][f];
         single_propmat_path[i] = ray_path_propagation_matrix[i][f];
         single_nlte_srcvec_path[i] =
             ray_path_propagation_matrix_source_vector_nonlte[i][f];
@@ -765,11 +765,11 @@ void single_radClearskyEmissionPropagation(
     ray_path_atm_point.emplace_back(atm_field.at(ray_path_point.pos));
 
     Numeric frequency = frequency_;
-    Vector3 frequency_wind_shift_jacobian;
-    frequencyWindShift(frequency,
-                       frequency_wind_shift_jacobian,
-                       ray_path_atm_point.back(),
-                       ray_path_point);
+    Vector3 freq_wind_shift_jac;
+    freqWindShift(frequency,
+                  freq_wind_shift_jac,
+                  ray_path_atm_point.back(),
+                  ray_path_point);
     single_freq_path.push_back(frequency);
 
     single_propmat_agendaExecute(ws,
@@ -780,7 +780,7 @@ void single_radClearskyEmissionPropagation(
                                  single_nlte_srcvec_jac_path.emplace_back(),
                                  single_dispersion_jac,
                                  frequency,
-                                 frequency_wind_shift_jacobian,
+                                 freq_wind_shift_jac,
                                  jacobian_targets,
                                  "AIR"_spec,
                                  ray_path_point,
@@ -882,7 +882,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
     StokvecMatrix& spectral_radiance_jacobian,
     ArrayOfArrayOfPropagationPathPoint& ray_paths,
     const AtmField& atm_field,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets,
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda,
@@ -900,7 +900,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
     const Index& N) try {
   ARTS_TIME_REPORT
 
-  const Size nf = frequency_grid.size();
+  const Size nf = freq_grid.size();
   spectral_radiance.resize(nf);
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(), nf);
   spectral_radiance = 0.0;
@@ -919,7 +919,7 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
           single_rad_jac,
           ray_paths[f],
           atm_field,
-          frequency_grid[f],
+          freq_grid[f],
           jacobian_targets,
           single_rad_space_agenda,
           single_rad_surface_agenda,
@@ -949,11 +949,11 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void frequency_gridFromSingleFrequency(AscendingGrid& frequency_grid,
-                                       const Numeric& frequency) try {
+void freq_gridFromSingleFrequency(AscendingGrid& freq_grid,
+                                  const Numeric& frequency) try {
   ARTS_TIME_REPORT
 
-  frequency_grid = Vector{frequency};
+  freq_grid = Vector{frequency};
 }
 ARTS_METHOD_ERROR_CATCH
 

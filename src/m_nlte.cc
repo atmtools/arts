@@ -23,10 +23,10 @@ void atm_fieldInitializeNonLTE(AtmField& atm_field,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void frequency_gridFitNonLTE(AscendingGrid& frequency_grid,
-                             const AbsorptionBands& abs_bands,
-                             const Numeric& df,
-                             const Index& nf) try {
+void freq_gridFitNonLTE(AscendingGrid& freq_grid,
+                        const AbsorptionBands& abs_bands,
+                        const Numeric& df,
+                        const Index& nf) try {
   ARTS_TIME_REPORT
 
   Vector freq;
@@ -42,7 +42,7 @@ void frequency_gridFitNonLTE(AscendingGrid& frequency_grid,
 
   stdr::sort(freq);
 
-  frequency_grid = AscendingGrid{std::move(freq)};
+  freq_grid = AscendingGrid{std::move(freq)};
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -52,7 +52,7 @@ void atm_profileFitNonLTE(
     const AbsorptionBands& abs_bands,
     const Agenda& propagation_matrix_agenda,
     const SurfaceField& surface_field,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AscendingGrid& alt_grid,
     const Numeric& latitude,
     const Numeric& longitude,
@@ -101,7 +101,7 @@ void atm_profileFitNonLTE(
                                   spectral_flux_profile,
                                   alt_grid,
                                   atm_profile,
-                                  frequency_grid,
+                                  freq_grid,
                                   latitude,
                                   longitude,
                                   propagation_matrix_agenda,
@@ -115,7 +115,7 @@ void atm_profileFitNonLTE(
                                     spectral_flux_profile,
                                     abs_bands,
                                     atm_profile,
-                                    frequency_grid);
+                                    freq_grid);
 
     for (Size atmi = 0; atmi < alt_grid.size(); ++atmi) {
       A = statistical_equilibrium_equation(Aij,

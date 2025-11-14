@@ -33,7 +33,7 @@ xarr = pyarts.data.xarray_open_dataset(prefix + "atmosphere.nc")
 
 ws = pyarts.Workspace()
 
-ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
+ws.freq_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
 ws.atm_field = pyarts.data.to_atm_field(xarr)
 
 v = pyarts.data.to_abs_species(ws.atm_field)
@@ -56,8 +56,8 @@ ws.surface_field["t"] = surface_temperature
 
 ws.sunFromGrid(
     sun_spectrum_raw=sun,
-    latitude=solar_latitude,
-    longitude=solar_longitude,
+    lat=solar_latitude,
+    lon=solar_longitude,
 )
 
 ws.disort_quadrature_dimension = NQuad
@@ -65,22 +65,22 @@ ws.disort_fourier_mode_dimension = 1
 ws.disort_legendre_polynomial_dimension = 1
 
 ws.ray_pathGeometricDownlooking(
-    latitude=atm_latitude,
-    longitude=atm_longitude,
+    lat=atm_latitude,
+    lon=atm_longitude,
     max_stepsize=max_level_step,
 )
 
 ws.disort_settings_agendaSetup(
     sun_setting="Sun",
     surface_setting="ThermalLambertian",
-    surface_lambertian_value=surface_reflectivity * np.ones_like(ws.frequency_grid),
+    surface_lambertian_value=surface_reflectivity * np.ones_like(ws.freq_grid),
 )
 
 ws.disort_spectral_flux_fieldFromAgenda()
 
 f, s = pyarts.plot(
     ws.disort_spectral_flux_field,
-    freqs=pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
+    freqs=pyarts.arts.convert.freq2kaycm(ws.freq_grid),
     alts=ws.disort_spectral_flux_field.alt_grid/1e3,
     select='down_diffuse',
     plotstyle='plot',

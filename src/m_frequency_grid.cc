@@ -3,8 +3,8 @@
 #include "matpack_mdspan_helpers_grid_t.h"
 
 namespace {
-void wind_shift(VectorView frequency_grid,
-                Vector3& frequency_wind_shift_jacobian,
+void wind_shift(VectorView freq_grid,
+                Vector3& freq_wind_shift_jac,
                 const AtmPoint& atm_point,
                 const PropagationPathPoint& ray_path_point) {
   constexpr Numeric c = Constant::speed_of_light;
@@ -42,15 +42,15 @@ ray_path_point.los:     {:B,}
 
   //! Zero shift if nan
   if (std::isnan(fac)) {
-    frequency_wind_shift_jacobian = {0, 0, 0};
+    freq_wind_shift_jac = {0, 0, 0};
     return;
   }
 
   // shift the frequency grid
   {
-    stdr::transform(frequency_grid,
-                    frequency_grid.begin(),
-                    [fac](const Numeric& f) { return fac * f; });
+    stdr::transform(freq_grid, freq_grid.begin(), [fac](const Numeric& f) {
+      return fac * f;
+    });
   }
 
   {
@@ -60,7 +60,7 @@ ray_path_point.los:     {:B,}
     const Numeric dcaa_du  = (u2v2 == 0) ? 0.0 : (v * saa / u2v2);
     const Numeric ddp_du =
         czap * dczaf_du + szap * caa * dszaf_du + szap * szaf * dcaa_du;
-    frequency_wind_shift_jacobian[0] = -(dp * df_du + f * ddp_du) / c;
+    freq_wind_shift_jac[0] = -(dp * df_du + f * ddp_du) / c;
   }
 
   {
@@ -70,7 +70,7 @@ ray_path_point.los:     {:B,}
     const Numeric dcaa_dv  = (u2v2 == 0) ? 0.0 : (-u * saa / u2v2);
     const Numeric ddp_dv =
         czap * dczaf_dv + szap * caa * dszaf_dv + szap * szaf * dcaa_dv;
-    frequency_wind_shift_jacobian[1] = -(dp * df_dv + f * ddp_dv) / c;
+    freq_wind_shift_jac[1] = -(dp * df_dv + f * ddp_dv) / c;
   }
 
   {
@@ -78,49 +78,47 @@ ray_path_point.los:     {:B,}
     const Numeric dczaf_dw = (f2 == 0) ? 0.0 : (-w * df_dw / f2 + 1.0 / f);
     const Numeric dszaf_dw = (scl == 0) ? 0.0 : ((w2 * df_dw - f * w) / scl);
     const Numeric ddp_dw   = czap * dczaf_dw + szap * caa * dszaf_dw;
-    frequency_wind_shift_jacobian[2] = -(dp * df_dw + f * ddp_dw) / c;
+    freq_wind_shift_jac[2] = -(dp * df_dw + f * ddp_dw) / c;
   }
 
-  frequency_wind_shift_jacobian /= fac;
+  freq_wind_shift_jac /= fac;
 }
 }  // namespace
 
-void frequency_gridWindShift(AscendingGrid& frequency_grid,
-                             Vector3& frequency_wind_shift_jacobian,
-                             const AtmPoint& atm_point,
-                             const PropagationPathPoint& ray_path_point) {
-  ARTS_TIME_REPORT
-
-  Vector tmp = std::move(frequency_grid).rvec();
-  wind_shift(tmp, frequency_wind_shift_jacobian, atm_point, ray_path_point);
-  frequency_grid = std::move(tmp);
-}
-
-void frequencyWindShift(Numeric& frequency,
-                        Vector3& frequency_wind_shift_jacobian,
+void freq_gridWindShift(AscendingGrid& freq_grid,
+                        Vector3& freq_wind_shift_jac,
                         const AtmPoint& atm_point,
                         const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
-  wind_shift(VectorView{frequency},
-             frequency_wind_shift_jacobian,
-             atm_point,
-             ray_path_point);
+  Vector tmp = std::move(freq_grid).rvec();
+  wind_shift(tmp, freq_wind_shift_jac, atm_point, ray_path_point);
+  freq_grid = std::move(tmp);
+}
+
+void freqWindShift(Numeric& frequency,
+                   Vector3& freq_wind_shift_jac,
+                   const AtmPoint& atm_point,
+                   const PropagationPathPoint& ray_path_point) {
+  ARTS_TIME_REPORT
+
+  wind_shift(
+      VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_path_point);
 }
 
 void propagation_matrix_jacobianWindFix(
     PropmatMatrix& propagation_matrix_jacobian,
     StokvecMatrix& source_vector_nonlte_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets,
-    const Vector3& frequency_wind_shift_jacobian) {
+    const Vector3& freq_wind_shift_jac) {
   ARTS_TIME_REPORT
 
   using enum AtmKey;
 
   const auto& atm = jacobian_targets.atm;
 
-  const auto [df_du, df_dv, df_dw] = frequency_wind_shift_jacobian;
+  const auto [df_du, df_dv, df_dw] = freq_wind_shift_jac;
 
   if (auto ptr = std::ranges::find_if(
           atm, Cmp::eq(wind_u), &Jacobian::AtmTarget::type);
@@ -128,14 +126,14 @@ void propagation_matrix_jacobianWindFix(
     const Index i = ptr->target_pos;
 
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         propagation_matrix_jacobian[i].begin(),
         propagation_matrix_jacobian[i].begin(),
         [df_du](const Numeric f, const Propmat& x) { return x * f * df_du; });
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         source_vector_nonlte_jacobian[i].begin(),
         source_vector_nonlte_jacobian[i].begin(),
         [df_du](const Numeric f, const Stokvec& x) { return x * f * df_du; });
@@ -147,14 +145,14 @@ void propagation_matrix_jacobianWindFix(
     const Index i = ptr->target_pos;
 
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         propagation_matrix_jacobian[i].begin(),
         propagation_matrix_jacobian[i].begin(),
         [df_dv](const Numeric f, const Propmat& x) { return x * f * df_dv; });
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         source_vector_nonlte_jacobian[i].begin(),
         source_vector_nonlte_jacobian[i].begin(),
         [df_dv](const Numeric f, const Stokvec& x) { return x * f * df_dv; });
@@ -166,14 +164,14 @@ void propagation_matrix_jacobianWindFix(
     const Index i = ptr->target_pos;
 
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         propagation_matrix_jacobian[i].begin(),
         propagation_matrix_jacobian[i].begin(),
         [df_dw](const Numeric f, const Propmat& x) { return x * f * df_dw; });
     std::transform(
-        frequency_grid.begin(),
-        frequency_grid.end(),
+        freq_grid.begin(),
+        freq_grid.end(),
         source_vector_nonlte_jacobian[i].begin(),
         source_vector_nonlte_jacobian[i].begin(),
         [df_dw](const Numeric f, const Stokvec& x) { return x * f * df_dw; });

@@ -11,8 +11,8 @@ NQuad = 40
 ws = pyarts.Workspace()
 
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
-ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
+ws.freq_grid = [line_f0]
+ws.freq_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
 # %% Species and line absorption
 
@@ -44,8 +44,8 @@ ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
 ws.disort_settings_agendaSetup()
 
 ws.disort_spectral_radiance_fieldProfile(
-    longitude=lon,
-    latitude=lat,
+    lon=lon,
+    lat=lat,
     disort_quadrature_dimension=NQuad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -54,14 +54,14 @@ ws.disort_spectral_radiance_fieldProfile(
 # %% Equivalent ARTS calculations
 
 ws.ray_pathGeometricDownlooking(
-    latitude=lat,
-    longitude=lon,
+    lat=lat,
+    lon=lon,
     max_stepsize=1000.0,
 )
 ws.spectral_radianceClearskyEmission()
 
 # %% Plot results
-f = (ws.frequency_grid - line_f0) / 1e9
+f = (ws.freq_grid - line_f0) / 1e9
 
 plt.figure()
 plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
@@ -107,14 +107,13 @@ for manual in [False, True]:
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 
-                
                 ws.disort_settings_agendaSetup(
                     scattering_setting="ScatteringSpecies",
                 )
 
                 ws.disort_spectral_radiance_fieldProfile(
-                    longitude=lon,
-                    latitude=lat,
+                    lon=lon,
+                    lat=lat,
                     disort_quadrature_dimension=NQuad,
                     disort_legendre_polynomial_dimension=1,
                     disort_fourier_mode_dimension=1,

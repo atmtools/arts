@@ -155,7 +155,7 @@ class Obsel {
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;
 
   [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
-  [[nodiscard]] Index find(const AscendingGrid& frequency_grid) const;
+  [[nodiscard]] Index find(const AscendingGrid& freq_grid) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);

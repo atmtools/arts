@@ -12,7 +12,7 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 53.0669e9
-ws.frequency_grid = np.linspace(-15e6, 15e6, 51) + line_f0
+ws.freq_grid = np.linspace(-15e6, 15e6, 51) + line_f0
 
 # %% Species and line absorption
 
@@ -68,7 +68,7 @@ refractive = ws.spectral_radiance * 1.0
 
 if "ARTS_HEADLESS" not in os.environ:
     fig, ax = plt.subplots(2, 2, figsize=(10, 8))
-    freqs = ws.frequency_grid / 1e9
+    freqs = ws.freq_grid / 1e9
     pyarts.plots.StokvecVector.plot(
         geometric - refractive, fig=fig, ax=ax, freqs=freqs)
     for a in ax.flatten():

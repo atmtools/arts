@@ -23,7 +23,7 @@ Vector2 specular_losNormal(const Vector2& normal,
 void surface_reflectanceFlatRealFresnel(
     MuelmatVector& surface_reflectance,
     MuelmatMatrix& surface_reflectance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const SurfaceField& surface_field,
     const PropagationPathPoint& ray_path_point,
     const JacobianTargets& jacobian_targets) try {
@@ -55,7 +55,7 @@ surface_field:
   const SurfacePoint surface_point = surface_field.at(lat, lon);
   const Numeric n1                 = ray_path_point.nreal;
   const Numeric n2                 = surface_point[refraction_target];
-  const Size nf                    = frequency_grid.size();
+  const Size nf                    = freq_grid.size();
 
   surface_reflectance.resize(nf);
   surface_reflectance_jacobian.resize(jacobian_targets.target_count(), nf);
@@ -90,7 +90,7 @@ ARTS_METHOD_ERROR_CATCH
 void surface_reflectanceFlatScalar(
     MuelmatVector& surface_reflectance,
     MuelmatMatrix& surface_reflectance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const SurfaceField& surface_field,
     const PropagationPathPoint& ray_path_point,
     const JacobianTargets& jacobian_targets) try {
@@ -118,7 +118,7 @@ surface_field:
   const Numeric lon                = ray_path_point.pos[2];
   const SurfacePoint surface_point = surface_field.at(lat, lon);
   const Numeric R                  = surface_point[reflectance_target];
-  const Size nf                    = frequency_grid.size();
+  const Size nf                    = freq_grid.size();
 
   ARTS_USER_ERROR_IF(
       R < 0.0 or R > 1.0,
@@ -143,7 +143,7 @@ void spectral_radianceSurfaceReflectance(
     const Workspace& ws,
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
@@ -159,7 +159,7 @@ void spectral_radianceSurfaceReflectance(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surface_field.ellipsoid)
 
-  const Size NF                    = frequency_grid.size();
+  const Size NF                    = freq_grid.size();
   const Size NX                    = jacobian_targets.x_size();
   const Numeric lat                = ray_path_point.pos[1];
   const Numeric lon                = ray_path_point.pos[2];
@@ -170,7 +170,7 @@ void spectral_radianceSurfaceReflectance(
   surface_reflectance_agendaExecute(ws,
                                     surface_reflectance,
                                     surface_reflectance_jacobian,
-                                    frequency_grid,
+                                    freq_grid,
                                     surface_field,
                                     ray_path_point,
                                     jacobian_targets,
@@ -190,7 +190,7 @@ void spectral_radianceSurfaceReflectance(
                                            spectral_radiance,
                                            spectral_radiance_jacobian,
                                            ray_path,
-                                           frequency_grid,
+                                           freq_grid,
                                            jacobian_targets,
                                            ray_path_point.pos,
                                            los,
@@ -203,7 +203,7 @@ void spectral_radianceSurfaceReflectance(
       ws,
       spectral_radiance_surface,
       spectral_radiance_jacobian_surface,
-      frequency_grid,
+      freq_grid,
       jacobian_targets,
       ray_path_point,
       surface_field,

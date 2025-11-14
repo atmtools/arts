@@ -47,7 +47,7 @@ def plot(
         List of matplotlib axes objects.
     """
 
-    freq_grid = data.frequency_grid if freqs is None else freqs
+    freq_grid = data.freq_grid if freqs is None else freqs
     alt_grid = data.alt_grid if alts is None else alts
     upwelling = data.up
     downwelling_diffuse = data.down_diffuse
