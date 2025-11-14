@@ -53,7 +53,7 @@ void atm_profileFitNonLTE(
     const Agenda& propagation_matrix_agenda,
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
-    const AscendingGrid& altitude_grid,
+    const AscendingGrid& alt_grid,
     const Numeric& latitude,
     const Numeric& longitude,
     const QuantumIdentifierGriddedField1Map& collision_data,
@@ -69,7 +69,7 @@ void atm_profileFitNonLTE(
   using namespace lbl::nlte;
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(altitude_grid, atm_profile),
+      not arr::same_size(alt_grid, atm_profile),
       "Altitude grid and atmospheric point grid must have the same size")
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
@@ -99,7 +99,7 @@ void atm_profileFitNonLTE(
 
     spectral_flux_profilePseudo2D(ws,
                                   spectral_flux_profile,
-                                  altitude_grid,
+                                  alt_grid,
                                   atm_profile,
                                   frequency_grid,
                                   latitude,
@@ -117,7 +117,7 @@ void atm_profileFitNonLTE(
                                     atm_profile,
                                     frequency_grid);
 
-    for (Size atmi = 0; atmi < altitude_grid.size(); ++atmi) {
+    for (Size atmi = 0; atmi < alt_grid.size(); ++atmi) {
       A = statistical_equilibrium_equation(Aij,
                                            Bij,
                                            Bji,

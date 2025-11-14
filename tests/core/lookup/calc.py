@@ -36,7 +36,7 @@ t = time()
 ws.abs_lookup_dataCalc(
     latitude=0.0,
     longitude=0.0,
-    altitude_grid=np.linspace(0, toa, 101),
+    alt_grid=np.linspace(0, toa, 101),
     temperature_perturbation=np.linspace(-30, 30, 5),
     water_perturbation=np.logspace(-1, 1, 5),
     water_affected_species=["H2O"],

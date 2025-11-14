@@ -95,7 +95,7 @@ assert np.allclose(
 
 fig = plt.figure(figsize=(16, 5))
 fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig,
-                      alts=ws.disort_spectral_flux_field.altitude_grid / 1e3,
+                      alts=ws.disort_spectral_flux_field.alt_grid / 1e3,
                       freqs=ws.frequency_grid / 1e9, levels=50)
 fig.suptitle("Disort clearsky spectral fluxes")
 [a.set_ylabel("Altitude [km]") for a in ax]

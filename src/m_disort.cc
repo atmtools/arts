@@ -31,7 +31,7 @@ void disort_spectral_radiance_fieldCalc(
   //! Main output
   disort_spectral_radiance_field.resize(
       disort_settings.frequency_grid,
-      disort_settings.altitude_grid,
+      disort_settings.alt_grid,
       phis,
       ZenithGrid{disort_quadrature.grid<0>()});
 
@@ -63,7 +63,7 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
   const Index nv = disort_settings.frequency_count();
 
   disort_spectral_flux_field.resize(disort_settings.frequency_grid,
-                                    disort_settings.altitude_grid);
+                                    disort_settings.alt_grid);
 
   disort::main_data dis = disort_settings.init();
 
@@ -99,7 +99,7 @@ void spectral_radianceFromDisort(
   ARTS_TIME_REPORT
 
   const auto& f_grid   = disort_spectral_radiance_field.frequency_grid;
-  const auto& alt_grid = disort_spectral_radiance_field.altitude_grid;
+  const auto& alt_grid = disort_spectral_radiance_field.alt_grid;
   const auto& aa_grid  = disort_spectral_radiance_field.azimuth_grid;
   const auto& za_grid  = disort_spectral_radiance_field.zenith_grid;
   const auto& data     = disort_spectral_radiance_field.data;

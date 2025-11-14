@@ -3,8 +3,8 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/vector.h>
-#include <python_interface.h>
 #include <pydocs.h>
+#include <python_interface.h>
 
 #include <concepts>
 #include <optional>
@@ -277,9 +277,8 @@ The relevant references are:
   disort_settings.def_rw("frequency_grid",
                          &DisortSettings::frequency_grid,
                          ".. :class:`AscendingGrid`");
-  disort_settings.def_rw("altitude_grid",
-                         &DisortSettings::altitude_grid,
-                         ".. :class:`DescendingGrid`");
+  disort_settings.def_rw(
+      "alt_grid", &DisortSettings::alt_grid, ".. :class:`DescendingGrid`");
   disort_settings.def_rw("solar_azimuth_angle",
                          &DisortSettings::solar_azimuth_angle,
                          ".. :class:`Vector`");
@@ -320,8 +319,8 @@ The relevant references are:
             &DisortFlux::frequency_grid,
             "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
   df.def_rw(
-      "altitude_grid",
-      &DisortFlux::altitude_grid,
+      "alt_grid",
+      &DisortFlux::alt_grid,
       "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
   df.def_rw("up",
             &DisortFlux::up,
@@ -339,8 +338,8 @@ The relevant references are:
             &DisortRadiance::frequency_grid,
             "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
   dr.def_rw(
-      "altitude_grid",
-      &DisortRadiance::altitude_grid,
+      "alt_grid",
+      &DisortRadiance::alt_grid,
       "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
   dr.def_rw("zenith_grid",
             &DisortRadiance::zenith_grid,

@@ -32,7 +32,7 @@ def plot(
     freq_idx : int | None, optional
         Frequency index to plot. If None, plots all frequencies. Defaults to None.
     alts : array-like, optional
-        Altitude grid to use for plotting. If None, uses data.altitude_grid.
+        Altitude grid to use for plotting. If None, uses data.alt_grid.
     select : list or str, optional
         Which flux components to plot: 'up', 'down_diffuse', and/or 'down_direct'.
         Defaults to all three.
@@ -48,7 +48,7 @@ def plot(
     """
 
     freq_grid = data.frequency_grid if freqs is None else freqs
-    alt_grid = data.altitude_grid if alts is None else alts
+    alt_grid = data.alt_grid if alts is None else alts
     upwelling = data.up
     downwelling_diffuse = data.down_diffuse
     downwelling_direct = data.down_direct

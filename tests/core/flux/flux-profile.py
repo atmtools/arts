@@ -43,14 +43,14 @@ ndown = 120
 ws.ray_path_observersFieldProfilePseudo2D(nup=nup, ndown=ndown, nlimb=nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atm_field["t"].data.grids[0]
+    alt_grid=ws.atm_field["t"].data.grids[0]
 )
 a = np.array(ws.spectral_flux_profile)
 
 ws.ray_path_observersFieldProfilePseudo2D(nup=2 * nup, ndown=2 * ndown, nlimb=2 * nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atm_field["t"].data.grids[0]
+    alt_grid=ws.atm_field["t"].data.grids[0]
 )
 b = np.array(ws.spectral_flux_profile)
 

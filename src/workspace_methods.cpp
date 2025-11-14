@@ -854,7 +854,7 @@ All atmospheric points in the profile must contain the same set of parameters.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
-      .in        = {"atm_profile", "altitude_grid"},
+      .in        = {"atm_profile", "alt_grid"},
       .gin       = {"altitude_extrapolation"},
       .gin_type  = {"InterpolationExtrapolation"},
       .gin_value = {InterpolationExtrapolation::Linear},
@@ -867,7 +867,7 @@ All atmospheric points in the profile must contain the same set of parameters.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atm_profile"},
-      .in     = {"atm_field", "altitude_grid", "latitude", "longitude"},
+      .in     = {"atm_field", "alt_grid", "latitude", "longitude"},
   };
 
   wsm_data["atm_profileFromGrid"] = {
@@ -879,7 +879,7 @@ must form a profile.  The profile is extracted and returned.  The grids are
 returned as well.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"atm_profile", "altitude_grid", "latitude", "longitude"},
+      .out       = {"atm_profile", "alt_grid", "latitude", "longitude"},
       .in        = {"atm_field"},
       .gin       = {"key"},
       .gin_type  = {"AtmKey"},
@@ -932,7 +932,7 @@ The method used here is based on :cite:t:`Yamada2018`
                     "propagation_matrix_agenda",
                     "surface_field",
                     "frequency_grid",
-                    "altitude_grid",
+                    "alt_grid",
                     "latitude",
                     "longitude"},
       .gin       = {"collision_data",
@@ -1963,14 +1963,14 @@ If a positive ``fixed_specific_gas_constant`` is not provided,
 the field must also consist of correct volume mixing ratios so
 that the mass of an average molecule can be computed.
 
-The first altitude in *altitude_grid*
+The first altitude in *alt_grid*
 is used as the altitude of the ``p0`` grid.  The extrapolation
 outside of this range simply uses the formalism of  the select ``hydrostatic_option``.
 
 .. note::
-  The gradient changes only at the grid points of the *altitude_grid*.
+  The gradient changes only at the grid points of the *alt_grid*.
   Please make it dense enough to avoid missing features.  A recommendation
-  is to extract the *altitude_grid* directly from the temperature field.
+  is to extract the *alt_grid* directly from the temperature field.
 
   Also be aware that missing VMRs for important species, e.g.,
   :math:`\textrm{N}_2` or :math:`\textrm{O}_2`, will lead to incorrect results.
@@ -1979,7 +1979,7 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
 )-x-",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
-      .in        = {"atm_field", "gravity_operator", "altitude_grid"},
+      .in        = {"atm_field", "gravity_operator", "alt_grid"},
       .gin       = {"p0",
                     "fixed_specific_gas_constant",
                     "fixed_atmospheric_temperature",
@@ -2025,7 +2025,7 @@ Gets the ellispoid from *surface_field*
                          "surface_field",
                          "subsurface_field",
                          "frequency_grid",
-                         "altitude_grid"},
+                         "alt_grid"},
       .pass_workspace = true,
   };
 
@@ -3796,7 +3796,7 @@ bad angles if this is turned off.
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
-      .desc           = R"--(Set up a 1D spectral radiance operator
+      .desc   = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
 a 1D atmospheric profile.
@@ -3805,13 +3805,9 @@ This method will share line-by-line,cross-section, collision-induced absorption,
 predefined model data with the workspace (if they exist already when this method is
 called).
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance_operator"},
-      .in             = {"atm_field",
-                         "surface_field",
-                         "altitude_grid",
-                         "latitude",
-                         "longitude"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_radiance_operator"},
+      .in = {"atm_field", "surface_field", "alt_grid", "latitude", "longitude"},
       .gin            = {"cia_extrapolation", "cia_robust"},
       .gin_type       = {"Numeric", "Index"},
       .gin_value      = {Numeric{0.0}, Index{0}},
@@ -3837,7 +3833,7 @@ same mechanism as in *zenith_gridProfilePseudo2D*.
                          "surface_field",
                          "frequency_grid",
                          "zenith_grid",
-                         "altitude_grid",
+                         "alt_grid",
                          "latitude",
                          "longitude"},
       .gin            = {"azimuth"},
@@ -3853,7 +3849,7 @@ same mechanism as in *zenith_gridProfilePseudo2D*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"zenith_grid"},
-      .in        = {"surface_field", "altitude_grid", "latitude", "longitude"},
+      .in        = {"surface_field", "alt_grid", "latitude", "longitude"},
       .gin       = {"dza", "azimuth", "consider_limb"},
       .gin_type  = {"Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
