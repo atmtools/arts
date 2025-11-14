@@ -2,7 +2,7 @@
 
 #include <xml.h>
 
-#include "surface_field.h"
+#include "surf_field.h"
 
 template <>
 struct xml_io_stream<SurfaceField> {

@@ -16,14 +16,14 @@ AtmField atm() {
 }
 
 SurfaceField surf() {
-  SurfaceField surface_field;
-  surface_field.ellipsoid = {6378137, 6356752.314245};
-  return surface_field;
+  SurfaceField surf_field;
+  surf_field.ellipsoid = {6378137, 6356752.314245};
+  return surf_field;
 }
 
 void test_0_az_at_180_za(Size n) {
-  const auto atm_field     = atm();
-  const auto surface_field = surf();
+  const auto atm_field  = atm();
+  const auto surf_field = surf();
 
   RandomNumberGenerator<> rng;
   auto get_alt = rng.get<std::uniform_real_distribution>(200e3, 1200e3);
@@ -34,10 +34,9 @@ void test_0_az_at_180_za(Size n) {
   while (n-- != 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{180, get_az()};
-    ArrayOfPropagationPathPoint x{
-        path::init(pos, los, atm_field, surface_field)};
-    path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_stepwise(x, surface_field, 1e3);
+    ArrayOfPropagationPathPoint x{path::init(pos, los, atm_field, surf_field)};
+    path::set_geometric_extremes(x, atm_field, surf_field);
+    path::fill_geometric_stepwise(x, surf_field, 1e3);
     path::fix_updown_azimuth_to_first(x);
     path::keep_only_atm(x);
     for (auto p : x)
@@ -52,8 +51,8 @@ void test_0_az_at_180_za(Size n) {
 }
 
 void test_limb_finder(Size n) {
-  const auto atm_field     = atm();
-  const auto surface_field = surf();
+  const auto atm_field  = atm();
+  const auto surf_field = surf();
 
   RandomNumberGenerator<> rng;
   auto get_tangent_alt = rng.get<std::uniform_real_distribution>(50e3, 100e3);
@@ -67,15 +66,14 @@ void test_limb_finder(Size n) {
     const Numeric az               = get_az();
     const Numeric tangent_altitude = get_tangent_alt();
     const Numeric za               = path::geometric_tangent_zenith(
-        pos, surface_field.ellipsoid, tangent_altitude, az);
+        pos, surf_field.ellipsoid, tangent_altitude, az);
     const Vector2 los = path::mirror({za, az});
-    ArrayOfPropagationPathPoint x{
-        path::init(pos, los, atm_field, surface_field)};
-    path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_stepwise(x, surface_field, 10e3);
+    ArrayOfPropagationPathPoint x{path::init(pos, los, atm_field, surf_field)};
+    path::set_geometric_extremes(x, atm_field, surf_field);
+    path::fill_geometric_stepwise(x, surf_field, 10e3);
     path::keep_only_atm(x);
     const Numeric computed_tangent_altitude =
-        path::find_geometric_limb(x, surface_field).pos[0];
+        path::find_geometric_limb(x, surf_field).pos[0];
     ARTS_USER_ERROR_IF(
         nonstd::abs(tangent_altitude - computed_tangent_altitude) > 1.0,
         "More than 1 meter difference between set and estimated tangent altitude: {}"
@@ -90,8 +88,8 @@ void test_limb_finder(Size n) {
 }
 
 void test_geometric_fill(Size n) {
-  const auto atm_field     = atm();
-  const auto surface_field = surf();
+  const auto atm_field  = atm();
+  const auto surf_field = surf();
 
   const Vector alts = matpack::uniform_grid(1e3, 99, 1e3);
   const Vector lats = matpack::uniform_grid(-90, 181, 1.);
@@ -115,7 +113,8 @@ void test_geometric_fill(Size n) {
 
       ARTS_USER_ERROR_IF(
           not(toa or boa or at_alt or at_lat or at_lon or at_start) or any_nan,
-          "Bad path point: {}\nIt is not at the top of the atmosphere or at the surface or at one of the grid points; or it contains NaNs.", p)
+          "Bad path point: {}\nIt is not at the top of the atmosphere or at the surface or at one of the grid points; or it contains NaNs.",
+          p)
     }
   };
 
@@ -123,12 +122,11 @@ void test_geometric_fill(Size n) {
     // Check crossing the pole
     const Vector3 pos{300e3, 75, 190};
     const Vector2 los{105, 0};
-    ArrayOfPropagationPathPoint x{
-        path::init(pos, los, atm_field, surface_field)};
-    path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_altitude_crossings(x, surface_field, alts);
-    path::fill_geometric_latitude_crossings(x, surface_field, lats);
-    path::fill_geometric_longitude_crossings(x, surface_field, lons);
+    ArrayOfPropagationPathPoint x{path::init(pos, los, atm_field, surf_field)};
+    path::set_geometric_extremes(x, atm_field, surf_field);
+    path::fill_geometric_altitude_crossings(x, surf_field, alts);
+    path::fill_geometric_latitude_crossings(x, surf_field, lats);
+    path::fill_geometric_longitude_crossings(x, surf_field, lons);
     test(x, pos[0]);
   }
 
@@ -136,12 +134,11 @@ void test_geometric_fill(Size n) {
     // Check pole upwards
     const Vector3 pos{0.0, 90, 0};
     const Vector2 los{0.0, 0};
-    ArrayOfPropagationPathPoint x{
-        path::init(pos, los, atm_field, surface_field)};
-    path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_altitude_crossings(x, surface_field, alts);
-    path::fill_geometric_latitude_crossings(x, surface_field, lats);
-    path::fill_geometric_longitude_crossings(x, surface_field, lons);
+    ArrayOfPropagationPathPoint x{path::init(pos, los, atm_field, surf_field)};
+    path::set_geometric_extremes(x, atm_field, surf_field);
+    path::fill_geometric_altitude_crossings(x, surf_field, alts);
+    path::fill_geometric_latitude_crossings(x, surf_field, lats);
+    path::fill_geometric_longitude_crossings(x, surf_field, lons);
     test(x, pos[0]);
   }
 
@@ -155,12 +152,11 @@ void test_geometric_fill(Size n) {
   while (n-- != 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{get_za(), get_az()};
-    ArrayOfPropagationPathPoint x{
-        path::init(pos, los, atm_field, surface_field)};
-    path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_altitude_crossings(x, surface_field, alts);
-    path::fill_geometric_latitude_crossings(x, surface_field, lats);
-    path::fill_geometric_longitude_crossings(x, surface_field, lons);
+    ArrayOfPropagationPathPoint x{path::init(pos, los, atm_field, surf_field)};
+    path::set_geometric_extremes(x, atm_field, surf_field);
+    path::fill_geometric_altitude_crossings(x, surf_field, alts);
+    path::fill_geometric_latitude_crossings(x, surf_field, lats);
+    path::fill_geometric_longitude_crossings(x, surf_field, lons);
     test(x, pos[0]);
   }
 }

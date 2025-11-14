@@ -20,7 +20,7 @@ ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
-ws.surface_fieldEarth()
+ws.surf_fieldEarth()
 
 B = [-3.132846e-06, 2.62680294e-05, 1.39844339e-05]
 dx = 1e-11

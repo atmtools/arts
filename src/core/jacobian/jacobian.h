@@ -4,7 +4,7 @@
 #include <lbl.h>
 #include <matpack.h>
 #include <obsel.h>
-#include <subsurface.h>
+#include <subsurf.h>
 #include <surf.h>
 #include <xml.h>
 
@@ -300,8 +300,8 @@ struct Targets final {
 
   //! Sets the sizes and x-positions of the targets.
   void finalize(const AtmField& atm_field,
-                const SurfaceField& surface_field,
-                const SubsurfaceField& subsurface_field,
+                const SurfaceField& surf_field,
+                const SubsurfaceField& subsurf_field,
                 const AbsorptionBands& abs_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 

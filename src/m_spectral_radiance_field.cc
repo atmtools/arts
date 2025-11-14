@@ -86,7 +86,7 @@ const Vector zenith_level_limb(const AscendingGrid& alt_grid,
 }  // namespace
 
 void za_gridProfilePseudo2D(ZenithGrid& za_grid,
-                            const SurfaceField& surface_field,
+                            const SurfaceField& surf_field,
                             const AscendingGrid& alt_grid,
                             const Numeric& latitude,
                             const Numeric& longitude,
@@ -96,9 +96,9 @@ void za_gridProfilePseudo2D(ZenithGrid& za_grid,
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(dza <= 0.0 or dza >= 180.0,
                      "Delta zenith angle must be (0, 180). Given dza: {}",
@@ -117,7 +117,7 @@ void za_gridProfilePseudo2D(ZenithGrid& za_grid,
 
   if (static_cast<bool>(consider_limb)) {
     Vector zenith_limb = zenith_level_limb(
-        alt_grid, surface_field.ellipsoid, latitude, longitude, azimuth);
+        alt_grid, surf_field.ellipsoid, latitude, longitude, azimuth);
     stdr::sort(zenith_limb);
     const auto [it, _] = stdr::unique(zenith_limb);
 
@@ -152,7 +152,7 @@ void spectral_radiance_fieldProfilePseudo2D(
     GriddedSpectralField6& spectral_radiance_field,
     const Agenda& propagation_matrix_agenda,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const AscendingGrid& freq_grid,
     const ZenithGrid& za_grid,
     const AscendingGrid& alt_grid,
@@ -164,9 +164,9 @@ void spectral_radiance_fieldProfilePseudo2D(
   constexpr Numeric minimal_r = 0.001;
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(
       not arr::same_size(alt_grid, ray_path_atm_point),
@@ -209,8 +209,8 @@ Atmospheric point grid size: {}
       ws, propagation_matrix_agenda, freq_grid, ray_path_atm_point);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
-  const Numeric t_surf = surface_field[SurfaceKey::t].at(latitude, longitude);
-  const Vector2 ell    = surface_field.ellipsoid;
+  const Numeric t_surf     = surf_field[SurfaceKey::t].at(latitude, longitude);
+  const Vector2 ell        = surf_field.ellipsoid;
 
   const Vector zenith_limb =
       zenith_level_limb(alt_grid, ell, latitude, longitude, azimuth);

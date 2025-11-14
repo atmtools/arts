@@ -19,8 +19,8 @@ atm_latitude = 0.0
 atm_longitude = 0.0
 solar_latitude = 0.0
 solar_longitude = 0.0
-surface_temperature = 293.0
-surface_reflectivity = 0.05
+surf_temperature = 293.0
+surf_reflectivity = 0.05
 cutoff = ["ByLine", 750e9]
 remove_lines_percentile = 70
 sunfile = "star/Sun/solar_spectrum_QUIET.xml"
@@ -48,11 +48,11 @@ for band in ws.abs_bands:
 
 ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 
-ws.surface_fieldPlanet(option=planet)
+ws.surf_fieldPlanet(option=planet)
 
 sun = pyarts.arts.GriddedField2.fromxml(sunfile)
 
-ws.surface_field["t"] = surface_temperature
+ws.surf_field["t"] = surf_temperature
 
 ws.sunFromGrid(
     sun_spectrum_raw=sun,
@@ -72,8 +72,8 @@ ws.ray_pathGeometricDownlooking(
 
 ws.disort_settings_agendaSetup(
     sun_setting="Sun",
-    surface_setting="ThermalLambertian",
-    surface_lambertian_value=surface_reflectivity * np.ones_like(ws.freq_grid),
+    surf_setting="ThermalLambertian",
+    surf_lambertian_value=surf_reflectivity * np.ones_like(ws.freq_grid),
 )
 
 ws.disort_spectral_flux_fieldFromAgenda()

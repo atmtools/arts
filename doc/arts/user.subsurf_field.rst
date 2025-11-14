@@ -16,7 +16,7 @@ A subsurface point effectively holds the local state of the subsurface at a spec
 
 Key notations:
 
-- :class:`~pyarts3.arts.SubsurfaceField`: The subsurface field. An instance is in this text named: ``subsurf_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.subsurface_field`.
+- :class:`~pyarts3.arts.SubsurfaceField`: The subsurface field. An instance is in this text named: ``subsurf_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.subsurf_field`.
 - :class:`~pyarts3.arts.SubsurfaceData`: The subsurface field data. An instance is in this text named: ``subsurf_data``.
 - :class:`~pyarts3.arts.SubsurfacePoint`: The local subsurface state. An instance is in this text named: ``subsurf_point``.
 

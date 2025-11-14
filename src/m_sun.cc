@@ -102,7 +102,7 @@ void sunBlackbody(Sun& sun,
 
 void sun_pathFromObserverAgenda(const Workspace& ws,
                                 ArrayOfPropagationPathPoint& sun_path,
-                                const SurfaceField& surface_field,
+                                const SurfaceField& surf_field,
                                 const Agenda& ray_path_observer_agenda,
                                 const Sun& sun,
                                 const Vector3& observer_pos,
@@ -112,15 +112,15 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   find_sun_path(ws,
                 sun_path,
                 sun,
                 ray_path_observer_agenda,
-                surface_field,
+                surf_field,
                 observer_pos,
                 angle_cut,
                 refinements,
@@ -130,7 +130,7 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
 void ray_path_suns_pathFromPathObserver(
     const Workspace& ws,
     ArrayOfArrayOfArrayOfPropagationPathPoint& ray_path_suns_path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Agenda& ray_path_observer_agenda,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfSun& suns,
@@ -140,9 +140,9 @@ void ray_path_suns_pathFromPathObserver(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
@@ -158,7 +158,7 @@ void ray_path_suns_pathFromPathObserver(
       for (Size j = 0; j < nsuns; ++j) {
         sun_pathFromObserverAgenda(ws,
                                    ray_path_suns_path[i][j],
-                                   surface_field,
+                                   surf_field,
                                    ray_path_observer_agenda,
                                    suns[j],
                                    ray_path[i].pos,
@@ -176,7 +176,7 @@ void ray_path_suns_pathFromPathObserver(
         try {
           sun_pathFromObserverAgenda(ws,
                                      ray_path_suns_path[i][j],
-                                     surface_field,
+                                     surf_field,
                                      ray_path_observer_agenda,
                                      suns[j],
                                      ray_path[i].pos,
@@ -336,16 +336,16 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
     // [nf]:
     const AscendingGrid& freq_grid,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Agenda& propagation_matrix_agenda,
     const Numeric& depolarization_factor,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
                      "Cannot have any Jacobian targets")
@@ -403,11 +403,8 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
         const auto& sun_path = suns_path[isun];
         const auto& sun      = suns[isun];
 
-        spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
-                                               freq_grid,
-                                               sun_path,
-                                               sun,
-                                               surface_field);
+        spectral_radianceSunOrCosmicBackground(
+            spectral_radiance_background, freq_grid, sun_path, sun, surf_field);
 
         spectral_radianceClearskyBackgroundTransmission(
             ws,
@@ -420,7 +417,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             sun_path,
             spectral_radiance_background,
             spectral_radiance_background_jacobian,
-            surface_field,
+            surf_field,
             hse_derivative);
 
         ARTS_USER_ERROR_IF(spectral_radiance.size() != nf,
@@ -433,7 +430,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
         // irradiance ratio
         const Numeric radiance_2_irradiance =
             pi * suns[isun].sin_alpha_squared(sun_path.back().pos,
-                                              surface_field.ellipsoid);
+                                              surf_field.ellipsoid);
 
         const Muelmat scatmat =
             rtepack::rayleigh_scattering(sun_path.front().los,

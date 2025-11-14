@@ -372,7 +372,7 @@ def plot(
         ws = pyarts.Workspace()
 
         ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/")
-        ws.surface_fieldEarth()
+        ws.surf_fieldEarth()
         ws.ray_path_observer_agendaSetGeometric(
             add_crossings=True, remove_non_crossings=True
         )

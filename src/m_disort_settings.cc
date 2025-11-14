@@ -55,25 +55,25 @@ void disort_settingsNoSun(DisortSettings& disort_settings) {
 
 void disort_settingsSetSun(DisortSettings& disort_settings,
                            const AscendingGrid& freq_grid,
-                           const SurfaceField& surface_field,
+                           const SurfaceField& surf_field,
                            const Sun& sun,
                            const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   const Numeric h =
-      surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
+      surf_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
 
   const Vector3 sun_pos{sun.distance - h, sun.latitude, sun.longitude};
   const Vector2 los =
-      geometric_los(ray_path_point.pos, sun_pos, surface_field.ellipsoid);
+      geometric_los(ray_path_point.pos, sun_pos, surf_field.ellipsoid);
 
   const Numeric sin2_alpha =
-      sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
+      sun.sin_alpha_squared(ray_path_point.pos, surf_field.ellipsoid);
 
   const Size nv = freq_grid.size();
 
@@ -162,10 +162,10 @@ void disort_settingsLayerThermalEmissionLinearInTau(
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfSubsurfacePoint& subsurface_profile,
+    const ArrayOfSubsurfacePoint& subsurf_profile,
     const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, subsurface_profile, freq_grid);
+      disort_settings, subsurf_profile, freq_grid);
 }
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
@@ -263,12 +263,12 @@ void disort_settingsSurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
     const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field) {
+    const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
 
   const auto nv = freq_grid.size();
 
-  const Numeric T = surface_field.single_value(
+  const Numeric T = surf_field.single_value(
       SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
@@ -291,14 +291,14 @@ void disort_settingsSurfaceEmissionByTemperature(
 void disort_settingsSubsurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
     const AscendingGrid& freq_grid,
-    const ArrayOfSubsurfacePoint& subsurface_profile) {
+    const ArrayOfSubsurfacePoint& subsurf_profile) {
   ARTS_TIME_REPORT
 
   const auto nv = freq_grid.size();
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(subsurface_profile.size() < 2, "Need at least two points")
+  ARTS_USER_ERROR_IF(subsurf_profile.size() < 2, "Need at least two points")
 
   ARTS_USER_ERROR_IF(
       static_cast<Index>(nv) != limit.npages(),
@@ -310,7 +310,7 @@ void disort_settingsSubsurfaceEmissionByTemperature(
       limit.nrows() < 1,
       "Must have at least one fourier mode to use the positive boundary condition.")
 
-  const Numeric Tbot = subsurface_profile.back().temperature;
+  const Numeric Tbot = subsurf_profile.back().temperature;
 
   for (Size iv = 0; iv < nv; iv++) {
     limit[iv, 0, joker] = planck(freq_grid[iv], Tbot);
@@ -357,8 +357,8 @@ void disort_settingsDownwellingObserver(
     const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& ray_path,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
     const Agenda& spectral_radiance_observer_agenda,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
@@ -406,8 +406,8 @@ void disort_settingsDownwellingObserver(
           ray_path_point.pos,
           {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
           atm_field,
-          surface_field,
-          subsurface_field,
+          surf_field,
+          subsurf_field,
           spectral_radiance_observer_agenda);
 
       for (Index iv = 0; iv < nv; iv++) {
@@ -531,14 +531,14 @@ Frequency grid index: {}
 void disort_settingsSubsurfaceScalarAbsorption(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfSubsurfacePoint& subsurface_profile,
+    const ArrayOfSubsurfacePoint& subsurf_profile,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   const Index N = disort_settings.layer_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != subsurface_profile.size() or
-                         subsurface_profile.size() != static_cast<Size>(N + 1),
+  ARTS_USER_ERROR_IF(ray_path.size() != subsurf_profile.size() or
+                         subsurf_profile.size() != static_cast<Size>(N + 1),
                      "Wrong path size.")
 
   if (N == 0) return;
@@ -567,15 +567,15 @@ ray_path: {:B,}
   const SubsurfacePropertyTag absorption_tag{"scalar absorption"};
 
   ARTS_USER_ERROR_IF(
-      not stdr::all_of(subsurface_profile, Cmp::contains(absorption_tag)),
+      not stdr::all_of(subsurf_profile, Cmp::contains(absorption_tag)),
       R"(Missing '{}' in some or all of the subsurface profile)",
       absorption_tag);
 
   for (Index i = 0; i < N; i++) {
-    disort_settings.optical_thicknesses[joker, i] = std::max(
-        r[i] * std::midpoint(subsurface_profile[i + 1][absorption_tag],
-                             subsurface_profile[i + 0][absorption_tag]),
-        min_optical_depth);
+    disort_settings.optical_thicknesses[joker, i] =
+        std::max(r[i] * std::midpoint(subsurf_profile[i + 1][absorption_tag],
+                                      subsurf_profile[i + 0][absorption_tag]),
+                 min_optical_depth);
     if (i > 0) {
       disort_settings.optical_thicknesses[joker, i] +=
           disort_settings.optical_thicknesses[joker, i - 1];
@@ -635,7 +635,7 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 
 void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
     DisortSettings& disort_settings,
-    const ArrayOfSubsurfacePoint& subsurface_profile) {
+    const ArrayOfSubsurfacePoint& subsurf_profile) {
   ARTS_TIME_REPORT
 
   const Index N = disort_settings.layer_count();
@@ -644,14 +644,13 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
 
   const SubsurfacePropertyTag ssa_tag{"scalar ssa"};
 
-  ARTS_USER_ERROR_IF(
-      not stdr::all_of(subsurface_profile, Cmp::contains(ssa_tag)),
-      R"(Missing '{}' in some or all of the subsurface profile)",
-      ssa_tag);
+  ARTS_USER_ERROR_IF(not stdr::all_of(subsurf_profile, Cmp::contains(ssa_tag)),
+                     R"(Missing '{}' in some or all of the subsurface profile)",
+                     ssa_tag);
 
   for (Index i = 0; i < N; i++) {
     disort_settings.single_scattering_albedo[joker, i] = std::midpoint(
-        subsurface_profile[i + 1][ssa_tag], subsurface_profile[i + 0][ssa_tag]);
+        subsurf_profile[i + 1][ssa_tag], subsurf_profile[i + 0][ssa_tag]);
   }
 }
 
@@ -820,8 +819,8 @@ Agenda disort_settings_agendaSetup(
     const disort_settings_agenda_setup_scattering_type& scattering_setting,
     const disort_settings_agenda_setup_space_type& space_setting,
     const disort_settings_agenda_setup_sun_type& sun_setting,
-    const disort_settings_agenda_setup_surface_type& surface_setting,
-    const Vector& surface_lambertian_value,
+    const disort_settings_agenda_setup_surface_type& surf_setting,
+    const Vector& surf_lambertian_value,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
@@ -878,7 +877,7 @@ Agenda disort_settings_agendaSetup(
       break;
   }
 
-  switch (surface_setting) {
+  switch (surf_setting) {
     using enum disort_settings_agenda_setup_surface_type;
     case None:
       agenda.add("disort_settingsNoSurfaceEmission");
@@ -893,12 +892,12 @@ Agenda disort_settings_agendaSetup(
       agenda.add("ray_path_pointLowestFromPath");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");
       agenda.add("disort_settingsSurfaceLambertian",
-                 SetWsv{"value", surface_lambertian_value});
+                 SetWsv{"value", surf_lambertian_value});
       break;
     case Lambertian:
       agenda.add("disort_settingsNoSurfaceEmission");
       agenda.add("disort_settingsSurfaceLambertian",
-                 SetWsv{"value", surface_lambertian_value});
+                 SetWsv{"value", surf_lambertian_value});
       break;
   }
 
@@ -925,7 +924,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
   agenda.add("jacobian_targetsOff");
 
   // Clearsky absorption
-  agenda.add("subsurface_profileFromPath");
+  agenda.add("subsurf_profileFromPath");
 
   agenda.add("disort_settingsInit");
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
@@ -958,8 +957,8 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
                                  const String& scattering_setting,
                                  const String& space_setting,
                                  const String& sun_setting,
-                                 const String& surface_setting,
-                                 const Vector& surface_lambertian_value,
+                                 const String& surf_setting,
+                                 const Vector& surf_lambertian_value,
                                  const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
@@ -969,8 +968,8 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
       to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
       to<disort_settings_agenda_setup_space_type>(space_setting),
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
-      to<disort_settings_agenda_setup_surface_type>(surface_setting),
-      surface_lambertian_value,
+      to<disort_settings_agenda_setup_surface_type>(surf_setting),
+      surf_lambertian_value,
       min_optical_depth);
 }
 

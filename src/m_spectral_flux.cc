@@ -32,8 +32,8 @@ void ray_path_spectral_radianceClearskyEmission(
     const ArrayOfPropagationPathPoint& ray_path,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field) try {
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field) try {
   ARTS_TIME_REPORT
 
   PropagationPathPoint ray_path_point;
@@ -47,8 +47,8 @@ void ray_path_spectral_radianceClearskyEmission(
       freq_grid,
       {},
       ray_path_point,
-      surface_field,
-      subsurface_field,
+      surf_field,
+      subsurf_field,
       spectral_radiance_space_agenda,
       spectral_radiance_surface_agenda);
   ArrayOfAtmPoint ray_path_atm_point;
@@ -85,7 +85,7 @@ void ray_path_spectral_radianceClearskyEmission(
                                        ray_path_propagation_matrix_jacobian,
                                        ray_path,
                                        ray_path_atm_point,
-                                       surface_field,
+                                       surf_field,
                                        {},
                                        0);
   ArrayOfStokvecVector ray_path_spectral_radiance_source;
@@ -117,8 +117,8 @@ void spectral_flux_profileFromPathField(
     const Agenda& propagation_matrix_agenda,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
     const AscendingGrid& freq_grid,
     const AscendingGrid& alt_grid) try {
   ARTS_TIME_REPORT
@@ -145,8 +145,8 @@ void spectral_flux_profileFromPathField(
           ray_path_field[n],
           spectral_radiance_space_agenda,
           spectral_radiance_surface_agenda,
-          surface_field,
-          subsurface_field);
+          surf_field,
+          subsurf_field);
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

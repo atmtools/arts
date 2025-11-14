@@ -49,8 +49,8 @@ ws.abs_bands.keep_hitran_s(approximate_percentile=90)
 ws.propagation_matrix_agendaAuto()
 
 # Set up a simple atmosphere
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pa.arts.SurfaceKey("t")] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pa.arts.SurfaceKey("t")] = 295.0
 ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )

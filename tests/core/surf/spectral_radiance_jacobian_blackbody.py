@@ -31,8 +31,8 @@ ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
@@ -46,7 +46,7 @@ ws.ray_path_observer_agendaSetGeometric()
 # %% Artificial Surface
 
 ts = 295.0
-ws.surface_field["t"] = ts
+ws.surf_field["t"] = ts
 
 # %% Retrieval agenda
 
@@ -69,14 +69,14 @@ ws.RetrievalFinalizeDiagonal()
 fail = True
 
 for i in range(LIMIT):
-    ws.surface_field["t"] = ts
+    ws.surf_field["t"] = ts
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["t"] = ts + 30
+    ws.surf_field["t"] = ts + 30
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

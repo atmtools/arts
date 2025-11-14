@@ -20,120 +20,119 @@ Vector2 specular_losNormal(const Vector2& normal,
 }
 }  // namespace
 
-void surface_reflectanceFlatRealFresnel(
-    MuelmatVector& surface_reflectance,
-    MuelmatMatrix& surface_reflectance_jacobian,
+void spectral_surf_reflFlatRealFresnel(
+    MuelmatVector& spectral_surf_refl,
+    MuelmatMatrix& spectral_surf_refl_jac,
     const AscendingGrid& freq_grid,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const PropagationPathPoint& ray_path_point,
     const JacobianTargets& jacobian_targets) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag refraction_target{"scalar refractive index"};
 
-  ARTS_USER_ERROR_IF(not surface_field.contains(refraction_target),
+  ARTS_USER_ERROR_IF(not surf_field.contains(refraction_target),
                      R"--(Missing key property tag for method.
 
 Tag "scalar refractive index" not in the surface field.
 
-surface_field:
+surf_field:
 {}
 )--",
-                     surface_field);
+                     surf_field);
 
-  const auto& pos                  = ray_path_point.pos;
-  const auto& los                  = ray_path_point.los;
-  const auto& ell                  = surface_field.ellipsoid;
-  const Numeric lat                = pos[1];
-  const Numeric lon                = pos[2];
-  const SurfacePoint surface_point = surface_field.at(lat, lon);
-  const Numeric n1                 = ray_path_point.nreal;
-  const Numeric n2                 = surface_point[refraction_target];
-  const Size nf                    = freq_grid.size();
+  const auto& pos               = ray_path_point.pos;
+  const auto& los               = ray_path_point.los;
+  const auto& ell               = surf_field.ellipsoid;
+  const Numeric lat             = pos[1];
+  const Numeric lon             = pos[2];
+  const SurfacePoint surf_point = surf_field.at(lat, lon);
+  const Numeric n1              = ray_path_point.nreal;
+  const Numeric n2              = surf_point[refraction_target];
+  const Size nf                 = freq_grid.size();
 
-  surface_reflectance.resize(nf);
-  surface_reflectance_jacobian.resize(jacobian_targets.target_count(), nf);
+  spectral_surf_refl.resize(nf);
+  spectral_surf_refl_jac.resize(jacobian_targets.target_count(), nf);
 
   const auto [Rv, Rh] = fresnel(
       n1,
       n2,
       std::acos(dot(geodetic_los2ecef(pos, los, ell).second,
-                    geodetic_los2ecef(pos, surface_point.normal, ell).second)));
+                    geodetic_los2ecef(pos, surf_point.normal, ell).second)));
 
-  const Muelmat R              = rtepack::fresnel_reflectance(Rv, Rh);
-  surface_reflectance          = R;
-  surface_reflectance_jacobian = 0.0;
+  const Muelmat R        = rtepack::fresnel_reflectance(Rv, Rh);
+  spectral_surf_refl     = R;
+  spectral_surf_refl_jac = 0.0;
 
   for (auto& target : jacobian_targets.surf) {
     if (target.type == refraction_target) {
-      const auto [Rv2, Rh2] = fresnel(
-          n1,
-          n2 + 1e-3,
-          std::acos(
-              dot(geodetic_los2ecef(pos, los, ell).second,
-                  geodetic_los2ecef(pos, surface_point.normal, ell).second)));
+      const auto [Rv2, Rh2] =
+          fresnel(n1,
+                  n2 + 1e-3,
+                  std::acos(dot(
+                      geodetic_los2ecef(pos, los, ell).second,
+                      geodetic_los2ecef(pos, surf_point.normal, ell).second)));
 
       const Muelmat dR = 1000. * (rtepack::fresnel_reflectance(Rv2, Rh2) - R);
 
-      surface_reflectance_jacobian[target.target_pos] = dR;
+      spectral_surf_refl_jac[target.target_pos] = dR;
     }
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void surface_reflectanceFlatScalar(
-    MuelmatVector& surface_reflectance,
-    MuelmatMatrix& surface_reflectance_jacobian,
-    const AscendingGrid& freq_grid,
-    const SurfaceField& surface_field,
-    const PropagationPathPoint& ray_path_point,
-    const JacobianTargets& jacobian_targets) try {
+void spectral_surf_reflFlatScalar(MuelmatVector& spectral_surf_refl,
+                                  MuelmatMatrix& spectral_surf_refl_jac,
+                                  const AscendingGrid& freq_grid,
+                                  const SurfaceField& surf_field,
+                                  const PropagationPathPoint& ray_path_point,
+                                  const JacobianTargets& jacobian_targets) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag reflectance_target{"flat scalar reflectance"};
 
-  ARTS_USER_ERROR_IF(not surface_field.contains(reflectance_target),
+  ARTS_USER_ERROR_IF(not surf_field.contains(reflectance_target),
                      R"--(Missing key property tag for method.
 
 Tag "flat scalar reflectance" not in the surface field.
 
-surface_field:
+surf_field:
 {}
 )--",
-                     surface_field);
+                     surf_field);
 
-  const Numeric lat                = ray_path_point.pos[1];
-  const Numeric lon                = ray_path_point.pos[2];
-  const SurfacePoint surface_point = surface_field.at(lat, lon);
-  const Numeric R                  = surface_point[reflectance_target];
-  const Size nf                    = freq_grid.size();
+  const Numeric lat             = ray_path_point.pos[1];
+  const Numeric lon             = ray_path_point.pos[2];
+  const SurfacePoint surf_point = surf_field.at(lat, lon);
+  const Numeric R               = surf_point[reflectance_target];
+  const Size nf                 = freq_grid.size();
 
   ARTS_USER_ERROR_IF(
       R < 0.0 or R > 1.0,
       "Flat scalar reflectance must be between 0 and 1, but is {}.",
       R)
 
-  surface_reflectance.resize(nf);
-  surface_reflectance_jacobian.resize(jacobian_targets.target_count(), nf);
+  spectral_surf_refl.resize(nf);
+  spectral_surf_refl_jac.resize(jacobian_targets.target_count(), nf);
 
-  surface_reflectance          = R;
-  surface_reflectance_jacobian = 0.0;
+  spectral_surf_refl     = R;
+  spectral_surf_refl_jac = 0.0;
 
   for (auto& target : jacobian_targets.surf) {
     if (target.type == reflectance_target) {
-      surface_reflectance_jacobian[target.target_pos] = 1.0;
+      spectral_surf_refl_jac[target.target_pos] = 1.0;
     }
   }
 }
@@ -145,42 +144,42 @@ void spectral_radianceSurfaceReflectance(
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& freq_grid,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
     const Agenda& spectral_radiance_observer_agenda,
     const Agenda& spectral_radiance_closed_surface_agenda,
-    const Agenda& surface_reflectance_agenda) try {
+    const Agenda& spectral_surf_refl_agenda) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
-  const Size NF                    = freq_grid.size();
-  const Size NX                    = jacobian_targets.x_size();
-  const Numeric lat                = ray_path_point.pos[1];
-  const Numeric lon                = ray_path_point.pos[2];
-  const SurfacePoint surface_point = surface_field.at(lat, lon);
+  const Size NF                 = freq_grid.size();
+  const Size NX                 = jacobian_targets.x_size();
+  const Numeric lat             = ray_path_point.pos[1];
+  const Numeric lon             = ray_path_point.pos[2];
+  const SurfacePoint surf_point = surf_field.at(lat, lon);
 
-  MuelmatVector surface_reflectance;
-  MuelmatMatrix surface_reflectance_jacobian;
-  surface_reflectance_agendaExecute(ws,
-                                    surface_reflectance,
-                                    surface_reflectance_jacobian,
-                                    freq_grid,
-                                    surface_field,
-                                    ray_path_point,
-                                    jacobian_targets,
-                                    surface_reflectance_agenda);
+  MuelmatVector spectral_surf_refl;
+  MuelmatMatrix spectral_surf_refl_jac;
+  spectral_surf_refl_agendaExecute(ws,
+                                   spectral_surf_refl,
+                                   spectral_surf_refl_jac,
+                                   freq_grid,
+                                   surf_field,
+                                   ray_path_point,
+                                   jacobian_targets,
+                                   spectral_surf_refl_agenda);
 
   // Get the direction of the incoming radiation
-  const Vector2 los = specular_losNormal(surface_point.normal,
+  const Vector2 los = specular_losNormal(surf_point.normal,
                                          ray_path_point.los,
                                          ray_path_point.pos,
-                                         surface_field.ellipsoid);
+                                         surf_field.ellipsoid);
 
   ArrayOfPropagationPathPoint ray_path;
   StokvecVector spectral_radiance_surface;
@@ -195,8 +194,8 @@ void spectral_radianceSurfaceReflectance(
                                            ray_path_point.pos,
                                            los,
                                            atm_field,
-                                           surface_field,
-                                           subsurface_field,
+                                           surf_field,
+                                           subsurf_field,
                                            spectral_radiance_observer_agenda);
 
   spectral_radiance_surface_agendaExecute(
@@ -206,8 +205,8 @@ void spectral_radianceSurfaceReflectance(
       freq_grid,
       jacobian_targets,
       ray_path_point,
-      surface_field,
-      subsurface_field,
+      surf_field,
+      subsurf_field,
       spectral_radiance_closed_surface_agenda);
 
 #pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
@@ -215,23 +214,23 @@ void spectral_radianceSurfaceReflectance(
     for (Size i = 0; i < NF; i++) {
       spectral_radiance_jacobian[j, i] =
           rtepack::reflection(spectral_radiance_jacobian[j, i],
-                              surface_reflectance[i],
+                              spectral_surf_refl[i],
                               spectral_radiance_jacobian_surface[j, i]);
     }
   }
 
   for (auto& target : jacobian_targets.surf) {
-    const SurfaceData& data = surface_field[target.type];
+    const SurfaceData& data = surf_field[target.type];
     const auto ws           = data.flat_weights(lat, lon);
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
     for (Size i = 0; i < NF; i++) {
       for (const auto& [j, w] : ws) {
         spectral_radiance_jacobian[j + target.x_start, i] +=
-            w * rtepack::dreflection(
-                    spectral_radiance[i],
-                    surface_reflectance_jacobian[target.target_pos, i],
-                    spectral_radiance_surface[i]);
+            w *
+            rtepack::dreflection(spectral_radiance[i],
+                                 spectral_surf_refl_jac[target.target_pos, i],
+                                 spectral_radiance_surface[i]);
       }
     }
   }
@@ -239,7 +238,7 @@ void spectral_radianceSurfaceReflectance(
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < NF; i++) {
     spectral_radiance[i] = rtepack::reflection(spectral_radiance[i],
-                                               surface_reflectance[i],
+                                               spectral_surf_refl[i],
                                                spectral_radiance_surface[i]);
   }
 }

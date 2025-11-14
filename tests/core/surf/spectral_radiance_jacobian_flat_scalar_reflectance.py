@@ -31,8 +31,8 @@ ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
@@ -42,15 +42,15 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 ws.spectral_radiance_transform_operatorSet(option="Tb")
 ws.spectral_radiance_surface_agendaSet(option="SurfaceReflectance")
-ws.surface_reflectance_agendaSet(option="FlatScalar")
+ws.spectral_surf_refl_agendaSet(option="FlatScalar")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Surface
 
 ts = 295.0
 rs = 0.5
-ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surf_field["t"] = ts
+ws.surf_field["flat scalar reflectance"] = rs
 
 pos = [110e3, 0, 0]
 los = [160.0, 30.0]
@@ -66,14 +66,14 @@ fail = True
 
 print("Retrieving temperature")
 for i in range(LIMIT):
-    ws.surface_field["t"] = ts
+    ws.surf_field["t"] = ts
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["t"] = ts + 30
+    ws.surf_field["t"] = ts + 30
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -99,8 +99,8 @@ print("Temperature retrieval successful\n")
 
 # %% Artificial Surface Reset
 
-ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surf_field["t"] = ts
+ws.surf_field["flat scalar reflectance"] = rs
 
 # %% Retrieval agenda
 
@@ -114,14 +114,14 @@ fail = True
 
 print("Retrieving flat scalar reflectance")
 for i in range(LIMIT):
-    ws.surface_field["flat scalar reflectance"] = rs
+    ws.surf_field["flat scalar reflectance"] = rs
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["flat scalar reflectance"] = rs + 0.3
+    ws.surf_field["flat scalar reflectance"] = rs + 0.3
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
@@ -147,8 +147,8 @@ print("Flat scalar reflectance retrieval successful\n")
 
 # %% Artificial Surface Reset
 
-ws.surface_field["t"] = ts
-ws.surface_field["flat scalar reflectance"] = rs
+ws.surf_field["t"] = ts
+ws.surf_field["flat scalar reflectance"] = rs
 
 # %% Retrieval agenda
 
@@ -166,16 +166,16 @@ fail = True
 print("Retrieving flat scalar reflectance and temperature")
 ATOL = 10
 for i in range(LIMIT):
-    ws.surface_field["t"] = ts
-    ws.surface_field["flat scalar reflectance"] = rs
+    ws.surf_field["t"] = ts
+    ws.surf_field["flat scalar reflectance"] = rs
     ws.measurement_vectorFromSensor()
 
     ws.measurement_vector_fitted = []
     ws.model_state_vector = []
     ws.measurement_jacobian = [[]]
 
-    ws.surface_field["t"] = ts + 35
-    ws.surface_field["flat scalar reflectance"] = rs + 0.3
+    ws.surf_field["t"] = ts + 35
+    ws.surf_field["flat scalar reflectance"] = rs + 0.3
     ws.model_state_vector_aprioriFromData()
 
     ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

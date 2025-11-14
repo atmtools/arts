@@ -24,22 +24,19 @@ void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
 
 void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
                               const AtmField& atm_field,
-                              const SurfaceField& surface_field,
-                              const SubsurfaceField& subsurface_field,
+                              const SurfaceField& surf_field,
+                              const SubsurfaceField& subsurf_field,
                               const AbsorptionBands& abs_bands,
                               const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
-  jacobian_targets.finalize(atm_field,
-                            surface_field,
-                            subsurface_field,
-                            abs_bands,
-                            measurement_sensor);
+  jacobian_targets.finalize(
+      atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
 }
 
 void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,

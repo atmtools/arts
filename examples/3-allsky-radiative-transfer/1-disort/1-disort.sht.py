@@ -93,8 +93,8 @@ z_field = load(prefix + "z_field.xml")
 vmr_field = load(prefix + "vmr_field.xml")
 pbf_field = load(prefix + "particle_bulkprop_field.xml")
 pbf_names = load(prefix + "particle_bulkprop_names.xml")
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
 
 lat_grid = np.array([0.0])
 lon_grid = np.array([0.0])

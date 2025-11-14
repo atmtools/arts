@@ -22,10 +22,10 @@ class AtmosphericFlux:
 
     def __init__(
         self,
-        visible_surface_reflectivity: float = 0.3,
-        thermal_surface_reflectivity: float = 0.05,
+        visible_surf_reflectivity: float = 0.3,
+        thermal_surf_reflectivity: float = 0.05,
         atmospheric_altitude: float = 50e3,
-        surface_temperature: float = 300.0,
+        surf_temperature: float = 300.0,
         max_level_step: float = 1e3,
         NQuad: int = 16,
         atm_latitude: float = 0.0,
@@ -41,10 +41,10 @@ class AtmosphericFlux:
         The operator allows you to change the
 
         Args:
-            visible_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in visible. Defaults to 0.3.
-            thermal_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in thermal. Defaults to 0.05.
+            visible_surf_reflectivity (float, optional): The surface reflectivity constant for Disort in visible. Defaults to 0.3.
+            thermal_surf_reflectivity (float, optional): The surface reflectivity constant for Disort in thermal. Defaults to 0.05.
             atmospheric_altitude (float, optional): The top-of-the-atmosphere altitude [m]. Defaults to 50e3.
-            surface_temperature (float, optional): The surface temperature [K]. Defaults to 300.0.
+            surf_temperature (float, optional): The surface temperature [K]. Defaults to 300.0.
             max_level_step (float, optional): The maximum thickness of layers [m]. Defaults to 1e3.
             NQuad (int, optional): The number of quadratures used by Disort. Defaults to 16.
             atm_latitude (float, optional): Latitude of profile [degrees]. Defaults to 0.0.
@@ -55,8 +55,8 @@ class AtmosphericFlux:
             remove_lines_percentile (dict | float | None, optional): The percentile of lines to remove [0, 100].  Per species if dict. Defaults to None.
         """
 
-        self.visible_surface_reflectivity = visible_surface_reflectivity
-        self.thermal_surface_reflectivity = thermal_surface_reflectivity
+        self.visible_surf_reflectivity = visible_surf_reflectivity
+        self.thermal_surf_reflectivity = thermal_surf_reflectivity
 
         self.ws = pyarts.Workspace()
 
@@ -77,8 +77,8 @@ class AtmosphericFlux:
 
         self.ws.propagation_matrix_agendaAuto()
 
-        self.ws.surface_fieldPlanet(option="Earth")
-        self.ws.surface_field["t"] = surface_temperature
+        self.ws.surf_fieldPlanet(option="Earth")
+        self.ws.surf_field["t"] = surf_temperature
         self.ws.abs_bandsSelectFrequencyByLine(fmin=40e9)
 
         self.ws.atm_fieldRead(
@@ -142,20 +142,20 @@ class AtmosphericFlux:
     def __call__(
         self,
         atm_profile: dict = {},
-        surface_temperature: float = None,
+        surf_temperature: float = None,
     ):
         """Get the total flux profile
 
         Args:
             atm_profile (dict, optional): A dictionary of atmospheric data. Defaults to {}.
-            surface_temperature (float, optional): A surface temperature. Defaults to None.
+            surf_temperature (float, optional): A surface temperature. Defaults to None.
 
         Returns:
             Flux, Flux, numpy.ndarray: The solar and thermal fluxes and the center altitudes of the layers.
         """
 
-        if surface_temperature is not None:
-            self.ws.surface_field["t"] = surface_temperature
+        if surf_temperature is not None:
+            self.ws.surf_field["t"] = surf_temperature
 
         self.ws.ray_path_atm_point.update(atm_profile)
 
@@ -165,9 +165,9 @@ class AtmosphericFlux:
             layer_emission_setting="None",
             scattering_setting="None",
             space_setting="None",
-            surface_setting="Lambertian",
+            surf_setting="Lambertian",
             sun_setting="Sun",
-            surface_lambertian_value=self.visible_surface_reflectivity *
+            surf_lambertian_value=self.visible_surf_reflectivity *
             np.ones_like(self.visf)
         )
         self.ws.disort_spectral_flux_fieldFromAgenda()
@@ -185,9 +185,9 @@ class AtmosphericFlux:
             layer_emission_setting="LinearInTau",
             scattering_setting="None",
             space_setting="CosmicMicrowaveBackgroundRadiation",
-            surface_setting="ThermalLambertian",
+            surf_setting="ThermalLambertian",
             sun_setting="None",
-            surface_lambertian_value=self.thermal_surface_reflectivity *
+            surf_lambertian_value=self.thermal_surf_reflectivity *
             np.ones_like(self.visf)
         )
         self.ws.disort_spectral_flux_fieldFromAgenda()

@@ -19,8 +19,8 @@ ws.atm_field["CO2"] = 0.0
 ws.atm_field["H2"] = 0.0
 ws.atm_field["He"] = 0.0
 
-ws.surface_fieldGanymede()
-ws.surface_field["t"] = ws.atm_field["t"].data[0, 0, 0]
+ws.surf_fieldGanymede()
+ws.surf_field["t"] = ws.atm_field["t"].data[0, 0, 0]
 
 line_f0 = 556936000000.0
 ws.freq_grid = np.linspace(-5e6, 5e6, 11) + line_f0

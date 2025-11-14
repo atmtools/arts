@@ -5,7 +5,7 @@ import numpy as np
 ws = pyarts.Workspace()
 
 ws.atm_fieldInit(toa=100e3)
-ws.surface_fieldEarth()
+ws.surf_fieldEarth()
 ws.ray_path_observer_agendaSetGeometric()
 
 ws2 = ws.ray_path_observer_agendaExecute(

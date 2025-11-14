@@ -5,17 +5,17 @@
 #include <exception>
 #include <ranges>
 
-void subsurface_profileFromPath(ArrayOfSubsurfacePoint& subsurface_profile,
-                                const SubsurfaceField& subsurface_field,
-                                const ArrayOfPropagationPathPoint& ray_path) {
+void subsurf_profileFromPath(ArrayOfSubsurfacePoint& subsurf_profile,
+                             const SubsurfaceField& subsurf_field,
+                             const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   const auto to_vec3 = stdv::transform([](const auto& p) { return p.pos; });
 
   const auto extract = stdv::transform(
-      [&](Vector3 pos) { return subsurface_field.at(pos[0], pos[1], pos[2]); });
+      [&](Vector3 pos) { return subsurf_field.at(pos[0], pos[1], pos[2]); });
 
-  subsurface_profile =
+  subsurf_profile =
       ray_path | to_vec3 | extract | stdr::to<ArrayOfSubsurfacePoint>();
 }
 
@@ -39,8 +39,8 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& freq_grid,
     const AtmField& atm_field_,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field_,
+    const SubsurfaceField& subsurf_field_,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
     const Index& disort_quadrature_dimension,
@@ -52,9 +52,9 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field_.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field_.ellipsoid)
 
   DisortSettings disort_settings                = {};
   ArrayOfPropagationPathPoint ray_path          = {};
@@ -64,8 +64,8 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   Vector model_state_vector_perturbation        = {};
   StokvecVector spectral_radiance2              = {};
   AtmField atm_field                            = atm_field_;
-  SurfaceField surf_field                       = surface_field;
-  SubsurfaceField subsurf_field                 = subsurface_field;
+  SurfaceField surf_field                       = surf_field_;
+  SubsurfaceField subsurf_field                 = subsurf_field_;
   const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
 
   spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
@@ -86,8 +86,8 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       disort_settings_downwelling_wrapper_agenda,
       freq_grid,
       ray_path_point,
-      subsurface_field,
-      surface_field,
+      subsurf_field,
+      surf_field,
       depth_profile,
       azimuth_grid);
 
@@ -97,9 +97,9 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   model_state_vectorFromAtmosphere(
       model_state_vector, atm_field, jacobian_targets);
   model_state_vectorFromSurface(
-      model_state_vector, surface_field, jacobian_targets);
+      model_state_vector, surf_field, jacobian_targets);
   model_state_vectorFromSubsurface(
-      model_state_vector, subsurface_field, jacobian_targets);
+      model_state_vector, subsurf_field, jacobian_targets);
 
   ARTS_USER_ERROR_IF(
       model_state_vector.size() != jacobian_targets.x_size() or
@@ -130,9 +130,9 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       const Numeric orig     = model_state_vector[i];
       model_state_vector[i] += model_state_vector_perturbation[i];
 
-      surface_fieldFromModelState(
+      surf_fieldFromModelState(
           surf_field, model_state_vector, jacobian_targets);
-      subsurface_fieldFromModelState(
+      subsurf_fieldFromModelState(
           subsurf_field, model_state_vector, jacobian_targets);
       atm_fieldFromModelState(atm_field, model_state_vector, jacobian_targets);
 

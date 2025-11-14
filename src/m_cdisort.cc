@@ -27,7 +27,7 @@ void setup_cdisort(disort_state& ds,
                    const Vector& phis,
                    const DisortSettings& disort_settings,
                    const disort::main_data& dis,
-                   const Numeric surface_temperature,
+                   const Numeric surf_temperature,
                    const bool intensity_correction = false) {
   // solar dependent properties if no sun is present
   // Number of azimuth angles
@@ -100,7 +100,7 @@ void setup_cdisort(disort_state& ds,
 
   // Top of the atmosphere temperature and emissivity
   ds.bc.ttemp = Constant::cosmic_microwave_background_temperature;
-  ds.bc.btemp = surface_temperature;
+  ds.bc.btemp = surf_temperature;
   ds.bc.temis = 1.;
 }
 
@@ -210,7 +210,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
     const ArrayOfAtmPoint& ray_path_atm_point,
     const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfPropagationPathPoint& ray_path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const AzimuthGrid& phis) {
   ARTS_TIME_REPORT
 
@@ -220,10 +220,10 @@ void disort_spectral_radiance_fieldCalcCdisort(
 
   disort_quadrature = dis.gridded_weights();
 
-  const Numeric surface_temperature =
-      surface_field.single_value(SurfaceKey::t,
-                                 ray_path[ray_path.size() - 1].latitude(),
-                                 ray_path[ray_path.size() - 1].longitude());
+  const Numeric surf_temperature =
+      surf_field.single_value(SurfaceKey::t,
+                              ray_path[ray_path.size() - 1].latitude(),
+                              ray_path[ray_path.size() - 1].longitude());
 
   disort_spectral_radiance_field.resize(disort_settings.freq_grid,
                                         disort_settings.alt_grid,
@@ -231,7 +231,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
                                         disort_quadrature.grid<0>());
 
   disort_state ds;
-  setup_cdisort(ds, phis, disort_settings, dis, surface_temperature);
+  setup_cdisort(ds, phis, disort_settings, dis, surf_temperature);
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis, ds)
