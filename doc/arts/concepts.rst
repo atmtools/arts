@@ -15,4 +15,3 @@ The subsections below are given in no particular order.
    concept.radiative_transfer
    concept.oem
    concept.physical_grids
-   concept.shortnames

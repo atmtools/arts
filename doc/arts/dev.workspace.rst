@@ -9,3 +9,4 @@ Workspace
    dev.workspace.methods
    dev.workspace.options
    dev.workspace.variables
+   dev.workspace.shortnames.auto
