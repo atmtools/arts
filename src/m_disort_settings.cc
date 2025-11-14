@@ -154,10 +154,10 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, ray_path_atm_point, freq_grid);
+      disort_settings, atm_point_path, freq_grid);
 }
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
@@ -170,7 +170,7 @@ void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
@@ -178,7 +178,7 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
   ARTS_TIME_REPORT
 
   const Size nv = freq_grid.size();
-  const Size N  = ray_path_atm_point.size();
+  const Size N  = atm_point_path.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -191,16 +191,16 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
       disort_settings.optical_thicknesses.shape());
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_atm_point,
+      not arr::same_size(atm_point_path,
                          ray_path_propagation_matrix,
                          ray_path_propagation_matrix_source_vector_nonlte),
       R"(Not same size:
 
-ray_path_atm_point.size():   {}
+atm_point_path.size():   {}
 ray_path_propagation_matrix.size():  {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-      ray_path_atm_point.size(),
+      atm_point_path.size(),
       ray_path_propagation_matrix.size(),
       ray_path_propagation_matrix_source_vector_nonlte.size());
 
@@ -220,8 +220,8 @@ ray_path_source_vector_nonlte.size(): {}
     const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_atm_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atm_point[i + 1].temperature;
+      const Numeric& t0 = atm_point_path[i + 0].temperature;
+      const Numeric& t1 = atm_point_path[i + 1].temperature;
 
       const Muelmat invK0 = inv(ray_path_propagation_matrix[i + 0][iv]);
       const Muelmat invK1 = inv(ray_path_propagation_matrix[i + 1][iv]);
@@ -829,7 +829,7 @@ Agenda disort_settings_agendaSetup(
   agenda.add("jac_targetsOff");
 
   // Clearsky absorption
-  agenda.add("ray_path_atm_pointFromPath");
+  agenda.add("atm_point_pathFromPath");
   agenda.add("freq_grid_pathFromPath");
   agenda.add("ray_path_propagation_matrixFromPath");
 

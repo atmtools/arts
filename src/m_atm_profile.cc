@@ -46,7 +46,7 @@ void atm_profileFromGrid(ArrayOfAtmPoint &atm_profile,
   atm_profileExtract(atm_profile, atm_field, alt_grid, latitude, longitude);
 }
 
-void ray_path_atm_pointFromProfile(ArrayOfAtmPoint &ray_path_atm_point,
-                                   const ArrayOfAtmPoint &atm_profile) {
-  ray_path_atm_point = atm_profile;
+void atm_point_pathFromProfile(ArrayOfAtmPoint &atm_point_path,
+                               const ArrayOfAtmPoint &atm_profile) {
+  atm_point_path = atm_profile;
 }

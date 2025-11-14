@@ -206,14 +206,14 @@ ARTS_METHOD_ERROR_CATCH
 QuantumIdentifierVectorMap createCij(
     const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfAtmPoint& ray_path_atm_point) try {
+    const ArrayOfAtmPoint& atm_point_path) try {
   QuantumIdentifierVectorMap Cij(abs_bands.size());
   for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& coll = collision_data.at(key);
     Vector& x        = Cij[key];
 
-    for (auto& atm_point : ray_path_atm_point) {
+    for (auto& atm_point : atm_point_path) {
       const auto numden = atm_point.number_density(key.isot);
 
       x.push_back(interp(coll.data, coll.lag<0, 1>(atm_point.temperature)) *
@@ -228,7 +228,7 @@ ARTS_METHOD_ERROR_CATCH
 QuantumIdentifierVectorMap createCji(
     const QuantumIdentifierVectorMap& Cij,
     const AbsorptionBands& abs_bands,
-    const ArrayOfAtmPoint& ray_path_atm_point) try {
+    const ArrayOfAtmPoint& atm_point_path) try {
   using Constant::h, Constant::k;
 
   QuantumIdentifierVectorMap Cji(Cij);
@@ -237,8 +237,8 @@ QuantumIdentifierVectorMap createCji(
     const auto& line = data.lines.front();
 
     auto& cji = Cji.at(key);
-    for (Size i = 0; i < ray_path_atm_point.size(); i++) {
-      const Numeric dkT  = 1.0 / (k * ray_path_atm_point[i].temperature);
+    for (Size i = 0; i < atm_point_path.size(); i++) {
+      const Numeric dkT  = 1.0 / (k * atm_point_path[i].temperature);
       cji[i]            *= std::exp(-h * line.f0 * dkT) * line.gu / line.gl;
     }
   }
@@ -247,11 +247,11 @@ QuantumIdentifierVectorMap createCji(
 }
 ARTS_METHOD_ERROR_CATCH
 
-Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atm_point,
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& atm_point_path,
                       const ArrayOfQuantumLevelIdentifier& levels) try {
   return Vector(
       std::from_range,
-      ray_path_atm_point | stdv::transform([&levels](const AtmPoint& atm) {
+      atm_point_path | stdv::transform([&levels](const AtmPoint& atm) {
         Numeric s{0.0};
         for (auto& x : levels) s += atm.nlte.at(x);
         return s;

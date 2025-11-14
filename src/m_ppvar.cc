@@ -13,18 +13,18 @@
 void ray_path_zeeman_magnetic_fieldFromPath(
     ArrayOfVector3 &ray_path_zeeman_magnetic_field,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atm_point) try {
+    const ArrayOfAtmPoint &atm_point_path) try {
   ARTS_TIME_REPORT
 
-  const Size np = ray_path_atm_point.size();
+  const Size np = atm_point_path.size();
   ARTS_USER_ERROR_IF(np != ray_path.size(),
-                     "ray_path and ray_path_atm_point must have the same size")
+                     "ray_path and atm_point_path must have the same size")
 
   ray_path_zeeman_magnetic_field.resize(np);
 
   std::transform(ray_path.begin(),
                  ray_path.end(),
-                 ray_path_atm_point.begin(),
+                 atm_point_path.begin(),
                  ray_path_zeeman_magnetic_field.begin(),
                  [](const auto &p, const auto &a) -> Vector3 {
                    using Conversion::rad2deg;
@@ -42,13 +42,13 @@ void ray_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfPropmatMatrix &ray_path_propagation_matrix_jacobian,
     const ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
     const ArrayOfAscendingGrid &freq_grid_path,
-    const ArrayOfAtmPoint &ray_path_atm_point,
+    const ArrayOfAtmPoint &atm_point_path,
     const JacobianTargets &jac_targets) try {
   ARTS_TIME_REPORT
 
   String error{};
 
-  const Index np = ray_path_atm_point.size();
+  const Index np = atm_point_path.size();
   if (np == 0) {
     ray_path_spectral_radiance_source.resize(0);
     ray_path_spectral_radiance_source_jacobian.resize(0);
@@ -83,7 +83,7 @@ void ray_path_spectral_radiance_sourceFromPropmat(
           ray_path_propagation_matrix_jacobian[ip],
           ray_path_source_vector_nonlte_jacobian[ip],
           freq_grid_path[ip],
-          ray_path_atm_point[ip].temperature,
+          atm_point_path[ip].temperature,
           it);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
@@ -95,13 +95,13 @@ void ray_path_spectral_radiance_sourceFromPropmat(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_atm_pointFromPath(ArrayOfAtmPoint &ray_path_atm_point,
-                                const ArrayOfPropagationPathPoint &ray_path,
-                                const AtmField &atm_field) try {
+void atm_point_pathFromPath(ArrayOfAtmPoint &atm_point_path,
+                            const ArrayOfPropagationPathPoint &ray_path,
+                            const AtmField &atm_field) try {
   ARTS_TIME_REPORT
 
   forward_atm_path(
-      atm_path_resize(ray_path_atm_point, ray_path), ray_path, atm_field);
+      atm_path_resize(atm_point_path, ray_path), ray_path, atm_field);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -109,7 +109,7 @@ void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
                             ArrayOfVector3 &freq_wind_shift_jac_path,
                             const AscendingGrid &freq_grid,
                             const ArrayOfPropagationPathPoint &ray_path,
-                            const ArrayOfAtmPoint &ray_path_atm_point) try {
+                            const ArrayOfAtmPoint &atm_point_path) try {
   ARTS_TIME_REPORT
 
   std::string error;
@@ -122,7 +122,7 @@ void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
     try {
       freq_gridWindShift(freq_grid_path[ip] = freq_grid,
                          freq_wind_shift_jac_path[ip],
-                         ray_path_atm_point[ip],
+                         atm_point_path[ip],
                          ray_path[ip]);
     } catch (std::exception &e) {
 #pragma omp critical

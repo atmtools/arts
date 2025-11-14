@@ -51,15 +51,15 @@ void ray_path_spectral_radianceClearskyEmission(
       subsurf_field,
       spectral_radiance_space_agenda,
       spectral_radiance_surface_agenda);
-  ArrayOfAtmPoint ray_path_atm_point;
-  ray_path_atm_pointFromPath(ray_path_atm_point, ray_path, atm_field);
+  ArrayOfAtmPoint atm_point_path;
+  atm_point_pathFromPath(atm_point_path, ray_path, atm_field);
   ArrayOfAscendingGrid freq_grid_path;
   ArrayOfVector3 freq_wind_shift_jac_path;
   freq_grid_pathFromPath(freq_grid_path,
                          freq_wind_shift_jac_path,
                          freq_grid,
                          ray_path,
-                         ray_path_atm_point);
+                         atm_point_path);
   ArrayOfPropmatVector ray_path_propagation_matrix;
   ArrayOfStokvecVector ray_path_propagation_matrix_source_vector_nonlte;
   ArrayOfPropmatMatrix ray_path_propagation_matrix_jacobian;
@@ -76,7 +76,7 @@ void ray_path_spectral_radianceClearskyEmission(
       freq_wind_shift_jac_path,
       {},
       ray_path,
-      ray_path_atm_point);
+      atm_point_path);
   ArrayOfMuelmatVector ray_path_transmission_matrix;
   ArrayOfMuelmatTensor3 ray_path_transmission_matrix_jacobian;
   ray_path_transmission_matrixFromPath(ray_path_transmission_matrix,
@@ -84,7 +84,7 @@ void ray_path_spectral_radianceClearskyEmission(
                                        ray_path_propagation_matrix,
                                        ray_path_propagation_matrix_jacobian,
                                        ray_path,
-                                       ray_path_atm_point,
+                                       atm_point_path,
                                        surf_field,
                                        {},
                                        0);
@@ -98,7 +98,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_propagation_matrix_jacobian,
       ray_path_propagation_matrix_source_vector_nonlte_jacobian,
       freq_grid_path,
-      ray_path_atm_point,
+      atm_point_path,
       {});
   ray_path_spectral_radianceStepByStepEmissionForwardOnly(
       ray_path_spectral_radiance,
@@ -237,7 +237,7 @@ void nlte_line_flux_profileIntegrate(
     QuantumIdentifierVectorMap& nlte_line_flux_profile,
     const Matrix& spectral_flux_profile,
     const AbsorptionBands& abs_bands,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
@@ -248,7 +248,7 @@ void nlte_line_flux_profileIntegrate(
                      "Frequency grid and spectral flux profile size mismatch")
 
   ARTS_USER_ERROR_IF(
-      ray_path_atm_point.size() != K,
+      atm_point_path.size() != K,
       "Atmospheric point and spectral flux profile size mismatch");
 
   nlte_line_flux_profile.clear();
@@ -264,7 +264,7 @@ void nlte_line_flux_profileIntegrate(
       lbl::compute_voigt(weighted_spectral_flux_profile[k],
                          band.lines.front(),
                          freq_grid,
-                         ray_path_atm_point[k],
+                         atm_point_path[k],
                          key.isot.mass);
     }
 

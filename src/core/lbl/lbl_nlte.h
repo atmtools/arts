@@ -27,13 +27,13 @@ QuantumIdentifierNumericMap createBji(const QuantumIdentifierNumericMap& Bij,
 QuantumIdentifierVectorMap createCij(
     const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfAtmPoint& ray_path_atm_point);
+    const ArrayOfAtmPoint& atm_point_path);
 
 QuantumIdentifierVectorMap createCji(const QuantumIdentifierVectorMap& Cij,
                                      const AbsorptionBands& abs_bands,
-                                     const ArrayOfAtmPoint& ray_path_atm_point);
+                                     const ArrayOfAtmPoint& atm_point_path);
 
-Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atm_point,
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& atm_point_path,
                       const ArrayOfQuantumLevelIdentifier& levels);
 
 struct UppLow {
