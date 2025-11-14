@@ -731,62 +731,60 @@ dispersion_jacobian:         {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_matrix_singleInit(
-    Propmat& propagation_matrix_single,
-    PropmatVector& propagation_matrix_single_jacobian,
-    Stokvec& propagation_matrix_single_source_vector_nonlte,
-    StokvecVector& propagation_matrix_single_source_vector_nonlte_jacobian,
-    Numeric& dispersion_single,
-    Vector& dispersion_single_jacobian,
-    const JacobianTargets& jacobian_targets) try {
+void single_propmatInit(Propmat& single_propmat,
+                        PropmatVector& single_propmat_jac,
+                        Stokvec& single_nlte_srcvec,
+                        StokvecVector& single_nlte_srcvec_jac,
+                        Numeric& single_dispersion,
+                        Vector& single_dispersion_jac,
+                        const JacobianTargets& jacobian_targets) try {
   ARTS_TIME_REPORT
 
   const Size nt = jacobian_targets.target_count();
 
-  propagation_matrix_single = Propmat{};
-  propagation_matrix_single_jacobian.resize(nt);
-  propagation_matrix_single_jacobian = Propmat{};
+  single_propmat = Propmat{};
+  single_propmat_jac.resize(nt);
+  single_propmat_jac = Propmat{};
 
-  propagation_matrix_single_source_vector_nonlte = Stokvec{};
-  propagation_matrix_single_source_vector_nonlte_jacobian.resize(nt);
-  propagation_matrix_single_source_vector_nonlte_jacobian = Stokvec{};
+  single_nlte_srcvec = Stokvec{};
+  single_nlte_srcvec_jac.resize(nt);
+  single_nlte_srcvec_jac = Stokvec{};
 
-  dispersion_single = 0;
-  dispersion_single_jacobian.resize(nt);
-  dispersion_single_jacobian = 0;
+  single_dispersion = 0;
+  single_dispersion_jac.resize(nt);
+  single_dispersion_jac = 0;
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_matrix_singleAddVoigtLTE(
-    Propmat& propagation_matrix_single,
-    PropmatVector& propagation_matrix_single_jacobian,
-    Numeric& dispersion_single,
-    Vector& dispersion_single_jacobian,
-    const Numeric& frequency,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesEnum& species,
-    const AbsorptionBands& abs_bands,
-    const AtmPoint& atm_point,
-    const PropagationPathPoint& path_point,
-    const Index& no_negative_absorption) try {
+void single_propmatAddVoigtLTE(Propmat& single_propmat,
+                               PropmatVector& single_propmat_jac,
+                               Numeric& single_dispersion,
+                               Vector& single_dispersion_jac,
+                               const Numeric& frequency,
+                               const JacobianTargets& jacobian_targets,
+                               const SpeciesEnum& species,
+                               const AbsorptionBands& abs_bands,
+                               const AtmPoint& atm_point,
+                               const PropagationPathPoint& path_point,
+                               const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   const Size nt = jacobian_targets.target_count();
 
   //! FIXME: these should be part of workspace once things work
-  dispersion_single = 0;
-  dispersion_single_jacobian.resize(nt);
-  dispersion_single_jacobian = 0;
+  single_dispersion = 0;
+  single_dispersion_jac.resize(nt);
+  single_dispersion_jac = 0;
 
-  ARTS_USER_ERROR_IF(propagation_matrix_single_jacobian.shape() !=
-                         dispersion_single_jacobian.shape(),
-                     R"(Inconsistent shapes:
+  ARTS_USER_ERROR_IF(
+      single_propmat_jac.shape() != single_dispersion_jac.shape(),
+      R"(Inconsistent shapes:
 
-propagation_matrix_single_jacobian: {:B,}
-dispersion_single_jacobian:         {:B,}
+single_propmat_jac: {:B,}
+single_dispersion_jac:         {:B,}
 )",
-                     propagation_matrix_single_jacobian.shape(),
-                     dispersion_single_jacobian.shape());
+      single_propmat_jac.shape(),
+      single_dispersion_jac.shape());
 
   Complex pm_(0.0);
   ComplexVector dpm_(nt, 0.0);
@@ -794,11 +792,11 @@ dispersion_single_jacobian:         {:B,}
   ComplexVectorView pm(pm_);
   ComplexMatrixView dpm = dpm_.view_as(nt, 1);
   const ConstVectorView frequency_grid(frequency);
-  PropmatVectorView propagation_matrix{propagation_matrix_single};
+  PropmatVectorView propagation_matrix{single_propmat};
   PropmatMatrixView propagation_matrix_jacobian{
-      propagation_matrix_single_jacobian.view_as(nt, 1)};
-  VectorView dispersion{dispersion_single};
-  MatrixView dispersion_jacobian{dispersion_single_jacobian.view_as(nt, 1)};
+      single_propmat_jac.view_as(nt, 1)};
+  VectorView dispersion{single_dispersion};
+  MatrixView dispersion_jacobian{single_dispersion_jac.view_as(nt, 1)};
 
   bool has_zeeman = lbl::voigt::lte::calculate(pm,
                                                dpm,

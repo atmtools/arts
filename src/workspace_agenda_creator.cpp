@@ -202,32 +202,30 @@ Agenda get_disort_settings_downwelling_wrapper_agenda(
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_single_spectral_radiance_space_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("single_spectral_radiance_space_agenda");
+Agenda get_single_rad_space_agenda(const std::string_view option) {
+  AgendaCreator agenda("single_rad_space_agenda");
 
-  using enum single_spectral_radiance_space_agendaPredefined;
-  switch (to<single_spectral_radiance_space_agendaPredefined>(option)) {
+  using enum single_rad_space_agendaPredefined;
+  switch (to<single_rad_space_agendaPredefined>(option)) {
     case WrapGrid:
       agenda.add("frequency_gridFromSingleFrequency");
       agenda.add("spectral_radiance_space_agendaExecute");
-      agenda.add("single_spectral_radianceFromVector");
+      agenda.add("single_radFromVector");
       break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_single_spectral_radiance_surface_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("single_spectral_radiance_surface_agenda");
+Agenda get_single_rad_surface_agenda(const std::string_view option) {
+  AgendaCreator agenda("single_rad_surface_agenda");
 
-  using enum single_spectral_radiance_surface_agendaPredefined;
-  switch (to<single_spectral_radiance_surface_agendaPredefined>(option)) {
+  using enum single_rad_surface_agendaPredefined;
+  switch (to<single_rad_surface_agendaPredefined>(option)) {
     case WrapGrid:
       agenda.add("frequency_gridFromSingleFrequency");
       agenda.add("spectral_radiance_surface_agendaExecute");
-      agenda.add("single_spectral_radianceFromVector");
+      agenda.add("single_radFromVector");
       break;
   }
 

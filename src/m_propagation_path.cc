@@ -381,7 +381,7 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
                                   const AtmField& atm_field,
                                   const SurfaceField& surface_field,
                                   const Numeric& max_stepsize,
-                                  const Numeric& dispersion_single,
+                                  const Numeric& single_dispersion,
                                   const Numeric& safe_search_accuracy,
                                   const Index& search_safe) {
   ARTS_TIME_REPORT
@@ -396,9 +396,9 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
 
   PropagationPathPoint future = ray_path.back();
   future.zenith() =
-      acosd((future.nreal / (1.0 + dispersion_single)) * cosd(future.zenith()));
+      acosd((future.nreal / (1.0 + single_dispersion)) * cosd(future.zenith()));
 
-  future.nreal = 1 + dispersion_single;
+  future.nreal = 1 + single_dispersion;
 
   ray_path_point = past_geometric(future,
                                   atm_field,

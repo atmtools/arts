@@ -30,6 +30,8 @@ workspace_variables_shortnames_impl() {
   shortnames["obs"]     = {.desc = "Observers"};
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};
+  shortnames["dim"]     = {.desc = "Dimension"};
+  shortnames["quad"]    = {.desc = "Quadrature"};
 
   shortnames["alt"] = {
       .desc  = "Altitude",
@@ -67,7 +69,8 @@ workspace_variables_shortnames_impl() {
   };
 
   shortnames["field"] = {
-      .desc  = "Contiguous values defined along one or more dimensions.  May be ungridded.",
+      .desc =
+          "Contiguous values defined along one or more dimensions.  May be ungridded.",
       .title = "Gridded",
   };
 

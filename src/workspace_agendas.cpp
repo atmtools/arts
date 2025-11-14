@@ -54,7 +54,7 @@ calculations that are happening deep in your ARTS method calls.
           },
   };
 
-  wsa_data["propagation_matrix_single_agenda"] = {
+  wsa_data["single_propmat_agenda"] = {
       .desc =
           R"--(Computes the propagation matrix, the non-LTE source vector, the dispersion, and their derivatives.
 
@@ -65,12 +65,12 @@ in question here only compute a single frequency point at a time.
 If you do not need single-frequency-point calculations, consider using
 *propagation_matrix_agenda* instead as it will likely be more efficient.
 )--",
-      .output = {"propagation_matrix_single",
-                 "propagation_matrix_single_source_vector_nonlte",
-                 "dispersion_single",
-                 "propagation_matrix_single_jacobian",
-                 "propagation_matrix_single_source_vector_nonlte_jacobian",
-                 "dispersion_single_jacobian"},
+      .output = {"single_propmat",
+                 "single_nlte_srcvec",
+                 "single_dispersion",
+                 "single_propmat_jac",
+                 "single_nlte_srcvec_jac",
+                 "single_dispersion_jac"},
       .input  = {"frequency",
                  "frequency_wind_shift_jacobian",
                  "jacobian_targets",
@@ -144,7 +144,7 @@ position and line of sight.
 
 *ray_path* must have a point already.  This point is propagated backwards.
 
-It is up to internal methods if they respect *dispersion_single* or not.
+It is up to internal methods if they respect *single_dispersion* or not.
 
 It is up to internal methods if they respect *max_stepsize* or not.
 
@@ -156,8 +156,8 @@ at *PathPositionType* ``space`` or ``surface``.
 )--",
       .output       = {"ray_path_point"},
       .input        = {"ray_path",
-                       "dispersion_single",
-                       "propagation_matrix_single",
+                       "single_dispersion",
+                       "single_propmat",
                        "max_stepsize"},
       .enum_options = {"GeometricStepwise", "RefractiveStepwise"},
       .enum_default = "GeometricStepwise",
@@ -198,14 +198,13 @@ is warranted.
           },
   };
 
-  wsa_data["single_spectral_radiance_space_agenda"] = {
+  wsa_data["single_rad_space_agenda"] = {
       .desc =
           R"--(Gets spectral radiance as seen of space for a single frequency.
 
 Otherwise same as *spectral_radiance_space_agenda*.
 )--",
-      .output       = {"single_spectral_radiance",
-                       "single_spectral_radiance_jacobian"},
+      .output       = {"single_rad", "single_rad_jac"},
       .input        = {"frequency", "jacobian_targets", "ray_path_point"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
@@ -269,14 +268,13 @@ as well.
            "jacobian_targets.x_size()"},
       }};
 
-  wsa_data["single_spectral_radiance_surface_agenda"] = {
+  wsa_data["single_rad_surface_agenda"] = {
       .desc =
           R"--(Gets spectral radiance as seen of the surface for a single frequency.
 
 Otherwise same as *spectral_radiance_surface_agenda*.
 )--",
-      .output       = {"single_spectral_radiance",
-                       "single_spectral_radiance_jacobian"},
+      .output       = {"single_rad", "single_rad_jac"},
       .input        = {"frequency",
                        "jacobian_targets",
                        "ray_path_point",
