@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "subsurface_field.h"
+#include "subsurf_field.h"
 
 template <>
 struct xml_io_stream<SubsurfaceField> {

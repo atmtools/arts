@@ -1,4 +1,4 @@
-#include "xml_subsurface.h"
+#include "xml_subsurf.h"
 
 void xml_io_stream<SubsurfaceField>::write(std::ostream& os,
                                            const SubsurfaceField& x,

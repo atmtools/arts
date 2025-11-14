@@ -36,7 +36,7 @@ def ops(ws, op):
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
     for key in ws.jacobian_targets.surf:
-        data = np.asarray(ws.surface_field[key.type].data)
+        data = np.asarray(ws.surf_field[key.type].data)
         x = op(x, data.flatten(), key.x_start, key.x_size)
 
     for key in ws.jacobian_targets.line:
@@ -52,9 +52,9 @@ ws.measurement_sensor = []
 ws.jacobian_targetsInit()
 
 ws.atm_fieldInit(toa=toa)
-ws.surface_fieldEarth()
-ws.surface_field["t"] = 295
-ws.surface_field["h"] = pyarts.arts.GeodeticField2(
+ws.surf_fieldEarth()
+ws.surf_field["t"] = 295
+ws.surf_field["h"] = pyarts.arts.GeodeticField2(
     data=2 + np.random.random((nlat, nlon)),
     name="Elevation",
     grids=(

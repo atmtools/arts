@@ -628,8 +628,8 @@ bool is_mag(const AtmTarget& t) {
 }
 
 void Targets::finalize(const AtmField& atm_field,
-                       const SurfaceField& surface_field,
-                       const SubsurfaceField& subsurface_field,
+                       const SurfaceField& surf_field,
+                       const SubsurfaceField& subsurf_field,
                        const AbsorptionBands&,
                        const ArrayOfSensorObsel& measurement_sensor) {
   const Size natm     = atm.size();
@@ -682,7 +682,7 @@ void Targets::finalize(const AtmField& atm_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = surface_field[t.type].flat_view().size();
+      t.x_size   = surf_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }
@@ -706,7 +706,7 @@ void Targets::finalize(const AtmField& atm_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = subsurface_field[t.type].flat_view().size();
+      t.x_size   = subsurf_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }

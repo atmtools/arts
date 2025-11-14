@@ -257,7 +257,7 @@ so that reading routines can find the correct data files.
   };
 
   wsg_data["SurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for surface field information.
 
 This includes:
@@ -268,7 +268,7 @@ This includes:
   };
 
   wsg_data["SubsurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for subsurface field information.
 
 This includes:
@@ -279,7 +279,7 @@ This includes:
   };
 
   wsg_data["SubsurfacePoint"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"--(A subsurface point.
 
 This keeps three things:

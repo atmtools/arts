@@ -930,7 +930,7 @@ The method used here is based on :cite:t:`Yamada2018`
       .in        = {"atm_profile",
                     "abs_bands",
                     "propagation_matrix_agenda",
-                    "surface_field",
+                    "surf_field",
                     "freq_grid",
                     "alt_grid",
                     "lat",
@@ -1770,22 +1770,22 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
       .in     = {"jacobian_targets", "freq_grid"},
   };
 
-  wsm_data["surface_fieldPlanet"] = {
+  wsm_data["surf_fieldPlanet"] = {
       .desc =
           R"--(Initialize the surface field with the ellipsoid of a planet.
 
 See *PlanetOrMoonType* for valid ``option``.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"surface_field"},
-      .gin       = {"option", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"option", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.0}},
       .gin_desc  = {R"--(Choice of planet or moon)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldEarth"] = {
+  wsm_data["surf_fieldEarth"] = {
       .desc      = R"--(Earth reference ellipsoids.
 
 The reference ellipsoid is set to model the Earth.
@@ -1793,15 +1793,15 @@ The reference ellipsoid is set to model the Earth.
 See *EarthEllipsoid* for valid ``model``
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldEuropa"] = {
+  wsm_data["surf_fieldEuropa"] = {
       .desc      = R"--(Europa reference ellipsoids.
 
 The reference ellipsoid is set to model the Europa.
@@ -1809,29 +1809,29 @@ The reference ellipsoid is set to model the Europa.
 See *EuropaEllipsoid* for valid ``model``.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldGanymede"] = {
+  wsm_data["surf_fieldGanymede"] = {
       .desc      = R"--(Ganymede reference ellipsoids.
 
 See *GanymedeEllipsoid* for valid ``model``.
 )--",
       .author    = {"Takayoshi Yamada"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldInit"] = {
+  wsm_data["surf_fieldInit"] = {
       .desc      = R"--(Manual setting of the reference ellipsoid.
 
 The two values of the reference ellipsoid are set manually. The two
@@ -1839,8 +1839,8 @@ arguments correspond directly to first and second element of
 reference ellipsoid.
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"a", "b", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"a", "b", "surf_elevation"},
       .gin_type  = {"Numeric", "Numeric", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}},
       .gin_desc  = {R"--(Average or equatorial radius.)--",
@@ -1848,7 +1848,7 @@ reference ellipsoid.
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldIo"] = {
+  wsm_data["surf_fieldIo"] = {
       .desc      = R"--(Io reference ellipsoids.
 
 The reference ellipsoid is set to model the Io.
@@ -1856,15 +1856,15 @@ The reference ellipsoid is set to model the Io.
 See *IoEllipsoid* for valid ``model``.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldJupiter"] = {
+  wsm_data["surf_fieldJupiter"] = {
       .desc      = R"--(Jupiter reference ellipsoids.
 
 The reference ellipsoid is set to model the Jupiter.
@@ -1872,15 +1872,15 @@ The reference ellipsoid is set to model the Jupiter.
 See *JupiterEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldMars"] = {
+  wsm_data["surf_fieldMars"] = {
       .desc      = R"--(Mars reference ellipsoids.
 
 The reference ellipsoid is set to model the Mars.
@@ -1888,15 +1888,15 @@ The reference ellipsoid is set to model the Mars.
 See *MarsEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldMoon"] = {
+  wsm_data["surf_fieldMoon"] = {
       .desc      = R"--(Moon reference ellipsoids.
 
 The reference ellipsoid is set to model the Moon.
@@ -1904,15 +1904,15 @@ The reference ellipsoid is set to model the Moon.
 See *MoonEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
                     "Surface elevation over the full field"},
   };
 
-  wsm_data["surface_fieldVenus"] = {
+  wsm_data["surf_fieldVenus"] = {
       .desc      = R"--(Venus reference ellipsoids.
 
 The reference ellipsoid is set to model the Venus.
@@ -1920,8 +1920,8 @@ The reference ellipsoid is set to model the Venus.
 See *VenusEllipsoid* for valid ``model``.
 )--",
       .author    = {"Patrick Eriksson"},
-      .out       = {"surface_field"},
-      .gin       = {"model", "surface_elevation"},
+      .out       = {"surf_field"},
+      .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
       .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
@@ -1999,11 +1999,11 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
       .desc =
           R"-x-(Sets a gravity operator from the gravitational constant and the mass of the planet
 
-Gets the ellispoid from *surface_field*
+Gets the ellispoid from *surf_field*
 )-x-",
       .author    = {"Richard Larsson"},
       .out       = {"gravity_operator"},
-      .in        = {"surface_field"},
+      .in        = {"surf_field"},
       .gin       = {"mass"},
       .gin_type  = {"Numeric"},
       .gin_value = {std::nullopt},
@@ -2021,8 +2021,8 @@ Gets the ellispoid from *surface_field*
                          "propagation_matrix_agenda",
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda",
-                         "surface_field",
-                         "subsurface_field",
+                         "surf_field",
+                         "subsurf_field",
                          "freq_grid",
                          "alt_grid"},
       .pass_workspace = true,
@@ -2077,8 +2077,8 @@ but built on-the-fly, allowing per-frequency refraction.
                  "single_rad_surface_agenda",
                  "single_propmat_agenda",
                  "ray_path_point_back_propagation_agenda",
-                 "subsurface_field",
-                 "surface_field",
+                 "subsurf_field",
+                 "surf_field",
                  "spectral_radiance_observer_position",
                  "spectral_radiance_observer_line_of_sight",
                  "max_stepsize"},
@@ -2124,8 +2124,8 @@ but built on-the-fly, allowing per-frequency refraction.
                          "single_rad_surface_agenda",
                          "single_propmat_agenda",
                          "ray_path_point_back_propagation_agenda",
-                         "subsurface_field",
-                         "surface_field",
+                         "subsurf_field",
+                         "surf_field",
                          "spectral_radiance_observer_position",
                          "spectral_radiance_observer_line_of_sight",
                          "max_stepsize"},
@@ -2174,8 +2174,8 @@ error is raised.  As is it if the background position is unknown.
       .in             = {"freq_grid",
                          "jacobian_targets",
                          "ray_path_point",
-                         "surface_field",
-                         "subsurface_field",
+                         "surf_field",
+                         "subsurf_field",
                          "spectral_radiance_space_agenda",
                          "spectral_radiance_surface_agenda"},
       .pass_workspace = true,
@@ -2221,7 +2221,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "ray_path_propagation_matrix_source_vector_nonlte",
                     "ray_path_propagation_matrix_jacobian",
                     "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
-                    "surface_field",
+                    "surf_field",
                     "atm_field"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
@@ -2254,10 +2254,7 @@ where :math:`T_s` is the surface temperature extracted at the input *ray_path_po
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"freq_grid",
-                 "surface_field",
-                 "jacobian_targets",
-                 "ray_path_point"},
+      .in = {"freq_grid", "surf_field", "jacobian_targets", "ray_path_point"},
   };
 
   wsm_data["spectral_radianceSurfaceReflectance"] = {
@@ -2276,13 +2273,13 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in             = {"freq_grid",
                          "atm_field",
-                         "surface_field",
-                         "subsurface_field",
+                         "surf_field",
+                         "subsurf_field",
                          "jacobian_targets",
                          "ray_path_point",
                          "spectral_radiance_observer_agenda",
                          "spectral_radiance_closed_surface_agenda",
-                         "surface_reflectance_agenda"},
+                         "spectral_surf_refl_agenda"},
       .pass_workspace = true,
   };
 
@@ -2306,8 +2303,8 @@ a modified *jacobian_targets*, making it safe to use this method inside
               "spectral_radiance_observer_position",
               "spectral_radiance_observer_line_of_sight",
               "atm_field",
-              "surface_field",
-              "subsurface_field",
+              "surf_field",
+              "subsurf_field",
               "spectral_radiance_observer_agenda",
           },
       .pass_workspace = true,
@@ -2396,7 +2393,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
           },
   };
 
-  wsm_data["surface_reflectanceFlatRealFresnel"] = {
+  wsm_data["spectral_surf_reflFlatRealFresnel"] = {
       .desc =
           R"--(Set the surface reflectance to the flat real Fresnel reflectance
 
@@ -2417,7 +2414,7 @@ where :math:`\theta_1` is the angle of incidence, :math:`\theta_2` is the angle 
 :math:`n_1` and :math:`n_2` are the refractive indices of the two media.
 
 We get :math:`n_1` and :math:`\theta_1` from the *ray_path_point* and extracts
-:math:`n_2` from the *surface_field* parameter ``"scalar refractive index"``.
+:math:`n_2` from the *surf_field* parameter ``"scalar refractive index"``.
 
 The reflectance matrix is
 
@@ -2431,18 +2428,15 @@ The reflectance matrix is
     \end{array}\right]
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .in     = {"freq_grid",
-                 "surface_field",
-                 "ray_path_point",
-                 "jacobian_targets"},
+      .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .in = {"freq_grid", "surf_field", "ray_path_point", "jacobian_targets"},
   };
 
-  wsm_data["surface_reflectanceFlatScalar"] = {
+  wsm_data["spectral_surf_reflFlatScalar"] = {
       .desc =
           R"--(Set the surface reflectance to the flat real Fresnel reflectance
 
-We get :math:`r` from the *surface_field* parameter ``"flat scalar reflectance"``.
+We get :math:`r` from the *surf_field* parameter ``"flat scalar reflectance"``.
 
 The reflectance matrix is
 
@@ -2456,11 +2450,8 @@ The reflectance matrix is
     \end{array}\right]
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .in     = {"freq_grid",
-                 "surface_field",
-                 "ray_path_point",
-                 "jacobian_targets"},
+      .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .in = {"freq_grid", "surf_field", "ray_path_point", "jacobian_targets"},
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {
@@ -2700,7 +2691,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surface_field"},
+      .in        = {"jacobian_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
@@ -2717,7 +2708,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surface_field"},
+      .in        = {"jacobian_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
@@ -2736,7 +2727,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surface_field"},
+      .in        = {"jacobian_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
@@ -2753,7 +2744,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurface_field"},
+      .in        = {"jacobian_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
@@ -2770,7 +2761,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurface_field"},
+      .in        = {"jacobian_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
@@ -2789,7 +2780,7 @@ Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurface_field"},
+      .in        = {"jacobian_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
@@ -2829,8 +2820,8 @@ building of an actual Jacobian matrix.
       .out    = {"jacobian_targets"},
       .in     = {"jacobian_targets",
                  "atm_field",
-                 "surface_field",
-                 "subsurface_field",
+                 "surf_field",
+                 "subsurf_field",
                  "abs_bands",
                  "measurement_sensor"},
   };
@@ -3482,7 +3473,7 @@ Points are added where the ray path crosses any of the three grids in pure geome
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"ray_path", "atm_field", "surface_field"},
+      .in        = {"ray_path", "atm_field", "surf_field"},
       .gin       = {"atm_key"},
       .gin_type  = {"AtmKey"},
       .gin_value = {AtmKey::t},
@@ -3501,7 +3492,7 @@ This process is repeated until there are no more neighboring points for which th
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"ray_path", "surface_field", "max_stepsize"},
+      .in     = {"ray_path", "surf_field", "max_stepsize"},
   };
 
   wsm_data["ray_pathFillGeometricStepwise"] = {
@@ -3515,7 +3506,7 @@ This process is repeated until there are no more neighboring points for which th
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"ray_path", "surface_field", "max_stepsize"},
+      .in     = {"ray_path", "surf_field", "max_stepsize"},
   };
 
   wsm_data["ray_pathFixUpdownAzimuth"] = {
@@ -3535,7 +3526,7 @@ These only matter for polarized radiative transfer.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"ray_path", "surface_field"},
+      .in     = {"ray_path", "surf_field"},
   };
 
   wsm_data["ray_pathRemoveNonAtm"] = {
@@ -3553,7 +3544,7 @@ These only matter for polarized radiative transfer.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"atm_field", "surface_field"},
+      .in        = {"atm_field", "surf_field"},
       .gin       = {"pos", "los", "as_sensor"},
       .gin_type  = {"Vector3", "Vector2", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{1}},
@@ -3569,7 +3560,7 @@ These only matter for polarized radiative transfer.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"ray_path", "surface_field"},
+      .in        = {"ray_path", "surf_field"},
       .gin       = {"min_distance", "first"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{0}},
@@ -3599,8 +3590,8 @@ grids are kept.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"ray_path", "atm_field", "surface_field"},
-      .gin       = {"surface_search_accuracy", "surface_safe_search"},
+      .in        = {"ray_path", "atm_field", "surf_field"},
+      .gin       = {"surf_search_accuracy", "surf_safe_search"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.1}, Index{1}},
       .gin_desc =
@@ -3617,7 +3608,7 @@ The default settings essentially call the default settings for *ray_pathGeometri
 Options:
 
 - ``max_step_option``: Choose the maximum distance between two points. Set *max_stepsize* for the distance.
-- ``surface_search_accuracy`` and ``surface_safe_search``: The accuracy to search for
+- ``surf_search_accuracy`` and ``surf_safe_search``: The accuracy to search for
   surface intersections and whether or not to do it at all. 
 - ``remove_nearby`` and ``remove_nearby_first``: The minimum distance between points, ignored if 0 or less.
   The second option tells which point to remove if they are too close.
@@ -3631,10 +3622,10 @@ Options:
       .author    = {"Richard Larsson"},
       .out       = {"ray_path_observer_agenda"},
       .gin       = {"max_step_option",
-                    "surface_search_accuracy",
+                    "surf_search_accuracy",
                     "remove_nearby",
                     "atm_key",
-                    "surface_safe_search",
+                    "surf_safe_search",
                     "remove_nearby_first",
                     "add_crossings",
                     "remove_non_crossings",
@@ -3683,7 +3674,7 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atm_field", "surface_field", "lat", "lon", "max_stepsize"},
+      .in     = {"atm_field", "surf_field", "lat", "lon", "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometricDownlooking"] = {
@@ -3692,7 +3683,7 @@ Options:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
-      .in     = {"atm_field", "surface_field", "lat", "lon", "max_stepsize"},
+      .in     = {"atm_field", "surf_field", "lat", "lon", "max_stepsize"},
   };
 
   wsm_data["ray_pathGeometric"] = {
@@ -3729,15 +3720,15 @@ bad angles if this is turned off.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"atm_field", "surface_field", "max_stepsize"},
+      .in        = {"atm_field", "surf_field", "max_stepsize"},
       .gin       = {"pos",
                     "los",
-                    "surface_search_accuracy",
+                    "surf_search_accuracy",
                     "as_observer",
                     "add_limb",
                     "remove_non_atm",
                     "fix_updown_azimuth",
-                    "surface_safe_search"},
+                    "surf_safe_search"},
       .gin_type  = {"Vector3",
                     "Vector2",
                     "Numeric",
@@ -3778,7 +3769,7 @@ bad angles if this is turned off.
   };
 
   wsm_data["spectral_radiance_operatorClearsky1D"] = {
-      .desc      = R"--(Set up a 1D spectral radiance operator
+      .desc           = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
 a 1D atmospheric profile.
@@ -3787,14 +3778,14 @@ This method will share line-by-line,cross-section, collision-induced absorption,
 predefined model data with the workspace (if they exist already when this method is
 called).
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_operator"},
-      .in        = {"atm_field", "surface_field", "alt_grid", "lat", "lon"},
-      .gin       = {"cia_extrapolation", "cia_robust"},
-      .gin_type  = {"Numeric", "Index"},
-      .gin_value = {Numeric{0.0}, Index{0}},
-      .gin_desc  = {"The extrapolation distance for cia",
-                    "The robustness of the cia extrapolation"},
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_radiance_operator"},
+      .in             = {"atm_field", "surf_field", "alt_grid", "lat", "lon"},
+      .gin            = {"cia_extrapolation", "cia_robust"},
+      .gin_type       = {"Numeric", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{0}},
+      .gin_desc       = {"The extrapolation distance for cia",
+                         "The robustness of the cia extrapolation"},
       .pass_workspace = true,
   };
 
@@ -3812,7 +3803,7 @@ same mechanism as in *za_gridProfilePseudo2D*.
       .out            = {"spectral_radiance_field"},
       .in             = {"propagation_matrix_agenda",
                          "atm_profile",
-                         "surface_field",
+                         "surf_field",
                          "freq_grid",
                          "za_grid",
                          "alt_grid",
@@ -3831,7 +3822,7 @@ same mechanism as in *za_gridProfilePseudo2D*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"za_grid"},
-      .in        = {"surface_field", "alt_grid", "lat", "lon"},
+      .in        = {"surf_field", "alt_grid", "lat", "lon"},
       .gin       = {"dza", "azimuth", "consider_limb"},
       .gin_type  = {"Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
@@ -4273,8 +4264,8 @@ See *SpeciesIsotope* for valid ``species``
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path_point"},
-      .in        = {"ray_path", "atm_field", "surface_field", "max_stepsize"},
-      .gin       = {"surface_search_accuracy", "surface_safe_search"},
+      .in        = {"ray_path", "atm_field", "surf_field", "max_stepsize"},
+      .gin       = {"surf_search_accuracy", "surf_safe_search"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.1}, Index{1}},
       .gin_desc =
@@ -4357,8 +4348,8 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in             = {"measurement_sensor",
                          "jacobian_targets",
                          "atm_field",
-                         "surface_field",
-                         "subsurface_field",
+                         "surf_field",
+                         "subsurf_field",
                          "spectral_radiance_transform_operator",
                          "spectral_radiance_observer_agenda"},
       .pass_workspace = true,
@@ -4380,7 +4371,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .out    = {"measurement_jacobian"},
       .in     = {"measurement_jacobian",
                  "model_state_vector",
-                 "surface_field",
+                 "surf_field",
                  "jacobian_targets"},
   };
 
@@ -4390,7 +4381,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .out    = {"measurement_jacobian"},
       .in     = {"measurement_jacobian",
                  "model_state_vector",
-                 "subsurface_field",
+                 "subsurf_field",
                  "jacobian_targets"},
   };
 
@@ -4573,7 +4564,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"sun_path"},
-      .in        = {"surface_field", "ray_path_observer_agenda", "sun"},
+      .in        = {"surf_field", "ray_path_observer_agenda", "sun"},
       .gin       = {"pos", "angle_cut", "refinement", "just_hit"},
       .gin_type  = {"Vector3", "Numeric", "Index", "Index"},
       .gin_value = {std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
@@ -4591,8 +4582,8 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_suns_path"},
-      .in  = {"surface_field", "ray_path_observer_agenda", "ray_path", "suns"},
-      .gin = {"angle_cut", "refinement", "just_hit"},
+      .in     = {"surf_field", "ray_path_observer_agenda", "ray_path", "suns"},
+      .gin    = {"angle_cut", "refinement", "just_hit"},
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.0}, Index{1}, Index{0}},
       .gin_desc =
@@ -4613,7 +4604,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"freq_grid", "ray_path_point", "suns", "surface_field"},
+      .in     = {"freq_grid", "ray_path_point", "suns", "surf_field"},
   };
 
   wsm_data["spectral_radianceSunOrCosmicBackground"] = {
@@ -4622,7 +4613,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance"},
-      .in     = {"freq_grid", "sun_path", "sun", "surface_field"},
+      .in     = {"freq_grid", "sun_path", "sun", "surf_field"},
   };
 
   wsm_data["sunBlackbody"] = {
@@ -4704,7 +4695,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
                          "jacobian_targets",
                          "freq_grid",
                          "atm_field",
-                         "surface_field",
+                         "surf_field",
                          "propagation_matrix_agenda"},
       .gin            = {"depolarization_factor", "hse_derivative"},
       .gin_type       = {"Numeric", "Index"},
@@ -4722,20 +4713,20 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
       .in     = {"atm_field", "model_state_vector", "jacobian_targets"},
   };
 
-  wsm_data["surface_fieldFromModelState"] = {
-      .desc   = R"--(Sets *surface_field* to the state of the model.
+  wsm_data["surf_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surf_field* to the state of the model.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"surface_field"},
-      .in     = {"surface_field", "model_state_vector", "jacobian_targets"},
+      .out    = {"surf_field"},
+      .in     = {"surf_field", "model_state_vector", "jacobian_targets"},
   };
 
-  wsm_data["subsurface_fieldFromModelState"] = {
-      .desc   = R"--(Sets *subsurface_field* to the state of the model.
+  wsm_data["subsurf_fieldFromModelState"] = {
+      .desc   = R"--(Sets *subsurf_field* to the state of the model.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"subsurface_field"},
-      .in     = {"subsurface_field", "model_state_vector", "jacobian_targets"},
+      .out    = {"subsurf_field"},
+      .in     = {"subsurf_field", "model_state_vector", "jacobian_targets"},
   };
 
   wsm_data["abs_bandsFromModelState"] = {
@@ -4787,7 +4778,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "surface_field", "jacobian_targets"},
+      .in     = {"model_state_vector", "surf_field", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorFromSubsurface"] = {
@@ -4795,7 +4786,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "subsurface_field", "jacobian_targets"},
+      .in     = {"model_state_vector", "subsurf_field", "jacobian_targets"},
   };
 
   wsm_data["model_state_vectorFromBands"] = {
@@ -4823,7 +4814,7 @@ the level before and one for the level after.
                     "ray_path_propagation_matrix_jacobian",
                     "ray_path",
                     "ray_path_atm_point",
-                    "surface_field",
+                    "surf_field",
                     "jacobian_targets"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
@@ -4990,8 +4981,8 @@ Description of the special input arguments:
                  "atm_field",
                  "abs_bands",
                  "measurement_sensor",
-                 "surface_field",
-                 "subsurface_field",
+                 "surf_field",
+                 "subsurf_field",
                  "measurement_gain_matrix"},
       .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
       .gout_type = {"Vector", "Vector", "ArrayOfString"},
@@ -5005,8 +4996,8 @@ Description of the special input arguments:
                     "atm_field",
                     "abs_bands",
                     "measurement_sensor",
-                    "surface_field",
-                    "subsurface_field",
+                    "surf_field",
+                    "subsurf_field",
                     "jacobian_targets",
                     "model_state_vector_apriori",
                     "model_state_covariance_matrix",
@@ -5194,8 +5185,8 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
                     "freq_grid",
                     "ray_path",
                     "atm_field",
-                    "surface_field",
-                    "subsurface_field",
+                    "surf_field",
+                    "subsurf_field",
                     "spectral_radiance_observer_agenda"},
       .gin       = {"pol"},
       .gin_type  = {"Stokvec"},
@@ -5218,8 +5209,8 @@ The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbi
       .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in             = {"freq_grid",
                          "atm_field",
-                         "surface_field",
-                         "subsurface_field",
+                         "surf_field",
+                         "subsurf_field",
                          "jacobian_targets",
                          "ray_path_point",
                          "disort_quadrature_dimension",
@@ -5252,7 +5243,7 @@ The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbi
   wsm_data["disort_settingsSubsurfaceScalarAbsorption"].desc =
       "Get optical thickness from subsurface path.\n";
   wsm_data["disort_settingsSubsurfaceScalarAbsorption"].in[2] =
-      "subsurface_profile";
+      "subsurf_profile";
 
   wsm_data["disort_settings_agendaSetup"] = {
       .desc =
@@ -5267,8 +5258,8 @@ A description of the options is given below.
                  "scattering_setting",
                  "space_setting",
                  "sun_setting",
-                 "surface_setting",
-                 "surface_lambertian_value",
+                 "surf_setting",
+                 "surf_lambertian_value",
                  wsm_data["disort_settingsOpticalThicknessFromPath"].gin[0]},
       .gin_type =
           {"String",
@@ -5357,7 +5348,7 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
                  "freq_grid",
-                 "surface_field",
+                 "surf_field",
                  "sun",
                  "ray_path_point"},
   };
@@ -5389,7 +5380,7 @@ Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "subsurface_profile", "freq_grid"},
+      .in     = {"disort_settings", "subsurf_profile", "freq_grid"},
   };
 
   wsm_data["disort_settingsLayerNonThermalEmissionLinearInTau"] = {
@@ -5433,7 +5424,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "freq_grid", "subsurface_profile"},
+      .in     = {"disort_settings", "freq_grid", "subsurf_profile"},
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
@@ -5450,7 +5441,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in = {"disort_settings", "freq_grid", "ray_path_point", "surface_field"},
+      .in = {"disort_settings", "freq_grid", "ray_path_point", "surf_field"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
@@ -5482,7 +5473,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "subsurface_profile"},
+      .in     = {"disort_settings", "subsurf_profile"},
   };
 
   wsm_data["disort_settingsNoSurfaceScattering"] = {
@@ -5552,7 +5543,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
                     "ray_path_atm_point",
                     "freq_grid_path",
                     "ray_path",
-                    "surface_field"},
+                    "surf_field"},
       .gin       = {"azimuth_grid"},
       .gin_type  = {"AzimuthGrid"},
       .gin_value = {AzimuthGrid{{0.0}}},
@@ -5615,8 +5606,8 @@ See *jacobian_targetsFinalize* for more information.
       .in     = {"jacobian_targets",
                  "covariance_matrix_diagonal_blocks",
                  "atm_field",
-                 "surface_field",
-                 "subsurface_field",
+                 "surf_field",
+                 "subsurf_field",
                  "abs_bands",
                  "measurement_sensor"},
   };
@@ -5672,13 +5663,10 @@ the smallest possible numerical offset from that angle in the signed direction.
 
     :func:`pyarts3.plots.ArrayOfPropagationPathPoint.plot` for a visualization of the geometry.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_observers"},
-      .in        = {"atm_field",
-                    "surface_field",
-                    "ray_path_observer_agenda",
-                    "lat",
-                    "lon"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_observers"},
+      .in =
+          {"atm_field", "surf_field", "ray_path_observer_agenda", "lat", "lon"},
       .gin       = {"azimuth", "nup", "nlimb", "ndown"},
       .gin_type  = {"Numeric", "Index", "Index", "Index"},
       .gin_value = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},
@@ -5742,13 +5730,13 @@ Additional work is requires if proper coverage of the limb is required
       .pass_workspace = true,
   };
 
-  wsm_data["subsurface_profileFromPath"] = {
+  wsm_data["subsurf_profileFromPath"] = {
       .desc =
           R"(Extract a subsurface profile from a ray path.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"subsurface_profile"},
-      .in     = {"subsurface_field", "ray_path"},
+      .out    = {"subsurf_profile"},
+      .in     = {"subsurf_field", "ray_path"},
   };
 
   /* 

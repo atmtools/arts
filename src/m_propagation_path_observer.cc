@@ -3,10 +3,10 @@
 #include <workspace.h>
 
 namespace {
-Numeric surface_tangent_zenithFromAgenda(const Workspace& ws,
-                                         const Vector3& pos,
-                                         const Agenda& ray_path_observer_agenda,
-                                         const Numeric azimuth) {
+Numeric surf_tangent_zenithFromAgenda(const Workspace& ws,
+                                      const Vector3& pos,
+                                      const Agenda& ray_path_observer_agenda,
+                                      const Numeric azimuth) {
   ARTS_TIME_REPORT
 
   ArrayOfPropagationPathPoint ray_path;
@@ -28,7 +28,7 @@ void ray_path_observersFieldProfilePseudo2D(
     const Workspace& ws,
     ArrayOfPropagationPathPoint& ray_path_observers,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Agenda& ray_path_observer_agenda,
     const Numeric& latitude,
     const Numeric& longitude,
@@ -39,27 +39,26 @@ void ray_path_observersFieldProfilePseudo2D(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 
   const Vector3 top_pos = {atm_field.top_of_atmosphere, latitude, longitude};
-  const Vector3 bot_pos = {surface_field[SurfaceKey::h].at(latitude, longitude),
-                           latitude,
-                           longitude};
+  const Vector3 bot_pos = {
+      surf_field[SurfaceKey::h].at(latitude, longitude), latitude, longitude};
 
-  const Numeric za_surface_limb = surface_tangent_zenithFromAgenda(
+  const Numeric za_surf_limb = surf_tangent_zenithFromAgenda(
       ws, top_pos, ray_path_observer_agenda, azimuth);
 
   const Index N = nlimb + nup + ndown;
   arr::resize(0, ray_path_observers);
   arr::reserve(N, ray_path_observers);
 
-  const Numeric miss_surf = std::nextafter(za_surface_limb, 0.0);
-  const Numeric hit_surf  = std::nextafter(za_surface_limb, 180.0);
+  const Numeric miss_surf = std::nextafter(za_surf_limb, 0.0);
+  const Numeric hit_surf  = std::nextafter(za_surf_limb, 180.0);
   const AscendingGrid upp = nlinspace(0.0, 90.0, nup);
   const AscendingGrid lmb = nlinspace(90.0, miss_surf, nlimb + 1);
   const AscendingGrid dwn = nlinspace(hit_surf, 180.0, ndown);
@@ -171,7 +170,7 @@ void ray_path_fieldFluxProfile(
   const auto& lat = data.grid<1>()[0];
   const auto& lon = data.grid<2>()[0];
 
-  const Numeric za_limb = surface_tangent_zenithFromAgenda(
+  const Numeric za_limb = surf_tangent_zenithFromAgenda(
       ws, {alt_g.back(), lat, lon}, ray_path_observer_agenda, azimuth);
   const Numeric za_limb_miss = std::nextafter(za_limb, 0.0);
   const Numeric za_limb_hit  = std::nextafter(za_limb, 180.0);

@@ -173,8 +173,8 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const Vector3 &pos,
     const Vector2 &los,
     const AtmField &atm_field,
-    const SurfaceField &surface_field,
-    const SubsurfaceField &subsurface_field,
+    const SurfaceField &surf_field,
+    const SubsurfaceField &subsurf_field,
     const Agenda &spectral_radiance_observer_agenda) try {
   ARTS_TIME_REPORT
 
@@ -235,8 +235,8 @@ freq_grid.size()              = {}
                                              pos2,
                                              los2,
                                              atm_field,
-                                             surface_field,
-                                             subsurface_field,
+                                             surf_field,
+                                             subsurf_field,
                                              spectral_radiance_observer_agenda);
 
     // Convert to perturbed Jacobian
@@ -303,8 +303,8 @@ void measurement_vectorFromSensor(
     const ArrayOfSensorObsel &measurement_sensor,
     const JacobianTargets &jacobian_targets,
     const AtmField &atm_field,
-    const SurfaceField &surface_field,
-    const SubsurfaceField &subsurface_field,
+    const SurfaceField &surf_field,
+    const SubsurfaceField &subsurf_field,
     const SpectralRadianceTransformOperator
         &spectral_radiance_transform_operator,
     const Agenda &spectral_radiance_observer_agenda) try {
@@ -394,8 +394,8 @@ void measurement_vectorFromSensor(
           poslos.pos,
           poslos.los,
           atm_field,
-          surface_field,
-          subsurface_field,
+          surf_field,
+          subsurf_field,
           spectral_radiance_observer_agenda);
 
       ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");

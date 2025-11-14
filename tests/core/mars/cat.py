@@ -5,15 +5,15 @@ ws = pyarts.Workspace()
 
 ws.abs_speciesSet(species=["H2O-161"])
 
-ws.surface_fieldMars()
-ws.surface_field["t"] = pyarts.arts.GriddedField2.fromxml(
+ws.surf_fieldMars()
+ws.surf_field["t"] = pyarts.arts.GriddedField2.fromxml(
     "planets/Mars/Ls0.day.dust-medium/surface_temperature.xml"
 ).make_geodetic()
-ws.surface_field["h"] = pyarts.arts.GriddedField2.fromxml(
+ws.surf_field["h"] = pyarts.arts.GriddedField2.fromxml(
     "planets/Mars//surface_elevation.xml"
 ).make_geodetic()
-ws.surface_field["t"].set_extrapolation("Nearest")
-ws.surface_field["h"].set_extrapolation("Nearest")
+ws.surf_field["t"].set_extrapolation("Nearest")
+ws.surf_field["h"].set_extrapolation("Nearest")
 
 pos = [200e3, 0, 0]
 los = [180, 0]
@@ -69,6 +69,9 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
 
     out.append(1.0*ws.spectral_radiance[:, 0])
 
-assert np.all(out[0] != out[1]), "FullMars and IsotEarth should be different, changed isotopologue ratios"
-assert np.all(out[0] != out[2]), "FullMars and FullEarth should be different, changed absorption bands"
-assert np.all(out[1] != out[2]), "IsotEarth and FullEarth should be different, changed absorption bands"
+assert np.all(
+    out[0] != out[1]), "FullMars and IsotEarth should be different, changed isotopologue ratios"
+assert np.all(
+    out[0] != out[2]), "FullMars and FullEarth should be different, changed absorption bands"
+assert np.all(
+    out[1] != out[2]), "IsotEarth and FullEarth should be different, changed absorption bands"

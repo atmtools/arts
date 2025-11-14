@@ -338,7 +338,7 @@ bool set_spectral_radiance_if_sun_intersection(
     StokvecVector& spectral_radiance,
     const Sun& sun,
     const PropagationPathPoint& propagation_path_point,
-    const SurfaceField& surface_field) {
+    const SurfaceField& surf_field) {
   const Index nf = spectral_radiance.size();
   assert(nf == sun.spectrum.nrows());
   assert(4 == sun.spectrum.ncols());
@@ -348,7 +348,7 @@ bool set_spectral_radiance_if_sun_intersection(
       hit_sun(sun,
               propagation_path_point.pos,
               path::mirror(propagation_path_point.los),
-              surface_field.ellipsoid)
+              surf_field.ellipsoid)
           .second) {
     //Here we assume that the sun radiates isotropically.
 

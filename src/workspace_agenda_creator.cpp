@@ -173,14 +173,14 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_surface_reflectance_agenda(const std::string_view option) {
-  AgendaCreator agenda("surface_reflectance_agenda");
+Agenda get_spectral_surf_refl_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_surf_refl_agenda");
 
-  using enum surface_reflectance_agendaPredefined;
-  switch (to<surface_reflectance_agendaPredefined>(option)) {
-    case FlatScalar: agenda.add("surface_reflectanceFlatScalar"); break;
+  using enum spectral_surf_refl_agendaPredefined;
+  switch (to<spectral_surf_refl_agendaPredefined>(option)) {
+    case FlatScalar: agenda.add("spectral_surf_reflFlatScalar"); break;
     case FlatRealFresnel:
-      agenda.add("surface_reflectanceFlatRealFresnel");
+      agenda.add("spectral_surf_reflFlatRealFresnel");
       break;
   }
 

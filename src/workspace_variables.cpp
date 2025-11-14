@@ -390,7 +390,7 @@ Shape: *freq_grid*
       .type = "StokvecVector",
   };
 
-  wsv_data["surface_reflectance"] = {
+  wsv_data["spectral_surf_refl"] = {
       .desc = R"--(Spectral surface reflectance.
 
 Shape: *freq_grid*
@@ -398,7 +398,7 @@ Shape: *freq_grid*
       .type = "MuelmatVector",
   };
 
-  wsv_data["surface_reflectance_jacobian"] = {
+  wsv_data["spectral_surf_refl_jac"] = {
       .desc = R"--(Spectral surface reflectance jacobian.
 
 Shape: *jacobian_targets* - target count x *freq_grid*
@@ -548,16 +548,16 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatTensor3",
   };
 
-  wsv_data["subsurface_profile"] = {
+  wsv_data["subsurf_profile"] = {
       .desc =
           R"--(A profile of subsurface points.  Supposed to be ordered from top to bottom.
 
-For more information, see :doc:`user.subsurface_field`.
+For more information, see :doc:`user.subsurf_field`.
 )--",
       .type = "ArrayOfSubsurfacePoint",
   };
 
-  wsv_data["surface_field"] = {
+  wsv_data["surf_field"] = {
       .desc = R"--(The surface field.
 
 This contains the global surface values, such as elevation and
@@ -566,7 +566,7 @@ are used by specific surface-related methods.
 
 It is a 2D field with *lat*, and *lon* dimensions.
 
-For more information, see :doc:`user.surface_field`.
+For more information, see :doc:`user.surf_field`.
 )--",
       .type = "SurfaceField",
   };
@@ -590,7 +590,7 @@ that is being emitted.  That's the type of use case this agenda is made for and 
       .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
   };
 
-  wsv_data["subsurface_field"] = {
+  wsv_data["subsurf_field"] = {
       .desc          = R"--(The sub-surface field.
 
 This contains global subsurface properties, such as temperature.
@@ -599,7 +599,7 @@ subsurface-related methods.
 
 It is a 3D field with *alt*, *lat*, and *lon* dimensions.
 
-For more information, see :doc:`user.subsurface_field`.
+For more information, see :doc:`user.subsurf_field`.
 )--",
       .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
@@ -702,8 +702,8 @@ sorted by their type.  A target must have information about its
 position in the target count, as well as the number of parameters
 it contributes to the *model_state_vector*.  It must know these
 things because it is able to map data between the *model_state_vector*
-and the actual model field, e.g., the *atm_field*, the *surface_field*,
-the *subsurface_field*, the *abs_bands*, the *measurement_sensor*, etc.
+and the actual model field, e.g., the *atm_field*, the *surf_field*,
+the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
       .type = "JacobianTargets",
       .default_value = " ",

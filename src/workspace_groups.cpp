@@ -327,7 +327,7 @@ A surface field effectively holds two things:
   };
 
   wsg_data["SubsurfaceField"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc =
           R"--(A sub-surface field.
 
@@ -346,7 +346,7 @@ A sub-surface field effectively holds two things:
   };
 
   wsg_data["SubsurfacePropertyTag"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"--(A custom property tag for subsurface fields data.
 
 These tags are part of the keys that can be used to access a *SubsurfaceField* or *SubsurfacePoint*.

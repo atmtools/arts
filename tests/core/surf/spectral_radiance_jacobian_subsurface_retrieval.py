@@ -15,15 +15,15 @@ tf = pyarts.arts.GeodeticField3(
     data=np.linspace(200, 400, len(z)).reshape(len(z), 1, 1)
 )
 
-ws.surface_fieldEarth()
-ws.surface_field["t"] = tf.max()
+ws.surf_fieldEarth()
+ws.surf_field["t"] = tf.max()
 
-ws.subsurface_field.bottom_depth = min(z)
-ws.subsurface_field['scalar absorption'] = 5
-ws.subsurface_field['scalar ssa'] = 0.99
-ws.subsurface_field["t"] = tf
-ws.subsurface_field["t"].alt_low = "Linear"
-ws.subsurface_field["t"].alt_upp = "Linear"
+ws.subsurf_field.bottom_depth = min(z)
+ws.subsurf_field['scalar absorption'] = 5
+ws.subsurf_field['scalar ssa'] = 0.99
+ws.subsurf_field["t"] = tf
+ws.subsurf_field["t"].alt_low = "Linear"
+ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 
@@ -62,7 +62,7 @@ noise = .01
 ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
 epp = np.random.normal(0, noise, len(ws.freq_grid))
 ws.measurement_vector += epp
-ws.subsurface_field["t"].data += 20
+ws.subsurf_field["t"].data += 20
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vector_fitted = []
 ws.model_state_vector = []

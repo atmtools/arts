@@ -1,4 +1,4 @@
-#include "xml_surface.h"
+#include "xml_surf.h"
 
 void xml_io_stream<SurfaceField>::write(std::ostream& os,
                                         const SurfaceField& x,

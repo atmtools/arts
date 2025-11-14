@@ -15,14 +15,14 @@ tf = pyarts.arts.GeodeticField3(
     data=np.linspace(200, 400, len(z)).reshape(len(z), 1, 1)
 )
 
-ws.surface_fieldEarth()
+ws.surf_fieldEarth()
 
-ws.subsurface_field.bottom_depth = min(z)
-ws.subsurface_field['scalar absorption'] = 3
-ws.subsurface_field['scalar ssa'] = 0.99
-ws.subsurface_field["t"] = tf
-ws.subsurface_field["t"].alt_low = "Linear"
-ws.subsurface_field["t"].alt_upp = "Linear"
+ws.subsurf_field.bottom_depth = min(z)
+ws.subsurf_field['scalar absorption'] = 3
+ws.subsurf_field['scalar ssa'] = 0.99
+ws.subsurf_field["t"] = tf
+ws.subsurf_field["t"].alt_low = "Linear"
+ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 

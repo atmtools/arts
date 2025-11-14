@@ -180,8 +180,8 @@ is warranted.
                  "spectral_radiance_observer_position",
                  "spectral_radiance_observer_line_of_sight",
                  "atm_field",
-                 "surface_field",
-                 "subsurface_field"},
+                 "surf_field",
+                 "subsurf_field"},
       .enum_options = {"Emission", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
@@ -252,8 +252,8 @@ as well.
       .input        = {"freq_grid",
                        "jacobian_targets",
                        "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
+                       "surf_field",
+                       "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
       .output_constraints = {
@@ -278,8 +278,8 @@ Otherwise same as *spectral_radiance_surface_agenda*.
       .input        = {"freq",
                        "jacobian_targets",
                        "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
+                       "surf_field",
+                       "subsurf_field"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -295,15 +295,15 @@ See *OEM*.
       .output             = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
-                             "surface_field",
-                             "subsurface_field",
+                             "surf_field",
+                             "subsurf_field",
                              "measurement_vector_fitted",
                              "measurement_jacobian"},
       .input              = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
-                             "surface_field",
-                             "subsurface_field",
+                             "surf_field",
+                             "subsurf_field",
                              "jacobian_targets",
                              "model_state_vector",
                              "do_jacobian",
@@ -332,7 +332,7 @@ It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
 current iteration of the inversion. The *measurement_vector_fitted* is the
 fitted measurement vector, i.e., the measurement vector that is expected to be
 observed given the current *atm_field*, *abs_bands*, *measurement_sensor*,
-and *surface_field*.  It does not take these as explicit input but via the Workspace
+and *surf_field*.  It does not take these as explicit input but via the Workspace
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 
 What is special about this Agenda is that it enforces that the *measurement_jacobian*
@@ -354,25 +354,25 @@ it does a lot of unnecessary checks and operations that are not always needed.
           },
   };
 
-  wsa_data["surface_reflectance_agenda"] = {
-      .desc         = R"--(An agenda to compute the surface reflectance.
+  wsa_data["spectral_surf_refl_agenda"] = {
+      .desc               = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output       = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .input        = {"freq_grid",
-                       "surface_field",
-                       "ray_path_point",
-                       "jacobian_targets"},
-      .enum_options = {"FlatScalar", "FlatRealFresnel"},
+      .output             = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input              = {"freq_grid",
+                             "surf_field",
+                             "ray_path_point",
+                             "jacobian_targets"},
+      .enum_options       = {"FlatScalar", "FlatRealFresnel"},
       .output_constraints = {
-          {"surface_reflectance.size() == freq_grid.size()",
-           "*surface_reflectance* match *freq_grid* size",
-           "surface_reflectance.size()",
+          {"spectral_surf_refl.size() == freq_grid.size()",
+           "*spectral_surf_refl* match *freq_grid* size",
+           "spectral_surf_refl.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.target_count(), freq_grid.size()}, surface_reflectance_jacobian)",
-           "*surface_reflectance_jacobian* match *jacobian_targets* target count and *freq_grid* size",
+          {"matpack::same_shape<2>({jacobian_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
+           "*spectral_surf_refl_jac* match *jacobian_targets* target count and *freq_grid* size",
            "jacobian_targets.target_count()",
            "freq_grid.size()",
-           "surface_reflectance_jacobian.shape()"}}};
+           "spectral_surf_refl_jac.shape()"}}};
 
   wsa_data["disort_settings_agenda"] = {
       .desc   = R"--(An agenda for setting up Disort.
@@ -405,8 +405,8 @@ as a boundary condition to subsurface radiance calculation.
       .input  = {"freq_grid",
                  "ray_path",
                  "atm_field",
-                 "surface_field",
-                 "subsurface_field",
+                 "surf_field",
+                 "subsurf_field",
                  "disort_quadrature_dimension",
                  "disort_fourier_mode_dimension",
                  "disort_legendre_polynomial_dimension",

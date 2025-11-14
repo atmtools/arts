@@ -211,7 +211,7 @@ This is the extration of the text in the ``workspace_methods.cpp`` file:
     )--",
         .author = {"Richard Larsson"},
         .out    = {"ray_path"},
-        .in     = {"atm_field", "surface_field", "latitude", "longitude"},
+        .in     = {"atm_field", "surf_field", "latitude", "longitude"},
         .gin    = {"max_step"},
         .gin_type  = {"Numeric"},
         .gin_value = {Numeric{1e3}},
@@ -224,7 +224,7 @@ The signature of the method is:
 
   void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                   const AtmField& atm_field,
-                                  const SurfaceField& surface_field,
+                                  const SurfaceField& surf_field,
                                   const Numeric& latitude,
                                   const Numeric& longitude,
                                   const Numeric& max_step);
@@ -235,7 +235,7 @@ The first argument of the method is a reference to :attr:`~pyarts3.workspace.Wor
 Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
-The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surface_field`,
+The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surf_field`,
 :attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
@@ -354,7 +354,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .in             = {"measurement_sensor",
                           "jacobian_targets",
                           "atm_field",
-                          "surface_field",
+                          "surf_field",
                           "spectral_radiance_unit",
                           "spectral_radiance_observer_agenda"},
         .pass_workspace = true,
@@ -370,7 +370,7 @@ The signature of the method is:
                                     const ArrayOfSensorObsel& measurement_sensor,
                                     const JacobianTargets& jacobian_targets,
                                     const AtmField& atm_field,
-                                    const SurfaceField& surface_field,
+                                    const SurfaceField& surf_field,
                                     const SpectralRadianceUnitType& spectral_radiance_unit,
                                     const Agenda& spectral_radiance_observer_agenda);
 
@@ -391,7 +391,7 @@ it is expected that the method overwrite any existing values they might hold.
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
-:attr:`~pyarts3.workspace.Workspace.surface_field`, 
+:attr:`~pyarts3.workspace.Workspace.surf_field`, 
 :attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and
 :attr:`~pyarts3.workspace.Workspace.spectral_radiance_observer_agenda`
 are defined in ``in`` and are passed to the method

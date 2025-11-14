@@ -19,8 +19,8 @@ for key in ws.abs_bands:
 
 ws.abs_bands.keep_hitran_s(70)
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field["t"] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field["t"] = 295.0
 
 ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1

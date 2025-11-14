@@ -180,7 +180,7 @@ std::pair<Numeric, bool> beta_angle(const Workspace& ws,
                                     const Vector3& observer_pos,
                                     const Vector2& observer_los,
                                     const Agenda& ray_path_observer_agenda,
-                                    const SurfaceField& surface_field,
+                                    const SurfaceField& surf_field,
                                     const Numeric& angle_cut) {
   ray_path_observer_agendaExecute(
       ws, sun_path, observer_pos, observer_los, ray_path_observer_agenda);
@@ -197,7 +197,7 @@ std::pair<Numeric, bool> beta_angle(const Workspace& ws,
   const auto [beta, hit] = hit_sun(sun,
                                    sun_path.back().pos,
                                    path::mirror(sun_path.back().los),
-                                   surface_field.ellipsoid);
+                                   surf_field.ellipsoid);
 
   return {Conversion::rad2deg(beta), hit};
 }
@@ -206,7 +206,7 @@ void find_sun_path(const Workspace& ws,
                    ArrayOfPropagationPathPoint& sun_path,
                    const Sun& sun,
                    const Agenda& ray_path_observer_agenda,
-                   const SurfaceField& surface_field,
+                   const SurfaceField& surf_field,
                    const Vector3 observer_pos_,
                    const Numeric angle_cut,
                    const Index count_limit,
@@ -214,20 +214,20 @@ void find_sun_path(const Workspace& ws,
   using Conversion::rad2deg;
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   assert(angle_cut >= 0.0);
 
   Vector3 observer_pos = observer_pos_;
 
   const Vector3 sun_pos{
-      {sun.distance - surface_field.single_value(
+      {sun.distance - surf_field.single_value(
                           SurfaceKey::h, observer_pos[1], observer_pos[2]),
        sun.latitude,
        sun.longitude}};
-  Vector2 los   = geometric_los(observer_pos, sun_pos, surface_field.ellipsoid);
+  Vector2 los   = geometric_los(observer_pos, sun_pos, surf_field.ellipsoid);
   auto best_los = los;
 
   Numeric best_beta = 360;
@@ -241,7 +241,7 @@ void find_sun_path(const Workspace& ws,
                                         observer_pos,
                                         best_los,
                                         ray_path_observer_agenda,
-                                        surface_field,
+                                        surf_field,
                                         angle_cut);
 
     if (hit and just_hit) return;
@@ -264,7 +264,7 @@ void find_sun_path(const Workspace& ws,
                                           observer_pos,
                                           los,
                                           ray_path_observer_agenda,
-                                          surface_field,
+                                          surf_field,
                                           angle_cut);
 
       if (hit and just_hit) return;
@@ -284,7 +284,7 @@ void find_sun_path(const Workspace& ws,
                                           observer_pos,
                                           los,
                                           ray_path_observer_agenda,
-                                          surface_field,
+                                          surf_field,
                                           angle_cut);
 
       if (hit and just_hit) return;
@@ -304,7 +304,7 @@ void find_sun_path(const Workspace& ws,
                                           observer_pos,
                                           los,
                                           ray_path_observer_agenda,
-                                          surface_field,
+                                          surf_field,
                                           angle_cut);
 
       if (hit and just_hit) return;
@@ -324,7 +324,7 @@ void find_sun_path(const Workspace& ws,
                                           observer_pos,
                                           los,
                                           ray_path_observer_agenda,
-                                          surface_field,
+                                          surf_field,
                                           angle_cut);
 
       if (hit and just_hit) return;

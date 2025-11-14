@@ -81,14 +81,14 @@ Vector3 sph2cart(const Vector3 sph);
  * @param[out] spectral_radiance Spectral radiance of sun if set.
  * @param[in] sun Sun-structure.
  * @param[in] propagation_path_point A path poistion and line of sight.
- * @param[in] surface_field The surface for the ellipsoid.
+ * @param[in] surf_field The surface for the ellipsoid.
  * @return True if sun is in line of sight and spectral_radiance is set.
   */
 bool set_spectral_radiance_if_sun_intersection(
     StokvecVector& spectral_radiance,
     const Sun& sun,
     const PropagationPathPoint& propagation_path_point,
-    const SurfaceField& surface_field);
+    const SurfaceField& surf_field);
 
 /** Checks if the sun is within the line of sight.
  * 

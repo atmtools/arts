@@ -15,8 +15,8 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const AscendingGrid& freq_grid,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda) try {
   ARTS_TIME_REPORT
@@ -45,8 +45,8 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           freq_grid,
           jacobian_targets,
           ray_path_point,
-          surface_field,
-          subsurface_field,
+          surf_field,
+          subsurf_field,
           spectral_radiance_surface_agenda);
       break;
   }
@@ -77,13 +77,13 @@ void spectral_radianceSunOrCosmicBackground(
     const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& sun_path,
     const Sun& sun,
-    const SurfaceField& surface_field) try {
+    const SurfaceField& surf_field) try {
   ARTS_TIME_REPORT
 
   spectral_radiance.resize(freq_grid.size());
 
   if (set_spectral_radiance_if_sun_intersection(
-          spectral_radiance, sun, sun_path.back(), surface_field))
+          spectral_radiance, sun, sun_path.back(), surf_field))
     return;
 
   spectral_radianceUniformCosmicBackground(spectral_radiance, freq_grid);
@@ -95,19 +95,19 @@ void spectral_radianceSunsOrCosmicBackground(
     const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point,
     const ArrayOfSun& suns,
-    const SurfaceField& surface_field) {
+    const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   spectral_radiance.resize(freq_grid.size());
 
   for (auto& sun : suns) {
     if (set_spectral_radiance_if_sun_intersection(
-            spectral_radiance, sun, ray_path_point, surface_field)) {
+            spectral_radiance, sun, ray_path_point, surf_field)) {
       return;
     }
   }
@@ -119,17 +119,17 @@ void spectral_radianceSurfaceBlackbody(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& freq_grid,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
   constexpr auto key = SurfaceKey::t;
 
-  ARTS_USER_ERROR_IF(not surface_field.contains(key),
+  ARTS_USER_ERROR_IF(not surf_field.contains(key),
                      "Surface field does not contain temperature")
 
-  const auto t = surface_field.single_value(
+  const auto t = surf_field.single_value(
       key, ray_path_point.pos[1], ray_path_point.pos[2]);
   spectral_radiance = from_temp(freq_grid, t);
 
@@ -138,7 +138,7 @@ void spectral_radianceSurfaceBlackbody(
 
   for (auto& target : jacobian_targets.surf) {
     if (target.type == SurfaceKey::t) {
-      const auto& data = surface_field[target.type];
+      const auto& data = surf_field[target.type];
 
       const auto ws =
           data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
@@ -202,8 +202,8 @@ void single_rad_backgroundAgendasAtEndOfPath(
     const Numeric& frequency,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
     const Agenda& single_rad_space_agenda,
     const Agenda& single_rad_surface_agenda) try {
   ARTS_TIME_REPORT
@@ -230,8 +230,8 @@ void single_rad_backgroundAgendasAtEndOfPath(
                                        frequency,
                                        jacobian_targets,
                                        ray_path_point,
-                                       surface_field,
-                                       subsurface_field,
+                                       surf_field,
+                                       subsurf_field,
                                        single_rad_surface_agenda);
       break;
   }

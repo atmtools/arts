@@ -29,8 +29,8 @@ ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # Standard surface and atmospheric setup
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )

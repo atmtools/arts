@@ -18,7 +18,7 @@ void spectral_radiance_operatorClearsky1D(
     const Workspace& ws,
     SpectralRadianceOperator& spectral_radiance_operator,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const AscendingGrid& alt_grid,
     const Numeric& latitude,
     const Numeric& longitude,
@@ -27,9 +27,9 @@ void spectral_radiance_operatorClearsky1D(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
 
@@ -58,7 +58,7 @@ void spectral_radiance_operatorClearsky1D(
                                                         Vector{latitude},
                                                         Vector{longitude},
                                                         atm_field,
-                                                        surface_field,
+                                                        surf_field,
                                                         lines,
                                                         cia,
                                                         xsec,

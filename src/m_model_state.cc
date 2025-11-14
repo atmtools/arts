@@ -57,23 +57,23 @@ void atm_fieldFromModelState(AtmField& atm_field,
   }
 }
 
-void surface_fieldFromModelState(SurfaceField& surface_field,
+void surf_fieldFromModelState(SurfaceField& surf_field,
+                              const Vector& model_state_vector,
+                              const JacobianTargets& jacobian_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jacobian_targets.surf) {
+    target.update_model(surf_field, model_state_vector);
+  }
+}
+
+void subsurf_fieldFromModelState(SubsurfaceField& subsurf_field,
                                  const Vector& model_state_vector,
                                  const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jacobian_targets.surf) {
-    target.update_model(surface_field, model_state_vector);
-  }
-}
-
-void subsurface_fieldFromModelState(SubsurfaceField& subsurface_field,
-                                    const Vector& model_state_vector,
-                                    const JacobianTargets& jacobian_targets) {
-  ARTS_TIME_REPORT
-
   for (auto& target : jacobian_targets.subsurf) {
-    target.update_model(subsurface_field, model_state_vector);
+    target.update_model(subsurf_field, model_state_vector);
   }
 }
 
@@ -110,22 +110,22 @@ void model_state_vectorFromAtmosphere(Vector& model_state_vector,
 }
 
 void model_state_vectorFromSurface(Vector& model_state_vector,
-                                   const SurfaceField& surface_field,
+                                   const SurfaceField& surf_field,
                                    const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.surf) {
-    target.update_state(model_state_vector, surface_field);
+    target.update_state(model_state_vector, surf_field);
   }
 }
 
 void model_state_vectorFromSubsurface(Vector& model_state_vector,
-                                      const SubsurfaceField& subsurface_field,
+                                      const SubsurfaceField& subsurf_field,
                                       const JacobianTargets& jacobian_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jacobian_targets.subsurf) {
-    target.update_state(model_state_vector, subsurface_field);
+    target.update_state(model_state_vector, subsurf_field);
   }
 }
 

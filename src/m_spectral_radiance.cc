@@ -7,7 +7,7 @@
 #include <path_point.h>
 #include <rtepack.h>
 #include <rtepack_transmission.h>
-#include <surface_field.h>
+#include <surf_field.h>
 #include <time_report.h>
 #include <workspace.h>
 
@@ -26,15 +26,15 @@ void ray_path_transmission_matrixFromPath(
     const ArrayOfPropmatMatrix& ray_path_propagation_matrix_jacobian,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const JacobianTargets& jacobian_targets,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
 
@@ -66,7 +66,7 @@ ray_path_atm_point.size()           = {})",
 
   const Index nq = jacobian_targets.target_count();
 
-  const Vector ray_path_distance = distance(ray_path, surface_field.ellipsoid);
+  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
   Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
 
   // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
@@ -139,7 +139,7 @@ void ray_path_single_transmission_matrixFromPath(
     const PropmatMatrix& single_propmat_jac_path,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAtmPoint& ray_path_atm_point,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const JacobianTargets& jacobian_targets,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
@@ -171,7 +171,7 @@ single_propmat_jac_path: (N, nq) = {:B,}
   ray_path_single_transmission_matrix          = 1.0;
   ray_path_single_transmission_matrix_jacobian = 0.0;
 
-  const Vector ray_path_distance = distance(ray_path, surface_field.ellipsoid);
+  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
   Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
 
   const Index temperature_derivative_position =
@@ -442,7 +442,7 @@ void single_radianceFromPropagation(
     const PropmatMatrix& single_propmat_jac_path,
     const StokvecVector& single_nlte_srcvec_path,
     const StokvecMatrix& single_nlte_srcvec_jac_path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const AtmField& atm_field,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
@@ -454,7 +454,7 @@ void single_radianceFromPropagation(
       single_propmat_jac_path,
       ray_path,
       ray_path_atm_point,
-      surface_field,
+      surf_field,
       jacobian_targets,
       hse_derivative);
   ray_path_single_transmission_matrix_cumulativeFromPath(
@@ -516,7 +516,7 @@ void spectral_radianceSinglePathEmissionFrequencyLoop(
     const ArrayOfPropmatMatrix& ray_path_propagation_matrix_jacobian,
     const ArrayOfStokvecMatrix&
         ray_path_propagation_matrix_source_vector_nonlte_jacobian,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const AtmField& atm_field,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
@@ -654,7 +654,7 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.shape() = {:B,}
           single_propmat_jac_path,
           single_nlte_srcvec_path,
           single_nlte_srcvec_jac_path,
-          surface_field,
+          surf_field,
           atm_field,
           hse_derivative);
 
@@ -684,8 +684,8 @@ void single_radClearskyEmissionPropagation(
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
     const Agenda& ray_path_point_back_propagation_agenda,
-    const SubsurfaceField& subsurface_field,
-    const SurfaceField& surface_field,
+    const SubsurfaceField& subsurf_field,
+    const SurfaceField& surf_field,
     const Vector3& spectral_radiance_observer_position,
     const Vector2& spectral_radiance_observer_line_of_sight,
     const Numeric& max_stepsize,
@@ -732,7 +732,7 @@ void single_radClearskyEmissionPropagation(
       path::init_with_lostype(spectral_radiance_observer_position,
                               spectral_radiance_observer_line_of_sight,
                               atm_field,
-                              surface_field,
+                              surf_field,
                               true);
 
   if (ray_path.back().los_type == PathPositionType::space) {
@@ -753,8 +753,8 @@ void single_radClearskyEmissionPropagation(
                                      frequency_,
                                      jacobian_targets,
                                      ray_path.back(),
-                                     surface_field,
-                                     subsurface_field,
+                                     surf_field,
+                                     subsurf_field,
                                      single_rad_surface_agenda);
     return;
   }
@@ -831,15 +831,15 @@ void single_radClearskyEmissionPropagation(
                                        frequency,
                                        jacobian_targets,
                                        ray_path.back(),
-                                       surface_field,
-                                       subsurface_field,
+                                       surf_field,
+                                       subsurf_field,
                                        single_rad_surface_agenda);
       break;
     }
 
     sumAr += A * path::distance(ray_path.back().pos,
                                 ray_path[ray_path.size() - 2].pos,
-                                surface_field.ellipsoid);
+                                surf_field.ellipsoid);
 
     if (sumAr >= cutoff_tau) {
       single_rad = planck(frequency_, ray_path_atm_point.back().temperature);
@@ -870,7 +870,7 @@ void single_radClearskyEmissionPropagation(
                                  matpack::create(single_propmat_jac_path),
                                  single_nlte_srcvec_path,
                                  matpack::create(single_nlte_srcvec_jac_path),
-                                 surface_field,
+                                 surf_field,
                                  atm_field,
                                  hse_derivative);
 }
@@ -888,8 +888,8 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
     const Agenda& single_rad_surface_agenda,
     const Agenda& single_propmat_agenda,
     const Agenda& ray_path_point_back_propagation_agenda,
-    const SubsurfaceField& subsurface_field,
-    const SurfaceField& surface_field,
+    const SubsurfaceField& subsurf_field,
+    const SurfaceField& surf_field,
     const Vector3& spectral_radiance_observer_position,
     const Vector2& spectral_radiance_observer_line_of_sight,
     const Numeric& max_stepsize,
@@ -925,8 +925,8 @@ void spectral_radianceClearskyEmissionFrequencyDependentPropagation(
           single_rad_surface_agenda,
           single_propmat_agenda,
           ray_path_point_back_propagation_agenda,
-          subsurface_field,
-          surface_field,
+          subsurf_field,
+          surf_field,
           spectral_radiance_observer_position,
           spectral_radiance_observer_line_of_sight,
           max_stepsize,
