@@ -35,9 +35,9 @@ ws.sunBlackbody()
 ws.suns = [ws.sun]
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operator = "Tb"
-ws.spectral_radiance_space_agendaSet(option="SunOrCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operator = "Tb"
+ws.spectral_rad_space_agendaSet(option="SunOrCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric()
 ws.spectral_propmat_scat_agendaSet(option="AirSimple")
 
@@ -51,9 +51,9 @@ for iza in range(len(zas)):
         los = [zas[iza], aas[iaa]]
         ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
         ws.ray_path_suns_pathFromPathObserver(just_hit=1)
-        ws.spectral_radianceClearskyRayleighScattering()
-        ws.spectral_radianceApplyUnitFromSpectralRadiance()
-        res[iza, iaa] = ws.spectral_radiance[0][0]
+        ws.spectral_radClearskyRayleighScattering()
+        ws.spectral_radApplyUnitFromSpectralRadiance()
+        res[iza, iaa] = ws.spectral_rad[0][0]
 
 # FIXME: Use some sort of Imager for measurement_vector for the above
 

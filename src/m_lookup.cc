@@ -176,7 +176,7 @@ void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
                                const ArrayOfAtmPoint& atm_profile,
                                const AscendingGrid& freq_grid,
                                const AbsorptionBands& abs_bands,
-                               const LinemixingEcsData& ecs_data,
+                               const LinemixingEcsData& abs_ecs_data,
                                const SpeciesEnum& select_species,
                                const AscendingGrid& temperature_perturbation,
                                const AscendingGrid& water_perturbation) {
@@ -187,7 +187,7 @@ void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
       atm_profile,
       std::make_shared<const AscendingGrid>(freq_grid),
       abs_bands,
-      ecs_data,
+      abs_ecs_data,
       temperature_perturbation.empty()
           ? nullptr
           : std::make_shared<const AscendingGrid>(temperature_perturbation),
@@ -201,7 +201,7 @@ void abs_lookup_dataPrecomputeAll(
     const ArrayOfAtmPoint& atm_profile,
     const AscendingGrid& freq_grid,
     const AbsorptionBands& abs_bands,
-    const LinemixingEcsData& ecs_data,
+    const LinemixingEcsData& abs_ecs_data,
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation,
     const ArrayOfSpeciesEnum& water_affected_species) {
@@ -250,9 +250,9 @@ void abs_lookup_dataPrecomputeAll(
         std::ranges::any_of(water_affected_species, Cmp::eq(s));
 
     if (do_water_perturb) {
-      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, ecs_data, t, w};
+      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, abs_ecs_data, t, w};
     } else {
-      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, ecs_data, t};
+      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, abs_ecs_data, t};
     }
   }
 }
@@ -261,7 +261,7 @@ void abs_lookup_dataFromProfiles(
     AbsorptionLookupTables& abs_lookup_data,
     const AscendingGrid& freq_grid,
     const AbsorptionBands& abs_bands,
-    const LinemixingEcsData& ecs_data,
+    const LinemixingEcsData& abs_ecs_data,
     const DescendingGrid& pressure_profile,
     const Vector& temperature_profile,
     const SpeciesEnumVectors& vmr_profiles,
@@ -300,7 +300,7 @@ void abs_lookup_dataFromProfiles(
                                atm_profile,
                                freq_grid,
                                abs_bands,
-                               ecs_data,
+                               abs_ecs_data,
                                temperature_perturbation,
                                water_perturbation,
                                water_affected_species);
@@ -309,7 +309,7 @@ void abs_lookup_dataFromProfiles(
 void abs_lookup_dataSimpleWide(AbsorptionLookupTables& abs_lookup_data,
                                const AscendingGrid& freq_grid,
                                const AbsorptionBands& abs_bands,
-                               const LinemixingEcsData& ecs_data,
+                               const LinemixingEcsData& abs_ecs_data,
                                const ArrayOfSpeciesEnum& water_affected_species,
                                const Vector2& pressure_range,
                                const Vector2& temperature_range,
@@ -375,7 +375,7 @@ void abs_lookup_dataSimpleWide(AbsorptionLookupTables& abs_lookup_data,
   abs_lookup_dataFromProfiles(abs_lookup_data,
                               freq_grid,
                               abs_bands,
-                              ecs_data,
+                              abs_ecs_data,
                               pressure_profile,
                               temperature_profile,
                               vmr_profiles,

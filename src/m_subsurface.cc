@@ -33,10 +33,10 @@ void ray_pathFromPointAndDepth(ArrayOfPropagationPathPoint& ray_path,
   ray_path = depth_profile | to_ppp | stdr::to<ArrayOfPropagationPathPoint>();
 }
 
-void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
+void spectral_radSubsurfaceDisortEmissionWithJacobian(
     const Workspace& ws,
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
     const AscendingGrid& freq_grid,
     const AtmField& atm_field_,
     const SurfaceField& surf_field_,
@@ -56,26 +56,26 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field_.ellipsoid)
 
-  DisortSettings disort_settings                = {};
-  ArrayOfPropagationPathPoint ray_path          = {};
-  DisortRadiance disort_spectral_radiance_field = {};
-  ZenithGriddedField1 disort_quadrature         = {};
-  Vector model_state_vector                     = {};
-  Vector model_state_vector_perturbation        = {};
-  StokvecVector spectral_radiance2              = {};
-  AtmField atm_field                            = atm_field_;
-  SurfaceField surf_field                       = surf_field_;
-  SubsurfaceField subsurf_field                 = subsurf_field_;
-  const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
+  DisortSettings disort_settings           = {};
+  ArrayOfPropagationPathPoint ray_path     = {};
+  DisortRadiance disort_spectral_rad_field = {};
+  ZenithGriddedField1 disort_quadrature    = {};
+  Vector model_state_vector                = {};
+  Vector model_state_vector_perturbation   = {};
+  StokvecVector spectral_rad2              = {};
+  AtmField atm_field                       = atm_field_;
+  SurfaceField surf_field                  = surf_field_;
+  SubsurfaceField subsurf_field            = subsurf_field_;
+  const AzimuthGrid azimuth_grid           = Vector{ray_path_point.azimuth()};
 
-  spectral_radiance_jacobian.resize(jac_targets.x_size(), freq_grid.size());
+  spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
 
-  spectral_radianceSubsurfaceDisortEmission(
+  spectral_radSubsurfaceDisortEmission(
       ws,
-      spectral_radiance,
+      spectral_rad,
       disort_settings,
       ray_path,
-      disort_spectral_radiance_field,
+      disort_spectral_rad_field,
       disort_quadrature,
       atm_field,
       disort_fourier_mode_dimension,
@@ -118,9 +118,9 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
                      subsurf_field,                                     \
                      disort_settings,                                   \
                      ray_path,                                          \
-                     disort_spectral_radiance_field,                    \
+                     disort_spectral_rad_field,                         \
                      disort_quadrature,                                 \
-                     spectral_radiance2)
+                     spectral_rad2)
   for (Size i = 0; i < model_state_vector.size(); i++) {
     try {
       const Numeric orig     = model_state_vector[i];
@@ -133,12 +133,12 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
 
       model_state_vector[i] = orig;
 
-      spectral_radianceSubsurfaceDisortEmission(
+      spectral_radSubsurfaceDisortEmission(
           ws,
-          spectral_radiance2,
+          spectral_rad2,
           disort_settings,
           ray_path,
-          disort_spectral_radiance_field,
+          disort_spectral_rad_field,
           disort_quadrature,
           atm_field,
           disort_fourier_mode_dimension,
@@ -153,10 +153,10 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
           depth_profile,
           azimuth_grid);
 
-      std::transform(spectral_radiance2.begin(),
-                     spectral_radiance2.end(),
-                     spectral_radiance.begin(),
-                     spectral_radiance_jacobian[i].begin(),
+      std::transform(spectral_rad2.begin(),
+                     spectral_rad2.end(),
+                     spectral_rad.begin(),
+                     spectral_rad_jac[i].begin(),
                      [d = model_state_vector_perturbation[i]](
                          const Stokvec& a, const Stokvec& b) -> Stokvec {
                        return (a - b) / d;

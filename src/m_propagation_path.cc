@@ -178,8 +178,8 @@ void ray_path_observer_agendaSetGeometric(Agenda& ray_path_observer_agenda,
   AgendaCreator creator("ray_path_observer_agenda");
 
   creator.add("ray_pathInit",
-              SetWsv{"pos", "spectral_radiance_observer_position"},
-              SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
+              SetWsv{"pos", "obs_pos"},
+              SetWsv{"los", "obs_los"},
               SetWsv("as_sensor", Index{1}));
 
   creator.add("ray_pathSetGeometricExtremes",

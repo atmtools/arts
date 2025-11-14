@@ -154,10 +154,10 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& atm_point_path,
+    const ArrayOfAtmPoint& atm_path,
     const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, atm_point_path, freq_grid);
+      disort_settings, atm_path, freq_grid);
 }
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
@@ -170,14 +170,14 @@ void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& atm_point_path,
+    const ArrayOfAtmPoint& atm_path,
     const ArrayOfPropmatVector& spectral_propmat_path,
     const ArrayOfStokvecVector& spectral_srcvec_nlte_path,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   const Size nv = freq_grid.size();
-  const Size N  = atm_point_path.size();
+  const Size N  = atm_path.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -191,14 +191,14 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
 
   ARTS_USER_ERROR_IF(
       not arr::same_size(
-          atm_point_path, spectral_propmat_path, spectral_srcvec_nlte_path),
+          atm_path, spectral_propmat_path, spectral_srcvec_nlte_path),
       R"(Not same size:
 
-atm_point_path.size():   {}
+atm_path.size():   {}
 spectral_propmat_path.size():  {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-      atm_point_path.size(),
+      atm_path.size(),
       spectral_propmat_path.size(),
       spectral_srcvec_nlte_path.size());
 
@@ -217,8 +217,8 @@ ray_path_source_vector_nonlte.size(): {}
     const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = atm_point_path[i + 0].temperature;
-      const Numeric& t1 = atm_point_path[i + 1].temperature;
+      const Numeric& t0 = atm_path[i + 0].temperature;
+      const Numeric& t1 = atm_path[i + 1].temperature;
 
       const Muelmat invK0 = inv(spectral_propmat_path[i + 0][iv]);
       const Muelmat invK1 = inv(spectral_propmat_path[i + 1][iv]);
@@ -354,7 +354,7 @@ void disort_settingsDownwellingObserver(
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
-    const Agenda& spectral_radiance_observer_agenda,
+    const Agenda& spectral_rad_observer_agenda,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
 
@@ -380,21 +380,21 @@ void disort_settingsDownwellingObserver(
   Vector W(N);
   Legendre::PositiveDoubleGaussLegendre(mu, W);
 
-  StokvecVector spectral_radiance;
-  StokvecMatrix spectral_radiance_jacobian;
+  StokvecVector spectral_rad;
+  StokvecMatrix spectral_rad_jac;
   ArrayOfPropagationPathPoint ray_path_up;
   const JacobianTargets jac_targets{};
 
   String error{};
 
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
-    firstprivate(spectral_radiance, spectral_radiance_jacobian, ray_path_up)
+    firstprivate(spectral_rad, spectral_rad_jac, ray_path_up)
   for (Index i = 0; i < N; i++) {
     try {
-      spectral_radiance_observer_agendaExecute(
+      spectral_rad_observer_agendaExecute(
           ws,
-          spectral_radiance,
-          spectral_radiance_jacobian,
+          spectral_rad,
+          spectral_rad_jac,
           ray_path_up,
           freq_grid,
           jac_targets,
@@ -403,10 +403,10 @@ void disort_settingsDownwellingObserver(
           atm_field,
           surf_field,
           subsurf_field,
-          spectral_radiance_observer_agenda);
+          spectral_rad_observer_agenda);
 
       for (Index iv = 0; iv < nv; iv++) {
-        limit[iv, 0, i] = dot(spectral_radiance[iv], pol);
+        limit[iv, 0, i] = dot(spectral_rad[iv], pol);
       }
     } catch (std::exception& e) {
 #pragma omp critical
@@ -655,7 +655,7 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
 
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral) try {
+    const ArrayOfSpecmatMatrix& spectral_phamat_spectral_path) try {
   ARTS_TIME_REPORT
 
   const Size N  = disort_settings.layer_count();
@@ -663,19 +663,19 @@ void disort_settingsLegendreCoefficientsFromPath(
   const Index L = disort_settings.legendre_polynomial_dimension;
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_phase_matrix_scattering_spectral.size(),
-      R"(The number of levels in ray_path_phase_matrix_scattering_spectral must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_phamat_spectral_path.size(),
+      R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count() + 1:                         {}
-  ray_path_phase_matrix_scattering_spectral.size(): {}
+  spectral_phamat_spectral_path.size(): {}
 )",
       N,
-      ray_path_phase_matrix_scattering_spectral.size());
+      spectral_phamat_spectral_path.size());
 
   ARTS_USER_ERROR_IF(
       not all_same_shape<2>({static_cast<Index>(F), static_cast<Index>(L)},
-                            ray_path_phase_matrix_scattering_spectral),
-      "The shape of ray_path_phase_matrix_scattering_spectral must be {:B,}, at least one is not",
+                            spectral_phamat_spectral_path),
+      "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
       std::array{F, L});
 
   ARTS_USER_ERROR_IF(
@@ -696,10 +696,8 @@ void disort_settingsLegendreCoefficientsFromPath(
         disort_settings.legendre_coefficients[iv, i, j] =
             invfac[j] *
             std::midpoint(
-                ray_path_phase_matrix_scattering_spectral[i][iv, j][0, 0]
-                    .real(),
-                ray_path_phase_matrix_scattering_spectral[i + 1][iv, j][0, 0]
-                    .real());
+                spectral_phamat_spectral_path[i][iv, j][0, 0].real(),
+                spectral_phamat_spectral_path[i + 1][iv, j][0, 0].real());
       }
     }
   }
@@ -729,7 +727,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropmatVector& spectral_propmat_path,
     const ArrayOfPropmatVector& spectral_propmat_scat_path,
-    const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
+    const ArrayOfStokvecVector& spectral_absvec_scat_path) try {
   ARTS_TIME_REPORT
 
   const Size N  = disort_settings.layer_count();
@@ -756,20 +754,19 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       spectral_propmat_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_absorption_vector_scattering.size(),
-      R"(The number of levels in ray_path_absorption_vector_scattering must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_absvec_scat_path.size(),
+      R"(The number of levels in spectral_absvec_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                         {}
-  ray_path_absorption_vector_scattering.size(): {}
+  spectral_absvec_scat_path.size(): {}
 )",
       N,
-      ray_path_absorption_vector_scattering.size());
+      spectral_absvec_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>({F},
-                            ray_path_absorption_vector_scattering,
-                            spectral_propmat_scat_path),
-      "The shape of spectral_propmat_scat_path and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
+      not all_same_shape<1>(
+          {F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
+      "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
@@ -781,14 +778,12 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext_upper = spectral_propmat_path[i][iv][0];
-      const Numeric abs_scat_upper =
-          ray_path_absorption_vector_scattering[i][iv][0];
+      const Numeric ext_upper      = spectral_propmat_path[i][iv][0];
+      const Numeric abs_scat_upper = spectral_absvec_scat_path[i][iv][0];
       const Numeric ext_scat_upper = spectral_propmat_scat_path[i][iv][0];
 
-      const Numeric ext_lower = spectral_propmat_path[i + 1][iv][0];
-      const Numeric abs_scat_lower =
-          ray_path_absorption_vector_scattering[i + 1][iv][0];
+      const Numeric ext_lower      = spectral_propmat_path[i + 1][iv][0];
+      const Numeric abs_scat_lower = spectral_absvec_scat_path[i + 1][iv][0];
       const Numeric ext_scat_lower = spectral_propmat_scat_path[i + 1][iv][0];
 
       const Numeric ext      = std::midpoint(ext_upper, ext_lower);
@@ -822,7 +817,7 @@ Agenda disort_settings_agendaSetup(
   agenda.add("jac_targetsOff");
 
   // Clearsky absorption
-  agenda.add("atm_point_pathFromPath");
+  agenda.add("atm_pathFromPath");
   agenda.add("freq_grid_pathFromPath");
   agenda.add("spectral_propmat_pathFromPath");
 

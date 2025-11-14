@@ -32,17 +32,17 @@ ws.atm_fieldRead(
 ws.atm_fieldSchmidthFieldFromIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
 # %% Core calculations
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
-ws.spectral_radianceClearskyEmission()
-ws.spectral_radianceApplyUnitFromSpectralRadiance()
+ws.spectral_radClearskyEmission()
+ws.spectral_radApplyUnitFromSpectralRadiance()
 
 # %% Show results
-fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
+fig, ax = pyarts.plot(ws.spectral_rad, freqs=(
     ws.freq_grid - line_f0) / 1e6)
 [a.set_xlabel("Frequency offset [MHz]") for a in ax.flatten()]
 [a.set_ylabel("Spectral radiance [K]") for a in ax.flatten()]
@@ -54,7 +54,7 @@ if "ARTS_HEADLESS" not in os.environ:
 # %% Test
 
 assert np.allclose(
-    ws.spectral_radiance[::100],
+    ws.spectral_rad[::100],
     np.array(
         [[2.27784836e+02,  4.26114598e-04,  1.02751718e-04,  5.69266704e-02],
          [2.30863855e+02,  6.59892211e-04,  1.59299017e-04,  7.04138026e-02],

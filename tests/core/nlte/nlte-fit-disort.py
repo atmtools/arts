@@ -23,8 +23,8 @@ ws.surf_field["t"] = ws.atm_field["t"].data[0, 0, 0]
 ws.atm_fieldInitializeNonLTE(normalization=0.75)
 ws.abs_bandsSetNonLTE()
 
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.spectral_propmat_agendaAuto()
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")

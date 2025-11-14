@@ -43,7 +43,7 @@ struct table {
         const ArrayOfAtmPoint& atmref,
         std::shared_ptr<const AscendingGrid> f_grid,
         const AbsorptionBands& abs_bands,
-        const LinemixingEcsData& ecs_data,
+        const LinemixingEcsData& abs_ecs_data,
         std::shared_ptr<const AscendingGrid> t_pert = nullptr,
         std::shared_ptr<const AscendingGrid> w_pert = nullptr);
 

@@ -10,18 +10,18 @@
 #include <algorithm>
 #include <exception>
 
-void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
-                                     const AscendingGrid &freq_grid,
-                                     const JacobianTargets &jac_targets) try {
+void spectral_rad_jacEmpty(StokvecMatrix &spectral_rad_jac,
+                           const AscendingGrid &freq_grid,
+                           const JacobianTargets &jac_targets) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance_jacobian.resize(jac_targets.x_size(), freq_grid.size());
-  spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
+  spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_jacobianFromBackground(
-    StokvecMatrix &spectral_radiance_jacobian,
+void spectral_rad_jacFromBackground(
+    StokvecMatrix &spectral_rad_jac,
     const StokvecMatrix &spectral_rad_bkg_jac,
     const MuelmatVector &background_transmittance) try {
   ARTS_TIME_REPORT
@@ -33,53 +33,52 @@ void spectral_radiance_jacobianFromBackground(
       "size of jac_targets")
 
   //! The radiance derivative shape is the background shape
-  spectral_radiance_jacobian.resize(spectral_rad_bkg_jac.shape());
+  spectral_rad_jac.resize(spectral_rad_bkg_jac.shape());
 
   //! Set the background radiance derivative as that which is seen after "this" swath
-  for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
+  for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
     std::transform(background_transmittance.begin(),
                    background_transmittance.end(),
                    spectral_rad_bkg_jac[i].begin(),
-                   spectral_radiance_jacobian[i].begin(),
+                   spectral_rad_jac[i].begin(),
                    std::multiplies<>());
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_jacobianAddPathPropagation(
-    StokvecMatrix &spectral_radiance_jacobian,
-    const ArrayOfStokvecMatrix &ray_path_spectral_radiance_jacobian,
+void spectral_rad_jacAddPathPropagation(
+    StokvecMatrix &spectral_rad_jac,
+    const ArrayOfStokvecMatrix &spectral_rad_jac_path,
     const JacobianTargets &jac_targets,
     const AtmField &atm_field,
     const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
 
-  const auto np = ray_path_spectral_radiance_jacobian.size();
-  const auto nj = spectral_radiance_jacobian.nrows();
-  const auto nf = spectral_radiance_jacobian.ncols();
+  const auto np = spectral_rad_jac_path.size();
+  const auto nj = spectral_rad_jac.nrows();
+  const auto nf = spectral_rad_jac.ncols();
   const auto nt = jac_targets.target_count();
 
   if (nt == 0) return;
 
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_radiance_jacobian.nrows()) !=
-          jac_targets.x_size(),
-      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jac_targets. Sizes: "
+      static_cast<Size>(spectral_rad_jac.nrows()) != jac_targets.x_size(),
+      "Bad size of spectral_rad_jac, it's inner dimension should match the size of jac_targets. Sizes: "
       "{} != {}",
-      spectral_radiance_jacobian.nrows(),
+      spectral_rad_jac.nrows(),
       jac_targets.x_size())
 
   ARTS_USER_ERROR_IF(
       ray_path.size() != np,
-      "ray_path must have same size as the size of ray_path_spectral_radiance_jacobian.  Sizes: ",
+      "ray_path must have same size as the size of spectral_rad_jac_path.  Sizes: ",
       "{} != {}",
       ray_path.size(),
       np)
 
-  for (auto &dr : ray_path_spectral_radiance_jacobian) {
+  for (auto &dr : spectral_rad_jac_path) {
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
-        "ray_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
+        "spectral_rad_jac_path elements must have same number of rows as the size of "
         "jac_targets.  Sizes: "
         "{:B,} != [{}, {}]",
         dr.shape(),
@@ -98,7 +97,7 @@ void spectral_radiance_jacobianAddPathPropagation(
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto &local  = ray_path_spectral_radiance_jacobian[ip];
+      const auto &local  = spectral_rad_jac_path[ip];
 
       for (auto &w : weights) {
         if (w.second != 0.0) {
@@ -107,8 +106,8 @@ void spectral_radiance_jacobianAddPathPropagation(
           std::transform(
               local[atm_block.target_pos].begin(),
               local[atm_block.target_pos].end(),
-              spectral_radiance_jacobian[i].begin(),
-              spectral_radiance_jacobian[i].begin(),
+              spectral_rad_jac[i].begin(),
+              spectral_rad_jac[i].begin(),
               [x = w.second](const Stokvec &a, const Stokvec &b) -> Stokvec {
                 return fma(x, a, b);
               });
@@ -119,51 +118,50 @@ void spectral_radiance_jacobianAddPathPropagation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_transform_operatorSet(
-    SpectralRadianceTransformOperator &spectral_radiance_transform_operator,
+void spectral_rad_transform_operatorSet(
+    SpectralRadianceTransformOperator &spectral_rad_transform_operator,
     const SpectralRadianceUnitType &x) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance_transform_operator = SpectralRadianceTransformOperator(x);
+  spectral_rad_transform_operator = SpectralRadianceTransformOperator(x);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceApplyUnit(StokvecVector &spectral_radiance,
-                                StokvecMatrix &spectral_radiance_jacobian,
-                                const AscendingGrid &freq_grid,
-                                const PropagationPathPoint &ray_path_point,
-                                const SpectralRadianceTransformOperator
-                                    &spectral_radiance_transform_operator) try {
+void spectral_radApplyUnit(StokvecVector &spectral_rad,
+                           StokvecMatrix &spectral_rad_jac,
+                           const AscendingGrid &freq_grid,
+                           const PropagationPathPoint &ray_path_point,
+                           const SpectralRadianceTransformOperator
+                               &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
-  if (spectral_radiance_jacobian.empty()) {
-    spectral_radiance_jacobian.resize(0, freq_grid.size());
+  if (spectral_rad_jac.empty()) {
+    spectral_rad_jac.resize(0, freq_grid.size());
   }
 
-  spectral_radiance_transform_operator(
-      spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
+  spectral_rad_transform_operator(
+      spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceApplyForwardUnit(
-    StokvecVector &spectral_radiance,
-    const AscendingGrid &freq_grid,
-    const PropagationPathPoint &ray_path_point,
-    const SpectralRadianceTransformOperator
-        &spectral_radiance_transform_operator) try {
+void spectral_radApplyForwardUnit(StokvecVector &spectral_rad,
+                                  const AscendingGrid &freq_grid,
+                                  const PropagationPathPoint &ray_path_point,
+                                  const SpectralRadianceTransformOperator
+                                      &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
-  StokvecMatrix spectral_radiance_jacobian(0, freq_grid.size());
+  StokvecMatrix spectral_rad_jac(0, freq_grid.size());
 
-  spectral_radiance_transform_operator(
-      spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
+  spectral_rad_transform_operator(
+      spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_jacobianAddSensorJacobianPerturbations(
+void spectral_rad_jacAddSensorJacobianPerturbations(
     const Workspace &ws,
-    StokvecMatrix &spectral_radiance_jacobian,
-    const StokvecVector &spectral_radiance,
+    StokvecMatrix &spectral_rad_jac,
+    const StokvecVector &spectral_rad,
     const ArrayOfSensorObsel &measurement_sensor,
     const AscendingGrid &freq_grid,
     const JacobianTargets &jac_targets,
@@ -172,7 +170,7 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
     const AtmField &atm_field,
     const SurfaceField &surf_field,
     const SubsurfaceField &subsurf_field,
-    const Agenda &spectral_radiance_observer_agenda) try {
+    const Agenda &spectral_rad_observer_agenda) try {
   ARTS_TIME_REPORT
 
   /*
@@ -192,30 +190,29 @@ void spectral_radiance_jacobianAddSensorJacobianPerturbations(
   if (jac_targets.sensor.empty()) return;
 
   ARTS_USER_ERROR_IF(
-      spectral_radiance.size() != freq_grid.size(),
-      R"(spectral_radiance must have same size as element frequency grid
+      spectral_rad.size() != freq_grid.size(),
+      R"(spectral_rad must have same size as element frequency grid
 
-spectral_radiance.size() = {},
+spectral_rad.size() = {},
 freq_grid.size()    = {}
 )",
-      spectral_radiance.size(),
+      spectral_rad.size(),
       freq_grid.size())
 
-  ARTS_USER_ERROR_IF(
-      not same_shape<2>({jac_targets.x_size(), freq_grid.size()},
-                        spectral_radiance_jacobian),
-      R"(spectral_radiance_jacobian must be x-grid times frequency grid
+  ARTS_USER_ERROR_IF(not same_shape<2>({jac_targets.x_size(), freq_grid.size()},
+                                       spectral_rad_jac),
+                     R"(spectral_rad_jac must be x-grid times frequency grid
 
-spectral_radiance_jacobian.shape() = {:B,},
+spectral_rad_jac.shape() = {:B,},
 jac_targets.x_size()          = {},
 freq_grid.size()              = {}
 )",
-      spectral_radiance_jacobian.shape(),
-      jac_targets.x_size(),
-      freq_grid.size())
+                     spectral_rad_jac.shape(),
+                     jac_targets.x_size(),
+                     freq_grid.size())
 
   const JacobianTargets jac_targets_empty{};
-  StokvecMatrix spectral_radiance_jacobian_empty{};
+  StokvecMatrix spectral_rad_jac_empty{};
   ArrayOfPropagationPathPoint ray_path{};
 
   StokvecVector dsrad;
@@ -223,21 +220,21 @@ freq_grid.size()              = {}
                   const Vector3 &pos2,
                   const Vector2 &los2,
                   const Numeric d) {
-    spectral_radiance_observer_agendaExecute(ws,
-                                             dsrad,
-                                             spectral_radiance_jacobian_empty,
-                                             ray_path,
-                                             freq_grid_2,
-                                             jac_targets_empty,
-                                             pos2,
-                                             los2,
-                                             atm_field,
-                                             surf_field,
-                                             subsurf_field,
-                                             spectral_radiance_observer_agenda);
+    spectral_rad_observer_agendaExecute(ws,
+                                        dsrad,
+                                        spectral_rad_jac_empty,
+                                        ray_path,
+                                        freq_grid_2,
+                                        jac_targets_empty,
+                                        pos2,
+                                        los2,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_observer_agenda);
 
     // Convert to perturbed Jacobian
-    dsrad -= spectral_radiance;
+    dsrad -= spectral_rad;
     dsrad /= d;
   };
 
@@ -252,7 +249,7 @@ freq_grid.size()              = {}
                        "Sensor element out of bounds");
 
     auto &elem      = measurement_sensor[target.type.measurement_elem];
-    auto m          = spectral_radiance_jacobian[target.target_pos];
+    auto m          = spectral_rad_jac[target.target_pos];
     const Numeric d = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
@@ -302,9 +299,8 @@ void measurement_vectorFromSensor(
     const AtmField &atm_field,
     const SurfaceField &surf_field,
     const SubsurfaceField &subsurf_field,
-    const SpectralRadianceTransformOperator
-        &spectral_radiance_transform_operator,
-    const Agenda &spectral_radiance_observer_agenda) try {
+    const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+    const Agenda &spectral_rad_observer_agenda) try {
   ARTS_TIME_REPORT
 
   measurement_vector.resize(measurement_sensor.size());
@@ -376,37 +372,34 @@ void measurement_vectorFromSensor(
       auto &f_grid_ptr = *unflat.f_grid_ptr;
       auto &poslos     = (**unflat.poslos_ptr)[ip];
 
-      StokvecVector spectral_radiance;
-      StokvecMatrix spectral_radiance_jacobian;
+      StokvecVector spectral_rad;
+      StokvecMatrix spectral_rad_jac;
       ArrayOfPropagationPathPoint ray_path;
 
-      spectral_radiance_observer_agendaExecute(
-          ws,
-          spectral_radiance,
-          spectral_radiance_jacobian,
-          ray_path,
-          *f_grid_ptr,
-          jac_targets,
-          poslos.pos,
-          poslos.los,
-          atm_field,
-          surf_field,
-          subsurf_field,
-          spectral_radiance_observer_agenda);
+      spectral_rad_observer_agendaExecute(ws,
+                                          spectral_rad,
+                                          spectral_rad_jac,
+                                          ray_path,
+                                          *f_grid_ptr,
+                                          jac_targets,
+                                          poslos.pos,
+                                          poslos.los,
+                                          atm_field,
+                                          surf_field,
+                                          subsurf_field,
+                                          spectral_rad_observer_agenda);
 
       ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
-      spectral_radiance_transform_operator(spectral_radiance,
-                                           spectral_radiance_jacobian,
-                                           *f_grid_ptr,
-                                           ray_path.front());
+      spectral_rad_transform_operator(
+          spectral_rad, spectral_rad_jac, *f_grid_ptr, ray_path.front());
 
 #pragma omp critical
       for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
         const SensorObsel &obsel = measurement_sensor[iv];
         if (obsel.same_freqs(f_grid_ptr)) {
-          measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);
+          measurement_vector[iv] += obsel.sumup(spectral_rad, ip);
 
-          obsel.sumup(measurement_jacobian[iv], spectral_radiance_jacobian, ip);
+          obsel.sumup(measurement_jacobian[iv], spectral_rad_jac, ip);
         }
       }
     } catch (const std::exception &e) {

@@ -130,23 +130,23 @@ ws.atm_field.top_of_atmosphere = 12.0e3
 ws.spectral_propmat_scat_spectral_agenda
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
 ws.disort_quadrature_dimension = 40
 ws.disort_fourier_mode_dimension = 1
 ws.spectral_propmat_scat_spectral_agendaSet()
 ws.disort_legendre_polynomial_dimension = 40
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 
 def calculate_tbs_disort():
     ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
-    ws.disort_spectral_radiance_fieldProfile(
+    ws.disort_spectral_rad_fieldProfile(
         lon=lon,
         lat=lat,
         disort_quadrature_dimension=NQuad,
@@ -155,12 +155,12 @@ def calculate_tbs_disort():
         max_stepsize=100,
     )
     disort_stokes = [
-        [ws.disort_spectral_radiance_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0]
+        [ws.disort_spectral_rad_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0]
         for f_ind in range(3)
     ]
-    ws.spectral_radiance = disort_stokes
-    ws.spectral_radianceApplyForwardUnit(ray_path_point=ws.ray_path[0])
-    return ws.spectral_radiance.value.copy()[:, 0]
+    ws.spectral_rad = disort_stokes
+    ws.spectral_radApplyForwardUnit(ray_path_point=ws.ray_path[0])
+    return ws.spectral_rad.value.copy()[:, 0]
 
 
 tbs_cloudy = calculate_tbs_disort()

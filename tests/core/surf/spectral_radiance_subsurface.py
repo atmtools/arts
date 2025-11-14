@@ -26,12 +26,12 @@ ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
 ws.abs_species = []
 ws.abs_bands = {}
 ws.spectral_propmat_agendaAuto()
-ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
+ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 
@@ -44,14 +44,14 @@ zas = np.linspace(0, 180, 30)
 data = []
 for za in zas:
     ws.ray_path_point.los[0] = za
-    ws.spectral_radianceSubsurfaceDisortEmission(disort_fourier_mode_dimension=1,
+    ws.spectral_radSubsurfaceDisortEmission(disort_fourier_mode_dimension=1,
                                                  disort_legendre_polynomial_dimension=1,
                                                  disort_quadrature_dimension=NQUAD,
                                                  depth_profile=z)
-    ws.spectral_radiance_jacobian
-    ws.spectral_radianceApplyUnit()
+    ws.spectral_rad_jac
+    ws.spectral_radApplyUnit()
 
-    data.append(ws.spectral_radiance[0, 0])
+    data.append(ws.spectral_rad[0, 0])
 
 plt.plot(zas, data)
 

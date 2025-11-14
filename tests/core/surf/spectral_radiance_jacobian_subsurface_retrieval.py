@@ -27,19 +27,19 @@ ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
 ws.abs_species = []
 ws.abs_bands = {}
 ws.spectral_propmat_agendaAuto()
-ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
+ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 
 
 @pyarts.arts_agenda(ws=ws, fix=False)
-def spectral_radiance_surface_agenda(ws):
-    ws.spectral_radianceSubsurfaceDisortEmissionWithJacobian(depth_profile=z)
+def spectral_rad_surface_agenda(ws):
+    ws.spectral_radSubsurfaceDisortEmissionWithJacobian(depth_profile=z)
 
 
 ws.RetrievalInit()

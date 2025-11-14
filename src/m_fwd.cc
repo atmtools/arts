@@ -14,9 +14,9 @@
 
 #include "workspace_class.h"
 
-void spectral_radiance_operatorClearsky1D(
+void spectral_rad_operatorClearsky1D(
     const Workspace& ws,
-    SpectralRadianceOperator& spectral_radiance_operator,
+    SpectralRadianceOperator& spectral_rad_operator,
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const AscendingGrid& alt_grid,
@@ -54,30 +54,30 @@ void spectral_radiance_operatorClearsky1D(
                     ? ws.share(predef_str).share<predef_t>()
                     : std::shared_ptr<predef_t>{};
 
-  spectral_radiance_operator = SpectralRadianceOperator(alt_grid,
-                                                        Vector{latitude},
-                                                        Vector{longitude},
-                                                        atm_field,
-                                                        surf_field,
-                                                        lines,
-                                                        cia,
-                                                        xsec,
-                                                        predef,
-                                                        cia_extrapolation,
-                                                        cia_robust);
+  spectral_rad_operator = SpectralRadianceOperator(alt_grid,
+                                                   Vector{latitude},
+                                                   Vector{longitude},
+                                                   atm_field,
+                                                   surf_field,
+                                                   lines,
+                                                   cia,
+                                                   xsec,
+                                                   predef,
+                                                   cia_extrapolation,
+                                                   cia_robust);
 }
 
-void spectral_radiance_fieldFromOperatorPlanarGeometric(
-    GriddedSpectralField6& spectral_radiance_field,
-    const SpectralRadianceOperator& spectral_radiance_operator,
+void spectral_rad_fieldFromOperatorPlanarGeometric(
+    GriddedSpectralField6& spectral_rad_field,
+    const SpectralRadianceOperator& spectral_rad_operator,
     const AscendingGrid& freq_grid,
     const ZenithGrid& za_grid,
     const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
-  const AscendingGrid& alt_grid = spectral_radiance_operator.altitude();
-  const LatGrid& lat_grid       = spectral_radiance_operator.latitude();
-  const LonGrid& lon_grid       = spectral_radiance_operator.longitude();
+  const AscendingGrid& alt_grid = spectral_rad_operator.altitude();
+  const LatGrid& lat_grid       = spectral_rad_operator.latitude();
+  const LonGrid& lon_grid       = spectral_rad_operator.longitude();
 
   const Index nza   = za_grid.size();
   const Index naa   = azimuth_grid.size();
@@ -86,7 +86,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   const Index nlon  = lon_grid.size();
   const Index nfreq = freq_grid.size();
 
-  spectral_radiance_field = GriddedSpectralField6{
+  spectral_rad_field = GriddedSpectralField6{
       .data_name = "Spectral Radiance Field",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
@@ -110,10 +110,9 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   const Numeric lon      = lon_grid[0];
 
   const std::vector<fwd::path> upwards =
-      spectral_radiance_operator.geometric_planar({alt_low, lat, lon},
-                                                  {180, 0});
+      spectral_rad_operator.geometric_planar({alt_low, lat, lon}, {180, 0});
   const std::vector<fwd::path> downwards =
-      spectral_radiance_operator.geometric_planar({alt_high, lat, lon}, {0, 0});
+      spectral_rad_operator.geometric_planar({alt_high, lat, lon}, {0, 0});
 
   const auto pathstep = [&upwards, &downwards](const Numeric za,
                                                const Numeric az) {
@@ -127,16 +126,16 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
     return path;
   };
 
-  const auto freqstep = [&spectral_radiance_operator](
+  const auto freqstep = [&spectral_rad_operator](
                             const Numeric freq,
                             const Numeric za,
                             const std::vector<fwd::path>& path) {
     StokvecVector srad;
     if (za < 90.0) {
-      srad = spectral_radiance_operator(
+      srad = spectral_rad_operator(
           freq, path, SpectralRadianceOperator::as_vector{});
     } else {
-      srad = spectral_radiance_operator(
+      srad = spectral_rad_operator(
           freq, path, SpectralRadianceOperator::as_vector{});
       std::ranges::reverse(srad);
     }
@@ -148,7 +147,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
       for (Index j = 0; j < naa; ++j) {
         const auto path = pathstep(za_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
-          spectral_radiance_field.data[joker, 0, 0, i, j, n] =
+          spectral_rad_field.data[joker, 0, 0, i, j, n] =
               freqstep(freq_grid[n], za_grid[i], path);
         }
       }
@@ -162,7 +161,7 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
         try {
           const auto path = pathstep(za_grid[i], azimuth_grid[j]);
           for (Index n = 0; n < nfreq; ++n) {
-            spectral_radiance_field.data[joker, 0, 0, i, j, n] =
+            spectral_rad_field.data[joker, 0, 0, i, j, n] =
                 freqstep(freq_grid[n], za_grid[i], path);
           }
         } catch (std::exception& e) {
@@ -176,19 +175,19 @@ void spectral_radiance_fieldFromOperatorPlanarGeometric(
   }
 }
 
-void spectral_radiance_fieldFromOperatorPath(
+void spectral_rad_fieldFromOperatorPath(
     const Workspace& ws,
-    GriddedSpectralField6& spectral_radiance_field,
-    const SpectralRadianceOperator& spectral_radiance_operator,
+    GriddedSpectralField6& spectral_rad_field,
+    const SpectralRadianceOperator& spectral_rad_operator,
     const Agenda& ray_path_observer_agenda,
     const AscendingGrid& freq_grid,
     const ZenithGrid& za_grid,
     const AzimuthGrid& azimuth_grid) {
   ARTS_TIME_REPORT
 
-  const AscendingGrid& alt_grid = spectral_radiance_operator.altitude();
-  const LatGrid& lat_grid       = spectral_radiance_operator.latitude();
-  const LonGrid& lon_grid       = spectral_radiance_operator.longitude();
+  const AscendingGrid& alt_grid = spectral_rad_operator.altitude();
+  const LatGrid& lat_grid       = spectral_rad_operator.latitude();
+  const LonGrid& lon_grid       = spectral_rad_operator.longitude();
 
   const Index nza   = za_grid.size();
   const Index naa   = azimuth_grid.size();
@@ -197,8 +196,8 @@ void spectral_radiance_fieldFromOperatorPath(
   const Index nlon  = lon_grid.size();
   const Index nfreq = freq_grid.size();
 
-  spectral_radiance_field = GriddedSpectralField6{
-      .data_name = "spectral_radiance_fieldFromOperatorPath",
+  spectral_rad_field = GriddedSpectralField6{
+      .data_name = "spectral_rad_fieldFromOperatorPath",
       .data      = StokvecTensor6(
           nalt, nlat, nlon, nza, naa, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
       .grid_names = {"Altitude",
@@ -225,11 +224,10 @@ void spectral_radiance_fieldFromOperatorPath(
                   ray_path_observer_agenda);
               stdr::transform(
                   freq_grid,
-                  spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
-                      .begin(),
-                  [path = spectral_radiance_operator.from_path(ray_path),
-                   &spectral_radiance_operator](Numeric f) {
-                    return spectral_radiance_operator(f, path);
+                  spectral_rad_field[ialt, ilat, ilon, iza, iaa, joker].begin(),
+                  [path = spectral_rad_operator.from_path(ray_path),
+                   &spectral_rad_operator](Numeric f) {
+                    return spectral_rad_operator(f, path);
                   });
             }
           }
@@ -255,11 +253,11 @@ void spectral_radiance_fieldFromOperatorPath(
                     ray_path_observer_agenda);
                 stdr::transform(
                     freq_grid,
-                    spectral_radiance_field[ialt, ilat, ilon, iza, iaa, joker]
+                    spectral_rad_field[ialt, ilat, ilon, iza, iaa, joker]
                         .begin(),
-                    [path = spectral_radiance_operator.from_path(ray_path),
-                     &spectral_radiance_operator](Numeric f) {
-                      return spectral_radiance_operator(f, path);
+                    [path = spectral_rad_operator.from_path(ray_path),
+                     &spectral_rad_operator](Numeric f) {
+                      return spectral_rad_operator(f, path);
                     });
               } catch (std::exception& e) {
 #pragma omp critical
@@ -279,7 +277,7 @@ void measurement_vectorFromOperatorPath(
     const Workspace& ws,
     Vector& measurement_vector,
     const ArrayOfSensorObsel& measurement_vector_sensor,
-    const SpectralRadianceOperator& spectral_radiance_operator,
+    const SpectralRadianceOperator& spectral_rad_operator,
     const Agenda& ray_path_observer_agenda) try {
   ARTS_TIME_REPORT
 
@@ -298,24 +296,24 @@ void measurement_vectorFromOperatorPath(
       for (Size ip = 0; ip < poslos_gs->size(); ++ip) {
         ArrayOfPropagationPathPoint ray_path;
         std::vector<fwd::path> path;
-        StokvecVector spectral_radiance;
+        StokvecVector spectral_rad;
 
         const SensorPosLos& poslos = (*poslos_gs)[ip];
 
         ray_path_observer_agendaExecute(
             ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
-        spectral_radiance_operator.from_path(path, ray_path);
+        spectral_rad_operator.from_path(path, ray_path);
         std::transform(f_grid_ptr->begin(),
                        f_grid_ptr->end(),
-                       spectral_radiance.begin(),
-                       [&path, &spectral_radiance_operator](Numeric f) {
-                         return spectral_radiance_operator(f, path);
+                       spectral_rad.begin(),
+                       [&path, &spectral_rad_operator](Numeric f) {
+                         return spectral_rad_operator(f, path);
                        });
 
         for (Size iv = 0; iv < measurement_vector_sensor.size(); ++iv) {
           const SensorObsel& obsel = measurement_vector_sensor[iv];
           if (obsel.same_freqs(f_grid_ptr)) {
-            measurement_vector[iv] += obsel.sumup(spectral_radiance, ip);
+            measurement_vector[iv] += obsel.sumup(spectral_rad, ip);
           }
         }
       }

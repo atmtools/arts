@@ -31,7 +31,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 ws.atm_profileFromGrid()
 ws.za_gridProfilePseudo2D(dza=5)
-ws.spectral_radiance_fieldProfilePseudo2D()
+ws.spectral_rad_fieldProfilePseudo2D()
 ws.spectral_flux_profileFromSpectralRadianceField()
 
 assert np.allclose(

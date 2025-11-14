@@ -40,8 +40,8 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_surface_agendaSet(option="SurfaceReflectance")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_surface_agendaSet(option="SurfaceReflectance")
 ws.spectral_surf_refl_agendaSet(option="FlatRealFresnel")
 ws.ray_path_observer_agendaSetGeometric()
 

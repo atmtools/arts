@@ -4,7 +4,7 @@ Radiative Transfer
 ##################
 
 The step-by-step equation of ARTS radiative transfer calculation is described in this section.
-The key variables to look out for are :attr:`~pyarts3.workspace.Workspace.spectral_radiance` and :attr:`~pyarts3.workspace.Workspace.spectral_radiance_jacobian`.
+The key variables to look out for are :attr:`~pyarts3.workspace.Workspace.spectral_rad` and :attr:`~pyarts3.workspace.Workspace.spectral_rad_jac`.
 
 A single step
 *************

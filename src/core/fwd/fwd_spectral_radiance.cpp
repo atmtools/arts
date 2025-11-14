@@ -14,17 +14,15 @@
 #include "fwd_path.h"
 
 namespace fwd {
-spectral_radiance::spectral_radiance()                             = default;
-spectral_radiance::spectral_radiance(const spectral_radiance&)     = default;
-spectral_radiance::spectral_radiance(spectral_radiance&&) noexcept = default;
-spectral_radiance& spectral_radiance::operator=(const spectral_radiance&) =
-    default;
-spectral_radiance& spectral_radiance::operator=(spectral_radiance&&) noexcept =
-    default;
+spectral_rad::spectral_rad()                                   = default;
+spectral_rad::spectral_rad(const spectral_rad&)                = default;
+spectral_rad::spectral_rad(spectral_rad&&) noexcept            = default;
+spectral_rad& spectral_rad::operator=(const spectral_rad&)     = default;
+spectral_rad& spectral_rad::operator=(spectral_rad&&) noexcept = default;
 
-Stokvec spectral_radiance::B(
+Stokvec spectral_rad::B(
     const Numeric f,
-    const std::array<spectral_radiance::weighted_position, 8>& pos) const {
+    const std::array<spectral_rad::weighted_position, 8>& pos) const {
   Numeric out = 0.0;
 
   for (const auto& p : pos) {
@@ -35,30 +33,30 @@ Stokvec spectral_radiance::B(
   return {out, 0.0, 0.0, 0.0};
 }
 
-Stokvec spectral_radiance::Iback(
+Stokvec spectral_rad::Iback(
     const Numeric f,
-    const std::array<spectral_radiance::weighted_position, 8>& pos,
+    const std::array<spectral_rad::weighted_position, 8>& pos,
     const path& pp) const {
   Stokvec out{0.0, 0.0, 0.0, 0.0};
 
   if (pp.point.los_type == PathPositionType::space) {
     for (const auto& p : pos) {
       if (p.w == 0.0) continue;
-      out += p.w * spectral_radiance_space[p.j, p.k](f, pp.point.los);
+      out += p.w * spectral_rad_space[p.j, p.k](f, pp.point.los);
     }
   } else if (pp.point.los_type == PathPositionType::surface) {
     for (const auto& p : pos) {
       if (p.w == 0.0) continue;
-      out += p.w * spectral_radiance_surface[p.j, p.k](f, pp.point.los);
+      out += p.w * spectral_rad_surface[p.j, p.k](f, pp.point.los);
     }
   }
 
   return out;
 }
 
-std::pair<Propmat, Stokvec> spectral_radiance::PM(
+std::pair<Propmat, Stokvec> spectral_rad::PM(
     const Numeric f,
-    const std::array<spectral_radiance::weighted_position, 8>& pos,
+    const std::array<spectral_rad::weighted_position, 8>& pos,
     const path& pp) const {
   std::pair<Propmat, Stokvec> out{Propmat{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                                   Stokvec{0.0, 0.0, 0.0, 0.0}};
@@ -73,8 +71,8 @@ std::pair<Propmat, Stokvec> spectral_radiance::PM(
   return out;
 }
 
-std::array<spectral_radiance::weighted_position, 8>
-spectral_radiance::pos_weights(const path& pp) const {
+std::array<spectral_rad::weighted_position, 8> spectral_rad::pos_weights(
+    const path& pp) const {
   std::array<weighted_position, 8> out;
   auto&& ptr = out.begin();
   for (Size i : {0, 1}) {
@@ -93,26 +91,25 @@ spectral_radiance::pos_weights(const path& pp) const {
   return out;
 }
 
-spectral_radiance::spectral_radiance(
-    AscendingGrid alt_,
-    LatGrid lat_,
-    LonGrid lon_,
-    const AtmField& atm_,
-    const SurfaceField& surf,
-    const std::shared_ptr<AbsorptionBands>& lines,
-    const std::shared_ptr<ArrayOfCIARecord>& cia,
-    const std::shared_ptr<ArrayOfXsecRecord>& xsec,
-    const std::shared_ptr<PredefinedModelData>& predef,
-    Numeric ciaextrap,
-    Index ciarobust)
+spectral_rad::spectral_rad(AscendingGrid alt_,
+                           LatGrid lat_,
+                           LonGrid lon_,
+                           const AtmField& atm_,
+                           const SurfaceField& surf,
+                           const std::shared_ptr<AbsorptionBands>& lines,
+                           const std::shared_ptr<ArrayOfCIARecord>& cia,
+                           const std::shared_ptr<ArrayOfXsecRecord>& xsec,
+                           const std::shared_ptr<PredefinedModelData>& predef,
+                           Numeric ciaextrap,
+                           Index ciarobust)
     : alt(std::move(alt_)),
       lat(std::move(lat_)),
       lon(std::move(lon_)),
       atm(alt.size(), lat.size(), lon.size()),
       pm(atm.shape()),
-      spectral_radiance_surface(lat.size(), lon.size()),
-      spectral_radiance_space(
-          spectral_radiance_surface.shape(),
+      spectral_rad_surface(lat.size(), lon.size()),
+      spectral_rad_space(
+          spectral_rad_surface.shape(),
           [](Numeric f, Vector2) -> Stokvec {
             return planck(f, Constant::cosmic_microwave_background_temperature);
           }),
@@ -122,8 +119,8 @@ spectral_radiance::spectral_radiance(
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Size j = 0; j < lat.size(); j++) {
       for (Size k = 0; k < lon.size(); k++) {
-        spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
-                                              Numeric f, Vector2) -> Stokvec {
+        spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
+                                         Numeric f, Vector2) -> Stokvec {
           return planck(f, surf.temperature);
         };
       }
@@ -146,8 +143,8 @@ spectral_radiance::spectral_radiance(
     for (Size j = 0; j < lat.size(); j++) {
       for (Size k = 0; k < lon.size(); k++) {
         try {
-          spectral_radiance_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
-                                                Numeric f, Vector2) -> Stokvec {
+          spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
+                                           Numeric f, Vector2) -> Stokvec {
             return planck(f, surf.temperature);
           };
         } catch (const std::exception& e) {
@@ -178,9 +175,9 @@ spectral_radiance::spectral_radiance(
   }
 }
 
-Stokvec spectral_radiance::operator()(const Numeric f,
-                                      const std::vector<path>& path_points,
-                                      const Numeric cutoff_transmission) const {
+Stokvec spectral_rad::operator()(const Numeric f,
+                                 const std::vector<path>& path_points,
+                                 const Numeric cutoff_transmission) const {
   using std::views::drop;
 
   assert(path_points.size() > 0);
@@ -222,10 +219,9 @@ Stokvec spectral_radiance::operator()(const Numeric f,
   return I;
 }
 
-StokvecVector spectral_radiance::operator()(
-    const Numeric f,
-    const std::vector<path>& path_points,
-    spectral_radiance::as_vector) const {
+StokvecVector spectral_rad::operator()(const Numeric f,
+                                       const std::vector<path>& path_points,
+                                       spectral_rad::as_vector) const {
   using std::ranges::reverse_view;
   using std::views::drop;
 
@@ -260,19 +256,19 @@ StokvecVector spectral_radiance::operator()(
   return StokvecVector{std::move(out)};
 }
 
-std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
-                                                      const Vector2 los) const {
+std::vector<path> spectral_rad::geometric_planar(const Vector3 pos,
+                                                 const Vector2 los) const {
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 
-void spectral_radiance::from_path(
+void spectral_rad::from_path(
     std::vector<path>& out,
     const ArrayOfPropagationPathPoint& propagation_path) const {
   return fwd::path_from_propagation_path(
       out, propagation_path, alt, lat, lon, ellipsoid);
 }
 
-std::vector<path> spectral_radiance::from_path(
+std::vector<path> spectral_rad::from_path(
     const ArrayOfPropagationPathPoint& propagation_path) const {
   return fwd::path_from_propagation_path(
       propagation_path, alt, lat, lon, ellipsoid);
@@ -292,8 +288,8 @@ void xml_io_stream<SpectralRadianceOperator>::write(
   xml_write_to_stream(os, x.lon, pbofs);
   xml_write_to_stream(os, x.atm, pbofs);
   xml_write_to_stream(os, x.pm, pbofs);
-  xml_write_to_stream(os, x.spectral_radiance_surface, pbofs);
-  xml_write_to_stream(os, x.spectral_radiance_space, pbofs);
+  xml_write_to_stream(os, x.spectral_rad_surface, pbofs);
+  xml_write_to_stream(os, x.spectral_rad_space, pbofs);
   xml_write_to_stream(os, x.ellipsoid, pbofs);
 
   tag.write_to_end_stream(os);
@@ -311,8 +307,8 @@ void xml_io_stream<SpectralRadianceOperator>::read(std::istream& is,
   xml_read_from_stream(is, x.lon, pbifs);
   xml_read_from_stream(is, x.atm, pbifs);
   xml_read_from_stream(is, x.pm, pbifs);
-  xml_read_from_stream(is, x.spectral_radiance_surface, pbifs);
-  xml_read_from_stream(is, x.spectral_radiance_space, pbifs);
+  xml_read_from_stream(is, x.spectral_rad_surface, pbifs);
+  xml_read_from_stream(is, x.spectral_rad_space, pbifs);
   xml_read_from_stream(is, x.ellipsoid, pbifs);
 
   tag.read_from_stream(is);

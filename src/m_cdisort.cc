@@ -107,14 +107,13 @@ void setup_cdisort(disort_state& ds,
 void setup_cdisort_for_frequency(disort_state& ds,
                                  const disort::main_data& dis,
                                  const AzimuthGrid& phis,
-                                 const ArrayOfAtmPoint& atm_point_path,
+                                 const ArrayOfAtmPoint& atm_path,
                                  const Numeric& frequency) {
   // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = phis[i];
 
   if (ds.flag.planck == TRUE) {
-    for (Index i = 0; i <= ds.nlyr; i++)
-      ds.temper[i] = atm_point_path[i].temperature;
+    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = atm_path[i].temperature;
   }
 
   for (Index i = 0; i < ds.numu / 2; i++) {
@@ -152,7 +151,7 @@ void setup_cdisort_for_frequency(disort_state& ds,
           dis.all_legendre_coeffs()[layer, coeff];
 }
 
-void run_cdisort(Tensor3View disort_spectral_radiance_field,
+void run_cdisort(Tensor3View disort_spectral_rad_field,
                  disort_state& ds,
                  disort_output& out) {
   Numeric umu0 = 0.;
@@ -190,10 +189,10 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
   for (Index k = 1; k <= ds.nlyr; k++) {
     for (Index i = 0; i < ds.nphi; i++) {
       for (Index j = 0; j < ds.numu / 2; j++) {
-        disort_spectral_radiance_field[k - 1, i, ds.numu - j - 1] =
+        disort_spectral_rad_field[k - 1, i, ds.numu - j - 1] =
             out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
-        disort_spectral_radiance_field[k - 1, i, j] =
+        disort_spectral_rad_field[k - 1, i, j] =
             out.uu[j + ds.numu / 2 + (k + i * (ds.nlyr + 1)) * ds.numu] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
       }
@@ -203,11 +202,11 @@ void run_cdisort(Tensor3View disort_spectral_radiance_field,
 
 }  // namespace
 
-void disort_spectral_radiance_fieldCalcCdisort(
-    DisortRadiance& disort_spectral_radiance_field,
+void disort_spectral_rad_fieldCalcCdisort(
+    DisortRadiance& disort_spectral_rad_field,
     ZenithGriddedField1& disort_quadrature,
     const DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& atm_point_path,
+    const ArrayOfAtmPoint& atm_path,
     const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfPropagationPathPoint& ray_path,
     const SurfaceField& surf_field,
@@ -225,10 +224,10 @@ void disort_spectral_radiance_fieldCalcCdisort(
                               ray_path[ray_path.size() - 1].latitude(),
                               ray_path[ray_path.size() - 1].longitude());
 
-  disort_spectral_radiance_field.resize(disort_settings.freq_grid,
-                                        disort_settings.alt_grid,
-                                        phis,
-                                        disort_quadrature.grid<0>());
+  disort_spectral_rad_field.resize(disort_settings.freq_grid,
+                                   disort_settings.alt_grid,
+                                   phis,
+                                   disort_quadrature.grid<0>());
 
   disort_state ds;
   setup_cdisort(ds, phis, disort_settings, dis, surf_temperature);
@@ -245,9 +244,9 @@ void disort_spectral_radiance_fieldCalcCdisort(
       disort_settings.set_cdisort(dis, iv);
 
       setup_cdisort_for_frequency(
-          ds, dis, phis, atm_point_path, freq_grid_path[0][iv]);
+          ds, dis, phis, atm_path, freq_grid_path[0][iv]);
 
-      run_cdisort(disort_spectral_radiance_field.data[iv], ds, out);
+      run_cdisort(disort_spectral_rad_field.data[iv], ds, out);
 
       /* Free allocated memory */
       c_disort_out_free(&ds, &out);
@@ -259,7 +258,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
   }
 
   //! FIXME: It would be nice to remove this if the internal angles can be solved
-  disort_spectral_radiance_field.sort(dis.mu());
+  disort_spectral_rad_field.sort(dis.mu());
 
   ARTS_USER_ERROR_IF(
       error.size(), "Error occurred in disort-spectral:\n{}", error);

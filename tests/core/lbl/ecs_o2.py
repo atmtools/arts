@@ -44,9 +44,9 @@ ws.ray_path_point
 
 ws.jac_targetsInit()
 
-ws.ecs_dataInit()
-ws.ecs_dataAddMakarov2020()
-ws.ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
+ws.abs_ecs_dataInit()
+ws.abs_ecs_dataAddMakarov2020()
+ws.abs_ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
 
 
 plt.clf()

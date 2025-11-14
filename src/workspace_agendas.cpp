@@ -84,8 +84,8 @@ If you do not need single-frequency-point calculations, consider using
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
       .output       = {"spectral_propmat_scat",
-                       "absorption_vector_scattering",
-                       "phase_matrix_scattering_spectral"},
+                       "spectral_absvec_scat",
+                       "spectral_phamat_spectral"},
       .input        = {"freq_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
@@ -95,13 +95,13 @@ If you do not need single-frequency-point calculations, consider using
                "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
                "spectral_propmat_scat.size()",
                "freq_grid.size()"},
-              {"absorption_vector_scattering.size() == freq_grid.size()",
-               "On output, *absorption_vector_scattering* has the size of *freq_grid*.",
-               "absorption_vector_scattering.size()",
+              {"spectral_absvec_scat.size() == freq_grid.size()",
+               "On output, *spectral_absvec_scat* has the size of *freq_grid*.",
+               "spectral_absvec_scat.size()",
                "freq_grid.size()"},
-              {"matpack::same_shape<2>({freq_grid.size(), legendre_degree + 1}, phase_matrix_scattering_spectral)",
-               "On output, *phase_matrix_scattering_spectral* has the shape of <*legendre_degree* + 1> times the size of *freq_grid*.",
-               "phase_matrix_scattering_spectral.shape()",
+              {"matpack::same_shape<2>({freq_grid.size(), legendre_degree + 1}, spectral_phamat_spectral)",
+               "On output, *spectral_phamat_spectral* has the shape of <*legendre_degree* + 1> times the size of *freq_grid*.",
+               "spectral_phamat_spectral.shape()",
                "freq_grid.size()",
                "legendre_degree"},
           },
@@ -134,8 +134,7 @@ position and line of sight.
     The perhaps easiest way to set this agenda up is to use the *ray_path_observer_agendaSetGeometric* method.
 )--",
       .output = {"ray_path"},
-      .input  = {"spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight"},
+      .input  = {"obs_pos", "obs_los"},
   };
 
   wsa_data["ray_path_point_back_propagation_agenda"] = {
@@ -163,7 +162,7 @@ at *PathPositionType* ``space`` or ``surface``.
       .enum_default = "GeometricStepwise",
   };
 
-  wsa_data["spectral_radiance_observer_agenda"] = {
+  wsa_data["spectral_rad_observer_agenda"] = {
       .desc =
           R"--(Computes spectral radiance as seen from the input position and environment.
 
@@ -171,28 +170,28 @@ The intent of this agenda is to provide the spectral radiance as seen from the o
 position and line of sight.
 
 It also outputs the *ray_path* as seen from the observer position and line of sight.
-This is useful in-case a call to the destructive *spectral_radianceApplyUnitFromSpectralRadiance*
+This is useful in-case a call to the destructive *spectral_radApplyUnitFromSpectralRadiance*
 is warranted.
 )--",
-      .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
-      .input  = {"freq_grid",
-                 "jac_targets",
-                 "spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight",
-                 "atm_field",
-                 "surf_field",
-                 "subsurf_field"},
+      .output       = {"spectral_rad", "spectral_rad_jac", "ray_path"},
+      .input        = {"freq_grid",
+                       "jac_targets",
+                       "obs_pos",
+                       "obs_los",
+                       "atm_field",
+                       "surf_field",
+                       "subsurf_field"},
       .enum_options = {"Emission", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {
-              {"spectral_radiance.size() == freq_grid.size()",
-               "On output, *spectral_radiance* has the size of *freq_grid*.",
-               "spectral_radiance.size()",
+              {"spectral_rad.size() == freq_grid.size()",
+               "On output, *spectral_rad* has the size of *freq_grid*.",
+               "spectral_rad.size()",
                "freq_grid.size()"},
-              {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-               "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-               "spectral_radiance_jacobian.shape()",
+              {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+               "spectral_rad_jac.shape()",
                "freq_grid.size()",
                "jac_targets.x_size()"},
           },
@@ -202,7 +201,7 @@ is warranted.
       .desc =
           R"--(Gets spectral radiance as seen of space for a single frequency.
 
-Otherwise same as *spectral_radiance_space_agenda*.
+Otherwise same as *spectral_rad_space_agenda*.
 )--",
       .output       = {"single_rad", "single_rad_jac"},
       .input        = {"freq", "jac_targets", "ray_path_point"},
@@ -210,7 +209,7 @@ Otherwise same as *spectral_radiance_space_agenda*.
       .enum_default = "WrapGrid",
   };
 
-  wsa_data["spectral_radiance_space_agenda"] = {
+  wsa_data["spectral_rad_space_agenda"] = {
       .desc               = R"--(Gets spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
@@ -218,25 +217,25 @@ One common use-case is to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
 )--",
-      .output             = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .output             = {"spectral_rad", "spectral_rad_jac"},
       .input              = {"freq_grid", "jac_targets", "ray_path_point"},
       .enum_options       = {"UniformCosmicBackground",
                              "SunOrCosmicBackground",
                              "Transmission"},
       .enum_default       = "UniformCosmicBackground",
       .output_constraints = {
-          {"spectral_radiance.size() == freq_grid.size()",
-           "On output, *spectral_radiance* has the size of *freq_grid*.",
-           "spectral_radiance.size()",
+          {"spectral_rad.size() == freq_grid.size()",
+           "On output, *spectral_rad* has the size of *freq_grid*.",
+           "spectral_rad.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-           "spectral_radiance_jacobian.shape()",
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "spectral_rad_jac.shape()",
            "freq_grid.size()",
            "jac_targets.x_size()"},
       }};
 
-  wsa_data["spectral_radiance_surface_agenda"] = {
+  wsa_data["spectral_rad_surface_agenda"] = {
       .desc         = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
@@ -245,10 +244,10 @@ One common use-case us to provide a background spectral radiance.
 The input path point should be as if it is looking at the surface.
 
 Subsurface calculations are also supported through this agenda,
-but might require setting *spectral_radiance_closed_surface_agenda*
+but might require setting *spectral_rad_closed_surface_agenda*
 as well.
 )--",
-      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .output       = {"spectral_rad", "spectral_rad_jac"},
       .input        = {"freq_grid",
                        "jac_targets",
                        "ray_path_point",
@@ -257,13 +256,13 @@ as well.
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
       .output_constraints = {
-          {"spectral_radiance.size() == freq_grid.size()",
-           "On output, *spectral_radiance* has the size of *freq_grid*.",
-           "spectral_radiance.size()",
+          {"spectral_rad.size() == freq_grid.size()",
+           "On output, *spectral_rad* has the size of *freq_grid*.",
+           "spectral_rad.size()",
            "freq_grid.size()"},
-          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-           "spectral_radiance_jacobian.shape()",
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "spectral_rad_jac.shape()",
            "freq_grid.size()",
            "jac_targets.x_size()"},
       }};
@@ -272,7 +271,7 @@ as well.
       .desc =
           R"--(Gets spectral radiance as seen of the surface for a single frequency.
 
-Otherwise same as *spectral_radiance_surface_agenda*.
+Otherwise same as *spectral_rad_surface_agenda*.
 )--",
       .output       = {"single_rad", "single_rad_jac"},
       .input        = {"freq",
@@ -460,8 +459,7 @@ internal_workspace_agendas() {
 std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
   std::unordered_map<std::string, std::string> out;
 
-  out["spectral_radiance_closed_surface_agenda"] =
-      "spectral_radiance_surface_agenda";
+  out["spectral_rad_closed_surface_agenda"] = "spectral_rad_surface_agenda";
 
   return out;
 }

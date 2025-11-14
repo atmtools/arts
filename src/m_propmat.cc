@@ -13,21 +13,21 @@ void spectral_propmat_pathFromPath(
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &atm_point_path) try {
+    const ArrayOfAtmPoint &atm_path) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
       not arr::same_size(
-          ray_path, atm_point_path, freq_grid_path, freq_wind_shift_jac_path),
+          ray_path, atm_path, freq_grid_path, freq_wind_shift_jac_path),
       R"(Not same size:
 
 ray_path                               size: {} element(s)
-atm_point_path             size: {} element(s)
+atm_path             size: {} element(s)
 freq_grid_path                size: {} element(s)
 freq_wind_shift_jac_path size: {} element(s)
 )",
       ray_path.size(),
-      atm_point_path.size(),
+      atm_path.size(),
       freq_grid_path.size(),
       freq_wind_shift_jac_path.size())
 
@@ -52,7 +52,7 @@ freq_wind_shift_jac_path size: {} element(s)
                                      jac_targets,
                                      {},
                                      ray_path[ip],
-                                     atm_point_path[ip],
+                                     atm_path[ip],
                                      spectral_propmat_agenda);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
@@ -75,7 +75,7 @@ void spectral_propmat_path_species_splitFromPath(
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &atm_point_path,
+    const ArrayOfAtmPoint &atm_path,
     const ArrayOfSpeciesEnum &select_species_list) try {
   ARTS_TIME_REPORT
 
@@ -108,7 +108,7 @@ void spectral_propmat_path_species_splitFromPath(
             jac_targets,
             select_species_list[is],
             ray_path[ip],
-            atm_point_path[ip],
+            atm_path[ip],
             spectral_propmat_agenda);
       } catch (const std::runtime_error &e) {
 #pragma omp critical

@@ -334,12 +334,12 @@ Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const try {
 ARTS_METHOD_ERROR_CATCH
 
 //! Returns true if the sun was hit, false otherwise.  Sets the spectral radiance if the sun was hit.
-bool set_spectral_radiance_if_sun_intersection(
-    StokvecVector& spectral_radiance,
+bool set_spectral_rad_if_sun_intersection(
+    StokvecVector& spectral_rad,
     const Sun& sun,
     const PropagationPathPoint& propagation_path_point,
     const SurfaceField& surf_field) {
-  const Index nf = spectral_radiance.size();
+  const Index nf = spectral_rad.size();
   assert(nf == sun.spectrum.nrows());
   assert(4 == sun.spectrum.ncols());
 
@@ -354,7 +354,7 @@ bool set_spectral_radiance_if_sun_intersection(
 
     for (Index iv = 0; iv < nf; ++iv) {
       for (Index is = 0; is < 4; ++is) {
-        spectral_radiance[iv][is] = sun.spectrum[iv, is] / Constant::pi;
+        spectral_rad[iv][is] = sun.spectrum[iv, is] / Constant::pi;
       }
     }
 

@@ -74,7 +74,7 @@ As of writing this, the list includes the following terms:
 
 - ``absorption`` - for workspace variables related to absorption.
 - ``jacobian`` - for workspace variables related to Jacobian.
-- ``spectral_radiance`` - for workspace variables related to spectral radiance.
+- ``spectral_rad`` - for workspace variables related to spectral radiance.
 - ``spectral_propmat`` - for workspace variables related to propagation matrices.
 - ``source_vector`` - for workspace variables related to source vectors.
 - ``nonlte`` - for workspace variables related to non-local thermodynamic equilibrium.

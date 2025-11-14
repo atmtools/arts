@@ -38,7 +38,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operator = "Tb"
+ws.spectral_rad_transform_operator = "Tb"
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial VMR

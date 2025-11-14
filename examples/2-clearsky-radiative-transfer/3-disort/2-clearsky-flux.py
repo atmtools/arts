@@ -35,9 +35,9 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # ws.atm_field[pyarts.arts.AtmKey.t] = 300.0
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()

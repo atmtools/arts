@@ -1,8 +1,8 @@
 #include <workspace.h>
 
-void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
-                        const Vector& vmrs,
-                        const ArrayOfSpeciesEnum& specs) {
+void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data,
+                            const Vector& vmrs,
+                            const ArrayOfSpeciesEnum& specs) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(),
@@ -29,7 +29,7 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
     return {data1.Type(), v};
   };
 
-  for (auto& [isot, data] : ecs_data) {
+  for (auto& [isot, data] : abs_ecs_data) {
     auto& airdata = data[SpeciesEnum::Bath];
 
     bool first = true;
@@ -49,11 +49,11 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
         first                        = false;
       } catch (std::out_of_range&) {
         ARTS_USER_ERROR(
-            "Missing species {} in ecs_data of isotopologue {}", spec, isot)
+            "Missing species {} in abs_ecs_data of isotopologue {}", spec, isot)
       } catch (std::exception& e) {
         ARTS_USER_ERROR(
             "Error for species {}"
-            " in ecs_data of isotopologue {}:\n{}",
+            " in abs_ecs_data of isotopologue {}:\n{}",
             spec,
             isot,
             e.what())
@@ -62,18 +62,18 @@ void ecs_dataAddMeanAir(LinemixingEcsData& ecs_data,
   }
 }
 
-void ecs_dataInit(LinemixingEcsData& ecs_data) {
+void abs_ecs_dataInit(LinemixingEcsData& abs_ecs_data) {
   ARTS_TIME_REPORT
-  ecs_data.clear();
+  abs_ecs_data.clear();
 }
 
-void ecs_dataAddMakarov2020(LinemixingEcsData& ecs_data) {
+void abs_ecs_dataAddMakarov2020(LinemixingEcsData& abs_ecs_data) {
   ARTS_TIME_REPORT
 
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
-  auto& ecs = ecs_data["O2-66"_isot];
+  auto& ecs = abs_ecs_data["O2-66"_isot];
 
   // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
   auto& oxy                = ecs[SpeciesEnum::Oxygen];
@@ -89,14 +89,14 @@ void ecs_dataAddMakarov2020(LinemixingEcsData& ecs_data) {
   nit.beta                 = data(T0, {0.567});
 }
 
-void ecs_dataAddRodrigues1997(LinemixingEcsData& ecs_data) {
+void abs_ecs_dataAddRodrigues1997(LinemixingEcsData& abs_ecs_data) {
   ARTS_TIME_REPORT
 
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
   for (const auto isot : {"CO2-626"_isot, "CO2-628"_isot, "CO2-636"_isot}) {
-    auto& ecs = ecs_data[isot];
+    auto& ecs = abs_ecs_data[isot];
 
     ecs[SpeciesEnum::Nitrogen].scaling =
         data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85});
@@ -114,14 +114,14 @@ void ecs_dataAddRodrigues1997(LinemixingEcsData& ecs_data) {
   }
 }
 
-void ecs_dataAddTran2011(LinemixingEcsData& ecs_data) {
+void abs_ecs_dataAddTran2011(LinemixingEcsData& abs_ecs_data) {
   ARTS_TIME_REPORT
 
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
   for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
-    auto& ecs = ecs_data[SpeciesIsotope(key)];
+    auto& ecs = abs_ecs_data[SpeciesIsotope(key)];
 
     ecs[SpeciesEnum::CarbonDioxide].scaling =
         data(T0, {Conversion::kaycm_per_atm2hz_per_pa(0.019)});
