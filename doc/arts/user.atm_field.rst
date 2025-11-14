@@ -333,14 +333,14 @@ An example of using :class:`~pyarts3.arts.GeodeticField3` as atmospheric field d
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["t", "O2", "H2O"])
-  subs[0].set_title("Temperature profile")
-  subs[1].set_title("O$_2$ VMR profile")
-  subs[2].set_title("H$_2$O VMR profile")
-  subs[0].set_ylabel("Altitude [m]")
-  subs[0].set_xlabel("Temperature [K]")
-  subs[1].set_xlabel("O$_2$ VMR [-]")
-  subs[2].set_xlabel("H$_2$O VMR [-]")
-  subs[2].set_xscale("log")
+  subs.flatten()[0].set_title("Temperature profile")
+  subs.flatten()[1].set_title("O$_2$ VMR profile")
+  subs.flatten()[2].set_title("H$_2$O VMR profile")
+  subs.flatten()[0].set_ylabel("Altitude [m]")
+  subs.flatten()[0].set_xlabel("Temperature [K]")
+  subs.flatten()[1].set_xlabel("O$_2$ VMR [-]")
+  subs.flatten()[2].set_xlabel("H$_2$O VMR [-]")
+  subs.flatten()[2].set_xscale("log")
   plt.show()
 
 .. tip::
@@ -390,13 +390,13 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["O3",'p'])
-  subs[0].set_title("Ozone profile using lambda-expression")
-  subs[0].legend().remove()
-  subs[1].set_title("Pressure profile using python function")
-  subs[0].set_ylabel("Altitude [m]")
-  subs[0].set_xlabel("O$_3$ VMR [-]")
-  subs[1].set_xlabel("Pressure [Pa]")
-  subs[1].set_xscale("log")
+  subs.flatten()[0].set_title("Ozone profile using lambda-expression")
+  subs.flatten()[0].legend().remove()
+  subs.flatten()[1].set_title("Pressure profile using python function")
+  subs.flatten()[0].set_ylabel("Altitude [m]")
+  subs.flatten()[0].set_xlabel("O$_3$ VMR [-]")
+  subs.flatten()[1].set_xlabel("Pressure [Pa]")
+  subs.flatten()[1].set_xscale("log")
   plt.show()
 
 .. tip::

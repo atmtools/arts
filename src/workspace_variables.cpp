@@ -186,7 +186,7 @@ The atmospheric field may, but does not have to, consist of the following:
 -  Non-local thermodynamics ratios - Unitless [pure-style] OR Kelvin [vibrational-style] ratios replacing the Boltzman distribution used in the LTE calculations.
 -  Scattering species content      - See user guide for more information.  This is custom data to aid scattering calculations.
 
-For more information, see :doc:`user.atmospheric_field`.
+For more information, see :doc:`user.atm_field`.
 )--",
       .type = "AtmField",
   };
@@ -201,7 +201,7 @@ at a single altitude-latitude-longitude but may of course be generated manually.
 
 See *atm_field* for the data that may be available in the atmospheric point.
 
-For more information, see :doc:`user.atmospheric_field`.
+For more information, see :doc:`user.atm_field`.
 )--",
       .type = "AtmPoint",
   };
@@ -221,7 +221,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
 
 The size of the profile is the same as *alt_grid*.
 
-For more information, see :doc:`user.atmospheric_field`.
+For more information, see :doc:`user.atm_field`.
 )--",
       .type = "ArrayOfAtmPoint",
   };
