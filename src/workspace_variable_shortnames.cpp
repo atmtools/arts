@@ -18,21 +18,26 @@ workspace_variables_shortnames_impl() {
   shortnames["scat"]    = {.desc = "Scattering"};
   shortnames["refl"]    = {.desc = "Reflectance"};
   shortnames["jac"]     = {.desc = "The Jacobian matrix"};
-  shortnames["covmat"]  = {.desc = "Covariance matrices"};
-  shortnames["leg"]     = {.desc = "Legendre polynomials"};
   shortnames["nlte"]    = {.desc = "Non-local thermodynamic equilibrium"};
   shortnames["cia"]     = {.desc = "Collision-induced absorption"};
   shortnames["ecs"]     = {.desc = "Error-corrected sudden"};
   shortnames["xfit"]    = {.desc = "Cross-section fitting"};
   shortnames["predef"]  = {.desc = "Predefined data"};
-  shortnames["meas"]    = {.desc = "Measurements"};
   shortnames["ray"]     = {.desc = "Ray-tracing"};
   shortnames["bkg"]     = {.desc = "Background"};
   shortnames["obs"]     = {.desc = "Observers"};
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};
-  shortnames["dim"]     = {.desc = "Dimension"};
-  shortnames["quad"]    = {.desc = "Quadrature"};
+
+  //   shortnames["covmat"]  = {.desc = "Covariance matrices"};
+  //   shortnames["leg"]     = {.desc = "Legendre polynomials"};
+  //   shortnames["meas"]    = {.desc = "Measurements"};
+  //   shortnames["dim"]     = {.desc = "Dimension"};
+  //   shortnames["quad"]    = {.desc = "Quadrature"};
+  //   shortnames["az"] = {
+  //       .desc  = "Azimuth angle [0, 360) circular.  0° is North, 90° is East.",
+  //       .title = "Coordinates",
+  //   };
 
   shortnames["alt"] = {
       .desc  = "Altitude",
@@ -56,11 +61,6 @@ workspace_variables_shortnames_impl() {
 
   shortnames["za"] = {
       .desc  = "Zenith angle [0, 180].",
-      .title = "Coordinates",
-  };
-
-  shortnames["az"] = {
-      .desc  = "Azimuth angle [0, 360) circular.  0° is North, 90° is East.",
       .title = "Coordinates",
   };
 
@@ -92,7 +92,7 @@ workspace_variables_shortnames_impl() {
       .title = "Gridded",
   };
 
-  shortnames["spec"] = {
+  shortnames["spectral"] = {
       .desc  = "Defined over a frequency grid.",
       .title = "Gridded",
   };
