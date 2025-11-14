@@ -23,15 +23,15 @@ ws.atm_point.mag = [10e-6, 50e-6, 1e-6]
 ws.ray_path_point.los = [180.0, 0.0]
 
 # %% Set the jacobian
-ws.jacobian_targetsInit()
-ws.jacobian_targetsAddTemperature()
-ws.jacobian_targetsAddSpeciesVMR(species="O2")
-ws.jacobian_targetsAddMagneticField(component="u")
-ws.jacobian_targetsAddMagneticField(component="v")
-ws.jacobian_targetsAddMagneticField(component="w")
-ws.jacobian_targetsAddWindField(component="u")
-ws.jacobian_targetsAddWindField(component="v")
-ws.jacobian_targetsAddWindField(component="w")
+ws.jac_targetsInit()
+ws.jac_targetsAddTemperature()
+ws.jac_targetsAddSpeciesVMR(species="O2")
+ws.jac_targetsAddMagneticField(component="u")
+ws.jac_targetsAddMagneticField(component="v")
+ws.jac_targetsAddMagneticField(component="w")
+ws.jac_targetsAddWindField(component="u")
+ws.jac_targetsAddWindField(component="v")
+ws.jac_targetsAddWindField(component="w")
 x = ["Temperature", "VMR_O2", "Mag_u", "Mag_v", "Mag_w", "Wind_u", "Wind_v", "Wind_w"]
 
 # %% Calculations
@@ -63,18 +63,18 @@ assert np.allclose(pm, ws.propagation_matrix)
 # assert np.allclose(dpm, ws.propagation_matrix_jacobian)  # Disabled due zero-crossings
 
 if "ARTS_HEADLESS" not in os.environ:
-  import matplotlib.pyplot as plt
-  fig, ax = plt.subplots(3, 1, figsize=(8, 12))
-  ax[0].plot(ws.freq_grid/1e9, d)
-  ax[1].plot(ws.freq_grid/1e9, pm)
-  ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix )
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(3, 1, figsize=(8, 12))
+    ax[0].plot(ws.freq_grid/1e9, d)
+    ax[1].plot(ws.freq_grid/1e9, pm)
+    ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix)
 
-  for i in range(dd.shape[0]):
-    fig, ax = plt.subplots(3 + ("Wind" in x[i]), 1, figsize=(8, 12+ ("Wind" in x[i])*4))
-    ax[0].plot(ws.freq_grid/1e9, dd[i])
-    ax[1].plot(ws.freq_grid/1e9, dpm[i])
-    if "Wind" in x[i]:
-      ax[3].plot(ws.freq_grid/1e9, dpm2)
-    ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix_jacobian[i])
-    ax[0].set_title(f"Jacobian for {x[i]}")
-
+    for i in range(dd.shape[0]):
+        fig, ax = plt.subplots(
+            3 + ("Wind" in x[i]), 1, figsize=(8, 12 + ("Wind" in x[i])*4))
+        ax[0].plot(ws.freq_grid/1e9, dd[i])
+        ax[1].plot(ws.freq_grid/1e9, dpm[i])
+        if "Wind" in x[i]:
+            ax[3].plot(ws.freq_grid/1e9, dpm2)
+        ax[2].plot(ws.freq_grid/1e9, ws.propagation_matrix_jacobian[i])
+        ax[0].set_title(f"Jacobian for {x[i]}")

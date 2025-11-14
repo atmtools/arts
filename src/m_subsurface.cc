@@ -41,7 +41,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
     const AtmField& atm_field_,
     const SurfaceField& surf_field_,
     const SubsurfaceField& subsurf_field_,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension,
@@ -68,8 +68,7 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   SubsurfaceField subsurf_field                 = subsurf_field_;
   const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
 
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
-                                    freq_grid.size());
+  spectral_radiance_jacobian.resize(jac_targets.x_size(), freq_grid.size());
 
   spectral_radianceSubsurfaceDisortEmission(
       ws,
@@ -91,24 +90,21 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       depth_profile,
       azimuth_grid);
 
-  model_state_vectorPerturbations(model_state_vector_perturbation,
-                                  jacobian_targets);
-  model_state_vectorInit(model_state_vector, jacobian_targets);
-  model_state_vectorFromAtmosphere(
-      model_state_vector, atm_field, jacobian_targets);
-  model_state_vectorFromSurface(
-      model_state_vector, surf_field, jacobian_targets);
+  model_state_vectorPerturbations(model_state_vector_perturbation, jac_targets);
+  model_state_vectorInit(model_state_vector, jac_targets);
+  model_state_vectorFromAtmosphere(model_state_vector, atm_field, jac_targets);
+  model_state_vectorFromSurface(model_state_vector, surf_field, jac_targets);
   model_state_vectorFromSubsurface(
-      model_state_vector, subsurf_field, jacobian_targets);
+      model_state_vector, subsurf_field, jac_targets);
 
   ARTS_USER_ERROR_IF(
-      model_state_vector.size() != jacobian_targets.x_size() or
+      model_state_vector.size() != jac_targets.x_size() or
           model_state_vector.size() != model_state_vector_perturbation.size(),
       "Model state vector, model state vector perturbations, "
       "and Jacobian targets size do not match: {} vs {} vs {}",
       model_state_vector.size(),
       model_state_vector_perturbation.size(),
-      jacobian_targets.x_size());
+      jac_targets.x_size());
 
   String error{};
 
@@ -130,11 +126,10 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
       const Numeric orig     = model_state_vector[i];
       model_state_vector[i] += model_state_vector_perturbation[i];
 
-      surf_fieldFromModelState(
-          surf_field, model_state_vector, jacobian_targets);
+      surf_fieldFromModelState(surf_field, model_state_vector, jac_targets);
       subsurf_fieldFromModelState(
-          subsurf_field, model_state_vector, jacobian_targets);
-      atm_fieldFromModelState(atm_field, model_state_vector, jacobian_targets);
+          subsurf_field, model_state_vector, jac_targets);
+      atm_fieldFromModelState(atm_field, model_state_vector, jac_targets);
 
       model_state_vector[i] = orig;
 

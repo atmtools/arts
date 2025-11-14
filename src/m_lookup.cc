@@ -15,7 +15,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
     PropmatVector& propagation_matrix [[maybe_unused]],
     PropmatMatrix& propagation_matrix_jacobian [[maybe_unused]],
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets [[maybe_unused]],
+    const JacobianTargets& jac_targets [[maybe_unused]],
     const SpeciesEnum& propagation_matrix_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
     const AtmPoint& atm_point_,
@@ -61,7 +61,7 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         propagation_matrix,
         propagation_matrix_jacobian,
         freq_grid,
-        jacobian_targets,
+        jac_targets,
         propagation_matrix_select_species,
         abs_lookup_data,
         atm_point_,
@@ -78,10 +78,10 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
       }
     }
 
-    if (jacobian_targets.atm.size()) {
+    if (jac_targets.atm.size()) {
       Vector d_absorption;
 
-      for (auto& jacobian_target : jacobian_targets.atm) {
+      for (auto& jacobian_target : jac_targets.atm) {
         ARTS_USER_ERROR_IF(
             not std::isnormal(jacobian_target.d),
             "The target {} is not good, it lacks a perturbation value.",
@@ -144,7 +144,7 @@ void propagation_matrixAddLookup(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const SpeciesEnum& propagation_matrix_select_species,
     const AbsorptionLookupTables& abs_lookup_data,
     const AtmPoint& atm_point,
@@ -159,7 +159,7 @@ void propagation_matrixAddLookup(
   _propagation_matrixAddLookup<false>(propagation_matrix,
                                       propagation_matrix_jacobian,
                                       freq_grid,
-                                      jacobian_targets,
+                                      jac_targets,
                                       propagation_matrix_select_species,
                                       abs_lookup_data,
                                       atm_point,

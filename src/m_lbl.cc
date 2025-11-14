@@ -249,7 +249,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                                 PropmatMatrix& dpm,
                                 StokvecMatrix& dsv,
                                 const AscendingGrid& f_grid,
-                                const JacobianTargets& jacobian_targets,
+                                const JacobianTargets& jac_targets,
                                 const SpeciesEnum& species,
                                 const AbsorptionBands& abs_bands,
                                 const LinemixingEcsData& ecs_data,
@@ -267,7 +267,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                    dsv,
                    f_grid,
                    Range(0, f_grid.size()),
-                   jacobian_targets,
+                   jac_targets,
                    species,
                    abs_bands,
                    ecs_data,
@@ -286,7 +286,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                        dsv,
                        f_grid,
                        f_ranges[i],
-                       jacobian_targets,
+                       jac_targets,
                        species,
                        abs_bands,
                        ecs_data,
@@ -586,7 +586,7 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
                   ComplexMatrixView dpm,
                   const AbsorptionBands& abs_bands,
                   const ConstVectorView& freq_grid,
-                  const JacobianTargets& jacobian_targets,
+                  const JacobianTargets& jac_targets,
                   const AtmPoint& atm_point,
                   const SpeciesEnum& species,
                   const Index& no_negative_absorption,
@@ -602,7 +602,7 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
                              dpm,
                              abs_bands,
                              freq_grid,
-                             jacobian_targets,
+                             jac_targets,
                              atm_point,
                              pol,
                              species,
@@ -616,7 +616,7 @@ void sumup_zeeman(PropmatVectorView propagation_matrix,
     propagation_matrix[i] += scale(npm, pm[i]);
     dispersion[i]         -= npm.A() * pm[i].imag();
 
-    for (auto& atm_target : jacobian_targets.atm) {
+    for (auto& atm_target : jac_targets.atm) {
       const Size j = atm_target.target_pos;
 
       std::visit(
@@ -651,7 +651,7 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
                                    Vector& dispersion,
                                    Matrix& dispersion_jacobian,
                                    const AscendingGrid& freq_grid,
-                                   const JacobianTargets& jacobian_targets,
+                                   const JacobianTargets& jac_targets,
                                    const SpeciesEnum& species,
                                    const AbsorptionBands& abs_bands,
                                    const AtmPoint& atm_point,
@@ -661,7 +661,7 @@ void propagation_matrixAddVoigtLTE(PropmatVector& propagation_matrix,
 
   //! FIXME: these should be part of workspace once things work
   dispersion.resize(freq_grid.size());
-  dispersion_jacobian.resize(jacobian_targets.target_count(), freq_grid.size());
+  dispersion_jacobian.resize(jac_targets.target_count(), freq_grid.size());
   dispersion          = 0;
   dispersion_jacobian = 0;
 
@@ -694,7 +694,7 @@ dispersion_jacobian:         {:B,}
                                                dpm,
                                                abs_bands,
                                                freq_grid,
-                                               jacobian_targets,
+                                               jac_targets,
                                                atm_point,
                                                lbl::zeeman::pol::no,
                                                species,
@@ -718,7 +718,7 @@ dispersion_jacobian:         {:B,}
                    dpm,
                    abs_bands,
                    freq_grid,
-                   jacobian_targets,
+                   jac_targets,
                    atm_point,
                    species,
                    no_negative_absorption,
@@ -736,10 +736,10 @@ void single_propmatInit(Propmat& single_propmat,
                         StokvecVector& single_nlte_srcvec_jac,
                         Numeric& single_dispersion,
                         Vector& single_dispersion_jac,
-                        const JacobianTargets& jacobian_targets) try {
+                        const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
-  const Size nt = jacobian_targets.target_count();
+  const Size nt = jac_targets.target_count();
 
   single_propmat = Propmat{};
   single_propmat_jac.resize(nt);
@@ -760,7 +760,7 @@ void single_propmatAddVoigtLTE(Propmat& single_propmat,
                                Numeric& single_dispersion,
                                Vector& single_dispersion_jac,
                                const Numeric& frequency,
-                               const JacobianTargets& jacobian_targets,
+                               const JacobianTargets& jac_targets,
                                const SpeciesEnum& species,
                                const AbsorptionBands& abs_bands,
                                const AtmPoint& atm_point,
@@ -768,7 +768,7 @@ void single_propmatAddVoigtLTE(Propmat& single_propmat,
                                const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
-  const Size nt = jacobian_targets.target_count();
+  const Size nt = jac_targets.target_count();
 
   //! FIXME: these should be part of workspace once things work
   single_dispersion = 0;
@@ -801,7 +801,7 @@ single_dispersion_jac:         {:B,}
                                                dpm,
                                                abs_bands,
                                                freq_grid,
-                                               jacobian_targets,
+                                               jac_targets,
                                                atm_point,
                                                lbl::zeeman::pol::no,
                                                species,
@@ -825,7 +825,7 @@ single_dispersion_jac:         {:B,}
                    dpm,
                    abs_bands,
                    freq_grid,
-                   jacobian_targets,
+                   jac_targets,
                    atm_point,
                    species,
                    no_negative_absorption,

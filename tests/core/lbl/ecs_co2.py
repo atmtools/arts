@@ -16,7 +16,7 @@ ws.abs_speciesSet(species=["CO2-626"])
 ws.ReadCatalogData()
 
 p = 1e5
-ws.jacobian_targets = pyarts.arts.JacobianTargets()
+ws.jac_targets = pyarts.arts.JacobianTargets()
 ws.atm_pointInit()
 ws.atm_point.temperature = 295  # At room temperature
 ws.atm_point.pressure = p
@@ -26,7 +26,7 @@ ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
 ws.ray_path_point
 
-ws.jacobian_targetsInit()
+ws.jac_targetsInit()
 ws.WignerInit()
 
 ws.ecs_dataInit()

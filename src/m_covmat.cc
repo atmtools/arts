@@ -66,18 +66,18 @@ void model_state_covariance_matrixInit(
 namespace {
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AtmKeyVal& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.atm) {
+  for (const auto& target : jac_targets.atm) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -91,18 +91,18 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const SurfaceKeyVal& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.surf) {
+  for (const auto& target : jac_targets.surf) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -116,18 +116,18 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const SubsurfaceKeyVal& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.subsurf) {
+  for (const auto& target : jac_targets.subsurf) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -141,18 +141,18 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const LblLineKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.line) {
+  for (const auto& target : jac_targets.line) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -166,18 +166,18 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const SensorKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.sensor) {
+  for (const auto& target : jac_targets.sensor) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -191,18 +191,18 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAdd(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const ErrorKey& new_target,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.error) {
+  for (const auto& target : jac_targets.error) {
     if (target.type == new_target) {
       found = true;
       add_diagonal_covmat(
@@ -217,14 +217,14 @@ void model_state_covariance_matrixAdd(
 
 void model_state_covariance_matrixAddSpeciesVMR(
     CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const SpeciesEnum& species,
     const BlockMatrix& matrix,
     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
   model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
+                                   jac_targets,
                                    AtmKeyVal{species},
                                    matrix,
                                    inverse);
@@ -261,7 +261,7 @@ void measurement_vector_error_covariance_matrixConstant(
 ////////////////////////////////////////////////////////////////////////////////
 
 void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
-                               JacobianTargets& jacobian_targets,
+                               JacobianTargets& jac_targets,
                                const JacobianTargetsDiagonalCovarianceMatrixMap&
                                    covariance_matrix_diagonal_blocks,
                                const AtmField& atm_field,
@@ -276,18 +276,18 @@ void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field.ellipsoid)
 
-  jacobian_targetsFinalize(jacobian_targets,
-                           atm_field,
-                           surf_field,
-                           subsurf_field,
-                           abs_bands,
-                           measurement_sensor);
+  jac_targetsFinalize(jac_targets,
+                      atm_field,
+                      surf_field,
+                      subsurf_field,
+                      abs_bands,
+                      measurement_sensor);
 
   for (auto& key_data : covariance_matrix_diagonal_blocks) {
     std::visit(
         [&](auto& k) {
           model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                           jacobian_targets,
+                                           jac_targets,
                                            k,
                                            key_data.second.first,
                                            key_data.second.second);

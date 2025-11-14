@@ -349,12 +349,12 @@ abs : Vector
          const py::kwargs&) {
         PropmatVector propagation_matrix(f.size());
         PropmatMatrix propagation_matrix_jacobian(0, f.size());
-        JacobianTargets jacobian_targets{};
+        JacobianTargets jac_targets{};
 
         propagation_matrixAddXsecFit(propagation_matrix,
                                      propagation_matrix_jacobian,
                                      spec,
-                                     jacobian_targets,
+                                     jac_targets,
                                      f,
                                      atm,
                                      self,

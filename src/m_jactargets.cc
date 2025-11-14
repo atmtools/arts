@@ -1,33 +1,31 @@
 #include <jac_polyfit.h>
 #include <workspace.h>
 
-void jacobian_targetsOff(JacobianTargets& jacobian_targets) {
+void jac_targetsOff(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.clear();
+  jac_targets.clear();
 }
 
-void jacobian_targetsConditionalClear(JacobianTargets& jacobian_targets,
-                                      const Index& do_jacobian) {
+void jac_targetsConditionalClear(JacobianTargets& jac_targets,
+                                 const Index& do_jacobian) {
   ARTS_TIME_REPORT
 
-  if (do_jacobian == 0) {
-    jacobian_targetsOff(jacobian_targets);
-  }
+  if (do_jacobian == 0) jac_targetsOff(jac_targets);
 }
 
-void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
+void jac_targetsInit(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  jacobian_targetsOff(jacobian_targets);
+  jac_targetsOff(jac_targets);
 }
 
-void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
-                              const AtmField& atm_field,
-                              const SurfaceField& surf_field,
-                              const SubsurfaceField& subsurf_field,
-                              const AbsorptionBands& abs_bands,
-                              const ArrayOfSensorObsel& measurement_sensor) {
+void jac_targetsFinalize(JacobianTargets& jac_targets,
+                         const AtmField& atm_field,
+                         const SurfaceField& surf_field,
+                         const SubsurfaceField& subsurf_field,
+                         const AbsorptionBands& abs_bands,
+                         const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -35,112 +33,109 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field.ellipsoid)
 
-  jacobian_targets.finalize(
+  jac_targets.finalize(
       atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
 }
 
-void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,
-                                   const SubsurfaceKey& key,
-                                   const Numeric& d) {
+void jac_targetsAddSubsurface(JacobianTargets& jac_targets,
+                              const SubsurfaceKey& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(SubsurfaceKeyVal{key}, d);
+  jac_targets.emplace_back(SubsurfaceKeyVal{key}, d);
 }
 
-void jacobian_targetsAddSubsurface(JacobianTargets& jacobian_targets,
-                                   const SubsurfacePropertyTag& key,
-                                   const Numeric& d) {
+void jac_targetsAddSubsurface(JacobianTargets& jac_targets,
+                              const SubsurfacePropertyTag& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(SubsurfaceKeyVal{key}, d);
+  jac_targets.emplace_back(SubsurfaceKeyVal{key}, d);
 }
 
-void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
-                                const SurfaceKey& key,
-                                const Numeric& d) {
+void jac_targetsAddSurface(JacobianTargets& jac_targets,
+                           const SurfaceKey& key,
+                           const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);
+  jac_targets.emplace_back(SurfaceKeyVal{key}, d);
 }
 
-void jacobian_targetsAddSurface(JacobianTargets& jacobian_targets,
-                                const SurfacePropertyTag& key,
-                                const Numeric& d) {
+void jac_targetsAddSurface(JacobianTargets& jac_targets,
+                           const SurfacePropertyTag& key,
+                           const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(SurfaceKeyVal{key}, d);
+  jac_targets.emplace_back(SurfaceKeyVal{key}, d);
 }
 
-void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const AtmKey& key,
-                                   const Numeric& d) {
+void jac_targetsAddAtmosphere(JacobianTargets& jac_targets,
+                              const AtmKey& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{key}, d);
+  jac_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
-void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const SpeciesEnum& key,
-                                   const Numeric& d) {
+void jac_targetsAddAtmosphere(JacobianTargets& jac_targets,
+                              const SpeciesEnum& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{key}, d);
+  jac_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
-void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const SpeciesIsotope& key,
-                                   const Numeric& d) {
+void jac_targetsAddAtmosphere(JacobianTargets& jac_targets,
+                              const SpeciesIsotope& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{key}, d);
+  jac_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
-void jacobian_targetsAddAtmosphere(JacobianTargets& jacobian_targets,
-                                   const QuantumLevelIdentifier& key,
-                                   const Numeric& d) {
+void jac_targetsAddAtmosphere(JacobianTargets& jac_targets,
+                              const QuantumLevelIdentifier& key,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{key}, d);
+  jac_targets.emplace_back(AtmKeyVal{key}, d);
 }
 
-void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
-                                    const Numeric& d) {
+void jac_targetsAddTemperature(JacobianTargets& jac_targets, const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{AtmKey::t}, d);
+  jac_targets.emplace_back(AtmKeyVal{AtmKey::t}, d);
 }
 
-void jacobian_targetsAddPressure(JacobianTargets& jacobian_targets,
+void jac_targetsAddPressure(JacobianTargets& jac_targets, const Numeric& d) {
+  ARTS_TIME_REPORT
+
+  jac_targets.emplace_back(AtmKeyVal{AtmKey::p}, d);
+}
+
+void jac_targetsAddMagneticField(JacobianTargets& jac_targets,
+                                 const String& component,
                                  const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{AtmKey::p}, d);
-}
-
-void jacobian_targetsAddMagneticField(JacobianTargets& jacobian_targets,
-                                      const String& component,
-                                      const Numeric& d) {
-  ARTS_TIME_REPORT
-
   using enum FieldComponent;
   switch (to<FieldComponent>(component)) {
-    case u: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::mag_u}, d); break;
-    case v: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::mag_v}, d); break;
-    case w: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::mag_w}, d); break;
+    case u: jac_targets.emplace_back(AtmKeyVal{AtmKey::mag_u}, d); break;
+    case v: jac_targets.emplace_back(AtmKeyVal{AtmKey::mag_v}, d); break;
+    case w: jac_targets.emplace_back(AtmKeyVal{AtmKey::mag_w}, d); break;
   }
 }
 
-void jacobian_targetsAddOverlappingMagneticField(
-    JacobianTargets& jacobian_targets) {
+void jac_targetsAddOverlappingMagneticField(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  const auto fptr = stdr::find_if(jacobian_targets.atm, Jacobian::is_mag);
+  const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_mag);
 
-  ARTS_USER_ERROR_IF(fptr == jacobian_targets.atm.end(),
+  ARTS_USER_ERROR_IF(fptr == jac_targets.atm.end(),
                      "Cannot find original magnetic field for component");
 
   const AtmKey component = std::get<AtmKey>(fptr->type);
-  const Size N           = jacobian_targets.target_count();
+  const Size N           = jac_targets.target_count();
 
   // Must copy because emplace_back destroys the pointer
   auto copy        = *fptr;
@@ -148,50 +143,49 @@ void jacobian_targetsAddOverlappingMagneticField(
   copy.overlap_key = component;
   copy.target_pos  = N;
 
-  jacobian_targets.atm.emplace_back(copy);
+  jac_targets.atm.emplace_back(copy);
   switch (component) {
     using enum AtmKey;
-    case mag_u: jacobian_targets.atm.back().type = mag_v; break;
+    case mag_u: jac_targets.atm.back().type = mag_v; break;
     case mag_v:
-    case mag_w: jacobian_targets.atm.back().type = mag_u; break;
+    case mag_w: jac_targets.atm.back().type = mag_u; break;
     default:    throw std::out_of_range("Invalid state");
   }
 
   copy.target_pos = N + 1;
-  jacobian_targets.atm.emplace_back(std::move(copy));
+  jac_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
     case mag_u:
-    case mag_v: jacobian_targets.atm.back().type = mag_w; break;
-    case mag_w: jacobian_targets.atm.back().type = mag_v; break;
+    case mag_v: jac_targets.atm.back().type = mag_w; break;
+    case mag_w: jac_targets.atm.back().type = mag_v; break;
     default:    throw std::out_of_range("Invalid state");
   }
 }
 
-void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
-                                  const String& component,
-                                  const Numeric& d) {
+void jac_targetsAddWindField(JacobianTargets& jac_targets,
+                             const String& component,
+                             const Numeric& d) {
   ARTS_TIME_REPORT
 
   using enum FieldComponent;
   switch (to<FieldComponent>(component)) {
-    case u: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_u}, d); break;
-    case v: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_v}, d); break;
-    case w: jacobian_targets.emplace_back(AtmKeyVal{AtmKey::wind_w}, d); break;
+    case u: jac_targets.emplace_back(AtmKeyVal{AtmKey::wind_u}, d); break;
+    case v: jac_targets.emplace_back(AtmKeyVal{AtmKey::wind_v}, d); break;
+    case w: jac_targets.emplace_back(AtmKeyVal{AtmKey::wind_w}, d); break;
   }
 }
 
-void jacobian_targetsAddOverlappingWindField(
-    JacobianTargets& jacobian_targets) {
+void jac_targetsAddOverlappingWindField(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  const auto fptr = stdr::find_if(jacobian_targets.atm, Jacobian::is_wind);
+  const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_wind);
 
-  ARTS_USER_ERROR_IF(fptr == jacobian_targets.atm.end(),
+  ARTS_USER_ERROR_IF(fptr == jac_targets.atm.end(),
                      "Cannot find original wind field for component");
 
   const AtmKey component = std::get<AtmKey>(fptr->type);
-  const Size N           = jacobian_targets.target_count();
+  const Size N           = jac_targets.target_count();
 
   // Must copy because emplace_back destroys the pointer
   auto copy        = *fptr;
@@ -199,45 +193,44 @@ void jacobian_targetsAddOverlappingWindField(
   copy.overlap_key = component;
   copy.target_pos  = N;
 
-  jacobian_targets.atm.emplace_back(std::move(copy));
+  jac_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
-    case wind_u: jacobian_targets.atm.back().type = wind_v; break;
+    case wind_u: jac_targets.atm.back().type = wind_v; break;
     case wind_v:
-    case wind_w: jacobian_targets.atm.back().type = wind_u; break;
+    case wind_w: jac_targets.atm.back().type = wind_u; break;
     default:     throw std::out_of_range("Invalid state");
   }
 
   copy.target_pos = N + 1;
-  jacobian_targets.atm.emplace_back(std::move(copy));
+  jac_targets.atm.emplace_back(std::move(copy));
   switch (component) {
     using enum AtmKey;
     case wind_u:
-    case wind_v: jacobian_targets.atm.back().type = wind_w; break;
-    case wind_w: jacobian_targets.atm.back().type = wind_v; break;
+    case wind_v: jac_targets.atm.back().type = wind_w; break;
+    case wind_w: jac_targets.atm.back().type = wind_v; break;
     default:     throw std::out_of_range("Invalid state");
   }
 }
 
-void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
-                                   const SpeciesEnum& species,
-                                   const Numeric& d) {
+void jac_targetsAddSpeciesVMR(JacobianTargets& jac_targets,
+                              const SpeciesEnum& species,
+                              const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{species}, d);
+  jac_targets.emplace_back(AtmKeyVal{species}, d);
 }
 
-void jacobian_targetsAddSpeciesIsotopologueRatio(
-    JacobianTargets& jacobian_targets,
-    const SpeciesIsotope& species,
-    const Numeric& d) {
+void jac_targetsAddSpeciesIsotopologueRatio(JacobianTargets& jac_targets,
+                                            const SpeciesIsotope& species,
+                                            const Numeric& d) {
   ARTS_TIME_REPORT
 
-  jacobian_targets.emplace_back(AtmKeyVal{species}, d);
+  jac_targets.emplace_back(AtmKeyVal{species}, d);
 }
 
-void jacobian_targetsAddSensorFrequencyPolyOffset(
-    JacobianTargets& jacobian_targets,
+void jac_targetsAddSensorFrequencyPolyOffset(
+    JacobianTargets& jac_targets,
     const ArrayOfSensorObsel& measurement_sensor,
     const Numeric& d,
     const Index& sensor_elem,
@@ -266,10 +259,10 @@ void jacobian_targetsAddSensorFrequencyPolyOffset(
 
   const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
 
-  make_polyoffset(jacobian_targets.emplace_back(
-                      SensorKey{.type             = SensorKeyType::f,
-                                .measurement_elem = measurement_elem},
-                      d),
-                  static_cast<Size>(polyorder),
-                  measurement_sensor);
+  make_polyoffset(
+      jac_targets.emplace_back(SensorKey{.type             = SensorKeyType::f,
+                                         .measurement_elem = measurement_elem},
+                               d),
+      static_cast<Size>(polyorder),
+      measurement_sensor);
 }

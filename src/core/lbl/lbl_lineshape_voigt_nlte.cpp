@@ -1000,7 +1000,7 @@ void calculate(PropmatVectorView pm_,
                ComputeData& com_data,
                const ConstVectorView f_grid_,
                const Range& f_range,
-               const JacobianTargets& jacobian_targets,
+               const JacobianTargets& jac_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
@@ -1021,7 +1021,7 @@ void calculate(PropmatVectorView pm_,
   const Numeric fmin        = f_grid.front();
   const Numeric fmax        = f_grid.back();
 
-  assert(jacobian_targets.target_count() == static_cast<Size>(dpm.nrows()) and
+  assert(jac_targets.target_count() == static_cast<Size>(dpm.nrows()) and
          f_grid_.size() == static_cast<Size>(dpm.ncols()));
   assert(nf == pm.size());
 
@@ -1046,7 +1046,7 @@ void calculate(PropmatVectorView pm_,
     sv[i]             += {srcvec.A(), srcvec.B(), srcvec.C(), srcvec.D()};
   }
 
-  for (auto& atm_target : jacobian_targets.atm) {
+  for (auto& atm_target : jac_targets.atm) {
     std::visit(
         [&](auto& target) {
           compute_derivative(dpm[atm_target.target_pos, f_range],
@@ -1063,7 +1063,7 @@ void calculate(PropmatVectorView pm_,
         atm_target.type);
   }
 
-  for (auto& line_target : jacobian_targets.line) {
+  for (auto& line_target : jac_targets.line) {
     if (line_target.type.band == bnd_qid) {
       compute_derivative(dpm[line_target.target_pos, f_range],
                          dsv[line_target.target_pos, f_range],

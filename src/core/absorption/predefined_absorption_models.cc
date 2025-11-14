@@ -206,23 +206,23 @@ void compute(
     const SpeciesIsotope& model,
     const Vector& f_grid,
     const AtmPoint& atm_point,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
   if (not compute_selection<true>(
           propmat_clearsky, model, f_grid, atm_point, predefined_model_data))
     return;
 
   using enum SpeciesEnum;
-  const auto freq_jac = std::array{jacobian_targets.find(AtmKey::wind_u),
-                                   jacobian_targets.find(AtmKey::wind_v),
-                                   jacobian_targets.find(AtmKey::wind_w)};
-  const auto temp_jac = jacobian_targets.find(AtmKey::t);
-  const auto vmrs_jac = {jacobian_targets.find(CarbonDioxide),
-                         jacobian_targets.find(Oxygen),
-                         jacobian_targets.find(Nitrogen),
-                         jacobian_targets.find(Water),
-                         jacobian_targets.find(liquidcloud)};
-  const auto e        = jacobian_targets.atm.end();
+  const auto freq_jac = std::array{jac_targets.find(AtmKey::wind_u),
+                                   jac_targets.find(AtmKey::wind_v),
+                                   jac_targets.find(AtmKey::wind_w)};
+  const auto temp_jac = jac_targets.find(AtmKey::t);
+  const auto vmrs_jac = {jac_targets.find(CarbonDioxide),
+                         jac_targets.find(Oxygen),
+                         jac_targets.find(Nitrogen),
+                         jac_targets.find(Water),
+                         jac_targets.find(liquidcloud)};
+  const auto e        = jac_targets.atm.end();
   const bool do_freq_jac =
       std::ranges::any_of(freq_jac, [e](auto& x) { return x != e; });
 

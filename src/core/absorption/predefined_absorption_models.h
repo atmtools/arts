@@ -19,7 +19,7 @@ bool can_compute(const SpeciesIsotope& model);
  * @param[in] tag An isotope record
  * @param[in] f_grid As WSV
  * @param[in] atm_point An atmospheric point object
- * @param[in] jacobian_targets As WSV
+ * @param[in] jac_targets As WSV
  * @param[in] predefined_model_data As WSV
  */
 void compute(
@@ -28,6 +28,6 @@ void compute(
     const SpeciesIsotope& tag,
     const Vector& f_grid,
     const AtmPoint& atm_point,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
 }  // namespace Absorption::PredefinedModel

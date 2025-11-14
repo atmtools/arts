@@ -13,7 +13,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     StokvecVector& spectral_radiance_background,
     StokvecMatrix& spectral_radiance_background_jacobian,
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
@@ -33,7 +33,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background,
           spectral_radiance_background_jacobian,
           freq_grid,
-          jacobian_targets,
+          jac_targets,
           ray_path_point,
           spectral_radiance_space_agenda);
       break;
@@ -43,7 +43,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background,
           spectral_radiance_background_jacobian,
           freq_grid,
-          jacobian_targets,
+          jac_targets,
           ray_path_point,
           surf_field,
           subsurf_field,
@@ -120,7 +120,7 @@ void spectral_radianceSurfaceBlackbody(
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& freq_grid,
     const SurfaceField& surf_field,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point) {
   ARTS_TIME_REPORT
 
@@ -134,9 +134,9 @@ void spectral_radianceSurfaceBlackbody(
   spectral_radiance = from_temp(freq_grid, t);
 
   spectral_radiance_jacobianEmpty(
-      spectral_radiance_jacobian, freq_grid, jacobian_targets);
+      spectral_radiance_jacobian, freq_grid, jac_targets);
 
-  for (auto& target : jacobian_targets.surf) {
+  for (auto& target : jac_targets.surf) {
     if (target.type == SurfaceKey::t) {
       const auto& data = surf_field[target.type];
 
@@ -182,11 +182,11 @@ void spectral_radianceDefaultTransmission(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_background,
     const AscendingGrid& freq_grid,
-    const JacobianTargets& jacobian_targets) {
+    const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
   const Index nf = freq_grid.size();
-  const Index nq = jacobian_targets.x_size();
+  const Index nq = jac_targets.x_size();
 
   spectral_radiance_background.resize(nq, nf);
   spectral_radiance_background = 0.0;
@@ -200,7 +200,7 @@ void single_rad_backgroundAgendasAtEndOfPath(
     Stokvec& single_rad_background,
     StokvecVector& single_rad_background_jacobian,
     const Numeric& frequency,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
@@ -219,7 +219,7 @@ void single_rad_backgroundAgendasAtEndOfPath(
                                      single_rad_background,
                                      single_rad_background_jacobian,
                                      frequency,
-                                     jacobian_targets,
+                                     jac_targets,
                                      ray_path_point,
                                      single_rad_space_agenda);
       break;
@@ -228,7 +228,7 @@ void single_rad_backgroundAgendasAtEndOfPath(
                                        single_rad_background,
                                        single_rad_background_jacobian,
                                        frequency,
-                                       jacobian_targets,
+                                       jac_targets,
                                        ray_path_point,
                                        surf_field,
                                        subsurf_field,

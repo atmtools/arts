@@ -3,13 +3,12 @@
 #include <workspace.h>
 
 namespace {
-void jacobian_targetsToggleRelativeAtmTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const AtmKeyVal& key) {
+void jac_targetsToggleRelativeAtmTargetImpl(JacobianTargets& jac_targets,
+                                            const AtmField& f,
+                                            const AtmKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm) {
+  for (auto& t : jac_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<relinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -24,13 +23,12 @@ void jacobian_targetsToggleRelativeAtmTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleRelativeSurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKeyVal& key) {
+void jac_targetsToggleRelativeSurfaceTargetImpl(JacobianTargets& jac_targets,
+                                                const SurfaceField& f,
+                                                const SurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.surf) {
+  for (auto& t : jac_targets.surf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<relinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -45,13 +43,13 @@ void jacobian_targetsToggleRelativeSurfaceTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleRelativeSubsurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleRelativeSubsurfaceTargetImpl(
+    JacobianTargets& jac_targets,
     const SubsurfaceField& f,
     const SubsurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.subsurf) {
+  for (auto& t : jac_targets.subsurf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<relinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -69,59 +67,54 @@ void jacobian_targetsToggleRelativeSubsurfaceTargetImpl(
 
 // Atm
 
-void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
-                                             const AtmField& f,
-                                             const AtmKey& key) {
-  jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeAtmTarget(JacobianTargets& jac_targets,
+                                        const AtmField& f,
+                                        const AtmKey& key) {
+  jac_targetsToggleRelativeAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
-                                             const AtmField& f,
-                                             const SpeciesEnum& key) {
-  jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeAtmTarget(JacobianTargets& jac_targets,
+                                        const AtmField& f,
+                                        const SpeciesEnum& key) {
+  jac_targetsToggleRelativeAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeAtmTarget(JacobianTargets& jacobian_targets,
-                                             const AtmField& f,
-                                             const SpeciesIsotope& key) {
-  jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeAtmTarget(JacobianTargets& jac_targets,
+                                        const AtmField& f,
+                                        const SpeciesIsotope& key) {
+  jac_targetsToggleRelativeAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const QuantumLevelIdentifier& key) {
-  jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeAtmTarget(JacobianTargets& jac_targets,
+                                        const AtmField& f,
+                                        const QuantumLevelIdentifier& key) {
+  jac_targetsToggleRelativeAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const ScatteringSpeciesProperty& key) {
-  jacobian_targetsToggleRelativeAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeAtmTarget(JacobianTargets& jac_targets,
+                                        const AtmField& f,
+                                        const ScatteringSpeciesProperty& key) {
+  jac_targetsToggleRelativeAtmTargetImpl(jac_targets, f, key);
 }
 
 // Surface
 
-void jacobian_targetsToggleRelativeSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKey& key) {
-  jacobian_targetsToggleRelativeSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeSurfaceTarget(JacobianTargets& jac_targets,
+                                            const SurfaceField& f,
+                                            const SurfaceKey& key) {
+  jac_targetsToggleRelativeSurfaceTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleRelativeSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfacePropertyTag& key) {
-  jacobian_targetsToggleRelativeSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeSurfaceTarget(JacobianTargets& jac_targets,
+                                            const SurfaceField& f,
+                                            const SurfacePropertyTag& key) {
+  jac_targetsToggleRelativeSurfaceTargetImpl(jac_targets, f, key);
 }
 
 // Subsurface
 
-void jacobian_targetsToggleRelativeSubsurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SubsurfaceField& f,
-    const SubsurfaceKey& key) {
-  jacobian_targetsToggleRelativeSubsurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleRelativeSubsurfaceTarget(JacobianTargets& jac_targets,
+                                               const SubsurfaceField& f,
+                                               const SubsurfaceKey& key) {
+  jac_targetsToggleRelativeSubsurfaceTargetImpl(jac_targets, f, key);
 }

@@ -2002,7 +2002,7 @@ void calculate(PropmatVectorView pm_,
                ComputeData& com_data,
                const ConstVectorView f_grid_,
                const Range& f_range,
-               const JacobianTargets& jacobian_targets,
+               const JacobianTargets& jac_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
@@ -2020,7 +2020,7 @@ void calculate(PropmatVectorView pm_,
   const Numeric fmin        = f_grid.front();
   const Numeric fmax        = f_grid.back();
 
-  assert(jacobian_targets.target_count() == static_cast<Size>(dpm.nrows()) and
+  assert(jac_targets.target_count() == static_cast<Size>(dpm.nrows()) and
          f_grid_.size() == static_cast<Size>(dpm.ncols()));
   assert(nf == pm.size());
 
@@ -2039,7 +2039,7 @@ void calculate(PropmatVectorView pm_,
     pm[i] += zeeman::scale(com_data.npm, F);
   }
 
-  for (auto& atm_target : jacobian_targets.atm) {
+  for (auto& atm_target : jac_targets.atm) {
     std::visit(
         [&](auto& target) {
           compute_derivative(dpm[atm_target.target_pos, f_range],
@@ -2055,7 +2055,7 @@ void calculate(PropmatVectorView pm_,
         atm_target.type);
   }
 
-  for (auto& line_target : jacobian_targets.line) {
+  for (auto& line_target : jac_targets.line) {
     if (line_target.type.band == bnd_qid) {
       compute_derivative(dpm[line_target.target_pos, f_range],
                          com_data,
@@ -2338,7 +2338,7 @@ bool calculate_shape(ComplexVectorView pm_,
                      ComplexMatrixView dpm_,
                      const ConstVectorView f_grid_,
                      const Range& f_range,
-                     const JacobianTargets& jacobian_targets,
+                     const JacobianTargets& jac_targets,
                      const QuantumIdentifier& qid,
                      const band_data& bnd,
                      const AtmPoint& atm,
@@ -2346,7 +2346,7 @@ bool calculate_shape(ComplexVectorView pm_,
                      const bool no_negative_absorption) {
   assert(pm_.size() == f_grid_.size());
   assert(dpm_.ncols() == static_cast<Index>(f_grid_.size()));
-  assert(dpm_.nrows() == static_cast<Index>(jacobian_targets.target_count()));
+  assert(dpm_.nrows() == static_cast<Index>(jac_targets.target_count()));
 
   const ConstVectorView f_grid = f_grid_[f_range];
   const Size nf                = f_grid.size();
@@ -2376,7 +2376,7 @@ bool calculate_shape(ComplexVectorView pm_,
                      res.begin(),
                      [&shp](auto f, auto p) { return shp(f) + p; });
 
-      for (auto& atm_target : jacobian_targets.atm) {
+      for (auto& atm_target : jac_targets.atm) {
         assert(atm_target.target_pos < nt);
         std::visit(
             [&](auto& target) {
@@ -2396,7 +2396,7 @@ bool calculate_shape(ComplexVectorView pm_,
             atm_target.type);
       }
 
-      for (auto& line_target : jacobian_targets.line) {
+      for (auto& line_target : jac_targets.line) {
         assert(line_target.target_pos < nt);
         compute_derivative(dres[line_target.target_pos].to_exhaustive_view(),
                            freqs,
@@ -2459,7 +2459,7 @@ bool calculate_shape(ComplexVectorView pm_,
 void multiply_scale(ComplexVectorView pm,
                     ComplexMatrixView dpm,
                     const ConstVectorView f_grid,
-                    const JacobianTargets& jacobian_targets,
+                    const JacobianTargets& jac_targets,
                     const AtmPoint& atm) {
   using Constant::pi, Constant::c, Constant::h, Constant::k;
   constexpr Numeric sc = c * c / (8 * pi);
@@ -2476,7 +2476,7 @@ void multiply_scale(ComplexVectorView pm,
     const Numeric scl = -N * f * e * sc;
 
     auto& p = pm[i];
-    for (auto& atm_target : jacobian_targets.atm) {
+    for (auto& atm_target : jac_targets.atm) {
       auto& dp  = dpm[atm_target.target_pos, i];
       dp       *= scl;
 
@@ -2509,14 +2509,14 @@ bool calculate(ComplexVectorView pm,
                ComplexMatrixView dpm,
                const AbsorptionBands& bands,
                const ConstVectorView f_grid,
-               const JacobianTargets& jacobian_targets,
+               const JacobianTargets& jac_targets,
                const AtmPoint& atm,
                const zeeman::pol pol,
                const SpeciesEnum spec,
                const bool no_negative_absorption) {
   assert(pm.size() == f_grid.size());
   assert(dpm.ncols() == static_cast<Index>(f_grid.size()));
-  assert(dpm.nrows() == static_cast<Index>(jacobian_targets.target_count()));
+  assert(dpm.nrows() == static_cast<Index>(jac_targets.target_count()));
 
   const Size n = arts_omp_get_max_threads();
   bool has_pol = false;
@@ -2532,7 +2532,7 @@ bool calculate(ComplexVectorView pm,
                                                dpm,
                                                f_grid,
                                                f_ranges[i],
-                                               jacobian_targets,
+                                               jac_targets,
                                                qid,
                                                band,
                                                atm,
@@ -2556,7 +2556,7 @@ bool calculate(ComplexVectorView pm,
                                 dpm,
                                 f_grid,
                                 Range{0, f_grid.size()},
-                                jacobian_targets,
+                                jac_targets,
                                 qid,
                                 band,
                                 atm,
@@ -2566,7 +2566,7 @@ bool calculate(ComplexVectorView pm,
     }
   }
 
-  multiply_scale(pm, dpm, f_grid, jacobian_targets, atm);
+  multiply_scale(pm, dpm, f_grid, jac_targets, atm);
   return has_pol;
 }
 }  // namespace lbl::voigt::lte

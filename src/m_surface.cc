@@ -26,7 +26,7 @@ void spectral_surf_reflFlatRealFresnel(
     const AscendingGrid& freq_grid,
     const SurfaceField& surf_field,
     const PropagationPathPoint& ray_path_point,
-    const JacobianTargets& jacobian_targets) try {
+    const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -58,7 +58,7 @@ surf_field:
   const Size nf                 = freq_grid.size();
 
   spectral_surf_refl.resize(nf);
-  spectral_surf_refl_jac.resize(jacobian_targets.target_count(), nf);
+  spectral_surf_refl_jac.resize(jac_targets.target_count(), nf);
 
   const auto [Rv, Rh] = fresnel(
       n1,
@@ -70,7 +70,7 @@ surf_field:
   spectral_surf_refl     = R;
   spectral_surf_refl_jac = 0.0;
 
-  for (auto& target : jacobian_targets.surf) {
+  for (auto& target : jac_targets.surf) {
     if (target.type == refraction_target) {
       const auto [Rv2, Rh2] =
           fresnel(n1,
@@ -92,7 +92,7 @@ void spectral_surf_reflFlatScalar(MuelmatVector& spectral_surf_refl,
                                   const AscendingGrid& freq_grid,
                                   const SurfaceField& surf_field,
                                   const PropagationPathPoint& ray_path_point,
-                                  const JacobianTargets& jacobian_targets) try {
+                                  const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -125,12 +125,12 @@ surf_field:
       R)
 
   spectral_surf_refl.resize(nf);
-  spectral_surf_refl_jac.resize(jacobian_targets.target_count(), nf);
+  spectral_surf_refl_jac.resize(jac_targets.target_count(), nf);
 
   spectral_surf_refl     = R;
   spectral_surf_refl_jac = 0.0;
 
-  for (auto& target : jacobian_targets.surf) {
+  for (auto& target : jac_targets.surf) {
     if (target.type == reflectance_target) {
       spectral_surf_refl_jac[target.target_pos] = 1.0;
     }
@@ -146,7 +146,7 @@ void spectral_radianceSurfaceReflectance(
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
     const Agenda& spectral_radiance_observer_agenda,
     const Agenda& spectral_radiance_closed_surface_agenda,
@@ -159,7 +159,7 @@ void spectral_radianceSurfaceReflectance(
       surf_field.ellipsoid)
 
   const Size NF                 = freq_grid.size();
-  const Size NX                 = jacobian_targets.x_size();
+  const Size NX                 = jac_targets.x_size();
   const Numeric lat             = ray_path_point.pos[1];
   const Numeric lon             = ray_path_point.pos[2];
   const SurfacePoint surf_point = surf_field.at(lat, lon);
@@ -172,7 +172,7 @@ void spectral_radianceSurfaceReflectance(
                                    freq_grid,
                                    surf_field,
                                    ray_path_point,
-                                   jacobian_targets,
+                                   jac_targets,
                                    spectral_surf_refl_agenda);
 
   // Get the direction of the incoming radiation
@@ -190,7 +190,7 @@ void spectral_radianceSurfaceReflectance(
                                            spectral_radiance_jacobian,
                                            ray_path,
                                            freq_grid,
-                                           jacobian_targets,
+                                           jac_targets,
                                            ray_path_point.pos,
                                            los,
                                            atm_field,
@@ -203,7 +203,7 @@ void spectral_radianceSurfaceReflectance(
       spectral_radiance_surface,
       spectral_radiance_jacobian_surface,
       freq_grid,
-      jacobian_targets,
+      jac_targets,
       ray_path_point,
       surf_field,
       subsurf_field,
@@ -219,7 +219,7 @@ void spectral_radianceSurfaceReflectance(
     }
   }
 
-  for (auto& target : jacobian_targets.surf) {
+  for (auto& target : jac_targets.surf) {
     const SurfaceData& data = surf_field[target.type];
     const auto ws           = data.flat_weights(lat, lon);
 

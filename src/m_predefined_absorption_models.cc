@@ -116,7 +116,7 @@ void propagation_matrixAddPredefined(
     PropmatMatrix& propagation_matrix_jacobian,
     const PredefinedModelData& absorption_predefined_model_data,
     const SpeciesEnum& select_species,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point) {
   ARTS_TIME_REPORT
@@ -129,7 +129,7 @@ void propagation_matrixAddPredefined(
   if (propagation_matrix_jacobian.nrows()) {
     ARTS_USER_ERROR_IF(
         static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
-            jacobian_targets.target_count(),
+            jac_targets.target_count(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
         static_cast<Size>(propagation_matrix_jacobian.ncols()) not_eq
@@ -145,7 +145,7 @@ void propagation_matrixAddPredefined(
                                          isot,
                                          f_grid,
                                          atm_point,
-                                         jacobian_targets,
+                                         jac_targets,
                                          data);
   }
 }

@@ -3,13 +3,12 @@
 #include <workspace.h>
 
 namespace {
-void jacobian_targetsToggleLogarithmicAtmTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const AtmKeyVal& key) {
+void jac_targetsToggleLogarithmicAtmTargetImpl(JacobianTargets& jac_targets,
+                                               const AtmField& f,
+                                               const AtmKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm) {
+  for (auto& t : jac_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -24,13 +23,12 @@ void jacobian_targetsToggleLogarithmicAtmTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleLogarithmicSurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKeyVal& key) {
+void jac_targetsToggleLogarithmicSurfaceTargetImpl(JacobianTargets& jac_targets,
+                                                   const SurfaceField& f,
+                                                   const SurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.surf) {
+  for (auto& t : jac_targets.surf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -45,13 +43,13 @@ void jacobian_targetsToggleLogarithmicSurfaceTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleLogarithmicSubsurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleLogarithmicSubsurfaceTargetImpl(
+    JacobianTargets& jac_targets,
     const SubsurfaceField& f,
     const SubsurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.subsurf) {
+  for (auto& t : jac_targets.subsurf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<loginv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -69,61 +67,55 @@ void jacobian_targetsToggleLogarithmicSubsurfaceTargetImpl(
 
 // Atm
 
-void jacobian_targetsToggleLogarithmicAtmTarget(
-    JacobianTargets& jacobian_targets, const AtmField& f, const AtmKey& key) {
-  jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets,
+                                           const AtmField& f,
+                                           const AtmKey& key) {
+  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogarithmicAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const SpeciesEnum& key) {
-  jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets,
+                                           const AtmField& f,
+                                           const SpeciesEnum& key) {
+  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogarithmicAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const SpeciesIsotope& key) {
-  jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets,
+                                           const AtmField& f,
+                                           const SpeciesIsotope& key) {
+  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogarithmicAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const QuantumLevelIdentifier& key) {
-  jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets,
+                                           const AtmField& f,
+                                           const QuantumLevelIdentifier& key) {
+  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogarithmicAtmTarget(
-    JacobianTargets& jacobian_targets,
+void jac_targetsToggleLogarithmicAtmTarget(
+    JacobianTargets& jac_targets,
     const AtmField& f,
     const ScatteringSpeciesProperty& key) {
-  jacobian_targetsToggleLogarithmicAtmTargetImpl(jacobian_targets, f, key);
+  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
 }
 
 // Surface
 
-void jacobian_targetsToggleLogarithmicSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKey& key) {
-  jacobian_targetsToggleLogarithmicSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicSurfaceTarget(JacobianTargets& jac_targets,
+                                               const SurfaceField& f,
+                                               const SurfaceKey& key) {
+  jac_targetsToggleLogarithmicSurfaceTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogarithmicSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfacePropertyTag& key) {
-  jacobian_targetsToggleLogarithmicSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicSurfaceTarget(JacobianTargets& jac_targets,
+                                               const SurfaceField& f,
+                                               const SurfacePropertyTag& key) {
+  jac_targetsToggleLogarithmicSurfaceTargetImpl(jac_targets, f, key);
 }
 
 // Subsurface
 
-void jacobian_targetsToggleLogarithmicSubsurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SubsurfaceField& f,
-    const SubsurfaceKey& key) {
-  jacobian_targetsToggleLogarithmicSubsurfaceTargetImpl(
-      jacobian_targets, f, key);
+void jac_targetsToggleLogarithmicSubsurfaceTarget(JacobianTargets& jac_targets,
+                                                  const SubsurfaceField& f,
+                                                  const SubsurfaceKey& key) {
+  jac_targetsToggleLogarithmicSubsurfaceTargetImpl(jac_targets, f, key);
 }

@@ -11,7 +11,7 @@ void ray_path_propagation_matrixFromPath(
     const Agenda &propagation_matrix_agenda,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfVector3 &freq_wind_shift_jac_path,
-    const JacobianTargets &jacobian_targets,
+    const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atm_point) try {
   ARTS_TIME_REPORT
@@ -51,7 +51,7 @@ freq_wind_shift_jac_path size: {} element(s)
           ray_path_source_vector_nonlte_jacobian[ip],
           freq_grid_path[ip],
           freq_wind_shift_jac_path[ip],
-          jacobian_targets,
+          jac_targets,
           {},
           ray_path[ip],
           ray_path_atm_point[ip],
@@ -78,7 +78,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
     const Agenda &propagation_matrix_agenda,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfVector3 &freq_wind_shift_jac_path,
-    const JacobianTargets &jacobian_targets,
+    const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
     const ArrayOfAtmPoint &ray_path_atm_point,
     const ArrayOfSpeciesEnum &select_species_list) try {
@@ -117,7 +117,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
                 [is][ip],
             freq_grid_path[ip],
             freq_wind_shift_jac_path[ip],
-            jacobian_targets,
+            jac_targets,
             select_species_list[is],
             ray_path[ip],
             ray_path_atm_point[ip],

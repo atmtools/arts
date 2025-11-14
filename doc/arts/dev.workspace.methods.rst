@@ -126,11 +126,11 @@ actual signature (which is why the method is generated, so that a change in
 the required actual signature is immediately made apparent).
 
 The methods that begin with ``RetrievalAdd...`` are partly generated.
-These methods all require a corresponding ``jacobian_targetsAdd...`` method
-that fills in the ``jacobian_targets`` workspace variable.  To keep that
+These methods all require a corresponding ``jac_targetsAdd...`` method
+that fills in the ``jac_targets`` workspace variable.  To keep that
 part of the signature consistent, the additional ``RetrievalAdd...`` information
 is simply appended to the ``in``, ``out``, and ``gin``-lists of the
-corresponding ``jacobian_targetsAdd...`` method using the local ``jac2ret`` lambda.
+corresponding ``jac_targetsAdd...`` method using the local ``jac2ret`` lambda.
 
 Generated files
 ===============
@@ -270,7 +270,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                     "propagation_matrix_jacobian",
                     "propagation_matrix_source_vector_nonlte_jacobian",
                     "freq_grid",
-                    "jacobian_targets",
+                    "jac_targets",
                     "select_species",
                     "absorption_bands",
                     "ecs_data",
@@ -292,7 +292,7 @@ The signature of the method is:
                                   PropmatMatrix& propagation_matrix_jacobian,
                                   StokvecMatrix& propagation_matrix_source_vector_nonlte_jacobian,
                                   const AscendingGrid& freq_grid,
-                                  const JacobianTargets& jacobian_targets,
+                                  const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
                                   const AbsorptionBands& absorption_bands,
                                   const LinemixingEcsData& ecs_data,
@@ -312,7 +312,7 @@ of these workspace variables instead of creating new ones.
 
 The arguments
 :attr:`~pyarts3.workspace.Workspace.freq_grid`,
-:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,
 :attr:`~pyarts3.workspace.Workspace.ecs_data`,
@@ -352,7 +352,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vector", "measurement_jacobian"},
         .in             = {"measurement_sensor",
-                          "jacobian_targets",
+                          "jac_targets",
                           "atm_field",
                           "surf_field",
                           "spectral_radiance_unit",
@@ -368,7 +368,7 @@ The signature of the method is:
                                     Vector& measurement_vector,
                                     Matrix& measurement_jacobian,
                                     const ArrayOfSensorObsel& measurement_sensor,
-                                    const JacobianTargets& jacobian_targets,
+                                    const JacobianTargets& jac_targets,
                                     const AtmField& atm_field,
                                     const SurfaceField& surf_field,
                                     const SpectralRadianceUnitType& spectral_radiance_unit,
@@ -389,7 +389,7 @@ Since :attr:`~pyarts3.workspace.Workspace.measurement_vector` and
 it is expected that the method overwrite any existing values they might hold.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
-:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surf_field`, 
 :attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and

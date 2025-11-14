@@ -1175,7 +1175,7 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
       .in             = {"propagation_matrix_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
-                         "jacobian_targets",
+                         "jac_targets",
                          "ray_path",
                          "ray_path_atm_point"},
       .pass_workspace = true,
@@ -1207,7 +1207,7 @@ are as per *ray_path_propagation_matrixFromPath*.
       .in             = {"propagation_matrix_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
-                         "jacobian_targets",
+                         "jac_targets",
                          "ray_path",
                          "ray_path_atm_point",
                          "select_species_list"},
@@ -1296,18 +1296,18 @@ where:
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
     - *ray_path_spectral_radiance_source_jacobian*
     - The Jacobian of the spectral radiance source term with respect to the
-      *jacobian_targets*.
+      *jac_targets*.
   * - :math:`\frac{\partial B(T, f)}{\partial x}`
     - ``None`` - this is computed locally
-    - The Jacobian of the Planck function with respect to the *jacobian_targets*.  Only tempertature is supported.
+    - The Jacobian of the Planck function with respect to the *jac_targets*.  Only tempertature is supported.
   * - :math:`\frac{\partial \mathbf{K}}{\partial x}`
     - *ray_path_propagation_matrix_jacobian*
-    - The Jacobian of the propagation matrix with respect to the *jacobian_targets*.
+    - The Jacobian of the propagation matrix with respect to the *jac_targets*.
   * - :math:`\frac{\partial \vec{S}}{\partial x}`
     - *ray_path_propagation_matrix_source_vector_nonlte_jacobian*
-    - The Jacobian of the non-LTE source vector with respect to the *jacobian_targets*.
+    - The Jacobian of the non-LTE source vector with respect to the *jac_targets*.
   * - :math:`x`
-    - *jacobian_targets*
+    - *jac_targets*
     - The targets for the Jacobian computation.
   * - :math:`T`
     - *ray_path_atm_point*
@@ -1319,7 +1319,7 @@ where:
 The output dimensions are:
 
 - *ray_path_spectral_radiance_source*: *ray_path* x *freq_grid*
-- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *freq_grid* x *jacobian_targets* (target count)
+- *ray_path_spectral_radiance_source_jacobian*: *ray_path* x *freq_grid* x *jac_targets* (target count)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path_spectral_radiance_source",
@@ -1330,7 +1330,7 @@ The output dimensions are:
                  "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
                  "freq_grid_path",
                  "ray_path_atm_point",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["absorption_predefined_model_dataAddWaterMTCKD400"] = {
@@ -1446,7 +1446,7 @@ thus not fail.
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
                     "select_species",
-                    "jacobian_targets",
+                    "jac_targets",
                     "freq_grid",
                     "atm_point",
                     "abs_cia_data"},
@@ -1480,7 +1480,7 @@ but adds further contributions.
                  "propagation_matrix_jacobian",
                  "freq_grid",
                  "select_species",
-                 "jacobian_targets",
+                 "jac_targets",
                  "atm_point",
                  "ray_path_point"},
   };
@@ -1652,7 +1652,7 @@ Available models
                  "propagation_matrix_jacobian",
                  "absorption_predefined_model_data",
                  "select_species",
-                 "jacobian_targets",
+                 "jac_targets",
                  "freq_grid",
                  "atm_point"},
   };
@@ -1669,7 +1669,7 @@ interpolates it onto the current *freq_grid*.
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
                     "select_species",
-                    "jacobian_targets",
+                    "jac_targets",
                     "freq_grid",
                     "atm_point",
                     "abs_xfit_data"},
@@ -1767,7 +1767,7 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
                  "propagation_matrix_source_vector_nonlte",
                  "propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in     = {"jacobian_targets", "freq_grid"},
+      .in     = {"jac_targets", "freq_grid"},
   };
 
   wsm_data["surf_fieldPlanet"] = {
@@ -2072,7 +2072,7 @@ but built on-the-fly, allowing per-frequency refraction.
       .out    = {"single_rad", "single_rad_jac", "ray_path"},
       .in     = {"atm_field",
                  "freq",
-                 "jacobian_targets",
+                 "jac_targets",
                  "single_rad_space_agenda",
                  "single_rad_surface_agenda",
                  "single_propmat_agenda",
@@ -2119,7 +2119,7 @@ but built on-the-fly, allowing per-frequency refraction.
       .gout_desc      = {"The ray paths for each frequency"},
       .in             = {"atm_field",
                          "freq_grid",
-                         "jacobian_targets",
+                         "jac_targets",
                          "single_rad_space_agenda",
                          "single_rad_surface_agenda",
                          "single_propmat_agenda",
@@ -2172,7 +2172,7 @@ error is raised.  As is it if the background position is unknown.
       .out            = {"spectral_radiance_background",
                          "spectral_radiance_background_jacobian"},
       .in             = {"freq_grid",
-                         "jacobian_targets",
+                         "jac_targets",
                          "ray_path_point",
                          "surf_field",
                          "subsurf_field",
@@ -2189,7 +2189,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"freq_grid", "jacobian_targets"},
+      .in     = {"freq_grid", "jac_targets"},
   };
 
   wsm_data["spectral_radianceSetToBackground"] = {
@@ -2213,7 +2213,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
       .out       = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in        = {"spectral_radiance",
                     "spectral_radiance_jacobian",
-                    "jacobian_targets",
+                    "jac_targets",
                     "ray_path",
                     "freq_grid_path",
                     "ray_path_atm_point",
@@ -2254,7 +2254,7 @@ where :math:`T_s` is the surface temperature extracted at the input *ray_path_po
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in = {"freq_grid", "surf_field", "jacobian_targets", "ray_path_point"},
+      .in     = {"freq_grid", "surf_field", "jac_targets", "ray_path_point"},
   };
 
   wsm_data["spectral_radianceSurfaceReflectance"] = {
@@ -2275,7 +2275,7 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
                          "atm_field",
                          "surf_field",
                          "subsurf_field",
-                         "jacobian_targets",
+                         "jac_targets",
                          "ray_path_point",
                          "spectral_radiance_observer_agenda",
                          "spectral_radiance_closed_surface_agenda",
@@ -2288,7 +2288,7 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
 
 This is done via perturbation based on the input delta values to the sensor
 Jacobian targets and a callback to *spectral_radiance_observer_agenda* with
-a modified *jacobian_targets*, making it safe to use this method inside
+a modified *jac_targets*, making it safe to use this method inside
 *spectral_radiance_observer_agenda*.
 )--",
       .author = {"Richard Larsson"},
@@ -2299,7 +2299,7 @@ a modified *jacobian_targets*, making it safe to use this method inside
               "spectral_radiance",
               "measurement_sensor",
               "freq_grid",
-              "jacobian_targets",
+              "jac_targets",
               "spectral_radiance_observer_position",
               "spectral_radiance_observer_line_of_sight",
               "atm_field",
@@ -2313,11 +2313,11 @@ a modified *jacobian_targets*, making it safe to use this method inside
   wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc   = R"--(Set the radiation derivative to empty.
 
-Size : (*jacobian_targets*, *freq_grid*)
+Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
-      .in     = {"freq_grid", "jacobian_targets"},
+      .in     = {"freq_grid", "jac_targets"},
   };
 
   wsm_data["spectral_radiance_jacobianFromBackground"] = {
@@ -2338,7 +2338,7 @@ Size : (*jacobian_targets*, *freq_grid*)
       .out    = {"spectral_radiance_jacobian"},
       .in     = {"spectral_radiance_jacobian",
                  "ray_path_spectral_radiance_jacobian",
-                 "jacobian_targets",
+                 "jac_targets",
                  "atm_field",
                  "ray_path"},
   };
@@ -2429,7 +2429,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in = {"freq_grid", "surf_field", "ray_path_point", "jacobian_targets"},
+      .in     = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
   };
 
   wsm_data["spectral_surf_reflFlatScalar"] = {
@@ -2451,7 +2451,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in = {"freq_grid", "surf_field", "ray_path_point", "jacobian_targets"},
+      .in     = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
   };
 
   wsm_data["propagation_matrix_jacobianWindFix"] = {
@@ -2469,7 +2469,7 @@ matrix to be calculated will work.
       .in     = {"propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian",
                  "freq_grid",
-                 "jacobian_targets",
+                 "jac_targets",
                  "freq_wind_shift_jac"},
   };
 
@@ -2488,7 +2488,7 @@ See :doc:`concept.absorption.lbl` for details.
                     "propagation_matrix_jacobian",
                     "propagation_matrix_source_vector_nonlte_jacobian",
                     "freq_grid",
-                    "jacobian_targets",
+                    "jac_targets",
                     "select_species",
                     "abs_bands",
                     "ecs_data",
@@ -2518,7 +2518,7 @@ This is only for LTE lines in Voigt.
       .in        = {"propagation_matrix",
                     "propagation_matrix_jacobian",
                     "freq_grid",
-                    "jacobian_targets",
+                    "jac_targets",
                     "select_species",
                     "abs_bands",
                     "atm_point",
@@ -2540,7 +2540,7 @@ This is only for LTE lines in Voigt.
                  "single_nlte_srcvec_jac",
                  "single_dispersion",
                  "single_dispersion_jac"},
-      .in     = {"jacobian_targets"}};
+      .in     = {"jac_targets"}};
 
   wsm_data["single_propmatAddVoigtLTE"] = {
       .desc      = R"--(Add line-by-line absorption to the propagation matrix.
@@ -2559,7 +2559,7 @@ This is only for LTE lines in Voigt.
                     "single_dispersion",
                     "single_dispersion_jac",
                     "freq",
-                    "jacobian_targets",
+                    "jac_targets",
                     "select_species",
                     "abs_bands",
                     "atm_point",
@@ -2581,7 +2581,7 @@ See :doc:`concept.absorption.lookup` for details.
       .in       = {"propagation_matrix",
                    "propagation_matrix_jacobian",
                    "freq_grid",
-                   "jacobian_targets",
+                   "jac_targets",
                    "select_species",
                    "abs_lookup_data",
                    "atm_point"},
@@ -2603,7 +2603,7 @@ See :doc:`concept.absorption.lookup` for details.
            "Extrapolation factor"},
   };
 
-  wsm_data["jacobian_targetsToggleRelativeHumidityAtmTarget"] = {
+  wsm_data["jac_targetsToggleRelativeHumidityAtmTarget"] = {
       .desc   = R"--(Toggles relative humidity or absolute retrievals.
 
 If the target is in relative humidity mode, it becomes absolute.
@@ -2612,11 +2612,9 @@ If the target is not in relative humidity mode, it becomes relative humidity.
 Overwrites all other functional toggles.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets",
-                 "atm_field",
-                 "water_equivalent_pressure_operator"},
-      .gin    = {"key", "nonnegative"},
+      .out    = {"jac_targets"},
+      .in  = {"jac_targets", "atm_field", "water_equivalent_pressure_operator"},
+      .gin = {"key", "nonnegative"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty",
            "Index"},
@@ -2625,7 +2623,7 @@ Overwrites all other functional toggles.
                     "Whether or not to zero-out negative values"},
   };
 
-  wsm_data["jacobian_targetsToggleRelativeAtmTarget"] = {
+  wsm_data["jac_targetsToggleRelativeAtmTarget"] = {
       .desc   = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
@@ -2634,8 +2632,8 @@ If the target is not in relative mode, it becomes relative.
 Overwrites all other functional toggles.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atm_field"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets", "atm_field"},
       .gin    = {"key"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
@@ -2643,7 +2641,7 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogarithmicAtmTarget"] = {
+  wsm_data["jac_targetsToggleLogarithmicAtmTarget"] = {
       .desc   = R"--(Toggles logarithmic or absolute retrievals.
 
 If the target is in logarithmic mode, it becomes absolute.
@@ -2652,8 +2650,8 @@ If the target is not in logarithmic mode, it becomes logarithmic.
 Overwrites all other functional toggles.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atm_field"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets", "atm_field"},
       .gin    = {"key"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
@@ -2661,7 +2659,7 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogRelAtmTarget"] = {
+  wsm_data["jac_targetsToggleLogRelAtmTarget"] = {
       .desc   = R"--(Toggles logarithmic/relative or absolute retrievals.
 
 This means to take the logarithm of the relative value.
@@ -2672,8 +2670,8 @@ If the target is not in logarithmic/relative mode, it becomes logarithmic/relati
 Overwrites all other functional toggles.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "atm_field"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets", "atm_field"},
       .gin    = {"key"},
       .gin_type =
           {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
@@ -2681,7 +2679,7 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleRelativeSurfaceTarget"] = {
+  wsm_data["jac_targetsToggleRelativeSurfaceTarget"] = {
       .desc      = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
@@ -2690,15 +2688,15 @@ If the target is not in relative mode, it becomes relative.
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogarithmicSurfaceTarget"] = {
+  wsm_data["jac_targetsToggleLogarithmicSurfaceTarget"] = {
       .desc      = R"--(Toggles logarithmic or absolute retrievals.
 
 If the target is in logarithmic mode, it becomes absolute.
@@ -2707,15 +2705,15 @@ If the target is not in logarithmic mode, it becomes logarithmic.
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogRelSurfaceTarget"] = {
+  wsm_data["jac_targetsToggleLogRelSurfaceTarget"] = {
       .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
 
 This means to take the logarithm of the relative value.
@@ -2726,15 +2724,15 @@ If the target is not in logarithmic/relative mode, it becomes logarithmic/relati
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "surf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "surf_field"},
       .gin       = {"key"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleRelativeSubsurfaceTarget"] = {
+  wsm_data["jac_targetsToggleRelativeSubsurfaceTarget"] = {
       .desc      = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
@@ -2743,15 +2741,15 @@ If the target is not in relative mode, it becomes relative.
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogarithmicSubsurfaceTarget"] = {
+  wsm_data["jac_targetsToggleLogarithmicSubsurfaceTarget"] = {
       .desc      = R"--(Toggles logarithmic or absolute retrievals.
 
 If the target is in logarithmic mode, it becomes absolute.
@@ -2760,15 +2758,15 @@ If the target is not in logarithmic mode, it becomes logarithmic.
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsToggleLogRelSubsurfaceTarget"] = {
+  wsm_data["jac_targetsToggleLogRelSubsurfaceTarget"] = {
       .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
 
 This means to take the logarithm of the relative value.
@@ -2779,46 +2777,46 @@ If the target is not in logarithmic/relative mode, it becomes logarithmic/relati
 Overwrites all other functional toggles.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "subsurf_field"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "subsurf_field"},
       .gin       = {"key"},
       .gin_type  = {"SubsurfaceKey"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
-  wsm_data["jacobian_targetsConditionalClear"] = {
-      .desc = R"--(Clears *jacobian_targets* if *do_jacobian* evaluates false.
+  wsm_data["jac_targetsConditionalClear"] = {
+      .desc   = R"--(Clears *jac_targets* if *do_jacobian* evaluates false.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets", "do_jacobian"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets", "do_jacobian"},
   };
 
-  wsm_data["jacobian_targetsInit"] = {
-      .desc   = R"--(Initialize or reset the *jacobian_targets*.
+  wsm_data["jac_targetsInit"] = {
+      .desc   = R"--(Initialize or reset the *jac_targets*.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
+      .out    = {"jac_targets"},
   };
 
-  wsm_data["jacobian_targetsOff"] = {
-      .desc   = R"--(Turns off *jacobian_targets*
+  wsm_data["jac_targetsOff"] = {
+      .desc   = R"--(Turns off *jac_targets*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
+      .out    = {"jac_targets"},
   };
 
-  wsm_data["jacobian_targetsFinalize"] = {
-      .desc   = R"--(Finalize *jacobian_targets*.
+  wsm_data["jac_targetsFinalize"] = {
+      .desc   = R"--(Finalize *jac_targets*.
 
 The finalization computes the size of the required *model_state_vector*.
 It is thus necessary if any *OEM* or other functionality that requires the
 building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets",
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets",
                  "atm_field",
                  "surf_field",
                  "subsurf_field",
@@ -2833,7 +2831,7 @@ This method wraps *{}* together with adding the covariance matrices,
 to the *covariance_matrix_diagonal_blocks*, which are required to perform *OEM*.
 
 The input covariance matrices must fit the size of the later computed model state
-represented by the *jacobian_targets*.  The covariance matrix inverse 
+represented by the *jac_targets*.  The covariance matrix inverse 
 )",
                           name);
     v.out.insert(v.out.begin() + 1, "covariance_matrix_diagonal_blocks");
@@ -2850,7 +2848,7 @@ represented by the *jacobian_targets*.  The covariance matrix inverse
     return v;
   };
 
-  wsm_data["jacobian_targetsAddErrorPolyFit"] = {
+  wsm_data["jac_targetsAddErrorPolyFit"] = {
       .desc =
           R"--(Set a measurement error to polynomial fit.
 
@@ -2879,8 +2877,8 @@ those with regards to a, b, etc..
     and manipulating how many unique frequency grids are available in *measurement_sensor*.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "measurement_sensor"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "measurement_sensor"},
       .gin       = {"t", "sensor_elem", "polyorder"},
       .gin_type  = {"Vector", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{0}},
@@ -2889,10 +2887,9 @@ those with regards to a, b, etc..
            "The sensor element whose frequency grid to use",
            "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
-  wsm_data["RetrievalAddErrorPolyFit"] =
-      jac2ret("jacobian_targetsAddErrorPolyFit");
+  wsm_data["RetrievalAddErrorPolyFit"] = jac2ret("jac_targetsAddErrorPolyFit");
 
-  wsm_data["jacobian_targetsAddSensorFrequencyPolyOffset"] = {
+  wsm_data["jac_targetsAddSensorFrequencyPolyOffset"] = {
       .desc =
           R"--(Set sensor frequency derivative to use polynomial fitting offset
 
@@ -2913,8 +2910,8 @@ those with regards to a, b, etc..
     and manipulating how many unique frequency grids are available in *measurement_sensor*.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets", "measurement_sensor"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "measurement_sensor"},
       .gin       = {"d", "sensor_elem", "polyorder"},
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
@@ -2924,45 +2921,44 @@ those with regards to a, b, etc..
            "The order of the polynomial fit"},
   };
   wsm_data["RetrievalAddSensorFrequencyPolyOffset"] =
-      jac2ret("jacobian_targetsAddSensorFrequencyPolyOffset");
+      jac2ret("jac_targetsAddSensorFrequencyPolyOffset");
 
-  wsm_data["jacobian_targetsAddTemperature"] = {
+  wsm_data["jac_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"d"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.1}},
       .gin_desc =
           {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddTemperature"] =
-      jac2ret("jacobian_targetsAddTemperature");
+  wsm_data["RetrievalAddTemperature"] = jac2ret("jac_targetsAddTemperature");
 
-  wsm_data["jacobian_targetsAddPressure"] = {
+  wsm_data["jac_targetsAddPressure"] = {
       .desc      = R"--(Set pressure derivative.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"d"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.1}},
       .gin_desc =
           {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddPressure"] = jac2ret("jacobian_targetsAddPressure");
+  wsm_data["RetrievalAddPressure"] = jac2ret("jac_targetsAddPressure");
 
-  wsm_data["jacobian_targetsAddMagneticField"] = {
+  wsm_data["jac_targetsAddMagneticField"] = {
       .desc      = R"--(Set magnetic field derivative.
 
 See *FieldComponent* for valid ``component``.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"component", "d"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -2971,9 +2967,9 @@ See *FieldComponent* for valid ``component``.
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddMagneticField"] =
-      jac2ret("jacobian_targetsAddMagneticField");
+      jac2ret("jac_targetsAddMagneticField");
 
-  wsm_data["jacobian_targetsAddOverlappingMagneticField"] = {
+  wsm_data["jac_targetsAddOverlappingMagneticField"] = {
       .desc   = R"--(Set magnetic field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
@@ -2987,13 +2983,13 @@ To call this method, you first have added 1 component of the magnetic field
 derivative, and then you call this method to add the second and third component.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets"},
   };
   wsm_data["RetrievalAddOverlappingMagneticField"] =
-      jac2ret("jacobian_targetsAddOverlappingMagneticField");
+      jac2ret("jac_targetsAddOverlappingMagneticField");
 
-  wsm_data["jacobian_targetsAddWindField"] = {
+  wsm_data["jac_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative.
 
 Note that the derivatives from methods that takes the freqeuncy will return
@@ -3002,8 +2998,8 @@ their derivatives as if these were frequency derivatives.
 See *FieldComponent* for valid ``component``
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"component", "d"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -3011,9 +3007,9 @@ See *FieldComponent* for valid ``component``
           {"The component to use [u, v, w]",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddWindField"] = jac2ret("jacobian_targetsAddWindField");
+  wsm_data["RetrievalAddWindField"] = jac2ret("jac_targetsAddWindField");
 
-  wsm_data["jacobian_targetsAddOverlappingWindField"] = {
+  wsm_data["jac_targetsAddOverlappingWindField"] = {
       .desc   = R"--(Set wind field derivative for overlapping fields.
 
 An overlapping field means that the derivative is computed but that the
@@ -3027,20 +3023,20 @@ To call this method, you first have added 1 component of the wind field
 derivative, and then you call this method to add the second and third component.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets"},
-      .in     = {"jacobian_targets"},
+      .out    = {"jac_targets"},
+      .in     = {"jac_targets"},
   };
   wsm_data["RetrievalAddOverlappingWindField"] =
-      jac2ret("jacobian_targetsAddOverlappingWindField");
+      jac2ret("jac_targetsAddOverlappingWindField");
 
-  wsm_data["jacobian_targetsAddSpeciesVMR"] = {
+  wsm_data["jac_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative.
 
 See *SpeciesEnum* for valid ``species``
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"species", "d"},
       .gin_type  = {"SpeciesEnum", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -3048,14 +3044,14 @@ See *SpeciesEnum* for valid ``species``
           {"The species of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jacobian_targetsAddSpeciesVMR");
+  wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jac_targetsAddSpeciesVMR");
 
-  wsm_data["jacobian_targetsAddAtmosphere"] = {
+  wsm_data["jac_targetsAddAtmosphere"] = {
       .desc      = R"--(Sets an atmospheric target.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"target", "d"},
       .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier",
                     "Numeric"},
@@ -3064,14 +3060,14 @@ See *SpeciesEnum* for valid ``species``
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddAtmosphere"] = jac2ret("jacobian_targetsAddAtmosphere");
+  wsm_data["RetrievalAddAtmosphere"] = jac2ret("jac_targetsAddAtmosphere");
 
-  wsm_data["jacobian_targetsAddSurface"] = {
+  wsm_data["jac_targetsAddSurface"] = {
       .desc      = R"--(Sets a surface target
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"target", "d"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -3079,14 +3075,14 @@ See *SpeciesEnum* for valid ``species``
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSurface"] = jac2ret("jacobian_targetsAddSurface");
+  wsm_data["RetrievalAddSurface"] = jac2ret("jac_targetsAddSurface");
 
-  wsm_data["jacobian_targetsAddSubsurface"] = {
+  wsm_data["jac_targetsAddSubsurface"] = {
       .desc      = R"--(Sets a subsurface target
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"target", "d"},
       .gin_type  = {"SubsurfaceKey,SubsurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -3094,16 +3090,16 @@ See *SpeciesEnum* for valid ``species``
           {"The target of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSubsurface"] = jac2ret("jacobian_targetsAddSubsurface");
+  wsm_data["RetrievalAddSubsurface"] = jac2ret("jac_targetsAddSubsurface");
 
-  wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
+  wsm_data["jac_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
 
 See *SpeciesIsotope* for valid ``species``
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"jacobian_targets"},
-      .in        = {"jacobian_targets"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
       .gin       = {"species", "d"},
       .gin_type  = {"SpeciesIsotope", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
@@ -3112,7 +3108,7 @@ See *SpeciesIsotope* for valid ``species``
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddSpeciesIsotopologueRatio"] =
-      jac2ret("jacobian_targetsAddSpeciesIsotopologueRatio");
+      jac2ret("jac_targetsAddSpeciesIsotopologueRatio");
 
   wsm_data["abs_bandsReadHITRAN"] = {
       .desc =
@@ -4346,7 +4342,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
       .in             = {"measurement_sensor",
-                         "jacobian_targets",
+                         "jac_targets",
                          "atm_field",
                          "surf_field",
                          "subsurf_field",
@@ -4362,7 +4358,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in     = {"measurement_jacobian",
                  "model_state_vector",
                  "atm_field",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["measurement_jacobianSurfaceTransformation"] = {
@@ -4372,7 +4368,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in     = {"measurement_jacobian",
                  "model_state_vector",
                  "surf_field",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["measurement_jacobianSubsurfaceTransformation"] = {
@@ -4382,7 +4378,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in     = {"measurement_jacobian",
                  "model_state_vector",
                  "subsurf_field",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["measurement_jacobianBandTransformation"] = {
@@ -4392,7 +4388,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in     = {"measurement_jacobian",
                  "model_state_vector",
                  "abs_bands",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["measurement_jacobianSensorTransformation"] = {
@@ -4403,7 +4399,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
       .in     = {"measurement_jacobian",
                  "model_state_vector",
                  "measurement_sensor",
-                 "jacobian_targets"},
+                 "jac_targets"},
   };
 
   wsm_data["measurement_sensorFromModelState"] = {
@@ -4412,7 +4408,7 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor"},
-      .in = {"measurement_sensor", "model_state_vector", "jacobian_targets"},
+      .in     = {"measurement_sensor", "model_state_vector", "jac_targets"},
   };
 
   wsm_data["measurement_sensorInit"] = {
@@ -4692,7 +4688,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
                          "ray_path",
                          "ray_path_suns_path",
                          "suns",
-                         "jacobian_targets",
+                         "jac_targets",
                          "freq_grid",
                          "atm_field",
                          "surf_field",
@@ -4710,7 +4706,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atm_field"},
-      .in     = {"atm_field", "model_state_vector", "jacobian_targets"},
+      .in     = {"atm_field", "model_state_vector", "jac_targets"},
   };
 
   wsm_data["surf_fieldFromModelState"] = {
@@ -4718,7 +4714,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"surf_field"},
-      .in     = {"surf_field", "model_state_vector", "jacobian_targets"},
+      .in     = {"surf_field", "model_state_vector", "jac_targets"},
   };
 
   wsm_data["subsurf_fieldFromModelState"] = {
@@ -4726,7 +4722,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"subsurf_field"},
-      .in     = {"subsurf_field", "model_state_vector", "jacobian_targets"},
+      .in     = {"subsurf_field", "model_state_vector", "jac_targets"},
   };
 
   wsm_data["abs_bandsFromModelState"] = {
@@ -4734,27 +4730,27 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_bands"},
-      .in     = {"abs_bands", "model_state_vector", "jacobian_targets"},
+      .in     = {"abs_bands", "model_state_vector", "jac_targets"},
   };
 
   wsm_data["model_state_vectorInit"] = {
       .desc =
-          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+          R"--(Sets *model_state_vector* to the size *jac_targets* demand.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"jacobian_targets"},
+      .in     = {"jac_targets"},
   };
 
   wsm_data["model_state_vectorPerturbations"] = {
       .desc =
-          R"--(Sets *model_state_vector* to the size *jacobian_targets* demand.
+          R"--(Sets *model_state_vector* to the size *jac_targets* demand.
 
-Then fills it with the perturbations from the *jacobian_targets*.
+Then fills it with the perturbations from the *jac_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"jacobian_targets"},
+      .in     = {"jac_targets"},
   };
 
   wsm_data["model_state_vectorFromSensor"] = {
@@ -4762,7 +4758,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in = {"model_state_vector", "measurement_sensor", "jacobian_targets"},
+      .in     = {"model_state_vector", "measurement_sensor", "jac_targets"},
   };
 
   wsm_data["model_state_vectorFromAtmosphere"] = {
@@ -4770,7 +4766,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "atm_field", "jacobian_targets"},
+      .in     = {"model_state_vector", "atm_field", "jac_targets"},
   };
 
   wsm_data["model_state_vectorFromSurface"] = {
@@ -4778,7 +4774,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "surf_field", "jacobian_targets"},
+      .in     = {"model_state_vector", "surf_field", "jac_targets"},
   };
 
   wsm_data["model_state_vectorFromSubsurface"] = {
@@ -4786,7 +4782,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "subsurf_field", "jacobian_targets"},
+      .in     = {"model_state_vector", "subsurf_field", "jac_targets"},
   };
 
   wsm_data["model_state_vectorFromBands"] = {
@@ -4794,7 +4790,7 @@ Then fills it with the perturbations from the *jacobian_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "abs_bands", "jacobian_targets"},
+      .in     = {"model_state_vector", "abs_bands", "jac_targets"},
   };
 
   wsm_data["ray_path_transmission_matrixFromPath"] = {
@@ -4815,7 +4811,7 @@ the level before and one for the level after.
                     "ray_path",
                     "ray_path_atm_point",
                     "surf_field",
-                    "jacobian_targets"},
+                    "jac_targets"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -4998,7 +4994,7 @@ Description of the special input arguments:
                     "measurement_sensor",
                     "surf_field",
                     "subsurf_field",
-                    "jacobian_targets",
+                    "jac_targets",
                     "model_state_vector_apriori",
                     "model_state_covariance_matrix",
                     "measurement_vector",
@@ -5124,7 +5120,7 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
 )",
       .author    = {"Richard Larsson"},
       .out       = {"model_state_covariance_matrix"},
-      .in        = {"model_state_covariance_matrix", "jacobian_targets"},
+      .in        = {"model_state_covariance_matrix", "jac_targets"},
       .gin       = {"species", "matrix", "inverse"},
       .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}},
@@ -5139,7 +5135,7 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
 )",
       .author = {"Richard Larsson"},
       .out    = {"measurement_vector_error", "measurement_jacobian_error"},
-      .in = {"measurement_sensor", "jacobian_targets", "model_state_vector"},
+      .in     = {"measurement_sensor", "jac_targets", "model_state_vector"},
   };
 
   wsm_data["measurement_vectorConditionalAddError"] = {
@@ -5211,7 +5207,7 @@ The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbi
                          "atm_field",
                          "surf_field",
                          "subsurf_field",
-                         "jacobian_targets",
+                         "jac_targets",
                          "ray_path_point",
                          "disort_quadrature_dimension",
                          "disort_fourier_mode_dimension",
@@ -5591,7 +5587,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .desc   = R"(Initialize the retrieval setup.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"jacobian_targets",
+      .out    = {"jac_targets",
                  "model_state_covariance_matrix",
                  "covariance_matrix_diagonal_blocks"},
   };
@@ -5599,11 +5595,11 @@ CDisort is only included for testing and comparisons with our own disort impleme
   wsm_data["RetrievalFinalizeDiagonal"] = {
       .desc   = R"(Finalize the retrieval setup.
 
-See *jacobian_targetsFinalize* for more information.
+See *jac_targetsFinalize* for more information.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_covariance_matrix", "jacobian_targets"},
-      .in     = {"jacobian_targets",
+      .out    = {"model_state_covariance_matrix", "jac_targets"},
+      .in     = {"jac_targets",
                  "covariance_matrix_diagonal_blocks",
                  "atm_field",
                  "surf_field",

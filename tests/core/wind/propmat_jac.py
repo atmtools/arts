@@ -45,9 +45,9 @@ ws.ray_path_point.pos = [30e3, 0, 0]
 
 for i in range(3):
     # Set up the wind field Jacobian
-    ws.jacobian_targetsInit()
-    ws.jacobian_targetsAddWindField(component=keys[i])
-    ws.jacobian_targetsFinalize(measurement_sensor=[])
+    ws.jac_targetsInit()
+    ws.jac_targetsAddWindField(component=keys[i])
+    ws.jac_targetsFinalize(measurement_sensor=[])
 
     # Reset
     ws.atm_point = ws.atm_field(*ws.ray_path_point.pos)
