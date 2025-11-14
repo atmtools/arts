@@ -385,7 +385,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
       auto& spectral_rad_scattered = spectral_rad_scat_path[ip];
 
       const auto& spectral_propmat_scat = spectral_propmat_scat_path[ip];
-      const auto& ray_path_point        = ray_path[ip];
+      const auto& ray_point             = ray_path[ip];
       const auto& suns_path             = ray_path_suns_path[ip];
 
       for (Size isun = 0; isun < nsuns; isun++) {
@@ -421,9 +421,8 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
                                               surf_field.ellipsoid);
 
         const Muelmat scatmat =
-            rtepack::rayleigh_scattering(sun_path.front().los,
-                                         ray_path_point.los,
-                                         depolarization_factor) /
+            rtepack::rayleigh_scattering(
+                sun_path.front().los, ray_point.los, depolarization_factor) /
             (4 * pi);
 
         // Add the source to the target

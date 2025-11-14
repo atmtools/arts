@@ -8,8 +8,8 @@ ws.disort_settings_agendaSubsurfaceSetup()
 
 ws.freq_grid = [100e9]
 
-ws.ray_path_point.pos = [0, 0, 0]
-ws.ray_path_point.los = [0, 0]
+ws.ray_point.pos = [0, 0, 0]
+ws.ray_point.los = [0, 0]
 
 ws.surf_fieldEarth()
 ws.surf_field['t'] = 100
@@ -42,7 +42,7 @@ ws.disort_spectral_rad_fieldApplyUnit()
 zas = np.linspace(0, 180, 361)
 data = []
 for za in zas:
-    ws.ray_path_point.los = [za, 0]
+    ws.ray_point.los = [za, 0]
     ws.spectral_radFromDisort()
     data.append(ws.spectral_rad[0, 0])
 data = np.array(data)

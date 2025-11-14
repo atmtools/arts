@@ -272,10 +272,10 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                     "freq_grid",
                     "jac_targets",
                     "select_species",
-                    "absorption_bands",
+                    "abs_bands",
                     "abs_ecs_data",
                     "atm_point",
-                    "ray_path_point"},
+                    "ray_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
@@ -294,10 +294,10 @@ The signature of the method is:
                                   const AscendingGrid& freq_grid,
                                   const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
-                                  const AbsorptionBands& absorption_bands,
+                                  const AbsorptionBands& abs_bands,
                                   const LinemixingEcsData& abs_ecs_data,
                                   const AtmPoint& atm_point,
-                                  const PropagationPathPoint& ray_path_point,
+                                  const PropagationPathPoint& ray_point,
                                   const Index& no_negative_absorption);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
@@ -317,7 +317,7 @@ The arguments
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,
 :attr:`~pyarts3.workspace.Workspace.abs_ecs_data`,
 :attr:`~pyarts3.workspace.Workspace.atm_point`, and
-:attr:`~pyarts3.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
+:attr:`~pyarts3.workspace.Workspace.ray_point` are just defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
 Lastly, the argument ``no_negative_absorption`` is defined in ``gin`` and is passed

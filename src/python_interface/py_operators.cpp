@@ -148,7 +148,7 @@ void py_operators(py::module_& m) {
           "spectral_rad"_a,
           "spectral_rad_jac"_a,
           "freq_grid"_a,
-          "ray_path_point"_a);
+          "ray_point"_a);
   generic_interface(srtop);
   py::implicitly_convertible<SpectralRadianceTransformOperator::Op::func_t,
                              SpectralRadianceTransformOperator>();

@@ -89,7 +89,7 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
 
 void spectral_radFromDisort(StokvecVector& spectral_rad,
                             const DisortRadiance& disort_spectral_rad_field,
-                            const PropagationPathPoint& ray_path_point) {
+                            const PropagationPathPoint& ray_point) {
   using namespace lagrange_interp;
 
   ARTS_TIME_REPORT
@@ -109,10 +109,10 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
                      "DISORT altitude grid must have at least two points")
 
   using aa_cyc_t    = cycler<0.0, 360.0>;
-  const auto aa_lag = variant_lag<aa_cyc_t>(aa_grid, ray_path_point.los[1]);
-  const auto za_lag = variant_lag<identity>(za_grid, ray_path_point.los[0]);
+  const auto aa_lag = variant_lag<aa_cyc_t>(aa_grid, ray_point.los[1]);
+  const auto za_lag = variant_lag<identity>(za_grid, ray_point.los[0]);
 
-  const Numeric z  = ray_path_point.altitude();
+  const Numeric z  = ray_point.altitude();
   const bool above = alt_grid.size() < 2 or z >= alt_grid[1];
   const bool below = z <= alt_grid.back();
 
@@ -161,7 +161,7 @@ void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
 
 void disort_spectral_rad_fieldApplyUnit(
     DisortRadiance& disort_spectral_rad_field,
-    const PropagationPathPoint& ray_path_point,
+    const PropagationPathPoint& ray_point,
     const SpectralRadianceTransformOperator&
         spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
@@ -189,7 +189,7 @@ void disort_spectral_rad_fieldApplyUnit(
           spectral_rad_transform_operator(spectral_rad,
                                           spectral_rad_jac,
                                           disort_spectral_rad_field.freq_grid,
-                                          ray_path_point);
+                                          ray_point);
 
           for (Index v = 0; v < nv; v++) {
             disort_spectral_rad_field.data[v, i, j, k] = spectral_rad[v][0];

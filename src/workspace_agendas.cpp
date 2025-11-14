@@ -28,7 +28,7 @@ calculations that are happening deep in your ARTS method calls.
                        "freq_wind_shift_jac",
                        "jac_targets",
                        "select_species",
-                       "ray_path_point",
+                       "ray_point",
                        "atm_point"},
       .enum_options = {"Empty"},
       .output_constraints =
@@ -75,7 +75,7 @@ If you do not need single-frequency-point calculations, consider using
                  "freq_wind_shift_jac",
                  "jac_targets",
                  "select_species",
-                 "ray_path_point",
+                 "ray_point",
                  "atm_point"},
   };
 
@@ -137,7 +137,7 @@ position and line of sight.
       .input  = {"obs_pos", "obs_los"},
   };
 
-  wsa_data["ray_path_point_back_propagation_agenda"] = {
+  wsa_data["ray_point_back_propagation_agenda"] = {
       .desc =
           R"--(Gets the next past point along a propagation path.
 
@@ -153,7 +153,7 @@ where the next point may be the same point as the input.
 The end of the path is reached when the last point in *ray_path* is
 at *PathPositionType* ``space`` or ``surface``.
 )--",
-      .output       = {"ray_path_point"},
+      .output       = {"ray_point"},
       .input        = {"ray_path",
                        "single_dispersion",
                        "single_propmat",
@@ -204,7 +204,7 @@ is warranted.
 Otherwise same as *spectral_rad_space_agenda*.
 )--",
       .output       = {"single_rad", "single_rad_jac"},
-      .input        = {"freq", "jac_targets", "ray_path_point"},
+      .input        = {"freq", "jac_targets", "ray_point"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -218,7 +218,7 @@ One common use-case is to provide a background spectral radiance.
 The input path point should be as if it is looking at space.
 )--",
       .output             = {"spectral_rad", "spectral_rad_jac"},
-      .input              = {"freq_grid", "jac_targets", "ray_path_point"},
+      .input              = {"freq_grid", "jac_targets", "ray_point"},
       .enum_options       = {"UniformCosmicBackground",
                              "SunOrCosmicBackground",
                              "Transmission"},
@@ -250,7 +250,7 @@ as well.
       .output       = {"spectral_rad", "spectral_rad_jac"},
       .input        = {"freq_grid",
                        "jac_targets",
-                       "ray_path_point",
+                       "ray_point",
                        "surf_field",
                        "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
@@ -273,12 +273,9 @@ as well.
 
 Otherwise same as *spectral_rad_surface_agenda*.
 )--",
-      .output       = {"single_rad", "single_rad_jac"},
-      .input        = {"freq",
-                       "jac_targets",
-                       "ray_path_point",
-                       "surf_field",
-                       "subsurf_field"},
+      .output = {"single_rad", "single_rad_jac"},
+      .input =
+          {"freq", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -354,11 +351,11 @@ it does a lot of unnecessary checks and operations that are not always needed.
   };
 
   wsa_data["spectral_surf_refl_agenda"] = {
-      .desc   = R"--(An agenda to compute the surface reflectance.
+      .desc         = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .input  = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
-      .enum_options       = {"FlatScalar", "FlatRealFresnel"},
+      .output       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input        = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
+      .enum_options = {"FlatScalar", "FlatRealFresnel"},
       .output_constraints = {
           {"spectral_surf_refl.size() == freq_grid.size()",
            "*spectral_surf_refl* match *freq_grid* size",

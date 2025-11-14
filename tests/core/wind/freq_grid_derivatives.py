@@ -25,7 +25,7 @@ f = [1e6, 1e9, 1e12]
 COUNT = 0
 for e in itertools.product(u, v, w, z, a, f):
     ws.atm_point.wind = [e[0], e[1], e[2]]
-    ws.ray_path_point.los = [e[3], e[4]]
+    ws.ray_point.los = [e[3], e[4]]
     ws.freq_grid = [e[5]]
 
     ws.freq_gridWindShift()
@@ -35,7 +35,7 @@ for e in itertools.product(u, v, w, z, a, f):
     df_p = [0, 0, 0]
 
     for i in range(3):
-        ws.ray_path_point.los = [e[3], e[4]]
+        ws.ray_point.los = [e[3], e[4]]
         ws.atm_point.wind = [e[0], e[1], e[2]]
         ws.atm_point.wind[i] += dx
         ws.freq_grid = [e[5]]

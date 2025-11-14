@@ -40,8 +40,8 @@ ws.RetrievalAddSubsurface(target="t", matrix=np.diag(5 * np.ones((len(z)))))
 ws.measurement_sensor = []
 ws.RetrievalFinalizeDiagonal()
 
-ws.ray_path_point.pos = [0, 0, 0]
-ws.ray_path_point.los = [0, 0]
+ws.ray_point.pos = [0, 0, 0]
+ws.ray_point.los = [0, 0]
 
 ws.spectral_radSubsurfaceDisortEmissionWithJacobian(disort_fourier_mode_dimension=1,
                                                          disort_legendre_polynomial_dimension=1,

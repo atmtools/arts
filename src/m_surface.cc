@@ -20,13 +20,12 @@ Vector2 specular_losNormal(const Vector2& normal,
 }
 }  // namespace
 
-void spectral_surf_reflFlatRealFresnel(
-    MuelmatVector& spectral_surf_refl,
-    MuelmatMatrix& spectral_surf_refl_jac,
-    const AscendingGrid& freq_grid,
-    const SurfaceField& surf_field,
-    const PropagationPathPoint& ray_path_point,
-    const JacobianTargets& jac_targets) try {
+void spectral_surf_reflFlatRealFresnel(MuelmatVector& spectral_surf_refl,
+                                       MuelmatMatrix& spectral_surf_refl_jac,
+                                       const AscendingGrid& freq_grid,
+                                       const SurfaceField& surf_field,
+                                       const PropagationPathPoint& ray_point,
+                                       const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -47,13 +46,13 @@ surf_field:
 )--",
                      surf_field);
 
-  const auto& pos               = ray_path_point.pos;
-  const auto& los               = ray_path_point.los;
+  const auto& pos               = ray_point.pos;
+  const auto& los               = ray_point.los;
   const auto& ell               = surf_field.ellipsoid;
   const Numeric lat             = pos[1];
   const Numeric lon             = pos[2];
   const SurfacePoint surf_point = surf_field.at(lat, lon);
-  const Numeric n1              = ray_path_point.nreal;
+  const Numeric n1              = ray_point.nreal;
   const Numeric n2              = surf_point[refraction_target];
   const Size nf                 = freq_grid.size();
 
@@ -91,7 +90,7 @@ void spectral_surf_reflFlatScalar(MuelmatVector& spectral_surf_refl,
                                   MuelmatMatrix& spectral_surf_refl_jac,
                                   const AscendingGrid& freq_grid,
                                   const SurfaceField& surf_field,
-                                  const PropagationPathPoint& ray_path_point,
+                                  const PropagationPathPoint& ray_point,
                                   const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
@@ -113,8 +112,8 @@ surf_field:
 )--",
                      surf_field);
 
-  const Numeric lat             = ray_path_point.pos[1];
-  const Numeric lon             = ray_path_point.pos[2];
+  const Numeric lat             = ray_point.pos[1];
+  const Numeric lon             = ray_point.pos[2];
   const SurfacePoint surf_point = surf_field.at(lat, lon);
   const Numeric R               = surf_point[reflectance_target];
   const Size nf                 = freq_grid.size();
@@ -147,7 +146,7 @@ void spectral_radSurfaceReflectance(
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
     const JacobianTargets& jac_targets,
-    const PropagationPathPoint& ray_path_point,
+    const PropagationPathPoint& ray_point,
     const Agenda& spectral_rad_observer_agenda,
     const Agenda& spectral_rad_closed_surface_agenda,
     const Agenda& spectral_surf_refl_agenda) try {
@@ -160,8 +159,8 @@ void spectral_radSurfaceReflectance(
 
   const Size NF                 = freq_grid.size();
   const Size NX                 = jac_targets.x_size();
-  const Numeric lat             = ray_path_point.pos[1];
-  const Numeric lon             = ray_path_point.pos[2];
+  const Numeric lat             = ray_point.pos[1];
+  const Numeric lon             = ray_point.pos[2];
   const SurfacePoint surf_point = surf_field.at(lat, lon);
 
   MuelmatVector spectral_surf_refl;
@@ -171,15 +170,13 @@ void spectral_radSurfaceReflectance(
                                    spectral_surf_refl_jac,
                                    freq_grid,
                                    surf_field,
-                                   ray_path_point,
+                                   ray_point,
                                    jac_targets,
                                    spectral_surf_refl_agenda);
 
   // Get the direction of the incoming radiation
-  const Vector2 los = specular_losNormal(surf_point.normal,
-                                         ray_path_point.los,
-                                         ray_path_point.pos,
-                                         surf_field.ellipsoid);
+  const Vector2 los = specular_losNormal(
+      surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
 
   ArrayOfPropagationPathPoint ray_path;
   StokvecVector spectral_rad_surface;
@@ -191,7 +188,7 @@ void spectral_radSurfaceReflectance(
                                       ray_path,
                                       freq_grid,
                                       jac_targets,
-                                      ray_path_point.pos,
+                                      ray_point.pos,
                                       los,
                                       atm_field,
                                       surf_field,
@@ -203,7 +200,7 @@ void spectral_radSurfaceReflectance(
                                      spectral_rad_jac_surface,
                                      freq_grid,
                                      jac_targets,
-                                     ray_path_point,
+                                     ray_point,
                                      surf_field,
                                      subsurf_field,
                                      spectral_rad_closed_surface_agenda);

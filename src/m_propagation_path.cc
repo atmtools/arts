@@ -249,43 +249,42 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
   if (remove_non_atm) ray_pathRemoveNonAtm(ray_path);
 }
 
-void ray_path_pointBackground(PropagationPathPoint& ray_path_point,
-                              const ArrayOfPropagationPathPoint& ray_path) {
+void ray_pointBackground(PropagationPathPoint& ray_point,
+                         const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
-  ray_path_point = ray_path.back();
+  ray_point = ray_path.back();
 }
 
-void ray_path_pointForeground(PropagationPathPoint& ray_path_point,
-                              const ArrayOfPropagationPathPoint& ray_path) {
+void ray_pointForeground(PropagationPathPoint& ray_point,
+                         const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
-  ray_path_point = ray_path.front();
+  ray_point = ray_path.front();
 }
 
-void ray_path_pointLowestFromPath(PropagationPathPoint& ray_path_point,
-                                  const ArrayOfPropagationPathPoint& ray_path) {
+void ray_pointLowestFromPath(PropagationPathPoint& ray_point,
+                             const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
-  ray_path_point = *std::ranges::min_element(
+  ray_point = *std::ranges::min_element(
       ray_path,
       [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
         return a.altitude() < b.altitude();
       });
 }
 
-void ray_path_pointHighestFromPath(
-    PropagationPathPoint& ray_path_point,
-    const ArrayOfPropagationPathPoint& ray_path) {
+void ray_pointHighestFromPath(PropagationPathPoint& ray_point,
+                              const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
-  ray_path_point = *std::ranges::max_element(
+  ray_point = *std::ranges::max_element(
       ray_path,
       [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
         return a.altitude() < b.altitude();
@@ -349,13 +348,13 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
                     false);
 }
 
-void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
-                                 const ArrayOfPropagationPathPoint& ray_path,
-                                 const AtmField& atm_field,
-                                 const SurfaceField& surf_field,
-                                 const Numeric& max_stepsize,
-                                 const Numeric& safe_search_accuracy,
-                                 const Index& search_safe) {
+void ray_pointPastGeometric(PropagationPathPoint& ray_point,
+                            const ArrayOfPropagationPathPoint& ray_path,
+                            const AtmField& atm_field,
+                            const SurfaceField& surf_field,
+                            const Numeric& max_stepsize,
+                            const Numeric& safe_search_accuracy,
+                            const Index& search_safe) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -364,22 +363,22 @@ void ray_path_pointPastGeometric(PropagationPathPoint& ray_path_point,
       surf_field.ellipsoid);
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
 
-  ray_path_point = past_geometric(ray_path.back(),
-                                  atm_field,
-                                  surf_field,
-                                  max_stepsize,
-                                  safe_search_accuracy,
-                                  search_safe);
+  ray_point = past_geometric(ray_path.back(),
+                             atm_field,
+                             surf_field,
+                             max_stepsize,
+                             safe_search_accuracy,
+                             search_safe);
 }
 
-void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
-                                  const ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atm_field,
-                                  const SurfaceField& surf_field,
-                                  const Numeric& max_stepsize,
-                                  const Numeric& single_dispersion,
-                                  const Numeric& safe_search_accuracy,
-                                  const Index& search_safe) {
+void ray_pointPastRefractive(PropagationPathPoint& ray_point,
+                             const ArrayOfPropagationPathPoint& ray_path,
+                             const AtmField& atm_field,
+                             const SurfaceField& surf_field,
+                             const Numeric& max_stepsize,
+                             const Numeric& single_dispersion,
+                             const Numeric& safe_search_accuracy,
+                             const Index& search_safe) {
   ARTS_TIME_REPORT
 
   using Conversion::cosd, Conversion::acosd;
@@ -396,10 +395,10 @@ void ray_path_pointPastRefractive(PropagationPathPoint& ray_path_point,
 
   future.nreal = 1 + single_dispersion;
 
-  ray_path_point = past_geometric(future,
-                                  atm_field,
-                                  surf_field,
-                                  max_stepsize,
-                                  safe_search_accuracy,
-                                  search_safe);
+  ray_point = past_geometric(future,
+                             atm_field,
+                             surf_field,
+                             max_stepsize,
+                             safe_search_accuracy,
+                             search_safe);
 }

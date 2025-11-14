@@ -696,7 +696,7 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .default_value = " ",
   };
 
-  wsv_data["ray_path_point"] = {
+  wsv_data["ray_point"] = {
       .desc = R"--(A single path point.
 
 This consists of

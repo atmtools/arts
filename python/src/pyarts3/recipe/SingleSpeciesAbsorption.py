@@ -27,7 +27,7 @@ class SingleSpeciesAbsorption:
                 self.ws.abs_bands[band].cutoff = "ByLine"
                 self.ws.abs_bands[band].cutoff_value = cutoff
         self.ws.spectral_propmat_agendaAuto()
-        self.ws.ray_path_point = pyarts.arts.PropagationPathPoint()
+        self.ws.ray_point = pyarts.arts.PropagationPathPoint()
 
     def __call__(
         self,

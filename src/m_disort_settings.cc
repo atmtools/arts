@@ -57,7 +57,7 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                            const AscendingGrid& freq_grid,
                            const SurfaceField& surf_field,
                            const Sun& sun,
-                           const PropagationPathPoint& ray_path_point) {
+                           const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -70,10 +70,10 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
 
   const Vector3 sun_pos{sun.distance - h, sun.latitude, sun.longitude};
   const Vector2 los =
-      geometric_los(ray_path_point.pos, sun_pos, surf_field.ellipsoid);
+      geometric_los(ray_point.pos, sun_pos, surf_field.ellipsoid);
 
   const Numeric sin2_alpha =
-      sun.sin_alpha_squared(ray_path_point.pos, surf_field.ellipsoid);
+      sun.sin_alpha_squared(ray_point.pos, surf_field.ellipsoid);
 
   const Size nv = freq_grid.size();
 
@@ -112,12 +112,12 @@ namespace {
 template <typename T>
 void disort_settingsLayerThermalEmissionLinearInTauImpl(
     DisortSettings& disort_settings,
-    const T& ray_path_points,
+    const T& ray_points,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   const Size nv = freq_grid.size();
-  const Size N  = ray_path_points.size();
+  const Size N  = ray_points.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -134,8 +134,8 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
     const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_points[i + 0].temperature;
-      const Numeric& t1 = ray_path_points[i + 1].temperature;
+      const Numeric& t0 = ray_points[i + 0].temperature;
+      const Numeric& t1 = ray_points[i + 1].temperature;
 
       const Numeric y0 = planck(f, t0);
       const Numeric y1 = planck(f, t1);
@@ -257,14 +257,14 @@ void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
 void disort_settingsSurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
     const AscendingGrid& freq_grid,
-    const PropagationPathPoint& ray_path_point,
+    const PropagationPathPoint& ray_point,
     const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
 
   const auto nv = freq_grid.size();
 
   const Numeric T = surf_field.single_value(
-      SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
+      SurfaceKey::t, ray_point.latitude(), ray_point.longitude());
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
@@ -358,7 +358,7 @@ void disort_settingsDownwellingObserver(
     const Stokvec& pol) {
   ARTS_TIME_REPORT
 
-  const auto& ray_path_point = ray_path.front();
+  const auto& ray_point = ray_path.front();
 
   auto& limit = disort_settings.negative_boundary_condition = 0;
 
@@ -398,8 +398,8 @@ void disort_settingsDownwellingObserver(
           ray_path_up,
           freq_grid,
           jac_targets,
-          ray_path_point.pos,
-          {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
+          ray_point.pos,
+          {Conversion::acosd(mu[i]), ray_point.azimuth()},
           atm_field,
           surf_field,
           subsurf_field,
@@ -872,12 +872,12 @@ Agenda disort_settings_agendaSetup(
       agenda.add("disort_settingsNoSurfaceScattering");
       break;
     case Thermal:
-      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("ray_pointLowestFromPath");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");
       agenda.add("disort_settingsNoSurfaceScattering");
       break;
     case ThermalLambertian:
-      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("ray_pointLowestFromPath");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");
       agenda.add("disort_settingsSurfaceLambertian",
                  SetWsv{"value", surf_lambertian_value});
@@ -893,7 +893,7 @@ Agenda disort_settings_agendaSetup(
     using enum disort_settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
-      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("ray_pointHighestFromPath");
       agenda.add("disort_settingsSetSun");
       break;
   }
@@ -931,7 +931,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
     using enum disort_settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
-      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("ray_pointHighestFromPath");
       agenda.add("disort_settingsSetSun");
       break;
   }

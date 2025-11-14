@@ -45,7 +45,7 @@ ws.spectral_propmat_agendaSetOperator(f=interface_function)
 
 ws.freq_grid = [1, 2]
 ws.freq_wind_shift_jac
-ws.ray_path_point
+ws.ray_point
 ws.atm_point
 
 ws.spectral_propmat_agendaExecute()

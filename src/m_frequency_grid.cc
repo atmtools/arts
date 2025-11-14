@@ -6,11 +6,11 @@ namespace {
 void wind_shift(VectorView freq_grid,
                 Vector3& freq_wind_shift_jac,
                 const AtmPoint& atm_point,
-                const PropagationPathPoint& ray_path_point) {
+                const PropagationPathPoint& ray_point) {
   constexpr Numeric c = Constant::speed_of_light;
 
   const auto& [u, v, w] = atm_point.wind;
-  const auto [za, aa]   = path::mirror(ray_path_point.los);
+  const auto [za, aa]   = path::mirror(ray_point.los);
 
   const Numeric u2v2 = u * u + v * v;
   const Numeric w2   = w * w;
@@ -34,11 +34,11 @@ void wind_shift(VectorView freq_grid,
                      R"(Negative frequency scaling factor: {}
 
 atm_point.wind: {:B,}
-ray_path_point.los:     {:B,}
+ray_point.los:     {:B,}
 )",
                      fac,
                      atm_point.wind,
-                     ray_path_point.los);
+                     ray_point.los);
 
   //! Zero shift if nan
   if (std::isnan(fac)) {
@@ -88,22 +88,21 @@ ray_path_point.los:     {:B,}
 void freq_gridWindShift(AscendingGrid& freq_grid,
                         Vector3& freq_wind_shift_jac,
                         const AtmPoint& atm_point,
-                        const PropagationPathPoint& ray_path_point) {
+                        const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
   Vector tmp = std::move(freq_grid).rvec();
-  wind_shift(tmp, freq_wind_shift_jac, atm_point, ray_path_point);
+  wind_shift(tmp, freq_wind_shift_jac, atm_point, ray_point);
   freq_grid = std::move(tmp);
 }
 
 void freqWindShift(Numeric& frequency,
                    Vector3& freq_wind_shift_jac,
                    const AtmPoint& atm_point,
-                   const PropagationPathPoint& ray_path_point) {
+                   const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
-  wind_shift(
-      VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_path_point);
+  wind_shift(VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_point);
 }
 
 void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,

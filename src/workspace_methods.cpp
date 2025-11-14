@@ -1106,7 +1106,7 @@ If the wind is 0 or nan, the *freq_grid* remains unchanged.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid", "freq_wind_shift_jac"},
-      .in     = {"freq_grid", "atm_point", "ray_path_point"},
+      .in     = {"freq_grid", "atm_point", "ray_point"},
   };
 
   wsm_data["freqWindShift"] = {
@@ -1115,7 +1115,7 @@ If the wind is 0 or nan, the *freq_grid* remains unchanged.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq", "freq_wind_shift_jac"},
-      .in     = {"freq", "atm_point", "ray_path_point"},
+      .in     = {"freq", "atm_point", "ray_point"},
   };
 
   wsm_data["atm_pathFromProfile"] = {
@@ -1477,7 +1477,7 @@ but adds further contributions.
                  "select_species",
                  "jac_targets",
                  "atm_point",
-                 "ray_path_point"},
+                 "ray_point"},
   };
 
   wsm_data["spectral_propmatAddPredefined"] = {
@@ -2071,7 +2071,7 @@ but built on-the-fly, allowing per-frequency refraction.
                  "single_rad_space_agenda",
                  "single_rad_surface_agenda",
                  "single_propmat_agenda",
-                 "ray_path_point_back_propagation_agenda",
+                 "ray_point_back_propagation_agenda",
                  "subsurf_field",
                  "surf_field",
                  "obs_pos",
@@ -2088,7 +2088,7 @@ but built on-the-fly, allowing per-frequency refraction.
           {"Delta of the dispersion in polarizized form.  "
            "The dot-product of this and the propagation matrix is added to the internal *single_dispersion* variable.",
            "The maximum optical thickness per step, min of local *Propmat* A divided by ``max_tau`` "
-           "and *max_stepsize* is passed to *ray_path_point_back_propagation_agendaExecute*.  "
+           "and *max_stepsize* is passed to *ray_point_back_propagation_agendaExecute*.  "
            "Note that this is an approximation that will fail for highly non-linear absorption profiles.  "
            "As implemented, it takes too long steps if going from low to high absorption, and "
            "too short steps when going from high to low absorption.  See it as an approximation.",
@@ -2118,7 +2118,7 @@ but built on-the-fly, allowing per-frequency refraction.
                          "single_rad_space_agenda",
                          "single_rad_surface_agenda",
                          "single_propmat_agenda",
-                         "ray_path_point_back_propagation_agenda",
+                         "ray_point_back_propagation_agenda",
                          "subsurf_field",
                          "surf_field",
                          "obs_pos",
@@ -2167,7 +2167,7 @@ error is raised.  As is it if the background position is unknown.
       .out            = {"spectral_rad_bkg", "spectral_rad_bkg_jac"},
       .in             = {"freq_grid",
                          "jac_targets",
-                         "ray_path_point",
+                         "ray_point",
                          "surf_field",
                          "subsurf_field",
                          "spectral_rad_space_agenda",
@@ -2243,11 +2243,11 @@ where :math:`T_c` is the cosmic microwave background temperature.  :math:`\nu` i
 .. math::
     \vec{I} = \left[ \begin{array}{c} \frac{2h\vec{\nu}^3}{c^2} \frac{1}{e^{\frac{h\vec{\nu}}{kT_s}} - 1} \\ 0 \\ 0 \\ 0 \end{array}\right],
 
-where :math:`T_s` is the surface temperature extracted at the input *ray_path_point*.  :math:`\nu` is the frequency grid.
+where :math:`T_s` is the surface temperature extracted at the input *ray_point*.  :math:`\nu` is the frequency grid.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac"},
-      .in     = {"freq_grid", "surf_field", "jac_targets", "ray_path_point"},
+      .in     = {"freq_grid", "surf_field", "jac_targets", "ray_point"},
   };
 
   wsm_data["spectral_radSurfaceReflectance"] = {
@@ -2269,7 +2269,7 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
                          "surf_field",
                          "subsurf_field",
                          "jac_targets",
-                         "ray_path_point",
+                         "ray_point",
                          "spectral_rad_observer_agenda",
                          "spectral_rad_closed_surface_agenda",
                          "spectral_surf_refl_agenda"},
@@ -2365,7 +2365,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
               "spectral_rad",
               "spectral_rad_jac",
               "freq_grid",
-              "ray_path_point",
+              "ray_point",
               "spectral_rad_transform_operator",
           },
   };
@@ -2380,7 +2380,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
           {
               "spectral_rad",
               "freq_grid",
-              "ray_path_point",
+              "ray_point",
               "spectral_rad_transform_operator",
           },
   };
@@ -2405,7 +2405,7 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
 where :math:`\theta_1` is the angle of incidence, :math:`\theta_2` is the angle of refraction, and
 :math:`n_1` and :math:`n_2` are the refractive indices of the two media.
 
-We get :math:`n_1` and :math:`\theta_1` from the *ray_path_point* and extracts
+We get :math:`n_1` and :math:`\theta_1` from the *ray_point* and extracts
 :math:`n_2` from the *surf_field* parameter ``"scalar refractive index"``.
 
 The reflectance matrix is
@@ -2421,7 +2421,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in     = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
+      .in     = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
   };
 
   wsm_data["spectral_surf_reflFlatScalar"] = {
@@ -2443,7 +2443,7 @@ The reflectance matrix is
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in     = {"freq_grid", "surf_field", "ray_path_point", "jac_targets"},
+      .in     = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
   };
 
   wsm_data["spectral_propmat_jacWindFix"] = {
@@ -2484,7 +2484,7 @@ See :doc:`concept.absorption.lbl` for details.
                     "abs_bands",
                     "abs_ecs_data",
                     "atm_point",
-                    "ray_path_point"},
+                    "ray_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
@@ -2513,7 +2513,7 @@ This is only for LTE lines in Voigt.
                     "select_species",
                     "abs_bands",
                     "atm_point",
-                    "ray_path_point"},
+                    "ray_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
@@ -2554,7 +2554,7 @@ This is only for LTE lines in Voigt.
                     "select_species",
                     "abs_bands",
                     "atm_point",
-                    "ray_path_point"},
+                    "ray_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
@@ -3748,7 +3748,7 @@ bad angles if this is turned off.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"ray_path"},
-      .in        = {"ray_path_point"},
+      .in        = {"ray_point"},
       .gin       = {"depth_profile"},
       .gin_type  = {"DescendingGrid"},
       .gin_value = {std::nullopt},
@@ -4242,12 +4242,12 @@ See *SpeciesIsotope* for valid ``species``
                     "On or off"},
   };
 
-  wsm_data["ray_path_pointPastGeometric"] = {
+  wsm_data["ray_pointPastGeometric"] = {
       .desc =
           R"--(Gets the previous geometric point along *ray_path*
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"ray_path_point"},
+      .out       = {"ray_point"},
       .in        = {"ray_path", "atm_field", "surf_field", "max_stepsize"},
       .gin       = {"surf_search_accuracy", "surf_safe_search"},
       .gin_type  = {"Numeric", "Index"},
@@ -4257,53 +4257,52 @@ See *SpeciesIsotope* for valid ``species``
            "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
-  wsm_data["ray_path_pointPastRefractive"] =
-      wsm_data["ray_path_pointPastGeometric"];
-  wsm_data["ray_path_pointPastRefractive"].desc =
+  wsm_data["ray_pointPastRefractive"] = wsm_data["ray_pointPastGeometric"];
+  wsm_data["ray_pointPastRefractive"].desc =
       R"--(Gets the previous refractive point along *ray_path*
 
-This basically wraps *ray_path_pointPastGeometric* but sets the zenith angle
+This basically wraps *ray_pointPastGeometric* but sets the zenith angle
 to the refracted zenith angle, i.e.,
 
 .. math::
     
     \theta_{refracted} = \arcsin\left(\frac{n_{current}}{n_{next}}\sin(\theta_{current})\right)
 )--";
-  wsm_data["ray_path_pointPastRefractive"].in.emplace_back("single_dispersion");
+  wsm_data["ray_pointPastRefractive"].in.emplace_back("single_dispersion");
 
-  wsm_data["ray_path_pointBackground"] = {
+  wsm_data["ray_pointBackground"] = {
       .desc =
-          R"--(Sets *ray_path_point* to the expected background point of *ray_path*
+          R"--(Sets *ray_point* to the expected background point of *ray_path*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_point"},
+      .out    = {"ray_point"},
       .in     = {"ray_path"},
   };
 
-  wsm_data["ray_path_pointForeground"] = {
+  wsm_data["ray_pointForeground"] = {
       .desc =
-          R"--(Sets *ray_path_point* to the expected foreground point of *ray_path*
+          R"--(Sets *ray_point* to the expected foreground point of *ray_path*
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_point"},
+      .out    = {"ray_point"},
       .in     = {"ray_path"},
   };
 
-  wsm_data["ray_path_pointLowestFromPath"] = {
+  wsm_data["ray_pointLowestFromPath"] = {
       .desc =
-          R"(Sets *ray_path_point* to the lowest altitude point of *ray_path*.
+          R"(Sets *ray_point* to the lowest altitude point of *ray_path*.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_point"},
+      .out    = {"ray_point"},
       .in     = {"ray_path"},
   };
 
-  wsm_data["ray_path_pointHighestFromPath"] = {
+  wsm_data["ray_pointHighestFromPath"] = {
       .desc =
-          R"(Sets *ray_path_point* to the highest altitude point of *ray_path*.
+          R"(Sets *ray_point* to the highest altitude point of *ray_path*.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_point"},
+      .out    = {"ray_point"},
       .in     = {"ray_path"},
   };
 
@@ -4588,7 +4587,7 @@ that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad"},
-      .in     = {"freq_grid", "ray_path_point", "suns", "surf_field"},
+      .in     = {"freq_grid", "ray_point", "suns", "surf_field"},
   };
 
   wsm_data["spectral_radSunOrCosmicBackground"] = {
@@ -5195,7 +5194,7 @@ The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
                          "surf_field",
                          "subsurf_field",
                          "jac_targets",
-                         "ray_path_point",
+                         "ray_point",
                          "disort_quadrature_dimension",
                          "disort_fourier_mode_dimension",
                          "disort_legendre_polynomial_dimension",
@@ -5329,11 +5328,7 @@ A description of the options is given below.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "freq_grid",
-                 "surf_field",
-                 "sun",
-                 "ray_path_point"},
+      .in = {"disort_settings", "freq_grid", "surf_field", "sun", "ray_point"},
   };
 
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
@@ -5424,7 +5419,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in = {"disort_settings", "freq_grid", "ray_path_point", "surf_field"},
+      .in     = {"disort_settings", "freq_grid", "ray_point", "surf_field"},
   };
 
   wsm_data["disort_settingsNoLegendre"] = {
@@ -5498,7 +5493,7 @@ Sets both upper and lower bounds.
       .author = {"Richard Larsson"},
       .out    = {"disort_spectral_rad_field"},
       .in     = {"disort_spectral_rad_field",
-                 "ray_path_point",
+                 "ray_point",
                  "spectral_rad_transform_operator"},
   };
 
@@ -5567,7 +5562,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
 )",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad"},
-      .in     = {"disort_spectral_rad_field", "ray_path_point"},
+      .in     = {"disort_spectral_rad_field", "ray_point"},
   };
 
   wsm_data["RetrievalInit"] = {
