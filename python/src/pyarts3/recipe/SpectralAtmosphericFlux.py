@@ -92,7 +92,7 @@ class SpectralAtmosphericFlux:
             max_stepsize=max_level_step,
         )
 
-        self.ws.ray_path_atm_pointFromPath()
+        self.ws.atm_point_pathFromPath()
 
         self.sun = pyarts.arts.GriddedField2.fromxml(
             "star/Sun/solar_spectrum_QUIET.xml"
@@ -116,7 +116,7 @@ class SpectralAtmosphericFlux:
             dict: Atmospheric field dictionary
         """
         return pyarts.arts.stringify_keys(
-            self.ws.ray_path_atm_point.to_dict(
+            self.ws.atm_point_path.to_dict(
                 core=core, specs=specs, nlte=nlte, ssprops=ssprops, isots=isots
             )
         )
@@ -141,7 +141,7 @@ class SpectralAtmosphericFlux:
         if surf_temperature is not None:
             self.ws.surf_field["t"] = surf_temperature
 
-        self.ws.ray_path_atm_point.update(atm_profile)
+        self.ws.atm_point_path.update(atm_profile)
 
         # Visible
         self.ws.freq_grid = freq_grid

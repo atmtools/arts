@@ -298,7 +298,7 @@ The unit is in *spectral_radiance* per meter.
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_atm_point"] = {
+  wsv_data["atm_point_path"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
 See *atm_point* for information about atmospheric points

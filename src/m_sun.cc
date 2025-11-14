@@ -234,12 +234,12 @@ void ray_path_propagation_matrix_scatteringFromPath(
     ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
     const Agenda& propagation_matrix_scattering_agenda,
     const ArrayOfAscendingGrid& freq_grid_path,
-    const ArrayOfAtmPoint& ray_path_atm_point) {
+    const ArrayOfAtmPoint& atm_point_path) {
   ARTS_TIME_REPORT
 
   const Size np = freq_grid_path.size();
-  ARTS_USER_ERROR_IF(np != ray_path_atm_point.size(),
-                     "Bad ray_path_atm_point: incorrect number of path points")
+  ARTS_USER_ERROR_IF(np != atm_point_path.size(),
+                     "Bad atm_point_path: incorrect number of path points")
 
   ray_path_propagation_matrix_scattering.resize(np);
   if (arts_omp_in_parallel()) {
@@ -248,7 +248,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
           ws,
           ray_path_propagation_matrix_scattering[ip],
           freq_grid_path[ip],
-          ray_path_atm_point[ip],
+          atm_point_path[ip],
           propagation_matrix_scattering_agenda);
     }
   } else {
@@ -260,7 +260,7 @@ void ray_path_propagation_matrix_scatteringFromPath(
             ws,
             ray_path_propagation_matrix_scattering[ip],
             freq_grid_path[ip],
-            ray_path_atm_point[ip],
+            atm_point_path[ip],
             propagation_matrix_scattering_agenda);
       } catch (const std::exception& e) {
 #pragma omp critical

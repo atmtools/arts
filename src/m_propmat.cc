@@ -13,24 +13,23 @@ void ray_path_propagation_matrixFromPath(
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atm_point) try {
+    const ArrayOfAtmPoint &atm_point_path) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
-                                        ray_path_atm_point,
-                                        freq_grid_path,
-                                        freq_wind_shift_jac_path),
-                     R"(Not same size:
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(
+          ray_path, atm_point_path, freq_grid_path, freq_wind_shift_jac_path),
+      R"(Not same size:
 
 ray_path                               size: {} element(s)
-ray_path_atm_point             size: {} element(s)
+atm_point_path             size: {} element(s)
 freq_grid_path                size: {} element(s)
 freq_wind_shift_jac_path size: {} element(s)
 )",
-                     ray_path.size(),
-                     ray_path_atm_point.size(),
-                     freq_grid_path.size(),
-                     freq_wind_shift_jac_path.size())
+      ray_path.size(),
+      atm_point_path.size(),
+      freq_grid_path.size(),
+      freq_wind_shift_jac_path.size())
 
   const Size np = ray_path.size();
   ray_path_propagation_matrix.resize(np);
@@ -54,7 +53,7 @@ freq_wind_shift_jac_path size: {} element(s)
           jac_targets,
           {},
           ray_path[ip],
-          ray_path_atm_point[ip],
+          atm_point_path[ip],
           propagation_matrix_agenda);
     } catch (const std::runtime_error &e) {
 #pragma omp critical
@@ -80,7 +79,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
     const ArrayOfVector3 &freq_wind_shift_jac_path,
     const JacobianTargets &jac_targets,
     const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &ray_path_atm_point,
+    const ArrayOfAtmPoint &atm_point_path,
     const ArrayOfSpeciesEnum &select_species_list) try {
   ARTS_TIME_REPORT
 
@@ -120,7 +119,7 @@ void ray_path_propagation_matrix_species_splitFromPath(
             jac_targets,
             select_species_list[is],
             ray_path[ip],
-            ray_path_atm_point[ip],
+            atm_point_path[ip],
             propagation_matrix_agenda);
       } catch (const std::runtime_error &e) {
 #pragma omp critical

@@ -5,11 +5,10 @@
 #include <workspace.h>
 
 namespace {
-auto ray_path_propagation_matrixProfile(
-    const Workspace& ws,
-    const Agenda& propagation_matrix_agenda,
-    const AscendingGrid& freq_grid,
-    const ArrayOfAtmPoint& ray_path_atm_point) {
+auto ray_path_propagation_matrixProfile(const Workspace& ws,
+                                        const Agenda& propagation_matrix_agenda,
+                                        const AscendingGrid& freq_grid,
+                                        const ArrayOfAtmPoint& atm_point_path) {
   struct ray_path_propagation_matrixFromPathOutput {
     ArrayOfPropmatVector k;
     ArrayOfStokvecVector s;
@@ -18,7 +17,7 @@ auto ray_path_propagation_matrixProfile(
   };
   ray_path_propagation_matrixFromPathOutput out;
 
-  const Size np = ray_path_atm_point.size();
+  const Size np = atm_point_path.size();
   out.k.resize(np);
   out.s.resize(np);
   out.dk.resize(np);
@@ -39,7 +38,7 @@ auto ray_path_propagation_matrixProfile(
                                        {},
                                        {},
                                        {},
-                                       ray_path_atm_point[ip],
+                                       atm_point_path[ip],
                                        propagation_matrix_agenda);
     } catch (const std::runtime_error& e) {
 #pragma omp critical
@@ -151,7 +150,7 @@ void spectral_radiance_fieldProfilePseudo2D(
     const Workspace& ws,
     GriddedSpectralField6& spectral_radiance_field,
     const Agenda& propagation_matrix_agenda,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const SurfaceField& surf_field,
     const AscendingGrid& freq_grid,
     const ZenithGrid& za_grid,
@@ -169,14 +168,14 @@ void spectral_radiance_fieldProfilePseudo2D(
       surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(alt_grid, ray_path_atm_point),
+      not arr::same_size(alt_grid, atm_point_path),
       R"(Altitude grid and atmospheric point grid must have the same size
 
 Altitude grid size:          {}
 Atmospheric point grid size: {}
 )",
       alt_grid.size(),
-      ray_path_atm_point.size())
+      atm_point_path.size())
 
   ARTS_USER_ERROR_IF(za_grid.empty(), "Need some zenith angles")
 
@@ -206,7 +205,7 @@ Atmospheric point grid size: {}
   if (NA == 0) return;
 
   const auto propmat_data = ray_path_propagation_matrixProfile(
-      ws, propagation_matrix_agenda, freq_grid, ray_path_atm_point);
+      ws, propagation_matrix_agenda, freq_grid, atm_point_path);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
   const Numeric t_surf     = surf_field[SurfaceKey::t].at(latitude, longitude);
@@ -258,8 +257,8 @@ Atmospheric point grid size: {}
       const auto& K1 = propmat_data.k[end];
       const auto& J0 = propmat_data.s[beg];
       const auto& J1 = propmat_data.s[end];
-      const auto& T0 = ray_path_atm_point[beg].temperature;
-      const auto& T1 = ray_path_atm_point[end].temperature;
+      const auto& T0 = atm_point_path[beg].temperature;
+      const auto& T1 = atm_point_path[end].temperature;
 
       rtepack::nlte_step(I, freq_grid, K0, K1, J0, J1, T0, T1, r);
     }

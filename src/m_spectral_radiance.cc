@@ -25,7 +25,7 @@ void ray_path_transmission_matrixFromPath(
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfPropmatMatrix& ray_path_propagation_matrix_jacobian,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const SurfaceField& surf_field,
     const JacobianTargets& jac_targets,
     const Index& hse_derivative) try {
@@ -41,17 +41,17 @@ void ray_path_transmission_matrixFromPath(
   ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
                                         ray_path_propagation_matrix,
                                         ray_path_propagation_matrix_jacobian,
-                                        ray_path_atm_point),
+                                        atm_point_path),
                      R"(Not same sizes:
 
 ray_path.size()                             = {},
 ray_path_propagation_matrix.size()          = {},
 ray_path_propagation_matrix_jacobian.size() = {},
-ray_path_atm_point.size()           = {})",
+atm_point_path.size()           = {})",
                      ray_path.size(),
                      ray_path_propagation_matrix.size(),
                      ray_path_propagation_matrix_jacobian.size(),
-                     ray_path_atm_point.size());
+                     atm_point_path.size());
 
   // HSE variables
   const Index temperature_derivative_position =
@@ -73,10 +73,9 @@ ray_path_atm_point.size()           = {})",
   if (hse_derivative and temperature_derivative_position >= 0) {
     for (Size ip = 0; ip < N - 1; ip++) {
       ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * ray_path_atm_point[ip].temperature);
+          ray_path_distance[ip] / (2.0 * atm_point_path[ip].temperature);
       ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
-          ray_path_distance[ip] /
-          (2.0 * ray_path_atm_point[ip + 1].temperature);
+          ray_path_distance[ip] / (2.0 * atm_point_path[ip + 1].temperature);
     }
   }
 
@@ -138,7 +137,7 @@ void ray_path_single_transmission_matrixFromPath(
     const PropmatVector& single_propmat_path,
     const PropmatMatrix& single_propmat_jac_path,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const SurfaceField& surf_field,
     const JacobianTargets& jac_targets,
     const Index& hse_derivative) try {
@@ -151,18 +150,18 @@ void ray_path_single_transmission_matrixFromPath(
       single_propmat_path.size() != N or
           single_propmat_jac_path.nrows() != static_cast<Index>(N) or
           single_propmat_jac_path.ncols() != static_cast<Index>(nq) or
-          ray_path_atm_point.size() != N,
+          atm_point_path.size() != N,
       R"(Not same sizes:
 
 ray_path:                                    (N)     = [{}]
 jac_targets:                            (nq)    = [{}]
-ray_path_atm_point:                  (N)     = [{}]
+atm_point_path:                  (N)     = [{}]
 single_propmat_path:          (N)     = {:B,}
 single_propmat_jac_path: (N, nq) = {:B,}
 )",
       N,
       nq,
-      ray_path_atm_point.size(),
+      atm_point_path.size(),
       single_propmat_path.shape(),
       single_propmat_jac_path.shape());
 
@@ -179,10 +178,9 @@ single_propmat_jac_path: (N, nq) = {:B,}
   if (hse_derivative and temperature_derivative_position >= 0) {
     for (Size ip = 0; ip < N - 1; ip++) {
       ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * ray_path_atm_point[ip].temperature);
+          ray_path_distance[ip] / (2.0 * atm_point_path[ip].temperature);
       ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
-          ray_path_distance[ip] /
-          (2.0 * ray_path_atm_point[ip + 1].temperature);
+          ray_path_distance[ip] / (2.0 * atm_point_path[ip + 1].temperature);
     }
   }
 
@@ -236,11 +234,11 @@ void ray_path_single_radiance_sourceFromPropmat(
     const PropmatMatrix& single_propmat_jac_path,
     const StokvecMatrix& single_nlte_srcvec_jac_path,
     const Vector& single_freq_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
-  const Index np = ray_path_atm_point.size();
+  const Index np = atm_point_path.size();
   const Index nq = jac_targets.target_count();
 
   ARTS_USER_ERROR_IF(np != single_freq_path.ncols() or
@@ -254,7 +252,7 @@ void ray_path_single_radiance_sourceFromPropmat(
 
 jac_targets                                    (nq)     = [{}]
 single_freq_path                           (np)     = {:B,}
-ray_path_atm_point                          (np)     = [{}]
+atm_point_path                          (np)     = [{}]
 single_propmat_path:                 (np)     = {:B,}
 single_nlte_srcvec_path:          (np)     = {:B,}
 single_propmat_jac_path:        (np, nq) = {:B,}
@@ -283,7 +281,7 @@ single_nlte_srcvec_jac_path: (np, nq) = {:B,}
     const auto& K = single_propmat_path[i];
     const auto& S = single_nlte_srcvec_path[i];
     const auto& f = single_freq_path[i];
-    const auto t  = ray_path_atm_point[i].temperature;
+    const auto t  = atm_point_path[i].temperature;
     const auto dK = single_propmat_jac_path[i];
     const auto dS = single_nlte_srcvec_jac_path[i];
 
@@ -437,7 +435,7 @@ void single_radianceFromPropagation(
     const JacobianTargets& jac_targets,
     const ArrayOfPropagationPathPoint& ray_path,
     const Vector& single_freq_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const PropmatVector& single_propmat_path,
     const PropmatMatrix& single_propmat_jac_path,
     const StokvecVector& single_nlte_srcvec_path,
@@ -453,7 +451,7 @@ void single_radianceFromPropagation(
       single_propmat_path,
       single_propmat_jac_path,
       ray_path,
-      ray_path_atm_point,
+      atm_point_path,
       surf_field,
       jac_targets,
       hse_derivative);
@@ -470,7 +468,7 @@ void single_radianceFromPropagation(
       single_propmat_jac_path,
       single_nlte_srcvec_jac_path,
       single_freq_path,
-      ray_path_atm_point,
+      atm_point_path,
       jac_targets);
   single_radianceStepByStepEmission(
       single_radiance,
@@ -509,7 +507,7 @@ void spectral_radianceSinglePathEmissionFrequencyLoop(
     const JacobianTargets& jac_targets,
     const ArrayOfPropagationPathPoint& ray_path,
     const ArrayOfAscendingGrid& freq_grid_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfStokvecVector&
         ray_path_propagation_matrix_source_vector_nonlte,
@@ -543,7 +541,7 @@ Actual:   ({}, {})
       not arr::same_size(
           ray_path,
           freq_grid_path,
-          ray_path_atm_point,
+          atm_point_path,
           ray_path_propagation_matrix,
           ray_path_propagation_matrix_source_vector_nonlte,
           ray_path_propagation_matrix_jacobian,
@@ -552,7 +550,7 @@ Actual:   ({}, {})
 
 ray_path.size()                                                  = {},
 freq_grid_path.size()                                   = {},
-ray_path_atm_point.size()                                = {},
+atm_point_path.size()                                = {},
 ray_path_propagation_matrix.size()                               = {},
 ray_path_propagation_matrix_source_vector_nonlte.size()          = {},
 ray_path_propagation_matrix_jacobian.size()                      = {},
@@ -560,7 +558,7 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.size() = {}
 )",
       ray_path.size(),
       freq_grid_path.size(),
-      ray_path_atm_point.size(),
+      atm_point_path.size(),
       ray_path_propagation_matrix.size(),
       ray_path_propagation_matrix_source_vector_nonlte.size(),
       ray_path_propagation_matrix_jacobian.size(),
@@ -649,7 +647,7 @@ ray_path_propagation_matrix_source_vector_nonlte_jacobian.shape() = {:B,}
           jac_targets,
           ray_path,
           single_freq_path,
-          ray_path_atm_point,
+          atm_point_path,
           single_propmat_path,
           single_propmat_jac_path,
           single_nlte_srcvec_path,
@@ -712,14 +710,14 @@ void single_radClearskyEmissionPropagation(
   Vector single_dispersion_jac;
 
   Vector single_freq_path;
-  ArrayOfAtmPoint ray_path_atm_point;
+  ArrayOfAtmPoint atm_point_path;
   PropmatVector single_propmat_path;
   ArrayOfPropmatVector single_propmat_jac_path;
   StokvecVector single_nlte_srcvec_path;
   ArrayOfStokvecVector single_nlte_srcvec_jac_path;
 
   single_freq_path.reserve(N);
-  ray_path_atm_point.reserve(N);
+  atm_point_path.reserve(N);
   single_propmat_path.reserve(N);
   single_propmat_jac_path.reserve(N);
   single_nlte_srcvec_path.reserve(N);
@@ -762,14 +760,12 @@ void single_radClearskyEmissionPropagation(
   Numeric sumAr = 0.0;
   while (true) {
     const auto& ray_path_point = ray_path.back();
-    ray_path_atm_point.emplace_back(atm_field.at(ray_path_point.pos));
+    atm_point_path.emplace_back(atm_field.at(ray_path_point.pos));
 
     Numeric frequency = frequency_;
     Vector3 freq_wind_shift_jac;
-    freqWindShift(frequency,
-                  freq_wind_shift_jac,
-                  ray_path_atm_point.back(),
-                  ray_path_point);
+    freqWindShift(
+        frequency, freq_wind_shift_jac, atm_point_path.back(), ray_path_point);
     single_freq_path.push_back(frequency);
 
     single_propmat_agendaExecute(ws,
@@ -784,7 +780,7 @@ void single_radClearskyEmissionPropagation(
                                  jac_targets,
                                  "AIR"_spec,
                                  ray_path_point,
-                                 ray_path_atm_point.back(),
+                                 atm_point_path.back(),
                                  single_propmat_agenda);
     single_dispersion += dot(polarization, single_propmat_path.back());
 
@@ -842,7 +838,7 @@ void single_radClearskyEmissionPropagation(
                                 surf_field.ellipsoid);
 
     if (sumAr >= cutoff_tau) {
-      single_rad = planck(frequency_, ray_path_atm_point.back().temperature);
+      single_rad = planck(frequency_, atm_point_path.back().temperature);
       break;
     }
   }
@@ -865,7 +861,7 @@ void single_radClearskyEmissionPropagation(
                                  jac_targets,
                                  ray_path,
                                  single_freq_path,
-                                 ray_path_atm_point,
+                                 atm_point_path,
                                  single_propmat_path,
                                  matpack::create(single_propmat_jac_path),
                                  single_nlte_srcvec_path,

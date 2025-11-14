@@ -1040,7 +1040,7 @@ magnetic field along the path.
       .gout      = {"ray_path_zeeman_magnetic_field"},
       .gout_type = {"ArrayOfVector3"},
       .gout_desc = {R"--(Along-the-path [H, theta, eta])--"},
-      .in        = {"ray_path", "ray_path_atm_point"},
+      .in        = {"ray_path", "atm_point_path"},
   };
 
   wsm_data["ecs_dataAddMakarov2020"] = {
@@ -1118,23 +1118,23 @@ If the wind is 0 or nan, the *freq_grid* remains unchanged.
       .in     = {"freq", "atm_point", "ray_path_point"},
   };
 
-  wsm_data["ray_path_atm_pointFromProfile"] = {
+  wsm_data["atm_point_pathFromProfile"] = {
       .desc =
-          R"--(Set ``ray_path_atm_point = atm_profile``.
+          R"--(Set ``atm_point_path = atm_profile``.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_atm_point"},
+      .out    = {"atm_point_path"},
       .in     = {"atm_profile"},
   };
 
-  wsm_data["ray_path_atm_pointFromPath"] = {
+  wsm_data["atm_point_pathFromPath"] = {
       .desc   = R"--(Gets the atmospheric points along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ray_path_atm_point"},
+      .out    = {"atm_point_path"},
       .in     = {"ray_path", "atm_field"},
   };
 
@@ -1156,7 +1156,7 @@ See *propagation_matrix_jacobianWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
-      .in     = {"freq_grid", "ray_path", "ray_path_atm_point"},
+      .in     = {"freq_grid", "ray_path", "atm_point_path"},
   };
 
   wsm_data["ray_path_propagation_matrixFromPath"] = {
@@ -1177,7 +1177,7 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
                          "freq_wind_shift_jac_path",
                          "jac_targets",
                          "ray_path",
-                         "ray_path_atm_point"},
+                         "atm_point_path"},
       .pass_workspace = true,
   };
 
@@ -1209,7 +1209,7 @@ are as per *ray_path_propagation_matrixFromPath*.
                          "freq_wind_shift_jac_path",
                          "jac_targets",
                          "ray_path",
-                         "ray_path_atm_point",
+                         "atm_point_path",
                          "select_species_list"},
       .pass_workspace = true,
   };
@@ -1224,7 +1224,7 @@ The calculations are in parallel if the program is not in parallel already.
       .out            = {"ray_path_propagation_matrix_scattering"},
       .in             = {"propagation_matrix_scattering_agenda",
                          "freq_grid_path",
-                         "ray_path_atm_point"},
+                         "atm_point_path"},
       .pass_workspace = true,
   };
 
@@ -1310,7 +1310,7 @@ where:
     - *jac_targets*
     - The targets for the Jacobian computation.
   * - :math:`T`
-    - *ray_path_atm_point*
+    - *atm_point_path*
     - The temperature at the atmospheric point along the path.
   * - :math:`f`
     - *freq_grid_path*
@@ -1329,7 +1329,7 @@ The output dimensions are:
                  "ray_path_propagation_matrix_jacobian",
                  "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
                  "freq_grid_path",
-                 "ray_path_atm_point",
+                 "atm_point_path",
                  "jac_targets"},
   };
 
@@ -1730,7 +1730,7 @@ Method is purely for convenience and composition.
                          "ray_path_absorption_vector_scattering",
                          "ray_path_phase_matrix_scattering_spectral"},
       .in             = {"freq_grid_path",
-                         "ray_path_atm_point",
+                         "atm_point_path",
                          "legendre_degree",
                          "propagation_matrix_scattering_spectral_agenda"},
       .pass_workspace = true,
@@ -2216,7 +2216,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "jac_targets",
                     "ray_path",
                     "freq_grid_path",
-                    "ray_path_atm_point",
+                    "atm_point_path",
                     "ray_path_propagation_matrix",
                     "ray_path_propagation_matrix_source_vector_nonlte",
                     "ray_path_propagation_matrix_jacobian",
@@ -3287,7 +3287,7 @@ for those species that are ``water_affected_species``.
           R"--(Compute the lookup table for all species in *abs_bands*.
 
 Wraps *abs_lookup_dataPrecomputeAll* after creating a simple
-*ray_path_atm_point* from the input data.
+*atm_point_path* from the input data.
 
 Unlike *abs_lookup_dataPrecomputeAll*, this method will initialize
 *abs_lookup_data*
@@ -4809,7 +4809,7 @@ the level before and one for the level after.
       .in        = {"ray_path_propagation_matrix",
                     "ray_path_propagation_matrix_jacobian",
                     "ray_path",
-                    "ray_path_atm_point",
+                    "atm_point_path",
                     "surf_field",
                     "jac_targets"},
       .gin       = {"hse_derivative"},
@@ -5365,7 +5365,7 @@ Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "ray_path_atm_point", "freq_grid"},
+      .in     = {"disort_settings", "atm_point_path", "freq_grid"},
   };
 
   wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
@@ -5388,7 +5388,7 @@ This is WIP and should not be used.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
-                 "ray_path_atm_point",
+                 "atm_point_path",
                  "ray_path_propagation_matrix",
                  "ray_path_propagation_matrix_source_vector_nonlte",
                  "freq_grid"},
@@ -5536,7 +5536,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .author    = {"Oliver Lemke"},
       .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
       .in        = {"disort_settings",
-                    "ray_path_atm_point",
+                    "atm_point_path",
                     "freq_grid_path",
                     "ray_path",
                     "surf_field"},

@@ -131,19 +131,19 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
     ArrayOfStokvecVector& ray_path_absorption_vector_scattering,
     ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral,
     const ArrayOfAscendingGrid& freq_grid_path,
-    const ArrayOfAtmPoint& ray_path_atm_point,
+    const ArrayOfAtmPoint& atm_point_path,
     const Index& legendre_degree,
     const Agenda& propagation_matrix_scattering_spectral_agenda) try {
   const Size N = freq_grid_path.size();
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(freq_grid_path, ray_path_atm_point),
-      R"(The size of freq_grid_path and ray_path_atm_point must be the same.
+      not arr::same_size(freq_grid_path, atm_point_path),
+      R"(The size of freq_grid_path and atm_point_path must be the same.
   freq_grid_path.size():    {}
-  ray_path_atm_point.size(): {}
+  atm_point_path.size(): {}
 )",
       freq_grid_path.size(),
-      ray_path_atm_point.size());
+      atm_point_path.size());
 
   ray_path_propagation_matrix_scattering.resize(N);
   ray_path_absorption_vector_scattering.resize(N);
@@ -159,7 +159,7 @@ void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
           ray_path_absorption_vector_scattering[i],
           ray_path_phase_matrix_scattering_spectral[i],
           freq_grid_path[i],
-          ray_path_atm_point[i],
+          atm_point_path[i],
           legendre_degree,
           propagation_matrix_scattering_spectral_agenda);
     } catch (const std::exception& e) {
