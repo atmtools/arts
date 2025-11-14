@@ -915,7 +915,7 @@ Usage: Used and set by inversion methods.
       .default_value = "0",
   };
 
-  wsv_data["do_jacobian"] = {
+  wsv_data["do_jac"] = {
       .desc =
           R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
 

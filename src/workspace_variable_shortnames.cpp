@@ -28,6 +28,7 @@ workspace_variables_shortnames_impl() {
   shortnames["obs"]     = {.desc = "Observers"};
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};
+  shortnames["disort"]  = {.desc = "Discrete ordinate radiative transfer"};
 
   //   shortnames["covmat"]  = {.desc = "Covariance matrices"};
   //   shortnames["leg"]     = {.desc = "Legendre polynomials"};

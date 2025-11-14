@@ -286,7 +286,7 @@ Otherwise same as *spectral_rad_surface_agenda*.
 See *OEM*.
 
 .. note::
-    The output *measurement_jacobian* size may depend on the *do_jacobian* input.
+    The output *measurement_jacobian* size may depend on the *do_jac* input.
 )--",
       .output             = {"atm_field",
                              "abs_bands",
@@ -302,22 +302,22 @@ See *OEM*.
                              "subsurf_field",
                              "jac_targets",
                              "model_state_vector",
-                             "do_jacobian",
+                             "do_jac",
                              "inversion_iterate_agenda_counter"},
       .enum_options       = {"Full"},
       .enum_default       = "Full",
       .output_constraints = {
-          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
+          {"(do_jac == 0 and measurement_jacobian.size() == 0) or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
            "On output, the measurement vector and Jacobian must match expected size.",
            "measurement_vector_fitted.size()",
            "measurement_jacobian.nrows()",
-           "do_jacobian == 0"},
-          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jac_targets.x_size() == model_state_vector.size())",
+           "do_jac == 0"},
+          {"(do_jac == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jac_targets.x_size() == model_state_vector.size())",
            "On output, the model state vector and Jacobian must match expected size.",
            "model_state_vector.size()",
            "measurement_jacobian.ncols()",
            "jac_targets.x_size()",
-           "do_jacobian == 0"},
+           "do_jac == 0"},
       }};
 
   wsa_data["measurement_inversion_agenda"] = {
@@ -332,20 +332,20 @@ and *surf_field*.  It does not take these as explicit input but via the Workspac
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 
 What is special about this Agenda is that it enforces that the *measurement_jacobian*
-is empty on output if *do_jacobian* evaluates false.  Do not use this Agenda if you
-do not mind having a non-empty *measurement_jacobian* on output even if *do_jacobian*
+is empty on output if *do_jac* evaluates false.  Do not use this Agenda if you
+do not mind having a non-empty *measurement_jacobian* on output even if *do_jac*
 evaluates false.  Also do not use this Agenda if you wish to squeeze out performance,
 it does a lot of unnecessary checks and operations that are not always needed.
 )--",
       .output       = {"measurement_vector_fitted", "measurement_jacobian"},
-      .input        = {"jac_targets", "do_jacobian"},
+      .input        = {"jac_targets", "do_jac"},
       .enum_options = {"Standard"},
       .enum_default = "Standard",
       .output_constraints =
           {
-              {"do_jacobian != static_cast<Index>(measurement_jacobian.size() == 0)",
-               "When *do_jacobian* evaluates as true, the *measurement_jacobian* must be non-empty.",
-               "do_jacobian != 0",
+              {"do_jac != static_cast<Index>(measurement_jacobian.size() == 0)",
+               "When *do_jac* evaluates as true, the *measurement_jacobian* must be non-empty.",
+               "do_jac != 0",
                "measurement_jacobian.shape()"},
           },
   };

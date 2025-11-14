@@ -72,13 +72,14 @@ equals the name itself.
                     rst += f"    * :attr:`~pyarts3.workspace.Workspace.{w}`\n"
                 rst += "\n"
             else:
-                msg = Warning(f"No workspace variables found documenting use of shortform '{name}'.")
+                msg = Warning(
+                    f"No workspace variables found documenting use of shortform '{name}'.")
                 warn(msg, stacklevel=3)
 
     rst += ".. rubric:: Unshortened Variables\n\n"
 
-    all_wsvs = set(all_wsvs)
-    wsvs = sorted(list(pyarts.arts.globals.workspace_variables().keys()))
+    all_wsvs = set(list(pyarts.arts.globals.workspace_variables().keys())
+                   ).symmetric_difference(set(all_wsvs))
     rst += """.. hlist::
     :columns: 2
 

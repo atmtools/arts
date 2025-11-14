@@ -2777,11 +2777,11 @@ Overwrites all other functional toggles.
   };
 
   wsm_data["jac_targetsConditionalClear"] = {
-      .desc   = R"--(Clears *jac_targets* if *do_jacobian* evaluates false.
+      .desc   = R"--(Clears *jac_targets* if *do_jac* evaluates false.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
-      .in     = {"jac_targets", "do_jacobian"},
+      .in     = {"jac_targets", "do_jac"},
   };
 
   wsm_data["jac_targetsInit"] = {
@@ -5134,7 +5134,7 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
                  "measurement_jacobian",
                  "measurement_vector_error",
                  "measurement_jacobian_error",
-                 "do_jacobian"},
+                 "do_jac"},
   };
 
   wsm_data["measurement_vector_error_covariance_matrixConstant"] = {

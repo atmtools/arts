@@ -32,7 +32,7 @@ void measurement_vectorConditionalAddError(
     Matrix& measurement_jacobian,
     const Vector& measurement_vector_error,
     const Matrix& measurement_jacobian_error,
-    const Index& do_jacobian) try {
+    const Index& do_jac) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -47,7 +47,7 @@ measurement_vector_error.shape() : {:B,}
 
   measurement_vector += measurement_vector_error;
 
-  if (do_jacobian != 0) {
+  if (do_jac != 0) {
     ARTS_USER_ERROR_IF(
         measurement_jacobian.shape() != measurement_jacobian_error.shape(),
         R"(Mismatched shapes:
