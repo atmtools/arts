@@ -57,34 +57,11 @@ Names carry meaning.  Please follow the naming convention below, and
 please do not hesitate to fix any naming inconsistencies you find.
 
 Workspace variables should be named in ``snake_case``.  The name should be
-explicit.  Avoid TLAs [#f1]_ and other abbreviations that are not world-wide exclusive.
-A common TLA to avoid is ``lte`` because it means different things in different
-contexts (e.g., local thermodynamic equilibrium or long-term evolution).
-Using ``lte`` in a name is therefore ambiguous and strongly discouraged.  On-the-other hand, ``nonlte``
-is unambiguous - it is not used as anything other than non-local thermodynamic equilibrium.
-
+explicit. 
 To allow searching and connecting different workspace variables to their intended context,
 we have reserved a set of terms that should be used in the names of related workspace variables.
 This list will connect workspace variables under a rubric ``Related workspace variables`` in the documentation.
 Please note that combining more than one of these terms is possible and highly encouraged.
 The workspace variable :attr:`~pyarts3.workspace.Workspace.spectral_propmat` along the :attr:`~pyarts3.workspace.Workspace.ray_path`
 is called :attr:`~pyarts3.workspace.Workspace.spectral_propmat_path` to connect it to both concepts.
-The full list is available in the ``workspace_variables_keywords.cpp`` file.
-As of writing this, the list includes the following terms:
-
-- ``absorption`` - for workspace variables related to absorption.
-- ``jacobian`` - for workspace variables related to Jacobian.
-- ``spectral_rad`` - for workspace variables related to spectral radiance.
-- ``spectral_propmat`` - for workspace variables related to propagation matrices.
-- ``source_vector`` - for workspace variables related to source vectors.
-- ``nonlte`` - for workspace variables related to non-local thermodynamic equilibrium.
-- ``ray_path`` - for workspace variables related to ray paths.
-- ``scattering`` - for workspace variables related to scattering.
-- ``grid`` - for workspace variables that are also grids.
-- ``measurement`` - for workspace variables related to measurements.
-- ``model_state`` - for workspace variables related to model states.
-- ``disort`` - for workspace variables related to DISORT.
-
-Check the ``workspace_variables_keywords.cpp`` file for the correct list regardless.  If you read this and the list above is no longer correct, please update it.
-
-.. [#f1] TLA means three-letter abbreviations, and it is commonly used in text and speech to indicate why you should avoid using TLAs - abbreviations feel easy to use and common-know-how once you get used to them but the first time you encounter one you have no idea what it means, which distracts from the content being discussed.
+The full list is available in the ``workspace_variables_shortnames.cpp`` file.
