@@ -65,17 +65,17 @@ StokvecVector interp(const StokvecConstMatrixView& data,
   return out;
 }
 
-const Vector zenith_level_limb(const AscendingGrid& altitude_grid,
+const Vector zenith_level_limb(const AscendingGrid& alt_grid,
                                const Vector2& ellipsoid,
                                const Numeric& latitude,
                                const Numeric& longitude,
                                const Numeric& azimuth) {
-  const Size NA = altitude_grid.size();
+  const Size NA = alt_grid.size();
   Vector zenith_limb(NA, 90.0);
 
   for (Size i = 1; i < NA; i++) {
-    const Numeric alt_low  = altitude_grid[i - 1];
-    const Numeric alt_this = altitude_grid[i];
+    const Numeric alt_low  = alt_grid[i - 1];
+    const Numeric alt_this = alt_grid[i];
     const Vector3 pos{alt_this, latitude, longitude};
     zenith_limb[i] =
         path::geometric_tangent_zenith(pos, ellipsoid, alt_low, azimuth);
@@ -87,7 +87,7 @@ const Vector zenith_level_limb(const AscendingGrid& altitude_grid,
 
 void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
                                 const SurfaceField& surface_field,
-                                const AscendingGrid& altitude_grid,
+                                const AscendingGrid& alt_grid,
                                 const Numeric& latitude,
                                 const Numeric& longitude,
                                 const Numeric& dza,
@@ -117,7 +117,7 @@ void zenith_gridProfilePseudo2D(ZenithGrid& zenith_grid,
 
   if (static_cast<bool>(consider_limb)) {
     Vector zenith_limb = zenith_level_limb(
-        altitude_grid, surface_field.ellipsoid, latitude, longitude, azimuth);
+        alt_grid, surface_field.ellipsoid, latitude, longitude, azimuth);
     stdr::sort(zenith_limb);
     const auto [it, _] = stdr::unique(zenith_limb);
 
@@ -155,7 +155,7 @@ void spectral_radiance_fieldProfilePseudo2D(
     const SurfaceField& surface_field,
     const AscendingGrid& frequency_grid,
     const ZenithGrid& zenith_grid,
-    const AscendingGrid& altitude_grid,
+    const AscendingGrid& alt_grid,
     const Numeric& latitude,
     const Numeric& longitude,
     const Numeric& azimuth) try {
@@ -169,18 +169,18 @@ void spectral_radiance_fieldProfilePseudo2D(
       surface_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(altitude_grid, ray_path_atm_point),
+      not arr::same_size(alt_grid, ray_path_atm_point),
       R"(Altitude grid and atmospheric point grid must have the same size
 
 Altitude grid size:          {}
 Atmospheric point grid size: {}
 )",
-      altitude_grid.size(),
+      alt_grid.size(),
       ray_path_atm_point.size())
 
   ARTS_USER_ERROR_IF(zenith_grid.empty(), "Need some zenith angles")
 
-  const Size NA = altitude_grid.size();
+  const Size NA = alt_grid.size();
   const Size NZ = zenith_grid.size();
   const Size NF = frequency_grid.size();
 
@@ -189,7 +189,7 @@ Atmospheric point grid size: {}
   spectral_radiance_field.resize(NA, 1, 1, NZ, 1, NF);
   spectral_radiance_field.data = 0.0;
 
-  spectral_radiance_field.grid<0>() = altitude_grid;
+  spectral_radiance_field.grid<0>() = alt_grid;
   spectral_radiance_field.grid<1>() = Vector{latitude};
   spectral_radiance_field.grid<2>() = Vector{longitude};
   spectral_radiance_field.grid<3>() = zenith_grid;
@@ -213,7 +213,7 @@ Atmospheric point grid size: {}
   const Vector2 ell    = surface_field.ellipsoid;
 
   const Vector zenith_limb =
-      zenith_level_limb(altitude_grid, ell, latitude, longitude, azimuth);
+      zenith_level_limb(alt_grid, ell, latitude, longitude, azimuth);
 
   ARTS_USER_ERROR_IF(
       zenith_grid.front() != 0.0 or zenith_grid.back() != 180.0 or
@@ -229,8 +229,8 @@ Atmospheric point grid size: {}
   }
 
   const auto update = [&](Size beg, Size end, Size iz) {
-    const Numeric alt_beg = altitude_grid[beg];
-    const Numeric alt_end = altitude_grid[end];
+    const Numeric alt_beg = alt_grid[beg];
+    const Numeric alt_end = alt_grid[end];
 
     const Vector3 pos_end{alt_end, latitude, longitude};
     const Vector2 los_end{zenith_grid[iz], azimuth};

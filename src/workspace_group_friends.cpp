@@ -595,7 +595,7 @@ Both the data and the grid may be named.  The grids are not sorted.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The grids are *altitude_grid* x *latitude_grid* x *longitude_grid*.
+The grids are *alt_grid* x *latitude_grid* x *longitude_grid*.
 The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
 )--",
   };

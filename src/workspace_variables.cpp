@@ -137,7 +137,7 @@ species they should read from the available input files.
       .type = "ArrayOfSpeciesTag",
   };
 
-  wsv_data["altitude"] = {
+  wsv_data["alt"] = {
       .desc =
           R"--(A single altitude in the atmosphere.
 
@@ -147,9 +147,9 @@ Unit: m
       .default_value = "0.0",
   };
 
-  wsv_data["altitude_grid"] = {
+  wsv_data["alt_grid"] = {
       .desc =
-          R"--(An ascending list of *altitude*.  Often related to a field or a profile.
+          R"--(An ascending list of *alt*.  Often related to a field or a profile.
 
 Unit: m
 
@@ -218,7 +218,7 @@ at a single latitude-longitude coordinate but may of course be generated manuall
 
 See *atm_field* for the data that may be available in the atmospheric point.
 
-The size of the profile is the same as *altitude_grid*.
+The size of the profile is the same as *alt_grid*.
 
 For more information, see :doc:`user.atmospheric_field`.
 )--",
@@ -597,7 +597,7 @@ This contains global subsurface properties, such as temperature.
 It also contains many properties that are used by specific
 subsurface-related methods.
 
-It is a 3D field with *altitude*, *latitude*, and *longitude* dimensions.
+It is a 3D field with *alt*, *latitude*, and *longitude* dimensions.
 
 For more information, see :doc:`user.subsurface_field`.
 )--",
@@ -608,7 +608,7 @@ For more information, see :doc:`user.subsurface_field`.
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
 
-Usage: gravity = *gravity_operator* ( *altitude*, *latitude*, *longitude* ).
+Usage: gravity = *gravity_operator* ( *alt*, *latitude*, *longitude* ).
 
 Parameters
 ----------
@@ -650,7 +650,7 @@ psat : Numeric
 
 *spectral_radiance* but for a field.
 
-Dimensions are *altitude_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
+Dimensions are *alt_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
 )",
       .type = "GriddedSpectralField6",
   };

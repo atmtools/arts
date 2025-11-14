@@ -120,11 +120,11 @@ void spectral_flux_profileFromPathField(
     const SurfaceField& surface_field,
     const SubsurfaceField& subsurface_field,
     const AscendingGrid& frequency_grid,
-    const AscendingGrid& altitude_grid) try {
+    const AscendingGrid& alt_grid) try {
   ARTS_TIME_REPORT
 
   const Size N = ray_path_field.size();
-  const Size M = altitude_grid.size();
+  const Size M = alt_grid.size();
   const Size K = frequency_grid.size();
 
   spectral_flux_profile.resize(M, K);
@@ -175,7 +175,7 @@ void spectral_flux_profileFromPathField(
   std::vector<Zenith> zenith_angles(2 * M);  // Up and down
   for (Size m = 0; m < M; m++) {
     zenith_angles.resize(0);
-    const Numeric alt = altitude_grid[m];
+    const Numeric alt = alt_grid[m];
     VectorView t      = spectral_flux_profile[m];
 
     for (Size i = 0; i < ray_path_field.size(); i++) {

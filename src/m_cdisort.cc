@@ -226,7 +226,7 @@ void disort_spectral_radiance_fieldCalcCdisort(
                                  ray_path[ray_path.size() - 1].longitude());
 
   disort_spectral_radiance_field.resize(disort_settings.frequency_grid,
-                                        disort_settings.altitude_grid,
+                                        disort_settings.alt_grid,
                                         phis,
                                         disort_quadrature.grid<0>());
 

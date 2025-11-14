@@ -45,7 +45,7 @@ ws.ray_path_observersFieldProfilePseudo2D(nup=nup, ndown=ndown, nlimb=nlimb)
 ws.ray_path_fieldFromObserverAgenda()
 # Calculate spectral flux profile using the ray path and atmospheric data
 ws.spectral_flux_profileFromPathField(
-    altitude_grid=ws.atm_field["t"].data.grids[0]
+    alt_grid=ws.atm_field["t"].data.grids[0]
 )
 
 # Atmospheric point definition along the ray path

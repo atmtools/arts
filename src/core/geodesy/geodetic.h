@@ -198,7 +198,7 @@ Vector3 approx_geometrical_tangent_point(Vector3 ecef,
 
     If multiple postive solutions, the smallest distance >= l_min is returned. 
 
-    Note that there is no check if *pos* is below *altitude*, and the solution 
+    Note that there is no check if *pos* is below *alt*, and the solution 
     can match a position on the other side of the planet.
 
     @param[in]  ecef          ECEF position (x,y,z)
