@@ -7,14 +7,13 @@ void ray_path_spectral_radianceStepByStepEmissionForwardOnly(
     ArrayOfStokvecVector& ray_path_spectral_radiance,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix,
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
-    const StokvecVector& spectral_radiance_background) try {
+    const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
   ray_path_spectral_radiance.resize(ray_path_transmission_matrix.size());
-  arr::elemwise_resize(spectral_radiance_background.size(),
-                       ray_path_spectral_radiance);
+  arr::elemwise_resize(spectral_rad_bkg.size(), ray_path_spectral_radiance);
 
-  ray_path_spectral_radiance.back() = spectral_radiance_background;
+  ray_path_spectral_radiance.back() = spectral_rad_bkg;
 
   two_level_linear_emission_step_by_step_full(
       ray_path_spectral_radiance,
@@ -38,19 +37,18 @@ void ray_path_spectral_radianceClearskyEmission(
 
   PropagationPathPoint ray_path_point;
   ray_path_pointBackground(ray_path_point, ray_path);
-  StokvecVector spectral_radiance_background;
+  StokvecVector spectral_rad_bkg;
   StokvecMatrix spectral_rad_bkg_jac;
-  spectral_radiance_backgroundAgendasAtEndOfPath(
-      ws,
-      spectral_radiance_background,
-      spectral_rad_bkg_jac,
-      freq_grid,
-      {},
-      ray_path_point,
-      surf_field,
-      subsurf_field,
-      spectral_radiance_space_agenda,
-      spectral_radiance_surface_agenda);
+  spectral_rad_bkgAgendasAtEndOfPath(ws,
+                                     spectral_rad_bkg,
+                                     spectral_rad_bkg_jac,
+                                     freq_grid,
+                                     {},
+                                     ray_path_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_radiance_space_agenda,
+                                     spectral_radiance_surface_agenda);
   ArrayOfAtmPoint atm_point_path;
   atm_point_pathFromPath(atm_point_path, ray_path, atm_field);
   ArrayOfAscendingGrid freq_grid_path;
@@ -104,7 +102,7 @@ void ray_path_spectral_radianceClearskyEmission(
       ray_path_spectral_radiance,
       ray_path_transmission_matrix,
       ray_path_spectral_radiance_source,
-      spectral_radiance_background);
+      spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace

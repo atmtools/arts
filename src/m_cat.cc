@@ -1,7 +1,7 @@
 #include <debug.h>
 #include <workspace.h>
 
-void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
+void ReadCatalogData(PredefinedModelData& abs_predef_data,
                      ArrayOfXsecRecord& abs_xfit_data,
                      ArrayOfCIARecord& abs_cia_data,
                      AbsorptionBands& abs_bands,
@@ -19,11 +19,7 @@ void ReadCatalogData(PredefinedModelData& absorption_predefined_model_data,
   abs_xfit_dataReadSpeciesSplitCatalog(
       abs_xfit_data, abs_species, basename + "xsec/", ignore_missing);
 
-  absorption_predefined_model_dataReadSpeciesSplitCatalog(
-      absorption_predefined_model_data,
-      abs_species,
-      basename + "predef/",
-      1,
-      ignore_missing);
+  abs_predef_dataReadSpeciesSplitCatalog(
+      abs_predef_data, abs_species, basename + "predef/", 1, ignore_missing);
 }
 ARTS_METHOD_ERROR_CATCH

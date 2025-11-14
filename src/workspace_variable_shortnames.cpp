@@ -24,6 +24,7 @@ workspace_variables_shortnames_impl() {
   shortnames["cia"]     = {.desc = "Collision-induced absorption"};
   shortnames["ecs"]     = {.desc = "Error-corrected sudden"};
   shortnames["xfit"]    = {.desc = "Cross-section fitting"};
+  shortnames["predef"]  = {.desc = "Predefined data"};
   shortnames["meas"]    = {.desc = "Measurements"};
   shortnames["ray"]     = {.desc = "Ray-tracing"};
   shortnames["bkg"]     = {.desc = "Background"};
