@@ -11,7 +11,9 @@
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
+#include <workspace_variable_shortnames.h>
 
+#include "hpy_arts.h"
 #include "python_interface.h"
 
 struct global_data {
@@ -58,7 +60,8 @@ void py_global(py::module_& m) try {
   auto global  = m.def_submodule("globals");
   global.doc() = "Global settings and data";
 
-  py::class_<Parameters>(global, "parameters")
+  py::class_<Parameters> param(global, "parameters");
+  param
       .def_rw_static("includepath",
                      &parameters.includepath,
                      "Automatic include paths\n\n.. :class:`ArrayOfString`")
@@ -66,13 +69,15 @@ void py_global(py::module_& m) try {
                      &parameters.datapath,
                      "Automatic data paths\n\n.. :class:`ArrayOfString`")
       .doc() = "Access to static settings data";
+  generic_interface(param);
 
-  py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
-      .def_ro(
+  py::class_<WorkspaceGroupRecord> wsgs(global, "WorkspaceGroupRecord");
+  wsgs.def_ro(
           "file", &WorkspaceGroupRecord::file, "File path\n\n.. :class:`str`")
       .def_ro(
           "desc", &WorkspaceGroupRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace group records";
+  generic_interface(wsgs);
 
   global.def(
       "workspace_groups",
@@ -84,15 +89,17 @@ Return
 :class:`dict`
     Map of variables)");
 
-  py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
-      .def_ro("default_value",
-              &WorkspaceVariableRecord::default_value,
-              "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
+  py::class_<WorkspaceVariableRecord> wsvs(global, "WorkspaceVariableRecord");
+  wsvs.def_ro(
+          "default_value",
+          &WorkspaceVariableRecord::default_value,
+          "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
       .def_ro("type", &WorkspaceVariableRecord::type, "Type\n\n.. :class:`str`")
       .def_ro("desc",
               &WorkspaceVariableRecord::desc,
               "Description\n\n.. :class:`str`")
       .doc() = "Workspace variable records";
+  generic_interface(wsvs);
 
   global.def(
       "workspace_variables",
@@ -104,9 +111,30 @@ Return
 :class:`dict`
     Map of variables)");
 
-  py::class_<WorkspaceMethodInternalRecord>(global,
-                                            "WorkspaceMethodInternalRecord")
-      .def_ro("output",
+  py::class_<WsvShortForm> wsv_short(global, "WsvShortForm");
+  wsv_short
+      .def_ro("desc",
+              &WsvShortForm::desc,
+              "Description of the shortname\n\n.. :class:`str`")
+      .def_ro("title",
+              &WsvShortForm::title,
+              "Variable naming title\n\n.. :class:`str`")
+      .doc() = "Workspace variable shortname records";
+  generic_interface(wsv_short);
+
+  global.def(
+      "workspace_variables_shortnames",
+      []() { return workspace_variables_shortnames(); },
+      R"(Get a copy of all workspace variable shortnames
+
+Return
+------
+:class:`dict`
+    Map of shortnames to their descriptions)");
+
+  py::class_<WorkspaceMethodInternalRecord> wsms(
+      global, "WorkspaceMethodInternalRecord");
+  wsms.def_ro("output",
               &WorkspaceMethodInternalRecord::out,
               "Outputs\n\n.. :class:`list[str]`")
       .def_ro("input",
@@ -143,6 +171,7 @@ Return
               &WorkspaceMethodInternalRecord::desc,
               "Description\n\n.. :class:`str`")
       .doc() = "Method records used as workspace variables";
+  generic_interface(wsms);
 
   global.def(
       "workspace_methods",
@@ -154,9 +183,9 @@ Return
 :class:`dict`
     Map of methods)");
 
-  py::class_<WorkspaceAgendaInternalRecord>(global,
-                                            "WorkspaceAgendaInternalRecord")
-      .def_ro("desc",
+  py::class_<WorkspaceAgendaInternalRecord> wsas(
+      global, "WorkspaceAgendaInternalRecord");
+  wsas.def_ro("desc",
               &WorkspaceAgendaInternalRecord::desc,
               "Description\n\n.. :class:`str`")
       .def_ro("output",
@@ -166,6 +195,7 @@ Return
               &WorkspaceAgendaInternalRecord::input,
               "Inputs\n\n.. :class:`list[str]`")
       .doc() = "Agenda records used as workspace variables";
+  generic_interface(wsas);
 
   global.def(
       "workspace_agendas",

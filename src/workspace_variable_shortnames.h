@@ -4,11 +4,8 @@
 #include <unordered_map>
 
 struct WsvShortForm {
-  std::string related_to;
   std::string desc;
-
-  // Variable naming style.  Used for table titles in documentation.
-  std::string style{"Normal Variable"};
+  std::string title{"Normal Variables"};
 };
 
 const std::unordered_map<std::string, WsvShortForm>&

@@ -21,6 +21,7 @@ if(SPHINX_FOUND)
     pyarts_docs_copy_guide
     pyarts_docs_copy_python
     gen_examples_rst
+    gen_shortform_table_rst
     check-deps
   )
 
@@ -55,6 +56,12 @@ if(SPHINX_FOUND)
     COMMENT "Generating ARTS interface RST files"
   )
   add_dependencies(gen_pyarts_arts_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
+
+  add_custom_target(gen_shortform_table_rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_shortform.py > ${CMAKE_CURRENT_BINARY_DIR}/source/dev.workspace.shortnames.auto.rst
+    COMMENT "Generating shortnames RST files"
+  )
+  add_dependencies(gen_shortform_table_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)
 
   add_custom_target(gen_arts_overview_rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Agendas > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.agendas.auto.rst
