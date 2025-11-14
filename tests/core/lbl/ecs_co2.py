@@ -29,10 +29,10 @@ ws.ray_path_point
 ws.jac_targetsInit()
 ws.WignerInit()
 
-ws.ecs_dataInit()
-ws.ecs_dataAddTran2011()
-ws.ecs_dataAddRodrigues1997()
-ws.ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
+ws.abs_ecs_dataInit()
+ws.abs_ecs_dataAddTran2011()
+ws.abs_ecs_dataAddRodrigues1997()
+ws.abs_ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 

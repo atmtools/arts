@@ -59,11 +59,11 @@ ws.atm_fieldRead(
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
-ws.spectral_radianceClearskyEmission()
+ws.spectral_radClearskyEmission()
 
 # %% Show results
 
-fig, ax = pa.plot(ws.spectral_radiance, freqs=kayser_grid, component="I")
+fig, ax = pa.plot(ws.spectral_rad, freqs=kayser_grid, component="I")
 ax.set_xlabel("Frequency / Kayser (cm$^{-1}$)")
 ax.set_ylabel("Spectral radiance /")
 ax.set_title("Clear sky outgoing radiance")

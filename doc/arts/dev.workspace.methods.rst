@@ -273,7 +273,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                     "jac_targets",
                     "select_species",
                     "absorption_bands",
-                    "ecs_data",
+                    "abs_ecs_data",
                     "atm_point",
                     "ray_path_point"},
       .gin       = {"no_negative_absorption"},
@@ -295,7 +295,7 @@ The signature of the method is:
                                   const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
                                   const AbsorptionBands& absorption_bands,
-                                  const LinemixingEcsData& ecs_data,
+                                  const LinemixingEcsData& abs_ecs_data,
                                   const AtmPoint& atm_point,
                                   const PropagationPathPoint& ray_path_point,
                                   const Index& no_negative_absorption);
@@ -315,7 +315,7 @@ The arguments
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,
-:attr:`~pyarts3.workspace.Workspace.ecs_data`,
+:attr:`~pyarts3.workspace.Workspace.abs_ecs_data`,
 :attr:`~pyarts3.workspace.Workspace.atm_point`, and
 :attr:`~pyarts3.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
@@ -343,9 +343,9 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .desc =
             R"--(Sets measurement vector by looping over all sensor elements
 
-  The core calculations happens inside the *spectral_radiance_observer_agenda*.
+  The core calculations happens inside the *spectral_rad_observer_agenda*.
 
-  User choices of *spectral_radiance_unit* does not adversely affect this method
+  User choices of *spectral_rad_unit* does not adversely affect this method
   unless the *measurement_vector* or *measurement_jacobian* are further modified
   before consumption by, e.g., *OEM*
   )--",
@@ -355,8 +355,8 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
                           "jac_targets",
                           "atm_field",
                           "surf_field",
-                          "spectral_radiance_unit",
-                          "spectral_radiance_observer_agenda"},
+                          "spectral_rad_unit",
+                          "spectral_rad_observer_agenda"},
         .pass_workspace = true,
     };
 
@@ -371,8 +371,8 @@ The signature of the method is:
                                     const JacobianTargets& jac_targets,
                                     const AtmField& atm_field,
                                     const SurfaceField& surf_field,
-                                    const SpectralRadianceUnitType& spectral_radiance_unit,
-                                    const Agenda& spectral_radiance_observer_agenda);
+                                    const SpectralRadianceUnitType& spectral_rad_unit,
+                                    const Agenda& spectral_rad_observer_agenda);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
@@ -392,8 +392,8 @@ The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surf_field`, 
-:attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and
-:attr:`~pyarts3.workspace.Workspace.spectral_radiance_observer_agenda`
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_unit`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_observer_agenda`
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 

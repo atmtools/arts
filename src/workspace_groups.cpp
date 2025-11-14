@@ -607,7 +607,7 @@ modifying the values are not allowed.
 
   wsg_data["SpectralRadianceOperator"] = {
       .file = "fwd.h",
-      .desc = R"--(An operator for getting the *spectral_radiance*
+      .desc = R"--(An operator for getting the *spectral_rad*
 
 An object of this type can be called with a frequency, position and
 line-of-sight to get the corresponding spectral radiance.
@@ -801,21 +801,21 @@ modifying the values are not allowed.
   wsg_data["SpectralRadianceTransformOperator"] = {
       .file = "spectral_radiance_transform_operator.h",
       .desc =
-          R"--(Transformation of *spectral_radiance* and *spectral_radiance_jacobian*
+          R"--(Transformation of *spectral_rad* and *spectral_rad_jac*
 
 This type of transformation should be used limitedly.  It is useful
 as the last step before creating a *measurement_vector*, as it is
 used for in *measurement_vectorFromSensor* or just before displaying
-data in a plotting routine.  It will destroy the *spectral_radiance*
-and *spectral_radiance_jacobian* and replace them with the transformed
+data in a plotting routine.  It will destroy the *spectral_rad*
+and *spectral_rad_jac* and replace them with the transformed
 values.  They can likely not be reused for further calculations.
 
 Parameters
 ----------
-spectral_radiance : StokvecVector
-    As WSV *spectral_radiance* **[INOUT]**
-spectral_radiance_jacobian : StokvecMatrix
-    As WSV *spectral_radiance_jacobian* **[INOUT]**
+spectral_rad : StokvecVector
+    As WSV *spectral_rad* **[INOUT]**
+spectral_rad_jac : StokvecMatrix
+    As WSV *spectral_rad_jac* **[INOUT]**
 freq_grid : AscendingGrid
     As WSV *freq_grid* **[IN]**
 ray_path_point : PropagationPathPoint

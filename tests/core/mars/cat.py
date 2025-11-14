@@ -20,9 +20,9 @@ los = [180, 0]
 f0 = 556.935985e9
 ws.freq_grid = f0 + np.linspace(-5e9, 5e9, 101)
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 out = []
 for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
@@ -64,10 +64,10 @@ for abs_scenario in ["FullMars", "IsotEarth", "FullEarth"]:
             extrapolation="Nearest",
         )
     ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
-    ws.spectral_radianceClearskyEmission()
-    ws.spectral_radianceApplyUnitFromSpectralRadiance()
+    ws.spectral_radClearskyEmission()
+    ws.spectral_radApplyUnitFromSpectralRadiance()
 
-    out.append(1.0*ws.spectral_radiance[:, 0])
+    out.append(1.0*ws.spectral_rad[:, 0])
 
 assert np.all(
     out[0] != out[1]), "FullMars and IsotEarth should be different, changed isotopologue ratios"

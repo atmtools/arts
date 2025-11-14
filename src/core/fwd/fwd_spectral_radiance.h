@@ -12,7 +12,7 @@
 #include <memory>
 
 namespace fwd {
-struct spectral_radiance {
+struct spectral_rad {
   AscendingGrid alt;
   LatGrid lat;
   LonGrid lon;
@@ -20,9 +20,9 @@ struct spectral_radiance {
   matpack::data_t<propmat, 3> pm;
 
   matpack::data_t<std::function<Stokvec(Numeric, Vector2)>, 2>
-      spectral_radiance_surface;
+      spectral_rad_surface;
   matpack::data_t<std::function<Stokvec(Numeric, Vector2)>, 2>
-      spectral_radiance_space;
+      spectral_rad_space;
 
   Vector2 ellipsoid;
 
@@ -32,23 +32,23 @@ struct spectral_radiance {
     Index i{0}, j{0}, k{0};
   };
 
-  spectral_radiance();
-  spectral_radiance(const spectral_radiance&);
-  spectral_radiance(spectral_radiance&&) noexcept;
-  spectral_radiance& operator=(const spectral_radiance&);
-  spectral_radiance& operator=(spectral_radiance&&) noexcept;
+  spectral_rad();
+  spectral_rad(const spectral_rad&);
+  spectral_rad(spectral_rad&&) noexcept;
+  spectral_rad& operator=(const spectral_rad&);
+  spectral_rad& operator=(spectral_rad&&) noexcept;
 
-  spectral_radiance(AscendingGrid alt,
-                    LatGrid lat,
-                    LonGrid lon,
-                    const AtmField& atm,
-                    const SurfaceField& surf,
-                    const std::shared_ptr<AbsorptionBands>& lines,
-                    const std::shared_ptr<ArrayOfCIARecord>& cia,
-                    const std::shared_ptr<ArrayOfXsecRecord>& xsec,
-                    const std::shared_ptr<PredefinedModelData>& predef,
-                    Numeric ciaextrap = {},
-                    Index ciarobust   = {});
+  spectral_rad(AscendingGrid alt,
+               LatGrid lat,
+               LonGrid lon,
+               const AtmField& atm,
+               const SurfaceField& surf,
+               const std::shared_ptr<AbsorptionBands>& lines,
+               const std::shared_ptr<ArrayOfCIARecord>& cia,
+               const std::shared_ptr<ArrayOfXsecRecord>& xsec,
+               const std::shared_ptr<PredefinedModelData>& predef,
+               Numeric ciaextrap = {},
+               Index ciarobust   = {});
 
   Stokvec operator()(const Numeric f,
                      const std::vector<path>& path_points,
@@ -56,7 +56,7 @@ struct spectral_radiance {
 
   StokvecVector operator()(const Numeric f,
                            const std::vector<path>& path_points,
-                           spectral_radiance::as_vector) const;
+                           spectral_rad::as_vector) const;
 
   [[nodiscard]] const AscendingGrid& altitude() const { return alt; }
   [[nodiscard]] const LatGrid& latitude() const { return lat; }
@@ -86,7 +86,7 @@ struct spectral_radiance {
 };
 }  // namespace fwd
 
-using SpectralRadianceOperator = fwd::spectral_radiance;
+using SpectralRadianceOperator = fwd::spectral_rad;
 
 template <>
 struct std::formatter<SpectralRadianceOperator> {

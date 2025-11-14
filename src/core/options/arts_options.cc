@@ -736,12 +736,12 @@ where:
       .name = "SpectralRadianceUnitType",
       .desc = R"(Choice of spectral radiance unit in conversions.
 
-The conversion to one of these units is expected to happen from the internal representation of *spectral_radiance*,
+The conversion to one of these units is expected to happen from the internal representation of *spectral_rad*,
 which is [W / m :math:`^{2}` Hz sr].
 
 For the description below, :math:`c` is the speed of light, :math:`k` is the Boltzmann constant,
 :math:`f` is the frequency, :math:`h` is the Planck constant, :math:`F(x)` is the conversion
-function, and :math:`[I,\; Q,\; U,\; V]` is the internal representation of *spectral_radiance*.
+function, and :math:`[I,\; Q,\; U,\; V]` is the internal representation of *spectral_rad*.
 
 For Rayleigh-Jeans brightness temperature the conversion is:
 
@@ -940,7 +940,7 @@ Note that these are just user fri'\n'y suggestions and it is recommended to
 create the correct *Stokvec* manually if the desired polarization state is not
 represented below.
 
-Also, be aware that the unit of, e.g., *spectral_radiance* (often the last choice
+Also, be aware that the unit of, e.g., *spectral_rad* (often the last choice
 of *SpectralRadianceUnitType*) is in Kelvin, then the code below will give the
 measured brightness temperature in Kelvin for these polarization states, but that
 if the unit is still in Watts of any kind, then the code below will give 2 times

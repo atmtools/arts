@@ -31,9 +31,9 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 grid = pyarts.arts.GriddedField3(
     name="VMR",
@@ -57,10 +57,10 @@ pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 
-ws.spectral_radianceClearskyEmission()
+ws.spectral_radClearskyEmission()
 
-x1 = 1.0 * np.array(ws.spectral_radiance)
-dx1 = 1.0 * np.array(ws.spectral_radiance_jacobian)
+x1 = 1.0 * np.array(ws.spectral_rad)
+dx1 = 1.0 * np.array(ws.spectral_rad_jac)
 
 DX = 1e-8
 dx2 = []
@@ -68,9 +68,9 @@ for i in range(3):
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = grid
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data.data[i] += DX
 
-    ws.spectral_radianceClearskyEmission()
+    ws.spectral_radClearskyEmission()
 
-    x2 = 1.0 * np.array(ws.spectral_radiance)
+    x2 = 1.0 * np.array(ws.spectral_rad)
     dx2.append((x2 - x1) / DX)
 dx2 = np.array(dx2)
 

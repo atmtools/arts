@@ -29,22 +29,22 @@ ws.subsurf_field["t"].alt_low = "Linear"
 ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
-ws.disort_spectral_radiance_fieldDepthProfile(
+ws.disort_spectral_rad_fieldDepthProfile(
     disort_fourier_mode_dimension=1,
     disort_legendre_polynomial_dimension=1,
     disort_quadrature_dimension=NQUAD,
     depth_profile=z
 )
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.disort_spectral_radiance_fieldApplyUnit()
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.disort_spectral_rad_fieldApplyUnit()
 
 zas = np.linspace(0, 180, 361)
 data = []
 for za in zas:
     ws.ray_path_point.los = [za, 0]
-    ws.spectral_radianceFromDisort()
-    data.append(ws.spectral_radiance[0, 0])
+    ws.spectral_radFromDisort()
+    data.append(ws.spectral_rad[0, 0])
 data = np.array(data)
 plt.plot(zas, data)
 

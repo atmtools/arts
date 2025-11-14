@@ -51,9 +51,9 @@ ws.atm_fieldRead(
 )
 
 # Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 
 # =============================================================================
@@ -69,7 +69,7 @@ fig.set_size_inches(width_in_cm / 2.54, h=height_in_cm / 2.54)
 
 # cdisort calculation
 dt = datetime.now()
-ws.disort_spectral_radiance_fieldProfileCdisort(
+ws.disort_spectral_rad_fieldProfileCdisort(
     lon=lon,
     lat=lat,
     disort_quadrature_dimension=N_quad,
@@ -78,11 +78,11 @@ ws.disort_spectral_radiance_fieldProfileCdisort(
 )
 print("cdisort:   ", datetime.now() - dt)
 
-cdisort_spectral_radiance_field = ws.disort_spectral_radiance_field.data * 1.0
+cdisort_spectral_rad_field = ws.disort_spectral_rad_field.data * 1.0
 
 # cppdisort calculation
 dt = datetime.now()
-ws.disort_spectral_radiance_fieldProfile(
+ws.disort_spectral_rad_fieldProfile(
     lon=lon,
     lat=lat,
     disort_quadrature_dimension=N_quad,
@@ -92,12 +92,12 @@ ws.disort_spectral_radiance_fieldProfile(
 print("cppdisort: ", datetime.now() - dt)
 
 radiance_field_absdiff = (
-    cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field.data
+    cdisort_spectral_rad_field - ws.disort_spectral_rad_field.data
 )
 
 radiance_field_reldiff = (
-    (cdisort_spectral_radiance_field - ws.disort_spectral_radiance_field.data)
-    / ws.disort_spectral_radiance_field.data
+    (cdisort_spectral_rad_field - ws.disort_spectral_rad_field.data)
+    / ws.disort_spectral_rad_field.data
     * 100
 )
 
@@ -161,9 +161,9 @@ def plot_field(fig, I, ax, title, reldiff=False):
 
 
 if PLOT:
-    plot_field(fig, cdisort_spectral_radiance_field[:, :, 0, :], ax[0:2, 0], "cdisort")
+    plot_field(fig, cdisort_spectral_rad_field[:, :, 0, :], ax[0:2, 0], "cdisort")
     plot_field(
-        fig, ws.disort_spectral_radiance_field.data[:, :, 0, :], ax[0:2, 1], "cppdisort"
+        fig, ws.disort_spectral_rad_field.data[:, :, 0, :], ax[0:2, 1], "cppdisort"
     )
 
     plot_field(
@@ -181,5 +181,5 @@ if PLOT:
     # fig.savefig(f"disort-toa{toa / 1e3:.0f}km.pdf")
     plt.show()
 
-assert np.allclose(cdisort_spectral_radiance_field,
-                   ws.disort_spectral_radiance_field.data)
+assert np.allclose(cdisort_spectral_rad_field,
+                   ws.disort_spectral_rad_field.data)

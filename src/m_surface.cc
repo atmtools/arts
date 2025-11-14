@@ -138,18 +138,18 @@ surf_field:
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceSurfaceReflectance(
+void spectral_radSurfaceReflectance(
     const Workspace& ws,
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
     const AscendingGrid& freq_grid,
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
     const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_path_point,
-    const Agenda& spectral_radiance_observer_agenda,
-    const Agenda& spectral_radiance_closed_surface_agenda,
+    const Agenda& spectral_rad_observer_agenda,
+    const Agenda& spectral_rad_closed_surface_agenda,
     const Agenda& spectral_surf_refl_agenda) try {
   ARTS_TIME_REPORT
 
@@ -182,40 +182,39 @@ void spectral_radianceSurfaceReflectance(
                                          surf_field.ellipsoid);
 
   ArrayOfPropagationPathPoint ray_path;
-  StokvecVector spectral_radiance_surface;
-  StokvecMatrix spectral_radiance_jacobian_surface;
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
 
-  spectral_radiance_observer_agendaExecute(ws,
-                                           spectral_radiance,
-                                           spectral_radiance_jacobian,
-                                           ray_path,
-                                           freq_grid,
-                                           jac_targets,
-                                           ray_path_point.pos,
-                                           los,
-                                           atm_field,
-                                           surf_field,
-                                           subsurf_field,
-                                           spectral_radiance_observer_agenda);
+  spectral_rad_observer_agendaExecute(ws,
+                                      spectral_rad,
+                                      spectral_rad_jac,
+                                      ray_path,
+                                      freq_grid,
+                                      jac_targets,
+                                      ray_path_point.pos,
+                                      los,
+                                      atm_field,
+                                      surf_field,
+                                      subsurf_field,
+                                      spectral_rad_observer_agenda);
 
-  spectral_radiance_surface_agendaExecute(
-      ws,
-      spectral_radiance_surface,
-      spectral_radiance_jacobian_surface,
-      freq_grid,
-      jac_targets,
-      ray_path_point,
-      surf_field,
-      subsurf_field,
-      spectral_radiance_closed_surface_agenda);
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_path_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
 
 #pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
   for (Size j = 0; j < NX; j++) {
     for (Size i = 0; i < NF; i++) {
-      spectral_radiance_jacobian[j, i] =
-          rtepack::reflection(spectral_radiance_jacobian[j, i],
+      spectral_rad_jac[j, i] =
+          rtepack::reflection(spectral_rad_jac[j, i],
                               spectral_surf_refl[i],
-                              spectral_radiance_jacobian_surface[j, i]);
+                              spectral_rad_jac_surface[j, i]);
     }
   }
 
@@ -226,20 +225,19 @@ void spectral_radianceSurfaceReflectance(
 #pragma omp parallel for if (not arts_omp_in_parallel())
     for (Size i = 0; i < NF; i++) {
       for (const auto& [j, w] : ws) {
-        spectral_radiance_jacobian[j + target.x_start, i] +=
+        spectral_rad_jac[j + target.x_start, i] +=
             w *
-            rtepack::dreflection(spectral_radiance[i],
+            rtepack::dreflection(spectral_rad[i],
                                  spectral_surf_refl_jac[target.target_pos, i],
-                                 spectral_radiance_surface[i]);
+                                 spectral_rad_surface[i]);
       }
     }
   }
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < NF; i++) {
-    spectral_radiance[i] = rtepack::reflection(spectral_radiance[i],
-                                               spectral_surf_refl[i],
-                                               spectral_radiance_surface[i]);
+    spectral_rad[i] = rtepack::reflection(
+        spectral_rad[i], spectral_surf_refl[i], spectral_rad_surface[i]);
   }
 }
 ARTS_METHOD_ERROR_CATCH

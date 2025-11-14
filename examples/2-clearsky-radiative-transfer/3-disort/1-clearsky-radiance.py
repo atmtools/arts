@@ -34,14 +34,14 @@ ws.atm_fieldRead(
 ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()
 
-ws.disort_spectral_radiance_fieldProfile(
+ws.disort_spectral_rad_fieldProfile(
     lon=lon,
     lat=lat,
     disort_quadrature_dimension=NQuad,
@@ -55,23 +55,23 @@ ws.ray_pathGeometricDownlooking(
     lon=lon,
     max_stepsize=1000.0,
 )
-ws.spectral_radianceClearskyEmission()
+ws.spectral_radClearskyEmission()
 
 # %% Plot results
 f = ws.freq_grid / 1e9
 
-fig, ax = pyarts.plot(ws.disort_spectral_radiance_field,
+fig, ax = pyarts.plot(ws.disort_spectral_rad_field,
                       freqs=f, plotstyle='plot', select='down', alpha=0.5)
-ax.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+ax.semilogy(f, ws.spectral_rad[:, 0], "k--", lw=3)
 ax.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
+    ws.disort_spectral_rad_field.data[:, 0, 0, (NQuad // 2) - 1],
     "g:",
     lw=3,
 )
 ax.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
+    ws.disort_spectral_rad_field.data[:, 0, 0, 0],
     "m:",
     lw=3,
 )
@@ -84,7 +84,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% The last test should be that we are close to the correct values
 assert np.allclose(
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0] / ws.spectral_radiance[:, 0],
+    ws.disort_spectral_rad_field.data[:, 0, 0, 0] / ws.spectral_rad[:, 0],
     1,
     rtol=1e-3,
 ), "Bad results, clearsky calculations are not close between DISORT and ARTS"

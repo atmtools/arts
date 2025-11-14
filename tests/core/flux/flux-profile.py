@@ -30,8 +30,8 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Settings
 
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric(add_crossings=1, remove_non_crossings=1)
 
 nlimb = 15

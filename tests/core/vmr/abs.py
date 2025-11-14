@@ -32,7 +32,7 @@ ws.atm_fieldRead(
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 pos = [0e3, 0, 0]

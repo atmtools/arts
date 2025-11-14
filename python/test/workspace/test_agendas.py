@@ -32,8 +32,8 @@ class TestAgendaPythonCalls:
     """
 
     def init_spectral(self, ws):
-        ws.spectral_radiance_observer_position = [1, 2, 3]
-        ws.spectral_radiance_observer_line_of_sight = [1, 2]
+        ws.obs_pos = [1, 2, 3]
+        ws.obs_los = [1, 2]
 
     def test_python_function_return_only(self):
         ws = Workspace()

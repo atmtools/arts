@@ -171,11 +171,11 @@ SpectralRadianceTransformOperator::SpectralRadianceTransformOperator(
     : SpectralRadianceTransformOperator(to<SpectralRadianceUnitType>(x)) {}
 
 void SpectralRadianceTransformOperator::operator()(
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
     const AscendingGrid& freq_grid,
     const PropagationPathPoint& ray_path_point) const {
-  f(spectral_radiance, spectral_radiance_jacobian, freq_grid, ray_path_point);
+  f(spectral_rad, spectral_rad_jac, freq_grid, ray_path_point);
 }
 
 void xml_io_stream<SpectralRadianceTransformOperator>::write(

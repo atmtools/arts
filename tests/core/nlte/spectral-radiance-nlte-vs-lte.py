@@ -25,24 +25,24 @@ ws.surf_field["t"] = ws.atm_field["t"].data[0, 0, 0]
 line_f0 = 556936000000.0
 ws.freq_grid = np.linspace(-5e6, 5e6, 11) + line_f0
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.spectral_propmat_agendaAuto()
 
 pos = [toa, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 
-ws.spectral_radianceClearskyEmission()
-ws.spectral_radianceApplyUnitFromSpectralRadiance()
-lte = ws.spectral_radiance[:, 0] * 1.0
+ws.spectral_radClearskyEmission()
+ws.spectral_radApplyUnitFromSpectralRadiance()
+lte = ws.spectral_rad[:, 0] * 1.0
 
 ws.abs_bandsSetNonLTE()
 ws.atm_fieldInitializeNonLTE()
-ws.spectral_radianceClearskyEmission()
-ws.spectral_radianceApplyUnitFromSpectralRadiance()
-nlte = ws.spectral_radiance[:, 0] * 1.0
+ws.spectral_radClearskyEmission()
+ws.spectral_radApplyUnitFromSpectralRadiance()
+nlte = ws.spectral_rad[:, 0] * 1.0
 
 assert np.allclose(nlte, lte, rtol=1e-3)
 

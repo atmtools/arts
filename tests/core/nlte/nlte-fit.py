@@ -24,8 +24,8 @@ ws.surf_field["t"] = ws.atm_field["t"].data[0, 0, 0]
 ws.atm_fieldInitializeNonLTE(normalization=0.75)
 ws.abs_bandsSetNonLTE()
 
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric(add_crossings=True, remove_non_crossings=True)
 ws.spectral_propmat_agendaAuto()
 

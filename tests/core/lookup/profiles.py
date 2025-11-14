@@ -43,9 +43,9 @@ ws.abs_lookup_dataFromProfiles(
 )
 print(round(1000 * (time() - t)), "ms to train the LUT")
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
@@ -59,9 +59,9 @@ for water_ratio in [5e-1, 5]:
 
         t = time()
         ws.spectral_propmat_agendaAuto(use_abs_lookup_data=0)
-        ws.spectral_radianceClearskyEmission()
-        ws.spectral_radianceApplyUnitFromSpectralRadiance()
-        lbl = ws.spectral_radiance[:, 0] * 1.0
+        ws.spectral_radClearskyEmission()
+        ws.spectral_radApplyUnitFromSpectralRadiance()
+        lbl = ws.spectral_rad[:, 0] * 1.0
         print(round(1000 * (time() - t)), "ms to compute the LBL spectral radiance")
 
         t = time()
@@ -72,9 +72,9 @@ for water_ratio in [5e-1, 5]:
             water_interp_order=4,
             use_abs_lookup_data=1,
         )
-        ws.spectral_radianceClearskyEmission()
-        ws.spectral_radianceApplyUnitFromSpectralRadiance()
-        lut = ws.spectral_radiance[:, 0] * 1.0
+        ws.spectral_radClearskyEmission()
+        ws.spectral_radApplyUnitFromSpectralRadiance()
+        lut = ws.spectral_rad[:, 0] * 1.0
         print(round(1000 * (time() - t)), "ms to compute the LUT spectral radiance")
 
         plt.figure()

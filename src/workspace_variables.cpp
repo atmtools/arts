@@ -239,12 +239,12 @@ The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit
       .desc =
           R"--(Partial derivative of the *spectral_srcvec_nlte* with regards to *jac_targets*.
 
-The units are *spectral_radiance_jacobian* per meter.
+The units are *spectral_rad_jac* per meter.
 )--",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["ecs_data"] = {
+  wsv_data["abs_ecs_data"] = {
       .desc          = R"--(Error corrected sudden data
 
 Dimensions: [num Isotopologues] [num Species]
@@ -294,12 +294,12 @@ column of :math:`\mathbf{K}`, which is from the *spectral_propmat* variable.
 :math:`B` is the Planck function.  The ellipsis denotes other terms that can
 come from more sources, such as scattering and/or transmitting equipment.
 
-The unit is in *spectral_radiance* per meter.
+The unit is in *spectral_rad* per meter.
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["atm_point_path"] = {
+  wsv_data["atm_path"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
 See *atm_point* for information about atmospheric points
@@ -413,28 +413,28 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatVector",
   };
 
-  wsv_data["absorption_vector_scattering"] = {
+  wsv_data["spectral_absvec_scat"] = {
       .desc =
           R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_absorption_vector_scattering"] = {
+  wsv_data["spectral_absvec_scat_path"] = {
       .desc =
           R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["phase_matrix_scattering_spectral"] = {
+  wsv_data["spectral_phamat_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "SpecmatMatrix",
   };
 
-  wsv_data["ray_path_phase_matrix_scattering_spectral"] = {
+  wsv_data["spectral_phamat_spectral_path"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
@@ -447,13 +447,13 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "ArrayOfScatteringSpecies",
   };
 
-  wsv_data["ray_path_spectral_radiance_scattering"] = {
+  wsv_data["spectral_rad_scat_path"] = {
       .desc = R"--(Spectral radiance scattered into the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_spectral_radiance_jacobian"] = {
+  wsv_data["spectral_rad_jac_path"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
@@ -558,23 +558,23 @@ For more information, see :doc:`user.surf_field`.
       .type = "SurfaceField",
   };
 
-  wsv_data["spectral_radiance_closed_surface_agenda"] = {
+  wsv_data["spectral_rad_closed_surface_agenda"] = {
       .desc          = R"--(A closed surface agenda.
 
-It behave exactly like *spectral_radiance_surface_agenda*.  It exists
+It behave exactly like *spectral_rad_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
-*spectral_radiance_surface_agenda* variable is the first interface
+*spectral_rad_surface_agenda* variable is the first interface
 and can chain into another surface agenda - this one.
 
-Thus this agenda must be "closed".  It cannot call another *spectral_radiance_surface_agenda*,
-whereas *spectral_radiance_surface_agenda* can call this agenda.  Imagine a chain where
-the *spectral_radiance_surface_agenda* gets the reflectance from a land surface model
-and calls the *spectral_radiance_observer_agenda* to compute the downwelling radiation at the surface.
-It can in turn call *spectral_radiance_closed_surface_agenda* to get the upwelling radiation from the surface
+Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
+whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
+the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
+and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
+It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
 that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
       .type          = "Agenda",
-      .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
+      .default_value = "get_spectral_rad_surface_agenda(\"Blackbody\"sv)",
   };
 
   wsv_data["subsurf_field"] = {
@@ -632,17 +632,17 @@ psat : Numeric
       .type = "NumericUnaryOperator",
   };
 
-  wsv_data["spectral_radiance_field"] = {
+  wsv_data["spectral_rad_field"] = {
       .desc = R"(The spectral radiance field.
 
-*spectral_radiance* but for a field.
+*spectral_rad* but for a field.
 
 Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
 )",
       .type = "GriddedSpectralField6",
   };
 
-  wsv_data["spectral_radiance_transform_operator"] = {
+  wsv_data["spectral_rad_transform_operator"] = {
       .desc = R"(The spectral radiance transform operator
 
 This is responsible for things like converting the spectral radiance
@@ -653,7 +653,7 @@ into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
           "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
   };
 
-  wsv_data["spectral_radiance"] = {
+  wsv_data["spectral_rad"] = {
       .desc = R"--(A spectral radiance vector.
 
 This is the representation of the spectral radiances at discrete frequencies for
@@ -662,8 +662,8 @@ a discrete viewing direction.
 The unit of spectral radiance is [W / m :math:`^2` sr Hz].
 
 Note that there are conversion routines that changes this unit,
-e.g., *spectral_radianceApplyUnit*.  After conversion,
-the use of *spectral_radiance* in any method no marked as safe for different units,
+e.g., *spectral_radApplyUnit*.  After conversion,
+the use of *spectral_rad* in any method no marked as safe for different units,
 will lead to undefined behavior with possibly bad values being computed.
 
 The size of this variable should be the size of the local *freq_grid*.
@@ -671,12 +671,12 @@ The size of this variable should be the size of the local *freq_grid*.
       .type = "StokvecVector",
   };
 
-  wsv_data["spectral_radiance_jacobian"] = {
+  wsv_data["spectral_rad_jac"] = {
       .desc =
-          R"--(Jacobian of *spectral_radiance* with respect to *jac_targets*.
+          R"--(Jacobian of *spectral_rad* with respect to *jac_targets*.
 
 The size of this variable should be the local *jac_targets* as rows times the
-size of the local *spectral_radiance* as columns.
+size of the local *spectral_rad* as columns.
 )--",
       .type = "StokvecMatrix",
   };
@@ -757,7 +757,7 @@ This is used by some methods to set up representative fields to help speed up co
       .desc =
           R"--(A list path points making up the observers of a propagation path.
 
-These can be used directly for *spectral_radiance_observer_position* and *spectral_radiance_observer_line_of_sight*
+These can be used directly for *obs_pos* and *obs_los*
 )--",
       .type = "ArrayOfPropagationPathPoint",
   };
@@ -774,23 +774,23 @@ These can be used directly for *spectral_radiance_observer_position* and *spectr
       .type = "QuantumIdentifierVectorMap",
   };
 
-  wsv_data["spectral_radiance_observer_position"] = {
+  wsv_data["obs_pos"] = {
       .desc = R"--(The position of an observer of spectral radiance.
 
-Most likely only makes sense in combination with *spectral_radiance_observer_line_of_sight*.
+Most likely only makes sense in combination with *obs_los*.
 )--",
       .type = "Vector3",
   };
 
-  wsv_data["spectral_radiance_observer_line_of_sight"] = {
+  wsv_data["obs_los"] = {
       .desc = R"--(The line-of-sight of the observer of spectral radiance.
 
-Most likely only makes sense in combination with *spectral_radiance_observer_position*.
+Most likely only makes sense in combination with *obs_pos*.
 )--",
       .type = "Vector2",
   };
 
-  wsv_data["spectral_radiance_operator"] = {
+  wsv_data["spectral_rad_operator"] = {
       .desc = R"--(The spectral radiance operator.
 
 This is a class that can compute the spectral radiance
@@ -1006,7 +1006,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
-  wsv_data["disort_spectral_radiance_field"] = {
+  wsv_data["disort_spectral_rad_field"] = {
       .desc = R"(The spectral radiance field from Disort.
 )",
       .type = "DisortRadiance",
@@ -1027,7 +1027,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
   wsv_data["disort_quadrature"] = {
       .desc = R"(The quadrature angles for Disort with accompying weights.
 
-Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_radiance_field*.
+Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_rad_field*.
 )",
       .type = "ZenithGriddedField1",
   };
@@ -1204,13 +1204,13 @@ Size is number of Jacobian targets.
   };
 
   wsv_data["single_rad"] = {
-      .desc = R"--(Single value version of *spectral_radiance*.
+      .desc = R"--(Single value version of *spectral_rad*.
 )--",
       .type = "Stokvec",
   };
 
   wsv_data["single_rad_jac"] = {
-      .desc = R"--(Single value version of *spectral_radiance_jacobian*.
+      .desc = R"--(Single value version of *spectral_rad_jac*.
 )--",
       .type = "StokvecVector",
   };

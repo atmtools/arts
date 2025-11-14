@@ -22,7 +22,7 @@ Before showing you how to creating your own iy_space_agenda,
 this method call can do it for you, and it will probably do
 it faster and safer than any manual approach:
 """
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
 
 """
 That said, we provide interpreted ways to create agendas manually.
@@ -33,17 +33,17 @@ can be created by the following, decorated code:
 
 @pyarts.workspace.arts_agenda
 def cosmic_background(ws):
-    ws.spectral_radianceUniformCosmicBackground(
-        spectral_radiance=ws.spectral_radiance,
+    ws.spectral_radUniformCosmicBackground(
+        spectral_rad=ws.spectral_rad,
         freq_grid=ws.freq_grid,
     )
-    ws.spectral_radiance_jacobianEmpty()
+    ws.spectral_rad_jacEmpty()
     ws.Ignore(ws.ray_path_point)
 
 
-ws.spectral_radiance_space_agenda = cosmic_background
+ws.spectral_rad_space_agenda = cosmic_background
 print(cosmic_background)
-print(ws.spectral_radiance_space_agenda)
+print(ws.spectral_rad_space_agenda)
 
 
 """
@@ -60,14 +60,14 @@ on as a named argument to the agenda decorator:
 
 
 @pyarts.workspace.arts_agenda(ws=ws)
-def spectral_radiance_space_agenda(ws):
-    ws.spectral_radianceUniformCosmicBackground()
-    ws.spectral_radiance_jacobianEmpty()
+def spectral_rad_space_agenda(ws):
+    ws.spectral_radUniformCosmicBackground()
+    ws.spectral_rad_jacEmpty()
     ws.Ignore(ws.ray_path_point)
 
 
-print(spectral_radiance_space_agenda)
-print(ws.spectral_radiance_space_agenda)
+print(spectral_rad_space_agenda)
+print(ws.spectral_rad_space_agenda)
 
 """
 Lastly, an advanced feature to skip typing ignores is to tell the property to
@@ -78,9 +78,9 @@ will simply append all new input.  Still, it is convenient:
 
 
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def spectral_radiance_space_agenda(ws):
-    ws.spectral_radianceUniformCosmicBackground()
-    ws.spectral_radiance_jacobianEmpty()
+def spectral_rad_space_agenda(ws):
+    ws.spectral_radUniformCosmicBackground()
+    ws.spectral_rad_jacEmpty()
 
 
-print(spectral_radiance_space_agenda)
+print(spectral_rad_space_agenda)

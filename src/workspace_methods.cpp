@@ -1040,20 +1040,20 @@ magnetic field along the path.
       .gout      = {"ray_path_zeeman_magnetic_field"},
       .gout_type = {"ArrayOfVector3"},
       .gout_desc = {R"--(Along-the-path [H, theta, eta])--"},
-      .in        = {"ray_path", "atm_point_path"},
+      .in        = {"ray_path", "atm_path"},
   };
 
-  wsm_data["ecs_dataAddMakarov2020"] = {
+  wsm_data["abs_ecs_dataAddMakarov2020"] = {
       .desc   = R"--(Sets the O2-66 microwave band data for ECS.
 
 This is based on the work of :cite:t:`Makarov2020`.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ecs_data"},
-      .in     = {"ecs_data"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["ecs_dataAddTran2011"] = {
+  wsm_data["abs_ecs_dataAddTran2011"] = {
       .desc   = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
 
 Sets CO2 species.
@@ -1061,11 +1061,11 @@ Sets CO2 species.
 This is based on the work of :cite:t:`Tran2011`.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ecs_data"},
-      .in     = {"ecs_data"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["ecs_dataAddRodrigues1997"] = {
+  wsm_data["abs_ecs_dataAddRodrigues1997"] = {
       .desc   = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
 
 Sets N2 and O2 species.
@@ -1073,23 +1073,23 @@ Sets N2 and O2 species.
 This is based on the work of :cite:t:`Rodrigues1997`.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ecs_data"},
-      .in     = {"ecs_data"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["ecs_dataInit"] = {
+  wsm_data["abs_ecs_dataInit"] = {
       .desc   = R"--(Resets/initializes the ECS data.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"ecs_data"},
+      .out    = {"abs_ecs_data"},
   };
 
-  wsm_data["ecs_dataAddMeanAir"] = {
+  wsm_data["abs_ecs_dataAddMeanAir"] = {
       .desc      = R"--(Sets ECS data for air from other data if available.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"ecs_data"},
-      .in        = {"ecs_data"},
+      .out       = {"abs_ecs_data"},
+      .in        = {"abs_ecs_data"},
       .gin       = {"vmrs", "species"},
       .gin_type  = {"Vector", "ArrayOfSpeciesEnum"},
       .gin_value = {std::nullopt, std::nullopt},
@@ -1118,23 +1118,23 @@ If the wind is 0 or nan, the *freq_grid* remains unchanged.
       .in     = {"freq", "atm_point", "ray_path_point"},
   };
 
-  wsm_data["atm_point_pathFromProfile"] = {
+  wsm_data["atm_pathFromProfile"] = {
       .desc =
-          R"--(Set ``atm_point_path = atm_profile``.
+          R"--(Set ``atm_path = atm_profile``.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"atm_point_path"},
+      .out    = {"atm_path"},
       .in     = {"atm_profile"},
   };
 
-  wsm_data["atm_point_pathFromPath"] = {
+  wsm_data["atm_pathFromPath"] = {
       .desc   = R"--(Gets the atmospheric points along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"atm_point_path"},
+      .out    = {"atm_path"},
       .in     = {"ray_path", "atm_field"},
   };
 
@@ -1156,7 +1156,7 @@ See *spectral_propmat_jacWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
-      .in     = {"freq_grid", "ray_path", "atm_point_path"},
+      .in     = {"freq_grid", "ray_path", "atm_path"},
   };
 
   wsm_data["spectral_propmat_pathFromPath"] = {
@@ -1177,7 +1177,7 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
                          "freq_wind_shift_jac_path",
                          "jac_targets",
                          "ray_path",
-                         "atm_point_path"},
+                         "atm_path"},
       .pass_workspace = true,
   };
 
@@ -1208,7 +1208,7 @@ are as per *spectral_propmat_pathFromPath*.
                          "freq_wind_shift_jac_path",
                          "jac_targets",
                          "ray_path",
-                         "atm_point_path",
+                         "atm_path",
                          "select_species_list"},
       .pass_workspace = true,
   };
@@ -1219,11 +1219,9 @@ are as per *spectral_propmat_pathFromPath*.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_scat_path"},
-      .in             = {"spectral_propmat_scat_agenda",
-                         "freq_grid_path",
-                         "atm_point_path"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_propmat_scat_path"},
+      .in     = {"spectral_propmat_scat_agenda", "freq_grid_path", "atm_path"},
       .pass_workspace = true,
   };
 
@@ -1247,7 +1245,7 @@ The calculations are in parallel if the program is not in parallel already.
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_srcvec_path"},
       .in     = {"spectral_rad_srcvec_path",
-                 "ray_path_spectral_radiance_scattering",
+                 "spectral_rad_scat_path",
                  "spectral_propmat_path"},
   };
 
@@ -1308,7 +1306,7 @@ where:
     - *jac_targets*
     - The targets for the Jacobian computation.
   * - :math:`T`
-    - *atm_point_path*
+    - *atm_path*
     - The temperature at the atmospheric point along the path.
   * - :math:`f`
     - *freq_grid_path*
@@ -1326,7 +1324,7 @@ The output dimensions are:
                  "spectral_propmat_jac_path",
                  "spectral_srcvec_nlte_jac_path",
                  "freq_grid_path",
-                 "atm_point_path",
+                 "atm_path",
                  "jac_targets"},
   };
 
@@ -1685,8 +1683,8 @@ This method must be used inside *spectral_propmat_scat_spectral_agenda* and then
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_propmat_scat",
-                 "absorption_vector_scattering",
-                 "phase_matrix_scattering_spectral"},
+                 "spectral_absvec_scat",
+                 "spectral_phamat_spectral"},
       .in     = {"freq_grid", "legendre_degree"},
   };
 
@@ -1708,11 +1706,11 @@ Method is purely for convenience and composition.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_propmat_scat",
-                 "absorption_vector_scattering",
-                 "phase_matrix_scattering_spectral"},
+                 "spectral_absvec_scat",
+                 "spectral_phamat_spectral"},
       .in     = {"spectral_propmat_scat",
-                 "absorption_vector_scattering",
-                 "phase_matrix_scattering_spectral",
+                 "spectral_absvec_scat",
+                 "spectral_phamat_spectral",
                  "freq_grid",
                  "atm_point",
                  "scattering_species"},
@@ -1724,10 +1722,10 @@ Method is purely for convenience and composition.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_propmat_scat_path",
-                         "ray_path_absorption_vector_scattering",
-                         "ray_path_phase_matrix_scattering_spectral"},
+                         "spectral_absvec_scat_path",
+                         "spectral_phamat_spectral_path"},
       .in             = {"freq_grid_path",
-                         "atm_point_path",
+                         "atm_path",
                          "legendre_degree",
                          "spectral_propmat_scat_spectral_agenda"},
       .pass_workspace = true,
@@ -2016,8 +2014,8 @@ Gets the ellispoid from *surf_field*
       .in             = {"ray_path_field",
                          "atm_field",
                          "spectral_propmat_agenda",
-                         "spectral_radiance_space_agenda",
-                         "spectral_radiance_surface_agenda",
+                         "spectral_rad_space_agenda",
+                         "spectral_rad_surface_agenda",
                          "surf_field",
                          "subsurf_field",
                          "freq_grid",
@@ -2031,7 +2029,7 @@ Gets the ellispoid from *surf_field*
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_flux_profile"},
-      .in        = {"spectral_radiance_field"},
+      .in        = {"spectral_rad_field"},
       .gin       = {"pol"},
       .gin_type  = {"Stokvec"},
       .gin_value = {Stokvec{1.0, 0.0, 0.0, 0.0}},
@@ -2076,8 +2074,8 @@ but built on-the-fly, allowing per-frequency refraction.
                  "ray_path_point_back_propagation_agenda",
                  "subsurf_field",
                  "surf_field",
-                 "spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight",
+                 "obs_pos",
+                 "obs_los",
                  "max_stepsize"},
       .gin = {"polarization", "max_tau", "cutoff_tau", "hse_derivative", "N"},
       .gin_type  = {"Propmat", "Numeric", "Numeric", "Index", "Index"},
@@ -2105,12 +2103,12 @@ but built on-the-fly, allowing per-frequency refraction.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"] = {
+  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"] = {
       .desc =
           R"--(Wraps *single_radClearskyEmissionPropagation* for a vector of frequencies.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
       .gout           = {"ray_paths"},
       .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
       .gout_desc      = {"The ray paths for each frequency"},
@@ -2123,18 +2121,18 @@ but built on-the-fly, allowing per-frequency refraction.
                          "ray_path_point_back_propagation_agenda",
                          "subsurf_field",
                          "surf_field",
-                         "spectral_radiance_observer_position",
-                         "spectral_radiance_observer_line_of_sight",
+                         "obs_pos",
+                         "obs_los",
                          "max_stepsize"},
       .pass_workspace = true,
   };
-  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
-      .gin = wsm_data["single_radClearskyEmissionPropagation"].gin;
-  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"].gin =
+      wsm_data["single_radClearskyEmissionPropagation"].gin;
+  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
       .gin_type = wsm_data["single_radClearskyEmissionPropagation"].gin_type;
-  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
       .gin_value = wsm_data["single_radClearskyEmissionPropagation"].gin_value;
-  wsm_data["spectral_radianceClearskyEmissionFrequencyDependentPropagation"]
+  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
       .gin_desc = wsm_data["single_radClearskyEmissionPropagation"].gin_desc;
 
   wsm_data["single_radFromVector"] = {
@@ -2143,7 +2141,7 @@ but built on-the-fly, allowing per-frequency refraction.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"single_rad", "single_rad_jac"},
-      .in        = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in        = {"spectral_rad", "spectral_rad_jac"},
       .gin       = {"index"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -2154,15 +2152,15 @@ but built on-the-fly, allowing per-frequency refraction.
       .desc           = R"--(Computes the background radiation.
 
 This method checks the back of the ray path and calls
-*spectral_radiance_space_agenda* and *spectral_radiance_surface_agenda* as needed.
+*spectral_rad_space_agenda* and *spectral_rad_surface_agenda* as needed.
 
 If the back of the path is still in the atmosphere, an
 error is raised.  As is it if the background position is unknown.
 
 .. tip::
-    To access subsurface emission, the *spectral_radiance_surface_agenda* must be able to handle
+    To access subsurface emission, the *spectral_rad_surface_agenda* must be able to handle
     subsurface emission.  It will likely need the surface emission agenda as well,
-    but that would be circular.  Therefore, please consider using *spectral_radiance_closed_surface_agenda*
+    but that would be circular.  Therefore, please consider using *spectral_rad_closed_surface_agenda*
     to compute the surface emission without invoking recursion.
 )--",
       .author         = {"Richard Larsson"},
@@ -2172,23 +2170,23 @@ error is raised.  As is it if the background position is unknown.
                          "ray_path_point",
                          "surf_field",
                          "subsurf_field",
-                         "spectral_radiance_space_agenda",
-                         "spectral_radiance_surface_agenda"},
+                         "spectral_rad_space_agenda",
+                         "spectral_rad_surface_agenda"},
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceDefaultTransmission"] = {
+  wsm_data["spectral_radDefaultTransmission"] = {
       .desc =
-          R"--(Sets default *spectral_radiance* and *spectral_radiance_jacobian* for transmission.
+          R"--(Sets default *spectral_rad* and *spectral_rad_jac* for transmission.
 
 The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
       .in     = {"freq_grid", "jac_targets"},
   };
 
-  wsm_data["spectral_radianceSetToBackground"] = {
+  wsm_data["spectral_radSetToBackground"] = {
       .desc =
           R"--(Set the spectral radiance to the background values.
 
@@ -2196,22 +2194,22 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
     This method is compositional and useful inside other agendas or meta-methods.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
       .in     = {"spectral_rad_bkg", "spectral_rad_bkg_jac"},
   };
 
-  wsm_data["spectral_radianceSinglePathEmissionFrequencyLoop"] = {
+  wsm_data["spectral_radSinglePathEmissionFrequencyLoop"] = {
       .desc =
           R"--(Computes the spectral radiance by looping over frequencies for a single path.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in        = {"spectral_radiance",
-                    "spectral_radiance_jacobian",
+      .out       = {"spectral_rad", "spectral_rad_jac"},
+      .in        = {"spectral_rad",
+                    "spectral_rad_jac",
                     "jac_targets",
                     "ray_path",
                     "freq_grid_path",
-                    "atm_point_path",
+                    "atm_path",
                     "spectral_propmat_path",
                     "spectral_srcvec_nlte_path",
                     "spectral_propmat_jac_path",
@@ -2224,7 +2222,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
       .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
-  wsm_data["spectral_radianceUniformCosmicBackground"] = {
+  wsm_data["spectral_radUniformCosmicBackground"] = {
       .desc =
           R"--(Background spectral radiance is from a uniform cosmic background temperature.
 
@@ -2234,11 +2232,11 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 where :math:`T_c` is the cosmic microwave background temperature.  :math:`\nu` is the frequency grid.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
+      .out    = {"spectral_rad"},
       .in     = {"freq_grid"},
   };
 
-  wsm_data["spectral_radianceSurfaceBlackbody"] = {
+  wsm_data["spectral_radSurfaceBlackbody"] = {
       .desc =
           R"--(Set surface spectral radiance from Planck function of the surface temperature.
 
@@ -2248,100 +2246,100 @@ where :math:`T_c` is the cosmic microwave background temperature.  :math:`\nu` i
 where :math:`T_s` is the surface temperature extracted at the input *ray_path_point*.  :math:`\nu` is the frequency grid.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
       .in     = {"freq_grid", "surf_field", "jac_targets", "ray_path_point"},
   };
 
-  wsm_data["spectral_radianceSurfaceReflectance"] = {
+  wsm_data["spectral_radSurfaceReflectance"] = {
       .desc =
           R"--(Set surface spectral radiance to use sub-surface emission and Fresnel reflectance.
 
 The input path point must be close to the surface.
 
-The *spectral_radiance_closed_surface_agenda* should produce the surface emission,
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
 though pure surface emission is fine.
 
 The surface field must contain the surface refractive index.
 The refractive index lives under the *SurfacePropertyTag* key "scalar refractive index".
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
       .in             = {"freq_grid",
                          "atm_field",
                          "surf_field",
                          "subsurf_field",
                          "jac_targets",
                          "ray_path_point",
-                         "spectral_radiance_observer_agenda",
-                         "spectral_radiance_closed_surface_agenda",
+                         "spectral_rad_observer_agenda",
+                         "spectral_rad_closed_surface_agenda",
                          "spectral_surf_refl_agenda"},
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radiance_jacobianAddSensorJacobianPerturbations"] = {
-      .desc = R"--(Adds sensor properties to the *spectral_radiance_jacobian*.
+  wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
+      .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
 
 This is done via perturbation based on the input delta values to the sensor
-Jacobian targets and a callback to *spectral_radiance_observer_agenda* with
+Jacobian targets and a callback to *spectral_rad_observer_agenda* with
 a modified *jac_targets*, making it safe to use this method inside
-*spectral_radiance_observer_agenda*.
+*spectral_rad_observer_agenda*.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
+      .out    = {"spectral_rad_jac"},
       .in =
           {
-              "spectral_radiance_jacobian",
-              "spectral_radiance",
+              "spectral_rad_jac",
+              "spectral_rad",
               "measurement_sensor",
               "freq_grid",
               "jac_targets",
-              "spectral_radiance_observer_position",
-              "spectral_radiance_observer_line_of_sight",
+              "obs_pos",
+              "obs_los",
               "atm_field",
               "surf_field",
               "subsurf_field",
-              "spectral_radiance_observer_agenda",
+              "spectral_rad_observer_agenda",
           },
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radiance_jacobianEmpty"] = {
+  wsm_data["spectral_rad_jacEmpty"] = {
       .desc   = R"--(Set the radiation derivative to empty.
 
 Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
+      .out    = {"spectral_rad_jac"},
       .in     = {"freq_grid", "jac_targets"},
   };
 
-  wsm_data["spectral_radiance_jacobianFromBackground"] = {
+  wsm_data["spectral_rad_jacFromBackground"] = {
       .desc =
-          R"--(Sets *spectral_radiance_jacobian* from the background values.
+          R"--(Sets *spectral_rad_jac* from the background values.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
+      .out    = {"spectral_rad_jac"},
       .in     = {"spectral_rad_bkg_jac", "spectral_tramat_bkg"},
   };
 
-  wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
+  wsm_data["spectral_rad_jacAddPathPropagation"] = {
       .desc =
-          R"--(Adds the propagation variables to *spectral_radiance_jacobian*.
+          R"--(Adds the propagation variables to *spectral_rad_jac*.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_jacobian",
-                 "ray_path_spectral_radiance_jacobian",
+      .out    = {"spectral_rad_jac"},
+      .in     = {"spectral_rad_jac",
+                 "spectral_rad_jac_path",
                  "jac_targets",
                  "atm_field",
                  "ray_path"},
   };
 
-  wsm_data["spectral_radiance_transform_operatorSet"] = {
+  wsm_data["spectral_rad_transform_operatorSet"] = {
       .desc =
           "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_transform_operator"},
+      .out       = {"spectral_rad_transform_operator"},
       .gin       = {"option"},
       .gin_type  = {"SpectralRadianceUnitType"},
       .gin_value = {std::nullopt},
@@ -2349,8 +2347,8 @@ Size : (*jac_targets*, *freq_grid*)
           {"The type of the spectral radiance transform operator to create. See *SpectralRadianceUnitType* for valid values and what they do."},
   };
 
-  wsm_data["spectral_radianceApplyUnit"] = {
-      .desc   = R"(Applies a unit to *spectral_radiance*, returning a new field
+  wsm_data["spectral_radApplyUnit"] = {
+      .desc   = R"(Applies a unit to *spectral_rad*, returning a new field
 
 See *SpectralRadianceUnitType* for valid use cases and limitations.
 
@@ -2358,32 +2356,32 @@ This effectively wraps the local creation of a *SpectralRadianceTransformOperato
 
 .. warning::
   This is a destructive method.  Any use of it means that it is undefined behavior
-  to use *spectral_radiance* or *spectral_radiance_jacobian* in future methods.
+  to use *spectral_rad* or *spectral_rad_jac* in future methods.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
       .in =
           {
-              "spectral_radiance",
-              "spectral_radiance_jacobian",
+              "spectral_rad",
+              "spectral_rad_jac",
               "freq_grid",
               "ray_path_point",
-              "spectral_radiance_transform_operator",
+              "spectral_rad_transform_operator",
           },
   };
 
-  wsm_data["spectral_radianceApplyForwardUnit"] = {
+  wsm_data["spectral_radApplyForwardUnit"] = {
       .desc =
-          R"(Helper to call *spectral_radianceApplyUnit* when you do not have *spectral_radiance_jacobian*.
+          R"(Helper to call *spectral_radApplyUnit* when you do not have *spectral_rad_jac*.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
+      .out    = {"spectral_rad"},
       .in =
           {
-              "spectral_radiance",
+              "spectral_rad",
               "freq_grid",
               "ray_path_point",
-              "spectral_radiance_transform_operator",
+              "spectral_rad_transform_operator",
           },
   };
 
@@ -2484,7 +2482,7 @@ See :doc:`concept.absorption.lbl` for details.
                     "jac_targets",
                     "select_species",
                     "abs_bands",
-                    "ecs_data",
+                    "abs_ecs_data",
                     "atm_point",
                     "ray_path_point"},
       .gin       = {"no_negative_absorption"},
@@ -3164,7 +3162,7 @@ The computations of line mixing are done on the grid of temperatures provided.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
-      .in        = {"abs_bands", "ecs_data", "atm_point"},
+      .in        = {"abs_bands", "abs_ecs_data", "atm_point"},
       .gin       = {"temperatures",
                     "band_key",
                     "rosenkranz_fit_order",
@@ -3240,7 +3238,7 @@ If ``line`` is positive, also keep only the line of this index
                     "atm_profile",
                     "freq_grid",
                     "abs_bands",
-                    "ecs_data",
+                    "abs_ecs_data",
                     "select_species"},
       .gin       = {"temperature_perturbation", "water_perturbation"},
       .gin_type  = {"AscendingGrid", "AscendingGrid"},
@@ -3263,7 +3261,7 @@ for those species that are ``water_affected_species``.
                     "atm_profile",
                     "freq_grid",
                     "abs_bands",
-                    "ecs_data"},
+                    "abs_ecs_data"},
       .gin       = {"temperature_perturbation",
                     "water_perturbation",
                     "water_affected_species"},
@@ -3280,14 +3278,14 @@ for those species that are ``water_affected_species``.
           R"--(Compute the lookup table for all species in *abs_bands*.
 
 Wraps *abs_lookup_dataPrecomputeAll* after creating a simple
-*atm_point_path* from the input data.
+*atm_path* from the input data.
 
 Unlike *abs_lookup_dataPrecomputeAll*, this method will initialize
 *abs_lookup_data*
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"freq_grid", "abs_bands", "ecs_data"},
+      .in        = {"freq_grid", "abs_bands", "abs_ecs_data"},
       .gin       = {"pressure_profile",
                     "temperature_profile",
                     "vmr_profiles",
@@ -3330,7 +3328,7 @@ The pressure range is set up logarithmically and all other ranges are set linear
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"freq_grid", "abs_bands", "ecs_data"},
+      .in        = {"freq_grid", "abs_bands", "abs_ecs_data"},
       .gin       = {"water_affected_species",
                     "pressure_range",
                     "temperature_range",
@@ -3757,7 +3755,7 @@ bad angles if this is turned off.
       .gin_desc  = {"List of depths"},
   };
 
-  wsm_data["spectral_radiance_operatorClearsky1D"] = {
+  wsm_data["spectral_rad_operatorClearsky1D"] = {
       .desc           = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
@@ -3768,7 +3766,7 @@ predefined model data with the workspace (if they exist already when this method
 called).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance_operator"},
+      .out            = {"spectral_rad_operator"},
       .in             = {"atm_field", "surf_field", "alt_grid", "lat", "lon"},
       .gin            = {"cia_extrapolation", "cia_robust"},
       .gin_type       = {"Numeric", "Index"},
@@ -3778,7 +3776,7 @@ called).
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radiance_fieldProfilePseudo2D"] = {
+  wsm_data["spectral_rad_fieldProfilePseudo2D"] = {
       .desc =
           R"--(Computes the spectral radiance field assuming a profile and a pseudo-2D path.
 
@@ -3789,7 +3787,7 @@ Limb paths are only considered when the zenith angle misses the next lower level
 same mechanism as in *za_gridProfilePseudo2D*.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance_field"},
+      .out            = {"spectral_rad_field"},
       .in             = {"spectral_propmat_agenda",
                          "atm_profile",
                          "surf_field",
@@ -3807,7 +3805,7 @@ same mechanism as in *za_gridProfilePseudo2D*.
 
   wsm_data["za_gridProfilePseudo2D"] = {
       .desc =
-          R"--(A custom zenith grid for *spectral_radiance_fieldProfilePseudo2D*
+          R"--(A custom zenith grid for *spectral_rad_fieldProfilePseudo2D*
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"za_grid"},
@@ -3820,12 +3818,12 @@ same mechanism as in *za_gridProfilePseudo2D*.
                     "Whether or not special care is given to the limb"},
   };
 
-  wsm_data["spectral_radiance_fieldFromOperatorPlanarGeometric"] = {
+  wsm_data["spectral_rad_fieldFromOperatorPlanarGeometric"] = {
       .desc =
           R"--(Computes the spectral radiance field assuming planar geometric paths
 
 A planar geometric path is just defined by a 1D atmospheric profile.  If the
-*spectral_radiance_operator* contains more than one latitude and/or longitude
+*spectral_rad_operator* contains more than one latitude and/or longitude
 point, their altitude profiles are treated independently.
 
 Limitations:
@@ -3833,28 +3831,28 @@ Limitations:
 - The zenith grid is not allowed to contain the value 90 degrees.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_radiance_field"},
-      .in        = {"spectral_radiance_operator", "freq_grid", "za_grid"},
+      .out       = {"spectral_rad_field"},
+      .in        = {"spectral_rad_operator", "freq_grid", "za_grid"},
       .gin       = {"azimuth_grid"},
       .gin_type  = {"AzimuthGrid"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The azimuth grid"},
   };
 
-  wsm_data["spectral_radiance_fieldFromOperatorPath"] = {
+  wsm_data["spectral_rad_fieldFromOperatorPath"] = {
       .desc =
           R"--(Computes the spectral radiance field using *ray_path_observer_agenda*.
 
 Each point is in computed individually, so there will be
 zenith x azimuth x altitude x latitude x longitude x frequency number of calculations.
-The positional arguments are taken from *spectral_radiance_operator*.
+The positional arguments are taken from *spectral_rad_operator*.
 
 If the code is not already in parallel operation mode when this method is called,
 the first 5 dimensions are computed in parallel.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance_field"},
-      .in             = {"spectral_radiance_operator",
+      .out            = {"spectral_rad_field"},
+      .in             = {"spectral_rad_operator",
                          "ray_path_observer_agenda",
                          "freq_grid",
                          "za_grid"},
@@ -4313,12 +4311,12 @@ to the refracted zenith angle, i.e.,
       .desc =
           R"--(Sets measurement vector by looping over all sensor elements
 
-The core calculations happens inside the *spectral_radiance_operator*.
+The core calculations happens inside the *spectral_rad_operator*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector"},
       .in             = {"measurement_sensor",
-                         "spectral_radiance_operator",
+                         "spectral_rad_operator",
                          "ray_path_observer_agenda"},
       .pass_workspace = true,
   };
@@ -4327,7 +4325,7 @@ The core calculations happens inside the *spectral_radiance_operator*.
       .desc =
           R"--(Sets measurement vector by looping over all sensor elements
 
-The core calculations happens inside the *spectral_radiance_observer_agenda*.
+The core calculations happens inside the *spectral_rad_observer_agenda*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vector", "measurement_jacobian"},
@@ -4336,8 +4334,8 @@ The core calculations happens inside the *spectral_radiance_observer_agenda*.
                          "atm_field",
                          "surf_field",
                          "subsurf_field",
-                         "spectral_radiance_transform_operator",
-                         "spectral_radiance_observer_agenda"},
+                         "spectral_rad_transform_operator",
+                         "spectral_rad_observer_agenda"},
       .pass_workspace = true,
   };
 
@@ -4579,26 +4577,26 @@ that just returns the first time a path hits the sun.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceSunsOrCosmicBackground"] = {
+  wsm_data["spectral_radSunsOrCosmicBackground"] = {
       .desc =
           R"--(Get the spectral radiance of a sun or of the cosmic background if no sun is hit.
 
 .. note::
     Only the first sun is used if multiple suns are defined, so it is advantageous to
     have sorted *suns* by distance before running this code.  If you only have one sun,
-    this is of course not an issue but you could consider using *spectral_radianceSunOrCosmicBackground* instead.
+    this is of course not an issue but you could consider using *spectral_radSunOrCosmicBackground* instead.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
+      .out    = {"spectral_rad"},
       .in     = {"freq_grid", "ray_path_point", "suns", "surf_field"},
   };
 
-  wsm_data["spectral_radianceSunOrCosmicBackground"] = {
+  wsm_data["spectral_radSunOrCosmicBackground"] = {
       .desc =
           R"--(Get the spectral radiance of a sun or of the cosmic background if the sun is not hit.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
+      .out    = {"spectral_rad"},
       .in     = {"freq_grid", "sun_path", "sun", "surf_field"},
   };
 
@@ -4669,11 +4667,11 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
            "A description of the sun."},
   };
 
-  wsm_data["ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh"] = {
+  wsm_data["spectral_rad_scat_pathSunsFirstOrderRayleigh"] = {
       .desc           = R"--(Add *suns* to *spectral_rad_srcvec_path*.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"ray_path_spectral_radiance_scattering"},
+      .out            = {"spectral_rad_scat_path"},
       .in             = {"spectral_propmat_scat_path",
                          "ray_path",
                          "ray_path_suns_path",
@@ -4798,7 +4796,7 @@ the level before and one for the level after.
       .in        = {"spectral_propmat_path",
                     "spectral_propmat_jac_path",
                     "ray_path",
-                    "atm_point_path",
+                    "atm_path",
                     "surf_field",
                     "jac_targets"},
       .gin       = {"hse_derivative"},
@@ -4807,13 +4805,13 @@ the level before and one for the level after.
       .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
-  wsm_data["spectral_radianceStepByStepEmission"] = {
+  wsm_data["spectral_radStepByStepEmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path.
 
 This uses a step-by-step solver to propagate background radiation along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path",
                  "spectral_tramat_cumulative_path",
                  "spectral_tramat_jac_path",
@@ -4822,14 +4820,14 @@ This uses a step-by-step solver to propagate background radiation along the path
                  "spectral_rad_bkg"},
   };
 
-  wsm_data["spectral_radianceCumulativeTransmission"] = {
+  wsm_data["spectral_radCumulativeTransmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path transmission.
 
 Also get the Jacobian of the spectral radiance with regards to the
 path parameters.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance", "ray_path_spectral_radiance_jacobian"},
+      .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path",
                  "spectral_tramat_cumulative_path",
                  "spectral_tramat_jac_path",
@@ -5172,26 +5170,26 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
                     "atm_field",
                     "surf_field",
                     "subsurf_field",
-                    "spectral_radiance_observer_agenda"},
+                    "spectral_rad_observer_agenda"},
       .gin       = {"pol"},
       .gin_type  = {"Stokvec"},
       .gin_value = {Stokvec{1.0, 0.0, 0.0, 0.0}},
       .gin_desc =
-          {"The polarization state to select.  The dot-product of this and *spectral_radiance* is used."},
+          {"The polarization state to select.  The dot-product of this and *spectral_rad* is used."},
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceSubsurfaceDisortEmissionWithJacobian"] = {
+  wsm_data["spectral_radSubsurfaceDisortEmissionWithJacobian"] = {
       .desc           = R"--(Gets the spectral radiance from the path.
 
 The Jacobian is computed by perturbations.  Sensor and absorption data are
 not considered as part of the perturbations.
 
-The method wraps calling *spectral_radianceSubsurfaceDisortEmission* by perturbing
+The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
 *model_state_vector* for Jacobian calculations using *model_state_vectorPerturbations*.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
       .in             = {"freq_grid",
                          "atm_field",
                          "surf_field",
@@ -5303,7 +5301,7 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in = {"disort_settings", "ray_path_phase_matrix_scattering_spectral"},
+      .in     = {"disort_settings", "spectral_phamat_spectral_path"},
   };
 
   wsm_data["disort_settingsSingleScatteringAlbedoFromPath"] = {
@@ -5314,7 +5312,7 @@ A description of the options is given below.
       .in     = {"disort_settings",
                  "spectral_propmat_path",
                  "spectral_propmat_scat_path",
-                 "ray_path_absorption_vector_scattering"},
+                 "spectral_absvec_scat_path"},
   };
 
   wsm_data["disort_settingsNoSun"] = {
@@ -5354,7 +5352,7 @@ Note that you must have set the optical thickness before calling this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "atm_point_path", "freq_grid"},
+      .in     = {"disort_settings", "atm_path", "freq_grid"},
   };
 
   wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
@@ -5377,7 +5375,7 @@ This is WIP and should not be used.
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings",
-                 "atm_point_path",
+                 "atm_path",
                  "spectral_propmat_path",
                  "spectral_srcvec_nlte_path",
                  "freq_grid"},
@@ -5494,21 +5492,21 @@ Sets both upper and lower bounds.
                  "disort_fourier_mode_dimension"},
   };
 
-  wsm_data["disort_spectral_radiance_fieldApplyUnit"] = {
+  wsm_data["disort_spectral_rad_fieldApplyUnit"] = {
       .desc   = R"(Convert units of the Disort spectral radiance field.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_spectral_radiance_field"},
-      .in     = {"disort_spectral_radiance_field",
+      .out    = {"disort_spectral_rad_field"},
+      .in     = {"disort_spectral_rad_field",
                  "ray_path_point",
-                 "spectral_radiance_transform_operator"},
+                 "spectral_rad_transform_operator"},
   };
 
-  wsm_data["disort_spectral_radiance_fieldCalc"] = {
+  wsm_data["disort_spectral_rad_fieldCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral radiance.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
+      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
       .in        = {"disort_settings"},
       .gin       = {"azimuth_grid"},
       .gin_type  = {"AzimuthGrid"},
@@ -5517,15 +5515,15 @@ Sets both upper and lower bounds.
   };
 
 #ifdef ENABLE_CDISORT
-  wsm_data["disort_spectral_radiance_fieldCalcCdisort"] = {
+  wsm_data["disort_spectral_rad_fieldCalcCdisort"] = {
       .desc      = R"(Perform CDisort calculations for spectral radiance.
 
 CDisort is only included for testing and comparisons with our own disort implementation.
 )",
       .author    = {"Oliver Lemke"},
-      .out       = {"disort_spectral_radiance_field", "disort_quadrature"},
+      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
       .in        = {"disort_settings",
-                    "atm_point_path",
+                    "atm_path",
                     "freq_grid_path",
                     "ray_path",
                     "surf_field"},
@@ -5555,21 +5553,21 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .in        = {"disort_spectral_flux_field"},
   };
 
-  wsm_data["spectral_radianceIntegrateDisort"] = {
+  wsm_data["spectral_radIntegrateDisort"] = {
       .desc   = R"(Integrate Disort spectral radiance.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"disort_spectral_radiance_field", "disort_quadrature"},
+      .out    = {"spectral_rad"},
+      .in     = {"disort_spectral_rad_field", "disort_quadrature"},
   };
 
-  wsm_data["spectral_radianceFromDisort"] = {
+  wsm_data["spectral_radFromDisort"] = {
       .desc =
           R"(Extract spectral radiance from the Disort field at the ray path point.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance"},
-      .in     = {"disort_spectral_radiance_field", "ray_path_point"},
+      .out    = {"spectral_rad"},
+      .in     = {"disort_spectral_rad_field", "ray_path_point"},
   };
 
   wsm_data["RetrievalInit"] = {

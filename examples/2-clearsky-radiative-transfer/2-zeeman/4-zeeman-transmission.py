@@ -33,17 +33,17 @@ ws.atm_fieldRead(
 ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_space_agendaSet(option="Transmission")
-ws.spectral_radiance_surface_agendaSet(option="Transmission")
+ws.spectral_rad_space_agendaSet(option="Transmission")
+ws.spectral_rad_surface_agendaSet(option="Transmission")
 
 # %% Core calculations
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
-ws.spectral_radianceClearskyTransmission()
+ws.spectral_radClearskyTransmission()
 
 # %% Show results
-fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
+fig, ax = pyarts.plot(ws.spectral_rad, freqs=(
     ws.freq_grid - line_f0) / 1e6, component='I')
 ax.set_yscale('log')
 ax.set_xlabel("Frequency offset [MHz]")
@@ -55,7 +55,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Test
 assert np.allclose(
-    ws.spectral_radiance[::100],
+    ws.spectral_rad[::100],
     np.array(
         [[3.48824591e-06, -1.47203439e-10, -3.54155511e-11, -4.59223182e-08],
          [1.71707407e-06, -1.11587582e-10, -2.68557096e-11, -2.78282572e-08],

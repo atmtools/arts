@@ -9,8 +9,8 @@ ws.surf_fieldEarth()
 ws.ray_path_observer_agendaSetGeometric()
 
 ws2 = ws.ray_path_observer_agendaExecute(
-  spectral_radiance_observer_position = [300e3, 0, 0],
-  spectral_radiance_observer_line_of_sight = [180.0, 0.0]
+  obs_pos = [300e3, 0, 0],
+  obs_los = [180.0, 0.0]
 )
 
 ws2.atm_field["t"] = 123.4

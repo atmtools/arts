@@ -36,7 +36,7 @@ ws.atm_fieldIGRF()
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
 
 @pyarts.arts_agenda(ws=ws, fix=True)
@@ -50,19 +50,19 @@ pos = [3571, 46, 7]
 los = [20, 90]
 
 res = []
-ws.spectral_radiance_observer_position = pos
-ws.spectral_radiance_observer_line_of_sight = los
+ws.obs_pos = pos
+ws.obs_los = los
 ws.max_stepsize = 100.0
 
 # %% Show results
 ws.ray_path_point_back_propagation_agendaSet(option="GeometricStepwise")
-ws.spectral_radianceClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radianceApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
-geometric = ws.spectral_radiance * 1.0
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+geometric = ws.spectral_rad * 1.0
 ws.ray_path_point_back_propagation_agendaSet(option="RefractiveStepwise")
-ws.spectral_radianceClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radianceApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
-refractive = ws.spectral_radiance * 1.0
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+refractive = ws.spectral_rad * 1.0
 
 # %% Show results
 
