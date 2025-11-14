@@ -654,9 +654,9 @@ involved in the CIA.
            R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
   };
 
-  wsm_data["absorption_predefined_model_dataReadSpeciesSplitCatalog"] = {
+  wsm_data["abs_predef_dataReadSpeciesSplitCatalog"] = {
       .desc =
-          R"--(Reads *absorption_predefined_model_data* catalog but only for *abs_species*
+          R"--(Reads *abs_predef_data* catalog but only for *abs_species*
 
 
 The file names are expected to be of the form:
@@ -681,7 +681,7 @@ common form of a predefined model.
     than calling this method directly.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_predefined_model_data"},
+      .out       = {"abs_predef_data"},
       .in        = {"abs_species"},
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
@@ -1000,27 +1000,27 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_desc  = {"Default option for the isotopologue ratios"},
   };
 
-  wsm_data["transmission_matrix_backgroundFromPathPropagationBack"] = {
+  wsm_data["spectral_tramat_bkgFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *transmission_matrix_background* to back of *ray_path_transmission_matrix_cumulative*.
+          R"--(Sets *spectral_tramat_bkg* to back of *ray_path_transmission_matrix_cumulative*.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"transmission_matrix_background"},
+      .out    = {"spectral_tramat_bkg"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
-  wsm_data["transmission_matrix_backgroundFromPathPropagationFront"] = {
+  wsm_data["spectral_tramat_bkgFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *transmission_matrix_background* to front of *ray_path_transmission_matrix_cumulative*.
+          R"--(Sets *spectral_tramat_bkg* to front of *ray_path_transmission_matrix_cumulative*.
 
 This is purely compositional and it is better to use pure python code if need this functionality
 in your own control-flow.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"transmission_matrix_background"},
+      .out    = {"spectral_tramat_bkg"},
       .in     = {"ray_path_transmission_matrix_cumulative"},
   };
 
@@ -1333,7 +1333,7 @@ The output dimensions are:
                  "jac_targets"},
   };
 
-  wsm_data["absorption_predefined_model_dataAddWaterMTCKD400"] = {
+  wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
       .desc      = R"--(Sets the data for MT CKD 4.0 Water model
 
 Note that the vectors must have the same length, and that wavenumbers must be growing
@@ -1350,8 +1350,8 @@ This is based on the works cited here: https://hitran.org/mtckd/
     are the values of the vectors. 
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"absorption_predefined_model_data"},
-      .in        = {"absorption_predefined_model_data"},
+      .out       = {"abs_predef_data"},
+      .in        = {"abs_predef_data"},
       .gin       = {"ref_temp",
                     "ref_press",
                     "ref_h2o_vmr",
@@ -1382,11 +1382,11 @@ This is based on the works cited here: https://hitran.org/mtckd/
                     R"--(Self temperature exponent [-])--"},
   };
 
-  wsm_data["absorption_predefined_model_dataInit"] = {
+  wsm_data["abs_predef_dataInit"] = {
       .desc   = R"--(Initialize the predefined model data
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"absorption_predefined_model_data"},
+      .out    = {"abs_predef_data"},
   };
 
   wsm_data["propagation_matrixAddCIA"] = {
@@ -1650,7 +1650,7 @@ Available models
       .out    = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in     = {"propagation_matrix",
                  "propagation_matrix_jacobian",
-                 "absorption_predefined_model_data",
+                 "abs_predef_data",
                  "select_species",
                  "jac_targets",
                  "freq_grid",
@@ -2153,8 +2153,8 @@ but built on-the-fly, allowing per-frequency refraction.
       .gin_desc  = {"Index into the first dimension of the spectral radiance"},
   };
 
-  wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
-      .desc   = R"--(Computes the background radiation.
+  wsm_data["spectral_rad_bkgAgendasAtEndOfPath"] = {
+      .desc           = R"--(Computes the background radiation.
 
 This method checks the back of the ray path and calls
 *spectral_radiance_space_agenda* and *spectral_radiance_surface_agenda* as needed.
@@ -2168,15 +2168,15 @@ error is raised.  As is it if the background position is unknown.
     but that would be circular.  Therefore, please consider using *spectral_radiance_closed_surface_agenda*
     to compute the surface emission without invoking recursion.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_radiance_background", "spectral_rad_bkg_jac"},
-      .in     = {"freq_grid",
-                 "jac_targets",
-                 "ray_path_point",
-                 "surf_field",
-                 "subsurf_field",
-                 "spectral_radiance_space_agenda",
-                 "spectral_radiance_surface_agenda"},
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_rad_bkg", "spectral_rad_bkg_jac"},
+      .in             = {"freq_grid",
+                         "jac_targets",
+                         "ray_path_point",
+                         "surf_field",
+                         "subsurf_field",
+                         "spectral_radiance_space_agenda",
+                         "spectral_radiance_surface_agenda"},
       .pass_workspace = true,
   };
 
@@ -2200,7 +2200,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in     = {"spectral_radiance_background", "spectral_rad_bkg_jac"},
+      .in     = {"spectral_rad_bkg", "spectral_rad_bkg_jac"},
   };
 
   wsm_data["spectral_radianceSinglePathEmissionFrequencyLoop"] = {
@@ -2324,7 +2324,7 @@ Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_radiance_jacobian"},
-      .in     = {"spectral_rad_bkg_jac", "transmission_matrix_background"},
+      .in     = {"spectral_rad_bkg_jac", "spectral_tramat_bkg"},
   };
 
   wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
@@ -4148,7 +4148,7 @@ exists in the atmospheric field.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
-      .in        = {"atm_field", "absorption_predefined_model_data"},
+      .in        = {"atm_field", "abs_predef_data"},
       .gin       = {"basename",
                     "extrapolation",
                     "missing_is_zero",
@@ -4181,7 +4181,7 @@ Wraps:
 - *atm_fieldAppendLookupTableSpeciesData* if the workspace contains *abs_lookup_data*
 - *atm_fieldAppendCIASpeciesData* if the workspace contains *abs_cia_data*
 - *atm_fieldAppendXsecSpeciesData* if the workspace contains *abs_xfit_data*
-- *atm_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
+- *atm_fieldAppendPredefSpeciesData* if the workspace contains *abs_predef_data*
 
 See these individually for more details.
 )--",
@@ -4219,15 +4219,12 @@ Wraps:
 - *abs_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
 - *abs_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename``
 - *abs_xfit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
-- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
+- *abs_predef_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"absorption_predefined_model_data",
-                    "abs_xfit_data",
-                    "abs_cia_data",
-                    "abs_bands"},
-      .in        = {"abs_species"},
-      .gin       = {"basename", "ignore_missing"},
+      .author = {"Richard Larsson"},
+      .out = {"abs_predef_data", "abs_xfit_data", "abs_cia_data", "abs_bands"},
+      .in  = {"abs_species"},
+      .gin = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {String{}, Index{0}},
       .gin_desc  = {"Absolute or relative path to the data",
@@ -4827,7 +4824,7 @@ This uses a step-by-step solver to propagate background radiation along the path
                  "ray_path_transmission_matrix_jacobian",
                  "ray_path_spectral_radiance_source",
                  "ray_path_spectral_radiance_source_jacobian",
-                 "spectral_radiance_background"},
+                 "spectral_rad_bkg"},
   };
 
   wsm_data["spectral_radianceCumulativeTransmission"] = {
@@ -4841,7 +4838,7 @@ path parameters.
       .in     = {"ray_path_transmission_matrix",
                  "ray_path_transmission_matrix_cumulative",
                  "ray_path_transmission_matrix_jacobian",
-                 "spectral_radiance_background"},
+                 "spectral_rad_bkg"},
   };
 
   wsm_data["OEM"] = {

@@ -316,7 +316,7 @@ Usage: Output of radiative transfer methods.
       .type = "ArrayOfAscendingGrid",
   };
 
-  wsv_data["absorption_predefined_model_data"] = {
+  wsv_data["abs_predef_data"] = {
       .desc =
           R"--(This contains predefined model data.
 
@@ -382,7 +382,7 @@ Shape: *model_state_vector* x *freq_grid*
       .type = "StokvecMatrix",
   };
 
-  wsv_data["spectral_radiance_background"] = {
+  wsv_data["spectral_rad_bkg"] = {
       .desc = R"--(Spectral radiance from the background
 
 Shape: *freq_grid*
@@ -406,7 +406,7 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatMatrix",
   };
 
-  wsv_data["transmission_matrix_background"] = {
+  wsv_data["spectral_tramat_bkg"] = {
       .desc = R"--(Transmittance from the background
 )--",
       .type = "MuelmatVector",

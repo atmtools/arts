@@ -183,10 +183,10 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const PredefinedModelData &absorption_predefined_model_data) {
-  if (absorption_predefined_model_data.empty()) return;
+                 const PredefinedModelData &abs_predef_data) {
+  if (abs_predef_data.empty()) return;
 
-  for (auto &predef_record : absorption_predefined_model_data) {
+  for (auto &predef_record : abs_predef_data) {
     if (predef_record.first.spec != "AIR"_spec)
       ++keys[predef_record.first.spec];
   }
@@ -435,21 +435,21 @@ void atm_fieldAppendXsecSpeciesData(AtmField &atm_field,
 
 void atm_fieldAppendPredefSpeciesData(
     AtmField &atm_field,
-    const PredefinedModelData &absorption_predefined_model_data,
+    const PredefinedModelData &abs_predef_data,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
   ARTS_TIME_REPORT
 
-  if (absorption_predefined_model_data.empty()) return;
+  if (abs_predef_data.empty()) return;
 
   const auto to_string = [](const SpeciesEnum &x) {
     return String{toString<1>(x)};
   };
 
   std::unordered_map<SpeciesEnum, Index> keys;
-  keysSpecies(keys, absorption_predefined_model_data);
+  keysSpecies(keys, abs_predef_data);
 
   append_data(atm_field,
               basename,
@@ -550,12 +550,12 @@ void atm_fieldAppendAuto(const Workspace &ws,
                                    replace_existing);
   }
 
-  if (const String predef_str = "absorption_predefined_model_data";
+  if (const String predef_str = "abs_predef_data";
       ws.wsv_and_contains(predef_str)) {
-    using predef_t                               = PredefinedModelData;
-    const auto &absorption_predefined_model_data = ws.get<predef_t>(predef_str);
+    using predef_t              = PredefinedModelData;
+    const auto &abs_predef_data = ws.get<predef_t>(predef_str);
     atm_fieldAppendPredefSpeciesData(atm_field,
-                                     absorption_predefined_model_data,
+                                     abs_predef_data,
                                      basename,
                                      extrapolation,
                                      missing_is_zero,

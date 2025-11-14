@@ -8,9 +8,9 @@
 
 #include <algorithm>
 
-void spectral_radiance_backgroundAgendasAtEndOfPath(
+void spectral_rad_bkgAgendasAtEndOfPath(
     const Workspace& ws,
-    StokvecVector& spectral_radiance_background,
+    StokvecVector& spectral_rad_bkg,
     StokvecMatrix& spectral_rad_bkg_jac,
     const AscendingGrid& freq_grid,
     const JacobianTargets& jac_targets,
@@ -29,7 +29,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
       spectral_radiance_space_agendaExecute(ws,
-                                            spectral_radiance_background,
+                                            spectral_rad_bkg,
                                             spectral_rad_bkg_jac,
                                             freq_grid,
                                             jac_targets,
@@ -38,7 +38,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
       break;
     case surface:
       spectral_radiance_surface_agendaExecute(ws,
-                                              spectral_radiance_background,
+                                              spectral_rad_bkg,
                                               spectral_rad_bkg_jac,
                                               freq_grid,
                                               jac_targets,
@@ -152,42 +152,39 @@ void spectral_radianceSurfaceBlackbody(
   }
 }
 
-void transmission_matrix_backgroundFromPathPropagationBack(
-    MuelmatVector& transmission_matrix_background,
+void spectral_tramat_bkgFromPathPropagationBack(
+    MuelmatVector& spectral_tramat_bkg,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background =
-      ray_path_transmission_matrix_cumulative.back();
+  spectral_tramat_bkg = ray_path_transmission_matrix_cumulative.back();
 }
 ARTS_METHOD_ERROR_CATCH
 
-void transmission_matrix_backgroundFromPathPropagationFront(
-    MuelmatVector& transmission_matrix_background,
+void spectral_tramat_bkgFromPathPropagationFront(
+    MuelmatVector& spectral_tramat_bkg,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background =
-      ray_path_transmission_matrix_cumulative.front();
+  spectral_tramat_bkg = ray_path_transmission_matrix_cumulative.front();
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceDefaultTransmission(
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_background,
-    const AscendingGrid& freq_grid,
-    const JacobianTargets& jac_targets) {
+void spectral_radianceDefaultTransmission(StokvecVector& spectral_radiance,
+                                          StokvecMatrix& spectral_rad_bkg,
+                                          const AscendingGrid& freq_grid,
+                                          const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
   const Index nf = freq_grid.size();
   const Index nq = jac_targets.x_size();
 
-  spectral_radiance_background.resize(nq, nf);
-  spectral_radiance_background = 0.0;
+  spectral_rad_bkg.resize(nq, nf);
+  spectral_rad_bkg = 0.0;
 
   spectral_radiance.resize(nf);
   spectral_radiance = 1;

@@ -20,20 +20,20 @@
 
 #include <algorithm>
 
-void absorption_predefined_model_dataReadSpeciesSplitCatalog(
-    PredefinedModelData& absorption_predefined_model_data,
+void abs_predef_dataReadSpeciesSplitCatalog(
+    PredefinedModelData& abs_predef_data,
     const ArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& name_missing_,
     const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
-  absorption_predefined_model_data.clear();
+  abs_predef_data.clear();
 
   const bool name_missing   = static_cast<bool>(name_missing_);
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
-  absorption_predefined_model_data.clear();
+  abs_predef_data.clear();
 
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -48,10 +48,10 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     if (find_xml_file_existence(filename)) {
       PredefinedModelData other;
       xml_read_from_file(filename, other);
-      absorption_predefined_model_data.insert(other.begin(), other.end());
+      abs_predef_data.insert(other.begin(), other.end());
     } else {
       if (name_missing) {
-        absorption_predefined_model_data[spec.Isotopologue()].data =
+        abs_predef_data[spec.Isotopologue()].data =
             Absorption::PredefinedModel::ModelName{};
       } else {
         ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
@@ -61,22 +61,20 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void absorption_predefined_model_dataInit(
-    PredefinedModelData& absorption_predefined_model_data) {
+void abs_predef_dataInit(PredefinedModelData& abs_predef_data) {
   ARTS_TIME_REPORT
 
-  absorption_predefined_model_data = PredefinedModelData{};
+  abs_predef_data = PredefinedModelData{};
 }
 
-void absorption_predefined_model_dataAddWaterMTCKD400(
-    PredefinedModelData& absorption_predefined_model_data,
-    const Numeric& ref_temp,
-    const Numeric& ref_press,
-    const Numeric& ref_h2o_vmr,
-    const Vector& self_absco_ref,
-    const Vector& for_absco_ref,
-    const Vector& wavenumbers,
-    const Vector& self_texp) {
+void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
+                                     const Numeric& ref_temp,
+                                     const Numeric& ref_press,
+                                     const Numeric& ref_h2o_vmr,
+                                     const Vector& self_absco_ref,
+                                     const Vector& for_absco_ref,
+                                     const Vector& wavenumbers,
+                                     const Vector& self_texp) {
   ARTS_TIME_REPORT
 
   const auto sz = self_absco_ref.size();
@@ -106,19 +104,18 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
-  absorption_predefined_model_data["H2O-ForeignContCKDMT400"_isot].data = x;
-  absorption_predefined_model_data["H2O-SelfContCKDMT400"_isot].data    = x;
+  abs_predef_data["H2O-ForeignContCKDMT400"_isot].data = x;
+  abs_predef_data["H2O-SelfContCKDMT400"_isot].data    = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddPredefined(
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
-    const PredefinedModelData& absorption_predefined_model_data,
-    const SpeciesEnum& select_species,
-    const JacobianTargets& jac_targets,
-    const AscendingGrid& f_grid,
-    const AtmPoint& atm_point) {
+void propagation_matrixAddPredefined(PropmatVector& propagation_matrix,
+                                     PropmatMatrix& propagation_matrix_jacobian,
+                                     const PredefinedModelData& abs_predef_data,
+                                     const SpeciesEnum& select_species,
+                                     const JacobianTargets& jac_targets,
+                                     const AscendingGrid& f_grid,
+                                     const AtmPoint& atm_point) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -137,7 +134,7 @@ void propagation_matrixAddPredefined(
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
-  for (auto& [isot, data] : absorption_predefined_model_data) {
+  for (auto& [isot, data] : abs_predef_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
     Absorption::PredefinedModel::compute(propagation_matrix,

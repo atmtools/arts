@@ -358,7 +358,7 @@ where :math:`a` is the numerator and :math:`b` is the denominator.
 
 This is used when using predefined models to allow for different types of data
 input.  Several types of predefined models have this data built into the code
-and will use it directly but must live in the *absorption_predefined_model_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
+and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
 )--",
   };
 

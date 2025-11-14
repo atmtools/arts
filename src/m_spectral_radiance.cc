@@ -96,7 +96,7 @@ void spectral_radianceStepByStepEmission(
     const ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
     const ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const ArrayOfStokvecMatrix& ray_path_spectral_radiance_source_jacobian,
-    const StokvecVector& spectral_radiance_background) try {
+    const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
   rtepack::two_level_linear_emission_step_by_step_full(
@@ -107,7 +107,7 @@ void spectral_radianceStepByStepEmission(
       ray_path_transmission_matrix_jacobian,
       ray_path_spectral_radiance_source,
       ray_path_spectral_radiance_source_jacobian,
-      spectral_radiance_background);
+      spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -117,7 +117,7 @@ void spectral_radianceCumulativeTransmission(
     const ArrayOfMuelmatVector& ray_path_transmission_matrix,
     const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative,
     const ArrayOfMuelmatTensor3& ray_path_transmission_matrix_jacobian,
-    const StokvecVector& spectral_radiance_background) try {
+    const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
   rtepack::two_level_linear_transmission_step(
@@ -126,7 +126,7 @@ void spectral_radianceCumulativeTransmission(
       ray_path_transmission_matrix,
       ray_path_transmission_matrix_cumulative,
       ray_path_transmission_matrix_jacobian,
-      spectral_radiance_background);
+      spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -492,11 +492,11 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_radianceSetToBackground(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
-    const StokvecVector& spectral_radiance_background,
+    const StokvecVector& spectral_rad_bkg,
     const StokvecMatrix& spectral_rad_bkg_jac) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance          = spectral_radiance_background;
+  spectral_radiance          = spectral_rad_bkg;
   spectral_radiance_jacobian = spectral_rad_bkg_jac;
 }
 ARTS_METHOD_ERROR_CATCH

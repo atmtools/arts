@@ -372,7 +372,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
 
   StokvecVector spectral_radiance{};
   StokvecMatrix spectral_radiance_jacobian{};
-  StokvecVector spectral_radiance_background{};
+  StokvecVector spectral_rad_bkg{};
   const StokvecMatrix spectral_rad_bkg_jac(0, nf);
 
   ray_path_spectral_radiance_scattering.resize(np);
@@ -383,10 +383,10 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
 
   String error{};
 
-#pragma omp parallel for firstprivate(    \
-        spectral_radiance,                \
-            spectral_radiance_jacobian,   \
-            spectral_radiance_background, \
+#pragma omp parallel for firstprivate(  \
+        spectral_radiance,              \
+            spectral_radiance_jacobian, \
+            spectral_rad_bkg,           \
             spectral_rad_bkg_jac) if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     try {
@@ -403,7 +403,7 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
         const auto& sun      = suns[isun];
 
         spectral_radianceSunOrCosmicBackground(
-            spectral_radiance_background, freq_grid, sun_path, sun, surf_field);
+            spectral_rad_bkg, freq_grid, sun_path, sun, surf_field);
 
         spectral_radianceClearskyBackgroundTransmission(
             ws,
@@ -414,8 +414,8 @@ void ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh(
             jac_targets,
             propagation_matrix_agenda,
             sun_path,
+            spectral_rad_bkg,
             spectral_rad_bkg_jac,
-            spectral_radiance_background,
             surf_field,
             hse_derivative);
 
