@@ -160,6 +160,7 @@ add_library(artsworkspace STATIC
   workspace_method_class.cpp
   workspace_method_extra_doc.cpp
   workspace_class.cpp
+  workspace_variable_shortnames.cpp
   m_abs.cc
   m_atm.cc
   m_atm_profile.cc

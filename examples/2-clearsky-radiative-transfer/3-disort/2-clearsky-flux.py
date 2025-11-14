@@ -15,34 +15,34 @@ ws = pyarts.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
-ws.frequency_grid = np.linspace(-20e9, 2e6, 5) + line_f0
+ws.freq_grid = [line_f0]
+ws.freq_grid = np.linspace(-20e9, 2e6, 5) + line_f0
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-# ws.atmospheric_field[pyarts.arts.AtmKey.t] = 300.0
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
+# ws.atm_field[pyarts.arts.AtmKey.t] = 300.0
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()
 
-ws.ray_pathGeometricDownlooking(longitude=lon, latitude=lat, max_stepsize=40_000)
+ws.ray_pathGeometricDownlooking(lon=lon, lat=lat, max_stepsize=40_000)
 
 ws.disort_spectral_flux_fieldFromAgenda(
     disort_quadrature_dimension=NQuad,
@@ -95,8 +95,8 @@ assert np.allclose(
 
 fig = plt.figure(figsize=(16, 5))
 fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig,
-                      alts=ws.disort_spectral_flux_field.altitude_grid / 1e3,
-                      freqs=ws.frequency_grid / 1e9, levels=50)
+                      alts=ws.disort_spectral_flux_field.alt_grid / 1e3,
+                      freqs=ws.freq_grid / 1e9, levels=50)
 fig.suptitle("Disort clearsky spectral fluxes")
 [a.set_ylabel("Altitude [km]") for a in ax]
 [a.set_xlabel("Frequency [GHz]") for a in ax]

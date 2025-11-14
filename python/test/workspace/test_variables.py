@@ -27,7 +27,7 @@ class TestVariables:
     def setup_workspace(self):
         ws = self.ws
 
-        ws.frequency_grid = 183.0e9 * np.ones(1)
+        ws.freq_grid = 183.0e9 * np.ones(1)
 
     def test_index_transfer(self):
         """
@@ -116,9 +116,9 @@ class TestVariables:
         """
         Test initialization of workspace variables.
         """
-        self.ws.frequency_grid = np.array([94e9])
-        self.ws.frequency_grid = []
-        assert self.ws.frequency_grid.value.size == 0
+        self.ws.freq_grid = np.array([94e9])
+        self.ws.freq_grid = []
+        assert self.ws.freq_grid.value.size == 0
 
     def test_convert(self):
         """
@@ -159,10 +159,10 @@ class TestVariables:
 
     def test_typeerror(self):
         with pytest.raises(TypeError):
-            self.ws.frequency_grid = 1
+            self.ws.freq_grid = 1
 
         with pytest.raises(TypeError):
-            self.ws.frequency_grid = "c"
+            self.ws.freq_grid = "c"
 
     def test_method_agenda_variables_io(self):
         allvars = pyarts.arts.globals.workspace_variables()

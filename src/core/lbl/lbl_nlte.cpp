@@ -43,17 +43,17 @@ GeodeticField3 level_density(const GeodeticField3& T,
 
 namespace lbl::nlte {
 std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
-    const AtmField& atmospheric_field,
-    const AbsorptionBands& absorption_bands,
+    const AtmField& atm_field,
+    const AbsorptionBands& abs_bands,
     const Numeric& normalizing_factor) {
   std::unordered_map<QuantumLevelIdentifier, AtmData> out;
 
-  ARTS_USER_ERROR_IF(not atmospheric_field.contains(AtmKey::t),
+  ARTS_USER_ERROR_IF(not atm_field.contains(AtmKey::t),
                      "Atmospheric field does not contain temperature data");
 
-  const AtmData& t_data = atmospheric_field[AtmKey::t];
+  const AtmData& t_data = atm_field[AtmKey::t];
 
-  for (const auto& [key, band] : absorption_bands) {
+  for (const auto& [key, band] : abs_bands) {
     ARTS_USER_ERROR_IF(band.size() != 1, "Only for single-line bands");
 
     const auto upp = key.upper();
@@ -157,12 +157,11 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
   return out;
 }
 
-QuantumIdentifierNumericMap createAij(
-    const AbsorptionBands& absorption_bands) try {
+QuantumIdentifierNumericMap createAij(const AbsorptionBands& abs_bands) try {
   QuantumIdentifierNumericMap Aij;
-  Aij.reserve(absorption_bands.size());
+  Aij.reserve(abs_bands.size());
 
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     Aij[key] = data.lines.front().a;
   }
@@ -171,16 +170,15 @@ QuantumIdentifierNumericMap createAij(
 }
 ARTS_METHOD_ERROR_CATCH
 
-QuantumIdentifierNumericMap createBij(
-    const AbsorptionBands& absorption_bands) try {
+QuantumIdentifierNumericMap createBij(const AbsorptionBands& abs_bands) try {
   constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
 
   // Size of problem
   QuantumIdentifierNumericMap Bij;
-  Bij.reserve(absorption_bands.size());
+  Bij.reserve(abs_bands.size());
 
   // Base equation for single state:  B21 = A21 c^2 / 2 h f^3  (nb. SI, don't use this without checking your need)
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line = data.lines.front();
     Bij[key]         = line.a / (c0 * Math::pow3(line.f0));
@@ -190,13 +188,12 @@ QuantumIdentifierNumericMap createBij(
 }
 ARTS_METHOD_ERROR_CATCH
 
-QuantumIdentifierNumericMap createBji(
-    const QuantumIdentifierNumericMap& Bij,
-    const AbsorptionBands& absorption_bands) try {
+QuantumIdentifierNumericMap createBji(const QuantumIdentifierNumericMap& Bij,
+                                      const AbsorptionBands& abs_bands) try {
   QuantumIdentifierNumericMap Bji(Bij);
 
   // Base equation for single state:  B12 = B21 g2 / g1
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line  = data.lines.front();
     Bji[key]         *= line.gu / line.gl;
@@ -207,21 +204,20 @@ QuantumIdentifierNumericMap createBji(
 ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierVectorMap createCij(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
-  QuantumIdentifierVectorMap Cij(absorption_bands.size());
-  for (const auto& [key, data] : absorption_bands) {
+    const ArrayOfAtmPoint& atm_path) try {
+  QuantumIdentifierVectorMap Cij(abs_bands.size());
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& coll = collision_data.at(key);
     Vector& x        = Cij[key];
 
-    for (auto& atmospheric_point : ray_path_atmospheric_point) {
-      const auto numden = atmospheric_point.number_density(key.isot);
+    for (auto& atm_point : atm_path) {
+      const auto numden = atm_point.number_density(key.isot);
 
-      x.push_back(
-          interp(coll.data, coll.lag<0, 1>(atmospheric_point.temperature)) *
-          numden);
+      x.push_back(interp(coll.data, coll.lag<0, 1>(atm_point.temperature)) *
+                  numden);
     }
   }
 
@@ -229,21 +225,20 @@ QuantumIdentifierVectorMap createCij(
 }
 ARTS_METHOD_ERROR_CATCH
 
-QuantumIdentifierVectorMap createCji(
-    const QuantumIdentifierVectorMap& Cij,
-    const AbsorptionBands& absorption_bands,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point) try {
+QuantumIdentifierVectorMap createCji(const QuantumIdentifierVectorMap& Cij,
+                                     const AbsorptionBands& abs_bands,
+                                     const ArrayOfAtmPoint& atm_path) try {
   using Constant::h, Constant::k;
 
   QuantumIdentifierVectorMap Cji(Cij);
-  for (const auto& [key, data] : absorption_bands) {
+  for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& line = data.lines.front();
 
     auto& cji = Cji.at(key);
-    for (Size i = 0; i < ray_path_atmospheric_point.size(); i++) {
-      const Numeric dkT = 1.0 / (k * ray_path_atmospheric_point[i].temperature);
-      cji[i] *= std::exp(-h * line.f0 * dkT) * line.gu / line.gl;
+    for (Size i = 0; i < atm_path.size(); i++) {
+      const Numeric dkT  = 1.0 / (k * atm_path[i].temperature);
+      cji[i]            *= std::exp(-h * line.f0 * dkT) * line.gu / line.gl;
     }
   }
 
@@ -251,15 +246,14 @@ QuantumIdentifierVectorMap createCji(
 }
 ARTS_METHOD_ERROR_CATCH
 
-Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point,
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& atm_path,
                       const ArrayOfQuantumLevelIdentifier& levels) try {
   return Vector(std::from_range,
-                ray_path_atmospheric_point |
-                    stdv::transform([&levels](const AtmPoint& atm) {
-                      Numeric s{0.0};
-                      for (auto& x : levels) s += atm.nlte.at(x);
-                      return s;
-                    }));
+                atm_path | stdv::transform([&levels](const AtmPoint& atm) {
+                  Numeric s{0.0};
+                  for (auto& x : levels) s += atm.nlte.at(x);
+                  return s;
+                }));
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -278,12 +272,12 @@ Size band_level_mapUniquestIndex(
 ARTS_METHOD_ERROR_CATCH
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const ArrayOfQuantumLevelIdentifier& level_keys) try {
   std::unordered_map<QuantumIdentifier, UppLow> band_level_map;
-  band_level_map.reserve(absorption_bands.size());
+  band_level_map.reserve(abs_bands.size());
 
-  for (const auto& key : absorption_bands | stdv::keys) {
+  for (const auto& key : abs_bands | stdv::keys) {
     UppLow& ul = band_level_map[key];
 
     const auto lower      = key.lower();
@@ -354,7 +348,7 @@ Matrix statistical_equilibrium_equation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-Numeric set_nlte(AtmPoint& atmospheric_point,
+Numeric set_nlte(AtmPoint& atm_point,
                  const ArrayOfQuantumLevelIdentifier& level_keys,
                  const Vector& x) try {
   assert(x.size() == level_keys.size());
@@ -362,7 +356,7 @@ Numeric set_nlte(AtmPoint& atmospheric_point,
 
   for (Size i = 0; i < level_keys.size(); i++) {
     auto& key  = level_keys[i];
-    auto& v    = atmospheric_point.nlte[key];
+    auto& v    = atm_point.nlte[key];
     max_change = std::max(max_change, std::abs(v - x[i]));
     v          = x[i];
   }

@@ -12,37 +12,37 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 53.0669e9
-ws.frequency_grid = np.linspace(-15e6, 15e6, 51) + line_f0
+ws.freq_grid = np.linspace(-15e6, 15e6, 51) + line_f0
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=52e9, fmax=54e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=52e9, fmax=54e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF()
+ws.atm_fieldIGRF()
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
 
 @pyarts.arts_agenda(ws=ws, fix=True)
-def propagation_matrix_single_agenda(ws):
-    ws.propagation_matrix_singleInit()
-    ws.propagation_matrix_singleAddVoigtLTE()
+def single_propmat_agenda(ws):
+    ws.single_propmatInit()
+    ws.single_propmatAddVoigtLTE()
 
 
 # %% Calculate and compare refractive and geometric ray paths
@@ -50,25 +50,25 @@ pos = [3571, 46, 7]
 los = [20, 90]
 
 res = []
-ws.spectral_radiance_observer_position = pos
-ws.spectral_radiance_observer_line_of_sight = los
+ws.obs_pos = pos
+ws.obs_los = los
 ws.max_stepsize = 100.0
 
 # %% Show results
-ws.ray_path_point_back_propagation_agendaSet(option="GeometricStepwise")
-ws.spectral_radianceClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radianceApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
-geometric = ws.spectral_radiance * 1.0
-ws.ray_path_point_back_propagation_agendaSet(option="RefractiveStepwise")
-ws.spectral_radianceClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radianceApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
-refractive = ws.spectral_radiance * 1.0
+ws.ray_point_back_propagation_agendaSet(option="GeometricStepwise")
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+geometric = ws.spectral_rad * 1.0
+ws.ray_point_back_propagation_agendaSet(option="RefractiveStepwise")
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+refractive = ws.spectral_rad * 1.0
 
 # %% Show results
 
 if "ARTS_HEADLESS" not in os.environ:
     fig, ax = plt.subplots(2, 2, figsize=(10, 8))
-    freqs = ws.frequency_grid / 1e9
+    freqs = ws.freq_grid / 1e9
     pyarts.plots.StokvecVector.plot(
         geometric - refractive, fig=fig, ax=ax, freqs=freqs)
     for a in ax.flatten():

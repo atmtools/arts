@@ -1,10 +1,11 @@
 #include "workspace_variables.h"
 
+#include "unique_unordered_map.h"
 #include "workspace_agendas.h"
 
 namespace {
-void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
-                 wsv_data) {
+void agendas(
+    UniqueMap<std::string, WorkspaceVariableInternalRecord>& wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
     if (ag.enum_default.empty()) {
       wsv_data[name] = {
@@ -23,9 +24,9 @@ void agendas(std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
 
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
-  std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
+  UniqueMap<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
-  wsv_data["absorption_bands"] = {
+  wsv_data["abs_bands"] = {
       .desc =
           R"--(Bands of absorption lines for line-by-line (LBL) calculations.
 
@@ -36,7 +37,7 @@ Also see :doc:`concept.absorption.lbl` for more information on LBL calculations.
       .type = "AbsorptionBands",
   };
 
-  wsv_data["absorption_lookup_table"] = {
+  wsv_data["abs_lookup_data"] = {
       .desc =
           R"--(Absorption lookup table for scalar gas absorption coefficients.
 
@@ -48,7 +49,7 @@ See :doc:`concept.absorption.lookup` for more information on lookup table calcul
       .type = "AbsorptionLookupTables",
   };
 
-  wsv_data["absorption_cia_data"] = {
+  wsv_data["abs_cia_data"] = {
       .desc = R"--(HITRAN Collision-Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
@@ -68,160 +69,7 @@ See also :doc:`concept.absorption.cia` for more information on CIA calculations.
       .type = "ArrayOfCIARecord",
   };
 
-  wsv_data["absorption_species"] = {
-      .desc = R"--(Tag groups for gas absorption.
-
-This allows the user to set up groups of species tags that are used
-to load the correct data.
-
-It is only used to let data-reading methods know which
-species they should read from the available input files.
-)--",
-      .type = "ArrayOfSpeciesTag",
-  };
-
-  wsv_data["altitude"] = {
-      .desc =
-          R"--(A single altitude in the atmosphere.
-
-Unit: m
-)--",
-      .type          = "Numeric",
-      .default_value = "0.0",
-  };
-
-  wsv_data["altitude_grid"] = {
-      .desc =
-          R"--(An ascending list of *altitude*.  Often related to a field or a profile.
-
-Unit: m
-
-.. note::
-    There is no global grid system in ARTS, so beware of the local
-    nature of all grids.
-)--",
-      .type = "AscendingGrid",
-  };
-
-  wsv_data["atmospheric_field"] = {
-      .desc =
-          R"--(An atmospheric field in ARTS.
-
-The atmospheric field defines the altitude of the top-of-the-atmosphere,
-as well as the variables that are required for the radiative transfer
-calculations along a path through the atmosphere.  The field can be
-accessed at any altitude, latitude, longitude path that is within the
-atmosphere to access the relevant atmospheric point data (*atmospheric_point*).
-
-Note that constraints on the various field parameters may be imposed by
-extrapolation limitations on the field parameter itself, causing some or
-large swaths of the atmosphere to be inaccessible.
-
-The atmospheric field may, but does not have to, consist of the following:
-
--  Temperature                     - Atmospheric temperatures in Kelvin
--  Pressure                        - Atmospheric pressure in Pascal
--  Wind                            - Atmospheric wind field in meters per second
--  Magnetic Field                  - Magnetic field in Tesla
--  Species content                 - Usually the volume-mixing ratio of various species, with some exceptions. See *SpeciesEnum* for more details.
--  Isotopologue ratios             - The isotopologue ratios of various species.  See *SpeciesIsotope* for more details.
--  Non-local thermodynamics ratios - Unitless [pure-style] OR Kelvin [vibrational-style] ratios replacing the Boltzman distribution used in the LTE calculations.
--  Scattering species content      - See user guide for more information.  This is custom data to aid scattering calculations.
-
-For more information, see :doc:`user.atmospheric_field`.
-)--",
-      .type = "AtmField",
-  };
-
-  wsv_data["atmospheric_point"] = {
-      .desc =
-          R"--(An atmospheric point in ARTS.
-
-The atmospheric point consists of all the relevant atmospheric field data
-at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
-at a single altitude-latitude-longitude but may of course be generated manually.
-
-See *atmospheric_field* for the data that may be available in the atmospheric point.
-
-For more information, see :doc:`user.atmospheric_field`.
-)--",
-      .type = "AtmPoint",
-  };
-
-  wsv_data["atmospheric_profile"] = {
-      .desc =
-          R"--(An atmospheric profile in ARTS.
-
-This exists to interface between the fully 3D atmospheric field native to ARTS
-and various 1D and 2D solvers that make use of profiles for fixed geometries.
-
-The atmospheric profile consists of all the relevant atmospheric field data
-at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
-at a single latitude-longitude coordinate but may of course be generated manually.
-
-See *atmospheric_field* for the data that may be available in the atmospheric point.
-
-The size of the profile is the same as *altitude_grid*.
-
-For more information, see :doc:`user.atmospheric_field`.
-)--",
-      .type = "ArrayOfAtmPoint",
-  };
-
-  wsv_data["propagation_matrix_jacobian"] = {
-      .desc =
-          R"--(Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
-
-The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
-)--",
-      .type = "PropmatMatrix",
-  };
-
-  wsv_data["propagation_matrix_source_vector_nonlte_jacobian"] = {
-      .desc =
-          R"--(Partial derivative of the *propagation_matrix_source_vector_nonlte* with regards to *jacobian_targets*.
-
-The units are *spectral_radiance_jacobian* per meter.
-)--",
-      .type = "StokvecMatrix",
-  };
-
-  wsv_data["ecs_data"] = {
-      .desc          = R"--(Error corrected sudden data
-
-Dimensions: [num Isotopologues] [num Species]
-
-Used in line-by-line calculations requiring ECS data.
-)--",
-      .type          = "LinemixingEcsData",
-      .default_value = " ",
-  };
-
-  wsv_data["frequency_wind_shift_jacobian"] = {
-      .desc =
-          R"--(The frequency wind shift Jacobian.
-
-Used because all methods inside *propagation_matrix_agenda* work on
-the frequency grid, not on the actual wind speed for the sake of
-wind shift Jacobian calculations.
-
-The order is
-
-.. math::
-    \left[ \begin{array}{c} \frac{\partial f}{\partial u} \\ \frac{\partial f}{\partial v} \\ \frac{\partial f}{\partial w} \end{array} \right]
-)--",
-      .type          = "Vector3",
-      .default_value = "0.0, 0.0, 0.0",
-  };
-
-  wsv_data["ray_path_frequency_wind_shift_jacobian"] = {
-      .desc =
-          R"--(A list of *frequency_wind_shift_jacobian* for a ray path.
-)--",
-      .type = "ArrayOfVector3",
-  };
-
-  wsv_data["absorption_xsec_fit_data"] = {
+  wsv_data["abs_xfit_data"] = {
       .desc = R"--(Fitting model coefficients for cross section species.
 
 Dimensions: [ n_species ]
@@ -278,30 +126,183 @@ See also :doc:`concept.absorption.xsec` for more information on these calculatio
       .type = "ArrayOfXsecRecord",
   };
 
-  wsv_data["propagation_matrix_source_vector_nonlte"] = {
+  wsv_data["abs_species"] = {
+      .desc = R"--(Tag groups for gas absorption.
+
+This allows the user to set up groups of species tags that are used
+to load the correct data.
+
+It is only used to let data-reading methods know which
+species they should read from the available input files.
+)--",
+      .type = "ArrayOfSpeciesTag",
+  };
+
+  wsv_data["alt"] = {
+      .desc =
+          R"--(A single altitude in the atmosphere.
+
+Unit: m
+)--",
+      .type          = "Numeric",
+      .default_value = "0.0",
+  };
+
+  wsv_data["alt_grid"] = {
+      .desc =
+          R"--(An ascending list of *alt*.  Often related to a field or a profile.
+
+Unit: m
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
+)--",
+      .type = "AscendingGrid",
+  };
+
+  wsv_data["atm_field"] = {
+      .desc =
+          R"--(An atmospheric field in ARTS.
+
+The atmospheric field defines the altitude of the top-of-the-atmosphere,
+as well as the variables that are required for the radiative transfer
+calculations along a path through the atmosphere.  The field can be
+accessed at any altitude, latitude, longitude path that is within the
+atmosphere to access the relevant atmospheric point data (*atm_point*).
+
+Note that constraints on the various field parameters may be imposed by
+extrapolation limitations on the field parameter itself, causing some or
+large swaths of the atmosphere to be inaccessible.
+
+The atmospheric field may, but does not have to, consist of the following:
+
+-  Temperature                     - Atmospheric temperatures in Kelvin
+-  Pressure                        - Atmospheric pressure in Pascal
+-  Wind                            - Atmospheric wind field in meters per second
+-  Magnetic Field                  - Magnetic field in Tesla
+-  Species content                 - Usually the volume-mixing ratio of various species, with some exceptions. See *SpeciesEnum* for more details.
+-  Isotopologue ratios             - The isotopologue ratios of various species.  See *SpeciesIsotope* for more details.
+-  Non-local thermodynamics ratios - Unitless [pure-style] OR Kelvin [vibrational-style] ratios replacing the Boltzman distribution used in the LTE calculations.
+-  Scattering species content      - See user guide for more information.  This is custom data to aid scattering calculations.
+
+For more information, see :doc:`user.atm_field`.
+)--",
+      .type = "AtmField",
+  };
+
+  wsv_data["atm_point"] = {
+      .desc =
+          R"--(An atmospheric point in ARTS.
+
+The atmospheric point consists of all the relevant atmospheric field data
+at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
+at a single altitude-latitude-longitude but may of course be generated manually.
+
+See *atm_field* for the data that may be available in the atmospheric point.
+
+For more information, see :doc:`user.atm_field`.
+)--",
+      .type = "AtmPoint",
+  };
+
+  wsv_data["atm_profile"] = {
+      .desc =
+          R"--(An atmospheric profile in ARTS.
+
+This exists to interface between the fully 3D atmospheric field native to ARTS
+and various 1D and 2D solvers that make use of profiles for fixed geometries.
+
+The atmospheric profile consists of all the relevant atmospheric field data
+at a discrete profile in the atmosphere.  It is often extracted from an *AtmField*
+at a single latitude-longitude coordinate but may of course be generated manually.
+
+See *atm_field* for the data that may be available in the atmospheric point.
+
+The size of the profile is the same as *alt_grid*.
+
+For more information, see :doc:`user.atm_field`.
+)--",
+      .type = "ArrayOfAtmPoint",
+  };
+
+  wsv_data["spectral_propmat_jac"] = {
+      .desc =
+          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
+
+The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
+)--",
+      .type = "PropmatMatrix",
+  };
+
+  wsv_data["spectral_srcvec_nlte_jac"] = {
+      .desc =
+          R"--(Partial derivative of the *spectral_srcvec_nlte* with regards to *jac_targets*.
+
+The units are *spectral_rad_jac* per meter.
+)--",
+      .type = "StokvecMatrix",
+  };
+
+  wsv_data["abs_ecs_data"] = {
+      .desc          = R"--(Error corrected sudden data
+
+Dimensions: [num Isotopologues] [num Species]
+
+Used in line-by-line calculations requiring ECS data.
+)--",
+      .type          = "LinemixingEcsData",
+      .default_value = " ",
+  };
+
+  wsv_data["freq_wind_shift_jac"] = {
+      .desc =
+          R"--(The frequency wind shift Jacobian.
+
+Used because all methods inside *spectral_propmat_agenda* work on
+the frequency grid, not on the actual wind speed for the sake of
+wind shift Jacobian calculations.
+
+The order is
+
+.. math::
+    \left[ \begin{array}{c} \frac{\partial f}{\partial u} \\ \frac{\partial f}{\partial v} \\ \frac{\partial f}{\partial w} \end{array} \right]
+)--",
+      .type          = "Vector3",
+      .default_value = "0.0, 0.0, 0.0",
+  };
+
+  wsv_data["freq_wind_shift_jac_path"] = {
+      .desc =
+          R"--(A list of *freq_wind_shift_jac* for a ray path.
+)--",
+      .type = "ArrayOfVector3",
+  };
+
+  wsv_data["spectral_srcvec_nlte"] = {
       .desc =
           R"--(The part of the source vector that is due to non-LTE.
 
-This is closely related to *propagation_matrix*.
+This is closely related to *spectral_propmat*.
 
 Gven the level source term:
 
 .. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
 
 this variable holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
-column of :math:`\mathbf{K}`, which is from the *propagation_matrix* variable.
+column of :math:`\mathbf{K}`, which is from the *spectral_propmat* variable.
 :math:`B` is the Planck function.  The ellipsis denotes other terms that can
 come from more sources, such as scattering and/or transmitting equipment.
 
-The unit is in *spectral_radiance* per meter.
+The unit is in *spectral_rad* per meter.
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_atmospheric_point"] = {
+  wsv_data["atm_path"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
-See *atmospheric_point* for information about atmospheric points
+See *atm_point* for information about atmospheric points
 
 Dimension: [ ppath.np ]
 
@@ -310,13 +311,13 @@ Usage: Output of radiative transfer methods.
       .type = "ArrayOfAtmPoint",
   };
 
-  wsv_data["ray_path_frequency_grid"] = {
-      .desc = R"--(All *frequency_grid* along the propagation path.
+  wsv_data["freq_grid_path"] = {
+      .desc = R"--(All *freq_grid* along the propagation path.
 )--",
       .type = "ArrayOfAscendingGrid",
   };
 
-  wsv_data["absorption_predefined_model_data"] = {
+  wsv_data["abs_predef_data"] = {
       .desc =
           R"--(This contains predefined model data.
 
@@ -327,7 +328,7 @@ See :doc:`concept.absorption.predef` for more information on predefined model ca
       .type = "PredefinedModelData",
   };
 
-  wsv_data["propagation_matrix"] = {
+  wsv_data["spectral_propmat"] = {
       .desc =
           R"--(This contains the fully polarized propagation matrix for the current path point.
 
@@ -340,21 +341,21 @@ over which it is considered constant.
 
 The unit is [1 / m].
 
-Dimension: *frequency_grid*.
+Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {
+  wsv_data["spectral_propmat_scat"] = {
       .desc =
           R"--(This contains the propagation matrix for scattering for the current path point.
 
 This needs to be used when scattering into the line of sight is considered. And it needs then to
-also be added to the *propagation_matrix*, which you should see for more information.
+also be added to the *spectral_propmat*, which you should see for more information.
 
 The unit is [1 / m].
 
-Dimension: *frequency_grid*.
+Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
   };
@@ -374,80 +375,66 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfSpeciesEnum",
   };
 
-  wsv_data["spectral_radiance_background_jacobian"] = {
+  wsv_data["spectral_rad_bkg_jac"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
-Shape: *model_state_vector* x *frequency_grid*
+Shape: *model_state_vector* x *freq_grid*
 )--",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["spectral_radiance_background"] = {
+  wsv_data["spectral_rad_bkg"] = {
       .desc = R"--(Spectral radiance from the background
 
-Shape: *frequency_grid*
+Shape: *freq_grid*
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["surface_reflectance"] = {
+  wsv_data["spectral_surf_refl"] = {
       .desc = R"--(Spectral surface reflectance.
 
-Shape: *frequency_grid*
+Shape: *freq_grid*
 )--",
       .type = "MuelmatVector",
   };
 
-  wsv_data["surface_reflectance_jacobian"] = {
+  wsv_data["spectral_surf_refl_jac"] = {
       .desc = R"--(Spectral surface reflectance jacobian.
 
-Shape: *jacobian_targets* - target count x *frequency_grid*
+Shape: *jac_targets* - target count x *freq_grid*
 )--",
       .type = "MuelmatMatrix",
   };
 
-  wsv_data["transmission_matrix_background"] = {
+  wsv_data["spectral_tramat_bkg"] = {
       .desc = R"--(Transmittance from the background
 )--",
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_matrix_scattering"] = {
-      .desc =
-          R"--(The propgation matrix of totally random orientation particles at a single point along a path using spectral representation
-)--",
-      .type = "PropmatVector",
-  };
-
-  wsv_data["ray_path_propagation_matrix_scattering"] = {
-      .desc =
-          R"--(The propgation matrix of totally random orientation particles along the propagation path using spectral representation
-)--",
-      .type = "ArrayOfPropmatVector",
-  };
-
-  wsv_data["absorption_vector_scattering"] = {
+  wsv_data["spectral_absvec_scat"] = {
       .desc =
           R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_absorption_vector_scattering"] = {
+  wsv_data["spectral_absvec_scat_path"] = {
       .desc =
           R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["phase_matrix_scattering_spectral"] = {
+  wsv_data["spectral_phamat_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "SpecmatMatrix",
   };
 
-  wsv_data["ray_path_phase_matrix_scattering_spectral"] = {
+  wsv_data["spectral_phamat_spectral_path"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
@@ -460,62 +447,62 @@ Shape: *jacobian_targets* - target count x *frequency_grid*
       .type = "ArrayOfScatteringSpecies",
   };
 
-  wsv_data["ray_path_spectral_radiance_scattering"] = {
+  wsv_data["spectral_rad_scat_path"] = {
       .desc = R"--(Spectral radiance scattered into the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_spectral_radiance_jacobian"] = {
+  wsv_data["spectral_rad_jac_path"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_propagation_matrix"] = {
+  wsv_data["spectral_propmat_path"] = {
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_scattering"] = {
+  wsv_data["spectral_propmat_scat_path"] = {
       .desc =
           R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_jacobian"] = {
+  wsv_data["spectral_propmat_jac_path"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix",
   };
 
-  wsv_data["ray_path_propagation_matrix_source_vector_nonlte"] = {
+  wsv_data["spectral_srcvec_nlte_path"] = {
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
+  wsv_data["spectral_srcvec_nlte_jac_path"] = {
       .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_spectral_radiance_source"] = {
+  wsv_data["spectral_rad_srcvec_path"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["ray_path_spectral_radiance_source_jacobian"] = {
+  wsv_data["spectral_rad_srcvec_jac_path"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["ray_path_transmission_matrix"] = {
+  wsv_data["spectral_tramat_path"] = {
       .desc = R"--(Transmission matrices along the propagation path.
 
 The outer dimension is the number of layers.
@@ -527,13 +514,13 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["ray_path_transmission_matrix_cumulative"] = {
+  wsv_data["spectral_tramat_cumulative_path"] = {
       .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["ray_path_transmission_matrix_jacobian"] = {
+  wsv_data["spectral_tramat_jac_path"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path.
 
 The outer dimension is the number of layers.
@@ -548,58 +535,58 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatTensor3",
   };
 
-  wsv_data["subsurface_profile"] = {
+  wsv_data["subsurf_profile"] = {
       .desc =
           R"--(A profile of subsurface points.  Supposed to be ordered from top to bottom.
 
-For more information, see :doc:`user.subsurface_field`.
+For more information, see :doc:`user.subsurf_field`.
 )--",
       .type = "ArrayOfSubsurfacePoint",
   };
 
-  wsv_data["surface_field"] = {
+  wsv_data["surf_field"] = {
       .desc = R"--(The surface field.
 
 This contains the global surface values, such as elevation and
 temperature but also entirely abstract properties and types that
 are used by specific surface-related methods.
 
-It is a 2D field with *latitude* , and *longitude* dimensions.
+It is a 2D field with *lat*, and *lon* dimensions.
 
-For more information, see :doc:`user.surface_field`.
+For more information, see :doc:`user.surf_field`.
 )--",
       .type = "SurfaceField",
   };
 
-  wsv_data["spectral_radiance_closed_surface_agenda"] = {
+  wsv_data["spectral_rad_closed_surface_agenda"] = {
       .desc          = R"--(A closed surface agenda.
 
-It behave exactly like *spectral_radiance_surface_agenda*.  It exists
+It behave exactly like *spectral_rad_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
-*spectral_radiance_surface_agenda* variable is the first interface
+*spectral_rad_surface_agenda* variable is the first interface
 and can chain into another surface agenda - this one.
 
-Thus this agenda must be "closed".  It cannot call another *spectral_radiance_surface_agenda*,
-whereas *spectral_radiance_surface_agenda* can call this agenda.  Imagine a chain where
-the *spectral_radiance_surface_agenda* gets the reflectance from a land surface model
-and calls the *spectral_radiance_observer_agenda* to compute the downwelling radiation at the surface.
-It can in turn call *spectral_radiance_closed_surface_agenda* to get the upwelling radiation from the surface
+Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
+whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
+the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
+and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
+It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
 that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
       .type          = "Agenda",
-      .default_value = "get_spectral_radiance_surface_agenda(\"Blackbody\"sv)",
+      .default_value = "get_spectral_rad_surface_agenda(\"Blackbody\"sv)",
   };
 
-  wsv_data["subsurface_field"] = {
+  wsv_data["subsurf_field"] = {
       .desc          = R"--(The sub-surface field.
 
 This contains global subsurface properties, such as temperature.
 It also contains many properties that are used by specific
 subsurface-related methods.
 
-It is a 3D field with *altitude*, *latitude*, and *longitude* dimensions.
+It is a 3D field with *alt*, *lat*, and *lon* dimensions.
 
-For more information, see :doc:`user.subsurface_field`.
+For more information, see :doc:`user.subsurf_field`.
 )--",
       .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
@@ -608,15 +595,15 @@ For more information, see :doc:`user.subsurface_field`.
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
 
-Usage: gravity = *gravity_operator* ( *altitude*, *latitude*, *longitude* ).
+Usage: gravity = *gravity_operator* ( *alt*, *lat*, *lon* ).
 
 Parameters
 ----------
-altitude : Numeric
+alt : Numeric
     Altitude in meters.
-latitude : Numeric
+lat : Numeric
     Latitude in degrees.
-longitude : Numeric
+lon : Numeric
     Longitude in degrees.
 
 Returns
@@ -645,17 +632,17 @@ psat : Numeric
       .type = "NumericUnaryOperator",
   };
 
-  wsv_data["spectral_radiance_field"] = {
+  wsv_data["spectral_rad_field"] = {
       .desc = R"(The spectral radiance field.
 
-*spectral_radiance* but for a field.
+*spectral_rad* but for a field.
 
-Dimensions are *altitude_grid* times *latitude_grid* times *longitude_grid* times *zenith_grid* times ``azimuth_grid`` times *frequency_grid*.
+Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
 )",
       .type = "GriddedSpectralField6",
   };
 
-  wsv_data["spectral_radiance_transform_operator"] = {
+  wsv_data["spectral_rad_transform_operator"] = {
       .desc = R"(The spectral radiance transform operator
 
 This is responsible for things like converting the spectral radiance
@@ -663,9 +650,10 @@ into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
 )",
       .type = "SpectralRadianceTransformOperator",
       .default_value =
-          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)"};
+          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
+  };
 
-  wsv_data["spectral_radiance"] = {
+  wsv_data["spectral_rad"] = {
       .desc = R"--(A spectral radiance vector.
 
 This is the representation of the spectral radiances at discrete frequencies for
@@ -674,26 +662,26 @@ a discrete viewing direction.
 The unit of spectral radiance is [W / m :math:`^2` sr Hz].
 
 Note that there are conversion routines that changes this unit,
-e.g., *spectral_radianceApplyUnit*.  After conversion,
-the use of *spectral_radiance* in any method no marked as safe for different units,
+e.g., *spectral_radApplyUnit*.  After conversion,
+the use of *spectral_rad* in any method no marked as safe for different units,
 will lead to undefined behavior with possibly bad values being computed.
 
-The size of this variable should be the size of the local *frequency_grid*.
+The size of this variable should be the size of the local *freq_grid*.
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["spectral_radiance_jacobian"] = {
+  wsv_data["spectral_rad_jac"] = {
       .desc =
-          R"--(Jacobian of *spectral_radiance* with respect to *jacobian_targets*.
+          R"--(Jacobian of *spectral_rad* with respect to *jac_targets*.
 
-The size of this variable should be the local *jacobian_targets* as rows times the
-size of the local *spectral_radiance* as columns.
+The size of this variable should be the local *jac_targets* as rows times the
+size of the local *spectral_rad* as columns.
 )--",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["jacobian_targets"] = {
+  wsv_data["jac_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
 
 See *JacobianTargetType* for more information.  The targets are
@@ -701,14 +689,14 @@ sorted by their type.  A target must have information about its
 position in the target count, as well as the number of parameters
 it contributes to the *model_state_vector*.  It must know these
 things because it is able to map data between the *model_state_vector*
-and the actual model field, e.g., the *atmospheric_field*, the *surface_field*,
-the *subsurface_field*, the *absorption_bands*, the *measurement_sensor*, etc.
+and the actual model field, e.g., the *atm_field*, the *surf_field*,
+the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
       .type = "JacobianTargets",
       .default_value = " ",
   };
 
-  wsv_data["ray_path_point"] = {
+  wsv_data["ray_point"] = {
       .desc = R"--(A single path point.
 
 This consists of
@@ -726,7 +714,7 @@ This consists of
       .type = "PropagationPathPoint",
   };
 
-  wsv_data["frequency_grid"] = {
+  wsv_data["freq_grid"] = {
       .desc = R"--(A single frequency grid.
 
 Units: Hz
@@ -738,7 +726,7 @@ Units: Hz
       .type = "AscendingGrid",
   };
 
-  wsv_data["zenith_grid"] = {
+  wsv_data["za_grid"] = {
       .desc = R"--(A single zenith angle grid.
 
 Units: degrees
@@ -769,7 +757,7 @@ This is used by some methods to set up representative fields to help speed up co
       .desc =
           R"--(A list path points making up the observers of a propagation path.
 
-These can be used directly for *spectral_radiance_observer_position* and *spectral_radiance_observer_line_of_sight*
+These can be used directly for *obs_pos* and *obs_los*
 )--",
       .type = "ArrayOfPropagationPathPoint",
   };
@@ -786,23 +774,23 @@ These can be used directly for *spectral_radiance_observer_position* and *spectr
       .type = "QuantumIdentifierVectorMap",
   };
 
-  wsv_data["spectral_radiance_observer_position"] = {
+  wsv_data["obs_pos"] = {
       .desc = R"--(The position of an observer of spectral radiance.
 
-Most likely only makes sense in combination with *spectral_radiance_observer_line_of_sight*.
+Most likely only makes sense in combination with *obs_los*.
 )--",
       .type = "Vector3",
   };
 
-  wsv_data["spectral_radiance_observer_line_of_sight"] = {
+  wsv_data["obs_los"] = {
       .desc = R"--(The line-of-sight of the observer of spectral radiance.
 
-Most likely only makes sense in combination with *spectral_radiance_observer_position*.
+Most likely only makes sense in combination with *obs_pos*.
 )--",
       .type = "Vector2",
   };
 
-  wsv_data["spectral_radiance_operator"] = {
+  wsv_data["spectral_rad_operator"] = {
       .desc = R"--(The spectral radiance operator.
 
 This is a class that can compute the spectral radiance
@@ -821,7 +809,7 @@ This represents the :emphasis:`chosen` state of the model.
 In the notation of *measurement_vector* and *OEM*,
 :math:`\vec{x}` is the *model_state_vector*.
 
-To choose the state of the model, you must setup *jacobian_targets* to
+To choose the state of the model, you must setup *jac_targets* to
 include the state parameters you want to be able to change.
 )",
       .type          = "Vector",
@@ -927,13 +915,13 @@ Usage: Used and set by inversion methods.
       .default_value = "0",
   };
 
-  wsv_data["do_jacobian"] = {
+  wsv_data["do_jac"] = {
       .desc =
           R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
 
 This variable is limited to very few methods related to the inversion process for *OEM*.
 Note that deep code of ARTS will ignore this variable, so it is not a global switch.
-Instead, it is used as a switch to clear the *jacobian_targets* variable, which is used
+Instead, it is used as a switch to clear the *jac_targets* variable, which is used
 to determine the size of the *measurement_jacobian*.  It is important to be careful
 with this, as it will mess with the size of the *measurement_jacobian* and could
 thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
@@ -1018,7 +1006,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
-  wsv_data["disort_spectral_radiance_field"] = {
+  wsv_data["disort_spectral_rad_field"] = {
       .desc = R"(The spectral radiance field from Disort.
 )",
       .type = "DisortRadiance",
@@ -1039,7 +1027,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
   wsv_data["disort_quadrature"] = {
       .desc = R"(The quadrature angles for Disort with accompying weights.
 
-Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_radiance_field*.
+Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_rad_field*.
 )",
       .type = "ZenithGriddedField1",
   };
@@ -1062,7 +1050,7 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .type = "Index",
   };
 
-  wsv_data["latitude"] = {
+  wsv_data["lat"] = {
       .desc =
           R"--(A single latitude.
 
@@ -1072,9 +1060,9 @@ Units: degrees
       .default_value = "0.0",
   };
 
-  wsv_data["latitude_grid"] = {
+  wsv_data["lat_grid"] = {
       .desc =
-          R"--(An ascending list of *latitude*.  Often related to a field or a profile.
+          R"--(An ascending list of *lat*.  Often related to a field or a profile.
 
 Units: degrees
 
@@ -1085,7 +1073,7 @@ Units: degrees
       .type = "LatGrid",
   };
 
-  wsv_data["longitude"] = {
+  wsv_data["lon"] = {
       .desc =
           R"--(A single longitude.
 
@@ -1095,9 +1083,9 @@ Units: degrees
       .default_value = "0.0",
   };
 
-  wsv_data["longitude_grid"] = {
+  wsv_data["lon_grid"] = {
       .desc =
-          R"--(An ascending list of *longitude*.  Often related to a field or a profile.
+          R"--(An ascending list of *lon*.  Often related to a field or a profile.
 
 Units: degrees
 
@@ -1120,123 +1108,109 @@ Units: degrees
       .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
   };
 
-  wsv_data["single_radiance"] = {
-      .desc = R"(A single radiance value.
-)",
-      .type = "Stokvec",
-  };
-
-  wsv_data["single_radiance_jacobian"] = {
-      .desc = R"(A single set of radiance Jacobian.
-
-Dimensions: [ jacobian_targets.target_size() ]
-)",
-      .type = "StokvecVector",
-  };
-
-  wsv_data["ray_path_single_frequency"] = {
-      .desc = R"(The frequency along the path.
+  wsv_data["single_freq_path"] = {
+      .desc = R"(The *freq* along the path.
 )",
       .type = "Vector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix"] = {
+  wsv_data["single_propmat_path"] = {
       .desc = R"(The propagation matrix along the path.
 
-Dimensions: [ ray_path.size() ]
+Dimensions: [ *ray_path* ]
 )",
       .type = "PropmatVector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_jacobian"] = {
+  wsv_data["single_propmat_jac_path"] = {
       .desc = R"(The propagation matrix Jacobian along the path.
 
-Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
 )",
       .type = "PropmatMatrix",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_nonlte"] = {
+  wsv_data["single_nlte_srcvec_path"] = {
       .desc = R"(The propagation matrix along the path for nonlte source vector.
 
-Dimensions: [ ray_path.size() ]
+Dimensions: [ *ray_path* ]
 )",
       .type = "StokvecVector",
   };
 
-  wsv_data["ray_path_single_propagation_matrix_nonlte_jacobian"] = {
+  wsv_data["single_nlte_srcvec_jac_path"] = {
       .desc =
           R"(The propagation matrix Jacobian along the path for nonlte source.
 
-Dimensions: [ ray_path.size() x jacobian_targets.target_size() ]
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
 )",
       .type = "StokvecMatrix",
   };
 
-  wsv_data["propagation_matrix_single"] = {
-      .desc = R"--(A single propagation matrix at a single *frequency* point.
+  wsv_data["single_propmat"] = {
+      .desc = R"--(A propagation matrix at a single *freq* point.
 
-See *propagation_matrix* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "Propmat",
   };
 
-  wsv_data["propagation_matrix_single_jacobian"] = {
+  wsv_data["single_propmat_jac"] = {
       .desc =
-          R"--(A single propagation matrix Jacobian at a single *frequency* point.
+          R"--(A propagation matrix Jacobian at a single *freq* point.
 
-See *propagation_matrix_jacobian* for more information.
+See *spectral_propmat_jac* for more information.
 
 Size is number of Jacobian targets.
 )--",
       .type = "PropmatVector",
   };
 
-  wsv_data["propagation_matrix_single_source_vector_nonlte"] = {
-      .desc = R"--(A single non-LTE source vector at a single *frequency* point.
+  wsv_data["single_nlte_srcvec"] = {
+      .desc = R"--(A non-LTE source vector at a single *freq* point.
 
-See *propagation_matrix* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "Stokvec",
   };
 
-  wsv_data["propagation_matrix_single_source_vector_nonlte_jacobian"] = {
+  wsv_data["single_nlte_srcvec_jac"] = {
       .desc =
-          R"--(A single non-LTE source vector Jacobian at a single *frequency* point.
+          R"--(A non-LTE source vector Jacobian at a single *freq* point.
 
-See *propagation_matrix_jacobian* for more information.
+See *spectral_propmat_jac* for more information.
 
 Size is number of Jacobian targets.
 )--",
       .type = "StokvecVector",
   };
 
-  wsv_data["dispersion_single"] = {
-      .desc = R"--(A single dispersion at a single *frequency* point.
+  wsv_data["single_dispersion"] = {
+      .desc = R"--(A dispersion at a single *freq* point.
 )--",
       .type = "Numeric",
   };
 
-  wsv_data["dispersion_single_jacobian"] = {
-      .desc = R"--(A single dispersion Jacobian at a single *frequency* point.
+  wsv_data["single_dispersion_jac"] = {
+      .desc = R"--(A dispersion Jacobian at a single *freq* point.
 )--",
       .type = "Vector",
   };
 
-  wsv_data["frequency"] = {
+  wsv_data["freq"] = {
       .desc = R"--(A single frequency.
 )--",
       .type = "Numeric",
   };
 
-  wsv_data["single_spectral_radiance"] = {
-      .desc = R"--(Single value version of *spectral_radiance*.
+  wsv_data["single_rad"] = {
+      .desc = R"--(Single value version of *spectral_rad*.
 )--",
       .type = "Stokvec",
   };
 
-  wsv_data["single_spectral_radiance_jacobian"] = {
-      .desc = R"--(Single value version of *spectral_radiance_jacobian*.
+  wsv_data["single_rad_jac"] = {
+      .desc = R"--(Single value version of *spectral_rad_jac*.
 )--",
       .type = "StokvecVector",
   };

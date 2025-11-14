@@ -327,7 +327,7 @@ A surface field effectively holds two things:
   };
 
   wsg_data["SubsurfaceField"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc =
           R"--(A sub-surface field.
 
@@ -346,7 +346,7 @@ A sub-surface field effectively holds two things:
   };
 
   wsg_data["SubsurfacePropertyTag"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"--(A custom property tag for subsurface fields data.
 
 These tags are part of the keys that can be used to access a *SubsurfaceField* or *SubsurfacePoint*.
@@ -496,7 +496,7 @@ The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["StokvecSortedGriddedField6"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional gridof *Stokvec*.
+      .desc = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -504,7 +504,7 @@ The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["GriddedSpectralField6"] = {
       .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional gridof *Stokvec*.
+      .desc = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
 *AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
@@ -607,7 +607,7 @@ modifying the values are not allowed.
 
   wsg_data["SpectralRadianceOperator"] = {
       .file = "fwd.h",
-      .desc = R"--(An operator for getting the *spectral_radiance*
+      .desc = R"--(An operator for getting the *spectral_rad*
 
 An object of this type can be called with a frequency, position and
 line-of-sight to get the corresponding spectral radiance.
@@ -619,7 +619,7 @@ line-of-sight to get the corresponding spectral radiance.
       .desc = R"(Contains name and data about an isotope.
 
 This is used to identify a specific isotope in a species.
-The allowed values for the isotope are predefined, see *absorption_speciesSet* for available species.
+The allowed values for the isotope are predefined, see *abs_speciesSet* for available species.
 
 For *PredefinedModelData*, this identifies the predefined model by name
 and return any associated data.
@@ -687,7 +687,7 @@ and returns any associated data.
 
   wsg_data["ZenithGriddedField1"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional gridof *Numeric*.
+      .desc = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *ZenithGrid*.  This grid is sorted.
 )--",
@@ -695,7 +695,7 @@ The grids are 1 *ZenithGrid*.  This grid is sorted.
 
   wsg_data["SortedGriddedField1"] = {
       .file = "matpack.h",
-      .desc = R"--(A 1-dimensional gridof *Numeric*.
+      .desc = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *AscendingGrid*.  This grid is sorted.
 )--",
@@ -703,7 +703,7 @@ The grids are 1 *AscendingGrid*.  This grid is sorted.
 
   wsg_data["SortedGriddedField2"] = {
       .file = "matpack.h",
-      .desc = R"--(A 2-dimensional gridof *Numeric*.
+      .desc = R"--(A 2-dimensional grid of *Numeric*.
 
 The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -711,16 +711,16 @@ The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["GeodeticField2"] = {
       .file = "matpack.h",
-      .desc = R"--(A 2-dimensional gridof *Numeric*.
+      .desc = R"--(A 2-dimensional grid of *Numeric*.
 
-The grids are *latitude_grid* x *longitude_grid*.
+The grids are *lat_grid* x *lon_grid*.
 The types are *LatGrid* x *LonGrid*.  The grids are fully sorted.
 )--",
   };
 
   wsg_data["SortedGriddedField3"] = {
       .file = "matpack.h",
-      .desc = R"--(A 3-dimensional gridof *Numeric*.
+      .desc = R"--(A 3-dimensional grid of *Numeric*.
 
 The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -728,7 +728,7 @@ The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField4"] = {
       .file = "matpack.h",
-      .desc = R"--(A 4-dimensional gridof *Numeric*.
+      .desc = R"--(A 4-dimensional grid of *Numeric*.
 
 The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -736,7 +736,7 @@ The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField5"] = {
       .file = "matpack.h",
-      .desc = R"--(A 5-dimensional gridof *Numeric*.
+      .desc = R"--(A 5-dimensional grid of *Numeric*.
 
 The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -744,7 +744,7 @@ The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 
   wsg_data["SortedGriddedField6"] = {
       .file = "matpack.h",
-      .desc = R"--(A 6-dimensional gridof *Numeric*.
+      .desc = R"--(A 6-dimensional grid of *Numeric*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
@@ -801,25 +801,25 @@ modifying the values are not allowed.
   wsg_data["SpectralRadianceTransformOperator"] = {
       .file = "spectral_radiance_transform_operator.h",
       .desc =
-          R"--(Transformation of *spectral_radiance* and *spectral_radiance_jacobian*
+          R"--(Transformation of *spectral_rad* and *spectral_rad_jac*
 
 This type of transformation should be used limitedly.  It is useful
 as the last step before creating a *measurement_vector*, as it is
 used for in *measurement_vectorFromSensor* or just before displaying
-data in a plotting routine.  It will destroy the *spectral_radiance*
-and *spectral_radiance_jacobian* and replace them with the transformed
+data in a plotting routine.  It will destroy the *spectral_rad*
+and *spectral_rad_jac* and replace them with the transformed
 values.  They can likely not be reused for further calculations.
 
 Parameters
 ----------
-spectral_radiance : StokvecVector
-    As WSV *spectral_radiance* **[INOUT]**
-spectral_radiance_jacobian : StokvecMatrix
-    As WSV *spectral_radiance_jacobian* **[INOUT]**
-frequency_grid : AscendingGrid
-    As WSV *frequency_grid* **[IN]**
-ray_path_point : PropagationPathPoint
-    As WSV *ray_path_point* **[IN]**
+spectral_rad : StokvecVector
+    As WSV *spectral_rad* **[INOUT]**
+spectral_rad_jac : StokvecMatrix
+    As WSV *spectral_rad_jac* **[INOUT]**
+freq_grid : AscendingGrid
+    As WSV *freq_grid* **[IN]**
+ray_point : PropagationPathPoint
+    As WSV *ray_point* **[IN]**
 )--",
   };
 

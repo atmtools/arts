@@ -257,7 +257,7 @@ so that reading routines can find the correct data files.
   };
 
   wsg_data["SurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for surface field information.
 
 This includes:
@@ -268,7 +268,7 @@ This includes:
   };
 
   wsg_data["SubsurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for subsurface field information.
 
 This includes:
@@ -279,7 +279,7 @@ This includes:
   };
 
   wsg_data["SubsurfacePoint"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"--(A subsurface point.
 
 This keeps three things:
@@ -358,7 +358,7 @@ where :math:`a` is the numerator and :math:`b` is the denominator.
 
 This is used when using predefined models to allow for different types of data
 input.  Several types of predefined models have this data built into the code
-and will use it directly but must live in the *absorption_predefined_model_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
+and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
 )--",
   };
 
@@ -595,7 +595,7 @@ Both the data and the grid may be named.  The grids are not sorted.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The grids are *altitude_grid* x *latitude_grid* x *longitude_grid*.
+The grids are *alt_grid* x *lat_grid* x *lon_grid*.
 The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
 )--",
   };

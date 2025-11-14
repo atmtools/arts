@@ -20,12 +20,12 @@ pyarts.data.download()
 
 # %% Set up a 1D atmosphere
 ws = pyarts.Workspace()
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Add a field of scattering species properties
 #
@@ -44,21 +44,21 @@ ice_ssa = pyarts.arts.ScatteringSpeciesProperty(
 
 # We then define a GriddedField3 representing the ice extinction and
 # single-scattering albedo and add it to ``atm_field`` of the workspace.
-grids = ws.atmospheric_field["t"].data.grids
+grids = ws.atm_field["t"].data.grids
 z = grids[0]
 ice_extinction_profile = np.zeros_like(z)
 ice_extinction_profile[(z > 5e3) * (z < 15e3)] = 1.0
 ice_extinction_profile = pyarts.arts.GriddedField3(
     data=ice_extinction_profile[..., None, None], grids=grids
 )
-ws.atmospheric_field[ice_extinction] = ice_extinction_profile
+ws.atm_field[ice_extinction] = ice_extinction_profile
 
 ice_ssa_profile = np.zeros_like(z)
 ice_ssa_profile[(z > 5e3) * (z < 15e3)] = 0.5
 ice_ssa_profile = pyarts.arts.GriddedField3(
     data=ice_ssa_profile[..., None, None], grids=grids
 )
-ws.atmospheric_field[ice_ssa] = ice_ssa_profile
+ws.atm_field[ice_ssa] = ice_ssa_profile
 
 # %% Rain
 rain_extinction = pyarts.arts.ScatteringSpeciesProperty(
@@ -73,14 +73,14 @@ rain_extinction_profile[z < 5e3] = 1.0
 rain_extinction_profile = pyarts.arts.GriddedField3(
     data=rain_extinction_profile[..., None, None], grids=grids
 )
-ws.atmospheric_field[rain_extinction] = rain_extinction_profile
+ws.atm_field[rain_extinction] = rain_extinction_profile
 
 rain_ssa_profile = np.zeros_like(z)
 rain_ssa_profile[z < 5e3] = 0.5
 rain_ssa_profile = pyarts.arts.GriddedField3(
     data=rain_ssa_profile[..., None, None], grids=grids
 )
-ws.atmospheric_field[rain_ssa] = rain_ssa_profile
+ws.atm_field[rain_ssa] = rain_ssa_profile
 
 # %% Create the scattering species
 
@@ -102,7 +102,7 @@ scattering_species.add(hg_rain)
 # check the consistency of the Henyey-Greenstein scatterer, we extract the data
 # in gridded and spectral representation and ensure that they are the same when
 # both are converted to gridded representation.
-atm_pt = ws.atmospheric_field(11e3, 0.0, 0.0)
+atm_pt = ws.atm_field(11e3, 0.0, 0.0)
 f_grid = np.array([89e9])
 bsp = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
@@ -129,7 +129,7 @@ ax.legend()
 #
 # Similarly, we can extract the phase function for rain by calculating the
 # bulk-scattering properties at a lower point in the atmosphere.
-atm_pt = ws.atmospheric_field(4e3, 0.0, 0.0)
+atm_pt = ws.atm_field(4e3, 0.0, 0.0)
 bsp = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
 

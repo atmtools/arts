@@ -10,42 +10,42 @@ toa = 100e3
 
 ws = pyarts.Workspace()
 
-ws.absorption_speciesSet(species=["CO2-626", "H2O-161"])
+ws.abs_speciesSet(species=["CO2-626", "H2O-161"])
 
 ws.ReadCatalogData()
-for key in ws.absorption_bands:
-    ws.absorption_bands[key].cutoff = "ByLine"
-    ws.absorption_bands[key].cutoff_value = 750e9
+for key in ws.abs_bands:
+    ws.abs_bands[key].cutoff = "ByLine"
+    ws.abs_bands[key].cutoff_value = 750e9
 
-ws.absorption_bands.keep_hitran_s(70)
+ws.abs_bands.keep_hitran_s(70)
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field["t"] = 295.0
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field["t"] = 295.0
 
-ws.atmospheric_fieldRead(
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-tdata = pyarts.arts.Tensor3(ws.atmospheric_field["t"].data.data)
-wdata = pyarts.arts.Tensor3(ws.atmospheric_field["H2O"].data.data)
+tdata = pyarts.arts.Tensor3(ws.atm_field["t"].data.data)
+wdata = pyarts.arts.Tensor3(ws.atm_field["H2O"].data.data)
 
-ws.frequency_grid = pyarts.arts.AscendingGrid.fromxml(
+ws.freq_grid = pyarts.arts.AscendingGrid.fromxml(
     "planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-f_grid.xml"
 )
 
 t = time()
-ws.absorption_lookup_tableCalc(
-    latitude=0.0,
-    longitude=0.0,
-    altitude_grid=np.linspace(0, toa, 101),
+ws.abs_lookup_dataCalc(
+    lat=0.0,
+    lon=0.0,
+    alt_grid=np.linspace(0, toa, 101),
     temperature_perturbation=np.linspace(-30, 30, 5),
     water_perturbation=np.logspace(-1, 1, 5),
     water_affected_species=["H2O"],
 )
 print(round(1000 * (time() - t)), "ms to train the LUT")
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
@@ -55,32 +55,32 @@ ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 for water_ratio in [5e-1, 5]:
     for temperature_offset in np.linspace(-20, 20, 5):
         print(water_ratio, temperature_offset)
-        ws.atmospheric_field["t"].data.data = tdata + temperature_offset
-        ws.atmospheric_field["H2O"].data.data = wdata * water_ratio
+        ws.atm_field["t"].data.data = tdata + temperature_offset
+        ws.atm_field["H2O"].data.data = wdata * water_ratio
 
         t = time()
-        ws.propagation_matrix_agendaAuto(use_absorption_lookup_table=0)
-        ws.spectral_radianceClearskyEmission()
-        ws.spectral_radianceApplyUnitFromSpectralRadiance()
-        lbl = ws.spectral_radiance[:, 0] * 1.0
+        ws.spectral_propmat_agendaAuto(use_abs_lookup_data=0)
+        ws.spectral_radClearskyEmission()
+        ws.spectral_radApplyUnitFromSpectralRadiance()
+        lbl = ws.spectral_rad[:, 0] * 1.0
         print(round(1000 * (time() - t)), "ms to compute the LBL spectral radiance")
 
         t = time()
-        ws.propagation_matrix_agendaAuto(
+        ws.spectral_propmat_agendaAuto(
             f_interp_order=0,
             p_interp_order=5,
             t_interp_order=4,
             water_interp_order=4,
-            use_absorption_lookup_table=1,
+            use_abs_lookup_data=1,
         )
-        ws.spectral_radianceClearskyEmission()
-        ws.spectral_radianceApplyUnitFromSpectralRadiance()
-        lut = ws.spectral_radiance[:, 0] * 1.0
+        ws.spectral_radClearskyEmission()
+        ws.spectral_radApplyUnitFromSpectralRadiance()
+        lut = ws.spectral_rad[:, 0] * 1.0
         print(round(1000 * (time() - t)), "ms to compute the LUT spectral radiance")
 
         plt.figure()
         plt.plot(
-            pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
+            pyarts.arts.convert.freq2kaycm(ws.freq_grid),
             lbl - lut,
             label="LBL - LUT",
         )

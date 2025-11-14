@@ -6,23 +6,23 @@ import numpy as np
 from pyarts3.workspace import Workspace, arts_agenda
 
 
-def _input_only(frequency_grid):
-    assert np.allclose(frequency_grid, [1, 2, 3])
+def _input_only(freq_grid):
+    assert np.allclose(freq_grid, [1, 2, 3])
 
 
 def _return_only():
-    frequency_grid = [4, 5, 6]
-    return frequency_grid
+    freq_grid = [4, 5, 6]
+    return freq_grid
 
 
-def _input_output(frequency_grid):
-    assert np.allclose(frequency_grid, [1, 2, 3])
-    frequency_grid = [4, 5, 6]
-    return frequency_grid
+def _input_output(freq_grid):
+    assert np.allclose(freq_grid, [1, 2, 3])
+    freq_grid = [4, 5, 6]
+    return freq_grid
 
 
-def _check_return_value(frequency_grid):
-    assert np.allclose(frequency_grid, [4, 5, 6])
+def _check_return_value(freq_grid):
+    assert np.allclose(freq_grid, [4, 5, 6])
 
 
 class TestAgendaPythonCalls:
@@ -32,8 +32,8 @@ class TestAgendaPythonCalls:
     """
 
     def init_spectral(self, ws):
-        ws.spectral_radiance_observer_position = [1, 2, 3]
-        ws.spectral_radiance_observer_line_of_sight = [1, 2]
+        ws.obs_pos = [1, 2, 3]
+        ws.obs_los = [1, 2]
 
     def test_python_function_return_only(self):
         ws = Workspace()
@@ -46,9 +46,9 @@ class TestAgendaPythonCalls:
         ws.ray_path_observer_agenda = ray_path_observer_agenda
         self.init_spectral(ws)
 
-        ws.frequency_grid = [1, 2, 3]
+        ws.freq_grid = [1, 2, 3]
         ws.ray_path_observer_agendaExecute()
-        assert np.allclose(ws.frequency_grid, [1, 2, 3])
+        assert np.allclose(ws.freq_grid, [1, 2, 3])
 
     def test_python_function_input_only(self):
         ws = Workspace()
@@ -60,9 +60,9 @@ class TestAgendaPythonCalls:
         ws.ray_path_observer_agenda = ray_path_observer_agenda
         self.init_spectral(ws)
 
-        ws.frequency_grid = [1, 2, 3]
+        ws.freq_grid = [1, 2, 3]
         ws.ray_path_observer_agendaExecute()
-        assert np.allclose(ws.frequency_grid, [1, 2, 3])
+        assert np.allclose(ws.freq_grid, [1, 2, 3])
 
     def test_python_function_input_output(self):
         ws = Workspace()
@@ -75,9 +75,9 @@ class TestAgendaPythonCalls:
         ws.ray_path_observer_agenda = ray_path_observer_agenda
         self.init_spectral(ws)
 
-        ws.frequency_grid = [1, 2, 3]
+        ws.freq_grid = [1, 2, 3]
         ws.ray_path_observer_agendaExecute()
-        assert np.allclose(ws.frequency_grid, [1, 2, 3])
+        assert np.allclose(ws.freq_grid, [1, 2, 3])
 
 
 if __name__ == "__main__":

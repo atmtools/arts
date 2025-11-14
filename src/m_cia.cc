@@ -24,15 +24,15 @@
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddCIA(  // WS Output:
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
+void spectral_propmatAddCIA(  // WS Output:
+    PropmatVector& spectral_propmat,
+    PropmatMatrix& spectral_propmat_jac,
     // WS Input:
     const SpeciesEnum& select_species,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfCIARecord& absorption_cia_data,
+    const ArrayOfCIARecord& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
@@ -40,28 +40,28 @@ void propagation_matrixAddCIA(  // WS Output:
 
   // Size of problem
   const Index nf = f_grid.size();
-  const Index nq = jacobian_targets.target_count();
+  const Index nq = jac_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(static_cast<Index>(propagation_matrix.size()) not_eq nf,
-                     "*f_grid* must match *propagation_matrix*")
+  ARTS_USER_ERROR_IF(static_cast<Index>(spectral_propmat.size()) not_eq nf,
+                     "*f_grid* must match *spectral_propmat*")
   ARTS_USER_ERROR_IF(
-      propagation_matrix_jacobian.nrows() not_eq nq,
-      "*propagation_matrix_jacobian* must match derived form of *jacobian_targets*")
+      spectral_propmat_jac.nrows() not_eq nq,
+      "*spectral_propmat_jac* must match derived form of *jac_targets*")
   ARTS_USER_ERROR_IF(
-      propagation_matrix_jacobian.ncols() not_eq nf,
-      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
+      spectral_propmat_jac.ncols() not_eq nf,
+      "*spectral_propmat_jac* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid.vec()),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const auto end       = jacobian_targets.atm.end();
-  const auto jac_freqs = std::array{jacobian_targets.find(AtmKey::wind_u),
-                                    jacobian_targets.find(AtmKey::wind_v),
-                                    jacobian_targets.find(AtmKey::wind_w)};
-  const auto jac_temps = jacobian_targets.find(AtmKey::t);
+  const auto end       = jac_targets.atm.end();
+  const auto jac_freqs = std::array{jac_targets.find(AtmKey::wind_u),
+                                    jac_targets.find(AtmKey::wind_v),
+                                    jac_targets.find(AtmKey::wind_w)};
+  const auto jac_temps = jac_targets.find(AtmKey::t);
 
   const bool do_wind_jac =
       std::ranges::any_of(jac_freqs, [end](const auto& x) { return x != end; });
@@ -102,7 +102,7 @@ void propagation_matrixAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (const auto& this_cia : absorption_cia_data) {
+  for (const auto& this_cia : abs_cia_data) {
     if (select_species != SpeciesEnum::Bath and
         select_species != this_cia.Species(0))
       continue;
@@ -151,12 +151,12 @@ void propagation_matrixAddCIA(  // WS Output:
         dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
         atm_point[this_cia.Species(1)];
     for (Size iv = 0; iv < f_grid.size(); iv++) {
-      propagation_matrix[iv].A() +=
+      spectral_propmat[iv].A() +=
           nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
       if (jac_temps != end) {
         const auto iq = jac_temps->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() +=
+        spectral_propmat_jac[iq, iv].A() +=
             ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
               xsec_temp[iv] * dnd_dt_sec) *
                  nd +
@@ -167,28 +167,28 @@ void propagation_matrixAddCIA(  // WS Output:
       for (auto& j : jac_freqs) {
         if (j != end) {
           const auto iq = j->target_pos;
-          propagation_matrix_jacobian[iq, iv].A() +=
+          spectral_propmat_jac[iq, iv].A() +=
               nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
               atm_point[this_cia.Species(1)];
         }
       }
 
-      if (const auto j = jacobian_targets.find(this_cia.Species(0)); j != end) {
-        const auto iq                            = j->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
+      if (const auto j = jac_targets.find(this_cia.Species(0)); j != end) {
+        const auto iq                     = j->target_pos;
+        spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
-      if (const auto j = jacobian_targets.find(this_cia.Species(1)); j != end) {
-        const auto iq                            = j->target_pos;
-        propagation_matrix_jacobian[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
+      if (const auto j = jac_targets.find(this_cia.Species(1)); j != end) {
+        const auto iq                     = j->target_pos;
+        spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_cia_dataReadFromCIA(  // WS Output:
-    ArrayOfCIARecord& absorption_cia_data,
+void abs_cia_dataReadFromCIA(  // WS Output:
+    ArrayOfCIARecord& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
@@ -198,7 +198,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
 
-  absorption_cia_data.resize(0);
+  abs_cia_data.resize(0);
 
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
@@ -208,7 +208,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
 
     ArrayOfString cia_names;
 
-    Index cia_index = cia_get_index(absorption_cia_data,
+    Index cia_index = cia_get_index(abs_cia_data,
                                     abs_species[iso].Spec(),
                                     abs_species[iso].cia_2nd_species);
 
@@ -253,7 +253,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
                           abs_species[iso].cia_2nd_species);
           ciar.ReadFromCIA(catfile);
 
-          absorption_cia_data.push_back(ciar);
+          abs_cia_data.push_back(ciar);
         }
       }
     }
@@ -268,14 +268,14 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void absorption_cia_dataReadFromXML(  // WS Output:
-    ArrayOfCIARecord& absorption_cia_data,
+void abs_cia_dataReadFromXML(  // WS Output:
+    ArrayOfCIARecord& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
     const String& filename) {
   ARTS_TIME_REPORT
 
-  xml_read_from_file(filename, absorption_cia_data);
+  xml_read_from_file(filename, abs_cia_data);
 
   // Check that all CIA tags from abs_species are present in the
   // XML file
@@ -288,7 +288,7 @@ void absorption_cia_dataReadFromXML(  // WS Output:
   for (Size iso = 0; iso < abs_species.size(); iso++) {
     if (abs_species[iso].Type() != SpeciesTagType::Cia) continue;
 
-    Index cia_index = cia_get_index(absorption_cia_data,
+    Index cia_index = cia_get_index(abs_cia_data,
                                     abs_species[iso].Spec(),
                                     abs_species[iso].cia_2nd_species);
 
@@ -316,14 +316,13 @@ void absorption_cia_dataReadFromXML(  // WS Output:
   }
 }
 
-void absorption_cia_dataReadSpeciesSplitCatalog(
-    ArrayOfCIARecord& absorption_cia_data,
-    const ArrayOfSpeciesTag& abs_species,
-    const String& basename,
-    const Index& ignore_missing_) try {
+void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
+                                         const ArrayOfSpeciesTag& abs_species,
+                                         const String& basename,
+                                         const Index& ignore_missing_) try {
   ARTS_TIME_REPORT
 
-  absorption_cia_data.clear();
+  abs_cia_data.clear();
 
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
@@ -356,7 +355,7 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
       ARTS_USER_ERROR("File {} not found", filename);
     }
 
-    xml_read_from_file(fil.string(), absorption_cia_data.emplace_back());
+    xml_read_from_file(fil.string(), abs_cia_data.emplace_back());
   }
 }
 ARTS_METHOD_ERROR_CATCH

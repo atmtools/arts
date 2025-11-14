@@ -25,7 +25,7 @@ atm = fop.get_atmosphere()
 # Passing `atm` is optional, if not passed the operator will use the current atmosphere,
 # which is the atmosphere that was set with the last call to `__call__`, or the constructor
 # default if no call to `__call__` has been made.
-solar, thermal, altitude = fop(atmospheric_profile=atm)
+solar, thermal, altitude = fop(atm_profile=atm)
 
 # %% Plot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 6))

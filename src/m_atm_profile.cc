@@ -3,22 +3,21 @@
 
 #include <stdexcept>
 
-void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
-                                const AtmField &atmospheric_field,
-                                const AscendingGrid &altitude_grid,
-                                const Numeric &latitude,
-                                const Numeric &longitude) {
-  const Size N = altitude_grid.size();
+void atm_profileExtract(ArrayOfAtmPoint &atm_profile,
+                        const AtmField &atm_field,
+                        const AscendingGrid &alt_grid,
+                        const Numeric &latitude,
+                        const Numeric &longitude) {
+  const Size N = alt_grid.size();
 
-  atmospheric_profile.clear();
-  atmospheric_profile.resize(N);
+  atm_profile.clear();
+  atm_profile.resize(N);
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < N; i++) {
     try {
-      atmospheric_profile[i] =
-          atmospheric_field.at(altitude_grid[i], latitude, longitude);
+      atm_profile[i] = atm_field.at(alt_grid[i], latitude, longitude);
     } catch (const std::exception &e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -28,31 +27,26 @@ void atmospheric_profileExtract(ArrayOfAtmPoint &atmospheric_profile,
   if (not error.empty()) throw std::runtime_error(error);
 }
 
-void atmospheric_profileFromGrid(ArrayOfAtmPoint &atmospheric_profile,
-                                 AscendingGrid &altitude_grid,
-                                 Numeric &latitude,
-                                 Numeric &longitude,
-                                 const AtmField &atmospheric_field,
-                                 const AtmKey &key) {
-  const auto &gf3 = atmospheric_field[key].get<GeodeticField3>();
-  altitude_grid   = gf3.grid<0>();
+void atm_profileFromGrid(ArrayOfAtmPoint &atm_profile,
+                         AscendingGrid &alt_grid,
+                         Numeric &latitude,
+                         Numeric &longitude,
+                         const AtmField &atm_field,
+                         const AtmKey &key) {
+  const auto &gf3 = atm_field[key].get<GeodeticField3>();
+  alt_grid        = gf3.grid<0>();
 
   const Size N = gf3.data.size();
   ARTS_USER_ERROR_IF(not gf3.ok() or N == 0, "Not a good field for key {}", key)
-  ARTS_USER_ERROR_IF(N != altitude_grid.size(), "Not a profile key {}", key)
+  ARTS_USER_ERROR_IF(N != alt_grid.size(), "Not a profile key {}", key)
 
   latitude  = gf3.grid<1>()[0];
   longitude = gf3.grid<2>()[0];
 
-  atmospheric_profileExtract(atmospheric_profile,
-                             atmospheric_field,
-                             altitude_grid,
-                             latitude,
-                             longitude);
+  atm_profileExtract(atm_profile, atm_field, alt_grid, latitude, longitude);
 }
 
-void ray_path_atmospheric_pointFromProfile(
-    ArrayOfAtmPoint &ray_path_atmospheric_point,
-    const ArrayOfAtmPoint &atmospheric_profile) {
-  ray_path_atmospheric_point = atmospheric_profile;
+void atm_pathFromProfile(ArrayOfAtmPoint &atm_path,
+                         const ArrayOfAtmPoint &atm_profile) {
+  atm_path = atm_profile;
 }

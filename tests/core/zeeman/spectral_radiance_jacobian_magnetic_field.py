@@ -13,34 +13,34 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-5e6, 5e6, NF) + line_f0
+ws.freq_grid = np.linspace(-5e6, 5e6, NF) + line_f0
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
+ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Magnetic Field
@@ -48,12 +48,12 @@ ws.ray_path_observer_agendaSetGeometric()
 uf = pyarts.arts.FieldComponent.U
 vf = pyarts.arts.FieldComponent.V
 wf = pyarts.arts.FieldComponent.W
-mag_u = ws.atmospheric_field["mag_u"](90e3, 0, 0)
-mag_v = ws.atmospheric_field["mag_v"](90e3, 0, 0)
-mag_w = ws.atmospheric_field["mag_w"](90e3, 0, 0)
-ws.atmospheric_field["mag_u"] = mag_u
-ws.atmospheric_field["mag_v"] = mag_v
-ws.atmospheric_field["mag_w"] = mag_w
+mag_u = ws.atm_field["mag_u"](90e3, 0, 0)
+mag_v = ws.atm_field["mag_v"](90e3, 0, 0)
+mag_w = ws.atm_field["mag_w"](90e3, 0, 0)
+ws.atm_field["mag_u"] = mag_u
+ws.atm_field["mag_v"] = mag_v
+ws.atm_field["mag_w"] = mag_w
 mag = {uf: mag_u, vf: mag_v, wf: mag_w}
 
 pos = [110e3, 0, 0]
@@ -70,14 +70,14 @@ for fc in [uf, vf, wf]:
     fail = True
 
     for i in range(LIMIT):
-        ws.atmospheric_field["mag_" + str(fc)] = mag[fc]
+        ws.atm_field["mag_" + str(fc)] = mag[fc]
         ws.measurement_vectorFromSensor()
 
         ws.measurement_vector_fitted = []
         ws.model_state_vector = []
         ws.measurement_jacobian = [[]]
 
-        ws.atmospheric_field["mag_" + str(fc)] = mag[fc] + 1e-6
+        ws.atm_field["mag_" + str(fc)] = mag[fc] + 1e-6
         ws.model_state_vector_aprioriFromData()
 
         ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)

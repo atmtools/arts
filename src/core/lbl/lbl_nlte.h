@@ -13,28 +13,27 @@ using QuantumIdentifierNumericMap =
 
 namespace lbl::nlte {
 std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(
-    const AtmField& atmospheric_field,
-    const AbsorptionBands& absorption_bands,
+    const AtmField& atm_field,
+    const AbsorptionBands& abs_bands,
     const Numeric& normalizing_factor);
 
-QuantumIdentifierNumericMap createAij(const AbsorptionBands& absorption_bands);
+QuantumIdentifierNumericMap createAij(const AbsorptionBands& abs_bands);
 
-QuantumIdentifierNumericMap createBij(const AbsorptionBands& absorption_bands);
+QuantumIdentifierNumericMap createBij(const AbsorptionBands& abs_bands);
 
 QuantumIdentifierNumericMap createBji(const QuantumIdentifierNumericMap& Bij,
-                                      const AbsorptionBands& absorption_bands);
+                                      const AbsorptionBands& abs_bands);
 
 QuantumIdentifierVectorMap createCij(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point);
+    const ArrayOfAtmPoint& atm_path);
 
-QuantumIdentifierVectorMap createCji(
-    const QuantumIdentifierVectorMap& Cij,
-    const AbsorptionBands& absorption_bands,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point);
+QuantumIdentifierVectorMap createCji(const QuantumIdentifierVectorMap& Cij,
+                                     const AbsorptionBands& abs_bands,
+                                     const ArrayOfAtmPoint& atm_path);
 
-Vector nlte_ratio_sum(const ArrayOfAtmPoint& ray_path_atmospheric_point,
+Vector nlte_ratio_sum(const ArrayOfAtmPoint& atm_path,
                       const ArrayOfQuantumLevelIdentifier& levels);
 
 struct UppLow {
@@ -45,7 +44,7 @@ Size band_level_mapUniquestIndex(
     const std::unordered_map<QuantumIdentifier, UppLow>& band_level_map);
 
 std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
-    const AbsorptionBands& absorption_bands,
+    const AbsorptionBands& abs_bands,
     const ArrayOfQuantumLevelIdentifier& level_keys);
 
 Size level_count(
@@ -62,7 +61,7 @@ Matrix statistical_equilibrium_equation(
     const Size atmi,
     const Size nlevels);
 
-Numeric set_nlte(AtmPoint& atmospheric_point,
+Numeric set_nlte(AtmPoint& atm_point,
                  const ArrayOfQuantumLevelIdentifier& level_keys,
                  const Vector& x);
 }  // namespace lbl::nlte

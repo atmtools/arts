@@ -11,28 +11,28 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
 
-ws.frequency_grid = np.linspace(10e9, 400e9, NF)
+ws.freq_grid = np.linspace(10e9, 400e9, NF)
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
+ws.abs_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
 ws.ReadCatalogData()
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 pos = [0e3, 0, 0]
@@ -40,8 +40,8 @@ los = [20.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
 RAT = 0.8
-field = copy(ws.atmospheric_field["H2O"])
-fieldg = copy(ws.atmospheric_field["H2O"])
+field = copy(ws.atm_field["H2O"])
+fieldg = copy(ws.atm_field["H2O"])
 
 fieldg.data /= RAT
 orig = field.data.data.flatten()
@@ -59,8 +59,8 @@ ws.measurement_vector_fitted = []
 ws.model_state_vector = []
 ws.measurement_jacobian = [[]]
 
-ws.atmospheric_field["H2O"] = fieldg
-ws.jacobian_targetsToggleLogarithmicAtmTarget(key="H2O")
+ws.atm_field["H2O"] = fieldg
+ws.jac_targetsToggleLogarithmicAtmTarget(key="H2O")
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vectorFromSensor()
 apri = ws.measurement_vector * 1.0
@@ -74,9 +74,9 @@ ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 99])
 ws.model_state_vectorFromData()
 
 if PLOT:
-    plt.plot(ws.frequency_grid / 1e9, meas, label="orig")
-    plt.plot(ws.frequency_grid / 1e9, apri, label="apriori")
-    plt.plot(ws.frequency_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
+    plt.plot(ws.freq_grid / 1e9, meas, label="orig")
+    plt.plot(ws.freq_grid / 1e9, apri, label="apriori")
+    plt.plot(ws.freq_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
     plt.legend()
     plt.show()
     plt.plot(

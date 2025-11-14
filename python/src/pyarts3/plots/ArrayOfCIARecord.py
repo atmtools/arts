@@ -29,7 +29,7 @@ def plot(data: ArrayOfCIARecord,
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
-    The path_point is passed directly to the ArrayOfCIARecord.propagation_matrix() method and defaults
+    The path_point is passed directly to the ArrayOfCIARecord.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
     same determines if each entry in the array is plotted onto the same plot or not.
@@ -65,11 +65,11 @@ def plot(data: ArrayOfCIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.absorption_speciesSet(species=[f"{band.isot}" for band in data])
+        ws.abs_speciesSet(species=[f"{band.isot}" for band in data])
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
-        ws.atmospheric_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
-        atm = ws.atmospheric_field(*path_point.pos)
+        ws.atm_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
+        atm = ws.atm_field(*path_point.pos)
     elif isinstance(atm, AtmField):
         atm = atm(*path_point.pos)
 

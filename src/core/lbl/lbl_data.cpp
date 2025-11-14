@@ -99,11 +99,11 @@ Rational band_data::max(QuantumNumberType x) const try {
 
 namespace {
 template <typename T>
-auto local_get_value(T& absorption_bands, const line_key& type)
+auto local_get_value(T& abs_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
-  auto ptr = absorption_bands.find(type.band);
+  auto ptr = abs_bands.find(type.band);
 
-  ARTS_USER_ERROR_IF(ptr == absorption_bands.end(),
+  ARTS_USER_ERROR_IF(ptr == abs_bands.end(),
                      "No band with quantum identifier: {}",
                      type.band);
 

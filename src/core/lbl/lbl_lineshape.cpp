@@ -56,7 +56,7 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
   return nullptr;
 }
 
-std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
+std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(
     const ConstVectorView& f_grid,
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
@@ -77,10 +77,10 @@ void calculate(PropmatVectorView pm,
                StokvecMatrixView dsv,
                const ConstVectorView f_grid,
                const Range& f_range,
-               const Jacobian::Targets& jacobian_targets,
+               const Jacobian::Targets& jac_targets,
                const SpeciesEnum species,
                const AbsorptionBands& bnds,
-               const LinemixingEcsData& ecs_data,
+               const LinemixingEcsData& abs_ecs_data,
                const AtmPoint& atm,
                const Vector2 los,
                const bool no_negative_absorption) {
@@ -89,7 +89,8 @@ void calculate(PropmatVectorView pm,
       init_voigt_lte_mirrored_data(f_grid[f_range], bnds, atm, los);
   auto voigt_line_nlte_data =
       init_voigt_line_nlte_data(f_grid[f_range], bnds, atm, los);
-  auto voigt_ecs_data = init_voigt_ecs_data(f_grid[f_range], bnds, atm, los);
+  auto voigt_abs_ecs_data =
+      init_voigt_abs_ecs_data(f_grid[f_range], bnds, atm, los);
 
   const auto calc_voigt_lte = [&](const QuantumIdentifier& bnd_key,
                                   const band_data& bnd,
@@ -99,7 +100,7 @@ void calculate(PropmatVectorView pm,
                           *voigt_lte_data,
                           f_grid,
                           f_range,
-                          jacobian_targets,
+                          jac_targets,
                           bnd_key,
                           bnd,
                           atm,
@@ -115,7 +116,7 @@ void calculate(PropmatVectorView pm,
                                  *voigt_lte_mirror_data,
                                  f_grid,
                                  f_range,
-                                 jacobian_targets,
+                                 jac_targets,
                                  bnd_key,
                                  bnd,
                                  atm,
@@ -133,7 +134,7 @@ void calculate(PropmatVectorView pm,
                            *voigt_line_nlte_data,
                            f_grid,
                            f_range,
-                           jacobian_targets,
+                           jac_targets,
                            bnd_key,
                            bnd,
                            atm,
@@ -144,18 +145,17 @@ void calculate(PropmatVectorView pm,
   const auto calc_voigt_ecs_linemixing = [&](const QuantumIdentifier& bnd_key,
                                              const band_data& bnd,
                                              const zeeman::pol pol) {
-    auto it = ecs_data.find(bnd_key.isot);
-    if (it == ecs_data.end()) {
-      ARTS_USER_ERROR("No ECS data for isotopologue {}",
-                      bnd_key.isot);
+    auto it = abs_ecs_data.find(bnd_key.isot);
+    if (it == abs_ecs_data.end()) {
+      ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.isot);
     }
 
     voigt::ecs::calculate(pm,
                           dpm,
-                          *voigt_ecs_data,
+                          *voigt_abs_ecs_data,
                           f_grid,
                           f_range,
-                          jacobian_targets,
+                          jac_targets,
                           bnd_key,
                           bnd,
                           it->second,

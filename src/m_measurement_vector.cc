@@ -7,7 +7,7 @@ void measurement_vector_errorFromModelState(
     Vector& measurement_vector_error,
     Matrix& measurement_jacobian_error,
     const ArrayOfSensorObsel& measurement_sensor,
-    const JacobianTargets& jacobian_targets,
+    const JacobianTargets& jac_targets,
     const Vector& model_state_vector) try {
   ARTS_TIME_REPORT
 
@@ -15,10 +15,10 @@ void measurement_vector_errorFromModelState(
   measurement_vector_error = 0.0;
 
   measurement_jacobian_error.resize(measurement_sensor.size(),
-                                    jacobian_targets.x_size());
+                                    jac_targets.x_size());
   measurement_jacobian_error = 0.0;
 
-  for (auto& elem : jacobian_targets.error) {
+  for (auto& elem : jac_targets.error) {
     elem.update_model(measurement_vector_error, model_state_vector);
     elem.update_jac(measurement_jacobian_error,
                     model_state_vector,
@@ -32,7 +32,7 @@ void measurement_vectorConditionalAddError(
     Matrix& measurement_jacobian,
     const Vector& measurement_vector_error,
     const Matrix& measurement_jacobian_error,
-    const Index& do_jacobian) try {
+    const Index& do_jac) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -47,7 +47,7 @@ measurement_vector_error.shape() : {:B,}
 
   measurement_vector += measurement_vector_error;
 
-  if (do_jacobian != 0) {
+  if (do_jac != 0) {
     ARTS_USER_ERROR_IF(
         measurement_jacobian.shape() != measurement_jacobian_error.shape(),
         R"(Mismatched shapes:
@@ -63,12 +63,11 @@ measurement_jacobian_error.shape() : {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void jacobian_targetsAddErrorPolyFit(
-    JacobianTargets& jacobian_targets,
-    const ArrayOfSensorObsel& measurement_sensor,
-    const Vector& t,
-    const Index& sensor_elem,
-    const Index& polyorder) {
+void jac_targetsAddErrorPolyFit(JacobianTargets& jac_targets,
+                                const ArrayOfSensorObsel& measurement_sensor,
+                                const Vector& t,
+                                const Index& sensor_elem,
+                                const Index& polyorder) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -120,8 +119,8 @@ Grid (size: {}): {:B,}
                      t.size(),
                      t)
 
-  make_polyfit(jacobian_targets.emplace_back(
-                   ErrorKey{.y_start = y_start, .y_size = y_size}),
-               static_cast<Size>(polyorder),
-               t);
+  make_polyfit(
+      jac_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size}),
+      static_cast<Size>(polyorder),
+      t);
 }

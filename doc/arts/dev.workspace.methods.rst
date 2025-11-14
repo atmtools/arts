@@ -117,7 +117,7 @@ treated as normal workspace method.
 You need to do nothing to define these methods.  But please refrain from defining
 them manually as that may cause undefined naming conflicts.
 
-The expected signature of the method :func:`~pyarts3.workspace.Workspace.propagation_matrix_agendaAuto` is also
+The expected signature of the method :func:`~pyarts3.workspace.Workspace.spectral_propmat_agendaAuto` is also
 generated automatically near the end of ``workspace_methods.cpp``.  It takes
 its input and output from a list of other methods.  Feel free to add to this
 list but make sure that any naming conflicts regarding ``gin`` are resolved
@@ -126,11 +126,11 @@ actual signature (which is why the method is generated, so that a change in
 the required actual signature is immediately made apparent).
 
 The methods that begin with ``RetrievalAdd...`` are partly generated.
-These methods all require a corresponding ``jacobian_targetsAdd...`` method
-that fills in the ``jacobian_targets`` workspace variable.  To keep that
+These methods all require a corresponding ``jac_targetsAdd...`` method
+that fills in the ``jac_targets`` workspace variable.  To keep that
 part of the signature consistent, the additional ``RetrievalAdd...`` information
 is simply appended to the ``in``, ``out``, and ``gin``-lists of the
-corresponding ``jacobian_targetsAdd...`` method using the local ``jac2ret`` lambda.
+corresponding ``jac_targetsAdd...`` method using the local ``jac2ret`` lambda.
 
 Generated files
 ===============
@@ -157,10 +157,10 @@ in ``PascalCase``.
 A general rule of thumb is to use verbs for methods that modify the workspace
 variable and nouns for methods that create a new workspace variable.
 
-For example, :func:`~pyarts3.workspace.Workspace.propagation_matrixAddLines`
-has a main output of :attr:`~pyarts3.workspace.Workspace.propagation_matrix` and
+For example, :func:`~pyarts3.workspace.Workspace.spectral_propmatAddLines`
+has a main output of :attr:`~pyarts3.workspace.Workspace.spectral_propmat` and
 adds line absorption to it.  It needs to be preceded by a call to 
-:func:`~pyarts3.workspace.Workspace.propagation_matrixInit` which sets up the
+:func:`~pyarts3.workspace.Workspace.spectral_propmatInit` which sets up the
 propagation matrix to an initial state.
 
 Of course, every use-case is different, but please try to follow this convention.
@@ -211,7 +211,7 @@ This is the extration of the text in the ``workspace_methods.cpp`` file:
     )--",
         .author = {"Richard Larsson"},
         .out    = {"ray_path"},
-        .in     = {"atmospheric_field", "surface_field", "latitude", "longitude"},
+        .in     = {"atm_field", "surf_field", "latitude", "longitude"},
         .gin    = {"max_step"},
         .gin_type  = {"Numeric"},
         .gin_value = {Numeric{1e3}},
@@ -223,8 +223,8 @@ The signature of the method is:
 .. code-block:: c++
 
   void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
-                                  const AtmField& atmospheric_field,
-                                  const SurfaceField& surface_field,
+                                  const AtmField& atm_field,
+                                  const SurfaceField& surf_field,
                                   const Numeric& latitude,
                                   const Numeric& longitude,
                                   const Numeric& max_step);
@@ -235,7 +235,7 @@ The first argument of the method is a reference to :attr:`~pyarts3.workspace.Wor
 Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
-The arguments :attr:`~pyarts3.workspace.Workspace.atmospheric_field`, :attr:`~pyarts3.workspace.Workspace.surface_field`,
+The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surf_field`,
 :attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
@@ -257,25 +257,25 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
 .. code-block:: c++
 
-  wsm_data["propagation_matrixAddLines"] = {
+  wsm_data["spectral_propmatAddLines"] = {
       .desc      = R"--(Line-by-line calculations.
   )--",
       .author    = {"Richard Larsson"},
-      .out       = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian"},
-      .in        = {"propagation_matrix",
-                    "propagation_matrix_source_vector_nonlte",
-                    "propagation_matrix_jacobian",
-                    "propagation_matrix_source_vector_nonlte_jacobian",
-                    "frequency_grid",
-                    "jacobian_targets",
+      .out       = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_srcvec_nlte",
+                    "spectral_propmat_jac",
+                    "spectral_srcvec_nlte_jac",
+                    "freq_grid",
+                    "jac_targets",
                     "select_species",
-                    "absorption_bands",
-                    "ecs_data",
-                    "atmospheric_point",
-                    "ray_path_point"},
+                    "abs_bands",
+                    "abs_ecs_data",
+                    "atm_point",
+                    "ray_point"},
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
@@ -287,37 +287,37 @@ The signature of the method is:
 
 .. code-block:: c++
 
-  void propagation_matrixAddLines(PropmatVector& propagation_matrix,
-                                  StokvecVector& propagation_matrix_source_vector_nonlte,
-                                  PropmatMatrix& propagation_matrix_jacobian,
-                                  StokvecMatrix& propagation_matrix_source_vector_nonlte_jacobian,
-                                  const AscendingGrid& frequency_grid,
-                                  const JacobianTargets& jacobian_targets,
+  void spectral_propmatAddLines(PropmatVector& spectral_propmat,
+                                  StokvecVector& spectral_srcvec_nlte,
+                                  PropmatMatrix& spectral_propmat_jac,
+                                  StokvecMatrix& spectral_srcvec_nlte_jac,
+                                  const AscendingGrid& freq_grid,
+                                  const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
-                                  const AbsorptionBands& absorption_bands,
-                                  const LinemixingEcsData& ecs_data,
-                                  const AtmPoint& atmospheric_point,
-                                  const PropagationPathPoint& ray_path_point,
+                                  const AbsorptionBands& abs_bands,
+                                  const LinemixingEcsData& abs_ecs_data,
+                                  const AtmPoint& atm_point,
+                                  const PropagationPathPoint& ray_point,
                                   const Index& no_negative_absorption);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
 The first four arguments of the method are references to
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix`.
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte`,
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_jacobian`, and
-:attr:`~pyarts3.workspace.Workspace.propagation_matrix_source_vector_nonlte_jacobian`
+:attr:`~pyarts3.workspace.Workspace.spectral_propmat`.
+:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte`,
+:attr:`~pyarts3.workspace.Workspace.spectral_propmat_jac`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte_jac`
 are both output (``out``) and input (``in``).  The method is expected to modify the existing values
 of these workspace variables instead of creating new ones.
 
 The arguments
-:attr:`~pyarts3.workspace.Workspace.frequency_grid`,
-:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
+:attr:`~pyarts3.workspace.Workspace.freq_grid`,
+:attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
 :attr:`~pyarts3.workspace.Workspace.absorption_bands`,
-:attr:`~pyarts3.workspace.Workspace.ecs_data`,
-:attr:`~pyarts3.workspace.Workspace.atmospheric_point`, and
-:attr:`~pyarts3.workspace.Workspace.ray_path_point` are just defined in ``in`` and are passed to the method
+:attr:`~pyarts3.workspace.Workspace.abs_ecs_data`,
+:attr:`~pyarts3.workspace.Workspace.atm_point`, and
+:attr:`~pyarts3.workspace.Workspace.ray_point` are just defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
 Lastly, the argument ``no_negative_absorption`` is defined in ``gin`` and is passed
@@ -328,7 +328,7 @@ The ``no_negative_absorption`` argument is used to turn off the check for negati
 which is useful for debugging purposes.
 
 The other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts3.workspace.Workspace.propagation_matrixAddLines` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.spectral_propmatAddLines` for the full documentation.
 
 Method that uses a workspace agenda
 -----------------------------------
@@ -343,20 +343,20 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .desc =
             R"--(Sets measurement vector by looping over all sensor elements
 
-  The core calculations happens inside the *spectral_radiance_observer_agenda*.
+  The core calculations happens inside the *spectral_rad_observer_agenda*.
 
-  User choices of *spectral_radiance_unit* does not adversely affect this method
+  User choices of *spectral_rad_unit* does not adversely affect this method
   unless the *measurement_vector* or *measurement_jacobian* are further modified
   before consumption by, e.g., *OEM*
   )--",
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vector", "measurement_jacobian"},
         .in             = {"measurement_sensor",
-                          "jacobian_targets",
-                          "atmospheric_field",
-                          "surface_field",
-                          "spectral_radiance_unit",
-                          "spectral_radiance_observer_agenda"},
+                          "jac_targets",
+                          "atm_field",
+                          "surf_field",
+                          "spectral_rad_unit",
+                          "spectral_rad_observer_agenda"},
         .pass_workspace = true,
     };
 
@@ -368,11 +368,11 @@ The signature of the method is:
                                     Vector& measurement_vector,
                                     Matrix& measurement_jacobian,
                                     const ArrayOfSensorObsel& measurement_sensor,
-                                    const JacobianTargets& jacobian_targets,
-                                    const AtmField& atmospheric_field,
-                                    const SurfaceField& surface_field,
-                                    const SpectralRadianceUnitType& spectral_radiance_unit,
-                                    const Agenda& spectral_radiance_observer_agenda);
+                                    const JacobianTargets& jac_targets,
+                                    const AtmField& atm_field,
+                                    const SurfaceField& surf_field,
+                                    const SpectralRadianceUnitType& spectral_rad_unit,
+                                    const Agenda& spectral_rad_observer_agenda);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
@@ -389,11 +389,11 @@ Since :attr:`~pyarts3.workspace.Workspace.measurement_vector` and
 it is expected that the method overwrite any existing values they might hold.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
-:attr:`~pyarts3.workspace.Workspace.jacobian_targets`,
-:attr:`~pyarts3.workspace.Workspace.atmospheric_field`,
-:attr:`~pyarts3.workspace.Workspace.surface_field`, 
-:attr:`~pyarts3.workspace.Workspace.spectral_radiance_unit`, and
-:attr:`~pyarts3.workspace.Workspace.spectral_radiance_observer_agenda`
+:attr:`~pyarts3.workspace.Workspace.jac_targets`,
+:attr:`~pyarts3.workspace.Workspace.atm_field`,
+:attr:`~pyarts3.workspace.Workspace.surf_field`, 
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_unit`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_observer_agenda`
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
@@ -410,13 +410,13 @@ This is the extraction of the text in the ``workspace_meta_methods.cpp`` file:
 .. code-block:: c++
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name             = "atmospheric_fieldRead",
+      .name             = "atm_fieldRead",
       .desc             = "Reads absorption file from a directory",
       .author           = {"Richard Larsson"},
-      .methods          = {"atmospheric_fieldInit",
-                           "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAuto"},
-      .out              = {"atmospheric_field"},
+      .methods          = {"atm_fieldInit",
+                           "atm_fieldAppendBaseData",
+                           "atm_fieldAppendAuto"},
+      .out              = {"atm_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
@@ -431,5 +431,5 @@ In other words, even if a sub-method has an output that is not in ``out``,
 it will not be passed to the user.
 
 The call order and documentation of
-See :meth:`~pyarts3.workspace.Workspace.atmospheric_fieldRead` 
+See :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
 makes it possible to follow the call order.

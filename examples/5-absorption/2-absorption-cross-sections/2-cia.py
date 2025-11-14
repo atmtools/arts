@@ -34,7 +34,7 @@ will want to call.
 This example sets the absorption species to O2 collision-induced
 absorption (CIA) with self and also with N2
 """
-ws.absorption_speciesSet(species=["O2-CIA-O2", "O2-CIA-N2"])
+ws.abs_speciesSet(species=["O2-CIA-O2", "O2-CIA-N2"])
 
 """
 We now need to load the data.
@@ -49,7 +49,7 @@ or some other format.  What is important is to populate the absorption
 CIA data object with appropriate data.
 """
 pyarts.data.download()
-ws.absorption_cia_dataReadSpeciesSplitCatalog(basename="cia/")
+ws.abs_cia_dataReadSpeciesSplitCatalog(basename="cia/")
 
 """
 Compute absorption
@@ -70,13 +70,13 @@ atm["O2"] = 0.21  # At 21% atmospheric Oxygen
 atm["N2"] = 0.78  # At 78% atmospheric Nitrogen
 
 # Plot the absorption of this example
-fig, ax = pyarts.plot(ws.absorption_cia_data, atm=atm)
+fig, ax = pyarts.plot(ws.abs_cia_data, atm=atm)
 for i, a in enumerate(ax.flatten()):
     a.set_xlabel("Wavelength [nm]")
     a.set_ylabel("Absorption [1/m]")
     f0 = np.inf
     f1 = -np.inf
-    for x in ws.absorption_cia_data[i].data:
+    for x in ws.abs_cia_data[i].data:
         f0 = min(f0, x.grids[0][0])
         f1 = max(f1, x.grids[0][-1])
     f = np.linspace(f0, f1, 7)

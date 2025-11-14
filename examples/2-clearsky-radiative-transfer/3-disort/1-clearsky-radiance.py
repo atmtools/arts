@@ -16,34 +16,34 @@ ws = pyarts.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
+ws.freq_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 ws.disort_settings_agendaSetup()
 
-ws.disort_spectral_radiance_fieldProfile(
-    longitude=lon,
-    latitude=lat,
+ws.disort_spectral_rad_fieldProfile(
+    lon=lon,
+    lat=lat,
     disort_quadrature_dimension=NQuad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -51,27 +51,27 @@ ws.disort_spectral_radiance_fieldProfile(
 
 # %% Equivalent ARTS calculations
 ws.ray_pathGeometricDownlooking(
-    latitude=lat,
-    longitude=lon,
+    lat=lat,
+    lon=lon,
     max_stepsize=1000.0,
 )
-ws.spectral_radianceClearskyEmission()
+ws.spectral_radClearskyEmission()
 
 # %% Plot results
-f = ws.frequency_grid / 1e9
+f = ws.freq_grid / 1e9
 
-fig, ax = pyarts.plot(ws.disort_spectral_radiance_field,
+fig, ax = pyarts.plot(ws.disort_spectral_rad_field,
                       freqs=f, plotstyle='plot', select='down', alpha=0.5)
-ax.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+ax.semilogy(f, ws.spectral_rad[:, 0], "k--", lw=3)
 ax.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
+    ws.disort_spectral_rad_field.data[:, 0, 0, (NQuad // 2) - 1],
     "g:",
     lw=3,
 )
 ax.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
+    ws.disort_spectral_rad_field.data[:, 0, 0, 0],
     "m:",
     lw=3,
 )
@@ -84,7 +84,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% The last test should be that we are close to the correct values
 assert np.allclose(
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0] / ws.spectral_radiance[:, 0],
+    ws.disort_spectral_rad_field.data[:, 0, 0, 0] / ws.spectral_rad[:, 0],
     1,
     rtol=1e-3,
 ), "Bad results, clearsky calculations are not close between DISORT and ARTS"

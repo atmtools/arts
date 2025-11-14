@@ -9,7 +9,7 @@
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <species_tags.h>
-#include <subsurface_field.h>
+#include <subsurf_field.h>
 #include <surf.h>
 
 #include "hpy_arts.h"
@@ -148,7 +148,7 @@ void py_surf(py::module_ &m) try {
          "__init__",
          [](SurfaceField *sf, const String &planet) {
            new (sf) SurfaceField();
-           surface_fieldPlanet(*sf, planet, 0.0);
+           surf_fieldPlanet(*sf, planet, 0.0);
          },
          "planet"_a)
       .def_rw(

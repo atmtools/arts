@@ -1,5 +1,6 @@
 """ Plotting routine for Matrix """
 
+import numpy as np
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 
@@ -57,6 +58,9 @@ def plot(
         The matplotlib axes.
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={'figsize': (10, 8)})
+
+    xgrid = xgrid if xgrid is not None else np.linspace(0, 1, data.shape[1])
+    ygrid = ygrid if ygrid is not None else np.linspace(0, 1, data.shape[0])
 
     select_flat_ax(ax, 0).contourf(xgrid, ygrid, data, **kwargs)
 

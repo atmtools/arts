@@ -33,7 +33,7 @@ void py_cia(py::module_& m) try {
           },
           "Data by bands\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
-          "propagation_matrix",
+          "spectral_propmat",
           [](const CIARecord& self,
              const AscendingGrid& f,
              const AtmPoint& atm,
@@ -152,7 +152,7 @@ Returns
   vector_interface(acr);
 
   acr.def(
-      "propagation_matrix",
+      "spectral_propmat",
       [](const ArrayOfCIARecord& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
@@ -160,21 +160,21 @@ Returns
          const Numeric T_extrapolfac,
          const Index ignore_errors,
          const py::kwargs&) {
-        PropmatVector propagation_matrix(f.size());
-        PropmatMatrix propagation_matrix_jacobian(0, f.size());
-        JacobianTargets jacobian_targets{};
+        PropmatVector spectral_propmat(f.size());
+        PropmatMatrix spectral_propmat_jac(0, f.size());
+        JacobianTargets jac_targets{};
 
-        propagation_matrixAddCIA(propagation_matrix,
-                                 propagation_matrix_jacobian,
-                                 spec,
-                                 jacobian_targets,
-                                 f,
-                                 atm,
-                                 self,
-                                 T_extrapolfac,
-                                 ignore_errors);
+        spectral_propmatAddCIA(spectral_propmat,
+                               spectral_propmat_jac,
+                               spec,
+                               jac_targets,
+                               f,
+                               atm,
+                               self,
+                               T_extrapolfac,
+                               ignore_errors);
 
-        return propagation_matrix;
+        return spectral_propmat;
       },
       "f"_a,
       "atm"_a,
@@ -199,7 +199,7 @@ ignore_errors : Index, optional
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");

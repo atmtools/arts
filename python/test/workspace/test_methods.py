@@ -40,15 +40,15 @@ class TestMethods:
             "O3",
         ]
 
-        ws.absorption_speciesSet(ws.absorption_species, species)
-        ws.absorption_species_2 = pyarts.arts.ArrayOfSpeciesTag()
-        ws.absorption_speciesSet(ws.absorption_species_2, species)
-        ws.absorption_species_3 = pyarts.arts.ArrayOfSpeciesTag()
-        ws.absorption_speciesSet(
-            absorption_species=ws.absorption_species_3, species=species
+        ws.abs_speciesSet(ws.abs_species, species)
+        ws.abs_species_2 = pyarts.arts.ArrayOfSpeciesTag()
+        ws.abs_speciesSet(ws.abs_species_2, species)
+        ws.abs_species_3 = pyarts.arts.ArrayOfSpeciesTag()
+        ws.abs_speciesSet(
+            abs_species=ws.abs_species_3, species=species
         )
-        assert ws.absorption_species == ws.absorption_species_3
-        assert ws.absorption_species_2 == ws.absorption_species_3
+        assert ws.abs_species == ws.abs_species_3
+        assert ws.abs_species_2 == ws.abs_species_3
 
     def test_generic_output(self):
         """
@@ -81,7 +81,7 @@ class TestMethods:
             self.ws.Copy(self.ws.string_wsv, self.ws.numeric_wsv)
 
     def test_predefined_doc(self):
-        m = "propagation_matrixAddPredefined"
+        m = "spectral_propmatAddPredefined"
         isots = pyarts.arts.globals.all_isotopologues()
         desc = pyarts.arts.globals.workspace_methods()[m].desc
 

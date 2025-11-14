@@ -20,10 +20,10 @@ The subsections below are given in no particular order.
 
 .. toctree::
    :maxdepth: 2
-   
-   user.atmospheric_field
-   user.surface_field
-   user.subsurface_field
+
+   user.atm_field
+   user.surf_field
+   user.subsurf_field
    user.sensors
-   
+
    concepts

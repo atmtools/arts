@@ -3,23 +3,22 @@
 #include <algorithm>
 #include <ranges>
 
-void absorption_lookup_tableInit(
-    AbsorptionLookupTables& absorption_lookup_table) {
+void abs_lookup_dataInit(AbsorptionLookupTables& abs_lookup_data) {
   ARTS_TIME_REPORT
 
-  absorption_lookup_table.clear();
+  abs_lookup_data.clear();
 }
 
 namespace {
 template <bool calc>
-std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
-    PropmatVector& propagation_matrix [[maybe_unused]],
-    PropmatMatrix& propagation_matrix_jacobian [[maybe_unused]],
-    const AscendingGrid& frequency_grid,
-    const JacobianTargets& jacobian_targets [[maybe_unused]],
-    const SpeciesEnum& propagation_matrix_select_species,
-    const AbsorptionLookupTables& absorption_lookup_table,
-    const AtmPoint& atmospheric_point,
+std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(
+    PropmatVector& spectral_propmat [[maybe_unused]],
+    PropmatMatrix& spectral_propmat_jac [[maybe_unused]],
+    const AscendingGrid& freq_grid,
+    const JacobianTargets& jac_targets [[maybe_unused]],
+    const SpeciesEnum& spectral_propmat_select_species,
+    const AbsorptionLookupTables& abs_lookup_data,
+    const AtmPoint& atm_point_,
     const Index& no_negative_absorption,
     const Index& p_interp_order,
     const Index& t_interp_order,
@@ -29,78 +28,78 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
   ARTS_TIME_REPORT
 
   if constexpr (calc) {
-    Vector absorption(frequency_grid.size(), 0.0);
+    Vector absorption(freq_grid.size(), 0.0);
 
-    if (propagation_matrix_select_species == "Bath"_spec) {
-      for (auto& [spec, data] : absorption_lookup_table) {
+    if (spectral_propmat_select_species == "Bath"_spec) {
+      for (auto& [spec, data] : abs_lookup_data) {
         data.absorption(absorption,
                         spec,
                         p_interp_order,
                         t_interp_order,
                         water_interp_order,
                         f_interp_order,
-                        atmospheric_point,
-                        frequency_grid,
+                        atm_point_,
+                        freq_grid,
                         extpolfac);
       }
     } else {
-      absorption_lookup_table.at(propagation_matrix_select_species)
+      abs_lookup_data.at(spectral_propmat_select_species)
           .absorption(absorption,
-                      propagation_matrix_select_species,
+                      spectral_propmat_select_species,
                       p_interp_order,
                       t_interp_order,
                       water_interp_order,
                       f_interp_order,
-                      atmospheric_point,
-                      frequency_grid,
+                      atm_point_,
+                      freq_grid,
                       extpolfac);
     }
 
     return absorption;
   } else {
-    const Vector absorption = _propagation_matrixAddLookup<not calc>(
-        propagation_matrix,
-        propagation_matrix_jacobian,
-        frequency_grid,
-        jacobian_targets,
-        propagation_matrix_select_species,
-        absorption_lookup_table,
-        atmospheric_point,
-        no_negative_absorption,
-        p_interp_order,
-        t_interp_order,
-        water_interp_order,
-        f_interp_order,
-        extpolfac);
+    const Vector absorption =
+        _spectral_propmatAddLookup<not calc>(spectral_propmat,
+                                             spectral_propmat_jac,
+                                             freq_grid,
+                                             jac_targets,
+                                             spectral_propmat_select_species,
+                                             abs_lookup_data,
+                                             atm_point_,
+                                             no_negative_absorption,
+                                             p_interp_order,
+                                             t_interp_order,
+                                             water_interp_order,
+                                             f_interp_order,
+                                             extpolfac);
 
-    for (Size i = 0; i < frequency_grid.size(); i++) {
+    for (Size i = 0; i < freq_grid.size(); i++) {
       if (no_negative_absorption == 0 or absorption[i] > 0.0) {
-        propagation_matrix[i].A() += absorption[i];
+        spectral_propmat[i].A() += absorption[i];
       }
     }
 
-    if (jacobian_targets.atm.size()) {
+    if (jac_targets.atm.size()) {
       Vector d_absorption;
 
-      for (auto& jacobian_target : jacobian_targets.atm) {
+      for (auto& jacobian_target : jac_targets.atm) {
         ARTS_USER_ERROR_IF(
             not std::isnormal(jacobian_target.d),
             "The target {} is not good, it lacks a perturbation value.",
             jacobian_target);
 
         if (is_wind(jacobian_target)) {
-          const AscendingGrid frequency_grid2(
-              frequency_grid.begin(),
-              frequency_grid.end(),
+          const AscendingGrid freq_grid2(
+              freq_grid.begin(),
+              freq_grid.end(),
               [d = jacobian_target.d](Numeric x) { return x + d; });
-          d_absorption = _propagation_matrixAddLookup<not calc>(
-              propagation_matrix,
-              propagation_matrix_jacobian,
-              frequency_grid2,
+          d_absorption = _spectral_propmatAddLookup<not calc>(
+              spectral_propmat,
+              spectral_propmat_jac,
+              freq_grid2,
               {},
-              propagation_matrix_select_species,
-              absorption_lookup_table,
-              atmospheric_point,
+              spectral_propmat_select_species,
+              abs_lookup_data,
+              atm_point_,
               no_negative_absorption,
               p_interp_order,
               t_interp_order,
@@ -109,16 +108,16 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
               extpolfac);
 
         } else {
-          AtmPoint atm_point               = atmospheric_point;
+          AtmPoint atm_point               = atm_point_;
           atm_point[jacobian_target.type] += jacobian_target.d;
 
-          d_absorption = _propagation_matrixAddLookup<not calc>(
-              propagation_matrix,
-              propagation_matrix_jacobian,
-              frequency_grid,
+          d_absorption = _spectral_propmatAddLookup<not calc>(
+              spectral_propmat,
+              spectral_propmat_jac,
+              freq_grid,
               {},
-              propagation_matrix_select_species,
-              absorption_lookup_table,
+              spectral_propmat_select_species,
+              abs_lookup_data,
               atm_point,
               no_negative_absorption,
               p_interp_order,
@@ -129,9 +128,9 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
         }
 
         const Numeric d_inv = 1.0 / jacobian_target.d;
-        for (Size i = 0; i < frequency_grid.size(); i++) {
+        for (Size i = 0; i < freq_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
-            propagation_matrix_jacobian[jacobian_target.target_pos, i].A() =
+            spectral_propmat_jac[jacobian_target.target_pos, i].A() =
                 (d_absorption[i] - absorption[i]) * d_inv;
           }
         }
@@ -141,14 +140,14 @@ std::conditional_t<calc, Vector, void> _propagation_matrixAddLookup(
 }
 }  // namespace
 
-void propagation_matrixAddLookup(
-    PropmatVector& propagation_matrix,
-    PropmatMatrix& propagation_matrix_jacobian,
-    const AscendingGrid& frequency_grid,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesEnum& propagation_matrix_select_species,
-    const AbsorptionLookupTables& absorption_lookup_table,
-    const AtmPoint& atmospheric_point,
+void spectral_propmatAddLookup(
+    PropmatVector& spectral_propmat,
+    PropmatMatrix& spectral_propmat_jac,
+    const AscendingGrid& freq_grid,
+    const JacobianTargets& jac_targets,
+    const SpeciesEnum& spectral_propmat_select_species,
+    const AbsorptionLookupTables& abs_lookup_data,
+    const AtmPoint& atm_point,
     const Index& no_negative_absorption,
     const Index& p_interp_order,
     const Index& t_interp_order,
@@ -157,39 +156,38 @@ void propagation_matrixAddLookup(
     const Numeric& extpolfac) try {
   ARTS_TIME_REPORT
 
-  _propagation_matrixAddLookup<false>(propagation_matrix,
-                                      propagation_matrix_jacobian,
-                                      frequency_grid,
-                                      jacobian_targets,
-                                      propagation_matrix_select_species,
-                                      absorption_lookup_table,
-                                      atmospheric_point,
-                                      no_negative_absorption,
-                                      p_interp_order,
-                                      t_interp_order,
-                                      water_interp_order,
-                                      f_interp_order,
-                                      extpolfac);
+  _spectral_propmatAddLookup<false>(spectral_propmat,
+                                    spectral_propmat_jac,
+                                    freq_grid,
+                                    jac_targets,
+                                    spectral_propmat_select_species,
+                                    abs_lookup_data,
+                                    atm_point,
+                                    no_negative_absorption,
+                                    p_interp_order,
+                                    t_interp_order,
+                                    water_interp_order,
+                                    f_interp_order,
+                                    extpolfac);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void absorption_lookup_tablePrecompute(
-    AbsorptionLookupTables& absorption_lookup_table,
-    const ArrayOfAtmPoint& atmospheric_profile,
-    const AscendingGrid& frequency_grid,
-    const AbsorptionBands& absorption_bands,
-    const LinemixingEcsData& ecs_data,
-    const SpeciesEnum& select_species,
-    const AscendingGrid& temperature_perturbation,
-    const AscendingGrid& water_perturbation) {
+void abs_lookup_dataPrecompute(AbsorptionLookupTables& abs_lookup_data,
+                               const ArrayOfAtmPoint& atm_profile,
+                               const AscendingGrid& freq_grid,
+                               const AbsorptionBands& abs_bands,
+                               const LinemixingEcsData& abs_ecs_data,
+                               const SpeciesEnum& select_species,
+                               const AscendingGrid& temperature_perturbation,
+                               const AscendingGrid& water_perturbation) {
   ARTS_TIME_REPORT
 
-  absorption_lookup_table[select_species] = {
+  abs_lookup_data[select_species] = {
       select_species,
-      atmospheric_profile,
-      std::make_shared<const AscendingGrid>(frequency_grid),
-      absorption_bands,
-      ecs_data,
+      atm_profile,
+      std::make_shared<const AscendingGrid>(freq_grid),
+      abs_bands,
+      abs_ecs_data,
       temperature_perturbation.empty()
           ? nullptr
           : std::make_shared<const AscendingGrid>(temperature_perturbation),
@@ -198,12 +196,12 @@ void absorption_lookup_tablePrecompute(
           : std::make_shared<const AscendingGrid>(water_perturbation)};
 }
 
-void absorption_lookup_tablePrecomputeAll(
-    AbsorptionLookupTables& absorption_lookup_table,
-    const ArrayOfAtmPoint& atmospheric_profile,
-    const AscendingGrid& frequency_grid,
-    const AbsorptionBands& absorption_bands,
-    const LinemixingEcsData& ecs_data,
+void abs_lookup_dataPrecomputeAll(
+    AbsorptionLookupTables& abs_lookup_data,
+    const ArrayOfAtmPoint& atm_profile,
+    const AscendingGrid& freq_grid,
+    const AbsorptionBands& abs_bands,
+    const LinemixingEcsData& abs_ecs_data,
     const AscendingGrid& temperature_perturbation,
     const AscendingGrid& water_perturbation,
     const ArrayOfSpeciesEnum& water_affected_species) {
@@ -219,7 +217,7 @@ void absorption_lookup_tablePrecomputeAll(
         return lut_species.end() == std::ranges::find(lut_species, s);
       });
 
-  std::ranges::copy(absorption_bands | species_not_in_lut,
+  std::ranges::copy(abs_bands | species_not_in_lut,
                     std::back_inserter(lut_species));
 
   std::ranges::sort(lut_species);
@@ -239,7 +237,7 @@ void absorption_lookup_tablePrecomputeAll(
         water_affected_species)
   }
 
-  const auto f = std::make_shared<const AscendingGrid>(frequency_grid);
+  const auto f = std::make_shared<const AscendingGrid>(freq_grid);
   const auto t =
       std::make_shared<const AscendingGrid>(temperature_perturbation);
   const auto w =
@@ -252,20 +250,18 @@ void absorption_lookup_tablePrecomputeAll(
         std::ranges::any_of(water_affected_species, Cmp::eq(s));
 
     if (do_water_perturb) {
-      absorption_lookup_table[s] = {
-          s, atmospheric_profile, f, absorption_bands, ecs_data, t, w};
+      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, abs_ecs_data, t, w};
     } else {
-      absorption_lookup_table[s] = {
-          s, atmospheric_profile, f, absorption_bands, ecs_data, t};
+      abs_lookup_data[s] = {s, atm_profile, f, abs_bands, abs_ecs_data, t};
     }
   }
 }
 
-void absorption_lookup_tableFromProfiles(
-    AbsorptionLookupTables& absorption_lookup_table,
-    const AscendingGrid& frequency_grid,
-    const AbsorptionBands& absorption_bands,
-    const LinemixingEcsData& ecs_data,
+void abs_lookup_dataFromProfiles(
+    AbsorptionLookupTables& abs_lookup_data,
+    const AscendingGrid& freq_grid,
+    const AbsorptionBands& abs_bands,
+    const LinemixingEcsData& abs_ecs_data,
     const DescendingGrid& pressure_profile,
     const Vector& temperature_profile,
     const SpeciesEnumVectors& vmr_profiles,
@@ -275,18 +271,18 @@ void absorption_lookup_tableFromProfiles(
     const String& isoratio_option) {
   ARTS_TIME_REPORT
 
-  absorption_lookup_tableInit(absorption_lookup_table);
+  abs_lookup_dataInit(abs_lookup_data);
 
-  ArrayOfAtmPoint atmospheric_profile(
-      pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
+  ArrayOfAtmPoint atm_profile(pressure_profile.size(),
+                              AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
   ARTS_USER_ERROR_IF(
       not same_shape<1>(pressure_profile.vec(), temperature_profile),
       "Pressure and temperature profiles must agree in size.");
 
   for (Size i = 0; i < pressure_profile.size(); i++) {
-    atmospheric_profile[i].pressure    = pressure_profile[i];
-    atmospheric_profile[i].temperature = temperature_profile[i];
+    atm_profile[i].pressure    = pressure_profile[i];
+    atm_profile[i].temperature = temperature_profile[i];
   }
 
   for (auto& [spec, prof] : vmr_profiles) {
@@ -296,34 +292,33 @@ void absorption_lookup_tableFromProfiles(
         spec);
 
     for (Size i = 0; i < prof.size(); i++) {
-      atmospheric_profile[i][spec] = prof[i];
+      atm_profile[i][spec] = prof[i];
     }
   }
 
-  absorption_lookup_tablePrecomputeAll(absorption_lookup_table,
-                                       atmospheric_profile,
-                                       frequency_grid,
-                                       absorption_bands,
-                                       ecs_data,
-                                       temperature_perturbation,
-                                       water_perturbation,
-                                       water_affected_species);
+  abs_lookup_dataPrecomputeAll(abs_lookup_data,
+                               atm_profile,
+                               freq_grid,
+                               abs_bands,
+                               abs_ecs_data,
+                               temperature_perturbation,
+                               water_perturbation,
+                               water_affected_species);
 }
 
-void absorption_lookup_tableSimpleWide(
-    AbsorptionLookupTables& absorption_lookup_table,
-    const AscendingGrid& frequency_grid,
-    const AbsorptionBands& absorption_bands,
-    const LinemixingEcsData& ecs_data,
-    const ArrayOfSpeciesEnum& water_affected_species,
-    const Vector2& pressure_range,
-    const Vector2& temperature_range,
-    const Vector2& water_vmr_range,
-    const String& isoratio_option,
-    const Numeric& vmr_value,
-    const Index& atmospheric_steps,
-    const Index& temperature_perturbation_steps,
-    const Index& water_vmr_perturbation_steps) {
+void abs_lookup_dataSimpleWide(AbsorptionLookupTables& abs_lookup_data,
+                               const AscendingGrid& freq_grid,
+                               const AbsorptionBands& abs_bands,
+                               const LinemixingEcsData& abs_ecs_data,
+                               const ArrayOfSpeciesEnum& water_affected_species,
+                               const Vector2& pressure_range,
+                               const Vector2& temperature_range,
+                               const Vector2& water_vmr_range,
+                               const String& isoratio_option,
+                               const Numeric& vmr_value,
+                               const Index& atmospheric_steps,
+                               const Index& temperature_perturbation_steps,
+                               const Index& water_vmr_perturbation_steps) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(pressure_range[1] <= pressure_range[0],
@@ -366,26 +361,26 @@ void absorption_lookup_tableSimpleWide(
                 temperature_range[1] - temperature_profile[0],
                 temperature_perturbation_steps);
 
-  const SpeciesEnumVectors vmr_profiles =
-      [species = lbl::species_in_bands(absorption_bands),
-       vmr_value,
-       atmospheric_steps]() {
-        SpeciesEnumVectors out;
-        for (SpeciesEnum s : species) {
-          out[s] = Vector(atmospheric_steps, vmr_value);
-        }
-        return out;
-      }();
+  const SpeciesEnumVectors vmr_profiles = [species =
+                                               lbl::species_in_bands(abs_bands),
+                                           vmr_value,
+                                           atmospheric_steps]() {
+    SpeciesEnumVectors out;
+    for (SpeciesEnum s : species) {
+      out[s] = Vector(atmospheric_steps, vmr_value);
+    }
+    return out;
+  }();
 
-  absorption_lookup_tableFromProfiles(absorption_lookup_table,
-                                      frequency_grid,
-                                      absorption_bands,
-                                      ecs_data,
-                                      pressure_profile,
-                                      temperature_profile,
-                                      vmr_profiles,
-                                      temperature_perturbation,
-                                      water_perturbation,
-                                      water_affected_species,
-                                      isoratio_option);
+  abs_lookup_dataFromProfiles(abs_lookup_data,
+                              freq_grid,
+                              abs_bands,
+                              abs_ecs_data,
+                              pressure_profile,
+                              temperature_profile,
+                              vmr_profiles,
+                              temperature_perturbation,
+                              water_perturbation,
+                              water_affected_species,
+                              isoratio_option);
 }

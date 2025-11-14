@@ -2,34 +2,34 @@ import pyarts3 as pyarts
 
 ws = pyarts.Workspace()
 
-ws.absorption_speciesSet(species=["H2O"])
+ws.abs_speciesSet(species=["H2O"])
 
-ws.absorption_bands.readxml("nlte_lines.xml")
+ws.abs_bands.readxml("nlte_lines.xml")
 
 toa = 4.4825000e05
-ws.atmospheric_fieldInit(toa=toa)
+ws.atm_fieldInit(toa=toa)
 
-ws.atmospheric_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
-ws.atmospheric_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
-ws.atmospheric_field["N2"] = 0.0
-ws.atmospheric_field["O2"] = 0.0
-ws.atmospheric_field["H2O"] = 1.0
-ws.atmospheric_field["CO2"] = 0.0
-ws.atmospheric_field["H2"] = 0.0
-ws.atmospheric_field["He"] = 0.0
+ws.atm_field["t"] = pyarts.arts.GriddedField3.fromxml("t.xml")
+ws.atm_field["p"] = pyarts.arts.GriddedField3.fromxml("p.xml")
+ws.atm_field["N2"] = 0.0
+ws.atm_field["O2"] = 0.0
+ws.atm_field["H2O"] = 1.0
+ws.atm_field["CO2"] = 0.0
+ws.atm_field["H2"] = 0.0
+ws.atm_field["He"] = 0.0
 
-ws.surface_fieldGanymede()
-ws.surface_field["t"] = ws.atmospheric_field["t"].data[0, 0, 0]
-ws.atmospheric_fieldInitializeNonLTE(normalization=0.75)
-ws.absorption_bandsSetNonLTE()
+ws.surf_fieldGanymede()
+ws.surf_field["t"] = ws.atm_field["t"].data[0, 0, 0]
+ws.atm_fieldInitializeNonLTE(normalization=0.75)
+ws.abs_bandsSetNonLTE()
 
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
-ws.propagation_matrix_agendaAuto()
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
+ws.spectral_propmat_agendaAuto()
 
 collision_data = pyarts.arts.QuantumIdentifierGriddedField1Map.fromxml("Cij.xml")
 
-ws.frequency_gridFitNonLTE(nf=401, df=1e-4)
+ws.freq_gridFitNonLTE(nf=401, df=1e-4)
 
 levels = pyarts.arts.ArrayOfQuantumIdentifier(
     [
@@ -43,7 +43,7 @@ levels = pyarts.arts.ArrayOfQuantumIdentifier(
     ]
 )
 
-ws.ray_pathInit(pos = [ws.atmospheric_field.top_of_atmosphere, 0, 0], los=[180, 0])
+ws.ray_pathInit(pos = [ws.atm_field.top_of_atmosphere, 0, 0], los=[180, 0])
 ws.ray_pathSetGeometricExtremes()
 ws.ray_pathAddGeometricGridCrossings()
 ws.ray_path.pop(0)

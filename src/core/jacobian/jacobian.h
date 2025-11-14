@@ -4,10 +4,11 @@
 #include <lbl.h>
 #include <matpack.h>
 #include <obsel.h>
-#include <subsurface.h>
+#include <subsurf.h>
 #include <surf.h>
 #include <xml.h>
 
+#include <boost/container_hash/hash.hpp>
 #include <concepts>
 #include <limits>
 #include <numeric>
@@ -21,8 +22,6 @@
 #include "jac_rel.h"
 #include "jacobian_names.h"
 #include "xml_io_stream_functional.h"
-
-#include <boost/container_hash/hash.hpp>
 
 struct ErrorKey {
   Size y_start;
@@ -300,10 +299,10 @@ struct Targets final {
   void throwing_check(Size xsize) const;
 
   //! Sets the sizes and x-positions of the targets.
-  void finalize(const AtmField& atmospheric_field,
-                const SurfaceField& surface_field,
-                const SubsurfaceField& subsurface_field,
-                const AbsorptionBands& absorption_bands,
+  void finalize(const AtmField& atm_field,
+                const SurfaceField& surf_field,
+                const SubsurfaceField& subsurf_field,
+                const AbsorptionBands& abs_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
   AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d = 0.0);

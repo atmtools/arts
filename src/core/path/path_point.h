@@ -72,14 +72,14 @@ Vector2 mirror(const Vector2 los);
  * @param pos The sensor or radiation position of the path
  * @param los The sensor or radiation line-of-sight
  * @param atm_field The atmospheric field (as the WSV) 
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param as_sensor Treat as sensor flag
  * @return A path point that may initialize a path
  */
 PropagationPathPoint init(const Vector3& pos,
                           const Vector2& los,
                           const AtmField& atm_field,
-                          const SurfaceField& surface_field,
+                          const SurfaceField& surf_field,
                           bool as_sensor = true);
 
 /** Initializes a propagation path point to a valid state.
@@ -90,14 +90,14 @@ PropagationPathPoint init(const Vector3& pos,
  * @param pos The sensor or radiation position of the path
  * @param los The sensor or radiation line-of-sight
  * @param atm_field The atmospheric field (as the WSV) 
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param as_sensor Treat as sensor flag
  * @return A path point that may initialize a path
  */
 PropagationPathPoint init_with_lostype(const Vector3& pos,
                                        const Vector2& los,
                                        const AtmField& atm_field,
-                                       const SurfaceField& surface_field,
+                                       const SurfaceField& surf_field,
                                        bool as_sensor);
 
 /** Set the geometric extremes object
@@ -106,7 +106,7 @@ PropagationPathPoint init_with_lostype(const Vector3& pos,
  *
  * @param path The propagation path
  * @param atm_field The atmospheric field (as the WSV)
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param safe_search_accuracy The surface search accuracy in meters
  * @param search_safe Flag to search the surface safely or fast
  * @return The input for piping
@@ -114,9 +114,9 @@ PropagationPathPoint init_with_lostype(const Vector3& pos,
 ArrayOfPropagationPathPoint& set_geometric_extremes(
     ArrayOfPropagationPathPoint& path,
     const AtmField& atm_field,
-    const SurfaceField& surface_field,
-    const Numeric surface_search_accuracy = 0.1,
-    const bool surface_search_safe        = false);
+    const SurfaceField& surf_field,
+    const Numeric surf_search_accuracy = 0.1,
+    const bool surf_search_safe        = false);
 
 /** Fills a propagation path with geometrically spaced points
  *
@@ -128,13 +128,13 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
  * max_step away from the end of the path.
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param max_step The maximum step size in meters in path after this method completes
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Numeric max_step);
 
 /** Fills a propagation path with geometrically spaced points
@@ -146,55 +146,55 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
  * if the distance between them is larger than max_step.
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param max_step The maximum step size in meters in path after this method completes
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Numeric max_step);
 
 /** Adds all altitude grid crossings to a propagation path
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param alt_grid The altitude grid
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Vector& alt_grid);
 
 /** Adds all latitude grid crossings to a propagation path
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param lat_grid The latitude grid
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Vector& lat_grid);
 
 /** Adds all longitude grid crossings to a propagation path
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param lon_grid The longitude grid
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Vector& lon_grid);
 
 /** Adds all grid crossings to a propagation path
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param alt_grid The altitude grid
  * @param lat_grid The latitude grid
  * @param lon_grid The longitude grid
@@ -202,7 +202,7 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
  */
 ArrayOfPropagationPathPoint& fill_geometric_crossings(
     ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field,
+    const SurfaceField& surf_field,
     const Vector& alt_grid,
     const Vector& lat_grid,
     const Vector& lon_grid);
@@ -210,11 +210,11 @@ ArrayOfPropagationPathPoint& fill_geometric_crossings(
 /** Finds the geometric limb of a propagation path
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @return The geometric limb as a path point 
  */
 PropagationPathPoint find_geometric_limb(
-    const ArrayOfPropagationPathPoint& path, const SurfaceField& surface_field);
+    const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
 
 /** Find the two intersections of a line with an ellipsoid at a given altitude
  * 
@@ -236,22 +236,22 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
  * as the lowest altitude point.
  *
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& fill_geometric_limb(
-    ArrayOfPropagationPathPoint& path, const SurfaceField& surface_field);
+    ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
 
 /** Erases all points that are closer than min_dist to the surface
  *
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @param min_dist The minimum distance between two path points
  * @param first If true, the first path point is erased, otherwise the last
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
-                                           const SurfaceField& surface_field,
+                                           const SurfaceField& surf_field,
                                            const Numeric min_dist,
                                            const bool first = true);
 
@@ -261,11 +261,11 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
  * PropagationPathPoint::has(PathPositionType::atm)
  * 
  * @param path The propagation path
- * @param surface_field The surface field (as the WSV)
+ * @param surf_field The surface field (as the WSV)
  * @return Numeric Distance in meters
  */
 Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
-                                    const SurfaceField& surface_field);
+                                    const SurfaceField& surf_field);
 
 /** Distance between two positions in in meters
  *
@@ -349,15 +349,15 @@ bool is_valid_old_pos(const StridedConstVectorView& pos);
  * Computes the past geometric path point based on the current point's position,
  *
  * @param this_geometric The current geometric path point
- * @param atmospheric_field The atmospheric field data
- * @param surface_field The surface field data
+ * @param atm_field The atmospheric field data
+ * @param surf_field The surface field data
  * @param max_step The maximum step size for the propagation
  * @param safe_search_accuracy The safe search accuracy for the propagation
  * @return The next geometric path point
  */
 PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
-                                    const AtmField& atmospheric_field,
-                                    const SurfaceField& surface_field,
+                                    const AtmField& atm_field,
+                                    const SurfaceField& surf_field,
                                     const Numeric max_step,
                                     const Numeric safe_search_accuracy,
                                     const bool search_safe);

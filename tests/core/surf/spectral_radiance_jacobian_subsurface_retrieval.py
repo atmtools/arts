@@ -6,7 +6,7 @@ ws = pyarts.Workspace()
 
 ws.disort_settings_agendaSubsurfaceSetup()
 
-ws.frequency_grid = np.linspace(1, 2, 11)
+ws.freq_grid = np.linspace(1, 2, 11)
 
 z = np.linspace(0, -3, 6)
 tf = pyarts.arts.GeodeticField3(
@@ -15,31 +15,31 @@ tf = pyarts.arts.GeodeticField3(
     data=np.linspace(200, 400, len(z)).reshape(len(z), 1, 1)
 )
 
-ws.surface_fieldEarth()
-ws.surface_field["t"] = tf.max()
+ws.surf_fieldEarth()
+ws.surf_field["t"] = tf.max()
 
-ws.subsurface_field.bottom_depth = min(z)
-ws.subsurface_field['scalar absorption'] = 5
-ws.subsurface_field['scalar ssa'] = 0.99
-ws.subsurface_field["t"] = tf
-ws.subsurface_field["t"].alt_low = "Linear"
-ws.subsurface_field["t"].alt_upp = "Linear"
+ws.subsurf_field.bottom_depth = min(z)
+ws.subsurf_field['scalar absorption'] = 5
+ws.subsurf_field['scalar ssa'] = 0.99
+ws.subsurf_field["t"] = tf
+ws.subsurf_field["t"].alt_low = "Linear"
+ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 
-ws.absorption_species = []
-ws.absorption_bands = {}
-ws.propagation_matrix_agendaAuto()
-ws.spectral_radiance_observer_agendaSet(option="EmissionNoSensor")
+ws.abs_species = []
+ws.abs_bands = {}
+ws.spectral_propmat_agendaAuto()
+ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
-ws.atmospheric_fieldInit(toa=0.0)
+ws.atm_fieldInit(toa=0.0)
 
 
 @pyarts.arts_agenda(ws=ws, fix=False)
-def spectral_radiance_surface_agenda(ws):
-    ws.spectral_radianceSubsurfaceDisortEmissionWithJacobian(depth_profile=z)
+def spectral_rad_surface_agenda(ws):
+    ws.spectral_radSubsurfaceDisortEmissionWithJacobian(depth_profile=z)
 
 
 ws.RetrievalInit()
@@ -60,9 +60,9 @@ ws.measurement_vectorFromSensor()
 
 noise = .01
 ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-epp = np.random.normal(0, noise, len(ws.frequency_grid))
+epp = np.random.normal(0, noise, len(ws.freq_grid))
 ws.measurement_vector += epp
-ws.subsurface_field["t"].data += 20
+ws.subsurf_field["t"].data += 20
 ws.model_state_vector_aprioriFromData()
 ws.measurement_vector_fitted = []
 ws.model_state_vector = []
@@ -90,9 +90,9 @@ plt.plot(ws.measurement_averaging_kernel.T, z)
 plt.plot(ws.measurement_averaging_kernel.T @ np.ones_like(z), z, "k")
 
 plt.subplot(3, 1, 3)
-plt.plot(ws.frequency_grid, ws.measurement_vector, label="meas")
-plt.plot(ws.frequency_grid, ws.measurement_vector_fitted, label="fitted")
-plt.plot(ws.frequency_grid, ws.measurement_vector - epp, "k:", label="true")
+plt.plot(ws.freq_grid, ws.measurement_vector, label="meas")
+plt.plot(ws.freq_grid, ws.measurement_vector_fitted, label="fitted")
+plt.plot(ws.freq_grid, ws.measurement_vector - epp, "k:", label="true")
 plt.legend()
 
 plt.tight_layout()
