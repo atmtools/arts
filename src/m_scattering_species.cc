@@ -11,7 +11,7 @@ void legendre_degreeFromDisortSettings(Index& legendre_degree,
                      legendre_degree)
 }
 
-void scattering_speciesInit(ArrayOfScatteringSpecies& scattering_species) {
+void scat_speciesInit(ArrayOfScatteringSpecies& scattering_species) {
   scattering_species = ArrayOfScatteringSpecies{};
 }
 

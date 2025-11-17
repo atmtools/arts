@@ -507,9 +507,9 @@ void spectral_radSinglePathEmissionFrequencyLoop(
     const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfAtmPoint& atm_path,
     const ArrayOfPropmatVector& spectral_propmat_path,
-    const ArrayOfStokvecVector& spectral_srcvec_nlte_path,
+    const ArrayOfStokvecVector& spectral_nlte_srcvec_path,
     const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
-    const ArrayOfStokvecMatrix& spectral_srcvec_nlte_jac_path,
+    const ArrayOfStokvecMatrix& spectral_nlte_srcvec_jac_path,
     const SurfaceField& surf_field,
     const AtmField& atm_field,
     const Index& hse_derivative) try {
@@ -536,47 +536,47 @@ Actual:   ({}, {})
                                         freq_grid_path,
                                         atm_path,
                                         spectral_propmat_path,
-                                        spectral_srcvec_nlte_path,
+                                        spectral_nlte_srcvec_path,
                                         spectral_propmat_jac_path,
-                                        spectral_srcvec_nlte_jac_path),
+                                        spectral_nlte_srcvec_jac_path),
                      R"(Not same sizes:
 
 ray_path.size()                                                  = {},
 freq_grid_path.size()                                   = {},
 atm_path.size()                                = {},
 spectral_propmat_path.size()                               = {},
-spectral_srcvec_nlte_path.size()          = {},
+spectral_nlte_srcvec_path.size()          = {},
 spectral_propmat_jac_path.size()                      = {},
-spectral_srcvec_nlte_jac_path.size() = {}
+spectral_nlte_srcvec_jac_path.size() = {}
 )",
                      ray_path.size(),
                      freq_grid_path.size(),
                      atm_path.size(),
                      spectral_propmat_path.size(),
-                     spectral_srcvec_nlte_path.size(),
+                     spectral_nlte_srcvec_path.size(),
                      spectral_propmat_jac_path.size(),
-                     spectral_srcvec_nlte_jac_path.size());
+                     spectral_nlte_srcvec_jac_path.size());
 
   ARTS_USER_ERROR_IF(
       not arr::elemwise_same_size(
-          freq_grid_path, spectral_propmat_path, spectral_srcvec_nlte_path),
+          freq_grid_path, spectral_propmat_path, spectral_nlte_srcvec_path),
       R"(Not same sizes elemwise:
 freq_grid_path.size()                           = {}
 spectral_propmat_path.shape()                      = {:B,}
-spectral_srcvec_nlte_path.shape() = {:B,}
+spectral_nlte_srcvec_path.shape() = {:B,}
 )",
       freq_grid_path.size(),
       spectral_propmat_path[0].shape(),
-      spectral_srcvec_nlte_path[0].shape());
+      spectral_nlte_srcvec_path[0].shape());
 
   ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_jac_path,
-                                                 spectral_srcvec_nlte_jac_path),
+                                                 spectral_nlte_srcvec_jac_path),
                      R"(Not same sizes elemwise:
 spectral_propmat_jac_path.shape()                      = {:B,}
-spectral_srcvec_nlte_jac_path.shape() = {:B,}
+spectral_nlte_srcvec_jac_path.shape() = {:B,}
 )",
                      spectral_propmat_jac_path[0].shape(),
-                     spectral_srcvec_nlte_jac_path[0].shape());
+                     spectral_nlte_srcvec_jac_path[0].shape());
 
   Vector single_freq_path(N);
   StokvecVector single_rad_jac(nx);
@@ -612,11 +612,11 @@ spectral_srcvec_nlte_jac_path.shape() = {:B,}
       for (Size i = 0; i < N; i++) {
         single_freq_path[i]        = freq_grid_path[i][f];
         single_propmat_path[i]     = spectral_propmat_path[i][f];
-        single_nlte_srcvec_path[i] = spectral_srcvec_nlte_path[i][f];
+        single_nlte_srcvec_path[i] = spectral_nlte_srcvec_path[i][f];
 
         single_propmat_jac_path[i] = spectral_propmat_jac_path[i][joker, f];
         single_nlte_srcvec_jac_path[i] =
-            spectral_srcvec_nlte_jac_path[i][joker, f];
+            spectral_nlte_srcvec_jac_path[i][joker, f];
       }
 
       single_rad_jac = spectral_rad_jac[joker, f];

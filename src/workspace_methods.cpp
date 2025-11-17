@@ -1,6 +1,7 @@
 #include "workspace_methods.h"
 
 #include <mystring.h>
+#include <unique_unordered_map.h>
 
 #include <exception>
 #include <format>
@@ -255,7 +256,7 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
 
 namespace {
 void add_agenda_methods(
-    std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
+    UniqueMap<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [agname, ag] : internal_workspace_agendas()) {
     if (wsm_data.contains(agname + "Execute") or
         wsm_data.contains(agname + "Set") or
@@ -339,7 +340,7 @@ void fix(
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods_create() try {
-  std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
+  UniqueMap<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
   wsm_data["Ignore"] = {
       .desc      = R"--(Ignore a workspace variable.
@@ -1169,9 +1170,9 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_propmat_path",
-                         "spectral_srcvec_nlte_path",
+                         "spectral_nlte_srcvec_path",
                          "spectral_propmat_jac_path",
-                         "spectral_srcvec_nlte_jac_path"},
+                         "spectral_nlte_srcvec_jac_path"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1191,9 +1192,9 @@ are as per *spectral_propmat_pathFromPath*.
 )--",
       .author    = {"Richard Larsson"},
       .gout      = {"spectral_propmat_path_species_split",
-                    "spectral_srcvec_nlte_path_species_split",
+                    "spectral_nlte_srcvec_path_species_split",
                     "spectral_propmat_jac_path_species_split",
-                    "spectral_srcvec_nlte_jac_path_species_split"},
+                    "spectral_nlte_srcvec_jac_path_species_split"},
       .gout_type = {"ArrayOfArrayOfPropmatVector",
                     "ArrayOfArrayOfStokvecVector",
                     "ArrayOfArrayOfPropmatMatrix",
@@ -1287,7 +1288,7 @@ where:
     - *spectral_propmat_path*
     - The propagation matrix along the path.
   * - :math:`\vec{S}`
-    - *spectral_srcvec_nlte_path*
+    - *spectral_nlte_srcvec_path*
     - The non-LTE source vector along the path.
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
     - *spectral_rad_srcvec_jac_path*
@@ -1300,7 +1301,7 @@ where:
     - *spectral_propmat_jac_path*
     - The Jacobian of the propagation matrix with respect to the *jac_targets*.
   * - :math:`\frac{\partial \vec{S}}{\partial x}`
-    - *spectral_srcvec_nlte_jac_path*
+    - *spectral_nlte_srcvec_jac_path*
     - The Jacobian of the non-LTE source vector with respect to the *jac_targets*.
   * - :math:`x`
     - *jac_targets*
@@ -1320,9 +1321,9 @@ The output dimensions are:
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_srcvec_path", "spectral_rad_srcvec_jac_path"},
       .in     = {"spectral_propmat_path",
-                 "spectral_srcvec_nlte_path",
+                 "spectral_nlte_srcvec_path",
                  "spectral_propmat_jac_path",
-                 "spectral_srcvec_nlte_jac_path",
+                 "spectral_nlte_srcvec_jac_path",
                  "freq_grid_path",
                  "atm_path",
                  "jac_targets"},
@@ -1701,7 +1702,7 @@ Method is purely for convenience and composition.
 
   wsm_data["spectral_propmat_scatAddSpectralScatteringSpeciesTRO"] = {
       .desc =
-          R"--(Adds *scattering_species* results for totally random oriented spectral calculations to
+          R"--(Adds *scat_species* results for totally random oriented spectral calculations to
 *spectral_propmat_scat* and co.
 )--",
       .author = {"Richard Larsson"},
@@ -1713,7 +1714,7 @@ Method is purely for convenience and composition.
                  "spectral_phamat_spectral",
                  "freq_grid",
                  "atm_point",
-                 "scattering_species"},
+                 "scat_species"},
   };
 
   wsm_data["spectral_propmat_scat_pathFromSpectralAgenda"] = {
@@ -1753,15 +1754,15 @@ This method must be used inside *spectral_propmat_scat_agenda* and then be calle
 
   wsm_data["spectral_propmatInit"] = {
       .desc =
-          R"--(Initialize *spectral_propmat*, *spectral_srcvec_nlte*, and their derivatives to zeroes.
+          R"--(Initialize *spectral_propmat*, *spectral_nlte_srcvec*, and their derivatives to zeroes.
 
 This method must be used inside *spectral_propmat_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
       .out    = {"spectral_propmat",
-                 "spectral_srcvec_nlte",
+                 "spectral_nlte_srcvec",
                  "spectral_propmat_jac",
-                 "spectral_srcvec_nlte_jac"},
+                 "spectral_nlte_srcvec_jac"},
       .in     = {"jac_targets", "freq_grid"},
   };
 
@@ -2103,37 +2104,36 @@ but built on-the-fly, allowing per-frequency refraction.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"] = {
-      .desc =
-          R"--(Wraps *single_radClearskyEmissionPropagation* for a vector of frequencies.
+  {
+    const auto& other = wsm_data.at("single_radClearskyEmissionPropagation");
+    wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"] = {
+        .desc =
+            R"--(Wraps *single_radClearskyEmissionPropagation* for a vector of frequencies.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_rad", "spectral_rad_jac"},
-      .gout           = {"ray_paths"},
-      .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
-      .gout_desc      = {"The ray paths for each frequency"},
-      .in             = {"atm_field",
-                         "freq_grid",
-                         "jac_targets",
-                         "single_rad_space_agenda",
-                         "single_rad_surface_agenda",
-                         "single_propmat_agenda",
-                         "ray_point_back_propagation_agenda",
-                         "subsurf_field",
-                         "surf_field",
-                         "obs_pos",
-                         "obs_los",
-                         "max_stepsize"},
-      .pass_workspace = true,
-  };
-  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"].gin =
-      wsm_data["single_radClearskyEmissionPropagation"].gin;
-  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
-      .gin_type = wsm_data["single_radClearskyEmissionPropagation"].gin_type;
-  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
-      .gin_value = wsm_data["single_radClearskyEmissionPropagation"].gin_value;
-  wsm_data["spectral_radClearskyEmissionFrequencyDependentPropagation"]
-      .gin_desc = wsm_data["single_radClearskyEmissionPropagation"].gin_desc;
+        .author         = {"Richard Larsson"},
+        .out            = {"spectral_rad", "spectral_rad_jac"},
+        .gout           = {"ray_paths"},
+        .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
+        .gout_desc      = {"The ray paths for each frequency"},
+        .in             = {"atm_field",
+                           "freq_grid",
+                           "jac_targets",
+                           "single_rad_space_agenda",
+                           "single_rad_surface_agenda",
+                           "single_propmat_agenda",
+                           "ray_point_back_propagation_agenda",
+                           "subsurf_field",
+                           "surf_field",
+                           "obs_pos",
+                           "obs_los",
+                           "max_stepsize"},
+        .gin            = other.gin,
+        .gin_type       = other.gin_type,
+        .gin_value      = other.gin_value,
+        .gin_desc       = other.gin_desc,
+        .pass_workspace = true,
+    };
+  }
 
   wsm_data["single_radFromVector"] = {
       .desc =
@@ -2211,9 +2211,9 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "freq_grid_path",
                     "atm_path",
                     "spectral_propmat_path",
-                    "spectral_srcvec_nlte_path",
+                    "spectral_nlte_srcvec_path",
                     "spectral_propmat_jac_path",
-                    "spectral_srcvec_nlte_jac_path",
+                    "spectral_nlte_srcvec_jac_path",
                     "surf_field",
                     "atm_field"},
       .gin       = {"hse_derivative"},
@@ -2456,9 +2456,9 @@ meaning no *OEM* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_jac", "spectral_srcvec_nlte_jac"},
+      .out    = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
       .in     = {"spectral_propmat_jac",
-                 "spectral_srcvec_nlte_jac",
+                 "spectral_nlte_srcvec_jac",
                  "freq_grid",
                  "jac_targets",
                  "freq_wind_shift_jac"},
@@ -2471,13 +2471,13 @@ See :doc:`concept.absorption.lbl` for details.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_propmat",
-                    "spectral_srcvec_nlte",
+                    "spectral_nlte_srcvec",
                     "spectral_propmat_jac",
-                    "spectral_srcvec_nlte_jac"},
+                    "spectral_nlte_srcvec_jac"},
       .in        = {"spectral_propmat",
-                    "spectral_srcvec_nlte",
+                    "spectral_nlte_srcvec",
                     "spectral_propmat_jac",
-                    "spectral_srcvec_nlte_jac",
+                    "spectral_nlte_srcvec_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2816,7 +2816,7 @@ building of an actual Jacobian matrix.
   };
 
   const auto jac2ret = [&wsm_data](const std::string& name) {
-    auto v  = wsm_data[name];
+    auto v  = wsm_data.at(name);
     v.desc += std::format(R"(
 This method wraps *{}* together with adding the covariance matrices,
 to the *covariance_matrix_diagonal_blocks*, which are required to perform *OEM*.
@@ -4257,9 +4257,11 @@ See *SpeciesIsotope* for valid ``species``
            "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
-  wsm_data["ray_pointPastRefractive"] = wsm_data["ray_pointPastGeometric"];
-  wsm_data["ray_pointPastRefractive"].desc =
-      R"--(Gets the previous refractive point along *ray_path*
+  {
+    auto& this_ = wsm_data["ray_pointPastRefractive"];
+    this_       = wsm_data.at("ray_pointPastGeometric");
+    this_.desc =
+        R"--(Gets the previous refractive point along *ray_path*
 
 This basically wraps *ray_pointPastGeometric* but sets the zenith angle
 to the refracted zenith angle, i.e.,
@@ -4268,7 +4270,8 @@ to the refracted zenith angle, i.e.,
     
     \theta_{refracted} = \arcsin\left(\frac{n_{current}}{n_{next}}\sin(\theta_{current})\right)
 )--";
-  wsm_data["ray_pointPastRefractive"].in.emplace_back("single_dispersion");
+    this_.in.emplace_back("single_dispersion");
+  }
 
   wsm_data["ray_pointBackground"] = {
       .desc =
@@ -4475,9 +4478,11 @@ the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
-  wsm_data["measurement_sensorAddVectorGaussian"] =
-      wsm_data["measurement_sensorAddSimpleGaussian"];
-  wsm_data["measurement_sensorAddVectorGaussian"].gin_type[0] = "Vector";
+  {
+    auto& this_       = wsm_data["measurement_sensorAddVectorGaussian"];
+    this_             = wsm_data.at("measurement_sensorAddSimpleGaussian");
+    this_.gin_type[0] = "Vector";
+  }
 
   wsm_data["measurement_sensorAddRawSensor"] = {
       .desc =
@@ -5150,11 +5155,11 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
-  wsm_data["scattering_speciesInit"] = {
+  wsm_data["scat_speciesInit"] = {
       .desc   = R"(Initialize scattering species.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"scattering_species"},
+      .out    = {"scat_species"},
   };
 
   wsm_data["disort_settingsDownwellingObserver"] = {
@@ -5178,8 +5183,10 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radSubsurfaceDisortEmissionWithJacobian"] = {
-      .desc           = R"--(Gets the spectral radiance from the path.
+  {
+    const auto& other = wsm_data.at("ray_pathFromPointAndDepth");
+    wsm_data["spectral_radSubsurfaceDisortEmissionWithJacobian"] = {
+        .desc           = R"--(Gets the spectral radiance from the path.
 
 The Jacobian is computed by perturbations.  Sensor and absorption data are
 not considered as part of the perturbations.
@@ -5187,25 +5194,26 @@ not considered as part of the perturbations.
 The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
 *model_state_vector* for Jacobian calculations using *model_state_vectorPerturbations*.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_rad", "spectral_rad_jac"},
-      .in             = {"freq_grid",
-                         "atm_field",
-                         "surf_field",
-                         "subsurf_field",
-                         "jac_targets",
-                         "ray_point",
-                         "disort_quadrature_dimension",
-                         "disort_fourier_mode_dimension",
-                         "disort_legendre_polynomial_dimension",
-                         "disort_settings_agenda",
-                         "disort_settings_downwelling_wrapper_agenda"},
-      .gin            = {wsm_data["ray_pathFromPointAndDepth"].gin[0]},
-      .gin_type       = {wsm_data["ray_pathFromPointAndDepth"].gin_type[0]},
-      .gin_value      = {wsm_data["ray_pathFromPointAndDepth"].gin_value[0]},
-      .gin_desc       = {wsm_data["ray_pathFromPointAndDepth"].gin_desc[0]},
-      .pass_workspace = true,
-  };
+        .author         = {"Richard Larsson"},
+        .out            = {"spectral_rad", "spectral_rad_jac"},
+        .in             = {"freq_grid",
+                           "atm_field",
+                           "surf_field",
+                           "subsurf_field",
+                           "jac_targets",
+                           "ray_point",
+                           "disort_quadrature_dimension",
+                           "disort_fourier_mode_dimension",
+                           "disort_legendre_polynomial_dimension",
+                           "disort_settings_agenda",
+                           "disort_settings_downwelling_wrapper_agenda"},
+        .gin            = {other.gin[0]},
+        .gin_type       = {other.gin_type[0]},
+        .gin_value      = {other.gin_value[0]},
+        .gin_desc       = {other.gin_desc[0]},
+        .pass_workspace = true,
+    };
+  }
 
   wsm_data["disort_settingsOpticalThicknessFromPath"] = {
       .desc      = R"(Get optical thickness from path.
@@ -5220,80 +5228,77 @@ The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
 
-  wsm_data["disort_settingsSubsurfaceScalarAbsorption"] =
-      wsm_data["disort_settingsOpticalThicknessFromPath"];
-  wsm_data["disort_settingsSubsurfaceScalarAbsorption"].desc =
-      "Get optical thickness from subsurface path.\n";
-  wsm_data["disort_settingsSubsurfaceScalarAbsorption"].in[2] =
-      "subsurf_profile";
+  {
+    auto& this_ = wsm_data["disort_settingsSubsurfaceScalarAbsorption"];
+    this_       = wsm_data.at("disort_settingsOpticalThicknessFromPath");
+    this_.desc  = "Get optical thickness from subsurface path.\n";
+    this_.in[2] = "subsurf_profile";
+  }
 
-  wsm_data["disort_settings_agendaSetup"] = {
-      .desc =
-          R"--(Setup for Disort standard calculations.
-
-This method allows setting up *disort_settings_agenda* by named options.
-A description of the options is given below.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings_agenda"},
-      .gin    = {"layer_emission_setting",
-                 "scattering_setting",
-                 "space_setting",
-                 "sun_setting",
-                 "surf_setting",
-                 "surf_lambertian_value",
-                 wsm_data["disort_settingsOpticalThicknessFromPath"].gin[0]},
-      .gin_type =
-          {"String",
-           "String",
-           "String",
-           "String",
-           "String",
-           "Vector",
-           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_type[0]},
-      .gin_value =
-          {String{"LinearInTau"},
-           String{"None"},
-           String{"CosmicMicrowaveBackgroundRadiation"},
-           String{"None"},
-           String{"Thermal"},
-           Vector{},
-           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_value[0]},
-      .gin_desc =
-          {"Layer emission settings",
-           "Scattering settings",
-           "Space settings",
-           "Sun settings",
-           "Surface settings",
-           "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)",
-           wsm_data["disort_settingsOpticalThicknessFromPath"].gin_desc[0]},
-  };
-
-  wsm_data["disort_settings_agendaSubsurfaceSetup"] = {
-      .desc =
-          R"--(Setup for Disort subsurface calculations.
+  {
+    const auto& other = wsm_data.at("disort_settingsOpticalThicknessFromPath");
+    wsm_data["disort_settings_agendaSetup"] = {
+        .desc =
+            R"--(Setup for Disort standard calculations.
 
 This method allows setting up *disort_settings_agenda* by named options.
 A description of the options is given below.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"disort_settings_agenda"},
-      .gin    = {"sun_setting",
-                 wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin[0],
-                 "fading_bottom"},
-      .gin_type =
-          {"String",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_type[0],
-           "Index"},
-      .gin_value =
-          {String{"None"},
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_value[0],
-           Index{1}},
-      .gin_desc =
-          {"Sun settings",
-           wsm_data["disort_settingsSubsurfaceScalarAbsorption"].gin_desc[0],
-           "If true, the bottom layer has no input from below (i.e., no emission or transmission from below)."},
-  };
+        .author    = {"Richard Larsson"},
+        .out       = {"disort_settings_agenda"},
+        .gin       = {"layer_emission_setting",
+                      "scattering_setting",
+                      "space_setting",
+                      "sun_setting",
+                      "surf_setting",
+                      "surf_lambertian_value",
+                      other.gin[0]},
+        .gin_type  = {"String",
+                      "String",
+                      "String",
+                      "String",
+                      "String",
+                      "Vector",
+                      other.gin_type[0]},
+        .gin_value = {String{"LinearInTau"},
+                      String{"None"},
+                      String{"CosmicMicrowaveBackgroundRadiation"},
+                      String{"None"},
+                      String{"Thermal"},
+                      Vector{},
+                      other.gin_value[0]},
+        .gin_desc =
+            {"Layer emission settings",
+             "Scattering settings",
+             "Space settings",
+             "Sun settings",
+             "Surface settings",
+             "Surface lambertian value (must be the size of the frequency grid; used only when surface is set to a Lambertian variant)",
+             other.gin_desc[0]},
+    };
+  }
+
+  {
+    const auto& other =
+        wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");
+    wsm_data["disort_settings_agendaSubsurfaceSetup"] = {
+        .desc =
+            R"--(Setup for Disort subsurface calculations.
+
+This method allows setting up *disort_settings_agenda* by named options.
+A description of the options is given below.
+)--",
+        .author    = {"Richard Larsson"},
+        .out       = {"disort_settings_agenda"},
+        .gin       = {"sun_setting", other.gin[0], "fading_bottom"},
+        .gin_type  = {"String", other.gin_type[0], "Index"},
+        .gin_value = {String{"None"}, other.gin_value[0], Index{1}},
+        .gin_desc =
+            {"Sun settings",
+             other.gin_desc[0],
+             "If true, the bottom layer has no input from below (i.e., no emission or transmission from below)."},
+    };
+  }
 
   wsm_data["disort_settingsLegendreCoefficientsFromPath"] = {
       .desc   = R"(Sets the legendre coefficients from the path-variable.
@@ -5372,7 +5377,7 @@ This is WIP and should not be used.
       .in     = {"disort_settings",
                  "atm_path",
                  "spectral_propmat_path",
-                 "spectral_srcvec_nlte_path",
+                 "spectral_nlte_srcvec_path",
                  "freq_grid"},
   };
 
@@ -5406,7 +5411,7 @@ Sets both upper and lower bounds.
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
-      .desc = R"(Turns boundary condition from surface for Disort calculations.
+      .desc = R"(Turns off surface boundary condition for Disort calculations.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},

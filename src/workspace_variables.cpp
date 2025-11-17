@@ -1,6 +1,7 @@
 #include "workspace_variables.h"
 
-#include "unique_unordered_map.h"
+#include <unique_unordered_map.h>
+
 #include "workspace_agendas.h"
 
 namespace {
@@ -25,6 +26,8 @@ void agendas(
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
   UniqueMap<std::string, WorkspaceVariableInternalRecord> wsv_data;
+
+  //! absorption and scattering
 
   wsv_data["abs_bands"] = {
       .desc =
@@ -126,6 +129,28 @@ See also :doc:`concept.absorption.xsec` for more information on these calculatio
       .type = "ArrayOfXsecRecord",
   };
 
+  wsv_data["abs_ecs_data"] = {
+      .desc          = R"--(Error corrected sudden data
+
+Dimensions: [num Isotopologues] [num Species]
+
+Used in line-by-line calculations requiring ECS data.
+)--",
+      .type          = "LinemixingEcsData",
+      .default_value = " ",
+  };
+
+  wsv_data["abs_predef_data"] = {
+      .desc =
+          R"--(This contains predefined model data.
+
+Can currently only contain data for new MT CKD models of water.
+
+See :doc:`concept.absorption.predef` for more information on predefined model calculations.
+)--",
+      .type = "PredefinedModelData",
+  };
+
   wsv_data["abs_species"] = {
       .desc = R"--(Tag groups for gas absorption.
 
@@ -137,6 +162,35 @@ species they should read from the available input files.
 )--",
       .type = "ArrayOfSpeciesTag",
   };
+
+  wsv_data["legendre_degree"] = {
+      .desc = R"(The degree of a Legendre polynimial.
+)",
+      .type = "Index",
+  };
+
+  wsv_data["select_species"] = {
+      .desc          = R"--(Species selection.
+
+When Bath is selected, all species are used.  Otherwise, this variable should control so that only the selected species is used.
+)--",
+      .type          = "SpeciesEnum",
+      .default_value = "SpeciesEnum::Bath",
+  };
+
+  wsv_data["select_species_list"] = {
+      .desc = R"--(Species selection when multiple species must be chosen.
+)--",
+      .type = "ArrayOfSpeciesEnum",
+  };
+
+  wsv_data["scat_species"] = {
+      .desc = R"--(The scattering species
+)--",
+      .type = "ArrayOfScatteringSpecies",
+  };
+
+  //! altitude
 
   wsv_data["alt"] = {
       .desc =
@@ -160,6 +214,8 @@ Unit: m
 )--",
       .type = "AscendingGrid",
   };
+
+  //! atmosphere
 
   wsv_data["atm_field"] = {
       .desc =
@@ -189,6 +245,18 @@ The atmospheric field may, but does not have to, consist of the following:
 For more information, see :doc:`user.atm_field`.
 )--",
       .type = "AtmField",
+  };
+
+  wsv_data["atm_path"] = {
+      .desc = R"--(Atmospheric points along the propagation path.
+
+See *atm_point* for information about atmospheric points
+
+Dimension: [ ppath.np ]
+
+Usage: Output of radiative transfer methods.
+)--",
+      .type = "ArrayOfAtmPoint",
   };
 
   wsv_data["atm_point"] = {
@@ -226,33 +294,28 @@ For more information, see :doc:`user.atm_field`.
       .type = "ArrayOfAtmPoint",
   };
 
-  wsv_data["spectral_propmat_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
+  //! frequency
 
-The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
+  wsv_data["freq"] = {
+      .desc = R"--(A single frequency.  Unit: Hz.
 )--",
-      .type = "PropmatMatrix",
+      .type = "Numeric",
   };
 
-  wsv_data["spectral_srcvec_nlte_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_srcvec_nlte* with regards to *jac_targets*.
+  wsv_data["freq_grid"] = {
+      .desc = R"--(A frequency grid.  Unit: Hz.
 
-The units are *spectral_rad_jac* per meter.
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
 )--",
-      .type = "StokvecMatrix",
+      .type = "AscendingGrid",
   };
 
-  wsv_data["abs_ecs_data"] = {
-      .desc          = R"--(Error corrected sudden data
-
-Dimensions: [num Isotopologues] [num Species]
-
-Used in line-by-line calculations requiring ECS data.
+  wsv_data["freq_grid_path"] = {
+      .desc = R"--(All *freq_grid* along the propagation path.
 )--",
-      .type          = "LinemixingEcsData",
-      .default_value = " ",
+      .type = "ArrayOfAscendingGrid",
   };
 
   wsv_data["freq_wind_shift_jac"] = {
@@ -279,7 +342,29 @@ The order is
       .type = "ArrayOfVector3",
   };
 
-  wsv_data["spectral_srcvec_nlte"] = {
+  //! spectral
+
+  wsv_data["spectral_absvec_scat"] = {
+      .desc =
+          R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
+)--",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["spectral_absvec_scat_path"] = {
+      .desc =
+          R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["spectral_flux_profile"] = {
+      .desc = R"--(An altitude profile of spectral flux.
+)--",
+      .type = "Matrix",
+  };
+
+  wsv_data["spectral_nlte_srcvec"] = {
       .desc =
           R"--(The part of the source vector that is due to non-LTE.
 
@@ -299,33 +384,39 @@ The unit is in *spectral_rad* per meter.
       .type = "StokvecVector",
   };
 
-  wsv_data["atm_path"] = {
-      .desc = R"--(Atmospheric points along the propagation path.
-
-See *atm_point* for information about atmospheric points
-
-Dimension: [ ppath.np ]
-
-Usage: Output of radiative transfer methods.
-)--",
-      .type = "ArrayOfAtmPoint",
-  };
-
-  wsv_data["freq_grid_path"] = {
-      .desc = R"--(All *freq_grid* along the propagation path.
-)--",
-      .type = "ArrayOfAscendingGrid",
-  };
-
-  wsv_data["abs_predef_data"] = {
+  wsv_data["spectral_nlte_srcvec_jac"] = {
       .desc =
-          R"--(This contains predefined model data.
+          R"--(Partial derivative of the *spectral_nlte_srcvec* with regards to *jac_targets*.
 
-Can currently only contain data for new MT CKD models of water.
-
-See :doc:`concept.absorption.predef` for more information on predefined model calculations.
+The units are *spectral_rad_jac* per meter.
 )--",
-      .type = "PredefinedModelData",
+      .type = "StokvecMatrix",
+  };
+
+  wsv_data["spectral_nlte_srcvec_jac_path"] = {
+      .desc = R"--(Additional non-LTE derivative along the propagation path
+)--",
+      .type = "ArrayOfStokvecMatrix",
+  };
+
+  wsv_data["spectral_nlte_srcvec_path"] = {
+      .desc = R"--(Additional non-LTE along the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["spectral_phamat_spectral"] = {
+      .desc =
+          R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
+)--",
+      .type = "SpecmatMatrix",
+  };
+
+  wsv_data["spectral_phamat_spectral_path"] = {
+      .desc =
+          R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
+)--",
+      .type = "ArrayOfSpecmatMatrix",
   };
 
   wsv_data["spectral_propmat"] = {
@@ -346,6 +437,27 @@ Dimension: *freq_grid*.
       .type = "PropmatVector",
   };
 
+  wsv_data["spectral_propmat_jac"] = {
+      .desc =
+          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
+
+The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
+)--",
+      .type = "PropmatMatrix",
+  };
+
+  wsv_data["spectral_propmat_jac_path"] = {
+      .desc = R"--(Propagation derivative matrices along the propagation path
+)--",
+      .type = "ArrayOfPropmatMatrix",
+  };
+
+  wsv_data["spectral_propmat_path"] = {
+      .desc = R"--(Propagation matrices along the propagation path
+)--",
+      .type = "ArrayOfPropmatVector",
+  };
+
   wsv_data["spectral_propmat_scat"] = {
       .desc =
           R"--(This contains the propagation matrix for scattering for the current path point.
@@ -360,19 +472,37 @@ Dimension: *freq_grid*.
       .type = "PropmatVector",
   };
 
-  wsv_data["select_species"] = {
-      .desc          = R"--(Species selection.
-
-When Bath is selected, all species are used.  Otherwise, this variable should control so that only the selected species is used.
+  wsv_data["spectral_propmat_scat_path"] = {
+      .desc =
+          R"--(Propagation matrices along the propagation path for scattering
 )--",
-      .type          = "SpeciesEnum",
-      .default_value = "SpeciesEnum::Bath",
+      .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["select_species_list"] = {
-      .desc = R"--(Species selection when multiple species must be chosen.
+  wsv_data["spectral_rad"] = {
+      .desc = R"--(A spectral radiance vector.
+
+This is the representation of the spectral radiances at discrete frequencies for
+a discrete viewing direction.
+
+The unit of spectral radiance is [W / m :math:`^2` sr Hz].
+
+Note that there are conversion routines that changes this unit,
+e.g., *spectral_radApplyUnit*.  After conversion,
+the use of *spectral_rad* in any method no marked as safe for different units,
+will lead to undefined behavior with possibly bad values being computed.
+
+The size of this variable should be the size of the local *freq_grid*.
 )--",
-      .type = "ArrayOfSpeciesEnum",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["spectral_rad_bkg"] = {
+      .desc = R"--(Spectral radiance from the background
+
+Shape: *freq_grid*
+)--",
+      .type = "StokvecVector",
   };
 
   wsv_data["spectral_rad_bkg_jac"] = {
@@ -383,12 +513,78 @@ Shape: *model_state_vector* x *freq_grid*
       .type = "StokvecMatrix",
   };
 
-  wsv_data["spectral_rad_bkg"] = {
-      .desc = R"--(Spectral radiance from the background
+  wsv_data["spectral_rad_closed_surface_agenda"] = {
+      .desc          = R"--(A closed surface agenda.
 
-Shape: *freq_grid*
+It behave exactly like *spectral_rad_surface_agenda*.  It exists
+to allow chaining surface agendas.  The idea is that the main
+*spectral_rad_surface_agenda* variable is the first interface
+and can chain into another surface agenda - this one.
+
+Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
+whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
+the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
+and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
+It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
+that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
-      .type = "StokvecVector",
+      .type          = "Agenda",
+      .default_value = "get_spectral_rad_surface_agenda(\"Blackbody\"sv)",
+  };
+
+  wsv_data["spectral_rad_field"] = {
+      .desc = R"(The spectral radiance field.
+
+*spectral_rad* but for a field.
+
+Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
+)",
+      .type = "GriddedSpectralField6",
+  };
+
+  wsv_data["spectral_rad_jac"] = {
+      .desc =
+          R"--(Jacobian of *spectral_rad* with respect to *jac_targets*.
+
+The size of this variable should be the local *jac_targets* as rows times the
+size of the local *spectral_rad* as columns.
+)--",
+      .type = "StokvecMatrix",
+  };
+
+  wsv_data["spectral_rad_jac_path"] = {
+      .desc = R"--(Spectral radiance derivative along the propagation path
+)--",
+      .type = "ArrayOfStokvecMatrix",
+  };
+
+  wsv_data["spectral_rad_scat_path"] = {
+      .desc = R"--(Spectral radiance scattered into the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["spectral_rad_srcvec_jac_path"] = {
+      .desc = R"--(Source derivative vectors along the propagation path
+)--",
+      .type = "ArrayOfStokvecMatrix",
+  };
+
+  wsv_data["spectral_rad_srcvec_path"] = {
+      .desc = R"--(Source vectors along the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["spectral_rad_transform_operator"] = {
+      .desc = R"(The spectral radiance transform operator
+
+This is responsible for things like converting the spectral radiance
+into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
+)",
+      .type = "SpectralRadianceTransformOperator",
+      .default_value =
+          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
   };
 
   wsv_data["spectral_surf_refl"] = {
@@ -413,93 +609,19 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatVector",
   };
 
-  wsv_data["spectral_absvec_scat"] = {
-      .desc =
-          R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
-)--",
-      .type = "StokvecVector",
-  };
+  wsv_data["spectral_tramat_jac_path"] = {
+      .desc = R"--(Transmission derivative matrices along the propagation path.
 
-  wsv_data["spectral_absvec_scat_path"] = {
-      .desc =
-          R"--(The absorption vector of totally random orientation particles along the propagation path using spectral representation
-)--",
-      .type = "ArrayOfStokvecVector",
-  };
+The outer dimension is the number of layers.
 
-  wsv_data["spectral_phamat_spectral"] = {
-      .desc =
-          R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
-)--",
-      .type = "SpecmatMatrix",
-  };
+The inner dimensions are the number of level derivatives,
+the number of jacbian targets, and the number of frequency points.
+The required number of level derivatives is determined by the appropriate
+method (a common value is 2, for the 2 levels surrounding a layer).
 
-  wsv_data["spectral_phamat_spectral_path"] = {
-      .desc =
-          R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
+The order of the elements is such that index zero is closest to the obeserver.
 )--",
-      .type = "ArrayOfSpecmatMatrix",
-  };
-
-  wsv_data["scattering_species"] = {
-      .desc = R"--(The scattering species
-)--",
-      .type = "ArrayOfScatteringSpecies",
-  };
-
-  wsv_data["spectral_rad_scat_path"] = {
-      .desc = R"--(Spectral radiance scattered into the propagation path
-)--",
-      .type = "ArrayOfStokvecVector",
-  };
-
-  wsv_data["spectral_rad_jac_path"] = {
-      .desc = R"--(Spectral radiance derivative along the propagation path
-)--",
-      .type = "ArrayOfStokvecMatrix",
-  };
-
-  wsv_data["spectral_propmat_path"] = {
-      .desc = R"--(Propagation matrices along the propagation path
-)--",
-      .type = "ArrayOfPropmatVector",
-  };
-
-  wsv_data["spectral_propmat_scat_path"] = {
-      .desc =
-          R"--(Propagation matrices along the propagation path for scattering
-)--",
-      .type = "ArrayOfPropmatVector",
-  };
-
-  wsv_data["spectral_propmat_jac_path"] = {
-      .desc = R"--(Propagation derivative matrices along the propagation path
-)--",
-      .type = "ArrayOfPropmatMatrix",
-  };
-
-  wsv_data["spectral_srcvec_nlte_path"] = {
-      .desc = R"--(Additional non-LTE along the propagation path
-)--",
-      .type = "ArrayOfStokvecVector",
-  };
-
-  wsv_data["spectral_srcvec_nlte_jac_path"] = {
-      .desc = R"--(Additional non-LTE derivative along the propagation path
-)--",
-      .type = "ArrayOfStokvecMatrix",
-  };
-
-  wsv_data["spectral_rad_srcvec_path"] = {
-      .desc = R"--(Source vectors along the propagation path
-)--",
-      .type = "ArrayOfStokvecVector",
-  };
-
-  wsv_data["spectral_rad_srcvec_jac_path"] = {
-      .desc = R"--(Source derivative vectors along the propagation path
-)--",
-      .type = "ArrayOfStokvecMatrix",
+      .type = "ArrayOfMuelmatTensor3",
   };
 
   wsv_data["spectral_tramat_path"] = {
@@ -520,29 +642,7 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["spectral_tramat_jac_path"] = {
-      .desc = R"--(Transmission derivative matrices along the propagation path.
-
-The outer dimension is the number of layers.
-
-The inner dimensions are the number of level derivatives,
-the number of jacbian targets, and the number of frequency points.
-The required number of level derivatives is determined by the appropriate
-method (a common value is 2, for the 2 levels surrounding a layer).
-
-The order of the elements is such that index zero is closest to the obeserver.
-)--",
-      .type = "ArrayOfMuelmatTensor3",
-  };
-
-  wsv_data["subsurf_profile"] = {
-      .desc =
-          R"--(A profile of subsurface points.  Supposed to be ordered from top to bottom.
-
-For more information, see :doc:`user.subsurf_field`.
-)--",
-      .type = "ArrayOfSubsurfacePoint",
-  };
+  //! Surface
 
   wsv_data["surf_field"] = {
       .desc = R"--(The surface field.
@@ -558,24 +658,7 @@ For more information, see :doc:`user.surf_field`.
       .type = "SurfaceField",
   };
 
-  wsv_data["spectral_rad_closed_surface_agenda"] = {
-      .desc          = R"--(A closed surface agenda.
-
-It behave exactly like *spectral_rad_surface_agenda*.  It exists
-to allow chaining surface agendas.  The idea is that the main
-*spectral_rad_surface_agenda* variable is the first interface
-and can chain into another surface agenda - this one.
-
-Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
-whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
-the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
-and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
-It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
-that is being emitted.  That's the type of use case this agenda is made for and why it exists!
-)--",
-      .type          = "Agenda",
-      .default_value = "get_spectral_rad_surface_agenda(\"Blackbody\"sv)",
-  };
+  //! Subsurface
 
   wsv_data["subsurf_field"] = {
       .desc          = R"--(The sub-surface field.
@@ -591,6 +674,17 @@ For more information, see :doc:`user.subsurf_field`.
       .type          = "SubsurfaceField",
       .default_value = "SubsurfaceField()",
   };
+
+  wsv_data["subsurf_profile"] = {
+      .desc =
+          R"--(A profile of subsurface points.  Supposed to be ordered from top to bottom.
+
+For more information, see :doc:`user.subsurf_field`.
+)--",
+      .type = "ArrayOfSubsurfacePoint",
+  };
+
+  //! Operators
 
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
@@ -614,6 +708,18 @@ gravity : Numeric
       .type = "NumericTernaryOperator",
   };
 
+  wsv_data["spectral_rad_operator"] = {
+      .desc = R"--(The spectral radiance operator.
+
+This is a class that can compute the spectral radiance
+along a path for a single viewing direction and frequency.
+
+It provides several methods to get the path of the spectral
+radiance.
+)--",
+      .type = "SpectralRadianceOperator",
+  };
+
   wsv_data["water_equivalent_pressure_operator"] = {
       .desc = R"--(The water equivalent pressure operator.
 
@@ -632,53 +738,27 @@ psat : Numeric
       .type = "NumericUnaryOperator",
   };
 
-  wsv_data["spectral_rad_field"] = {
-      .desc = R"(The spectral radiance field.
+  //! Inversion
 
-*spectral_rad* but for a field.
-
-Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
+  wsv_data["covariance_matrix_diagonal_blocks"] = {
+      .desc = R"(A helper map for setting the covariance matrix.
 )",
-      .type = "GriddedSpectralField6",
+      .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
   };
 
-  wsv_data["spectral_rad_transform_operator"] = {
-      .desc = R"(The spectral radiance transform operator
-
-This is responsible for things like converting the spectral radiance
-into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
-)",
-      .type = "SpectralRadianceTransformOperator",
-      .default_value =
-          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
-  };
-
-  wsv_data["spectral_rad"] = {
-      .desc = R"--(A spectral radiance vector.
-
-This is the representation of the spectral radiances at discrete frequencies for
-a discrete viewing direction.
-
-The unit of spectral radiance is [W / m :math:`^2` sr Hz].
-
-Note that there are conversion routines that changes this unit,
-e.g., *spectral_radApplyUnit*.  After conversion,
-the use of *spectral_rad* in any method no marked as safe for different units,
-will lead to undefined behavior with possibly bad values being computed.
-
-The size of this variable should be the size of the local *freq_grid*.
-)--",
-      .type = "StokvecVector",
-  };
-
-  wsv_data["spectral_rad_jac"] = {
+  wsv_data["do_jac"] = {
       .desc =
-          R"--(Jacobian of *spectral_rad* with respect to *jac_targets*.
+          R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
 
-The size of this variable should be the local *jac_targets* as rows times the
-size of the local *spectral_rad* as columns.
-)--",
-      .type = "StokvecMatrix",
+This variable is limited to very few methods related to the inversion process for *OEM*.
+Note that deep code of ARTS will ignore this variable, so it is not a global switch.
+Instead, it is used as a switch to clear the *jac_targets* variable, which is used
+to determine the size of the *measurement_jacobian*.  It is important to be careful
+with this, as it will mess with the size of the *measurement_jacobian* and could
+thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
+)",
+      .type          = "Index",
+      .default_value = "1",
   };
 
   wsv_data["jac_targets"] = {
@@ -696,135 +776,56 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .default_value = " ",
   };
 
-  wsv_data["ray_point"] = {
-      .desc = R"--(A single path point.
-
-This consists of
-
-#. The altitude in meters as a *Numeric* .
-#. The latitude in degrees as a *Numeric* .
-#. The longitude in degrees as a *Numeric* .
-#. The zenith angle in degrees as a *Numeric* .
-#. The azimuth angle in degrees as a *Numeric* .
-#. The *PathPositionType* of the path if it moves forward along its line of sight.
-#. The *PathPositionType* of the of the path at its current position.
-#. Bulk refractive index at the path point as a *Numeric* .
-#. Group refractive index at the path point as a *Numeric* .
-)--",
-      .type = "PropagationPathPoint",
+  wsv_data["inversion_iterate_agenda_counter"] = {
+      .desc          = R"(A counter for the inversion iterate agenda.
+)",
+      .type          = "Index",
+      .default_value = "0",
   };
 
-  wsv_data["freq_grid"] = {
-      .desc = R"--(A single frequency grid.
-
-Units: Hz
-
-.. note::
-    There is no global grid system in ARTS, so beware of the local
-    nature of all grids.
-)--",
-      .type = "AscendingGrid",
-  };
-
-  wsv_data["za_grid"] = {
-      .desc = R"--(A single zenith angle grid.
-
-Units: degrees
-
-.. note::
-    There is no global grid system in ARTS, so beware of the local
-    nature of all grids.
-)--",
-      .type = "ZenithGrid",
-  };
-
-  wsv_data["ray_path"] = {
-      .desc = R"--(A list path points making up a propagation path.
-)--",
-      .type = "ArrayOfPropagationPathPoint",
-  };
-
-  wsv_data["ray_path_field"] = {
+  wsv_data["measurement_averaging_kernel"] = {
       .desc =
-          R"--(A list of *ray_path* intended to build up a field of observations.
+          R"(Averaging kernel matrix.
 
-This is used by some methods to set up representative fields to help speed up computations.
-)--",
-      .type = "ArrayOfArrayOfPropagationPathPoint",
-  };
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
 
-  wsv_data["ray_path_observers"] = {
-      .desc =
-          R"--(A list path points making up the observers of a propagation path.
-
-These can be used directly for *obs_pos* and *obs_los*
-)--",
-      .type = "ArrayOfPropagationPathPoint",
-  };
-
-  wsv_data["spectral_flux_profile"] = {
-      .desc = R"--(An altitude profile of spectral flux.
-)--",
+Usage: Used and set by inversion methods.
+)",
       .type = "Matrix",
   };
 
-  wsv_data["nlte_line_flux_profile"] = {
-      .desc = R"--(A per-line flux profile.
-)--",
-      .type = "QuantumIdentifierVectorMap",
-  };
+  wsv_data["measurement_gain_matrix"] = {
+      .desc = R"(Contribution function (or gain) matrix.
 
-  wsv_data["obs_pos"] = {
-      .desc = R"--(The position of an observer of spectral radiance.
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
 
-Most likely only makes sense in combination with *obs_los*.
-)--",
-      .type = "Vector3",
-  };
-
-  wsv_data["obs_los"] = {
-      .desc = R"--(The line-of-sight of the observer of spectral radiance.
-
-Most likely only makes sense in combination with *obs_pos*.
-)--",
-      .type = "Vector2",
-  };
-
-  wsv_data["spectral_rad_operator"] = {
-      .desc = R"--(The spectral radiance operator.
-
-This is a class that can compute the spectral radiance
-along a path for a single viewing direction and frequency.
-
-It provides several methods to get the path of the spectral
-radiance.
-)--",
-      .type = "SpectralRadianceOperator",
-  };
-
-  wsv_data["model_state_vector"] = {
-      .desc          = R"(A state vector of the model.
-
-This represents the :emphasis:`chosen` state of the model.
-In the notation of *measurement_vector* and *OEM*,
-:math:`\vec{x}` is the *model_state_vector*.
-
-To choose the state of the model, you must setup *jac_targets* to
-include the state parameters you want to be able to change.
+Usage: Used and set by inversion methods.
 )",
-      .type          = "Vector",
-      .default_value = " ",
+      .type = "Matrix",
   };
 
-  wsv_data["model_state_vector_apriori"] = {
-      .desc = R"(An apriori state vector of the model.
+  wsv_data["measurement_jacobian"] = {
+      .desc =
+          R"(The first order partial derivatives of the *measurement_vector*.
 
-See *model_state_vector* for more details.
-This is the state vector that is assumed to be the a priori state of the model.
-In normal circumstances, this is the state vector that is used to
-start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
+This variable represents the matrix
+
+.. math::
+    \mathbf{J} = \frac{\partial \vec{y}} {\partial \vec{x}},
+
+where :math:`\vec{y}` is the *measurement_vector* and :math:`\vec{x}` is the *model_state_vector*.
+The size of this variable should thus be the size of *measurement_vector* times the size of *model_state_vector*.
+Please refer to those variables for more information.
 )",
-      .type = "Vector",
+      .type = "Matrix",
+  };
+
+  wsv_data["measurement_jacobian_error"] = {
+      .desc = R"(The partial derivatives of the *measurement_vector_error*.
+
+This is otherwise the same as *measurement_jacobian*.  See it for more details.
+)",
+      .type = "Matrix",
   };
 
   wsv_data["measurement_vector"] = {
@@ -864,6 +865,12 @@ In that notation, this is :math:`\vec{y}_\epsilon`.
       .type = "Vector",
   };
 
+  wsv_data["measurement_vector_error_covariance_matrix"] = {
+      .desc = R"(Covariance matrix for observation uncertainties.
+)",
+      .type = "CovarianceMatrix",
+  };
+
   wsv_data["measurement_vector_fitted"] = {
       .desc          = R"(As *measurement_vector*, but fitted to the model.
 
@@ -887,84 +894,128 @@ has been produced and if the measurement can be understood properly.
       .default_value = " ",
   };
 
-  wsv_data["measurement_gain_matrix"] = {
-      .desc = R"(Contribution function (or gain) matrix.
-
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
-
-Usage: Used and set by inversion methods.
-)",
-      .type = "Matrix",
-  };
-
-  wsv_data["measurement_averaging_kernel"] = {
-      .desc =
-          R"(Averaging kernel matrix.
-
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
-
-Usage: Used and set by inversion methods.
-)",
-      .type = "Matrix",
-  };
-
-  wsv_data["inversion_iterate_agenda_counter"] = {
-      .desc          = R"(A counter for the inversion iterate agenda.
-)",
-      .type          = "Index",
-      .default_value = "0",
-  };
-
-  wsv_data["do_jac"] = {
-      .desc =
-          R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
-
-This variable is limited to very few methods related to the inversion process for *OEM*.
-Note that deep code of ARTS will ignore this variable, so it is not a global switch.
-Instead, it is used as a switch to clear the *jac_targets* variable, which is used
-to determine the size of the *measurement_jacobian*.  It is important to be careful
-with this, as it will mess with the size of the *measurement_jacobian* and could
-thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
-)",
-      .type          = "Index",
-      .default_value = "1",
-  };
-
-  wsv_data["measurement_vector_error_covariance_matrix"] = {
-      .desc = R"(Covariance matrix for observation uncertainties.
-)",
-      .type = "CovarianceMatrix",
-  };
-
   wsv_data["model_state_covariance_matrix"] = {
       .desc = R"(Covariance matrix of a priori distribution.
 )",
       .type = "CovarianceMatrix",
   };
 
-  wsv_data["measurement_jacobian"] = {
+  wsv_data["model_state_vector"] = {
+      .desc          = R"(A state vector of the model.
+
+This represents the :emphasis:`chosen` state of the model.
+In the notation of *measurement_vector* and *OEM*,
+:math:`\vec{x}` is the *model_state_vector*.
+
+To choose the state of the model, you must setup *jac_targets* to
+include the state parameters you want to be able to change.
+)",
+      .type          = "Vector",
+      .default_value = " ",
+  };
+
+  wsv_data["model_state_vector_apriori"] = {
+      .desc = R"(An apriori state vector of the model.
+
+See *model_state_vector* for more details.
+This is the state vector that is assumed to be the a priori state of the model.
+In normal circumstances, this is the state vector that is used to
+start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
+)",
+      .type = "Vector",
+  };
+
+  //! Ray tracing
+
+  wsv_data["max_stepsize"] = {
       .desc =
-          R"(The first order partial derivatives of the *measurement_vector*.
-
-This variable represents the matrix
-
-.. math::
-    \mathbf{J} = \frac{\partial \vec{y}} {\partial \vec{x}},
-
-where :math:`\vec{y}` is the *measurement_vector* and :math:`\vec{x}` is the *model_state_vector*.
-The size of this variable should thus be the size of *measurement_vector* times the size of *model_state_vector*.
-Please refer to those variables for more information.
-)",
-      .type = "Matrix",
+          R"--(A control parameter for stepping through layers in ray tracing.
+)--",
+      .type          = "Numeric",
+      .default_value = "1000.0",
   };
 
-  wsv_data["measurement_jacobian_error"] = {
-      .desc = R"(The partial derivatives of the *measurement_vector_error*.
+  wsv_data["obs_los"] = {
+      .desc = R"--(The line-of-sight of the observer of spectral radiance.
 
-This is otherwise the same as *measurement_jacobian*.  See it for more details.
-)",
-      .type = "Matrix",
+Most likely only makes sense in combination with *obs_pos*.
+)--",
+      .type = "Vector2",
   };
+
+  wsv_data["obs_pos"] = {
+      .desc = R"--(The position of an observer of spectral radiance.
+
+Most likely only makes sense in combination with *obs_los*.
+)--",
+      .type = "Vector3",
+  };
+
+  wsv_data["ray_path"] = {
+      .desc = R"--(A list path points making up a propagation path.
+)--",
+      .type = "ArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["ray_path_field"] = {
+      .desc =
+          R"--(A list of *ray_path* intended to build up a field of observations.
+
+This is used by some methods to set up representative fields to help speed up computations.
+)--",
+      .type = "ArrayOfArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["ray_path_observers"] = {
+      .desc =
+          R"--(A list path points making up the observers of a propagation path.
+
+These can be used directly for *obs_pos* and *obs_los*
+)--",
+      .type = "ArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["ray_point"] = {
+      .desc = R"--(A single path point.
+
+This consists of
+
+#. The altitude in meters as a *Numeric* .
+#. The latitude in degrees as a *Numeric* .
+#. The longitude in degrees as a *Numeric* .
+#. The zenith angle in degrees as a *Numeric* .
+#. The azimuth angle in degrees as a *Numeric* .
+#. The *PathPositionType* of the path if it moves forward along its line of sight.
+#. The *PathPositionType* of the of the path at its current position.
+#. Bulk refractive index at the path point as a *Numeric* .
+#. Group refractive index at the path point as a *Numeric* .
+)--",
+      .type = "PropagationPathPoint",
+  };
+
+  //! Zenith and azimuth angle
+
+  wsv_data["za_grid"] = {
+      .desc = R"--(A single zenith angle grid.
+
+Units: degrees
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
+)--",
+      .type = "ZenithGrid",
+  };
+
+  //! Non-LTE
+
+  wsv_data["nlte_line_flux_profile"] = {
+      .desc = R"--(A per-line flux profile.
+)--",
+      .type = "QuantumIdentifierVectorMap",
+  };
+
+  //! Sensors
 
   wsv_data["measurement_sensor"] = {
       .desc = R"(A list of sensor elements.
@@ -973,6 +1024,8 @@ Size is number of elements of the sensor.
 )",
       .type = "ArrayOfSensorObsel",
   };
+
+  //! Solar input
 
   wsv_data["sun"] = {
       .desc = R"(A sun.
@@ -1006,22 +1059,18 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
-  wsv_data["disort_spectral_rad_field"] = {
-      .desc = R"(The spectral radiance field from Disort.
+  //! Disort
+
+  wsv_data["disort_fourier_mode_dimension"] = {
+      .desc = R"(The number of Fourier modes for Disort.
 )",
-      .type = "DisortRadiance",
+      .type = "Index",
   };
 
-  wsv_data["disort_spectral_flux_field"] = {
-      .desc = R"(The spectral flux field from Disort.
+  wsv_data["disort_legendre_polynomial_dimension"] = {
+      .desc = R"(The number of input Legendre polynimials for Disort.
 )",
-      .type = "DisortFlux",
-  };
-
-  wsv_data["disort_settings"] = {
-      .desc = R"(Contains the full settings of spectral Disort calculations.
-)",
-      .type = "DisortSettings",
+      .type = "Index",
   };
 
   wsv_data["disort_quadrature"] = {
@@ -1038,17 +1087,25 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .type = "Index",
   };
 
-  wsv_data["disort_fourier_mode_dimension"] = {
-      .desc = R"(The number of Fourier modes for Disort.
+  wsv_data["disort_spectral_flux_field"] = {
+      .desc = R"(The spectral flux field from Disort.
 )",
-      .type = "Index",
+      .type = "DisortFlux",
   };
 
-  wsv_data["disort_legendre_polynomial_dimension"] = {
-      .desc = R"(The number of input Legendre polynimials for Disort.
+  wsv_data["disort_spectral_rad_field"] = {
+      .desc = R"(The spectral radiance field from Disort.
 )",
-      .type = "Index",
+      .type = "DisortRadiance",
   };
+
+  wsv_data["disort_settings"] = {
+      .desc = R"(Contains the full settings of spectral Disort calculations.
+)",
+      .type = "DisortSettings",
+  };
+
+  //! Latitude and longitude
 
   wsv_data["lat"] = {
       .desc =
@@ -1096,74 +1153,24 @@ Units: degrees
       .type = "LonGrid",
   };
 
-  wsv_data["legendre_degree"] = {
-      .desc = R"(The degree of a Legendre polynimial.
-)",
-      .type = "Index",
+  //! Spectral single-frequency variables
+
+  wsv_data["single_dispersion"] = {
+      .desc = R"--(A dispersion at a single *freq* point.
+)--",
+      .type = "Numeric",
   };
 
-  wsv_data["covariance_matrix_diagonal_blocks"] = {
-      .desc = R"(A helper map for setting the covariance matrix.
-)",
-      .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
+  wsv_data["single_dispersion_jac"] = {
+      .desc = R"--(A dispersion Jacobian at a single *freq* point.
+)--",
+      .type = "Vector",
   };
 
   wsv_data["single_freq_path"] = {
       .desc = R"(The *freq* along the path.
 )",
       .type = "Vector",
-  };
-
-  wsv_data["single_propmat_path"] = {
-      .desc = R"(The propagation matrix along the path.
-
-Dimensions: [ *ray_path* ]
-)",
-      .type = "PropmatVector",
-  };
-
-  wsv_data["single_propmat_jac_path"] = {
-      .desc = R"(The propagation matrix Jacobian along the path.
-
-Dimensions: [ *ray_path* x jac_targets.target_size() ]
-)",
-      .type = "PropmatMatrix",
-  };
-
-  wsv_data["single_nlte_srcvec_path"] = {
-      .desc = R"(The propagation matrix along the path for nonlte source vector.
-
-Dimensions: [ *ray_path* ]
-)",
-      .type = "StokvecVector",
-  };
-
-  wsv_data["single_nlte_srcvec_jac_path"] = {
-      .desc =
-          R"(The propagation matrix Jacobian along the path for nonlte source.
-
-Dimensions: [ *ray_path* x jac_targets.target_size() ]
-)",
-      .type = "StokvecMatrix",
-  };
-
-  wsv_data["single_propmat"] = {
-      .desc = R"--(A propagation matrix at a single *freq* point.
-
-See *spectral_propmat* for more information.
-)--",
-      .type = "Propmat",
-  };
-
-  wsv_data["single_propmat_jac"] = {
-      .desc =
-          R"--(A propagation matrix Jacobian at a single *freq* point.
-
-See *spectral_propmat_jac* for more information.
-
-Size is number of Jacobian targets.
-)--",
-      .type = "PropmatVector",
   };
 
   wsv_data["single_nlte_srcvec"] = {
@@ -1185,22 +1192,56 @@ Size is number of Jacobian targets.
       .type = "StokvecVector",
   };
 
-  wsv_data["single_dispersion"] = {
-      .desc = R"--(A dispersion at a single *freq* point.
-)--",
-      .type = "Numeric",
+  wsv_data["single_nlte_srcvec_jac_path"] = {
+      .desc =
+          R"(The propagation matrix Jacobian along the path for nonlte source.
+
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
+)",
+      .type = "StokvecMatrix",
   };
 
-  wsv_data["single_dispersion_jac"] = {
-      .desc = R"--(A dispersion Jacobian at a single *freq* point.
-)--",
-      .type = "Vector",
+  wsv_data["single_nlte_srcvec_path"] = {
+      .desc = R"(The propagation matrix along the path for nonlte source vector.
+
+Dimensions: [ *ray_path* ]
+)",
+      .type = "StokvecVector",
   };
 
-  wsv_data["freq"] = {
-      .desc = R"--(A single frequency.
+  wsv_data["single_propmat_jac_path"] = {
+      .desc = R"(The propagation matrix Jacobian along the path.
+
+Dimensions: [ *ray_path* x jac_targets.target_size() ]
+)",
+      .type = "PropmatMatrix",
+  };
+
+  wsv_data["single_propmat"] = {
+      .desc = R"--(A propagation matrix at a single *freq* point.
+
+See *spectral_propmat* for more information.
 )--",
-      .type = "Numeric",
+      .type = "Propmat",
+  };
+
+  wsv_data["single_propmat_jac"] = {
+      .desc =
+          R"--(A propagation matrix Jacobian at a single *freq* point.
+
+See *spectral_propmat_jac* for more information.
+
+Size is number of Jacobian targets.
+)--",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["single_propmat_path"] = {
+      .desc = R"(The propagation matrix along the path.
+
+Dimensions: [ *ray_path* ]
+)",
+      .type = "PropmatVector",
   };
 
   wsv_data["single_rad"] = {
@@ -1213,14 +1254,6 @@ Size is number of Jacobian targets.
       .desc = R"--(Single value version of *spectral_rad_jac*.
 )--",
       .type = "StokvecVector",
-  };
-
-  wsv_data["max_stepsize"] = {
-      .desc =
-          R"--(A control parameter for stepping through layers in ray tracing.
-)--",
-      .type          = "Numeric",
-      .default_value = "1000.0",
   };
 
   agendas(wsv_data);

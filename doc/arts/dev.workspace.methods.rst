@@ -262,13 +262,13 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
   )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_propmat",
-                    "spectral_srcvec_nlte",
+                    "spectral_nlte_srcvec",
                     "spectral_propmat_jac",
-                    "spectral_srcvec_nlte_jac"},
+                    "spectral_nlte_srcvec_jac"},
       .in        = {"spectral_propmat",
-                    "spectral_srcvec_nlte",
+                    "spectral_nlte_srcvec",
                     "spectral_propmat_jac",
-                    "spectral_srcvec_nlte_jac",
+                    "spectral_nlte_srcvec_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -288,9 +288,9 @@ The signature of the method is:
 .. code-block:: c++
 
   void spectral_propmatAddLines(PropmatVector& spectral_propmat,
-                                  StokvecVector& spectral_srcvec_nlte,
+                                  StokvecVector& spectral_nlte_srcvec,
                                   PropmatMatrix& spectral_propmat_jac,
-                                  StokvecMatrix& spectral_srcvec_nlte_jac,
+                                  StokvecMatrix& spectral_nlte_srcvec_jac,
                                   const AscendingGrid& freq_grid,
                                   const JacobianTargets& jac_targets,
                                   const SpeciesEnum& select_species,
@@ -304,9 +304,9 @@ The signature of the method returns ``void``.  This is the same for all ARTS met
 
 The first four arguments of the method are references to
 :attr:`~pyarts3.workspace.Workspace.spectral_propmat`.
-:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte`,
+:attr:`~pyarts3.workspace.Workspace.spectral_nlte_srcvec`,
 :attr:`~pyarts3.workspace.Workspace.spectral_propmat_jac`, and
-:attr:`~pyarts3.workspace.Workspace.spectral_srcvec_nlte_jac`
+:attr:`~pyarts3.workspace.Workspace.spectral_nlte_srcvec_jac`
 are both output (``out``) and input (``in``).  The method is expected to modify the existing values
 of these workspace variables instead of creating new ones.
 

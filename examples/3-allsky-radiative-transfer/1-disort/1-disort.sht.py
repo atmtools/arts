@@ -73,7 +73,7 @@ rain_first_moment = pyarts.arts.ScatteringSpeciesProperty(
 psd = MGDSingleMoment(rain_first_moment, "Wang16", 270, 300, False)
 rain = ScatteringHabit(rain_habit, psd)
 
-ws.scattering_species = [rain]
+ws.scat_species = [rain]
 
 # %% Demonstration
 #

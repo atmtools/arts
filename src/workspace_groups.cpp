@@ -1,6 +1,7 @@
 #include "workspace_groups.h"
 
 #include <arts_options.h>
+#include <unique_unordered_map.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -25,9 +26,8 @@ void add_arrays_of(
 }
 
 namespace {
-void add_select_options(
-    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
-    const std::vector<std::string>& select_options) {
+void add_select_options(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data,
+                        const std::vector<std::string>& select_options) {
   const auto& options = internal_options();
 
   for (const auto& opt : select_options) {
@@ -45,8 +45,7 @@ void add_select_options(
   }
 }
 
-void agenda_operators(
-    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data) {
+void agenda_operators(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
     wsg_data[name + "Operator"] = {
         .file = "auto_agenda_operators.h",
@@ -61,7 +60,7 @@ void agenda_operators(
 
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups_creator() {
-  std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
+  UniqueMap<std::string, WorkspaceGroupRecord> wsg_data;
 
   wsg_data["AbsorptionBands"] = {
       .file     = "lbl.h",

@@ -96,14 +96,14 @@ for manual in [False, True]:
                 )
 
                 if manual:
-                    ws.scattering_species = [hspec]
+                    ws.scat_species = [hspec]
                 else:
                     def python_func(atm, f, index):
                         return hspec.get_bulk_scattering_properties_tro_spectral(
                             atm, f, index
                         )
 
-                    ws.scattering_species = [
+                    ws.scat_species = [
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 

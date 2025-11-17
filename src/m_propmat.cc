@@ -67,9 +67,9 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_propmat_path_species_splitFromPath(
     const Workspace &ws,
     ArrayOfArrayOfPropmatVector &spectral_propmat_path_species_split,
-    ArrayOfArrayOfStokvecVector &spectral_srcvec_nlte_path_species_split,
+    ArrayOfArrayOfStokvecVector &spectral_nlte_srcvec_path_species_split,
     ArrayOfArrayOfPropmatMatrix &spectral_propmat_jac_path_species_split,
-    ArrayOfArrayOfStokvecMatrix &spectral_srcvec_nlte_jac_path_species_split,
+    ArrayOfArrayOfStokvecMatrix &spectral_nlte_srcvec_jac_path_species_split,
     const Agenda &spectral_propmat_agenda,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfVector3 &freq_wind_shift_jac_path,
@@ -83,13 +83,13 @@ void spectral_propmat_path_species_splitFromPath(
   const Size np = ray_path.size();
 
   spectral_propmat_path_species_split.resize(ns);
-  spectral_srcvec_nlte_path_species_split.resize(ns);
+  spectral_nlte_srcvec_path_species_split.resize(ns);
   spectral_propmat_jac_path_species_split.resize(ns);
-  spectral_srcvec_nlte_jac_path_species_split.resize(ns);
+  spectral_nlte_srcvec_jac_path_species_split.resize(ns);
   for (auto &s : spectral_propmat_path_species_split) s.resize(np);
-  for (auto &s : spectral_srcvec_nlte_path_species_split) s.resize(np);
+  for (auto &s : spectral_nlte_srcvec_path_species_split) s.resize(np);
   for (auto &s : spectral_propmat_jac_path_species_split) s.resize(np);
-  for (auto &s : spectral_srcvec_nlte_jac_path_species_split) s.resize(np);
+  for (auto &s : spectral_nlte_srcvec_jac_path_species_split) s.resize(np);
 
   String error{};
 
@@ -100,9 +100,9 @@ void spectral_propmat_path_species_splitFromPath(
         spectral_propmat_agendaExecute(
             ws,
             spectral_propmat_path_species_split[is][ip],
-            spectral_srcvec_nlte_path_species_split[is][ip],
+            spectral_nlte_srcvec_path_species_split[is][ip],
             spectral_propmat_jac_path_species_split[is][ip],
-            spectral_srcvec_nlte_jac_path_species_split[is][ip],
+            spectral_nlte_srcvec_jac_path_species_split[is][ip],
             freq_grid_path[ip],
             freq_wind_shift_jac_path[ip],
             jac_targets,

@@ -54,14 +54,14 @@ void ray_path_spectral_radClearskyEmission(
   freq_grid_pathFromPath(
       freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
   ArrayOfPropmatVector spectral_propmat_path;
-  ArrayOfStokvecVector spectral_srcvec_nlte_path;
+  ArrayOfStokvecVector spectral_nlte_srcvec_path;
   ArrayOfPropmatMatrix spectral_propmat_jac_path;
-  ArrayOfStokvecMatrix spectral_srcvec_nlte_jac_path;
+  ArrayOfStokvecMatrix spectral_nlte_srcvec_jac_path;
   spectral_propmat_pathFromPath(ws,
                                 spectral_propmat_path,
-                                spectral_srcvec_nlte_path,
+                                spectral_nlte_srcvec_path,
                                 spectral_propmat_jac_path,
-                                spectral_srcvec_nlte_jac_path,
+                                spectral_nlte_srcvec_jac_path,
                                 spectral_propmat_agenda,
                                 freq_grid_path,
                                 freq_wind_shift_jac_path,
@@ -84,9 +84,9 @@ void ray_path_spectral_radClearskyEmission(
   spectral_rad_srcvec_pathFromPropmat(spectral_rad_srcvec_path,
                                       spectral_rad_srcvec_jac_path,
                                       spectral_propmat_path,
-                                      spectral_srcvec_nlte_path,
+                                      spectral_nlte_srcvec_path,
                                       spectral_propmat_jac_path,
-                                      spectral_srcvec_nlte_jac_path,
+                                      spectral_nlte_srcvec_jac_path,
                                       freq_grid_path,
                                       atm_path,
                                       {});

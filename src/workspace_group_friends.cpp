@@ -1,6 +1,7 @@
 #include "workspace_group_friends.h"
 
 #include <arts_options.h>
+#include <unique_unordered_map.h>
 
 #include <stdexcept>
 
@@ -8,7 +9,7 @@
 
 namespace {
 std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
-  std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
+  UniqueMap<std::string, WorkspaceGroupRecord> wsg_data;
 
   wsg_data["Block"] = {
       .file = "covariance_matrix.h",

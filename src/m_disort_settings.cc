@@ -172,7 +172,7 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
     const ArrayOfAtmPoint& atm_path,
     const ArrayOfPropmatVector& spectral_propmat_path,
-    const ArrayOfStokvecVector& spectral_srcvec_nlte_path,
+    const ArrayOfStokvecVector& spectral_nlte_srcvec_path,
     const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
@@ -191,7 +191,7 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
 
   ARTS_USER_ERROR_IF(
       not arr::same_size(
-          atm_path, spectral_propmat_path, spectral_srcvec_nlte_path),
+          atm_path, spectral_propmat_path, spectral_nlte_srcvec_path),
       R"(Not same size:
 
 atm_path.size():   {}
@@ -200,17 +200,17 @@ ray_path_source_vector_nonlte.size(): {}
 )",
       atm_path.size(),
       spectral_propmat_path.size(),
-      spectral_srcvec_nlte_path.size());
+      spectral_nlte_srcvec_path.size());
 
   ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_path,
-                                                 spectral_srcvec_nlte_path),
+                                                 spectral_nlte_srcvec_path),
                      R"(Not same size:
 
 spectral_propmat_path.size():   {}
 ray_path_source_vector_nonlte.size(): {}
 )",
                      spectral_propmat_path.size(),
-                     spectral_srcvec_nlte_path.size());
+                     spectral_nlte_srcvec_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
@@ -223,8 +223,8 @@ ray_path_source_vector_nonlte.size(): {}
       const Muelmat invK0 = inv(spectral_propmat_path[i + 0][iv]);
       const Muelmat invK1 = inv(spectral_propmat_path[i + 1][iv]);
 
-      const Stokvec& S0 = spectral_srcvec_nlte_path[i + 0][iv];
-      const Stokvec& S1 = spectral_srcvec_nlte_path[i + 1][iv];
+      const Stokvec& S0 = spectral_nlte_srcvec_path[i + 0][iv];
+      const Stokvec& S1 = spectral_nlte_srcvec_path[i + 1][iv];
 
       Numeric y0 = planck(f, t0) + (invK0 * S0).I();
       Numeric y1 = planck(f, t1) + (invK1 * S1).I();

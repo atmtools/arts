@@ -34,9 +34,9 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
     ws.spectral_propmat[:, 0] = 1
     return (
         ws.spectral_propmat,
-        ws.spectral_srcvec_nlte,
+        ws.spectral_nlte_srcvec,
         ws.spectral_propmat_jac,
-        ws.spectral_srcvec_nlte_jac,
+        ws.spectral_nlte_srcvec_jac,
     )
 
 
