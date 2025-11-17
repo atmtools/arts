@@ -70,27 +70,27 @@ for fc in [uf, vf, wf]:
         ws.atm_field["wind_u"] = wind[fc]
         ws.atm_field["wind_v"] = wind[fc]
         ws.atm_field["wind_w"] = wind[fc]
-        ws.measurement_vectorFromSensor()
+        ws.measurement_vecFromSensor()
 
-        ws.measurement_vector_fitted = []
-        ws.model_state_vector = []
-        ws.measurement_jacobian = [[]]
+        ws.measurement_vec_fit = []
+        ws.model_state_vec = []
+        ws.measurement_jac = [[]]
 
         ws.atm_field["wind_" + str(fc)] = wind[fc] + 100
-        ws.model_state_vector_aprioriFromData()
+        ws.model_state_vec_aprioriFromData()
 
-        ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-        ws.measurement_vector += np.random.normal(0, noise, NF)
+        ws.measurement_vec_error_covmatConstant(value=noise**2)
+        ws.measurement_vec += np.random.normal(0, noise, NF)
 
         ws.OEM(method="gn")
 
-        absdiff = round(abs(wind[fc] - ws.model_state_vector[0]))
+        absdiff = round(abs(wind[fc] - ws.model_state_vec[0]))
 
         print(
             f"""{fc}-component:
-  Apriori:  {ws.model_state_vector_apriori[0]} m/s
+  Apriori:  {ws.model_state_vec_apriori[0]} m/s
   Truth:    {round(wind[fc])} m/s
-  Retrieved {round(ws.model_state_vector[0])} m/s
+  Retrieved {round(ws.model_state_vec[0])} m/s
   AbsDiff   {absdiff} m/s"""
         )
         if absdiff >= ATOL:

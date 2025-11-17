@@ -56,8 +56,8 @@ ws.measurement_sensorAddSimpleGaussian(
 
 # %% Original calculations
 
-ws.measurement_vectorFromSensor()
-orig = ws.measurement_vector * 1.0
+ws.measurement_vecFromSensor()
+orig = ws.measurement_vec * 1.0
 
 ws.measurement_sensorSimpleGaussian(
     freq_grid=f, std=std, pos=pos, los=los, pol=pol1
@@ -66,8 +66,8 @@ ws.measurement_sensorAddSimpleGaussian(
     freq_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
-ws.measurement_vectorFromSensor()
-mod = ws.measurement_vector * 1.0
+ws.measurement_vecFromSensor()
+mod = ws.measurement_vec * 1.0
 
 
 # %% Set up the retrieval
@@ -85,9 +85,9 @@ ws.RetrievalFinalizeDiagonal()
 
 fail = True
 for i in range(LIMIT):
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.measurement_sensorSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol1
@@ -95,24 +95,24 @@ for i in range(LIMIT):
     ws.measurement_sensorAddSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol2
     )
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector += np.random.normal(0, noise, 2 * NF)
-    ws.measurement_vector[:NF] += 5 + f * 0
-    ws.measurement_vector[NF:] += 15 + (f - min(f)) * 1e-6 + (f - min(f))**2 * 1e-12
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec += np.random.normal(0, noise, 2 * NF)
+    ws.measurement_vec[:NF] += 5 + f * 0
+    ws.measurement_vec[NF:] += 15 + (f - min(f)) * 1e-6 + (f - min(f))**2 * 1e-12
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
 
     ws.OEM(method="gn")
 
-    print(f"got:      {ws.model_state_vector:B,}")
+    print(f"got:      {ws.model_state_vec:B,}")
     print(f"expected: [5, 15, 1e-6, 1e-12]")
-    m = abs(ws.model_state_vector / [5, 15, 1e-6, 1e-12] - 1).max()
+    m = abs(ws.model_state_vec / [5, 15, 1e-6, 1e-12] - 1).max()
     print(f"{round(100*m, 2)}% max difference")
     if m <= RTOL:
         print(f"Within {100*RTOL}%.  Success!")
@@ -120,7 +120,7 @@ for i in range(LIMIT):
         break
     print(f"RelDiffs not less than {100*RTOL}%, rerunning with new random noise")
 
-    print(ws.model_state_vector)
+    print(ws.model_state_vec)
 
 assert not fail, "Failed to retrieve sensor polynomial offsets grid"
 

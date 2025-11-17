@@ -290,10 +290,10 @@ location and the sensor element will not be found.
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vectorFromSensor(
+void measurement_vecFromSensor(
     const Workspace &ws,
-    Vector &measurement_vector,
-    Matrix &measurement_jacobian,
+    Vector &measurement_vec,
+    Matrix &measurement_jac,
     const ArrayOfSensorObsel &measurement_sensor,
     const JacobianTargets &jac_targets,
     const AtmField &atm_field,
@@ -303,11 +303,11 @@ void measurement_vectorFromSensor(
     const Agenda &spectral_rad_observer_agenda) try {
   ARTS_TIME_REPORT
 
-  measurement_vector.resize(measurement_sensor.size());
-  measurement_vector = 0.0;
+  measurement_vec.resize(measurement_sensor.size());
+  measurement_vec = 0.0;
 
-  measurement_jacobian.resize(measurement_sensor.size(), jac_targets.x_size());
-  measurement_jacobian = 0.0;
+  measurement_jac.resize(measurement_sensor.size(), jac_targets.x_size());
+  measurement_jac = 0.0;
 
   if (measurement_sensor.empty()) return;
 
@@ -397,9 +397,9 @@ void measurement_vectorFromSensor(
       for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
         const SensorObsel &obsel = measurement_sensor[iv];
         if (obsel.same_freqs(f_grid_ptr)) {
-          measurement_vector[iv] += obsel.sumup(spectral_rad, ip);
+          measurement_vec[iv] += obsel.sumup(spectral_rad, ip);
 
-          obsel.sumup(measurement_jacobian[iv], spectral_rad_jac, ip);
+          obsel.sumup(measurement_jac[iv], spectral_rad_jac, ip);
         }
       }
     } catch (const std::exception &e) {

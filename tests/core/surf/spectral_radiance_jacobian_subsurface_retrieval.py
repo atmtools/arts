@@ -56,17 +56,17 @@ ws.measurement_sensorSimple(pos=pos, los=los, pol="RC")
 
 ws.RetrievalFinalizeDiagonal()
 
-ws.measurement_vectorFromSensor()
+ws.measurement_vecFromSensor()
 
 noise = .01
-ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+ws.measurement_vec_error_covmatConstant(value=noise**2)
 epp = np.random.normal(0, noise, len(ws.freq_grid))
-ws.measurement_vector += epp
+ws.measurement_vec += epp
 ws.subsurf_field["t"].data += 20
-ws.model_state_vector_aprioriFromData()
-ws.measurement_vector_fitted = []
-ws.model_state_vector = []
-ws.measurement_jacobian = [[]]
+ws.model_state_vec_aprioriFromData()
+ws.measurement_vec_fit = []
+ws.model_state_vec = []
+ws.measurement_jac = [[]]
 
 ws.OEM(method="gn")
 
@@ -74,9 +74,9 @@ plt.figure(figsize=(8, 8))
 
 z = tf.grids[0]
 plt.subplot(3, 1, 1)
-plt.plot(ws.model_state_vector, z, label="fitted")
-plt.plot(ws.model_state_vector_apriori, z, label="apriori")
-plt.plot(ws.model_state_vector_apriori-20, z, label="true")
+plt.plot(ws.model_state_vec, z, label="fitted")
+plt.plot(ws.model_state_vec_apriori, z, label="apriori")
+plt.plot(ws.model_state_vec_apriori-20, z, label="true")
 plt.legend()
 
 ws.measurement_averaging_kernelCalc()
@@ -90,9 +90,9 @@ plt.plot(ws.measurement_averaging_kernel.T, z)
 plt.plot(ws.measurement_averaging_kernel.T @ np.ones_like(z), z, "k")
 
 plt.subplot(3, 1, 3)
-plt.plot(ws.freq_grid, ws.measurement_vector, label="meas")
-plt.plot(ws.freq_grid, ws.measurement_vector_fitted, label="fitted")
-plt.plot(ws.freq_grid, ws.measurement_vector - epp, "k:", label="true")
+plt.plot(ws.freq_grid, ws.measurement_vec, label="meas")
+plt.plot(ws.freq_grid, ws.measurement_vec_fit, label="fitted")
+plt.plot(ws.freq_grid, ws.measurement_vec - epp, "k:", label="true")
 plt.legend()
 
 plt.tight_layout()

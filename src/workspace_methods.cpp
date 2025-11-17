@@ -2801,7 +2801,7 @@ Overwrites all other functional toggles.
   wsm_data["jac_targetsFinalize"] = {
       .desc   = R"--(Finalize *jac_targets*.
 
-The finalization computes the size of the required *model_state_vector*.
+The finalization computes the size of the required *model_state_vec*.
 It is thus necessary if any *OEM* or other functionality that requires the
 building of an actual Jacobian matrix.
 )--",
@@ -2819,14 +2819,14 @@ building of an actual Jacobian matrix.
     auto v  = wsm_data.at(name);
     v.desc += std::format(R"(
 This method wraps *{}* together with adding the covariance matrices,
-to the *covariance_matrix_diagonal_blocks*, which are required to perform *OEM*.
+to the *covmat_diagonal_blocks*, which are required to perform *OEM*.
 
 The input covariance matrices must fit the size of the later computed model state
 represented by the *jac_targets*.  The covariance matrix inverse 
 )",
                           name);
-    v.out.insert(v.out.begin() + 1, "covariance_matrix_diagonal_blocks");
-    v.in.insert(v.in.begin() + 1, "covariance_matrix_diagonal_blocks");
+    v.out.insert(v.out.begin() + 1, "covmat_diagonal_blocks");
+    v.in.insert(v.in.begin() + 1, "covmat_diagonal_blocks");
     v.gin.insert(v.gin.end(), "matrix");
     v.gin.insert(v.gin.end(), "inverse");
     v.gin_type.insert(v.gin_type.end(), "BlockMatrix");
@@ -2843,19 +2843,19 @@ represented by the *jac_targets*.  The covariance matrix inverse
       .desc =
           R"--(Set a measurement error to polynomial fit.
 
-This is a generic error that is simply added to *measurement_vector* as if
+This is a generic error that is simply added to *measurement_vec* as if
 
 .. math::
 
     y = y_0 + \epsilon(p_0,\; p_1,\; \cdots,\; p_n),
 
-where :math:`y` represents *measurement_vector* and :math:`y_0` is the measurement vector without any errors)
+where :math:`y` represents *measurement_vec* and :math:`y_0` is the measurement vector without any errors)
 
 Order 0 means constant: :math:`y = y_0 + a`
 
 Order 1 means linear:   :math:`y = y_0 + a + b t`
 
-and so on.  The derivatives that are added to the *model_state_vector* are
+and so on.  The derivatives that are added to the *model_state_vec* are
 those with regards to a, b, etc..
 
 .. note::
@@ -2888,7 +2888,7 @@ Order 0 means constant: :math:`f := f_0 + a`
 
 Order 1 means linear:   :math:`f := f_0 + a + b f_0`
 
-and so on.  The derivatives that are added to the *model_state_vector* are
+and so on.  The derivatives that are added to the *model_state_vec* are
 those with regards to a, b, etc..
 
 .. note::
@@ -4309,28 +4309,28 @@ to the refracted zenith angle, i.e.,
       .in     = {"ray_path"},
   };
 
-  wsm_data["measurement_vectorFromOperatorPath"] = {
+  wsm_data["measurement_vecFromOperatorPath"] = {
       .desc =
           R"--(Sets measurement vector by looping over all sensor elements
 
 The core calculations happens inside the *spectral_rad_operator*.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"measurement_vector"},
+      .out            = {"measurement_vec"},
       .in             = {"measurement_sensor",
                          "spectral_rad_operator",
                          "ray_path_observer_agenda"},
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_vectorFromSensor"] = {
+  wsm_data["measurement_vecFromSensor"] = {
       .desc =
           R"--(Sets measurement vector by looping over all sensor elements
 
 The core calculations happens inside the *spectral_rad_observer_agenda*.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"measurement_vector", "measurement_jacobian"},
+      .out            = {"measurement_vec", "measurement_jac"},
       .in             = {"measurement_sensor",
                          "jac_targets",
                          "atm_field",
@@ -4341,64 +4341,55 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_jacobianAtmosphereTransformation"] = {
+  wsm_data["measurement_jacAtmosphereTransformation"] = {
       .desc   = "Applies transformations to the atmospheric state Jacobian\n",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_jacobian"},
-      .in     = {"measurement_jacobian",
-                 "model_state_vector",
-                 "atm_field",
-                 "jac_targets"},
+      .out    = {"measurement_jac"},
+      .in = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
   };
 
-  wsm_data["measurement_jacobianSurfaceTransformation"] = {
+  wsm_data["measurement_jacSurfaceTransformation"] = {
       .desc   = "Applies transformations to the surface state Jacobian\n",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_jacobian"},
-      .in     = {"measurement_jacobian",
-                 "model_state_vector",
-                 "surf_field",
-                 "jac_targets"},
+      .out    = {"measurement_jac"},
+      .in = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
   };
 
-  wsm_data["measurement_jacobianSubsurfaceTransformation"] = {
+  wsm_data["measurement_jacSubsurfaceTransformation"] = {
       .desc   = "Applies transformations to the subsurface state Jacobian\n",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_jacobian"},
-      .in     = {"measurement_jacobian",
-                 "model_state_vector",
+      .out    = {"measurement_jac"},
+      .in     = {"measurement_jac",
+                 "model_state_vec",
                  "subsurf_field",
                  "jac_targets"},
   };
 
-  wsm_data["measurement_jacobianBandTransformation"] = {
+  wsm_data["measurement_jacBandTransformation"] = {
       .desc   = "Applies transformations to the line-by-line state Jacobian\n",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_jacobian"},
-      .in     = {"measurement_jacobian",
-                 "model_state_vector",
-                 "abs_bands",
-                 "jac_targets"},
+      .out    = {"measurement_jac"},
+      .in = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
   };
 
-  wsm_data["measurement_jacobianSensorTransformation"] = {
+  wsm_data["measurement_jacSensorTransformation"] = {
       .desc =
           "Applies transformations to the measurement sensor state Jacobian\n",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_jacobian"},
-      .in     = {"measurement_jacobian",
-                 "model_state_vector",
+      .out    = {"measurement_jac"},
+      .in     = {"measurement_jac",
+                 "model_state_vec",
                  "measurement_sensor",
                  "jac_targets"},
   };
 
   wsm_data["measurement_sensorFromModelState"] = {
       .desc =
-          R"--(Update *measurement_sensor* from *model_state_vector*.
+          R"--(Update *measurement_sensor* from *model_state_vec*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor"},
-      .in     = {"measurement_sensor", "model_state_vector", "jac_targets"},
+      .in     = {"measurement_sensor", "model_state_vec", "jac_targets"},
   };
 
   wsm_data["measurement_sensorInit"] = {
@@ -4698,7 +4689,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"atm_field"},
-      .in     = {"atm_field", "model_state_vector", "jac_targets"},
+      .in     = {"atm_field", "model_state_vec", "jac_targets"},
   };
 
   wsm_data["surf_fieldFromModelState"] = {
@@ -4706,7 +4697,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"surf_field"},
-      .in     = {"surf_field", "model_state_vector", "jac_targets"},
+      .in     = {"surf_field", "model_state_vec", "jac_targets"},
   };
 
   wsm_data["subsurf_fieldFromModelState"] = {
@@ -4714,7 +4705,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"subsurf_field"},
-      .in     = {"subsurf_field", "model_state_vector", "jac_targets"},
+      .in     = {"subsurf_field", "model_state_vec", "jac_targets"},
   };
 
   wsm_data["abs_bandsFromModelState"] = {
@@ -4722,67 +4713,67 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_bands"},
-      .in     = {"abs_bands", "model_state_vector", "jac_targets"},
+      .in     = {"abs_bands", "model_state_vec", "jac_targets"},
   };
 
-  wsm_data["model_state_vectorInit"] = {
+  wsm_data["model_state_vecInit"] = {
       .desc =
-          R"--(Sets *model_state_vector* to the size *jac_targets* demand.
+          R"--(Sets *model_state_vec* to the size *jac_targets* demand.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
+      .out    = {"model_state_vec"},
       .in     = {"jac_targets"},
   };
 
-  wsm_data["model_state_vectorPerturbations"] = {
+  wsm_data["model_state_vecPerturbations"] = {
       .desc =
-          R"--(Sets *model_state_vector* to the size *jac_targets* demand.
+          R"--(Sets *model_state_vec* to the size *jac_targets* demand.
 
 Then fills it with the perturbations from the *jac_targets*.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
+      .out    = {"model_state_vec"},
       .in     = {"jac_targets"},
   };
 
-  wsm_data["model_state_vectorFromSensor"] = {
-      .desc   = R"--(Sets *model_state_vector*'s sensor part.
+  wsm_data["model_state_vecFromSensor"] = {
+      .desc   = R"--(Sets *model_state_vec*'s sensor part.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "measurement_sensor", "jac_targets"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "measurement_sensor", "jac_targets"},
   };
 
-  wsm_data["model_state_vectorFromAtmosphere"] = {
-      .desc   = R"--(Sets *model_state_vector*'s atmospheric part.
+  wsm_data["model_state_vecFromAtmosphere"] = {
+      .desc   = R"--(Sets *model_state_vec*'s atmospheric part.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "atm_field", "jac_targets"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "atm_field", "jac_targets"},
   };
 
-  wsm_data["model_state_vectorFromSurface"] = {
-      .desc   = R"--(Sets *model_state_vector*'s surface part.
+  wsm_data["model_state_vecFromSurface"] = {
+      .desc   = R"--(Sets *model_state_vec*'s surface part.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "surf_field", "jac_targets"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "surf_field", "jac_targets"},
   };
 
-  wsm_data["model_state_vectorFromSubsurface"] = {
-      .desc   = R"--(Sets *model_state_vector*'s subsurface part.
+  wsm_data["model_state_vecFromSubsurface"] = {
+      .desc   = R"--(Sets *model_state_vec*'s subsurface part.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "subsurf_field", "jac_targets"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "subsurf_field", "jac_targets"},
   };
 
-  wsm_data["model_state_vectorFromBands"] = {
-      .desc   = R"--(Sets *model_state_vector*'s absorption line part.
+  wsm_data["model_state_vecFromBands"] = {
+      .desc   = R"--(Sets *model_state_vec*'s absorption line part.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector"},
-      .in     = {"model_state_vector", "abs_bands", "jac_targets"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "abs_bands", "jac_targets"},
   };
 
   wsm_data["spectral_tramat_pathFromPath"] = {
@@ -4844,7 +4835,7 @@ path parameters.
 Work in progress ...
 
 The cost function to minimise, including a normalisation with length
-of *measurement_vector*, is:
+of *measurement_vec*, is:
 
 .. math::
     \chi^2 = \chi^2_y + \chi^2_x
@@ -4868,22 +4859,22 @@ where:
     - ARTS parameter
     - Meaning
   * - :math:`\vec{x}`
-    - *model_state_vector*
+    - *model_state_vec*
     - The model state vector.  All model states that are :emphasis:`allowed` to vary.
   * - :math:`\vec{x}_a`
-    - *model_state_vector_apriori*
+    - *model_state_vec_apriori*
     - The a priori model state vector.
   * - :math:`\vec{y}`
-    - *measurement_vector*
+    - *measurement_vec*
     - The measurement vector. This is the measurement that the OEM is trying to fit.
   * - :math:`\vec{y}_f`
-    - *measurement_vector_fitted*
+    - *measurement_vec_fit*
     - The fitted measurement vector.  The simulated measurement vector for the model state vector.
   * - :math:`\mathbf{S}_\epsilon`
-    - *measurement_vector_error_covariance_matrix*
+    - *measurement_vec_error_covmat*
     - The error covariance matrix of the measurement vector.
   * - :math:`\mathbf{S}_a`
-    - *model_state_covariance_matrix*
+    - *model_state_covmat*
     - The a priori covariance matrix of the model state vector.
 
 The current implementation provides 3 methods for the minimization of
@@ -4923,11 +4914,11 @@ Description of the special input arguments:
     
     - ``x_norm``:
 
-      A normalisation vector for *model_state_vector*. A normalisation of *model_state_vector* can be needed
+      A normalisation vector for *model_state_vec*. A normalisation of *model_state_vec* can be needed
       due to limited numerical precision. If this vector is set to be empty
       no normalisation is done (defualt case). Otherwise, this must be a
-      vector with same length as *model_state_vector*, just having values above zero.
-      Elementwise division between *model_state_vector* and ``x_norm`` (x./x_norm) shall give
+      vector with same length as *model_state_vec*, just having values above zero.
+      Elementwise division between *model_state_vec* and ``x_norm`` (x./x_norm) shall give
       a vector where all values are in the order of unity. Maybe the best
       way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
 
@@ -4955,45 +4946,45 @@ Description of the special input arguments:
 
     - ``clear matrices``:
 
-      With this flag set to 1, *measurement_jacobian* and *measurement_gain_matrix* are returned as empty matrices.
+      With this flag set to 1, *measurement_jac* and *measurement_gain_mat* are returned as empty matrices.
 
     - ``display_progress``:
 
       Controls if there is any screen output. The overall report level is ignored by this WSM.
 )",
       .author = {"Patrick Eriksson"},
-      .out    = {"model_state_vector",
-                 "measurement_vector_fitted",
-                 "measurement_jacobian",
+      .out    = {"model_state_vec",
+                 "measurement_vec_fit",
+                 "measurement_jac",
                  "atm_field",
                  "abs_bands",
                  "measurement_sensor",
                  "surf_field",
                  "subsurf_field",
-                 "measurement_gain_matrix"},
+                 "measurement_gain_mat"},
       .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
       .gout_type = {"Vector", "Vector", "ArrayOfString"},
       .gout_desc =
           {"Basic diagnostics of an OEM type inversion",
            "The series of gamma values for a Marquardt-levenberg inversion",
            "Errors encountered during OEM execution"},
-      .in        = {"model_state_vector",
-                    "measurement_vector_fitted",
-                    "measurement_jacobian",
+      .in        = {"model_state_vec",
+                    "measurement_vec_fit",
+                    "measurement_jac",
                     "atm_field",
                     "abs_bands",
                     "measurement_sensor",
                     "surf_field",
                     "subsurf_field",
                     "jac_targets",
-                    "model_state_vector_apriori",
-                    "model_state_covariance_matrix",
-                    "measurement_vector",
-                    "measurement_vector_error_covariance_matrix",
+                    "model_state_vec_apriori",
+                    "model_state_covmat",
+                    "measurement_vec",
+                    "measurement_vec_error_covmat",
                     "inversion_iterate_agenda"},
       .gin       = {"method",
                     "max_start_cost",
-                    "model_state_covariance_matrix_normalization",
+                    "model_state_covmat_normalization",
                     "max_iter",
                     "stop_dx",
                     "lm_ga_settings",
@@ -5027,42 +5018,41 @@ Description of the special input arguments:
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_vector_error_covariance_matrix_observation_systemCalc"] = {
+  wsm_data["measurement_vec_error_covmat_observation_systemCalc"] = {
       .desc =
           R"(Calculates the covariance matrix describing the error due to uncertainties in the observation system.
 
 The uncertainties of the observation system are
-described by *measurement_vector_error_covariance_matrix*,
+described by *measurement_vec_error_covmat*,
 which must be set by the user to include the
 relevant contributions from the measurement and the forward model.
 
 Prerequisite for the calculation of
-``measurement_vector_error_covariance_matrix_observation_system`` is a successful *OEM*
+``measurement_vec_error_covmat_observation_system`` is a successful *OEM*
 computation where also the gain matrix has been computed.
 )",
-      .author = {"Simon Pfreundschuh"},
-      .gout = {"measurement_vector_error_covariance_matrix_observation_system"},
+      .author    = {"Simon Pfreundschuh"},
+      .gout      = {"measurement_vec_error_covmat_observation_system"},
       .gout_type = {"Matrix"},
       .gout_desc =
           {"Covariance matrix describing the retrieval error due to uncertainties of the observation system."},
-      .in = {"measurement_gain_matrix",
-             "measurement_vector_error_covariance_matrix"},
+      .in = {"measurement_gain_mat", "measurement_vec_error_covmat"},
   };
 
-  wsm_data["model_state_covariance_matrix_smoothing_errorCalc"] = {
+  wsm_data["model_state_covmat_smoothing_errorCalc"] = {
       .desc =
           R"(Calculates the covariance matrix describing the error due to smoothing.
           
-The calculation of ``model_state_covariance_matrix_smoothing_error``
+The calculation of ``model_state_covmat_smoothing_error``
 also requires the averaging kernel matrix *measurement_averaging_kernel*
 to be computed after a successful OEM calculation.
 )",
       .author    = {"Simon Pfreundschuh"},
-      .gout      = {"model_state_covariance_matrix_smoothing_error"},
+      .gout      = {"model_state_covmat_smoothing_error"},
       .gout_type = {"Matrix"},
       .gout_desc =
           {"Covariance matrix describing the retrieval error due to smoothing."},
-      .in = {"measurement_averaging_kernel", "model_state_covariance_matrix"},
+      .in = {"measurement_averaging_kernel", "model_state_covmat"},
   };
 
   wsm_data["measurement_averaging_kernelCalc"] = {
@@ -5072,46 +5062,46 @@ to be computed after a successful OEM calculation.
 This is done by describing the sensitivity of the
 *OEM* retrieval with respect to the true state of the system. A prerequisite
 for the calculation of the averaging kernel matrix is a successful *OEM*
-calculation in which the *measurement_jacobian* and the gain matrix *measurement_gain_matrix* have been calculated.
+calculation in which the *measurement_jac* and the gain matrix *measurement_gain_mat* have been calculated.
 )",
       .author = {"Simon Pfreundschuh"},
       .out    = {"measurement_averaging_kernel"},
-      .in     = {"measurement_gain_matrix", "measurement_jacobian"},
+      .in     = {"measurement_gain_mat", "measurement_jac"},
   };
 
-  wsm_data["model_state_vector_aprioriFromState"] = {
+  wsm_data["model_state_vec_aprioriFromState"] = {
       .desc =
           R"(Sets the a priori state of the model state vector to the current state.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_vector_apriori"},
-      .in     = {"model_state_vector"},
+      .out    = {"model_state_vec_apriori"},
+      .in     = {"model_state_vec"},
   };
 
-  wsm_data["measurement_vector_fittedFromMeasurement"] = {
+  wsm_data["measurement_vec_fitFromMeasurement"] = {
       .desc =
           R"(Sets the fitted measurement vector to the current measurement vector.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_fitted"},
-      .in     = {"measurement_vector"},
+      .out    = {"measurement_vec_fit"},
+      .in     = {"measurement_vec"},
   };
 
-  wsm_data["model_state_covariance_matrixInit"] = {
+  wsm_data["model_state_covmatInit"] = {
       .desc =
           R"(Initialises the model state covariance matrix to the identity matrix.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_covariance_matrix"},
+      .out    = {"model_state_covmat"},
   };
 
-  wsm_data["model_state_covariance_matrixAddSpeciesVMR"] = {
+  wsm_data["model_state_covmatAddSpeciesVMR"] = {
       .desc =
           R"(Set a species model state covariance matrix element.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"model_state_covariance_matrix"},
-      .in        = {"model_state_covariance_matrix", "jac_targets"},
+      .out       = {"model_state_covmat"},
+      .in        = {"model_state_covmat", "jac_targets"},
       .gin       = {"species", "matrix", "inverse"},
       .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix"},
       .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}},
@@ -5120,34 +5110,34 @@ calculation in which the *measurement_jacobian* and the gain matrix *measurement
                     "The inverse covariance diagoinal block matrix"},
   };
 
-  wsm_data["measurement_vector_errorFromModelState"] = {
+  wsm_data["measurement_vec_errorFromModelState"] = {
       .desc =
           R"(Set the error and its Jacobian from the state of the model.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector_error", "measurement_jacobian_error"},
-      .in     = {"measurement_sensor", "jac_targets", "model_state_vector"},
+      .out    = {"measurement_vec_error", "measurement_jac_error"},
+      .in     = {"measurement_sensor", "jac_targets", "model_state_vec"},
   };
 
-  wsm_data["measurement_vectorConditionalAddError"] = {
+  wsm_data["measurement_vecConditionalAddError"] = {
       .desc =
           R"(Add the measurement error to the measurement.  Conditionally, also to the Jacobian.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_vector", "measurement_jacobian"},
-      .in     = {"measurement_vector",
-                 "measurement_jacobian",
-                 "measurement_vector_error",
-                 "measurement_jacobian_error",
+      .out    = {"measurement_vec", "measurement_jac"},
+      .in     = {"measurement_vec",
+                 "measurement_jac",
+                 "measurement_vec_error",
+                 "measurement_jac_error",
                  "do_jac"},
   };
 
-  wsm_data["measurement_vector_error_covariance_matrixConstant"] = {
+  wsm_data["measurement_vec_error_covmatConstant"] = {
       .desc =
           R"(Sets a constant measurement vector error covariance matrix.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_vector_error_covariance_matrix"},
+      .out       = {"measurement_vec_error_covmat"},
       .in        = {"measurement_sensor"},
       .gin       = {"value"},
       .gin_type  = {"Numeric"},
@@ -5192,7 +5182,7 @@ The Jacobian is computed by perturbations.  Sensor and absorption data are
 not considered as part of the perturbations.
 
 The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
-*model_state_vector* for Jacobian calculations using *model_state_vectorPerturbations*.
+*model_state_vec* for Jacobian calculations using *model_state_vecPerturbations*.
 )--",
         .author         = {"Richard Larsson"},
         .out            = {"spectral_rad", "spectral_rad_jac"},
@@ -5574,9 +5564,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .desc   = R"(Initialize the retrieval setup.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"jac_targets",
-                 "model_state_covariance_matrix",
-                 "covariance_matrix_diagonal_blocks"},
+      .out    = {"jac_targets", "model_state_covmat", "covmat_diagonal_blocks"},
   };
 
   wsm_data["RetrievalFinalizeDiagonal"] = {
@@ -5585,9 +5573,9 @@ CDisort is only included for testing and comparisons with our own disort impleme
 See *jac_targetsFinalize* for more information.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_covariance_matrix", "jac_targets"},
+      .out    = {"model_state_covmat", "jac_targets"},
       .in     = {"jac_targets",
-                 "covariance_matrix_diagonal_blocks",
+                 "covmat_diagonal_blocks",
                  "atm_field",
                  "surf_field",
                  "subsurf_field",

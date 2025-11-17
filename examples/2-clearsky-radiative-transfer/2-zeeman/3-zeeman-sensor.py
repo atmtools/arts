@@ -41,10 +41,10 @@ los = [180.0, 0.0]
 ws.measurement_sensorSimpleGaussian(std=1e5, pos=pos, los=los, pol="RC")
 
 # %% Core calculations
-ws.measurement_vectorFromSensor()
+ws.measurement_vecFromSensor()
 
 # %% Show results
-fig, ax = pyarts.plot(ws.measurement_vector, xgrid=(
+fig, ax = pyarts.plot(ws.measurement_vec, xgrid=(
     ws.freq_grid - line_f0) / 1e6)
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
@@ -57,7 +57,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Test
 assert np.allclose(
-    ws.measurement_vector[::100],
+    ws.measurement_vec[::100],
     np.array(
         [227.85626444, 230.93431141, 234.89998492, 240.50101182,
          250.05274234, 210.84064948, 249.51259663, 240.21977571,

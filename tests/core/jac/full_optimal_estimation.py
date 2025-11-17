@@ -73,30 +73,30 @@ ws.RetrievalFinalizeDiagonal()
 
 for i in range(LIMIT):
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = grid
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NFREQ)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NFREQ)
 
     ws.OEM(method="gn")
 
-    if np.allclose(ws.model_state_vector / 0.2 - 1, 0, atol=ATOL):
+    if np.allclose(ws.model_state_vec / 0.2 - 1, 0, atol=ATOL):
         break
-    print("WARNING: needed repeat run:", ws.model_state_vector)
+    print("WARNING: needed repeat run:", ws.model_state_vec)
 
 if PLOT:
     f = (ws.freq_grid - line_f0) / 1e6
-    plt.plot(f, ws.measurement_vector)
-    plt.plot(f, ws.measurement_vector_fitted)
+    plt.plot(f, ws.measurement_vec)
+    plt.plot(f, ws.measurement_vec_fit)
     plt.show()
 
 assert np.allclose(
-    ws.model_state_vector / 0.2 - 1, 0, atol=ATOL
-), f"This should all be {ws.model_state_vector / 0.2} within {round(ATOL*100, 1)}% of 1"
+    ws.model_state_vec / 0.2 - 1, 0, atol=ATOL
+), f"This should all be {ws.model_state_vec / 0.2} within {round(ATOL*100, 1)}% of 1"

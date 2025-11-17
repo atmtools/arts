@@ -60,8 +60,8 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
   ArrayOfPropagationPathPoint ray_path     = {};
   DisortRadiance disort_spectral_rad_field = {};
   ZenithGriddedField1 disort_quadrature    = {};
-  Vector model_state_vector                = {};
-  Vector model_state_vector_perturbation   = {};
+  Vector model_state_vec                   = {};
+  Vector model_state_vec_perturbation      = {};
   StokvecVector spectral_rad2              = {};
   AtmField atm_field                       = atm_field_;
   SurfaceField surf_field                  = surf_field_;
@@ -90,20 +90,19 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
       depth_profile,
       azimuth_grid);
 
-  model_state_vectorPerturbations(model_state_vector_perturbation, jac_targets);
-  model_state_vectorInit(model_state_vector, jac_targets);
-  model_state_vectorFromAtmosphere(model_state_vector, atm_field, jac_targets);
-  model_state_vectorFromSurface(model_state_vector, surf_field, jac_targets);
-  model_state_vectorFromSubsurface(
-      model_state_vector, subsurf_field, jac_targets);
+  model_state_vecPerturbations(model_state_vec_perturbation, jac_targets);
+  model_state_vecInit(model_state_vec, jac_targets);
+  model_state_vecFromAtmosphere(model_state_vec, atm_field, jac_targets);
+  model_state_vecFromSurface(model_state_vec, surf_field, jac_targets);
+  model_state_vecFromSubsurface(model_state_vec, subsurf_field, jac_targets);
 
   ARTS_USER_ERROR_IF(
-      model_state_vector.size() != jac_targets.x_size() or
-          model_state_vector.size() != model_state_vector_perturbation.size(),
+      model_state_vec.size() != jac_targets.x_size() or
+          model_state_vec.size() != model_state_vec_perturbation.size(),
       "Model state vector, model state vector perturbations, "
       "and Jacobian targets size do not match: {} vs {} vs {}",
-      model_state_vector.size(),
-      model_state_vector_perturbation.size(),
+      model_state_vec.size(),
+      model_state_vec_perturbation.size(),
       jac_targets.x_size());
 
   String error{};
@@ -111,8 +110,8 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
 #pragma omp parallel for if (not arts_omp_in_parallel() and             \
                                  static_cast<Size>(                     \
                                          disort_quadrature_dimension) < \
-                                         model_state_vector.size())     \
-    firstprivate(model_state_vector,                                    \
+                                         model_state_vec.size())        \
+    firstprivate(model_state_vec,                                       \
                      atm_field,                                         \
                      surf_field,                                        \
                      subsurf_field,                                     \
@@ -121,17 +120,16 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
                      disort_spectral_rad_field,                         \
                      disort_quadrature,                                 \
                      spectral_rad2)
-  for (Size i = 0; i < model_state_vector.size(); i++) {
+  for (Size i = 0; i < model_state_vec.size(); i++) {
     try {
-      const Numeric orig     = model_state_vector[i];
-      model_state_vector[i] += model_state_vector_perturbation[i];
+      const Numeric orig  = model_state_vec[i];
+      model_state_vec[i] += model_state_vec_perturbation[i];
 
-      surf_fieldFromModelState(surf_field, model_state_vector, jac_targets);
-      subsurf_fieldFromModelState(
-          subsurf_field, model_state_vector, jac_targets);
-      atm_fieldFromModelState(atm_field, model_state_vector, jac_targets);
+      surf_fieldFromModelState(surf_field, model_state_vec, jac_targets);
+      subsurf_fieldFromModelState(subsurf_field, model_state_vec, jac_targets);
+      atm_fieldFromModelState(atm_field, model_state_vec, jac_targets);
 
-      model_state_vector[i] = orig;
+      model_state_vec[i] = orig;
 
       spectral_radSubsurfaceDisortEmission(
           ws,
@@ -157,7 +155,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
                      spectral_rad2.end(),
                      spectral_rad.begin(),
                      spectral_rad_jac[i].begin(),
-                     [d = model_state_vector_perturbation[i]](
+                     [d = model_state_vec_perturbation[i]](
                          const Stokvec& a, const Stokvec& b) -> Stokvec {
                        return (a - b) / d;
                      });

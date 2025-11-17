@@ -29,7 +29,7 @@ def noop(x, v, start, length):
 
 # Invoke some operation on all data
 def ops(ws, op):
-    x = ws.model_state_vector * 1.0
+    x = ws.model_state_vec * 1.0
 
     for key in ws.jac_targets.atm:
         data = np.asarray(ws.atm_field[key.type].data)
@@ -127,9 +127,9 @@ ws.jac_targetsAddSurface(target="h")
 
 ws.jac_targetsFinalize()
 
-# %% Set the model_state_vector
+# %% Set the model_state_vec
 
-ws.model_state_vectorFromData()
+ws.model_state_vecFromData()
 
 # %% Check equality
 
@@ -144,9 +144,9 @@ assert np.allclose(x1 / x2, 1.1)
 
 # %% Check update
 
-ws.UpdateModelStates(model_state_vector=x1)
+ws.UpdateModelStates(model_state_vec=x1)
 
-ws.model_state_vectorFromData()
+ws.model_state_vecFromData()
 x2 = ops(ws, noop)
 
 assert np.allclose(x1 / x2, 1.0)

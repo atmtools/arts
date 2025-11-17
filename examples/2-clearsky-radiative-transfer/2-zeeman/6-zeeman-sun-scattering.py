@@ -55,7 +55,7 @@ for iza in range(len(zas)):
         ws.spectral_radApplyUnitFromSpectralRadiance()
         res[iza, iaa] = ws.spectral_rad[0][0]
 
-# FIXME: Use some sort of Imager for measurement_vector for the above
+# FIXME: Use some sort of Imager for measurement_vec for the above
 
 r, theta = np.meshgrid(zas, np.rad2deg(aas))
 fig, ax = plt.subplots(subplot_kw=dict(projection="polar"))

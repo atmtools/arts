@@ -803,8 +803,8 @@ modifying the values are not allowed.
           R"--(Transformation of *spectral_rad* and *spectral_rad_jac*
 
 This type of transformation should be used limitedly.  It is useful
-as the last step before creating a *measurement_vector*, as it is
-used for in *measurement_vectorFromSensor* or just before displaying
+as the last step before creating a *measurement_vec*, as it is
+used for in *measurement_vecFromSensor* or just before displaying
 data in a plotting routine.  It will destroy the *spectral_rad*
 and *spectral_rad_jac* and replace them with the transformed
 values.  They can likely not be reused for further calculations.

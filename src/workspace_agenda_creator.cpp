@@ -156,12 +156,12 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
   using enum measurement_inversion_agendaPredefined;
   switch (to<measurement_inversion_agendaPredefined>(option)) {
     case Standard:
-      agenda.add("measurement_vector_errorFromModelState");
+      agenda.add("measurement_vec_errorFromModelState");
       agenda.add("jac_targetsConditionalClear");
-      agenda.add("measurement_vectorFromSensor");
-      agenda.add("measurement_jacobianTransformations");
-      agenda.add("measurement_vectorConditionalAddError");
-      agenda.add("measurement_vector_fittedFromMeasurement");
+      agenda.add("measurement_vecFromSensor");
+      agenda.add("measurement_jacTransformations");
+      agenda.add("measurement_vecConditionalAddError");
+      agenda.add("measurement_vec_fitFromMeasurement");
       break;
   }
 

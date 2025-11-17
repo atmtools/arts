@@ -66,7 +66,7 @@ for some observer and frequency,
 we know that we just need the background radiation from the background of
 the observed :attr:`~pyarts3.workspace.Workspace.ray_path` and the state of the 
 atmosphere along the path.
-So a method like :func:`~pyarts3.workspace.Workspace.measurement_vectorFromOperatorPath`,
+So a method like :func:`~pyarts3.workspace.Workspace.measurement_vecFromOperatorPath`,
 which takes a set of frequencies and a set of observers,
 may effectively ignore the complexity of computing
 the :attr:`~pyarts3.workspace.Workspace.ray_path` internally, and leave that to the workspace agenda.

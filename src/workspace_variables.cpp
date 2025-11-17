@@ -27,7 +27,7 @@ std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables_creator() {
   UniqueMap<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
-  //! absorption and scattering
+  //! Absorption and scattering
 
   wsv_data["abs_bands"] = {
       .desc =
@@ -190,32 +190,7 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfScatteringSpecies",
   };
 
-  //! altitude
-
-  wsv_data["alt"] = {
-      .desc =
-          R"--(A single altitude in the atmosphere.
-
-Unit: m
-)--",
-      .type          = "Numeric",
-      .default_value = "0.0",
-  };
-
-  wsv_data["alt_grid"] = {
-      .desc =
-          R"--(An ascending list of *alt*.  Often related to a field or a profile.
-
-Unit: m
-
-.. note::
-    There is no global grid system in ARTS, so beware of the local
-    nature of all grids.
-)--",
-      .type = "AscendingGrid",
-  };
-
-  //! atmosphere
+  //! Atmosphere
 
   wsv_data["atm_field"] = {
       .desc =
@@ -294,7 +269,7 @@ For more information, see :doc:`user.atm_field`.
       .type = "ArrayOfAtmPoint",
   };
 
-  //! frequency
+  //! Spectral coordinates (frequency)
 
   wsv_data["freq"] = {
       .desc = R"--(A single frequency.  Unit: Hz.
@@ -342,7 +317,7 @@ The order is
       .type = "ArrayOfVector3",
   };
 
-  //! spectral
+  //! Spectral
 
   wsv_data["spectral_absvec_scat"] = {
       .desc =
@@ -508,7 +483,7 @@ Shape: *freq_grid*
   wsv_data["spectral_rad_bkg_jac"] = {
       .desc = R"--(Spectral radiance derivative from the background
 
-Shape: *model_state_vector* x *freq_grid*
+Shape: *model_state_vec* x *freq_grid*
 )--",
       .type = "StokvecMatrix",
   };
@@ -537,7 +512,7 @@ that is being emitted.  That's the type of use case this agenda is made for and 
 
 *spectral_rad* but for a field.
 
-Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``azimuth_grid`` times *freq_grid*.
+Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``aa_grid`` times *freq_grid*.
 )",
       .type = "GriddedSpectralField6",
   };
@@ -609,6 +584,12 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatVector",
   };
 
+  wsv_data["spectral_tramat_cumulative_path"] = {
+      .desc = R"--(Cumulative transmission matrices along the propagation path
+)--",
+      .type = "ArrayOfMuelmatVector",
+  };
+
   wsv_data["spectral_tramat_jac_path"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path.
 
@@ -632,12 +613,6 @@ The outer dimension is the number of layers.
 The inner dimension is the number of frequency points.
 
 The order of the elements is such that index zero is closest to the obeserver.
-)--",
-      .type = "ArrayOfMuelmatVector",
-  };
-
-  wsv_data["spectral_tramat_cumulative_path"] = {
-      .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector",
   };
@@ -740,7 +715,7 @@ psat : Numeric
 
   //! Inversion
 
-  wsv_data["covariance_matrix_diagonal_blocks"] = {
+  wsv_data["covmat_diagonal_blocks"] = {
       .desc = R"(A helper map for setting the covariance matrix.
 )",
       .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
@@ -748,13 +723,13 @@ psat : Numeric
 
   wsv_data["do_jac"] = {
       .desc =
-          R"(A boolean calculations related to the *measurement_jacobian* should be ignored.
+          R"(A boolean calculations related to the *measurement_jac* should be ignored.
 
 This variable is limited to very few methods related to the inversion process for *OEM*.
 Note that deep code of ARTS will ignore this variable, so it is not a global switch.
 Instead, it is used as a switch to clear the *jac_targets* variable, which is used
-to determine the size of the *measurement_jacobian*.  It is important to be careful
-with this, as it will mess with the size of the *measurement_jacobian* and could
+to determine the size of the *measurement_jac*.  It is important to be careful
+with this, as it will mess with the size of the *measurement_jac* and could
 thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
 )",
       .type          = "Index",
@@ -767,8 +742,8 @@ thus lead to runtime errors being thrown in places where unexpected sizes are en
 See *JacobianTargetType* for more information.  The targets are
 sorted by their type.  A target must have information about its
 position in the target count, as well as the number of parameters
-it contributes to the *model_state_vector*.  It must know these
-things because it is able to map data between the *model_state_vector*
+it contributes to the *model_state_vec*.  It must know these
+things because it is able to map data between the *model_state_vec*
 and the actual model field, e.g., the *atm_field*, the *surf_field*,
 the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
@@ -787,48 +762,48 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .desc =
           R"(Averaging kernel matrix.
 
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
 
 Usage: Used and set by inversion methods.
 )",
       .type = "Matrix",
   };
 
-  wsv_data["measurement_gain_matrix"] = {
+  wsv_data["measurement_gain_mat"] = {
       .desc = R"(Contribution function (or gain) matrix.
 
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vector*.
+This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
 
 Usage: Used and set by inversion methods.
 )",
       .type = "Matrix",
   };
 
-  wsv_data["measurement_jacobian"] = {
+  wsv_data["measurement_jac"] = {
       .desc =
-          R"(The first order partial derivatives of the *measurement_vector*.
+          R"(The first order partial derivatives of the *measurement_vec*.
 
 This variable represents the matrix
 
 .. math::
     \mathbf{J} = \frac{\partial \vec{y}} {\partial \vec{x}},
 
-where :math:`\vec{y}` is the *measurement_vector* and :math:`\vec{x}` is the *model_state_vector*.
-The size of this variable should thus be the size of *measurement_vector* times the size of *model_state_vector*.
+where :math:`\vec{y}` is the *measurement_vec* and :math:`\vec{x}` is the *model_state_vec*.
+The size of this variable should thus be the size of *measurement_vec* times the size of *model_state_vec*.
 Please refer to those variables for more information.
 )",
       .type = "Matrix",
   };
 
-  wsv_data["measurement_jacobian_error"] = {
-      .desc = R"(The partial derivatives of the *measurement_vector_error*.
+  wsv_data["measurement_jac_error"] = {
+      .desc = R"(The partial derivatives of the *measurement_vec_error*.
 
-This is otherwise the same as *measurement_jacobian*.  See it for more details.
+This is otherwise the same as *measurement_jac*.  See it for more details.
 )",
       .type = "Matrix",
   };
 
-  wsv_data["measurement_vector"] = {
+  wsv_data["measurement_vec"] = {
       .desc = R"(The measurment vector for, e.g., a sensor.
 
 This must often be the same size as *measurement_sensor*.
@@ -840,43 +815,43 @@ The notation in ARTS, for the purpose of *OEM*, is that
 
 where
 :math:`\mathbf{F}` is the forward model function of the physics of the simulation space,
-:math:`\vec{x}` is the *model_state_vector*,
-:math:`\vec{y}_\epsilon` is the *measurement_vector_error*, and
+:math:`\vec{x}` is the *model_state_vec*,
+:math:`\vec{y}_\epsilon` is the *measurement_vec_error*, and
 :math:`\epsilon` are any additional errors, such as random noise.
 
-Throughout ARTS, *measurement_vector* have different contextual meanings.
+Throughout ARTS, *measurement_vec* have different contextual meanings.
 These are:
 
 1. :math:`\vec{y}` - i.e., measured data.
-2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vector_fitted*.
+2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vec_fit*.
 3. :math:`\mathbf{F}\left(\vec{x}\right)` - i.e., the physical model of the measurement.
 )",
       .type = "Vector",
   };
 
-  wsv_data["measurement_vector_error"] = {
+  wsv_data["measurement_vec_error"] = {
       .desc = R"(The model measurment vector error for, e.g., a sensor.
 
 This must often be the same size as *measurement_sensor*.
 
-See *measurement_vector* for more details.
+See *measurement_vec* for more details.
 In that notation, this is :math:`\vec{y}_\epsilon`.
 )",
       .type = "Vector",
   };
 
-  wsv_data["measurement_vector_error_covariance_matrix"] = {
+  wsv_data["measurement_vec_error_covmat"] = {
       .desc = R"(Covariance matrix for observation uncertainties.
 )",
       .type = "CovarianceMatrix",
   };
 
-  wsv_data["measurement_vector_fitted"] = {
-      .desc          = R"(As *measurement_vector*, but fitted to the model.
+  wsv_data["measurement_vec_fit"] = {
+      .desc          = R"(As *measurement_vec*, but fitted to the model.
 
 This must often be the same size as *measurement_sensor*.
 
-See *measurement_vector* for more details.
+See *measurement_vec* for more details.
 In that notation, and in the notation of *OEM*,
 :math:`\vec{y}_f \approx \vec{y} - \epsilon`.
 Or at least this should be the case depending on how good of a fit of :math:`\vec{x}`
@@ -894,18 +869,18 @@ has been produced and if the measurement can be understood properly.
       .default_value = " ",
   };
 
-  wsv_data["model_state_covariance_matrix"] = {
+  wsv_data["model_state_covmat"] = {
       .desc = R"(Covariance matrix of a priori distribution.
 )",
       .type = "CovarianceMatrix",
   };
 
-  wsv_data["model_state_vector"] = {
+  wsv_data["model_state_vec"] = {
       .desc          = R"(A state vector of the model.
 
 This represents the :emphasis:`chosen` state of the model.
-In the notation of *measurement_vector* and *OEM*,
-:math:`\vec{x}` is the *model_state_vector*.
+In the notation of *measurement_vec* and *OEM*,
+:math:`\vec{x}` is the *model_state_vec*.
 
 To choose the state of the model, you must setup *jac_targets* to
 include the state parameters you want to be able to change.
@@ -914,10 +889,10 @@ include the state parameters you want to be able to change.
       .default_value = " ",
   };
 
-  wsv_data["model_state_vector_apriori"] = {
+  wsv_data["model_state_vec_apriori"] = {
       .desc = R"(An apriori state vector of the model.
 
-See *model_state_vector* for more details.
+See *model_state_vec* for more details.
 This is the state vector that is assumed to be the a priori state of the model.
 In normal circumstances, this is the state vector that is used to
 start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
@@ -993,7 +968,7 @@ This consists of
       .type = "PropagationPathPoint",
   };
 
-  //! Zenith and azimuth angle
+  //! Pointing coordinates (zenith and azimuth)
 
   wsv_data["za_grid"] = {
       .desc = R"--(A single zenith angle grid.
@@ -1105,7 +1080,30 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .type = "DisortSettings",
   };
 
-  //! Latitude and longitude
+  //! Geodetic coordinates (altitude, latitude and longitude)
+
+  wsv_data["alt"] = {
+      .desc =
+          R"--(A single altitude in the atmosphere.
+
+Unit: m
+)--",
+      .type          = "Numeric",
+      .default_value = "0.0",
+  };
+
+  wsv_data["alt_grid"] = {
+      .desc =
+          R"--(An ascending list of *alt*.  Often related to a field or a profile.
+
+Unit: m
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
+)--",
+      .type = "AscendingGrid",
+  };
 
   wsv_data["lat"] = {
       .desc =

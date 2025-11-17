@@ -339,18 +339,18 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
 .. code-block:: c++
 
-  wsm_data["measurement_vectorFromSensor"] = {
+  wsm_data["measurement_vecFromSensor"] = {
         .desc =
             R"--(Sets measurement vector by looping over all sensor elements
 
   The core calculations happens inside the *spectral_rad_observer_agenda*.
 
   User choices of *spectral_rad_unit* does not adversely affect this method
-  unless the *measurement_vector* or *measurement_jacobian* are further modified
+  unless the *measurement_vec* or *measurement_jac* are further modified
   before consumption by, e.g., *OEM*
   )--",
         .author         = {"Richard Larsson"},
-        .out            = {"measurement_vector", "measurement_jacobian"},
+        .out            = {"measurement_vec", "measurement_jac"},
         .in             = {"measurement_sensor",
                           "jac_targets",
                           "atm_field",
@@ -364,9 +364,9 @@ The signature of the method is:
 
 .. code-block:: c++
 
-  void measurement_vectorFromSensor(const Workspace& ws,
-                                    Vector& measurement_vector,
-                                    Matrix& measurement_jacobian,
+  void measurement_vecFromSensor(const Workspace& ws,
+                                    Vector& measurement_vec,
+                                    Matrix& measurement_jac,
                                     const ArrayOfSensorObsel& measurement_sensor,
                                     const JacobianTargets& jac_targets,
                                     const AtmField& atm_field,
@@ -382,10 +382,10 @@ to the method because ``pass_workspace`` is set to ``true`` in the method defini
 Note that the workspace object is passed as a ``const`` reference, so it cannot be modified.
 
 The coming two arguments of the method are references to
-:attr:`~pyarts3.workspace.Workspace.measurement_vector` and
-:attr:`~pyarts3.workspace.Workspace.measurement_jacobian`.
-Since :attr:`~pyarts3.workspace.Workspace.measurement_vector` and
-:attr:`~pyarts3.workspace.Workspace.measurement_jacobian` are in ``out`` but not in ``in``,
+:attr:`~pyarts3.workspace.Workspace.measurement_vec` and
+:attr:`~pyarts3.workspace.Workspace.measurement_jac`.
+Since :attr:`~pyarts3.workspace.Workspace.measurement_vec` and
+:attr:`~pyarts3.workspace.Workspace.measurement_jac` are in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing values they might hold.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
@@ -398,7 +398,7 @@ are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
 
 The other fields are there to provide context and to generate the documentation.
-See :meth:`~pyarts3.workspace.Workspace.measurement_vectorFromSensor` for the full documentation.
+See :meth:`~pyarts3.workspace.Workspace.measurement_vecFromSensor` for the full documentation.
 
 Meta-method output with workspace variables
 -------------------------------------------

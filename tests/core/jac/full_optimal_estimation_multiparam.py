@@ -91,8 +91,8 @@ model_statec_vector_targets = [vmrs, temps]
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec_fitFromMeasurement()
 
 # %% Conditional helper
 
@@ -118,33 +118,33 @@ works = False
 for i in range(LIMIT):
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = vmr_grid
     ws.atm_field[pyarts.arts.AtmKey.t].data = temp_grid
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
     
     # Set the relevant atmospheric state to "weird", aka much different
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
     ws.atm_field[pyarts.arts.AtmKey.t].data += 20
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NFREQ)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NFREQ)
 
     # Must be reset to be sure it does nothing weird inside OEM
-    ws.measurement_jacobian = [[]]
+    ws.measurement_jac = [[]]
     
     ws.OEM(method="gn")
 
-    if condition(ws.model_state_vector, model_statec_vector_targets):
+    if condition(ws.model_state_vec, model_statec_vector_targets):
         works = True
         break
     print("WARNING: needed repeat run, poor condition")
 
 if PLOT:
     f = (ws.freq_grid - line_f0) / 1e6
-    plt.plot(f, ws.measurement_vector)
-    plt.plot(f, ws.measurement_vector_fitted)
+    plt.plot(f, ws.measurement_vec)
+    plt.plot(f, ws.measurement_vec_fit)
     plt.show()
 
 assert works, "No more reruns allowed, failing"

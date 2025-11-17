@@ -29,13 +29,13 @@ workspace_variables_shortnames_impl() {
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};
   shortnames["disort"]  = {.desc = "Discrete ordinate radiative transfer"};
+  shortnames["covmat"]  = {.desc = "Covariance matrices"};
 
-  //   shortnames["covmat"]  = {.desc = "Covariance matrices"};
   //   shortnames["leg"]     = {.desc = "Legendre polynomials"};
   //   shortnames["meas"]    = {.desc = "Measurements"};
   //   shortnames["dim"]     = {.desc = "Dimension"};
   //   shortnames["quad"]    = {.desc = "Quadrature"};
-  //   shortnames["az"] = {
+  //   shortnames["aa"] = {
   //       .desc  = "Azimuth angle [0, 360) circular.  0° is North, 90° is East.",
   //       .title = "Coordinates",
   //   };
@@ -101,6 +101,16 @@ workspace_variables_shortnames_impl() {
   shortnames["single"] = {
       .desc  = "Contains a single value extracted from a frequency grid.",
       .title = "Gridded",
+  };
+
+  shortnames["vec"] = {
+      .desc  = "As a vector.",
+      .title = "Storage form",
+  };
+
+  shortnames["mat"] = {
+      .desc  = "As a matrix.",
+      .title = "Storage form",
   };
 
   return shortnames;

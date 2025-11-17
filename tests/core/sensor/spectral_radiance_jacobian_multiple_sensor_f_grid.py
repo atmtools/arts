@@ -56,8 +56,8 @@ ws.measurement_sensorAddSimpleGaussian(
 
 # %% Original calculations
 
-ws.measurement_vectorFromSensor()
-orig = ws.measurement_vector * 1.0
+ws.measurement_vecFromSensor()
+orig = ws.measurement_vec * 1.0
 
 # %% Modify the sensor
 
@@ -70,8 +70,8 @@ ws.measurement_sensorAddSimpleGaussian(
     freq_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
 )
 
-ws.measurement_vectorFromSensor()
-mod = ws.measurement_vector * 1.0
+ws.measurement_vecFromSensor()
+mod = ws.measurement_vec * 1.0
 
 # %% Retrieval agenda
 
@@ -79,8 +79,8 @@ mod = ws.measurement_vector * 1.0
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec_fitFromMeasurement()
 
 
 # %% Set up the retrieval
@@ -98,9 +98,9 @@ ws.RetrievalFinalizeDiagonal()
 
 fail = True
 for i in range(LIMIT):
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.measurement_sensorSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol1
@@ -108,8 +108,8 @@ for i in range(LIMIT):
     ws.measurement_sensorAddSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol2
     )
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector += np.random.normal(0, noise, 2 * NF)
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec += np.random.normal(0, noise, 2 * NF)
 
     ws.measurement_sensorSimpleGaussian(
         freq_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
@@ -118,19 +118,19 @@ for i in range(LIMIT):
         freq_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
     )
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
 
     ws.OEM(method="gn")
 
-    print(f"got:      {ws.model_state_vector:B,}")
+    print(f"got:      {ws.model_state_vec:B,}")
     print(f"expected: [{-DF1}, {-2*DF1}]")
-    if np.allclose(ws.model_state_vector, [-DF1, -2 * DF1], atol=ATOL):
+    if np.allclose(ws.model_state_vec, [-DF1, -2 * DF1], atol=ATOL):
         print(f"Within {ATOL} Hz.  Success!")
         fail = False
         break

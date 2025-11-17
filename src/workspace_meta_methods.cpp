@@ -322,38 +322,38 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vectorFromData",
-      .desc    = "Get *model_state_vector* from available data",
+      .name    = "model_state_vecFromData",
+      .desc    = "Get *model_state_vec* from available data",
       .author  = {"Richard Larsson"},
-      .methods = {"model_state_vectorInit",
-                  "model_state_vectorFromAtmosphere",
-                  "model_state_vectorFromSurface",
-                  "model_state_vectorFromSubsurface",
-                  "model_state_vectorFromBands",
-                  "model_state_vectorFromSensor"},
-      .out     = {"model_state_vector"},
+      .methods = {"model_state_vecInit",
+                  "model_state_vecFromAtmosphere",
+                  "model_state_vecFromSurface",
+                  "model_state_vecFromSubsurface",
+                  "model_state_vecFromBands",
+                  "model_state_vecFromSensor"},
+      .out     = {"model_state_vec"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "measurement_jacobianTransformations",
+      .name = "measurement_jacTransformations",
       .desc =
-          "Apply all transformations to the Jacobian related to states in *model_state_vectorFromData*",
+          "Apply all transformations to the Jacobian related to states in *model_state_vecFromData*",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_jacobianAtmosphereTransformation",
-                  "measurement_jacobianSurfaceTransformation",
-                  "measurement_jacobianSubsurfaceTransformation",
-                  "measurement_jacobianBandTransformation",
-                  "measurement_jacobianSensorTransformation"},
-      .out     = {"measurement_jacobian"},
+      .methods = {"measurement_jacAtmosphereTransformation",
+                  "measurement_jacSurfaceTransformation",
+                  "measurement_jacSubsurfaceTransformation",
+                  "measurement_jacBandTransformation",
+                  "measurement_jacSensorTransformation"},
+      .out     = {"measurement_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vector_aprioriFromData",
-      .desc    = "Get *model_state_vector_apriori* from available data",
+      .name    = "model_state_vec_aprioriFromData",
+      .desc    = "Get *model_state_vec_apriori* from available data",
       .author  = {"Richard Larsson"},
-      .methods = {"model_state_vectorFromData",
-                  "model_state_vector_aprioriFromState"},
-      .out     = {"model_state_vector_apriori"},
+      .methods = {"model_state_vecFromData",
+                  "model_state_vec_aprioriFromState"},
+      .out     = {"model_state_vec_apriori"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

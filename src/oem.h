@@ -506,7 +506,7 @@ class AgendaWrapper {
    *
    * @return The simulated observation vector.
    */
-  ArtsVector get_measurement_vector() { return yi_; }
+  ArtsVector get_measurement_vec() { return yi_; }
 
   AgendaWrapper(const AgendaWrapper &)            = delete;
   AgendaWrapper(AgendaWrapper &&)                 = delete;

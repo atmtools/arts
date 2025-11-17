@@ -70,10 +70,10 @@ ws.atm_fieldAbsoluteMagneticField()
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
-ws.measurement_vectorFromSensor()
+ws.measurement_vecFromSensor()
 
-ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-y = 1.0*ws.measurement_vector
+ws.measurement_vec_error_covmatConstant(value=noise**2)
+y = 1.0*ws.measurement_vec
 
 orig = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
 
@@ -103,19 +103,19 @@ ws.RetrievalFinalizeDiagonal()
 fail = True
 
 for i in range(LIMIT):
-    ws.measurement_vector = y + np.random.normal(0, noise, NF)
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec = y + np.random.normal(0, noise, NF)
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
     ws.OEM(method="gn")
 
-    absdiff = round(abs(orig - ws.model_state_vector[0]) * 1e9)
+    absdiff = round(abs(orig - ws.model_state_vec[0]) * 1e9)
 
     print(
-        f"Input {round(orig*1e9)} nT, Output {round(ws.model_state_vector[0]*1e9)} nT, AbsDiff {absdiff} nT"
+        f"Input {round(orig*1e9)} nT, Output {round(ws.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} nT, rerunning with new random noise")

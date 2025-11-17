@@ -51,48 +51,48 @@ ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-2)
 ws.RetrievalFinalizeDiagonal()
 
 ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
-ws.model_state_vectorFromData()
-orig = ws.model_state_vector * 1.0
+ws.model_state_vecFromData()
+orig = ws.model_state_vec * 1.0
 
-ws.measurement_vectorFromSensor()
-meas = ws.measurement_vector * 1.0
+ws.measurement_vecFromSensor()
+meas = ws.measurement_vec * 1.0
 true = 1.0 * meas
 
-ws.measurement_vector_fitted = []
-ws.model_state_vector = []
-ws.measurement_jacobian = [[]]
+ws.measurement_vec_fit = []
+ws.model_state_vec = []
+ws.measurement_jac = [[]]
 
 ws.atm_field["H2O"] = fieldg
-ws.model_state_vector_aprioriFromData()
-ws.measurement_vectorFromSensor()
-apri = ws.measurement_vector * 1.0
+ws.model_state_vec_aprioriFromData()
+ws.measurement_vecFromSensor()
+apri = ws.measurement_vec * 1.0
 
-ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
+ws.measurement_vec_error_covmatConstant(value=noise**2)
 meas += np.random.normal(0, noise, NF)
-ws.measurement_vector = meas
+ws.measurement_vec = meas
 
 # %% OEM
 ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 99])
-ws.model_state_vectorFromData()
+ws.model_state_vecFromData()
 
 if PLOT:
     plt.plot(ws.freq_grid / 1e9, meas, label="orig")
     plt.plot(ws.freq_grid / 1e9, apri, label="apriori")
-    plt.plot(ws.freq_grid / 1e9, ws.measurement_vector_fitted, label="fitted")
+    plt.plot(ws.freq_grid / 1e9, ws.measurement_vec_fit, label="fitted")
     plt.legend()
     plt.show()
     plt.semilogx(
-        ws.model_state_vector_apriori,
+        ws.model_state_vec_apriori,
         field.data.grids[0],
         ":",
         lw=3,
         label="apriori",
     )
-    plt.plot(ws.model_state_vector, field.data.grids[0], label="fitted")
+    plt.plot(ws.model_state_vec, field.data.grids[0], label="fitted")
     plt.plot(orig, field.data.grids[0], label="true")
     plt.legend()
     plt.show()
 
 # Just a simple test that some real convergence happens (the fit is not good but better)
-print(np.std(true - apri), "vs", np.std(true - ws.measurement_vector_fitted))
-assert np.std(true - apri) > 2 * np.std(true - ws.measurement_vector_fitted)
+print(np.std(true - apri), "vs", np.std(true - ws.measurement_vec_fit))
+assert np.std(true - apri) > 2 * np.std(true - ws.measurement_vec_fit)

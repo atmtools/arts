@@ -67,24 +67,24 @@ fail = True
 print("Retrieving temperature")
 for i in range(LIMIT):
     ws.surf_field["t"] = ts
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.surf_field["t"] = ts + 30
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 
-    absdiff = round(abs(ts - ws.model_state_vector[0]), 2)
+    absdiff = round(abs(ts - ws.model_state_vec[0]), 2)
 
     print(
-        f"t-component: Input {ts} K, Output {round(ws.model_state_vector[0], 2)} K, AbsDiff {absdiff} K"
+        f"t-component: Input {ts} K, Output {round(ws.model_state_vec[0], 2)} K, AbsDiff {absdiff} K"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} K, rerunning with new random noise")
@@ -115,24 +115,24 @@ fail = True
 print("Retrieving flat scalar reflectance")
 for i in range(LIMIT):
     ws.surf_field["flat scalar reflectance"] = rs
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.surf_field["flat scalar reflectance"] = rs + 0.3
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 
-    absdiff = round(100*abs(rs - ws.model_state_vector[0]), 2)
+    absdiff = round(100*abs(rs - ws.model_state_vec[0]), 2)
 
     print(
-        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vector[0], 2)} %, AbsDiff {absdiff} %"
+        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vec[0], 2)} %, AbsDiff {absdiff} %"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} %, rerunning with new random noise")
@@ -168,29 +168,29 @@ ATOL = 10
 for i in range(LIMIT):
     ws.surf_field["t"] = ts
     ws.surf_field["flat scalar reflectance"] = rs
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.surf_field["t"] = ts + 35
     ws.surf_field["flat scalar reflectance"] = rs + 0.3
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 
-    absdiff_rs = round(100*abs(rs - ws.model_state_vector[0]), 2)
-    absdiff_ts = round(abs(ts - ws.model_state_vector[1]), 2)
+    absdiff_rs = round(100*abs(rs - ws.model_state_vec[0]), 2)
+    absdiff_ts = round(abs(ts - ws.model_state_vec[1]), 2)
 
     print(
-        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vector[0], 2)} %, AbsDiff {absdiff_rs} %"
+        f"'flat scalar reflectance'-component: Input {100*rs} %, Output {round(100*ws.model_state_vec[0], 2)} %, AbsDiff {absdiff_rs} %"
     )
     print(
-        f"t-component: Input {ts} K, Output {round(ws.model_state_vector[1], 2)} K, AbsDiff {absdiff_ts} K"
+        f"t-component: Input {ts} K, Output {round(ws.model_state_vec[1], 2)} K, AbsDiff {absdiff_ts} K"
     )
     if absdiff_rs >= ATOL or absdiff_ts >= ATOL:
         print(f"AbsDiff Reflectance not less than {ATOL} %, or AbsDiff Temperature not less than {ATOL} K, rerunning with new random noise")

@@ -71,24 +71,24 @@ for fc in [uf, vf, wf]:
 
     for i in range(LIMIT):
         ws.atm_field["mag_" + str(fc)] = mag[fc]
-        ws.measurement_vectorFromSensor()
+        ws.measurement_vecFromSensor()
 
-        ws.measurement_vector_fitted = []
-        ws.model_state_vector = []
-        ws.measurement_jacobian = [[]]
+        ws.measurement_vec_fit = []
+        ws.model_state_vec = []
+        ws.measurement_jac = [[]]
 
         ws.atm_field["mag_" + str(fc)] = mag[fc] + 1e-6
-        ws.model_state_vector_aprioriFromData()
+        ws.model_state_vec_aprioriFromData()
 
-        ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-        ws.measurement_vector += np.random.normal(0, noise, NF)
+        ws.measurement_vec_error_covmatConstant(value=noise**2)
+        ws.measurement_vec += np.random.normal(0, noise, NF)
 
         ws.OEM(method="gn")
 
-        absdiff = round(abs(mag[fc] - ws.model_state_vector[0]) * 1e9)
+        absdiff = round(abs(mag[fc] - ws.model_state_vec[0]) * 1e9)
 
         print(
-            f"{fc}-component: Input {round(mag[fc]*1e9)} nT, Output {round(ws.model_state_vector[0]*1e9)} nT, AbsDiff {absdiff} nT"
+            f"{fc}-component: Input {round(mag[fc]*1e9)} nT, Output {round(ws.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
         )
         if absdiff >= ATOL:
             print(f"AbsDiff not less than {ATOL} nT, rerunning with new random noise")

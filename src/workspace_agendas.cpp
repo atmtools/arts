@@ -190,7 +190,7 @@ is warranted.
                "spectral_rad.size()",
                "freq_grid.size()"},
               {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
                "spectral_rad_jac.shape()",
                "freq_grid.size()",
                "jac_targets.x_size()"},
@@ -229,7 +229,7 @@ The input path point should be as if it is looking at space.
            "spectral_rad.size()",
            "freq_grid.size()"},
           {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
            "spectral_rad_jac.shape()",
            "freq_grid.size()",
            "jac_targets.x_size()"},
@@ -261,7 +261,7 @@ as well.
            "spectral_rad.size()",
            "freq_grid.size()"},
           {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vector* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
            "spectral_rad_jac.shape()",
            "freq_grid.size()",
            "jac_targets.x_size()"},
@@ -286,36 +286,36 @@ Otherwise same as *spectral_rad_surface_agenda*.
 See *OEM*.
 
 .. note::
-    The output *measurement_jacobian* size may depend on the *do_jac* input.
+    The output *measurement_jac* size may depend on the *do_jac* input.
 )--",
       .output             = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
                              "surf_field",
                              "subsurf_field",
-                             "measurement_vector_fitted",
-                             "measurement_jacobian"},
+                             "measurement_vec_fit",
+                             "measurement_jac"},
       .input              = {"atm_field",
                              "abs_bands",
                              "measurement_sensor",
                              "surf_field",
                              "subsurf_field",
                              "jac_targets",
-                             "model_state_vector",
+                             "model_state_vec",
                              "do_jac",
                              "inversion_iterate_agenda_counter"},
       .enum_options       = {"Full"},
       .enum_default       = "Full",
       .output_constraints = {
-          {"(do_jac == 0 and measurement_jacobian.size() == 0) or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
+          {"(do_jac == 0 and measurement_jac.size() == 0) or (measurement_vec_fit.size() == static_cast<Size>(measurement_jac.nrows()))",
            "On output, the measurement vector and Jacobian must match expected size.",
-           "measurement_vector_fitted.size()",
-           "measurement_jacobian.nrows()",
+           "measurement_vec_fit.size()",
+           "measurement_jac.nrows()",
            "do_jac == 0"},
-          {"(do_jac == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jac_targets.x_size() == model_state_vector.size())",
+          {"(do_jac == 0 and measurement_jac.size() == 0) or (model_state_vec.size() == static_cast<Size>(measurement_jac.ncols()) and jac_targets.x_size() == model_state_vec.size())",
            "On output, the model state vector and Jacobian must match expected size.",
-           "model_state_vector.size()",
-           "measurement_jacobian.ncols()",
+           "model_state_vec.size()",
+           "measurement_jac.ncols()",
            "jac_targets.x_size()",
            "do_jac == 0"},
       }};
@@ -324,29 +324,29 @@ See *OEM*.
       .desc =
           R"--(This is a helper *Agenda* intended for use within *inversion_iterate_agenda*.
 
-It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
-current iteration of the inversion. The *measurement_vector_fitted* is the
+It outputs the *measurement_vec_fit* and *measurement_jac* for the
+current iteration of the inversion. The *measurement_vec_fit* is the
 fitted measurement vector, i.e., the measurement vector that is expected to be
 observed given the current *atm_field*, *abs_bands*, *measurement_sensor*,
 and *surf_field*.  It does not take these as explicit input but via the Workspace
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 
-What is special about this Agenda is that it enforces that the *measurement_jacobian*
+What is special about this Agenda is that it enforces that the *measurement_jac*
 is empty on output if *do_jac* evaluates false.  Do not use this Agenda if you
-do not mind having a non-empty *measurement_jacobian* on output even if *do_jac*
+do not mind having a non-empty *measurement_jac* on output even if *do_jac*
 evaluates false.  Also do not use this Agenda if you wish to squeeze out performance,
 it does a lot of unnecessary checks and operations that are not always needed.
 )--",
-      .output       = {"measurement_vector_fitted", "measurement_jacobian"},
+      .output       = {"measurement_vec_fit", "measurement_jac"},
       .input        = {"jac_targets", "do_jac"},
       .enum_options = {"Standard"},
       .enum_default = "Standard",
       .output_constraints =
           {
-              {"do_jac != static_cast<Index>(measurement_jacobian.size() == 0)",
-               "When *do_jac* evaluates as true, the *measurement_jacobian* must be non-empty.",
+              {"do_jac != static_cast<Index>(measurement_jac.size() == 0)",
+               "When *do_jac* evaluates as true, the *measurement_jac* must be non-empty.",
                "do_jac != 0",
-               "measurement_jacobian.shape()"},
+               "measurement_jac.shape()"},
           },
   };
 

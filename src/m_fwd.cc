@@ -273,23 +273,23 @@ void spectral_rad_fieldFromOperatorPath(
   }
 }
 
-void measurement_vectorFromOperatorPath(
+void measurement_vecFromOperatorPath(
     const Workspace& ws,
-    Vector& measurement_vector,
-    const ArrayOfSensorObsel& measurement_vector_sensor,
+    Vector& measurement_vec,
+    const ArrayOfSensorObsel& measurement_vec_sensor,
     const SpectralRadianceOperator& spectral_rad_operator,
     const Agenda& ray_path_observer_agenda) try {
   ARTS_TIME_REPORT
 
-  measurement_vector.resize(measurement_vector_sensor.size());
-  measurement_vector = 0.0;
-  if (measurement_vector_sensor.empty()) return;
+  measurement_vec.resize(measurement_vec_sensor.size());
+  measurement_vec = 0.0;
+  if (measurement_vec_sensor.empty()) return;
 
   //! Check the observational elements that their dimensions are correct
-  for (auto& obsel : measurement_vector_sensor) obsel.check();
+  for (auto& obsel : measurement_vec_sensor) obsel.check();
 
   const SensorSimulations simulations =
-      collect_simulations(measurement_vector_sensor);
+      collect_simulations(measurement_vec_sensor);
 
   for (auto& [f_grid_ptr, poslos_set] : simulations) {
     for (auto& poslos_gs : poslos_set) {
@@ -310,10 +310,10 @@ void measurement_vectorFromOperatorPath(
                          return spectral_rad_operator(f, path);
                        });
 
-        for (Size iv = 0; iv < measurement_vector_sensor.size(); ++iv) {
-          const SensorObsel& obsel = measurement_vector_sensor[iv];
+        for (Size iv = 0; iv < measurement_vec_sensor.size(); ++iv) {
+          const SensorObsel& obsel = measurement_vec_sensor[iv];
           if (obsel.same_freqs(f_grid_ptr)) {
-            measurement_vector[iv] += obsel.sumup(spectral_rad, ip);
+            measurement_vec[iv] += obsel.sumup(spectral_rad, ip);
           }
         }
       }

@@ -495,7 +495,7 @@ the model field.  That is they can transform a *Vector* to values in, e.g.,
 an *AtmField*, *SurfaceField*, etc., and vice versa they can transform the fields
 to values in a *Vector*.
 
-See *model_state_vector* and method involving it for more information.
+See *model_state_vec* and method involving it for more information.
 )--",
   };
 
@@ -503,7 +503,7 @@ See *model_state_vector* and method involving it for more information.
       .file = "obsel.h",
       .desc = R"(A single observation element.
 
-This should result in a single element in a *measurement_vector*.
+This should result in a single element in a *measurement_vec*.
 
 Expected use of this type is to generate the measurement vector
 of a sensor, where this observation element represent the readout

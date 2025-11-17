@@ -53,8 +53,8 @@ ws.surf_field["t"] = ts
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec_fitFromMeasurement()
 
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
@@ -70,24 +70,24 @@ fail = True
 
 for i in range(LIMIT):
     ws.surf_field["t"] = ts
-    ws.measurement_vectorFromSensor()
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
     ws.surf_field["t"] = ts + 30
-    ws.model_state_vector_aprioriFromData()
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 
-    absdiff = round(abs(ts - ws.model_state_vector[0]), 2)
+    absdiff = round(abs(ts - ws.model_state_vec[0]), 2)
 
     print(
-        f"t-component: Input {ts} K, Output {round(ws.model_state_vector[0], 2)} K, AbsDiff {absdiff} K"
+        f"t-component: Input {ts} K, Output {round(ws.model_state_vec[0], 2)} K, AbsDiff {absdiff} K"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} K, rerunning with new random noise")

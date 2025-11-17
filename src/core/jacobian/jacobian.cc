@@ -809,8 +809,8 @@ void Targets::finalize(const AtmField& atm_field,
         t.type.y_start + t.type.y_size > measurement_sensor.size(),
         R"(An error target is out of bounds of the y-vector.
 
-The error target is defined to operator on the measurement_vector in the range {},
-but the measurement_vector will only have {} element by the measurement_sensor.
+The error target is defined to operator on the measurement_vec in the range {},
+but the measurement_vec will only have {} element by the measurement_sensor.
 )",
         t.type,
         measurement_sensor.size())
