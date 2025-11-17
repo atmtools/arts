@@ -211,11 +211,7 @@ This is the extration of the text in the ``workspace_methods.cpp`` file:
     )--",
         .author = {"Richard Larsson"},
         .out    = {"ray_path"},
-        .in     = {"atm_field", "surf_field", "latitude", "longitude"},
-        .gin    = {"max_step"},
-        .gin_type  = {"Numeric"},
-        .gin_value = {Numeric{1e3}},
-        .gin_desc  = {"The maximum step length"},
+        .in     = {"atm_field", "surf_field", "lat", "lon", "max_stepsize"},
     };
 
 The signature of the method is:
@@ -225,9 +221,9 @@ The signature of the method is:
   void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                   const AtmField& atm_field,
                                   const SurfaceField& surf_field,
-                                  const Numeric& latitude,
-                                  const Numeric& longitude,
-                                  const Numeric& max_step);
+                                  const Numeric& lat,
+                                  const Numeric& lon,
+                                  const Numeric& max_stepsize);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
@@ -240,13 +236,13 @@ The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.wo
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
 
-Lastly, the argument ``max_step`` is defined in ``gin`` and is passed
-as an immutable reference as well.  The type of the argument is ``Numeric``
-and the default value is ``1e3``.  The default value is passed to the method
-if the user does not provide a value for ``max_step``.
-
 All other fields are there to provide context and to generate the documentation.
 See :meth:`~pyarts3.workspace.Workspace.ray_pathGeometricUplooking` for the full documentation.
+
+.. note::
+  The command ``*ray_pathGeometric*``
+  is automatically turned to a link by the pyarts build system
+  by mimicying of the sphinx linking system.
 
 Method modifying a workspace variable
 -------------------------------------
@@ -257,48 +253,50 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
 .. code-block:: c++
 
-  wsm_data["spectral_propmatAddLines"] = {
-      .desc      = R"--(Line-by-line calculations.
-  )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat",
-                    "spectral_nlte_srcvec",
-                    "spectral_propmat_jac",
-                    "spectral_nlte_srcvec_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_nlte_srcvec",
-                    "spectral_propmat_jac",
-                    "spectral_nlte_srcvec_jac",
-                    "freq_grid",
-                    "jac_targets",
-                    "select_species",
-                    "abs_bands",
-                    "abs_ecs_data",
-                    "atm_point",
-                    "ray_point"},
-      .gin       = {"no_negative_absorption"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption"},
-  };
+    wsm_data["spectral_propmatAddLines"] = {
+        .desc      = R"--(Add line-by-line absorption to the propagation matrix.
+
+    See :doc:`concept.absorption.lbl` for details.
+    )--",
+        .author    = {"Richard Larsson"},
+        .out       = {"spectral_propmat",
+                      "spectral_nlte_srcvec",
+                      "spectral_propmat_jac",
+                      "spectral_nlte_srcvec_jac"},
+        .in        = {"spectral_propmat",
+                      "spectral_nlte_srcvec",
+                      "spectral_propmat_jac",
+                      "spectral_nlte_srcvec_jac",
+                      "freq_grid",
+                      "jac_targets",
+                      "select_species",
+                      "abs_bands",
+                      "abs_ecs_data",
+                      "atm_point",
+                      "ray_point"},
+        .gin       = {"no_negative_absorption"},
+        .gin_type  = {"Index"},
+        .gin_value = {Index{1}},
+        .gin_desc =
+            {"Turn off to allow individual absorbers to have negative absorption"},
+    };
 
 The signature of the method is:
 
 .. code-block:: c++
 
   void spectral_propmatAddLines(PropmatVector& spectral_propmat,
-                                  StokvecVector& spectral_nlte_srcvec,
-                                  PropmatMatrix& spectral_propmat_jac,
-                                  StokvecMatrix& spectral_nlte_srcvec_jac,
-                                  const AscendingGrid& freq_grid,
-                                  const JacobianTargets& jac_targets,
-                                  const SpeciesEnum& select_species,
-                                  const AbsorptionBands& abs_bands,
-                                  const LinemixingEcsData& abs_ecs_data,
-                                  const AtmPoint& atm_point,
-                                  const PropagationPathPoint& ray_point,
-                                  const Index& no_negative_absorption);
+                                StokvecVector& spectral_nlte_srcvec,
+                                PropmatMatrix& spectral_propmat_jac,
+                                StokvecMatrix& spectral_nlte_srcvec_jac,
+                                const AscendingGrid& freq_grid,
+                                const JacobianTargets& jac_targets,
+                                const SpeciesEnum& select_species,
+                                const AbsorptionBands& abs_bands,
+                                const LinemixingEcsData& abs_ecs_data,
+                                const AtmPoint& atm_point,
+                                const PropagationPathPoint& ray_point,
+                                const Index& no_negative_absorption);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
@@ -330,6 +328,13 @@ which is useful for debugging purposes.
 The other fields are there to provide context and to generate the documentation.
 See :meth:`~pyarts3.workspace.Workspace.spectral_propmatAddLines` for the full documentation.
 
+.. note::
+  The link using the ``:doc:``-command is automatically generated by
+  the sphinx documentation system.  Any default sphinx command, and
+  a few extra commands beyond that, are automatically respected in
+  full.  The only exception is the ``*text*``-command, which is
+  automatically turned into links to ARTS-related variables and methods.
+
 Method that uses a workspace agenda
 -----------------------------------
 
@@ -352,11 +357,11 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vec", "measurement_jac"},
         .in             = {"measurement_sensor",
-                          "jac_targets",
-                          "atm_field",
-                          "surf_field",
-                          "spectral_rad_unit",
-                          "spectral_rad_observer_agenda"},
+                           "jac_targets",
+                           "atm_field",
+                           "surf_field",
+                           "spectral_rad_unit",
+                           "spectral_rad_observer_agenda"},
         .pass_workspace = true,
     };
 
@@ -365,14 +370,14 @@ The signature of the method is:
 .. code-block:: c++
 
   void measurement_vecFromSensor(const Workspace& ws,
-                                    Vector& measurement_vec,
-                                    Matrix& measurement_jac,
-                                    const ArrayOfSensorObsel& measurement_sensor,
-                                    const JacobianTargets& jac_targets,
-                                    const AtmField& atm_field,
-                                    const SurfaceField& surf_field,
-                                    const SpectralRadianceUnitType& spectral_rad_unit,
-                                    const Agenda& spectral_rad_observer_agenda);
+                                 Vector& measurement_vec,
+                                 Matrix& measurement_jac,
+                                 const ArrayOfSensorObsel& measurement_sensor,
+                                 const JacobianTargets& jac_targets,
+                                 const AtmField& atm_field,
+                                 const SurfaceField& surf_field,
+                                 const SpectralRadianceUnitType& spectral_rad_unit,
+                                 const Agenda& spectral_rad_observer_agenda);
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
@@ -391,7 +396,7 @@ it is expected that the method overwrite any existing values they might hold.
 The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
-:attr:`~pyarts3.workspace.Workspace.surf_field`, 
+:attr:`~pyarts3.workspace.Workspace.surf_field`,
 :attr:`~pyarts3.workspace.Workspace.spectral_rad_unit`, and
 :attr:`~pyarts3.workspace.Workspace.spectral_rad_observer_agenda`
 are defined in ``in`` and are passed to the method
@@ -430,6 +435,5 @@ that is not in ``out``.
 In other words, even if a sub-method has an output that is not in ``out``,
 it will not be passed to the user.
 
-The call order and documentation of
-See :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
-makes it possible to follow the call order.
+The call order and documentation is available here
+see :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
