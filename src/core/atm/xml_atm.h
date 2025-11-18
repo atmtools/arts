@@ -26,6 +26,8 @@ struct xml_io_stream<AtmField> {
                     std::string_view name = ""sv);
 
   static void read(std::istream& is, AtmField& x, bifstream* pbifs = nullptr);
+
+  static void extend(std::istream& is, AtmField& x, bifstream* pbifs = nullptr);
 };
 
 template <>

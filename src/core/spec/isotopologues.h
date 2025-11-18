@@ -639,6 +639,17 @@ inline constexpr std::array Isotopologues{
     Isotope("CH3F"_spec, "219", 34.021878, 2),
     /** CH3F species **/
 
+    /** AsH3 species **/
+    deal_with_spec(Arsine),
+    //Isotope("AsH3"_spec, "3111", 77.9454),  // FIXME: Better mass and some gj?  Mass from wikipedia.  Partition functions missing...
+    /** AsH3 species **/
+
+    /** C6H6 species **/
+    deal_with_spec(Benzene),
+    //Isotope("C6H6"_spec, "21", 78.11),  // FIXME: Better mass and some gj?  Mass from nih.  Partition functions missing...
+    /** C6H6 species **/
+
+
     /** Model species **/
     deal_with_spec(liquidcloud),
     Isotope(SpeciesEnum::liquidcloud, "ELL07"),

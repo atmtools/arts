@@ -417,6 +417,8 @@ parameters that are mapped to the species identifier.
               Value{"Germane", "GeH4", "Germane molecule"},
               Value{"Iodomethane", "CH3I", "Iodomethane molecule"},
               Value{"Fluoromethane", "CH3F", "Fluoromethane molecule"},
+              Value{"Arsine", "AsH3", "Arsine molecule"},
+              Value{"Benzene", "C6H6", "Benzene molecule"},
               Value{"liquidcloud", "liquidcloud", "liquidcloud tag"},
               Value{"icecloud", "icecloud", "icecloud tag"},
               Value{"rain", "rain", "rain tag"},

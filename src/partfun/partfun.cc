@@ -118,6 +118,8 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {
       deal_with_spec(Germane);
       deal_with_spec(Iodomethane);
       deal_with_spec(Fluoromethane);
+      deal_with_spec(Arsine);
+      deal_with_spec(Benzene);
       deal_with_spec(liquidcloud);
       deal_with_spec(icecloud);
       deal_with_spec(rain);
@@ -258,6 +260,8 @@ bool has_partfun(const SpeciesIsotope& ir) noexcept {
       deal_with_spec(Germane);
       deal_with_spec(Iodomethane);
       deal_with_spec(Fluoromethane);
+      deal_with_spec(Arsine);
+      deal_with_spec(Benzene);
       deal_with_spec(liquidcloud);
       deal_with_spec(icecloud);
       deal_with_spec(rain);

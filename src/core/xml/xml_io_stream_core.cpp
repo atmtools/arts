@@ -219,7 +219,6 @@ void xml_io_stream<String>::write(std::ostream& os_xml,
 
   close_tag.name = "/String";
   close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
 }
 
 void xml_io_stream<String>::read(std::istream& is_xml,

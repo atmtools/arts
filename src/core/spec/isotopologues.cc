@@ -123,6 +123,8 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
       deal_with_spec(Germane);
       deal_with_spec(Iodomethane);
       deal_with_spec(Fluoromethane);
+      deal_with_spec(Arsine);
+      deal_with_spec(Benzene);
       deal_with_spec(liquidcloud);
       deal_with_spec(icecloud);
       deal_with_spec(rain);

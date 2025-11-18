@@ -49,9 +49,9 @@ struct xml_io_stream<Array<T>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void read(std::istream& is,
-                   Array<T>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void extend(std::istream& is,
+                     Array<T>& n,
+                     bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -59,22 +59,36 @@ struct xml_io_stream<Array<T>> {
 
     Size nelem = 0;
     tag.get_attribute_value("nelem", nelem);
-    n.resize(nelem);
+
+    const Size N = n.size();
+    n.resize(nelem + N);
+
+    std::span span{n.data() + N, nelem};
 
     if (pbifs) {
       if constexpr (xml_io_binary<T>)
-        inner::get(std::span{n.data(), n.size()}, pbifs);
+        inner::get(span, pbifs);
       else
-        for (auto& v : n) inner::read(is, v, pbifs);
+        for (auto& v : span) inner::read(is, v, pbifs);
     } else {
       if constexpr (xml_io_parseable<T>)
-        inner::parse(std::span{n.data(), n.size()}, is);
+        inner::parse(span, is);
       else
-        for (auto& v : n) inner::read(is, v, pbifs);
+        for (auto& v : span) inner::read(is, v, pbifs);
     }
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(std::format(
+        "Error extending {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+  }
+
+  static void read(std::istream& is,
+                   Array<T>& n,
+                   bifstream* pbifs = nullptr) try {
+    n.clear();
+    extend(is, n, pbifs);
   } catch (const std::exception& e) {
     throw std::runtime_error(std::format(
         "Error reading {}<{}>:\n{}", type_name, inner::type_name, e.what()));

@@ -66,14 +66,16 @@ void append_data(
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
-    const Index &replace_existing,
-    const Index &ignore_missing,
+    const Index &replace_existing_,
+    const Index &ignore_missing_,
     const std::unordered_map<T, Index> &keys,
     const auto &to_string = [](const auto &x) { return std::format("{}", x); })
   requires(
       std::same_as<typename std::decay_t<decltype(to_string(T{}))>, String>)
 {
-  const String my_base = complete_basename(basename);
+  const String my_base      = complete_basename(basename);
+  const bool ignore_missing = static_cast<bool>(ignore_missing_);
+  const bool replace        = static_cast<bool>(replace_existing_);
 
   Atm::Data x;
   x.alt_low = x.alt_upp = x.lat_low = x.lat_upp = x.lon_low = x.lon_upp =
@@ -84,16 +86,22 @@ void append_data(
   for (const auto &[key, _] : keys) {
     String filename = std::format("{}{}.xml", my_base, to_string(key));
 
-    if (static_cast<bool>(replace_existing) or
-        not atmospheric_field.contains(key)) {
+    if (replace or not atmospheric_field.contains(key)) {
       if (find_xml_file_existence(filename)) {
-        x.data = xml_read_from_file_variant(Atm::FieldData{1.0}, filename);
-        atmospheric_field[key] = x;
+        try {
+          xml_extend_from_file(filename, atmospheric_field);
+          const bool has = atmospheric_field.contains(key);
+          if (not has and not ignore_missing) goto error;
+        } catch (...) {
+          x.data                 = xml_read_from_file_variant(x.data, filename);
+          atmospheric_field[key] = x;
+        }
       } else if (static_cast<bool>(missing_is_zero)) {
         x.data                 = 0.0;
         atmospheric_field[key] = x;
-      } else if (static_cast<bool>(ignore_missing)) {
+      } else if (ignore_missing) {
       } else {
+      error:
         if (error.empty()) error.emplace_back("Missing species / files:");
         error.emplace_back(std::format("  {}", filename));
       }

@@ -1,5 +1,7 @@
 #include "xml_atm.h"
 
+#include "enumsIsoRatioOption.h"
+
 void xml_io_stream<AtmPoint>::read(std::istream& is,
                                    AtmPoint& v,
                                    bifstream* pbifs) {
@@ -93,6 +95,18 @@ void xml_io_stream<AtmField>::read(std::istream& is,
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
+}
+
+void xml_io_stream<AtmField>::extend(std::istream& is,
+                                     AtmField& v,
+                                     bifstream* pbifs) {
+  AtmField temp{IsoRatioOption::None};
+  xml_io_stream<AtmField>::read(is, temp, pbifs);
+  v.other.insert_range(temp.other);
+  v.specs.insert_range(temp.specs);
+  v.isots.insert_range(temp.isots);
+  v.nlte.insert_range(temp.nlte);
+  v.ssprops.insert_range(temp.ssprops);
 }
 
 void xml_io_stream<AtmField>::write(std::ostream& os,
