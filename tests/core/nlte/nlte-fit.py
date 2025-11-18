@@ -49,7 +49,7 @@ ws.atm_profileFromGrid()
 ws.atm_profileFitNonLTE(
     collision_data=collision_data,
     levels=levels,
-    dza=15,
+    dzen=15,
     consider_limb=0,
     convergence_limit=1e-2,
 )

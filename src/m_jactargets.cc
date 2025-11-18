@@ -260,7 +260,7 @@ void jac_targetsAddSensorFrequencyPolyOffset(
   const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
 
   make_polyoffset(
-      jac_targets.emplace_back(SensorKey{.type             = SensorKeyType::f,
+      jac_targets.emplace_back(SensorKey{.type = SensorKeyType::freq,
                                          .measurement_elem = measurement_elem},
                                d),
       static_cast<Size>(polyorder),

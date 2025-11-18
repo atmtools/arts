@@ -77,8 +77,8 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
         pyarts.arts.SensorKeyType.alt: 0,
         pyarts.arts.SensorKeyType.lat: 1,
         pyarts.arts.SensorKeyType.lon: 2,
-        pyarts.arts.SensorKeyType.za: 3,
-        pyarts.arts.SensorKeyType.aa: 4,
+        pyarts.arts.SensorKeyType.zen: 3,
+        pyarts.arts.SensorKeyType.azi: 4,
     }
 
     for isub in range(N):

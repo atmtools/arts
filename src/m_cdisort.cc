@@ -106,7 +106,7 @@ void setup_cdisort(disort_state& ds,
 
 void setup_cdisort_for_frequency(disort_state& ds,
                                  const disort::main_data& dis,
-                                 const AzimuthGrid& phis,
+                                 const AziGrid& phis,
                                  const ArrayOfAtmPoint& atm_path,
                                  const Numeric& frequency) {
   // fill up azimuth angle and temperature array
@@ -204,14 +204,17 @@ void run_cdisort(Tensor3View disort_spectral_rad_field,
 
 void disort_spectral_rad_fieldCalcCdisort(
     DisortRadiance& disort_spectral_rad_field,
-    ZenithGriddedField1& disort_quadrature,
+    ZenGriddedField1& disort_quadrature,
     const DisortSettings& disort_settings,
     const ArrayOfAtmPoint& atm_path,
     const ArrayOfAscendingGrid& freq_grid_path,
     const ArrayOfPropagationPathPoint& ray_path,
     const SurfaceField& surf_field,
-    const AzimuthGrid& phis) {
+    const AziGrid& phis) {
   ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(ray_path.empty(),
+                     "disort_spectral_rad_fieldCalcCdisort: ray_path is empty");
 
   const Index nv = disort_settings.frequency_count();
 
@@ -219,10 +222,8 @@ void disort_spectral_rad_fieldCalcCdisort(
 
   disort_quadrature = dis.gridded_weights();
 
-  const Numeric surf_temperature =
-      surf_field.single_value(SurfaceKey::t,
-                              ray_path[ray_path.size() - 1].latitude(),
-                              ray_path[ray_path.size() - 1].longitude());
+  const Numeric surf_temperature = surf_field.single_value(
+      SurfaceKey::t, ray_path.back().latitude(), ray_path.back().longitude());
 
   disort_spectral_rad_field.resize(disort_settings.freq_grid,
                                    disort_settings.alt_grid,

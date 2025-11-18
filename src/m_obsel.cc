@@ -111,14 +111,14 @@ void measurement_sensorAddZenithResponse(
     const Vector3& pos,
     const Vector2& los,
     const Stokvec& pol,
-    const AscendingGrid& dza_grid,
-    const Vector& za_weights) {
+    const AscendingGrid& dzen_grid,
+    const Vector& zen_weights) {
   const Size n_freq = f->size();
-  const Size n_za   = dza_grid.size();
+  const Size n_za   = dzen_grid.size();
   const Size sz     = measurement_sensor.size();
 
-  ARTS_USER_ERROR_IF(n_za != za_weights.size(),
-                     "dza_grid and za_weights must have same size");
+  ARTS_USER_ERROR_IF(n_za != zen_weights.size(),
+                     "dzen_grid and zen_weights must have same size");
   const Size nonzero = pol.nonzero_components();
   ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
 
@@ -126,7 +126,7 @@ void measurement_sensorAddZenithResponse(
 
   auto p_vec = SensorPosLosVector(n_za);
   for (Size i = 0; i < n_za; ++i) {
-    p_vec[i] = SensorPosLos(pos, los + Vector2{dza_grid[i], 0.0});
+    p_vec[i] = SensorPosLos(pos, los + Vector2{dzen_grid[i], 0.0});
   }
   auto p = std::make_shared<const SensorPosLosVector>(p_vec);
 
@@ -135,7 +135,7 @@ void measurement_sensorAddZenithResponse(
   for (Size i = 0; i < n_freq; i++) {
     try {
       sensor::SparseStokvecMatrix w(n_za, n_freq);
-      for (Size j = 0; j < n_za; j++) w[j, i] = za_weights[j] * pol;
+      for (Size j = 0; j < n_za; j++) w[j, i] = zen_weights[j] * pol;
       measurement_sensor[i + sz] = {f, p, std::move(w)};
       measurement_sensor[i + sz].normalize(pol);
     } catch (std::runtime_error& e) {
@@ -152,20 +152,20 @@ void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel& measurement_sensor,
                                          const Vector3& pos,
                                          const Vector2& los,
                                          const Stokvec& pol,
-                                         const AscendingGrid& dza_grid,
-                                         const Numeric& std_za) try {
+                                         const AscendingGrid& dzen_grid,
+                                         const Numeric& std_zen) try {
   ARTS_TIME_REPORT
 
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  ARTS_USER_ERROR_IF(std_za <= 0, "Standard deviation must be positive.");
-  ARTS_USER_ERROR_IF(dza_grid.size() == 0, "dza_grid cannot be empty.");
+  ARTS_USER_ERROR_IF(std_zen <= 0, "Standard deviation must be positive.");
+  ARTS_USER_ERROR_IF(dzen_grid.size() == 0, "dzen_grid cannot be empty.");
 
-  Vector za_weights(dza_grid.size());
-  const gauss dist(0.0, std_za);
-  for (Size i = 0; i < dza_grid.size(); ++i) {
-    za_weights[i] = pdf(dist, dza_grid[i]);
+  Vector zen_weights(dzen_grid.size());
+  const gauss dist(0.0, std_zen);
+  for (Size i = 0; i < dzen_grid.size(); ++i) {
+    zen_weights[i] = pdf(dist, dzen_grid[i]);
   }
 
   measurement_sensorAddZenithResponse(
@@ -174,8 +174,8 @@ void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel& measurement_sensor,
       pos,
       los,
       pol,
-      dza_grid,
-      za_weights);
+      dzen_grid,
+      zen_weights);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -230,9 +230,9 @@ void measurement_sensorAddRawSensorTmpl(
   };
 
   std::array<InternalGrid, 6> grids;
-  grids[idf]   = InternalGrid("df", raw_sensor);
-  grids[idza]  = InternalGrid("dza", raw_sensor);
-  grids[idaa]  = InternalGrid("daa", raw_sensor);
+  grids[idf]   = InternalGrid("dfreq", raw_sensor);
+  grids[idza]  = InternalGrid("dzen", raw_sensor);
+  grids[idaa]  = InternalGrid("dazi", raw_sensor);
   grids[idalt] = InternalGrid("dalt", raw_sensor);
   grids[idlat] = InternalGrid("dlat", raw_sensor);
   grids[idlon] = InternalGrid("dlon", raw_sensor);
@@ -252,12 +252,12 @@ void measurement_sensorAddRawSensorTmpl(
 The internal method wants to view the data as a 6-dimensional
 array of shape:  [{0:B}, {1:}, {2:}, {3:}, {4:}, {5:}]
 where the dimensions are:
-  Frequency perturbance     ("df"):   {0:}
-  Zenith angle perturbance  ("dza"):  {1:}
-  Azimuth angle perturbance ("daa"):  {2:}
-  Altitude perturbance      ("dalt"): {3:}
-  Latitude perturbance      ("dlat"): {4:}
-  Longitude perturbance     ("dlon"): {5:}
+  Frequency perturbance     ("dfreq"): {0:}
+  Zenith angle perturbance  ("dzen"):  {1:}
+  Azimuth angle perturbance ("dazi"):  {2:}
+  Altitude perturbance      ("dalt"):  {3:}
+  Latitude perturbance      ("dlat"):  {4:}
+  Longitude perturbance     ("dlon"):  {5:}
 
 But the array has the following shape: {6:B,}
 
@@ -282,9 +282,9 @@ following grid names: {7:B,}
         lowest != -1 and static_cast<Index>(grids[i].i) <= lowest,
         R"(The raw sensor input grids must be sorted as follows:
 
-Frequency grid perturbance (named "df"),
-Zenith angle perturbance   (named "dza"),
-Azimuth angle perturbance  (named "daa"),
+Frequency grid perturbance (named "dfreq"),
+Zenith angle perturbance   (named "dzen"),
+Azimuth angle perturbance  (named "dazi"),
 Altitude perturbance       (named "dalt"),
 Latitude perturbance       (named "dlat"),
 Longitude perturbance      (named "dlon")

@@ -18,17 +18,15 @@
 namespace disort {
 void radiances::resize(AscendingGrid f_grid,
                        DescendingGrid alt_grid_,
-                       AzimuthGrid aa_grid,
-                       ZenithGrid za_grid_) {
-  freq_grid    = std::move(f_grid);
-  alt_grid     = std::move(alt_grid_);
-  azimuth_grid = std::move(aa_grid);
-  za_grid      = std::move(za_grid_);
+                       AziGrid azi_grid_,
+                       ZenGrid zen_grid_) {
+  freq_grid = std::move(f_grid);
+  alt_grid  = std::move(alt_grid_);
+  azi_grid  = std::move(azi_grid_);
+  zen_grid  = std::move(zen_grid_);
 
-  data.resize(freq_grid.size(),
-              alt_grid.size() - 1,
-              azimuth_grid.size(),
-              za_grid.size());
+  data.resize(
+      freq_grid.size(), alt_grid.size() - 1, azi_grid.size(), zen_grid.size());
 }
 
 void radiances::sort(const Vector& solver_mu) {
@@ -1545,7 +1543,7 @@ void main_data::ungridded_u(Tensor3View out,
   }
 }
 
-ZenithGriddedField1 main_data::gridded_weights() const {
+ZenGriddedField1 main_data::gridded_weights() const {
   Vector mu = mu_arr;
 
   stdr::sort(mu);
@@ -1554,11 +1552,10 @@ ZenithGriddedField1 main_data::gridded_weights() const {
     return 180.0 - Conversion::acosd(m);
   });
 
-  ZenithGriddedField1 disort_quadrature{
-      .data_name  = "Disort quadrature weights",
-      .data       = mu,
-      .grid_names = {"Zenith grid"},
-      .grids      = {std::move(mu)}};
+  ZenGriddedField1 disort_quadrature{.data_name  = "Disort quadrature weights",
+                                     .data       = mu,
+                                     .grid_names = {"Zenith grid"},
+                                     .grids      = {std::move(mu)}};
 
   disort_quadrature[rf(N)] = W;
   disort_quadrature[rb(N)] = W;
@@ -1775,8 +1772,8 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
       os_xml, v.fourier_mode_dimension, pbofs, "fourier_mode_dimension");
   xml_write_to_stream(os_xml, v.freq_grid, pbofs, "nfreq");
   xml_write_to_stream(os_xml, v.alt_grid, pbofs, "nlay");
-  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solaz");
-  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solza");
+  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solazi");
+  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solzen");
   xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");
   xml_write_to_stream(os_xml,
                       v.bidirectional_reflectance_distribution_functions,

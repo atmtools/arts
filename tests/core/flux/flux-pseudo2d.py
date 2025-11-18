@@ -30,7 +30,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Settings
 
 ws.atm_profileFromGrid()
-ws.za_gridProfilePseudo2D(dza=5)
+ws.zen_gridProfilePseudo2D(dzen=5)
 ws.spectral_rad_fieldProfilePseudo2D()
 ws.spectral_flux_profileFromSpectralRadianceField()
 

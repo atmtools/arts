@@ -30,9 +30,9 @@ void ray_path_observersFieldProfilePseudo2D(
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const Agenda& ray_path_observer_agenda,
-    const Numeric& latitude,
-    const Numeric& longitude,
-    const Numeric& azimuth,
+    const Numeric& lat,
+    const Numeric& lon,
+    const Numeric& azi,
     const Index& nup,
     const Index& nlimb,
     const Index& ndown) {
@@ -46,12 +46,12 @@ void ray_path_observersFieldProfilePseudo2D(
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 
-  const Vector3 top_pos = {atm_field.top_of_atmosphere, latitude, longitude};
+  const Vector3 top_pos = {atm_field.top_of_atmosphere, lat, lon};
   const Vector3 bot_pos = {
-      surf_field[SurfaceKey::h].at(latitude, longitude), latitude, longitude};
+      surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
 
   const Numeric za_surf_limb = surf_tangent_zenithFromAgenda(
-      ws, top_pos, ray_path_observer_agenda, azimuth);
+      ws, top_pos, ray_path_observer_agenda, azi);
 
   const Index N = nlimb + nup + ndown;
   arr::resize(0, ray_path_observers);
@@ -67,7 +67,7 @@ void ray_path_observersFieldProfilePseudo2D(
     ray_path_observers.push_back({.pos_type = PathPositionType::surface,
                                   .los_type = PathPositionType::atm,
                                   .pos      = bot_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 
   // Skip 90.0
@@ -75,14 +75,14 @@ void ray_path_observersFieldProfilePseudo2D(
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                   .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 
   for (auto za : dwn) {
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                   .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 }
 
@@ -157,9 +157,9 @@ void ray_path_fieldFluxProfile(
     const AtmField& atm_field,
     const Agenda& ray_path_observer_agenda,
     const Numeric& azimuth,
-    const Numeric& dza,
+    const Numeric& dzen,
     const AtmKey& atm_key) try {
-  ARTS_USER_ERROR_IF(dza <= 0.0, "Zenith angle step must be positive")
+  ARTS_USER_ERROR_IF(dzen <= 0.0, "Zenith angle step must be positive")
 
   ray_path_field.clear();
 
@@ -175,8 +175,8 @@ void ray_path_fieldFluxProfile(
   const Numeric za_limb_miss = std::nextafter(za_limb, 0.0);
   const Numeric za_limb_hit  = std::nextafter(za_limb, 180.0);
 
-  const Vector looking_down = half_grid(za_limb_hit, 180.0, dza);
-  const Vector looking_up   = half_grid(0.0, 90, dza);
+  const Vector looking_down = half_grid(za_limb_hit, 180.0, dzen);
+  const Vector looking_up   = half_grid(0.0, 90, dzen);
 
   // 4 extra points already added by
   ray_path_field.resize(looking_down.size() + looking_up.size());

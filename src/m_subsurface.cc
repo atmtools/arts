@@ -59,14 +59,14 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
   DisortSettings disort_settings           = {};
   ArrayOfPropagationPathPoint ray_path     = {};
   DisortRadiance disort_spectral_rad_field = {};
-  ZenithGriddedField1 disort_quadrature    = {};
+  ZenGriddedField1 disort_quadrature       = {};
   Vector model_state_vec                   = {};
   Vector model_state_vec_perturbation      = {};
   StokvecVector spectral_rad2              = {};
   AtmField atm_field                       = atm_field_;
   SurfaceField surf_field                  = surf_field_;
   SubsurfaceField subsurf_field            = subsurf_field_;
-  const AzimuthGrid azimuth_grid           = Vector{ray_point.azimuth()};
+  const AziGrid azi_grid                   = Vector{ray_point.azimuth()};
 
   spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
 
@@ -88,7 +88,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
       subsurf_field,
       surf_field,
       depth_profile,
-      azimuth_grid);
+      azi_grid);
 
   model_state_vecPerturbations(model_state_vec_perturbation, jac_targets);
   model_state_vecInit(model_state_vec, jac_targets);
@@ -149,7 +149,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(
           subsurf_field,
           surf_field,
           depth_profile,
-          azimuth_grid);
+          azi_grid);
 
       std::transform(spectral_rad2.begin(),
                      spectral_rad2.end(),

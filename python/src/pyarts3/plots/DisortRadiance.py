@@ -51,7 +51,7 @@ def plot(
         List of two matplotlib axes objects [ax_up, ax_down].
     """
     freq_grid = data.freq_grid if freqs is None else freqs
-    za_grid = data.za_grid
+    zen_grid = data.zen_grid
     radiance = data.data
 
     # Data shape is [freq, alt, azimuth, zenith]
@@ -59,17 +59,17 @@ def plot(
     data_slice = radiance[:, alt_idx, azi_idx, :]
 
     # Split zenith angles: zenith > 90° is downward, zenith <= 90° is upward
-    # Assuming za_grid is in degrees and sorted
-    n_zenith = len(za_grid)
+    # Assuming zen_grid is in degrees and sorted
+    n_zenith = len(zen_grid)
     mid_idx = n_zenith // 2
 
     # Upward radiation (zenith angles < 90°, smaller indices)
     upward_data = data_slice[:, mid_idx:]  # Transpose to put freq on x-axis
-    upward_zenith = za_grid[mid_idx:]
+    upward_zenith = zen_grid[mid_idx:]
 
     # Downward radiation (zenith angles >= 90°, larger indices)
     downward_data = data_slice[:, :mid_idx]  # Transpose to put freq on x-axis
-    downward_zenith = za_grid[:mid_idx]
+    downward_zenith = zen_grid[:mid_idx]
 
     # Plotting options
     select = [select] if isinstance(select, str) else select

@@ -243,7 +243,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "spectral_flux_profilePseudo2D",
       .desc    = "Computes the spectral flux profile using pseudo-2D geometry",
       .author  = {"Richard Larsson"},
-      .methods = {"za_gridProfilePseudo2D",
+      .methods = {"zen_gridProfilePseudo2D",
                   "spectral_rad_fieldProfilePseudo2D",
                   "spectral_flux_profileFromSpectralRadianceField"},
       .out     = {"spectral_flux_profile"},

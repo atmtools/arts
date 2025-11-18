@@ -261,9 +261,11 @@ freq_grid.size()              = {}
 
     using enum SensorKeyType;
     switch (target.type.type) {
-      case f:   call({b, e, [d](auto x) { return x + d; }}, pos, los, d); break;
-      case za:  call(x, pos, {los[0] + d, los[1]}, d); break;
-      case aa:  call(x, pos, {los[0], los[1] + d}, d); break;
+      case freq:
+        call({b, e, [d](auto x) { return x + d; }}, pos, los, d);
+        break;
+      case zen: call(x, pos, {los[0] + d, los[1]}, d); break;
+      case azi: call(x, pos, {los[0], los[1] + d}, d); break;
       case alt: call(x, {pos[0] + d, pos[1], pos[2]}, los, d); break;
       case lat: call(x, {pos[0], pos[1] + d, pos[2]}, los, d); break;
       case lon: call(x, {pos[0], pos[1], pos[2] + d}, los, d); break;

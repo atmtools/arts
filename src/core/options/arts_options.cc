@@ -115,12 +115,15 @@ std::vector<EnumeratedOption> internal_options_create() {
           R"(A key for identifying a sensor property
 )",
       .values_and_desc = {
-          Value{"f", "Frequency", "freq", "Frequency of the sensor"},
-          Value{"za", "Zenith", "zenith", "Zenith angle of the sensor"},
-          Value{"aa", "Azimuth", "azimuth", "Azimuth angle of the sensor"},
-          Value{"alt", "Altitude", "altitude", "Altitude of the sensor"},
-          Value{"lat", "Latitude", "latitude", "Latitude of the sensor"},
-          Value{"lon", "Longitude", "longitude", "Longitude of the sensor"},
+          Value{
+              "freq", "f", "Frequency", "frequency", "Frequency of the sensor"},
+          Value{"zen", "za", "Zenith", "zenith", "Zenith angle of the sensor"},
+          Value{
+              "azi", "aa", "Azimuth", "azimuth", "Azimuth angle of the sensor"},
+          Value{"alt", "h", "Altitude", "altitude", "Altitude of the sensor"},
+          Value{"lat", "la", "Latitude", "latitude", "Latitude of the sensor"},
+          Value{
+              "lon", "lo", "Longitude", "longitude", "Longitude of the sensor"},
       }});
 
   opts.emplace_back(EnumeratedOption{

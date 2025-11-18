@@ -512,7 +512,7 @@ that is being emitted.  That's the type of use case this agenda is made for and 
 
 *spectral_rad* but for a field.
 
-Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *za_grid* times ``aa_grid`` times *freq_grid*.
+Dimensions are *alt_grid* times *lat_grid* times *lon_grid* times *zen_grid* times ``azi_grid`` times *freq_grid*.
 )",
       .type = "GriddedSpectralField6",
   };
@@ -970,7 +970,7 @@ This consists of
 
   //! Pointing coordinates (zenith and azimuth)
 
-  wsv_data["za_grid"] = {
+  wsv_data["zen_grid"] = {
       .desc = R"--(A single zenith angle grid.
 
 Units: degrees
@@ -979,7 +979,7 @@ Units: degrees
     There is no global grid system in ARTS, so beware of the local
     nature of all grids.
 )--",
-      .type = "ZenithGrid",
+      .type = "ZenGrid",
   };
 
   //! Non-LTE
@@ -1053,7 +1053,7 @@ Dimensions: *ray_path* x *suns* x *sun_path*
 
 Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_rad_field*.
 )",
-      .type = "ZenithGriddedField1",
+      .type = "ZenGriddedField1",
   };
 
   wsv_data["disort_quadrature_dimension"] = {

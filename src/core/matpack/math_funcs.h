@@ -58,15 +58,15 @@ Numeric trapz(ConstVectorView x, ConstVectorView y);
 void cumsum(VectorView csum, ConstVectorView x);
 
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-                               ConstVectorView za_grid,
-                               ConstVectorView aa_grid);
+                               ConstVectorView zen_grid,
+                               ConstVectorView azi_grid);
 
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
-                               ConstVectorView za_grid);
+                               ConstVectorView zen_grid);
 
 Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
-                                    ConstVectorView za_grid,
-                                    ConstVectorView aa_grid,
+                                    ConstVectorView zen_grid,
+                                    ConstVectorView azi_grid,
                                     ConstVectorView grid_stepsize);
 
 Numeric sign(const Numeric& x);

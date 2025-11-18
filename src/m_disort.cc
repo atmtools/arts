@@ -11,9 +11,9 @@
 ////////////////////////////////////////////////////////////////////////
 
 void disort_spectral_rad_fieldCalc(DisortRadiance& disort_spectral_rad_field,
-                                   ZenithGriddedField1& disort_quadrature,
+                                   ZenGriddedField1& disort_quadrature,
                                    const DisortSettings& disort_settings,
-                                   const AzimuthGrid& phis) {
+                                   const AziGrid& phis) {
   ARTS_TIME_REPORT
 
   const Index nv    = disort_settings.frequency_count();
@@ -31,7 +31,7 @@ void disort_spectral_rad_fieldCalc(DisortRadiance& disort_spectral_rad_field,
   disort_spectral_rad_field.resize(disort_settings.freq_grid,
                                    disort_settings.alt_grid,
                                    phis,
-                                   ZenithGrid{disort_quadrature.grid<0>()});
+                                   ZenGrid{disort_quadrature.grid<0>()});
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
@@ -96,8 +96,8 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
 
   const auto& f_grid   = disort_spectral_rad_field.freq_grid;
   const auto& alt_grid = disort_spectral_rad_field.alt_grid;
-  const auto& aa_grid  = disort_spectral_rad_field.azimuth_grid;
-  const auto& za_grid  = disort_spectral_rad_field.za_grid;
+  const auto& azi_grid = disort_spectral_rad_field.azi_grid;
+  const auto& zen_grid = disort_spectral_rad_field.zen_grid;
   const auto& data     = disort_spectral_rad_field.data;
 
   const Size nf = f_grid.size();
@@ -109,8 +109,8 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
                      "DISORT altitude grid must have at least two points")
 
   using aa_cyc_t    = cycler<0.0, 360.0>;
-  const auto aa_lag = variant_lag<aa_cyc_t>(aa_grid, ray_point.los[1]);
-  const auto za_lag = variant_lag<identity>(za_grid, ray_point.los[0]);
+  const auto aa_lag = variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]);
+  const auto za_lag = variant_lag<identity>(zen_grid, ray_point.los[0]);
 
   const Numeric z  = ray_point.altitude();
   const bool above = alt_grid.size() < 2 or z >= alt_grid[1];
@@ -145,7 +145,7 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
 void spectral_radIntegrateDisort(
     StokvecVector& /*spectral_rad*/,
     const DisortRadiance& /*disort_spectral_rad_field*/,
-    const ZenithGriddedField1& /*disort_quadrature*/) {
+    const ZenGriddedField1& /*disort_quadrature*/) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR("Not implemented")

@@ -939,8 +939,8 @@ The method used here is based on :cite:t:`Yamada2018`
       .gin       = {"collision_data",
                     "levels",
                     "pol",
-                    "azimuth",
-                    "dza",
+                    "azi",
+                    "dzen",
                     "convergence_limit",
                     "iteration_limit",
                     "consider_limb"},
@@ -965,10 +965,10 @@ The method used here is based on :cite:t:`Yamada2018`
            "The order of the energy levels",
            "The polarization selection vector (use the default unless you know what you are doing)",
            "The azimuth of the radiation",
-           "The zenith angle limit for the internal call to *za_gridProfilePseudo2D*",
+           "The zenith angle limit for the internal call to *zen_gridProfilePseudo2D*",
            "Convergence criterion for the energy level distribution",
            "Maximum number of iterations",
-           "Whether to add extra limb points in *za_gridProfilePseudo2D*"},
+           "Whether to add extra limb points in *zen_gridProfilePseudo2D*"},
       .pass_workspace = true,
   };
 
@@ -3602,7 +3602,7 @@ Options:
 - ``atm_key`` and ``add_crossings`` and ``remove_non_crossings``: The atmospheric field key for which the
   grid is expected if adding grid crossings is desired.  The other two options tell whether to add all grid
   points or remove non-crossings.  The removal happens after the filling of the path.
-- ``fix_updown_azimuth``: Fix the azimuth angle when looking at 0 or 180 degrees.
+- ``fix_updown_azi``: Fix the azimuth angle when looking at 0 or 180 degrees.
 - ``add_limb``: Add the limb point.
 - ``remove_non_atm``: Remove points in space or in the subsurface.
 )--",
@@ -3616,7 +3616,7 @@ Options:
                     "remove_nearby_first",
                     "add_crossings",
                     "remove_non_crossings",
-                    "fix_updown_azimuth",
+                    "fix_updown_azi",
                     "add_limb",
                     "remove_non_atm"},
       .gin_type  = {"String",
@@ -3700,7 +3700,7 @@ If ``remove_non_atm`` is true, all points that are not in the atmosphere are
 removed.  It is recommended to remove these points as multiple methods will
 either perform poorly or not at all with these points present.
 
-If ``fix_updown_azimuth`` is true, the azimuthal angle of the path is
+If ``fix_updown_azi`` is true, the azimuthal angle of the path is
 fixed to the initial azimuthal angle of the path.  Because calculations
 of the azimuth angle makes use of IEEE atan2, some paths may produce
 bad angles if this is turned off.
@@ -3714,7 +3714,7 @@ bad angles if this is turned off.
                     "as_observer",
                     "add_limb",
                     "remove_non_atm",
-                    "fix_updown_azimuth",
+                    "fix_updown_azi",
                     "surf_safe_search"},
       .gin_type  = {"Vector3",
                     "Vector2",
@@ -3784,7 +3784,7 @@ A profile is defined as having space blackbody emission from the top and surface
 blackbody emissision from the surface.
 
 Limb paths are only considered when the zenith angle misses the next lower level using the
-same mechanism as in *za_gridProfilePseudo2D*.
+same mechanism as in *zen_gridProfilePseudo2D*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_rad_field"},
@@ -3792,25 +3792,25 @@ same mechanism as in *za_gridProfilePseudo2D*.
                          "atm_profile",
                          "surf_field",
                          "freq_grid",
-                         "za_grid",
+                         "zen_grid",
                          "alt_grid",
                          "lat",
                          "lon"},
-      .gin            = {"azimuth"},
+      .gin            = {"azi"},
       .gin_type       = {"Numeric"},
       .gin_value      = {Numeric{0}},
       .gin_desc       = {"The azimuth"},
       .pass_workspace = true,
   };
 
-  wsm_data["za_gridProfilePseudo2D"] = {
+  wsm_data["zen_gridProfilePseudo2D"] = {
       .desc =
           R"--(A custom zenith grid for *spectral_rad_fieldProfilePseudo2D*
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"za_grid"},
+      .out       = {"zen_grid"},
       .in        = {"surf_field", "alt_grid", "lat", "lon"},
-      .gin       = {"dza", "azimuth", "consider_limb"},
+      .gin       = {"dzen", "azi", "consider_limb"},
       .gin_type  = {"Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
       .gin_desc  = {"The zenith grid max step size",
@@ -3832,9 +3832,9 @@ Limitations:
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_rad_field"},
-      .in        = {"spectral_rad_operator", "freq_grid", "za_grid"},
-      .gin       = {"azimuth_grid"},
-      .gin_type  = {"AzimuthGrid"},
+      .in        = {"spectral_rad_operator", "freq_grid", "zen_grid"},
+      .gin       = {"azi_grid"},
+      .gin_type  = {"AziGrid"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"The azimuth grid"},
   };
@@ -3855,9 +3855,9 @@ the first 5 dimensions are computed in parallel.
       .in             = {"spectral_rad_operator",
                          "ray_path_observer_agenda",
                          "freq_grid",
-                         "za_grid"},
-      .gin            = {"azimuth_grid"},
-      .gin_type       = {"AzimuthGrid"},
+                         "zen_grid"},
+      .gin            = {"azi_grid"},
+      .gin_type       = {"AziGrid"},
       .gin_value      = {std::nullopt},
       .gin_desc       = {"The azimuth grid"},
       .pass_workspace = true,
@@ -4427,7 +4427,7 @@ All elements share position, line-of-sight, and frequency grid.
       .author   = {"Richard Larsson"},
       .out      = {"measurement_sensor"},
       .in       = {"measurement_sensor", "freq_grid"},
-      .gin      = {"pos", "los", "pol", "dza_grid", "std_za"},
+      .gin      = {"pos", "los", "pol", "dzen_grid", "std_zen"},
       .gin_type = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
       .gin_value = {std::nullopt,
                     std::nullopt,
@@ -4486,12 +4486,12 @@ and frequency grid.
 
 The order of the dimensions are:
 
-1. Frequency (``"df"``)
-2. Zenith angle (``"dza"``)
-3. Azimuth angle (``"daa"``)
-4. Altitude (``"dalt"``)
-5. Latitude (``"dlat"``)
-6. Longitude (``"dlon"``)
+1. Frequency     (``"dfreq"``)
+2. Zenith angle  (``"dzen"``)
+3. Azimuth angle (``"dazi"``)
+4. Altitude      (``"dalt"``)
+5. Latitude      (``"dlat"``)
+6. Longitude     (``"dlon"``)
 
 The quoted strings must be used as the grid names of the gridded field.
 
@@ -5498,9 +5498,9 @@ Sets both upper and lower bounds.
       .author    = {"Richard Larsson"},
       .out       = {"disort_spectral_rad_field", "disort_quadrature"},
       .in        = {"disort_settings"},
-      .gin       = {"azimuth_grid"},
-      .gin_type  = {"AzimuthGrid"},
-      .gin_value = {AzimuthGrid{{0.0}}},
+      .gin       = {"azi_grid"},
+      .gin_type  = {"AziGrid"},
+      .gin_value = {AziGrid{{0.0}}},
       .gin_desc  = {"The azimuthal angles"},
   };
 
@@ -5517,9 +5517,9 @@ CDisort is only included for testing and comparisons with our own disort impleme
                     "freq_grid_path",
                     "ray_path",
                     "surf_field"},
-      .gin       = {"azimuth_grid"},
-      .gin_type  = {"AzimuthGrid"},
-      .gin_value = {AzimuthGrid{{0.0}}},
+      .gin       = {"azi_grid"},
+      .gin_type  = {"AziGrid"},
+      .gin_value = {AziGrid{{0.0}}},
       .gin_desc  = {"The azimuthal angles"},
   };
 #endif
@@ -5616,11 +5616,11 @@ This is because of how non-LTE is implemented in ARTS.
 
 Three observer types are added:
 
-- Downward looking.  At the top-of-atmosphere, cover [za+e, 180] degrees zenith.
-- Limb looking.  At top of the atmosphere, cover [90, za-e] degrees zenith.
+- Downward looking.  At the top-of-atmosphere, cover [zen+e, 180] degrees zenith.
+- Limb looking.  At top of the atmosphere, cover [90, zen-e] degrees zenith.
 - Upward looking.  At the surface, cover [0, 90] degrees zenith.
 
-Here za is the surface tangent zenith angle from the top of the atmosphere. e indicates
+Here zen is the surface tangent zenith angle from the top of the atmosphere. e indicates
 the smallest possible numerical offset from that angle in the signed direction.
 
 .. note::
@@ -5638,7 +5638,7 @@ the smallest possible numerical offset from that angle in the signed direction.
       .out    = {"ray_path_observers"},
       .in =
           {"atm_field", "surf_field", "ray_path_observer_agenda", "lat", "lon"},
-      .gin       = {"azimuth", "nup", "nlimb", "ndown"},
+      .gin       = {"azi", "nup", "nlimb", "ndown"},
       .gin_type  = {"Numeric", "Index", "Index", "Index"},
       .gin_value = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},
       .gin_desc  = {"Azimuth angle for the observer",
@@ -5657,7 +5657,7 @@ The number :math:`n` must be uneven and larger than 2.
       .author    = {"Richard Larsson"},
       .out       = {"ray_path_observers"},
       .in        = {"atm_field"},
-      .gin       = {"azimuth", "n", "atm_key"},
+      .gin       = {"azi", "n", "atm_key"},
       .gin_type  = {"Numeric", "Index", "AtmKey"},
       .gin_value = {Numeric{0.0}, std::nullopt, AtmKey::t},
       .gin_desc =
@@ -5673,8 +5673,8 @@ The number :math:`n` must be uneven and larger than 2.
 By default, up-looking from surface, downlooking from top of atmosphere and limb looking
 just hitting the surface and just missing the surface are added.
 
-In addition to these, all up-looking ppoints will have additional observers for max ``dza``
-resolution and all downlooking points will have additional observers for max ``dza``
+In addition to these, all up-looking ppoints will have additional observers for max ``dzen``
+resolution and all downlooking points will have additional observers for max ``dzen``
 resolution.
 
 Additional work is requires if proper coverage of the limb is required
@@ -5682,7 +5682,7 @@ Additional work is requires if proper coverage of the limb is required
       .author         = {"Richard Larsson"},
       .out            = {"ray_path_field"},
       .in             = {"atm_field", "ray_path_observer_agenda"},
-      .gin            = {"azimuth", "dza", "atm_key"},
+      .gin            = {"azi", "dzen", "atm_key"},
       .gin_type       = {"Numeric", "Numeric", "AtmKey"},
       .gin_value      = {Numeric{0.0}, Numeric{180.0}, AtmKey::t},
       .gin_desc       = {"Azimuth angle for the observer",

@@ -340,12 +340,12 @@ The relevant references are:
       "alt_grid",
       &DisortRadiance::alt_grid,
       "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
-  dr.def_rw("za_grid",
-            &DisortRadiance::za_grid,
-            "Zenith grid\n\n.. :class:`ZenithGrid`");
-  dr.def_rw("azimuth_grid",
-            &DisortRadiance::azimuth_grid,
-            "Azimuth grid\n\n.. :class:`AzimuthGrid`");
+  dr.def_rw("zen_grid",
+            &DisortRadiance::zen_grid,
+            "Zenith grid\n\n.. :class:`ZenGrid`");
+  dr.def_rw("azi_grid",
+            &DisortRadiance::azi_grid,
+            "Azimuth grid\n\n.. :class:`AziGrid`");
   dr.def_rw("data",
             &DisortRadiance::data,
             "Radiance field (layer values)\n\n.. :class:`Matrix`");

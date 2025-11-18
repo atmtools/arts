@@ -754,11 +754,11 @@ void Targets::finalize(const AtmField& atm_field,
 
               switch (key.type) {
                 using enum SensorKeyType;
-                case f:
+                case freq:
                   return measurement_sensor[elem1].f_grid_ptr() ==
                          measurement_sensor[elem2].f_grid_ptr();
-                case za:
-                case aa:
+                case zen:
+                case azi:
                 case alt:
                 case lat:
                 case lon:

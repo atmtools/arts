@@ -1,4 +1,4 @@
-""" Plotting routine for ZenithGrid """
+""" Plotting routine for AziGrid """
 
 import pyarts3 as pyarts
 import numpy as np
@@ -10,14 +10,14 @@ __all__ = [
 
 
 def plot(
-    data: pyarts.arts.ZenithGrid,
+    data: pyarts.arts.AziGrid,
     *,
     fig=None,
     ax=None,
     polar: bool = False,
     **kwargs
 ):
-    """Plot a ZenithGrid showing zenith angles.
+    """Plot an AziGrid showing azimuth angles.
 
     .. rubric:: Example
 
@@ -27,15 +27,23 @@ def plot(
         import pyarts3 as pyarts
         import numpy as np
 
-        # Create zenith angles from 0° (up) to 180° (down)
-        zenith = pyarts.arts.ZenithGrid(np.linspace(0, 180, 19))
+        # Create azimuth angles (compass directions)
+        azimuth = pyarts.arts.AziGrid(np.linspace(0, 360, 13)[:-1])
 
-        pyarts.plots.ZenithGrid.plot(zenith, polar=True)
+        fig, ax = pyarts.plots.AziGrid.plot(azimuth, polar=True)
+        ax.set_xlabel("Index")
+        ax.set_ylabel("Azimuth Angle [°]")
+        ax.set_title("Azimuth Grid")
+        ax.set_ylim(0, 360)
+        ax.grid(True, alpha=0.3)
+        ax.set_ylim(0, 1.2)
+        ax.set_theta_zero_location("N")  # 0° at North (top)
+        ax.set_theta_direction(-1)  # Clockwise (East = 90° clockwise from North)
 
     Parameters
     ----------
-    data : ~pyarts3.arts.ZenithGrid
-        A sorted grid of zenith angles [0, 180]
+    data : ~pyarts3.arts.AziGrid
+        A sorted grid of azimuth angles [0, 360)
     fig : Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : Axes, optional

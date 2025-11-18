@@ -31,15 +31,6 @@ workspace_variables_shortnames_impl() {
   shortnames["disort"]  = {.desc = "Discrete ordinate radiative transfer"};
   shortnames["covmat"]  = {.desc = "Covariance matrices"};
 
-  //   shortnames["leg"]     = {.desc = "Legendre polynomials"};
-  //   shortnames["meas"]    = {.desc = "Measurements"};
-  //   shortnames["dim"]     = {.desc = "Dimension"};
-  //   shortnames["quad"]    = {.desc = "Quadrature"};
-  //   shortnames["aa"] = {
-  //       .desc  = "Azimuth angle [0, 360) circular.  0° is North, 90° is East.",
-  //       .title = "Coordinates",
-  //   };
-
   shortnames["alt"] = {
       .desc  = "Altitude",
       .title = "Coordinates",
@@ -60,7 +51,7 @@ workspace_variables_shortnames_impl() {
       .title = "Coordinates",
   };
 
-  shortnames["za"] = {
+  shortnames["zen"] = {
       .desc  = "Zenith angle [0, 180].",
       .title = "Coordinates",
   };

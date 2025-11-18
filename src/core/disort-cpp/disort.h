@@ -12,16 +12,16 @@
 
 namespace disort {
 struct radiances {
-  AscendingGrid freq_grid;   // nf
-  DescendingGrid alt_grid;   // level; nl
-  AzimuthGrid azimuth_grid;  // naa
-  ZenithGrid za_grid;        // nza
-  Tensor4 data;              // nf, nl - 1, naa, nza
+  AscendingGrid freq_grid;  // nf
+  DescendingGrid alt_grid;  // level; nl
+  AziGrid azi_grid;         // naa
+  ZenGrid zen_grid;         // nza
+  Tensor4 data;             // nf, nl - 1, naa, nza
 
   void resize(AscendingGrid freq_grid,
               DescendingGrid alt_grid,
-              AzimuthGrid azimuth_grid,
-              ZenithGrid za_grid);
+              AziGrid azi_grid,
+              ZenGrid zen_grid);
 
   void sort(const Vector& solver_mu);
 };
@@ -640,7 +640,7 @@ class main_data {
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
 
   //! Get weights on a grid
-  [[nodiscard]] ZenithGriddedField1 gridded_weights() const;
+  [[nodiscard]] ZenGriddedField1 gridded_weights() const;
 };
 }  // namespace disort
 
@@ -1169,9 +1169,9 @@ struct std::formatter<DisortRadiance> {
                        sep,
                        v.alt_grid,
                        sep,
-                       v.azimuth_grid,
+                       v.azi_grid,
                        sep,
-                       v.za_grid,
+                       v.zen_grid,
                        sep,
                        v.data);
   }

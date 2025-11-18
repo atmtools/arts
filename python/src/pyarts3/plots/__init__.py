@@ -17,7 +17,7 @@ from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
 from . import AscendingGrid
 from . import AtmField
-from . import AzimuthGrid
+from . import AziGrid
 from . import CIARecord
 from . import DisortFlux
 from . import DisortRadiance
@@ -38,7 +38,7 @@ from . import SubsurfaceField
 from . import Sun
 from . import SurfaceField
 from . import Vector
-from . import ZenithGrid
+from . import ZenGrid
 
 
 def plot(data, *, fig=None, ax=None, **kwargs):

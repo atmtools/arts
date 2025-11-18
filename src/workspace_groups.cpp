@@ -506,7 +506,7 @@ The grids are 6 *AscendingGrid*.  The grids are fully sorted.
       .desc = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
-*AscendingGrid* x *LatGrid* x *LonGrid* x *ZenithGrid* x *AzimuthGrid* x *AscendingGrid* x.
+*AscendingGrid* x *LatGrid* x *LonGrid* x *ZenGrid* x *AziGrid* x *AscendingGrid* x.
 The grids are fully sorted.
 )--",
   };
@@ -649,8 +649,8 @@ and returns any associated data.
 
 #. *AscendingGrid* frequency grid
 #. *DescendingGrid* level altitude grid
-#. *AzimuthGrid* azimuth grid
-#. *ZenithGrid* zenith grid
+#. *AziGrid* azimuth grid
+#. *ZenGrid* zenith grid
 #. *Tensor4* radiance data
 )",
   };
@@ -684,11 +684,11 @@ and returns any associated data.
       .map_type = true,
   };
 
-  wsg_data["ZenithGriddedField1"] = {
+  wsg_data["ZenGriddedField1"] = {
       .file = "matpack.h",
       .desc = R"--(A 1-dimensional grid of *Numeric*.
 
-The grids are 1 *ZenithGrid*.  This grid is sorted.
+The grids are 1 *ZenGrid*.  This grid is sorted.
 )--",
   };
 
@@ -749,7 +749,7 @@ The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
   };
 
-  wsg_data["ZenithGrid"] = {
+  wsg_data["ZenGrid"] = {
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 180].
@@ -761,7 +761,7 @@ modifying the values are not allowed.
 )--",
   };
 
-  wsg_data["AzimuthGrid"] = {
+  wsg_data["AziGrid"] = {
       .file = "matpack.h",
       .desc =
           R"--(A 1-dimensional vector of *Numeric* that are guaranteed to be within the range [0, 360).

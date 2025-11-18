@@ -43,21 +43,21 @@ ws.spectral_propmat_scat_agendaSet(option="AirSimple")
 
 # %% Core calculations
 pos = [90e3, 0, 0]
-zas = np.linspace(0, 5, 21)
-aas = np.linspace(-180, 180, 21)
-res = np.empty((len(zas), len(aas)))
-for iza in range(len(zas)):
-    for iaa in range(len(aas)):
-        los = [zas[iza], aas[iaa]]
+zens = np.linspace(0, 5, 21)
+azis = np.linspace(-180, 180, 21)
+res = np.empty((len(zens), len(azis)))
+for izen in range(len(zens)):
+    for iazi in range(len(azis)):
+        los = [zens[izen], azis[iazi]]
         ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
         ws.ray_path_suns_pathFromPathObserver(just_hit=1)
         ws.spectral_radClearskyRayleighScattering()
         ws.spectral_radApplyUnitFromSpectralRadiance()
-        res[iza, iaa] = ws.spectral_rad[0][0]
+        res[izen, iazi] = ws.spectral_rad[0][0]
 
 # FIXME: Use some sort of Imager for measurement_vec for the above
 
-r, theta = np.meshgrid(zas, np.rad2deg(aas))
+r, theta = np.meshgrid(zens, np.rad2deg(azis))
 fig, ax = plt.subplots(subplot_kw=dict(projection="polar"))
 ax.contourf(theta, r, res.T)
 
@@ -67,10 +67,10 @@ if "ARTS_HEADLESS" not in os.environ:
 assert np.allclose(
     res[1::3, 1::7],
     np.array([[5771.99991010, 5771.99991010, 5771.99991010],
-              [ 643.69008277,  643.69008277,  643.69008277],
-              [ 643.69030757,  643.69030764,  643.69030764],
-              [ 643.69065708,  643.69065715,  643.69065728],
-              [ 643.69113428,  643.69113428,  643.69113441],
-              [ 643.69174257,  643.69174270,  643.69174290],
-              [ 643.69248695,  643.69248708,  643.69248747]]),
+              [643.69008277,  643.69008277,  643.69008277],
+              [643.69030757,  643.69030764,  643.69030764],
+              [643.69065708,  643.69065715,  643.69065728],
+              [643.69113428,  643.69113428,  643.69113441],
+              [643.69174257,  643.69174270,  643.69174290],
+              [643.69248695,  643.69248708,  643.69248747]]),
 )
