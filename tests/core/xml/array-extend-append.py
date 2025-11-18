@@ -19,7 +19,7 @@ pyarts.arts.ArrayOfIndex([2, 3]).savexml("index2.xml")
 
 x.extendxml("index2.xml")
 
-assert np.allclose(x, [0] + [1] + [2, 3]), "Cannot externdxml"
+assert np.allclose(x, [0] + [1] + [2, 3]), "Cannot extendxml"
 
 x.extend([4, 5, 6])
 

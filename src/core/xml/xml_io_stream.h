@@ -82,7 +82,7 @@ concept arts_xml_extendable = arts_xml_ioable<T> and requires(T a) {
   xml_io_stream<T>::extend(std::declval<std::istream&>(), a);
 };
 
-//! Test that the type can be extended via XML-IO
+//! Test that the type can be appended via XML-IO
 template <typename T>
 concept arts_xml_appendable = arts_xml_ioable<T> and requires(T a) {
   xml_io_stream<T>::append(std::declval<std::istream&>(), a, nullptr);
