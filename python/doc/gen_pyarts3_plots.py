@@ -13,22 +13,28 @@ def generate(path):
 .. currentmodule:: pyarts3.plots
 
 .. automodule:: pyarts3.plots
-   :members:
-   :imported-members:
-   :undoc-members:
-   :special-members: __init__, __call__
+   :no-members:
+
+Generic Plot Function
+---------------------
+
+.. autofunction:: plot
+
+Plotting Functions by Type
+---------------------------
 
 """)
 
         for routine in routines:
+            if routine in ["plot", "common"]:
+                continue
+            # Use the module name as a prefix in the title
             f.write(f"""
-.. rubric:: {routine}
+{routine}.plot
+{'~' * (len(routine) + 5)}
 
-.. automodule:: pyarts3.plots.{routine}
-   :members:
-   :imported-members:
-   :undoc-members:
-   :special-members: __init__, __call__
+.. autofunction:: pyarts3.plots.{routine}.plot
+
 """)
 
 

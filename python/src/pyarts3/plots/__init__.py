@@ -48,14 +48,16 @@ def plot(data, *, fig=None, ax=None, **kwargs):
     the corresponding plot module's plot() function. All keyword arguments are
     forwarded to the specific plotting function.
 
+    For convenience, this function can be used directly from the main pyarts3 module:
+
     Examples
     --------
     >>> import pyarts3 as pyarts
     >>> vec = pyarts.arts.Vector([1, 2, 3, 4])
-    >>> fig, ax = pyarts.plots.plot(vec)
+    >>> fig, ax = pyarts.plot(vec)
 
     >>> mat = pyarts.arts.Matrix([[1, 2], [3, 4]])
-    >>> fig, ax = pyarts.plots.plot(mat, cmap='viridis')
+    >>> fig, ax = pyarts.plot(mat, cmap='viridis')
 
     Parameters
     ----------

@@ -100,6 +100,32 @@ try {
                   e.what()));
 }
 
+//! Appends data from XML file
+/*!
+  This is a generic functions that is used to read the XML header and
+  footer info and calls the overloaded functions to append the data.
+
+  \param filename XML filename
+  \param type Generic return value
+*/
+template <arts_xml_appendable T>
+String xml_append_from_file(const String& filename, T& type)
+  requires(std::same_as<T, std::remove_const_t<T>>)
+try {
+  ARTS_TIME_REPORT
+
+  String xml_file = filename;
+  find_xml_file(xml_file);
+  xml_append_from_file_base(xml_file, type);
+  return xml_file;
+} catch (const std::exception& e) {
+  throw std::runtime_error(
+      std::format("Error appending file {} containing {}:\n{}",
+                  filename,
+                  xml_io_stream_name_v<T>,
+                  e.what()));
+}
+
 //! Write data to XML file
 /*!
   This is a generic functions that is used to write the XML header and

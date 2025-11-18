@@ -84,6 +84,17 @@ struct xml_io_stream<Array<T>> {
         "Error extending {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 
+  static void append(std::istream& is,
+                     Array<T>& n,
+                     bifstream* pbifs = nullptr) try {
+    T x;
+    xml_read_from_stream(is, x, pbifs);
+    n.emplace_back(std::move(x));
+  } catch (const std::exception& e) {
+    throw std::runtime_error(std::format(
+        "Error appending {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+  }
+
   static void read(std::istream& is,
                    Array<T>& n,
                    bifstream* pbifs = nullptr) try {
