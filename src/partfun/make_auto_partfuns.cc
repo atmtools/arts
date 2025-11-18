@@ -306,9 +306,10 @@ Numeric d{0}(Numeric T) noexcept;
 
     compute += std::format(
         R"(
-  throw std::out_of_range("unknown isotopologue");
+  throw std::out_of_range(std::format("unknown isotopologue '{}-{{}}'", isot));
 }}
-)");
+)",
+        spec);
   }
 
   return std::format(

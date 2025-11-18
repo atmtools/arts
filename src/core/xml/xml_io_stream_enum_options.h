@@ -23,9 +23,9 @@ struct xml_io_stream<T> {
 
   static void write(std::ostream& os,
                     const T& x,
-                    bofstream*       = nullptr,
-                    std::string_view = ""sv) {
-    XMLTag tag{type_name, "value", toString(x)};
+                    bofstream*            = nullptr,
+                    std::string_view name = ""sv) {
+    XMLTag tag{type_name, "value", toString(x), "name", name};
     tag.write_to_stream(os);
     tag.write_to_end_stream(os);
   }

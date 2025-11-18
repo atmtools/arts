@@ -40,9 +40,9 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
     tag.write_to_end_stream(os);
   }
 
-  static void read(std::istream& is,
-                   std::unordered_map<Key, T>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void extend(std::istream& is,
+                     std::unordered_map<Key, T>& n,
+                     bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -51,8 +51,7 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
 
     Size nelem = 0;
     tag.get_attribute_value("nelem", nelem);
-    n.clear();
-    n.reserve(nelem);
+    n.reserve(nelem + n.size());
 
     for (Size i = 0; i < nelem; ++i) {
       Key key{};
@@ -62,6 +61,19 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(std::format("Error extending {}<{}, {}>:\n{}",
+                                         type_name,
+                                         xml_io_stream<Key>::type_name,
+                                         xml_io_stream<T>::type_name,
+                                         e.what()));
+  }
+
+  static void read(std::istream& is,
+                   std::unordered_map<Key, T>& n,
+                   bifstream* pbifs = nullptr) try {
+    n.clear();
+    extend(is, n, pbifs);
   } catch (const std::exception& e) {
     throw std::runtime_error(std::format("Error reading {}<{}, {}>:\n{}",
                                          type_name,

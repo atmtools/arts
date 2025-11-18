@@ -726,3 +726,32 @@ void parse_xml_tag_content_as_string(std::istream& is_xml, String& content) {
 
   if (!is_xml) throw std::runtime_error("Unexpected end of file.");
 }
+
+std::stringstream xml_read_from_file_base_buffer(const String& filename) {
+  // Open input stream:
+  std::unique_ptr<std::istream> ifs;
+  if (filename.size() > 2 && filename.substr(filename.length() - 3, 3) == ".gz")
+#ifdef ENABLE_ZLIB
+  {
+    ifs = std::make_unique<igzstream>();
+    xml_open_input_file(*static_cast<igzstream*>(ifs.get()), filename);
+  }
+#else
+  {
+    throw std::runtime_error(
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be read.");
+  }
+#endif /* ENABLE_ZLIB */
+  else {
+    ifs = std::make_unique<std::ifstream>();
+    xml_open_input_file(*static_cast<std::ifstream*>(ifs.get()), filename);
+  }
+
+  // Read the file into memory first to significantly speed up
+  // the parsing (13x to 18x faster).
+  std::stringstream buffer;
+  buffer << ifs->rdbuf();
+
+  return buffer;
+}

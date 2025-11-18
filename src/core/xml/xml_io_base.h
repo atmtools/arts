@@ -200,6 +200,8 @@ void xml_open_output_file(ogzstream& file, const String& name);
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
+std::stringstream xml_read_from_file_base_buffer(const String& filename);
+
 //! Reads data from XML file
 /*!
   This is a generic functions that is used to read the XML header and
@@ -210,33 +212,13 @@ void xml_open_output_file(ogzstream& file, const String& name);
 */
 template <arts_xml_ioable T>
 void xml_read_from_file_base(const String& filename, T& type) {
-  // Open input stream:
-  std::unique_ptr<std::istream> ifs;
-  if (filename.size() > 2 && filename.substr(filename.length() - 3, 3) == ".gz")
-#ifdef ENABLE_ZLIB
-  {
-    ifs = std::make_unique<igzstream>();
-    xml_open_input_file(*static_cast<igzstream*>(ifs.get()), filename);
-  }
-#else
-  {
-    throw std::runtime_error(
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be read.");
-  }
-#endif /* ENABLE_ZLIB */
-  else {
-    ifs = std::make_unique<std::ifstream>();
-    xml_open_input_file(*static_cast<std::ifstream*>(ifs.get()), filename);
-  }
-
-  // Read the file into memory first to significantly speed up
-  // the parsing (13x to 18x faster).
   std::stringstream buffer;
   {
-    ARTS_NAMED_TIME_REPORT("XmlBuffering of " + std::string{xml_io_stream<T>::type_name})
-    buffer << ifs->rdbuf();
+    ARTS_NAMED_TIME_REPORT("XmlBuffering of " +
+                           std::string{xml_io_stream<T>::type_name})
+    buffer = xml_read_from_file_base_buffer(filename);
   }
+
   // No need to check for error, because xml_open_input_file throws a
   // runtime_error with an appropriate error message.
 
@@ -244,14 +226,15 @@ void xml_read_from_file_base(const String& filename, T& type) {
   // because then we can issue a nicer error message that includes the
   // filename.
   try {
-    ARTS_NAMED_TIME_REPORT("XmlStreaming of " + std::string{xml_io_stream<T>::type_name})
+    ARTS_NAMED_TIME_REPORT("XmlStreaming of " +
+                           std::string{xml_io_stream<T>::type_name})
     FileType ftype;
     NumericType ntype;
     EndianType etype;
 
     xml_read_header_from_stream(buffer, ftype, ntype, etype);
     if (ftype == FileType::ascii) {
-      xml_io_stream<T>::read(buffer, type, static_cast<bifstream*>(nullptr));
+      xml_io_stream<T>::read(buffer, type);
     } else {
       String bfilename = filename + ".bin";
       bifstream bifs(bfilename.c_str());
@@ -261,6 +244,52 @@ void xml_read_from_file_base(const String& filename, T& type) {
   } catch (const std::runtime_error& e) {
     std::ostringstream os;
     os << "Error reading file: " << filename << '\n' << e.what();
+    throw std::runtime_error(os.str());
+  }
+}
+
+//! Extends data from XML file
+/*!
+  This is a generic functions that is used to read the XML header and
+  footer info and calls the overloaded functions to extend the data.
+
+  \param filename XML filename
+  \param type Generic return value
+*/
+template <arts_xml_extendable T>
+void xml_extend_from_file_base(const String& filename, T& type) {
+  std::stringstream buffer;
+  {
+    ARTS_NAMED_TIME_REPORT("XmlBuffering of " +
+                           std::string{xml_io_stream<T>::type_name})
+    buffer = xml_read_from_file_base_buffer(filename);
+  }
+
+  // No need to check for error, because xml_open_input_file throws a
+  // runtime_error with an appropriate error message.
+
+  // Read the matrix from the stream. Here we catch the exception,
+  // because then we can issue a nicer error message that includes the
+  // filename.
+  try {
+    ARTS_NAMED_TIME_REPORT("XmlStreaming of " +
+                           std::string{xml_io_stream<T>::type_name})
+    FileType ftype;
+    NumericType ntype;
+    EndianType etype;
+
+    xml_read_header_from_stream(buffer, ftype, ntype, etype);
+    if (ftype == FileType::ascii) {
+      xml_io_stream<T>::extend(buffer, type);
+    } else {
+      String bfilename = filename + ".bin";
+      bifstream bifs(bfilename.c_str());
+      xml_io_stream<T>::extend(buffer, type, &bifs);
+    }
+    xml_read_footer_from_stream(buffer);
+  } catch (const std::runtime_error& e) {
+    std::ostringstream os;
+    os << "Error extending file: " << filename << '\n' << e.what();
     throw std::runtime_error(os.str());
   }
 }

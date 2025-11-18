@@ -35,8 +35,9 @@ struct xml_io_stream {
   static void write(std::ostream&,
                     const T&,
                     bofstream*       = nullptr,
-                    std::string_view = ""sv)                = delete;
-  static void read(std::istream&, T&, bifstream* = nullptr) = delete;
+                    std::string_view = ""sv)                  = delete;
+  static void read(std::istream&, T&, bifstream* = nullptr)   = delete;
+  static void extend(std::istream&, T&, bifstream* = nullptr) = delete;
 
   // Binary streaming IO (optional)
   static void get(std::span<const T>, bofstream*) = delete;
@@ -70,6 +71,13 @@ concept xml_io_nameable = requires(xml_io_stream<T> a) {
 template <typename T>
 concept arts_xml_ioable =
     xml_io_writable<T> and xml_io_readable<T> and xml_io_nameable<T>;
+
+//! Test that the type can be extended via XML-IO
+template <typename T>
+concept arts_xml_extendable = arts_xml_ioable<T> and requires(T a) {
+  xml_io_stream<T>::extend(std::declval<std::istream&>(), a, nullptr);
+  xml_io_stream<T>::extend(std::declval<std::istream&>(), a);
+};
 
 //! Test that the type is ready for binary data also
 template <typename T>
