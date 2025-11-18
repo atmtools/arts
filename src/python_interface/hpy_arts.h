@@ -79,6 +79,62 @@ file : str
     The file path found (may differ from input due to environment variables).
 )");
 
+  if constexpr (arts_xml_extendable<U>) {
+    c.def(
+        "extendxml",
+        [](T& x, const char* const file) {
+          return xml_extend_from_file(file, static_cast<U&>(x));
+        },
+        "file"_a.none(false),
+        R"(Extend variable from file.
+
+The content of the file is added to the existing variable.
+
+Parameters
+----------
+file : str
+    A file that can be read.
+
+Raises
+------
+  RuntimeError
+      For any failure to read.
+
+Return
+------
+file : str
+    The file path found (may differ from input due to environment variables).
+)");
+  }
+
+  if constexpr (arts_xml_appendable<U>) {
+    c.def(
+        "appendxml",
+        [](T& x, const char* const file) {
+          return xml_append_from_file(file, static_cast<U&>(x));
+        },
+        "file"_a.none(false),
+        R"(Append variable from file.
+
+The content of the file is added to the existing variable.
+
+Parameters
+----------
+file : str
+    A file that can be read.
+
+Raises
+------
+  RuntimeError
+      For any failure to read.
+
+Return
+------
+file : str
+    The file path found (may differ from input due to environment variables).
+)");
+  }
+
   c.def_static(
       "fromxml",
       [](const char* const file) -> T {

@@ -200,6 +200,13 @@ void xml_open_output_file(ogzstream& file, const String& name);
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
+struct XMLStreamHandler {
+  std::unique_ptr<bifstream> bifs{};
+
+  XMLStreamHandler(const String& filename, std::istream& buffer);
+  operator bifstream*() { return bifs.get(); }
+};
+
 std::stringstream xml_read_from_file_base_buffer(const String& filename);
 
 //! Reads data from XML file
@@ -211,41 +218,20 @@ std::stringstream xml_read_from_file_base_buffer(const String& filename);
   \param type Generic return value
 */
 template <arts_xml_ioable T>
-void xml_read_from_file_base(const String& filename, T& type) {
-  std::stringstream buffer;
-  {
-    ARTS_NAMED_TIME_REPORT("XmlBuffering of " +
-                           std::string{xml_io_stream<T>::type_name})
-    buffer = xml_read_from_file_base_buffer(filename);
-  }
+void xml_read_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlRead of " +
+                         std::string{xml_io_stream<T>::type_name})
 
-  // No need to check for error, because xml_open_input_file throws a
-  // runtime_error with an appropriate error message.
-
-  // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the
-  // filename.
-  try {
-    ARTS_NAMED_TIME_REPORT("XmlStreaming of " +
-                           std::string{xml_io_stream<T>::type_name})
-    FileType ftype;
-    NumericType ntype;
-    EndianType etype;
-
-    xml_read_header_from_stream(buffer, ftype, ntype, etype);
-    if (ftype == FileType::ascii) {
-      xml_io_stream<T>::read(buffer, type);
-    } else {
-      String bfilename = filename + ".bin";
-      bifstream bifs(bfilename.c_str());
-      xml_io_stream<T>::read(buffer, type, &bifs);
-    }
-    xml_read_footer_from_stream(buffer);
-  } catch (const std::runtime_error& e) {
-    std::ostringstream os;
-    os << "Error reading file: " << filename << '\n' << e.what();
-    throw std::runtime_error(os.str());
-  }
+  std::stringstream buffer = xml_read_from_file_base_buffer(filename);
+  XMLStreamHandler xsh{filename, buffer};
+  xml_io_stream<T>::read(buffer, type, xsh);
+  xml_read_footer_from_stream(buffer);
+} catch (const std::runtime_error& e) {
+  throw std::runtime_error(
+      std::format("Error reading file {} containing {}:\n{}",
+                  filename,
+                  xml_io_stream_name_v<T>,
+                  e.what()));
 }
 
 //! Extends data from XML file
@@ -257,41 +243,45 @@ void xml_read_from_file_base(const String& filename, T& type) {
   \param type Generic return value
 */
 template <arts_xml_extendable T>
-void xml_extend_from_file_base(const String& filename, T& type) {
-  std::stringstream buffer;
-  {
-    ARTS_NAMED_TIME_REPORT("XmlBuffering of " +
-                           std::string{xml_io_stream<T>::type_name})
-    buffer = xml_read_from_file_base_buffer(filename);
-  }
+void xml_extend_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlExtend of " +
+                         std::string{xml_io_stream<T>::type_name})
 
-  // No need to check for error, because xml_open_input_file throws a
-  // runtime_error with an appropriate error message.
+  std::stringstream buffer = xml_read_from_file_base_buffer(filename);
+  XMLStreamHandler xsh{filename, buffer};
+  xml_io_stream<T>::extend(buffer, type, xsh);
+  xml_read_footer_from_stream(buffer);
+} catch (const std::runtime_error& e) {
+  throw std::runtime_error(
+      std::format("Error reading file {} containing {}:\n{}",
+                  filename,
+                  xml_io_stream_name_v<T>,
+                  e.what()));
+}
 
-  // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the
-  // filename.
-  try {
-    ARTS_NAMED_TIME_REPORT("XmlStreaming of " +
-                           std::string{xml_io_stream<T>::type_name})
-    FileType ftype;
-    NumericType ntype;
-    EndianType etype;
+//! Appends data from XML file
+/*!
+  This is a generic functions that is used to read the XML header and
+  footer info and calls the overloaded functions to append the data.
 
-    xml_read_header_from_stream(buffer, ftype, ntype, etype);
-    if (ftype == FileType::ascii) {
-      xml_io_stream<T>::extend(buffer, type);
-    } else {
-      String bfilename = filename + ".bin";
-      bifstream bifs(bfilename.c_str());
-      xml_io_stream<T>::extend(buffer, type, &bifs);
-    }
-    xml_read_footer_from_stream(buffer);
-  } catch (const std::runtime_error& e) {
-    std::ostringstream os;
-    os << "Error extending file: " << filename << '\n' << e.what();
-    throw std::runtime_error(os.str());
-  }
+  \param filename XML filename
+  \param type Generic return value
+*/
+template <arts_xml_appendable T>
+void xml_append_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlAppend of " +
+                         std::string{xml_io_stream<T>::type_name})
+
+  std::stringstream buffer = xml_read_from_file_base_buffer(filename);
+  XMLStreamHandler xsh{filename, buffer};
+  xml_io_stream<T>::append(buffer, type, xsh);
+  xml_read_footer_from_stream(buffer);
+} catch (const std::runtime_error& e) {
+  throw std::runtime_error(
+      std::format("Error reading file {} containing {}:\n{}",
+                  filename,
+                  xml_io_stream_name_v<T>,
+                  e.what()));
 }
 
 //! Write data to XML file

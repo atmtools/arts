@@ -755,3 +755,19 @@ std::stringstream xml_read_from_file_base_buffer(const String& filename) {
 
   return buffer;
 }
+
+XMLStreamHandler::XMLStreamHandler(const String& filename,
+                                   std::istream& buffer) {
+  FileType ftype;
+  NumericType ntype;
+  EndianType etype;
+
+  xml_read_header_from_stream(buffer, ftype, ntype, etype);
+
+  if (ftype == FileType::ascii) {
+    bifs = nullptr;
+  } else {
+    String bfilename = filename + ".bin";
+    bifs             = std::make_unique<bifstream>(bfilename.c_str());
+  }
+}
