@@ -63,6 +63,8 @@ else()
         planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/p.xml
         planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/H2O.xml
         planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/CO2.xml
+        planets/Jupiter/MPS/t.xml
+        planets/Jupiter/MPS/p.xml
     )
 endif()
 
