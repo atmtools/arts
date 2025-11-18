@@ -3,72 +3,66 @@
 
 #include <memory>
 
-void measurement_vector_errorFromModelState(
-    Vector& measurement_vector_error,
-    Matrix& measurement_jacobian_error,
+void measurement_vec_errorFromModelState(
+    Vector& measurement_vec_error,
+    Matrix& measurement_jac_error,
     const ArrayOfSensorObsel& measurement_sensor,
-    const JacobianTargets& jacobian_targets,
-    const Vector& model_state_vector) try {
+    const JacobianTargets& jac_targets,
+    const Vector& model_state_vec) try {
   ARTS_TIME_REPORT
 
-  measurement_vector_error.resize(measurement_sensor.size());
-  measurement_vector_error = 0.0;
+  measurement_vec_error.resize(measurement_sensor.size());
+  measurement_vec_error = 0.0;
 
-  measurement_jacobian_error.resize(measurement_sensor.size(),
-                                    jacobian_targets.x_size());
-  measurement_jacobian_error = 0.0;
+  measurement_jac_error.resize(measurement_sensor.size(), jac_targets.x_size());
+  measurement_jac_error = 0.0;
 
-  for (auto& elem : jacobian_targets.error) {
-    elem.update_model(measurement_vector_error, model_state_vector);
-    elem.update_jac(measurement_jacobian_error,
-                    model_state_vector,
-                    measurement_vector_error);
+  for (auto& elem : jac_targets.error) {
+    elem.update_model(measurement_vec_error, model_state_vec);
+    elem.update_jac(
+        measurement_jac_error, model_state_vec, measurement_vec_error);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vectorConditionalAddError(
-    Vector& measurement_vector,
-    Matrix& measurement_jacobian,
-    const Vector& measurement_vector_error,
-    const Matrix& measurement_jacobian_error,
-    const Index& do_jacobian) try {
+void measurement_vecConditionalAddError(Vector& measurement_vec,
+                                        Matrix& measurement_jac,
+                                        const Vector& measurement_vec_error,
+                                        const Matrix& measurement_jac_error,
+                                        const Index& do_jac) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      measurement_vector.shape() != measurement_vector_error.shape(),
-      R"(Mismatched shapes:
+  ARTS_USER_ERROR_IF(measurement_vec.shape() != measurement_vec_error.shape(),
+                     R"(Mismatched shapes:
 
-measurement_vector.shape()       : {:B,}
-measurement_vector_error.shape() : {:B,}
+measurement_vec.shape()       : {:B,}
+measurement_vec_error.shape() : {:B,}
 )",
-      measurement_vector.shape(),
-      measurement_vector_error.shape())
+                     measurement_vec.shape(),
+                     measurement_vec_error.shape())
 
-  measurement_vector += measurement_vector_error;
+  measurement_vec += measurement_vec_error;
 
-  if (do_jacobian != 0) {
-    ARTS_USER_ERROR_IF(
-        measurement_jacobian.shape() != measurement_jacobian_error.shape(),
-        R"(Mismatched shapes:
+  if (do_jac != 0) {
+    ARTS_USER_ERROR_IF(measurement_jac.shape() != measurement_jac_error.shape(),
+                       R"(Mismatched shapes:
 
-measurement_jacobian.shape()       : {:B,}
-measurement_jacobian_error.shape() : {:B,}
+measurement_jac.shape()       : {:B,}
+measurement_jac_error.shape() : {:B,}
 )",
-        measurement_jacobian.shape(),
-        measurement_jacobian_error.shape())
+                       measurement_jac.shape(),
+                       measurement_jac_error.shape())
 
-    measurement_jacobian += measurement_jacobian_error;
+    measurement_jac += measurement_jac_error;
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void jacobian_targetsAddErrorPolyFit(
-    JacobianTargets& jacobian_targets,
-    const ArrayOfSensorObsel& measurement_sensor,
-    const Vector& t,
-    const Index& sensor_elem,
-    const Index& polyorder) {
+void jac_targetsAddErrorPolyFit(JacobianTargets& jac_targets,
+                                const ArrayOfSensorObsel& measurement_sensor,
+                                const Vector& t,
+                                const Index& sensor_elem,
+                                const Index& polyorder) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -120,8 +114,8 @@ Grid (size: {}): {:B,}
                      t.size(),
                      t)
 
-  make_polyfit(jacobian_targets.emplace_back(
-                   ErrorKey{.y_start = y_start, .y_size = y_size}),
-               static_cast<Size>(polyorder),
-               t);
+  make_polyfit(
+      jac_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size}),
+      static_cast<Size>(polyorder),
+      t);
 }

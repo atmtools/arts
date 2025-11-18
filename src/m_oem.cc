@@ -35,13 +35,13 @@
 #include "oem.h"
 #endif
 
-void model_state_vector_aprioriFromState(Vector& xa, const Vector& x) {
+void model_state_vec_aprioriFromState(Vector& xa, const Vector& x) {
   ARTS_TIME_REPORT
 
   xa = x;
 }
 
-void measurement_vector_fittedFromMeasurement(Vector& yf, const Vector& y) {
+void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   ARTS_TIME_REPORT
 
   yf = y;
@@ -49,27 +49,27 @@ void measurement_vector_fittedFromMeasurement(Vector& yf, const Vector& y) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void OEM(const Workspace& ws,
-         Vector& model_state_vector,
-         Vector& measurement_vector_fitted,
-         Matrix& measurement_jacobian,
-         AtmField& atmospheric_field,
-         AbsorptionBands& absorption_bands,
+         Vector& model_state_vec,
+         Vector& measurement_vec_fit,
+         Matrix& measurement_jac,
+         AtmField& atm_field,
+         AbsorptionBands& abs_bands,
          ArrayOfSensorObsel& measurement_sensor,
-         SurfaceField& surface_field,
-         SubsurfaceField& subsurface_field,
-         Matrix& measurement_gain_matrix,
+         SurfaceField& surf_field,
+         SubsurfaceField& subsurf_field,
+         Matrix& measurement_gain_mat,
          Vector& oem_diagnostics,
          Vector& lm_ga_history,
          ArrayOfString& errors,
-         const JacobianTargets& jacobian_targets,
-         const Vector& model_state_vector_apriori,
-         const CovarianceMatrix& model_state_covariance_matrix,
-         const Vector& measurement_vector,
-         const CovarianceMatrix& measurement_vector_error_covariance_matrix,
+         const JacobianTargets& jac_targets,
+         const Vector& model_state_vec_apriori,
+         const CovarianceMatrix& model_state_covmat,
+         const Vector& measurement_vec,
+         const CovarianceMatrix& measurement_vec_error_covmat,
          const Agenda& inversion_iterate_agenda,
          const String& method,
          const Numeric& max_start_cost,
-         const Vector& model_state_covariance_matrix_normalization,
+         const Vector& model_state_covmat_normalization,
          const Index& max_iter,
          const Numeric& stop_dx,
          const Vector& lm_ga_settings,
@@ -78,30 +78,30 @@ void OEM(const Workspace& ws,
   ARTS_TIME_REPORT
 
   // Main sizes
-  const Index n = model_state_covariance_matrix.nrows();
-  const Index m = measurement_vector.size();
+  const Index n = model_state_covmat.nrows();
+  const Index m = measurement_vec.size();
 
   // Checks
-  model_state_covariance_matrix.compute_inverse();
-  measurement_vector_error_covariance_matrix.compute_inverse();
+  model_state_covmat.compute_inverse();
+  measurement_vec_error_covmat.compute_inverse();
 
   OEM_checks(ws,
-             model_state_vector,
-             measurement_vector_fitted,
-             measurement_jacobian,
-             atmospheric_field,
-             absorption_bands,
+             model_state_vec,
+             measurement_vec_fit,
+             measurement_jac,
+             atm_field,
+             abs_bands,
              measurement_sensor,
-             surface_field,
-             subsurface_field,
-             jacobian_targets,
+             surf_field,
+             subsurf_field,
+             jac_targets,
              inversion_iterate_agenda,
-             model_state_vector_apriori,
-             model_state_covariance_matrix,
-             measurement_vector,
-             measurement_vector_error_covariance_matrix,
+             model_state_vec_apriori,
+             model_state_covmat,
+             measurement_vec,
+             measurement_vec_error_covmat,
              method,
-             model_state_covariance_matrix_normalization,
+             model_state_covmat_normalization,
              max_iter,
              stop_dx,
              lm_ga_settings,
@@ -121,56 +121,56 @@ void OEM(const Workspace& ws,
   }
 
   // Check for start vector and precomputed yf, jacobian
-  if (model_state_vector.size() != static_cast<Size>(n)) {
-    model_state_vector = model_state_vector_apriori;
-    measurement_vector_fitted.resize(0);
-    measurement_jacobian.resize(0, 0);
+  if (model_state_vec.size() != static_cast<Size>(n)) {
+    model_state_vec = model_state_vec_apriori;
+    measurement_vec_fit.resize(0);
+    measurement_jac.resize(0, 0);
   }
 
   // If no precomputed value given, we compute yf and jacobian to
   // compute initial cost (and use in the first OEM iteration).
-  if (measurement_vector_fitted.size() == 0) {
+  if (measurement_vec_fit.size() == 0) {
     inversion_iterate_agendaExecute(ws,
-                                    atmospheric_field,
-                                    absorption_bands,
+                                    atm_field,
+                                    abs_bands,
                                     measurement_sensor,
-                                    surface_field,
-                                    subsurface_field,
-                                    measurement_vector_fitted,
-                                    measurement_jacobian,
-                                    jacobian_targets,
-                                    model_state_vector_apriori,
+                                    surf_field,
+                                    subsurf_field,
+                                    measurement_vec_fit,
+                                    measurement_jac,
+                                    jac_targets,
+                                    model_state_vec_apriori,
                                     1,
                                     0,
                                     inversion_iterate_agenda);
   }
 
   ARTS_USER_ERROR_IF(
-      measurement_vector_fitted.size() not_eq measurement_vector.size(),
+      measurement_vec_fit.size() not_eq measurement_vec.size(),
       "Mismatch between simulated y and input y.\n"
       "Input y is size {}"
       " but simulated y is {}"
       "\n"
       "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n",
-      measurement_vector.size(),
-      measurement_vector_fitted.size())
+      measurement_vec.size(),
+      measurement_vec_fit.size())
 
   // TODO: Get this from invlib log.
   // Start value of cost function
   Numeric cost_start = NAN;
   if (method == "ml" || method == "lm" || display_progress ||
       max_start_cost > 0) {
-    Vector dy   = measurement_vector;
-    dy         -= measurement_vector_fitted;
-    Vector sdy  = measurement_vector;
+    Vector dy   = measurement_vec;
+    dy         -= measurement_vec_fit;
+    Vector sdy  = measurement_vec;
     mult_inv(sdy.view_as(sdy.size(), 1),
-             measurement_vector_error_covariance_matrix,
+             measurement_vec_error_covmat,
              dy.view_as(dy.size(), 1));
-    Vector dx   = model_state_vector;
-    dx         -= model_state_vector_apriori;
-    Vector sdx  = model_state_vector;
+    Vector dx   = model_state_vec;
+    dx         -= model_state_vec_apriori;
+    Vector sdx  = model_state_vec;
     mult_inv(sdx.view_as(sdx.size(), 1),
-             model_state_covariance_matrix,
+             model_state_covmat,
              dx.view_as(dx.size(), 1));
     cost_start  = dot(dx, sdx) + dot(dy, sdy);
     cost_start /= static_cast<Numeric>(m);
@@ -193,32 +193,31 @@ void OEM(const Workspace& ws,
   else {
     bool apply_norm = false;
     oem::Matrix T{};
-    if (model_state_covariance_matrix_normalization.size() ==
-        static_cast<Size>(n)) {
+    if (model_state_covmat_normalization.size() == static_cast<Size>(n)) {
       T.resize(n, n);
       T           *= 0.0;
-      diagonal(T)  = model_state_covariance_matrix_normalization;
+      diagonal(T)  = model_state_covmat_normalization;
       for (Index i = 0; i < n; i++) {
-        T(i, i) = model_state_covariance_matrix_normalization[i];
+        T(i, i) = model_state_covmat_normalization[i];
       }
       apply_norm = true;
     }
 
-    oem::CovarianceMatrix Se(measurement_vector_error_covariance_matrix),
-        Sa(model_state_covariance_matrix);
-    oem::Vector xa_oem(model_state_vector_apriori), y_oem(measurement_vector),
-        x_oem(model_state_vector);
+    oem::CovarianceMatrix Se(measurement_vec_error_covmat),
+        Sa(model_state_covmat);
+    oem::Vector xa_oem(model_state_vec_apriori), y_oem(measurement_vec),
+        x_oem(model_state_vec);
     oem::AgendaWrapper aw(&ws,
                           (unsigned int)m,
                           (unsigned int)n,
-                          measurement_jacobian,
-                          measurement_vector_fitted,
-                          &atmospheric_field,
-                          &absorption_bands,
+                          measurement_jac,
+                          measurement_vec_fit,
+                          &atm_field,
+                          &abs_bands,
                           &measurement_sensor,
-                          &surface_field,
-                          &subsurface_field,
-                          &jacobian_targets,
+                          &surf_field,
+                          &subsurf_field,
+                          &jac_targets,
                           &inversion_iterate_agenda);
     oem::OEM_STANDARD<oem::AgendaWrapper> oem(aw, xa_oem, Sa, Se);
     oem::OEM_MFORM<oem::AgendaWrapper> oem_m(aw, xa_oem, Sa, Se);
@@ -280,7 +279,7 @@ void OEM(const Workspace& ws,
       } else if ((method == "lm") || (method == "ml")) {
         oem::Std s(T, apply_norm);
         Sparse diagonal =
-            Sparse::diagonal(model_state_covariance_matrix.inverse_diagonal());
+            Sparse::diagonal(model_state_covmat.inverse_diagonal());
         CovarianceMatrix SaDiag{};
         SaDiag.add_correlation_inverse(
             Block(Range(0, n),
@@ -309,7 +308,7 @@ void OEM(const Workspace& ws,
         oem::CG cg(T, apply_norm, 1e-10, 0);
 
         Sparse diagonal =
-            Sparse::diagonal(model_state_covariance_matrix.inverse_diagonal());
+            Sparse::diagonal(model_state_covmat.inverse_diagonal());
         CovarianceMatrix SaDiag{};
         SaDiag.add_correlation_inverse(
             Block(Range(0, n),
@@ -354,57 +353,53 @@ void OEM(const Workspace& ws,
       throw;
     }
 
-    model_state_vector        = x_oem;
-    measurement_vector_fitted = aw.get_measurement_vector();
+    model_state_vec     = x_oem;
+    measurement_vec_fit = aw.get_measurement_vec();
 
     // Shall empty jacobian and dxdy be returned?
     if (clear_matrices) {
-      measurement_jacobian.resize(0, 0);
-      measurement_gain_matrix.resize(0, 0);
+      measurement_jac.resize(0, 0);
+      measurement_gain_mat.resize(0, 0);
     } else if (oem_diagnostics[0] <= 2) {
-      measurement_gain_matrix.resize(n, m);
+      measurement_gain_mat.resize(n, m);
       Matrix tmp1(n, m), tmp2(n, n), tmp3(n, n);
-      mult_inv(tmp1,
-               transpose(measurement_jacobian),
-               measurement_vector_error_covariance_matrix);
-      mult(tmp2, tmp1, measurement_jacobian);
-      add_inv(tmp2, model_state_covariance_matrix);
+      mult_inv(tmp1, transpose(measurement_jac), measurement_vec_error_covmat);
+      mult(tmp2, tmp1, measurement_jac);
+      add_inv(tmp2, model_state_covmat);
       inv(tmp3, tmp2);
-      mult(measurement_gain_matrix, tmp3, tmp1);
+      mult(measurement_gain_mat, tmp3, tmp1);
     }
   }
 }
 
-void measurement_vector_error_covariance_matrix_observation_systemCalc(
-    Matrix& measurement_vector_error_covariance_matrix_observation_system,
-    const Matrix& measurement_gain_matrix,
-    const CovarianceMatrix& measurement_vector_error_covariance_matrix) {
+void measurement_vec_error_covmat_observation_systemCalc(
+    Matrix& measurement_vec_error_covmat_observation_system,
+    const Matrix& measurement_gain_mat,
+    const CovarianceMatrix& measurement_vec_error_covmat) {
   ARTS_TIME_REPORT
 
-  Index n(measurement_gain_matrix.nrows()), m(measurement_gain_matrix.ncols());
+  Index n(measurement_gain_mat.nrows()), m(measurement_gain_mat.ncols());
   Matrix tmp1(m, n);
 
   ARTS_USER_ERROR_IF(
       (m == 0) || (n == 0),
-      "The gain matrix *measurement_gain_matrix* is required to compute the observation error covariance matrix.");
+      "The gain matrix *measurement_gain_mat* is required to compute the observation error covariance matrix.");
   ARTS_USER_ERROR_IF(
-      (measurement_vector_error_covariance_matrix.nrows() != m) ||
-          (measurement_vector_error_covariance_matrix.ncols() != m),
-      "The covariance matrix measurement_vector_error_covariance_matrix has invalid dimensions.");
+      (measurement_vec_error_covmat.nrows() != m) ||
+          (measurement_vec_error_covmat.ncols() != m),
+      "The covariance matrix measurement_vec_error_covmat has invalid dimensions.");
 
-  measurement_vector_error_covariance_matrix_observation_system.resize(n, n);
-  mult(tmp1,
-       measurement_vector_error_covariance_matrix,
-       transpose(measurement_gain_matrix));
-  mult(measurement_vector_error_covariance_matrix_observation_system,
-       measurement_gain_matrix,
+  measurement_vec_error_covmat_observation_system.resize(n, n);
+  mult(tmp1, measurement_vec_error_covmat, transpose(measurement_gain_mat));
+  mult(measurement_vec_error_covmat_observation_system,
+       measurement_gain_mat,
        tmp1);
 }
 
-void model_state_covariance_matrix_smoothing_errorCalc(
-    Matrix& model_state_covariance_matrix_smoothing_error,
+void model_state_covmat_smoothing_errorCalc(
+    Matrix& model_state_covmat_smoothing_error,
     const Matrix& measurement_averaging_kernel,
-    const CovarianceMatrix& model_state_covariance_matrix) {
+    const CovarianceMatrix& model_state_covmat) {
   ARTS_TIME_REPORT
 
   Index n(measurement_averaging_kernel.ncols());
@@ -412,43 +407,39 @@ void model_state_covariance_matrix_smoothing_errorCalc(
 
   ARTS_USER_ERROR_IF(
       n == 0,
-      "The averaging kernel matrix *measurement_gain_matrix* is required to compute the smoothing error covariance matrix.");
+      "The averaging kernel matrix *measurement_gain_mat* is required to compute the smoothing error covariance matrix.");
   ARTS_USER_ERROR_IF(
-      (model_state_covariance_matrix.nrows() != n) ||
-          (model_state_covariance_matrix.ncols() != n),
-      "The covariance matrix *model_state_covariance_matrix* invalid dimensions.");
+      (model_state_covmat.nrows() != n) || (model_state_covmat.ncols() != n),
+      "The covariance matrix *model_state_covmat* invalid dimensions.");
 
-  model_state_covariance_matrix_smoothing_error.resize(n, n);
+  model_state_covmat_smoothing_error.resize(n, n);
 
   // Sign doesn't matter since we're dealing with a quadratic form.
   id_mat(tmp1);
   tmp1 -= measurement_averaging_kernel;
 
-  mult(tmp2, model_state_covariance_matrix, transpose(tmp1));
-  mult(model_state_covariance_matrix_smoothing_error, tmp1, tmp2);
+  mult(tmp2, model_state_covmat, transpose(tmp1));
+  mult(model_state_covmat_smoothing_error, tmp1, tmp2);
 }
 
 void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
-                                      const Matrix& measurement_gain_matrix,
-                                      const Matrix& measurement_jacobian) {
+                                      const Matrix& measurement_gain_mat,
+                                      const Matrix& measurement_jac) {
   ARTS_TIME_REPORT
 
-  Index m(measurement_jacobian.nrows()), n(measurement_jacobian.ncols());
+  Index m(measurement_jac.nrows()), n(measurement_jac.ncols());
 
-  ARTS_USER_ERROR_IF(measurement_jacobian.empty(),
-                     "The Jacobian matrix is empty.");
+  ARTS_USER_ERROR_IF(measurement_jac.empty(), "The Jacobian matrix is empty.");
 
-  ARTS_USER_ERROR_IF((measurement_gain_matrix.shape() != std::array{n, m}),
+  ARTS_USER_ERROR_IF((measurement_gain_mat.shape() != std::array{n, m}),
                      R"(Matrices have inconsistent sizes.
 
-measurement_gain_matrix: {:B,},
-measurement_jacobian:    {:B,}
+measurement_gain_mat: {:B,},
+measurement_jac:    {:B,}
 )",
-                     measurement_gain_matrix.shape(),
-                     measurement_jacobian.shape());
+                     measurement_gain_mat.shape(),
+                     measurement_jac.shape());
 
   measurement_averaging_kernel.resize(n, n);
-  mult(measurement_averaging_kernel,
-       measurement_gain_matrix,
-       measurement_jacobian);
+  mult(measurement_averaging_kernel, measurement_gain_mat, measurement_jac);
 }

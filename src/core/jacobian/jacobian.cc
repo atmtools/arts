@@ -627,9 +627,9 @@ bool is_mag(const AtmTarget& t) {
          t.type == AtmKey::mag_w;
 }
 
-void Targets::finalize(const AtmField& atmospheric_field,
-                       const SurfaceField& surface_field,
-                       const SubsurfaceField& subsurface_field,
+void Targets::finalize(const AtmField& atm_field,
+                       const SurfaceField& surf_field,
+                       const SubsurfaceField& subsurf_field,
                        const AbsorptionBands&,
                        const ArrayOfSensorObsel& measurement_sensor) {
   const Size natm     = atm.size();
@@ -659,7 +659,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = atmospheric_field[t.type].flat_view().size();
+      t.x_size   = atm_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }
@@ -682,7 +682,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = surface_field[t.type].flat_view().size();
+      t.x_size   = surf_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }
@@ -706,7 +706,7 @@ void Targets::finalize(const AtmField& atmospheric_field,
       t.x_size  = f->x_size;
     } else {
       t.x_start  = last_size;
-      t.x_size   = subsurface_field[t.type].flat_view().size();
+      t.x_size   = subsurf_field[t.type].flat_view().size();
       last_size += t.x_size;
     }
   }
@@ -754,11 +754,11 @@ void Targets::finalize(const AtmField& atmospheric_field,
 
               switch (key.type) {
                 using enum SensorKeyType;
-                case f:
+                case freq:
                   return measurement_sensor[elem1].f_grid_ptr() ==
                          measurement_sensor[elem2].f_grid_ptr();
-                case za:
-                case aa:
+                case zen:
+                case azi:
                 case alt:
                 case lat:
                 case lon:
@@ -809,8 +809,8 @@ void Targets::finalize(const AtmField& atmospheric_field,
         t.type.y_start + t.type.y_size > measurement_sensor.size(),
         R"(An error target is out of bounds of the y-vector.
 
-The error target is defined to operator on the measurement_vector in the range {},
-but the measurement_vector will only have {} element by the measurement_sensor.
+The error target is defined to operator on the measurement_vec in the range {},
+but the measurement_vec will only have {} element by the measurement_sensor.
 )",
         t.type,
         measurement_sensor.size())

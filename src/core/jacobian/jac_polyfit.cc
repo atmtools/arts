@@ -167,11 +167,11 @@ Vector rem_lon(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<true, 2>(v, x);
 }
 
-Vector rem_zag(const SensorObsel& v, const ConstVectorView x) {
+Vector rem_zen(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<false, 0>(v, x);
 }
 
-Vector rem_aag(const SensorObsel& v, const ConstVectorView x) {
+Vector rem_azi(const SensorObsel& v, const ConstVectorView x) {
   return rem_poslos<false, 1>(v, x);
 }
 }  // namespace
@@ -184,12 +184,12 @@ Vector polyfit_sensor_offset_t::operator()(ConstVectorView,
 
   switch (key.type) {
     using enum SensorKeyType;
-    case f:   return fit(rem_frq(v, o)); break;
-    case za:  return fit(rem_zag(v, o)); break;
-    case aa:  return fit(rem_aag(v, o)); break;
-    case alt: return fit(rem_alt(v, o)); break;
-    case lat: return fit(rem_lat(v, o)); break;
-    case lon: return fit(rem_lon(v, o)); break;
+    case freq: return fit(rem_frq(v, o)); break;
+    case zen:  return fit(rem_zen(v, o)); break;
+    case azi:  return fit(rem_azi(v, o)); break;
+    case alt:  return fit(rem_alt(v, o)); break;
+    case lat:  return fit(rem_lat(v, o)); break;
+    case lon:  return fit(rem_lon(v, o)); break;
   }
 
   std::unreachable();

@@ -42,8 +42,8 @@ struct table {
   table(const SpeciesEnum& species,
         const ArrayOfAtmPoint& atmref,
         std::shared_ptr<const AscendingGrid> f_grid,
-        const AbsorptionBands& absorption_bands,
-        const LinemixingEcsData& ecs_data,
+        const AbsorptionBands& abs_bands,
+        const LinemixingEcsData& abs_ecs_data,
         std::shared_ptr<const AscendingGrid> t_pert = nullptr,
         std::shared_ptr<const AscendingGrid> w_pert = nullptr);
 
@@ -54,7 +54,7 @@ struct table {
                   const Index& water_interp_order,
                   const Index& f_interp_order,
                   const AtmPoint& atm_point,
-                  const AscendingGrid& frequency_grid,
+                  const AscendingGrid& freq_grid,
                   const Numeric& extpolfac) const;
 
   [[nodiscard]] bool do_t() const;
@@ -76,7 +76,7 @@ struct table {
       const Numeric& extpolation_factor) const;
 
   [[nodiscard]] std::vector<lagrange_interp::lag_t<-1>> frequency_lagrange(
-      const Vector& frequency_grid,
+      const Vector& freq_grid,
       const Index interpolation_order,
       const Numeric& extpolation_factor) const;
 

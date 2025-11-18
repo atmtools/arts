@@ -23,56 +23,56 @@ wind = [10, 10, 10]
 dx = 1e-1
 
 # Load spectroscopic data
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # Standard surface and atmospheric setup
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
-ws.atmospheric_field["wind_u"] = wind[0]
-ws.atmospheric_field["wind_v"] = wind[1]
-ws.atmospheric_field["wind_w"] = wind[2]
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_field["wind_u"] = wind[0]
+ws.atm_field["wind_v"] = wind[1]
+ws.atm_field["wind_w"] = wind[2]
 
 # Set up a ray path point
-ws.ray_path_point.los = [40, 20]
-ws.ray_path_point.pos = [30e3, 0, 0]
+ws.ray_point.los = [40, 20]
+ws.ray_point.pos = [30e3, 0, 0]
 
 for i in range(3):
     # Set up the wind field Jacobian
-    ws.jacobian_targetsInit()
-    ws.jacobian_targetsAddWindField(component=keys[i])
-    ws.jacobian_targetsFinalize(measurement_sensor=[])
+    ws.jac_targetsInit()
+    ws.jac_targetsAddWindField(component=keys[i])
+    ws.jac_targetsFinalize(measurement_sensor=[])
 
     # Reset
-    ws.atmospheric_point = ws.atmospheric_field(*ws.ray_path_point.pos)
+    ws.atm_point = ws.atm_field(*ws.ray_point.pos)
 
     # Original
-    ws.frequency_grid = f
-    ws.frequency_gridWindShift()
-    ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines()
-    ws.propagation_matrix_jacobianWindFix()
+    ws.freq_grid = f
+    ws.freq_gridWindShift()
+    ws.spectral_propmatInit()
+    ws.spectral_propmatAddLines()
+    ws.spectral_propmat_jacWindFix()
 
     # Keep analytical derivative and value
-    x0 = ws.propagation_matrix * 1.0
-    dd = ws.propagation_matrix_jacobian[0] * 1.0
+    x0 = ws.spectral_propmat * 1.0
+    dd = ws.spectral_propmat_jac[0] * 1.0
 
     # Modify the wind field and calculate perturbed value
-    ws.atmospheric_point.wind[i] += dx
-    ws.frequency_grid = f
-    ws.frequency_gridWindShift()
-    ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines()
-    ws.propagation_matrix_jacobianWindFix()
+    ws.atm_point.wind[i] += dx
+    ws.freq_grid = f
+    ws.freq_gridWindShift()
+    ws.spectral_propmatInit()
+    ws.spectral_propmatAddLines()
+    ws.spectral_propmat_jacWindFix()
 
     # Keep perturbed value and calculate perturbed derivative
-    x1 = ws.propagation_matrix * 1.0
+    x1 = ws.spectral_propmat * 1.0
     d = (x1 - x0) / dx
 
     # Plot and compare the ratio between pertrubed and analytical derivatives

@@ -226,7 +226,7 @@ def download_arts_cat_data(download_dir=None, version=None, verbose=False):
     return _download_arts_data("arts-cat-data", download_dir, version, verbose)
 
 
-def to_atmospheric_field(
+def to_atm_field(
     data: xarray.Dataset,
     remap: None | dict[str, str] = None,
     ignore: None | list[str] = None,
@@ -313,7 +313,7 @@ def to_atmospheric_field(
     return atm
 
 
-def to_absorption_species(
+def to_abs_species(
     atm_field: pyarts.arts.AtmField,
 ) -> pyarts.arts.ArrayOfSpeciesTag:
     """Scans the ARTS data path for species relevant to the given atmospheric field.

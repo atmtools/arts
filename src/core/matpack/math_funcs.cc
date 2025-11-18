@@ -285,16 +285,16 @@ void cumsum(VectorView csum, ConstVectorView x) {
     grids using the trapezoidal integration method.
 
     \param Integrand The Matrix to be integrated
-    \param za_grid   The zenith angle grid 
-    \param aa_grid   The azimuth angle grid 
+    \param zen_grid   The zenith angle grid 
+    \param azi_grid   The azimuth angle grid 
     
     \return The resulting integral
 */
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-                               ConstVectorView za_grid,
-                               ConstVectorView aa_grid) {
-  Index n = za_grid.size();
-  Index m = aa_grid.size();
+                               ConstVectorView zen_grid,
+                               ConstVectorView azi_grid) {
+  Index n = zen_grid.size();
+  Index m = azi_grid.size();
   Vector res1(n);
   assert((Integrand.shape() == std::array{n, m}));
 
@@ -303,13 +303,13 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
 
     for (Index j = 0; j < m - 1; ++j) {
       res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
-                 (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
+                 (azi_grid[j + 1] - azi_grid[j]) * sin(zen_grid[i] * DEG2RAD);
     }
   }
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
-    res +=
-        0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * (za_grid[i + 1] - za_grid[i]);
+    res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) *
+           (zen_grid[i + 1] - zen_grid[i]);
   }
 
   return res;
@@ -325,8 +325,8 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
     uses the old one.
 
     \param Integrand Input : The Matrix to be integrated
-    \param za_grid Input : The zenith angle grid 
-    \param aa_grid Input : The azimuth angle grid
+    \param zen_grid Input : The zenith angle grid 
+    \param azi_grid Input : The azimuth angle grid
     \param grid_stepsize Input : stepsize of the grid
     
     \return The resulting integral
@@ -335,13 +335,13 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
     \date 2003/05/28
 */
 Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
-                                    ConstVectorView za_grid,
-                                    ConstVectorView aa_grid,
+                                    ConstVectorView zen_grid,
+                                    ConstVectorView azi_grid,
                                     ConstVectorView grid_stepsize) {
   Numeric res = 0;
   if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0)) {
-    Index n             = za_grid.size();
-    Index m             = aa_grid.size();
+    Index n             = zen_grid.size();
+    Index m             = azi_grid.size();
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
     Vector res1(n);
@@ -355,7 +355,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
         temp += Integrand[i, j] * 2;
       }
       temp    += Integrand[i, m - 1];
-      temp    *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
+      temp    *= 0.5 * DEG2RAD * stepsize_aa * sin(zen_grid[i] * DEG2RAD);
       res1[i]  = temp;
     }
 
@@ -366,7 +366,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     res += res1[n - 1];
     res *= 0.5 * DEG2RAD * stepsize_za;
   } else {
-    res = AngIntegrate_trapezoid(Integrand, za_grid, aa_grid);
+    res = AngIntegrate_trapezoid(Integrand, zen_grid, azi_grid);
   }
 
   return res;
@@ -380,7 +380,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     the azimuth angle gives a 2*PI
 
     \param Integrand Input : The vector to be integrated
-    \param za_grid Input : The zenith angle grid 
+    \param zen_grid Input : The zenith angle grid 
 
     \author Claas Teichmann
     \date   2003-05-13
@@ -388,17 +388,17 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     \return The resulting integral
 */
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
-                               ConstVectorView za_grid) {
-  Index n = za_grid.size();
+                               ConstVectorView zen_grid) {
+  Index n = zen_grid.size();
   assert((Integrand.shape() == std::array{n}));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
     // in this place 0.5 * 2 * PI is calculated:
     res += PI * DEG2RAD *
-           (Integrand[i] * sin(za_grid[i] * DEG2RAD) +
-            Integrand[i + 1] * sin(za_grid[i + 1] * DEG2RAD)) *
-           (za_grid[i + 1] - za_grid[i]);
+           (Integrand[i] * sin(zen_grid[i] * DEG2RAD) +
+            Integrand[i + 1] * sin(zen_grid[i + 1] * DEG2RAD)) *
+           (zen_grid[i + 1] - zen_grid[i]);
   }
 
   return res;

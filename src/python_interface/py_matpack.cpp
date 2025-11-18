@@ -246,17 +246,17 @@ void py_matpack(py::module_& m) try {
   gr2.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<LonGrid>());
 
-  py::class_<ZenithGrid> gr3(m, "ZenithGrid");
+  py::class_<ZenGrid> gr3(m, "ZenGrid");
   matpack_grid_interface(gr3);
   generic_interface(gr3);
   gr3.def(py::init_implicit<Vector>());
-  v1.def(py::init_implicit<ZenithGrid>());
+  v1.def(py::init_implicit<ZenGrid>());
 
-  py::class_<AzimuthGrid> gr4(m, "AzimuthGrid");
+  py::class_<AziGrid> gr4(m, "AziGrid");
   matpack_grid_interface(gr4);
   generic_interface(gr4);
   gr4.def(py::init_implicit<Vector>());
-  v1.def(py::init_implicit<AzimuthGrid>());
+  v1.def(py::init_implicit<AziGrid>());
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));

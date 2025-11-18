@@ -16,7 +16,7 @@ A subsurface point effectively holds the local state of the subsurface at a spec
 
 Key notations:
 
-- :class:`~pyarts3.arts.SubsurfaceField`: The subsurface field. An instance is in this text named: ``subsurf_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.subsurface_field`.
+- :class:`~pyarts3.arts.SubsurfaceField`: The subsurface field. An instance is in this text named: ``subsurf_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.subsurf_field`.
 - :class:`~pyarts3.arts.SubsurfaceData`: The subsurface field data. An instance is in this text named: ``subsurf_data``.
 - :class:`~pyarts3.arts.SubsurfacePoint`: The local subsurface state. An instance is in this text named: ``subsurf_point``.
 
@@ -275,11 +275,11 @@ An example of using :class:`~pyarts3.arts.Numeric` as subsurface field data is g
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.SubsurfaceField.plot(subsurf_field, alts=np.linspace(-1, 0), fig=fig, keys=["t", "rho"])
-  subs[0].set_title("Temperature profile")
-  subs[1].set_title("Density profile")
-  subs[0].set_ylabel("Depth [m]")
-  subs[0].set_xlabel("Temperature [K]")
-  subs[1].set_xlabel("Density [kg/m$^3$]")
+  subs.flatten()[0].set_title("Temperature profile")
+  subs.flatten()[1].set_title("Density profile")
+  subs.flatten()[0].set_ylabel("Depth [m]")
+  subs.flatten()[0].set_xlabel("Temperature [K]")
+  subs.flatten()[1].set_xlabel("Density [kg/m$^3$]")
   plt.show()
 
 GeodeticField3
@@ -333,11 +333,11 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as subsurface 
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.SubsurfaceField.plot(subsurf_field, alts=np.linspace(-1, 0), fig=fig, keys=["t", "rho"])
-  subs[0].set_title("Temperature profile")
-  subs[1].set_title("Density profile")
-  subs[0].set_ylabel("Depth [m]")
-  subs[0].set_xlabel("Temperature [K]")
-  subs[1].set_xlabel("Density [kg/m$^3$]")
+  subs.flatten()[0].set_title("Temperature profile")
+  subs.flatten()[1].set_title("Density profile")
+  subs.flatten()[0].set_ylabel("Depth [m]")
+  subs.flatten()[0].set_xlabel("Temperature [K]")
+  subs.flatten()[1].set_xlabel("Density [kg/m$^3$]")
   plt.show()
 
 .. tip::

@@ -2,7 +2,7 @@ import pyarts3 as pyarts
 
 specs = [str(r.name) for r in pyarts.arts.globals.all_isotopologues() if r.predef]
 
-fulldoc =  pyarts.Workspace().propagation_matrixAddPredefined.__doc__
+fulldoc =  pyarts.Workspace().spectral_propmatAddPredefined.__doc__
 docstr = fulldoc.split('\n')
 
 order_error = False
@@ -21,9 +21,9 @@ for x in specs:
       if order_error == False:
         order_error = True
         errors.append("The order of the predefined species are:\n" + "\n".join(specs))
-        errors.append(f"Misordered {x} in docstring of propagation_matrixAddPredefined)")
+        errors.append(f"Misordered {x} in docstring of spectral_propmatAddPredefined)")
     else:
-      errors.append(f"Missing {x} in docstring of propagation_matrixAddPredefined, please add your new docstring")
+      errors.append(f"Missing {x} in docstring of spectral_propmatAddPredefined, please add your new docstring")
 
 if errors:
   raise Exception("\n" + "\n".join(errors))

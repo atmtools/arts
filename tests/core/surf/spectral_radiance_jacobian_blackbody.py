@@ -13,48 +13,48 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-500e6, 500e6, NF) + line_f0
+ws.freq_grid = np.linspace(-500e6, 500e6, NF) + line_f0
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-ws.absorption_bands = {bandkey: ws.absorption_bands[bandkey]}
+ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
+ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Artificial Surface
 
 ts = 295.0
-ws.surface_field["t"] = ts
+ws.surf_field["t"] = ts
 
 # %% Retrieval agenda
 
 @pyarts.workspace.arts_agenda(ws=ws, fix=True)
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
-    ws.measurement_vectorFromSensor()
-    ws.measurement_vector_fittedFromMeasurement()
+    ws.measurement_vecFromSensor()
+    ws.measurement_vec_fitFromMeasurement()
 
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
@@ -69,25 +69,25 @@ ws.RetrievalFinalizeDiagonal()
 fail = True
 
 for i in range(LIMIT):
-    ws.surface_field["t"] = ts
-    ws.measurement_vectorFromSensor()
+    ws.surf_field["t"] = ts
+    ws.measurement_vecFromSensor()
 
-    ws.measurement_vector_fitted = []
-    ws.model_state_vector = []
-    ws.measurement_jacobian = [[]]
+    ws.measurement_vec_fit = []
+    ws.model_state_vec = []
+    ws.measurement_jac = [[]]
 
-    ws.surface_field["t"] = ts + 30
-    ws.model_state_vector_aprioriFromData()
+    ws.surf_field["t"] = ts + 30
+    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vector_error_covariance_matrixConstant(value=noise**2)
-    ws.measurement_vector += np.random.normal(0, noise, NF)
+    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.measurement_vec += np.random.normal(0, noise, NF)
 
     ws.OEM(method="gn")
 
-    absdiff = round(abs(ts - ws.model_state_vector[0]), 2)
+    absdiff = round(abs(ts - ws.model_state_vec[0]), 2)
 
     print(
-        f"t-component: Input {ts} K, Output {round(ws.model_state_vector[0], 2)} K, AbsDiff {absdiff} K"
+        f"t-component: Input {ts} K, Output {round(ws.model_state_vec[0], 2)} K, AbsDiff {absdiff} K"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} K, rerunning with new random noise")

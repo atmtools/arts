@@ -37,7 +37,7 @@ Complex full::operator()(const Numeric frequency) const {
 
   PropmatVector propmat_clearsky(1);
   PropmatMatrix dpropmat_clearsky_dx;
-  JacobianTargets jacobian_targets;
+  JacobianTargets jac_targets;
   Vector f_grid{frequency};
 
   for (auto& [tag, mod] : *data) {
@@ -46,7 +46,7 @@ Complex full::operator()(const Numeric frequency) const {
                                          tag,
                                          f_grid,
                                          *atm,
-                                         jacobian_targets,
+                                         jac_targets,
                                          mod);
   }
 

@@ -113,7 +113,8 @@ template <typename T> struct WorkspaceGroupInfo {
 
   std::size_t index = 0;
   for (auto& group : groups()) {
-    os << std::format(R"(
+    try {
+      os << std::format(R"(
 template <> struct WorkspaceGroupInfo<{0}> {{
   static constexpr std::string_view name = "{0}";
   static constexpr std::size_t index     = {2};
@@ -121,10 +122,14 @@ template <> struct WorkspaceGroupInfo<{0}> {{
   static std::string_view desc();
 }};
 )",
-                      group,
-                      data.at(group).value_type,
-                      index);
-    index++;
+                        group,
+                        data.at(group).value_type,
+                        index);
+      index++;
+    } catch (...) {
+      throw std::runtime_error(std::format(
+          "Error generating WorkspaceGroupInfo for group: {}", group));
+    }
   }
 
   os << "\n[[nodiscard]] bool valid_wsg(std::string_view);\n";
@@ -134,13 +139,18 @@ void implement_docs(std::ostream& os) {
   std::println(os, "#include \"auto_wsg.h\"\n");
 
   for (auto& group : groups()) {
-    std::println(os,
-                 R"(std::string_view WorkspaceGroupInfo<{0}>::desc() {{
+    try {
+      std::println(os,
+                   R"(std::string_view WorkspaceGroupInfo<{0}>::desc() {{
   return R"--({1})--"sv;
 }}
 )",
-                 group,
-                 data.at(group).desc);
+                   group,
+                   data.at(group).desc);
+    } catch (...) {
+      throw std::runtime_error(std::format(
+          "Error generating WorkspaceGroupInfo for group: {}", group));
+    }
   }
 }
 
@@ -226,33 +236,34 @@ void agenda_operators() {
   std::string errors{};
 
   for (auto& [name, ag] : wsa) {
-    const auto remove_output =
-        std::views::filter([&o = ag.output](const std::string& v) {
-          return not std::ranges::contains(o, v);
-        });
-    const auto output_string =
-        std::views::transform([&o = ag.output](const std::string& v) {
-          return std::format(
-              "{0} = std::get<{1}>(_tup);\n ",
-              v,
-              std::ranges::distance(o.begin(), std::ranges::find(o, v)));
-        });
+    try {
+      const auto remove_output =
+          std::views::filter([&o = ag.output](const std::string& v) {
+            return not std::ranges::contains(o, v);
+          });
+      const auto output_string =
+          std::views::transform([&o = ag.output](const std::string& v) {
+            return std::format(
+                "{0} = std::get<{1}>(_tup);\n ",
+                v,
+                std::ranges::distance(o.begin(), std::ranges::find(o, v)));
+          });
 
-    std::println(h,
-                 R"(
+      std::println(h,
+                   R"(
 using {0}Operator
    = CustomOperator<std::tuple<{1:,}>,
                     {2:,}>;
 )",
-                 name,
-                 ag.output | agenda_types,
-                 ag.input | cref_agenda_types);
+                   name,
+                   ag.output | agenda_types,
+                   ag.input | cref_agenda_types);
 
-    const std::string spaces(5 + name.size() + 8 + 8, ' ');
+      const std::string spaces(5 + name.size() + 8 + 8, ' ');
 
-    std::print(
-        cpp,
-        R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {0}Operator& {0}_operator) try {{
+      std::print(
+          cpp,
+          R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {0}Operator& {0}_operator) try {{
   ARTS_TIME_REPORT
   
   auto _tup = {0}_operator({4:,});
@@ -269,12 +280,18 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
 }}
 
 )",
-        name,
-        ag.output | named_ref_agenda_types,
-        ag.input | remove_output | named_cref_agenda_types,
-        ag.output.empty() ? ""sv : ", "sv,
-        ag.input,
-        ag.output | output_string | to_strings);
+          name,
+          ag.output | named_ref_agenda_types,
+          ag.input | remove_output | named_cref_agenda_types,
+          ag.output.empty() ? ""sv : ", "sv,
+          ag.input,
+          ag.output | output_string | to_strings);
+    } catch (std::exception& e) {
+      throw std::runtime_error(
+          std::format("Error generating agenda operator for agenda: {}\n  {}\n",
+                      name,
+                      e.what()));
+    }
   }
 
   if (not errors.empty()) {

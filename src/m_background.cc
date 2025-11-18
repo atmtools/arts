@@ -8,234 +8,221 @@
 
 #include <algorithm>
 
-void spectral_radiance_backgroundAgendasAtEndOfPath(
+void spectral_rad_bkgAgendasAtEndOfPath(
     const Workspace& ws,
-    StokvecVector& spectral_radiance_background,
-    StokvecMatrix& spectral_radiance_background_jacobian,
-    const AscendingGrid& frequency_grid,
-    const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
-    const Agenda& spectral_radiance_space_agenda,
-    const Agenda& spectral_radiance_surface_agenda) try {
+    StokvecVector& spectral_rad_bkg,
+    StokvecMatrix& spectral_rad_bkg_jac,
+    const AscendingGrid& freq_grid,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const Agenda& spectral_rad_space_agenda,
+    const Agenda& spectral_rad_surface_agenda) try {
   ARTS_TIME_REPORT
 
   using enum PathPositionType;
-  switch (ray_path_point.los_type) {
+  switch (ray_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
       break;
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
-      spectral_radiance_space_agendaExecute(
-          ws,
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          frequency_grid,
-          jacobian_targets,
-          ray_path_point,
-          spectral_radiance_space_agenda);
+      spectral_rad_space_agendaExecute(ws,
+                                       spectral_rad_bkg,
+                                       spectral_rad_bkg_jac,
+                                       freq_grid,
+                                       jac_targets,
+                                       ray_point,
+                                       spectral_rad_space_agenda);
       break;
     case surface:
-      spectral_radiance_surface_agendaExecute(
-          ws,
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          frequency_grid,
-          jacobian_targets,
-          ray_path_point,
-          surface_field,
-          subsurface_field,
-          spectral_radiance_surface_agenda);
+      spectral_rad_surface_agendaExecute(ws,
+                                         spectral_rad_bkg,
+                                         spectral_rad_bkg_jac,
+                                         freq_grid,
+                                         jac_targets,
+                                         ray_point,
+                                         surf_field,
+                                         subsurf_field,
+                                         spectral_rad_surface_agenda);
       break;
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-StokvecVector from_temp(const ConstVectorView& frequency_grid,
-                        const Numeric t) {
-  StokvecVector v(frequency_grid.size(), 0.0);
-  std::transform(frequency_grid.begin(),
-                 frequency_grid.end(),
-                 v.begin(),
-                 [t](auto f) -> Stokvec { return {planck(f, t), 0, 0, 0}; });
+StokvecVector from_temp(const ConstVectorView& freq_grid, const Numeric t) {
+  StokvecVector v(freq_grid.size(), 0.0);
+  std::transform(
+      freq_grid.begin(), freq_grid.end(), v.begin(), [t](auto f) -> Stokvec {
+        return {planck(f, t), 0, 0, 0};
+      });
   return v;
 }
 }  // namespace
 
-void spectral_radianceUniformCosmicBackground(
-    StokvecVector& spectral_radiance, const AscendingGrid& frequency_grid) {
+void spectral_radUniformCosmicBackground(StokvecVector& spectral_rad,
+                                         const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  constexpr auto t  = Constant::cosmic_microwave_background_temperature;
-  spectral_radiance = from_temp(frequency_grid, t);
+  constexpr auto t = Constant::cosmic_microwave_background_temperature;
+  spectral_rad     = from_temp(freq_grid, t);
 }
 
-void spectral_radianceSunOrCosmicBackground(
-    StokvecVector& spectral_radiance,
-    const AscendingGrid& frequency_grid,
+void spectral_radSunOrCosmicBackground(
+    StokvecVector& spectral_rad,
+    const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& sun_path,
     const Sun& sun,
-    const SurfaceField& surface_field) try {
+    const SurfaceField& surf_field) try {
   ARTS_TIME_REPORT
 
-  spectral_radiance.resize(frequency_grid.size());
+  spectral_rad.resize(freq_grid.size());
 
-  if (set_spectral_radiance_if_sun_intersection(
-          spectral_radiance, sun, sun_path.back(), surface_field))
+  if (set_spectral_rad_if_sun_intersection(
+          spectral_rad, sun, sun_path.back(), surf_field))
     return;
 
-  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+  spectral_radUniformCosmicBackground(spectral_rad, freq_grid);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceSunsOrCosmicBackground(
-    StokvecVector& spectral_radiance,
-    const AscendingGrid& frequency_grid,
-    const PropagationPathPoint& ray_path_point,
-    const ArrayOfSun& suns,
-    const SurfaceField& surface_field) {
+void spectral_radSunsOrCosmicBackground(StokvecVector& spectral_rad,
+                                        const AscendingGrid& freq_grid,
+                                        const PropagationPathPoint& ray_point,
+                                        const ArrayOfSun& suns,
+                                        const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
-  spectral_radiance.resize(frequency_grid.size());
+  spectral_rad.resize(freq_grid.size());
 
   for (auto& sun : suns) {
-    if (set_spectral_radiance_if_sun_intersection(
-            spectral_radiance, sun, ray_path_point, surface_field)) {
+    if (set_spectral_rad_if_sun_intersection(
+            spectral_rad, sun, ray_point, surf_field)) {
       return;
     }
   }
 
-  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+  spectral_radUniformCosmicBackground(spectral_rad, freq_grid);
 }
 
-void spectral_radianceSurfaceBlackbody(
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
-    const SurfaceField& surface_field,
-    const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& ray_path_point) {
+void spectral_radSurfaceBlackbody(StokvecVector& spectral_rad,
+                                  StokvecMatrix& spectral_rad_jac,
+                                  const AscendingGrid& freq_grid,
+                                  const SurfaceField& surf_field,
+                                  const JacobianTargets& jac_targets,
+                                  const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
   constexpr auto key = SurfaceKey::t;
 
-  ARTS_USER_ERROR_IF(not surface_field.contains(key),
+  ARTS_USER_ERROR_IF(not surf_field.contains(key),
                      "Surface field does not contain temperature")
 
-  const auto t = surface_field.single_value(
-      key, ray_path_point.pos[1], ray_path_point.pos[2]);
-  spectral_radiance = from_temp(frequency_grid, t);
+  const auto t =
+      surf_field.single_value(key, ray_point.pos[1], ray_point.pos[2]);
+  spectral_rad = from_temp(freq_grid, t);
 
-  spectral_radiance_jacobianEmpty(
-      spectral_radiance_jacobian, frequency_grid, jacobian_targets);
+  spectral_rad_jacEmpty(spectral_rad_jac, freq_grid, jac_targets);
 
-  for (auto& target : jacobian_targets.surf) {
+  for (auto& target : jac_targets.surf) {
     if (target.type == SurfaceKey::t) {
-      const auto& data = surface_field[target.type];
+      const auto& data = surf_field[target.type];
 
-      const auto ws =
-          data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
+      const auto ws = data.flat_weights(ray_point.pos[1], ray_point.pos[2]);
 
-      for (Size i = 0; i < frequency_grid.size(); i++) {
-        const Numeric dBdt = dplanck_dt(frequency_grid[i], t);
+      for (Size i = 0; i < freq_grid.size(); i++) {
+        const Numeric dBdt = dplanck_dt(freq_grid[i], t);
         for (const auto& w : ws) {
-          spectral_radiance_jacobian[w.first + target.x_start, i] +=
-              w.second * dBdt;
+          spectral_rad_jac[w.first + target.x_start, i] += w.second * dBdt;
         }
       }
     }
   }
 }
 
-void transmission_matrix_backgroundFromPathPropagationBack(
-    MuelmatVector& transmission_matrix_background,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+void spectral_tramat_bkgFromPathPropagationBack(
+    MuelmatVector& spectral_tramat_bkg,
+    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
+  ARTS_USER_ERROR_IF(spectral_tramat_cumulative_path.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background =
-      ray_path_transmission_matrix_cumulative.back();
+  spectral_tramat_bkg = spectral_tramat_cumulative_path.back();
 }
 ARTS_METHOD_ERROR_CATCH
 
-void transmission_matrix_backgroundFromPathPropagationFront(
-    MuelmatVector& transmission_matrix_background,
-    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+void spectral_tramat_bkgFromPathPropagationFront(
+    MuelmatVector& spectral_tramat_bkg,
+    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
+  ARTS_USER_ERROR_IF(spectral_tramat_cumulative_path.size() == 0,
                      "Cannot extract from empty list.")
-  transmission_matrix_background =
-      ray_path_transmission_matrix_cumulative.front();
+  spectral_tramat_bkg = spectral_tramat_cumulative_path.front();
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceDefaultTransmission(
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_background,
-    const AscendingGrid& frequency_grid,
-    const JacobianTargets& jacobian_targets) {
+void spectral_radDefaultTransmission(StokvecVector& spectral_rad,
+                                     StokvecMatrix& spectral_rad_bkg,
+                                     const AscendingGrid& freq_grid,
+                                     const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  const Index nf = frequency_grid.size();
-  const Index nq = jacobian_targets.x_size();
+  const Index nf = freq_grid.size();
+  const Index nq = jac_targets.x_size();
 
-  spectral_radiance_background.resize(nq, nf);
-  spectral_radiance_background = 0.0;
+  spectral_rad_bkg.resize(nq, nf);
+  spectral_rad_bkg = 0.0;
 
-  spectral_radiance.resize(nf);
-  spectral_radiance = 1;
+  spectral_rad.resize(nf);
+  spectral_rad = 1;
 }
 
-void single_spectral_radiance_backgroundAgendasAtEndOfPath(
+void single_rad_backgroundAgendasAtEndOfPath(
     const Workspace& ws,
-    Stokvec& single_spectral_radiance_background,
-    StokvecVector& single_spectral_radiance_background_jacobian,
+    Stokvec& single_rad_background,
+    StokvecVector& single_rad_background_jacobian,
     const Numeric& frequency,
-    const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
-    const Agenda& single_spectral_radiance_space_agenda,
-    const Agenda& single_spectral_radiance_surface_agenda) try {
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const Agenda& single_rad_space_agenda,
+    const Agenda& single_rad_surface_agenda) try {
   ARTS_TIME_REPORT
 
   using enum PathPositionType;
-  switch (ray_path_point.los_type) {
+  switch (ray_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
       break;
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
-      single_spectral_radiance_space_agendaExecute(
-          ws,
-          single_spectral_radiance_background,
-          single_spectral_radiance_background_jacobian,
-          frequency,
-          jacobian_targets,
-          ray_path_point,
-          single_spectral_radiance_space_agenda);
+      single_rad_space_agendaExecute(ws,
+                                     single_rad_background,
+                                     single_rad_background_jacobian,
+                                     frequency,
+                                     jac_targets,
+                                     ray_point,
+                                     single_rad_space_agenda);
       break;
     case surface:
-      single_spectral_radiance_surface_agendaExecute(
-          ws,
-          single_spectral_radiance_background,
-          single_spectral_radiance_background_jacobian,
-          frequency,
-          jacobian_targets,
-          ray_path_point,
-          surface_field,
-          subsurface_field,
-          single_spectral_radiance_surface_agenda);
+      single_rad_surface_agendaExecute(ws,
+                                       single_rad_background,
+                                       single_rad_background_jacobian,
+                                       frequency,
+                                       jac_targets,
+                                       ray_point,
+                                       surf_field,
+                                       subsurf_field,
+                                       single_rad_surface_agenda);
       break;
   }
 }

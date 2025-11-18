@@ -274,12 +274,12 @@ void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
 Size Obsel::flat_size(const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
-    case f:   return this->f->size();
-    case za:  return poslos->size();
-    case aa:  return poslos->size();
-    case alt: return poslos->size();
-    case lat: return poslos->size();
-    case lon: return poslos->size();
+    case freq: return this->f->size();
+    case zen:  return poslos->size();
+    case azi:  return poslos->size();
+    case alt:  return poslos->size();
+    case lat:  return poslos->size();
+    case lon:  return poslos->size();
   }
 
   std::unreachable();
@@ -288,14 +288,14 @@ Size Obsel::flat_size(const SensorKeyType& key) const {
 void Obsel::flat(VectorView x, const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
-    case f:
+    case freq:
       ARTS_USER_ERROR_IF(x.size() != f_grid().size(),
                          "Bad size. x.size(): {}, f_grid().size(): {}",
                          x.size(),
                          f_grid().size())
       x = f_grid();
       break;
-    case za:
+    case zen:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -305,7 +305,7 @@ void Obsel::flat(VectorView x, const SensorKeyType& key) const {
                      x.begin(),
                      [](auto& poslos) { return poslos.los[0]; });
       break;
-    case aa:
+    case azi:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
@@ -366,8 +366,8 @@ Index Obsel::find(const Vector3& pos, const Vector2& los) const {
   return (it == last) ? dont_have : std::distance(first, it);
 }
 
-Index Obsel::find(const AscendingGrid& frequency_grid) const {
-  return (f.get() != &frequency_grid) ? dont_have : 0;
+Index Obsel::find(const AscendingGrid& freq_grid) const {
+  return (f.get() != &freq_grid) ? dont_have : 0;
 }
 }  // namespace sensor
 
@@ -558,13 +558,13 @@ void set_lon(const SensorObsel& v,
   set_poslos<true, 2>(v, sensor, x);
 }
 
-void set_zag(const SensorObsel& v,
+void set_zen(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
              const ConstVectorView x) {
   set_poslos<false, 0>(v, sensor, x);
 }
 
-void set_aag(const SensorObsel& v,
+void set_azi(const SensorObsel& v,
              ArrayOfSensorObsel& sensor,
              const ConstVectorView x) {
   set_poslos<false, 1>(v, sensor, x);
@@ -577,12 +577,12 @@ void unflatten(ArrayOfSensorObsel& sensor,
                const SensorKeyType& key) {
   switch (key) {
     using enum SensorKeyType;
-    case f:   set_frq(v, sensor, x); break;
-    case za:  set_zag(v, sensor, x); break;
-    case aa:  set_aag(v, sensor, x); break;
-    case alt: set_alt(v, sensor, x); break;
-    case lat: set_lat(v, sensor, x); break;
-    case lon: set_lon(v, sensor, x); break;
+    case freq: set_frq(v, sensor, x); break;
+    case zen:  set_zen(v, sensor, x); break;
+    case azi:  set_azi(v, sensor, x); break;
+    case alt:  set_alt(v, sensor, x); break;
+    case lat:  set_lat(v, sensor, x); break;
+    case lon:  set_lon(v, sensor, x); break;
   }
 }
 

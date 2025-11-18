@@ -32,12 +32,12 @@ ws = pyarts.Workspace()
 
 pyarts.arts.globals.omp_set_num_threads(1)
 
-ws.frequency_grid = [31.5e9, 165e9, 666e9]
+ws.freq_grid = [31.5e9, 165e9, 666e9]
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
+ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
 ws.ReadCatalogData()
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Defining scattering species
 #
@@ -73,7 +73,7 @@ rain_first_moment = pyarts.arts.ScatteringSpeciesProperty(
 psd = MGDSingleMoment(rain_first_moment, "Wang16", 270, 300, False)
 rain = ScatteringHabit(rain_habit, psd)
 
-ws.scattering_species = [rain]
+ws.scat_species = [rain]
 
 # %% Demonstration
 #
@@ -93,8 +93,8 @@ z_field = load(prefix + "z_field.xml")
 vmr_field = load(prefix + "vmr_field.xml")
 pbf_field = load(prefix + "particle_bulkprop_field.xml")
 pbf_names = load(prefix + "particle_bulkprop_names.xml")
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = t_field[0, 0, 0]
 
 lat_grid = np.array([0.0])
 lon_grid = np.array([0.0])
@@ -119,48 +119,48 @@ rwc = GriddedField3(
     "RWC", 1.0 * pbf_field[0], ["alt", "lon", "lat"], (z_grid, lon_grid, lat_grid)
 )
 
-ws.atmospheric_field["p"] = pressure
-ws.atmospheric_field["t"] = temperature
-ws.atmospheric_field["N2"] = n2
-ws.atmospheric_field["O2"] = o2
-ws.atmospheric_field["H2O"] = h2o
-ws.atmospheric_field[rain_first_moment] = rwc
-ws.atmospheric_field.top_of_atmosphere = 12.0e3
+ws.atm_field["p"] = pressure
+ws.atm_field["t"] = temperature
+ws.atm_field["N2"] = n2
+ws.atm_field["O2"] = o2
+ws.atm_field["H2O"] = h2o
+ws.atm_field[rain_first_moment] = rwc
+ws.atm_field.top_of_atmosphere = 12.0e3
 
-ws.propagation_matrix_scattering_spectral_agenda
+ws.spectral_propmat_scat_spectral_agenda
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
 ws.disort_quadrature_dimension = 40
 ws.disort_fourier_mode_dimension = 1
-ws.propagation_matrix_scattering_spectral_agendaSet()
+ws.spectral_propmat_scat_spectral_agendaSet()
 ws.disort_legendre_polynomial_dimension = 40
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 
 def calculate_tbs_disort():
     ws.disort_settings_agendaSetup(scattering_setting="ScatteringSpecies")
-    ws.disort_spectral_radiance_fieldProfile(
-        longitude=lon,
-        latitude=lat,
+    ws.disort_spectral_rad_fieldProfile(
+        lon=lon,
+        lat=lat,
         disort_quadrature_dimension=NQuad,
         disort_legendre_polynomial_dimension=40,
         disort_fourier_mode_dimension=1,
         max_stepsize=100,
     )
     disort_stokes = [
-        [ws.disort_spectral_radiance_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0]
+        [ws.disort_spectral_rad_field.data[f_ind, 0, 0, 0], 0.0, 0.0, 0.0]
         for f_ind in range(3)
     ]
-    ws.spectral_radiance = disort_stokes
-    ws.spectral_radianceApplyForwardUnit(ray_path_point=ws.ray_path[0])
-    return ws.spectral_radiance.value.copy()[:, 0]
+    ws.spectral_rad = disort_stokes
+    ws.spectral_radApplyForwardUnit(ray_point=ws.ray_path[0])
+    return ws.spectral_rad.value.copy()[:, 0]
 
 
 tbs_cloudy = calculate_tbs_disort()
@@ -180,6 +180,6 @@ tbs_cloudy
 # The clearsky brightness temperatures, however, agree well with the ARTS 2.6 results.
 
 # ARTS 2.6 results: ``298.566120236439 283.35611518369 251.643322551348``
-ws.atmospheric_field[rain_first_moment] = 0.0
+ws.atm_field[rain_first_moment] = 0.0
 tbs_clear = calculate_tbs_disort()
 tbs_clear

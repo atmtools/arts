@@ -39,7 +39,7 @@ void py_lookup(py::module_& m) try {
   generic_interface(alts);
 
   alts.def(
-      "propagation_matrix",
+      "spectral_propmat",
       [](const AbsorptionLookupTables& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
@@ -51,25 +51,25 @@ void py_lookup(py::module_& m) try {
          const Index& f_interp_order,
          const Numeric& extpolfac,
          const py::kwargs&) {
-        PropmatVector propagation_matrix(f.size());
-        PropmatMatrix propagation_matrix_jacobian(0, f.size());
-        JacobianTargets jacobian_targets{};
+        PropmatVector spectral_propmat(f.size());
+        PropmatMatrix spectral_propmat_jac(0, f.size());
+        JacobianTargets jac_targets{};
 
-        propagation_matrixAddLookup(propagation_matrix,
-                                    propagation_matrix_jacobian,
-                                    f,
-                                    jacobian_targets,
-                                    spec,
-                                    self,
-                                    atm,
-                                    no_negative_absorption,
-                                    p_interp_order,
-                                    t_interp_order,
-                                    water_interp_order,
-                                    f_interp_order,
-                                    extpolfac);
+        spectral_propmatAddLookup(spectral_propmat,
+                                  spectral_propmat_jac,
+                                  f,
+                                  jac_targets,
+                                  spec,
+                                  self,
+                                  atm,
+                                  no_negative_absorption,
+                                  p_interp_order,
+                                  t_interp_order,
+                                  water_interp_order,
+                                  f_interp_order,
+                                  extpolfac);
 
-        return propagation_matrix;
+        return spectral_propmat;
       },
       "f"_a,
       "atm"_a,
@@ -106,7 +106,7 @@ extpolfac : Numeric, optional
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");

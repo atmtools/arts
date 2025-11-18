@@ -955,16 +955,14 @@ T0 : float
 )",
       "approximate_percentile"_a,
       "T0"_a = 296.0);
-  aoab.def("keep_frequencies",
-           [](AbsorptionBands& bands,
-              const Numeric& fmin,
-              const Numeric& fmax) {
-             absorption_bandsSelectFrequencyByLine(
-                 bands, fmin, fmax);
-           },
-           "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
-           "fmax"_a = std::numeric_limits<Numeric>::infinity(),
-           R"(Keep the frequencies within the specified range
+  aoab.def(
+      "keep_frequencies",
+      [](AbsorptionBands& bands, const Numeric& fmin, const Numeric& fmax) {
+        abs_bandsSelectFrequencyByLine(bands, fmin, fmax);
+      },
+      "fmin"_a = -std::numeric_limits<Numeric>::infinity(),
+      "fmax"_a = std::numeric_limits<Numeric>::infinity(),
+      R"(Keep the frequencies within the specified range
 
 Parameters
 ----------
@@ -1016,7 +1014,7 @@ fmax : ~pyarts3.arts.Numeric
       "equivalent_lines",
       [](const AbsorptionBand& band,
          const QuantumIdentifier& qid,
-         const LinemixingEcsData& ecs_data,
+         const LinemixingEcsData& abs_ecs_data,
          const AtmPoint& atm,
          const Vector& T) {
         lbl::voigt::ecs::ComputeData com_data({}, atm);
@@ -1035,7 +1033,7 @@ fmax : ~pyarts3.arts.Numeric
                           com_data,
                           qid,
                           band,
-                          ecs_data.at(qid.isot),
+                          abs_ecs_data.at(qid.isot),
                           atm,
                           T);
 
@@ -1044,46 +1042,46 @@ fmax : ~pyarts3.arts.Numeric
       "Compute equivalent lines for a given band",
       "band"_a,
       "qid"_a,
-      "ecs_data"_a,
+      "abs_ecs_data"_a,
       "atm"_a,
       "T"_a);
 
   aoab.def(
-      "propagation_matrix",
+      "spectral_propmat",
       [](const AbsorptionBands& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
          const SpeciesEnum& spec,
          const PropagationPathPoint& path_point,
-         const LinemixingEcsData& ecs_data,
+         const LinemixingEcsData& abs_ecs_data,
          const Index& no_negative_absorption,
          const py::kwargs&) {
-        PropmatVector propagation_matrix(f.size());
+        PropmatVector spectral_propmat(f.size());
         StokvecVector nlte_vector(f.size());
-        PropmatMatrix propagation_matrix_jacobian(0, f.size());
+        PropmatMatrix spectral_propmat_jac(0, f.size());
         StokvecMatrix nlte_matrix(0, f.size());
-        JacobianTargets jacobian_targets{};
+        JacobianTargets jac_targets{};
 
-        propagation_matrixAddLines(propagation_matrix,
-                                   nlte_vector,
-                                   propagation_matrix_jacobian,
-                                   nlte_matrix,
-                                   f,
-                                   jacobian_targets,
-                                   spec,
-                                   self,
-                                   ecs_data,
-                                   atm,
-                                   path_point,
-                                   no_negative_absorption);
+        spectral_propmatAddLines(spectral_propmat,
+                                 nlte_vector,
+                                 spectral_propmat_jac,
+                                 nlte_matrix,
+                                 f,
+                                 jac_targets,
+                                 spec,
+                                 self,
+                                 abs_ecs_data,
+                                 atm,
+                                 path_point,
+                                 no_negative_absorption);
 
-        return propagation_matrix;
+        return spectral_propmat;
       },
       "f"_a,
       "atm"_a,
       "spec"_a                   = SpeciesEnum::Bath,
       "path_point"_a             = PropagationPathPoint{},
-      "ecs_data"_a               = LinemixingEcsData{},
+      "abs_ecs_data"_a           = LinemixingEcsData{},
       "no_negative_absorption"_a = Index{1},
       "kwargs"_a                 = py::kwargs{},
       R"--(Computes the line-by-line model absorption in 1/m
@@ -1101,14 +1099,14 @@ spec : SpeciesEnum, optional
     Species to use.  Defaults to all species.
 path_point : PropagationPathPoint, optional
     The path point.  Default is POS [0, 0, 0], LOS [0, 0].
-ecs_data : LinemixingEcsData, optional
+abs_ecs_data : LinemixingEcsData, optional
     The ECS data.  Default is empty.
 no_negative_absorption : Index, optional
     If 1, the absorption is set to zero if it is negative. The default is 1.
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");

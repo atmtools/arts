@@ -12,39 +12,39 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 line_f0 = 118750348044.712
 nf = 1001
-ws.frequency_grid = np.linspace(-50e6, 50e6, nf) + line_f0
+ws.freq_grid = np.linspace(-50e6, 50e6, nf) + line_f0
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_space_agendaSet(option="Transmission")
-ws.spectral_radiance_surface_agendaSet(option="Transmission")
+ws.spectral_rad_space_agendaSet(option="Transmission")
+ws.spectral_rad_surface_agendaSet(option="Transmission")
 
 # %% Core calculations
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
-ws.spectral_radianceClearskyTransmission()
+ws.spectral_radClearskyTransmission()
 
 # %% Show results
-fig, ax = pyarts.plot(ws.spectral_radiance, freqs=(
-    ws.frequency_grid - line_f0) / 1e6, component='I')
+fig, ax = pyarts.plot(ws.spectral_rad, freqs=(
+    ws.freq_grid - line_f0) / 1e6, component='I')
 ax.set_yscale('log')
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
@@ -55,7 +55,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Test
 assert np.allclose(
-    ws.spectral_radiance[::100],
+    ws.spectral_rad[::100],
     np.array(
         [[3.48824591e-06, -1.47203439e-10, -3.54155511e-11, -4.59223182e-08],
          [1.71707407e-06, -1.11587582e-10, -2.68557096e-11, -2.78282572e-08],

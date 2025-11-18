@@ -375,7 +375,7 @@ class TestGroups:
 
     def testArrayOfSun(self):
         ws = Workspace()
-        ws.frequency_grid = [1e9, 2e9, 3e9]
+        ws.freq_grid = [1e9, 2e9, 3e9]
 
         x = cxx.ArrayOfSun([cxx.Sun()])
         test.io(x, delete=True)

@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsInit(DisortSettings& disort_settings,
-                         const AscendingGrid& frequency_grid,
+                         const AscendingGrid& freq_grid,
                          const ArrayOfPropagationPathPoint& ray_path,
                          const Index& quadrature_dimension,
                          const Index& legendre_polynomial_dimension,
@@ -35,7 +35,7 @@ void disort_settingsInit(DisortSettings& disort_settings,
   disort_settings.resize(quadrature_dimension,
                          legendre_polynomial_dimension,
                          fourier_mode_dimension,
-                         frequency_grid,
+                         freq_grid,
                          DescendingGrid{ray_path.begin(),
                                         ray_path.end(),
                                         [](auto& v) { return v.altitude(); }});
@@ -54,34 +54,34 @@ void disort_settingsNoSun(DisortSettings& disort_settings) {
 }
 
 void disort_settingsSetSun(DisortSettings& disort_settings,
-                           const AscendingGrid& frequency_grid,
-                           const SurfaceField& surface_field,
+                           const AscendingGrid& freq_grid,
+                           const SurfaceField& surf_field,
                            const Sun& sun,
-                           const PropagationPathPoint& ray_path_point) {
+                           const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   const Numeric h =
-      surface_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
+      surf_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
 
   const Vector3 sun_pos{sun.distance - h, sun.latitude, sun.longitude};
   const Vector2 los =
-      geometric_los(ray_path_point.pos, sun_pos, surface_field.ellipsoid);
+      geometric_los(ray_point.pos, sun_pos, surf_field.ellipsoid);
 
   const Numeric sin2_alpha =
-      sun.sin_alpha_squared(ray_path_point.pos, surface_field.ellipsoid);
+      sun.sin_alpha_squared(ray_point.pos, surf_field.ellipsoid);
 
-  const Size nv = frequency_grid.size();
+  const Size nv = freq_grid.size();
 
   ARTS_USER_ERROR_IF(disort_settings.solar_source.size() != nv or
                          static_cast<Size>(sun.spectrum.nrows()) != nv,
                      R"(Solar spectrum not agreeing with frequency grids:
 
-frequency_grid.size():               {}
+freq_grid.size():               {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",
@@ -112,12 +112,12 @@ namespace {
 template <typename T>
 void disort_settingsLayerThermalEmissionLinearInTauImpl(
     DisortSettings& disort_settings,
-    const T& ray_path_points,
-    const AscendingGrid& frequency_grid) {
+    const T& ray_points,
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Size nv = frequency_grid.size();
-  const Size N  = ray_path_points.size();
+  const Size nv = freq_grid.size();
+  const Size N  = ray_points.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -131,11 +131,11 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    const Numeric& f = frequency_grid[iv];
+    const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_points[i + 0].temperature;
-      const Numeric& t1 = ray_path_points[i + 1].temperature;
+      const Numeric& t0 = ray_points[i + 0].temperature;
+      const Numeric& t1 = ray_points[i + 1].temperature;
 
       const Numeric y0 = planck(f, t0);
       const Numeric y1 = planck(f, t1);
@@ -154,31 +154,30 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
 
 void disort_settingsLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
-    const AscendingGrid& frequency_grid) {
+    const ArrayOfAtmPoint& atm_path,
+    const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, ray_path_atmospheric_point, frequency_grid);
+      disort_settings, atm_path, freq_grid);
 }
 
 void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfSubsurfacePoint& subsurface_profile,
-    const AscendingGrid& frequency_grid) {
+    const ArrayOfSubsurfacePoint& subsurf_profile,
+    const AscendingGrid& freq_grid) {
   disort_settingsLayerThermalEmissionLinearInTauImpl(
-      disort_settings, subsurface_profile, frequency_grid);
+      disort_settings, subsurf_profile, freq_grid);
 }
 
 void disort_settingsLayerNonThermalEmissionLinearInTau(
     DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfStokvecVector&
-        ray_path_propagation_matrix_source_vector_nonlte,
-    const AscendingGrid& frequency_grid) {
+    const ArrayOfAtmPoint& atm_path,
+    const ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfStokvecVector& spectral_nlte_srcvec_path,
+    const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Size nv = frequency_grid.size();
-  const Size N  = ray_path_atmospheric_point.size();
+  const Size nv = freq_grid.size();
+  const Size N  = atm_path.size();
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -191,45 +190,41 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
       disort_settings.optical_thicknesses.shape());
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_atmospheric_point,
-                         ray_path_propagation_matrix,
-                         ray_path_propagation_matrix_source_vector_nonlte),
+      not arr::same_size(
+          atm_path, spectral_propmat_path, spectral_nlte_srcvec_path),
       R"(Not same size:
 
-ray_path_atmospheric_point.size():   {}
-ray_path_propagation_matrix.size():  {}
+atm_path.size():   {}
+spectral_propmat_path.size():  {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-      ray_path_atmospheric_point.size(),
-      ray_path_propagation_matrix.size(),
-      ray_path_propagation_matrix_source_vector_nonlte.size());
+      atm_path.size(),
+      spectral_propmat_path.size(),
+      spectral_nlte_srcvec_path.size());
 
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(
-                         ray_path_propagation_matrix,
-                         ray_path_propagation_matrix_source_vector_nonlte),
+  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_path,
+                                                 spectral_nlte_srcvec_path),
                      R"(Not same size:
 
-ray_path_propagation_matrix.size():   {}
+spectral_propmat_path.size():   {}
 ray_path_source_vector_nonlte.size(): {}
 )",
-                     ray_path_propagation_matrix.size(),
-                     ray_path_propagation_matrix_source_vector_nonlte.size());
+                     spectral_propmat_path.size(),
+                     spectral_nlte_srcvec_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    const Numeric& f = frequency_grid[iv];
+    const Numeric& f = freq_grid[iv];
 
     for (Size i = 0; i < N - 1; i++) {
-      const Numeric& t0 = ray_path_atmospheric_point[i + 0].temperature;
-      const Numeric& t1 = ray_path_atmospheric_point[i + 1].temperature;
+      const Numeric& t0 = atm_path[i + 0].temperature;
+      const Numeric& t1 = atm_path[i + 1].temperature;
 
-      const Muelmat invK0 = inv(ray_path_propagation_matrix[i + 0][iv]);
-      const Muelmat invK1 = inv(ray_path_propagation_matrix[i + 1][iv]);
+      const Muelmat invK0 = inv(spectral_propmat_path[i + 0][iv]);
+      const Muelmat invK1 = inv(spectral_propmat_path[i + 1][iv]);
 
-      const Stokvec& S0 =
-          ray_path_propagation_matrix_source_vector_nonlte[i + 0][iv];
-      const Stokvec& S1 =
-          ray_path_propagation_matrix_source_vector_nonlte[i + 1][iv];
+      const Stokvec& S0 = spectral_nlte_srcvec_path[i + 0][iv];
+      const Stokvec& S1 = spectral_nlte_srcvec_path[i + 1][iv];
 
       Numeric y0 = planck(f, t0) + (invK0 * S0).I();
       Numeric y1 = planck(f, t1) + (invK1 * S1).I();
@@ -261,15 +256,15 @@ void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
 
 void disort_settingsSurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
-    const PropagationPathPoint& ray_path_point,
-    const SurfaceField& surface_field) {
+    const AscendingGrid& freq_grid,
+    const PropagationPathPoint& ray_point,
+    const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
+  const auto nv = freq_grid.size();
 
-  const Numeric T = surface_field.single_value(
-      SurfaceKey::t, ray_path_point.latitude(), ray_path_point.longitude());
+  const Numeric T = surf_field.single_value(
+      SurfaceKey::t, ray_point.latitude(), ray_point.longitude());
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
@@ -284,21 +279,21 @@ void disort_settingsSurfaceEmissionByTemperature(
       "Must have at least one fourier mode to use the positive boundary condition.")
 
   for (Size iv = 0; iv < nv; iv++) {
-    limit[iv, 0, joker] = planck(frequency_grid[iv], T);
+    limit[iv, 0, joker] = planck(freq_grid[iv], T);
   }
 }
 
 void disort_settingsSubsurfaceEmissionByTemperature(
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
-    const ArrayOfSubsurfacePoint& subsurface_profile) {
+    const AscendingGrid& freq_grid,
+    const ArrayOfSubsurfacePoint& subsurf_profile) {
   ARTS_TIME_REPORT
 
-  const auto nv = frequency_grid.size();
+  const auto nv = freq_grid.size();
 
   auto& limit = disort_settings.positive_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(subsurface_profile.size() < 2, "Need at least two points")
+  ARTS_USER_ERROR_IF(subsurf_profile.size() < 2, "Need at least two points")
 
   ARTS_USER_ERROR_IF(
       static_cast<Index>(nv) != limit.npages(),
@@ -310,10 +305,10 @@ void disort_settingsSubsurfaceEmissionByTemperature(
       limit.nrows() < 1,
       "Must have at least one fourier mode to use the positive boundary condition.")
 
-  const Numeric Tbot = subsurface_profile.back().temperature;
+  const Numeric Tbot = subsurf_profile.back().temperature;
 
   for (Size iv = 0; iv < nv; iv++) {
-    limit[iv, 0, joker] = planck(frequency_grid[iv], Tbot);
+    limit[iv, 0, joker] = planck(freq_grid[iv], Tbot);
   }
 }
 
@@ -328,10 +323,10 @@ void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
 }
 
 void disort_settingsCosmicMicrowaveBackgroundRadiation(
-    DisortSettings& disort_settings, const AscendingGrid& frequency_grid) {
+    DisortSettings& disort_settings, const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  const Index nv = frequency_grid.size();
+  const Index nv = freq_grid.size();
 
   disort_settings.negative_boundary_condition = 0.0;
 
@@ -347,27 +342,27 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 
   for (Index iv = 0; iv < nv; iv++) {
     disort_settings.negative_boundary_condition[iv, 0, joker] = planck(
-        frequency_grid[iv], Constant::cosmic_microwave_background_temperature);
+        freq_grid[iv], Constant::cosmic_microwave_background_temperature);
   }
 }
 
 void disort_settingsDownwellingObserver(
     const Workspace& ws,
     DisortSettings& disort_settings,
-    const AscendingGrid& frequency_grid,
+    const AscendingGrid& freq_grid,
     const ArrayOfPropagationPathPoint& ray_path,
-    const AtmField& atmospheric_field,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
-    const Agenda& spectral_radiance_observer_agenda,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const Agenda& spectral_rad_observer_agenda,
     const Stokvec& pol) {
   ARTS_TIME_REPORT
 
-  const auto& ray_path_point = ray_path.front();
+  const auto& ray_point = ray_path.front();
 
   auto& limit = disort_settings.negative_boundary_condition = 0;
 
-  const Index nv = frequency_grid.size();
+  const Index nv = freq_grid.size();
   const Index N  = disort_settings.quadrature_dimension / 2;
 
   ARTS_USER_ERROR_IF(
@@ -385,33 +380,33 @@ void disort_settingsDownwellingObserver(
   Vector W(N);
   Legendre::PositiveDoubleGaussLegendre(mu, W);
 
-  StokvecVector spectral_radiance;
-  StokvecMatrix spectral_radiance_jacobian;
+  StokvecVector spectral_rad;
+  StokvecMatrix spectral_rad_jac;
   ArrayOfPropagationPathPoint ray_path_up;
-  const JacobianTargets jacobian_targets{};
+  const JacobianTargets jac_targets{};
 
   String error{};
 
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
-    firstprivate(spectral_radiance, spectral_radiance_jacobian, ray_path_up)
+    firstprivate(spectral_rad, spectral_rad_jac, ray_path_up)
   for (Index i = 0; i < N; i++) {
     try {
-      spectral_radiance_observer_agendaExecute(
+      spectral_rad_observer_agendaExecute(
           ws,
-          spectral_radiance,
-          spectral_radiance_jacobian,
+          spectral_rad,
+          spectral_rad_jac,
           ray_path_up,
-          frequency_grid,
-          jacobian_targets,
-          ray_path_point.pos,
-          {Conversion::acosd(mu[i]), ray_path_point.azimuth()},
-          atmospheric_field,
-          surface_field,
-          subsurface_field,
-          spectral_radiance_observer_agenda);
+          freq_grid,
+          jac_targets,
+          ray_point.pos,
+          {Conversion::acosd(mu[i]), ray_point.azimuth()},
+          atm_field,
+          surf_field,
+          subsurf_field,
+          spectral_rad_observer_agenda);
 
       for (Index iv = 0; iv < nv; iv++) {
-        limit[iv, 0, i] = dot(spectral_radiance[iv], pol);
+        limit[iv, 0, i] = dot(spectral_rad[iv], pol);
       }
     } catch (std::exception& e) {
 #pragma omp critical
@@ -454,26 +449,26 @@ void disort_settingsNoFractionalScattering(DisortSettings& disort_settings) {
 void disort_settingsOpticalThicknessFromPath(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfPropmatVector& spectral_propmat_path,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   const Index N  = disort_settings.layer_count();
   const Index nv = disort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != ray_path_propagation_matrix.size() or
+  ARTS_USER_ERROR_IF(ray_path.size() != spectral_propmat_path.size() or
                          ray_path.size() != static_cast<Size>(N + 1),
                      "Wrong path size.")
 
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>({nv}, ray_path_propagation_matrix),
+      not all_same_shape<1>({nv}, spectral_propmat_path),
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_propagation_matrix,
+      std::ranges::any_of(spectral_propmat_path,
                           [](const PropmatVector& pms) {
                             return std::ranges::any_of(
                                 pms, Cmp::eq(true), &Propmat::is_polarized);
@@ -503,10 +498,10 @@ ray_path: {:B,}
 
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
-      disort_settings.optical_thicknesses[iv, i] = std::max(
-          r[i] * std::midpoint(ray_path_propagation_matrix[i + 1][iv].A(),
-                               ray_path_propagation_matrix[i + 0][iv].A()),
-          min_optical_depth);
+      disort_settings.optical_thicknesses[iv, i] =
+          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1][iv].A(),
+                                        spectral_propmat_path[i + 0][iv].A()),
+                   min_optical_depth);
       if (i > 0) {
         disort_settings.optical_thicknesses[iv, i] +=
             disort_settings.optical_thicknesses[iv, i - 1];
@@ -516,7 +511,7 @@ ray_path: {:B,}
                            R"(
 Not strictly increasing optical thicknesses between layers.
 
-Check *ray_path_propagation_matrix* contain zeroes or negative values for A().
+Check *spectral_propmat_path* contain zeroes or negative values for A().
 
 Value:                {}
 Frequency grid index: {}
@@ -531,14 +526,14 @@ Frequency grid index: {}
 void disort_settingsSubsurfaceScalarAbsorption(
     DisortSettings& disort_settings,
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfSubsurfacePoint& subsurface_profile,
+    const ArrayOfSubsurfacePoint& subsurf_profile,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   const Index N = disort_settings.layer_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != subsurface_profile.size() or
-                         subsurface_profile.size() != static_cast<Size>(N + 1),
+  ARTS_USER_ERROR_IF(ray_path.size() != subsurf_profile.size() or
+                         subsurf_profile.size() != static_cast<Size>(N + 1),
                      "Wrong path size.")
 
   if (N == 0) return;
@@ -567,15 +562,15 @@ ray_path: {:B,}
   const SubsurfacePropertyTag absorption_tag{"scalar absorption"};
 
   ARTS_USER_ERROR_IF(
-      not stdr::all_of(subsurface_profile, Cmp::contains(absorption_tag)),
+      not stdr::all_of(subsurf_profile, Cmp::contains(absorption_tag)),
       R"(Missing '{}' in some or all of the subsurface profile)",
       absorption_tag);
 
   for (Index i = 0; i < N; i++) {
-    disort_settings.optical_thicknesses[joker, i] = std::max(
-        r[i] * std::midpoint(subsurface_profile[i + 1][absorption_tag],
-                             subsurface_profile[i + 0][absorption_tag]),
-        min_optical_depth);
+    disort_settings.optical_thicknesses[joker, i] =
+        std::max(r[i] * std::midpoint(subsurf_profile[i + 1][absorption_tag],
+                                      subsurf_profile[i + 0][absorption_tag]),
+                 min_optical_depth);
     if (i > 0) {
       disort_settings.optical_thicknesses[joker, i] +=
           disort_settings.optical_thicknesses[joker, i - 1];
@@ -635,7 +630,7 @@ void disort_settingsNoSingleScatteringAlbedo(DisortSettings& disort_settings) {
 
 void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
     DisortSettings& disort_settings,
-    const ArrayOfSubsurfacePoint& subsurface_profile) {
+    const ArrayOfSubsurfacePoint& subsurf_profile) {
   ARTS_TIME_REPORT
 
   const Index N = disort_settings.layer_count();
@@ -644,14 +639,13 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
 
   const SubsurfacePropertyTag ssa_tag{"scalar ssa"};
 
-  ARTS_USER_ERROR_IF(
-      not stdr::all_of(subsurface_profile, Cmp::contains(ssa_tag)),
-      R"(Missing '{}' in some or all of the subsurface profile)",
-      ssa_tag);
+  ARTS_USER_ERROR_IF(not stdr::all_of(subsurf_profile, Cmp::contains(ssa_tag)),
+                     R"(Missing '{}' in some or all of the subsurface profile)",
+                     ssa_tag);
 
   for (Index i = 0; i < N; i++) {
     disort_settings.single_scattering_albedo[joker, i] = std::midpoint(
-        subsurface_profile[i + 1][ssa_tag], subsurface_profile[i + 0][ssa_tag]);
+        subsurf_profile[i + 1][ssa_tag], subsurf_profile[i + 0][ssa_tag]);
   }
 }
 
@@ -661,7 +655,7 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(
 
 void disort_settingsLegendreCoefficientsFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral) try {
+    const ArrayOfSpecmatMatrix& spectral_phamat_spectral_path) try {
   ARTS_TIME_REPORT
 
   const Size N  = disort_settings.layer_count();
@@ -669,19 +663,19 @@ void disort_settingsLegendreCoefficientsFromPath(
   const Index L = disort_settings.legendre_polynomial_dimension;
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_phase_matrix_scattering_spectral.size(),
-      R"(The number of levels in ray_path_phase_matrix_scattering_spectral must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_phamat_spectral_path.size(),
+      R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count() + 1:                         {}
-  ray_path_phase_matrix_scattering_spectral.size(): {}
+  spectral_phamat_spectral_path.size(): {}
 )",
       N,
-      ray_path_phase_matrix_scattering_spectral.size());
+      spectral_phamat_spectral_path.size());
 
   ARTS_USER_ERROR_IF(
       not all_same_shape<2>({static_cast<Index>(F), static_cast<Index>(L)},
-                            ray_path_phase_matrix_scattering_spectral),
-      "The shape of ray_path_phase_matrix_scattering_spectral must be {:B,}, at least one is not",
+                            spectral_phamat_spectral_path),
+      "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
       std::array{F, L});
 
   ARTS_USER_ERROR_IF(
@@ -702,10 +696,8 @@ void disort_settingsLegendreCoefficientsFromPath(
         disort_settings.legendre_coefficients[iv, i, j] =
             invfac[j] *
             std::midpoint(
-                ray_path_phase_matrix_scattering_spectral[i][iv, j][0, 0]
-                    .real(),
-                ray_path_phase_matrix_scattering_spectral[i + 1][iv, j][0, 0]
-                    .real());
+                spectral_phamat_spectral_path[i][iv, j][0, 0].real(),
+                spectral_phamat_spectral_path[i + 1][iv, j][0, 0].real());
       }
     }
   }
@@ -733,49 +725,48 @@ ARTS_METHOD_ERROR_CATCH
 
 void disort_settingsSingleScatteringAlbedoFromPath(
     DisortSettings& disort_settings,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
-    const ArrayOfStokvecVector& ray_path_absorption_vector_scattering) try {
+    const ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfPropmatVector& spectral_propmat_scat_path,
+    const ArrayOfStokvecVector& spectral_absvec_scat_path) try {
   ARTS_TIME_REPORT
 
   const Size N  = disort_settings.layer_count();
   const Index F = disort_settings.frequency_count();
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_propagation_matrix.size(),
-      R"(The number of levels in ray_path_propagation_matrix must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_propmat_path.size(),
+      R"(The number of levels in spectral_propmat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                          {}
-  ray_path_propagation_matrix.size(): {}
+  spectral_propmat_path.size(): {}
 )",
       N,
-      ray_path_propagation_matrix_scattering.size());
+      spectral_propmat_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_propagation_matrix_scattering.size(),
-      R"(The number of levels in ray_path_propagation_matrix_scattering must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_propmat_scat_path.size(),
+      R"(The number of levels in spectral_propmat_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                          {}
-  ray_path_propagation_matrix_scattering.size(): {}
+  spectral_propmat_scat_path.size(): {}
 )",
       N,
-      ray_path_propagation_matrix_scattering.size());
+      spectral_propmat_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      (N + 1) != ray_path_absorption_vector_scattering.size(),
-      R"(The number of levels in ray_path_absorption_vector_scattering must be one more than the number of layers in disort_settings.
+      (N + 1) != spectral_absvec_scat_path.size(),
+      R"(The number of levels in spectral_absvec_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():                         {}
-  ray_path_absorption_vector_scattering.size(): {}
+  spectral_absvec_scat_path.size(): {}
 )",
       N,
-      ray_path_absorption_vector_scattering.size());
+      spectral_absvec_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>({F},
-                            ray_path_absorption_vector_scattering,
-                            ray_path_propagation_matrix_scattering),
-      "The shape of ray_path_propagation_matrix_scattering and ray_path_absorption_vector_scattering must be {:B,}, at least one is not",
+      not all_same_shape<1>(
+          {F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
+      "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
@@ -787,17 +778,13 @@ void disort_settingsSingleScatteringAlbedoFromPath(
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext_upper = ray_path_propagation_matrix[i][iv][0];
-      const Numeric abs_scat_upper =
-          ray_path_absorption_vector_scattering[i][iv][0];
-      const Numeric ext_scat_upper =
-          ray_path_propagation_matrix_scattering[i][iv][0];
+      const Numeric ext_upper      = spectral_propmat_path[i][iv][0];
+      const Numeric abs_scat_upper = spectral_absvec_scat_path[i][iv][0];
+      const Numeric ext_scat_upper = spectral_propmat_scat_path[i][iv][0];
 
-      const Numeric ext_lower = ray_path_propagation_matrix[i + 1][iv][0];
-      const Numeric abs_scat_lower =
-          ray_path_absorption_vector_scattering[i + 1][iv][0];
-      const Numeric ext_scat_lower =
-          ray_path_propagation_matrix_scattering[i + 1][iv][0];
+      const Numeric ext_lower      = spectral_propmat_path[i + 1][iv][0];
+      const Numeric abs_scat_lower = spectral_absvec_scat_path[i + 1][iv][0];
+      const Numeric ext_scat_lower = spectral_propmat_scat_path[i + 1][iv][0];
 
       const Numeric ext      = std::midpoint(ext_upper, ext_lower);
       const Numeric abs_scat = std::midpoint(abs_scat_upper, abs_scat_lower);
@@ -820,19 +807,19 @@ Agenda disort_settings_agendaSetup(
     const disort_settings_agenda_setup_scattering_type& scattering_setting,
     const disort_settings_agenda_setup_space_type& space_setting,
     const disort_settings_agenda_setup_sun_type& sun_setting,
-    const disort_settings_agenda_setup_surface_type& surface_setting,
-    const Vector& surface_lambertian_value,
+    const disort_settings_agenda_setup_surface_type& surf_setting,
+    const Vector& surf_lambertian_value,
     const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
 
-  agenda.add("jacobian_targetsOff");
+  agenda.add("jac_targetsOff");
 
   // Clearsky absorption
-  agenda.add("ray_path_atmospheric_pointFromPath");
-  agenda.add("ray_path_frequency_gridFromPath");
-  agenda.add("ray_path_propagation_matrixFromPath");
+  agenda.add("atm_pathFromPath");
+  agenda.add("freq_grid_pathFromPath");
+  agenda.add("spectral_propmat_pathFromPath");
 
   agenda.add("disort_settingsInit");
 
@@ -840,8 +827,8 @@ Agenda disort_settings_agendaSetup(
     using enum disort_settings_agenda_setup_scattering_type;
     case ScatteringSpecies:
       agenda.add("legendre_degreeFromDisortSettings");
-      agenda.add("ray_path_propagation_matrix_scatteringFromSpectralAgenda");
-      agenda.add("ray_path_propagation_matrixAddScattering");
+      agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
+      agenda.add("spectral_propmat_pathAddScattering");
 
       agenda.add("disort_settingsNoFractionalScattering");
       agenda.add("disort_settingsLegendreCoefficientsFromPath");
@@ -878,27 +865,27 @@ Agenda disort_settings_agendaSetup(
       break;
   }
 
-  switch (surface_setting) {
+  switch (surf_setting) {
     using enum disort_settings_agenda_setup_surface_type;
     case None:
       agenda.add("disort_settingsNoSurfaceEmission");
       agenda.add("disort_settingsNoSurfaceScattering");
       break;
     case Thermal:
-      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("ray_pointLowestFromPath");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");
       agenda.add("disort_settingsNoSurfaceScattering");
       break;
     case ThermalLambertian:
-      agenda.add("ray_path_pointLowestFromPath");
+      agenda.add("ray_pointLowestFromPath");
       agenda.add("disort_settingsSurfaceEmissionByTemperature");
       agenda.add("disort_settingsSurfaceLambertian",
-                 SetWsv{"value", surface_lambertian_value});
+                 SetWsv{"value", surf_lambertian_value});
       break;
     case Lambertian:
       agenda.add("disort_settingsNoSurfaceEmission");
       agenda.add("disort_settingsSurfaceLambertian",
-                 SetWsv{"value", surface_lambertian_value});
+                 SetWsv{"value", surf_lambertian_value});
       break;
   }
 
@@ -906,7 +893,7 @@ Agenda disort_settings_agendaSetup(
     using enum disort_settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
-      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("ray_pointHighestFromPath");
       agenda.add("disort_settingsSetSun");
       break;
   }
@@ -922,10 +909,10 @@ Agenda disort_settings_agendaSubsurfaceSetup(
 
   AgendaCreator agenda("disort_settings_agenda");
 
-  agenda.add("jacobian_targetsOff");
+  agenda.add("jac_targetsOff");
 
   // Clearsky absorption
-  agenda.add("subsurface_profileFromPath");
+  agenda.add("subsurf_profileFromPath");
 
   agenda.add("disort_settingsInit");
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
@@ -944,7 +931,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
     using enum disort_settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
-      agenda.add("ray_path_pointHighestFromPath");
+      agenda.add("ray_pointHighestFromPath");
       agenda.add("disort_settingsSetSun");
       break;
   }
@@ -958,8 +945,8 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
                                  const String& scattering_setting,
                                  const String& space_setting,
                                  const String& sun_setting,
-                                 const String& surface_setting,
-                                 const Vector& surface_lambertian_value,
+                                 const String& surf_setting,
+                                 const Vector& surf_lambertian_value,
                                  const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
@@ -969,8 +956,8 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
       to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
       to<disort_settings_agenda_setup_space_type>(space_setting),
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
-      to<disort_settings_agenda_setup_surface_type>(surface_setting),
-      surface_lambertian_value,
+      to<disort_settings_agenda_setup_surface_type>(surf_setting),
+      surf_lambertian_value,
       min_optical_depth);
 }
 

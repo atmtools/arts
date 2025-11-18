@@ -9,7 +9,7 @@ std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
-  wsa_data["propagation_matrix_agenda"] = {
+  wsa_data["spectral_propmat_agenda"] = {
       .desc =
           R"--(Computes the propagation matrix, the non-LTE source vector, and their derivatives.
 
@@ -17,44 +17,44 @@ The intent of this agenda is to be the workhorse for the propagation matrix
 calculations that are happening deep in your ARTS method calls.
 
 .. tip::
-    Use *propagation_matrix_agendaAuto* after having defined
+    Use *spectral_propmat_agendaAuto* after having defined
     your absorption data to create this agenda.  It covers most use-cases.
 )--",
-      .output       = {"propagation_matrix",
-                       "propagation_matrix_source_vector_nonlte",
-                       "propagation_matrix_jacobian",
-                       "propagation_matrix_source_vector_nonlte_jacobian"},
-      .input        = {"frequency_grid",
-                       "frequency_wind_shift_jacobian",
-                       "jacobian_targets",
+      .output       = {"spectral_propmat",
+                       "spectral_nlte_srcvec",
+                       "spectral_propmat_jac",
+                       "spectral_nlte_srcvec_jac"},
+      .input        = {"freq_grid",
+                       "freq_wind_shift_jac",
+                       "jac_targets",
                        "select_species",
-                       "ray_path_point",
-                       "atmospheric_point"},
+                       "ray_point",
+                       "atm_point"},
       .enum_options = {"Empty"},
       .output_constraints =
           {
-              {"propagation_matrix.size() == frequency_grid.size()",
-               "On output, *propagation_matrix* has the size of *frequency_grid*.",
-               "propagation_matrix.size()",
-               "frequency_grid.size()"},
-              {"propagation_matrix_source_vector_nonlte.size() == frequency_grid.size()",
-               "On output, *propagation_matrix_source_vector_nonlte* has the size of *frequency_grid*.",
-               "propagation_matrix_source_vector_nonlte.size()",
-               "frequency_grid.size()"},
-              {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, propagation_matrix_jacobian)",
-               "On output, *propagation_matrix_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *frequency_grid*.",
-               "propagation_matrix_jacobian.shape()",
-               "frequency_grid.size()",
-               "jacobian_targets.target_count()"},
-              {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, propagation_matrix_source_vector_nonlte_jacobian)",
-               "On output, *propagation_matrix_source_vector_nonlte_jacobian* has the shape of the target-count of *jacobian_targets* times the size of *frequency_grid*.",
-               "propagation_matrix_source_vector_nonlte_jacobian.shape()",
-               "frequency_grid.size()",
-               "jacobian_targets.target_count()"},
+              {"spectral_propmat.size() == freq_grid.size()",
+               "On output, *spectral_propmat* has the size of *freq_grid*.",
+               "spectral_propmat.size()",
+               "freq_grid.size()"},
+              {"spectral_nlte_srcvec.size() == freq_grid.size()",
+               "On output, *spectral_nlte_srcvec* has the size of *freq_grid*.",
+               "spectral_nlte_srcvec.size()",
+               "freq_grid.size()"},
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_propmat_jac)",
+               "On output, *spectral_propmat_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
+               "spectral_propmat_jac.shape()",
+               "freq_grid.size()",
+               "jac_targets.target_count()"},
+              {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_nlte_srcvec_jac)",
+               "On output, *spectral_nlte_srcvec_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
+               "spectral_nlte_srcvec_jac.shape()",
+               "freq_grid.size()",
+               "jac_targets.target_count()"},
           },
   };
 
-  wsa_data["propagation_matrix_single_agenda"] = {
+  wsa_data["single_propmat_agenda"] = {
       .desc =
           R"--(Computes the propagation matrix, the non-LTE source vector, the dispersion, and their derivatives.
 
@@ -63,64 +63,64 @@ calculations that are happening deep in your ARTS method calls.  The methods
 in question here only compute a single frequency point at a time.
 
 If you do not need single-frequency-point calculations, consider using
-*propagation_matrix_agenda* instead as it will likely be more efficient.
+*spectral_propmat_agenda* instead as it will likely be more efficient.
 )--",
-      .output = {"propagation_matrix_single",
-                 "propagation_matrix_single_source_vector_nonlte",
-                 "dispersion_single",
-                 "propagation_matrix_single_jacobian",
-                 "propagation_matrix_single_source_vector_nonlte_jacobian",
-                 "dispersion_single_jacobian"},
-      .input  = {"frequency",
-                 "frequency_wind_shift_jacobian",
-                 "jacobian_targets",
+      .output = {"single_propmat",
+                 "single_nlte_srcvec",
+                 "single_dispersion",
+                 "single_propmat_jac",
+                 "single_nlte_srcvec_jac",
+                 "single_dispersion_jac"},
+      .input  = {"freq",
+                 "freq_wind_shift_jac",
+                 "jac_targets",
                  "select_species",
-                 "ray_path_point",
-                 "atmospheric_point"},
+                 "ray_point",
+                 "atm_point"},
   };
 
-  wsa_data["propagation_matrix_scattering_spectral_agenda"] = {
+  wsa_data["spectral_propmat_scat_spectral_agenda"] = {
       .desc =
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
-      .output = {"propagation_matrix_scattering",
-                 "absorption_vector_scattering",
-                 "phase_matrix_scattering_spectral"},
-      .input  = {"frequency_grid", "atmospheric_point", "legendre_degree"},
+      .output       = {"spectral_propmat_scat",
+                       "spectral_absvec_scat",
+                       "spectral_phamat_spectral"},
+      .input        = {"freq_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
       .output_constraints =
           {
-              {"propagation_matrix_scattering.size() == frequency_grid.size()",
-               "On output, *propagation_matrix_scattering* has the size of *frequency_grid*.",
-               "propagation_matrix_scattering.size()",
-               "frequency_grid.size()"},
-              {"absorption_vector_scattering.size() == frequency_grid.size()",
-               "On output, *absorption_vector_scattering* has the size of *frequency_grid*.",
-               "absorption_vector_scattering.size()",
-               "frequency_grid.size()"},
-              {"matpack::same_shape<2>({frequency_grid.size(), legendre_degree + 1}, phase_matrix_scattering_spectral)",
-               "On output, *phase_matrix_scattering_spectral* has the shape of <*legendre_degree* + 1> times the size of *frequency_grid*.",
-               "phase_matrix_scattering_spectral.shape()",
-               "frequency_grid.size()",
+              {"spectral_propmat_scat.size() == freq_grid.size()",
+               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
+               "spectral_propmat_scat.size()",
+               "freq_grid.size()"},
+              {"spectral_absvec_scat.size() == freq_grid.size()",
+               "On output, *spectral_absvec_scat* has the size of *freq_grid*.",
+               "spectral_absvec_scat.size()",
+               "freq_grid.size()"},
+              {"matpack::same_shape<2>({freq_grid.size(), legendre_degree + 1}, spectral_phamat_spectral)",
+               "On output, *spectral_phamat_spectral* has the shape of <*legendre_degree* + 1> times the size of *freq_grid*.",
+               "spectral_phamat_spectral.shape()",
+               "freq_grid.size()",
                "legendre_degree"},
           },
   };
 
-  wsa_data["propagation_matrix_scattering_agenda"] = {
+  wsa_data["spectral_propmat_scat_agenda"] = {
       .desc =
           R"--(Computes the part of the propagation matrix that relates to scattering.
 )--",
-      .output       = {"propagation_matrix_scattering"},
-      .input        = {"frequency_grid", "atmospheric_point"},
+      .output       = {"spectral_propmat_scat"},
+      .input        = {"freq_grid", "atm_point"},
       .enum_options = {"AirSimple"},
       .enum_default = "AirSimple",
       .output_constraints =
           {
-              {"propagation_matrix_scattering.size() == frequency_grid.size()",
-               "On output, *propagation_matrix_scattering* has the size of *frequency_grid*.",
-               "propagation_matrix_scattering.size()",
-               "frequency_grid.size()"},
+              {"spectral_propmat_scat.size() == freq_grid.size()",
+               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
+               "spectral_propmat_scat.size()",
+               "freq_grid.size()"},
           },
   };
 
@@ -134,17 +134,16 @@ position and line of sight.
     The perhaps easiest way to set this agenda up is to use the *ray_path_observer_agendaSetGeometric* method.
 )--",
       .output = {"ray_path"},
-      .input  = {"spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight"},
+      .input  = {"obs_pos", "obs_los"},
   };
 
-  wsa_data["ray_path_point_back_propagation_agenda"] = {
+  wsa_data["ray_point_back_propagation_agenda"] = {
       .desc =
           R"--(Gets the next past point along a propagation path.
 
 *ray_path* must have a point already.  This point is propagated backwards.
 
-It is up to internal methods if they respect *dispersion_single* or not.
+It is up to internal methods if they respect *single_dispersion* or not.
 
 It is up to internal methods if they respect *max_stepsize* or not.
 
@@ -154,16 +153,16 @@ where the next point may be the same point as the input.
 The end of the path is reached when the last point in *ray_path* is
 at *PathPositionType* ``space`` or ``surface``.
 )--",
-      .output       = {"ray_path_point"},
+      .output       = {"ray_point"},
       .input        = {"ray_path",
-                       "dispersion_single",
-                       "propagation_matrix_single",
+                       "single_dispersion",
+                       "single_propmat",
                        "max_stepsize"},
       .enum_options = {"GeometricStepwise", "RefractiveStepwise"},
       .enum_default = "GeometricStepwise",
   };
 
-  wsa_data["spectral_radiance_observer_agenda"] = {
+  wsa_data["spectral_rad_observer_agenda"] = {
       .desc =
           R"--(Computes spectral radiance as seen from the input position and environment.
 
@@ -171,73 +170,72 @@ The intent of this agenda is to provide the spectral radiance as seen from the o
 position and line of sight.
 
 It also outputs the *ray_path* as seen from the observer position and line of sight.
-This is useful in-case a call to the destructive *spectral_radianceApplyUnitFromSpectralRadiance*
+This is useful in-case a call to the destructive *spectral_radApplyUnitFromSpectralRadiance*
 is warranted.
 )--",
-      .output = {"spectral_radiance", "spectral_radiance_jacobian", "ray_path"},
-      .input  = {"frequency_grid",
-                 "jacobian_targets",
-                 "spectral_radiance_observer_position",
-                 "spectral_radiance_observer_line_of_sight",
-                 "atmospheric_field",
-                 "surface_field",
-                 "subsurface_field"},
+      .output       = {"spectral_rad", "spectral_rad_jac", "ray_path"},
+      .input        = {"freq_grid",
+                       "jac_targets",
+                       "obs_pos",
+                       "obs_los",
+                       "atm_field",
+                       "surf_field",
+                       "subsurf_field"},
       .enum_options = {"Emission", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {
-              {"spectral_radiance.size() == frequency_grid.size()",
-               "On output, *spectral_radiance* has the size of *frequency_grid*.",
-               "spectral_radiance.size()",
-               "frequency_grid.size()"},
-              {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
-               "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
-               "spectral_radiance_jacobian.shape()",
-               "frequency_grid.size()",
-               "jacobian_targets.x_size()"},
+              {"spectral_rad.size() == freq_grid.size()",
+               "On output, *spectral_rad* has the size of *freq_grid*.",
+               "spectral_rad.size()",
+               "freq_grid.size()"},
+              {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+               "spectral_rad_jac.shape()",
+               "freq_grid.size()",
+               "jac_targets.x_size()"},
           },
   };
 
-  wsa_data["single_spectral_radiance_space_agenda"] = {
+  wsa_data["single_rad_space_agenda"] = {
       .desc =
           R"--(Gets spectral radiance as seen of space for a single frequency.
 
-Otherwise same as *spectral_radiance_space_agenda*.
+Otherwise same as *spectral_rad_space_agenda*.
 )--",
-      .output       = {"single_spectral_radiance",
-                       "single_spectral_radiance_jacobian"},
-      .input        = {"frequency", "jacobian_targets", "ray_path_point"},
+      .output       = {"single_rad", "single_rad_jac"},
+      .input        = {"freq", "jac_targets", "ray_point"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
 
-  wsa_data["spectral_radiance_space_agenda"] = {
-      .desc         = R"--(Gets spectral radiance as seen of space.
+  wsa_data["spectral_rad_space_agenda"] = {
+      .desc               = R"--(Gets spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
 One common use-case is to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
 )--",
-      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input        = {"frequency_grid", "jacobian_targets", "ray_path_point"},
-      .enum_options = {"UniformCosmicBackground",
-                       "SunOrCosmicBackground",
-                       "Transmission"},
-      .enum_default = "UniformCosmicBackground",
+      .output             = {"spectral_rad", "spectral_rad_jac"},
+      .input              = {"freq_grid", "jac_targets", "ray_point"},
+      .enum_options       = {"UniformCosmicBackground",
+                             "SunOrCosmicBackground",
+                             "Transmission"},
+      .enum_default       = "UniformCosmicBackground",
       .output_constraints = {
-          {"spectral_radiance.size() == frequency_grid.size()",
-           "On output, *spectral_radiance* has the size of *frequency_grid*.",
-           "spectral_radiance.size()",
-           "frequency_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
-           "spectral_radiance_jacobian.shape()",
-           "frequency_grid.size()",
-           "jacobian_targets.x_size()"},
+          {"spectral_rad.size() == freq_grid.size()",
+           "On output, *spectral_rad* has the size of *freq_grid*.",
+           "spectral_rad.size()",
+           "freq_grid.size()"},
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "spectral_rad_jac.shape()",
+           "freq_grid.size()",
+           "jac_targets.x_size()"},
       }};
 
-  wsa_data["spectral_radiance_surface_agenda"] = {
+  wsa_data["spectral_rad_surface_agenda"] = {
       .desc         = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
@@ -246,42 +244,38 @@ One common use-case us to provide a background spectral radiance.
 The input path point should be as if it is looking at the surface.
 
 Subsurface calculations are also supported through this agenda,
-but might require setting *spectral_radiance_closed_surface_agenda*
+but might require setting *spectral_rad_closed_surface_agenda*
 as well.
 )--",
-      .output       = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input        = {"frequency_grid",
-                       "jacobian_targets",
-                       "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
+      .output       = {"spectral_rad", "spectral_rad_jac"},
+      .input        = {"freq_grid",
+                       "jac_targets",
+                       "ray_point",
+                       "surf_field",
+                       "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
       .output_constraints = {
-          {"spectral_radiance.size() == frequency_grid.size()",
-           "On output, *spectral_radiance* has the size of *frequency_grid*.",
-           "spectral_radiance.size()",
-           "frequency_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.x_size(), frequency_grid.size()}, spectral_radiance_jacobian)",
-           "On output, *spectral_radiance_jacobian* has the shape of the expected *model_state_vector* (i.e., the x-size of *jacobian_targets*) times the size of *frequency_grid*.",
-           "spectral_radiance_jacobian.shape()",
-           "frequency_grid.size()",
-           "jacobian_targets.x_size()"},
+          {"spectral_rad.size() == freq_grid.size()",
+           "On output, *spectral_rad* has the size of *freq_grid*.",
+           "spectral_rad.size()",
+           "freq_grid.size()"},
+          {"matpack::same_shape<2>({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+           "spectral_rad_jac.shape()",
+           "freq_grid.size()",
+           "jac_targets.x_size()"},
       }};
 
-  wsa_data["single_spectral_radiance_surface_agenda"] = {
+  wsa_data["single_rad_surface_agenda"] = {
       .desc =
           R"--(Gets spectral radiance as seen of the surface for a single frequency.
 
-Otherwise same as *spectral_radiance_surface_agenda*.
+Otherwise same as *spectral_rad_surface_agenda*.
 )--",
-      .output       = {"single_spectral_radiance",
-                       "single_spectral_radiance_jacobian"},
-      .input        = {"frequency",
-                       "jacobian_targets",
-                       "ray_path_point",
-                       "surface_field",
-                       "subsurface_field"},
+      .output = {"single_rad", "single_rad_jac"},
+      .input =
+          {"freq", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -292,89 +286,86 @@ Otherwise same as *spectral_radiance_surface_agenda*.
 See *OEM*.
 
 .. note::
-    The output *measurement_jacobian* size may depend on the *do_jacobian* input.
+    The output *measurement_jac* size may depend on the *do_jac* input.
 )--",
-      .output             = {"atmospheric_field",
-                             "absorption_bands",
+      .output             = {"atm_field",
+                             "abs_bands",
                              "measurement_sensor",
-                             "surface_field",
-                             "subsurface_field",
-                             "measurement_vector_fitted",
-                             "measurement_jacobian"},
-      .input              = {"atmospheric_field",
-                             "absorption_bands",
+                             "surf_field",
+                             "subsurf_field",
+                             "measurement_vec_fit",
+                             "measurement_jac"},
+      .input              = {"atm_field",
+                             "abs_bands",
                              "measurement_sensor",
-                             "surface_field",
-                             "subsurface_field",
-                             "jacobian_targets",
-                             "model_state_vector",
-                             "do_jacobian",
+                             "surf_field",
+                             "subsurf_field",
+                             "jac_targets",
+                             "model_state_vec",
+                             "do_jac",
                              "inversion_iterate_agenda_counter"},
       .enum_options       = {"Full"},
       .enum_default       = "Full",
       .output_constraints = {
-          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (measurement_vector_fitted.size() == static_cast<Size>(measurement_jacobian.nrows()))",
+          {"(do_jac == 0 and measurement_jac.size() == 0) or (measurement_vec_fit.size() == static_cast<Size>(measurement_jac.nrows()))",
            "On output, the measurement vector and Jacobian must match expected size.",
-           "measurement_vector_fitted.size()",
-           "measurement_jacobian.nrows()",
-           "do_jacobian == 0"},
-          {"(do_jacobian == 0 and measurement_jacobian.size() == 0) or (model_state_vector.size() == static_cast<Size>(measurement_jacobian.ncols()) and jacobian_targets.x_size() == model_state_vector.size())",
+           "measurement_vec_fit.size()",
+           "measurement_jac.nrows()",
+           "do_jac == 0"},
+          {"(do_jac == 0 and measurement_jac.size() == 0) or (model_state_vec.size() == static_cast<Size>(measurement_jac.ncols()) and jac_targets.x_size() == model_state_vec.size())",
            "On output, the model state vector and Jacobian must match expected size.",
-           "model_state_vector.size()",
-           "measurement_jacobian.ncols()",
-           "jacobian_targets.x_size()",
-           "do_jacobian == 0"},
+           "model_state_vec.size()",
+           "measurement_jac.ncols()",
+           "jac_targets.x_size()",
+           "do_jac == 0"},
       }};
 
   wsa_data["measurement_inversion_agenda"] = {
       .desc =
           R"--(This is a helper *Agenda* intended for use within *inversion_iterate_agenda*.
 
-It outputs the *measurement_vector_fitted* and *measurement_jacobian* for the
-current iteration of the inversion. The *measurement_vector_fitted* is the
+It outputs the *measurement_vec_fit* and *measurement_jac* for the
+current iteration of the inversion. The *measurement_vec_fit* is the
 fitted measurement vector, i.e., the measurement vector that is expected to be
-observed given the current *atmospheric_field*, *absorption_bands*, *measurement_sensor*,
-and *surface_field*.  It does not take these as explicit input but via the Workspace
+observed given the current *atm_field*, *abs_bands*, *measurement_sensor*,
+and *surf_field*.  It does not take these as explicit input but via the Workspace
 mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
 
-What is special about this Agenda is that it enforces that the *measurement_jacobian*
-is empty on output if *do_jacobian* evaluates false.  Do not use this Agenda if you
-do not mind having a non-empty *measurement_jacobian* on output even if *do_jacobian*
+What is special about this Agenda is that it enforces that the *measurement_jac*
+is empty on output if *do_jac* evaluates false.  Do not use this Agenda if you
+do not mind having a non-empty *measurement_jac* on output even if *do_jac*
 evaluates false.  Also do not use this Agenda if you wish to squeeze out performance,
 it does a lot of unnecessary checks and operations that are not always needed.
 )--",
-      .output       = {"measurement_vector_fitted", "measurement_jacobian"},
-      .input        = {"jacobian_targets", "do_jacobian"},
+      .output       = {"measurement_vec_fit", "measurement_jac"},
+      .input        = {"jac_targets", "do_jac"},
       .enum_options = {"Standard"},
       .enum_default = "Standard",
       .output_constraints =
           {
-              {"do_jacobian != static_cast<Index>(measurement_jacobian.size() == 0)",
-               "When *do_jacobian* evaluates as true, the *measurement_jacobian* must be non-empty.",
-               "do_jacobian != 0",
-               "measurement_jacobian.shape()"},
+              {"do_jac != static_cast<Index>(measurement_jac.size() == 0)",
+               "When *do_jac* evaluates as true, the *measurement_jac* must be non-empty.",
+               "do_jac != 0",
+               "measurement_jac.shape()"},
           },
   };
 
-  wsa_data["surface_reflectance_agenda"] = {
+  wsa_data["spectral_surf_refl_agenda"] = {
       .desc         = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output       = {"surface_reflectance", "surface_reflectance_jacobian"},
-      .input        = {"frequency_grid",
-                       "surface_field",
-                       "ray_path_point",
-                       "jacobian_targets"},
+      .output       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input        = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
       .enum_options = {"FlatScalar", "FlatRealFresnel"},
       .output_constraints = {
-          {"surface_reflectance.size() == frequency_grid.size()",
-           "*surface_reflectance* match *frequency_grid* size",
-           "surface_reflectance.size()",
-           "frequency_grid.size()"},
-          {"matpack::same_shape<2>({jacobian_targets.target_count(), frequency_grid.size()}, surface_reflectance_jacobian)",
-           "*surface_reflectance_jacobian* match *jacobian_targets* target count and *frequency_grid* size",
-           "jacobian_targets.target_count()",
-           "frequency_grid.size()",
-           "surface_reflectance_jacobian.shape()"}}};
+          {"spectral_surf_refl.size() == freq_grid.size()",
+           "*spectral_surf_refl* match *freq_grid* size",
+           "spectral_surf_refl.size()",
+           "freq_grid.size()"},
+          {"matpack::same_shape<2>({jac_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
+           "*spectral_surf_refl_jac* match *jac_targets* target count and *freq_grid* size",
+           "jac_targets.target_count()",
+           "freq_grid.size()",
+           "spectral_surf_refl_jac.shape()"}}};
 
   wsa_data["disort_settings_agenda"] = {
       .desc   = R"--(An agenda for setting up Disort.
@@ -385,7 +376,7 @@ The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
       .output = {"disort_settings"},
-      .input  = {"frequency_grid",
+      .input  = {"freq_grid",
                  "ray_path",
                  "disort_quadrature_dimension",
                  "disort_fourier_mode_dimension",
@@ -404,11 +395,11 @@ One use-case is to use this agenda to give downwelling atmospheric radiation
 as a boundary condition to subsurface radiance calculation.
 )--",
       .output = {"disort_settings"},
-      .input  = {"frequency_grid",
+      .input  = {"freq_grid",
                  "ray_path",
-                 "atmospheric_field",
-                 "surface_field",
-                 "subsurface_field",
+                 "atm_field",
+                 "surf_field",
+                 "subsurf_field",
                  "disort_quadrature_dimension",
                  "disort_fourier_mode_dimension",
                  "disort_legendre_polynomial_dimension",
@@ -465,8 +456,7 @@ internal_workspace_agendas() {
 std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
   std::unordered_map<std::string, std::string> out;
 
-  out["spectral_radiance_closed_surface_agenda"] =
-      "spectral_radiance_surface_agenda";
+  out["spectral_rad_closed_surface_agenda"] = "spectral_rad_surface_agenda";
 
   return out;
 }

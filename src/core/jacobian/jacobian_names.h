@@ -1,7 +1,7 @@
 #include <atm.h>
 #include <lbl.h>
 #include <obsel.h>
-#include <subsurface.h>
+#include <subsurf.h>
 #include <surf.h>
 
 #include <functional>

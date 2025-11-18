@@ -21,10 +21,10 @@ class SpectralAtmosphericFlux:
 
     def __init__(
         self,
-        visible_surface_reflectivity: float = 0.3,
-        thermal_surface_reflectivity: float = 0.05,
+        visible_surf_reflectivity: float = 0.3,
+        thermal_surf_reflectivity: float = 0.05,
         atmospheric_altitude: float = 50e3,
-        surface_temperature: float = 300.0,
+        surf_temperature: float = 300.0,
         max_level_step: float = 1e3,
         NQuad: int = 16,
         atm_latitude: float = 0.0,
@@ -40,10 +40,10 @@ class SpectralAtmosphericFlux:
         The operator allows you to change the
 
         Args:
-            visible_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in visible. Defaults to 0.3.
-            thermal_surface_reflectivity (float, optional): The surface reflectivity constant for Disort in thermal. Defaults to 0.05.
+            visible_surf_reflectivity (float, optional): The surface reflectivity constant for Disort in visible. Defaults to 0.3.
+            thermal_surf_reflectivity (float, optional): The surface reflectivity constant for Disort in thermal. Defaults to 0.05.
             atmospheric_altitude (float, optional): The top-of-the-atmosphere altitude [m]. Defaults to 50e3.
-            surface_temperature (float, optional): The surface temperature [K]. Defaults to 300.0.
+            surf_temperature (float, optional): The surface temperature [K]. Defaults to 300.0.
             max_level_step (float, optional): The maximum thickness of layers [m]. Defaults to 1e3.
             NQuad (int, optional): The number of quadratures used by Disort. Defaults to 16.
             atm_latitude (float, optional): Latitude of profile [degrees]. Defaults to 0.0.
@@ -54,8 +54,8 @@ class SpectralAtmosphericFlux:
             remove_lines_percentile (dict | float | None, optional): The percentile of lines to remove [0, 100].  Per species if dict. Defaults to None.
         """
 
-        self.visible_surface_reflectivity = visible_surface_reflectivity
-        self.thermal_surface_reflectivity = thermal_surface_reflectivity
+        self.visible_surf_reflectivity = visible_surf_reflectivity
+        self.thermal_surf_reflectivity = thermal_surf_reflectivity
 
         self.ws = pyarts.Workspace()
 
@@ -63,36 +63,36 @@ class SpectralAtmosphericFlux:
         self.ws.disort_fourier_mode_dimension = 1
         self.ws.disort_legendre_polynomial_dimension = 1
 
-        self.ws.absorption_speciesSet(species=species)
+        self.ws.abs_speciesSet(species=species)
 
         self.ws.ReadCatalogData()
 
-        for band in self.ws.absorption_bands:
-            self.ws.absorption_bands[band].cutoff = "ByLine"
-            self.ws.absorption_bands[band].cutoff_value = 750e9
+        for band in self.ws.abs_bands:
+            self.ws.abs_bands[band].cutoff = "ByLine"
+            self.ws.abs_bands[band].cutoff_value = 750e9
 
         if remove_lines_percentile is not None:
-            self.ws.absorption_bands.keep_hitran_s(remove_lines_percentile)
+            self.ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 
-        self.ws.propagation_matrix_agendaAuto()
+        self.ws.spectral_propmat_agendaAuto()
 
-        self.ws.surface_fieldPlanet(option="Earth")
-        self.ws.surface_field["t"] = surface_temperature
-        self.ws.absorption_bandsSelectFrequencyByLine(fmin=40e9)
+        self.ws.surf_fieldPlanet(option="Earth")
+        self.ws.surf_field["t"] = surf_temperature
+        self.ws.abs_bandsSelectFrequencyByLine(fmin=40e9)
 
-        self.ws.atmospheric_fieldRead(
+        self.ws.atm_fieldRead(
             toa=atmospheric_altitude,
             basename="planets/Earth/afgl/tropical/",
             missing_is_zero=1,
         )
 
         self.ws.ray_pathGeometricDownlooking(
-            latitude=atm_latitude,
-            longitude=atm_longitude,
+            lat=atm_latitude,
+            lon=atm_longitude,
             max_stepsize=max_level_step,
         )
 
-        self.ws.ray_path_atmospheric_pointFromPath()
+        self.ws.atm_pathFromPath()
 
         self.sun = pyarts.arts.GriddedField2.fromxml(
             "star/Sun/solar_spectrum_QUIET.xml"
@@ -116,58 +116,58 @@ class SpectralAtmosphericFlux:
             dict: Atmospheric field dictionary
         """
         return pyarts.arts.stringify_keys(
-            self.ws.ray_path_atmospheric_point.to_dict(
+            self.ws.atm_path.to_dict(
                 core=core, specs=specs, nlte=nlte, ssprops=ssprops, isots=isots
             )
         )
 
     def __call__(
         self,
-        frequency_grid: pyarts.arts.AscendingGrid,
-        atmospheric_profile: dict = {},
-        surface_temperature: float = None,
+        freq_grid: pyarts.arts.AscendingGrid,
+        atm_profile: dict = {},
+        surf_temperature: float = None,
     ):
         """Get the total flux profile
 
         Args:
-            frequency_grid (pyarts3.arts.AscendingGrid): The frequency grid
-            atmospheric_profile (dict, optional): The atmospheric profile. Defaults to {}.
-            surface_temperature (float, optional): The surface temperature. Defaults to None.
+            freq_grid (pyarts3.arts.AscendingGrid): The frequency grid
+            atm_profile (dict, optional): The atmospheric profile. Defaults to {}.
+            surf_temperature (float, optional): The surface temperature. Defaults to None.
 
         Returns:
             Flux, numpy.ndarray: Flux profile and average layer altitudes
         """
 
-        if surface_temperature is not None:
-            self.ws.surface_field["t"] = surface_temperature
+        if surf_temperature is not None:
+            self.ws.surf_field["t"] = surf_temperature
 
-        self.ws.ray_path_atmospheric_point.update(atmospheric_profile)
+        self.ws.atm_path.update(atm_profile)
 
         # Visible
-        self.ws.frequency_grid = frequency_grid
+        self.ws.freq_grid = freq_grid
 
         self.ws.sunFromGrid(
             sun_spectrum_raw=self.sun,
-            latitude=self.solar_latitude,
-            longitude=self.solar_longitude,
+            lat=self.solar_latitude,
+            lon=self.solar_longitude,
         )
 
-        self.ws.ray_path_frequency_gridFromPath()
-        self.ws.ray_path_propagation_matrixFromPath()
+        self.ws.freq_grid_pathFromPath()
+        self.ws.spectral_propmat_pathFromPath()
         self.ws.disort_settingsInit()
         self.ws.disort_settingsOpticalThicknessFromPath()
         self.ws.disort_settingsLayerThermalEmissionLinearInTau()
         self.ws.disort_settingsSurfaceEmissionByTemperature(
-            ray_path_point=self.ws.ray_path[0]
+            ray_point=self.ws.ray_path[0]
         )
         self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
         self.ws.disort_settingsSurfaceLambertian(
-            value=self.visible_surface_reflectivity
+            value=self.visible_surf_reflectivity
         )
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(ray_path_point=self.ws.ray_path[-1])
+        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
         self.ws.disort_spectral_flux_fieldCalc()
 
         # Shape is f x 3 x np, we want 3 x f x np

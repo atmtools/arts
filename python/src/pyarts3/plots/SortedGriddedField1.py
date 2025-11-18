@@ -59,8 +59,8 @@ def plot(
 
     # Get grid and data
     xgrid = data.grids[0]
-    data = data.data
+    y = data.data
 
-    select_flat_ax(ax, 0).plot(xgrid, data, label=data.dataname, **kwargs)
+    select_flat_ax(ax, 0).plot(xgrid, y, label=data.dataname, **kwargs)
 
     return fig, ax

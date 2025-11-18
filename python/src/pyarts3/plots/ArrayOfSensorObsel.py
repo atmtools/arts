@@ -36,7 +36,7 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
 
         ws = pyarts.Workspace()
         ws.measurement_sensorSimpleGaussian(std = 10e6, pos = [100e3, 0, 0], los = [180.0, 0.0],
-                                            frequency_grid = np.linspace(-50e6, 50e6, 101))
+                                            freq_grid = np.linspace(-50e6, 50e6, 101))
         pyarts.plots.ArrayOfSensorObsel.plot(ws.measurement_sensor)
 
     Parameters
@@ -77,8 +77,8 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
         pyarts.arts.SensorKeyType.alt: 0,
         pyarts.arts.SensorKeyType.lat: 1,
         pyarts.arts.SensorKeyType.lon: 2,
-        pyarts.arts.SensorKeyType.za: 3,
-        pyarts.arts.SensorKeyType.aa: 4,
+        pyarts.arts.SensorKeyType.zen: 3,
+        pyarts.arts.SensorKeyType.azi: 4,
     }
 
     for isub in range(N):

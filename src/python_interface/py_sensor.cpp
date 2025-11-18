@@ -65,16 +65,16 @@ void py_sensor(py::module_& m) try {
         using enum SensorKeyType;
 
         switch (x) {
-          case alt: stdr::sort(v, {}, &SensorPosLos::alt); break;
-          case lat: stdr::sort(v, {}, &SensorPosLos::lat); break;
-          case lon: stdr::sort(v, {}, &SensorPosLos::lon); break;
-          case za:  stdr::sort(v, {}, &SensorPosLos::za); break;
-          case aa:  stdr::sort(v, {}, &SensorPosLos::aa); break;
-          case f:   break;
+          case alt:  stdr::sort(v, {}, &SensorPosLos::alt); break;
+          case lat:  stdr::sort(v, {}, &SensorPosLos::lat); break;
+          case lon:  stdr::sort(v, {}, &SensorPosLos::lon); break;
+          case zen:  stdr::sort(v, {}, &SensorPosLos::zen); break;
+          case azi:  stdr::sort(v, {}, &SensorPosLos::azi); break;
+          case freq: break;
         }
 
         if (reverse) {
-          if (f == x) throw std::runtime_error("Cannot reverse frequency");
+          if (freq == x) throw std::runtime_error("Cannot reverse frequency");
           stdr::reverse(v);
         }
       },
@@ -275,7 +275,7 @@ Numeric, Vector, or Matrix
   vector_interface(a1);
 
   a1.def(
-      "unique_frequency_grids",
+      "unique_freq_grids",
       [](const ArrayOfSensorObsel& x) {
         const SensorSimulations simuls = collect_simulations(x);
         std::vector<AscendingGrid> out;
@@ -302,7 +302,7 @@ Numeric, Vector, or Matrix
       "List of the unique poslos grids");
 
   a1.def(
-      "collect_frequency_grids",
+      "collect_freq_grids",
       [](ArrayOfSensorObsel& x) {
         if (x.empty()) return;
 

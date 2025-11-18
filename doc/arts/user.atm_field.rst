@@ -16,9 +16,9 @@ An atmospheric point effectively holds the local state of the atmosphere at a sp
 
 Key notations:
 
-- :class:`~pyarts3.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_field`.
+- :class:`~pyarts3.arts.AtmField`: The atmospheric field. An instance is in this text named: ``atm_field``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atm_field`.
 - :class:`~pyarts3.arts.AtmData`: The atmospheric field data. An instance is in this text named: ``atm_data``.  These do not generally live on the workspace.
-- :class:`~pyarts3.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atmospheric_point`.
+- :class:`~pyarts3.arts.AtmPoint`: The local atmospheric state. An instance is in this text named: ``atm_point``.  An example from the workspace is :attr:`~pyarts3.workspace.Workspace.atm_point`.
 
 .. note::
 
@@ -333,14 +333,14 @@ An example of using :class:`~pyarts3.arts.GeodeticField3` as atmospheric field d
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["t", "O2", "H2O"])
-  subs[0].set_title("Temperature profile")
-  subs[1].set_title("O$_2$ VMR profile")
-  subs[2].set_title("H$_2$O VMR profile")
-  subs[0].set_ylabel("Altitude [m]")
-  subs[0].set_xlabel("Temperature [K]")
-  subs[1].set_xlabel("O$_2$ VMR [-]")
-  subs[2].set_xlabel("H$_2$O VMR [-]")
-  subs[2].set_xscale("log")
+  subs.flatten()[0].set_title("Temperature profile")
+  subs.flatten()[1].set_title("O$_2$ VMR profile")
+  subs.flatten()[2].set_title("H$_2$O VMR profile")
+  subs.flatten()[0].set_ylabel("Altitude [m]")
+  subs.flatten()[0].set_xlabel("Temperature [K]")
+  subs.flatten()[1].set_xlabel("O$_2$ VMR [-]")
+  subs.flatten()[2].set_xlabel("H$_2$O VMR [-]")
+  subs.flatten()[2].set_xscale("log")
   plt.show()
 
 .. tip::
@@ -390,13 +390,13 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
 
   fig = plt.figure(figsize=(14, 8))
   fig, subs = pyarts.plots.AtmField.plot(atm_field, alts=np.linspace(0, 100e3), fig=fig, keys=["O3",'p'])
-  subs[0].set_title("Ozone profile using lambda-expression")
-  subs[0].legend().remove()
-  subs[1].set_title("Pressure profile using python function")
-  subs[0].set_ylabel("Altitude [m]")
-  subs[0].set_xlabel("O$_3$ VMR [-]")
-  subs[1].set_xlabel("Pressure [Pa]")
-  subs[1].set_xscale("log")
+  subs.flatten()[0].set_title("Ozone profile using lambda-expression")
+  subs.flatten()[0].legend().remove()
+  subs.flatten()[1].set_title("Pressure profile using python function")
+  subs.flatten()[0].set_ylabel("Altitude [m]")
+  subs.flatten()[0].set_xlabel("O$_3$ VMR [-]")
+  subs.flatten()[1].set_xlabel("Pressure [Pa]")
+  subs.flatten()[1].set_xscale("log")
   plt.show()
 
 .. tip::
@@ -408,7 +408,7 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
 .. note::
 
   Some workspace methods populate parts of the atmospheric field with :class:`~pyarts3.arts.NumericTernaryOperator` objects.
-  One example is :func:`~pyarts3.workspace.Workspace.atmospheric_fieldIGRF`.
+  One example is :func:`~pyarts3.workspace.Workspace.atm_fieldIGRF`.
   These functions are generally faster than manually created :class:`~pyarts3.arts.NumericTernaryOperator` in python.
   They have 3 advantages: 1) C++ is faster than python, 2) there is no python wrapper overhead for the function call,
   and 3) we can know if these methods are safe for parallel execution, so we do not need to engage the python GIL.

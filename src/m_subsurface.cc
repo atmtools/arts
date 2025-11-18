@@ -5,27 +5,27 @@
 #include <exception>
 #include <ranges>
 
-void subsurface_profileFromPath(ArrayOfSubsurfacePoint& subsurface_profile,
-                                const SubsurfaceField& subsurface_field,
-                                const ArrayOfPropagationPathPoint& ray_path) {
+void subsurf_profileFromPath(ArrayOfSubsurfacePoint& subsurf_profile,
+                             const SubsurfaceField& subsurf_field,
+                             const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   const auto to_vec3 = stdv::transform([](const auto& p) { return p.pos; });
 
   const auto extract = stdv::transform(
-      [&](Vector3 pos) { return subsurface_field.at(pos[0], pos[1], pos[2]); });
+      [&](Vector3 pos) { return subsurf_field.at(pos[0], pos[1], pos[2]); });
 
-  subsurface_profile =
+  subsurf_profile =
       ray_path | to_vec3 | extract | stdr::to<ArrayOfSubsurfacePoint>();
 }
 
 void ray_pathFromPointAndDepth(ArrayOfPropagationPathPoint& ray_path,
-                               const PropagationPathPoint& ray_path_point,
+                               const PropagationPathPoint& ray_point,
                                const DescendingGrid& depth_profile) {
   ARTS_TIME_REPORT
 
-  const auto to_ppp = stdv::transform([ray_path_point](const auto& d) {
-    auto v    = ray_path_point;
+  const auto to_ppp = stdv::transform([ray_point](const auto& d) {
+    auto v    = ray_point;
     v.pos[0] += d;
     return v;
   });
@@ -33,16 +33,16 @@ void ray_pathFromPointAndDepth(ArrayOfPropagationPathPoint& ray_path,
   ray_path = depth_profile | to_ppp | stdr::to<ArrayOfPropagationPathPoint>();
 }
 
-void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
+void spectral_radSubsurfaceDisortEmissionWithJacobian(
     const Workspace& ws,
-    StokvecVector& spectral_radiance,
-    StokvecMatrix& spectral_radiance_jacobian,
-    const AscendingGrid& frequency_grid,
-    const AtmField& atmospheric_field,
-    const SurfaceField& surface_field,
-    const SubsurfaceField& subsurface_field,
-    const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& ray_path_point,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
+    const AscendingGrid& freq_grid,
+    const AtmField& atm_field_,
+    const SurfaceField& surf_field_,
+    const SubsurfaceField& subsurf_field_,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
     const Index& disort_quadrature_dimension,
     const Index& disort_fourier_mode_dimension,
     const Index& disort_legendre_polynomial_dimension,
@@ -52,99 +52,91 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field_.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field_.ellipsoid)
 
-  DisortSettings disort_settings                = {};
-  ArrayOfPropagationPathPoint ray_path          = {};
-  DisortRadiance disort_spectral_radiance_field = {};
-  ZenithGriddedField1 disort_quadrature         = {};
-  Vector model_state_vector                     = {};
-  Vector model_state_vector_perturbation        = {};
-  StokvecVector spectral_radiance2              = {};
-  AtmField atm_field                            = atmospheric_field;
-  SurfaceField surf_field                       = surface_field;
-  SubsurfaceField subsurf_field                 = subsurface_field;
-  const AzimuthGrid azimuth_grid = Vector{ray_path_point.azimuth()};
+  DisortSettings disort_settings           = {};
+  ArrayOfPropagationPathPoint ray_path     = {};
+  DisortRadiance disort_spectral_rad_field = {};
+  ZenGriddedField1 disort_quadrature       = {};
+  Vector model_state_vec                   = {};
+  Vector model_state_vec_perturbation      = {};
+  StokvecVector spectral_rad2              = {};
+  AtmField atm_field                       = atm_field_;
+  SurfaceField surf_field                  = surf_field_;
+  SubsurfaceField subsurf_field            = subsurf_field_;
+  const AziGrid azi_grid                   = Vector{ray_point.azimuth()};
 
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
-                                    frequency_grid.size());
+  spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
 
-  spectral_radianceSubsurfaceDisortEmission(
+  spectral_radSubsurfaceDisortEmission(
       ws,
-      spectral_radiance,
+      spectral_rad,
       disort_settings,
       ray_path,
-      disort_spectral_radiance_field,
+      disort_spectral_rad_field,
       disort_quadrature,
-      atmospheric_field,
+      atm_field,
       disort_fourier_mode_dimension,
       disort_legendre_polynomial_dimension,
       disort_quadrature_dimension,
       disort_settings_agenda,
       disort_settings_downwelling_wrapper_agenda,
-      frequency_grid,
-      ray_path_point,
-      subsurface_field,
-      surface_field,
+      freq_grid,
+      ray_point,
+      subsurf_field,
+      surf_field,
       depth_profile,
-      azimuth_grid);
+      azi_grid);
 
-  model_state_vectorPerturbations(model_state_vector_perturbation,
-                                  jacobian_targets);
-  model_state_vectorInit(model_state_vector, jacobian_targets);
-  model_state_vectorFromAtmosphere(
-      model_state_vector, atmospheric_field, jacobian_targets);
-  model_state_vectorFromSurface(
-      model_state_vector, surface_field, jacobian_targets);
-  model_state_vectorFromSubsurface(
-      model_state_vector, subsurface_field, jacobian_targets);
+  model_state_vecPerturbations(model_state_vec_perturbation, jac_targets);
+  model_state_vecInit(model_state_vec, jac_targets);
+  model_state_vecFromAtmosphere(model_state_vec, atm_field, jac_targets);
+  model_state_vecFromSurface(model_state_vec, surf_field, jac_targets);
+  model_state_vecFromSubsurface(model_state_vec, subsurf_field, jac_targets);
 
   ARTS_USER_ERROR_IF(
-      model_state_vector.size() != jacobian_targets.x_size() or
-          model_state_vector.size() != model_state_vector_perturbation.size(),
+      model_state_vec.size() != jac_targets.x_size() or
+          model_state_vec.size() != model_state_vec_perturbation.size(),
       "Model state vector, model state vector perturbations, "
       "and Jacobian targets size do not match: {} vs {} vs {}",
-      model_state_vector.size(),
-      model_state_vector_perturbation.size(),
-      jacobian_targets.x_size());
+      model_state_vec.size(),
+      model_state_vec_perturbation.size(),
+      jac_targets.x_size());
 
   String error{};
 
 #pragma omp parallel for if (not arts_omp_in_parallel() and             \
                                  static_cast<Size>(                     \
                                          disort_quadrature_dimension) < \
-                                         model_state_vector.size())     \
-    firstprivate(model_state_vector,                                    \
+                                         model_state_vec.size())        \
+    firstprivate(model_state_vec,                                       \
                      atm_field,                                         \
                      surf_field,                                        \
                      subsurf_field,                                     \
                      disort_settings,                                   \
                      ray_path,                                          \
-                     disort_spectral_radiance_field,                    \
+                     disort_spectral_rad_field,                         \
                      disort_quadrature,                                 \
-                     spectral_radiance2)
-  for (Size i = 0; i < model_state_vector.size(); i++) {
+                     spectral_rad2)
+  for (Size i = 0; i < model_state_vec.size(); i++) {
     try {
-      const Numeric orig     = model_state_vector[i];
-      model_state_vector[i] += model_state_vector_perturbation[i];
+      const Numeric orig  = model_state_vec[i];
+      model_state_vec[i] += model_state_vec_perturbation[i];
 
-      surface_fieldFromModelState(
-          surf_field, model_state_vector, jacobian_targets);
-      subsurface_fieldFromModelState(
-          subsurf_field, model_state_vector, jacobian_targets);
-      atmospheric_fieldFromModelState(
-          atm_field, model_state_vector, jacobian_targets);
+      surf_fieldFromModelState(surf_field, model_state_vec, jac_targets);
+      subsurf_fieldFromModelState(subsurf_field, model_state_vec, jac_targets);
+      atm_fieldFromModelState(atm_field, model_state_vec, jac_targets);
 
-      model_state_vector[i] = orig;
+      model_state_vec[i] = orig;
 
-      spectral_radianceSubsurfaceDisortEmission(
+      spectral_radSubsurfaceDisortEmission(
           ws,
-          spectral_radiance2,
+          spectral_rad2,
           disort_settings,
           ray_path,
-          disort_spectral_radiance_field,
+          disort_spectral_rad_field,
           disort_quadrature,
           atm_field,
           disort_fourier_mode_dimension,
@@ -152,18 +144,18 @@ void spectral_radianceSubsurfaceDisortEmissionWithJacobian(
           disort_quadrature_dimension,
           disort_settings_agenda,
           disort_settings_downwelling_wrapper_agenda,
-          frequency_grid,
-          ray_path_point,
+          freq_grid,
+          ray_point,
           subsurf_field,
           surf_field,
           depth_profile,
-          azimuth_grid);
+          azi_grid);
 
-      std::transform(spectral_radiance2.begin(),
-                     spectral_radiance2.end(),
-                     spectral_radiance.begin(),
-                     spectral_radiance_jacobian[i].begin(),
-                     [d = model_state_vector_perturbation[i]](
+      std::transform(spectral_rad2.begin(),
+                     spectral_rad2.end(),
+                     spectral_rad.begin(),
+                     spectral_rad_jac[i].begin(),
+                     [d = model_state_vec_perturbation[i]](
                          const Stokvec& a, const Stokvec& b) -> Stokvec {
                        return (a - b) / d;
                      });

@@ -68,6 +68,7 @@ add_library(workspace_internals STATIC
   workspace_agenda_class_default_constructor.cpp
   workspace_meta_methods.cpp
   workspace_variables_keywords.cpp
+  workspace_variable_shortnames.cpp
   ${ARTS_WORKSPACE_INTERNALS_FILES}
 )
 target_link_libraries(workspace_internals PUBLIC workspace_core artscore scattering)

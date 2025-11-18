@@ -2,7 +2,7 @@
 
 #include <atm.h>
 #include <matpack.h>
-#include <subsurface.h>
+#include <subsurf.h>
 #include <surf.h>
 
 #include "jacobian_names.h"

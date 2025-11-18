@@ -19,18 +19,18 @@ You can call workspace methods with named or positional arguments or any
 combination thereof that python accepts
 """
 # 1)  Name some arguments
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
 # 2)  Name some arguments, use positional for the others
-ws.spectral_radiance_space_agendaSet(
-    ws.spectral_radiance_space_agenda,
+ws.spectral_rad_space_agendaSet(
+    ws.spectral_rad_space_agenda,
     option="UniformCosmicBackground",
 )
 # 3)  Name all arguments
-ws.spectral_radiance_space_agendaSet(
-    spectral_radiance_space_agenda=ws.spectral_radiance_space_agenda,
+ws.spectral_rad_space_agendaSet(
+    spectral_rad_space_agenda=ws.spectral_rad_space_agenda,
     option="UniformCosmicBackground",
 )
 # 4)  Use all positional arguments
-ws.spectral_radiance_space_agendaSet(
-    ws.spectral_radiance_space_agenda, "UniformCosmicBackground"
+ws.spectral_rad_space_agendaSet(
+    ws.spectral_rad_space_agenda, "UniformCosmicBackground"
 )

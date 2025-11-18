@@ -11,41 +11,41 @@ NQuad = 40
 ws = pyarts.Workspace()
 
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
-ws.frequency_grid = np.linspace(-20e9, 2e6, 101) + line_f0
+ws.freq_grid = [line_f0]
+ws.freq_grid = np.linspace(-20e9, 2e6, 101) + line_f0
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_rad_surface_agendaSet(option="Blackbody")
 
 # %% Core Disort calculations
 
-ws.propagation_matrix_scattering_spectral_agendaSet(option="FromSpeciesTRO")
+ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
 ws.disort_settings_agendaSetup()
 
-ws.disort_spectral_radiance_fieldProfile(
-    longitude=lon,
-    latitude=lat,
+ws.disort_spectral_rad_fieldProfile(
+    lon=lon,
+    lat=lat,
     disort_quadrature_dimension=NQuad,
     disort_legendre_polynomial_dimension=1,
     disort_fourier_mode_dimension=1,
@@ -54,26 +54,26 @@ ws.disort_spectral_radiance_fieldProfile(
 # %% Equivalent ARTS calculations
 
 ws.ray_pathGeometricDownlooking(
-    latitude=lat,
-    longitude=lon,
+    lat=lat,
+    lon=lon,
     max_stepsize=1000.0,
 )
-ws.spectral_radianceClearskyEmission()
+ws.spectral_radClearskyEmission()
 
 # %% Plot results
-f = (ws.frequency_grid - line_f0) / 1e9
+f = (ws.freq_grid - line_f0) / 1e9
 
 plt.figure()
-plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+plt.semilogy(f, ws.spectral_rad[:, 0], "k--", lw=3)
 plt.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
+    ws.disort_spectral_rad_field.data[:, 0, 0, (NQuad // 2) - 1],
     "g:",
     lw=3,
 )
 plt.semilogy(
     f,
-    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
+    ws.disort_spectral_rad_field.data[:, 0, 0, 0],
     "m:",
     lw=3,
 )
@@ -96,41 +96,40 @@ for manual in [False, True]:
                 )
 
                 if manual:
-                    ws.scattering_species = [hspec]
+                    ws.scat_species = [hspec]
                 else:
                     def python_func(atm, f, index):
                         return hspec.get_bulk_scattering_properties_tro_spectral(
                             atm, f, index
                         )
 
-                    ws.scattering_species = [
+                    ws.scat_species = [
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 
-                
                 ws.disort_settings_agendaSetup(
                     scattering_setting="ScatteringSpecies",
                 )
 
-                ws.disort_spectral_radiance_fieldProfile(
-                    longitude=lon,
-                    latitude=lat,
+                ws.disort_spectral_rad_fieldProfile(
+                    lon=lon,
+                    lat=lat,
                     disort_quadrature_dimension=NQuad,
                     disort_legendre_polynomial_dimension=1,
                     disort_fourier_mode_dimension=1,
                 )
 
                 plt.figure()
-                plt.semilogy(f, ws.spectral_radiance[:, 0], "k--", lw=3)
+                plt.semilogy(f, ws.spectral_rad[:, 0], "k--", lw=3)
                 plt.semilogy(
                     f,
-                    ws.disort_spectral_radiance_field.data[:, 0, 0, (NQuad // 2) - 1],
+                    ws.disort_spectral_rad_field.data[:, 0, 0, (NQuad // 2) - 1],
                     "g:",
                     lw=3,
                 )
                 plt.semilogy(
                     f,
-                    ws.disort_spectral_radiance_field.data[:, 0, 0, 0],
+                    ws.disort_spectral_rad_field.data[:, 0, 0, 0],
                     "m:",
                     lw=3,
                 )

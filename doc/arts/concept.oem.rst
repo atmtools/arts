@@ -12,10 +12,10 @@ He formulates the core expression of a measurement as
   \vec{y} = F\left(\vec{x}\right) + \epsilon,
 
 where :math:`\vec{y}` is a measurement vector
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_vector`
+(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_vec`
 in the ARTS workspace),
 :math:`\vec{x}` is the state of the model
-(i.e., :attr:`~pyarts3.workspace.Workspace.model_state_vector`
+(i.e., :attr:`~pyarts3.workspace.Workspace.model_state_vec`
 in the ARTS workspace),
 :math:`F` is the model (i.e., ARTS itself), and
 :math:`\epsilon` is some measurement error that cannot
@@ -64,7 +64,7 @@ where we can take the partial derivative to find that
   \mathbf{J} = \frac{\partial \vec{y}}{\partial \vec{x}}
 
 is the Jacobian matrix
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jacobian`
+(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jac`
 in the ARTS workspace).
 
 One approach to minimize :math:`\vec{x}` is to

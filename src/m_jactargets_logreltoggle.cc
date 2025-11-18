@@ -3,13 +3,12 @@
 #include <workspace.h>
 
 namespace {
-void jacobian_targetsToggleLogRelAtmTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const AtmKeyVal& key) {
+void jac_targetsToggleLogRelAtmTargetImpl(JacobianTargets& jac_targets,
+                                          const AtmField& f,
+                                          const AtmKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.atm) {
+  for (auto& t : jac_targets.atm) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -24,13 +23,12 @@ void jacobian_targetsToggleLogRelAtmTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleLogRelSurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKeyVal& key) {
+void jac_targetsToggleLogRelSurfaceTargetImpl(JacobianTargets& jac_targets,
+                                              const SurfaceField& f,
+                                              const SurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.surf) {
+  for (auto& t : jac_targets.surf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -45,13 +43,12 @@ void jacobian_targetsToggleLogRelSurfaceTargetImpl(
   ARTS_USER_ERROR("Could not find target {}", key)
 }
 
-void jacobian_targetsToggleLogRelSubsurfaceTargetImpl(
-    JacobianTargets& jacobian_targets,
-    const SubsurfaceField& f,
-    const SubsurfaceKeyVal& key) {
+void jac_targetsToggleLogRelSubsurfaceTargetImpl(JacobianTargets& jac_targets,
+                                                 const SubsurfaceField& f,
+                                                 const SubsurfaceKeyVal& key) {
   ARTS_TIME_REPORT
 
-  for (auto& t : jacobian_targets.subsurf) {
+  for (auto& t : jac_targets.subsurf) {
     if (t.type == key) {
       if (t.inverse_jacobian.target<logrelinv>() != nullptr) {
         t.inverse_jacobian = {};
@@ -69,58 +66,54 @@ void jacobian_targetsToggleLogRelSubsurfaceTargetImpl(
 
 // Atm
 
-void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
-                                           const AtmField& f,
-                                           const AtmKey& key) {
-  jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets,
+                                      const AtmField& f,
+                                      const AtmKey& key) {
+  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
-                                           const AtmField& f,
-                                           const SpeciesEnum& key) {
-  jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets,
+                                      const AtmField& f,
+                                      const SpeciesEnum& key) {
+  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
-                                           const AtmField& f,
-                                           const SpeciesIsotope& key) {
-  jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets,
+                                      const AtmField& f,
+                                      const SpeciesIsotope& key) {
+  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogRelAtmTarget(JacobianTargets& jacobian_targets,
-                                           const AtmField& f,
-                                           const QuantumLevelIdentifier& key) {
-  jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets,
+                                      const AtmField& f,
+                                      const QuantumLevelIdentifier& key) {
+  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogRelAtmTarget(
-    JacobianTargets& jacobian_targets,
-    const AtmField& f,
-    const ScatteringSpeciesProperty& key) {
-  jacobian_targetsToggleLogRelAtmTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets,
+                                      const AtmField& f,
+                                      const ScatteringSpeciesProperty& key) {
+  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
 }
 
 // Surface
 
-void jacobian_targetsToggleLogRelSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfaceKey& key) {
-  jacobian_targetsToggleLogRelSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelSurfaceTarget(JacobianTargets& jac_targets,
+                                          const SurfaceField& f,
+                                          const SurfaceKey& key) {
+  jac_targetsToggleLogRelSurfaceTargetImpl(jac_targets, f, key);
 }
 
-void jacobian_targetsToggleLogRelSurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SurfaceField& f,
-    const SurfacePropertyTag& key) {
-  jacobian_targetsToggleLogRelSurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelSurfaceTarget(JacobianTargets& jac_targets,
+                                          const SurfaceField& f,
+                                          const SurfacePropertyTag& key) {
+  jac_targetsToggleLogRelSurfaceTargetImpl(jac_targets, f, key);
 }
 
 // Subsurface
 
-void jacobian_targetsToggleLogRelSubsurfaceTarget(
-    JacobianTargets& jacobian_targets,
-    const SubsurfaceField& f,
-    const SubsurfaceKey& key) {
-  jacobian_targetsToggleLogRelSubsurfaceTargetImpl(jacobian_targets, f, key);
+void jac_targetsToggleLogRelSubsurfaceTarget(JacobianTargets& jac_targets,
+                                             const SubsurfaceField& f,
+                                             const SubsurfaceKey& key) {
+  jac_targetsToggleLogRelSubsurfaceTargetImpl(jac_targets, f, key);
 }

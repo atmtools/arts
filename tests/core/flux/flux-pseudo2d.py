@@ -6,32 +6,32 @@ ws = pyarts.workspace.Workspace()
 # %% Sampled frequency range
 
 line_f0 = 118750348044.712
-ws.frequency_grid = [line_f0]
+ws.freq_grid = [line_f0]
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
 
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Settings
 
-ws.atmospheric_profileFromGrid()
-ws.zenith_gridProfilePseudo2D(dza=5)
-ws.spectral_radiance_fieldProfilePseudo2D()
+ws.atm_profileFromGrid()
+ws.zen_gridProfilePseudo2D(dzen=5)
+ws.spectral_rad_fieldProfilePseudo2D()
 ws.spectral_flux_profileFromSpectralRadianceField()
 
 assert np.allclose(

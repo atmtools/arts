@@ -6,13 +6,13 @@ ws = pyarts.Workspace()
 
 ws.disort_settings_agendaSubsurfaceSetup()
 
-ws.frequency_grid = [100e9]
+ws.freq_grid = [100e9]
 
-ws.ray_path_point.pos = [0, 0, 0]
-ws.ray_path_point.los = [0, 0]
+ws.ray_point.pos = [0, 0, 0]
+ws.ray_point.los = [0, 0]
 
-ws.surface_fieldEarth()
-ws.surface_field['t'] = 100
+ws.surf_fieldEarth()
+ws.surf_field['t'] = 100
 
 z = np.linspace(0, -30, 101)
 tf = pyarts.arts.GeodeticField3(
@@ -21,30 +21,30 @@ tf = pyarts.arts.GeodeticField3(
     data=np.linspace(200, 400, len(z)).reshape(len(z), 1, 1)
 )
 
-ws.subsurface_field.bottom_depth = min(z)
-ws.subsurface_field['scalar absorption'] = .5
-ws.subsurface_field['scalar ssa'] = .9
-ws.subsurface_field["t"] = tf
-ws.subsurface_field["t"].alt_low = "Linear"
-ws.subsurface_field["t"].alt_upp = "Linear"
+ws.subsurf_field.bottom_depth = min(z)
+ws.subsurf_field['scalar absorption'] = .5
+ws.subsurf_field['scalar ssa'] = .9
+ws.subsurf_field["t"] = tf
+ws.subsurf_field["t"].alt_low = "Linear"
+ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
-ws.disort_spectral_radiance_fieldDepthProfile(
+ws.disort_spectral_rad_fieldDepthProfile(
     disort_fourier_mode_dimension=1,
     disort_legendre_polynomial_dimension=1,
     disort_quadrature_dimension=NQUAD,
     depth_profile=z
 )
 
-ws.spectral_radiance_transform_operatorSet(option="Tb")
-ws.disort_spectral_radiance_fieldApplyUnit()
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.disort_spectral_rad_fieldApplyUnit()
 
 zas = np.linspace(0, 180, 361)
 data = []
 for za in zas:
-    ws.ray_path_point.los = [za, 0]
-    ws.spectral_radianceFromDisort()
-    data.append(ws.spectral_radiance[0, 0])
+    ws.ray_point.los = [za, 0]
+    ws.spectral_radFromDisort()
+    data.append(ws.spectral_rad[0, 0])
 data = np.array(data)
 plt.plot(zas, data)
 

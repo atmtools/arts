@@ -1,17 +1,22 @@
 import numpy as np
 import pyarts3 as pyarts
 
+
 def not_owns_data(nd):
-  assert not nd.flags["OWNDATA"]
+    assert not nd.flags["OWNDATA"]
+
 
 def owns_data(nd):
-  assert nd.flags["OWNDATA"]
+    assert nd.flags["OWNDATA"]
+
 
 def writable(nd):
-  assert nd.flags["WRITEABLE"]
+    assert nd.flags["WRITEABLE"]
+
 
 def not_writable(nd):
-  assert not nd.flags["WRITEABLE"]
+    assert not nd.flags["WRITEABLE"]
+
 
 ts = [pyarts.arts.Vector,
       pyarts.arts.Matrix,
@@ -22,23 +27,23 @@ ts = [pyarts.arts.Vector,
       pyarts.arts.Tensor7]
 
 for i in range(7):
-  v = ts[i](np.linspace(0, 1, 2**(i+1)).reshape(*([2] * (i + 1))))
+    v = ts[i](np.linspace(0, 1, 2**(i+1)).reshape(*([2] * (i + 1))))
 
-  a = np.array(v)
-  b = np.array(v, copy=False)
-  c = np.array(v, copy=False, dtype=float)
-  d = np.array(v, copy=True)
-  e = np.array(v, copy=True, dtype=float)
+    a = np.array(v)
+    b = np.array(v, copy=False)
+    c = np.array(v, copy=False, dtype=float)
+    d = np.array(v, copy=True)
+    e = np.array(v, copy=True, dtype=float)
 
-  try:
-    f = np.array(v, copy=False, dtype=int)
-    exit(1)
-  except ValueError:
-    pass
+    try:
+        f = np.array(v, copy=False, dtype=int)
+        exit(1)
+    except ValueError:
+        pass
 
-  test1 = [owns_data(x) for x in [a, d, e]]
-  test2 = [not_owns_data(x) for x in [b, c]]
-  test3 = [writable(x) for x in [a, b, c, d, e]]
+    test1 = [owns_data(x) for x in [a, d, e]]
+    test2 = [not_owns_data(x) for x in [b, c]]
+    test3 = [writable(x) for x in [a, b, c, d, e]]
 
 v = pyarts.arts.StokvecMatrix([[1, 2, 3], [4, 5, 6]])
 
@@ -49,10 +54,10 @@ d = np.array(v, copy=True)
 e = np.array(v, copy=True, dtype=float)
 
 try:
-  f = np.array(v, copy=False, dtype=int)
-  exit(1)
+    f = np.array(v, copy=False, dtype=int)
+    exit(1)
 except ValueError:
-  pass
+    pass
 
 test1 = [owns_data(x) for x in [a, d, e]]
 test2 = [not_owns_data(x) for x in [b, c]]
@@ -67,10 +72,10 @@ d = np.array(v, copy=True)
 e = np.array(v, copy=True, dtype=float)
 
 try:
-  f = np.array(v, copy=False, dtype=int)
-  exit(1)
+    f = np.array(v, copy=False, dtype=int)
+    exit(1)
 except ValueError:
-  pass
+    pass
 
 test1 = [owns_data(x) for x in [a, d, e]]
 test2 = [not_owns_data(x) for x in [b, c]]
@@ -80,25 +85,25 @@ test4 = [not_writable(x) for x in [b, c]]
 ts = [pyarts.arts.AscendingGrid,
       pyarts.arts.LatGrid,
       pyarts.arts.LonGrid,
-      pyarts.arts.ZenithGrid,
-      pyarts.arts.AzimuthGrid]
+      pyarts.arts.ZenGrid,
+      pyarts.arts.AziGrid]
 
 for t in ts:
-  v = t([1, 2, 3])
+    v = t([1, 2, 3])
 
-  a = np.array(v)
-  b = np.array(v, copy=False)
-  c = np.array(v, copy=False, dtype=float)
-  d = np.array(v, copy=True)
-  e = np.array(v, copy=True, dtype=float)
+    a = np.array(v)
+    b = np.array(v, copy=False)
+    c = np.array(v, copy=False, dtype=float)
+    d = np.array(v, copy=True)
+    e = np.array(v, copy=True, dtype=float)
 
-  try:
-    f = np.array(v, copy=False, dtype=int)
-    exit(1)
-  except ValueError:
-    pass
+    try:
+        f = np.array(v, copy=False, dtype=int)
+        exit(1)
+    except ValueError:
+        pass
 
-  test1 = [owns_data(x) for x in [a, d, e]]
-  test2 = [not_owns_data(x) for x in [b, c]]
-  test3 = [writable(x) for x in [a, d, e]]
-  test4 = [not_writable(x) for x in [b, c]]
+    test1 = [owns_data(x) for x in [a, d, e]]
+    test2 = [not_owns_data(x) for x in [b, c]]
+    test3 = [writable(x) for x in [a, d, e]]
+    test4 = [not_writable(x) for x in [b, c]]

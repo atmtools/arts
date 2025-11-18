@@ -143,10 +143,10 @@ using LonGrid = matpack::ranged_grid_t<Ascending, -180.0, 180.0, true, false>;
 using LatGrid = matpack::ranged_grid_t<Ascending, -90.0, 90.0, true, true>;
 
 //! Guaranteed [0, 180]
-using ZenithGrid = matpack::ranged_grid_t<Ascending, 0.0, 180.0, true, true>;
+using ZenGrid = matpack::ranged_grid_t<Ascending, 0.0, 180.0, true, true>;
 
 //! Guaranteed [0, 360)
-using AzimuthGrid = matpack::ranged_grid_t<Ascending, 0.0, 360.0, true, false>;
+using AziGrid = matpack::ranged_grid_t<Ascending, 0.0, 360.0, true, false>;
 
 template <>
 struct xml_io_stream_name<LonGrid> {
@@ -159,13 +159,13 @@ struct xml_io_stream_name<LatGrid> {
 };
 
 template <>
-struct xml_io_stream_name<ZenithGrid> {
-  static constexpr std::string_view name = "ZenithGrid"sv;
+struct xml_io_stream_name<ZenGrid> {
+  static constexpr std::string_view name = "ZenGrid"sv;
 };
 
 template <>
-struct xml_io_stream_name<AzimuthGrid> {
-  static constexpr std::string_view name = "AzimuthGrid"sv;
+struct xml_io_stream_name<AziGrid> {
+  static constexpr std::string_view name = "AziGrid"sv;
 };
 
 template <matpack::sorting_t Compare,

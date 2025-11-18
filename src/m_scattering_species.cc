@@ -11,38 +11,36 @@ void legendre_degreeFromDisortSettings(Index& legendre_degree,
                      legendre_degree)
 }
 
-void scattering_speciesInit(ArrayOfScatteringSpecies& scattering_species) {
+void scat_speciesInit(ArrayOfScatteringSpecies& scattering_species) {
   scattering_species = ArrayOfScatteringSpecies{};
 }
 
-void propagation_matrix_scatteringSpectralInit(
-    PropmatVector& propagation_matrix_scattering,
-    StokvecVector& absorption_vector_scattering,
-    SpecmatMatrix& phase_matrix_scattering_spectral,
-    const AscendingGrid& frequency_grid,
-    const Index& legendre_degree) {
+void spectral_propmat_scatSpectralInit(PropmatVector& spectral_propmat_scat,
+                                       StokvecVector& spectral_absvec_scat,
+                                       SpecmatMatrix& spectral_phamat_spectral,
+                                       const AscendingGrid& freq_grid,
+                                       const Index& legendre_degree) {
   ARTS_USER_ERROR_IF(legendre_degree < 0,
                      "The legendre_degree must be non-negative, is {}",
                      legendre_degree)
 
-  propagation_matrix_scattering.resize(frequency_grid.size());
-  absorption_vector_scattering.resize(frequency_grid.size());
-  phase_matrix_scattering_spectral.resize(frequency_grid.size(),
-                                          legendre_degree + 1);
+  spectral_propmat_scat.resize(freq_grid.size());
+  spectral_absvec_scat.resize(freq_grid.size());
+  spectral_phamat_spectral.resize(freq_grid.size(), legendre_degree + 1);
 
-  propagation_matrix_scattering    = 0.0;
-  absorption_vector_scattering     = 0.0;
-  phase_matrix_scattering_spectral = Complex{0.0};
+  spectral_propmat_scat    = 0.0;
+  spectral_absvec_scat     = 0.0;
+  spectral_phamat_spectral = Complex{0.0};
 }
 
-void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
-    PropmatVector& propagation_matrix_scattering,
-    StokvecVector& absorption_vector_scattering,
-    SpecmatMatrix& phase_matrix_scattering_spectral,
-    const AscendingGrid& frequency_grid,
-    const AtmPoint& atmospheric_point,
+void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(
+    PropmatVector& spectral_propmat_scat,
+    StokvecVector& spectral_absvec_scat,
+    SpecmatMatrix& spectral_phamat_spectral,
+    const AscendingGrid& freq_grid,
+    const AtmPoint& atm_point,
     const ArrayOfScatteringSpecies& scattering_species) try {
-  const Index L = phase_matrix_scattering_spectral.ncols();
+  const Index L = spectral_phamat_spectral.ncols();
 
   ARTS_USER_ERROR_IF(L < 1, "Need at least one Legendre coefficient")
   ARTS_USER_ERROR_IF(scattering_species.species.empty(),
@@ -50,118 +48,118 @@ void propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO(
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(
-          atmospheric_point, frequency_grid, L - 1);
+          atm_point, freq_grid, L - 1);
 
   ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(), "No phase matrix")
 
   const auto& phase_matrix = phase_matrix_opt.value();
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>(phase_matrix, phase_matrix_scattering_spectral) or
+      not same_shape<2>(phase_matrix, spectral_phamat_spectral) or
           not same_shape<1>(extinction_matrix,
                             absorption_vector,
-                            propagation_matrix_scattering,
-                            absorption_vector_scattering),
+                            spectral_propmat_scat,
+                            spectral_absvec_scat),
       R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
 Phase matrix shape (must match):
   phase_matrix.shape(): [OUTPUT]            {0:B,}
-  phase_matrix_scattering_spectral.shape(): {1:B,}
+  spectral_phamat_spectral.shape(): {1:B,}
 
 Extinction matrix shape (must match):
   extinction_matrix.shape(): [OUTPUT]       {2:B,}
-  propagation_matrix_scattering.shape():    {3:B,}
+  spectral_propmat_scat.shape():    {3:B,}
 
 Absorption vector shape (must match):
   absorption_vector.shape(): [OUTPUT]       {4:B,}
-  absorption_vector_scattering.shape():     {5:B,}
+  spectral_absvec_scat.shape():     {5:B,}
 
 Supporting variable sizes:
-  frequency_grid.size():                    {6}
+  freq_grid.size():                    {6}
   scattering_species.size():                {7}
 )",
       phase_matrix.shape(),
-      phase_matrix_scattering_spectral.shape(),
+      spectral_phamat_spectral.shape(),
       extinction_matrix.shape(),
-      propagation_matrix_scattering.shape(),
+      spectral_propmat_scat.shape(),
       absorption_vector.shape(),
-      absorption_vector_scattering.shape(),
-      frequency_grid.size(),
+      spectral_absvec_scat.shape(),
+      freq_grid.size(),
       scattering_species.species.size())
 
-  propagation_matrix_scattering    += extinction_matrix;
-  phase_matrix_scattering_spectral += phase_matrix;
-  absorption_vector_scattering     += absorption_vector;
+  spectral_propmat_scat    += extinction_matrix;
+  spectral_phamat_spectral += phase_matrix;
+  spectral_absvec_scat     += absorption_vector;
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_propagation_matrixAddScattering(
-    ArrayOfPropmatVector& ray_path_propagation_matrix,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering) try {
-  const Size N = ray_path_propagation_matrix.size();
+void spectral_propmat_pathAddScattering(
+    ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfPropmatVector& spectral_propmat_scat_path) try {
+  const Size N = spectral_propmat_path.size();
 
   ARTS_USER_ERROR_IF(
-      N != ray_path_propagation_matrix_scattering.size(),
-      R"(The size of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering must be the same.
-  ray_path_propagation_matrix.size():            {}
-  ray_path_propagation_matrix_scattering.size(): {}
+      N != spectral_propmat_scat_path.size(),
+      R"(The size of spectral_propmat_path and spectral_propmat_scat_path must be the same.
+  spectral_propmat_path.size():            {}
+  spectral_propmat_scat_path.size(): {}
 )",
-      ray_path_propagation_matrix.size(),
-      ray_path_propagation_matrix_scattering.size());
+      spectral_propmat_path.size(),
+      spectral_propmat_scat_path.size());
 
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(ray_path_propagation_matrix.front().shape(),
-                            ray_path_propagation_matrix,
-                            ray_path_propagation_matrix_scattering),
-      "The inner shapes of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering must be the same (first elem shape: {:B,}).",
-      ray_path_propagation_matrix.front().shape())
+      not all_same_shape<1>(spectral_propmat_path.front().shape(),
+                            spectral_propmat_path,
+                            spectral_propmat_scat_path),
+      "The inner shapes of spectral_propmat_path and spectral_propmat_scat_path must be the same (first elem shape: {:B,}).",
+      spectral_propmat_path.front().shape())
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size i = 0; i < ray_path_propagation_matrix.size(); i++) {
-    ray_path_propagation_matrix[i] += ray_path_propagation_matrix_scattering[i];
+  for (Size i = 0; i < spectral_propmat_path.size(); i++) {
+    spectral_propmat_path[i] += spectral_propmat_scat_path[i];
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_propagation_matrix_scatteringFromSpectralAgenda(
+void spectral_propmat_scat_pathFromSpectralAgenda(
     const Workspace& ws,
-    ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
-    ArrayOfStokvecVector& ray_path_absorption_vector_scattering,
-    ArrayOfSpecmatMatrix& ray_path_phase_matrix_scattering_spectral,
-    const ArrayOfAscendingGrid& ray_path_frequency_grid,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    ArrayOfPropmatVector& spectral_propmat_scat_path,
+    ArrayOfStokvecVector& spectral_absvec_scat_path,
+    ArrayOfSpecmatMatrix& spectral_phamat_spectral_path,
+    const ArrayOfAscendingGrid& freq_grid_path,
+    const ArrayOfAtmPoint& atm_path,
     const Index& legendre_degree,
-    const Agenda& propagation_matrix_scattering_spectral_agenda) try {
-  const Size N = ray_path_frequency_grid.size();
+    const Agenda& spectral_propmat_scat_spectral_agenda) try {
+  const Size N = freq_grid_path.size();
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(ray_path_frequency_grid, ray_path_atmospheric_point),
-      R"(The size of ray_path_frequency_grid and ray_path_atmospheric_point must be the same.
-  ray_path_frequency_grid.size():    {}
-  ray_path_atmospheric_point.size(): {}
+      not arr::same_size(freq_grid_path, atm_path),
+      R"(The size of freq_grid_path and atm_path must be the same.
+  freq_grid_path.size():    {}
+  atm_path.size(): {}
 )",
-      ray_path_frequency_grid.size(),
-      ray_path_atmospheric_point.size());
+      freq_grid_path.size(),
+      atm_path.size());
 
-  ray_path_propagation_matrix_scattering.resize(N);
-  ray_path_absorption_vector_scattering.resize(N);
-  ray_path_phase_matrix_scattering_spectral.resize(N);
+  spectral_propmat_scat_path.resize(N);
+  spectral_absvec_scat_path.resize(N);
+  spectral_phamat_spectral_path.resize(N);
 
   std::string error{};
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < N; i++) {
     try {
-      propagation_matrix_scattering_spectral_agendaExecute(
+      spectral_propmat_scat_spectral_agendaExecute(
           ws,
-          ray_path_propagation_matrix_scattering[i],
-          ray_path_absorption_vector_scattering[i],
-          ray_path_phase_matrix_scattering_spectral[i],
-          ray_path_frequency_grid[i],
-          ray_path_atmospheric_point[i],
+          spectral_propmat_scat_path[i],
+          spectral_absvec_scat_path[i],
+          spectral_phamat_spectral_path[i],
+          freq_grid_path[i],
+          atm_path[i],
           legendre_degree,
-          propagation_matrix_scattering_spectral_agenda);
+          spectral_propmat_scat_spectral_agenda);
     } catch (const std::exception& e) {
 #pragma omp critical
       {

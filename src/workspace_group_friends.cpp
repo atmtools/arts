@@ -1,6 +1,7 @@
 #include "workspace_group_friends.h"
 
 #include <arts_options.h>
+#include <unique_unordered_map.h>
 
 #include <stdexcept>
 
@@ -8,7 +9,7 @@
 
 namespace {
 std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
-  std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
+  UniqueMap<std::string, WorkspaceGroupRecord> wsg_data;
 
   wsg_data["Block"] = {
       .file = "covariance_matrix.h",
@@ -257,7 +258,7 @@ so that reading routines can find the correct data files.
   };
 
   wsg_data["SurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for surface field information.
 
 This includes:
@@ -268,7 +269,7 @@ This includes:
   };
 
   wsg_data["SubsurfaceData"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"(A data structure for subsurface field information.
 
 This includes:
@@ -279,7 +280,7 @@ This includes:
   };
 
   wsg_data["SubsurfacePoint"] = {
-      .file = "subsurface.h",
+      .file = "subsurf.h",
       .desc = R"--(A subsurface point.
 
 This keeps three things:
@@ -358,7 +359,7 @@ where :math:`a` is the numerator and :math:`b` is the denominator.
 
 This is used when using predefined models to allow for different types of data
 input.  Several types of predefined models have this data built into the code
-and will use it directly but must live in the *absorption_predefined_model_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
+and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
 )--",
   };
 
@@ -494,7 +495,7 @@ the model field.  That is they can transform a *Vector* to values in, e.g.,
 an *AtmField*, *SurfaceField*, etc., and vice versa they can transform the fields
 to values in a *Vector*.
 
-See *model_state_vector* and method involving it for more information.
+See *model_state_vec* and method involving it for more information.
 )--",
   };
 
@@ -502,7 +503,7 @@ See *model_state_vector* and method involving it for more information.
       .file = "obsel.h",
       .desc = R"(A single observation element.
 
-This should result in a single element in a *measurement_vector*.
+This should result in a single element in a *measurement_vec*.
 
 Expected use of this type is to generate the measurement vector
 of a sensor, where this observation element represent the readout
@@ -595,7 +596,7 @@ Both the data and the grid may be named.  The grids are not sorted.
       .file = "rtepack.h",
       .desc = R"--(A 3-dimensional gridof *Numeric*.
 
-The grids are *altitude_grid* x *latitude_grid* x *longitude_grid*.
+The grids are *alt_grid* x *lat_grid* x *lon_grid*.
 The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
 )--",
   };

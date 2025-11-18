@@ -45,96 +45,91 @@ Agenda AgendaCreator::finalize(bool fix) && {
   return ag;
 };
 
-Agenda get_propagation_matrix_scattering_agenda(const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_scattering_agenda");
+Agenda get_spectral_propmat_scat_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_propmat_scat_agenda");
 
-  using enum propagation_matrix_scattering_agendaPredefined;
-  switch (to<propagation_matrix_scattering_agendaPredefined>(option)) {
+  using enum spectral_propmat_scat_agendaPredefined;
+  switch (to<spectral_propmat_scat_agendaPredefined>(option)) {
     case AirSimple:
-      agenda.add("propagation_matrix_scatteringInit");
-      agenda.add("propagation_matrix_scatteringAirSimple");
+      agenda.add("spectral_propmat_scatInit");
+      agenda.add("spectral_propmat_scatAirSimple");
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_propagation_matrix_scattering_spectral_agenda(
+Agenda get_spectral_propmat_scat_spectral_agenda(
     const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_scattering_spectral_agenda");
+  AgendaCreator agenda("spectral_propmat_scat_spectral_agenda");
 
-  using enum propagation_matrix_scattering_spectral_agendaPredefined;
-  switch (to<propagation_matrix_scattering_spectral_agendaPredefined>(option)) {
+  using enum spectral_propmat_scat_spectral_agendaPredefined;
+  switch (to<spectral_propmat_scat_spectral_agendaPredefined>(option)) {
     case FromSpeciesTRO:
-      agenda.add("propagation_matrix_scatteringSpectralInit");
-      agenda.add(
-          "propagation_matrix_scatteringAddSpectralScatteringSpeciesTRO");
+      agenda.add("spectral_propmat_scatSpectralInit");
+      agenda.add("spectral_propmat_scatAddSpectralScatteringSpeciesTRO");
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_propagation_matrix_agenda(const std::string_view option) {
-  AgendaCreator agenda("propagation_matrix_agenda");
+Agenda get_spectral_propmat_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_propmat_agenda");
 
-  using enum propagation_matrix_agendaPredefined;
-  switch (to<propagation_matrix_agendaPredefined>(option)) {
-    case Empty: agenda.add("propagation_matrixInit");
+  using enum spectral_propmat_agendaPredefined;
+  switch (to<spectral_propmat_agendaPredefined>(option)) {
+    case Empty: agenda.add("spectral_propmatInit");
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_spectral_radiance_observer_agenda(const std::string_view option) {
-  AgendaCreator agenda("spectral_radiance_observer_agenda");
+Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_observer_agenda");
 
-  using enum spectral_radiance_observer_agendaPredefined;
-  switch (to<spectral_radiance_observer_agendaPredefined>(option)) {
+  using enum spectral_rad_observer_agendaPredefined;
+  switch (to<spectral_rad_observer_agendaPredefined>(option)) {
     case Emission:
       agenda.add("ray_path_observer_agendaExecute");
-      agenda.add("spectral_radianceClearskyEmission");
-      agenda.add("spectral_radiance_jacobianAddSensorJacobianPerturbations");
+      agenda.add("spectral_radClearskyEmission");
+      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
       break;
     case EmissionNoSensor:
       agenda.add("ray_path_observer_agendaExecute");
-      agenda.add("spectral_radianceClearskyEmission");
+      agenda.add("spectral_radClearskyEmission");
       break;
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_spectral_radiance_space_agenda(const std::string_view option) {
-  AgendaCreator agenda("spectral_radiance_space_agenda");
+Agenda get_spectral_rad_space_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_space_agenda");
 
-  using enum spectral_radiance_space_agendaPredefined;
-  switch (to<spectral_radiance_space_agendaPredefined>(option)) {
+  using enum spectral_rad_space_agendaPredefined;
+  switch (to<spectral_rad_space_agendaPredefined>(option)) {
     case UniformCosmicBackground:
-      agenda.add("spectral_radianceUniformCosmicBackground");
-      agenda.add("spectral_radiance_jacobianEmpty");
+      agenda.add("spectral_radUniformCosmicBackground");
+      agenda.add("spectral_rad_jacEmpty");
       break;
     case SunOrCosmicBackground:
-      agenda.add("spectral_radianceSunsOrCosmicBackground");
-      agenda.add("spectral_radiance_jacobianEmpty");
+      agenda.add("spectral_radSunsOrCosmicBackground");
+      agenda.add("spectral_rad_jacEmpty");
       break;
-    case Transmission:
-      agenda.add("spectral_radianceDefaultTransmission");
-      break;
+    case Transmission: agenda.add("spectral_radDefaultTransmission"); break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_spectral_radiance_surface_agenda(const std::string_view option) {
-  AgendaCreator agenda("spectral_radiance_surface_agenda");
+Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_surface_agenda");
 
-  using enum spectral_radiance_surface_agendaPredefined;
-  switch (to<spectral_radiance_surface_agendaPredefined>(option)) {
-    case Blackbody: agenda.add("spectral_radianceSurfaceBlackbody"); break;
-    case Transmission:
-      agenda.add("spectral_radianceDefaultTransmission");
-      break;
+  using enum spectral_rad_surface_agendaPredefined;
+  switch (to<spectral_rad_surface_agendaPredefined>(option)) {
+    case Blackbody:    agenda.add("spectral_radSurfaceBlackbody"); break;
+    case Transmission: agenda.add("spectral_radDefaultTransmission"); break;
     case SurfaceReflectance:
-      agenda.add("spectral_radianceSurfaceReflectance");
+      agenda.add("spectral_radSurfaceReflectance");
       break;
   }
 
@@ -161,26 +156,26 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
   using enum measurement_inversion_agendaPredefined;
   switch (to<measurement_inversion_agendaPredefined>(option)) {
     case Standard:
-      agenda.add("measurement_vector_errorFromModelState");
-      agenda.add("jacobian_targetsConditionalClear");
-      agenda.add("measurement_vectorFromSensor");
-      agenda.add("measurement_jacobianTransformations");
-      agenda.add("measurement_vectorConditionalAddError");
-      agenda.add("measurement_vector_fittedFromMeasurement");
+      agenda.add("measurement_vec_errorFromModelState");
+      agenda.add("jac_targetsConditionalClear");
+      agenda.add("measurement_vecFromSensor");
+      agenda.add("measurement_jacTransformations");
+      agenda.add("measurement_vecConditionalAddError");
+      agenda.add("measurement_vec_fitFromMeasurement");
       break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_surface_reflectance_agenda(const std::string_view option) {
-  AgendaCreator agenda("surface_reflectance_agenda");
+Agenda get_spectral_surf_refl_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_surf_refl_agenda");
 
-  using enum surface_reflectance_agendaPredefined;
-  switch (to<surface_reflectance_agendaPredefined>(option)) {
-    case FlatScalar: agenda.add("surface_reflectanceFlatScalar"); break;
+  using enum spectral_surf_refl_agendaPredefined;
+  switch (to<spectral_surf_refl_agendaPredefined>(option)) {
+    case FlatScalar: agenda.add("spectral_surf_reflFlatScalar"); break;
     case FlatRealFresnel:
-      agenda.add("surface_reflectanceFlatRealFresnel");
+      agenda.add("spectral_surf_reflFlatRealFresnel");
       break;
   }
 
@@ -202,46 +197,43 @@ Agenda get_disort_settings_downwelling_wrapper_agenda(
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_single_spectral_radiance_space_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("single_spectral_radiance_space_agenda");
+Agenda get_single_rad_space_agenda(const std::string_view option) {
+  AgendaCreator agenda("single_rad_space_agenda");
 
-  using enum single_spectral_radiance_space_agendaPredefined;
-  switch (to<single_spectral_radiance_space_agendaPredefined>(option)) {
+  using enum single_rad_space_agendaPredefined;
+  switch (to<single_rad_space_agendaPredefined>(option)) {
     case WrapGrid:
-      agenda.add("frequency_gridFromSingleFrequency");
-      agenda.add("spectral_radiance_space_agendaExecute");
-      agenda.add("single_spectral_radianceFromVector");
+      agenda.add("freq_gridFromSingleFrequency");
+      agenda.add("spectral_rad_space_agendaExecute");
+      agenda.add("single_radFromVector");
       break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_single_spectral_radiance_surface_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("single_spectral_radiance_surface_agenda");
+Agenda get_single_rad_surface_agenda(const std::string_view option) {
+  AgendaCreator agenda("single_rad_surface_agenda");
 
-  using enum single_spectral_radiance_surface_agendaPredefined;
-  switch (to<single_spectral_radiance_surface_agendaPredefined>(option)) {
+  using enum single_rad_surface_agendaPredefined;
+  switch (to<single_rad_surface_agendaPredefined>(option)) {
     case WrapGrid:
-      agenda.add("frequency_gridFromSingleFrequency");
-      agenda.add("spectral_radiance_surface_agendaExecute");
-      agenda.add("single_spectral_radianceFromVector");
+      agenda.add("freq_gridFromSingleFrequency");
+      agenda.add("spectral_rad_surface_agendaExecute");
+      agenda.add("single_radFromVector");
       break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_ray_path_point_back_propagation_agenda(
-    const std::string_view option) {
-  AgendaCreator agenda("ray_path_point_back_propagation_agenda");
+Agenda get_ray_point_back_propagation_agenda(const std::string_view option) {
+  AgendaCreator agenda("ray_point_back_propagation_agenda");
 
-  using enum ray_path_point_back_propagation_agendaPredefined;
-  switch (to<ray_path_point_back_propagation_agendaPredefined>(option)) {
-    case GeometricStepwise:  agenda.add("ray_path_pointPastGeometric"); break;
-    case RefractiveStepwise: agenda.add("ray_path_pointPastRefractive"); break;
+  using enum ray_point_back_propagation_agendaPredefined;
+  switch (to<ray_point_back_propagation_agendaPredefined>(option)) {
+    case GeometricStepwise:  agenda.add("ray_pointPastGeometric"); break;
+    case RefractiveStepwise: agenda.add("ray_pointPastRefractive"); break;
   }
 
   return std::move(agenda).finalize(true);

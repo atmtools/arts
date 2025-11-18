@@ -24,8 +24,8 @@ struct PosLos {
   [[nodiscard]] constexpr Numeric alt() const { return pos[0]; }
   [[nodiscard]] constexpr Numeric lat() const { return pos[1]; }
   [[nodiscard]] constexpr Numeric lon() const { return pos[2]; }
-  [[nodiscard]] constexpr Numeric za() const { return los[0]; }
-  [[nodiscard]] constexpr Numeric aa() const { return los[1]; }
+  [[nodiscard]] constexpr Numeric zen() const { return los[0]; }
+  [[nodiscard]] constexpr Numeric azi() const { return los[1]; }
 };
 
 using PosLosVector = matpack::data_t<PosLos, 1>;
@@ -155,7 +155,7 @@ class Obsel {
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;
 
   [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
-  [[nodiscard]] Index find(const AscendingGrid& frequency_grid) const;
+  [[nodiscard]] Index find(const AscendingGrid& freq_grid) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);

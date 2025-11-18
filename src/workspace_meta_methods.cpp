@@ -61,13 +61,13 @@ channel is independent.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldFromAgenda",
-      .desc    = R"(Use Disort for clearsky calculations of spectral flux field.
+      .name   = "disort_spectral_flux_fieldFromAgenda",
+      .desc   = R"(Use Disort for clearsky calculations of spectral flux field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
-      .author  = {"Richard Larsson"},
+      .author = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
                   "disort_spectral_flux_fieldCalc"},
       .out     = {"disort_spectral_flux_field"},
@@ -88,20 +88,21 @@ basis for the agenda to setup the Disort calculations.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_radiance_fieldFromAgenda",
-      .desc    = R"(Use Disort for clearsky calculations of spectral radiance field.
+      .name = "disort_spectral_rad_fieldFromAgenda",
+      .desc =
+          R"(Use Disort for clearsky calculations of spectral radiance field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
-      .author = {"Richard Larsson"},
+      .author  = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute",
-                  "disort_spectral_radiance_fieldCalc"},
-      .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
+                  "disort_spectral_rad_fieldCalc"},
+      .out     = {"disort_spectral_rad_field", "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_radiance_fieldProfile",
+      .name = "disort_spectral_rad_fieldProfile",
       .desc =
           R"(Extract a 1D path through the atmosphere and calculate spectral radiance using Disort.
 
@@ -110,14 +111,12 @@ basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking",
-                  "disort_spectral_radiance_fieldFromAgenda"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature",
-                  "ray_path"},
+                  "disort_spectral_rad_fieldFromAgenda"},
+      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_radiance_fieldDepthProfile",
+      .name = "disort_spectral_rad_fieldDepthProfile",
       .desc =
           R"(Sets a ray path from a point and depth profile and calculates spectral radiance using Disort.
 
@@ -126,187 +125,183 @@ basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathFromPointAndDepth",
-                  "disort_spectral_radiance_fieldFromAgenda"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature",
-                  "ray_path"},
+                  "disort_spectral_rad_fieldFromAgenda"},
+      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 
 #ifdef ENABLE_CDISORT
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_radiance_fieldFromAgendaCdisort",
+      .name   = "disort_spectral_rad_fieldFromAgendaCdisort",
       .desc   = "Use the disort settings agenda to calculate spectral radiance",
       .author = {"Oliver Lemke"},
       .methods = {"disort_settings_agendaExecute",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "disort_spectral_radiance_fieldCalcCdisort"},
-      .out     = {"disort_spectral_radiance_field", "disort_quadrature"},
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "disort_spectral_rad_fieldCalcCdisort"},
+      .out     = {"disort_spectral_rad_field", "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_radiance_fieldProfileCdisort",
+      .name = "disort_spectral_rad_fieldProfileCdisort",
       .desc =
           "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
       .author  = {"Oliver Lemke"},
       .methods = {"ray_pathGeometricDownlooking",
-                  "disort_spectral_radiance_fieldFromAgendaCdisort"},
-      .out     = {"disort_spectral_radiance_field",
-                  "disort_quadrature",
-                  "ray_path"},
+                  "disort_spectral_rad_fieldFromAgendaCdisort"},
+      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 #endif
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceApplyUnitFromSpectralRadiance",
-      .desc    = R"(Helper method for calling *spectral_radianceApplyUnit*.
+      .name    = "spectral_radApplyUnitFromSpectralRadiance",
+      .desc    = R"(Helper method for calling *spectral_radApplyUnit*.
 
-It is common that *ray_path* is defined but not *ray_path_point*.
+It is common that *ray_path* is defined but not *ray_point*.
 This method simply is a convenience wrapper for that use case.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointForeground", "spectral_radianceApplyUnit"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointForeground", "spectral_radApplyUnit"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceClearskyEmission",
+      .name    = "spectral_radClearskyEmission",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
-                  "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "ray_path_propagation_matrixFromPath",
-                  "ray_path_transmission_matrixFromPath",
-                  "ray_path_transmission_matrix_cumulativeFromPath",
-                  "ray_path_spectral_radiance_sourceFromPropmat",
-                  "transmission_matrix_backgroundFromPathPropagationBack",
-                  "spectral_radianceStepByStepEmission",
-                  "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointBackground",
+                  "spectral_rad_bkgAgendasAtEndOfPath",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_tramat_pathFromPath",
+                  "spectral_tramat_cumulative_pathFromPath",
+                  "spectral_rad_srcvec_pathFromPropmat",
+                  "spectral_tramat_bkgFromPathPropagationBack",
+                  "spectral_radStepByStepEmission",
+                  "spectral_rad_jacFromBackground",
+                  "spectral_rad_jacAddPathPropagation"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceClearskyEmissionParFreq",
+      .name    = "spectral_radClearskyEmissionParFreq",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
-                  "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "ray_path_propagation_matrixFromPath",
-                  "spectral_radianceSetToBackground",
-                  "spectral_radianceSinglePathEmissionFrequencyLoop"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointBackground",
+                  "spectral_rad_bkgAgendasAtEndOfPath",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_radSetToBackground",
+                  "spectral_radSinglePathEmissionFrequencyLoop"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyRayleighScattering",
+      .name = "spectral_radClearskyRayleighScattering",
       .desc =
           "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
-                  "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "ray_path_propagation_matrixFromPath",
-                  "ray_path_propagation_matrix_scatteringFromPath",
-                  "ray_path_propagation_matrixAddScattering",
-                  "ray_path_transmission_matrixFromPath",
-                  "ray_path_transmission_matrix_cumulativeFromPath",
-                  "ray_path_spectral_radiance_sourceFromPropmat",
-                  "ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh",
-                  "ray_path_spectral_radiance_sourceAddScattering",
-                  "transmission_matrix_backgroundFromPathPropagationBack",
-                  "spectral_radianceStepByStepEmission",
-                  "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointBackground",
+                  "spectral_rad_bkgAgendasAtEndOfPath",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_scat_pathFromPath",
+                  "spectral_propmat_pathAddScattering",
+                  "spectral_tramat_pathFromPath",
+                  "spectral_tramat_cumulative_pathFromPath",
+                  "spectral_rad_srcvec_pathFromPropmat",
+                  "spectral_rad_scat_pathSunsFirstOrderRayleigh",
+                  "spectral_rad_srcvec_pathAddScattering",
+                  "spectral_tramat_bkgFromPathPropagationBack",
+                  "spectral_radStepByStepEmission",
+                  "spectral_rad_jacFromBackground",
+                  "spectral_rad_jacAddPathPropagation"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceClearskyTransmission",
+      .name    = "spectral_radClearskyTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
-                  "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "ray_path_propagation_matrixFromPath",
-                  "ray_path_transmission_matrixFromPath",
-                  "ray_path_transmission_matrix_cumulativeFromPath",
-                  "transmission_matrix_backgroundFromPathPropagationBack",
-                  "spectral_radianceCumulativeTransmission",
-                  "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointBackground",
+                  "spectral_rad_bkgAgendasAtEndOfPath",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_tramat_pathFromPath",
+                  "spectral_tramat_cumulative_pathFromPath",
+                  "spectral_tramat_bkgFromPathPropagationBack",
+                  "spectral_radCumulativeTransmission",
+                  "spectral_rad_jacFromBackground",
+                  "spectral_rad_jacAddPathPropagation"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_flux_profilePseudo2D",
       .desc    = "Computes the spectral flux profile using pseudo-2D geometry",
       .author  = {"Richard Larsson"},
-      .methods = {"zenith_gridProfilePseudo2D",
-                  "spectral_radiance_fieldProfilePseudo2D",
+      .methods = {"zen_gridProfilePseudo2D",
+                  "spectral_rad_fieldProfilePseudo2D",
                   "spectral_flux_profileFromSpectralRadianceField"},
       .out     = {"spectral_flux_profile"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "spectral_radianceClearskyBackgroundTransmission",
+      .name    = "spectral_radClearskyBackgroundTransmission",
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_path_pointBackground",
-                  "ray_path_atmospheric_pointFromPath",
-                  "ray_path_frequency_gridFromPath",
-                  "ray_path_propagation_matrixFromPath",
-                  "ray_path_transmission_matrixFromPath",
-                  "ray_path_transmission_matrix_cumulativeFromPath",
-                  "transmission_matrix_backgroundFromPathPropagationBack",
-                  "spectral_radianceCumulativeTransmission",
-                  "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation"},
-      .out     = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .methods = {"ray_pointBackground",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_tramat_pathFromPath",
+                  "spectral_tramat_cumulative_pathFromPath",
+                  "spectral_tramat_bkgFromPathPropagationBack",
+                  "spectral_radCumulativeTransmission",
+                  "spectral_rad_jacFromBackground",
+                  "spectral_rad_jacAddPathPropagation"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name             = "atmospheric_fieldRead",
+      .name             = "atm_fieldRead",
       .desc             = "Read atmospheric data files from a directory",
       .author           = {"Richard Larsson"},
-      .methods          = {"atmospheric_fieldInit",
-                           "atmospheric_fieldAppendBaseData",
-                           "atmospheric_fieldAppendAuto"},
-      .out              = {"atmospheric_field"},
+      .methods          = {"atm_fieldInit",
+                           "atm_fieldAppendBaseData",
+                           "atm_fieldAppendAuto"},
+      .out              = {"atm_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceSubsurfaceDisortEmission",
+      .name = "spectral_radSubsurfaceDisortEmission",
       .desc =
           "Get the spectral radiance from subsurface emission simulated using Disort",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathFromPointAndDepth",
                   "disort_settings_downwelling_wrapper_agendaExecute",
-                  "disort_spectral_radiance_fieldCalc",
-                  "spectral_radianceFromDisort"},
-      .out     = {"spectral_radiance",
+                  "disort_spectral_rad_fieldCalc",
+                  "spectral_radFromDisort"},
+      .out     = {"spectral_rad",
                   "disort_settings",
                   "ray_path",
-                  "disort_spectral_radiance_field",
+                  "disort_spectral_rad_field",
                   "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "atmospheric_fieldFitNonLTE",
+      .name    = "atm_fieldFitNonLTE",
       .desc    = "Fits non-LTE atmospheric field values",
       .author  = {"Richard Larsson"},
-      .methods = {"atmospheric_profileFromGrid",
-                  "atmospheric_profileFitNonLTE",
-                  "atmospheric_fieldFromProfile"},
-      .out     = {"atmospheric_field"},
+      .methods = {"atm_profileFromGrid",
+                  "atm_profileFitNonLTE",
+                  "atm_fieldFromProfile"},
+      .out     = {"atm_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -314,66 +309,66 @@ This method simply is a convenience wrapper for that use case.
       .desc =
           "Update state of the model in preparation for a forward model run",
       .author  = {"Richard Larsson"},
-      .methods = {"absorption_bandsFromModelState",
-                  "surface_fieldFromModelState",
-                  "subsurface_fieldFromModelState",
-                  "atmospheric_fieldFromModelState",
+      .methods = {"abs_bandsFromModelState",
+                  "surf_fieldFromModelState",
+                  "subsurf_fieldFromModelState",
+                  "atm_fieldFromModelState",
                   "measurement_sensorFromModelState"},
-      .out     = {"absorption_bands",
-                  "surface_field",
-                  "subsurface_field",
-                  "atmospheric_field",
+      .out     = {"abs_bands",
+                  "surf_field",
+                  "subsurf_field",
+                  "atm_field",
                   "measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vectorFromData",
-      .desc    = "Get *model_state_vector* from available data",
+      .name    = "model_state_vecFromData",
+      .desc    = "Get *model_state_vec* from available data",
       .author  = {"Richard Larsson"},
-      .methods = {"model_state_vectorInit",
-                  "model_state_vectorFromAtmosphere",
-                  "model_state_vectorFromSurface",
-                  "model_state_vectorFromSubsurface",
-                  "model_state_vectorFromBands",
-                  "model_state_vectorFromSensor"},
-      .out     = {"model_state_vector"},
+      .methods = {"model_state_vecInit",
+                  "model_state_vecFromAtmosphere",
+                  "model_state_vecFromSurface",
+                  "model_state_vecFromSubsurface",
+                  "model_state_vecFromBands",
+                  "model_state_vecFromSensor"},
+      .out     = {"model_state_vec"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "measurement_jacobianTransformations",
+      .name = "measurement_jacTransformations",
       .desc =
-          "Apply all transformations to the Jacobian related to states in *model_state_vectorFromData*",
+          "Apply all transformations to the Jacobian related to states in *model_state_vecFromData*",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_jacobianAtmosphereTransformation",
-                  "measurement_jacobianSurfaceTransformation",
-                  "measurement_jacobianSubsurfaceTransformation",
-                  "measurement_jacobianBandTransformation",
-                  "measurement_jacobianSensorTransformation"},
-      .out     = {"measurement_jacobian"},
+      .methods = {"measurement_jacAtmosphereTransformation",
+                  "measurement_jacSurfaceTransformation",
+                  "measurement_jacSubsurfaceTransformation",
+                  "measurement_jacBandTransformation",
+                  "measurement_jacSensorTransformation"},
+      .out     = {"measurement_jac"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vector_aprioriFromData",
-      .desc    = "Get *model_state_vector_apriori* from available data",
+      .name    = "model_state_vec_aprioriFromData",
+      .desc    = "Get *model_state_vec_apriori* from available data",
       .author  = {"Richard Larsson"},
-      .methods = {"model_state_vectorFromData",
-                  "model_state_vector_aprioriFromState"},
-      .out     = {"model_state_vector_apriori"},
+      .methods = {"model_state_vecFromData",
+                  "model_state_vec_aprioriFromState"},
+      .out     = {"model_state_vec_apriori"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "absorption_lookup_tableCalc",
-      .desc    = R"(Get *absorption_lookup_table* from available data.
+      .name    = "abs_lookup_dataCalc",
+      .desc    = R"(Get *abs_lookup_data* from available data.
 
-This method will use the *atmospheric_field* and *absorption_bands* to
-calculate the *absorption_lookup_table*.  The atmospheric field is first
-gridded using *atmospheric_profileExtract*.
+This method will use the *atm_field* and *abs_bands* to
+calculate the *abs_lookup_data*.  The atmospheric field is first
+gridded using *atm_profileExtract*.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"atmospheric_profileExtract",
-                  "absorption_lookup_tableInit",
-                  "absorption_lookup_tablePrecomputeAll"},
-      .out     = {"absorption_lookup_table"},
+      .methods = {"atm_profileExtract",
+                  "abs_lookup_dataInit",
+                  "abs_lookup_dataPrecomputeAll"},
+      .out     = {"abs_lookup_data"},
   });
 
   return wsm_meta;

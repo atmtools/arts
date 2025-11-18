@@ -17,18 +17,16 @@
 
 namespace disort {
 void radiances::resize(AscendingGrid f_grid,
-                       DescendingGrid alt_grid,
-                       AzimuthGrid aa_grid,
-                       ZenithGrid za_grid) {
-  frequency_grid = std::move(f_grid);
-  altitude_grid  = std::move(alt_grid);
-  azimuth_grid   = std::move(aa_grid);
-  zenith_grid    = std::move(za_grid);
+                       DescendingGrid alt_grid_,
+                       AziGrid azi_grid_,
+                       ZenGrid zen_grid_) {
+  freq_grid = std::move(f_grid);
+  alt_grid  = std::move(alt_grid_);
+  azi_grid  = std::move(azi_grid_);
+  zen_grid  = std::move(zen_grid_);
 
-  data.resize(frequency_grid.size(),
-              altitude_grid.size() - 1,
-              azimuth_grid.size(),
-              zenith_grid.size());
+  data.resize(
+      freq_grid.size(), alt_grid.size() - 1, azi_grid.size(), zen_grid.size());
 }
 
 void radiances::sort(const Vector& solver_mu) {
@@ -47,11 +45,11 @@ void radiances::sort(const Vector& solver_mu) {
 }
 
 void fluxes::resize(AscendingGrid f, DescendingGrid a) {
-  frequency_grid = std::move(f);
-  altitude_grid  = std::move(a);
-  up.resize(frequency_grid.size(), altitude_grid.size() - 1);
-  down_diffuse.resize(frequency_grid.size(), altitude_grid.size() - 1);
-  down_direct.resize(frequency_grid.size(), altitude_grid.size() - 1);
+  freq_grid = std::move(f);
+  alt_grid  = std::move(a);
+  up.resize(freq_grid.size(), alt_grid.size() - 1);
+  down_diffuse.resize(freq_grid.size(), alt_grid.size() - 1);
+  down_direct.resize(freq_grid.size(), alt_grid.size() - 1);
 }
 
 void BDRF::operator()(MatrixView x,
@@ -1545,7 +1543,7 @@ void main_data::ungridded_u(Tensor3View out,
   }
 }
 
-ZenithGriddedField1 main_data::gridded_weights() const {
+ZenGriddedField1 main_data::gridded_weights() const {
   Vector mu = mu_arr;
 
   stdr::sort(mu);
@@ -1554,11 +1552,10 @@ ZenithGriddedField1 main_data::gridded_weights() const {
     return 180.0 - Conversion::acosd(m);
   });
 
-  ZenithGriddedField1 disort_quadrature{
-      .data_name  = "Disort quadrature weights",
-      .data       = mu,
-      .grid_names = {"Zenith grid"},
-      .grids      = {std::move(mu)}};
+  ZenGriddedField1 disort_quadrature{.data_name  = "Disort quadrature weights",
+                                     .data       = mu,
+                                     .grid_names = {"Zenith grid"},
+                                     .grids      = {std::move(mu)}};
 
   disort_quadrature[rf(N)] = W;
   disort_quadrature[rb(N)] = W;
@@ -1571,15 +1568,15 @@ void DisortSettings::resize(Index quadrature_dimension_,
                             Index legendre_polynomial_dimension_,
                             Index fourier_mode_dimension_,
                             AscendingGrid f_grid,
-                            DescendingGrid alt_grid) {
+                            DescendingGrid alt_grid_) {
   quadrature_dimension          = quadrature_dimension_;
   legendre_polynomial_dimension = legendre_polynomial_dimension_;
   fourier_mode_dimension        = fourier_mode_dimension_;
   const Size nfreq              = f_grid.size();
-  const Size nlay               = alt_grid.size() - 1;
+  const Size nlay               = alt_grid_.size() - 1;
 
-  frequency_grid = std::move(f_grid);
-  altitude_grid  = std::move(alt_grid);
+  freq_grid = std::move(f_grid);
+  alt_grid  = std::move(alt_grid_);
 
   solar_source.resize(nfreq);
   solar_zenith_angle.resize(nfreq);
@@ -1597,8 +1594,8 @@ void DisortSettings::resize(Index quadrature_dimension_,
 }
 
 void DisortSettings::check() const {
-  const Index nfreq = frequency_grid.size();
-  const Index nlay  = altitude_grid.size() - 1;
+  const Index nfreq = freq_grid.size();
+  const Index nlay  = alt_grid.size() - 1;
 
   ARTS_USER_ERROR_IF(
       solar_source.shape() != std::array{nfreq} or
@@ -1636,7 +1633,7 @@ Also note that the reduced Legendre polynomial dimension is {}.  It must be at m
 disort::main_data DisortSettings::init() const try {
   check();
   return disort::main_data(
-      altitude_grid.size() - 1,
+      alt_grid.size() - 1,
       quadrature_dimension,
       legendre_coefficients.ncols(),
       fourier_mode_dimension,
@@ -1736,8 +1733,8 @@ void xml_io_stream<DisortSettings>::read(std::istream& is_xml,
   xml_read_from_stream(is_xml, v.quadrature_dimension, pbifs);
   xml_read_from_stream(is_xml, v.legendre_polynomial_dimension, pbifs);
   xml_read_from_stream(is_xml, v.fourier_mode_dimension, pbifs);
-  xml_read_from_stream(is_xml, v.frequency_grid, pbifs);
-  xml_read_from_stream(is_xml, v.altitude_grid, pbifs);
+  xml_read_from_stream(is_xml, v.freq_grid, pbifs);
+  xml_read_from_stream(is_xml, v.alt_grid, pbifs);
   xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_source, pbifs);
@@ -1773,10 +1770,10 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
                       "legendre_polynomial_dimension");
   xml_write_to_stream(
       os_xml, v.fourier_mode_dimension, pbofs, "fourier_mode_dimension");
-  xml_write_to_stream(os_xml, v.frequency_grid, pbofs, "nfreq");
-  xml_write_to_stream(os_xml, v.altitude_grid, pbofs, "nlay");
-  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solaz");
-  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solza");
+  xml_write_to_stream(os_xml, v.freq_grid, pbofs, "nfreq");
+  xml_write_to_stream(os_xml, v.alt_grid, pbofs, "nlay");
+  xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solazi");
+  xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solzen");
   xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");
   xml_write_to_stream(os_xml,
                       v.bidirectional_reflectance_distribution_functions,

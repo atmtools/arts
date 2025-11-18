@@ -38,7 +38,7 @@ void py_xsec(py::module_& m) try {
           &XsecRecord::mfitmaxtemperatures,
           "Fit coefficients\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
-          "propagation_matrix",
+          "spectral_propmat",
           [](const XsecRecord& self,
              const AscendingGrid& f,
              const AtmPoint& atm) {
@@ -341,27 +341,27 @@ abs : Vector
   generic_interface(a1);
   vector_interface(a1);
   a1.def(
-      "propagation_matrix",
+      "spectral_propmat",
       [](const ArrayOfXsecRecord& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
          const SpeciesEnum& spec,
          const py::kwargs&) {
-        PropmatVector propagation_matrix(f.size());
-        PropmatMatrix propagation_matrix_jacobian(0, f.size());
-        JacobianTargets jacobian_targets{};
+        PropmatVector spectral_propmat(f.size());
+        PropmatMatrix spectral_propmat_jac(0, f.size());
+        JacobianTargets jac_targets{};
 
-        propagation_matrixAddXsecFit(propagation_matrix,
-                                     propagation_matrix_jacobian,
-                                     spec,
-                                     jacobian_targets,
-                                     f,
-                                     atm,
-                                     self,
-                                     -1.0,
-                                     -1.0);
+        spectral_propmatAddXsecFit(spectral_propmat,
+                                   spectral_propmat_jac,
+                                   spec,
+                                   jac_targets,
+                                   f,
+                                   atm,
+                                   self,
+                                   -1.0,
+                                   -1.0);
 
-        return propagation_matrix;
+        return spectral_propmat;
       },
       "f"_a,
       "atm"_a,
@@ -380,7 +380,7 @@ spec : SpeciesEnum, optional
 
 Returns
 -------
-propagation_matrix : PropmatVector
+spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
 )--");

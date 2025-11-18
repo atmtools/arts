@@ -56,32 +56,29 @@ Target: {}
 }
 }  // namespace
 
-void model_state_covariance_matrixInit(
-    CovarianceMatrix& model_state_covariance_matrix) {
+void model_state_covmatInit(CovarianceMatrix& model_state_covmat) {
   ARTS_TIME_REPORT
 
-  model_state_covariance_matrix = CovarianceMatrix{};
+  model_state_covmat = CovarianceMatrix{};
 }
 
 namespace {
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const AtmKeyVal& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const AtmKeyVal& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.atm) {
+  for (const auto& target : jac_targets.atm) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -89,24 +86,22 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for atmospheric target : {}", new_target);
 }
 
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SurfaceKeyVal& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const SurfaceKeyVal& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.surf) {
+  for (const auto& target : jac_targets.surf) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -114,24 +109,22 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for surface target : {}", new_target);
 }
 
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SubsurfaceKeyVal& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const SubsurfaceKeyVal& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.subsurf) {
+  for (const auto& target : jac_targets.subsurf) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -139,24 +132,22 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for surface target : {}", new_target);
 }
 
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const LblLineKey& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const LblLineKey& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.line) {
+  for (const auto& target : jac_targets.line) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -164,24 +155,22 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for surface target : {}", new_target);
 }
 
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SensorKey& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const SensorKey& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.sensor) {
+  for (const auto& target : jac_targets.sensor) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -189,24 +178,22 @@ void model_state_covariance_matrixAdd(
       not found, "No target found for sensor target : {}", new_target);
 }
 
-void model_state_covariance_matrixAdd(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const ErrorKey& new_target,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAdd(CovarianceMatrix& model_state_covmat,
+                           const JacobianTargets& jac_targets,
+                           const ErrorKey& new_target,
+                           const BlockMatrix& matrix,
+                           const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not jacobian_targets.finalized,
+  ARTS_USER_ERROR_IF(not jac_targets.finalized,
                      "Jacobian targets not finalized.");
 
   bool found = false;
 
-  for (const auto& target : jacobian_targets.error) {
+  for (const auto& target : jac_targets.error) {
     if (target.type == new_target) {
       found = true;
-      add_diagonal_covmat(
-          model_state_covariance_matrix, target, matrix, inverse);
+      add_diagonal_covmat(model_state_covmat, target, matrix, inverse);
     }
   }
 
@@ -215,41 +202,37 @@ void model_state_covariance_matrixAdd(
 }
 }  // namespace
 
-void model_state_covariance_matrixAddSpeciesVMR(
-    CovarianceMatrix& model_state_covariance_matrix,
-    const JacobianTargets& jacobian_targets,
-    const SpeciesEnum& species,
-    const BlockMatrix& matrix,
-    const BlockMatrix& inverse) {
+void model_state_covmatAddSpeciesVMR(CovarianceMatrix& model_state_covmat,
+                                     const JacobianTargets& jac_targets,
+                                     const SpeciesEnum& species,
+                                     const BlockMatrix& matrix,
+                                     const BlockMatrix& inverse) {
   ARTS_TIME_REPORT
 
-  model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                   jacobian_targets,
-                                   AtmKeyVal{species},
-                                   matrix,
-                                   inverse);
+  model_state_covmatAdd(
+      model_state_covmat, jac_targets, AtmKeyVal{species}, matrix, inverse);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Measurement vector error covariance matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-void measurement_vector_error_covariance_matrixConstant(
-    CovarianceMatrix& measurement_vector_error_covariance_matrix,
+void measurement_vec_error_covmatConstant(
+    CovarianceMatrix& measurement_vec_error_covmat,
     const ArrayOfSensorObsel& measurement_sensor,
     const Numeric& x) {
   ARTS_TIME_REPORT
 
-  measurement_vector_error_covariance_matrix = CovarianceMatrix{};
+  measurement_vec_error_covmat = CovarianceMatrix{};
 
   const Size N = measurement_sensor.size();
 
-  measurement_vector_error_covariance_matrix.add_correlation(
+  measurement_vec_error_covmat.add_correlation(
       {Range(0, N),
        Range(0, N),
        IndexPair{0, 0},
        std::make_shared<Sparse>(Sparse::diagonal(Vector(N, x)))});
-  measurement_vector_error_covariance_matrix.add_correlation_inverse(
+  measurement_vec_error_covmat.add_correlation_inverse(
       {Range(0, N),
        Range(0, N),
        IndexPair{0, 0},
@@ -260,37 +243,37 @@ void measurement_vector_error_covariance_matrixConstant(
 // Retrieval code.  This wraps Jacobian and Covmat code.
 ////////////////////////////////////////////////////////////////////////////////
 
-void RetrievalFinalizeDiagonal(CovarianceMatrix& model_state_covariance_matrix,
-                               JacobianTargets& jacobian_targets,
-                               const JacobianTargetsDiagonalCovarianceMatrixMap&
-                                   covariance_matrix_diagonal_blocks,
-                               const AtmField& atmospheric_field,
-                               const SurfaceField& surface_field,
-                               const SubsurfaceField& subsurface_field,
-                               const AbsorptionBands& absorption_bands,
-                               const ArrayOfSensorObsel& measurement_sensor) {
+void RetrievalFinalizeDiagonal(
+    CovarianceMatrix& model_state_covmat,
+    JacobianTargets& jac_targets,
+    const JacobianTargetsDiagonalCovarianceMatrixMap& covmat_diagonal_blocks,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const AbsorptionBands& abs_bands,
+    const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
-  jacobian_targetsFinalize(jacobian_targets,
-                           atmospheric_field,
-                           surface_field,
-                           subsurface_field,
-                           absorption_bands,
-                           measurement_sensor);
+  jac_targetsFinalize(jac_targets,
+                      atm_field,
+                      surf_field,
+                      subsurf_field,
+                      abs_bands,
+                      measurement_sensor);
 
-  for (auto& key_data : covariance_matrix_diagonal_blocks) {
+  for (auto& key_data : covmat_diagonal_blocks) {
     std::visit(
         [&](auto& k) {
-          model_state_covariance_matrixAdd(model_state_covariance_matrix,
-                                           jacobian_targets,
-                                           k,
-                                           key_data.second.first,
-                                           key_data.second.second);
+          model_state_covmatAdd(model_state_covmat,
+                                jac_targets,
+                                k,
+                                key_data.second.first,
+                                key_data.second.second);
         },
         key_data.first.target);
   }

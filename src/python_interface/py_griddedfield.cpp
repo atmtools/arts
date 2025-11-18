@@ -58,7 +58,7 @@ void py_griddedfield(py::module_& m) try {
   gridded_data_interface(ngf3);
   generic_interface(ngf3);
 
-  py::class_<ZenithGriddedField1> zgf1n(m, "ZenithGriddedField1");
+  py::class_<ZenGriddedField1> zgf1n(m, "ZenGriddedField1");
   gridded_data_interface(zgf1n);
   generic_interface(zgf1n);
 

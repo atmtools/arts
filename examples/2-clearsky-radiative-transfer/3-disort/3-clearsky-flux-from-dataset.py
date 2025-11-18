@@ -19,8 +19,8 @@ atm_latitude = 0.0
 atm_longitude = 0.0
 solar_latitude = 0.0
 solar_longitude = 0.0
-surface_temperature = 293.0
-surface_reflectivity = 0.05
+surf_temperature = 293.0
+surf_reflectivity = 0.05
 cutoff = ["ByLine", 750e9]
 remove_lines_percentile = 70
 sunfile = "star/Sun/solar_spectrum_QUIET.xml"
@@ -33,31 +33,31 @@ xarr = pyarts.data.xarray_open_dataset(prefix + "atmosphere.nc")
 
 ws = pyarts.Workspace()
 
-ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
-ws.atmospheric_field = pyarts.data.to_atmospheric_field(xarr)
+ws.freq_grid = pyarts.arts.convert.kaycm2freq(np.linspace(500, 2500, 1001))
+ws.atm_field = pyarts.data.to_atm_field(xarr)
 
-v = pyarts.data.to_absorption_species(ws.atmospheric_field)
+v = pyarts.data.to_abs_species(ws.atm_field)
 
-ws.absorption_species = v
+ws.abs_species = v
 ws.ReadCatalogData(ignore_missing=True)
-ws.propagation_matrix_agendaAuto(T_extrapolfac=1e9)
+ws.spectral_propmat_agendaAuto(T_extrapolfac=1e9)
 
-for band in ws.absorption_bands:
-    ws.absorption_bands[band].cutoff = cutoff[0]
-    ws.absorption_bands[band].cutoff_value = cutoff[1]
+for band in ws.abs_bands:
+    ws.abs_bands[band].cutoff = cutoff[0]
+    ws.abs_bands[band].cutoff_value = cutoff[1]
 
-ws.absorption_bands.keep_hitran_s(remove_lines_percentile)
+ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 
-ws.surface_fieldPlanet(option=planet)
+ws.surf_fieldPlanet(option=planet)
 
 sun = pyarts.arts.GriddedField2.fromxml(sunfile)
 
-ws.surface_field["t"] = surface_temperature
+ws.surf_field["t"] = surf_temperature
 
 ws.sunFromGrid(
     sun_spectrum_raw=sun,
-    latitude=solar_latitude,
-    longitude=solar_longitude,
+    lat=solar_latitude,
+    lon=solar_longitude,
 )
 
 ws.disort_quadrature_dimension = NQuad
@@ -65,23 +65,23 @@ ws.disort_fourier_mode_dimension = 1
 ws.disort_legendre_polynomial_dimension = 1
 
 ws.ray_pathGeometricDownlooking(
-    latitude=atm_latitude,
-    longitude=atm_longitude,
+    lat=atm_latitude,
+    lon=atm_longitude,
     max_stepsize=max_level_step,
 )
 
 ws.disort_settings_agendaSetup(
     sun_setting="Sun",
-    surface_setting="ThermalLambertian",
-    surface_lambertian_value=surface_reflectivity * np.ones_like(ws.frequency_grid),
+    surf_setting="ThermalLambertian",
+    surf_lambertian_value=surf_reflectivity * np.ones_like(ws.freq_grid),
 )
 
 ws.disort_spectral_flux_fieldFromAgenda()
 
 f, s = pyarts.plot(
     ws.disort_spectral_flux_field,
-    freqs=pyarts.arts.convert.freq2kaycm(ws.frequency_grid),
-    alts=ws.disort_spectral_flux_field.altitude_grid/1e3,
+    freqs=pyarts.arts.convert.freq2kaycm(ws.freq_grid),
+    alts=ws.disort_spectral_flux_field.alt_grid/1e3,
     select='down_diffuse',
     plotstyle='plot',
 )
@@ -89,11 +89,11 @@ s.set_xlabel("Kaysers [cm$^{-1}$]")
 s.set_ylabel("Altitude [km]")
 s.set_title("Downward diffuse spectral flux from DISORT")
 
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
-alts = np.linspace(0, ws.atmospheric_field.top_of_atmosphere)
+alts = np.linspace(0, ws.atm_field.top_of_atmosphere)
 f, s = pyarts.plot(
-    ws.atmospheric_field,
+    ws.atm_field,
     alts=alts,
     ygrid=alts/1e3,
     apply_natural_scale=True,

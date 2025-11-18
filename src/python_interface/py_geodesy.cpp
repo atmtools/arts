@@ -270,7 +270,7 @@ A negative distance is returned if there is no intersection.
 
 If multiple postive solutions, the smallest distance >= l_min is returned. 
 
-Note that there is no check if *pos* is below *altitude*, and the solution 
+Note that there is no check if *pos* is below *alt*, and the solution 
 can match a position on the other side of the planet.
 
 Parameters

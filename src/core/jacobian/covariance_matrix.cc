@@ -1,5 +1,5 @@
 /*!
-  \file   covariance_matrix.cc
+  \file   covmat.cc
   \author Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
   \date   2017-06-19
 
@@ -17,24 +17,25 @@
 #include <utility>
 #include <vector>
 
-BlockMatrix::BlockMatrix()                                   = default;
-BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
-BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
-BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
-BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
-Block::Block()                                               = default;
-Block::Block(const Block &)                                  = default;
-Block::Block(Block &&) noexcept                              = default;
-Block &Block::operator=(const Block &)                       = default;
-Block &Block::operator=(Block &&) noexcept                   = default;
-Block::~Block()                                              = default;
-CovarianceMatrix::CovarianceMatrix()                         = default;
-CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &) = default;
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept     = default;
+BlockMatrix::BlockMatrix()                                       = default;
+BlockMatrix::BlockMatrix(const BlockMatrix &)                    = default;
+BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept                = default;
+BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)         = default;
+BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept     = default;
+Block::Block()                                                   = default;
+Block::Block(const Block &)                                      = default;
+Block::Block(Block &&) noexcept                                  = default;
+Block &Block::operator=(const Block &)                           = default;
+Block &Block::operator=(Block &&) noexcept                       = default;
+Block::~Block()                                                  = default;
+CovarianceMatrix::CovarianceMatrix()                             = default;
+CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &)     = default;
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept = default;
 CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &) =
     default;
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept= default;
-CovarianceMatrix::~CovarianceMatrix()                              = default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept =
+    default;
+CovarianceMatrix::~CovarianceMatrix() = default;
 
 Block::Block(Range row_range,
              Range column_range,

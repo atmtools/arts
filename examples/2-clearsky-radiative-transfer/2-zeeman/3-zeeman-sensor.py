@@ -11,28 +11,28 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712
-ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + line_f0
+ws.freq_grid = np.linspace(-50e6, 50e6, 1001) + line_f0
 
 # %% Species and line absorption
-ws.absorption_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
-ws.absorption_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
-ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
+ws.abs_bandsSelectFrequencyByLine(fmin=40e9, fmax=120e9)
+ws.abs_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propagation_matrix_agendaAuto()
+ws.spectral_propmat_agendaAuto()
 
 # %% Grids and planet
-ws.surface_fieldPlanet(option="Earth")
-ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
-ws.atmospheric_fieldRead(
+ws.surf_fieldPlanet(option="Earth")
+ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
+ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
-ws.spectral_radiance_transform_operator = "Tb"
+ws.spectral_rad_transform_operator = "Tb"
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Set up a sensor with Gaussian standard deviation channel widths on individual frequency ranges
@@ -41,11 +41,11 @@ los = [180.0, 0.0]
 ws.measurement_sensorSimpleGaussian(std=1e5, pos=pos, los=los, pol="RC")
 
 # %% Core calculations
-ws.measurement_vectorFromSensor()
+ws.measurement_vecFromSensor()
 
 # %% Show results
-fig, ax = pyarts.plot(ws.measurement_vector, xgrid=(
-    ws.frequency_grid - line_f0) / 1e6)
+fig, ax = pyarts.plot(ws.measurement_vec, xgrid=(
+    ws.freq_grid - line_f0) / 1e6)
 ax.set_xlabel("Frequency offset [MHz]")
 ax.set_ylabel("Spectral radiance [K]")
 ax.set_title(
@@ -57,7 +57,7 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Test
 assert np.allclose(
-    ws.measurement_vector[::100],
+    ws.measurement_vec[::100],
     np.array(
         [227.85626444, 230.93431141, 234.89998492, 240.50101182,
          250.05274234, 210.84064948, 249.51259663, 240.21977571,

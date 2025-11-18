@@ -3,10 +3,10 @@
 #include <workspace.h>
 
 namespace {
-Numeric surface_tangent_zenithFromAgenda(const Workspace& ws,
-                                         const Vector3& pos,
-                                         const Agenda& ray_path_observer_agenda,
-                                         const Numeric azimuth) {
+Numeric surf_tangent_zenithFromAgenda(const Workspace& ws,
+                                      const Vector3& pos,
+                                      const Agenda& ray_path_observer_agenda,
+                                      const Numeric azimuth) {
   ARTS_TIME_REPORT
 
   ArrayOfPropagationPathPoint ray_path;
@@ -27,40 +27,38 @@ Numeric surface_tangent_zenithFromAgenda(const Workspace& ws,
 void ray_path_observersFieldProfilePseudo2D(
     const Workspace& ws,
     ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atmospheric_field,
-    const SurfaceField& surface_field,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
     const Agenda& ray_path_observer_agenda,
-    const Numeric& latitude,
-    const Numeric& longitude,
-    const Numeric& azimuth,
+    const Numeric& lat,
+    const Numeric& lon,
+    const Numeric& azi,
     const Index& nup,
     const Index& nlimb,
     const Index& ndown) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
-      surface_field.bad_ellipsoid(),
+      surf_field.bad_ellipsoid(),
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surface_field.ellipsoid)
+      surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
                      "Must have at least 2 observers per meta-direction.")
 
-  const Vector3 top_pos = {
-      atmospheric_field.top_of_atmosphere, latitude, longitude};
-  const Vector3 bot_pos = {surface_field[SurfaceKey::h].at(latitude, longitude),
-                           latitude,
-                           longitude};
+  const Vector3 top_pos = {atm_field.top_of_atmosphere, lat, lon};
+  const Vector3 bot_pos = {
+      surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
 
-  const Numeric za_surface_limb = surface_tangent_zenithFromAgenda(
-      ws, top_pos, ray_path_observer_agenda, azimuth);
+  const Numeric za_surf_limb = surf_tangent_zenithFromAgenda(
+      ws, top_pos, ray_path_observer_agenda, azi);
 
   const Index N = nlimb + nup + ndown;
   arr::resize(0, ray_path_observers);
   arr::reserve(N, ray_path_observers);
 
-  const Numeric miss_surf = std::nextafter(za_surface_limb, 0.0);
-  const Numeric hit_surf  = std::nextafter(za_surface_limb, 180.0);
+  const Numeric miss_surf = std::nextafter(za_surf_limb, 0.0);
+  const Numeric hit_surf  = std::nextafter(za_surf_limb, 180.0);
   const AscendingGrid upp = nlinspace(0.0, 90.0, nup);
   const AscendingGrid lmb = nlinspace(90.0, miss_surf, nlimb + 1);
   const AscendingGrid dwn = nlinspace(hit_surf, 180.0, ndown);
@@ -69,7 +67,7 @@ void ray_path_observersFieldProfilePseudo2D(
     ray_path_observers.push_back({.pos_type = PathPositionType::surface,
                                   .los_type = PathPositionType::atm,
                                   .pos      = bot_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 
   // Skip 90.0
@@ -77,20 +75,20 @@ void ray_path_observersFieldProfilePseudo2D(
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                   .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 
   for (auto za : dwn) {
     ray_path_observers.push_back({.pos_type = PathPositionType::atm,
                                   .los_type = PathPositionType::atm,
                                   .pos      = top_pos,
-                                  .los      = {za, azimuth}});
+                                  .los      = {za, azi}});
   }
 }
 
 void ray_path_observersFluxProfile(
     ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const Numeric& azimuth,
     const Index& n,
     const AtmKey& atm_key) {
@@ -100,7 +98,7 @@ void ray_path_observersFluxProfile(
       n < 3 or (n % 2) == 0,
       "Must have at least 3 observers, and an uneven number of them.")
 
-  const auto& data = atmospheric_field[atm_key].get<GeodeticField3>();
+  const auto& data = atm_field[atm_key].get<GeodeticField3>();
 
   const auto& alt_g  = data.grid<0>();
   const auto& lat    = data.grid<1>()[0];
@@ -156,29 +154,29 @@ Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
 void ray_path_fieldFluxProfile(
     const Workspace& ws,
     ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const AtmField& atmospheric_field,
+    const AtmField& atm_field,
     const Agenda& ray_path_observer_agenda,
     const Numeric& azimuth,
-    const Numeric& dza,
+    const Numeric& dzen,
     const AtmKey& atm_key) try {
-  ARTS_USER_ERROR_IF(dza <= 0.0, "Zenith angle step must be positive")
+  ARTS_USER_ERROR_IF(dzen <= 0.0, "Zenith angle step must be positive")
 
   ray_path_field.clear();
 
-  const auto& data  = atmospheric_field[atm_key].get<GeodeticField3>();
+  const auto& data  = atm_field[atm_key].get<GeodeticField3>();
   const auto& alt_g = data.grid<0>();
   ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
                      "Data size does not match altitude grid size")
   const auto& lat = data.grid<1>()[0];
   const auto& lon = data.grid<2>()[0];
 
-  const Numeric za_limb = surface_tangent_zenithFromAgenda(
+  const Numeric za_limb = surf_tangent_zenithFromAgenda(
       ws, {alt_g.back(), lat, lon}, ray_path_observer_agenda, azimuth);
   const Numeric za_limb_miss = std::nextafter(za_limb, 0.0);
   const Numeric za_limb_hit  = std::nextafter(za_limb, 180.0);
 
-  const Vector looking_down = half_grid(za_limb_hit, 180.0, dza);
-  const Vector looking_up   = half_grid(0.0, 90, dza);
+  const Vector looking_down = half_grid(za_limb_hit, 180.0, dzen);
+  const Vector looking_up   = half_grid(0.0, 90, dzen);
 
   // 4 extra points already added by
   ray_path_field.resize(looking_down.size() + looking_up.size());

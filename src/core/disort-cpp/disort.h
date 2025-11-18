@@ -12,28 +12,28 @@
 
 namespace disort {
 struct radiances {
-  AscendingGrid frequency_grid;  // nf
-  DescendingGrid altitude_grid;  // level; nl
-  AzimuthGrid azimuth_grid;      // naa
-  ZenithGrid zenith_grid;        // nza
-  Tensor4 data;                  // nf, nl - 1, naa, nza
+  AscendingGrid freq_grid;  // nf
+  DescendingGrid alt_grid;  // level; nl
+  AziGrid azi_grid;         // naa
+  ZenGrid zen_grid;         // nza
+  Tensor4 data;             // nf, nl - 1, naa, nza
 
-  void resize(AscendingGrid frequency_grid,
-              DescendingGrid altitude_grid,
-              AzimuthGrid azimuth_grid,
-              ZenithGrid zenith_grid);
+  void resize(AscendingGrid freq_grid,
+              DescendingGrid alt_grid,
+              AziGrid azi_grid,
+              ZenGrid zen_grid);
 
   void sort(const Vector& solver_mu);
 };
 
 struct fluxes {
-  AscendingGrid frequency_grid;  // nf
-  DescendingGrid altitude_grid;  // level; nl
-  Matrix up;                     // nf, nl - 1
-  Matrix down_diffuse;           // nf, nl - 1
-  Matrix down_direct;            // nf, nl - 1
+  AscendingGrid freq_grid;  // nf
+  DescendingGrid alt_grid;  // level; nl
+  Matrix up;                // nf, nl - 1
+  Matrix down_diffuse;      // nf, nl - 1
+  Matrix down_direct;       // nf, nl - 1
 
-  void resize(AscendingGrid frequency_grid, DescendingGrid altitude_grid);
+  void resize(AscendingGrid freq_grid, DescendingGrid alt_grid);
 };
 
 struct BDRF {
@@ -640,7 +640,7 @@ class main_data {
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
 
   //! Get weights on a grid
-  [[nodiscard]] ZenithGriddedField1 gridded_weights() const;
+  [[nodiscard]] ZenGriddedField1 gridded_weights() const;
 };
 }  // namespace disort
 
@@ -653,40 +653,40 @@ struct DisortSettings {
   Index fourier_mode_dimension{0};
 
   // Grids
-  AscendingGrid frequency_grid{};
-  DescendingGrid altitude_grid{};  // levels not layers
+  AscendingGrid freq_grid{};
+  DescendingGrid alt_grid{};  // levels not layers
 
-  // frequency_grid.size()
+  // freq_grid.size()
   Vector solar_azimuth_angle{};
 
-  // frequency_grid.size()
+  // freq_grid.size()
   Vector solar_zenith_angle{};
 
-  // frequency_grid.size()
+  // freq_grid.size()
   Vector solar_source{};
 
-  // frequency_grid.size() x nbrdf
+  // freq_grid.size() x nbrdf
   MatrixOfDisortBDRF bidirectional_reflectance_distribution_functions{};
 
-  // frequency_grid.size() x [altitude_grid.size() - 1]
+  // freq_grid.size() x [alt_grid.size() - 1]
   Matrix optical_thicknesses{};
 
-  // frequency_grid.size() x [altitude_grid.size() - 1]
+  // freq_grid.size() x [alt_grid.size() - 1]
   Matrix single_scattering_albedo{};
 
-  // frequency_grid.size() x [altitude_grid.size() - 1]
+  // freq_grid.size() x [alt_grid.size() - 1]
   Matrix fractional_scattering{};
 
-  // frequency_grid.size() x [altitude_grid.size() - 1] x nsrc
+  // freq_grid.size() x [alt_grid.size() - 1] x nsrc
   Tensor3 source_polynomial{};
 
-  // frequency_grid.size() x [altitude_grid.size() - 1] x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
+  // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
   Tensor3 legendre_coefficients{};
 
-  // frequency_grid.size() x fourier_mode_dimension x quadrature_dimension / 2
+  // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2
   Tensor3 positive_boundary_condition{};
 
-  // frequency_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.
+  // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.
   Tensor3 negative_boundary_condition{};
 
   DisortSettings() = default;
@@ -694,11 +694,11 @@ struct DisortSettings {
   void resize(Index quadrature_dimension,
               Index legendre_polynomial_dimension,
               Index fourier_mode_dimension,
-              AscendingGrid frequency_grid,
-              DescendingGrid altitude_grid);
+              AscendingGrid freq_grid,
+              DescendingGrid alt_grid_);
 
-  [[nodiscard]] Index frequency_count() const { return frequency_grid.size(); }
-  [[nodiscard]] Index layer_count() const { return altitude_grid.size() - 1; }
+  [[nodiscard]] Index frequency_count() const { return freq_grid.size(); }
+  [[nodiscard]] Index layer_count() const { return alt_grid.size() - 1; }
 
   [[nodiscard]] disort::main_data init() const;
   disort::main_data& set(disort::main_data&, Index iv) const;
@@ -950,11 +950,11 @@ legendre_polynomial_dimension: ")-x-"sv,
 fourier_mode_dimension:        ")-x-"sv,
           v.fourier_mode_dimension,
           R"-x-(
-frequency_grid.size():         ")-x-"sv,
-          v.frequency_grid.size(),
+freq_grid.size():         ")-x-"sv,
+          v.freq_grid.size(),
           R"-x-(
-altitude_grid.size():          ")-x-"sv,
-          v.altitude_grid.size(),
+alt_grid.size():          ")-x-"sv,
+          v.alt_grid.size(),
           R"-x-(
 nsrc:                          ")-x-"sv,
           v.source_polynomial.ncols(),
@@ -965,37 +965,37 @@ nbrdf:                         ")-x-"sv,
 
 solar_source.shape():                                     ")-x-"sv,
           v.solar_source.shape(),
-          R"-x-( - should be frequency_grid.size().
+          R"-x-( - should be freq_grid.size().
 solar_zenith_angle.shape():                               ")-x-"sv,
           v.solar_zenith_angle.shape(),
-          R"-x-( - should be frequency_grid.size().
+          R"-x-( - should be freq_grid.size().
 solar_azimuth_angle.shape():                              ")-x-"sv,
           v.solar_azimuth_angle.shape(),
-          R"-x-( - should be frequency_grid.size().
+          R"-x-( - should be freq_grid.size().
 bidirectional_reflectance_distribution_functions.shape(): ")-x-"sv,
           v.bidirectional_reflectance_distribution_functions.shape(),
-          R"-x-( - should be frequency_grid.size() x nbrdf.
+          R"-x-( - should be freq_grid.size() x nbrdf.
 optical_thicknesses.shape():                              ")-x-"sv,
           v.optical_thicknesses.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
 single_scattering_albedo.shape():                         ")-x-"sv,
           v.single_scattering_albedo.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
 fractional_scattering.shape():                            ")-x-"sv,
           v.fractional_scattering.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1].
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
 source_polynomial.shape():                                ")-x-"sv,
           v.source_polynomial.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x nsrc.
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nsrc.
 legendre_coefficients.shape():                            ")-x-"sv,
           v.legendre_coefficients.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x nleg.
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nleg.
 positive_boundary_condition.shape():                      ")-x-"sv,
           v.positive_boundary_condition.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x (quadrature_dimension / 2).
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x (quadrature_dimension / 2).
 negative_boundary_condition.shape():                      ")-x-"sv,
           v.negative_boundary_condition.shape(),
-          R"-x-( - should be frequency_grid.size() x [altitude_grid.size() - 1] x (quadrature_dimension / 2).)-x-"sv);
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x (quadrature_dimension / 2).)-x-"sv);
     }
     return tags.format(
         ctx,
@@ -1008,11 +1008,11 @@ legendre_polynomial_dimension: ")-x-"sv,
 fourier_mode_dimension:        ")-x-"sv,
         v.fourier_mode_dimension,
         R"-x-(
-frequency_grid:                ")-x-"sv,
-        v.frequency_grid,
+freq_grid:                ")-x-"sv,
+        v.freq_grid,
         R"-x-(
-altitude_grid:                 ")-x-"sv,
-        v.altitude_grid,
+alt_grid:                 ")-x-"sv,
+        v.alt_grid,
         R"-x-(
 nsrc:                          ")-x-"sv,
         v.source_polynomial.ncols(),
@@ -1123,9 +1123,9 @@ struct std::formatter<DisortFlux> {
   FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
     auto sep = tags.sep();
     return tags.format(ctx,
-                       v.frequency_grid,
+                       v.freq_grid,
                        sep,
-                       v.altitude_grid,
+                       v.alt_grid,
                        sep,
                        v.up,
                        sep,
@@ -1165,13 +1165,13 @@ struct std::formatter<DisortRadiance> {
   FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
     auto sep = tags.sep();
     return tags.format(ctx,
-                       v.frequency_grid,
+                       v.freq_grid,
                        sep,
-                       v.altitude_grid,
+                       v.alt_grid,
                        sep,
-                       v.azimuth_grid,
+                       v.azi_grid,
                        sep,
-                       v.zenith_grid,
+                       v.zen_grid,
                        sep,
                        v.data);
   }

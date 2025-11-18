@@ -479,22 +479,22 @@ class AgendaWrapper {
                 unsigned int state_space_dimension,
                 ::Matrix &arts_jacobian,
                 ::Vector &arts_y,
-                AtmField *atmospheric_field,
-                AbsorptionBands *absorption_bands,
+                AtmField *atm_field,
+                AbsorptionBands *abs_bands,
                 ArrayOfSensorObsel *measurement_sensor,
-                SurfaceField *surface_field,
-                SubsurfaceField *subsurface_field,
-                const JacobianTargets *jacobian_targets,
+                SurfaceField *surf_field,
+                SubsurfaceField *subsurf_field,
+                const JacobianTargets *jac_targets,
                 const Agenda *inversion_iterate_agenda)
       : m(measurement_space_dimension),
         n(state_space_dimension),
         inversion_iterate_agenda_(inversion_iterate_agenda),
-        jacs(jacobian_targets),
-        atm(atmospheric_field),
-        absdata(absorption_bands),
+        jacs(jac_targets),
+        atm(atm_field),
+        absdata(abs_bands),
         sensor(measurement_sensor),
-        surf(surface_field),
-        subsurf(subsurface_field),
+        surf(surf_field),
+        subsurf(subsurf_field),
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
@@ -506,7 +506,7 @@ class AgendaWrapper {
    *
    * @return The simulated observation vector.
    */
-  ArtsVector get_measurement_vector() { return yi_; }
+  ArtsVector get_measurement_vec() { return yi_; }
 
   AgendaWrapper(const AgendaWrapper &)            = delete;
   AgendaWrapper(AgendaWrapper &&)                 = delete;
@@ -676,7 +676,7 @@ void Tensor4Clip(Tensor4 &x,
  * @param[in] y The observation vector to fit.
  * @param[in] covmat_se The observation error covariance matrix. Checked to
  * by square and consistent with y.
- * @param[in] jacobian_targets: The Jacobian quantities array checked to
+ * @param[in] jac_targets: The Jacobian quantities array checked to
  * be consistent with jacobian_indices
  * @param[in] method The method string. Checked to be a valid OEM method
  * string.
@@ -696,12 +696,12 @@ void OEM_checks(const Workspace &ws,
                 Vector &x,
                 Vector &yf,
                 Matrix &jacobian,
-                AtmField &atmospheric_field,
-                AbsorptionBands &absorption_bands,
+                AtmField &atm_field,
+                AbsorptionBands &abs_bands,
                 ArrayOfSensorObsel &measurement_sensor,
-                SurfaceField &surface_field,
-                SubsurfaceField &subsurface_field,
-                const JacobianTargets &jacobian_targets,
+                SurfaceField &surf_field,
+                SubsurfaceField &subsurf_field,
+                const JacobianTargets &jac_targets,
                 const Agenda &inversion_iterate_agenda,
                 const Vector &xa,
                 const CovarianceMatrix &covmat_sx,
@@ -790,7 +790,8 @@ void OEM_checks(const Workspace &ws,
       (method == "ml_cg")) {
     ARTS_USER_ERROR_IF(lm_ga_settings.size() != 6,
                        "When using \"ml\", *lm_ga_setings* must be a "
-                       "vector of length 6. lm_ga_setings.size(): {}", lm_ga_settings.size());
+                       "vector of length 6. lm_ga_setings.size(): {}",
+                       lm_ga_settings.size());
     ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
                        "The vector *lm_ga_setings* can not contain any "
                        "negative value. lm_ga_setings: {}",
@@ -810,14 +811,14 @@ void OEM_checks(const Workspace &ws,
   if (x.size() == 0) {
     x = xa;
     inversion_iterate_agendaExecute(ws,
-                                    atmospheric_field,
-                                    absorption_bands,
+                                    atm_field,
+                                    abs_bands,
                                     measurement_sensor,
-                                    surface_field,
-                                    subsurface_field,
+                                    surf_field,
+                                    subsurf_field,
                                     yf,
                                     jacobian,
-                                    jacobian_targets,
+                                    jac_targets,
                                     xa,
                                     1,
                                     0,
@@ -825,14 +826,14 @@ void OEM_checks(const Workspace &ws,
   }
   if ((yf.size() == 0) || (jacobian.empty())) {
     inversion_iterate_agendaExecute(ws,
-                                    atmospheric_field,
-                                    absorption_bands,
+                                    atm_field,
+                                    abs_bands,
                                     measurement_sensor,
-                                    surface_field,
-                                    subsurface_field,
+                                    surf_field,
+                                    subsurf_field,
                                     yf,
                                     jacobian,
-                                    jacobian_targets,
+                                    jac_targets,
                                     x,
                                     1,
                                     0,

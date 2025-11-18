@@ -37,7 +37,7 @@ def plot(
     plotstyle : str, optional
         The matplotlib plotting function to use, 'contourf' or 'plot'
     freqs : array-like, optional
-        Frequency grid to use for x-axis. Defaults to None, which uses data.frequency_grid.
+        Frequency grid to use for x-axis. Defaults to None, which uses data.freq_grid.
     select : list or str, optional
         Which directions to plot: 'up' and/or 'down'. Defaults to ['up', 'down'].
     **kwargs
@@ -50,8 +50,8 @@ def plot(
     ax : list
         List of two matplotlib axes objects [ax_up, ax_down].
     """
-    freq_grid = data.frequency_grid if freqs is None else freqs
-    zenith_grid = data.zenith_grid
+    freq_grid = data.freq_grid if freqs is None else freqs
+    zen_grid = data.zen_grid
     radiance = data.data
 
     # Data shape is [freq, alt, azimuth, zenith]
@@ -59,17 +59,17 @@ def plot(
     data_slice = radiance[:, alt_idx, azi_idx, :]
 
     # Split zenith angles: zenith > 90° is downward, zenith <= 90° is upward
-    # Assuming zenith_grid is in degrees and sorted
-    n_zenith = len(zenith_grid)
+    # Assuming zen_grid is in degrees and sorted
+    n_zenith = len(zen_grid)
     mid_idx = n_zenith // 2
 
     # Upward radiation (zenith angles < 90°, smaller indices)
     upward_data = data_slice[:, mid_idx:]  # Transpose to put freq on x-axis
-    upward_zenith = zenith_grid[mid_idx:]
+    upward_zenith = zen_grid[mid_idx:]
 
     # Downward radiation (zenith angles >= 90°, larger indices)
     downward_data = data_slice[:, :mid_idx]  # Transpose to put freq on x-axis
-    downward_zenith = zenith_grid[:mid_idx]
+    downward_zenith = zen_grid[:mid_idx]
 
     # Plotting options
     select = [select] if isinstance(select, str) else select
@@ -85,11 +85,13 @@ def plot(
     if plotstyle == 'contourf':
         # Plot upward radiation
         if has_up:
-            select_flat_ax(ax, 0).contourf(freq_grid, upward_zenith, upward_data.T, **kwargs)
+            select_flat_ax(ax, 0).contourf(
+                freq_grid, upward_zenith, upward_data.T, **kwargs)
 
         # Plot downward radiation
         if has_down:
-            select_flat_ax(ax, n - 1).contourf(freq_grid, downward_zenith, downward_data.T, **kwargs)
+            select_flat_ax(ax, n - 1).contourf(freq_grid,
+                                               downward_zenith, downward_data.T, **kwargs)
     elif plotstyle == 'plot':
         # Plot upward radiation
         if has_up:
