@@ -28,8 +28,8 @@ struct spectral_rjbt_op {
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
-iy.size()             = {}
-diy.shape()           = {:B} [column size must match frequency grid size]
+iy.size()        = {}
+diy.shape()      = {:B} [column size must match frequency grid size]
 )",
         freqs.size(),
         iy.size(),
@@ -54,8 +54,8 @@ struct spectral_planck_op {
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
-iy.size()             = {}
-diy.shape()           = {:B} [column size must match frequency grid size]
+iy.size()        = {}
+diy.shape()      = {:B} [column size must match frequency grid size]
 )",
         freqs.size(),
         iy.size(),
@@ -96,8 +96,8 @@ struct spectral_W_m2_m_sr_op {
         R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
-iy.size()             = {}
-diy.shape()           = {:B} [column size must match frequency grid size]
+iy.size()        = {}
+diy.shape()      = {:B} [column size must match frequency grid size]
 )",
         freqs.size(),
         iy.size(),

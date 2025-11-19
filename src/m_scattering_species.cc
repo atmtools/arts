@@ -63,20 +63,20 @@ void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(
       R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
 Phase matrix shape (must match):
-  phase_matrix.shape(): [OUTPUT]            {0:B,}
+  phase_matrix.shape(): [OUTPUT]    {0:B,}
   spectral_phamat_spectral.shape(): {1:B,}
 
 Extinction matrix shape (must match):
-  extinction_matrix.shape(): [OUTPUT]       {2:B,}
-  spectral_propmat_scat.shape():    {3:B,}
+  extinction_matrix.shape(): [OUTPUT] {2:B,}
+  spectral_propmat_scat.shape():      {3:B,}
 
 Absorption vector shape (must match):
-  absorption_vector.shape(): [OUTPUT]       {4:B,}
-  spectral_absvec_scat.shape():     {5:B,}
+  absorption_vector.shape(): [OUTPUT] {4:B,}
+  spectral_absvec_scat.shape():       {5:B,}
 
 Supporting variable sizes:
-  freq_grid.size():                    {6}
-  scattering_species.size():                {7}
+  freq_grid.size():          {6}
+  scattering_species.size(): {7}
 )",
       phase_matrix.shape(),
       spectral_phamat_spectral.shape(),
@@ -101,7 +101,7 @@ void spectral_propmat_pathAddScattering(
   ARTS_USER_ERROR_IF(
       N != spectral_propmat_scat_path.size(),
       R"(The size of spectral_propmat_path and spectral_propmat_scat_path must be the same.
-  spectral_propmat_path.size():            {}
+  spectral_propmat_path.size():      {}
   spectral_propmat_scat_path.size(): {}
 )",
       spectral_propmat_path.size(),
@@ -137,8 +137,8 @@ void spectral_propmat_scat_pathFromSpectralAgenda(
   ARTS_USER_ERROR_IF(
       not arr::same_size(freq_grid_path, atm_path),
       R"(The size of freq_grid_path and atm_path must be the same.
-  freq_grid_path.size():    {}
-  atm_path.size(): {}
+  freq_grid_path.size(): {}
+  atm_path.size():       {}
 )",
       freq_grid_path.size(),
       atm_path.size());

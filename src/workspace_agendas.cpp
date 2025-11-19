@@ -181,7 +181,9 @@ is warranted.
                        "atm_field",
                        "surf_field",
                        "subsurf_field"},
-      .enum_options = {"Emission", "EmissionNoSensor"},
+      .enum_options = {"Emission",
+                       "EmissionAdaptiveHalfsteps",
+                       "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {

@@ -93,6 +93,17 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("spectral_radClearskyEmission");
       agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
       break;
+    case EmissionAdaptiveHalfsteps:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("ray_pointBackground");
+      agenda.add("spectral_rad_bkgAgendasAtEndOfPath");
+      agenda.add("atm_pathFromPath");
+      agenda.add("freq_grid_pathFromPath");
+      agenda.add("spectral_propmat_pathAdaptiveHalfPath");
+      agenda.add("spectral_radSetToBackground");
+      agenda.add("spectral_radSinglePathEmissionFrequencyLoop");
+      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
+      break;
     case EmissionNoSensor:
       agenda.add("ray_path_observer_agendaExecute");
       agenda.add("spectral_radClearskyEmission");

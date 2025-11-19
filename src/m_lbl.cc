@@ -581,7 +581,7 @@ namespace {
 void sumup_zeeman(PropmatVectorView spectral_propmat,
                   PropmatMatrixView spectral_propmat_jac,
                   VectorView dispersion,
-                  MatrixView dispersion_jacobian,
+                  MatrixView dispersion_jac,
                   ComplexVectorView pm,
                   ComplexMatrixView dpm,
                   const AbsorptionBands& abs_bands,
@@ -622,7 +622,7 @@ void sumup_zeeman(PropmatVectorView spectral_propmat,
       std::visit(
           [&,
            &x = spectral_propmat_jac[j, i],
-           &y = dispersion_jacobian[j, i]]<typename T>(const T& type) {
+           &y = dispersion_jac[j, i]]<typename T>(const T& type) {
             if constexpr (std::same_as<T, AtmKey>) {
               if (type == AtmKey::mag_u) {
                 x += scale(npm, dnpm_du, pm[i], dpm[j, i]);
@@ -649,7 +649,7 @@ void sumup_zeeman(PropmatVectorView spectral_propmat,
 void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
                                  PropmatMatrix& spectral_propmat_jac,
                                  Vector& dispersion,
-                                 Matrix& dispersion_jacobian,
+                                 Matrix& dispersion_jac,
                                  const AscendingGrid& freq_grid,
                                  const JacobianTargets& jac_targets,
                                  const SpeciesEnum& species,
@@ -659,29 +659,28 @@ void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
                                  const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
-  //! FIXME: these should be part of workspace once things work
+  //! FIXME: these should be part of workspace once things work?
   dispersion.resize(freq_grid.size());
-  dispersion_jacobian.resize(jac_targets.target_count(), freq_grid.size());
-  dispersion          = 0;
-  dispersion_jacobian = 0;
+  dispersion_jac.resize(jac_targets.target_count(), freq_grid.size());
+  dispersion     = 0;
+  dispersion_jac = 0;
 
-  ARTS_USER_ERROR_IF(
-      spectral_propmat.shape() != dispersion.shape() or
-          spectral_propmat.shape() != freq_grid.shape() or
-          spectral_propmat_jac.shape() != dispersion_jacobian.shape(),
-      R"(Inconsistent shapes:
+  ARTS_USER_ERROR_IF(spectral_propmat.shape() != dispersion.shape() or
+                         spectral_propmat.shape() != freq_grid.shape() or
+                         spectral_propmat_jac.shape() != dispersion_jac.shape(),
+                     R"(Inconsistent shapes:
 
-spectral_propmat:          {:B,}
-dispersion:                  {:B,}
-freq_grid:              {:B,}
+spectral_propmat:     {:B,}
+dispersion:           {:B,}
+freq_grid:            {:B,}
 spectral_propmat_jac: {:B,}
-dispersion_jacobian:         {:B,}
+dispersion_jac:       {:B,}
 )",
-      spectral_propmat.shape(),
-      dispersion.shape(),
-      freq_grid.shape(),
-      spectral_propmat_jac.shape(),
-      dispersion_jacobian.shape());
+                     spectral_propmat.shape(),
+                     dispersion.shape(),
+                     freq_grid.shape(),
+                     spectral_propmat_jac.shape(),
+                     dispersion_jac.shape());
 
   const Size nf = freq_grid.size();
   const Size nt = spectral_propmat_jac.nrows();
@@ -703,7 +702,7 @@ dispersion_jacobian:         {:B,}
   spectral_propmat     += pm.real();
   spectral_propmat_jac += dpm.real();
   dispersion           -= pm.imag();
-  dispersion_jacobian  -= dpm.imag();
+  dispersion_jac       -= dpm.imag();
 
   if (has_zeeman) {
     const auto mag = atm_point.mag;
@@ -713,7 +712,7 @@ dispersion_jacobian:         {:B,}
       sumup_zeeman(spectral_propmat,
                    spectral_propmat_jac,
                    dispersion,
-                   dispersion_jacobian,
+                   dispersion_jac,
                    pm,
                    dpm,
                    abs_bands,
@@ -779,8 +778,8 @@ void single_propmatAddVoigtLTE(Propmat& single_propmat,
       single_propmat_jac.shape() != single_dispersion_jac.shape(),
       R"(Inconsistent shapes:
 
-single_propmat_jac: {:B,}
-single_dispersion_jac:         {:B,}
+single_propmat_jac:    {:B,}
+single_dispersion_jac: {:B,}
 )",
       single_propmat_jac.shape(),
       single_dispersion_jac.shape());
@@ -794,7 +793,7 @@ single_dispersion_jac:         {:B,}
   PropmatVectorView spectral_propmat{single_propmat};
   PropmatMatrixView spectral_propmat_jac{single_propmat_jac.view_as(nt, 1)};
   VectorView dispersion{single_dispersion};
-  MatrixView dispersion_jacobian{single_dispersion_jac.view_as(nt, 1)};
+  MatrixView dispersion_jac{single_dispersion_jac.view_as(nt, 1)};
 
   bool has_zeeman = lbl::voigt::lte::calculate(pm,
                                                dpm,
@@ -809,7 +808,7 @@ single_dispersion_jac:         {:B,}
   spectral_propmat     += pm.real();
   spectral_propmat_jac += dpm.real();
   dispersion           -= pm.imag();
-  dispersion_jacobian  -= dpm.imag();
+  dispersion_jac       -= dpm.imag();
 
   if (has_zeeman) {
     const auto mag = atm_point.mag;
@@ -819,7 +818,7 @@ single_dispersion_jac:         {:B,}
       sumup_zeeman(spectral_propmat,
                    spectral_propmat_jac,
                    dispersion,
-                   dispersion_jacobian,
+                   dispersion_jac,
                    pm,
                    dpm,
                    abs_bands,

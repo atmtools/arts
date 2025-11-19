@@ -100,7 +100,7 @@ void filename_xml_with_index(String& filename,
                              const Index& file_index,
                              const Index&) {
   ARTS_USER_ERROR_IF("" == filename, "Must have filename")
-  filename = std::format("{}{}{}{}", filename, ".", file_index, ".xml");
+  filename = std::format("{}.{}.xml", filename, file_index);
 }
 
 String complete_basename(const String& basename) {

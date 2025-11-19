@@ -57,11 +57,11 @@ ws.max_stepsize = 100.0
 # %% Show results
 ws.ray_point_back_propagation_agendaSet(option="GeometricStepwise")
 ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.spectral_ray_path[0])
 geometric = ws.spectral_rad * 1.0
 ws.ray_point_back_propagation_agendaSet(option="RefractiveStepwise")
 ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
-ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.ray_paths[0])
+ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.spectral_ray_path[0])
 refractive = ws.spectral_rad * 1.0
 
 # %% Show results

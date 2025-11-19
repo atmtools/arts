@@ -81,7 +81,7 @@ void disort_settingsSetSun(DisortSettings& disort_settings,
                          static_cast<Size>(sun.spectrum.nrows()) != nv,
                      R"(Solar spectrum not agreeing with frequency grids:
 
-freq_grid.size():               {}
+freq_grid.size():                    {}
 disort_settings.solar_source.size(): {}
 sun.spectrum.nrows():                {}
 )",
@@ -194,9 +194,9 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
           atm_path, spectral_propmat_path, spectral_nlte_srcvec_path),
       R"(Not same size:
 
-atm_path.size():   {}
-spectral_propmat_path.size():  {}
-ray_path_source_vector_nonlte.size(): {}
+atm_path.size():                  {}
+spectral_propmat_path.size():     {}
+spectral_nlte_srcvec_path.size(): {}
 )",
       atm_path.size(),
       spectral_propmat_path.size(),
@@ -206,8 +206,8 @@ ray_path_source_vector_nonlte.size(): {}
                                                  spectral_nlte_srcvec_path),
                      R"(Not same size:
 
-spectral_propmat_path.size():   {}
-ray_path_source_vector_nonlte.size(): {}
+spectral_propmat_path.size():     {}
+spectral_nlte_srcvec_path.size(): {}
 )",
                      spectral_propmat_path.size(),
                      spectral_nlte_srcvec_path.size());
@@ -666,7 +666,7 @@ void disort_settingsLegendreCoefficientsFromPath(
       (N + 1) != spectral_phamat_spectral_path.size(),
       R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in disort_settings.
 
-  disort_settings.layer_count() + 1:                         {}
+  disort_settings.layer_count() + 1:    {}
   spectral_phamat_spectral_path.size(): {}
 )",
       N,
@@ -737,8 +737,8 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       (N + 1) != spectral_propmat_path.size(),
       R"(The number of levels in spectral_propmat_path must be one more than the number of layers in disort_settings.
 
-  disort_settings.layer_count():                          {}
-  spectral_propmat_path.size(): {}
+  disort_settings.layer_count(): {}
+  spectral_propmat_path.size():  {}
 )",
       N,
       spectral_propmat_scat_path.size());
@@ -747,7 +747,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       (N + 1) != spectral_propmat_scat_path.size(),
       R"(The number of levels in spectral_propmat_scat_path must be one more than the number of layers in disort_settings.
 
-  disort_settings.layer_count():                          {}
+  disort_settings.layer_count():     {}
   spectral_propmat_scat_path.size(): {}
 )",
       N,
@@ -757,7 +757,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       (N + 1) != spectral_absvec_scat_path.size(),
       R"(The number of levels in spectral_absvec_scat_path must be one more than the number of layers in disort_settings.
 
-  disort_settings.layer_count():                         {}
+  disort_settings.layer_count():    {}
   spectral_absvec_scat_path.size(): {}
 )",
       N,
