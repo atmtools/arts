@@ -204,8 +204,8 @@ freq_grid.size()    = {}
                      R"(spectral_rad_jac must be x-grid times frequency grid
 
 spectral_rad_jac.shape() = {:B,},
-jac_targets.x_size()          = {},
-freq_grid.size()              = {}
+jac_targets.x_size()     = {},
+freq_grid.size()         = {}
 )",
                      spectral_rad_jac.shape(),
                      jac_targets.x_size(),
@@ -278,8 +278,8 @@ freq_grid.size()              = {}
                      R"(No sensor element found for pos-los/frequency grid pair
 
   freq_grid: {:Bs,}
-  pos:            {:B,}
-  los:            {:B,}
+  pos:       {:B,}
+  los:       {:B,}
 
 Note: It is not allowed to change the frequency grid or the pos-los pair in an agenda
 that calls this function.  This is because the actual memory address is used to identify

@@ -435,7 +435,7 @@ void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
                      R"(Matrices have inconsistent sizes.
 
 measurement_gain_mat: {:B,},
-measurement_jac:    {:B,}
+measurement_jac:      {:B,}
 )",
                      measurement_gain_mat.shape(),
                      measurement_jac.shape());

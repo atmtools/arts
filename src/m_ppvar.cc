@@ -38,9 +38,9 @@ void spectral_rad_srcvec_pathFromPropmat(
     ArrayOfStokvecVector &spectral_rad_srcvec_path,
     ArrayOfStokvecMatrix &spectral_rad_srcvec_jac_path,
     const ArrayOfPropmatVector &spectral_propmat_path,
-    const ArrayOfStokvecVector &ray_path_source_vector_nonlte,
+    const ArrayOfStokvecVector &spectral_nlte_srcvec_path,
     const ArrayOfPropmatMatrix &spectral_propmat_jac_path,
-    const ArrayOfStokvecMatrix &ray_path_source_vector_nonlte_jacobian,
+    const ArrayOfStokvecMatrix &spectral_nlte_srcvec_jac_path,
     const ArrayOfAscendingGrid &freq_grid_path,
     const ArrayOfAtmPoint &atm_path,
     const JacobianTargets &jac_targets) try {
@@ -78,9 +78,9 @@ void spectral_rad_srcvec_pathFromPropmat(
       rtepack::source::level_nlte(spectral_rad_srcvec_path[ip],
                                   spectral_rad_srcvec_jac_path[ip],
                                   spectral_propmat_path[ip],
-                                  ray_path_source_vector_nonlte[ip],
+                                  spectral_nlte_srcvec_path[ip],
                                   spectral_propmat_jac_path[ip],
-                                  ray_path_source_vector_nonlte_jacobian[ip],
+                                  spectral_nlte_srcvec_jac_path[ip],
                                   freq_grid_path[ip],
                                   atm_path[ip].temperature,
                                   it);

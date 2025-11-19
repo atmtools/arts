@@ -1182,6 +1182,48 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
       .pass_workspace = true,
   };
 
+  wsm_data["spectral_propmat_pathAdaptiveHalfPath"] = {
+      .desc =
+          R"--(Same as *spectral_propmat_pathFromPath* but with adaptive path.
+
+The path is filled with extra points if a single frequency point has an optical
+thickness larger than ``max_tau`` in a single step.  The step size is halved until
+the optical thickness is below the limit, and additional points are added to
+the path parameters.
+
+As a bailout, the step size is not allowed to be smaller than *max_stepsize*,
+albeit at least 3 points are added if any point is added.
+
+Note that the input 
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat_path",
+                    "spectral_nlte_srcvec_path",
+                    "spectral_propmat_jac_path",
+                    "spectral_nlte_srcvec_jac_path",
+                    "freq_grid_path",
+                    "freq_wind_shift_jac_path",
+                    "ray_path",
+                    "atm_path"},
+      .in        = {"freq_grid_path",
+                    "freq_wind_shift_jac_path",
+                    "ray_path",
+                    "atm_path",
+                    "spectral_propmat_agenda",
+                    "jac_targets",
+                    "freq_grid",
+                    "atm_field",
+                    "surf_field",
+                    "max_stepsize"},
+      .gin       = {"max_tau", "cutoff_tau"},
+      .gin_type  = {"Numeric", "Numeric"},
+      .gin_value = {Numeric{0.1}, Numeric{3.0}},
+      .gin_desc =
+          {R"--(Maximum allowed optical thickness per step)--",
+           R"--(Cutoff optical thickness for stopping the adaptive stepping)--"},
+      .pass_workspace = true,
+  };
+
   wsm_data["spectral_propmat_path_species_splitFromPath"] = {
       .desc =
           R"--(As *spectral_propmat_pathFromPath* but the output is split between the species in the
@@ -2112,7 +2154,7 @@ but built on-the-fly, allowing per-frequency refraction.
 )--",
         .author         = {"Richard Larsson"},
         .out            = {"spectral_rad", "spectral_rad_jac"},
-        .gout           = {"ray_paths"},
+        .gout           = {"spectral_ray_path"},
         .gout_type      = {"ArrayOfArrayOfPropagationPathPoint"},
         .gout_desc      = {"The ray paths for each frequency"},
         .in             = {"atm_field",

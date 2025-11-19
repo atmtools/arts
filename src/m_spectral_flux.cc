@@ -3,26 +3,26 @@
 #include <workspace.h>
 
 namespace {
-void ray_path_spectral_radStepByStepEmissionForwardOnly(
-    ArrayOfStokvecVector& ray_path_spectral_rad,
+void spectral_rad_pathStepByStepEmissionForwardOnly(
+    ArrayOfStokvecVector& spectral_rad_path,
     const ArrayOfMuelmatVector& spectral_tramat_path,
     const ArrayOfStokvecVector& spectral_rad_srcvec_path,
     const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  ray_path_spectral_rad.resize(spectral_tramat_path.size());
-  arr::elemwise_resize(spectral_rad_bkg.size(), ray_path_spectral_rad);
+  spectral_rad_path.resize(spectral_tramat_path.size());
+  arr::elemwise_resize(spectral_rad_bkg.size(), spectral_rad_path);
 
-  ray_path_spectral_rad.back() = spectral_rad_bkg;
+  spectral_rad_path.back() = spectral_rad_bkg;
 
   two_level_linear_emission_step_by_step_full(
-      ray_path_spectral_rad, spectral_tramat_path, spectral_rad_srcvec_path);
+      spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_spectral_radClearskyEmission(
+void spectral_rad_pathClearskyEmission(
     const Workspace& ws,
-    ArrayOfStokvecVector& ray_path_spectral_rad,
+    ArrayOfStokvecVector& spectral_rad_path,
     const AtmField& atm_field,
     const AscendingGrid& freq_grid,
     const Agenda& spectral_propmat_agenda,
@@ -90,10 +90,10 @@ void ray_path_spectral_radClearskyEmission(
                                       freq_grid_path,
                                       atm_path,
                                       {});
-  ray_path_spectral_radStepByStepEmissionForwardOnly(ray_path_spectral_rad,
-                                                     spectral_tramat_path,
-                                                     spectral_rad_srcvec_path,
-                                                     spectral_rad_bkg);
+  spectral_rad_pathStepByStepEmissionForwardOnly(spectral_rad_path,
+                                                 spectral_tramat_path,
+                                                 spectral_rad_srcvec_path,
+                                                 spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace
@@ -119,22 +119,22 @@ void spectral_flux_profileFromPathField(
   spectral_flux_profile.resize(M, K);
   spectral_flux_profile = 0.0;
 
-  ArrayOfArrayOfStokvecVector ray_path_spectral_rad_field(N);
+  ArrayOfArrayOfStokvecVector spectral_rad_path_field(N);
 
   String error{};
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size n = 0; n < N; n++) {
     try {
-      ray_path_spectral_radClearskyEmission(ws,
-                                            ray_path_spectral_rad_field[n],
-                                            atm_field,
-                                            freq_grid,
-                                            spectral_propmat_agenda,
-                                            ray_path_field[n],
-                                            spectral_rad_space_agenda,
-                                            spectral_rad_surface_agenda,
-                                            surf_field,
-                                            subsurf_field);
+      spectral_rad_pathClearskyEmission(ws,
+                                        spectral_rad_path_field[n],
+                                        atm_field,
+                                        freq_grid,
+                                        spectral_propmat_agenda,
+                                        ray_path_field[n],
+                                        spectral_rad_space_agenda,
+                                        spectral_rad_surface_agenda,
+                                        surf_field,
+                                        subsurf_field);
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -144,10 +144,10 @@ void spectral_flux_profileFromPathField(
   if (not error.empty()) throw std::runtime_error(error);
 
   ARTS_USER_ERROR_IF(
-      not arr::each_same_size(ray_path_spectral_rad_field, ray_path_field),
+      not arr::each_same_size(spectral_rad_path_field, ray_path_field),
       "Not all ray paths have the same altitude count")
 
-  for (auto& sradf : ray_path_spectral_rad_field) {
+  for (auto& sradf : spectral_rad_path_field) {
     ARTS_USER_ERROR_IF(
         stdr::any_of(sradf,
                      [K](const StokvecVector& v) { return v.size() != K; }),
@@ -186,8 +186,8 @@ void spectral_flux_profileFromPathField(
       const auto& z0 = zenith_angles[i];
       const auto& z1 = zenith_angles[i + 1];
 
-      const auto& y0 = ray_path_spectral_rad_field[z0.outer][z0.inner];
-      const auto& y1 = ray_path_spectral_rad_field[z1.outer][z1.inner];
+      const auto& y0 = spectral_rad_path_field[z0.outer][z0.inner];
+      const auto& y1 = spectral_rad_path_field[z1.outer][z1.inner];
 
       const Numeric w = 0.5 * pi * (cosd(z0.angle) - cosd(z1.angle));
       for (Size k = 0; k < K; k++) t[k] += w * (y0[k][0] + y1[k][0]);
@@ -287,7 +287,7 @@ void spectral_flux_profileFromSpectralRadianceField(
                      R"(Spectral radiance field is not OK (shape is wrong):
 
 spectral_rad_field.data.shape(): {:B,}
-Should be:                            [NALT, NLAT, NLON, NZA, NAA, NFRE]
+Should be:                       [NALT, NLAT, NLON, NZA, NAA, NFRE]
 
 NALT: {}
 NLAT: {}

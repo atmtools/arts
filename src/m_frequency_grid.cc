@@ -34,7 +34,7 @@ void wind_shift(VectorView freq_grid,
                      R"(Negative frequency scaling factor: {}
 
 atm_point.wind: {:B,}
-ray_point.los:     {:B,}
+ray_point.los:  {:B,}
 )",
                      fac,
                      atm_point.wind,

@@ -43,10 +43,11 @@ void spectral_tramat_pathFromPath(
           ray_path, spectral_propmat_path, spectral_propmat_jac_path, atm_path),
       R"(Not same sizes:
 
-ray_path.size()                             = {},
-spectral_propmat_path.size()          = {},
+ray_path.size()                  = {},
+spectral_propmat_path.size()     = {},
 spectral_propmat_jac_path.size() = {},
-atm_path.size()           = {})",
+atm_path.size()                  = {}
+)",
       ray_path.size(),
       spectral_propmat_path.size(),
       spectral_propmat_jac_path.size(),
@@ -129,16 +130,15 @@ void spectral_radCumulativeTransmission(
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void ray_path_single_transmission_matrixFromPath(
-    MuelmatVector& ray_path_single_transmission_matrix,
-    MuelmatTensor3& ray_path_single_transmission_matrix_jacobian,
-    const PropmatVector& single_propmat_path,
-    const PropmatMatrix& single_propmat_jac_path,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& atm_path,
-    const SurfaceField& surf_field,
-    const JacobianTargets& jac_targets,
-    const Index& hse_derivative) try {
+void single_tramat_pathFromPath(MuelmatVector& single_tramat_path,
+                                MuelmatTensor3& single_tramat_jac_path,
+                                const PropmatVector& single_propmat_path,
+                                const PropmatMatrix& single_propmat_jac_path,
+                                const ArrayOfPropagationPathPoint& ray_path,
+                                const ArrayOfAtmPoint& atm_path,
+                                const SurfaceField& surf_field,
+                                const JacobianTargets& jac_targets,
+                                const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
   const Size N  = ray_path.size();
@@ -151,10 +151,10 @@ void ray_path_single_transmission_matrixFromPath(
           atm_path.size() != N,
       R"(Not same sizes:
 
-ray_path:                                    (N)     = [{}]
-jac_targets:                            (nq)    = [{}]
-atm_path:                  (N)     = [{}]
-single_propmat_path:          (N)     = {:B,}
+ray_path:                (N)     = [{}]
+jac_targets:             (nq)    = [{}]
+atm_path:                (N)     = [{}]
+single_propmat_path:     (N)     = {:B,}
 single_propmat_jac_path: (N, nq) = {:B,}
 )",
       N,
@@ -163,10 +163,10 @@ single_propmat_jac_path: (N, nq) = {:B,}
       single_propmat_path.shape(),
       single_propmat_jac_path.shape());
 
-  ray_path_single_transmission_matrix.resize(N);
-  ray_path_single_transmission_matrix_jacobian.resize(N, 2, nq);
-  ray_path_single_transmission_matrix          = 1.0;
-  ray_path_single_transmission_matrix_jacobian = 0.0;
+  single_tramat_path.resize(N);
+  single_tramat_jac_path.resize(N, 2, nq);
+  single_tramat_path     = 1.0;
+  single_tramat_jac_path = 0.0;
 
   const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
   Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
@@ -183,9 +183,9 @@ single_propmat_jac_path: (N, nq) = {:B,}
   }
 
   for (Size i = 0; i < N - 1; i++) {
-    auto& T        = ray_path_single_transmission_matrix[i];
-    auto dT1       = ray_path_single_transmission_matrix_jacobian[i, 0];
-    auto dT2       = ray_path_single_transmission_matrix_jacobian[i + 1, 1];
+    auto& T        = single_tramat_path[i];
+    auto dT1       = single_tramat_jac_path[i, 0];
+    auto dT2       = single_tramat_jac_path[i + 1, 1];
     const auto& K1 = single_propmat_path[i];
     const auto& K2 = single_propmat_path[i + 1];
     const auto dK1 = single_propmat_jac_path[i];
@@ -205,28 +205,28 @@ single_propmat_jac_path: (N, nq) = {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_single_transmission_matrix_cumulativeFromPath(
-    MuelmatVector& ray_path_single_transmission_matrix_cumulative,
-    const MuelmatVector& ray_path_single_transmission_matrix) try {
+void single_tramat_cumulative_pathFromPath(
+    MuelmatVector& single_tramat_cumulative_path,
+    const MuelmatVector& single_tramat_path) try {
   ARTS_TIME_REPORT
 
-  const Size N = ray_path_single_transmission_matrix.size();
+  const Size N = single_tramat_path.size();
 
-  ray_path_single_transmission_matrix_cumulative.resize(N);
+  single_tramat_cumulative_path.resize(N);
 
   if (N == 0) return;
 
-  auto& Pi = ray_path_single_transmission_matrix_cumulative;
-  auto& T  = ray_path_single_transmission_matrix;
+  auto& Pi = single_tramat_cumulative_path;
+  auto& T  = single_tramat_path;
 
   Pi.front() = T.front();
   for (Size i = 1; i < N; i++) Pi[i] = Pi[i - 1] * T[i];
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_single_radiance_sourceFromPropmat(
-    StokvecVector& ray_path_single_radiance_source,
-    StokvecMatrix& ray_path_single_radiance_source_jacobian,
+void single_rad_srcvec_jacFromPropmat(
+    StokvecVector& single_rad_srcvec_jac,
+    StokvecMatrix& single_rad_srcvec_jac_path,
     const PropmatVector& single_propmat_path,
     const StokvecVector& single_nlte_srcvec_path,
     const PropmatMatrix& single_propmat_jac_path,
@@ -248,12 +248,12 @@ void ray_path_single_radiance_sourceFromPropmat(
                          nq != single_nlte_srcvec_jac_path.ncols(),
                      R"(Not same sizes:
 
-jac_targets                                    (nq)     = [{}]
-single_freq_path                           (np)     = {:B,}
-atm_path                          (np)     = [{}]
-single_propmat_path:                 (np)     = {:B,}
-single_nlte_srcvec_path:          (np)     = {:B,}
-single_propmat_jac_path:        (np, nq) = {:B,}
+jac_targets                  (nq)     = [{}]
+single_freq_path             (np)     = {:B,}
+atm_path                     (np)     = [{}]
+single_propmat_path:         (np)     = {:B,}
+single_nlte_srcvec_path:     (np)     = {:B,}
+single_propmat_jac_path:     (np, nq) = {:B,}
 single_nlte_srcvec_jac_path: (np, nq) = {:B,}
 )",
                      nq,
@@ -264,18 +264,18 @@ single_nlte_srcvec_jac_path: (np, nq) = {:B,}
                      single_propmat_jac_path.shape(),
                      single_nlte_srcvec_jac_path.shape())
 
-  ray_path_single_radiance_source.resize(np);
-  ray_path_single_radiance_source_jacobian.resize(np, nq);
-  ray_path_single_radiance_source          = 0.0;
-  ray_path_single_radiance_source_jacobian = 0.0;
+  single_rad_srcvec_jac.resize(np);
+  single_rad_srcvec_jac_path.resize(np, nq);
+  single_rad_srcvec_jac      = 0.0;
+  single_rad_srcvec_jac_path = 0.0;
 
   if (np == 0) return;
 
   const Index it = jac_targets.target_position(AtmKey::t);
 
   for (Index i = 0; i < np; i++) {
-    auto& J       = ray_path_single_radiance_source[i];
-    auto dJ       = ray_path_single_radiance_source_jacobian[i];
+    auto& J       = single_rad_srcvec_jac[i];
+    auto dJ       = single_rad_srcvec_jac_path[i];
     const auto& K = single_propmat_path[i];
     const auto& S = single_nlte_srcvec_path[i];
     const auto& f = single_freq_path[i];
@@ -300,56 +300,53 @@ single_nlte_srcvec_jac_path: (np, nq) = {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void single_radianceStepByStepEmission(
-    Stokvec& single_radiance,
-    StokvecMatrix& ray_path_single_rad_jac,
-    const MuelmatVector& ray_path_single_transmission_matrix,
-    const MuelmatVector& ray_path_single_transmission_matrix_cumulative,
-    const MuelmatTensor3& ray_path_single_transmission_matrix_jacobian,
-    const StokvecVector& ray_path_single_radiance_source,
-    const StokvecMatrix& ray_path_single_radiance_source_jacobian) try {
+void single_radStepByStepEmission(
+    Stokvec& single_rad,
+    StokvecMatrix& single_rad_jac_path,
+    const MuelmatVector& single_tramat_path,
+    const MuelmatVector& single_tramat_cumulative_path,
+    const MuelmatTensor3& single_tramat_jac_path,
+    const StokvecVector& single_rad_srcvec_jac,
+    const StokvecMatrix& single_rad_srcvec_jac_path) try {
   ARTS_TIME_REPORT
 
-  const Size N  = ray_path_single_transmission_matrix.size();
-  const Size nq = ray_path_single_radiance_source_jacobian.ncols();
+  const Size N  = single_tramat_path.size();
+  const Size nq = single_rad_srcvec_jac_path.ncols();
 
   ARTS_USER_ERROR_IF(
-      ray_path_single_transmission_matrix.size() != N or
-          ray_path_single_transmission_matrix_cumulative.size() != N or
-          ray_path_single_radiance_source.size() != N or
-          ray_path_single_radiance_source_jacobian.nrows() !=
-              static_cast<Index>(N) or
-          ray_path_single_radiance_source_jacobian.ncols() !=
-              static_cast<Index>(nq) or
-          ray_path_single_transmission_matrix_jacobian.npages() !=
-              static_cast<Index>(N) or
-          ray_path_single_transmission_matrix_jacobian.nrows() != 2,
+      single_tramat_path.size() != N or
+          single_tramat_cumulative_path.size() != N or
+          single_rad_srcvec_jac.size() != N or
+          single_rad_srcvec_jac_path.nrows() != static_cast<Index>(N) or
+          single_rad_srcvec_jac_path.ncols() != static_cast<Index>(nq) or
+          single_tramat_jac_path.npages() != static_cast<Index>(N) or
+          single_tramat_jac_path.nrows() != 2,
       R"(Not same sizes:
 
-ray_path_single_radiance_source                (N)        = {:B,}
-ray_path_single_transmission_matrix            (N)        = {:B,}
-ray_path_single_radiance_source_jacobian       (N, nq)    = {:B,}
-ray_path_single_transmission_matrix_jacobian   (N, 2, nq) = {:B,}
-ray_path_single_transmission_matrix_cumulative (N)        = {:B,}
+single_rad_srcvec_jac         (N)        = {:B,}
+single_tramat_path            (N)        = {:B,}
+single_rad_srcvec_jac_path    (N, nq)    = {:B,}
+single_tramat_jac_path        (N, 2, nq) = {:B,}
+single_tramat_cumulative_path (N)        = {:B,}
 )",
-      ray_path_single_radiance_source.shape(),
-      ray_path_single_transmission_matrix.shape(),
-      ray_path_single_radiance_source_jacobian.shape(),
-      ray_path_single_transmission_matrix_jacobian.shape(),
-      ray_path_single_transmission_matrix_cumulative.shape());
+      single_rad_srcvec_jac.shape(),
+      single_tramat_path.shape(),
+      single_rad_srcvec_jac_path.shape(),
+      single_tramat_jac_path.shape(),
+      single_tramat_cumulative_path.shape());
 
-  ray_path_single_rad_jac.resize(N, nq);
-  ray_path_single_rad_jac = 0.0;
+  single_rad_jac_path.resize(N, nq);
+  single_rad_jac_path = 0.0;
 
   if (N == 0) return;
 
-  auto& I         = single_radiance;
-  auto& dI        = ray_path_single_rad_jac;
-  const auto& Js  = ray_path_single_radiance_source;
-  const auto& dJs = ray_path_single_radiance_source_jacobian;
-  const auto& Pi  = ray_path_single_transmission_matrix_cumulative;
-  const auto& Ts  = ray_path_single_transmission_matrix;
-  const auto& dTs = ray_path_single_transmission_matrix_jacobian;
+  auto& I         = single_rad;
+  auto& dI        = single_rad_jac_path;
+  const auto& Js  = single_rad_srcvec_jac;
+  const auto& dJs = single_rad_srcvec_jac_path;
+  const auto& Pi  = single_tramat_cumulative_path;
+  const auto& Ts  = single_tramat_path;
+  const auto& dTs = single_tramat_jac_path;
 
   for (Size i = N - 2; i < N; i--) {
     const Stokvec J = avg(Js[i], Js[i + 1]);
@@ -378,7 +375,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void single_rad_jacAddPathPropagation(
     StokvecVector& single_rad_jac,
-    const StokvecMatrix& ray_path_single_rad_jac,
+    const StokvecMatrix& single_rad_jac_path,
     const JacobianTargets& jac_targets,
     const AtmField& atm_field,
     const ArrayOfPropagationPathPoint& ray_path) try {
@@ -390,25 +387,25 @@ void single_rad_jacAddPathPropagation(
 
   ARTS_USER_ERROR_IF(
       single_rad_jac.ncols() != nx or
-          ray_path_single_rad_jac.nrows() != static_cast<Index>(np) or
-          ray_path_single_rad_jac.ncols() != nt,
+          single_rad_jac_path.nrows() != static_cast<Index>(np) or
+          single_rad_jac_path.ncols() != nt,
       R"(Not same sizes:
 
-ray_path:                            (np)     = [{}]
-jac_targets:                    (nq)     = [{}]
-single_rad_jac:            (nx)     = {:B,}
-ray_path_single_rad_jac:   (np, nq) = {:B,}
+ray_path:            (np)     = [{}]
+jac_targets:         (nq)     = [{}]
+single_rad_jac:      (nx)     = {:B,}
+single_rad_jac_path: (np, nq) = {:B,}
 )",
       np,
       jac_targets.target_count(),
       single_rad_jac.shape(),
-      ray_path_single_rad_jac.shape());
+      single_rad_jac_path.shape());
 
   for (auto& atm_block : jac_targets.atm) {
     const auto& data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto local   = ray_path_single_rad_jac[ip];
+      const auto local   = single_rad_jac_path[ip];
 
       for (auto& w : weights) {
         if (w.second != 0.0) {
@@ -421,68 +418,60 @@ ray_path_single_rad_jac:   (np, nq) = {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void single_radianceFromPropagation(
-    Stokvec& single_radiance,
-    StokvecVector& single_rad_jac,
-    StokvecVector& ray_path_single_radiance_source,
-    StokvecMatrix& ray_path_single_radiance_source_jacobian,
-    StokvecMatrix& ray_path_single_rad_jac,
-    MuelmatVector& ray_path_single_transmission_matrix,
-    MuelmatVector& ray_path_single_transmission_matrix_cumulative,
-    MuelmatTensor3& ray_path_single_transmission_matrix_jacobian,
-    const JacobianTargets& jac_targets,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const Vector& single_freq_path,
-    const ArrayOfAtmPoint& atm_path,
-    const PropmatVector& single_propmat_path,
-    const PropmatMatrix& single_propmat_jac_path,
-    const StokvecVector& single_nlte_srcvec_path,
-    const StokvecMatrix& single_nlte_srcvec_jac_path,
-    const SurfaceField& surf_field,
-    const AtmField& atm_field,
-    const Index& hse_derivative) try {
+void single_radFromPropagation(Stokvec& single_rad,
+                               StokvecVector& single_rad_jac,
+                               StokvecVector& single_rad_srcvec_jac,
+                               StokvecMatrix& single_rad_srcvec_jac_path,
+                               StokvecMatrix& single_rad_jac_path,
+                               MuelmatVector& single_tramat_path,
+                               MuelmatVector& single_tramat_cumulative_path,
+                               MuelmatTensor3& single_tramat_jac_path,
+                               const JacobianTargets& jac_targets,
+                               const ArrayOfPropagationPathPoint& ray_path,
+                               const Vector& single_freq_path,
+                               const ArrayOfAtmPoint& atm_path,
+                               const PropmatVector& single_propmat_path,
+                               const PropmatMatrix& single_propmat_jac_path,
+                               const StokvecVector& single_nlte_srcvec_path,
+                               const StokvecMatrix& single_nlte_srcvec_jac_path,
+                               const SurfaceField& surf_field,
+                               const AtmField& atm_field,
+                               const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ray_path_single_transmission_matrixFromPath(
-      ray_path_single_transmission_matrix,
-      ray_path_single_transmission_matrix_jacobian,
-      single_propmat_path,
-      single_propmat_jac_path,
-      ray_path,
-      atm_path,
-      surf_field,
-      jac_targets,
-      hse_derivative);
-  ray_path_single_transmission_matrix_cumulativeFromPath(
-      ray_path_single_transmission_matrix_cumulative,
-      ray_path_single_transmission_matrix);
+  single_tramat_pathFromPath(single_tramat_path,
+                             single_tramat_jac_path,
+                             single_propmat_path,
+                             single_propmat_jac_path,
+                             ray_path,
+                             atm_path,
+                             surf_field,
+                             jac_targets,
+                             hse_derivative);
+  single_tramat_cumulative_pathFromPath(single_tramat_cumulative_path,
+                                        single_tramat_path);
   const auto& transmission_single_matrix_background =
-      ray_path_single_transmission_matrix_cumulative.back();
-  ray_path_single_radiance_sourceFromPropmat(
-      ray_path_single_radiance_source,
-      ray_path_single_radiance_source_jacobian,
-      single_propmat_path,
-      single_nlte_srcvec_path,
-      single_propmat_jac_path,
-      single_nlte_srcvec_jac_path,
-      single_freq_path,
-      atm_path,
-      jac_targets);
-  single_radianceStepByStepEmission(
-      single_radiance,
-      ray_path_single_rad_jac,
-      ray_path_single_transmission_matrix,
-      ray_path_single_transmission_matrix_cumulative,
-      ray_path_single_transmission_matrix_jacobian,
-      ray_path_single_radiance_source,
-      ray_path_single_radiance_source_jacobian);
+      single_tramat_cumulative_path.back();
+  single_rad_srcvec_jacFromPropmat(single_rad_srcvec_jac,
+                                   single_rad_srcvec_jac_path,
+                                   single_propmat_path,
+                                   single_nlte_srcvec_path,
+                                   single_propmat_jac_path,
+                                   single_nlte_srcvec_jac_path,
+                                   single_freq_path,
+                                   atm_path,
+                                   jac_targets);
+  single_radStepByStepEmission(single_rad,
+                               single_rad_jac_path,
+                               single_tramat_path,
+                               single_tramat_cumulative_path,
+                               single_tramat_jac_path,
+                               single_rad_srcvec_jac,
+                               single_rad_srcvec_jac_path);
   single_rad_jacFromBackground(single_rad_jac,
                                transmission_single_matrix_background);
-  single_rad_jacAddPathPropagation(single_rad_jac,
-                                   ray_path_single_rad_jac,
-                                   jac_targets,
-                                   atm_field,
-                                   ray_path);
+  single_rad_jacAddPathPropagation(
+      single_rad_jac, single_rad_jac_path, jac_targets, atm_field, ray_path);
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace
@@ -541,12 +530,12 @@ Actual:   ({}, {})
                                         spectral_nlte_srcvec_jac_path),
                      R"(Not same sizes:
 
-ray_path.size()                                                  = {},
-freq_grid_path.size()                                   = {},
-atm_path.size()                                = {},
-spectral_propmat_path.size()                               = {},
-spectral_nlte_srcvec_path.size()          = {},
-spectral_propmat_jac_path.size()                      = {},
+ray_path.size()                      = {},
+freq_grid_path.size()                = {},
+atm_path.size()                      = {},
+spectral_propmat_path.size()         = {},
+spectral_nlte_srcvec_path.size()     = {},
+spectral_propmat_jac_path.size()     = {},
 spectral_nlte_srcvec_jac_path.size() = {}
 )",
                      ray_path.size(),
@@ -561,8 +550,8 @@ spectral_nlte_srcvec_jac_path.size() = {}
       not arr::elemwise_same_size(
           freq_grid_path, spectral_propmat_path, spectral_nlte_srcvec_path),
       R"(Not same sizes elemwise:
-freq_grid_path.size()                           = {}
-spectral_propmat_path.shape()                      = {:B,}
+freq_grid_path.size()             = {}
+spectral_propmat_path.shape()     = {:B,}
 spectral_nlte_srcvec_path.shape() = {:B,}
 )",
       freq_grid_path.size(),
@@ -572,7 +561,7 @@ spectral_nlte_srcvec_path.shape() = {:B,}
   ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_jac_path,
                                                  spectral_nlte_srcvec_jac_path),
                      R"(Not same sizes elemwise:
-spectral_propmat_jac_path.shape()                      = {:B,}
+spectral_propmat_jac_path.shape()     = {:B,}
 spectral_nlte_srcvec_jac_path.shape() = {:B,}
 )",
                      spectral_propmat_jac_path[0].shape(),
@@ -580,12 +569,12 @@ spectral_nlte_srcvec_jac_path.shape() = {:B,}
 
   Vector single_freq_path(N);
   StokvecVector single_rad_jac(nx);
-  StokvecVector ray_path_single_radiance_source(N);
-  StokvecMatrix ray_path_single_radiance_source_jacobian(N, nq);
-  StokvecMatrix ray_path_single_rad_jac(N, nq);
-  MuelmatVector ray_path_single_transmission_matrix(N);
-  MuelmatVector ray_path_single_transmission_matrix_cumulative(N);
-  MuelmatTensor3 ray_path_single_transmission_matrix_jacobian(N, 2, nq);
+  StokvecVector single_rad_srcvec_jac(N);
+  StokvecMatrix single_rad_srcvec_jac_path(N, nq);
+  StokvecMatrix single_rad_jac_path(N, nq);
+  MuelmatVector single_tramat_path(N);
+  MuelmatVector single_tramat_cumulative_path(N);
+  MuelmatTensor3 single_tramat_jac_path(N, 2, nq);
   PropmatVector single_propmat_path(N);
   PropmatMatrix single_propmat_jac_path(N, nq);
   StokvecVector single_nlte_srcvec_path(N);
@@ -593,22 +582,22 @@ spectral_nlte_srcvec_jac_path.shape() = {:B,}
 
   std::string error{};
 
-#pragma omp parallel for firstprivate(                      \
-        single_freq_path,                                   \
-            single_rad_jac,                                 \
-            ray_path_single_radiance_source,                \
-            ray_path_single_radiance_source_jacobian,       \
-            ray_path_single_rad_jac,                        \
-            ray_path_single_transmission_matrix,            \
-            ray_path_single_transmission_matrix_cumulative, \
-            ray_path_single_transmission_matrix_jacobian,   \
-            single_propmat_path,                            \
-            single_propmat_jac_path,                        \
-            single_nlte_srcvec_path,                        \
+#pragma omp parallel for firstprivate(     \
+        single_freq_path,                  \
+            single_rad_jac,                \
+            single_rad_srcvec_jac,         \
+            single_rad_srcvec_jac_path,    \
+            single_rad_jac_path,           \
+            single_tramat_path,            \
+            single_tramat_cumulative_path, \
+            single_tramat_jac_path,        \
+            single_propmat_path,           \
+            single_propmat_jac_path,       \
+            single_nlte_srcvec_path,       \
             single_nlte_srcvec_jac_path) if (arts_omp_parallel())
   for (Size f = 0; f < nf; f++) {
     try {
-      Stokvec& single_radiance = spectral_rad[f];
+      Stokvec& single_rad = spectral_rad[f];
       for (Size i = 0; i < N; i++) {
         single_freq_path[i]        = freq_grid_path[i][f];
         single_propmat_path[i]     = spectral_propmat_path[i][f];
@@ -621,26 +610,25 @@ spectral_nlte_srcvec_jac_path.shape() = {:B,}
 
       single_rad_jac = spectral_rad_jac[joker, f];
 
-      single_radianceFromPropagation(
-          single_radiance,
-          single_rad_jac,
-          ray_path_single_radiance_source,
-          ray_path_single_radiance_source_jacobian,
-          ray_path_single_rad_jac,
-          ray_path_single_transmission_matrix,
-          ray_path_single_transmission_matrix_cumulative,
-          ray_path_single_transmission_matrix_jacobian,
-          jac_targets,
-          ray_path,
-          single_freq_path,
-          atm_path,
-          single_propmat_path,
-          single_propmat_jac_path,
-          single_nlte_srcvec_path,
-          single_nlte_srcvec_jac_path,
-          surf_field,
-          atm_field,
-          hse_derivative);
+      single_radFromPropagation(single_rad,
+                                single_rad_jac,
+                                single_rad_srcvec_jac,
+                                single_rad_srcvec_jac_path,
+                                single_rad_jac_path,
+                                single_tramat_path,
+                                single_tramat_cumulative_path,
+                                single_tramat_jac_path,
+                                jac_targets,
+                                ray_path,
+                                single_freq_path,
+                                atm_path,
+                                single_propmat_path,
+                                single_propmat_jac_path,
+                                single_nlte_srcvec_path,
+                                single_nlte_srcvec_jac_path,
+                                surf_field,
+                                atm_field,
+                                hse_derivative);
 
       spectral_rad_jac[joker, f] = single_rad_jac;
     } catch (std::exception& e) {
@@ -825,31 +813,31 @@ void single_radClearskyEmissionPropagation(
   }
 
   ray_path.pop_back();
-  StokvecVector ray_path_single_radiance_source;
-  StokvecMatrix ray_path_single_radiance_source_jacobian;
-  StokvecMatrix ray_path_single_rad_jac;
-  MuelmatVector ray_path_single_transmission_matrix;
-  MuelmatVector ray_path_single_transmission_matrix_cumulative;
-  MuelmatTensor3 ray_path_single_transmission_matrix_jacobian;
-  single_radianceFromPropagation(single_rad,
-                                 single_rad_jac,
-                                 ray_path_single_radiance_source,
-                                 ray_path_single_radiance_source_jacobian,
-                                 ray_path_single_rad_jac,
-                                 ray_path_single_transmission_matrix,
-                                 ray_path_single_transmission_matrix_cumulative,
-                                 ray_path_single_transmission_matrix_jacobian,
-                                 jac_targets,
-                                 ray_path,
-                                 single_freq_path,
-                                 atm_path,
-                                 single_propmat_path,
-                                 matpack::create(single_propmat_jac_path),
-                                 single_nlte_srcvec_path,
-                                 matpack::create(single_nlte_srcvec_jac_path),
-                                 surf_field,
-                                 atm_field,
-                                 hse_derivative);
+  StokvecVector single_rad_srcvec_jac;
+  StokvecMatrix single_rad_srcvec_jac_path;
+  StokvecMatrix single_rad_jac_path;
+  MuelmatVector single_tramat_path;
+  MuelmatVector single_tramat_cumulative_path;
+  MuelmatTensor3 single_tramat_jac_path;
+  single_radFromPropagation(single_rad,
+                            single_rad_jac,
+                            single_rad_srcvec_jac,
+                            single_rad_srcvec_jac_path,
+                            single_rad_jac_path,
+                            single_tramat_path,
+                            single_tramat_cumulative_path,
+                            single_tramat_jac_path,
+                            jac_targets,
+                            ray_path,
+                            single_freq_path,
+                            atm_path,
+                            single_propmat_path,
+                            matpack::create(single_propmat_jac_path),
+                            single_nlte_srcvec_path,
+                            matpack::create(single_nlte_srcvec_jac_path),
+                            surf_field,
+                            atm_field,
+                            hse_derivative);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -857,7 +845,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
     const Workspace& ws,
     StokvecVector& spectral_rad,
     StokvecMatrix& spectral_rad_jac,
-    ArrayOfArrayOfPropagationPathPoint& ray_paths,
+    ArrayOfArrayOfPropagationPathPoint& spectral_ray_path,
     const AtmField& atm_field,
     const AscendingGrid& freq_grid,
     const JacobianTargets& jac_targets,
@@ -881,8 +869,8 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
   spectral_rad.resize(nf);
   spectral_rad_jac.resize(jac_targets.x_size(), nf);
   spectral_rad = 0.0;
-  ray_paths.clear();
-  ray_paths.resize(nf);
+  spectral_ray_path.clear();
+  spectral_ray_path.resize(nf);
 
   std::string error{};
   StokvecVector single_rad_jac;
@@ -893,7 +881,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
       single_radClearskyEmissionPropagation(ws,
                                             spectral_rad[f],
                                             single_rad_jac,
-                                            ray_paths[f],
+                                            spectral_ray_path[f],
                                             atm_field,
                                             freq_grid[f],
                                             jac_targets,
