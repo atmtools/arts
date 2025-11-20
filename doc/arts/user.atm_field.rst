@@ -307,7 +307,6 @@ An example of using :class:`~pyarts3.arts.Numeric` as atmospheric field data is 
   subs.flatten()[2].set_title("Magnetic profile w-component")
   subs.flatten()[0].set_ylabel("Altitude [m]")
   [sub.set_xlabel("Field strength [T]") for sub in subs.flatten()]
-  plt.show()
 
 GeodeticField3
 ^^^^^^^^^^^^^^
@@ -341,7 +340,6 @@ An example of using :class:`~pyarts3.arts.GeodeticField3` as atmospheric field d
   subs.flatten()[1].set_xlabel("O$_2$ VMR [-]")
   subs.flatten()[2].set_xlabel("H$_2$O VMR [-]")
   subs.flatten()[2].set_xscale("log")
-  plt.show()
 
 .. tip::
 
@@ -397,7 +395,6 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
   subs.flatten()[0].set_xlabel("O$_3$ VMR [-]")
   subs.flatten()[1].set_xlabel("Pressure [Pa]")
   subs.flatten()[1].set_xscale("log")
-  plt.show()
 
 .. tip::
 

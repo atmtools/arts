@@ -1,5 +1,7 @@
 """ Plotting routine for ZenGrid """
 
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 import numpy as np
 from .common import default_fig_ax, select_flat_ax
@@ -9,14 +11,12 @@ __all__ = [
 ]
 
 
-def plot(
-    data: pyarts.arts.ZenGrid,
-    *,
-    fig=None,
-    ax=None,
-    polar: bool = False,
-    **kwargs
-):
+def plot(data: pyarts.arts.ZenGrid,
+         *,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
+         polar: bool = False,
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot a ZenGrid showing zenith angles.
 
     .. rubric:: Example
@@ -36,21 +36,21 @@ def plot(
     ----------
     data : ~pyarts3.arts.ZenGrid
         A sorted grid of zenith angles [0, 180]
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     polar : bool, optional
         If True, use polar plot. Defaults to False.
-    **kwargs
-        Additional keyword arguments passed to plot()
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        The matplotlib figure.
-    ax : As input
-        The matplotlib axes.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
     fig, ax = default_fig_ax(fig, ax, ax_kwargs={"subplot_kw": {'polar': polar}}, fig_kwargs={
                              'figsize': (10, 8) if polar else (10, 6)})

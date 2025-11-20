@@ -1,16 +1,27 @@
-"""  Plotting ARTS data
+"""  Plotting ARTS data.
 
 This module provides functions related to plotting ARTS data
 based only on the type of the data.
 Each submodule is named exactly as the data type it can plot, which is also
 the name of a builtin group.
 
-Each submodule provides a plot()
-function that takes the data type as its first argument and optional
-arguments to control the plotting.  The plot() functions return the
-figure, a list of subplots, and nothing more.
+Each submodule provides a plot()-method.
+The generic plot() function in this module dispatches to the appropriate
+submodule based on the type of the input data.  Only exact type matches are
+considered.  For unavailable types, a TypeError is raised.
+Each submodule's plot() function accepts the same 3 parameters:
+
+- ``data``: The ARTS data to plot.
+- ``fig``: An optional matplotlib Figure to plot on.
+- ``ax``: An optional matplotlib Axes (or list/array of Axes) to plot on.
+
+Additional keyword arguments are forwarded to the specific plot() function,
+which if they are not recognized directly by the specific plot() function are
+forwarded yet again to the underlying matplotlib plotting functions.
 """
 
+import numpy
+import matplotlib
 from . import AbsorptionBands
 from . import ArrayOfCIARecord
 from . import ArrayOfPropagationPathPoint
@@ -41,7 +52,10 @@ from . import Vector
 from . import ZenGrid
 
 
-def plot(data, *, fig=None, ax=None, **kwargs):
+def plot(data, *,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Generic plotting function that dispatches to the appropriate plot module.
 
     This function automatically determines the type of the input data and calls
@@ -63,25 +77,26 @@ def plot(data, *, fig=None, ax=None, **kwargs):
     ----------
     data : ARTS workspace type
         Any ARTS data type that has a corresponding plot module.
-    fig : matplotlib Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : matplotlib Axes, optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    **kwargs
-        All keyword arguments are forwarded to the specific plot function.
-        Additional plot-specific parameters vary by data type.
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : matplotlib Figure
-        The matplotlib figure object.
-    ax : matplotlib Axes or list of Axes
-        The matplotlib axes object(s).
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
 
     Raises
     ------
     TypeError
         If no plot module exists for the given data type.
+    Exception
+        As forwarded by the specific plot module.
     """
 
     import sys

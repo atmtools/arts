@@ -280,7 +280,6 @@ An example of using :class:`~pyarts3.arts.Numeric` as subsurface field data is g
   subs.flatten()[0].set_ylabel("Depth [m]")
   subs.flatten()[0].set_xlabel("Temperature [K]")
   subs.flatten()[1].set_xlabel("Density [kg/m$^3$]")
-  plt.show()
 
 GeodeticField3
 ^^^^^^^^^^^^^^
@@ -338,7 +337,6 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as subsurface 
   subs.flatten()[0].set_ylabel("Depth [m]")
   subs.flatten()[0].set_xlabel("Temperature [K]")
   subs.flatten()[1].set_xlabel("Density [kg/m$^3$]")
-  plt.show()
 
 .. tip::
 

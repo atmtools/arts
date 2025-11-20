@@ -1,5 +1,7 @@
 """ Plotting routine for DisortRadiance """
 
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 
@@ -8,28 +10,26 @@ __all__ = [
 ]
 
 
-def plot(
-    data: pyarts.arts.DisortRadiance,
-    *,
-    fig=None,
-    ax=None,
-    alt_idx: int = 0,
-    azi_idx: int = 0,
-    plotstyle='contourf',
-    select: list = ['up', 'down'],
-    freqs=None,
-    **kwargs,
-):
+def plot(data: pyarts.arts.DisortRadiance,
+         *,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
+         alt_idx: int = 0,
+         azi_idx: int = 0,
+         plotstyle='contourf',
+         select: list = ['up', 'down'],
+         freqs=None,
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot DISORT radiance results as two 2D heatmaps (upward and downward).
 
     Parameters
     ----------
     data : ~pyarts3.arts.DisortRadiance
         A DisortRadiance object containing radiance results
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
-        Not used (function creates its own subplots). Accepted for API consistency.
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     alt_idx : int, optional
         Altitude index to use. Defaults to 0 (top of atmosphere).
     azi_idx : int, optional
@@ -40,15 +40,15 @@ def plot(
         Frequency grid to use for x-axis. Defaults to None, which uses data.freq_grid.
     select : list or str, optional
         Which directions to plot: 'up' and/or 'down'. Defaults to ['up', 'down'].
-    **kwargs
-        Additional keyword arguments passed to matplotlib plotting function.
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        The matplotlib figure.
-    ax : list
-        List of two matplotlib axes objects [ax_up, ax_down].
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
     freq_grid = data.freq_grid if freqs is None else freqs
     zen_grid = data.zen_grid

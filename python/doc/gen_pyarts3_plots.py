@@ -26,7 +26,7 @@ Plotting Functions by Type
 """)
 
         for routine in routines:
-            if routine in ["plot", "common"]:
+            if routine in ["plot", "common", "matplotlib", "numpy"]:
                 continue
             # Use the module name as a prefix in the title
             f.write(f"""

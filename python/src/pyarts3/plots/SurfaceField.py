@@ -1,5 +1,7 @@
 """ Plotting routine for SurfaceField """
 
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 import numpy as np
 from .common import default_fig_ax, select_flat_ax
@@ -9,41 +11,39 @@ __all__ = [
 ]
 
 
-def plot(
-    data: pyarts.arts.SurfaceField,
-    *,
-    fig=None,
-    ax=None,
-    lats: pyarts.arts.LatGrid | None = None,
-    lons: pyarts.arts.LonGrid | None = None,
-    keys: list[str] | None = None,
-    **kwargs,
-):
+def plot(data: pyarts.arts.SurfaceField,
+         *,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
+         lats: pyarts.arts.LatGrid | None = None,
+         lons: pyarts.arts.LonGrid | None = None,
+         keys: list[str] | None = None,
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot surface field parameters on a grid.
 
     Parameters
     ----------
     data : ~pyarts3.arts.SurfaceField
         A surface field containing surface parameters
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
-        Not used (function creates its own subplots). Accepted for API consistency.
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     lats : ~pyarts3.arts.LatGrid | None, optional
         Latitude grid for sampling. Defaults to None for automatic grid.
     lons : ~pyarts3.arts.LonGrid | None, optional
         Longitude grid for sampling. Defaults to None for automatic grid.
     keys : list[str] | None, optional
         List of keys to plot. If None, plots all available keys. Defaults to None.
-    **kwargs
-        Additional keyword arguments passed to matplotlib plotting function.
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        The matplotlib figure.
-    ax : list
-        List of matplotlib axes objects.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
     keys = list(data.keys()) if keys is None else keys
     lats = pyarts.arts.LatGrid(np.linspace(-90, 90, 50)) if lats is None else lats

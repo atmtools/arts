@@ -1,3 +1,5 @@
+import numpy
+import matplotlib
 from pyarts3.arts import CIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
@@ -10,13 +12,13 @@ __all__ = [
 
 def plot(data: CIARecord,
          *,
-         fig=None,
-         ax=None,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          freqs: AscendingGrid = None,
          atm: AtmPoint | AtmField | None = None,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          T_extrapolfac: float = 1e99,
-         **kwargs):
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Creates a plot of the absorption by the records in the CIARecord object.
 
     If freqs is given, this range will be used, otherwise the built-in frequency range
@@ -29,13 +31,28 @@ def plot(data: CIARecord,
     The path_point is passed directly to the CIARecord.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import matplotlib.pyplot as plt
+        import pyarts3 as pyarts
+
+        cia = pyarts.arts.CIARecord.fromxml("cia/O2-CIA-N2.xml")
+        f, a = pyarts.plots.CIARecord.plot(cia, fig=plt.figure(figsize=(12, 6)))
+        a.set_yscale("log")
+        a.set_xlabel("Frequency [Hz]")
+        a.set_ylabel("Absorption [1/m]")
+        a.set_title("O$_2$-N$_2$ CIA absorption by bands")
+
     Parameters
     ----------
     data : ~pyarts3.arts.CIARecord
         The CIARecord object containing the data to plot.
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     freqs : ~pyarts3.arts.AscendingGrid | int, optional
         The frequency grid to use for the x-axis. Defaults to None manually creating a range.
@@ -50,10 +67,10 @@ def plot(data: CIARecord,
 
     Returns
     -------
-    fig : As input
-        As input.
-    ax : As input
-        As input.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
 
     if atm is None:
@@ -75,7 +92,8 @@ def plot(data: CIARecord,
             freqs = cia.data[0].grids[0]
             select_flat_ax(ax, 0).plot(
                 freqs,
-                cia.spectral_propmat(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
+                cia.spectral_propmat(
+                    f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
                 **kwargs
             )
     else:
