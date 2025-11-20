@@ -170,8 +170,8 @@ void py_surf(py::module_ &m) try {
               "Surface normal vector\n\n.. :class:`Vector2`")
       .def(
           "__getitem__",
-          [](SurfacePoint &surf, SurfaceKey x) {
-            if (not surf.has(x)) {
+          [](SurfacePoint &surf, const SurfaceKeyVal &x) {
+            if (not surf.contains(x)) {
               const auto error_message = std::format("{}", x);
               throw py::key_error(error_message.c_str());
             }
@@ -182,16 +182,10 @@ void py_surf(py::module_ &m) try {
            [](SurfacePoint &surf, const SurfaceKeyVal &x, Numeric data) {
              surf[x] = data;
            })
-      .def(
-          "__getitem__",
-          [](SurfacePoint &surf, const SurfacePropertyTag &x) {
-            if (not surf.has(x)) {
-              const auto error_message = std::format("{}", x);
-              throw py::key_error(error_message.c_str());
-            }
-            return surf[x];
-          },
-          py::rv_policy::reference_internal)
+      .def("__contains__",
+           [](const SurfacePoint &self, const SurfaceKeyVal &x) {
+             return self.contains(x);
+           })
       .def(
           "__getstate__",
           [](const SurfacePoint &t) {
@@ -236,6 +230,10 @@ void py_surf(py::module_ &m) try {
            [](SurfaceField &surf,
               const SurfaceKeyVal &x,
               const Surf::Data &data) { surf[x] = data; })
+      .def("__contains__",
+           [](const SurfaceField &self, const SurfaceKeyVal &x) {
+             return self.contains(x);
+           })
       .def(
           "__call__",
           [](const SurfaceField &surf, Numeric lat, Numeric lon) {
@@ -371,20 +369,10 @@ void py_surf(py::module_ &m) try {
       "lat"_a,
       "lon"_a,
       "Get the data as a list");
-  ssf.def(
-         "__getitem__",
-         [](SubsurfaceField &surf, SubsurfaceKey x) -> SubsurfaceData & {
-           if (not surf.contains(x)) {
-             const auto error_message = std::format("{}", x);
-             throw py::key_error(error_message.c_str());
-           }
-           return surf[x];
-         },
-         py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](SubsurfaceField &surf,
-              const SubsurfaceKeyVal &x,
-              const SubsurfaceData &data) { surf[x] = data; })
+  ssf.def("__setitem__",
+          [](SubsurfaceField &surf,
+             const SubsurfaceKeyVal &x,
+             const SubsurfaceData &data) { surf[x] = data; })
       .def(
           "__getitem__",
           [](SubsurfaceField &surf,
@@ -395,7 +383,11 @@ void py_surf(py::module_ &m) try {
             }
             return surf[x];
           },
-          py::rv_policy::reference_internal);
+          py::rv_policy::reference_internal)
+      .def("__contains__",
+           [](const SubsurfaceField &surf, const SubsurfaceKeyVal &x) {
+             return surf.contains(x);
+           });
   ssf.def("keys", &SubsurfaceField::keys, "Available keys");
   generic_interface(ssf);
 
@@ -418,6 +410,10 @@ void py_surf(py::module_ &m) try {
   ssp.def("__setitem__",
           [](SubsurfacePoint &self, const SubsurfaceKeyVal &key, Numeric x) {
             self[key] = x;
+          });
+  ssp.def("__contains__",
+          [](const SubsurfacePoint &self, const SubsurfaceKeyVal &x) {
+            return self.contains(x);
           });
   ssp.def("keys", &SubsurfacePoint::keys, "Available keys");
   generic_interface(ssp);

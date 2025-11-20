@@ -1,3 +1,5 @@
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 import numpy as np
 from .common import default_fig_ax, select_flat_ax
@@ -30,31 +32,47 @@ def rot(x, y, ang, clockwise=False):
 def plot(data: pyarts.arts.zeeman.MagneticAngles,
          *,
          mode='normal',
-         fig=None,
-         ax=None,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          N: int = 50,
-         **kwargs):
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plots the magnetic angles in 3D.  The axis should be 3D.
 
     The N parameter controls the number of points used to draw the angle arcs.
+
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+
+        mag_angles = pyarts.arts.zeeman.MagneticAngles([0, 1, 2], [3, 4])
+        fig, ax = pyarts.plots.MagneticAngles.plot(mag_angles)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.legend()
 
     Parameters
     ----------
     data : ~pyarts3.arts.zeeman.MagneticAngles
         The MagneticAngles object containing the data to plot.
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     N : int, optional
         Number of points to use for drawing the angle arcs. Default is 50.
+    **kwargs : keyword arguments
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        As input.
-    ax : As input
-        As input.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
     fig, ax = default_fig_ax(fig, ax, fig_kwargs={
                              "figsize": (8, 8)}, ax_kwargs={"subplot_kw": {"projection": '3d'}})

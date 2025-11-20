@@ -1,5 +1,7 @@
 """ Plotting routine for the sensor response """
 
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 
@@ -10,11 +12,11 @@ __all__ = [
 
 def plot(data: pyarts.arts.ArrayOfSensorObsel,
          *,
-         fig=None,
-         ax=None,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          keys: str | list = "f",
          pol: str | pyarts.arts.Stokvec = "I",
-         **kwargs):
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot the sensor observational element array.
 
     .. note::
@@ -43,23 +45,23 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
     ----------
     data : ~pyarts3.arts.ArrayOfSensorObsel
         A sensor observation element array.
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
-        Not used (function creates its own subplots). Accepted for API consistency.
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     keys : str | list
         The keys to use for plotting. Options are in :class:`~pyarts3.arts.SensorKeyType`.
     pol : str | ~pyarts3.arts.Stokvec
         The polarization to use for plotting. Defaults to "I", constructs a :class:`~pyarts3.arts.Stokvec`.
     **kwargs : keyword arguments
-        Additional keyword arguments passed to the plotting function.
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        As input.
-    ax : list
-        List of matplotlib axes objects.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
 
     keys = [keys] if isinstance(keys, str) else keys

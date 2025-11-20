@@ -572,6 +572,11 @@ Data &Data::operator=(FunctionalData x) {
 [[nodiscard]] bool Field::bad_ellipsoid() const {
   return not(ellipsoid[1] > 0 and ellipsoid[0] >= ellipsoid[1]);
 }
+
+bool Point::contains(const SurfaceKeyVal &k) const {
+  return std::visit([this](auto &key) -> bool { return this->contains(key); },
+                    k);
+}
 }  // namespace Surf
 
 bool operator==(const SurfaceKeyVal &lhs, SurfaceKey rhs) {

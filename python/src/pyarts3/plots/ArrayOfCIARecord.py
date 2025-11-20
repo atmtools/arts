@@ -2,6 +2,8 @@ from pyarts3.arts import ArrayOfCIARecord, AscendingGrid, AtmPoint, AtmField, Pr
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 from . import CIARecord
+import numpy
+import matplotlib
 
 __all__ = [
     'plot',
@@ -10,14 +12,14 @@ __all__ = [
 
 def plot(data: ArrayOfCIARecord,
          *,
-         fig=None,
-         ax=None,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          same: bool = False,
          freqs: AscendingGrid = None,
          atm: AtmPoint | AtmField | None = None,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          T_extrapolfac: float = 1e99,
-         **kwargs):
+         **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Creates a plot of the absorption by the records in the ArrayOfCIARecord object.
 
     The plot passes all relevant arguments to the CIARecord plotting routine.
@@ -34,13 +36,28 @@ def plot(data: ArrayOfCIARecord,
 
     same determines if each entry in the array is plotted onto the same plot or not.
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import matplotlib.pyplot as plt
+        import pyarts3 as pyarts
+
+        cia = pyarts.arts.ArrayOfCIARecord([pyarts.arts.CIARecord.fromxml("cia/O2-CIA-O2.xml")])
+        f, a = pyarts.plots.ArrayOfCIARecord.plot(cia, fig=plt.figure(figsize=(12, 6)))
+        a.set_yscale("log")
+        a.set_xlabel("Frequency [Hz]")
+        a.set_ylabel("Absorption [1/m]")
+        a.set_title("O$_2$-O$_2$ Collision-induced absorption")
+
     Parameters
     ----------
     data : ~pyarts3.arts.ArrayOfCIARecord
         The ArrayOfCIARecord object containing the data to plot.
-    fig : Figure, optional
+    fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : Axes, optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     same : bool, optional
         Draw on a single canvas or not.
@@ -53,19 +70,21 @@ def plot(data: ArrayOfCIARecord,
     T_extrapolfac : float, optional
         Internal extrapolation factor
     **kwargs : keyword arguments
-        Additional keyword arguments to pass to the plotting functions.  Ignores label.
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        As input.
-    ax : As input
-        As input.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
     """
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.abs_speciesSet(species=[f"{band.isot}" for band in data])
+        spec = [f"{band.specs[0]}" for band in data]
+        spec.extend([f"{band.specs[1]}" for band in data])
+        ws.abs_speciesSet(species=spec)
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atm_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
@@ -81,8 +100,8 @@ def plot(data: ArrayOfCIARecord,
 
     for i, v in enumerate(data):
         CIARecord.plot(v, fig=fig, ax=select_flat_ax(ax, 0 if same else i),
-                        freqs=freqs, atm=atm, path_point=path_point,
-                        T_extrapolfac=T_extrapolfac, label=f"{v.specs[0]}-CIA-{v.specs[1]}",
-                        **kwargs)
+                       freqs=freqs, atm=atm, path_point=path_point,
+                       T_extrapolfac=T_extrapolfac, label=f"{v.specs[0]}-CIA-{v.specs[1]}",
+                       **kwargs)
 
     return fig, ax

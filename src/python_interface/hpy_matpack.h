@@ -54,6 +54,21 @@ template <typename T, Size ndim>
 void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
   using mtype = matpack::data_t<T, ndim>;
   using nd    = py::ndarray<py::numpy, T, py::ndim<ndim>, py::c_contig>;
+  using const_nd =
+      py::ndarray<py::numpy, const T, py::ndim<ndim>, py::c_contig>;
+
+  c.def(
+      "__init__",
+      [](mtype* v, const const_nd& a) {
+        std::array<Index, ndim> shape;
+        for (Size i = 0; i < ndim; i++) {
+          shape[i] = static_cast<Index>(a.shape(i));
+        }
+
+        new (v) mtype(shape);
+        std::copy(a.data(), a.data() + a.size(), v->elem_begin());
+      },
+      "a"_a);
 
   c.def(
       "__init__",
@@ -92,6 +107,7 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
       "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, mtype>();
+  py::implicitly_convertible<const_nd, mtype>();
 
   matpack_common_interface(c);
 }
@@ -100,10 +116,20 @@ template <typename T, Size... ndim>
 void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
   using mtype = matpack::cdata_t<T, ndim...>;
   using nd    = py::ndarray<py::numpy, T, py::shape<ndim...>, py::c_contig>;
+  using const_nd =
+      py::ndarray<py::numpy, const T, py::shape<ndim...>, py::c_contig>;
 
   c.def(
       "__init__",
       [](mtype* v, const nd& a) {
+        new (v) mtype();
+        std::copy(a.data(), a.data() + a.size(), v->elem_begin());
+      },
+      "a"_a);
+
+  c.def(
+      "__init__",
+      [](mtype* v, const const_nd& a) {
         new (v) mtype();
         std::copy(a.data(), a.data() + a.size(), v->elem_begin());
       },
@@ -125,7 +151,7 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
             static_cast<size_t>(ndim)...};
 
         auto np = py::module_::import_("numpy");
-        auto x  = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(&v));
+        auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(&v));
 
         if (not dtype.is_none()) {
           return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
@@ -140,6 +166,7 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
       "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, mtype>();
+  py::implicitly_convertible<const_nd, mtype>();
 
   matpack_common_interface(c);
 }
@@ -148,10 +175,19 @@ template <class Compare>
 void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
   using mtype = Vector;
   using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
+  using mut_nd = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
 
   c.def(
       "__init__",
       [](matpack::grid_t<Compare>* v, const nd& a) {
+        auto m = py::type<Vector>()(a);
+        new (v) matpack::grid_t<Compare>(py::cast<Vector>(m));
+      },
+      "a"_a);
+
+  c.def(
+      "__init__",
+      [](matpack::grid_t<Compare>* v, const mut_nd& a) {
         auto m = py::type<Vector>()(a);
         new (v) matpack::grid_t<Compare>(py::cast<Vector>(m));
       },
@@ -187,6 +223,7 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
       "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, matpack::grid_t<Compare>>();
+  py::implicitly_convertible<mut_nd, matpack::grid_t<Compare>>();
   py::implicitly_convertible<mtype, matpack::grid_t<Compare>>();
 
   matpack_common_interface(c);
@@ -197,7 +234,16 @@ void matpack_grid_interface(
     py::class_<matpack::ranged_grid_t<Compare, l, u, il, iu>>& c) {
   using mtype = Vector;
   using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
-  using T  = matpack::ranged_grid_t<Compare, l, u, il, iu>;
+  using mut_nd = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
+  using T      = matpack::ranged_grid_t<Compare, l, u, il, iu>;
+
+  c.def(
+      "__init__",
+      [](T* v, const mut_nd& a) {
+        auto m = py::type<Vector>()(a);
+        new (v) T(py::cast<Vector>(m));
+      },
+      "a"_a);
 
   c.def(
       "__init__",
@@ -232,6 +278,7 @@ void matpack_grid_interface(
       "Allows :func:`~numpy.array` to be called with the object.");
 
   py::implicitly_convertible<nd, T>();
+  py::implicitly_convertible<mut_nd, T>();
   py::implicitly_convertible<mtype, T>();
 
   matpack_common_interface(c);

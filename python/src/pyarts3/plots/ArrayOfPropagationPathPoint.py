@@ -1,5 +1,7 @@
 """ Plotting routine the propagation path in polar coordinates """
 
+import numpy
+import matplotlib
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
@@ -334,18 +336,17 @@ def polar_ray_path_default_subs(fig, draw_lat_lon, draw_map, draw_za_aa):
     return [ax_lat, ax_lon, ax_map, ax_za, ax_aa]
 
 
-def plot(
-    data: pyarts.arts.ArrayOfPropagationPathPoint,
-    *,
-    fig=None,
-    ax=None,
-    planetary_radius: float = 0.0,
-    rscale: float = 1000,
-    draw_lat_lon: bool = True,
-    draw_map: bool = True,
-    draw_za_aa: bool = False,
-    **kwargs
-):
+def plot(data: pyarts.arts.ArrayOfPropagationPathPoint,
+         *,
+         fig: matplotlib.figure.Figure | None = None,
+         ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
+         planetary_radius: float = 0.0,
+         rscale: float = 1000,
+         draw_lat_lon: bool = True,
+         draw_map: bool = True,
+         draw_za_aa: bool = False,
+         **kwargs
+         ) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plots a single observation in a polar coordinate system
 
     Use the draw_* variables to select which plots are done
@@ -389,11 +390,10 @@ def plot(
     ----------
     data : ~pyarts3.arts.ArrayOfPropagationPathPoint
         A single propagation path object
-    fig : Figure, optional
-        A figure. The default is None, which generates a new figure.
-    ax : A list of five subplots, optional
-        A list of five subplot axes. The default is None, which generates new axes.
-        The order is [lat, lon, map, za, aa]
+    fig : ~matplotlib.figure.Figure, optional
+        The matplotlib figure to draw on. Defaults to None for new figure.
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
+        The matplotlib axes to draw on. Defaults to None for new axes.
     planetary_radius : float, optional
         See ``polar_ray_path_helper`` in source tree
     rscale : float, optional
@@ -406,14 +406,14 @@ def plot(
     draw_za_aa : bool, optional
         Whether or not Zenith and Azimuth angles are drawn.  Def: False
     **kwargs : keyword arguments
-        Additional keyword arguments (currently unused).
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------
-    fig : As input
-        As input.
-    ax : As input
-        As input.
+    fig :
+        As input if input.  Otherwise the created Figure.
+    ax :
+        As input if input.  Otherwise the created Axes.
 
     """
     fig = plt.figure() if fig is None else fig

@@ -26,7 +26,8 @@ def default_fig_ax(fig=None, ax=None, nrows=1, ncols=1, N=-1, fig_kwargs={}, ax_
     fig = plt.figure(**fig_kwargs) if fig is None else fig
     if ax is None:
         ax = fig.subplots(nrows, ncols, **ax_kwargs)
-        if N >= 0:
+        n = nrows * ncols
+        if n > 1 and N < n and N >= 0:
             for a in ax.flatten()[N:]:
                 fig.delaxes(a)
 

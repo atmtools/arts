@@ -82,6 +82,8 @@ struct Point {
       return false;
   }
 
+  [[nodiscard]] bool contains(const SurfaceKeyVal &k) const;
+
   template <KeyType... Ts>
   constexpr bool has(Ts &&...keys) const {
     return (contains<Ts>(std::forward<Ts>(keys)) and ...);

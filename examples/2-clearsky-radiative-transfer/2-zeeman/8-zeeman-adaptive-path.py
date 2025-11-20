@@ -51,13 +51,14 @@ ws.spectral_radApplyUnitFromSpectralRadiance()
 srad0 = copy(ws.spectral_rad)
 path0 = copy(ws.ray_path)
 
-ws.spectral_propmat_pathAdaptiveHalfPath(max_stepsize=100., max_tau=0.05, cutoff_tau=3.0)
+ws.spectral_propmat_pathAdaptiveHalfPath(
+    max_stepsize=100., max_tau=0.05, cutoff_tau=3.0)
 ws.spectral_radSetToBackground()
 ws.spectral_radSinglePathEmissionFrequencyLoop()
 ws.spectral_radApplyUnitFromSpectralRadiance()
 
 freqs = (ws.freq_grid - line_f0) / 1e6
-f, a = pyarts.plot(srad0, freqs=freqs, label="Regular path", fig=None, ax=None)
+f, a = pyarts.plot(srad0, freqs=freqs, label="Regular path")
 [a.set_xlabel("Frequency offset [MHz]") for a in a.flatten()]
 [a.set_ylabel("Spectral radiance [K]") for a in a.flatten()]
 f.suptitle(f"Zeeman effect of {round(line_f0 / 1e6)} MHz O$_2$ line")

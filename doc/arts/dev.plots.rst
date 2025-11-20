@@ -27,30 +27,30 @@ All plot modules follow a consistent pattern with the ``plot()`` function:
     def plot(
         data: pyarts.arts.<WorkspaceGroup>,
         *,
-        fig=None,
-        ax=None,
+        fig: matplotlib.figure.Figure | None = None,
+        ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
         # ... additional parameters
         **kwargs
-    ):
+    ) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
         """Plot the workspace group data.
 
         Parameters
         ----------
         data : ~pyarts3.arts.<WorkspaceGroup>
             The data to plot
-        fig : Figure, optional
-            Matplotlib figure (None creates new)
-        ax : Axes, optional
-            Matplotlib axes (None creates new)
+        fig : ~matplotlib.figure.Figure, optional
+            The matplotlib figure to draw on. Defaults to None for new figure.
+        ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
+            The matplotlib axes to draw on. Defaults to None for new axes.
         **kwargs
             Additional keyword arguments passed to underlying matplotlib functions
 
         Returns
         -------
-        fig : Figure
-            The matplotlib figure
-        ax : Axes (or list of Axes)
-            The matplotlib axes
+        fig :
+            As input if input.  Otherwise the created Figure.
+        ax :
+            As input if input.  Otherwise the created Axes.
         """
         # Implementation
         return fig, ax

@@ -361,6 +361,10 @@ nd : float
            [](AtmPoint &self, const AtmKeyVal &key, Numeric x) {
              self[key] = x;
            })
+      .def("__contains__",
+           [](const AtmPoint &self, const AtmKeyVal &x) {
+             return self.contains(x);
+           })
       .def("keys",
            &AtmPoint::keys,
            "Available keys",
@@ -807,6 +811,10 @@ Return
       .def("__setitem__",
            [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) {
              self[key] = x;
+           })
+      .def("__contains__",
+           [](const AtmField &self, const AtmKeyVal &x) {
+             return self.contains(x);
            })
       .def("__getstate__",
            [](const AtmField &t) {
