@@ -76,7 +76,6 @@ def plot(data: pyarts.arts.PropmatVector,
         for i in range(16):
             select_flat_ax(ax, i).plot(freqs, M[i], **kwargs)
     else:
-        print(data.shape, component.shape)
         select_flat_ax(ax, 0).plot(freqs, np.einsum(
             "ij,j->i", data, component), **kwargs)
 

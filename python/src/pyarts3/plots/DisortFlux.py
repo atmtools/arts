@@ -97,7 +97,7 @@ def plot(data: pyarts.arts.DisortFlux,
             idx += 1
         if has_down_diffuse:
             select_flat_ax(ax, idx).contourf(
-                freq_grid, alt_grid[:-1], downwelling_diffuse.T,  **kwargs)
+                freq_grid, alt_grid[:-1], downwelling_diffuse.T, **kwargs)
             idx += 1
         if has_down_direct:
             select_flat_ax(ax, idx).contourf(
