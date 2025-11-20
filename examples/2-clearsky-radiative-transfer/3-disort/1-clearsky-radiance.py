@@ -58,10 +58,10 @@ ws.ray_pathGeometricDownlooking(
 ws.spectral_radClearskyEmission()
 
 # %% Plot results
-f = ws.freq_grid / 1e9
+f = ws.disort_spectral_rad_field.freq_grid
 
 fig, ax = pyarts.plot(ws.disort_spectral_rad_field,
-                      freqs=f, plotstyle='plot', select='down', alpha=0.5)
+                      plotstyle='plot', select='down', alpha=0.5)
 ax.semilogy(f, ws.spectral_rad[:, 0], "k--", lw=3)
 ax.semilogy(
     f,
@@ -75,6 +75,7 @@ ax.semilogy(
     "m:",
     lw=3,
 )
+ax.set_xticks(f[::20], (f[::20] / 1e9).round(1))
 ax.set_ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
 ax.set_xlabel("Dirac frequency [GHz]")
 ax.set_title("Downlooking")
