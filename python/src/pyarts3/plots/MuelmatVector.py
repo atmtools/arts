@@ -44,8 +44,8 @@ def plot(data: pyarts.arts.MuelmatVector,
     freqs : ~pyarts3.arts.AscendingGrid, optional
         A grid of frequencies to plot. Defaults to None for no frequency grid.
     component : pyarts.arts.Muelmat | None, optional
-        If None, plot the dot product of each Mueller matrix with the given component.
-        If provided, plot each of the 16 elements M[i,j] across the vector.
+        If None, plot all 16 elements M[i,j] of the Mueller matrix across the vector.
+        If provided, plot the dot product of each Mueller matrix with the given component.
     **kwargs : keyword arguments
         Additional keyword arguments to pass to the plotting functions.
 
@@ -66,8 +66,8 @@ def plot(data: pyarts.arts.MuelmatVector,
     if component is None:
         for i in range(4):
             for j in range(4):
-                select_flat_ax(ax, i*4 + j).plot(freqs,
-                                                 data[:, i, j], **kwargs)
+                a = select_flat_ax(ax, i*4 + j)
+                a.plot(freqs, data[:, i, j], **kwargs)
     else:
         r = np.einsum("ijk,jk->i", data, component)
         select_flat_ax(ax, 0).plot(freqs, r, **kwargs)

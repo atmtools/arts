@@ -118,13 +118,14 @@ def plot(data: object,
     if hasattr(current_module, type_name):
         return getattr(current_module, type_name).plot(data, fig=fig, ax=ax, **kwargs)
     else:
-        available_modules = {', '.join([name for name in dir(current_module) if not name.startswith('_') and name != 'plot' and name != 'sys' and name != 'common'])}
+        available_modules = ', '.join([name for name in dir(current_module) if not name.startswith(
+            '_') and name != 'plot' and name != 'sys' and name != 'common'])
         import pyarts3 as pyarts
         if type_name in [x.__name__ for x in pyarts.utils.builtin_groups()]:
             raise TypeError(
-            f"No plot module found for type '{type_name}'.\n"
-            "If you create a plotting routine for this type, please consider contributing it to pyarts3!\n"
-            f"Available plot modules exist for: {available_modules}"
+                f"No plot module found for type '{type_name}'.\n"
+                "If you create a plotting routine for this type, please consider contributing it to pyarts3!\n"
+                f"Available plot modules exist for: {available_modules}"
             )
 
         raise TypeError(

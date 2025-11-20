@@ -16,7 +16,7 @@ def plot(data: pyarts.arts.SurfaceField,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          lats: pyarts.arts.LatGrid = pyarts.arts.LatGrid(np.linspace(-90, 90, 50)),
-         lons: pyarts.arts.LonGrid = pyarts.arts.LonGrid(np.linspace(-180, 180 * (1.0-np.finfo(float).eps), 100)),
+         lons: pyarts.arts.LonGrid = pyarts.arts.LonGrid(np.linspace(-180, 180, 100, endpoint=False)),
          keys: list | None = None,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot surface field parameters on a grid.
