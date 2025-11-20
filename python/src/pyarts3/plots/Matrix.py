@@ -41,7 +41,7 @@ def plot(data: pyarts.arts.Matrix,
         A 2D array of numeric values
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     xgrid : ~pyarts3.arts.Vector | None = None,
         X-axis values. If None, uses column indices. Defaults to None.

@@ -49,7 +49,7 @@ def plot(data: ArrayOfCIARecord,
         a.set_yscale("log")
         a.set_xlabel("Frequency [Hz]")
         a.set_ylabel("Absorption [1/m]")
-        a.set_title("O$_2$-O$_2$ CIA absorption by bands")
+        a.set_title("O$_2$-O$_2$ Collision-induced absorption")
 
     Parameters
     ----------
@@ -57,7 +57,7 @@ def plot(data: ArrayOfCIARecord,
         The ArrayOfCIARecord object containing the data to plot.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     same : bool, optional
         Draw on a single canvas or not.

@@ -22,13 +22,29 @@ def plot(data: pyarts.arts.PropmatMatrix,
     """
     Plot a propagation matrix as a 2D heatmap
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        x = np.linspace(-5, 5, 50)
+        y = np.linspace(-3, 3, 40)
+        X, Y = np.meshgrid(x, y)
+        Z = np.exp(-(X**2 + Y**2)/5)
+
+        propmat_matrix = pyarts.arts.PropmatMatrix(np.outer(Z.flatten(), [1, 0, 0, 0, 0, 0, 0]).reshape(40, 50, 7))
+        fig, ax = pyarts.plots.PropmatMatrix.plot(propmat_matrix)
+
     Parameters
     ----------
     data : ~pyarts3.arts.PropmatMatrix
         A matrix of propagation matrices (7-vector or 4x4 each)
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     xgrid : ~pyarts3.arts.Vector | None = None,
         X-axis values. If None, uses column indices. Defaults to None.

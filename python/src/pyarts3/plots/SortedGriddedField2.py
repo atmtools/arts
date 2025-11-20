@@ -18,13 +18,32 @@ def plot(data: pyarts.arts.SortedGriddedField2,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot a SortedGriddedField2 as a 2D heatmap using its sorted grids.
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        x = np.linspace(0, 10, 50)
+        y = np.linspace(0, 5, 30)
+        X, Y = np.meshgrid(x, y, indexing='ij')
+        Z = np.sin(X) * np.cos(Y)
+
+        sgf2 = pyarts.arts.SortedGriddedField2()
+        sgf2.grids = [pyarts.arts.AscendingGrid(x), pyarts.arts.AscendingGrid(y)]
+        sgf2.data = pyarts.arts.Matrix(Z)
+
+        fig, ax = pyarts.plots.SortedGriddedField2.plot(sgf2)
+
     Parameters
     ----------
     data : ~pyarts3.arts.SortedGriddedField2
         A 2D sorted gridded field with ascending grids
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     **kwargs : keyword arguments
         Additional keyword arguments to pass to the plotting functions.

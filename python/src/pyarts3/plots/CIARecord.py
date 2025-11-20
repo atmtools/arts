@@ -44,7 +44,7 @@ def plot(data: CIARecord,
         a.set_yscale("log")
         a.set_xlabel("Frequency [Hz]")
         a.set_ylabel("Absorption [1/m]")
-        a.set_title("O$_2$-N$_2$ CIA absorption by bands")
+        a.set_title("O$_2$-N$_2$ Collision-induced absorption")
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def plot(data: CIARecord,
         The CIARecord object containing the data to plot.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     freqs : ~pyarts3.arts.AscendingGrid | int, optional
         The frequency grid to use for the x-axis. Defaults to None manually creating a range.

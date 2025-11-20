@@ -507,8 +507,20 @@ arr : :class:`scipy.sparse.csr_matrix`
         *v = py::cast<Matrix>(py::type<Matrix>()(a));
       },
       "a"_a);
+  bm.def(
+      "__init__",
+      [](BlockMatrix* v,
+         const py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>&
+             a) {
+        new (v) BlockMatrix{};
+        *v = py::cast<Matrix>(py::type<Matrix>()(a));
+      },
+      "a"_a);
   py::implicitly_convertible<
       py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>,
+      BlockMatrix>();
+  py::implicitly_convertible<
+      py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>,
       BlockMatrix>();
   bm.def_prop_rw(
       "matrix",

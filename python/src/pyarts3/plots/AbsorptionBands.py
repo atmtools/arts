@@ -66,7 +66,7 @@ def plot(data: AbsorptionBands,
         a.set_xticks(np.linspace(20, 140, 7) * 1e9, np.linspace(20, 140, 7))
         a.set_ylabel("Absorption [1/m]")
         a.legend()
-        a.set_title("O$_2$ absorption 20-140 GHz by band")
+        a.set_title("O$_2$ line-by-line absorption 20-140 GHz separated by bands")
 
     Parameters
     ----------
@@ -76,7 +76,7 @@ def plot(data: AbsorptionBands,
         The mode to use for the plot - see text for descriptions. Defaults to 'normal'.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     freqs : ~pyarts3.arts.AscendingGrid | int, optional
         The frequency grid to use for the x-axis. Defaults to None manually creating a range.

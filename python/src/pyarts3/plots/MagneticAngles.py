@@ -40,13 +40,27 @@ def plot(data: pyarts.arts.zeeman.MagneticAngles,
 
     The N parameter controls the number of points used to draw the angle arcs.
 
+    .. rubric:: Example
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+
+        mag_angles = pyarts.arts.zeeman.MagneticAngles([0, 1, 2], [3, 4])
+        fig, ax = pyarts.plots.MagneticAngles.plot(mag_angles)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.legend()
+
     Parameters
     ----------
     data : ~pyarts3.arts.zeeman.MagneticAngles
         The MagneticAngles object containing the data to plot.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     N : int, optional
         Number of points to use for drawing the angle arcs. Default is 50.

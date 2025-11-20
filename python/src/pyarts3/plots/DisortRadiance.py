@@ -18,9 +18,24 @@ def plot(data: pyarts.arts.DisortRadiance,
          azi_idx: int = 0,
          plotstyle='contourf',
          select: list = ['up', 'down'],
-         freqs=None,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot DISORT radiance results as two 2D heatmaps (upward and downward).
+
+    .. rubric:: Example (mock data)
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        radiance = pyarts.arts.DisortRadiance()
+        radiance.freq_grid = pyarts.arts.AscendingGrid(np.linspace(1e9, 1e12, 50))
+        radiance.alt_grid = pyarts.arts.DescendingGrid(np.linspace(80e3, 0, 41))
+        radiance.azi_grid = pyarts.arts.AziGrid(np.linspace(0, 330, 12))
+        radiance.zen_grid = pyarts.arts.ZenGrid(np.linspace(0, 180, 17))
+        radiance.data = pyarts.arts.Tensor4(np.random.randn(50, 41, 12, 17) * 10 + 100 * np.sin(np.radians(radiance.zen_grid))[None, None, None, :])
+        fig, ax = pyarts.plots.DisortRadiance.plot(radiance)
 
     Parameters
     ----------
@@ -28,16 +43,14 @@ def plot(data: pyarts.arts.DisortRadiance,
         A DisortRadiance object containing radiance results
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     alt_idx : int, optional
         Altitude index to use. Defaults to 0 (top of atmosphere).
     azi_idx : int, optional
         Azimuth index to use. Defaults to 0.
     plotstyle : str, optional
-        The matplotlib plotting function to use, 'contourf' or 'plot'
-    freqs : array-like, optional
-        Frequency grid to use for x-axis. Defaults to None, which uses data.freq_grid.
+        The matplotlib plotting function to use, 'contourf' or 'plot'.
     select : list or str, optional
         Which directions to plot: 'up' and/or 'down'. Defaults to ['up', 'down'].
     **kwargs : keyword arguments
@@ -50,7 +63,7 @@ def plot(data: pyarts.arts.DisortRadiance,
     ax :
         As input if input.  Otherwise the created Axes.
     """
-    freq_grid = data.freq_grid if freqs is None else freqs
+    freq_grid = data.freq_grid
     zen_grid = data.zen_grid
     radiance = data.data
 

@@ -43,7 +43,7 @@ def plot(data: pyarts.arts.Sun,
         A Sun object containing spectrum and properties
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     freqs : ~pyarts3.arts.AscendingGrid | None, optional
         Frequency grid for x-axis. If None, uses indices. Defaults to None.

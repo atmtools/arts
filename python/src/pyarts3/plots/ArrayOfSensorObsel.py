@@ -47,7 +47,7 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
         A sensor observation element array.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     keys : str | list
         The keys to use for plotting. Options are in :class:`~pyarts3.arts.SensorKeyType`.

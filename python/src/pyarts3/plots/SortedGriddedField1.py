@@ -43,7 +43,7 @@ def plot(data: pyarts.arts.SortedGriddedField1,
         A 1D sorted gridded field with named grid
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     **kwargs : keyword arguments
         Additional keyword arguments to pass to the plotting functions.

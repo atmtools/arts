@@ -15,11 +15,26 @@ def plot(data: pyarts.arts.DisortFlux,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          freq_idx: int | None = None,
-         freqs=None,
-         alts=None,
          select: list | str = ['up', 'down_diffuse', 'down_direct'],
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot DISORT flux results.
+
+    .. rubric:: Example (mock data)
+
+    .. plot::
+        :include-source:
+
+        import pyarts3 as pyarts
+        import numpy as np
+
+        flux = pyarts.arts.DisortFlux()
+        flux.freq_grid = pyarts.arts.AscendingGrid(np.linspace(1e9, 1e12, 50))
+        flux.alt_grid = pyarts.arts.DescendingGrid(np.linspace(80e3, 0, 41))
+        alts_layers = 0.5 * (flux.alt_grid[:-1] + flux.alt_grid[1:])
+        flux.up = pyarts.arts.Matrix(np.outer(np.linspace(10, 100, 50), np.exp(-alts_layers/20e3)))
+        flux.down_diffuse = pyarts.arts.Matrix(np.outer(np.linspace(50, 150, 50), np.exp(-alts_layers/15e3)))
+        flux.down_direct = pyarts.arts.Matrix(np.outer(np.linspace(200, 300, 50),  np.exp(-alts_layers/10e3)))
+        fig, ax = pyarts.plots.DisortFlux.plot(flux)
 
     Parameters
     ----------
@@ -27,12 +42,10 @@ def plot(data: pyarts.arts.DisortFlux,
         A DisortFlux object containing flux results
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
     freq_idx : int | None, optional
         Frequency index to plot. If None, plots all frequencies. Defaults to None.
-    alts : array-like, optional
-        Altitude grid to use for plotting. If None, uses data.alt_grid.
     select : list or str, optional
         Which flux components to plot: 'up', 'down_diffuse', and/or 'down_direct'.
         Defaults to all three.
@@ -47,8 +60,8 @@ def plot(data: pyarts.arts.DisortFlux,
         As input if input.  Otherwise the created Axes.
     """
 
-    freq_grid = data.freq_grid if freqs is None else freqs
-    alt_grid = data.alt_grid if alts is None else alts
+    freq_grid = data.freq_grid
+    alt_grid = data.alt_grid
     upwelling = data.up
     downwelling_diffuse = data.down_diffuse
     downwelling_direct = data.down_direct

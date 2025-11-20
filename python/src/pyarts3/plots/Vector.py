@@ -14,7 +14,7 @@ def plot(data: pyarts.arts.Vector,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
-         xgrid=None,
+         xgrid: pyarts.arts.Vector | None = None,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
     """Plot a Vector as a line plot.
 
@@ -38,9 +38,9 @@ def plot(data: pyarts.arts.Vector,
         A 1D array of numeric values
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
-    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes], optional
+    ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xgrid : ~pyarts3.arts.Vector, optional
+    xgrid : ~pyarts3.arts.Vector | None, optional
         The x-coordinates for the plot. If None, the index of the data is used.
     **kwargs : keyword arguments
         Additional keyword arguments to pass to the plotting functions.
