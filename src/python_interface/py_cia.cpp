@@ -42,8 +42,8 @@ void py_cia(py::module_& m) try {
           },
           "s"_a,
           "Create a species pair from string 'SpeciesA-SpeciesB'")
-      .def_rw("spec1", &SpeciesEnumPair::spec1, "First species")
-      .def_rw("spec2", &SpeciesEnumPair::spec2, "Second species")
+      .def_rw("spec1", &SpeciesEnumPair::spec1, "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec2", &SpeciesEnumPair::spec2, "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def("__hash__",
