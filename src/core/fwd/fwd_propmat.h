@@ -31,7 +31,7 @@ struct propmat {
   propmat(std::shared_ptr<AtmPoint> atm,
           std::shared_ptr<AbsorptionBands> lines,
           std::shared_ptr<ArrayOfCIARecord> cia,
-          std::shared_ptr<ArrayOfXsecRecord> xsec,
+          std::shared_ptr<XsecRecords> xsec,
           std::shared_ptr<PredefinedModelData> predef,
           Numeric ciaextrap = {},
           Index ciarobust   = {});
@@ -45,10 +45,9 @@ struct propmat {
   void set_bands(std::shared_ptr<AbsorptionBands> lines);
   void set_cia(std::shared_ptr<ArrayOfCIARecord> cia);
   void set_predef(std::shared_ptr<PredefinedModelData> predef);
-  void set_model(std::shared_ptr<ArrayOfXsecRecord> xsec);
+  void set_model(std::shared_ptr<XsecRecords> xsec);
 };  // struct propmat
 }  // namespace fwd
-
 
 template <>
 struct xml_io_stream<fwd::propmat> {
@@ -63,4 +62,3 @@ struct xml_io_stream<fwd::propmat> {
                    fwd::propmat& x,
                    bifstream* pbifs = nullptr);
 };
-

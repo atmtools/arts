@@ -481,8 +481,8 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-    def testArrayOfXsecRecord(self):
-        x = cxx.ArrayOfXsecRecord([cxx.XsecRecord()])
+    def testXsecRecords(self):
+        x = cxx.XsecRecords()
         test.io(x, delete=True)
         test.array(x)
 

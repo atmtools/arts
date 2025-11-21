@@ -79,8 +79,6 @@ Dimensions: [ n_species ]
 
 XsecRecord:
 
-- species: Name of species
-- version: Fit model version
 - fitcoeffs:
 
   -  Fit model coefficients as an *ArrayOfGriddedField2*
@@ -126,7 +124,7 @@ are not used to apply the model and solely serve for informational purposes.
 
 See also :doc:`concept.absorption.xsec` for more information on these calculations.
 )--",
-      .type = "ArrayOfXsecRecord",
+      .type = "XsecRecords",
   };
 
   wsv_data["abs_ecs_data"] = {

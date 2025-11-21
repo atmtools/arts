@@ -35,7 +35,7 @@ void spectral_rad_operatorClearsky1D(
 
   using lines_t  = AbsorptionBands;
   using cia_t    = ArrayOfCIARecord;
-  using xsec_t   = ArrayOfXsecRecord;
+  using xsec_t   = XsecRecords;
   using predef_t = PredefinedModelData;
 
   const String lines_str  = "abs_bands";

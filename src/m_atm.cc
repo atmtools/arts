@@ -174,11 +174,11 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfXsecRecord &abs_xfit_data) {
+                 const XsecRecords &abs_xfit_data) {
   if (abs_xfit_data.empty()) return;
 
-  for (auto &xsec_record : abs_xfit_data) {
-    if (xsec_record.Species() != "AIR"_spec) ++keys[xsec_record.Species()];
+  for (auto &[species, xsec_record] : abs_xfit_data) {
+    if (species != "AIR"_spec) ++keys[species];
   }
 }
 
@@ -413,7 +413,7 @@ void atm_fieldAppendLookupTableSpeciesData(
 }
 
 void atm_fieldAppendXsecSpeciesData(AtmField &atm_field,
-                                    const ArrayOfXsecRecord &abs_xfit_data,
+                                    const XsecRecords &abs_xfit_data,
                                     const String &basename,
                                     const String &extrapolation,
                                     const Index &missing_is_zero,
@@ -540,7 +540,7 @@ void atm_fieldAppendAuto(const Workspace &ws,
   }
 
   if (const String xsec_str = "abs_xfit_data"; ws.wsv_and_contains(xsec_str)) {
-    using xsec_t              = ArrayOfXsecRecord;
+    using xsec_t              = XsecRecords;
     const auto &abs_xfit_data = ws.get<xsec_t>(xsec_str);
     atm_fieldAppendXsecSpeciesData(atm_field,
                                    abs_xfit_data,

@@ -822,16 +822,6 @@ ray_point : PropagationPathPoint
 )--",
   };
 
-  add_select_options(wsg_data,
-                     {
-                         "InterpolationExtrapolation",
-                         "SpeciesEnum",
-                         "AtmKey",
-                         "SurfaceKey",
-                         "SubsurfaceKey",
-                         "SpectralRadianceUnitType",
-                     });
-
   wsg_data["Propmat"] = {
       .file = "rtepack.h",
       .desc = R"--(A single propagation matrix.
@@ -855,6 +845,22 @@ of this term multiplied by a negative distance.
 )--",
   };
 
+  wsg_data["XsecRecords"] = {
+      .file = "xsec_fit.h",
+      .desc = R"--(A map from *SpeciesEnum* to *XsecRecord*
+)--",
+  };
+
+  add_select_options(wsg_data,
+                     {
+                         "InterpolationExtrapolation",
+                         "SpeciesEnum",
+                         "AtmKey",
+                         "SurfaceKey",
+                         "SubsurfaceKey",
+                         "SpectralRadianceUnitType",
+                     });
+
   agenda_operators(wsg_data);
 
   add_arrays_of(wsg_data,
@@ -865,7 +871,6 @@ of this term multiplied by a negative distance.
                     "CIARecord",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",
-                    "XsecRecord",
                     "Sun",
                     "String",
                     "SubsurfacePoint",
