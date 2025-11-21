@@ -31,7 +31,7 @@ struct SpeciesEnumPair {
   SpeciesEnum spec1;
   SpeciesEnum spec2;
 
-  constexpr bool operator<=>(const SpeciesEnumPair& other) const = default;
+  constexpr auto operator<=>(const SpeciesEnumPair& other) const = default;
 };
 
 // Hash specialization for SpeciesEnumPair
