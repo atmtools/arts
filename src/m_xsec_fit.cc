@@ -49,7 +49,8 @@ void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords& abs_xfit_data,
       ARTS_USER_ERROR("File {} not found", filename);
     }
 
-    xml_read_from_file_base(filename, abs_xfit_data[species_name]);
+    xml_read_from_file_base(filename, xsec_coeffs);
+    abs_xfit_data[species_name] = std::move(xsec_coeffs);
   }
 }
 ARTS_METHOD_ERROR_CATCH
