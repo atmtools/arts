@@ -1,4 +1,4 @@
-from pyarts3.arts import ArrayOfCIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
+from pyarts3.arts import CIARecords, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 from . import CIARecord
@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-def plot(data: ArrayOfCIARecord,
+def plot(data: CIARecords,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
@@ -20,7 +20,7 @@ def plot(data: ArrayOfCIARecord,
          path_point: PropagationPathPoint = PropagationPathPoint(),
          T_extrapolfac: float = 1e99,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
-    """Creates a plot of the absorption by the records in the ArrayOfCIARecord object.
+    """Creates a plot of the absorption by the records in the CIARecords object.
 
     The plot passes all relevant arguments to the CIARecord plotting routine.
 
@@ -31,7 +31,7 @@ def plot(data: ArrayOfCIARecord,
     from the ARTS database and extracting the AtmPoint at position by the path_point.  If atm is
     an AtmField, the AtmPoint at position by the path_point is extracted.
 
-    The path_point is passed directly to the ArrayOfCIARecord.spectral_propmat() method and defaults
+    The path_point is passed directly to the CIARecords.spectral_propmat() method and defaults
     to pos: [0, 0, 0], los: [0, 0].
 
     same determines if each entry in the array is plotted onto the same plot or not.
@@ -44,8 +44,8 @@ def plot(data: ArrayOfCIARecord,
         import matplotlib.pyplot as plt
         import pyarts3 as pyarts
 
-        cia = pyarts.arts.ArrayOfCIARecord([pyarts.arts.CIARecord.fromxml("cia/O2-CIA-O2.xml")])
-        f, a = pyarts.plots.ArrayOfCIARecord.plot(cia, fig=plt.figure(figsize=(12, 6)))
+        cia = pyarts.arts.CIARecords({"O2-O2": pyarts.arts.CIARecord.fromxml("cia/O2-CIA-O2.xml")})
+        f, a = pyarts.plots.CIARecords.plot(cia, fig=plt.figure(figsize=(12, 6)))
         a.set_yscale("log")
         a.set_xlabel("Frequency [Hz]")
         a.set_ylabel("Absorption [1/m]")
@@ -53,8 +53,8 @@ def plot(data: ArrayOfCIARecord,
 
     Parameters
     ----------
-    data : ~pyarts3.arts.ArrayOfCIARecord
-        The ArrayOfCIARecord object containing the data to plot.
+    data : ~pyarts3.arts.CIARecords
+        The CIARecords object containing the data to plot.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
@@ -82,8 +82,8 @@ def plot(data: ArrayOfCIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        spec = [f"{band.specs[0]}" for band in data]
-        spec.extend([f"{band.specs[1]}" for band in data])
+        spec = [f"{band.spec1}" for band in data]
+        spec.extend([f"{band.spec2}" for band in data])
         ws.abs_speciesSet(species=spec)
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
@@ -99,9 +99,9 @@ def plot(data: ArrayOfCIARecord,
         del kwargs["label"]
 
     for i, v in enumerate(data):
-        CIARecord.plot(v, fig=fig, ax=select_flat_ax(ax, 0 if same else i),
+        CIARecord.plot(data[v], fig=fig, ax=select_flat_ax(ax, 0 if same else i),
                        freqs=freqs, atm=atm, path_point=path_point,
-                       T_extrapolfac=T_extrapolfac, label=f"{v.specs[0]}-CIA-{v.specs[1]}",
+                       T_extrapolfac=T_extrapolfac, label=f"{v.spec1}-{v.spec2}", spec1=v.spec1, spec2=v.spec2,
                        **kwargs)
 
     return fig, ax

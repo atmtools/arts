@@ -29,13 +29,13 @@ forwarded yet again to the underlying matplotlib plotting functions.
 import numpy as _numpy
 import matplotlib as _matplotlib
 from . import AbsorptionBands
-from . import ArrayOfCIARecord
 from . import ArrayOfPropagationPathPoint
 from . import ArrayOfSensorObsel
 from . import AscendingGrid
 from . import AtmField
 from . import AziGrid
 from . import CIARecord
+from . import CIARecords
 from . import DisortFlux
 from . import DisortRadiance
 from . import GeodeticField2

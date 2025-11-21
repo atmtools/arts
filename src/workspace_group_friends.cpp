@@ -50,6 +50,13 @@ with physical units of [m :math:`^5` per molecule :math:`^2`].
 )--",
   };
 
+  wsg_data["SpeciesEnumPair"] = {
+      .file = "cia.h",
+      .desc =
+          R"--(Contains a pair of *SpeciesEnum*
+)--",
+  };
+
   wsg_data["ZeemanLineModel"] = {
       .file = "lbl.h",
       .desc = R"(Contains information about the Zeeman effect for a single line.

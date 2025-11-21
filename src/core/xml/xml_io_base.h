@@ -228,10 +228,7 @@ void xml_read_from_file_base(const String& filename, T& type) try {
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
   throw std::runtime_error(
-      std::format("Error reading file {} containing {}:\n{}",
-                  filename,
-                  xml_io_stream_name_v<T>,
-                  e.what()));
+      std::format("Error reading file {}:\n{}", filename, e.what()));
 }
 
 //! Extends data from XML file
@@ -253,10 +250,7 @@ void xml_extend_from_file_base(const String& filename, T& type) try {
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
   throw std::runtime_error(
-      std::format("Error reading file {} containing {}:\n{}",
-                  filename,
-                  xml_io_stream_name_v<T>,
-                  e.what()));
+      std::format("Error reading file {}:\n{}", filename, e.what()));
 }
 
 //! Appends data from XML file
@@ -278,10 +272,7 @@ void xml_append_from_file_base(const String& filename, T& type) try {
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
   throw std::runtime_error(
-      std::format("Error reading file {} containing {}:\n{}",
-                  filename,
-                  xml_io_stream_name_v<T>,
-                  e.what()));
+      std::format("Error reading file {}:\n{}", filename, e.what()));
 }
 
 //! Write data to XML file

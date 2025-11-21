@@ -32,7 +32,7 @@ void spectral_propmatAddCIA(  // WS Output:
     const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfCIARecord& abs_cia_data,
+    const CIARecords& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
@@ -100,11 +100,9 @@ void spectral_propmatAddCIA(  // WS Output:
   Vector xsec_temp(f_grid.size());
 
   // Loop over CIA data sets.
-  // Index ii loops through the outer array (different tag groups),
-  // index s through the inner array (different tags within each goup).
-  for (const auto& this_cia : abs_cia_data) {
-    if (select_species != SpeciesEnum::Bath and
-        select_species != this_cia.Species(0))
+  // Iterate over map entries where key is SpeciesEnumPair and value is CIARecord.
+  for (const auto& [species_pair, this_cia] : abs_cia_data) {
+    if (select_species != "AIR"_spec and select_species != species_pair.spec1)
       continue;
 
     // We have to multiply with the number density of the second CIA species.
@@ -113,7 +111,7 @@ void spectral_propmatAddCIA(  // WS Output:
     // absorption coefficient.
     const Numeric nd_sec =
         number_density(atm_point.pressure, atm_point.temperature) *
-        atm_point[this_cia.Species(1)];
+        atm_point[species_pair.spec2];
     // Get the binary absorption cross sections from the CIA data:
 
     try {
@@ -137,10 +135,8 @@ void spectral_propmatAddCIA(  // WS Output:
                          ignore_errors);
       }
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR("Problem with CIA species {}-{}:\n{}",
-                      this_cia.MoleculeName(0),
-                      this_cia.MoleculeName(1),
-                      e.what())
+      ARTS_USER_ERROR(
+          "Problem with CIA species {}:\n{}", species_pair, e.what())
     }
 
     const Numeric nd =
@@ -149,10 +145,10 @@ void spectral_propmatAddCIA(  // WS Output:
         dnumber_density_dt(atm_point.pressure, atm_point.temperature);
     const Numeric dnd_dt_sec =
         dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
-        atm_point[this_cia.Species(1)];
+        atm_point[species_pair.spec2];
     for (Size iv = 0; iv < f_grid.size(); iv++) {
       spectral_propmat[iv].A() +=
-          nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
+          nd_sec * xsec_temp[iv] * nd * atm_point[species_pair.spec1];
 
       if (jac_temps != end) {
         const auto iq = jac_temps->target_pos;
@@ -161,7 +157,7 @@ void spectral_propmatAddCIA(  // WS Output:
               xsec_temp[iv] * dnd_dt_sec) *
                  nd +
              xsec_temp[iv] * nd_sec * dnd_dt) *
-            atm_point[this_cia.Species(0)];
+            atm_point[species_pair.spec1];
       }
 
       for (auto& j : jac_freqs) {
@@ -169,16 +165,16 @@ void spectral_propmatAddCIA(  // WS Output:
           const auto iq = j->target_pos;
           spectral_propmat_jac[iq, iv].A() +=
               nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
-              atm_point[this_cia.Species(1)];
+              atm_point[species_pair.spec2];
         }
       }
 
-      if (const auto j = jac_targets.find(this_cia.Species(0)); j != end) {
+      if (const auto j = jac_targets.find(species_pair.spec1); j != end) {
         const auto iq                     = j->target_pos;
         spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
 
-      if (const auto j = jac_targets.find(this_cia.Species(1)); j != end) {
+      if (const auto j = jac_targets.find(species_pair.spec2); j != end) {
         const auto iq                     = j->target_pos;
         spectral_propmat_jac[iq, iv].A() += nd_sec * xsec_temp[iv] * nd;
       }
@@ -188,7 +184,7 @@ void spectral_propmatAddCIA(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataReadFromCIA(  // WS Output:
-    ArrayOfCIARecord& abs_cia_data,
+    CIARecords& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
@@ -198,7 +194,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
 
-  abs_cia_data.resize(0);
+  abs_cia_data.clear();
 
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
@@ -208,12 +204,11 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
     ArrayOfString cia_names;
 
-    Index cia_index = cia_get_index(abs_cia_data,
-                                    abs_species[iso].Spec(),
-                                    abs_species[iso].cia_2nd_species);
+    SpeciesEnumPair species_key{.spec1 = abs_species[iso].Spec(),
+                                .spec2 = abs_species[iso].cia_2nd_species};
 
-    // If cia_index is not -1, we have already read this datafile earlier
-    if (cia_index != -1) continue;
+    // If this species pair already exists in map, skip it
+    if (abs_cia_data.contains(species_key)) continue;
 
     cia_names.push_back(String(toString<1>(abs_species[iso].Spec())) + "-" +
                         String(toString<1>(abs_species[iso].cia_2nd_species)));
@@ -249,11 +244,9 @@ void abs_cia_dataReadFromCIA(  // WS Output:
           found          = true;
           String catfile = *(checked_dirs.end() - 1) + files[0];
 
-          ciar.SetSpecies(abs_species[iso].Spec(),
-                          abs_species[iso].cia_2nd_species);
           ciar.ReadFromCIA(catfile);
 
-          abs_cia_data.push_back(ciar);
+          abs_cia_data[species_key] = std::move(ciar);
         }
       }
     }
@@ -269,7 +262,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataReadFromXML(  // WS Output:
-    ArrayOfCIARecord& abs_cia_data,
+    CIARecords& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
     const String& filename) {
@@ -288,15 +281,12 @@ void abs_cia_dataReadFromXML(  // WS Output:
   for (Size iso = 0; iso < abs_species.size(); iso++) {
     if (abs_species[iso].Type() != SpeciesTagType::Cia) continue;
 
-    Index cia_index = cia_get_index(abs_cia_data,
-                                    abs_species[iso].Spec(),
-                                    abs_species[iso].cia_2nd_species);
+    SpeciesEnumPair species_key{.spec1 = abs_species[iso].Spec(),
+                                .spec2 = abs_species[iso].cia_2nd_species};
 
-    // If cia_index is -1, this CIA tag was not present in the input file
-    if (cia_index == -1) {
-      missing_tags.push_back(
-          String(toString<1>(abs_species[iso].Spec())) + "-" +
-          String(toString<1>(abs_species[iso].cia_2nd_species)));
+    // If this species pair is not in the map, it was not present in the input file
+    if (not abs_cia_data.contains(species_key)) {
+      missing_tags.push_back(std::format("{}", species_key));
     }
   }
 
@@ -316,7 +306,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
   }
 }
 
-void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
+void abs_cia_dataReadSpeciesSplitCatalog(CIARecords& abs_cia_data,
                                          const ArrayOfSpeciesTag& abs_species,
                                          const String& basename,
                                          const Index& ignore_missing_) try {
@@ -327,11 +317,14 @@ void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
   ArrayOfString names{};
+  std::vector<SpeciesEnumPair> specs{};
   for (auto& tag : abs_species) {
     if (tag.type == SpeciesTagType::Cia) {
       names.emplace_back(std::format("{}-CIA-{}",
                                      toString<1>(tag.Spec()),
                                      toString<1>(tag.cia_2nd_species)));
+      specs.emplace_back(
+          SpeciesEnumPair{.spec1 = tag.Spec(), .spec2 = tag.cia_2nd_species});
     }
   }
 
@@ -341,7 +334,9 @@ void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
   const bool is_dir =
       basename.back() == '/' or std::filesystem::is_directory(inpath);
 
-  for (auto& name : names) {
+  for (Size i = 0; i < names.size(); i++) {
+    const auto& name = names[i];
+
     auto fil{inpath};
     if (is_dir) {
       fil /= name + ".xml";
@@ -355,7 +350,9 @@ void abs_cia_dataReadSpeciesSplitCatalog(ArrayOfCIARecord& abs_cia_data,
       ARTS_USER_ERROR("File {} not found", filename);
     }
 
-    xml_read_from_file(fil.string(), abs_cia_data.emplace_back());
+    CIARecord record;
+    xml_read_from_file(fil.string(), record);
+    abs_cia_data[specs[i]] = std::move(record);
   }
 }
 ARTS_METHOD_ERROR_CATCH

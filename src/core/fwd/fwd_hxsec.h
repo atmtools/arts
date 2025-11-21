@@ -27,7 +27,7 @@ class full {
   };
 
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfXsecRecord> xsecrec{};
+  std::shared_ptr<XsecRecords> xsecrec{};
   std::vector<single> models{};
 
   void adapt();
@@ -39,12 +39,11 @@ class full {
   full& operator=(const full&);
   full& operator=(full&&) noexcept;
 
-  full(std::shared_ptr<AtmPoint> atm,
-       std::shared_ptr<ArrayOfXsecRecord> xsecrec);
+  full(std::shared_ptr<AtmPoint> atm, std::shared_ptr<XsecRecords> xsecrec);
 
   [[nodiscard]] Complex operator()(const Numeric frequency) const;
 
   void set_atm(std::shared_ptr<AtmPoint> atm);
-  void set_model(std::shared_ptr<ArrayOfXsecRecord> xsecrec);
+  void set_model(std::shared_ptr<XsecRecords> xsecrec);
 };
 }  // namespace fwd::hxsec

@@ -72,16 +72,8 @@ atm["N2"] = 0.78  # At 78% atmospheric Nitrogen
 # Plot the absorption of this example
 fig, ax = pyarts.plot(ws.abs_cia_data, atm=atm)
 for i, a in enumerate(ax.flatten()):
-    a.set_xlabel("Wavelength [nm]")
+    a.set_xlabel("Frequency [Hz]")
     a.set_ylabel("Absorption [1/m]")
-    f0 = np.inf
-    f1 = -np.inf
-    for x in ws.abs_cia_data[i].data:
-        f0 = min(f0, x.grids[0][0])
-        f1 = max(f1, x.grids[0][-1])
-    f = np.linspace(f0, f1, 7)
-    a.set_xticks(f, (pyarts.arts.convert.freq2wavelen(f)*1e9).round(1))
-    a.set_yscale('log')
     a.set_title(a.get_lines()[0].get_label())
 fig.suptitle("CIA Absorption")
 

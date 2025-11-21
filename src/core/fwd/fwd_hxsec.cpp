@@ -32,17 +32,15 @@ void full::adapt() try {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   models.reserve(xsecrec->size());
-  for (auto& model : *xsecrec) {
-    models.emplace_back(atm->pressure,
-                        atm->temperature,
-                        atm->operator[](model.Species()),
-                        &model);
+  for (auto& [species, model] : *xsecrec) {
+    models.emplace_back(
+        atm->pressure, atm->temperature, atm->operator[](species), &model);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
 full::full(std::shared_ptr<AtmPoint> atm_,
-           std::shared_ptr<ArrayOfXsecRecord> xsecrec_)
+           std::shared_ptr<XsecRecords> xsecrec_)
     : atm(std::move(atm_)), xsecrec(std::move(xsecrec_)) {
   adapt();
 }
@@ -61,7 +59,7 @@ void full::set_atm(std::shared_ptr<AtmPoint> atm_) {
   adapt();
 }
 
-void full::set_model(std::shared_ptr<ArrayOfXsecRecord> xsecrec_) {
+void full::set_model(std::shared_ptr<XsecRecords> xsecrec_) {
   xsecrec = std::move(xsecrec_);
   adapt();
 }

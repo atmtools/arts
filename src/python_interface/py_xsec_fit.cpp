@@ -1,5 +1,6 @@
 #include <artstime.h>
-#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
@@ -14,9 +15,6 @@ void py_xsec(py::module_& m) try {
   generic_interface(xsec);
   xsec.def_ro_static(
           "version", &XsecRecord::mversion, "The version\n\n.. :class:`int`")
-      .def_rw("species",
-              &XsecRecord::mspecies,
-              "The species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def_rw(
           "fitcoeffs",
           &XsecRecord::mfitcoeffs,
@@ -41,10 +39,11 @@ void py_xsec(py::module_& m) try {
           "spectral_propmat",
           [](const XsecRecord& self,
              const AscendingGrid& f,
-             const AtmPoint& atm) {
+             const AtmPoint& atm,
+             const SpeciesEnum& species) {
             PropmatVector out(f.size());
 
-            const Numeric nd = atm.number_density(self.Species());
+            const Numeric nd = atm.number_density(species);
 
             Vector result(f.size(), 0);
             self.Extract(result, f, atm.pressure, atm.temperature);
@@ -58,6 +57,7 @@ void py_xsec(py::module_& m) try {
           },
           "f"_a,
           "atm"_a,
+          "species"_a,
           R"--(Computes the Hitran cross-section absorption in 1/m
 
 Parameters
@@ -66,6 +66,8 @@ f : AscendingGrid
     Frequency grid [Hz]
 atm : AtmPoint
     Atmospheric point
+species : SpeciesEnum
+    Species identifier
 
 Returns
 -------
@@ -112,9 +114,7 @@ abs : Vector
 )--")
       .def("__getstate__",
            [](const XsecRecord& self) {
-             return std::make_tuple(self.Version(),
-                                    self.Species(),
-                                    self.FitMinPressures(),
+             return std::make_tuple(self.FitMinPressures(),
                                     self.FitMaxPressures(),
                                     self.FitMinTemperatures(),
                                     self.FitMaxTemperatures(),
@@ -122,21 +122,17 @@ abs : Vector
            })
       .def("__setstate__",
            [](XsecRecord* self,
-              const std::tuple<Index,
-                               SpeciesEnum,
-                               Vector,
+              const std::tuple<Vector,
                                Vector,
                                Vector,
                                Vector,
                                ArrayOfGriddedField1Named>& state) {
              new (self) XsecRecord();
-             self->SetVersion(std::get<0>(state));
-             self->SetSpecies(std::get<1>(state));
-             self->FitMinPressures()    = std::get<2>(state);
-             self->FitMaxPressures()    = std::get<3>(state);
-             self->FitMinTemperatures() = std::get<4>(state);
-             self->FitMaxTemperatures() = std::get<5>(state);
-             self->FitCoeffs()          = std::get<6>(state);
+             self->FitMinPressures()    = std::get<0>(state);
+             self->FitMaxPressures()    = std::get<1>(state);
+             self->FitMinTemperatures() = std::get<2>(state);
+             self->FitMaxTemperatures() = std::get<3>(state);
+             self->FitCoeffs()          = std::get<4>(state);
            })
       .def(
           "to_dict",
@@ -147,7 +143,6 @@ abs : Vector
             py::dict attrs;
             attrs["creation_data"] = std::format("{}", Time{});
             attrs["version"]       = py::object(self.attr("version"));
-            attrs["species"] = self.attr("species").attr("__format__")("");
 
             auto fitcoeffs = py::object(self.attr("fitcoeffs"));
 
@@ -243,8 +238,6 @@ abs : Vector
             auto data_vars        = d["data_vars"];
 
             auto out = XsecRecord{};
-            out.SetVersion(py::cast<Index>(attrs["version"]));
-            out.SetSpecies(py::cast<SpeciesEnum>(attrs["species"]));
             out.FitMinPressures() =
                 py::cast<Vector>(data_vars["fitminpressures"]["data"]);
             out.FitMaxPressures() =
@@ -316,7 +309,6 @@ abs : Vector
           "__eq__",
           [](const XsecRecord& self, const XsecRecord& other) {
             return self.Version() == other.Version() and
-                   self.Species() == other.Species() and
                    self.FitMinPressures() == other.FitMinPressures() and
                    self.FitMaxPressures() == other.FitMaxPressures() and
                    self.FitMinTemperatures() == other.FitMinTemperatures() and
@@ -335,14 +327,13 @@ abs : Vector
           "value"_a,
           "Allows `self == value`");
 
-  auto a1 =
-      py::bind_vector<ArrayOfXsecRecord, py::rv_policy::reference_internal>(
-          m, "ArrayOfXsecRecord");
+  // Bind XsecRecords as map
+  auto a1 = py::bind_map<XsecRecords, py::rv_policy::reference_internal>(
+      m, "XsecRecords");
   generic_interface(a1);
-  vector_interface(a1);
   a1.def(
       "spectral_propmat",
-      [](const ArrayOfXsecRecord& self,
+      [](const XsecRecords& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
          const SpeciesEnum& spec,

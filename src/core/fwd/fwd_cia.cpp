@@ -47,9 +47,9 @@ void full::adapt() try {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   models.reserve(ciarecords->size());
-  for (CIARecord& data : *ciarecords) {
-    const Numeric VMR1 = atm->operator[](data.Species(0));
-    const Numeric VMR2 = atm->operator[](data.Species(1));
+  for (auto& [species_pair, data] : *ciarecords) {
+    const Numeric VMR1 = atm->operator[](species_pair.spec1);
+    const Numeric VMR2 = atm->operator[](species_pair.spec2);
 
     models.emplace_back(
         atm->pressure, atm->temperature, VMR1, VMR2, &data, extrap, robust);
@@ -58,7 +58,7 @@ void full::adapt() try {
 ARTS_METHOD_ERROR_CATCH
 
 full::full(std::shared_ptr<AtmPoint> atm_,
-           std::shared_ptr<ArrayOfCIARecord> cia,
+           std::shared_ptr<CIARecords> cia,
            Numeric extrap_,
            Index robust_)
     : atm(std::move(atm_)),
@@ -87,7 +87,7 @@ void full::set_robust(Index robust_) {
   adapt();
 }
 
-void full::set_model(std::shared_ptr<ArrayOfCIARecord> cia) {
+void full::set_model(std::shared_ptr<CIARecords> cia) {
   ciarecords = std::move(cia);
   adapt();
 }

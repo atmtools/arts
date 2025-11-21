@@ -300,8 +300,8 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-    def testArrayOfCIARecord(self):
-        x = cxx.ArrayOfCIARecord()
+    def testCIARecords(self):
+        x = cxx.CIARecords()
         test.io(x, delete=True)
 
     def testArrayOfGriddedField1(self):
@@ -481,10 +481,9 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-    def testArrayOfXsecRecord(self):
-        x = cxx.ArrayOfXsecRecord([cxx.XsecRecord()])
+    def testXsecRecords(self):
+        x = cxx.XsecRecords()
         test.io(x, delete=True)
-        test.array(x)
 
     def testCIARecord(self):
         x = cxx.CIARecord()

@@ -15,7 +15,7 @@
 #include <species.h>
 #include <xml.h>
 
-#include <memory>
+#include <unordered_map>
 
 /** Hitran crosssection class.
  *
@@ -24,15 +24,6 @@
  */
 class XsecRecord {
  public:
-  /** Return species index */
-  [[nodiscard]] const SpeciesEnum& Species() const;
-
-  /** Set species name */
-  void SetSpecies(const SpeciesEnum species);
-
-  /** Return species name */
-  [[nodiscard]] String SpeciesName() const;
-
   /** Return species index */
   [[nodiscard]] static constexpr Index Version() { return mversion; };
 
@@ -110,9 +101,8 @@ class XsecRecord {
   static constexpr Index P01 = 2;
   static constexpr Index P20 = 3;
 
-  static constexpr Index mversion{2};
-  SpeciesEnum mspecies;
-  /* VERSION 2 */
+  static constexpr Index mversion{3};
+  /* VERSION 3 */
   Vector mfitminpressures;
   Vector mfitmaxpressures;
   Vector mfitmintemperatures;
@@ -120,16 +110,7 @@ class XsecRecord {
   ArrayOfGriddedField1Named mfitcoeffs;
 };
 
-using ArrayOfXsecRecord = Array<XsecRecord>;
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x);
-
-Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            SpeciesEnum species);
-
-XsecRecord* hitran_xsec_get_data(
-    const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
-    const SpeciesEnum species);
+using XsecRecords = std::unordered_map<SpeciesEnum, XsecRecord>;
 
 template <>
 struct std::formatter<XsecRecord> {
@@ -148,14 +129,12 @@ struct std::formatter<XsecRecord> {
   template <class FmtContext>
   FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      return tags.format(ctx, "XsecRecord("sv, v.Species(), ")"sv);
+      return tags.format(ctx, "XsecRecord()"sv);
     }
 
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
     tags.format(ctx,
-                v.Species(),
-                sep,
                 v.FitMinPressures(),
                 sep,
                 v.FitMaxPressures(),

@@ -1,5 +1,5 @@
 #include <nanobind/stl/array.h>
-#include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/bind_map.h>
 #include <python_interface.h>
 
 #include <algorithm>
@@ -18,13 +18,54 @@
 
 namespace Python {
 void py_cia(py::module_& m) try {
+  py::class_<SpeciesEnumPair> sep(m, "SpeciesEnumPair");
+  generic_interface(sep);
+  sep.def(py::init<SpeciesEnum, SpeciesEnum>(),
+          "spec1"_a,
+          "spec2"_a,
+          "Create a species pair from two species")
+      .def(
+          "__init__",
+          [](SpeciesEnumPair* self, const std::string& s) {
+            auto dash_pos = s.find('-');
+            if (dash_pos == std::string::npos) {
+              throw std::runtime_error(
+                  std::format("Invalid SpeciesEnumPair string format: '{}'. "
+                              "Expected 'SpeciesA-SpeciesB'",
+                              s));
+            }
+            std::string spec1_str = s.substr(0, dash_pos);
+            std::string spec2_str = s.substr(dash_pos + 1);
+            SpeciesEnum spec1     = to<SpeciesEnum>(spec1_str);
+            SpeciesEnum spec2     = to<SpeciesEnum>(spec2_str);
+            new (self) SpeciesEnumPair{.spec1 = spec1, .spec2 = spec2};
+          },
+          "s"_a,
+          "Create a species pair from string 'SpeciesA-SpeciesB'")
+      .def_rw("spec1", &SpeciesEnumPair::spec1, "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec2", &SpeciesEnumPair::spec2, "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def(py::self == py::self)
+      .def(py::self != py::self)
+      .def("__hash__",
+           [](const SpeciesEnumPair& self) {
+             return std::hash<SpeciesEnumPair>{}(self);
+           })
+      .def("__getstate__",
+           [](const SpeciesEnumPair& self) {
+             return std::make_tuple(self.spec1, self.spec2);
+           })
+      .def("__setstate__",
+           [](SpeciesEnumPair* self,
+              const std::tuple<SpeciesEnum, SpeciesEnum>& state) {
+             new (self) SpeciesEnumPair(std::get<0>(state), std::get<1>(state));
+           });
+
+  // Make SpeciesEnumPair implicitly convertible from string
+  py::implicitly_convertible<std::string, SpeciesEnumPair>();
+
   py::class_<CIARecord> cia(m, "CIARecord");
   generic_interface(cia);
-  cia.def(py::init<ArrayOfGriddedField2, SpeciesEnum, SpeciesEnum>())
-      .def_prop_ro(
-          "specs",
-          [](const CIARecord& c) { return c.TwoSpecies(); },
-          "The two species\n\n.. :class:`tuple[pyarts3.arts.SpeciesEnum, pyarts3.arts.SpeciesEnum]`")
+  cia.def(py::init<ArrayOfGriddedField2>())
       .def_prop_rw(
           "data",
           [](const CIARecord& c) { return c.Data(); },
@@ -37,12 +78,14 @@ void py_cia(py::module_& m) try {
           [](const CIARecord& self,
              const AscendingGrid& f,
              const AtmPoint& atm,
+             const SpeciesEnum spec1,
+             const SpeciesEnum spec2,
              const Numeric T_extrapolfac,
              const Index robust) {
             PropmatVector out(f.size());
 
-            const Numeric scl = atm.number_density(self.Species(0)) *
-                                atm.number_density(self.Species(1));
+            const Numeric scl =
+                atm.number_density(spec1) * atm.number_density(spec2);
             for (auto& cia_data : self.Data()) {
               Vector result(f.size(), 0);
               cia_interpolation(
@@ -57,6 +100,8 @@ void py_cia(py::module_& m) try {
           },
           "f"_a,
           "atm"_a,
+          "spec1"_a         = "AIR"_spec,
+          "spec2"_a         = "AIR"_spec,
           "T_extrapolfac"_a = 0.0,
           "robust"_a        = 1,
           R"--(Computes the collision-induced absorption in 1/m
@@ -67,6 +112,10 @@ f : AscendingGrid
     Frequency grid [Hz]
 atm : AtmPoint
     Atmospheric point
+spec1 : SpeciesEnum
+    First species
+spec2 : SpeciesEnum
+    Second species
 T_extrapolfac : Numeric, optional
     Extrapolation in temperature.  The default is 0
 robust : Index, optional
@@ -131,29 +180,20 @@ Returns
     Absorption profile [1/m]
 
 )--")
-      .def("__getstate__",
-           [](const CIARecord& t) {
-             return std::make_tuple(t.Data(), t.TwoSpecies());
-           })
-      .def(
-          "__setstate__",
-          [](CIARecord* c,
-             const std::tuple<ArrayOfGriddedField2, std::array<SpeciesEnum, 2>>&
-                 state) {
-            new (c) CIARecord();
-            c->Data()       = std::get<0>(state);
-            c->TwoSpecies() = std::get<1>(state);
-          });
+      .def("__getstate__", [](const CIARecord& t) { return t.Data(); })
+      .def("__setstate__", [](CIARecord* c, const ArrayOfGriddedField2& state) {
+        new (c) CIARecord();
+        c->Data() = state;
+      });
 
-  auto acr =
-      py::bind_vector<ArrayOfCIARecord, py::rv_policy::reference_internal>(
-          m, "ArrayOfCIARecord");
+  // Bind CIARecords as map
+  auto acr = py::bind_map<CIARecords, py::rv_policy::reference_internal>(
+      m, "CIARecords");
   generic_interface(acr);
-  vector_interface(acr);
 
   acr.def(
       "spectral_propmat",
-      [](const ArrayOfCIARecord& self,
+      [](const CIARecords& self,
          const AscendingGrid& f,
          const AtmPoint& atm,
          const SpeciesEnum& spec,

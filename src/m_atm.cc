@@ -154,11 +154,12 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfCIARecord &abs_cia_data) {
+                 const CIARecords &abs_cia_data) {
   if (abs_cia_data.empty()) return;
 
-  for (auto &cia_record : abs_cia_data) {
-    const auto [spec1, spec2] = cia_record.TwoSpecies();
+  for (const auto &[species_pair, cia_record] : abs_cia_data) {
+    const auto spec1 = species_pair.spec1;
+    const auto spec2 = species_pair.spec2;
     if (spec1 != "AIR"_spec) ++keys[spec1];
     if (spec2 != "AIR"_spec) ++keys[spec2];
   }
@@ -174,11 +175,11 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
-                 const ArrayOfXsecRecord &abs_xfit_data) {
+                 const XsecRecords &abs_xfit_data) {
   if (abs_xfit_data.empty()) return;
 
-  for (auto &xsec_record : abs_xfit_data) {
-    if (xsec_record.Species() != "AIR"_spec) ++keys[xsec_record.Species()];
+  for (auto &[species, xsec_record] : abs_xfit_data) {
+    if (species != "AIR"_spec) ++keys[species];
   }
 }
 
@@ -370,7 +371,7 @@ void atm_fieldAppendTagsSpeciesData(AtmField &atm_field,
 }
 
 void atm_fieldAppendCIASpeciesData(AtmField &atm_field,
-                                   const ArrayOfCIARecord &abs_cia_data,
+                                   const CIARecords &abs_cia_data,
                                    const String &basename,
                                    const String &extrapolation,
                                    const Index &missing_is_zero,
@@ -413,7 +414,7 @@ void atm_fieldAppendLookupTableSpeciesData(
 }
 
 void atm_fieldAppendXsecSpeciesData(AtmField &atm_field,
-                                    const ArrayOfXsecRecord &abs_xfit_data,
+                                    const XsecRecords &abs_xfit_data,
                                     const String &basename,
                                     const String &extrapolation,
                                     const Index &missing_is_zero,
@@ -517,7 +518,7 @@ void atm_fieldAppendAuto(const Workspace &ws,
   }
 
   if (const String cia_str = "abs_cia_data"; ws.wsv_and_contains(cia_str)) {
-    using cia_t              = ArrayOfCIARecord;
+    using cia_t              = CIARecords;
     const auto &abs_cia_data = ws.get<cia_t>(cia_str);
     atm_fieldAppendCIASpeciesData(atm_field,
                                   abs_cia_data,
@@ -540,7 +541,7 @@ void atm_fieldAppendAuto(const Workspace &ws,
   }
 
   if (const String xsec_str = "abs_xfit_data"; ws.wsv_and_contains(xsec_str)) {
-    using xsec_t              = ArrayOfXsecRecord;
+    using xsec_t              = XsecRecords;
     const auto &abs_xfit_data = ws.get<xsec_t>(xsec_str);
     atm_fieldAppendXsecSpeciesData(atm_field,
                                    abs_xfit_data,

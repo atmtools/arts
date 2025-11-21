@@ -15,7 +15,7 @@
 #include <xsec_fit.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xfit_dataReadSpeciesSplitCatalog(ArrayOfXsecRecord& abs_xfit_data,
+void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords& abs_xfit_data,
                                           const ArrayOfSpeciesTag& abs_species,
                                           const String& basename,
                                           const Index& ignore_missing_) try {
@@ -50,8 +50,7 @@ void abs_xfit_dataReadSpeciesSplitCatalog(ArrayOfXsecRecord& abs_xfit_data,
     }
 
     xml_read_from_file_base(filename, xsec_coeffs);
-
-    abs_xfit_data.push_back(std::move(xsec_coeffs));
+    abs_xfit_data[species_name] = std::move(xsec_coeffs);
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -65,7 +64,7 @@ void spectral_propmatAddXsecFit(  // WS Output:
     const JacobianTargets& jac_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfXsecRecord& abs_xfit_data,
+    const XsecRecords& abs_xfit_data,
     const Numeric& force_p,
     const Numeric& force_t) {
   ARTS_TIME_REPORT
@@ -125,13 +124,11 @@ void spectral_propmatAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (auto& this_xdata : abs_xfit_data) {
-    if (select_species != SpeciesEnum::Bath and
-        this_xdata.Species() != select_species)
-      continue;
+  for (auto& [species, this_xdata] : abs_xfit_data) {
+    if (select_species != "AIR"_spec and species != select_species) continue;
     if (do_abort) continue;
 
-    const Numeric vmr       = atm_point[this_xdata.Species()];
+    const Numeric vmr       = atm_point[species];
     const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
     const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
 
@@ -168,7 +165,7 @@ void spectral_propmatAddXsecFit(  // WS Output:
         }
       }
 
-      if (const auto j = jac_targets.find(this_xdata.Species()); j != end) {
+      if (const auto j = jac_targets.find(species); j != end) {
         const auto iq                    = j->target_pos;
         spectral_propmat_jac[iq, f].A() += xsec_temp[f] * nd * vmr;
       }

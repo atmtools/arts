@@ -12,12 +12,6 @@
 #include <lagrange_interp.h>
 
 #include <algorithm>
-#include <memory>
-
-const SpeciesEnum& XsecRecord::Species() const { return mspecies; };
-
-/** Set species name */
-void XsecRecord::SetSpecies(const SpeciesEnum species) { mspecies = species; };
 
 const Vector& XsecRecord::FitMinPressures() const { return mfitminpressures; };
 
@@ -69,16 +63,12 @@ void RemoveNegativeXsec(Vector& xsec) {
 }
 }  // namespace
 
-String XsecRecord::SpeciesName() const {
-  // The function species_name_from_species_index internally does an assertion
-  // that the species with this index really exists.
-  return String{toString<1>(mspecies)};
-}
-
 void XsecRecord::SetVersion(const Index version) {
-  if (version != mversion) {
-    ARTS_USER_ERROR(
-        "Invalid version {}, only version {} supported", version, mversion)
+  constexpr std::array<Index, 2> supported_versions = {2, mversion};
+  if (stdr::none_of(supported_versions, Cmp::eq(version))) {
+    ARTS_USER_ERROR("Invalid version {}, only versions {:B,} supported",
+                    version,
+                    supported_versions)
   }
 }
 
@@ -191,69 +181,13 @@ void XsecRecord::CalcXsec(VectorView xsec,
   }
 }
 
-// void XsecRecord::CalcDT(VectorView xsec_dt,
-//                         const Index dataset,
-//                         const Numeric temperature) const {
-//   for (Index i = 0; i < xsec_dt.size(); i++) {
-//     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-//     xsec_dt[i] = coeffs[P10] + 2. * coeffs[P20] * temperature;
-//   }
-// }
-
-// void XsecRecord::CalcDP(VectorView xsec_dp,
-//                         const Index dataset,
-//                         const Numeric pressure) const {
-//   for (Index i = 0; i < xsec_dp.size(); i++) {
-//     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-//     xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
-//   }
-// }
-
-/** Get the index in xsec_fit_data for the given species.
-
- \param[in] xsec_fit_data Hitran Xsec data array
- \param[in] species Species name
-
- \returns Index of this species in xsec_fit_data. -1 if not found.
- */
-Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const SpeciesEnum species) {
-  for (Size i = 0; i < xsec_data.size(); i++)
-    if (xsec_data[i].Species() == species) return i;
-
-  return -1;
-}
-
-/** Get the index in xsec_fit_data for the given species.
-
- \param[in] xsec_fit_data Hitran Xsec data array
- \param[in] species Species name
-
- \returns Correct CIA record or nullptr if not found.
- */
-XsecRecord* hitran_xsec_get_data(
-    const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
-    const SpeciesEnum species) {
-  for (auto& xsec : *xsec_data) {
-    if (xsec.Species() == species) return &xsec;
-  }
-  return nullptr;
-}
-
-std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {
-  os << "Species: " << xd.Species() << '\n';
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
-
 void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
                                       const XsecRecord& xd,
                                       bofstream* pbofs,
                                       std::string_view name) {
+  static_assert(XsecRecord::mversion == 3,
+                "Update XML write function for new version");
+
   XMLTag open_tag;
   XMLTag close_tag;
 
@@ -262,7 +196,6 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
   open_tag.add_attribute("version", xd.Version());
 
   open_tag.write_to_stream(os_xml);
-  xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species");
 
   xml_write_to_stream(
       os_xml, xd.FitMinPressures(), pbofs, "Mininum pressures from fit");
@@ -281,6 +214,8 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
 void xml_io_stream<XsecRecord>::read(std::istream& is_xml,
                                      XsecRecord& xd,
                                      bifstream* pbifs) {
+  static_assert(XsecRecord::mversion == 3,
+                "Update XML read function for new version");
   XMLTag tag;
   Index version;
 
@@ -289,16 +224,10 @@ void xml_io_stream<XsecRecord>::read(std::istream& is_xml,
   tag.get_attribute_value("version", version);
   xd.SetVersion(version);
 
-  String species_name;
-  xml_read_from_stream(is_xml, species_name, pbifs);
-
-  const SpeciesEnum species = to<SpeciesEnum>(species_name);
-  if (not good_enum(species)) {
-    std::ostringstream os;
-    os << "  Unknown species in XsecRecord: " << species_name;
-    throw std::runtime_error(os.str());
+  if (version < 3) {
+    String species_name;
+    xml_read_from_stream(is_xml, species_name, pbifs);
   }
-  xd.SetSpecies(species);
 
   xml_read_from_stream(is_xml, xd.FitMinPressures(), pbifs);
   xml_read_from_stream(is_xml, xd.FitMaxPressures(), pbifs);

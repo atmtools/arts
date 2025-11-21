@@ -33,7 +33,7 @@ class full {
   };
 
   std::shared_ptr<AtmPoint> atm{};
-  std::shared_ptr<ArrayOfCIARecord> ciarecords{};
+  std::shared_ptr<CIARecords> ciarecords{};
   Numeric extrap{};
   Index robust{};
 
@@ -49,7 +49,7 @@ class full {
   full& operator=(full&&) noexcept;
 
   full(std::shared_ptr<AtmPoint> atm,
-       std::shared_ptr<ArrayOfCIARecord> cia,
+       std::shared_ptr<CIARecords> cia,
        Numeric extrap = {},
        Index robust   = {});
 
@@ -57,7 +57,7 @@ class full {
 
   void set_extrap(Numeric extrap);
   void set_robust(Index robust);
-  void set_model(std::shared_ptr<ArrayOfCIARecord> cia);
+  void set_model(std::shared_ptr<CIARecords> cia);
   void set_atm(std::shared_ptr<AtmPoint> atm);
 };
 }  // namespace fwd::cia
