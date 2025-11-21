@@ -59,7 +59,6 @@ void py_cia(py::module_& m) try {
               const std::tuple<SpeciesEnum, SpeciesEnum>& state) {
              new (self) SpeciesEnumPair(std::get<0>(state), std::get<1>(state));
            });
-  generic_interface(sep);
 
   // Make SpeciesEnumPair implicitly convertible from string
   py::implicitly_convertible<std::string, SpeciesEnumPair>();

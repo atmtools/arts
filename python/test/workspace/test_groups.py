@@ -484,7 +484,6 @@ class TestGroups:
     def testXsecRecords(self):
         x = cxx.XsecRecords()
         test.io(x, delete=True)
-        test.array(x)
 
     def testCIARecord(self):
         x = cxx.CIARecord()
