@@ -80,6 +80,8 @@ Numeric AtmPoint::number_density() const {
 }
 
 Numeric AtmPoint::number_density(const SpeciesEnum &spec) const {
+  if (spec == "AIR"_spec) return number_density();
+
   return specs.at(spec) * number_density();
 }
 

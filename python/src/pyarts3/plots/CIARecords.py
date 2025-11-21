@@ -1,4 +1,4 @@
-from pyarts3.arts import ArrayOfCIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
+from pyarts3.arts import CIARecords, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 from . import CIARecord
@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-def plot(data: ArrayOfCIARecord,
+def plot(data: CIARecords,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
@@ -82,8 +82,8 @@ def plot(data: ArrayOfCIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        spec = [f"{band.specs[0]}" for band in data]
-        spec.extend([f"{band.specs[1]}" for band in data])
+        spec = [f"{band.spec1}" for band in data]
+        spec.extend([f"{band.spec2}" for band in data])
         ws.abs_speciesSet(species=spec)
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
@@ -99,9 +99,9 @@ def plot(data: ArrayOfCIARecord,
         del kwargs["label"]
 
     for i, v in enumerate(data):
-        CIARecord.plot(v, fig=fig, ax=select_flat_ax(ax, 0 if same else i),
+        CIARecord.plot(data[v], fig=fig, ax=select_flat_ax(ax, 0 if same else i),
                        freqs=freqs, atm=atm, path_point=path_point,
-                       T_extrapolfac=T_extrapolfac, label=f"{v.specs[0]}-CIA-{v.specs[1]}",
+                       T_extrapolfac=T_extrapolfac, label=f"{v.spec1}-{v.spec2}", spec1=v.spec1, spec2=v.spec2,
                        **kwargs)
 
     return fig, ax

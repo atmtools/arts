@@ -1,6 +1,6 @@
 import numpy
 import matplotlib
-from pyarts3.arts import CIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint
+from pyarts3.arts import CIARecord, AscendingGrid, AtmPoint, AtmField, PropagationPathPoint, SpeciesEnum
 import pyarts3 as pyarts
 from .common import default_fig_ax, select_flat_ax
 from copy import deepcopy as copy
@@ -16,6 +16,8 @@ def plot(data: CIARecord,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          freqs: AscendingGrid = None,
          atm: AtmPoint | AtmField | None = None,
+         spec1: SpeciesEnum = SpeciesEnum("AIR"),
+         spec2: SpeciesEnum = SpeciesEnum("AIR"),
          path_point: PropagationPathPoint = PropagationPathPoint(),
          T_extrapolfac: float = 1e99,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
@@ -58,6 +60,10 @@ def plot(data: CIARecord,
         The frequency grid to use for the x-axis. Defaults to None manually creating a range.
     atm : ~pyarts3.arts.AtmPoint | ~pyarts3.arts.AtmField | None, optional
         The atmospheric point data to use for the plot. Defaults to None computed values.
+    spec1 : ~pyarts3.arts.SpeciesEnum, optional
+        The first species for the CIA calculation.  Defaults to "AIR" for no species.
+    spec2 : ~pyarts3.arts.SpeciesEnum, optional
+        The second species for the CIA calculation.  Defaults to "AIR" for no species.
     path_point : ~pyarts3.arts.PropagationPathPoint, optional
         The propagation path point to use for the plot. Defaults to pos: [0, 0, 0], los: [0, 0].
     T_extrapolfac : float, optional
@@ -75,7 +81,12 @@ def plot(data: CIARecord,
 
     if atm is None:
         ws = pyarts.Workspace()
-        ws.abs_speciesSet(species=[f"{s}" for s in data.specs])
+        sp = []
+        if spec1 != "AIR":
+            sp.append(f"{spec1}")
+        if spec2 != "AIR":
+            sp.append(f"{spec2}")
+        ws.abs_speciesSet(species=sp)
         basename = "planets/Earth/afgl/tropical/"
         toa = 1 + path_point.pos[0]
         ws.atm_fieldRead(toa=toa, basename=basename, missing_is_zero=1)
@@ -93,13 +104,14 @@ def plot(data: CIARecord,
             select_flat_ax(ax, 0).plot(
                 freqs,
                 cia.spectral_propmat(
-                    f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
+                    f=freqs, atm=atm, T_extrapolfac=T_extrapolfac, spec1=spec1, spec2=spec2)[:, 0],
                 **kwargs
             )
     else:
         select_flat_ax(ax, 0).plot(
             freqs,
-            data.spectral_propmat(f=freqs, atm=atm, T_extrapolfac=T_extrapolfac)[:, 0],
+            data.spectral_propmat(
+                f=freqs, atm=atm, T_extrapolfac=T_extrapolfac, spec1=spec1, spec2=spec2)[:, 0],
             **kwargs
         )
 

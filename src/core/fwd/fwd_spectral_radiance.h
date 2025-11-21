@@ -44,7 +44,7 @@ struct spectral_rad {
                const AtmField& atm,
                const SurfaceField& surf,
                const std::shared_ptr<AbsorptionBands>& lines,
-               const std::shared_ptr<ArrayOfCIARecord>& cia,
+               const std::shared_ptr<CIARecords>& cia,
                const std::shared_ptr<XsecRecords>& xsec,
                const std::shared_ptr<PredefinedModelData>& predef,
                Numeric ciaextrap = {},

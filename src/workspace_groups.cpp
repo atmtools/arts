@@ -851,6 +851,12 @@ of this term multiplied by a negative distance.
 )--",
   };
 
+  wsg_data["CIARecords"] = {
+      .file = "cia.h",
+      .desc = R"--(A map from *SpeciesEnumPair* to *CIARecord*
+)--",
+  };
+
   add_select_options(wsg_data,
                      {
                          "InterpolationExtrapolation",
@@ -868,7 +874,6 @@ of this term multiplied by a negative distance.
                     "AtmPoint",
                     "SensorObsel",
                     "SpeciesTag",
-                    "CIARecord",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",
                     "Sun",

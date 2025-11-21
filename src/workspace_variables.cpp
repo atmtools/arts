@@ -69,7 +69,7 @@ Some methods that split the data might not work as intended otherwise.
 
 See also :doc:`concept.absorption.cia` for more information on CIA calculations.
 )--",
-      .type = "ArrayOfCIARecord",
+      .type = "CIARecords",
   };
 
   wsv_data["abs_xfit_data"] = {

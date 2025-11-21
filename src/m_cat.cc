@@ -3,7 +3,7 @@
 
 void ReadCatalogData(PredefinedModelData& abs_predef_data,
                      XsecRecords& abs_xfit_data,
-                     ArrayOfCIARecord& abs_cia_data,
+                     CIARecords& abs_cia_data,
                      AbsorptionBands& abs_bands,
                      const ArrayOfSpeciesTag& abs_species,
                      const String& basename,
