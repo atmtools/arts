@@ -38,11 +38,8 @@ struct SpeciesEnumPair {
 template <>
 struct std::hash<SpeciesEnumPair> {
   std::size_t operator()(const SpeciesEnumPair& pair) const noexcept {
-    // Order-independent hash: min/max ensures same hash for (A,B) and (B,A)
-    auto [min_spec, max_spec] = std::minmax(pair.spec1, pair.spec2);
-    std::size_t h1            = std::hash<SpeciesEnum>{}(min_spec);
-    std::size_t h2            = std::hash<SpeciesEnum>{}(max_spec);
-    return h1 ^ (h2 << sizeof(SpeciesEnum));
+    return std::hash<SpeciesEnum>{}(pair.spec1) ^
+           (std::hash<SpeciesEnum>{}(pair.spec2) << sizeof(SpeciesEnum));
   }
 };
 
