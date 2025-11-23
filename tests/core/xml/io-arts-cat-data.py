@@ -20,10 +20,10 @@ if test:
             filepath = os.path.join(cia, file)
             print(f"Found {filepath}")
             cia_files.append(filepath)
-    cia = pyarts.arts.ArrayOfCIARecord.fromxmls(cia_files)
-    if resave:
-        for i, file in enumerate(cia_files):
-            cia[i].savexml(file)
+    for file in cia_files:
+        cia = pyarts.arts.CIARecord.fromxml(file)
+        if resave:
+            cia.savexml(file, type='binary')
     print("All CIA files read successfully.")
     print()
 
@@ -34,10 +34,10 @@ if test:
             filepath = os.path.join(xsec, file)
             print(f"Found {filepath}")
             xsec_files.append(filepath)
-    xsec = pyarts.arts.ArrayOfXsecRecord.fromxmls(xsec_files)
-    if resave:
-        for i, file in enumerate(xsec_files):
-            xsec[i].savexml(file)
+    for file in xsec_files:
+        xsec = pyarts.arts.XsecRecord.fromxml(file)
+        if resave:
+            xsec.savexml(file, type='binary')
     print("All xsec files read successfully.")
     print()
 

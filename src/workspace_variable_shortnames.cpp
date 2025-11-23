@@ -24,7 +24,7 @@ workspace_variables_shortnames_impl() {
   shortnames["xfit"]    = {.desc = "Cross-section fitting"};
   shortnames["predef"]  = {.desc = "Predefined data"};
   shortnames["ray"]     = {.desc = "Ray-tracing"};
-  shortnames["bkg"]     = {.desc = "Background"};
+  shortnames["bkg"]     = {.desc = "Radiative background"};
   shortnames["obs"]     = {.desc = "Observers"};
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};

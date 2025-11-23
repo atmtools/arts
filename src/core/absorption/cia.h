@@ -20,14 +20,30 @@
 #include <xml.h>
 
 #include <memory>
+#include <unordered_map>
 
 // Declare existance of some classes:
 class bifstream;
 class CIARecord;
 
-using ArrayOfCIARecord = Array<CIARecord>;
+/** Key type for CIARecords map - pair of species for collision-induced absorption */
+struct SpeciesEnumPair {
+  SpeciesEnum spec1;
+  SpeciesEnum spec2;
 
-std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x);
+  constexpr auto operator<=>(const SpeciesEnumPair& other) const = default;
+};
+
+// Hash specialization for SpeciesEnumPair
+template <>
+struct std::hash<SpeciesEnumPair> {
+  std::size_t operator()(const SpeciesEnumPair& pair) const noexcept {
+    return std::hash<SpeciesEnum>{}(pair.spec1) ^
+           (std::hash<SpeciesEnum>{}(pair.spec2) << sizeof(SpeciesEnum));
+  }
+};
+
+using CIARecords = std::unordered_map<SpeciesEnumPair, CIARecord>;
 
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
@@ -37,11 +53,7 @@ void cia_interpolation(VectorView result,
                        const Numeric& T_extrapolfac,
                        const Index& robust);
 
-Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const SpeciesEnum sp1,
-                    const SpeciesEnum sp2);
-
-CIARecord* cia_get_data(const std::shared_ptr<std::vector<CIARecord>>& cia_data,
+CIARecord* cia_get_data(const std::shared_ptr<CIARecords>& cia_data,
                         const SpeciesEnum sp1,
                         const SpeciesEnum sp2);
 
@@ -55,35 +67,6 @@ CIARecord* cia_get_data(const std::shared_ptr<std::vector<CIARecord>>& cia_data,
  \date   2000-08-21  */
 class CIARecord {
  public:
-  /** Return each molecule name (as a string) that is associated with this CIARecord.
-     
-     The CIARecord is defined for a pair of molecules!
-     
-     \param[in] i Must be either 0 or 1. Then the first or second name of the pair
-                  is returned.
-     
-     */
-  [[nodiscard]] String MoleculeName(const Index i) const;
-
-  /** Set each molecule name (from a string) that is associated with this CIARecord.
-     
-     The CIARecord is defined for a pair of molecules. The molecule names are 
-     internally stored as species indices.
-     
-     \param[in] i Must be either 0 or 1. Then the first or second name of the pair
-     is returned.
-     \param[in] name The molecule name as a string, e.g., "H2O".
-     
-     */
-  void SetMoleculeName(const Index i, const String& name);
-
-  /** Return CIA species index.
-     
-     \param[in] i Must be either 0 or 1. Then the first or second species index
-     is returned.
-     */
-  [[nodiscard]] SpeciesEnum Species(const Index i) const;
-
   /** Return number of datasets in this record.
      */
   [[nodiscard]] Index DatasetCount() const;
@@ -107,12 +90,6 @@ class CIARecord {
   /** Return CIA data.
    */
   ArrayOfGriddedField2& Data();
-
-  /** Set CIA species.
-     \param[in] first CIA Species.
-     \param[in] second CIA Species.
-     */
-  void SetSpecies(const SpeciesEnum first, const SpeciesEnum second);
 
   /** Vector version of extract.
 
@@ -153,14 +130,11 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
-  [[nodiscard]] std::array<SpeciesEnum, 2> TwoSpecies() const;
-  std::array<SpeciesEnum, 2>& TwoSpecies();
-
   CIARecord() = default;
 
-  CIARecord(ArrayOfGriddedField2 data, SpeciesEnum spec1, SpeciesEnum spec2);
+  CIARecord(ArrayOfGriddedField2 data) : mdata(std::move(data)) {}
 
-  friend std::ostream& operator<<(std::ostream& os, const CIARecord& cr);
+  static constexpr Index version = 2;
 
  private:
   /** Append dataset to mdata. */
@@ -180,16 +154,34 @@ class CIARecord {
      
      */
   ArrayOfGriddedField2 mdata;
+};
 
-  /** The pair of molecules associated with these CIA data.
-     
-     Molecules are specified by their ARTS internal mspecies index! (This has
-     to be determined upon reading from a file. Should it ever be written out, it
-     has to be mapped to a string again.)
-     
-     We use a plain C array here, since the length of this is always 2.
-     */
-  std::array<SpeciesEnum, 2> mspecies;
+template <>
+struct std::formatter<SpeciesEnumPair> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const SpeciesEnumPair& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.spec1, '-', v.spec2);
+  }
+};
+
+template <>
+struct xml_io_stream_name<SpeciesEnumPair> {
+  static constexpr std::string_view name = "SpeciesEnumPair"sv;
+};
+
+template <>
+struct xml_io_stream_aggregate<SpeciesEnumPair> {
+  static constexpr bool value = true;
 };
 
 template <>
@@ -206,7 +198,7 @@ struct std::formatter<CIARecord> {
 
   template <class FmtContext>
   FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.TwoSpecies(), tags.sep(), v.Data());
+    return tags.format(ctx, v.Data());
   }
 };
 

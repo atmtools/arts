@@ -12,7 +12,7 @@ nd = atm.number_density("O2-66")
 
 ws.abs_speciesSet(species=["O2-CIA-O2"])
 ws.ReadCatalogData()
-f = ws.abs_cia_data[0].data[0].grids[0]
+f = ws.abs_cia_data["O2-O2"].data[0].grids[0]
 x = ws.abs_cia_data.spectral_propmat(f=f, atm=atm) / nd
 
 assert np.allclose(
@@ -38,7 +38,7 @@ assert np.allclose(
 
 ws.abs_speciesSet(species=["O2-CIA-N2"])
 ws.ReadCatalogData()
-f = ws.abs_cia_data[0].data[1].grids[0]
+f = ws.abs_cia_data["O2-N2"].data[1].grids[0]
 x = ws.abs_cia_data.spectral_propmat(f=f, atm=atm) / nd
 
 assert np.allclose(

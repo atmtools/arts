@@ -34,8 +34,8 @@ void spectral_rad_operatorClearsky1D(
   ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
 
   using lines_t  = AbsorptionBands;
-  using cia_t    = ArrayOfCIARecord;
-  using xsec_t   = ArrayOfXsecRecord;
+  using cia_t    = CIARecords;
+  using xsec_t   = XsecRecords;
   using predef_t = PredefinedModelData;
 
   const String lines_str  = "abs_bands";

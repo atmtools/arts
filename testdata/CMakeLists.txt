@@ -4,6 +4,8 @@ else()
     list(APPEND DOWNLOAD_CATDATA
         cia/O2-CIA-O2.xml
         cia/O2-CIA-N2.xml
+        cia/O2-CIA-O2.xml.bin
+        cia/O2-CIA-N2.xml.bin
         lines/O2-66.xml
         lines/N2-44.xml
         lines/CO2-626.xml
