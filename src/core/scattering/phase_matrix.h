@@ -92,9 +92,9 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d,
   Scalar cos_theta = cos(za_inc) * cos(za_scat) +
                      sin(za_inc) * sin(za_scat) * cos(aa_scat - aa_inc);
   Scalar theta = save_acos(cos_theta);
-  if ((small(abs(aa_scat - aa_inc))) ||
-      (equal(abs(aa_scat - aa_inc), 2.0 * pi_v<Scalar>))) {
-    theta = abs(za_inc - za_scat);
+  if ((small(std::abs(aa_scat - aa_inc))) ||
+    (equal(std::abs(aa_scat - aa_inc), 2.0 * pi_v<Scalar>))) {
+    theta = std::abs(za_inc - za_scat);
   } else if ((equal(aa_scat - aa_inc, 2.0 * pi_v<Scalar>))) {
     theta = za_scat + za_inc;
     if (theta > pi_v<Scalar>) {
