@@ -1,10 +1,7 @@
 dependencies:
         - binutils
         - ccache
-        - clang
-        - clangxx
         - cmake
-        - compiler-rt
         - doxygen
         - docutils
         - graphviz
@@ -17,11 +14,7 @@ dependencies:
         - ipykernel
         - lark-parser
         - libboost-devel
-        - libclang
-        - libcxx
-        - libcxx-devel
         - libopenblas=*=*openmp*
-        - llvm-openmp
         - nanobind=2.9
         - nbsphinx
         - matplotlib

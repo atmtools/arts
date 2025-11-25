@@ -27,7 +27,7 @@ jobs:
             pyarts: "yes"
             check: "yes"
             doc: "no"
-            devenv: "environment-dev-linux-arm.yml"
+            devenv: "environment-dev-linux.yml"
             jbuild: 4
             jcheck: 2
 
@@ -37,7 +37,7 @@ jobs:
             pyarts: "yes"
             check: "yes"
             doc: "no"
-            devenv: "environment-dev-linux-arm.yml"
+            devenv: "environment-dev-linux.yml"
             jbuild: 4
             jcheck: 2
 
