@@ -51,16 +51,6 @@ jobs:
             jbuild: 4
             jcheck: 2
 
-          - name: macintel-default-clang
-            os: macos-15-intel
-            preset: default-clang-conda
-            pyarts: "yes"
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-mac.yml"
-            jbuild: 4
-            jcheck: 2
-
           - name: mac-default-clang
             os: macos-15
             preset: default-clang-conda
