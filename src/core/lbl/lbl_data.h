@@ -236,7 +236,7 @@ struct line_key {
   If var is unused, then the ls_var variable is used for the line shape
   parameter.  ls_var and var are not both allowed to be unused.
   */
-  LineByLineVariable var{static_cast<LineByLineVariable>(-1)};
+  LineByLineVariable var{LineByLineVariable::unused};
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 

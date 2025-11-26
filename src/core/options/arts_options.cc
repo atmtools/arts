@@ -611,6 +611,9 @@ parameters that are mapped to the species identifier.
               Value{"f0", "Central frequency [Hz]"},
               Value{"e0", "Lower level energy [J]"},
               Value{"a", "Einstein coefficient [1/s]"},
+
+              Value{"unused",
+                    "Unused placeholder - for default values of inactivity"},
           },
   });
 

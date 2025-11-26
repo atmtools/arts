@@ -56,9 +56,10 @@ Numeric line::ds_da(Numeric T, Numeric Q) const {
 void band_data::sort(LineByLineVariable v) {
   using enum LineByLineVariable;
   switch (v) {
-    case f0: std::ranges::sort(lines, {}, &line::f0); break;
-    case e0: std::ranges::sort(lines, {}, &line::e0); break;
-    case a:  std::ranges::sort(lines, {}, &line::a); break;
+    case f0:     stdr::sort(lines, {}, &line::f0); break;
+    case e0:     stdr::sort(lines, {}, &line::e0); break;
+    case a:      stdr::sort(lines, {}, &line::a); break;
+    case unused: ARTS_USER_ERROR("Invalid operation");
   }
 }
 
@@ -74,8 +75,8 @@ std::istream& operator>>(std::istream& is, line& x) try {
 std::pair<Size, std::span<const line>> band_data::active_lines(
     Numeric f0, Numeric f1) const {
   const Numeric c = get_cutoff_frequency();
-  auto low        = std::ranges::lower_bound(*this, f0 - c, {}, &line::f0);
-  auto upp        = std::ranges::upper_bound(low, end(), f1 + c, {}, &line::f0);
+  auto low        = stdr::lower_bound(*this, f0 - c, {}, &line::f0);
+  auto upp        = stdr::upper_bound(low, end(), f1 + c, {}, &line::f0);
 
   return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
 }
@@ -117,7 +118,7 @@ auto local_get_value(T& abs_bands, const line_key& type)
                      type.band);
   auto& line = band.lines[type.line];
 
-  if (type.ls_var != LineShapeModelVariable::unused) {
+  if (type.ls_var == LineShapeModelVariable::unused) {
     auto& line_ls_data = line.ls.single_models;
     const auto ptr     = line_ls_data.find(type.spec);
     ARTS_USER_ERROR_IF(ptr == line_ls_data.end(),
@@ -148,9 +149,10 @@ Band:                      {}
   }
 
   switch (type.var) {
-    case LineByLineVariable::f0: return line.f0;
-    case LineByLineVariable::e0: return line.e0;
-    case LineByLineVariable::a:  return line.a;
+    case LineByLineVariable::f0:     return line.f0;
+    case LineByLineVariable::e0:     return line.e0;
+    case LineByLineVariable::a:      return line.a;
+    case LineByLineVariable::unused: ARTS_USER_ERROR("Invalid operation");
   }
 
   std::unreachable();
@@ -241,7 +243,7 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
   std::unordered_map<SpeciesEnum, Numeric> out;
   for (auto& [spec, values] : compute) {
     if (const Size N = values.size(); N != 0) {
-      std::ranges::sort(values);
+      stdr::sort(values);
       const Size i =
           static_cast<Size>(static_cast<Numeric>(N) * approx_percentile * 0.01);
       out[spec] = values[std::clamp<Size>(i, 0, N - 1)];
@@ -255,10 +257,9 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
     const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
     const Numeric T0) {
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(approx_percentile | std::views::values,
-                          [](auto i) { return i < 0 or i > 100; }),
-      "Approximate percentile must be between 0 and 100");
+  ARTS_USER_ERROR_IF(stdr::any_of(approx_percentile | std::views::values,
+                                  [](auto i) { return i < 0 or i > 100; }),
+                     "Approximate percentile must be between 0 and 100");
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
@@ -272,7 +273,7 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
   std::unordered_map<SpeciesEnum, Numeric> out;
   for (auto& [spec, values] : compute) {
     if (const Size N = values.size(); N != 0) {
-      std::ranges::sort(values);
+      stdr::sort(values);
       const Size i = static_cast<Size>(static_cast<Numeric>(N) *
                                        approx_percentile.at(spec) * 0.01);
       out[spec]    = values[std::clamp<Size>(i, 0, N - 1)];
