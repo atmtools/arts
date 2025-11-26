@@ -350,6 +350,7 @@ std::string metric_unit_x0(const Numeric x,
         return std::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
       case Y:
         return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
+      case unused: break;
     }
   }
 
@@ -434,6 +435,7 @@ std::string metric_unit_x1(const Numeric x,
           case AER:
             return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
         }
+      case unused: break;
     }
   }
 

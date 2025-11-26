@@ -1987,6 +1987,7 @@ void compute_derivative(PropmatVectorView dpm,
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
+    case LineShapeModelVariable::unused: return;
   }
 }
 

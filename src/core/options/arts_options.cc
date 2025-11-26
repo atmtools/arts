@@ -577,6 +577,9 @@ parameters that are mapped to the species identifier.
               Value{"Y", "First order line mixing coefficient"},
               Value{"G", "Second order line mixing coefficient"},
               Value{"DV", "Second order line mixing f-shifting"},
+
+              Value{"unused",
+                    "Unused placeholder - for default values of inactivity"},
           },
   });
 

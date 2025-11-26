@@ -103,9 +103,8 @@ auto local_get_value(T& abs_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
   auto ptr = abs_bands.find(type.band);
 
-  ARTS_USER_ERROR_IF(ptr == abs_bands.end(),
-                     "No band with quantum identifier: {}",
-                     type.band);
+  ARTS_USER_ERROR_IF(
+      ptr == abs_bands.end(), "No band with quantum identifier: {}", type.band);
 
   auto& band = ptr->second;
 
@@ -118,7 +117,7 @@ auto local_get_value(T& abs_bands, const line_key& type)
                      type.band);
   auto& line = band.lines[type.line];
 
-  if (good_enum(type.ls_var)) {
+  if (type.ls_var != LineShapeModelVariable::unused) {
     auto& line_ls_data = line.ls.single_models;
     const auto ptr     = line_ls_data.find(type.spec);
     ARTS_USER_ERROR_IF(ptr == line_ls_data.end(),

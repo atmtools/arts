@@ -1983,6 +1983,7 @@ void compute_derivative(PropmatVectorView dpm,
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
+    case LineShapeModelVariable::unused: return;
   }
 }
 
@@ -2299,6 +2300,7 @@ void compute_derivative(ComplexVectorView dp,
                        return shp.dDV(ds, dz, dz_fac, f) + d;
                      });
     } break;
+    case LineShapeModelVariable::unused: return;
   }
 }
 

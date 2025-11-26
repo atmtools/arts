@@ -218,24 +218,24 @@ struct line_key {
   //! The line count within the band
   Size line{std::numeric_limits<Size>::max()};
 
-  //! The species (if ls_var is not invalid)
+  //! The species (if ls_var is not unused)
   SpeciesEnum spec{SpeciesEnum::unused};
 
   /* The variable to be used for the line shape derivative
 
-  If ls_var is invalid, then the var variable is used for the line
-  parameter.  ls_var and var are not both allowed to be invalid.
+  If ls_var is unused, then the var variable is used for the line
+  parameter.  ls_var and var are not both allowed to be unused.
   */
-  LineShapeModelVariable ls_var{static_cast<LineShapeModelVariable>(-1)};
+  LineShapeModelVariable ls_var{LineShapeModelVariable::unused};
 
-  //! The line shape coefficient if ls_var is not invalid
+  //! The line shape coefficient if ls_var is not unused
   LineShapeModelCoefficient ls_coeff{
       static_cast<LineShapeModelCoefficient>(-1)};
 
   /* The line parameter to be used for the line shape derivative
   
-  If var is invalid, then the ls_var variable is used for the line shape
-  parameter.  ls_var and var are not both allowed to be invalid.
+  If var is unused, then the ls_var variable is used for the line shape
+  parameter.  ls_var and var are not both allowed to be unused.
   */
   LineByLineVariable var{static_cast<LineByLineVariable>(-1)};
 
