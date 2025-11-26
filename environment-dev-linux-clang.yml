@@ -33,7 +33,7 @@ dependencies:
         - python-build
         - requests
         - scipy
-        - setuptools
+        - setuptools>=77
         - sphinx=8.2.3
         - sphinx-copybutton
         - sphinx-favicon
