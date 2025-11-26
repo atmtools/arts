@@ -264,6 +264,7 @@ Numeric& data::X(LineShapeModelCoefficient coeff) {
     case LineShapeModelCoefficient::X3:
       ARTS_USER_ERROR_IF(x.size() < 4, "No X3 value in data.");
       return x[3];
+    case LineShapeModelCoefficient::unused: ARTS_USER_ERROR("Invalid state")
   }
   std::unreachable();
 }

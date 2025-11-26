@@ -236,28 +236,30 @@ VARIABLE(X3);
 
 #undef DERIVATIVE
 
-#define VARIABLE(name)                                                     \
-  Numeric model::d##name##_dX(const AtmPoint& atm,                         \
-                              const SpeciesEnum spec,                      \
-                              LineShapeModelCoefficient coeff) const {     \
-    switch (coeff) {                                                       \
-      case LineShapeModelCoefficient::X0: return d##name##_dX0(atm, spec); \
-      case LineShapeModelCoefficient::X1: return d##name##_dX1(atm, spec); \
-      case LineShapeModelCoefficient::X2: return d##name##_dX2(atm, spec); \
-      case LineShapeModelCoefficient::X3: return d##name##_dX3(atm, spec); \
-    }                                                                      \
-    std::unreachable();                                                    \
-  }                                                                        \
-  Numeric species_model::d##name##_dX(                                     \
-      Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)   \
-      const {                                                              \
-    switch (coeff) {                                                       \
-      case LineShapeModelCoefficient::X0: return d##name##_dX0(T0, T, P);  \
-      case LineShapeModelCoefficient::X1: return d##name##_dX1(T0, T, P);  \
-      case LineShapeModelCoefficient::X2: return d##name##_dX2(T0, T, P);  \
-      case LineShapeModelCoefficient::X3: return d##name##_dX3(T0, T, P);  \
-    }                                                                      \
-    std::unreachable();                                                    \
+#define VARIABLE(name)                                                         \
+  Numeric model::d##name##_dX(const AtmPoint& atm,                             \
+                              const SpeciesEnum spec,                          \
+                              LineShapeModelCoefficient coeff) const {         \
+    switch (coeff) {                                                           \
+      case LineShapeModelCoefficient::X0:     return d##name##_dX0(atm, spec); \
+      case LineShapeModelCoefficient::X1:     return d##name##_dX1(atm, spec); \
+      case LineShapeModelCoefficient::X2:     return d##name##_dX2(atm, spec); \
+      case LineShapeModelCoefficient::X3:     return d##name##_dX3(atm, spec); \
+      case LineShapeModelCoefficient::unused: return NAN;                      \
+    }                                                                          \
+    std::unreachable();                                                        \
+  }                                                                            \
+  Numeric species_model::d##name##_dX(                                         \
+      Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)       \
+      const {                                                                  \
+    switch (coeff) {                                                           \
+      case LineShapeModelCoefficient::X0:     return d##name##_dX0(T0, T, P);  \
+      case LineShapeModelCoefficient::X1:     return d##name##_dX1(T0, T, P);  \
+      case LineShapeModelCoefficient::X2:     return d##name##_dX2(T0, T, P);  \
+      case LineShapeModelCoefficient::X3:     return d##name##_dX3(T0, T, P);  \
+      case LineShapeModelCoefficient::unused: return NAN;                      \
+    }                                                                          \
+    std::unreachable();                                                        \
   }
 
 VARIABLE(G0);

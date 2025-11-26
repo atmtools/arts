@@ -229,8 +229,7 @@ struct line_key {
   LineShapeModelVariable ls_var{LineShapeModelVariable::unused};
 
   //! The line shape coefficient if ls_var is not unused
-  LineShapeModelCoefficient ls_coeff{
-      static_cast<LineShapeModelCoefficient>(-1)};
+  LineShapeModelCoefficient ls_coeff{LineShapeModelCoefficient::unused};
 
   /* The line parameter to be used for the line shape derivative
   
