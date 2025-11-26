@@ -31,6 +31,16 @@ jobs:
             jbuild: 4
             jcheck: 2
 
+          - name: linuxarm-default-gcc
+            os: ubuntu-24.04-arm
+            preset: default-gcc-conda
+            pyarts: "yes"
+            check: "yes"
+            doc: "no"
+            devenv: "environment-dev-linux.yml"
+            jbuild: 4
+            jcheck: 2
+
           - name: linux-reldeb-gcc
             os: ubuntu-24.04
             preset: reldeb-gcc-conda

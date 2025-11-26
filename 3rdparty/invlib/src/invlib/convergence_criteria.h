@@ -57,7 +57,7 @@ struct Rodgers531
         // Order here must be reversed compared to Rodgers because
         // g here is the gradient of the cost function.
         VectorType dx = x_im1_ptr - xi;
-        auto conv = abs(invlib::dot(dx, g) / xi.rows());
+        auto conv = std::abs(invlib::dot(dx, g) / xi.rows());
 
         x_im1_ptr = xi;
 

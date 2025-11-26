@@ -514,7 +514,7 @@ Numeric norm_inf(ConstMatrixView A) {
   for (Index j = 0; j < A.nrows(); j++) {
     Numeric row_sum = 0;
     //Calculate the row sum for all rows
-    for (Index i = 0; i < A.ncols(); i++) row_sum += abs(A[i, j]);
+    for (Index i = 0; i < A.ncols(); i++) row_sum += std::abs(A[i, j]);
     //Pick out the row with the highest row sum
     if (norm_inf < row_sum) norm_inf = row_sum;
   }
