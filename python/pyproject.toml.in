@@ -2,7 +2,8 @@
 name = "pyarts3"
 version = "@ARTS_VERSION@"
 requires-python = ">=3.10"
-license = { "file" = "LICENSE.txt" }
+license = "LGPL-3.0-or-later OR GPL-3.0-or-later"
+license-files = [ "LICENSE.txt" ]
 authors=[ {"name" = "The ARTS developers"} ]
 classifiers=[
     "Development Status :: 4 - Beta",
@@ -30,7 +31,7 @@ pythonpath = [
 ]
 
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.package-data]
