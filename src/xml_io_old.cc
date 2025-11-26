@@ -171,7 +171,6 @@ lbl::line_shape::model from_artscat4(std::istream& is,
                                      const QuantumIdentifier& qid) {
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
-  using enum LineShapeModelCoefficient;
 
   lbl::line_shape::model out;
   out.one_by_one = false;
@@ -193,20 +192,23 @@ lbl::line_shape::model from_artscat4(std::istream& is,
 
   // G0 main coefficient
   for (auto& spec : species) {
-    is >> double_imanip() >> out.single_models[spec].data[G0].X(X0);
+    is >> double_imanip() >>
+        out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X0);
   };
 
   // G0 exponent is same as D0 exponent
   for (auto& spec : species) {
-    is >> double_imanip() >> out.single_models[spec].data[G0].X(X1);
-    out.single_models[spec].data[D0].X(X1) =
-        out.single_models[spec].data[G0].X(X1);
+    is >> double_imanip() >>
+        out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X1);
+    out.single_models[spec].data[D0].X(LineShapeModelCoefficient::X1) =
+        out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X1);
   };
 
   // D0 coefficient
-  out.single_models[species[0]].data[D0].X(X0) = 0;
+  out.single_models[species[0]].data[D0].X(LineShapeModelCoefficient::X0) = 0;
   for (auto& spec : species | stdv::drop(1)) {
-    is >> double_imanip() >> out.single_models[spec].data[D0].X(X0);
+    is >> double_imanip() >>
+        out.single_models[spec].data[D0].X(LineShapeModelCoefficient::X0);
   }
 
   return out;

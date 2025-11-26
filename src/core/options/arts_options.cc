@@ -559,6 +559,12 @@ parameters that are mapped to the species identifier.
               Value{"X1", "x1", "X_1", "x_1", ":math:`X_1`"},
               Value{"X2", "x2", "X_2", "x_2", ":math:`X_2`"},
               Value{"X3", "x3", "X_3", "x_3", ":math:`X_3`"},
+
+              Value{"unused",
+                    "invalid",
+                    "not-an-option",
+                    "void",
+                    "Unused placeholder - for default values of inactivity"},
           },
   });
 
@@ -577,6 +583,9 @@ parameters that are mapped to the species identifier.
               Value{"Y", "First order line mixing coefficient"},
               Value{"G", "Second order line mixing coefficient"},
               Value{"DV", "Second order line mixing f-shifting"},
+
+              Value{"unused",
+                    "Unused placeholder - for default values of inactivity"},
           },
   });
 
@@ -602,6 +611,9 @@ parameters that are mapped to the species identifier.
               Value{"f0", "Central frequency [Hz]"},
               Value{"e0", "Lower level energy [J]"},
               Value{"a", "Einstein coefficient [1/s]"},
+
+              Value{"unused",
+                    "Unused placeholder - for default values of inactivity"},
           },
   });
 

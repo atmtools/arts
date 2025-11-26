@@ -1468,7 +1468,7 @@ void ComputeData::set_filter(const line_key& key) {
   filtered_line = key.line;
   filter.resize(0);
 
-  if (not good_enum(key.var)) {
+  if (key.var == LineByLineVariable::unused) {
     for (Size i = 0; i < pos.size(); i++) {
       if (pos[i].line == key.line and
           (pos[i].spec == key.spec or pos[i].spec == SpeciesEnum::unused))
@@ -1941,6 +1941,7 @@ void compute_derivative(PropmatVectorView dpm,
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
+    case LineByLineVariable::unused: return;
   }
 
   switch (deriv.ls_var) {
@@ -1983,6 +1984,7 @@ void compute_derivative(PropmatVectorView dpm,
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
+    case LineShapeModelVariable::unused: return;
   }
 }
 
@@ -2227,6 +2229,7 @@ void compute_derivative(ComplexVectorView dp,
                        return shp.da(ds, f) + d;
                      });
     } break;
+    case LineByLineVariable::unused: break;
   }
 
   switch (key.ls_var) {
@@ -2299,6 +2302,7 @@ void compute_derivative(ComplexVectorView dp,
                        return shp.dDV(ds, dz, dz_fac, f) + d;
                      });
     } break;
+    case LineShapeModelVariable::unused: return;
   }
 }
 
