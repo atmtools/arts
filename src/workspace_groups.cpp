@@ -100,7 +100,7 @@ does not change the global workspace while minimizing the number of variables th
 
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
-      .desc = R"(Meta data for scattering spefcies.
+      .desc = R"(Meta data for scattering species.
 
 This is used to identify atmospheric data that are required for scattering calculations.
 

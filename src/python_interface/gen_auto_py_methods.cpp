@@ -168,7 +168,7 @@ std::string method_gin_selection(const std::string& name,
     } else {
       if (has_default) {
         std::println(os,
-                     R"x(        static const {2} _{0}_default = []() -> {2} {{
+                     R"x(        static const {2} _{0}_default = [] -> {2} {{
             try {{
               return workspace_methods().at("{1}").defs.at("_{0}").get<{2}>();
             }} catch(...) {{
@@ -673,7 +673,7 @@ std::string method(const std::string& name,
       method_error(name, wsm),
       method_argument_documentation(wsm),
       method_docs(name),
-    wsm.return_type);
+      wsm.return_type);
 }
 
 void methods(int nfiles) {

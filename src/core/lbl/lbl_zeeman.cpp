@@ -260,10 +260,13 @@ model::model(const QuantumIdentifier& qid) noexcept {
   *this = m;
 }
 
-Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
+Numeric model::Strength(Rational Ju,
+                        Rational Jl,
+                        ZeemanPolarization type,
+                        Index n) const {
   using Math::pow2;
 
-  if (type == pol::no) return 1.0;
+  if (type == ZeemanPolarization::no) return 1.0;
 
   auto ml = Ml(Ju, Jl, type, n);
   auto mu = Mu(Ju, Jl, type, n);
@@ -275,8 +278,10 @@ Numeric model::Strength(Rational Ju, Rational Jl, pol type, Index n) const {
   return C * pow2(wigner3j(Jl, Rational(1), Ju, ml, dm, -mu));
 }
 
-Numeric model::Strength(const QuantumState& qn, pol type, Index n) const {
-  if (type == pol::no) return 1.0;
+Numeric model::Strength(const QuantumState& qn,
+                        ZeemanPolarization type,
+                        Index n) const {
+  if (type == ZeemanPolarization::no) return 1.0;
 
   const auto& j = qn.at(J);
 
@@ -284,24 +289,25 @@ Numeric model::Strength(const QuantumState& qn, pol type, Index n) const {
 }
 
 Numeric model::Splitting(const QuantumState& qn,
-                         pol type,
+                         ZeemanPolarization type,
                          Index n) const noexcept {
-  if (type == pol::no) return 0.0;
+  if (type == ZeemanPolarization::no) return 0.0;
 
   const auto& j = qn.at(J);
   return Splitting(j.upper, j.lower, type, n);
 }
 
-Index model::size(const QuantumState& qn, pol type) const noexcept {
+Index model::size(const QuantumState& qn,
+                  ZeemanPolarization type) const noexcept {
   if (on) {
-    if (type == pol::no) return 0;
+    if (type == ZeemanPolarization::no) return 0;
 
     const auto& j = qn.at(J);
 
     return zeeman::size(j.upper, j.lower, type);
   }
 
-  return static_cast<Index>(type == pol::no);
+  return static_cast<Index>(type == ZeemanPolarization::no);
 }
 
 std::istream& operator>>(std::istream& is, model& m) try {
@@ -406,7 +412,7 @@ Numeric magnetic_angles::deta_dw() const {
                       (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
-Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
+Propmat norm_view(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   /* The propagation matrix elemets for different polarizaitions.
 
   The 7-element returned vector represents the symmetric matrix
@@ -440,16 +446,17 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) {
   const Numeric Q     = ST2 * std::cos(2 * eta);
   const Numeric U     = ST2 * std::sin(2 * eta);
   switch (p) {
-    case pol::pi: return {ST2, -Q, U, 0, 0, U, Q};
-    case pol::sm: return {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q};
-    case pol::sp: return {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q};
-    case pol::no: return {1, 0, 0, 0, 0, 0, 0};
+    using enum ZeemanPolarization;
+    case pi: return {ST2, -Q, U, 0, 0, U, Q};
+    case sm: return {2 - ST2, Q, -U, 2 * CT, -2 * CT, -U, -Q};
+    case sp: return {2 - ST2, Q, -U, -2 * CT, 2 * CT, -U, -Q};
+    case no: return {1, 0, 0, 0, 0, 0, 0};
   }
 
   std::unreachable();
 }
 
-Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
+Propmat dnorm_view_du(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
   const Numeric theta  = ma.theta();
   const Numeric eta    = ma.eta();
@@ -466,16 +473,17 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) {
   const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
-    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
-    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
-    case pol::no: return {0, 0, 0, 0, 0, 0, 0};
+    using enum ZeemanPolarization;
+    case pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
+    case no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
   std::unreachable();
 }
 
-Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
+Propmat dnorm_view_dv(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
   const Numeric theta  = ma.theta();
   const Numeric eta    = ma.eta();
@@ -492,16 +500,17 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) {
   const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
-    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
-    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
-    case pol::no: return {0, 0, 0, 0, 0, 0, 0};
+    using enum ZeemanPolarization;
+    case pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
+    case no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
   std::unreachable();
 }
 
-Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
+Propmat dnorm_view_dw(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
   const Numeric theta  = ma.theta();
   const Numeric eta    = ma.eta();
@@ -518,10 +527,11 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) {
   const Numeric dCT    = -dtheta * ST;
 
   switch (p) {
-    case pol::pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
-    case pol::sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
-    case pol::sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
-    case pol::no: return {0, 0, 0, 0, 0, 0, 0};
+    using enum ZeemanPolarization;
+    case pi: return {dST2, -dQ, dU, 0, 0, dU, dQ};
+    case sm: return {-dST2, dQ, -dU, 2 * dCT, -2 * dCT, -dU, -dQ};
+    case sp: return {-dST2, dQ, -dU, -2 * dCT, 2 * dCT, -dU, -dQ};
+    case no: return {0, 0, 0, 0, 0, 0, 0};
   }
 
   std::unreachable();

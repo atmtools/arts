@@ -139,7 +139,7 @@ This type is often found as a member of *AbsorptionBand*.  It contains
       .desc = R"(A single cross-section record.
 
 These cross-section records contains information about the valid temperature and
-pressure ranges as well as well as the fitting coefficients used to compute
+pressure ranges as well as the fitting coefficients used to compute
 and interpolate the cross-section to other temperatures and pressures
 )",
   };

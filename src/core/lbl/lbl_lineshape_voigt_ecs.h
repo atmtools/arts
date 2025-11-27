@@ -45,12 +45,12 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los    = {},
-              const zeeman::pol pol = zeeman::pol::no);
+              const Vector2& los           = {},
+              const ZeemanPolarization pol = ZeemanPolarization::no);
 
   void update_zeeman(const Vector2& los,
                      const Vector3& mag,
-                     const zeeman::pol pol);
+                     const ZeemanPolarization pol);
 
   void core_calc_eqv();
   void core_calc(const ConstVectorView& f_grid);
@@ -76,7 +76,7 @@ void calculate(PropmatVectorView pm,
                const band_data& bnd,
                const LinemixingSpeciesEcsData& rovib_data,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const bool no_negative_absorption);
 
 void equivalent_values(ComplexTensor3View eqv_str,

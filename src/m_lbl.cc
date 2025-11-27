@@ -30,6 +30,7 @@
 #include <span>
 #include <unordered_map>
 
+#include "enumsZeemanPolarization.h"
 #include "matpack_mdspan_view_t.h"
 
 void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
@@ -592,8 +593,7 @@ void sumup_zeeman(PropmatVectorView spectral_propmat,
                   const Index& no_negative_absorption,
                   const Vector3& mag,
                   const Vector2& los,
-                  const lbl::zeeman::pol pol) {
-  using enum lbl::zeeman::pol;
+                  const ZeemanPolarization pol) {
   using namespace lbl::zeeman;
 
   pm  = 0;
@@ -659,6 +659,8 @@ void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
                                  const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
+  using enum ZeemanPolarization;
+
   //! FIXME: these should be part of workspace once things work?
   dispersion.resize(freq_grid.size());
   dispersion_jac.resize(jac_targets.target_count(), freq_grid.size());
@@ -695,7 +697,7 @@ dispersion_jac:       {:B,}
                                                freq_grid,
                                                jac_targets,
                                                atm_point,
-                                               lbl::zeeman::pol::no,
+                                               no,
                                                species,
                                                no_negative_absorption);
 
@@ -707,8 +709,7 @@ dispersion_jac:       {:B,}
   if (has_zeeman) {
     const auto mag = atm_point.mag;
     const auto los = path_point.los;
-    for (auto pol :
-         {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
+    for (auto pol : {sm, sp, pi}) {
       sumup_zeeman(spectral_propmat,
                    spectral_propmat_jac,
                    dispersion,
@@ -767,6 +768,8 @@ void single_propmatAddVoigtLTE(Propmat& single_propmat,
                                const Index& no_negative_absorption) try {
   ARTS_TIME_REPORT
 
+  using enum ZeemanPolarization;
+
   const Size nt = jac_targets.target_count();
 
   //! FIXME: these should be part of workspace once things work
@@ -801,7 +804,7 @@ single_dispersion_jac: {:B,}
                                                freq_grid,
                                                jac_targets,
                                                atm_point,
-                                               lbl::zeeman::pol::no,
+                                               no,
                                                species,
                                                no_negative_absorption);
 
@@ -813,8 +816,7 @@ single_dispersion_jac: {:B,}
   if (has_zeeman) {
     const auto mag = atm_point.mag;
     const auto los = path_point.los;
-    for (auto pol :
-         {lbl::zeeman::pol::sm, lbl::zeeman::pol::sp, lbl::zeeman::pol::pi}) {
+    for (auto pol : {sm, sp, pi}) {
       sumup_zeeman(spectral_propmat,
                    spectral_propmat_jac,
                    dispersion,

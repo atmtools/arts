@@ -5,108 +5,17 @@
 #include <nanobind/stl/string.h>
 
 #include <format>
-#include <sstream>
 
-#include "configtypes.h"
 #include "hpy_arts.h"
 #include "lbl_zeeman.h"
 #include "matpack_mdspan_cdata_t.h"
 #include "python_interface.h"
 
-NB_MAKE_OPAQUE(lbl::zeeman::pol)
 namespace Python {
-
-lbl::zeeman::pol to(const std::string& val) {
-  if (val == "sm") return lbl::zeeman::pol{lbl::zeeman::pol::sm};
-  if (val == "pi") return lbl::zeeman::pol{lbl::zeeman::pol::pi};
-  if (val == "sp") return lbl::zeeman::pol{lbl::zeeman::pol::sp};
-  if (val == "no") return lbl::zeeman::pol{lbl::zeeman::pol::no};
-  throw std::runtime_error("Invalid polarization state");
-}
-std::string from(const lbl::zeeman::pol& val) {
-  switch (val) {
-    case lbl::zeeman::pol::sm: return "sm";
-    case lbl::zeeman::pol::pi: return "pi";
-    case lbl::zeeman::pol::sp: return "sp";
-    case lbl::zeeman::pol::no: return "no";
-  }
-  throw std::runtime_error("Invalid polarization state");
-}
 
 void py_zeeman(py::module_& m) try {
   auto zee  = m.def_submodule("zeeman");
   zee.doc() = "Zeeman effect calculations";
-
-  py::class_<lbl::zeeman::pol> zze(zee, "PolarizationState");
-  generic_interface(zze);
-  zze.def(
-         "__init__",
-         [](lbl::zeeman::pol* out, const std::string& val) {
-           auto x = to(val);
-           new (out) lbl::zeeman::pol{x};
-         },
-         "val"_a = std::string{"no"})
-      .def_static(
-          "get_options",
-          []() {
-            return std::array<lbl::zeeman::pol, 4>{lbl::zeeman::pol::sm,
-                                                   lbl::zeeman::pol::pi,
-                                                   lbl::zeeman::pol::sp,
-                                                   lbl::zeeman::pol::no};
-          },
-          "Get a list of all options")
-      .def_static(
-          "get_options_as_strings",
-          []() { return std::array<std::string, 4>{"sm", "pi", "sp", "no"}; },
-          "Get a list of all options as strings")
-      .def(
-          "__hash__",
-          [](const lbl::zeeman::pol& x) {
-            return std::hash<lbl::zeeman::pol>{}(x);
-          },
-          "Allows hashing")
-      .def("__copy__", [](lbl::zeeman::pol t) -> lbl::zeeman::pol { return t; })
-      .def("__deepcopy__",
-           [](lbl::zeeman::pol t, py::dict&) -> lbl::zeeman::pol { return t; })
-      .def(py::self == py::self, "`self == other`")
-      .def(py::self != py::self, "`self != other`")
-      .def(py::self <= py::self, "`self <= other`")
-      .def(py::self >= py::self, "`self >= other`")
-      .def(py::self < py::self, "`self < other`")
-      .def(py::self > py::self, "`self > other`")
-      .def("__getstate__",
-           [](lbl::zeeman::pol& t) { return std::tuple<std::string>{from(t)}; })
-      .def("__setstate__",
-           [](lbl::zeeman::pol* e, const std::tuple<std::string>& state) {
-             lbl::zeeman::pol x = to(std::get<0>(state));
-             new (e) lbl::zeeman::pol{x};
-           })
-      .def_prop_ro_static(
-          "sm",
-          [](py::object&) { return lbl::zeeman::pol::sm; },
-          R"-x-(Sigma minus
-.. :class:`int`
-)-x-")
-      .def_prop_ro_static(
-          "sp",
-          [](py::object&) { return lbl::zeeman::pol::sp; },
-          R"-x-(Sigma plus
-.. :class:`int`
-)-x-")
-      .def_prop_ro_static(
-          "pi", [](py::object&) { return lbl::zeeman::pol::pi; }, R"-x-(Pi
-.. :class:`int`
-)-x-")
-      .def_prop_ro_static(
-          "no",
-          [](py::object&) { return lbl::zeeman::pol::no; },
-          R"-x-(Unpolarized
-.. :class:`int`
-)-x-")
-      .def("__str__", [](const lbl::zeeman::pol& x) { return from(x); })
-      .def("__repr__", [](const lbl::zeeman::pol& x) { return from(x); })
-      .doc() = "Polarization state of Zeeman calculations";
-  py::implicitly_convertible<const std::string&, lbl::zeeman::pol>();
 
   py::class_<lbl::zeeman::magnetic_angles> zzma(zee, "MagneticAngles");
   generic_interface(zzma);
@@ -147,18 +56,15 @@ void py_zeeman(py::module_& m) try {
       .def_prop_ro("eta",
                    &lbl::zeeman::magnetic_angles::eta,
                    "Magnetic angle eta\n\n.. :class:`float`")
-      .def_prop_ro(
-          "dtheta_du",
-          &lbl::zeeman::magnetic_angles::dtheta_du,
-          "Derivative of theta with respect to u\n\n.. :class:`float`")
-      .def_prop_ro(
-          "dtheta_dv",
-          &lbl::zeeman::magnetic_angles::dtheta_dv,
-          "Derivative of theta with respect to v\n\n.. :class:`float`")
-      .def_prop_ro(
-          "dtheta_dw",
-          &lbl::zeeman::magnetic_angles::dtheta_dw,
-          "Derivative of theta with respect to w\n\n.. :class:`float`")
+      .def_prop_ro("dtheta_du",
+                   &lbl::zeeman::magnetic_angles::dtheta_du,
+                   "Derivative of theta with respect to u\n\n.. :class:`float`")
+      .def_prop_ro("dtheta_dv",
+                   &lbl::zeeman::magnetic_angles::dtheta_dv,
+                   "Derivative of theta with respect to v\n\n.. :class:`float`")
+      .def_prop_ro("dtheta_dw",
+                   &lbl::zeeman::magnetic_angles::dtheta_dw,
+                   "Derivative of theta with respect to w\n\n.. :class:`float`")
       .def_prop_ro("deta_du",
                    &lbl::zeeman::magnetic_angles::deta_du,
                    "Derivative of eta with respect to u\n\n.. :class:`float`")

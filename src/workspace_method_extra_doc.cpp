@@ -39,7 +39,7 @@ There are {0} possible combinations for calling the ``{1}`` method.
 
 Below, these are all listed with the generated agenda-call order for each combination in full.
 
-Before that, a concise overview of what each option do is available by the types in this table:
+Before that, a concise overview of what each option does is available by the types in this table:
 
 .. list-table::
   :widths: auto

@@ -190,7 +190,6 @@ constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 template <std::array cr, std::array... cs>
 constexpr void einsum_arr(auto&& xr, const auto&... xs) {
   assert((good_sizes<cr, cs...>(xr, xs...)));
-  assert((good_sizes<cr, cs...>(xr, xs...)));
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
   }
@@ -238,10 +237,10 @@ consteval bool einsum_arr_optpath() {
 
 template <Size N>
 struct string_literal {
-  constexpr string_literal(const char (&in)[N]) { std::copy_n(in, N, str); }
+  consteval string_literal(const char (&in)[N]) { std::copy_n(in, N, str); }
   char str[N];
 
-  constexpr std::array<char, N - 1> to_array() const {
+  consteval std::array<char, N - 1> to_array() const {
     std::array<char, N - 1> out{};
     std::copy_n(str, N - 1, out.begin());
     return out;
@@ -279,5 +278,88 @@ constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
 template <string_literal... s>
 consteval bool einsum_optpath() {
   return einsum_arr_optpath<s.to_array()...>();
+}
+
+namespace {
+template <class Transform, class Reduce, std::array cr, std::array... cs>
+constexpr void eintred_arr(Transform&& transform,
+                           Reduce&& reduce,
+                           auto&& xr,
+                           const auto&... xs) {
+  assert((good_sizes<cr, cs...>(xr, xs...)));
+  if constexpr (empty<cr>()) {
+    xr = std::forward<Reduce>(reduce)(
+        xr, std::forward<Transform>(transform)(xs...));
+  }
+
+  else {
+    constexpr char first_char = find_first_char<cr>();
+    const Size n              = mddimsize<first_char, cr>(xr);
+    for (Size i = 0; i < n; i++) {
+      eintred_arr<Transform,
+                  Reduce,
+                  reduce_charrank<first_char, cr>(),
+                  reduce_charrank<first_char, cs>()...>(
+          std::forward<Transform>(transform),
+          std::forward<Reduce>(reduce),
+          reduce_mdrank<first_char, cr>(xr, i),
+          reduce_mdrank<first_char, cs>(xs, i)...);
+    }
+  }
+}
+}  // namespace
+
+template <string_literal sr,
+          string_literal... si,
+          class Transform,
+          class Reduce,
+          Size N = sr.to_array().size()>
+constexpr void eintred(Transform&& transform,
+                       Reduce&& reduce,
+                       auto&& xr,
+                       const auto&... xi)
+  requires(sizeof...(si) == sizeof...(xi))
+{
+  eintred_arr<Transform, Reduce, sr.to_array(), si.to_array()...>(
+      std::forward<Transform>(transform),
+      std::forward<Reduce>(reduce),
+      std::forward<decltype(xr)>(xr),
+      xi...);
+}
+
+namespace {
+template <class Transform, std::array cr, std::array... cs>
+constexpr void eintra_arr(Transform&& transform, auto&& xr, const auto&... xs) {
+  assert((good_sizes<cr, cs...>(xr, xs...)));
+  if constexpr (empty<cr>()) {
+    xr = std::forward<Transform>(transform)(xs...);
+  }
+
+  else {
+    constexpr char first_char = find_first_char<cr>();
+    const Size n              = mddimsize<first_char, cr>(xr);
+    for (Size i = 0; i < n; i++) {
+      eintra_arr<Transform,
+                 reduce_charrank<first_char, cr>(),
+                 reduce_charrank<first_char, cs>()...>(
+          std::forward<Transform>(transform),
+          reduce_mdrank<first_char, cr>(xr, i),
+          reduce_mdrank<first_char, cs>(xs, i)...);
+    }
+  }
+}
+}  // namespace
+
+template <string_literal sr,
+          string_literal... si,
+          class Transform,
+          Size N = sr.to_array().size()>
+constexpr void eintra(Transform&& transform, auto&& xr, const auto&... xi)
+  requires(sizeof...(si) == sizeof...(xi))
+{
+  eintra_arr<Transform, sr.to_array(), si.to_array()...>(
+      std::forward<Transform>(transform),
+      std::forward<decltype(xr)>(xr),
+      xi...);
 }
 }  // namespace matpack

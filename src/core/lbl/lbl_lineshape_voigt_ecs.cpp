@@ -29,7 +29,7 @@ namespace lbl::voigt::ecs {
 ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
-                         const zeeman::pol pol)
+                         const ZeemanPolarization pol)
     : scl(f_grid.size()), shape(f_grid.size()) {
   std::transform(f_grid.begin(),
                  f_grid.end(),
@@ -45,7 +45,7 @@ ComputeData::ComputeData(const ConstVectorView& f_grid,
 
 void ComputeData::update_zeeman(const Vector2& los,
                                 const Vector3& mag,
-                                const zeeman::pol pol) {
+                                const ZeemanPolarization pol) {
   npm = zeeman::norm_view(pol, mag, los);
 }
 
@@ -412,9 +412,9 @@ void calculate(PropmatVectorView pm_,
                const band_data& bnd,
                const LinemixingSpeciesEcsData& rovib_data,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const bool no_negative_absorption) try {
-  if (pol != zeeman::pol::no) {
+  if (pol != ZeemanPolarization::no) {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
             bnd, [](auto& zee) { return zee.on; }, &line::z),

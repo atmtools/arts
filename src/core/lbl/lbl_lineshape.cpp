@@ -26,7 +26,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
         return bnd.lineshape == LineByLineLineshape::VP_LTE;
       }))
     return std::make_unique<voigt::lte::ComputeData>(
-        f_grid, atm, los, zeeman::pol::no);
+        f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
 }
 
@@ -39,7 +39,7 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
         return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR;
       }))
     return std::make_unique<voigt::lte_mirror::ComputeData>(
-        f_grid, atm, los, zeeman::pol::no);
+        f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
 }
 
@@ -52,7 +52,7 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
         return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE;
       }))
     return std::make_unique<voigt::nlte::ComputeData>(
-        f_grid, atm, los, zeeman::pol::no);
+        f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
 }
 
@@ -66,7 +66,7 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(
                bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN;
       }))
     return std::make_unique<voigt::ecs::ComputeData>(
-        f_grid, atm, los, zeeman::pol::no);
+        f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
 }
 }  // namespace
@@ -94,7 +94,7 @@ void calculate(PropmatVectorView pm,
 
   const auto calc_voigt_lte = [&](const QuantumIdentifier& bnd_key,
                                   const band_data& bnd,
-                                  const zeeman::pol pol) {
+                                  const ZeemanPolarization pol) {
     voigt::lte::calculate(pm,
                           dpm,
                           *voigt_lte_data,
@@ -110,7 +110,7 @@ void calculate(PropmatVectorView pm,
 
   const auto calc_voigt_lte_mirrored = [&](const QuantumIdentifier& bnd_key,
                                            const band_data& bnd,
-                                           const zeeman::pol pol) {
+                                           const ZeemanPolarization pol) {
     voigt::lte_mirror::calculate(pm,
                                  dpm,
                                  *voigt_lte_mirror_data,
@@ -126,7 +126,7 @@ void calculate(PropmatVectorView pm,
 
   const auto calc_voigt_line_nlte = [&](const QuantumIdentifier& bnd_key,
                                         const band_data& bnd,
-                                        const zeeman::pol pol) {
+                                        const ZeemanPolarization pol) {
     voigt::nlte::calculate(pm,
                            sv,
                            dpm,
@@ -144,7 +144,7 @@ void calculate(PropmatVectorView pm,
 
   const auto calc_voigt_ecs_linemixing = [&](const QuantumIdentifier& bnd_key,
                                              const band_data& bnd,
-                                             const zeeman::pol pol) {
+                                             const ZeemanPolarization pol) {
     auto it = abs_ecs_data.find(bnd_key.isot);
     if (it == abs_ecs_data.end()) {
       ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.isot);
@@ -166,7 +166,7 @@ void calculate(PropmatVectorView pm,
 
   const auto calc_switch = [&](const QuantumIdentifier& bnd_key,
                                const band_data& bnd,
-                               const zeeman::pol pol) {
+                               const ZeemanPolarization pol) {
     switch (bnd.lineshape) {
       case LineByLineLineshape::VP_LTE:
         calc_voigt_lte(bnd_key, bnd, pol);
@@ -186,11 +186,13 @@ void calculate(PropmatVectorView pm,
 
   for (auto& [bnd_key, bnd] : bnds) {
     if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) {
-      calc_switch(bnd_key, bnd, zeeman::pol::no);
+      calc_switch(bnd_key, bnd, ZeemanPolarization::no);
     }
   }
 
-  for (auto pol : {zeeman::pol::pi, zeeman::pol::sm, zeeman::pol::sp}) {
+  for (auto pol : {ZeemanPolarization::pi,
+                   ZeemanPolarization::sm,
+                   ZeemanPolarization::sp}) {
     if (voigt_lte_data) voigt_lte_data->update_zeeman(los, atm.mag, pol);
 
     for (auto& [bnd_key, bnd] : bnds) {

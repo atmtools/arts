@@ -177,7 +177,7 @@ struct single_shape_builder {
         ispec(is) {}
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
-                                       const zeeman::pol pol,
+                                       const ZeemanPolarization pol,
                                        const Size iz) const {
     single_shape s;
     s.f0                    = f0 + H * ln.z.Splitting(ln.qn, pol, iz);
@@ -205,7 +205,7 @@ struct single_shape_builder {
 single_shape::single_shape(const QuantumIdentifier& qid,
                            const line& line,
                            const AtmPoint& atm,
-                           const zeeman::pol pol,
+                           const ZeemanPolarization pol,
                            const Index iz)
     : f0(line_center_calc(line, atm) +
          std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
@@ -220,7 +220,7 @@ single_shape::single_shape(const QuantumIdentifier& qid,
 single_shape::single_shape(const QuantumIdentifier& qid,
                            const line& line,
                            const AtmPoint& atm,
-                           const zeeman::pol pol,
+                           const ZeemanPolarization pol,
                            const Index iz,
                            const SpeciesEnum ispec)
     : f0(line_center_calc(line, atm, ispec) +
@@ -343,7 +343,7 @@ constexpr auto frequency_spans(const Numeric cutoff,
                     frequency_span(lists, start, count)...};
 }
 
-Size count_lines(const band_data& bnd, const zeeman::pol type) {
+Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
         const Index factor =
@@ -357,10 +357,10 @@ void zeeman_push_back(std::vector<single_shape>& lines,
                       const single_shape_builder& s,
                       const line& line,
                       const AtmPoint& atm,
-                      const zeeman::pol pol,
+                      const ZeemanPolarization pol,
                       const SpeciesEnum ispec,
                       const Size iline) {
-  if (pol == zeeman::pol::no) {
+  if (pol == ZeemanPolarization::no) {
     lines.emplace_back(s);
     pos.emplace_back(line_pos{.line = iline, .spec = ispec});
   } else {
@@ -383,12 +383,12 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const QuantumIdentifier& qid,
                      const line& line,
                      const AtmPoint& atm,
-                     const zeeman::pol pol,
+                     const ZeemanPolarization pol,
                      const Size iline) {
   if (line.ls.one_by_one) {
     for (auto& ispec : line.ls.single_models | stdv::keys) {
-      if ((line.z.on and pol != zeeman::pol::no) or
-          (not line.z.on and pol == zeeman::pol::no)) {
+      if ((line.z.on and pol != ZeemanPolarization::no) or
+          (not line.z.on and pol == ZeemanPolarization::no)) {
         zeeman_push_back(lines,
                          pos,
                          single_shape_builder{qid, line, atm, ispec},
@@ -400,8 +400,8 @@ void lines_push_back(std::vector<single_shape>& lines,
       }
     }
   } else {
-    if ((line.z.on and pol != zeeman::pol::no) or
-        (not line.z.on and pol == zeeman::pol::no)) {
+    if ((line.z.on and pol != ZeemanPolarization::no) or
+        (not line.z.on and pol == ZeemanPolarization::no)) {
       zeeman_push_back(lines,
                        pos,
                        single_shape_builder{qid, line, atm},
@@ -422,7 +422,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const AtmPoint& atm,
                        const Numeric fmin,
                        const Numeric fmax,
-                       const zeeman::pol pol) {
+                       const ZeemanPolarization pol) {
   lines.resize(0);
   pos.resize(0);
 
@@ -615,9 +615,9 @@ void band_shape::dT(CutView cut,
 
 void ComputeData::update_zeeman(const Vector2& los,
                                 const Vector3& mag,
-                                const zeeman::pol pol) {
+                                const ZeemanPolarization pol) {
   npm = zeeman::norm_view(pol, mag, los);
-  if (pol != zeeman::pol::no) {
+  if (pol != ZeemanPolarization::no) {
     dnpm_du = zeeman::dnorm_view_du(pol, mag, los);
     dnpm_dv = zeeman::dnorm_view_dv(pol, mag, los);
     dnpm_dw = zeeman::dnorm_view_dw(pol, mag, los);
@@ -627,7 +627,7 @@ void ComputeData::update_zeeman(const Vector2& los,
 ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
-                         const zeeman::pol pol)
+                         const ZeemanPolarization pol)
     : scl(f_grid.size()),
       dscl(f_grid.size()),
       shape(f_grid.size()),
@@ -675,7 +675,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
                                const band_data& bnd,
                                const ConstVectorView& f_grid,
                                const AtmPoint& atm,
-                               const zeeman::pol pol) {
+                               const ZeemanPolarization pol) {
   std::transform(
       f_grid.begin(),
       f_grid.end(),
@@ -768,7 +768,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
                                    const band_data& bnd,
                                    const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
-                                   const zeeman::pol pol) {
+                                   const ZeemanPolarization pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_u = atm.mag[0] / H;
 
@@ -797,7 +797,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
                                    const band_data& bnd,
                                    const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
-                                   const zeeman::pol pol) {
+                                   const ZeemanPolarization pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_v = atm.mag[1] / H;
 
@@ -826,7 +826,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
                                    const band_data& bnd,
                                    const ConstVectorView& f_grid,
                                    const AtmPoint& atm,
-                                   const zeeman::pol pol) {
+                                   const ZeemanPolarization pol) {
   const Numeric H         = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   const Numeric dH_dmag_w = atm.mag[2] / H;
 
@@ -860,7 +860,7 @@ void compute_derivative(PropmatVectorView dpm,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
-                        const zeeman::pol pol,
+                        const ZeemanPolarization pol,
                         const AtmKey& key) {
   using enum AtmKey;
   switch (key) {
@@ -949,7 +949,7 @@ void compute_derivative(PropmatVectorView,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
-                        const zeeman::pol,
+                        const ZeemanPolarization,
                         const SpeciesIsotope& deriv_spec) {
   ARTS_USER_ERROR_IF(deriv_spec == qid.isot, "Not supported")
 }
@@ -962,7 +962,7 @@ void compute_derivative(PropmatVectorView,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
-                        const zeeman::pol,
+                        const ZeemanPolarization,
                         const SpeciesEnum&) {
   ARTS_USER_ERROR("Not supported")
 }
@@ -975,7 +975,7 @@ void compute_derivative(PropmatVectorView,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
-                        const zeeman::pol,
+                        const ZeemanPolarization,
                         const line_key&) {
   ARTS_USER_ERROR("Not supported")
 }
@@ -989,7 +989,7 @@ void compute_derivative(PropmatVectorView,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
-                        const zeeman::pol,
+                        const ZeemanPolarization,
                         const auto&) {}
 }  // namespace
 
@@ -1004,7 +1004,7 @@ void calculate(PropmatVectorView pm_,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const bool no_negative_absorption) {
   ARTS_USER_ERROR_IF(bnd.size() != 1, "Only for single lines per ID")
 

@@ -13,7 +13,10 @@
 #include <cmath>
 #include <cstring>
 #include <numeric>
+#include <ranges>
 #include <vector>
+
+#include "matpack_einsum.h"
 
 namespace disort {
 void radiances::resize(AscendingGrid f_grid,
@@ -94,9 +97,9 @@ void source_set_k2(mathscr_v_data& data,
   Numeric x = 1 - omega;
   for (Index i = n; i >= 0; x *= tau, i--) data.cvec[i] = x;
 
-  const auto leg = [n, &cvec = data.cvec, &source_poly_coeffs](Index i,
-                                                               Index j) {
-    return cvec[i] * Legendre::factorial(n - j) * source_poly_coeffs[n - j];
+  const auto leg = [&, n](Index i, Index j) {
+    return data.cvec[i] * Legendre::factorial(n - j) *
+           source_poly_coeffs[n - j];
   };
 
   for (Index k = 0; k < Nk; k++) {
@@ -431,11 +434,11 @@ void main_data::diagonalize() {
           mult(Bm[l], G, jvec, -1);
         }
       } else {
+        G[rb(N), rf(N)] = 1.0;
+        G[rf(N), rb(N)] = 1.0;
         for (Index i = 0; i < N; i++) {
-          G[i + N, i] = 1;
-          G[i, i + N] = 1;
-          K[i]        = -inv_mu_arr[i];
-          K[i + N]    = inv_mu_arr[i];
+          K[i]     = -inv_mu_arr[i];
+          K[i + N] = inv_mu_arr[i];
         }
       }
     }
@@ -498,42 +501,40 @@ void main_data::set_ims_factors() {
 void main_data::set_scales() {
   ARTS_TIME_REPORT
 
-  std::transform(omega_arr.begin(),
-                 omega_arr.end(),
-                 f_arr.begin(),
-                 scaled_omega_arr.begin(),
-                 [](auto&& omega, auto&& f) { return 1.0 - omega * f; });
-
-  for (Index i = 0; i < NLayers; i++) {
-    scale_tau[i] = 1.0 - omega_arr[i] * f_arr[i];
-  }
+  eintra<"i", "i", "i">([](auto om, auto fr) { return 1 - om * fr; },
+                        scale_tau,
+                        omega_arr,
+                        f_arr);
 
   scaled_tau_arr_with_0[0] = 0;
   einsum<"i", "i", "i">(
       scaled_tau_arr_with_0[Range{1, NLayers}], tau_arr, scale_tau);
 
-  for (Index i = 0; i < NLayers; i++) {
-    for (Index j = 0; j < NLeg; j++) {
-      weighted_scaled_Leg_coeffs[i, j] = static_cast<Numeric>(2 * j + 1) *
-                                         (Leg_coeffs_all[i, j] - f_arr[i]) /
-                                         (1 - f_arr[i]);
-    }
-  }
+  eintra<"ij", "j", "ij", "i">(
+      [](auto j, auto lca, auto f) {
+        return static_cast<Numeric>(2 * j + 1) * (lca - f) / (1.0 - f);
+      },
+      weighted_scaled_Leg_coeffs,
+      stdv::iota(Index{0}),
+      Leg_coeffs_all,
+      f_arr);
 
-  for (Index i = 0; i < NLayers; i++) {
-    scaled_omega_arr[i] = omega_arr[i] * (1.0 - f_arr[i]) / scale_tau[i];
-  }
+  eintra<"i", "i", "i", "i">(
+      [](auto om, auto fr, auto st) { return om * (1.0 - fr) / st; },
+      scaled_omega_arr,
+      omega_arr,
+      f_arr,
+      scale_tau);
 }
 
 void main_data::set_weighted_Leg_coeffs_all() {
   ARTS_TIME_REPORT
 
-  for (Index j = 0; j < NLayers; j++) {
-    for (Index i = 0; i < NLeg_all; i++) {
-      weighted_Leg_coeffs_all[joker, i] =
-          static_cast<Numeric>(2 * i + 1) * Leg_coeffs_all[j, i];
-    }
-  }
+  eintra<"ij", "j", "ij">(
+      [](auto j, auto lca) { return static_cast<Numeric>(2 * j + 1) * lca; },
+      weighted_Leg_coeffs_all,
+      stdv::iota(Index{0}),
+      Leg_coeffs_all);
 }
 
 void main_data::set_beam_source(const Numeric I0_) {
@@ -648,15 +649,14 @@ void main_data::check_input_value() const {
 void main_data::transmission() {
   ARTS_TIME_REPORT
 
-  for (Index m = 0; m < NFourier; m++) {
-    for (Index l = 0; l < NLayers; l++) {
-      for (Index i = 0; i < NQuad; i++) {
-        expK_collect[m, l, i] =
-            std::exp(K_collect[m, l, i] *
-                     (scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]));
-      }
-    }
-  }
+  eintra<"mli", "mli", "l", "l">(
+      [](auto k, auto dtau1, auto dtau0) {
+        return std::exp(k * (dtau1 - dtau0));
+      },
+      expK_collect,
+      K_collect,
+      scaled_tau_arr_with_0[Range(1, NLayers + 1)],
+      scaled_tau_arr_with_0[Range(0, NLayers)]);
 }
 
 void main_data::source_function() {
@@ -1382,11 +1382,11 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
     einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
 
     if (has_beam_source) {
-      for (Index m = 0; m < NFourier; m++) {
-        for (Index i = 0; i < NQuad; i++) {
-          um[m, i] += std::exp(-scaled_tau_arr_l / mu0) * B_collect[m, l, i];
-        }
-      }
+      eintred<"mi", "mi">(
+          [x = std::exp(-scaled_tau_arr_l / mu0)](auto b) { return x * b; },
+          std::plus<>{},
+          um,
+          B_collect[joker, l]);
     }
 
     if (has_source_poly) um[0] += SRC0[l];

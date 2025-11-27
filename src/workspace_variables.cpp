@@ -114,7 +114,7 @@ XsecRecord:
   -  Minimum temperature available in source xsec data to generate the fit coefficients.
   -  Dimensions: [ n_bands ]
 
-- fitmintemperatures:
+- fitmaxtemperatures:
 
   -  Maximum temperature available in source xsec data to generate the fit coefficients.
   -  Dimensions: [ n_bands ]
@@ -162,7 +162,7 @@ species they should read from the available input files.
   };
 
   wsv_data["legendre_degree"] = {
-      .desc = R"(The degree of a Legendre polynimial.
+      .desc = R"(The degree of a Legendre polynomial.
 )",
       .type = "Index",
   };
