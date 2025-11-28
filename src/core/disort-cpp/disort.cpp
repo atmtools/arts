@@ -1388,8 +1388,8 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
             return std::fma(x, b, c);
           },
           um,
-          um,
-          B_collect[joker, l]);
+          B_collect[joker, l],
+          um);
     }
 
     if (has_source_poly) um[0] += SRC0[l];
