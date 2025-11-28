@@ -5,6 +5,7 @@
 
 #include <array>
 #include <limits>
+#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -100,7 +101,13 @@ template <char c, std::array cf, std::array... cs, Size N = cf.size()>
 constexpr Size mddimsize(const auto& xf, const auto&... xs) {
   if constexpr (N > 0 and find_first_char<cf>() == c) {
     constexpr Size dim = position_first<c, cf>();
-    return static_cast<Size>(std::get<dim>(mdshape(xf)));
+    if constexpr (requires { static_cast<Size>(std::get<dim>(mdshape(xf))); }) {
+      return static_cast<Size>(std::get<dim>(mdshape(xf)));
+    } else if constexpr (stdr::sized_range<decltype(xf)>) {
+      return stdr::size(xf);
+    } else {
+      return std::numeric_limits<Size>::max() - 1;
+    }
   } else if constexpr (sizeof...(cs) == 0) {
     return std::numeric_limits<Size>::max();
   } else {

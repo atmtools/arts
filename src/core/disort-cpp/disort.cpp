@@ -515,8 +515,8 @@ void main_data::set_scales() {
         return static_cast<Numeric>(2 * j + 1) * (lca - f) / (1.0 - f);
       },
       weighted_scaled_Leg_coeffs,
-      stdv::iota(Index{0}),
-      Leg_coeffs_all,
+      stdv::iota(Index{0}, NLeg),
+      Leg_coeffs_all[joker, Range{0, NLeg}],
       f_arr);
 
   eintra<"i", "i", "i", "i">(
@@ -531,9 +531,11 @@ void main_data::set_weighted_Leg_coeffs_all() {
   ARTS_TIME_REPORT
 
   eintra<"ij", "j", "ij">(
-      [](auto j, auto lca) { return static_cast<Numeric>(2 * j + 1) * lca; },
+      std::multiplies<>{},
       weighted_Leg_coeffs_all,
-      stdv::iota(Index{0}),
+      stdv::iota(Index{0}, NLeg_all) | stdv::transform([](Index x) {
+        return static_cast<Numeric>(2 * x + 1);
+      }),
       Leg_coeffs_all);
 }
 
@@ -655,7 +657,7 @@ void main_data::transmission() {
       },
       expK_collect,
       K_collect,
-      scaled_tau_arr_with_0[Range(1, NLayers + 1)],
+      scaled_tau_arr_with_0[Range(1, NLayers)],
       scaled_tau_arr_with_0[Range(0, NLayers)]);
 }
 
