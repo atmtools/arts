@@ -1367,12 +1367,13 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
   Matrix um(NFourier, NQuad);
 
   const Index Nphi = phi.size();
-  Matrix cp(Nphi, NFourier);
-  for (Size p = 0; p < phi.size(); p++) {
-    for (Index m = 0; m < NFourier; m++) {
-      cp[p, m] = I0_orig * std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
-    }
-  }
+  const auto cp    = eintra<Matrix, "pm", "p", "m">(
+      {Nphi, NFourier},
+      [i0 = I0_orig, p0 = phi0](auto p, auto m) {
+        return i0 * std::cos(static_cast<Numeric>(m) * (p0 - p));
+      },
+      phi,
+      stdv::iota(Index{0}, NFourier));
 
   for (Index l = 0; l < NLayers; l++) {
     const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1384,9 +1385,11 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
     einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
 
     if (has_beam_source) {
-      eintred<"mi", "mi">(
-          [x = std::exp(-scaled_tau_arr_l / mu0)](auto b) { return x * b; },
-          std::plus<>{},
+      eintra<"mi", "mi", "mi">(
+          [x = std::exp(-scaled_tau_arr_l / mu0)](auto b, auto c) {
+            return std::fma(x, b, c);
+          },
+          um,
           um,
           B_collect[joker, l]);
     }
