@@ -467,7 +467,7 @@ void main_data::set_ims_factors() {
   omega_avg          = sum1 / sum(tau_arr.vec());
 
   const Numeric sum2 =
-      einsum<Numeric, "", "i", "i", "i">({}, f_arr, omega_arr, tau_arr);
+      einsum<Numeric, "", "i", "i", "i">(f_arr, omega_arr, tau_arr);
   if (std::isnormal(sum2)) {
     f_avg = sum2 / sum1;
 
@@ -1256,7 +1256,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   mult(data.u0_pos, GC_collect[0, l, rf(N), joker], data.exponent, 1.0, 1.0);
 
   return Constant::two_pi * I0_orig *
-         einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, data.u0_pos);
+         einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0_pos);
 }
 
 std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
@@ -1313,7 +1313,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   mult(data.u0_neg, GC_collect[0, l, rb(N), joker], data.exponent, 1.0, 1.0);
 
   return {I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                            {}, mu_arr[rf(N)], W, data.u0_neg) -
+                                            mu_arr[rf(N)], W, data.u0_neg) -
                      direct_beam + direct_beam_scaled),
           I0_orig * I0 * direct_beam};
 }
@@ -1350,10 +1350,10 @@ void main_data::gridded_flux(VectorView flux_up,
 
     flux_up[l] =
         Constant::two_pi * I0_orig *
-        einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, u0[rf(N)]);
+        einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[l] =
         I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                          {}, mu_arr[rf(N)], W, u0[rb(N)]) -
+                                          mu_arr[rf(N)], W, u0[rb(N)]) -
                    direct_beam + direct_beam_scaled);
     flux_dd[l] = I0_orig * I0 * direct_beam;
   }
@@ -1366,9 +1366,7 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
   Matrix exponent(NFourier, NQuad, 1);
   Matrix um(NFourier, NQuad);
 
-  const Index Nphi = phi.size();
-  const auto cp    = eintra<Matrix, "pm", "p", "m">(
-      {Nphi, NFourier},
+  const auto cp = eintra<Matrix, "pm", "p", "m">(
       [i0 = I0_orig, p0 = phi0](auto p, auto m) {
         return i0 * std::cos(static_cast<Numeric>(m) * (p0 - p));
       },
@@ -1463,10 +1461,10 @@ void main_data::ungridded_flux(VectorView flux_up,
 
     flux_up[il] =
         Constant::two_pi * I0_orig *
-        einsum<Numeric, "", "i", "i", "i">({}, mu_arr[rf(N)], W, u0[rf(N)]);
+        einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[il] =
         I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(
-                                          {}, mu_arr[rf(N)], W, u0[rb(N)]) -
+                                          mu_arr[rf(N)], W, u0[rb(N)]) -
                    direct_beam + direct_beam_scaled);
     flux_dd[il] = I0_orig * I0 * direct_beam;
   }

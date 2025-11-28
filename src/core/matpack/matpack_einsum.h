@@ -274,6 +274,47 @@ constexpr void eintra_arr(Transform&& transform, auto&& xr, const auto&... xs) {
     }
   }
 }
+
+template <char c, std::array cr, std::array... cs>
+Size any_dim(const auto& xr, const auto&... xs) {
+  for (Size i = 0; i < cr.size(); i++) {
+    if (cr[i] == c) {
+      if constexpr (requires { static_cast<Size>(mdshape(xr)[i]); }) {
+        return static_cast<Size>(mdshape(xr)[i]);
+      } else if constexpr (stdr::sized_range<decltype(xr)>) {
+        return stdr::size(xr);
+      } else {
+        return std::numeric_limits<Size>::max() - 1;
+      }
+    }
+  }
+
+  if constexpr (sizeof...(cs) == 0) {
+    return std::numeric_limits<Size>::max();
+  } else {
+    return any_dim<c, cs...>(xs...);
+  }
+}
+
+template <std::array cr, std::array... cs>
+constexpr void einsum_mdshape_impl(std::span<Index> v, const auto&... xs) {
+  if constexpr (not empty<cr>()) {
+    constexpr char first_char = find_first_char<cr>();
+    v.front()                 = any_dim<first_char, cs...>(xs...);
+    einsum_mdshape_impl<reduce_charrank<first_char, cr>(), cs...>(v.subspan(1),
+                                                                  xs...);
+  }
+}
+
+template <std::array cr, std::array... cs>
+constexpr std::array<Index, cr.size()> einsum_mdshape(const auto&... xs)
+  requires(sizeof...(cs) > 1 and sizeof...(cs) == sizeof...(xs))
+{
+  std::array<Index, cr.size()> v{};
+  einsum_mdshape_impl<cr, cs...>(std::span<Index>{v}, xs...);
+  return v;
+}
+
 }  // namespace
 
 template <string_literal sr,
@@ -289,7 +330,7 @@ constexpr void einsum(auto&& xr, const auto&... xi)
 template <typename T,
           string_literal... s,
           Size N = std::get<0>(std::tuple{s...}).to_array().size()>
-constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
+constexpr T einsum(const auto&... xi)
   requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
 {
   if constexpr (N == 0) {
@@ -297,7 +338,7 @@ constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
     einsum<s...>(out, xi...);
     return out;
   } else {
-    T out(sz);
+    T out(einsum_mdshape<s.to_array()...>(xi...));
     einsum<s...>(out, xi...);
     return out;
   }
@@ -320,9 +361,7 @@ template <typename T,
           string_literal... s,
           class Transform,
           Size N = std::get<0>(std::tuple{s...}).to_array().size()>
-constexpr T eintra(std::array<Index, N> sz,
-                   Transform&& transform,
-                   const auto&... xi)
+constexpr T eintra(Transform&& transform, const auto&... xi)
   requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
 {
   if constexpr (N == 0) {
@@ -330,7 +369,7 @@ constexpr T eintra(std::array<Index, N> sz,
     eintra<s...>(std::forward<Transform>(transform), out, xi...);
     return out;
   } else {
-    T out(sz);
+    T out(einsum_mdshape<s.to_array()...>(xi...));
     eintra<s...>(std::forward<Transform>(transform), out, xi...);
     return out;
   }
