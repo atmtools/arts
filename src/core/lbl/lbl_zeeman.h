@@ -10,21 +10,18 @@
 
 /** Implements Zeeman modeling */
 namespace lbl::zeeman {
-/** Zeeman polarization selection */
-enum class pol : char { sm, pi, sp, no };
-
 /** Gives the change of M given a polarization type
  * 
  * @param[in] type The polarization type
  * 
  * @return The change from Ml to Mu (Mu - Ml)
  */
-constexpr Index dM(pol type) noexcept {
+constexpr Index dM(ZeemanPolarization type) noexcept {
   switch (type) {
-    case pol::sm: return -1;
-    case pol::pi: return 0;
-    case pol::sp: return 1;
-    case pol::no: return 0;
+    case ZeemanPolarization::sm: return -1;
+    case ZeemanPolarization::pi: return 0;
+    case ZeemanPolarization::sp: return 1;
+    case ZeemanPolarization::no: return 0;
   }
   std::unreachable();
 }
@@ -43,12 +40,14 @@ constexpr Index dM(pol type) noexcept {
  * 
  * @return The lowest Ml value
  */
-constexpr Rational Ml_begin(Rational, Rational Jl, pol type) noexcept {
+constexpr Rational Ml_begin(Rational,
+                            Rational Jl,
+                            ZeemanPolarization type) noexcept {
   switch (type) {
-    case pol::sm:
-    case pol::pi:
-    case pol::sp: return -Jl;
-    case pol::no: return 0;
+    case ZeemanPolarization::sm:
+    case ZeemanPolarization::pi:
+    case ZeemanPolarization::sp: return -Jl;
+    case ZeemanPolarization::no: return 0;
   }
   std::unreachable();
 }
@@ -67,12 +66,14 @@ constexpr Rational Ml_begin(Rational, Rational Jl, pol type) noexcept {
  * 
  * @return The largest Ml value
  */
-constexpr Rational Ml_end(Rational, Rational Jl, pol type) noexcept {
+constexpr Rational Ml_end(Rational,
+                          Rational Jl,
+                          ZeemanPolarization type) noexcept {
   switch (type) {
-    case pol::sm:
-    case pol::pi:
-    case pol::sp: return Jl;
-    case pol::no: return 0;
+    case ZeemanPolarization::sm:
+    case ZeemanPolarization::pi:
+    case ZeemanPolarization::sp: return Jl;
+    case ZeemanPolarization::no: return 0;
   }
   std::unreachable();
 }
@@ -87,7 +88,9 @@ constexpr Rational Ml_end(Rational, Rational Jl, pol type) noexcept {
  * 
  * @return The number of elements
  */
-constexpr Index size(Rational Ju, Rational Jl, pol type) noexcept {
+constexpr Index size(Rational Ju,
+                     Rational Jl,
+                     ZeemanPolarization type) noexcept {
   return (Ml_end(Ju, Jl, type) - Ml_begin(Ju, Jl, type)).toIndex() + 1;
 }
 
@@ -104,7 +107,10 @@ constexpr Index size(Rational Ju, Rational Jl, pol type) noexcept {
  * 
  * @return The lower state M
  */
-constexpr Rational Ml(Rational Ju, Rational Jl, pol type, Index n) noexcept {
+constexpr Rational Ml(Rational Ju,
+                      Rational Jl,
+                      ZeemanPolarization type,
+                      Index n) noexcept {
   return Ml_begin(Ju, Jl, type) + n;
 }
 
@@ -121,7 +127,10 @@ constexpr Rational Ml(Rational Ju, Rational Jl, pol type, Index n) noexcept {
  * 
  * @return The upper state M
  */
-constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
+constexpr Rational Mu(Rational Ju,
+                      Rational Jl,
+                      ZeemanPolarization type,
+                      Index n) noexcept {
   return Ml(Ju, Jl, type, n) + dM(type);
 }
 
@@ -142,12 +151,12 @@ constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
  * 
  * @return Rescale factor
  */
-constexpr Numeric polarization_factor(pol type) noexcept {
+constexpr Numeric polarization_factor(ZeemanPolarization type) noexcept {
   switch (type) {
-    case pol::sm: return .75;
-    case pol::pi: return 1.5;
-    case pol::sp: return .75;
-    case pol::no: return 1.0;
+    case ZeemanPolarization::sm: return .75;
+    case ZeemanPolarization::pi: return 1.5;
+    case ZeemanPolarization::sp: return .75;
+    case ZeemanPolarization::no: return 1.0;
   }
   return std::numeric_limits<Numeric>::max();
 }
@@ -297,7 +306,7 @@ struct model {
    */
   [[nodiscard]] Numeric Strength(Rational Ju,
                                  Rational Jl,
-                                 pol type,
+                                 ZeemanPolarization type,
                                  Index n) const;
 
   /** Gives the strength of one subline of a given polarization
@@ -314,7 +323,7 @@ struct model {
    * @return The relative strength of the Zeeman subline
    */
   [[nodiscard]] Numeric Strength(const QuantumState &qn,
-                                 pol type,
+                                 ZeemanPolarization type,
                                  Index n) const;
 
   /** Gives the splitting of one subline of a given polarization
@@ -332,13 +341,13 @@ struct model {
    */
   [[nodiscard]] constexpr Numeric Splitting(Rational Ju,
                                             Rational Jl,
-                                            pol type,
+                                            ZeemanPolarization type,
                                             Index n) const noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
 
-    if (type == pol::no) return 0.0;
+    if (type == ZeemanPolarization::no) return 0.0;
     return C * (Mu(Ju, Jl, type, n) * gu() - Ml(Ju, Jl, type, n) * gl());
   }
 
@@ -356,7 +365,7 @@ struct model {
    * @return The splitting of the Zeeman subline
    */
   [[nodiscard]] Numeric Splitting(const QuantumState &qn,
-                                  pol type,
+                                  ZeemanPolarization type,
                                   Index n) const noexcept;
 
   /** Gives the number of lines for a given polarization type
@@ -366,7 +375,8 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] Index size(const QuantumState &qn, pol type) const noexcept;
+  [[nodiscard]] Index size(const QuantumState &qn,
+                           ZeemanPolarization type) const noexcept;
 
   /** Input operator for Zeeman::Model */
   friend std::istream &operator>>(std::istream &is, model &m);
@@ -411,13 +421,13 @@ struct magnetic_angles {
   [[nodiscard]] Numeric deta_dw() const;
 };
 
-Propmat norm_view(pol p, Vector3 mag, Vector2 los);
+Propmat norm_view(ZeemanPolarization p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los);
+Propmat dnorm_view_du(ZeemanPolarization p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los);
+Propmat dnorm_view_dv(ZeemanPolarization p, Vector3 mag, Vector2 los);
 
-Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los);
+Propmat dnorm_view_dw(ZeemanPolarization p, Vector3 mag, Vector2 los);
 
 constexpr Propmat scale(const Propmat &a, const Complex F) noexcept {
   return {a.A() * F.real(),

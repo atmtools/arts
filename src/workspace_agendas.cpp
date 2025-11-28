@@ -125,7 +125,7 @@ If you do not need single-frequency-point calculations, consider using
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc   = R"--(Gets the propagation path as it is obeserved.
+      .desc   = R"--(Gets the propagation path as it is observed.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.

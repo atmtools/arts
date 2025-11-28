@@ -36,13 +36,13 @@ struct single_shape {
   single_shape(const QuantumIdentifier&,
                const line&,
                const AtmPoint&,
-               const zeeman::pol,
+               const ZeemanPolarization,
                const Index);
 
   single_shape(const QuantumIdentifier&,
                const line&,
                const AtmPoint&,
-               const zeeman::pol,
+               const ZeemanPolarization,
                const Index,
                const SpeciesEnum);
 
@@ -157,7 +157,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const AtmPoint& atm,
                        const Numeric fmin,
                        const Numeric fmax,
-                       const zeeman::pol pol);
+                       const ZeemanPolarization pol);
 
 struct ComputeData {
   std::vector<single_shape>
@@ -186,12 +186,12 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los    = {},
-              const zeeman::pol pol = zeeman::pol::no);
+              const Vector2& los           = {},
+              const ZeemanPolarization pol = ZeemanPolarization::no);
 
   void update_zeeman(const Vector2& los,
                      const Vector3& mag,
-                     const zeeman::pol pol);
+                     const ZeemanPolarization pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
   void core_calc(const band_shape& shp,
@@ -204,7 +204,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ConstVectorView& f_grid,
                     const AtmPoint& atm,
-                    const zeeman::pol pol);
+                    const ZeemanPolarization pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
@@ -217,21 +217,21 @@ struct ComputeData {
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 };
 
 void calculate(PropmatVectorView pm,
@@ -245,6 +245,6 @@ void calculate(PropmatVectorView pm,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const bool no_negative_absorption);
 }  // namespace lbl::voigt::nlte

@@ -6,7 +6,7 @@
 #include "debug.h"
 
 int main() {
-  const Matrix ex = []() {
+  const Matrix ex = [] {
     Matrix out(4, 4);
     out[0] = std::array{-0.23, 2.54, -3.66, 0.0};
     out[1] = std::array{-6.98, 2.46, -2.73, -2.13};

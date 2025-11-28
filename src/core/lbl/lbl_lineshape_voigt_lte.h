@@ -37,19 +37,19 @@ struct single_shape {
   [[nodiscard]] single_shape update_iz(const SpeciesIsotope&,
                                        const line&,
                                        const AtmPoint&,
-                                       const zeeman::pol,
+                                       const ZeemanPolarization,
                                        const Index iz) const;
 
   single_shape(const SpeciesIsotope&,
                const line&,
                const AtmPoint&,
-               const zeeman::pol,
+               const ZeemanPolarization,
                const Index);
 
   single_shape(const SpeciesIsotope&,
                const line&,
                const AtmPoint&,
-               const zeeman::pol,
+               const ZeemanPolarization,
                const Index,
                const SpeciesEnum);
 
@@ -116,7 +116,7 @@ struct single_shape {
   [[nodiscard]] Complex dY(const Complex ds_dY, const Numeric f) const;
 };
 
-Size count_lines(const band_data& bnd, const zeeman::pol type);
+Size count_lines(const band_data& bnd, const ZeemanPolarization type);
 
 void zeeman_set_back(std::vector<single_shape>& lines,
                      std::vector<line_pos>& pos,
@@ -124,7 +124,7 @@ void zeeman_set_back(std::vector<single_shape>& lines,
                      const line& line,
                      const Numeric H,
                      const Size spec,
-                     const zeeman::pol pol,
+                     const ZeemanPolarization pol,
                      Size& last_single_shape_pos);
 
 void lines_set(std::vector<single_shape>& lines,
@@ -132,7 +132,7 @@ void lines_set(std::vector<single_shape>& lines,
                const SpeciesIsotope& spec,
                const line& line,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                Size& last_single_shape_pos);
 
 //! Helper for initializing the band_shape
@@ -143,7 +143,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const AtmPoint& atm,
                        const Numeric fmin,
                        const Numeric fmax,
-                       const zeeman::pol pol);
+                       const ZeemanPolarization pol);
 
 constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
@@ -402,12 +402,12 @@ struct ComputeData {
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2& los    = {},
-              const zeeman::pol pol = zeeman::pol::no);
+              const Vector2& los           = {},
+              const ZeemanPolarization pol = ZeemanPolarization::no);
 
   void update_zeeman(const Vector2& los,
                      const Vector3& mag,
-                     const zeeman::pol pol);
+                     const ZeemanPolarization pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
   void core_calc(const band_shape& shp,
@@ -420,7 +420,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ConstVectorView& f_grid,
                     const AtmPoint& atm,
-                    const zeeman::pol pol);
+                    const ZeemanPolarization pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
@@ -433,21 +433,21 @@ struct ComputeData {
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
                         const band_data& bnd,
                         const ConstVectorView& f_grid,
                         const AtmPoint& atm,
-                        const zeeman::pol pol);
+                        const ZeemanPolarization pol);
 
   //! Sets ds and dz and dcut and dshape
   void dVMR_core_calc(const SpeciesIsotope& spec,
@@ -455,7 +455,7 @@ struct ComputeData {
                       const band_data& bnd,
                       const ConstVectorView& f_grid,
                       const AtmPoint& atm,
-                      const zeeman::pol pol,
+                      const ZeemanPolarization pol,
                       const SpeciesEnum target_spec);
 
   void set_filter(const line_key& key);
@@ -466,7 +466,7 @@ struct ComputeData {
                      const band_data& bnd,
                      const ConstVectorView& f_grid,
                      const AtmPoint& atm,
-                     const zeeman::pol pol,
+                     const ZeemanPolarization pol,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
@@ -502,7 +502,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ConstVectorView& f_grid,
                     const AtmPoint& atm,
-                    const zeeman::pol pol,
+                    const ZeemanPolarization pol,
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
@@ -511,7 +511,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ConstVectorView& f_grid,
                     const AtmPoint& atm,
-                    const zeeman::pol pol,
+                    const ZeemanPolarization pol,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
@@ -531,7 +531,7 @@ void calculate(PropmatVectorView pm,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const bool no_negative_absorption);
 
 //! returns true if number of Zeeman lines is 0
@@ -541,7 +541,7 @@ bool calculate(ComplexVectorView pm,
                const ConstVectorView f_grid,
                const Jacobian::Targets& jac_targets,
                const AtmPoint& atm,
-               const zeeman::pol pol,
+               const ZeemanPolarization pol,
                const SpeciesEnum spec,
                const bool no_negative_absorption);
 }  // namespace lbl::voigt::lte

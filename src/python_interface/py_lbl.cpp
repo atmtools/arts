@@ -608,19 +608,19 @@ x : LineShapeModelVariable
           [](const lbl::zeeman::model& mod, const QuantumState& qn) {
             std::map<std::string, std::vector<double>> out;
 
-            const Index Npi = mod.size(qn, lbl::zeeman::pol::pi);
+            const Index Npi = mod.size(qn, ZeemanPolarization::pi);
             for (Index i = 0; i < Npi; i++) {
-              out["pi"].push_back(mod.Strength(qn, lbl::zeeman::pol::pi, i));
+              out["pi"].push_back(mod.Strength(qn, ZeemanPolarization::pi, i));
             }
 
-            const Index Nsp = mod.size(qn, lbl::zeeman::pol::sp);
+            const Index Nsp = mod.size(qn, ZeemanPolarization::sp);
             for (Index i = 0; i < Nsp; i++) {
-              out["sp"].push_back(mod.Strength(qn, lbl::zeeman::pol::sp, i));
+              out["sp"].push_back(mod.Strength(qn, ZeemanPolarization::sp, i));
             }
 
-            const Index Nsm = mod.size(qn, lbl::zeeman::pol::sm);
+            const Index Nsm = mod.size(qn, ZeemanPolarization::sm);
             for (Index i = 0; i < Nsm; i++) {
-              out["sm"].push_back(mod.Strength(qn, lbl::zeeman::pol::sm, i));
+              out["sm"].push_back(mod.Strength(qn, ZeemanPolarization::sm, i));
             }
 
             return out;

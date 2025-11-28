@@ -79,10 +79,9 @@ void py_global(py::module_& m) try {
       .doc() = "Workspace group records";
   generic_interface(wsgs);
 
-  global.def(
-      "workspace_groups",
-      []() { return internal_workspace_groups(); },
-      R"(Get a copy of all workspace variables
+  global.def("workspace_groups",
+             &internal_workspace_groups,
+             R"(Get a copy of all workspace variables
 
 Return
 ------
@@ -101,10 +100,9 @@ Return
       .doc() = "Workspace variable records";
   generic_interface(wsvs);
 
-  global.def(
-      "workspace_variables",
-      []() { return workspace_variables(); },
-      R"(Get a copy of all workspace variables
+  global.def("workspace_variables",
+             &workspace_variables,
+             R"(Get a copy of all workspace variables
 
 Return
 ------
@@ -122,10 +120,9 @@ Return
       .doc() = "Workspace variable shortname records";
   generic_interface(wsv_short);
 
-  global.def(
-      "workspace_variables_shortnames",
-      []() { return workspace_variables_shortnames(); },
-      R"(Get a copy of all workspace variable shortnames
+  global.def("workspace_variables_shortnames",
+             &workspace_variables_shortnames,
+             R"(Get a copy of all workspace variable shortnames
 
 Return
 ------
@@ -173,10 +170,9 @@ Return
       .doc() = "Method records used as workspace variables";
   generic_interface(wsms);
 
-  global.def(
-      "workspace_methods",
-      []() { return internal_workspace_methods(); },
-      R"(Get a copy of all workspace methods
+  global.def("workspace_methods",
+             &internal_workspace_methods,
+             R"(Get a copy of all workspace methods
 
 Return
 ------
@@ -197,21 +193,19 @@ Return
       .doc() = "Agenda records used as workspace variables";
   generic_interface(wsas);
 
-  global.def(
-      "workspace_agendas",
-      []() { return internal_workspace_agendas(); },
-      "Get a copy of all workspace agendas\n\n"
-      "Return\n------\n:class:`dict`"
-      "\n    Map of agendas");
+  global.def("workspace_agendas",
+             &internal_workspace_agendas,
+             "Get a copy of all workspace agendas\n\n"
+             "Return\n------\n:class:`dict`"
+             "\n    Map of agendas");
 
-  global.def(
-      "workspace_agendas_extra",
-      []() { return internal_workspace_agenda_names(); },
-      "Get a :class:`dict` of overloaded agendas");
+  global.def("workspace_agendas_extra",
+             &internal_workspace_agenda_names,
+             "Get a :class:`dict` of overloaded agendas");
 
   global.def(
       "option_groups",
-      []() -> std::vector<std::string> {
+      [] -> std::vector<std::string> {
         std::vector<std::string> out(internal_options().size());
         for (Size i = 0; i < out.size(); i++) {
           out[i] = internal_options()[i].name;
@@ -223,7 +217,7 @@ Return
 
   global.def(
       "all_isotopologues",
-      []() { return Species::Isotopologues; },
+      [] { return Species::Isotopologues; },
       "List of all valid :class:`~pyarts3.arts.SpeciesIsotopeRecord`");
 
 #ifdef _OPENMP

@@ -38,7 +38,7 @@ void matvec(int N) {
       const Vector x(m, 1);
       Vector y(n);
       for (Index v = 0; v < n; v++) {
-        y[v] = einsum<Numeric, "", "m", "m">({}, A[v], x);
+        y[v] = einsum<Numeric, "", "m", "m">(A[v], x);
       }
       some_results.push_back(y[0]);
     });
@@ -76,7 +76,7 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      const auto y = einsum<Vector, "n", "nm", "m">({n}, A, x);
+      const auto y = einsum<Vector, "n", "nm", "m">(A, x);
       some_results.push_back(y[0]);
     });
 
@@ -93,7 +93,7 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector y(n, 1);
-      const auto x = einsum<Vector, "m", "nm", "n">({m}, A, y);
+      const auto x = einsum<Vector, "m", "nm", "n">(A, y);
       some_results.push_back(x[0]);
     });
   }
@@ -217,7 +217,7 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      const auto C = einsum<Matrix, "mp", "mn", "np">({m, p}, A, B);
+      const auto C = einsum<Matrix, "mp", "mn", "np">(A, B);
       some_results.push_back(C[0, 0]);
     });
   }

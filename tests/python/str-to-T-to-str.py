@@ -33,10 +33,6 @@ def rational():
     return pyarts.arts.Rational("1/2")
 
 
-def zeeman_polarization():
-    return pyarts.arts.zeeman.PolarizationState("pi")
-
-
 def surface_property_tag():
     return pyarts.arts.SurfacePropertyTag("x")
 
@@ -58,7 +54,6 @@ calls = [
     species_isotope,
     species_tag,
     rational,
-    zeeman_polarization,
     surface_property_tag,
     subsurface_property_tag,
     scattering_species_property_tag,

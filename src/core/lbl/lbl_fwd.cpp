@@ -275,24 +275,24 @@ void nlte::set_atm(std::shared_ptr<AtmPoint> atm_) {
   adapt();
 }
 
-void lte::set_pol(zeeman::pol pol_) {
+void lte::set_pol(ZeemanPolarization pol_) {
   pol = pol_;
   adapt();
 }
 
-void lte_mirror::set_pol(zeeman::pol pol_) {
+void lte_mirror::set_pol(ZeemanPolarization pol_) {
   pol = pol_;
   adapt();
 }
 
-void nlte::set_pol(zeeman::pol pol_) {
+void nlte::set_pol(ZeemanPolarization pol_) {
   pol = pol_;
   adapt();
 }
 
 void lte::set(std::shared_ptr<AbsorptionBands> bands_,
               std::shared_ptr<AtmPoint> atm_,
-              zeeman::pol pol_) {
+              ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
@@ -301,7 +301,7 @@ void lte::set(std::shared_ptr<AbsorptionBands> bands_,
 
 void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
                      std::shared_ptr<AtmPoint> atm_,
-                     zeeman::pol pol_) {
+                     ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
@@ -310,7 +310,7 @@ void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
 
 void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
                std::shared_ptr<AtmPoint> atm_,
-               zeeman::pol pol_) {
+               ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
@@ -331,24 +331,32 @@ line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
         qid)
   }
 
-  lte[static_cast<Size>(zeeman::pol::sm)].set(bands, atm, zeeman::pol::sm);
-  lte[static_cast<Size>(zeeman::pol::pi)].set(bands, atm, zeeman::pol::pi);
-  lte[static_cast<Size>(zeeman::pol::sp)].set(bands, atm, zeeman::pol::sp);
-  lte[static_cast<Size>(zeeman::pol::no)].set(bands, atm, zeeman::pol::no);
+  lte[static_cast<Size>(ZeemanPolarization::sm)].set(
+      bands, atm, ZeemanPolarization::sm);
+  lte[static_cast<Size>(ZeemanPolarization::pi)].set(
+      bands, atm, ZeemanPolarization::pi);
+  lte[static_cast<Size>(ZeemanPolarization::sp)].set(
+      bands, atm, ZeemanPolarization::sp);
+  lte[static_cast<Size>(ZeemanPolarization::no)].set(
+      bands, atm, ZeemanPolarization::no);
 
-  lte_mirror[static_cast<Size>(zeeman::pol::sm)].set(
-      bands, atm, zeeman::pol::sm);
-  lte_mirror[static_cast<Size>(zeeman::pol::pi)].set(
-      bands, atm, zeeman::pol::pi);
-  lte_mirror[static_cast<Size>(zeeman::pol::sp)].set(
-      bands, atm, zeeman::pol::sp);
-  lte_mirror[static_cast<Size>(zeeman::pol::no)].set(
-      bands, atm, zeeman::pol::no);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::sm)].set(
+      bands, atm, ZeemanPolarization::sm);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::pi)].set(
+      bands, atm, ZeemanPolarization::pi);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::sp)].set(
+      bands, atm, ZeemanPolarization::sp);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::no)].set(
+      bands, atm, ZeemanPolarization::no);
 
-  nlte[static_cast<Size>(zeeman::pol::sm)].set(bands, atm, zeeman::pol::sm);
-  nlte[static_cast<Size>(zeeman::pol::pi)].set(bands, atm, zeeman::pol::pi);
-  nlte[static_cast<Size>(zeeman::pol::sp)].set(bands, atm, zeeman::pol::sp);
-  nlte[static_cast<Size>(zeeman::pol::no)].set(bands, atm, zeeman::pol::no);
+  nlte[static_cast<Size>(ZeemanPolarization::sm)].set(
+      bands, atm, ZeemanPolarization::sm);
+  nlte[static_cast<Size>(ZeemanPolarization::pi)].set(
+      bands, atm, ZeemanPolarization::pi);
+  nlte[static_cast<Size>(ZeemanPolarization::sp)].set(
+      bands, atm, ZeemanPolarization::sp);
+  nlte[static_cast<Size>(ZeemanPolarization::no)].set(
+      bands, atm, ZeemanPolarization::no);
 }
 
 void line_storage::set_model(std::shared_ptr<AbsorptionBands> bands_) {
@@ -366,7 +374,7 @@ void line_storage::set_atm(std::shared_ptr<AtmPoint> atm_) {
 }
 
 std::pair<Complex, Complex> line_storage::operator()(
-    const Numeric f, const zeeman::pol pol) const {
+    const Numeric f, const ZeemanPolarization pol) const {
   std::array res{lte[static_cast<Size>(pol)](f),
                  lte_mirror[static_cast<Size>(pol)](f),
                  nlte[static_cast<Size>(pol)](f)};

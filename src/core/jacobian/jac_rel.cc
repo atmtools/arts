@@ -49,7 +49,7 @@ The incoming data has {} elements
 )",
                      orig.size(),
                      xx.size())
-  return matpack::einsum<Vector, "i", "i", "i">(xx.shape(), xx, orig);
+  return matpack::einsum<Vector, "i", "i", "i">(xx, orig);
 }
 
 Vector relinv::operator()(ConstVectorView x, const AtmField&) const {
@@ -89,7 +89,7 @@ The incoming jacobian has {} elements
   // return dy;
 
   // This is what I suspect is the truth, but ARTS2 does it as above
-  return matpack::einsum<Matrix, "ij", "ij", "j">(dyy.shape(), dyy, orig);
+  return matpack::einsum<Matrix, "ij", "ij", "j">(dyy, orig);
 }
 
 Matrix relinv::operator()(ConstMatrixView dy,

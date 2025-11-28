@@ -30,15 +30,16 @@ std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f,
                                                 const Vector2 los) const {
   using namespace lbl::zeeman;
 
-  const auto [ano, sno] = lines(f, pol::no);
+  const auto [ano, sno] = lines(f, ZeemanPolarization::no);
 
-  const std::array zres{
-      lines(f, pol::sm), lines(f, pol::pi), lines(f, pol::sp)};
+  const std::array zres{lines(f, ZeemanPolarization::sm),
+                        lines(f, ZeemanPolarization::pi),
+                        lines(f, ZeemanPolarization::sp)};
 
   const std::array zpol{
-      norm_view(pol::sm, atm->mag, los),
-      norm_view(pol::pi, atm->mag, los),
-      norm_view(pol::sp, atm->mag, los),
+      norm_view(ZeemanPolarization::sm, atm->mag, los),
+      norm_view(ZeemanPolarization::pi, atm->mag, los),
+      norm_view(ZeemanPolarization::sp, atm->mag, los),
   };
 
   return {std::transform_reduce(

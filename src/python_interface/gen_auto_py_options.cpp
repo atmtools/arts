@@ -52,9 +52,9 @@ void enum_{0}(py::module_& m) {{
       new (e) {0}{{to<{0}>(std::get<0>(state))}};
    }});
 
-   _g{0}.def_static("get_options", [](){{return enumtyps::{0}Types;}}, "Get a list of all options");
+   _g{0}.def_static("get_options", [] {{return enumtyps::{0}Types;}}, "Get a list of all options");
 
-   _g{0}.def_static("get_options_as_strings", [](){{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");
+   _g{0}.def_static("get_options_as_strings", [] {{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");
 
 )-x-",
              wso.name);
