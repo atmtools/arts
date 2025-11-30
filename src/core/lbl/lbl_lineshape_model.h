@@ -110,6 +110,8 @@ struct species_model {
 };
 
 struct model {
+  static constexpr Index version{2};
+
   Numeric T0{0};
 
   using map_t = std::unordered_map<SpeciesEnum, species_model>;
