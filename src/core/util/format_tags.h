@@ -214,7 +214,9 @@ void format_value_iterable(FmtContext& ctx,
                            const format_tags& tags,
                            const iterable& v) {
   const std::size_t n = std::size(v);
-  if (tags.short_str and n > 8) {
+  if (tags.io) {
+    for (auto&& a : v) tags.format(ctx, ' ', a);
+  } else if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
     auto&& s       = v.begin();
     tags.format(ctx, *s, sep);
@@ -244,7 +246,9 @@ void format_map_iterable(FmtContext& ctx,
                          const format_tags& tags,
                          const iterable& m) {
   const std::size_t n = std::size(m);
-  if (tags.short_str and n > 8) {
+  if (tags.io) {
+    for (auto&& [k, v] : m) tags.format(ctx, ' ', k, ' ', v);
+  } else if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
     auto&& kv      = m.begin();
     tags.format(ctx, kv->first, ": "sv, kv->second, sep);

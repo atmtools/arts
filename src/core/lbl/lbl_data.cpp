@@ -416,7 +416,7 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is,
 
   XMLTag open_tag;
   open_tag.read_from_stream(is);
-  open_tag.check_name("AbsorptionBandData");
+  open_tag.check_name(type_name);
 
   open_tag.get_attribute_value("lineshape", tag);
   data.lineshape = to<LineByLineLineshape>(tag);
@@ -436,10 +436,10 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is,
 
   XMLTag close_tag;
   close_tag.read_from_stream(is);
-  close_tag.check_name("/AbsorptionBandData");
+  close_tag.check_end_name(type_name);
 } catch (const std::exception& e) {
   throw std::runtime_error(
-      std::format("Error reading AbsorptionBandData:\n{}", e.what()));
+      std::format("Error reading AbsorptionBand:\n{}", e.what()));
 }
 
 void xml_io_stream<LblLineKey>::write(std::ostream& os,

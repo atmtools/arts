@@ -293,9 +293,7 @@ std::istream& operator>>(std::istream& is,
 }
 
 std::istream& operator>>(std::istream& is, model& x) try {
-  Index v;
   is >> double_imanip() >> x.T0;
-  is >> v;
   return is >> x.single_models;
 } catch (const std::exception& e) {
   throw std::runtime_error(

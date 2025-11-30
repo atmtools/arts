@@ -284,12 +284,8 @@ struct std::formatter<lbl::line_shape::model> {
     }
 
     if (tags.io) {
-      return tags.format(ctx,
-                         v.T0,
-                         ' ',
-                         v.single_models.size(),
-                         ' ',
-                         v.single_models);
+      return tags.format(
+          ctx, v.T0, ' ', v.single_models.size(), ' ', v.single_models);
     }
 
     const auto sep = tags.sep();
