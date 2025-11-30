@@ -429,13 +429,7 @@ void calculate(PropmatVectorView pm_,
 
   if (bnd.size() == 0) return;
 
-  const bool one_by_one = bnd.front().ls.one_by_one;
-
-  if (one_by_one) {
-    com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm);
-  } else {
-    com_data.adapt_single(bnd_qid, bnd, rovib_data, atm);
-  }
+  com_data.adapt_single(bnd_qid, bnd, rovib_data, atm);
 
   com_data.core_calc(f_grid);
 
@@ -469,13 +463,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
 
   if (bnd.size() == 0) return;
 
-  const bool one_by_one = bnd.front().ls.one_by_one;
-
-  if (one_by_one) {
-    com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm, false);
-  } else {
-    com_data.adapt_single(bnd_qid, bnd, rovib_data, atm, false);
-  }
+  com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm, false);
 
   std::string err{};
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(com_data)
@@ -483,11 +471,7 @@ void equivalent_values(ComplexTensor3View eqv_str,
     try {
       AtmPoint atm_copy    = atm;
       atm_copy.temperature = T[i];
-      if (one_by_one) {
-        com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
-      } else {
-        com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
-      }
+      com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
       com_data.core_calc_eqv();
       eqv_str[i] = com_data.eqv_strs;
       eqv_val[i] = com_data.eqv_vals;

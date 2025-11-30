@@ -181,7 +181,6 @@ line hitran_record::from(HitranLineStrengthOption ls,
   // Set the line shape
   l.ls            = line_shape::model{};
   l.ls.T0         = 296.0;
-  l.ls.one_by_one = false;
   l.ls.single_models.reserve(2);
 
   auto& self    = l.ls.single_models[qid.isot.spec];

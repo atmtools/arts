@@ -554,8 +554,7 @@ Complex single_shape::dY(const Complex ds_dY, const Numeric f) const {
 Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        const Index factor =
-            line.ls.one_by_one ? line.ls.single_models.size() : 1;
+        const Index factor = 1;
         return factor * line.z.size(line.qn, type);
       });
 }
@@ -594,32 +593,16 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const AtmPoint& atm,
                      const ZeemanPolarization pol,
                      const Size iline) {
-  if (line.ls.one_by_one) {
-    for (auto& spec_key : line.ls.single_models | stdv::keys) {
-      if ((line.z.on and pol != ZeemanPolarization::no) or
-          (not line.z.on and pol == ZeemanPolarization::no)) {
-        zeeman_push_back(lines,
-                         pos,
-                         single_shape_builder{spec, line, atm, spec_key},
-                         line,
-                         atm,
-                         pol,
-                         spec_key,
-                         iline);
-      }
-    }
-  } else {
-    if ((line.z.on and pol != ZeemanPolarization::no) or
-        (not line.z.on and pol == ZeemanPolarization::no)) {
-      zeeman_push_back(lines,
-                       pos,
-                       single_shape_builder{spec, line, atm},
-                       line,
-                       atm,
-                       pol,
-                       SpeciesEnum::unused,  // unused value
-                       iline);
-    }
+  if ((line.z.on and pol != ZeemanPolarization::no) or
+      (not line.z.on and pol == ZeemanPolarization::no)) {
+    zeeman_push_back(lines,
+                     pos,
+                     single_shape_builder{spec, line, atm},
+                     line,
+                     atm,
+                     pol,
+                     SpeciesEnum::unused,  // unused value
+                     iline);
   }
 }
 }  // namespace

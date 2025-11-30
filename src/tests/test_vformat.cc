@@ -25,7 +25,6 @@ AbsorptionLine get_lbl_line() {
   line.gl = 5.0;
   line.qn.emplace(J, Quantum::UpperLower{.upper = 1, .lower = 1});
 
-  line.ls.one_by_one = false;
   line.ls.T0         = 300.0;
   auto& mod          = line.ls.single_models["H2O"_spec];
   mod.data[G0]       = {T0, Vector{6.0}};
