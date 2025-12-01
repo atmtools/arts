@@ -206,7 +206,6 @@ struct band_data {
 
 struct line_pos {
   Size line;
-  SpeciesEnum spec{SpeciesEnum::unused};
   Size iz{std::numeric_limits<Size>::max()};
 };
 

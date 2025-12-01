@@ -118,22 +118,6 @@ struct single_shape {
 
 Size count_lines(const band_data& bnd, const ZeemanPolarization type);
 
-void zeeman_set_back(std::vector<single_shape>& lines,
-                     std::vector<line_pos>& pos,
-                     const single_shape& s,
-                     const line& line,
-                     const Numeric H,
-                     const Size spec,
-                     const ZeemanPolarization pol,
-                     Size& last_single_shape_pos);
-
-void lines_set(std::vector<single_shape>& lines,
-               std::vector<line_pos>& pos,
-               const SpeciesIsotope& spec,
-               const line& line,
-               const AtmPoint& atm,
-               const ZeemanPolarization pol,
-               Size& last_single_shape_pos);
 
 //! Helper for initializing the band_shape
 void band_shape_helper(std::vector<single_shape>& lines,
