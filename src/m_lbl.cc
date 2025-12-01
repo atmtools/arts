@@ -376,24 +376,14 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
 
   if (band.lines.empty()) return;
 
-  const auto& orig_front_ls  = band.lines.front().ls;
-  const bool orig_one_by_one = orig_front_ls.one_by_one;
-
   for (auto& line : band.lines | std::ranges::views::drop(1)) {
     ARTS_USER_ERROR_IF(
-        orig_one_by_one != line.ls.one_by_one,
-        "Inconsistent line shape models - all lines must be consistently set to use one-by-one or not")
-
-    ARTS_USER_ERROR_IF(
         stdr::any_of(line.ls.single_models | stdv::keys,
-                     [&other = orig_front_ls.single_models](SpeciesEnum x) {
+                     [&other = band.lines.front().ls.single_models](SpeciesEnum x) {
                        return not other.contains(x);
                      }),
         "Inconsistent line shape models, all lines must have the same broadening species")
-
-    line.ls.one_by_one = true;
   }
-  band.lines.front().ls.one_by_one = true;
 
   const Size K = band.lines.front().ls.single_models.size();
   const Size M = temperatures.size();
@@ -496,8 +486,6 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
       }
     }
   }
-
-  for (auto& line : band.lines) line.ls.one_by_one = orig_one_by_one;
 }
 ARTS_METHOD_ERROR_CATCH
 

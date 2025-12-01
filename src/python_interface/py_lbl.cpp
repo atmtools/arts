@@ -420,11 +420,7 @@ Numeric or array-like
 
   py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
   generic_interface(lsm);
-  lsm.def_rw(
-         "one_by_one",
-         &lbl::line_shape::model::one_by_one,
-         "If true, the lines are treated one by one - this is an experimental feature\n\n.. :class:`bool`")
-      .def_rw("T0",
+  lsm.def_rw("T0",
               &lbl::line_shape::model::T0,
               "The reference temperature [K]\n\n.. :class:`Numeric`")
       .def_rw(
@@ -1019,9 +1015,7 @@ fmax : ~pyarts3.arts.Numeric
          const Vector& T) {
         lbl::voigt::ecs::ComputeData com_data({}, atm);
 
-        const auto K = band.front().ls.one_by_one
-                           ? band.front().ls.single_models.size()
-                           : 1;
+        const auto K = band.front().ls.single_models.size();
         const auto N = band.size();
         const auto M = T.size();
 

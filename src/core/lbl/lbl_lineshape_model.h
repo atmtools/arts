@@ -110,7 +110,7 @@ struct species_model {
 };
 
 struct model {
-  bool one_by_one{false};
+  static constexpr Index version{2};
 
   Numeric T0{0};
 
@@ -279,26 +279,18 @@ struct std::formatter<lbl::line_shape::model> {
       return tags.format(ctx,
                          "Reference temperature: "sv,
                          v.T0,
-                         " K; One-by-one: "sv,
-                         v.one_by_one ? "<on>"sv : "<off>"sv,
-                         "; Single models: "sv,
+                         " K; Single models: "sv,
                          v.single_models);
     }
 
     if (tags.io) {
-      return tags.format(ctx,
-                         v.T0,
-                         ' ',
-                         Index{v.one_by_one},
-                         ' ',
-                         v.single_models.size(),
-                         ' ',
-                         v.single_models);
+      return tags.format(
+          ctx, v.T0, ' ', v.single_models.size(), ' ', v.single_models);
     }
 
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.one_by_one, sep, v.T0, sep, v.single_models);
+    tags.format(ctx, v.T0, sep, v.single_models);
     tags.add_if_bracket(ctx, ']');
 
     return ctx.out();

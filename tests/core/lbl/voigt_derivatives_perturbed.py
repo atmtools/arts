@@ -5,17 +5,17 @@ from copy import deepcopy as copy
 # FIXME:
 if 0:
     class Setting:
-        def __init__(self, pressure, zeeman, one_by_one, frange):
+        def __init__(self, pressure, zeeman, frange):
             self.pressure = pressure
             self.zeeman = zeeman
-            self.one_by_one = one_by_one
             self.freq_grid = frange
+
+        def __repr__(self):
+            return f"Setting(pressure={self.pressure}, zeeman={self.zeeman}, freq_grid=[{self.freq_grid[0]}, ..., {self.freq_grid[-1]}])"
 
         def apply(self, ws, il):
             ws.atm_point.pressure = self.pressure
             ws.abs_bands[0].data.lines[il].z.on = self.zeeman
-            for x in ws.abs_bands[0].data.lines:
-                x.ls.one_by_one = self.one_by_one
             ws.freq_grid = self.freq_grid
             ws.abs_bandsSetZeeman(
                 species="O2-66",
@@ -29,7 +29,6 @@ if 0:
                 f"{title}; "
                 f"pressure: {self.pressure}; "
                 f"zeeman: {self.zeeman}; "
-                f"one-by-one: {self.one_by_one}; "
                 f"freq_grid {self.freq_grid[0]}-{self.freq_grid[-1]}; "
             )
 
@@ -67,22 +66,7 @@ if 0:
     f2 = np.linspace(40e9, 70e9, 10)  # around the band
 
     settings = [
-        Setting(1e5, False, False, f1),
-        Setting(1e0, False, False, f1),
-        Setting(1e5, True, False, f1),
-        Setting(1e0, True, False, f1),
-        Setting(1e5, False, True, f1),
-        Setting(1e0, False, True, f1),
-        Setting(1e5, True, True, f1),
-        Setting(1e0, True, True, f1),
-        Setting(1e5, False, False, f2),
-        Setting(1e0, False, False, f2),
-        Setting(1e5, True, False, f2),
-        Setting(1e0, True, False, f2),
-        Setting(1e5, False, True, f2),
-        Setting(1e0, False, True, f2),
-        Setting(1e5, True, True, f2),
-        Setting(1e0, True, True, f2),
+        Setting(p, z, f) for p in [1e5, 1e0] for z in [False, True] for f in [f1, f2]
     ]
 
     ws = pyarts.Workspace()

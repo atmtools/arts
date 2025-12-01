@@ -15,7 +15,6 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
   // Default data and values for this type
   ArtscatMeta output{};
-  output.data.ls.one_by_one = false;
   output.data.ls.single_models.reserve(2);
 
   // This always contains the rest of the line to parse. At the
@@ -173,7 +172,6 @@ lbl::line_shape::model from_artscat4(std::istream& is,
   using enum LineShapeModelType;
 
   lbl::line_shape::model out;
-  out.one_by_one = false;
   out.T0         = T0_;
   out.single_models.reserve(7);
 

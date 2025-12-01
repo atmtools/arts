@@ -55,6 +55,8 @@ if test:
     lines = os.path.join(path, "lines")
     ws = pyarts.Workspace()
     ws.abs_bandsReadSplit(dir=lines)
+    if resave:
+        ws.abs_bandsSaveSplit(dir=lines)
     print("All line files read successfully.")
     print()
 

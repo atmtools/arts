@@ -79,61 +79,12 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
               inv_sqrt_pi * dinv_gd * r * x * (e * inv_b - k)};
 }
 
-std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
-                                                   const Numeric f0,
-                                                   const QuantumIdentifier& qid,
-                                                   const line& line,
-                                                   const AtmPoint& atm,
-                                                   const SpeciesEnum ispec) {
-  using Constant::h, Constant::inv_sqrt_pi;
-  using Math::pow2, Math::pow3;
-
-  const Numeric ru = atm[qid.upper()];
-  const Numeric rl = atm[qid.lower()];
-
-  const Numeric k      = line.nlte_k(ru, rl);
-  const Numeric e      = line.nlte_e(ru);
-  const Numeric f      = line.f0;
-  constexpr Numeric kB = Constant::k;
-  const Numeric T      = atm.temperature;
-  const Numeric inv_b  = -std::expm1(h * f / (kB * T)) / (f * f * f);
-  const Numeric dinv_b = -h * exp(f * h / (T * k)) / (T * T * f * f * k);
-
-  const auto& ls    = line.ls.single_models.at(ispec);
-  const Numeric T0  = line.ls.T0;
-  const Numeric P   = atm.pressure;
-  const Numeric dD0 = ls.dD0_dT(T0, T, P);
-
-  const Numeric dinv_gd = inv_gd * (2 * T * dD0 + f0) / (2 * T * f0);
-
-  const Numeric r = atm[qid.isot];
-  const Numeric x = atm[qid.isot.spec];
-
-  //! Missing factor is c^2 f / 8pi
-  return {inv_sqrt_pi * dinv_gd * r * x * k,
-          inv_sqrt_pi * inv_gd * r * x * e * dinv_b +
-              inv_sqrt_pi * dinv_gd * r * x * (e * inv_b - k)};
-}
-
 Numeric line_center_calc(const line& line, const AtmPoint& atm) {
   return line.f0 + line.ls.D0(atm);
 }
 
 Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
   return line.ls.dD0_dT(atm);
-}
-
-// Numeric dline_center_calc_dVMR(const line& line,
-//                                const SpeciesEnum spec,
-//                                const AtmPoint& atm) {
-//   return line.ls.dD0_dVMR(atm, spec);
-// }
-
-Numeric line_center_calc(const line& line,
-                         const AtmPoint& atm,
-                         SpeciesEnum ispec) {
-  const auto& ls = line.ls.single_models.at(ispec);
-  return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure);
 }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
@@ -149,7 +100,6 @@ struct single_shape_builder {
   Numeric f0;
   Numeric scaled_gd_part;
   Numeric G0;
-  SpeciesEnum ispec{SpeciesEnum::unused};
 
   single_shape_builder(const QuantumIdentifier& id,
                        const line& l,
@@ -161,20 +111,6 @@ struct single_shape_builder {
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / id.isot.mass)),
         G0(ln.ls.G0(atm)) {}
-
-  single_shape_builder(const QuantumIdentifier& id,
-                       const line& l,
-                       const AtmPoint& a,
-                       const SpeciesEnum is)
-      : qid(id),
-        ln(l),
-        atm(a),
-        f0(line_center_calc(ln, atm, is)),
-        scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
-                                 atm.temperature / id.isot.mass)),
-        G0(ln.ls.single_models.at(is).G0(
-            ln.ls.T0, atm.temperature, atm.pressure)),
-        ispec(is) {}
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
                                        const ZeemanPolarization pol,
@@ -212,24 +148,6 @@ single_shape::single_shape(const QuantumIdentifier& qid,
              line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd) {
-  const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
-  k                         = line.z.Strength(line.qn, pol, iz) * kp;
-  e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
-}
-
-single_shape::single_shape(const QuantumIdentifier& qid,
-                           const line& line,
-                           const AtmPoint& atm,
-                           const ZeemanPolarization pol,
-                           const Index iz,
-                           const SpeciesEnum ispec)
-    : f0(line_center_calc(line, atm, ispec) +
-         std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn, pol, iz)),
-      inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
-      z_imag(line.ls.single_models.at(ispec).G0(
-                 line.ls.T0, atm.temperature, atm.pressure) *
-             inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
   k                         = line.z.Strength(line.qn, pol, iz) * kp;
   e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
@@ -273,6 +191,7 @@ single_shape::zFdF::zFdF(const Complex z_)
     : z{z_}, F{single_shape::F(z_)}, dF{single_shape::dF(z_, F)} {}
 
 single_shape::zFdF single_shape::all(const Numeric f) const { return z(f); }
+
 std::pair<Complex, Complex> single_shape::dru(const Numeric dk_dru,
                                               const Numeric de_ratio_dru,
                                               const Numeric f) const {
@@ -346,9 +265,7 @@ constexpr auto frequency_spans(const Numeric cutoff,
 Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        const Index factor =
-            line.ls.one_by_one ? line.ls.single_models.size() : 1;
-        return factor * line.z.size(line.qn, type);
+        return line.z.size(line.qn, type);
       });
 }
 
@@ -358,17 +275,16 @@ void zeeman_push_back(std::vector<single_shape>& lines,
                       const line& line,
                       const AtmPoint& atm,
                       const ZeemanPolarization pol,
-                      const SpeciesEnum ispec,
                       const Size iline) {
   if (pol == ZeemanPolarization::no) {
     lines.emplace_back(s);
-    pos.emplace_back(line_pos{.line = iline, .spec = ispec});
+    pos.emplace_back(line_pos{.line = iline});
   } else {
     const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
     const auto nz   = static_cast<Size>(line.z.size(line.qn, pol));
     for (Size iz = 0; iz < nz; iz++) {
       lines.emplace_back(s.as_zeeman(H, pol, iz));
-      pos.emplace_back(line_pos{.line = iline, .spec = ispec, .iz = iz});
+      pos.emplace_back(line_pos{.line = iline, .iz = iz});
 
       if (lines.back().k == 0.0 and lines.back().e_ratio == 0.0) {
         lines.pop_back();
@@ -385,32 +301,15 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const AtmPoint& atm,
                      const ZeemanPolarization pol,
                      const Size iline) {
-  if (line.ls.one_by_one) {
-    for (auto& ispec : line.ls.single_models | stdv::keys) {
-      if ((line.z.on and pol != ZeemanPolarization::no) or
-          (not line.z.on and pol == ZeemanPolarization::no)) {
-        zeeman_push_back(lines,
-                         pos,
-                         single_shape_builder{qid, line, atm, ispec},
-                         line,
-                         atm,
-                         pol,
-                         ispec,
-                         iline);
-      }
-    }
-  } else {
-    if ((line.z.on and pol != ZeemanPolarization::no) or
-        (not line.z.on and pol == ZeemanPolarization::no)) {
-      zeeman_push_back(lines,
-                       pos,
-                       single_shape_builder{qid, line, atm},
-                       line,
-                       atm,
-                       pol,
-                       SpeciesEnum::unused,
-                       iline);
-    }
+  if ((line.z.on and pol != ZeemanPolarization::no) or
+      (not line.z.on and pol == ZeemanPolarization::no)) {
+    zeeman_push_back(lines,
+                     pos,
+                     single_shape_builder{qid, line, atm},
+                     line,
+                     atm,
+                     pol,
+                     iline);
   }
 }
 }  // namespace
@@ -693,30 +592,14 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0     = lshp.f0;
 
-    if (pos[i].spec == SpeciesEnum::unused) {
-      dz_fac[i] = (-2 * T * line.ls.dD0_dT(atm) - f0) / (2 * T * f0);
+    dz_fac[i] = (-2 * T * line.ls.dD0_dT(atm) - f0) / (2 * T * f0);
 
-      const auto [dkp, dep] =
-          dline_strength_calc_dT(inv_gd, f0, qid, line, atm);
-      dk[i]       = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
-      de_ratio[i] = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
+    const auto [dkp, dep] = dline_strength_calc_dT(inv_gd, f0, qid, line, atm);
+    dk[i]                 = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
+    de_ratio[i]           = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
 
-      dz[i] = inv_gd *
-              Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
-    } else {
-      const auto& ls = line.ls.single_models.at(pos[i].spec);
-
-      dz_fac[i] =
-          (-2 * T * ls.dD0_dT(line.ls.T0, T, atm.pressure) - f0) / (2 * T * f0);
-
-      const auto [dkp, dep] =
-          dline_strength_calc_dT(inv_gd, f0, qid, line, atm, pos[i].spec);
-      dk[i]       = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
-      de_ratio[i] = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
-
-      dz[i] = inv_gd * Complex{-ls.dD0_dT(line.ls.T0, T, atm.pressure),
-                               ls.dG0_dT(line.ls.T0, T, atm.pressure)};
-    }
+    dz[i] =
+        inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {

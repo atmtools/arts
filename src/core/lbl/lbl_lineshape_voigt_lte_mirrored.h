@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "lbl_data.h"
-#include "lbl_zeeman.h"
 
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {
@@ -37,13 +36,6 @@ struct single_shape {
                const AtmPoint&,
                const ZeemanPolarization,
                const Index);
-
-  single_shape(const SpeciesIsotope&,
-               const line&,
-               const AtmPoint&,
-               const ZeemanPolarization,
-               const Index,
-               const SpeciesEnum);
 
   [[nodiscard]] constexpr Complex z(Numeric f) const {
     return Complex{inv_gd * (f - f0), z_imag};
@@ -115,23 +107,6 @@ struct single_shape {
 };
 
 Size count_lines(const band_data& bnd, const ZeemanPolarization type);
-
-void zeeman_set_back(std::vector<single_shape>& lines,
-                     std::vector<line_pos>& pos,
-                     const single_shape& s,
-                     const line& line,
-                     const Numeric H,
-                     const Size spec,
-                     const ZeemanPolarization pol,
-                     Size& last_single_shape_pos);
-
-void lines_set(std::vector<single_shape>& lines,
-               std::vector<line_pos>& pos,
-               const SpeciesIsotope& spec,
-               const line& line,
-               const AtmPoint& atm,
-               const ZeemanPolarization pol,
-               Size& last_single_shape_pos);
 
 //! Helper for initializing the band_shape
 void band_shape_helper(std::vector<single_shape>& lines,
