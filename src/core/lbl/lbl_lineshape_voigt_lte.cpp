@@ -341,8 +341,7 @@ Complex single_shape::dY(const Complex ds_dY, const Numeric f) const {
 Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        const Index factor = 1;
-        return factor * line.z.size(line.qn, type);
+        return line.z.size(line.qn, type);
       });
 }
 

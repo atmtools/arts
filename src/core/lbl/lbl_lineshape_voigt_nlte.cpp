@@ -191,6 +191,7 @@ single_shape::zFdF::zFdF(const Complex z_)
     : z{z_}, F{single_shape::F(z_)}, dF{single_shape::dF(z_, F)} {}
 
 single_shape::zFdF single_shape::all(const Numeric f) const { return z(f); }
+
 std::pair<Complex, Complex> single_shape::dru(const Numeric dk_dru,
                                               const Numeric de_ratio_dru,
                                               const Numeric f) const {
@@ -264,8 +265,7 @@ constexpr auto frequency_spans(const Numeric cutoff,
 Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        const Index factor = 1;
-        return factor * line.z.size(line.qn, type);
+        return line.z.size(line.qn, type);
       });
 }
 
