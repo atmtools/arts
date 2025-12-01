@@ -79,26 +79,12 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
               inv_sqrt_pi * dinv_gd * r * x * (e * inv_b - k)};
 }
 
-
 Numeric line_center_calc(const line& line, const AtmPoint& atm) {
   return line.f0 + line.ls.D0(atm);
 }
 
 Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
   return line.ls.dD0_dT(atm);
-}
-
-// Numeric dline_center_calc_dVMR(const line& line,
-//                                const SpeciesEnum spec,
-//                                const AtmPoint& atm) {
-//   return line.ls.dD0_dVMR(atm, spec);
-// }
-
-Numeric line_center_calc(const line& line,
-                         const AtmPoint& atm,
-                         SpeciesEnum ispec) {
-  const auto& ls = line.ls.single_models.at(ispec);
-  return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure);
 }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
@@ -125,7 +111,6 @@ struct single_shape_builder {
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / id.isot.mass)),
         G0(ln.ls.G0(atm)) {}
-
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
                                        const ZeemanPolarization pol,
@@ -163,24 +148,6 @@ single_shape::single_shape(const QuantumIdentifier& qid,
              line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd) {
-  const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
-  k                         = line.z.Strength(line.qn, pol, iz) * kp;
-  e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
-}
-
-single_shape::single_shape(const QuantumIdentifier& qid,
-                           const line& line,
-                           const AtmPoint& atm,
-                           const ZeemanPolarization pol,
-                           const Index iz,
-                           const SpeciesEnum ispec)
-    : f0(line_center_calc(line, atm, ispec) +
-         std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn, pol, iz)),
-      inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
-      z_imag(line.ls.single_models.at(ispec).G0(
-                 line.ls.T0, atm.temperature, atm.pressure) *
-             inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
   k                         = line.z.Strength(line.qn, pol, iz) * kp;
   e_ratio                   = line.z.Strength(line.qn, pol, iz) * e_ratiop;
@@ -627,13 +594,12 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
 
     dz_fac[i] = (-2 * T * line.ls.dD0_dT(atm) - f0) / (2 * T * f0);
 
-    const auto [dkp, dep] =
-        dline_strength_calc_dT(inv_gd, f0, qid, line, atm);
-    dk[i]       = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
-    de_ratio[i] = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
+    const auto [dkp, dep] = dline_strength_calc_dT(inv_gd, f0, qid, line, atm);
+    dk[i]                 = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
+    de_ratio[i]           = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
 
-    dz[i] = inv_gd *
-            Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
+    dz[i] =
+        inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {

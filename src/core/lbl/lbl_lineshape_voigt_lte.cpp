@@ -142,41 +142,6 @@ Complex dline_strength_calc_dT(const Numeric inv_gd,
          (2 * T * f0);
 }
 
-Complex line_strength_calc(const Numeric inv_gd,
-                           const SpeciesIsotope& spec,
-                           const line& line,
-                           const AtmPoint& atm,
-                           const SpeciesEnum ispec) {
-  const auto& ls   = line.ls.single_models.at(ispec);
-  const Numeric T0 = line.ls.T0;
-  const Numeric T  = atm.temperature;
-  const Numeric P  = atm.pressure;
-  const Numeric x  = atm[spec.spec];
-  const Numeric r  = atm[spec];
-  const Numeric v =
-      ispec == SpeciesEnum::Bath
-          ? 1 - std::transform_reduce(
-                    line.ls.single_models.begin(),
-                    line.ls.single_models.end(),
-                    0.0,
-                    std::plus<>{},
-                    [&atm](auto& s) {
-                      return s.first == SpeciesEnum::Bath ? 0.0 : atm[s.first];
-                    })
-          : atm[ispec];
-
-  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
-
-  const auto G = ls.G(T0, T, P);
-  const auto Y = ls.Y(T0, T, P);
-  const Complex lm{1 + G, -Y};
-
-  return Constant::inv_sqrt_pi * inv_gd * x * r * v * lm * s;
-}
-
-
-
-
 Numeric line_center_calc(const line& line, const AtmPoint& atm) {
   return line.f0 + line.ls.D0(atm) + line.ls.DV(atm);
 }
@@ -189,14 +154,6 @@ Numeric dline_center_calc_dVMR(const line& line,
                                const SpeciesEnum spec,
                                const AtmPoint& atm) {
   return line.ls.dD0_dVMR(atm, spec) + line.ls.dDV_dVMR(atm, spec);
-}
-
-Numeric line_center_calc(const line& line,
-                         const AtmPoint& atm,
-                         SpeciesEnum ispec) {
-  const auto& ls = line.ls.single_models.at(ispec);
-  return line.f0 + ls.D0(line.ls.T0, atm.temperature, atm.pressure) +
-         ls.DV(line.ls.T0, atm.temperature, atm.pressure);
 }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
@@ -223,7 +180,6 @@ struct single_shape_builder {
         scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
                                  atm.temperature / s.mass)),
         G0(l.ls.G0(atm)) {}
-
 
   [[nodiscard]] single_shape as_zeeman(const Numeric H,
                                        const ZeemanPolarization pol,
@@ -279,22 +235,6 @@ single_shape::single_shape(const SpeciesIsotope& spec,
       z_imag(line.ls.G0(atm) * inv_gd),
       s(line.z.Strength(line.qn, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm)) {}
-
-single_shape::single_shape(const SpeciesIsotope& spec,
-                           const line& line,
-                           const AtmPoint& atm,
-                           const ZeemanPolarization pol,
-                           const Index iz,
-                           const SpeciesEnum ispec)
-    : f0(line_center_calc(line, atm, ispec) +
-         std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn, pol, iz)),
-      inv_gd(1.0 / scaled_gd(atm.temperature, spec.mass, f0)),
-      z_imag(line.ls.single_models.at(ispec).G0(
-                 line.ls.T0, atm.temperature, atm.pressure) *
-             inv_gd),
-      s(line.z.Strength(line.qn, pol, iz) *
-        line_strength_calc(inv_gd, spec, line, atm, ispec)) {}
 
 Complex single_shape::F(const Complex z_) { return Faddeeva::w(z_); }
 
@@ -1076,8 +1016,8 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
     ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
             dline_strength_calc_dT(inv_gd, f0, spec, line, atm);
 
-    dz[i] = inv_gd *
-            Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
+    dz[i] =
+        inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
   if (bnd.cutoff != LineByLineCutoffType::None) {
@@ -1229,9 +1169,8 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
                   line.ls.dDV_dVMR(atm, target_spec)) /
                 f0;
 
-    ds[i] =
-        line.z.Strength(line.qn, pol, pos[i].iz) *
-        dline_strength_calc_dVMR(inv_gd, f0, spec, target_spec, line, atm);
+    ds[i] = line.z.Strength(line.qn, pol, pos[i].iz) *
+            dline_strength_calc_dVMR(inv_gd, f0, spec, target_spec, line, atm);
 
     dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
                              line.ls.dG0_dVMR(atm, target_spec)};
