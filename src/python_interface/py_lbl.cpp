@@ -86,15 +86,7 @@ void py_lbl(py::module_& m) try {
             self = lbl::temperature::data{self.Type(), x};
           },
           "The coefficients\n\n.. :class:`~pyarts3.arts.Vector`")
-      .def("__getstate__",
-           [](const lbl::temperature::data& v) {
-             return std::tuple<LineShapeModelType, Vector>{v.Type(), v.X()};
-           })
-      .def("__setstate__",
-           [](lbl::temperature::data& v,
-              const std::tuple<LineShapeModelType, Vector>& x) {
-             new (&v) lbl::temperature::data{std::get<0>(x), std::get<1>(x)};
-           })
+
       .doc() = "Temperature model";
 
   py::class_<lbl::line_shape::species_model> lssm(m, "LineShapeSpeciesModel");
@@ -421,8 +413,8 @@ Numeric or array-like
   py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
   generic_interface(lsm);
   lsm.def_rw("T0",
-              &lbl::line_shape::model::T0,
-              "The reference temperature [K]\n\n.. :class:`Numeric`")
+             &lbl::line_shape::model::T0,
+             "The reference temperature [K]\n\n.. :class:`Numeric`")
       .def_rw(
           "single_models",
           &lbl::line_shape::model::single_models,

@@ -163,8 +163,6 @@ def is_operator(name):
         "__delitem__",
         "__truediv__",
         "__array__",
-        "__getstate__",
-        "__setstate__",
         "__init__",
         "__format__",
         "__repr__",

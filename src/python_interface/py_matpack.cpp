@@ -70,15 +70,7 @@ void py_matpack(py::module_& m) try {
            "extent"_a,
            "stride"_a = 1,
            "Valued initialization")
-      .def("__getstate__",
-           [](const StridedRange& self) {
-             return std::make_tuple(self.offset, self.nelem, self.stride);
-           })
-      .def("__setstate__",
-           [](StridedRange* r, const std::tuple<Index, Index, Index>& t) {
-             new (r)
-                 StridedRange{std::get<0>(t), std::get<1>(t), std::get<2>(t)};
-           })
+
       .doc() = "A strided range, used to select parts of a matpack type";
 
   py::class_<Range>(m, "Range")
@@ -86,14 +78,7 @@ void py_matpack(py::module_& m) try {
            "offset"_a,
            "extent"_a,
            "Valued initialization")
-      .def("__getstate__",
-           [](const StridedRange& self) {
-             return std::make_tuple(self.offset, self.nelem, self.stride);
-           })
-      .def("__setstate__",
-           [](Range* r, const std::tuple<Index, Index>& t) {
-             new (r) Range{std::get<0>(t), std::get<1>(t)};
-           })
+
       .doc() = "A range, used to select parts of a matpack type";
 
   py::class_<IndexVector> iv1(m, "IndexVector");
@@ -188,14 +173,7 @@ void py_matpack(py::module_& m) try {
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
       .def_rw("n", &Rational::numer, "Numerator\n\n.. :class:`Index`")
-      .def_rw("d", &Rational::denom, "Denominator\n\n.. :class:`Index`")
-      .def("__getstate__",
-           [](const Rational& self) {
-             return std::make_tuple(self.numer, self.denom);
-           })
-      .def("__setstate__", [](Rational* r, const std::tuple<Index, Index>& t) {
-        new (r) Range{std::get<0>(t), std::get<1>(t)};
-      });
+      .def_rw("d", &Rational::denom, "Denominator\n\n.. :class:`Index`");
   generic_interface(rat);
   py::implicitly_convertible<Index, Rational>();
 

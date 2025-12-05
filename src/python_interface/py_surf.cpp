@@ -94,26 +94,7 @@ void py_surf(py::module_ &m) try {
           "Get the weights of neighbors at a position")
       .def_prop_ro("data_type",
                    &Surf::Data::data_type,
-                   "The data type\n\n.. :class:`String`")
-      .def("__getstate__",
-           [](const Surf::Data &t) {
-             return std::make_tuple(
-                 t.data, t.lat_low, t.lat_upp, t.lon_low, t.lon_upp);
-           })
-      .def("__setstate__",
-           [](Surf::Data *a,
-              const std::tuple<Surf::FieldData,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation> &state) {
-             new (a) Surf::Data();
-             a->data    = std::get<0>(state);
-             a->lat_low = std::get<1>(state);
-             a->lat_upp = std::get<2>(state);
-             a->lon_low = std::get<3>(state);
-             a->lon_upp = std::get<4>(state);
-           });
+                   "The data type\n\n.. :class:`String`");
   surfdata.doc() = "Surface data";
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
@@ -186,34 +167,7 @@ void py_surf(py::module_ &m) try {
            [](const SurfacePoint &self, const SurfaceKeyVal &x) {
              return self.contains(x);
            })
-      .def(
-          "__getstate__",
-          [](const SurfacePoint &t) {
-            auto k = t.keys();
-            std::vector<Numeric> v;
-            v.reserve(k.size());
-            for (auto &kn : k) {
-              v.emplace_back(
-                  std::visit([&](auto &&key) { return t[key]; }, kn));
-            }
-            return std::tuple<std::vector<SurfaceKeyVal>, std::vector<Numeric>>(
-                k, v);
-          })
-      .def("__setstate__",
-           [](SurfacePoint *s,
-              const std::tuple<std::vector<SurfaceKeyVal>, std::vector<Numeric>>
-                  &state) {
-             auto k = std::get<0>(state);
-             auto v = std::get<1>(state);
-             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-             new (s) SurfacePoint{};
-             for (std::size_t i = 0; i < k.size(); i++) {
-               std::visit(
-                   [&](auto &&key) -> Numeric & { return s->operator[](key); },
-                   k[i]) = v[i];
-             }
-           })
       .def("keys", &SurfacePoint::keys, "Available keys");
 
   fld.def(
@@ -264,37 +218,7 @@ void py_surf(py::module_ &m) try {
           },
           "lat"_a,
           "lon"_a,
-          "Get the data at a list of points")
-      .def("__getstate__",
-           [](const SurfaceField &t) {
-             auto k = t.keys();
-             std::vector<Surf::Data> v;
-             v.reserve(k.size());
-             for (auto &kn : k) {
-               v.emplace_back(
-                   std::visit([&](auto &&key) { return t[key]; }, kn));
-             }
-             return std::tuple<std::vector<SurfaceKeyVal>,
-                               std::vector<Surf::Data>>(k, v);
-           })
-      .def("__setstate__",
-           [](SurfaceField *s,
-              const std::tuple<std::vector<SurfaceKeyVal>,
-                               std::vector<Surf::Data>> &state) {
-             auto k = std::get<0>(state);
-             auto v = std::get<1>(state);
-             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
-
-             new (s) SurfaceField{};
-
-             for (std::size_t i = 0; i < k.size(); i++) {
-               std::visit(
-                   [&](auto &&key) -> Surf::Data & {
-                     return s->operator[](key);
-                   },
-                   k[i]) = v[i];
-             }
-           });
+          "Get the data at a list of points");
   fld.def_rw(
          "other",
          &SurfaceField::other,
@@ -489,35 +413,7 @@ void py_surf(py::module_ &m) try {
           "Get the weights of neighbors at a position")
       .def_prop_ro("data_type",
                    &Subsurface::Data::data_type,
-                   "The data type\n\n.. :class:`~pyarts3.arts.String`")
-      .def("__getstate__",
-           [](const Subsurface::Data &t) {
-             return std::make_tuple(t.data,
-                                    t.alt_low,
-                                    t.alt_upp,
-                                    t.lat_low,
-                                    t.lat_upp,
-                                    t.lon_low,
-                                    t.lon_upp);
-           })
-      .def("__setstate__",
-           [](Subsurface::Data *a,
-              const std::tuple<Subsurface::FieldData,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation> &state) {
-             new (a) Subsurface::Data();
-             a->data    = std::get<0>(state);
-             a->alt_low = std::get<1>(state);
-             a->alt_upp = std::get<2>(state);
-             a->lat_low = std::get<3>(state);
-             a->lat_upp = std::get<4>(state);
-             a->lon_low = std::get<5>(state);
-             a->lon_upp = std::get<6>(state);
-           });
+                   "The data type\n\n.. :class:`~pyarts3.arts.String`");
   py::implicitly_convertible<Subsurface::FunctionalData::func_t,
                              Subsurface::Data>();
   py::implicitly_convertible<GriddedField3, Subsurface::Data>();

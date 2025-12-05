@@ -42,23 +42,7 @@ void internalCKDMT400(py::module_& m) {
       .def_rw("self_texp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp,
               "Self temperature exponent\n\n.. :class:`Vector`")
-      .def("__getstate__",
-           [](const Absorption::PredefinedModel::MT_CKD400::WaterData& t) {
-             return std::make_tuple(
-                 t.self_absco_ref, t.for_absco_ref, t.wavenumbers, t.self_texp);
-           })
-      .def("__setstate__",
-           [](Absorption::PredefinedModel::MT_CKD400::WaterData* o,
-              const std::tuple<std::vector<double>,
-                               std::vector<double>,
-                               std::vector<double>,
-                               std::vector<double>>& state) {
-             new (o) Absorption::PredefinedModel::MT_CKD400::WaterData{};
-             o->self_absco_ref = std::get<0>(state);
-             o->for_absco_ref  = std::get<1>(state);
-             o->wavenumbers    = std::get<2>(state);
-             o->self_texp      = std::get<3>(state);
-           })
+
       .doc() = "Water data representation for the MT CKD 4.0 model";
 
   m.def(
@@ -919,14 +903,7 @@ void internalNamedModel(py::module_& m) {
   py::class_<Absorption::PredefinedModel::ModelName> mm(m, "ModelName");
   generic_interface(mm);
   mm.def(py::init<Absorption::PredefinedModel::ModelName>())
-      .def("__getstate__",
-           [](const Absorption::PredefinedModel::ModelName&) {
-             return py::make_tuple();
-           })
-      .def("__setstate__",
-           [](Absorption::PredefinedModel::ModelName* s, const std::tuple<>&) {
-             new (s) Absorption::PredefinedModel::ModelName{};
-           })
+
       .doc() = "Named model, contains no data";
 }
 
@@ -1014,16 +991,7 @@ Returns
 spectral_propmat : PropmatVector
     Propagation matrix by frequency [1/m]
 
-)--")
-      .def("__getstate__",
-           [](const PredefinedModelData& t) { return std::make_tuple(t); })
-      .def("__setstate__",
-           [](PredefinedModelData* pm,
-              const std::tuple<std::unordered_map<
-                  SpeciesIsotope,
-                  Absorption::PredefinedModel::ModelVariant>>& state) {
-             new (pm) PredefinedModelData{std::get<0>(state)};
-           });
+)--");
 
   //! All internal functionality, included methods of named classes go on the predef namespace
   internalNamedModel(predef);

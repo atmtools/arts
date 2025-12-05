@@ -139,35 +139,7 @@ lon : LonGrid
     The new longitude grid.
 extrapolation : InterpolationExtrapolation
     The extrapolation method to use.  Defaults to Nearest
-)")
-      .def("__getstate__",
-           [](const Atm::Data &t) {
-             return std::make_tuple(t.data,
-                                    t.alt_low,
-                                    t.alt_upp,
-                                    t.lat_low,
-                                    t.lat_upp,
-                                    t.lon_low,
-                                    t.lon_upp);
-           })
-      .def("__setstate__",
-           [](Atm::Data *a,
-              const std::tuple<Atm::FieldData,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation,
-                               InterpolationExtrapolation> &state) {
-             new (a) Atm::Data();
-             a->data    = std::get<0>(state);
-             a->alt_low = std::get<1>(state);
-             a->alt_upp = std::get<2>(state);
-             a->lat_low = std::get<3>(state);
-             a->lat_upp = std::get<4>(state);
-             a->lon_low = std::get<5>(state);
-             a->lon_upp = std::get<6>(state);
-           });
+)");
   py::implicitly_convertible<Atm::FunctionalData::func_t, Atm::Data>();
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<SortedGriddedField3, Atm::Data>();
@@ -389,31 +361,7 @@ nd : float
             }
             return out;
           },
-          "Returns a flat list of values.")
-      .def("__getstate__",
-           [](const AtmPoint &t) {
-             auto k = t.keys();
-             std::vector<Numeric> v;
-             v.reserve(k.size());
-             for (auto &kn : k)
-               v.emplace_back(
-                   std::visit([&](auto &&key) { return t[key]; }, kn));
-             return std::make_tuple(k, v);
-           })
-      .def("__setstate__",
-           [](AtmPoint *a,
-              const std::tuple<std::vector<AtmKeyVal>, std::vector<Numeric>>
-                  &state) {
-             auto k = std::get<0>(state);
-             auto v = std::get<1>(state);
-             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
-
-             new (a) AtmPoint();
-             for (std::size_t i = 0; i < k.size(); i++)
-               std::visit(
-                   [&](auto &&key) -> Numeric & { return a->operator[](key); },
-                   k[i]) = v[i];
-           });
+          "Returns a flat list of values.");
 
   fld.def(
          "__init__",
@@ -812,38 +760,9 @@ Return
            [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) {
              self[key] = x;
            })
-      .def("__contains__",
-           [](const AtmField &self, const AtmKeyVal &x) {
-             return self.contains(x);
-           })
-      .def("__getstate__",
-           [](const AtmField &t) {
-             auto k = t.keys();
-             std::vector<Atm::Data> v;
-             v.reserve(k.size());
-             for (auto &kn : k)
-               v.emplace_back(
-                   std::visit([&](auto &&key) { return t[key]; }, kn));
-             return std::make_tuple(k, v, t.top_of_atmosphere);
-           })
-      .def(
-          "__setstate__",
-          [](AtmField *a,
-             const std::tuple<std::vector<AtmKeyVal>,
-                              std::vector<Atm::Data>,
-                              Numeric> &state) {
-            auto k = std::get<0>(state);
-            auto v = std::get<1>(state);
-            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
-
-            new (a) AtmField();
-            a->top_of_atmosphere = std::get<2>(state);
-
-            for (std::size_t i = 0; i < k.size(); i++)
-              std::visit(
-                  [&](auto &&key) -> Atm::Data & { return a->operator[](key); },
-                  k[i]) = v[i];
-          });
+      .def("__contains__", [](const AtmField &self, const AtmKeyVal &x) {
+        return self.contains(x);
+      });
 
   fld.def_rw(
       "nlte",

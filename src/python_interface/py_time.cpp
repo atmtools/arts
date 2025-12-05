@@ -77,14 +77,7 @@ void py_time(py::module_& m) try {
           },
           py::is_operator(),
           "n"_a,
-          "Allows `n - self`")
-      .def("__getstate__",
-           [](const Time& t) {
-             return std::tuple<std::string>{std::format("{}", t)};
-           })
-      .def("__setstate__", [](Time* t, const std::tuple<std::string>& state) {
-        new (t) Time{std::get<0>(state)};
-      });
+          "Allows `n - self`");
 
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<std::string, Time>();

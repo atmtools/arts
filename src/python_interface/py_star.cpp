@@ -18,13 +18,14 @@ void py_star(py::module_& m) try {
       .def_prop_rw(
           "spectrum",
           [](Sun& self) -> Matrix& { return self.spectrum; },
-          [](Sun& self, const std::variant<Matrix, Vector, StokvecVector>& value) {
+          [](Sun& self,
+             const std::variant<Matrix, Vector, StokvecVector>& value) {
             if (std::holds_alternative<Matrix>(value)) {
               self.spectrum = std::get<Matrix>(value);
             } else if (std::holds_alternative<Vector>(value)) {
               const auto& v = std::get<Vector>(value);
               self.spectrum.resize(v.size(), 4);
-              self.spectrum = 0.0;
+              self.spectrum           = 0.0;
               self.spectrum[joker, 0] = v;
             } else if (std::holds_alternative<StokvecVector>(value)) {
               const auto& sv = std::get<StokvecVector>(value);
@@ -42,30 +43,7 @@ void py_star(py::module_& m) try {
       .def_rw("distance", &Sun::distance, "Sun distance\n\n.. :class:`float`")
       .def_rw("latitude", &Sun::latitude, "Sun latitude\n\n.. :class:`float`")
       .def_rw(
-          "longitude", &Sun::longitude, "Sun longitude\n\n.. :class:`float`")
-      .def("__getstate__",
-           [](const Sun& self) {
-             return std::
-                 tuple<String, Matrix, Numeric, Numeric, Numeric, Numeric>{
-                     self.description,
-                     self.spectrum,
-                     self.radius,
-                     self.distance,
-                     self.latitude,
-                     self.longitude};
-           })
-      .def("__setstate__",
-           [](Sun* self,
-              const std::
-                  tuple<String, Matrix, Numeric, Numeric, Numeric, Numeric>&
-                      state) {
-             new (self) Sun{.description = std::get<0>(state),
-                            .spectrum    = std::get<1>(state),
-                            .radius      = std::get<2>(state),
-                            .distance    = std::get<3>(state),
-                            .latitude    = std::get<4>(state),
-                            .longitude   = std::get<5>(state)};
-           });
+          "longitude", &Sun::longitude, "Sun longitude\n\n.. :class:`float`");
 
   auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(
       m, "ArrayOfSun");

@@ -26,11 +26,6 @@ template <typename T, typename... Ts>
 void vector_interface(py::class_<Array<T>, Ts...> &c) {
   using Vec = Array<T>;
 
-  c.def("__getstate__", [](const Vec &v) { return std::tuple<Vec>{v}; });
-
-  c.def("__setstate__",
-        [](Vec &v, const std::tuple<Vec> &x) { new (&v) Vec{std::get<0>(x)}; });
-
   if constexpr (arts_xml_ioable<T>) {
     c.def_static(
         "fromxmls",

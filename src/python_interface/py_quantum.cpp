@@ -28,14 +28,7 @@ void py_quantum(py::module_& m) try {
           "value",
           &Quantum::Value::value,
           "Quantum number value\n\n.. :class:`~pyarts3.arts.String`\n\n.. :class:`~pyarts3.arts.Rational`")
-      .def("__getstate__",
-           [](const Quantum::Value& qnv) {
-             return std::tuple<std::string>{std::format("{}", qnv)};
-           })
-      .def("__setstate__",
-           [](Quantum::Value* qnv, const std::tuple<std::string>& state) {
-             new (qnv) Quantum::Value(std::get<0>(state));
-           })
+
       .doc() = "A single quantum number value";
   generic_interface(qval);
 
@@ -103,15 +96,7 @@ Returns
 -------
 symbol : str
     The symbol representation
-)")
-      .def("__getstate__",
-           [](const QuantumIdentifier& qnv) {
-             return std::tuple<std::string>{std::format("{}", qnv)};
-           })
-      .def("__setstate__",
-           [](QuantumIdentifier* qnv, const std::tuple<std::string>& state) {
-             new (qnv) QuantumIdentifier(std::get<0>(state));
-           });
+)");
 
   qlid.def(py::self == py::self)
       .def(py::self != py::self)
@@ -119,19 +104,9 @@ symbol : str
       .def(py::self >= py::self)
       .def(py::self < py::self)
       .def(py::self > py::self)
-      .def("__hash__",
-           [](const QuantumLevelIdentifier& x) {
-             return std::hash<QuantumLevelIdentifier>{}(x);
-           })
-      .def("__getstate__",
-           [](const QuantumLevelIdentifier& qnv) {
-             return std::tuple<std::string>{std::format("{}", qnv)};
-           })
-      .def("__setstate__",
-           [](QuantumLevelIdentifier* qnv,
-              const std::tuple<std::string>& state) {
-             new (qnv) QuantumLevelIdentifier(std::get<0>(state));
-           });
+      .def("__hash__", [](const QuantumLevelIdentifier& x) {
+        return std::hash<QuantumLevelIdentifier>{}(x);
+      });
 
   auto a1 = py::bind_vector<ArrayOfQuantumIdentifier,
                             py::rv_policy::reference_internal>(

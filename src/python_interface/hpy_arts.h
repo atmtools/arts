@@ -246,12 +246,6 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
       [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); },
       "Allows hashing");
 
-  c.def("__getstate__",
-        [](const ValueHolder<T>& self) { return std::make_tuple(*self.val); });
-  c.def("__setstate__", [](ValueHolder<T>* self, const std::tuple<T>& state) {
-    new (self) ValueHolder<T>{std::get<0>(state)};
-  });
-
   if constexpr (std::same_as<String, T>) {
     c.def(
         "__len__",

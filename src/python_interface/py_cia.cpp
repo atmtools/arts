@@ -42,23 +42,17 @@ void py_cia(py::module_& m) try {
           },
           "s"_a,
           "Create a species pair from string 'SpeciesA-SpeciesB'")
-      .def_rw("spec1", &SpeciesEnumPair::spec1, "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
-      .def_rw("spec2", &SpeciesEnumPair::spec2, "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec1",
+              &SpeciesEnumPair::spec1,
+              "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec2",
+              &SpeciesEnumPair::spec2,
+              "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def(py::self == py::self)
       .def(py::self != py::self)
-      .def("__hash__",
-           [](const SpeciesEnumPair& self) {
-             return std::hash<SpeciesEnumPair>{}(self);
-           })
-      .def("__getstate__",
-           [](const SpeciesEnumPair& self) {
-             return std::make_tuple(self.spec1, self.spec2);
-           })
-      .def("__setstate__",
-           [](SpeciesEnumPair* self,
-              const std::tuple<SpeciesEnum, SpeciesEnum>& state) {
-             new (self) SpeciesEnumPair(std::get<0>(state), std::get<1>(state));
-           });
+      .def("__hash__", [](const SpeciesEnumPair& self) {
+        return std::hash<SpeciesEnumPair>{}(self);
+      });
 
   // Make SpeciesEnumPair implicitly convertible from string
   py::implicitly_convertible<std::string, SpeciesEnumPair>();
@@ -179,12 +173,7 @@ Returns
   abs : Vector
     Absorption profile [1/m]
 
-)--")
-      .def("__getstate__", [](const CIARecord& t) { return t.Data(); })
-      .def("__setstate__", [](CIARecord* c, const ArrayOfGriddedField2& state) {
-        new (c) CIARecord();
-        c->Data() = state;
-      });
+)--");
 
   // Bind CIARecords as map
   auto acr = py::bind_map<CIARecords, py::rv_policy::reference_internal>(
