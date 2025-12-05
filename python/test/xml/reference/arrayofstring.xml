@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<arts version="1" format="ascii">
-<ArrayOfString nelem="3" type="String">
-<String>"a"</String>
-<String>"bb"</String>
-<String>"ccc"</String>
-</ArrayOfString>
-</arts>
