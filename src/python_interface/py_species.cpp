@@ -76,19 +76,7 @@ void py_species(py::module_& m) try {
                      "The max size of the data\n\n.. :class:`int`")
       .def_rw("data",
               &SpeciesIsotopologueRatios::data,
-              "The isotopologue ratios\n\n.. :class:`list[Numeric]`")
-      .def("__getstate__",
-           [](const SpeciesIsotopologueRatios& self) {
-             return std::make_tuple(self.data);
-           })
-      .def("__setstate__",
-           [](SpeciesIsotopologueRatios* self,
-              const std::tuple<
-                  std::array<Numeric, SpeciesIsotopologueRatios::maxsize>>&
-                  state) {
-             new (self) SpeciesIsotopologueRatios{};
-             self->data = std::get<0>(state);
-           });
+              "The isotopologue ratios\n\n.. :class:`list[Numeric]`");
 
   auto aose =
       py::bind_vector<ArrayOfSpeciesEnum, py::rv_policy::reference_internal>(
@@ -154,21 +142,7 @@ void py_species(py::module_& m) try {
       .def_prop_ro(
           "predef",
           &SpeciesIsotope::is_predefined,
-          "Check if this represents a predefined model\n\n.. :class:`bool`")
-      .def("__getstate__",
-           [](const SpeciesIsotope& self) {
-             return std::make_tuple(
-                 self.spec, self.isotname, self.mass, self.gi);
-           })
-      .def("__setstate__",
-           [](SpeciesIsotope* self,
-              const std::tuple<SpeciesEnum, std::string, Numeric, Index>&
-                  state) {
-             new (self) SpeciesIsotope(std::get<0>(state),
-                                       std::get<1>(state),
-                                       std::get<2>(state),
-                                       std::get<3>(state));
-           });
+          "Check if this represents a predefined model\n\n.. :class:`bool`");
   siso.def(py::self == py::self);
   siso.def(py::self != py::self);
   siso.def(py::self <= py::self);
@@ -219,19 +193,7 @@ Returns
                    &SpeciesTag::FullName,
                    "The full name\n\n.. :class:`~pyarts3.arts.String`")
       .def(py::self == py::self)
-      .def("__getstate__",
-           [](const SpeciesTag& self) {
-             return std::make_tuple(
-                 self.spec_ind, self.type, self.cia_2nd_species);
-           })
-      .def("__setstate__",
-           [](SpeciesTag* self,
-              const std::tuple<Index, SpeciesTagType, SpeciesEnum>& state) {
-             new (self) SpeciesTag{};
-             self->spec_ind        = std::get<0>(state);
-             self->type            = std::get<1>(state);
-             self->cia_2nd_species = std::get<2>(state);
-           })
+
       .def(py::init_implicit<std::string>());
 
   //////////////////////////////////////////////////////////////////////

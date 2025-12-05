@@ -11,16 +11,7 @@ void py_scattering(py::module_& m) try {
       .value("PTYPE_GENERAL", PType::PTYPE_GENERAL, "As general")
       .value(
           "PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND, "Azimuthally random")
-      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND, "Totally random")
-      .def("__getstate__",
-           [](const PType& self) {
-             return py::make_tuple(static_cast<Index>(self));
-           })
-      .def("__setstate__", [](PType* self, const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-
-        new (self) PType{py::cast<Index>(t[0])};
-      });
+      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND, "Totally random");
 
   py::class_<SingleScatteringData> ssdb(m, "SingleScatteringData");
   generic_interface(ssdb);
@@ -50,33 +41,7 @@ void py_scattering(py::module_& m) try {
               "The extinction matrix\n\n.. :class:`~pyarts3.arts.Tensor5`")
       .def_rw("abs_vec_data",
               &SingleScatteringData::abs_vec_data,
-              "The absorption vector\n\n.. :class:`~pyarts3.arts.Tensor5`")
-      .def("__getstate__",
-           [](const SingleScatteringData& self) {
-             return py::make_tuple(self.ptype,
-                                   self.description,
-                                   self.f_grid,
-                                   self.T_grid,
-                                   self.za_grid,
-                                   self.aa_grid,
-                                   self.pha_mat_data,
-                                   self.ext_mat_data,
-                                   self.abs_vec_data);
-           })
-      .def("__setstate__", [](SingleScatteringData* self, const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-
-        new (self)
-            SingleScatteringData{.ptype        = py::cast<PType>(t[0]),
-                                 .description  = py::cast<String>(t[1]),
-                                 .f_grid       = py::cast<Vector>(t[2]),
-                                 .T_grid       = py::cast<Vector>(t[3]),
-                                 .za_grid      = py::cast<Vector>(t[4]),
-                                 .aa_grid      = py::cast<Vector>(t[5]),
-                                 .pha_mat_data = py::cast<Tensor7>(t[6]),
-                                 .ext_mat_data = py::cast<Tensor5>(t[7]),
-                                 .abs_vec_data = py::cast<Tensor5>(t[8])};
-      });
+              "The absorption vector\n\n.. :class:`~pyarts3.arts.Tensor5`");
 
   py::class_<ScatteringMetaData> smdb(m, "ScatteringMetaData");
   generic_interface(smdb);
@@ -99,29 +64,7 @@ void py_scattering(py::module_& m) try {
               "The volume equivalent diameter\n\n.. :class:`float`")
       .def_rw("diameter_area_equ_aerodynamical",
               &ScatteringMetaData::diameter_area_equ_aerodynamical,
-              "The diameter area equivalent\n\n.. :class:`float`")
-      .def("__getstate__",
-           [](const ScatteringMetaData& self) {
-             return py::make_tuple(self.description,
-                                   self.source,
-                                   self.refr_index,
-                                   self.mass,
-                                   self.diameter_max,
-                                   self.diameter_volume_equ,
-                                   self.diameter_area_equ_aerodynamical);
-           })
-      .def("__setstate__", [](ScatteringMetaData* self, const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
-
-        new (self) ScatteringMetaData{
-            .description                     = py::cast<String>(t[0]),
-            .source                          = py::cast<String>(t[1]),
-            .refr_index                      = py::cast<String>(t[2]),
-            .mass                            = py::cast<Numeric>(t[3]),
-            .diameter_max                    = py::cast<Numeric>(t[4]),
-            .diameter_volume_equ             = py::cast<Numeric>(t[5]),
-            .diameter_area_equ_aerodynamical = py::cast<Numeric>(t[6])};
-      });
+              "The diameter area equivalent\n\n.. :class:`float`");
 
   auto a1 = py::bind_vector<ArrayOfScatteringMetaData,
                             py::rv_policy::reference_internal>(

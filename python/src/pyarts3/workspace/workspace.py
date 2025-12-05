@@ -78,12 +78,6 @@ class Workspace(cxx.CxxWorkspace):
         out.swap(x)
         return out
 
-    def __getstate__(self):
-        return {"Workspace": super().__getstate__()}
-
-    def __setstate__(self, d):
-        super().__setstate__(d["Workspace"])
-
     @staticmethod
     def fromxml(file):
         x = Workspace(False)

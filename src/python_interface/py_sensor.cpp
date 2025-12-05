@@ -121,14 +121,7 @@ void py_sensor(py::module_& m) try {
                                   .los = {row[3], row[4]}};
             });
           },
-          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
-      .def("__getstate__",
-           [](const py::object& self) {
-             return py::make_tuple(self.attr("value"));
-           })
-      .def("__setstate__", [](py::object& self, const py::tuple& state) {
-        self.attr("value") = state[0];
-      });
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
 
   py::class_<sensor::SparseStokvecMatrix> ssm(m, "SparseStokvecMatrix");
   ssm.doc() = "A sparse matrix of Stokvec";

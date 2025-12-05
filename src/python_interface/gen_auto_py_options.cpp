@@ -44,14 +44,6 @@ void enum_{0}(py::module_& m) {{
    _g{0}.def(py::self < py::self, "`self < other`");
    _g{0}.def(py::self > py::self, "`self > other`");
 
-   _g{0}.def("__getstate__", []({0}& t) {{
-      return std::tuple<std::string>{{String{{toString(t)}}}};
-   }});
-
-   _g{0}.def("__setstate__", []({0}* e, const std::tuple<std::string>& state) {{
-      new (e) {0}{{to<{0}>(std::get<0>(state))}};
-   }});
-
    _g{0}.def_static("get_options", [] {{return enumtyps::{0}Types;}}, "Get a list of all options");
 
    _g{0}.def_static("get_options_as_strings", [] {{return enumstrs::{0}Names<>;}}, "Get a list of all options as strings");

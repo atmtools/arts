@@ -47,18 +47,7 @@ py::class_<T>& interp_class_(py::class_<T>& cl) {
       .def_rw("data",
               &T::data,
               "The interpolation weights\n\n.. :class:`list[Numeric]`")
-      .def("__len__", &T::size, "The interpolation size\n\n.. :class:`Index`")
-      .def("__getstate__",
-           [](const T& self) { return std::make_tuple(self.indx, self.data); })
-      .def("__setstate__",
-           [](T* l,
-              const std::tuple<std::vector<Index>, std::vector<Numeric>>&
-                  state) {
-             new (l) T{};
-
-             l->indx = std::get<0>(state);
-             l->data = std::get<1>(state);
-           });
+      .def("__len__", &T::size, "The interpolation size\n\n.. :class:`Index`");
   generic_interface(cl);
 
   return cl;

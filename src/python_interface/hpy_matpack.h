@@ -37,14 +37,6 @@ void matpack_common_interface(py::class_<mtype>& c) {
       py::for_getter(py::rv_policy::reference_internal),
       "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
 
-  c.def("__getstate__",
-        [](const py::object& v) { return std::tuple{v.attr("__array__")()}; });
-
-  c.def("__setstate__", [](mtype& v, const std::tuple<py::object>& x) {
-    auto m = py::type<mtype>()(std::get<0>(x));
-    new (&v) mtype{py::cast<mtype>(m)};
-  });
-
   common_ndarray(c);
 
   py::implicitly_convertible<py::list, mtype>();

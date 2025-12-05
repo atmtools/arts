@@ -112,28 +112,7 @@ abs : Vector
     Absorption profile [1/m]
 
 )--")
-      .def("__getstate__",
-           [](const XsecRecord& self) {
-             return std::make_tuple(self.FitMinPressures(),
-                                    self.FitMaxPressures(),
-                                    self.FitMinTemperatures(),
-                                    self.FitMaxTemperatures(),
-                                    self.FitCoeffs());
-           })
-      .def("__setstate__",
-           [](XsecRecord* self,
-              const std::tuple<Vector,
-                               Vector,
-                               Vector,
-                               Vector,
-                               ArrayOfGriddedField1Named>& state) {
-             new (self) XsecRecord();
-             self->FitMinPressures()    = std::get<0>(state);
-             self->FitMaxPressures()    = std::get<1>(state);
-             self->FitMinTemperatures() = std::get<2>(state);
-             self->FitMaxTemperatures() = std::get<3>(state);
-             self->FitCoeffs()          = std::get<4>(state);
-           })
+
       .def(
           "to_dict",
           [](py::object& self) {
