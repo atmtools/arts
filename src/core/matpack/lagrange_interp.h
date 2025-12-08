@@ -518,7 +518,7 @@ namespace {
 template <transformer transform, Size poly>
 lag_t<poly, transform> poly_lag(
     std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
-  assert(xi.size() > poly + 1);
+  assert(xi.size() > poly);
   if (xi[0] < xi[1]) return lag_t<poly, transform>(xi, x, ascending_grid_t{});
   return lag_t<poly, transform>(xi, x, descending_grid_t{});
 }
