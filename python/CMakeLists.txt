@@ -62,9 +62,3 @@ add_custom_target(pyarts-package
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS Python package")
 
-add_custom_target(pyarts_tests
-  COMMAND ${Python_EXECUTABLE} -m pytest -v test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS pyarts
-  COMMENT "Running PyARTS pytest")
-

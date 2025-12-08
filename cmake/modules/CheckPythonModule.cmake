@@ -10,7 +10,6 @@ macro (CHECK_PYTHON_MODULES)
     matplotlib
     netCDF4
     numpy
-    pytest
     scipy
     setuptools
     tqdm
@@ -23,7 +22,6 @@ macro (CHECK_PYTHON_MODULES)
     matplotlib
     netCDF4
     numpy
-    pytest
     scipy
     setuptools
     tqdm
