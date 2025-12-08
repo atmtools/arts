@@ -12,6 +12,7 @@
 #include <span>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "matpack_mdspan.h"
@@ -229,7 +230,8 @@ constexpr void update_pos(std::span<Index, X> indx,
       xp            = (nonstd::abs(x - *xn) < nonstd::abs(x - *xp)) ? xn : xp;
     } else {
       const auto xn = xp + 1;
-      xp = (xn == xi.end() or nonstd::abs(x - *xn) > nonstd::abs(x - *xp)) ? xp : xn;
+      xp = (xn == xi.end() or nonstd::abs(x - *xn) > nonstd::abs(x - *xp)) ? xp
+                                                                           : xn;
     }
   }
 
@@ -512,20 +514,54 @@ struct lag_t {
  * Common helper functions for linear Lagrange interpolation
  ******************************************************************/
 
-template <transformer transform = identity>
-std::variant<lag_t<0, transform>, lag_t<1, transform>> variant_lag(
+namespace {
+template <transformer transform, Size poly>
+lag_t<poly, transform> poly_lag(
     std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
-  if (xi.size() < 2) return lag_t<0, transform>(xi, x, ascending_grid_t{});
-  if (xi[0] < xi[1]) return lag_t<1, transform>(xi, x, ascending_grid_t{});
-  return lag_t<1, transform>(xi, x, descending_grid_t{});
+  assert(xi.size() > poly + 1);
+  if (xi[0] < xi[1]) return lag_t<poly, transform>(xi, x, ascending_grid_t{});
+  return lag_t<poly, transform>(xi, x, descending_grid_t{});
+}
+
+template <transformer transform, typename T, Size N, Size... Ms>
+T variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
+                     Numeric x) {
+  if constexpr (N == 0) {
+    return lag_t<0, transform>(xi, x, ascending_grid_t{});
+  } else {
+    if (xi.size() > N) return poly_lag<transform, N>(xi, x);
+    return variant_lag_helper<transform, T, Ms...>(xi, x);
+  }
+}
+
+template <transformer transform, Size... poly>
+auto variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
+                        Numeric x,
+                        std::index_sequence<poly...>) {
+  return variant_lag_helper<transform,
+                            std::variant<lag_t<poly, transform>...>,
+                            sizeof...(poly) - 1 - poly...>(xi, x);
+}
+}  // namespace
+
+/*!  Creates a variant object that have polynomial possibilities from 0 to N
+ *
+ * By default, either N=1 (linear interpolation) is used, which means nearest
+ * neighbor or linear interpolation.  You can specify other values for N to
+ * get higher order polynomial interpolation.
+ */
+template <transformer transform, Size N = 1>
+auto variant_lag(std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
+  assert(xi.size() > 0);
+  return variant_lag_helper<transform>(
+      xi, x, std::make_index_sequence<N + 1>{});
 }
 
 /******************************************************************
  * Check limits
  ******************************************************************/
 
-template <transformer transform = lagrange_interp::identity,
-          Size Extent           = std::dynamic_extent>
+template <transformer transform, Size Extent>
 constexpr order_t check_limit(
     const std::span<const Numeric, std::dynamic_extent>& xi,
     const std::span<const Numeric, Extent>& xn,
@@ -604,7 +640,7 @@ The actual minimum value is {8}
       std::format("Error in check_limit for {}:\n{}", info, e.what()));
 }
 
-template <transformer transform = lagrange_interp::identity,
+template <transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New>
 constexpr order_t check_limit(const Orig& xi,
@@ -621,9 +657,7 @@ constexpr order_t check_limit(const Orig& xi,
   }
 }
 
-template <transformer transform = lagrange_interp::identity,
-          matpack::ranked_md<1> Orig,
-          Size N>
+template <transformer transform, matpack::ranked_md<1> Orig, Size N>
 constexpr order_t check_limit(const Orig& xi,
                               const std::array<Numeric, N>& xn,
                               Numeric extrapolation_limit,
@@ -639,9 +673,9 @@ constexpr order_t check_limit(const Orig& xi,
 
 //! Fixed version of make_lags
 template <Size N,
-          transformer transform = identity,
-          Size Extent           = std::dynamic_extent,
-          class FlagT           = lag_t<N, transform>>
+          transformer transform,
+          Size Extent,
+          class FlagT = lag_t<N, transform>>
 constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
                          std::span<const Numeric, Extent> xn,
                          Numeric extrapolation_limit = 0.5,
@@ -695,7 +729,7 @@ constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
 }
 
 template <Size N,
-          transformer transform = identity,
+          transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<N, transform>>
@@ -713,7 +747,7 @@ constexpr auto make_lags(const Orig& xi,
 }
 
 template <Size N,
-          transformer transform = identity,
+          transformer transform,
           matpack::ranked_md<1> Orig,
           Size M,
           class FlagT = lag_t<N, transform>>
@@ -725,9 +759,9 @@ constexpr auto make_lags(const Orig& xi,
 }
 
 //! Dynamic version of make_lags
-template <transformer transform = identity,
-          Size Extent           = std::dynamic_extent,
-          class FlagT           = lag_t<-1, transform>>
+template <transformer transform,
+          Size Extent,
+          class FlagT = lag_t<-1, transform>>
 constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
                          std::span<const Numeric, Extent> xn,
                          const Index polyorder       = 1,
@@ -783,7 +817,7 @@ constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
   }
 }
 
-template <transformer transform = identity,
+template <transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<-1, transform>>
@@ -801,7 +835,7 @@ constexpr auto make_lags(const Orig& xi,
   }
 }
 
-template <transformer transform = identity,
+template <transformer transform,
           matpack::ranked_md<1> Orig,
           Size M,
           class FlagT = lag_t<-1, transform>>

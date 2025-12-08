@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <concepts>
 
+#include "lagrange_interp.h"
 #include "matpack_mdspan.h"
 
 struct Ascending {
@@ -24,6 +25,8 @@ concept sorting_t = std::same_as<T, Ascending> or std::same_as<T, Descending>;
 template <sorting_t Compare>
 class grid_t {
   Vector x;
+
+  constexpr static bool ascends = std::same_as<Compare, Ascending>;
 
  public:
   using value_type = Numeric;
@@ -116,6 +119,37 @@ class grid_t {
 
   [[nodiscard]] constexpr std::array<Index, 1> shape() const {
     return x.shape();
+  }
+
+  using lagsorter = std::conditional_t<ascends,
+                                       lagrange_interp::ascending_grid_t,
+                                       lagrange_interp::descending_grid_t>;
+
+  template <Size N, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(Numeric xi) const {
+    return lagrange_interp::lag_t<N, transform>{x, xi, lagsorter{}};
+  }
+
+  template <lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(Numeric xi, Size N) const {
+    return lagrange_interp::lag_t<-1, transform>{x, xi, N, lagsorter{}};
+  }
+
+  template <Size N, lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(std::span<const Numeric> xi,
+                         Numeric extrapolation_limit = 0.5,
+                         const char* info            = "UNNAMED") const {
+    return lagrange_interp::make_lags<N, transform>(
+        x, xi, extrapolation_limit, info);
+  }
+
+  template <lagrange_interp::transformer transform>
+  [[nodiscard]] auto lag(std::span<const Numeric> xi,
+                         Size N,
+                         Numeric extrapolation_limit = 0.5,
+                         const char* info            = "UNNAMED") const {
+    return lagrange_interp::make_lags<transform>(
+        x, xi, N, extrapolation_limit, info);
   }
 };
 

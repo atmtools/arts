@@ -114,6 +114,9 @@ std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
   const Index nlat = gf3.grid<1>().size();
   const Index nlon = gf3.grid<2>().size();
 
+  using id = lagrange_interp::identity;
+  using lc = lagrange_interp::loncross;
+
   return std::visit(
       [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
           const ALT& al, const LAT& la, const LON& lo) {
@@ -131,11 +134,11 @@ std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
         }
         return out;
       },
-      nalt == 1 ? altlags{gf3.lag<0, 0>(alt)} : altlags{gf3.lag<0, 1>(alt)},
-      nlat == 1 ? latlags{gf3.grid<1>().lag<0>(lat)}
-                : latlags{gf3.grid<1>().lag<1>(lat)},
-      nlon == 1
-          ? lonlags{gf3.grid<2>().lag<0, lagrange_interp::loncross>(lon)}
-          : lonlags{gf3.grid<2>().lag<1, lagrange_interp::loncross>(lon)});
+      nalt == 1 ? altlags{gf3.grid<0>().lag<0, id>(alt)}
+                : altlags{gf3.grid<0>().lag<1, id>(alt)},
+      nlat == 1 ? latlags{gf3.grid<1>().lag<0, id>(lat)}
+                : latlags{gf3.grid<1>().lag<1, id>(lat)},
+      nlon == 1 ? lonlags{gf3.grid<2>().lag<0, lc>(lon)}
+                : lonlags{gf3.grid<2>().lag<1, lc>(lon)});
 }
 }  // namespace Atm::interp

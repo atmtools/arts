@@ -159,9 +159,11 @@ void XsecRecord::Extract(VectorView result,
     RemoveNegativeXsec(fit_result);
 
     {
-      const auto f_gp = lagrange_interp::make_lags<1>(
-          f_grid_active, data_f_grid_active, 0.5, "Frequency");
+      const auto f_gp =
+          lagrange_interp::make_lags<1, lagrange_interp::identity>(
+              f_grid_active, data_f_grid_active, 0.5, "Frequency");
       const auto f_itw = reinterpweights(f_gp);
+
       // Find frequency grid positions:
       reinterp(xsec_interp, fit_result_active, f_itw, f_gp);
     }

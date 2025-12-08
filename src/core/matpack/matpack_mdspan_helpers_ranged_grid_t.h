@@ -106,19 +106,17 @@ class ranged_grid_t {
     return grid[std::forward<Op>(x)];
   }
 
-  template <Size N,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
+  template <Size N, lagrange_interp::transformer transform>
   [[nodiscard]] auto lag(Numeric x) const {
     return lagrange_interp::lag_t<N, transform>{grid, x, lag_sorting_t{}};
   }
 
-  template <lagrange_interp::transformer transform = lagrange_interp::identity>
+  template <lagrange_interp::transformer transform>
   [[nodiscard]] auto lag(Numeric x, Size N) const {
     return lagrange_interp::lag_t<-1, transform>{grid, x, N, lag_sorting_t{}};
   }
 
-  template <Size N,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
+  template <Size N, lagrange_interp::transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> x,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") const {
@@ -126,12 +124,13 @@ class ranged_grid_t {
         grid, x, extrapolation_limit, info);
   }
 
-  template <lagrange_interp::transformer transform = lagrange_interp::identity>
+  template <lagrange_interp::transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> x,
                          Size N,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") const {
-    return lagrange_interp::make_lags<>(grid, x, N, extrapolation_limit, info);
+    return lagrange_interp::make_lags<transform>(
+        grid, x, N, extrapolation_limit, info);
   }
 };
 }  // namespace matpack

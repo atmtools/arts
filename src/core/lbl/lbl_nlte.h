@@ -5,7 +5,7 @@
 #include "lbl_data.h"
 
 using QuantumIdentifierGriddedField1Map =
-    std::unordered_map<QuantumIdentifier, GriddedField1>;
+    std::unordered_map<QuantumIdentifier, SortedGriddedField1>;
 using QuantumIdentifierVectorMap =
     std::unordered_map<QuantumIdentifier, Vector>;
 using QuantumIdentifierNumericMap =
