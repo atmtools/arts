@@ -15,7 +15,7 @@ constexpr static std::array type_names{xml_io_stream<Ts>::type_name...};
 
 template <Size N>
 consteval bool unique_names(std::array<std::string_view, N> x) {
-  std::ranges::sort(x);
+  stdr::sort(x);
   return std::adjacent_find(x.begin(), x.end()) == x.end();
 }
 

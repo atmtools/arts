@@ -123,10 +123,8 @@ void band_shape_helper(std::vector<single_shape>& lines,
 constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
-    auto low =
-        std::ranges::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
-    auto upp =
-        std::ranges::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
+    auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
+    auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
 
     return {std::distance(lines.begin(), low), std::distance(low, upp)};
   }

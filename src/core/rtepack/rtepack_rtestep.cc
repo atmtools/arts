@@ -39,32 +39,32 @@ void two_level_linear_emission_step_by_step_full(
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(elemwise_range(Ts),
-                          Cmp::ne(nv),
-                          [](const auto &x) { return x.size(); }),
+      stdr::any_of(elemwise_range(Ts),
+                   Cmp::ne(nv),
+                   [](const auto &x) { return x.size(); }),
       "Must have same number of frequency elements ({}) in all Ts:s",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(elemwise_range(Js),
-                          Cmp::ne(nv),
-                          [](const auto &x) { return x.size(); }),
+      stdr::any_of(elemwise_range(Js),
+                   Cmp::ne(nv),
+                   [](const auto &x) { return x.size(); }),
       "Must have same number of frequency elements ({}) in all Js:s",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
+      stdr::any_of(
           dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
-          std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
-          std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
+          stdr::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
+          stdr::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
       "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
       nq,
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
+      stdr::any_of(
           dJs, Cmp::ne(static_cast<Index>(nv)), &stokvec_matrix::ncols) or
-          std::ranges::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
+          stdr::any_of(dJs, Cmp::ne(nq), &stokvec_matrix::nrows),
       "Must have same number of derivative elements ({}, {}) in all dJs:s",
       nq,
       nv);
@@ -158,17 +158,17 @@ void two_level_linear_transmission_step(stokvec_vector &I,
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(elemwise_range(Ts),
-                          Cmp::ne(nv),
-                          [](const auto &x) { return x.size(); }),
+      stdr::any_of(elemwise_range(Ts),
+                   Cmp::ne(nv),
+                   [](const auto &x) { return x.size(); }),
       "Must have same number of frequency elements ({}) in all Ts:s",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
+      stdr::any_of(
           dTs, Cmp::ne(static_cast<Index>(nv)), &muelmat_tensor3::ncols) or
-          std::ranges::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
-          std::ranges::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
+          stdr::any_of(dTs, Cmp::ne(nq), &muelmat_tensor3::nrows) or
+          stdr::any_of(dTs, Cmp::ne(2), &muelmat_tensor3::npages),
       "Must have same number of derivative elements (2, {}, {}) in all dTs:s",
       nq,
       nv);

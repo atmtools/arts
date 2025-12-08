@@ -171,13 +171,13 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands, const String& dir) try {
   abs_bands = {};
 
   std::vector<std::filesystem::path> paths;
-  std::ranges::copy_if(
-      std::filesystem::directory_iterator(std::filesystem::path(dir)),
-      std::back_inserter(paths),
-      [](auto& entry) {
-        return entry.is_regular_file() and entry.path().extension() == ".xml";
-      });
-  std::ranges::sort(paths);
+  stdr::copy_if(std::filesystem::directory_iterator(std::filesystem::path(dir)),
+                std::back_inserter(paths),
+                [](auto& entry) {
+                  return entry.is_regular_file() and
+                         entry.path().extension() == ".xml";
+                });
+  stdr::sort(paths);
 
   std::string error{};
 
@@ -376,12 +376,11 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
 
   if (band.lines.empty()) return;
 
-  for (auto& line : band.lines | std::ranges::views::drop(1)) {
+  for (auto& line : band.lines | stdv::drop(1)) {
     ARTS_USER_ERROR_IF(
         stdr::any_of(line.ls.single_models | stdv::keys,
-                     [&other = band.lines.front().ls.single_models](SpeciesEnum x) {
-                       return not other.contains(x);
-                     }),
+                     [&other = band.lines.front().ls.single_models](
+                         SpeciesEnum x) { return not other.contains(x); }),
         "Inconsistent line shape models, all lines must have the same broadening species")
   }
 

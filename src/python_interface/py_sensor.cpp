@@ -280,7 +280,7 @@ Numeric, Vector, or Matrix
         const SensorSimulations simuls = collect_simulations(x);
         std::vector<AscendingGrid> out;
         out.reserve(simuls.size());
-        for (auto& k : simuls | std::views::keys) out.push_back(*k);
+        for (auto& k : simuls | stdv::keys) out.push_back(*k);
         return out;
       },
       "List of the unique frequency grids");
@@ -290,9 +290,7 @@ Numeric, Vector, or Matrix
       [](const ArrayOfSensorObsel& x) {
         const SensorSimulations simuls = collect_simulations(x);
         std::unordered_set<std::shared_ptr<const SensorPosLosVector>> vecs;
-        for (auto& k : simuls | std::views::values) {
-          vecs.insert(k.begin(), k.end());
-        }
+        for (auto& k : simuls | stdv::values) vecs.insert(k.begin(), k.end());
 
         std::vector<SensorPosLosVector> out;
         out.reserve(vecs.size());

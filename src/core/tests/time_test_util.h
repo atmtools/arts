@@ -33,8 +33,8 @@ inline void print_time_points() {
     const auto &name  = entry.first;
     const auto &times = entry.second;
 
-    auto min = std::ranges::min_element(times);
-    auto max = std::ranges::max_element(times);
+    auto min = stdr::min_element(times);
+    auto max = stdr::max_element(times);
     auto sum = std::accumulate(times.begin(), times.end(), 0LL);
 
     if (times.size() == 1)

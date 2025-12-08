@@ -620,10 +620,9 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
                                                                alt_grid.size());
 
   const auto filter_lt = [](const Numeric& r) {
-    return std::ranges::views::filter(
-        [r](const std::pair<Numeric, Numeric>& x) {
-          return x.first > 0 and x.first < r;
-        });
+    return stdv::filter([r](const std::pair<Numeric, Numeric>& x) {
+      return x.first > 0 and x.first < r;
+    });
   };
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -644,9 +643,9 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
         potential_crossings.emplace_back(nonstd::isnan(l1) ? -1 : l1, alt);
       }
 
-      std::ranges::sort(potential_crossings,
-                        std::greater{},
-                        &std::pair<Numeric, Numeric>::first);
+      stdr::sort(potential_crossings,
+                 std::greater{},
+                 &std::pair<Numeric, Numeric>::first);
       for (auto r : potential_crossings | filter_lt(distance)) {
         path.insert(path.begin() + 1 + i,
                     path_at_distance<false>(ecef,
@@ -672,10 +671,9 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
                                                                lat_grid.size());
 
   const auto filter_lt = [](const Numeric& r) {
-    return std::ranges::views::filter(
-        [r](const std::pair<Numeric, Numeric>& x) {
-          return x.first > 0 and x.first < r;
-        });
+    return stdv::filter([r](const std::pair<Numeric, Numeric>& x) {
+      return x.first > 0 and x.first < r;
+    });
   };
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -696,9 +694,9 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
         potential_crossings.emplace_back(nonstd::isnan(l1) ? -1 : l1, lat);
       }
 
-      std::ranges::sort(potential_crossings,
-                        std::greater{},
-                        &std::pair<Numeric, Numeric>::first);
+      stdr::sort(potential_crossings,
+                 std::greater{},
+                 &std::pair<Numeric, Numeric>::first);
       for (auto r : potential_crossings | filter_lt(distance)) {
         path.insert(path.begin() + 1 + i,
                     path_at_distance<false>(ecef,
@@ -723,10 +721,9 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
   std::vector<std::pair<Numeric, Numeric>> potential_crossings(lon_grid.size());
 
   const auto filter_lt = [](const Numeric& r) {
-    return std::ranges::views::filter(
-        [r](const std::pair<Numeric, Numeric>& x) {
-          return x.first > 0 and x.first < r;
-        });
+    return stdv::filter([r](const std::pair<Numeric, Numeric>& x) {
+      return x.first > 0 and x.first < r;
+    });
   };
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -746,9 +743,9 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
         potential_crossings.emplace_back(nonstd::isnan(l0) ? -1 : l0, lon);
       }
 
-      std::ranges::sort(potential_crossings,
-                        std::greater{},
-                        &std::pair<Numeric, Numeric>::first);
+      stdr::sort(potential_crossings,
+                 std::greater{},
+                 &std::pair<Numeric, Numeric>::first);
       for (auto r : potential_crossings | filter_lt(distance)) {
         path.insert(path.begin() + 1 + i,
                     path_at_distance<false>(ecef,
@@ -834,7 +831,7 @@ PropagationPathPoint find_geometric_limb(
 ArrayOfPropagationPathPoint& fill_geometric_limb(
     ArrayOfPropagationPathPoint& x, const SurfaceField& surf_field) {
   const auto limb    = find_geometric_limb(x, surf_field);
-  const auto min_pos = std::ranges::min_element(
+  const auto min_pos = stdr::min_element(
       x, [](const auto& a, const auto& b) { return a.pos[0] < b.pos[0]; });
 
   if (min_pos == x.end() - 1) {
@@ -853,7 +850,7 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
                                            const Numeric min_dist,
                                            const bool first) {
   const auto next = [&]() {
-    return std::ranges::adjacent_find(
+    return stdr::adjacent_find(
         path,
         [&](const Vector3& a, const Vector3& b) {
           return ecef_distance(geodetic2ecef(a, surf_field.ellipsoid),
@@ -876,8 +873,8 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
     return p.has(PathPositionType::atm);
   };
 
-  const auto first = std::ranges::find_if(path, in_atm);
-  const auto last  = std::ranges::find_if_not(first, path.end(), in_atm) - 1;
+  const auto first = stdr::find_if(path, in_atm);
+  const auto last  = stdr::find_if_not(first, path.end(), in_atm) - 1;
 
   ARTS_USER_ERROR_IF(first == path.end(), "No path points in atmosphere")
 
@@ -950,9 +947,9 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
     return los[0] == 0.0 or los[0] == 180.0;
   };
 
-  if (std::ranges::all_of(path, atan2_failstate, &PropagationPathPoint::los) or
-      std::ranges::all_of(path, updown_failstate, &PropagationPathPoint::los)) {
-    std::ranges::for_each(
+  if (stdr::all_of(path, atan2_failstate, &PropagationPathPoint::los) or
+      stdr::all_of(path, updown_failstate, &PropagationPathPoint::los)) {
+    stdr::for_each(
         path,
         [azimuth = path.front().los[1]](Vector2& los) { los[1] = azimuth; },
         &PropagationPathPoint::los);

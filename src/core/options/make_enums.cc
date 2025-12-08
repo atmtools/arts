@@ -13,12 +13,15 @@ void create_headers() {
 #include <array>
 #include <istream>
 #include <ostream>
+#include <ranges>
 #include <string>
 #include <string_view>
 
 #include <format_tags.h>
 
 using namespace std::literals;
+
+namespace stdr = std::ranges;
 
 template <typename T> constexpr bool good_enum(T x) noexcept = delete;
 template <typename T> constexpr T to(const std::string_view x) = delete;

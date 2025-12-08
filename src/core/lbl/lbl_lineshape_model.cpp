@@ -303,10 +303,10 @@ std::istream& operator>>(std::istream& is, model& x) try {
 void model::clear_zeroes() {
   auto is_zero = [](auto& x) { return x.second.is_zero(); };
   for (auto& [s, m] : single_models) {
-    auto ptr = std::ranges::find_if(m.data, is_zero);
+    auto ptr = stdr::find_if(m.data, is_zero);
     while (ptr != m.data.end()) {
       m.data.erase(ptr);
-      ptr = std::ranges::find_if(m.data, is_zero);
+      ptr = stdr::find_if(m.data, is_zero);
     }
   }
 }

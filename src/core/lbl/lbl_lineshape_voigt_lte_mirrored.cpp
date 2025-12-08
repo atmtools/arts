@@ -1661,7 +1661,7 @@ void calculate(PropmatVectorView pm_,
                const AtmPoint& atm,
                const ZeemanPolarization pol,
                const bool no_negative_absorption) {
-  if (std::ranges::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
+  if (stdr::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 
   PropmatVectorView pm         = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];

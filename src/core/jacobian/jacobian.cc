@@ -644,8 +644,8 @@ void Targets::finalize(const AtmField& atm_field,
   for (Size i = 0; i < natm; i++) {
     AtmTarget& t = atm[i];
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(
-            atm | std::views::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
+        stdr::any_of(
+            atm | stdv::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
         "Multiple targets of the same type: {}",
         t.type)
 
@@ -666,11 +666,11 @@ void Targets::finalize(const AtmField& atm_field,
 
   for (Size i = 0; i < nsurf; i++) {
     SurfaceTarget& t = surf[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(surf | std::views::drop(i + 1),
-                                           Cmp::eq(t.type),
-                                           &SurfaceTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    ARTS_USER_ERROR_IF(
+        stdr::any_of(
+            surf | stdv::drop(i + 1), Cmp::eq(t.type), &SurfaceTarget::type),
+        "Multiple targets of the same type: {}",
+        t.type)
 
     if (t.overlap) {
       const auto f = stdr::find(surf, t.overlap_key, &SurfaceTarget::type);
@@ -689,9 +689,9 @@ void Targets::finalize(const AtmField& atm_field,
 
   for (Size i = 0; i < nsubsurf; i++) {
     SubsurfaceTarget& t = subsurf[i];
-    ARTS_USER_ERROR_IF(std::ranges::any_of(subsurf | std::views::drop(i + 1),
-                                           Cmp::eq(t.type),
-                                           &SubsurfaceTarget::type),
+    ARTS_USER_ERROR_IF(stdr::any_of(subsurf | stdv::drop(i + 1),
+                                    Cmp::eq(t.type),
+                                    &SubsurfaceTarget::type),
                        "Multiple targets of the same type: {}",
                        t.type)
 
@@ -714,8 +714,8 @@ void Targets::finalize(const AtmField& atm_field,
   for (Size i = 0; i < nline; i++) {
     LineTarget& t = line[i];
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(
-            line | std::views::drop(i + 1), Cmp::eq(t.type), &LineTarget::type),
+        stdr::any_of(
+            line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type),
         "Multiple targets of the same type: {}",
         t.type)
 
@@ -744,8 +744,8 @@ void Targets::finalize(const AtmField& atm_field,
   for (Size i = 0; i < nsensor; i++) {
     SensorTarget& t = sensor[i];
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(
-            sensor | std::views::drop(i + 1),
+        stdr::any_of(
+            sensor | stdv::drop(i + 1),
             [&](const SensorKey& key) {
               if (t.type.type != key.type) return false;
 

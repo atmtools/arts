@@ -366,6 +366,7 @@ void two_level_exp(muelmat &t,
   std::transform(dk2.begin(), dk2.end(), dr2.begin(), dt2.begin(), deriv);
 }
 
+namespace {
 void two_level_exp(muelmat_vector_view tv,
                    muelmat_matrix_view dt1v,
                    muelmat_matrix_view dt2v,
@@ -403,6 +404,7 @@ void two_level_exp(muelmat_vector_view tv,
     }
   }
 }
+}  // namespace
 
 muelmat exp(propmat k, Numeric r) { return tran(k, k, r)(); }
 
@@ -464,18 +466,17 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   }
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
+      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
       "Must have same number of frequency elements ({}) in all K:s as in K[0]",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
+      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
       "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
       nv);
 
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
+      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
       "Must have same number of derivative elements ({}) in all dK:s as in dr",
       nq);
 

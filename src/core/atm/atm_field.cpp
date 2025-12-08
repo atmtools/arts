@@ -571,21 +571,21 @@ void Point::check_and_fix() try {
   ARTS_USER_ERROR_IF(nonstd::isnan(pressure), "Pressure is NaN")
   ARTS_USER_ERROR_IF(nonstd::isnan(temperature), "Temperature is NaN")
 
-  if (std::ranges::all_of(wind, [](auto v) { return nonstd::isnan(v); })) {
+  if (stdr::all_of(wind, [](auto v) { return nonstd::isnan(v); })) {
     wind = {0., 0., 0.};
   } else {
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
+        stdr::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
         "Cannot have partially missing wind field.  Consider setting the missing field to zero or add it completely.\n"
         "Wind field [wind_u, wind_v, wind_w] is: {:B,}",
         wind)
   }
 
-  if (std::ranges::all_of(mag, [](auto v) { return nonstd::isnan(v); })) {
+  if (stdr::all_of(mag, [](auto v) { return nonstd::isnan(v); })) {
     mag = {0., 0., 0.};
   } else {
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
+        stdr::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
         "Cannot have partially missing magnetic field.  Consider setting the missing field to zero or add it completely.\n"
         "Magnetic field [mag_u, mag_v, mag_w] is: {:B,}",
         mag)
@@ -1033,8 +1033,7 @@ void Atm::extend_in_pressure(
   ArrayOfAtmPoint::const_iterator pos;
 
   if (pressure_increasing) {
-    auto up =
-        std::ranges::lower_bound(atm, new_pressure, {}, &AtmPoint::pressure);
+    auto up = stdr::lower_bound(atm, new_pressure, {}, &AtmPoint::pressure);
     auto lo = up - 1;
 
     if (lo <= atm.begin()) {
@@ -1056,11 +1055,10 @@ void Atm::extend_in_pressure(
       pos = up;
     }
   } else {
-    auto lo =
-        (std::ranges::lower_bound(
-             atm | std::views::reverse, new_pressure, {}, &AtmPoint::pressure) +
-         1)
-            .base();
+    auto lo = (stdr::lower_bound(
+                   atm | stdv::reverse, new_pressure, {}, &AtmPoint::pressure) +
+               1)
+                  .base();
     auto up = lo - 1;
 
     if (lo >= atm.end()) {
@@ -1083,8 +1081,7 @@ void Atm::extend_in_pressure(
     }
   }
 
-  if (std::ranges::any_of(prof, Cmp::eq(new_pressure), &AtmPoint::pressure))
-    return;
+  if (stdr::any_of(prof, Cmp::eq(new_pressure), &AtmPoint::pressure)) return;
 
   const AscendingGrid altitudes =
       logarithmic ? AscendingGrid{std::log(bounds[0]), std::log(bounds[1])}

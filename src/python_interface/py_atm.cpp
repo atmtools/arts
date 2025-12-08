@@ -1154,8 +1154,7 @@ Return
 
     const Size n = atm.size();
 
-    if (std::ranges::any_of(dict,
-                            [n](auto &v) { return v.second.size() != n; })) {
+    if (stdr::any_of(dict, [n](auto &v) { return v.second.size() != n; })) {
       throw std::runtime_error(
           "All values in the dictionary must have the same length to match the AtmPoint-list length.");
     }

@@ -75,8 +75,8 @@ bool Workspace::contains(const std::string& name) const {
 
 bool Workspace::wsv_and_contains(const std::string& name) const {
   ARTS_USER_ERROR_IF(
-      std::ranges::none_of(workspace_variables() | std::views::keys,
-                           [&name](const auto& n) { return n == name; }),
+      stdr::none_of(workspace_variables() | stdv::keys,
+                    [&name](const auto& n) { return n == name; }),
       "Invalid workspace variable: \"{}\"",
       name)
   return contains(name);

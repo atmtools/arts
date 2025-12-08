@@ -416,7 +416,7 @@ void calculate(PropmatVectorView pm_,
                const bool no_negative_absorption) try {
   if (pol != ZeemanPolarization::no) {
     ARTS_USER_ERROR_IF(
-        std::ranges::any_of(
+        stdr::any_of(
             bnd, [](auto& zee) { return zee.on; }, &line::z),
         "Zeeman effect and ECS in combination is not yet possible.")
     return;

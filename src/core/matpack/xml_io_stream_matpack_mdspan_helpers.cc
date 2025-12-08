@@ -107,7 +107,7 @@ void xml_read_from_stream_gf_old(std::istream& is_xml,
     ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
                        "Bad number of grid names:\n{}",
                        gridnames);
-    std::ranges::move(gridnames, gfield.grid_names.begin());
+    stdr::move(gridnames, gfield.grid_names.begin());
 
     xml_read_from_stream_recursive_old<0>(is_xml, gfield, pbifs, tag);
 

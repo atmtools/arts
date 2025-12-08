@@ -114,12 +114,15 @@ void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,
 
   using enum AtmKey;
 
+  constexpr auto is_wind_u = Cmp::eq(wind_u);
+  constexpr auto is_wind_v = Cmp::eq(wind_v);
+  constexpr auto is_wind_w = Cmp::eq(wind_w);
+
   const auto& atm = jac_targets.atm;
 
   const auto [df_du, df_dv, df_dw] = freq_wind_shift_jac;
 
-  if (auto ptr = std::ranges::find_if(
-          atm, Cmp::eq(wind_u), &Jacobian::AtmTarget::type);
+  if (auto ptr = stdr::find_if(atm, is_wind_u, &Jacobian::AtmTarget::type);
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 
@@ -137,8 +140,7 @@ void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,
         [df_du](const Numeric f, const Stokvec& x) { return x * f * df_du; });
   }
 
-  if (auto ptr = std::ranges::find_if(
-          atm, Cmp::eq(wind_v), &Jacobian::AtmTarget::type);
+  if (auto ptr = stdr::find_if(atm, is_wind_v, &Jacobian::AtmTarget::type);
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 
@@ -156,8 +158,7 @@ void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,
         [df_dv](const Numeric f, const Stokvec& x) { return x * f * df_dv; });
   }
 
-  if (auto ptr = std::ranges::find_if(
-          atm, Cmp::eq(wind_w), &Jacobian::AtmTarget::type);
+  if (auto ptr = stdr::find_if(atm, is_wind_w, &Jacobian::AtmTarget::type);
       ptr != atm.end()) {
     const Index i = ptr->target_pos;
 

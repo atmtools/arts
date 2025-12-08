@@ -72,8 +72,8 @@ void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
          py::object copy) -> std::variant<nd, py::object> {
         constexpr auto n = M + sizeof...(N);
         std::array<size_t, n> shape{};
-        std::ranges::copy(v.shape(), shape.begin());
-        std::ranges::copy(std::array{N...}, shape.begin() + M);
+        stdr::copy(v.shape(), shape.begin());
+        stdr::copy(std::array{N...}, shape.begin() + M);
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), n, shape.data(), py::cast(&v));
 
@@ -397,8 +397,10 @@ void py_rtepack(py::module_ &m) try {
   b1.def(
       "is_polarized",
       [](const ArrayOfMuelmatVector &m) {
-        return stdr::any_of(
-            m, [](const MuelmatVector &mm) { return stdr::any_of(mm, [](const Muelmat &m) { return m.is_polarized(); }); });
+        return stdr::any_of(m, [](const MuelmatVector &mm) {
+          return stdr::any_of(
+              mm, [](const Muelmat &m) { return m.is_polarized(); });
+        });
       },
       "Check if the Mueller matrix represents a polarized state.");
   generic_interface(b1);

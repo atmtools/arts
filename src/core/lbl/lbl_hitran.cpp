@@ -91,7 +91,7 @@ bool read_hitran_par_record(hitran_record& record,
   if (not data.end_of_string()) {
     const std::string_view remainder{data.it + 1, data.end};
     const std::string_view::const_iterator space =
-        std::ranges::find_if(remainder, nonstd::isspace);
+        stdr::find_if(remainder, nonstd::isspace);
     ARTS_USER_ERROR_IF(space == remainder.end(),
                        "Failed to parse HITRAN Quantum numbers:\n\n{}",
                        remainder);
@@ -179,8 +179,8 @@ line hitran_record::from(HitranLineStrengthOption ls,
   l.z.on = false;
 
   // Set the line shape
-  l.ls            = line_shape::model{};
-  l.ls.T0         = 296.0;
+  l.ls    = line_shape::model{};
+  l.ls.T0 = 296.0;
   l.ls.single_models.reserve(2);
 
   auto& self    = l.ls.single_models[qid.isot.spec];

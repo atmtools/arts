@@ -467,13 +467,13 @@ void disort_settingsOpticalThicknessFromPath(
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(spectral_propmat_path,
-                          [](const PropmatVector& pms) {
-                            return std::ranges::any_of(
-                                pms, Cmp::eq(true), &Propmat::is_polarized);
-                          }),
-      "No implementation for polarized propagation matrices.");
+  ARTS_USER_ERROR_IF(stdr::any_of(spectral_propmat_path,
+                                  [](const PropmatVector& pms) {
+                                    return stdr::any_of(pms,
+                                                        Cmp::eq(true),
+                                                        &Propmat::is_polarized);
+                                  }),
+                     "No implementation for polarized propagation matrices.");
 
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
@@ -484,7 +484,7 @@ void disort_settingsOpticalThicknessFromPath(
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(std::ranges::any_of(r, Cmp::le(0.0)),
+  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le(0.0)),
                      R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
@@ -547,7 +547,7 @@ void disort_settingsSubsurfaceScalarAbsorption(
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(std::ranges::any_of(r, Cmp::le(0.0)),
+  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le(0.0)),
                      R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}

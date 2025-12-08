@@ -256,7 +256,7 @@ std::vector<std::string> all_generics(std::string_view type) {
 
 template <typename T>
 std::size_t max_elem(const std::vector<T>& vecs) {
-  return std::ranges::max_element(vecs, {}, &T::size)->size();
+  return stdr::max_element(vecs, {}, &T::size)->size();
 }
 
 std::vector<std::vector<std::string>> all_gets(
@@ -270,11 +270,11 @@ std::vector<std::vector<std::string>> all_gets(
 
   std::size_t COUNT = 0;
   for (const auto& wsm : wsmr.out) {
-    out.emplace_back().emplace_back(std::format(
-        "ws.get{1}<{2}>(out[{0}])",
-        COUNT++,
-        internal_workspace_variables().at(wsm).type,
-        std::ranges::any_of(wsmr.in, Cmp::eq(wsm)) ? ""sv : "_or"sv));
+    out.emplace_back().emplace_back(
+        std::format("ws.get{1}<{2}>(out[{0}])",
+                    COUNT++,
+                    internal_workspace_variables().at(wsm).type,
+                    stdr::any_of(wsmr.in, Cmp::eq(wsm)) ? ""sv : "_or"sv));
   }
 
   for (const auto& type : wsmr.gout_type) {
@@ -293,7 +293,7 @@ std::vector<std::vector<std::string>> all_gets(
   COUNT = 0;
   for (const auto& wsm : wsmr.in) {
     const auto name = std::format("in[{}]", COUNT++);
-    if (std::ranges::any_of(wsmr.out, Cmp::eq(wsm))) continue;
+    if (stdr::any_of(wsmr.out, Cmp::eq(wsm))) continue;
     out.emplace_back().emplace_back(std::format(
         "ws.get<{0}>({1})", internal_workspace_variables().at(wsm).type, name));
   }
@@ -301,7 +301,7 @@ std::vector<std::vector<std::string>> all_gets(
   for (std::size_t i = 0; i < wsmr.gin_type.size(); i++) {
     const auto& type = wsmr.gin_type[i];
     const auto name  = std::format("in[{}]", COUNT++);
-    if (std::ranges::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
+    if (stdr::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
 
     auto vec = all_generics(type);
     if (vec.empty()) {
@@ -350,7 +350,7 @@ std::string error_signature(const std::string& name,
   }
 
   for (auto& wsv : wsmr.in) {
-    if (std::ranges::any_of(wsmr.out, Cmp::eq(wsv))) continue;
+    if (stdr::any_of(wsmr.out, Cmp::eq(wsv))) continue;
     out += std::format("{}{}{} : {}",
                        std::exchange(sep, other_sep),
                        wsv,
@@ -367,7 +367,7 @@ std::string error_signature(const std::string& name,
   }
 
   for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
-    if (std::ranges::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
+    if (stdr::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
     out += std::format("{}{}{} : {}",
                        std::exchange(sep, other_sep),
                        wsmr.gin[i],
@@ -396,14 +396,14 @@ void call_function(std::ostream& os,
 
     // one method per group
     std::println(os, "      switch (_first.value_index()) {{");
-    for (auto& group : internal_workspace_groups() | std::views::keys) {
+    for (auto& group : internal_workspace_groups() | stdv::keys) {
       std::print(
           os,
           R"(        case WorkspaceGroupInfo<{0}>::index: return {1}({2})",
           group,
           name,
           gets.front()[i]);
-      for (auto& v : gets | std::views::drop(1)) {
+      for (auto& v : gets | stdv::drop(1)) {
         std::print(os, ", {}", v[i]);
       }
       ++i;

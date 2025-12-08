@@ -101,7 +101,7 @@ void spectral_rad_fieldFromOperatorPlanarGeometric(
   ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
   ARTS_USER_ERROR_IF(lat_grid.size() != 1, "Latitude must be scalar")
   ARTS_USER_ERROR_IF(lon_grid.size() != 1, "Longitude must be scalar")
-  ARTS_USER_ERROR_IF(std::ranges::binary_search(zen_grid, 90.0),
+  ARTS_USER_ERROR_IF(stdr::binary_search(zen_grid, 90.0),
                      "Zenith angle must not be 90 degrees")
   const Numeric alt_low  = alt_grid.front();
   const Numeric alt_high = alt_grid.back();
@@ -136,7 +136,7 @@ void spectral_rad_fieldFromOperatorPlanarGeometric(
     } else {
       srad = spectral_rad_operator(
           freq, path, SpectralRadianceOperator::as_vector{});
-      std::ranges::reverse(srad);
+      stdr::reverse(srad);
     }
     return srad;
   };
