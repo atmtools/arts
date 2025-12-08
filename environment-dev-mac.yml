@@ -26,7 +26,6 @@ dependencies:
         - ninja
         - numpy>=2
         - pkg-config
-        - pytest>=7
         - python-build
         - requests
         - scipy

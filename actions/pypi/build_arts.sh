@@ -10,7 +10,7 @@ fi
 export PATH=$PYTHONDIR/bin:$PATH
 
 python3 -m pip install --upgrade pip
-python3 -m pip install --upgrade setuptools build wheel auditwheel twine docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray cmake
+python3 -m pip install --upgrade setuptools build wheel auditwheel twine docutils lark-parser matplotlib netCDF4 numpy scipy xarray cmake
 
 # Get arts source
 mkdir -p arts && cd arts && git init .

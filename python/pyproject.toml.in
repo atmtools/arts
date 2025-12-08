@@ -25,11 +25,6 @@ dependencies = [
 Homepage = "https://radiativetransfer.org"
 Documentation = "https://atmtools.github.com/arts-docs-master/"
 
-[tool.pytest.ini_options]
-pythonpath = [
-    "src"
-]
-
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
