@@ -244,8 +244,7 @@ void jac_targetsAddSensorFrequencyPolyOffset(
   for (Size i = 0; i < measurement_sensor.size(); i++) {
     const void* ptr =
         reinterpret_cast<const void*>(measurement_sensor[i].f_grid_ptr().get());
-    if (std::ranges::none_of(sensor_grid_ptrs | std::views::values,
-                             Cmp::eq(ptr))) {
+    if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) {
       sensor_grid_ptrs.emplace_back(i, ptr);
     }
   }

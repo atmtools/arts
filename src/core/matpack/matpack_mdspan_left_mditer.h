@@ -2,7 +2,6 @@
 
 #include <configtypes.h>
 
-#include <iterator>
 #include <type_traits>
 
 namespace matpack {

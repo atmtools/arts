@@ -257,7 +257,7 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
     const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
     const Numeric T0) {
-  ARTS_USER_ERROR_IF(stdr::any_of(approx_percentile | std::views::values,
+  ARTS_USER_ERROR_IF(stdr::any_of(approx_percentile | stdv::values,
                                   [](auto i) { return i < 0 or i > 100; }),
                      "Approximate percentile must be between 0 and 100");
 

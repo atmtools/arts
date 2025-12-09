@@ -3,10 +3,8 @@
 #include <compare.h>
 #include <nonstd.h>
 
-#include <utility>
 #include <vector>
 
-#include "matpack_mdspan.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
 namespace matpack {
@@ -43,7 +41,7 @@ constexpr bool all_same_shape(const integer_helper<N>& a,
                               const std::vector<B>& b,
                               const std::vector<C>&... c) {
   const auto t = [shape = a.shape](auto& x) { return x.shape() == shape; };
-  return std::ranges::all_of(b, t) and (std::ranges::all_of(c, t) and ...);
+  return stdr::all_of(b, t) and (stdr::all_of(c, t) and ...);
 }
 
 template <Size N, ranked_md<N> B, ranked_md<N>... C>

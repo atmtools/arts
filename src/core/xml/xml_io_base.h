@@ -26,8 +26,8 @@
 #include <gzstream.h>
 #endif
 
-enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
-enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
+enum NumericType : char { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
+enum EndianType : char { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes

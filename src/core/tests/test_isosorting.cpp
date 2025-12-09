@@ -6,7 +6,7 @@ int main() {
   const auto first = Species::Isotopologues.begin();
   const auto last  = Species::Isotopologues.end();
 
-  const auto anybad = std::ranges::adjacent_find(
+  const auto anybad = stdr::adjacent_find(
       first, last, [](SpeciesIsotope x, SpeciesIsotope y) { return x >= y; });
 
   if (anybad == last) return 0;

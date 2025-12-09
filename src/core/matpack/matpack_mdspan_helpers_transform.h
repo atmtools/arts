@@ -5,13 +5,13 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 /** Reverse the matpack type elementwise in-place */
 template <mut_any_md Self>
 constexpr auto reverse_inplace(Self&& self) {
-  return std::ranges::reverse(elemwise_range(self));
+  return stdr::reverse(elemwise_range(self));
 }
 
 /** Reverse the matpack type by copy

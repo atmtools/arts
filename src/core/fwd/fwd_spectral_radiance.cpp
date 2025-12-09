@@ -178,7 +178,7 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
 Stokvec spectral_rad::operator()(const Numeric f,
                                  const std::vector<path>& path_points,
                                  const Numeric cutoff_transmission) const {
-  using std::views::drop;
+  using stdv::drop;
 
   assert(path_points.size() > 0);
   assert(path_points.front().distance == 0.0);
@@ -222,8 +222,8 @@ Stokvec spectral_rad::operator()(const Numeric f,
 StokvecVector spectral_rad::operator()(const Numeric f,
                                        const std::vector<path>& path_points,
                                        spectral_rad::as_vector) const {
-  using std::ranges::reverse_view;
-  using std::views::drop;
+  using stdr::reverse_view;
+  using stdv::drop;
 
   assert(path_points.size() > 0);
   assert(path_points.front().distance == 0.0);
@@ -252,7 +252,7 @@ StokvecVector spectral_rad::operator()(const Numeric f,
     r = pp.distance;
   }
 
-  std::ranges::reverse(out);
+  stdr::reverse(out);
   return StokvecVector{std::move(out)};
 }
 

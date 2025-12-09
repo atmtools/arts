@@ -1,22 +1,22 @@
+#include <arts_options.h>
+#include <compare.h>
+#include <debug.h>
+#include <nonstd.h>
 #include <workspace.h>
+#include <workspace_agendas.h>
+#include <workspace_group_friends.h>
+#include <workspace_meta_methods.h>
+#include <workspace_method_extra_doc.h>
+#include <workspace_variables.h>
 
 #include <algorithm>
-#include <iterator>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
 
-#include "arts_options.h"
-#include "compare.h"
-#include "debug.h"
-#include "nonstd.h"
-#include "python_interface/pydocs.h"
-#include "workspace_agendas.h"
-#include "workspace_group_friends.h"
-#include "workspace_meta_methods.h"
-#include "workspace_method_extra_doc.h"
-#include "workspace_variables.h"
+#include "pydocs.h"
 
+namespace {
 String rawify(const String& x) {
   std::stringstream os{x};
 
@@ -63,6 +63,7 @@ If it is an old or deleted method or variable or group, please remove it from th
                   x,
                   std::string_view(e.what())));
 }
+}  // namespace
 
 uint32_t hlist_num_cols(const std::vector<String>& v1,
                         const std::vector<String>& v2) {
@@ -88,7 +89,9 @@ std::string fix_newlines(std::string x) {
   return x;
 }
 
+namespace {
 bool isnotletter(char c) { return not nonstd::isabc(c); }
+}  // namespace
 
 String unwrap_stars(const String& x) try {
   auto ptr       = x.begin();
@@ -177,11 +180,13 @@ String get_agenda_io(const String& x) try {
                   std::string_view(e.what())));
 }
 
+namespace {
 String until_first_newline(const String& x) {
   std::string out{x.begin(), std::find(x.begin(), x.end(), '\n')};
   if (not out.ends_with('.')) out.push_back('.');
   return out;
 }
+}  // namespace
 
 String short_doc(const String& x) try {
   const auto& wsgs = internal_workspace_groups();
@@ -207,6 +212,7 @@ If it is an old or deleted method or variable or group, please remove it from th
                   std::string_view(e.what())));
 }
 
+namespace {
 void remove_trailing(String& x, char n) {
   while (x.ends_with(n)) x.pop_back();
 }
@@ -214,6 +220,7 @@ void remove_trailing(String& x, char n) {
 String compose_generic_groups(const String& grps) {
   return std::format("~pyarts3.arts.{}", grps);
 }
+}  // namespace
 
 String to_defval_str(const Wsv& wsv, const std::string_view x) try {
   const auto& group = wsv.type_name();
@@ -263,16 +270,16 @@ String method_docs(const String& name) try {
   const auto& method = wsms.at(name);
   String out;
 
-  const auto is_output = [&](auto ind) {
+  const auto is_output = [&](auto&& ind) {
     return stdr::any_of(method.out, Cmp::eq(ind));
   };
-  const auto is_input = [&](auto ind) {
+  const auto is_input = [&](auto&& ind) {
     return stdr::any_of(method.in, Cmp::eq(ind));
   };
   const auto is_ginput = [&](auto& ind) {
     return stdr::any_of(method.gin, Cmp::eq(ind));
   };
-  const auto is_goutput = [&](auto& ind) {
+  const auto is_goutput = [&](auto&& ind) {
     return stdr::any_of(method.gout, Cmp::eq(ind));
   };
   const auto fix = [&] {

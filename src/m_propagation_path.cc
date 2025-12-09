@@ -1,11 +1,9 @@
+#include <atm_field.h>
+#include <enumsSurfaceKey.h>
+#include <path_point.h>
 #include <workspace.h>
 
 #include <algorithm>
-
-#include "atm_field.h"
-#include "enumsSurfaceKey.h"
-#include "geodetic.h"
-#include "path_point.h"
 
 void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const AtmField& atm_field,
@@ -271,7 +269,7 @@ void ray_pointLowestFromPath(PropagationPathPoint& ray_point,
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
-  ray_point = *std::ranges::min_element(
+  ray_point = *stdr::min_element(
       ray_path,
       [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
         return a.altitude() < b.altitude();
@@ -284,7 +282,7 @@ void ray_pointHighestFromPath(PropagationPathPoint& ray_point,
 
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
 
-  ray_point = *std::ranges::max_element(
+  ray_point = *stdr::max_element(
       ray_path,
       [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
         return a.altitude() < b.altitude();

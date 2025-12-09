@@ -216,7 +216,9 @@ QuantumIdentifierVectorMap createCij(
     for (auto& atm_point : atm_path) {
       const auto numden = atm_point.number_density(key.isot);
 
-      x.push_back(interp(coll.data, coll.lag<0, 1>(atm_point.temperature)) *
+      x.push_back(interp(coll.data,
+                         coll.grid<0>().lag<1, lagrange_interp::identity>(
+                             atm_point.temperature)) *
                   numden);
     }
   }

@@ -4,10 +4,12 @@
 
 #include "array.h"
 
+namespace stdr = std::ranges;
+
 /** Max function. */
 template <class base>
 constexpr base max(const Array<base>& x) {
-  return *std::ranges::max_element(x);
+  return *stdr::max_element(x);
 }
 
 template <class base, class ConvFunc>
@@ -27,7 +29,7 @@ constexpr auto max(const Array<base>& x, ConvFunc&& f) {
 /** Min function. */
 template <class base>
 constexpr base min(const Array<base>& x) {
-  return *std::ranges::min_element(x);
+  return *stdr::min_element(x);
 }
 
 template <class base, class ConvFunc>
@@ -97,11 +99,11 @@ enum class CheckStatus : char { NotUnique, Unique, NotFound };
 template <class T>
 constexpr std::pair<Index, CheckStatus> contains(const Array<T>& x,
                                                  const T& what) {
-  auto pos1 = std::ranges::find(x, what);
+  auto pos1 = stdr::find(x, what);
 
   if (pos1 == x.end()) return {-1, CheckStatus::NotFound};
 
-  auto pos2 = std::ranges::find(std::next(pos1), x.end(), what);
+  auto pos2 = stdr::find(std::next(pos1), x.end(), what);
 
   const auto indpos = std::distance(x.begin(), pos1);
   if (pos2 == x.end()) return {indpos, CheckStatus::Unique};

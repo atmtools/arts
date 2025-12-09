@@ -7,8 +7,6 @@
 #include <string>
 #include <string_view>
 
-#include "string_extract.h"
-
 /** The String type for ARTS. Implementation. */
 using String = std::string;
 

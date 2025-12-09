@@ -13,7 +13,6 @@
 #include "lbl_lineshape_voigt_lte.h"
 #include "lbl_lineshape_voigt_lte_mirrored.h"
 #include "lbl_lineshape_voigt_nlte.h"
-#include "lbl_zeeman.h"
 
 namespace lbl {
 namespace {
@@ -22,7 +21,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
-  if (std::ranges::any_of(bnds | std::ranges::views::values, [](auto& bnd) {
+  if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_LTE;
       }))
     return std::make_unique<voigt::lte::ComputeData>(
@@ -35,7 +34,7 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
-  if (std::ranges::any_of(bnds | std::ranges::views::values, [](auto& bnd) {
+  if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR;
       }))
     return std::make_unique<voigt::lte_mirror::ComputeData>(
@@ -48,7 +47,7 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
-  if (std::ranges::any_of(bnds | std::ranges::views::values, [](auto& bnd) {
+  if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE;
       }))
     return std::make_unique<voigt::nlte::ComputeData>(
@@ -61,7 +60,7 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(
     const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
-  if (std::ranges::any_of(bnds | std::ranges::views::values, [](auto& bnd) {
+  if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV or
                bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN;
       }))

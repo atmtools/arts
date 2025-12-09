@@ -34,8 +34,7 @@ Method::Method(const std::string& n,
   for (std::size_t i = 0; i < nargin; ++i) inargs_set[i] = {inargs[i], false};
 
   // Common filter
-  const auto unset =
-      std::views::filter([](const auto& p) { return not p.second; });
+  const auto unset = stdv::filter([](const auto& p) { return not p.second; });
 
   // Common G-name
   const auto is_gname = [](const auto& str1, auto& str2) {
@@ -46,7 +45,7 @@ Method::Method(const std::string& n,
   // Positional arguments
   {
     const auto fuzzy_equals = [is_gname](auto& arg) {
-      return std::views::filter([&arg, is_gname](const auto& p) {
+      return stdv::filter([&arg, is_gname](const auto& p) {
         return p.first == arg or is_gname(p.first, arg);
       });
     };
@@ -274,7 +273,7 @@ std::string Method::sphinx_list_item() const {
 
   for (Size i = 0; i < inargs.size(); i++) {
     if (inargs[i] != wsm.in[i] and inargs[i].front() != named_input_prefix and
-        wsm.out.end() == std::ranges::find(wsm.out, wsm.in[i])) {
+        wsm.out.end() == stdr::find(wsm.out, wsm.in[i])) {
       setvals.push_back({wsm.in[i], inargs[i]});
     }
   }

@@ -17,16 +17,14 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <partfun.h>
+#include <partition_function_data.h>
 #include <python_interface.h>
 #include <quantum.h>
 
-#include <iomanip>
 #include <limits>
-#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 
-#include "matpack_mdspan_common_complex.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
 NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
@@ -865,9 +863,7 @@ int : The number of removed variables
         Size n = 0;
 
         if (spec == SpeciesEnum::Bath) {
-          for (auto& band : self | std::views::values) {
-            n += band.size();
-          }
+          for (auto& band : self | stdv::values) n += band.size();
           return n;
         }
         for (auto& [key, band] : self) {

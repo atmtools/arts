@@ -1,13 +1,11 @@
 #pragma once
 
+#include <debug.h>
 #include <matpack.h>
 #include <xml.h>
+#include <xml_io_stream.h>
 
 #include <functional>
-#include <iosfwd>
-
-#include "debug.h"
-#include "xml_io_stream.h"
 
 #ifndef _MSC_VER
 #if defined(__clang__)

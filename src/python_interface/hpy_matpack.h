@@ -81,7 +81,7 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
          py::object dtype,
          py::object copy) -> std::variant<nd, py::object> {
         std::array<size_t, ndim> shape;
-        std::ranges::copy(v.shape(), shape.begin());
+        stdr::copy(v.shape(), shape.begin());
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::cast(&v));

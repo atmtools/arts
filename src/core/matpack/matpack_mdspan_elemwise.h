@@ -4,7 +4,6 @@
 
 #include <array>
 #include <cstddef>
-#include <iterator>
 #include <tuple>
 #include <utility>
 
@@ -17,9 +16,10 @@ std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr,
   return std::make_tuple(Formats{arr[Is]}...);
 }
 
-template <class... Formats,
-          size_t N>
-std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr) requires (N == sizeof...(Formats)) {
+template <class... Formats, size_t N>
+std::tuple<Formats...> as_tuple(const std::array<std::nullptr_t, N>& arr)
+  requires(N == sizeof...(Formats))
+{
   return as_tuple<Formats...>(arr, std::make_index_sequence<N>{});
 }
 

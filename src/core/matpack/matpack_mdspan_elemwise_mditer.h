@@ -2,8 +2,6 @@
 
 #include <configtypes.h>
 
-#include <concepts>
-#include <iterator>
 #include <ranges>
 #include <type_traits>
 
@@ -95,7 +93,7 @@ struct elemwise_mditer {
 
 template <any_md T>
 auto elemwise_range(T&& x) {
-  return std::ranges::subrange{x.elem_begin(), x.elem_end()};
+  return stdr::subrange{x.elem_begin(), x.elem_end()};
 };
 
 // Catch for non-matpack types (might not work, be careful)
@@ -103,6 +101,6 @@ template <typename T>
 auto elemwise_range(T&& x)
   requires(rank<T>() == 1 and not any_md<T>)
 {
-  return std::ranges::subrange{x.begin(), x.end()};
+  return stdr::subrange{x.begin(), x.end()};
 };
 }  // namespace matpack

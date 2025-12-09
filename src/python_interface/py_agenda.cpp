@@ -1,3 +1,4 @@
+#include <debug.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/function.h>
@@ -14,11 +15,9 @@
 #include <algorithm>
 #include <exception>
 #include <filesystem>
-#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 
-#include "debug.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "pydocs.h"
@@ -124,7 +123,8 @@ void py_agenda(py::module_& m) try {
       .doc() = "The method class of ARTS";
 
   auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>>(m, "WsvMap");
-  wsvmap.doc() = unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
+  wsvmap.doc() =
+      unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
   wsvmap.def(
       "__init__",
       [](std::unordered_map<std::string, Wsv>* m,

@@ -15,7 +15,7 @@
 
 #include <array.h>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_data_t.h"
 
 Numeric fac(const Index n);
 

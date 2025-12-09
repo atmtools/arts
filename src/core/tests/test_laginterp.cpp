@@ -527,6 +527,23 @@ void test_old() {
     interp(res, itw, data, grid1_pos, grid2_pos);
   }
 }
+
+template <Size N>
+void test_variant_lag() {
+  for (Size i = 1; i < 10; ++i) {
+    Vector grid = nlinspace(-100, 100, i);
+    const auto lagt =
+        lagrange_interp::variant_lag<lagrange_interp::identity, N>(grid, 1);
+    Size x = std::visit([](auto v) { return v.PolyOrder; }, lagt);
+    ARTS_USER_ERROR_IF(x > N, "PolyOrder {} exceeds max lag size {}", x, N);
+    ARTS_USER_ERROR_IF(i > N and x != N,
+                       "PolyOrder {} not equal to max lag size {} for grid "
+                       "size {}",
+                       x,
+                       N,
+                       i);
+  }
+}
 }  // namespace
 
 int main() {
@@ -566,4 +583,11 @@ int main() {
   }
 
   print_time_points();
+
+  test_variant_lag<0>();
+  test_variant_lag<1>();
+  test_variant_lag<2>();
+  test_variant_lag<3>();
+  test_variant_lag<4>();
+  test_variant_lag<5>();
 }

@@ -1,31 +1,14 @@
 #include "lbl_lineshape_model.h"
 
 #include <double_imanip.h>
+#include <enumsSpeciesEnum.h>
 #include <species.h>
 
 #include <ranges>
 #include <unordered_map>
 #include <utility>
 
-#include "enumsSpeciesEnum.h"
 #include "lbl_temperature_model.h"
-
-std::istream& operator>>(std::istream& is,
-                         lbl::line_shape::species_model::map_t& x) {
-  Size n;
-  is >> n;
-
-  x.clear();
-  x.reserve(n);
-
-  for (Size i = 0; i < n; i++) {
-    LineShapeModelVariable var;
-    lbl::temperature::data temp_data;
-    is >> var >> temp_data;
-    x[var] = temp_data;
-  }
-  return is;
-}
 
 namespace lbl::line_shape {
 #define VARIABLE(name, PVAR, DPVAR)                              \
@@ -275,7 +258,20 @@ VARIABLE(DV);
 #undef VARIABLE
 
 std::istream& operator>>(std::istream& is, species_model& x) {
-  return is >> x.data;
+  Size n;
+  is >> n;
+
+  x.data.clear();
+  x.data.reserve(n);
+
+  for (Size i = 0; i < n; i++) {
+    LineShapeModelVariable var;
+    lbl::temperature::data temp_data;
+    is >> var >> temp_data;
+    x.data[var] = temp_data;
+  }
+
+  return is;
 }
 
 std::istream& operator>>(std::istream& is,
@@ -303,10 +299,10 @@ std::istream& operator>>(std::istream& is, model& x) try {
 void model::clear_zeroes() {
   auto is_zero = [](auto& x) { return x.second.is_zero(); };
   for (auto& [s, m] : single_models) {
-    auto ptr = std::ranges::find_if(m.data, is_zero);
+    auto ptr = stdr::find_if(m.data, is_zero);
     while (ptr != m.data.end()) {
       m.data.erase(ptr);
-      ptr = std::ranges::find_if(m.data, is_zero);
+      ptr = stdr::find_if(m.data, is_zero);
     }
   }
 }

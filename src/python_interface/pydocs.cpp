@@ -10,13 +10,12 @@
 namespace Python {
 String group_generics_inout(const String& group) try {
   const auto& wsms = internal_workspace_methods();
+  const auto pred  = Cmp::eq(group);
 
   std::pair<std::vector<String>, std::vector<String>> outdocs;
   for (auto& [name, wsm] : wsms) {
-    if (std::ranges::any_of(wsm.gout_type, Cmp::eq(group)))
-      outdocs.first.emplace_back(name);
-    if (std::ranges::any_of(wsm.gin_type, Cmp::eq(group)))
-      outdocs.second.emplace_back(name);
+    if (stdr::any_of(wsm.gout_type, pred)) outdocs.first.emplace_back(name);
+    if (stdr::any_of(wsm.gin_type, pred)) outdocs.second.emplace_back(name);
   }
 
   std::sort(outdocs.first.begin(), outdocs.first.end(), str_compare_nocase);

@@ -38,33 +38,33 @@ void Agenda::finalize(bool fix) try {
     const auto& ins  = method.get_ins();
     const auto& outs = method.get_outs();
 
-    std::ranges::copy_if(
+    stdr::copy_if(
         ins, std::back_inserter(ins_first), [&](const std::string& i) {
           const auto cmp = Cmp::eq(i);
-          return not std::ranges::any_of(ins_first, cmp) and
-                 not std::ranges::any_of(outs_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp);
+          return not stdr::any_of(ins_first, cmp) and
+                 not stdr::any_of(outs_first, cmp) and
+                 not stdr::any_of(in_then_out, cmp);
         });
 
-    std::ranges::copy_if(
+    stdr::copy_if(
         outs, std::back_inserter(in_then_out), [&](const std::string& i) {
           const auto cmp = Cmp::eq(i);
-          return std::ranges::any_of(ins_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp);
+          return stdr::any_of(ins_first, cmp) and
+                 not stdr::any_of(in_then_out, cmp);
         });
 
-    std::ranges::copy_if(
+    stdr::copy_if(
         outs, std::back_inserter(outs_first), [&](const std::string& i) {
           const auto cmp = Cmp::eq(i);
-          return not std::ranges::any_of(outs_first, cmp) and
-                 not std::ranges::any_of(ins_first, cmp) and
-                 not std::ranges::any_of(in_then_out, cmp);
+          return not stdr::any_of(outs_first, cmp) and
+                 not stdr::any_of(ins_first, cmp) and
+                 not stdr::any_of(in_then_out, cmp);
         });
   }
 
   auto sort_and_erase_copies = [](std::vector<std::string>& vec) {
-    std::ranges::sort(vec);
-    auto [s, e] = std::ranges::unique(vec);
+    stdr::sort(vec);
+    auto [s, e] = stdr::unique(vec);
     vec.erase(s, e);
   };
   sort_and_erase_copies(ins_first);
@@ -72,14 +72,14 @@ void Agenda::finalize(bool fix) try {
   sort_and_erase_copies(in_then_out);
 
   for (const std::string& i : must_in) {
-    if (std::ranges::binary_search(outs_first, i)) {
+    if (stdr::binary_search(outs_first, i)) {
       throw std::runtime_error(std::format(
           R"(Agenda "{}" first uses "{}" as an input but it is an output)",
           name,
           i));
     }
 
-    if (not std::ranges::binary_search(ins_first, i)) {
+    if (not stdr::binary_search(ins_first, i)) {
       if (fix) {
         methods.emplace_back("Ignore",
                              std::vector<std::string>{i},
@@ -92,8 +92,8 @@ void Agenda::finalize(bool fix) try {
   }
 
   for (const std::string& o : must_out) {
-    if (std::ranges::binary_search(ins_first, o) and
-        not std::ranges::binary_search(in_then_out, o)) {
+    if (stdr::binary_search(ins_first, o) and
+        not stdr::binary_search(in_then_out, o)) {
       throw std::runtime_error(std::format(
           R"(Agenda "{}" uses "{}" only as an input but it is Agenda inoutput
 
@@ -113,8 +113,8 @@ Agenda required output: {:B,}
           must_out));
     }
 
-    if (not std::ranges::binary_search(outs_first, o) and
-        not std::ranges::binary_search(in_then_out, o)) {
+    if (not stdr::binary_search(outs_first, o) and
+        not stdr::binary_search(in_then_out, o)) {
       if (fix) {
         methods.emplace_back("Touch",
                              std::vector<std::string>{o},
@@ -127,16 +127,16 @@ Agenda required output: {:B,}
   }
 
   std::erase_if(ins_first, [&must_in](const auto& str) {
-    return std::ranges::any_of(must_in, Cmp::eq(str));
+    return stdr::any_of(must_in, Cmp::eq(str));
   });
 
   std::erase_if(ins_first, [&in_then_out](const auto& str) {
-    return std::ranges::binary_search(in_then_out, str);
+    return stdr::binary_search(in_then_out, str);
   });
 
   std::erase_if(in_then_out, [&must_out, &must_in](const auto& str) {
-    return std::ranges::any_of(must_out, Cmp::eq(str)) and
-           std::ranges::any_of(must_in, Cmp::eq(str));
+    return stdr::any_of(must_out, Cmp::eq(str)) and
+           stdr::any_of(must_in, Cmp::eq(str));
   });
 
   copy  = in_then_out;

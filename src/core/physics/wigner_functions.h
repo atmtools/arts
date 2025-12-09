@@ -13,8 +13,6 @@
 #include <wigner/wigxjpf/inc/wigxjpf.h>
 
 #include <algorithm>
-#include <array>
-#include <concepts>
 #include <iosfwd>
 
 #ifdef FAST_WIGNER_PATH_3J

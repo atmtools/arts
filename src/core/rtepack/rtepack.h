@@ -1,10 +1,14 @@
 #pragma once
 
 #include "array.h"
+#include "rtepack_mueller_matrix.h"
+#include "rtepack_multitype.h"
+#include "rtepack_propagation_matrix.h"
 #include "rtepack_rtestep.h"
 #include "rtepack_scattering.h"
 #include "rtepack_source.h"
 #include "rtepack_spectral_matrix.h"
+#include "rtepack_stokes_vector.h"
 #include "rtepack_surface.h"
 #include "rtepack_transmission.h"
 

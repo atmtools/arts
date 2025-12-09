@@ -20,7 +20,7 @@ class double_imanip {
  public:
   const double_imanip& operator>>(double& x) const;
 
-  std::istream& operator>>(const double_imanip&) const ;
+  std::istream& operator>>(const double_imanip&) const;
 
   friend const double_imanip& operator>>(std::istream& in,
                                          const double_imanip& dm);

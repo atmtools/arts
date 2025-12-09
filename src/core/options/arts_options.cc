@@ -1096,8 +1096,8 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
   for (std::size_t i = 0; i < n - 1; i++) {
     out += std::format(
         R"(
-  if (const auto i = std::ranges::distance(std::ranges::begin({0}Names<{1}>),
-                                           std::ranges::find({0}Names<{1}>, x));
+  if (const auto i = stdr::distance(stdr::begin({0}Names<{1}>),
+                                    stdr::find({0}Names<{1}>, x));
                      i < {2})
     return {0}Types[i];)",
         name,

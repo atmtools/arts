@@ -1,6 +1,8 @@
 #pragma once
 
-#include "matpack_mdspan_common.h"
+#include "matpack_mdspan_common_types.h"
+#include "matpack_mdspan_data_t.h"
+
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
 #if defined(__clang__)
@@ -15,8 +17,6 @@
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
-
-#include "matpack_mdspan.h"
 
 namespace matpack::eigen {
 #define EIGEN_STRIDED_MAT(U, T)                                          \

@@ -13,9 +13,7 @@ constexpr Size xpos(const Numeric x, const Vector& x_grid) try {
 
   return std::min<Size>(
       std::max<Index>(
-          0,
-          std::distance(x_grid.begin(), std::ranges::lower_bound(x_grid, x)) -
-              1),
+          0, std::distance(x_grid.begin(), stdr::lower_bound(x_grid, x)) - 1),
       static_cast<Size>(x_grid.size()) - 2);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -92,19 +90,19 @@ constexpr path find_path(const Vector3 pos,
   };
 
   if (alt.size() > 1 and out.alt_weight == 0.0 and
-      not std::ranges::binary_search(alt, pos[0])) {
+      not stdr::binary_search(alt, pos[0])) {
     out.alt_index  -= 1;
     out.alt_weight  = 1.0;
   }
 
   if (alt.size() > 1 and out.lat_weight == 0.0 and
-      not std::ranges::binary_search(lat, pos[1])) {
+      not stdr::binary_search(lat, pos[1])) {
     out.lat_index  -= 1;
     out.lat_weight  = 1.0;
   }
 
   if (alt.size() > 1 and out.lon_weight == 0.0 and
-      not std::ranges::binary_search(lon, pos[2])) {
+      not stdr::binary_search(lon, pos[2])) {
     out.lon_index  -= 1;
     out.lon_weight  = 1.0;
   }

@@ -7,7 +7,6 @@
 #include <concepts>
 #include <cstdlib>
 #include <experimental/mdspan>
-#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -17,8 +16,6 @@
 
 namespace matpack {
 namespace stdx = std::experimental;
-namespace stdr = std::ranges;
-namespace stdv = std::ranges::views;
 
 using Joker                 = stdx::full_extent_t;
 constexpr inline auto joker = stdx::full_extent;

@@ -6,17 +6,15 @@
 #include <ranges>
 #include <vector>
 
-#include "matpack_mdspan_common.h"
-#include "matpack_mdspan_common_sizes.h"
-#include "matpack_mdspan_common_types.h"
+#include "matpack_mdspan_common_select.h"
 
 namespace matpack {
 template <ranked_md<1> T>
 Range sorted_range(const T& container,
                    const value_type<T>& lower_bound,
                    const value_type<T>& upper_bound) {
-  auto low = std::ranges::lower_bound(container, lower_bound);
-  auto upp = std::ranges::upper_bound(low, container.end(), upper_bound);
+  auto low = stdr::lower_bound(container, lower_bound);
+  auto upp = stdr::upper_bound(low, container.end(), upper_bound);
   return {static_cast<Index>(std::distance(container.begin(), low)),
           static_cast<Index>(std::distance(low, upp))};
 }

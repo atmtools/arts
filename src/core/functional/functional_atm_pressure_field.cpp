@@ -41,7 +41,7 @@ HydrostaticPressure::HydrostaticPressure(Tensor3 in_grad_p,
 
 std::pair<Size, Numeric> HydrostaticPressure::find_alt(Numeric al) const {
   auto& alt  = std::get<0>(grad_p.grids);
-  Size i     = std::distance(alt.begin(), std::ranges::upper_bound(alt, al));
+  Size i     = std::distance(alt.begin(), stdr::upper_bound(alt, al));
   i         -= (i == alt.size());
   while (i > 0 and alt[i] > al) i--;
   return {i, al - alt[i]};

@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "matpack_mdspan_common.h"
+#include "matpack_mdspan_common_sizes.h"
 #include "matpack_mdspan_elemwise_mditer.h"
 #include "matpack_mdspan_view_t.h"
 

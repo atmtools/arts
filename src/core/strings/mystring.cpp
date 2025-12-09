@@ -4,31 +4,16 @@
 
 #include <algorithm>
 #include <format>
-#include <ranges>
 #include <string>
 
-void tolower(String& x) {
-  std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c) {
-    return ::tolower(c);
-  });
-}
+namespace stdr = std::ranges;
 
-String tolower(const String& x) {
-  String out = x;
-  tolower(out);
-  return out;
+void tolower(String& x) {
+  stdr::transform(x, x.begin(), [](unsigned char c) { return ::tolower(c); });
 }
 
 void toupper(String& x) {
-  std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c) {
-    return ::toupper(c);
-  });
-}
-
-String toupper(const String& x) {
-  String out = x;
-  toupper(out);
-  return out;
+  stdr::transform(x, x.begin(), [](unsigned char c) { return ::toupper(c); });
 }
 
 void split(ArrayOfString& aos, const String& x, const String& delim) {
@@ -53,12 +38,6 @@ ArrayOfString split(const String& x, const String& delim) {
 void trim(String& x) {
   while (nonstd::isspace(x.front())) x.erase(x.begin());
   while (nonstd::isspace(x.back())) x.pop_back();
-}
-
-String trim(const String& x) {
-  String out = x;
-  trim(out);
-  return out;
 }
 
 String comma(bool& first, const String& spaces) {

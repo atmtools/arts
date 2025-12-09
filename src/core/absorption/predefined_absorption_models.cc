@@ -224,12 +224,12 @@ void compute(
                          jac_targets.find(liquidcloud)};
   const auto e        = jac_targets.atm.end();
   const bool do_freq_jac =
-      std::ranges::any_of(freq_jac, [e](auto& x) { return x != e; });
+      stdr::any_of(freq_jac, [e](auto& x) { return x != e; });
 
   const bool do_temp_jac = temp_jac != e;
 
   const bool do_vmrs_jac =
-      std::ranges::any_of(vmrs_jac, [e](auto& x) { return x != e; });
+      stdr::any_of(vmrs_jac, [e](auto& x) { return x != e; });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
     PropmatVector pm(f_grid.size());

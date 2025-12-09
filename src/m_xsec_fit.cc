@@ -93,7 +93,7 @@ void spectral_propmatAddXsecFit(  // WS Output:
                                    jac_targets.find(AtmKey::wind_w)};
   const auto temp_jac = jac_targets.find(AtmKey::t);
   const bool do_freq_jac =
-      std::ranges::any_of(freq_jac, [end](auto& x) { return x != end; });
+      stdr::any_of(freq_jac, [end](auto& x) { return x != end; });
   const bool do_temp_jac = temp_jac != end;
   const Numeric df       = freq_jac[0] != end   ? freq_jac[0]->d
                            : freq_jac[1] != end ? freq_jac[1]->d

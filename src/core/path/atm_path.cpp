@@ -19,7 +19,7 @@ ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
 void forward_atm_path(ArrayOfAtmPoint &atm_path,
                       const ArrayOfPropagationPathPoint &rad_path,
                       const AtmField &atm) {
-  std::ranges::transform(
+  stdr::transform(
       rad_path,
       atm_path.begin(),
       [&atm](const auto &p) { return atm.at(p); },

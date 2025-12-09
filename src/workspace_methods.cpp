@@ -15,14 +15,15 @@
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"
 
+namespace stdr = std::ranges;
+
 #if defined(__clang__)
 #pragma clang optimize off
 #endif
 
 bool WorkspaceMethodInternalRecord::has_any() const {
   const auto cmp = Cmp::eq("Any");
-  return std::ranges::any_of(gout_type, cmp) +
-         std::ranges::any_of(gin_type, cmp);
+  return stdr::any_of(gout_type, cmp) + stdr::any_of(gin_type, cmp);
 }
 
 bool WorkspaceMethodInternalRecord::has_overloads() const {
@@ -333,7 +334,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
 void fix(
     std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
-  for (auto& wsmr : wsm_data | std::views::values) {
+  for (auto& wsmr : wsm_data | stdv::values) {
     if (wsmr.desc.back() != '\n') wsmr.desc += '\n';
   }
 }
@@ -5786,7 +5787,7 @@ Additional work is requires if proper coverage of the limb is required
         const auto& x = wsm_data.at(method);
 
         for (Size i = 0; i < x.gin.size(); i++) {
-          if (auto ptr = std::ranges::find(gin, x.gin[i]); ptr != gin.end()) {
+          if (auto ptr = stdr::find(gin, x.gin[i]); ptr != gin.end()) {
             gin_desc[ptr - gin.begin()] +=
                 std::format(", *{}*", std::string_view{method});
           } else {
@@ -5799,8 +5800,7 @@ Additional work is requires if proper coverage of the limb is required
         }
 
         for (Size i = 0; i < x.gout.size(); i++) {
-          if (auto ptr = std::ranges::find(gout, x.gout[i]);
-              ptr != gout.end()) {
+          if (auto ptr = stdr::find(gout, x.gout[i]); ptr != gout.end()) {
             gout_desc[ptr - gout.begin()] +=
                 std::format(", *{}*", std::string_view{method});
           } else {

@@ -4,10 +4,13 @@
 #include <unique_unordered_map.h>
 
 #include <algorithm>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 
 #include "workspace_agendas.h"
+
+namespace stdr = std::ranges;
 
 void add_arrays_of(
     std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
@@ -31,8 +34,8 @@ void add_select_options(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data,
   const auto& options = internal_options();
 
   for (const auto& opt : select_options) {
-    auto it = std::ranges::find_if(
-        options, [&opt](const auto& o) { return o.name == opt; });
+    auto it =
+        stdr::find_if(options, [&opt](const auto& o) { return o.name == opt; });
 
     if (it == options.end())
       throw std::runtime_error("Option " + opt +

@@ -10,7 +10,9 @@
 #include "pydocs.h"
 #include "workspace_groups.h"
 
+namespace {
 std::vector<std::string> errors;
+
 #define ERRORAPPEND                \
   catch (std::exception & e) {     \
     errors.emplace_back(e.what()); \
@@ -72,15 +74,15 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   }
 
   const auto not_out = [&wsm](const auto& v) {
-    return std::ranges::none_of(wsm.out, Cmp::eq(v));
+    return stdr::none_of(wsm.out, Cmp::eq(v));
   };
 
-  for (auto& v : wsm.in | std::ranges::views::filter(not_out)) {
+  for (auto& v : wsm.in | stdv::filter(not_out)) {
     os << ",\n    const py" << wsvs.at(v).type << "* const _" << v;
   }
 
   const auto is_gout = [&wsm](const auto& v) {
-    return std::ranges::any_of(wsm.gout, Cmp::eq(v));
+    return stdr::any_of(wsm.gout, Cmp::eq(v));
   };
 
   // NB: This is partly untested code because we do not have any methods with generic input+output at time of writing
@@ -114,12 +116,11 @@ bool uses_variadic(const std::string& v) {
 }
 
 bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
-  return std::ranges::any_of(
+  return stdr::any_of(
              wsm.gout_type,
              [](const std::string& s) { return s.find(',') != s.npos; }) or
-         std::ranges::any_of(wsm.gin_type, [](const std::string& s) {
-           return uses_variadic(s);
-         });
+         stdr::any_of(wsm.gin_type,
+                      [](const std::string& s) { return uses_variadic(s); });
 }
 
 std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
@@ -211,7 +212,7 @@ std::string method_argument_selection(
   os << method_gout_selection(wsm);
 
   for (auto& t : wsm.in) {
-    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     std::println(
         os,
         R"x(        const {1}& {0} = select_in<{1}>(_{0}, _ws, "{0}");)x",
@@ -276,7 +277,7 @@ std::string method_resolution_any(const std::string& name,
     }
 
     for (auto& t : wsm.in) {
-      if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+      if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
       std::print(os, "{0}{1}", any ? ", "sv : ""sv, t);
       any = true;
     }
@@ -327,7 +328,7 @@ std::vector<std::string> supergeneric_type(const std::string& t) {
 
 std::vector<std::string> unique_sorted(const std::vector<std::string>& v) {
   std::vector<std::string> out = v;
-  std::ranges::sort(out);
+  stdr::sort(out);
   out.erase(std::unique(out.begin(), out.end()), out.end());
   return out;
 }
@@ -444,7 +445,7 @@ std::string method_resolution_variadic(
       }
 
       for (auto& t : wsm.in) {
-        if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+        if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
         std::print(os, "{0}{1}", any ? ", "sv : ""sv, t);
         any = true;
       }
@@ -495,7 +496,7 @@ std::string method_resolution_simple(const std::string& name,
   }
 
   for (auto& t : wsm.in) {
-    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     if (any) os << ", ";
     any = true;
     os << t;
@@ -511,8 +512,7 @@ std::string method_resolution_simple(const std::string& name,
 }
 
 std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
-  return std::ranges::count(wsm.gout_type, "Any") +
-         std::ranges::count(wsm.gin_type, "Any");
+  return stdr::count(wsm.gout_type, "Any") + stdr::count(wsm.gin_type, "Any");
 }
 
 std::string method_resolution(const std::string& name,
@@ -582,7 +582,7 @@ std::string method_error(const std::string& name,
   }
 
   for (auto& t : wsm.in) {
-    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n" << spaces;
     first = false;
     std::print(
@@ -632,7 +632,7 @@ std::string method_argument_documentation(
   }
 
   for (const auto& t : wsm.in) {
-    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;
     os << "\"" << t << "\"_a.none() = py::none()";
@@ -711,6 +711,7 @@ void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
     select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
   }
 }
+}  // namespace
 
 int main(int argc, char** argv) {
   if (argc != 2) {

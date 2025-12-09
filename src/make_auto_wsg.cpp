@@ -14,6 +14,9 @@
 
 using namespace std::literals;
 
+namespace stdr = std::ranges;
+namespace stdv = stdr::views;
+
 namespace {
 const auto& data = internal_workspace_groups();
 
@@ -195,26 +198,24 @@ void agenda_operators() {
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
 
-  const auto to_strings = std::ranges::to<std::vector<std::string>>();
+  const auto to_strings = stdr::to<std::vector<std::string>>();
 
-  const auto agenda_types = std::views::transform([&wsv](const std::string& v) {
-                              return wsv.at(v).type;
-                            }) |
-                            to_strings;
-
-  const auto cref_agenda_types =
-      std::views::transform([&wsv](const std::string& v) {
-        return "const " + wsv.at(v).type + "&";
-      }) |
+  const auto agenda_types =
+      stdv::transform([&wsv](const std::string& v) { return wsv.at(v).type; }) |
       to_strings;
 
+  const auto cref_agenda_types = stdv::transform([&wsv](const std::string& v) {
+                                   return "const " + wsv.at(v).type + "&";
+                                 }) |
+                                 to_strings;
+
   const auto named_ref_agenda_types =
-      std::views::transform(
+      stdv::transform(
           [&wsv](const std::string& v) { return wsv.at(v).type + "& " + v; }) |
       to_strings;
 
   const auto named_cref_agenda_types =
-      std::views::transform([&wsv](const std::string& v) {
+      stdv::transform([&wsv](const std::string& v) {
         return "const " + wsv.at(v).type + "& " + v;
       }) |
       to_strings;
@@ -238,15 +239,14 @@ void agenda_operators() {
   for (auto& [name, ag] : wsa) {
     try {
       const auto remove_output =
-          std::views::filter([&o = ag.output](const std::string& v) {
-            return not std::ranges::contains(o, v);
+          stdv::filter([&o = ag.output](const std::string& v) {
+            return not stdr::contains(o, v);
           });
       const auto output_string =
-          std::views::transform([&o = ag.output](const std::string& v) {
-            return std::format(
-                "{0} = std::get<{1}>(_tup);\n ",
-                v,
-                std::ranges::distance(o.begin(), std::ranges::find(o, v)));
+          stdv::transform([&o = ag.output](const std::string& v) {
+            return std::format("{0} = std::get<{1}>(_tup);\n ",
+                               v,
+                               stdr::distance(o.begin(), stdr::find(o, v)));
           });
 
       std::println(h,

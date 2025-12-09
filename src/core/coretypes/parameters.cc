@@ -26,7 +26,7 @@ Parameters parameters{};
  
  \author Oliver Lemke
  */
-void parse_path_from_environment(const String& envvar, ArrayOfString &paths) {
+void parse_path_from_environment(const String &envvar, ArrayOfString &paths) {
   char *envval = getenv(envvar.c_str());
   if (envval) {
     String pathstring(envval);
@@ -44,7 +44,7 @@ void parse_path_from_environment(const String& envvar, ArrayOfString &paths) {
     while (String::npos != pos || String::npos != lastPos) {
       paths.push_back(pathstring.substr(lastPos, pos - lastPos));
       lastPos = pathstring.find_first_not_of(delim, pos);
-      pos = pathstring.find_first_of(delim, lastPos);
+      pos     = pathstring.find_first_of(delim, lastPos);
     }
   }
 }

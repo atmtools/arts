@@ -6,7 +6,6 @@
 #include <mystring.h>
 
 #include <boost/container_hash/hash.hpp>
-#include <set>
 
 namespace Species {
 struct Tag {

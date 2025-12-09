@@ -146,8 +146,10 @@ void cia_interpolation(VectorView result,
     default: T_order = 3; break;
   }
 
+  using id = lagrange_interp::identity;
+
   // Find frequency grid positions:
-  const auto f_lag = lagrange_interp::make_lags<f_order>(
+  const auto f_lag = lagrange_interp::make_lags<f_order, id>(
       data_f_grid, f_grid_active, 0.5, "Frequency");
 
   // Do the rest of the interpolation.
@@ -158,15 +160,15 @@ void cia_interpolation(VectorView result,
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::cdata_t<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = lagrange_interp::make_lags<1>(
+      const auto T_lag = lagrange_interp::make_lags<1, id>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 2) {
-      const auto T_lag = lagrange_interp::make_lags<2>(
+      const auto T_lag = lagrange_interp::make_lags<2, id>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 3) {
-      const auto T_lag = lagrange_interp::make_lags<3>(
+      const auto T_lag = lagrange_interp::make_lags<3, id>(
           data_T_grid, Tnew, T_extrapolfac, "Temperature");
       result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else {

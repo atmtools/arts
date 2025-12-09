@@ -3,7 +3,6 @@
 #include <configtypes.h>
 
 #include <array>
-#include <iterator>
 
 namespace matpack {
 template <Index N>

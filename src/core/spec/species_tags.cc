@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cfloat>
-#include <iterator>
 #include <string_view>
 
 namespace Species {
@@ -48,14 +47,6 @@ constexpr void trim(std::string_view& text) {
 constexpr std::string_view next(std::string_view& text) {
   std::string_view next = text.substr(
       0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
-  text.remove_prefix(std::min(text.size(), next.size() + 1));
-  trim(next);
-  trim(text);
-  return next;
-}
-
-constexpr std::string_view next_tag(std::string_view& text) {
-  std::string_view next = text.substr(0, text.find_first_of(','));
   text.remove_prefix(std::min(text.size(), next.size() + 1));
   trim(next);
   trim(text);
@@ -163,17 +154,6 @@ SpeciesTag parse_tag(std::string_view text) {
   return tag;
 }
 }  // namespace
-
-Array<Tag> parse_tags(std::string_view text) {
-  trim(text);
-
-  Array<Tag> tags;
-  while (text.size()) {
-    tags.emplace_back(parse_tag(next_tag(text)));
-  }
-
-  return tags;
-}
 
 Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 

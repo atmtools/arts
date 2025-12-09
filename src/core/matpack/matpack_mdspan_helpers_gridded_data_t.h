@@ -6,8 +6,7 @@
 
 #include <algorithm>
 
-#include "lagrange_interp.h"
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 #include "matpack_mdspan_helpers_ranged_grid_t.h"
 
@@ -120,64 +119,6 @@ struct gridded_data_t {
   }
 
   constexpr auto operator<=>(const gridded_data_t&) const = default;
-
-  template <Size Grid,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
-  [[nodiscard]] auto lag(const grid_t<Grid>& other,
-                         Index order,
-                         Numeric extrapol) const {
-    return lagrange_interp::make_lags<transform>(
-        grid<Grid>(), other, order, extrapol, gridname<Grid>().c_str());
-  }
-
-  template <Size Grid,
-            Index N,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
-  [[nodiscard]] auto lag(const grid_t<Grid>& other, Numeric extrapol) const {
-    return lagrange_interp::make_lags<N, transform>(
-        grid<Grid>(), other, extrapol, gridname<Grid>().c_str());
-  }
-
-  template <Size Grid,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
-  [[nodiscard]] auto lag(const grid_value_t<Grid>& other, Index order) const {
-    if constexpr (std::same_as<grid_t<Grid>, AscendingGrid>) {
-      return lagrange_interp::lag_t<-1, transform>(
-          grid<Grid>(), other, order, lagrange_interp::ascending_grid_t{});
-    } else if constexpr (std::same_as<grid_t<Grid>, DescendingGrid>) {
-      return lagrange_interp::lag_t<-1, transform>(
-          grid<Grid>(), other, order, lagrange_interp::descending_grid_t{});
-    } else {
-      if (grid<Grid>().size() <= 1 or grid<Grid>()[0] < grid<Grid>()[1]) {
-        return lagrange_interp::lag_t<-1, transform>(
-            grid<Grid>(), other, order, lagrange_interp::ascending_grid_t{});
-      }
-
-      return lagrange_interp::lag_t<-1, transform>(
-          grid<Grid>(), other, order, lagrange_interp::descending_grid_t{});
-    }
-  }
-
-  template <Size Grid,
-            Index N,
-            lagrange_interp::transformer transform = lagrange_interp::identity>
-  [[nodiscard]] auto lag(const grid_value_t<Grid>& other) const {
-    if constexpr (std::same_as<grid_t<Grid>, AscendingGrid>) {
-      return lagrange_interp::lag_t<N, transform>(
-          grid<Grid>(), other, lagrange_interp::ascending_grid_t{});
-    } else if constexpr (std::same_as<grid_t<Grid>, DescendingGrid>) {
-      return lagrange_interp::lag_t<N, transform>(
-          grid<Grid>(), other, lagrange_interp::descending_grid_t{});
-    } else {
-      if (grid<Grid>().size() <= 1 or grid<Grid>()[0] < grid<Grid>()[1]) {
-        return lagrange_interp::lag_t<N, transform>(
-            grid<Grid>(), other, lagrange_interp::ascending_grid_t{});
-      }
-
-      return lagrange_interp::lag_t<N, transform>(
-          grid<Grid>(), other, lagrange_interp::descending_grid_t{});
-    }
-  }
 };
 }  // namespace matpack
 

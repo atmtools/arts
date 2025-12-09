@@ -91,6 +91,7 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
                             const DisortRadiance& disort_spectral_rad_field,
                             const PropagationPathPoint& ray_point) {
   using namespace lagrange_interp;
+  using aa_cyc_t = cycler<0.0, 360.0>;
 
   ARTS_TIME_REPORT
 
@@ -108,37 +109,31 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
   ARTS_USER_ERROR_IF(alt_grid.size() < 2,
                      "DISORT altitude grid must have at least two points")
 
-  using aa_cyc_t    = cycler<0.0, 360.0>;
-  const auto aa_lag = variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]);
-  const auto za_lag = variant_lag<identity>(zen_grid, ray_point.los[0]);
-
   const Numeric z  = ray_point.altitude();
   const bool above = alt_grid.size() < 2 or z >= alt_grid[1];
   const bool below = z <= alt_grid.back();
 
   if (above or below) {
     std::visit(
-        [&, idx = above ? 0 : alt_grid.size() - 2](auto& aa, auto& za) {
+        [&, idx = above ? 0 : alt_grid.size() - 2](auto&& aa, auto&& za) {
           std::transform(
               data.begin(), data.end(), spectral_rad.begin(), [&](auto&& d) {
                 return interp(d[idx], aa, za);
               });
         },
-        aa_lag,
-        za_lag);
+        variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
+        variant_lag<identity>(zen_grid, ray_point.los[0]));
   } else {
-    const auto alt_lag = variant_lag<>(std::span{alt_grid}.subspan(1), z);
-
     std::visit(
-        [&](auto& alt, auto& aa, auto& za) {
+        [&](auto&& alt, auto&& aa, auto&& za) {
           std::transform(
               data.begin(), data.end(), spectral_rad.begin(), [&](auto&& d) {
                 return interp(d, alt, aa, za);
               });
         },
-        alt_lag,
-        aa_lag,
-        za_lag);
+        variant_lag<identity>(std::span{alt_grid}.subspan(1), z),
+        variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
+        variant_lag<identity>(zen_grid, ray_point.los[0]));
   }
 }
 

@@ -6,8 +6,11 @@
 #include <array>
 #include <concepts>
 #include <cstdlib>
-#include <tuple>
+#include <ranges>
 #include <type_traits>
+
+namespace stdr = std::ranges;
+namespace stdv = std::ranges::views;
 
 namespace matpack {
 //! The type is an integer
@@ -108,8 +111,7 @@ concept has_IsVectorAtCompileTime = requires(T) {
 
 //! Checks if the type has any accepted types of columns
 template <typename T>
-concept column_keeper =
-    has_ncols<T> or has_size<T> or has_cols<T>;
+concept column_keeper = has_ncols<T> or has_size<T> or has_cols<T>;
 
 //! Get a column size from x
 template <column_keeper U>
@@ -212,8 +214,10 @@ constexpr Size rank() {
 }
 
 //! Gets the dimension size of some extent
-template <rankable T, Size dim = rank<T>()>
+template <rankable T>
 constexpr Size dimsize(const T& v, integral auto ind) {
+  constexpr Size dim = rank<T>();
+
   if constexpr (has_extent<T>) {
     return v.extent(ind);
   } else if constexpr (has_dimension<T>) {
@@ -262,8 +266,10 @@ concept has_shape = rankable<T> and requires(T a) {
 };
 
 //! Get the shape
-template <rankable T, Size dim = rank<T>()>
-constexpr std::array<Index, dim> mdshape(const T& v) {
+template <rankable T>
+constexpr auto mdshape(const T& v) {
+  constexpr Size dim = rank<T>();
+
   if constexpr (has_shape<T, dim>) {
     return v.shape();
   } else {
@@ -285,9 +291,9 @@ concept has_index_access = requires(T a) { a[Index{}]; };
 //! Thest if the object can be iterated over
 template <typename T>
 concept is_iterable = requires(T a) {
-  std::begin(a);
-  std::begin(a) + Index{};
-  std::end(a);
-  std::size(a);
+  stdr::begin(a);
+  stdr::begin(a) + Index{};
+  stdr::end(a);
+  stdr::size(a);
 };
 }  // namespace matpack

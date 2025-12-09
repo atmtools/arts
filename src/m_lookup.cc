@@ -211,20 +211,18 @@ void abs_lookup_dataPrecomputeAll(
 
   ArrayOfSpeciesEnum lut_species;
   const auto species_not_in_lut =
-      std::views::transform(
-          [](const auto& pair) { return pair.first.isot.spec; }) |
-      std::views::filter([&lut_species](const SpeciesEnum& s) {
-        return lut_species.end() == std::ranges::find(lut_species, s);
+      stdv::transform([](const auto& pair) { return pair.first.isot.spec; }) |
+      stdv::filter([&lut_species](const SpeciesEnum& s) {
+        return lut_species.end() == stdr::find(lut_species, s);
       });
 
-  std::ranges::copy(abs_bands | species_not_in_lut,
-                    std::back_inserter(lut_species));
+  stdr::copy(abs_bands | species_not_in_lut, std::back_inserter(lut_species));
 
-  std::ranges::sort(lut_species);
+  stdr::sort(lut_species);
 
   for (auto spec : water_affected_species) {
     ARTS_USER_ERROR_IF(
-        not std::ranges::binary_search(lut_species, spec),
+        not stdr::binary_search(lut_species, spec),
         R"(Missing a species in the absorption bands that is marked as affected by water vapor.
   Species:                                       {}
   Absorption band species:
@@ -247,7 +245,7 @@ void abs_lookup_dataPrecomputeAll(
 
   for (SpeciesEnum s : lut_species) {
     const bool do_water_perturb =
-        std::ranges::any_of(water_affected_species, Cmp::eq(s));
+        stdr::any_of(water_affected_species, Cmp::eq(s));
 
     if (do_water_perturb) {
       abs_lookup_data[s] = {s, atm_profile, f, abs_bands, abs_ecs_data, t, w};

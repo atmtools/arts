@@ -16,6 +16,7 @@
   ===========================================================================*/
 
 #include <array.h>
+#include <debug.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -23,8 +24,9 @@
 #include <vector>
 
 #include "lapack.h"
-#include "matpack_mdspan.h"
-#include "matpack_mdspan_helpers.h"
+#include "matpack_mdspan_helpers_eigen.h"
+#include "matpack_mdspan_helpers_matrix.h"
+#include "matpack_mdspan_helpers_reduce.h"
 
 //! LU decomposition.
 /*!
@@ -542,33 +544,7 @@ void id_mat(MatrixView I) {
     \date   2012-08-03
 */
 Numeric det(ConstMatrixView A) {
-  const Index dim = A.nrows();
-  assert(dim == A.ncols());
-
-  if (dim == 3)
-    return A[0, 0] * A[1, 1] * A[2, 2] + A[0, 1] * A[1, 2] * A[2, 0] +
-           A[0, 2] * A[1, 0] * A[2, 1] - A[0, 2] * A[1, 1] * A[2, 0] -
-           A[0, 1] * A[1, 0] * A[2, 2] - A[0, 0] * A[1, 2] * A[2, 1];
-  if (dim == 2) return A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0];
-  if (dim == 1) return A[0, 0];
-
-  Numeric ret_val = 0.;
-
-  for (Index j = 0; j < dim; j++) {
-    Matrix temp(dim - 1, dim - 1);
-    for (Index I = 1; I < dim; I++)
-      for (Index J = 0; J < dim; J++) {
-        if (J < j)
-          temp[I - 1, J] = A[I, J];
-        else if (J > j)
-          temp[I - 1, J - 1] = A[I, J];
-      }
-
-    Numeric tempNum = det(temp);
-
-    ret_val += ((j % 2 == 0) ? -1. : 1.) * tempNum * A[0, j];
-  }
-  return ret_val;
+  return matpack::eigen::as_eigen(A).determinant();
 }
 
 /*!

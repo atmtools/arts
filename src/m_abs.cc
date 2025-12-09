@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ranges>
 #include <utility>
 
 namespace {
@@ -289,7 +288,7 @@ void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
   }
 
   //spectral_propmatAddFaraday
-  if (std::ranges::any_of(abs_species, [](auto& spec) {
+  if (stdr::any_of(abs_species, [](auto& spec) {
         return spec.Spec() == "free_electrons"_spec;
       })) {
     agenda.add("spectral_propmatAddFaraday");

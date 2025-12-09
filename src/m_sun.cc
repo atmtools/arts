@@ -283,14 +283,14 @@ void spectral_rad_srcvec_pathAddScattering(
   if (np == 0) return;
   const Size nf = spectral_propmat_path.front().size();
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(spectral_rad_srcvec_path,
-                          Cmp::ne(nf),
-                          [](auto& v) { return v.size(); }),
+      stdr::any_of(spectral_rad_srcvec_path,
+                   Cmp::ne(nf),
+                   [](auto& v) { return v.size(); }),
       "Mismatch frequency size of spectral_propmat_path and spectral_rad_srcvec_path")
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(spectral_rad_scat_path,
-                          Cmp::ne(nf),
-                          [](auto& v) { return v.size(); }),
+      stdr::any_of(spectral_rad_scat_path,
+                   Cmp::ne(nf),
+                   [](auto& v) { return v.size(); }),
       "Mismatch frequency size of spectral_propmat_path and spectral_rad_scat_path")
 
   if (arts_omp_in_parallel()) {
@@ -349,17 +349,16 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
                      "Bad ray_path_suns_path: incorrect number of path points")
 
   const Size nsuns = suns.size();
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_suns_path,
-                          Cmp::ne(nsuns),
-                          &ArrayOfArrayOfPropagationPathPoint::size),
-      "Bad ray_path_suns_path: incorrect number of suns")
+  ARTS_USER_ERROR_IF(stdr::any_of(ray_path_suns_path,
+                                  Cmp::ne(nsuns),
+                                  &ArrayOfArrayOfPropagationPathPoint::size),
+                     "Bad ray_path_suns_path: incorrect number of suns")
 
   const Size nf = freq_grid.size();
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(spectral_rad_scat_path,
-                          Cmp::ne(nf),
-                          [](auto& v) { return v.size(); }),
+      stdr::any_of(spectral_rad_scat_path,
+                   Cmp::ne(nf),
+                   [](auto& v) { return v.size(); }),
       "Bad spectral_rad_srcvec_path: incorrect number of frequencies")
 
   StokvecVector spectral_rad{};

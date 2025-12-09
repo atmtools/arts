@@ -4,8 +4,9 @@
 #include <nonstd.h>
 
 #include <algorithm>
+#include <cmath>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 /** Sum all elements in the range using it's reduce operation

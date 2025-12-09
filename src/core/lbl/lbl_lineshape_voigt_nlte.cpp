@@ -231,10 +231,8 @@ namespace {
 constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
-    auto low =
-        std::ranges::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
-    auto upp =
-        std::ranges::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
+    auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
+    auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
 
     return {std::distance(lines.begin(), low), std::distance(low, upp)};
   }
@@ -891,7 +889,7 @@ void calculate(PropmatVectorView pm_,
                const bool no_negative_absorption) {
   ARTS_USER_ERROR_IF(bnd.size() != 1, "Only for single lines per ID")
 
-  if (std::ranges::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
+  if (stdr::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 
   PropmatVectorView pm         = pm_[f_range];
   StokvecVectorView sv         = sv_[f_range];

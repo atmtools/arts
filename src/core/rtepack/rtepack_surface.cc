@@ -2,6 +2,8 @@
 
 #include <arts_constexpr_math.h>
 
+#include "rtepack_multitype.h"
+
 namespace rtepack {
 muelmat fresnel_reflectance(Complex Rv, Complex Rh) {
   const Numeric rv    = std::norm(Rv);

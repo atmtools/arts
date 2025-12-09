@@ -1,9 +1,8 @@
+#include <arts_constants.h>
 #include <disort.h>
 
 #include <iostream>
 #include <ranges>
-
-#include <arts_constants.h>
 
 #include "artstime.h"
 #include "cdisort/cdisort.h"
@@ -174,7 +173,7 @@ void newimpl(bool print_results = false) {
     const auto [a0, b0] = dis.flux_down(fd, 0);
     const auto c0       = dis.flux_up(fd, 0);
     std::cout << a0 << ',' << b0 << ',' << c0 << ',' << '\n';
-    for (auto t : tau | std::ranges::views::take(NLayers - 1)) {
+    for (auto t : tau | stdv::take(NLayers - 1)) {
       const auto [a, b] = dis.flux_down(fd, t);
       const auto c      = dis.flux_up(fd, t);
       std::cout << a << ',' << b << ',' << c << ',' << '\n';
@@ -182,18 +181,17 @@ void newimpl(bool print_results = false) {
   }
 }
 
-std::pair<Numeric, Numeric> absrel(VectorView v1,
-                                   const ConstVectorView& v2) {
+std::pair<Numeric, Numeric> absrel(VectorView v1, const ConstVectorView& v2) {
   for (double i : v1) {
     if (i == 0) std::cerr << "ERROR\n";
   }
 
   v1               -= v2;
-  const Numeric a_  = std::abs(std::ranges::max(
-      v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
+  const Numeric a_  = std::abs(
+      stdr::max(v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
   v1               /= v2;
-  const Numeric b_  = std::abs(std::ranges::max(
-      v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
+  const Numeric b_  = std::abs(
+      stdr::max(v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
   return {a_, b_};
 }
 
@@ -214,14 +212,15 @@ void test_flat() try {
   for (auto& o : omega_arr) o = draw();
   Matrix Leg_coeffs_all(tau_arr.size(), 32);
   for (auto&& v : Leg_coeffs_all)
-    v = std::array{1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
-         3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
-         1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
-         3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
-         1.00225958e-02, 7.51694682e-03, 5.63771011e-03, 4.22828259e-03,
-         3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
-         1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
-         3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04};
+    v = std::array{
+        1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
+        3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
+        1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
+        3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
+        1.00225958e-02, 7.51694682e-03, 5.63771011e-03, 4.22828259e-03,
+        3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
+        1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
+        3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04};
 
   //const Numeric mu0 = 0.6;
   //const Numeric I0 = Constant::pi / mu0;
@@ -233,7 +232,8 @@ void test_flat() try {
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);
-  for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
+  for (auto&& v : s_poly_coeffs)
+    v = std::array{172311.79936609, -102511.4417051};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad_]};
 
   // Optional (unused)
@@ -281,11 +281,13 @@ void test_flat() try {
     dis.ungridded_u(u3, tau_arr, phi);
   }
 
-  const auto [u2_abs, u2_rel] = absrel(u2.view_as(u2.size()), u1.view_as(u1.size()));
+  const auto [u2_abs, u2_rel] =
+      absrel(u2.view_as(u2.size()), u1.view_as(u1.size()));
   std::cout << "u abs-max gridded:   " << u2_abs << '\n';
   std::cout << "u abs-rel gridded:   " << u2_rel << '\n';
 
-  const auto [u3_abs, u3_rel] = absrel(u3.view_as(u3.size()), u1.view_as(u1.size()));
+  const auto [u3_abs, u3_rel] =
+      absrel(u3.view_as(u3.size()), u1.view_as(u1.size()));
   std::cout << "u abs-max ungridded: " << u3_abs << '\n';
   std::cout << "u abs-rel ungridded: " << u3_rel << '\n';
 
@@ -313,9 +315,12 @@ void test_flat() try {
     dis.ungridded_flux(fu3, fd3, fb3, tau_arr);
   }
 
-  const auto [fu2_abs, fu2_rel] = absrel(fu2.view_as(u2.size()), fu1.view_as(u1.size()));
-  const auto [fd2_abs, fd2_rel] = absrel(fd2.view_as(fd2.size()), fd1.view_as(fd1.size()));
-  const auto [fb2_abs, fb2_rel] = absrel(fb2.view_as(fb2.size()), fb1.view_as(fb1.size()));
+  const auto [fu2_abs, fu2_rel] =
+      absrel(fu2.view_as(u2.size()), fu1.view_as(u1.size()));
+  const auto [fd2_abs, fd2_rel] =
+      absrel(fd2.view_as(fd2.size()), fd1.view_as(fd1.size()));
+  const auto [fb2_abs, fb2_rel] =
+      absrel(fb2.view_as(fb2.size()), fb1.view_as(fb1.size()));
   std::cout << "fu abs-max gridded:   " << fu2_abs << '\n';
   std::cout << "fu abs-rel gridded:   " << fu2_rel << '\n';
   std::cout << "fd abs-max gridded:   " << fd2_abs << '\n';
@@ -323,9 +328,12 @@ void test_flat() try {
   std::cout << "fb abs-max gridded:   " << fb2_abs << '\n';
   std::cout << "fb abs-rel gridded:   " << fb2_rel << '\n';
 
-  const auto [fu3_abs, fu3_rel] = absrel(fu3.view_as(fu3.size()), fu1.view_as(u1.size()));
-  const auto [fd3_abs, fd3_rel] = absrel(fd3.view_as(fd3.size()), fd1.view_as(fd1.size()));
-  const auto [fb3_abs, fb3_rel] = absrel(fb3.view_as(fb3.size()), fb1.view_as(fb1.size()));
+  const auto [fu3_abs, fu3_rel] =
+      absrel(fu3.view_as(fu3.size()), fu1.view_as(u1.size()));
+  const auto [fd3_abs, fd3_rel] =
+      absrel(fd3.view_as(fd3.size()), fd1.view_as(fd1.size()));
+  const auto [fb3_abs, fb3_rel] =
+      absrel(fb3.view_as(fb3.size()), fb1.view_as(fb1.size()));
   std::cout << "fu abs-max ungridded: " << fu3_abs << '\n';
   std::cout << "fu abs-rel ungridded: " << fu3_rel << '\n';
   std::cout << "fd abs-max ungridded: " << fd3_abs << '\n';
@@ -370,7 +378,7 @@ int main(int argc, char** argv) {
       ts1.emplace_back("old")([]() { oldimpl(); });
     }
     std::cout << "old best: "
-              << std::ranges::min(
+              << stdr::min(
                      ts1,
                      [](auto a, auto b) { return a.count() < b.count(); },
                      &Timing::dt)
@@ -381,7 +389,7 @@ int main(int argc, char** argv) {
       ts2.emplace_back("new")([]() { newimpl(); });
     }
     std::cout << "new best: "
-              << std::ranges::min(
+              << stdr::min(
                      ts2,
                      [](auto a, auto b) { return a.count() < b.count(); },
                      &Timing::dt)

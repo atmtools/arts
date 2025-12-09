@@ -11,6 +11,7 @@
 #include <properties.h>
 #include <quantum.h>
 #include <species.h>
+
 #include <stdexcept>
 
 AtmKey to_wind(const String &);
@@ -238,9 +239,7 @@ struct Data {
 
   [[nodiscard]] bool ok() const;
 
-  void regrid(const AscendingGrid &alt,
-              const LatGrid &lat,
-              const LonGrid &lon);
+  void regrid(const AscendingGrid &alt, const LatGrid &lat, const LonGrid &lon);
 };
 
 template <typename T>

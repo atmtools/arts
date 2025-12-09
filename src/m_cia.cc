@@ -64,7 +64,7 @@ void spectral_propmatAddCIA(  // WS Output:
   const auto jac_temps = jac_targets.find(AtmKey::t);
 
   const bool do_wind_jac =
-      std::ranges::any_of(jac_freqs, [end](const auto& x) { return x != end; });
+      stdr::any_of(jac_freqs, [end](const auto& x) { return x != end; });
   const bool do_temp_jac = jac_temps != end;
   const Numeric dt       = do_temp_jac ? jac_temps->d : 0.0;
   const Numeric df       = jac_freqs[0] != end   ? jac_freqs[0]->d

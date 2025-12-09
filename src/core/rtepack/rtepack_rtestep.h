@@ -2,7 +2,7 @@
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
-#include "rtepack_source.h"
+#include "rtepack_stokes_vector.h"
 
 namespace rtepack {
 

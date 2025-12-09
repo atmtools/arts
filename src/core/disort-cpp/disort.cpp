@@ -16,8 +16,6 @@
 #include <ranges>
 #include <vector>
 
-#include "matpack_einsum.h"
-
 namespace disort {
 void radiances::resize(AscendingGrid f_grid,
                        DescendingGrid alt_grid_,
