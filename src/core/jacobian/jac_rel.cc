@@ -1,7 +1,6 @@
 #include "jac_rel.h"
 
 #include "jacobian.h"
-#include "matpack_einsum.h"
 
 Vector relfwd::operator()(ConstVectorView xx) const {
   ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")

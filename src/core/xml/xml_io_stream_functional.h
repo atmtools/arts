@@ -3,12 +3,9 @@
 #include <concepts>
 #include <functional>
 #include <stdexcept>
-#include <tuple>
-#include <type_traits>
 #include <variant>
 
 #include "configtypes.h"
-#include "debug.h"
 #include "xml_io_base.h"
 #include "xml_io_stream.h"
 #include "xml_io_stream_core.h"

@@ -19,12 +19,12 @@
 #include <array.h>
 #include <arts_constants.h>
 #include <arts_conversions.h>
+#include <debug.h>
 #include <mystring.h>
 
 #include <cmath>
 
-#include "matpack_mdspan.h"
-#include "matpack_mdspan_helpers.h"
+#include "matpack_mdspan_helpers_reduce.h"
 
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 inline constexpr Numeric PI      = Constant::pi;
@@ -440,16 +440,16 @@ Index sign(const Index& x) { return (x > 0) - (x < 0); }
 
 Numeric min_geq(const Numeric n1, const Numeric n2, const Numeric limit) {
   if (n1 < limit) {
-    if (n2 < limit)
-      return limit - 1;
-    else
-      return n2;
-  } else if (n2 < limit) {
+    if (n2 < limit) return limit - 1;
+    return n2;
+  }
+
+  if (n2 < limit) {
     if (n1 < limit) return limit - 1;
     return n1;
-  } else {
-    return std::min(n1, n2);
   }
+
+  return std::min(n1, n2);
 }
 
 Index n_int_between(const Numeric x, const Numeric y) {
@@ -686,25 +686,25 @@ Numeric mod_gamma_dist(
     dN = N0 * pow(x, mu) * exp(-Lambda * pow(x, gamma));
 
     return dN;
-  } else {
-    ARTS_USER_ERROR(
-        "At least one argument is zero or negative.\n"
-        "Modified gamma distribution can not be calculated.\n"
-        "x      = {}"
-        "\n"
-        "N0     = {}"
-        "\n"
-        "lambda = {}"
-        "\n"
-        "mu     = {}"
-        "\n"
-        "gamma  = {}\n",
-        x,
-        N0,
-        Lambda,
-        mu,
-        gamma)
   }
+
+  ARTS_USER_ERROR(
+      "At least one argument is zero or negative.\n"
+      "Modified gamma distribution can not be calculated.\n"
+      "x      = {}"
+      "\n"
+      "N0     = {}"
+      "\n"
+      "lambda = {}"
+      "\n"
+      "mu     = {}"
+      "\n"
+      "gamma  = {}\n",
+      x,
+      N0,
+      Lambda,
+      mu,
+      gamma)
 }
 
 //! unitl

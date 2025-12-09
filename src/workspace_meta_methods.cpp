@@ -3,7 +3,6 @@
 #include <sorting.h>
 
 #include <algorithm>
-#include <ranges>
 #include <sstream>
 #include <stdexcept>
 

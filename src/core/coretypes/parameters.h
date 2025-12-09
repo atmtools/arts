@@ -11,7 +11,7 @@
 #ifndef parameters_h
 #define parameters_h
 
-#include "mystring.h"
+#include <mystring.h>
 
 struct Parameters {
   /** List of paths to search for include files. */
@@ -20,6 +20,6 @@ struct Parameters {
   ArrayOfString datapath{};
 };
 
-void parse_path_from_environment(const String& envvar, ArrayOfString &paths);
+void parse_path_from_environment(const String& envvar, ArrayOfString& paths);
 
 #endif  // parameters_h

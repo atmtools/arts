@@ -5,7 +5,6 @@
 #include <debug.h>
 #include <physics_funcs.h>
 
-#include <algorithm>
 #include <functional>
 #include <numeric>
 

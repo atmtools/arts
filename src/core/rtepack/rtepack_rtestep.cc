@@ -4,6 +4,7 @@
 #include <arts_omp.h>
 #include <physics_funcs.h>
 
+#include "rtepack_multitype.h"
 #include "rtepack_transmission.h"
 
 namespace rtepack {

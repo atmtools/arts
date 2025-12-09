@@ -11,7 +11,6 @@
 #include <boost/container_hash/hash.hpp>
 #include <concepts>
 #include <limits>
-#include <numeric>
 #include <variant>
 #include <vector>
 

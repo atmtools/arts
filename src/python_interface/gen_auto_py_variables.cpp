@@ -4,11 +4,13 @@
 
 #include "pydocs.h"
 
-std::vector<std::string> errors;
 #define ERRORAPPEND                \
   catch (std::exception & e) {     \
     errors.emplace_back(e.what()); \
   }
+
+namespace {
+std::vector<std::string> errors;
 
 std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
   return ofs[i % ofs.size()];
@@ -104,6 +106,7 @@ void py_auto_wsv_)--"
     select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
   }
 }
+}  // namespace
 
 int main(int argc, char** argv) {
   if (argc != 2) {

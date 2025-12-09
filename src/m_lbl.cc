@@ -24,14 +24,9 @@
 #include <cmath>
 #include <exception>
 #include <filesystem>
-#include <functional>
 #include <iterator>
 #include <ranges>
-#include <span>
 #include <unordered_map>
-
-#include "enumsZeemanPolarization.h"
-#include "matpack_mdspan_view_t.h"
 
 void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
                                     const Numeric& fmin,

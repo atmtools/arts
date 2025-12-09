@@ -16,6 +16,7 @@
   ===========================================================================*/
 
 #include <array.h>
+#include <debug.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -23,8 +24,8 @@
 #include <vector>
 
 #include "lapack.h"
-#include "matpack_mdspan.h"
-#include "matpack_mdspan_helpers.h"
+#include "matpack_mdspan_helpers_matrix.h"
+#include "matpack_mdspan_helpers_reduce.h"
 
 //! LU decomposition.
 /*!

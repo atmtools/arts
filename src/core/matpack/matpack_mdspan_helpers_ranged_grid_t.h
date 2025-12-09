@@ -1,15 +1,14 @@
 #pragma once
 
+#include <xml.h>
+
 #include <algorithm>
-#include <limits>
 #include <stdexcept>
 
 #include "lagrange_interp.h"
 #include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 #include "matpack_mdspan_view_t.h"
-#include "xml_io_base.h"
-#include "xml_io_stream.h"
 #include "xml_io_stream_matpack_mdspan.h"
 
 namespace matpack {

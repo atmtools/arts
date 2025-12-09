@@ -4,7 +4,6 @@
 #include <string_extract.h>
 #include <xml_io.h>
 
-#include <algorithm>
 #include <istream>
 #include <ostream>
 
@@ -172,7 +171,7 @@ lbl::line_shape::model from_artscat4(std::istream& is,
   using enum LineShapeModelType;
 
   lbl::line_shape::model out;
-  out.T0         = T0_;
+  out.T0 = T0_;
   out.single_models.reserve(7);
 
   const std::array<SpeciesEnum, 7> species = {qid.isot.spec,

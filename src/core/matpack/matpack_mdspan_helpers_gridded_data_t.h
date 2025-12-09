@@ -6,8 +6,7 @@
 
 #include <algorithm>
 
-#include "lagrange_interp.h"
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_data_t.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 #include "matpack_mdspan_helpers_ranged_grid_t.h"
 

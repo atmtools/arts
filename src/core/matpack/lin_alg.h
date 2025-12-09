@@ -11,7 +11,6 @@
 #define linalg_h
 
 #include "matpack_arrays.h"
-#include "matpack_mdspan.h"
 
 // LU decomposition
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A);

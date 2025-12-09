@@ -4,10 +4,9 @@
 #include <fast_float/fast_float.h>
 #include <hitran_species.h>
 #include <partfun.h>
+#include <quantum.h>
 
 #include <charconv>
-
-#include "quantum.h"
 
 namespace lbl {
 namespace {

@@ -3,10 +3,8 @@
 #include <compare.h>
 #include <nonstd.h>
 
-#include <utility>
 #include <vector>
 
-#include "matpack_mdspan.h"
 #include "matpack_mdspan_helpers_grid_t.h"
 
 namespace matpack {

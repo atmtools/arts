@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 template <ranked_md<2> MAT>

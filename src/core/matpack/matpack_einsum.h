@@ -10,7 +10,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_sizes.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 namespace {

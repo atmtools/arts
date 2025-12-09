@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lbl_data.h"
-#include "matpack_mdspan_helpers_grid_t.h"
 
 bool is_voigt(LineByLineLineshape lsm);
 

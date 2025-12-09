@@ -6,7 +6,7 @@
 #include <ranges>
 #include <vector>
 
-#include "matpack_mdspan_common.h"
+#include "matpack_mdspan_common_select.h"
 
 namespace matpack {
 template <ranked_md<1> T>

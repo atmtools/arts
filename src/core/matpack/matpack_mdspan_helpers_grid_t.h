@@ -6,7 +6,7 @@
 #include <concepts>
 
 #include "lagrange_interp.h"
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_data_t.h"
 
 struct Ascending {
   consteval static std::string_view name() { return "ascending"sv; }

@@ -2,7 +2,8 @@
 
 #include <xml.h>
 
-#include "matpack_mdspan_helpers.h"
+#include "matpack_mdspan_helpers_grid_t.h"
+#include "matpack_mdspan_helpers_gridded_data_t.h"
 #include "xml_io_stream_matpack_mdspan.h"
 
 template <class Compare>

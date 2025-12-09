@@ -2,7 +2,6 @@
 
 #include <format_tags.h>
 
-#include <concepts>
 #include <variant>
 
 #include "xml_io_base.h"

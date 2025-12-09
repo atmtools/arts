@@ -5,9 +5,7 @@
 #include <concepts>
 #include <type_traits>
 
-#include "matpack_mdspan_common.h"
 #include "matpack_mdspan_data_t.h"
-#include "matpack_mdspan_elemwise_mditer.h"
 
 namespace matpack {
 template <typename T, Size... dims>

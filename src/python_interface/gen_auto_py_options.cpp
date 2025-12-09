@@ -9,6 +9,7 @@
 
 #include "pydocs.h"
 
+namespace {
 void enum_option(std::ostream& os, const EnumeratedOption& wso) {
   std::print(os,
              R"-x-(
@@ -138,5 +139,6 @@ void enum_options(const std::string& fname) {
 }  // namespace Python
 )-x-";
 }
+}  // namespace
 
 int main() { enum_options("py_auto_options"); }

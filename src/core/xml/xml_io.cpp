@@ -52,28 +52,6 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
 }
 
 ////////////////////////////////////////////////////////////////////////////
-//   General XML functions (file header, start root tag, end root tag)
-////////////////////////////////////////////////////////////////////////////
-
-//! Throws XML parser runtime error
-/*!
-  This is used quite often inside the data parsing routines so it's a
-  function for itself.
-
-  \param tag        XMLTag
-  \param str_error  Error description
-*/
-void xml_data_parse_error(XMLTag& tag, String str_error) {
-  std::ostringstream os;
-  os << "XML data parse error: Error reading ";
-  tag.write_to_stream(os);
-  os << str_error << "\n"
-     << "Check syntax of XML file. A possible cause is that the file "
-     << "contains NaN or Inf values.\n";
-  throw std::runtime_error(os.str());
-}
-
-////////////////////////////////////////////////////////////////////////////
 //   Default file name
 ////////////////////////////////////////////////////////////////////////////
 

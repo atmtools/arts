@@ -8,7 +8,6 @@
 
 #include "lbl_data.h"
 #include "lbl_lineshape_voigt_lte.h"
-#include "lbl_zeeman.h"
 
 namespace lbl::fwd {
 namespace models {

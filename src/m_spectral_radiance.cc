@@ -3,21 +3,15 @@
 #include <atm_field.h>
 #include <auto_wsm.h>
 #include <configtypes.h>
+#include <enumsAtmKey.h>
 #include <jacobian.h>
 #include <path_point.h>
+#include <physics_funcs.h>
 #include <rtepack.h>
 #include <rtepack_transmission.h>
 #include <surf_field.h>
 #include <time_report.h>
 #include <workspace.h>
-
-#include <ranges>
-
-#include "auto_wsa.h"
-#include "enumsAtmKey.h"
-#include "matpack_mdspan_helpers_grid_t.h"
-#include "physics_funcs.h"
-#include "rtepack_stokes_vector.h"
 
 void spectral_tramat_pathFromPath(
     ArrayOfMuelmatVector& spectral_tramat_path,

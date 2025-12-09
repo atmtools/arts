@@ -1,7 +1,5 @@
 #include <workspace.h>
 
-#include "matpack_mdspan_helpers_grid_t.h"
-
 namespace {
 void wind_shift(VectorView freq_grid,
                 Vector3& freq_wind_shift_jac,

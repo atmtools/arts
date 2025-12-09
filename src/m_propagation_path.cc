@@ -1,11 +1,9 @@
+#include <atm_field.h>
+#include <enumsSurfaceKey.h>
+#include <path_point.h>
 #include <workspace.h>
 
 #include <algorithm>
-
-#include "atm_field.h"
-#include "enumsSurfaceKey.h"
-#include "geodetic.h"
-#include "path_point.h"
 
 void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const AtmField& atm_field,

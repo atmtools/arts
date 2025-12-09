@@ -1,8 +1,10 @@
 #include <math_funcs.h>
 #include <mystring.h>
 #include <partfun.h>
+#include <partition_function_data.h>
 #include <workspace.h>
 #include <xml_io.h>
+#include <xml_io_partfun.h>
 
 #include <filesystem>
 

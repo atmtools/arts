@@ -1,12 +1,12 @@
 #include <workspace.h>
 #include <workspace_group_friends.h>
 
-#include <iostream>
 #include <ranges>
 #include <string>
 
 #include "pydocs.h"
 
+namespace {
 void implement_convert_const_py_object() {
   const auto& wsgs = internal_workspace_groups();
 
@@ -466,6 +466,7 @@ Failure to follow these rules will result in a runtime error.
 
   cpp << "}}\n";
 }
+}  // namespace
 
 int main() {
   groups("py_auto_wsg");

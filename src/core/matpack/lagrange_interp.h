@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace lagrange_interp {
 /*! Defines a transformer concept

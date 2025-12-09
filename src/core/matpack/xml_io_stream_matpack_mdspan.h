@@ -2,7 +2,7 @@
 
 #include <xml.h>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_data_t.h"
 
 void old_xml_io_read(XMLTag&, std::istream&, ComplexVector&, bifstream*);
 

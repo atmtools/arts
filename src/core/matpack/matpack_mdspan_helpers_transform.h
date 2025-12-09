@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "matpack_mdspan.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 /** Reverse the matpack type elementwise in-place */

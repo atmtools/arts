@@ -2,7 +2,7 @@
 
 #include <xml.h>
 
-#include "matpack_mdspan_common.h"
+#include "matpack_mdspan_common_select.h"
 
 template <>
 struct xml_io_stream<Range> {

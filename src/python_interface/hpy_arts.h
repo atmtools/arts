@@ -9,7 +9,6 @@
 
 #include <concepts>
 #include <format>
-#include <iomanip>
 
 #include "python_interface_value_type.h"
 

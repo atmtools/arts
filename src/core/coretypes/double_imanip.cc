@@ -1,11 +1,10 @@
 #include "double_imanip.h"
 
+#include <debug.h>
 #include <fast_float/fast_float.h>
 
 #include <istream>
 #include <system_error>
-
-#include <debug.h>
 
 const double_imanip& double_imanip::operator>>(double& x) const {
   std::istream& is = *in;

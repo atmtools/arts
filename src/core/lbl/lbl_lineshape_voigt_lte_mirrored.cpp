@@ -1,16 +1,16 @@
 #include "lbl_lineshape_voigt_lte_mirrored.h"
 
 #include <atm.h>
+#include <enumsSpeciesEnum.h>
 #include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
 #include <sorting.h>
 
-#include <Faddeeva/Faddeeva.hh>
+#include <Faddeeva.hh>
 #include <cmath>
 #include <numeric>
 
-#include "enumsSpeciesEnum.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
 

@@ -13,7 +13,6 @@
 #include "lbl_lineshape_voigt_lte.h"
 #include "lbl_lineshape_voigt_lte_mirrored.h"
 #include "lbl_lineshape_voigt_nlte.h"
-#include "lbl_zeeman.h"
 
 namespace lbl {
 namespace {

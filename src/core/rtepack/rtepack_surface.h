@@ -1,7 +1,6 @@
 #pragma once
 
 #include "rtepack_mueller_matrix.h"
-#include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {

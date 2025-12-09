@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 
+namespace {
 /** Extract something from the beginning of a string. This is just a small helper
  function to safe some typing.
 
@@ -43,14 +44,22 @@ void extract_tmpl(T& x, std::string& line, std::size_t n) {
   // Shorten line by n:
   line.erase(0, N);
 }
+}  // namespace
 
-void extract(float& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(double& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(char& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(long int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(long long int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(unsigned char& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(unsigned int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(unsigned long int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
-void extract(unsigned long long int& x, std::string& line, std::size_t n){extract_tmpl(x, line, n);}
+#define TMP_MACRO_EXTRACT(T)                             \
+  void extract(T& x, std::string& line, std::size_t n) { \
+    extract_tmpl(x, line, n);                            \
+  }
+
+TMP_MACRO_EXTRACT(float);
+TMP_MACRO_EXTRACT(double);
+TMP_MACRO_EXTRACT(char);
+TMP_MACRO_EXTRACT(int);
+TMP_MACRO_EXTRACT(long int);
+TMP_MACRO_EXTRACT(long long int);
+TMP_MACRO_EXTRACT(unsigned char);
+TMP_MACRO_EXTRACT(unsigned int);
+TMP_MACRO_EXTRACT(unsigned long int);
+TMP_MACRO_EXTRACT(unsigned long long int);
+
+#undef TMP_MACRO_EXTRACT

@@ -3,13 +3,10 @@
 #include <configtypes.h>
 
 #include <experimental/mdspan>
-#include <ranges>
 
 #include "matpack_mdspan_common_sizes.h"
 
 namespace stdx = std::experimental;
-namespace stdr = std::ranges;
-namespace stdv = std::ranges::views;
 
 namespace matpack {
 //! A standard type holding a strided multidimensional array

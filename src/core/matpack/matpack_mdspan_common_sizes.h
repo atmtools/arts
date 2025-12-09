@@ -6,8 +6,11 @@
 #include <array>
 #include <concepts>
 #include <cstdlib>
-#include <tuple>
+#include <ranges>
 #include <type_traits>
+
+namespace stdr = std::ranges;
+namespace stdv = std::ranges::views;
 
 namespace matpack {
 //! The type is an integer
@@ -108,8 +111,7 @@ concept has_IsVectorAtCompileTime = requires(T) {
 
 //! Checks if the type has any accepted types of columns
 template <typename T>
-concept column_keeper =
-    has_ncols<T> or has_size<T> or has_cols<T>;
+concept column_keeper = has_ncols<T> or has_size<T> or has_cols<T>;
 
 //! Get a column size from x
 template <column_keeper U>
@@ -285,9 +287,9 @@ concept has_index_access = requires(T a) { a[Index{}]; };
 //! Thest if the object can be iterated over
 template <typename T>
 concept is_iterable = requires(T a) {
-  std::begin(a);
-  std::begin(a) + Index{};
-  std::end(a);
-  std::size(a);
+  stdr::begin(a);
+  stdr::begin(a) + Index{};
+  stdr::end(a);
+  stdr::size(a);
 };
 }  // namespace matpack
