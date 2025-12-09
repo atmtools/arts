@@ -214,8 +214,10 @@ constexpr Size rank() {
 }
 
 //! Gets the dimension size of some extent
-template <rankable T, Size dim = rank<T>()>
+template <rankable T>
 constexpr Size dimsize(const T& v, integral auto ind) {
+  constexpr Size dim = rank<T>();
+
   if constexpr (has_extent<T>) {
     return v.extent(ind);
   } else if constexpr (has_dimension<T>) {
@@ -264,8 +266,10 @@ concept has_shape = rankable<T> and requires(T a) {
 };
 
 //! Get the shape
-template <rankable T, Size dim = rank<T>()>
-constexpr std::array<Index, dim> mdshape(const T& v) {
+template <rankable T>
+constexpr auto mdshape(const T& v) {
+  constexpr Size dim = rank<T>();
+
   if constexpr (has_shape<T, dim>) {
     return v.shape();
   } else {
