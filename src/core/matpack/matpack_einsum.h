@@ -15,18 +15,20 @@
 
 namespace matpack {
 namespace {
-template <char c, std::array cs, Size N = cs.size()>
+template <char c, std::array cs>
 consteval Size position_first() {
+  constexpr Size N = cs.size();
+
   for (Size i = 0; i < N; ++i) {
-    if (cs[i] == c) {
-      return i;
-    }
+    if (cs[i] == c) return i;
   }
   return std::numeric_limits<Size>::max();
 }
 
-template <char c, std::array cs, Size N = cs.size()>
-consteval std::array<char, N - 1> drop_first() {
+template <char c, std::array cs>
+consteval auto drop_first() {
+  constexpr Size N = cs.size();
+
   std::array<char, N - 1> result{};
   bool done = false;
   for (Size i = 0; i < N; ++i) {
@@ -36,24 +38,25 @@ consteval std::array<char, N - 1> drop_first() {
       result[i - done] = cs[i];
     }
   }
+
   return result;
 }
 
-template <char c, std::array cs, Size N = cs.size()>
+template <char c, std::array cs>
 consteval Size count_char() {
-  Size n = 0;
+  constexpr Size N = cs.size();
+  Size n           = 0;
   for (Size i = 0; i < N; ++i) {
     n += cs[i] == c;
   }
   return n;
 }
 
-template <char c,
-          std::array cs,
-          typename T,
-          Size N = cs.size(),
-          Size n = count_char<c, cs>()>
+template <char c, std::array cs, typename T>
 constexpr decltype(auto) reduce_mdrank(T&& arr, Index i [[maybe_unused]]) {
+  constexpr Size N = cs.size();
+  constexpr Size n = count_char<c, cs>();
+
   if constexpr (n == 0 or N == 0) {
     return std::forward<T>(arr);
   } else if constexpr (n == 1) {
@@ -77,16 +80,16 @@ consteval auto reduce_charrank() {
   }
 }
 
-template <std::array cs, Size N = cs.size()>
+template <std::array cs>
 consteval bool empty() {
-  return N == 0;
+  return cs.size() == 0;
 }
 
-template <std::array cf,
-          std::array... cs,
-          Size N = cf.size(),
-          Size M = sizeof...(cs)>
+template <std::array cf, std::array... cs>
 consteval char find_first_char() {
+  constexpr Size N = cf.size();
+  constexpr Size M = sizeof...(cs);
+
   if constexpr (N == 0 and M == 0) {
     return '\0';
   } else if constexpr (N != 0) {
@@ -98,10 +101,13 @@ consteval char find_first_char() {
   }
 }
 
-template <char c, std::array cf, std::array... cs, Size N = cf.size()>
+template <char c, std::array cf, std::array... cs>
 constexpr Size mddimsize(const auto& xf, const auto&... xs) {
+  constexpr Size N = cf.size();
+
   if constexpr (N > 0 and find_first_char<cf>() == c) {
     constexpr Size dim = position_first<c, cf>();
+
     if constexpr (requires { static_cast<Size>(std::get<dim>(mdshape(xf))); }) {
       return static_cast<Size>(std::get<dim>(mdshape(xf)));
     } else if constexpr (stdr::sized_range<decltype(xf)>) {
@@ -162,13 +168,12 @@ consteval bool copy_chars()
   return false;
 }
 
-template <std::array A,
-          std::array B,
-          std::array C,
-          Size NA = A.size(),
-          Size NB = B.size(),
-          Size NC = C.size()>
+template <std::array A, std::array B, std::array C>
 consteval bool multiply_chars() {
+  constexpr Size NA = A.size();
+  constexpr Size NB = B.size();
+  constexpr Size NC = C.size();
+
   if constexpr (NA == 2 and NB == 2 and NC == 2) {
     return A[0] == B[0] and A[1] == C[1] and B[1] == C[0];
   } else if (NA == 1 and NB == 2 and NC == 1) {
@@ -318,9 +323,7 @@ constexpr std::array<Index, cr.size()> einsum_mdshape(const auto&... xs)
 
 }  // namespace
 
-template <string_literal sr,
-          string_literal... si,
-          Size N = sr.to_array().size()>
+template <string_literal sr, string_literal... si>
 constexpr void einsum(auto&& xr, const auto&... xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
@@ -328,12 +331,12 @@ constexpr void einsum(auto&& xr, const auto&... xi)
                                               xi...);
 }
 
-template <typename T,
-          string_literal... s,
-          Size N = std::get<0>(std::tuple{s...}).to_array().size()>
+template <typename T, string_literal... s>
 constexpr T einsum(const auto&... xi)
   requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
 {
+  constexpr Size N = std::get<0>(std::tuple{s...}).to_array().size();
+
   if constexpr (N == 0) {
     T out{};
     einsum<s...>(out, xi...);
@@ -345,10 +348,7 @@ constexpr T einsum(const auto&... xi)
   }
 }
 
-template <string_literal sr,
-          string_literal... si,
-          class Transform,
-          Size N = sr.to_array().size()>
+template <string_literal sr, string_literal... si, class Transform>
 constexpr void eintra(Transform&& transform, auto&& xr, const auto&... xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
@@ -358,13 +358,12 @@ constexpr void eintra(Transform&& transform, auto&& xr, const auto&... xi)
       xi...);
 }
 
-template <typename T,
-          string_literal... s,
-          class Transform,
-          Size N = std::get<0>(std::tuple{s...}).to_array().size()>
+template <typename T, string_literal... s, class Transform>
 constexpr T eintra(Transform&& transform, const auto&... xi)
   requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
 {
+  constexpr Size N = std::get<0>(std::tuple{s...}).to_array().size();
+
   if constexpr (N == 0) {
     T out{};
     eintra<s...>(std::forward<Transform>(transform), out, xi...);
