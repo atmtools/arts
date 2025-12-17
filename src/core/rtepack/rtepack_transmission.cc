@@ -4,6 +4,7 @@
 #include <arts_omp.h>
 
 #include <algorithm>
+#include <cmath>
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
@@ -31,7 +32,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   v2 = v * v;
   w2 = w * w;
 
-  /* Solve: 
+  /** Solve: 
         0 = L^4 + B L^2 + C
         B = U^2+V^2+W^2-B^2-C^2-D^2
         C = - (DU - CV + BW)^2
@@ -40,7 +41,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   C = -Math::pow2(d * u - c * v + b * w);
   S = std::sqrt(B * B - 4 * C);
 
-  /*
+  /**
         We define: 
             x2 and y2 are the squares of x and y
             x and y are real and positive
@@ -95,58 +96,48 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
   C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
   C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
-  C3 = both_zero ? 1.0 / 6.0
-                 : (x_zero   ? 1.0 - sy * iy
-                    : y_zero ? sx * ix - 1.0
-                             : sx * ix - sy * iy) *
-                       inv_x2y2;
+  C3 = both_zero
+           ? 1.0 / 6.0
+           : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) * inv_x2y2;
 }
 
 muelmat tran::operator()() const noexcept {
+  if (not polarized) return exp_a;
+
   // Do the calculation exp(a) * (C0 * I + C1 * K + C2 * K^2 + C3 * K^3)
-  return not polarized
-             ? muelmat{exp_a}
-             : muelmat{
-                   exp_a * (C0 + C2 * (b2 + c2 + d2)),
-                   -exp_a * (-C1 * b + C2 * (c * u + d * v) +
-                             C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) +
-                                   v * (b * v + c * w))),
-                   exp_a * (C1 * c + C2 * (b * u - d * w) +
-                            C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) -
-                                  w * (b * v + c * w))),
-                   exp_a * (C1 * d + C2 * (b * v + c * w) +
-                            C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) +
-                                  w * (b * u - d * w))),
-                   exp_a * (C1 * b + C2 * (c * u + d * v) +
-                            C3 * (c * (b * c - v * w) - b * (-b2 + u2 + v2) +
-                                  d * (b * d + u * w))),
-                   exp_a * (C0 + C2 * (b2 - u2 - v2)),
-                   exp_a * (C1 * u + C2 * (b * c - v * w) +
-                            C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) -
-                                  w * (b * d + u * w))),
-                   exp_a * (C1 * v + C2 * (b * d + u * w) +
-                            C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) +
-                                  w * (b * c - v * w))),
-                   exp_a * (C1 * c + C2 * (d * w - b * u) +
-                            C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) +
-                                  d * (c * d - u * v))),
-                   -exp_a * (C1 * u + C2 * (v * w - b * c) +
-                             C3 * (b * (b * u - d * w) - u * (-c2 + u2 + w2) +
-                                   v * (c * d - u * v))),
-                   exp_a * (C0 + C2 * (c2 - u2 - w2)),
-                   exp_a * (C1 * w + C2 * (c * d - u * v) +
-                            C3 * (v * (b * c - v * w) - d * (b * u - d * w) -
-                                  w * (-c2 + u2 + w2))),
-                   exp_a * (C1 * d - C2 * (b * v + c * w) +
-                            C3 * (b * (b * d + u * w) + c * (c * d - u * v) -
-                                  d * (-d2 + v2 + w2))),
-                   -exp_a * (C1 * v - C2 * (b * d + u * w) +
-                             C3 * (b * (b * v + c * w) + u * (c * d - u * v) -
-                                   v * (-d2 + v2 + w2))),
-                   -exp_a * (C1 * w + C2 * (u * v - c * d) +
-                             C3 * (c * (b * v + c * w) - u * (b * d + u * w) -
-                                   w * (-d2 + v2 + w2))),
-                   exp_a * (C0 + C2 * (d2 - v2 - w2))};
+
+  const Numeric C2b = C2 * (c * u + d * v);
+  const Numeric C2c = C2 * (b * u - d * w);
+  const Numeric C2d = C2 * (b * v + c * w);
+  const Numeric C2u = C2 * (b * c - v * w);
+  const Numeric C2v = C2 * (b * d + u * w);
+  const Numeric C2w = C2 * (c * d - u * v);
+
+  const Numeric C3b =
+      C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) + v * (b * v + c * w));
+  const Numeric C3c =
+      C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w));
+  const Numeric C3d =
+      C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w));
+  const Numeric C3u =
+      C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
+  const Numeric C3v =
+      C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
+  const Numeric C3w =
+      C3 * (v * (b * c - v * w) - d * (b * u - d * w) - w * (-c2 + u2 + w2));
+
+  const Numeric M00 = C0 + C2 * (b2 + c2 + d2);
+  const Numeric M11 = C0 + C2 * (b2 - u2 - v2);
+  const Numeric M22 = C0 + C2 * (c2 - u2 - w2);
+  const Numeric M33 = C0 + C2 * (d2 - v2 - w2);
+
+  // clang-format off
+  return exp_a * muelmat{
+    M00,                  C1 * b - C2b - C3b,   C1 * c + C2c + C3c, C1 * d + C2d + C3d,
+    C1 * b + C2b - C3b,   M11,                  C1 * u + C2u + C3u, C1 * v + C2v + C3v,
+    C1 * c - C2c + C3c, - C1 * u + C2u - C3u,   M22,                C1 * w + C2w + C3w,
+    C1 * d - C2d + C3d, - C1 * v + C2v - C3v, - C1 * w + C2w - C3w, M33};
+  // clang-format on
 }
 
 muelmat tran::deriv(const muelmat &t,
@@ -498,5 +489,196 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                   dr[0, i - 1],
                   dr[1, i - 1]);
   }
+}
+
+propmat logK(const muelmat &m) {
+  if (not m.is_polarized()) return std::log(midtr(m));
+
+  /**
+    The code tries to retrieve K from exp(K) = M input as muelmat m,
+    where K is a propmat.
+
+    K is unknown but, as a reminder, it looks like:
+      K = [ a    b    c    d
+            b    a    u    v
+            c   -u    a    w
+            d   -v   -w    a ],
+
+    where a, b, c, d, u, v, w are real numbers.
+
+    Since det(e^A) = e^tr(A), we can find a from the determinant of m,
+    using tr(K) = 4 a.
+   */
+
+  const Numeric a = 0.25 * std::log(det(m));
+
+  /**
+    We use this knowing
+        m = exp(K)
+          = exp(a) * (C0 I + C1 K + C2 K^2 + C3 K^3)
+
+    where C0, C1, C2, C3 are the Cayley Hamilton coefficients derived in tran::tran.
+    
+    This means that we can extract
+        T = m * exp(-a)
+          = C0 I + C1 K + C2 K^2 + C3 K^3
+    using the same logic and notation.
+   */
+
+  const muelmat T = m * std::exp(-a);
+
+  /**
+
+    These coefficients C0, C1, C2, C3 are found from the eigenvalues of K, which
+    have the form: lambda = exp(x), exp(-x), exp(iy), exp(-iy), where x and y are real.
+
+    Since the trace of a matrix is the sum of its eigenvalues, and the eigenvalues
+    of a squared matrix are the squares of the eigenvalues of the original matrix,
+    we can form these two relations from our known T matrix:
+      S1 = tr(T)
+         = e^x + e^-x + e^iy + e^-iy
+         = 2 cosh(x) + 2 cos(y)
+    and
+      S2 = tr(T^2)
+         = (e^x + e^-x)^2 + (e^iy + e^-iy)^2
+         = 2 cosh(2x) + 2 cos(2y)
+         = 2 (2 cosh^2(x) - 1) + 2 (2 cos^2(y) - 1)
+
+    Letting u = cosh(x), v = cos(y), we can write:
+        S1 = 2 u + 2 v  ->  
+            u + v = S1 / 2
+    and
+        S2 = 2 (2 u^2 - 1) + 2 (2 v^2 - 1)
+           = 4 u^2 + 4 v^2 - 4 ->
+            u^2 + v^2 = (S2 + 4) / 4
+
+    Since
+        (u - v)^2 = 2 (u^2 + v^2) - (u + v)^2
+    we can solve for u and v:
+        (u - v)^2 = 2 * (S2 + 4) / 4 - (S1 / 2)^2
+                  = (S2 + 8 - S1^2) / 4
+    and write
+        D = (u - v)^2
+          = (S2 + 8 - S1^2) / 4
+   */
+
+  const Numeric S1 = tr(T);
+  const Numeric D  = 0.25 * (2 * tr(T * T) + 8 - S1 * S1);
+
+  /**
+    We can use D to find u and v:
+        u = (u + v + u - v) / 2
+          = (S1 / 2 + sqrt(D)) / 2
+    and
+        v = (u + v - (u - v)) / 2
+          = (S1 / 2 - sqrt(D)) / 2
+    Since u - v = sqrt(D)
+   */
+
+  const Numeric sqrtD = D > 0 ? std::sqrt(D) : 0.0;
+  const Numeric u     = std::max((S1 * 0.5 + sqrtD) * 0.5, 1.0);
+  const Numeric v     = std::clamp((S1 * 0.5 - sqrtD) * 0.5, -1.0, 1.0);
+
+  /**
+    From the definition of u and v we can now define x and y:
+        x = acosh(u)
+        y = acos(v)
+   */
+
+  const Numeric x = std::acosh(u);
+  const Numeric y = std::acos(v);
+
+  // From here, we simply compute the coefficients C0, C1, C2, C3 as in tran::tran
+  const Numeric x2       = x * x;
+  const Numeric y2       = y * y;
+  const bool x_zero      = x < 1e-4;
+  const bool y_zero      = y < 1e-4;
+  const bool both_zero   = x_zero && y_zero;
+  const bool either_zero = x_zero || y_zero;
+  const Numeric cy       = v;
+  const Numeric sy       = std::sin(y);
+  const Numeric cx       = u;
+  const Numeric sx       = std::sinh(x);
+  const Numeric ix       = x_zero ? 0.0 : 1.0 / x;
+  const Numeric iy       = y_zero ? 0.0 : 1.0 / y;
+  const Numeric inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);
+  const Numeric C0       = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
+  const Numeric C1 =
+      either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+  // Skipping C2 and C3
+
+  /**
+    Now we are just one step away from reconstructing log(T) and thus K from exp(K).
+
+    We have:
+      T = C0 I + C1 K + C2 K^2 + C3 K^3
+
+    We write:
+        T02 = C0 I + C2 K^2  ->
+                K^2 = (T02 - C0 I) / C2
+    and
+        T13 = C1 K + C3 K^3  ->
+                T13 = K (C1 I + C3 K^2)
+
+    So that:
+        K = T13 * inv(C1 I + C3 K^2)
+          = T13 * inv(C1 I + C3 (T02 - C0 I) / C2)
+    
+    OK.  We just have to be able to construct T02 and T13 from T.
+    This requires some separation of terms in T.
+
+    For T02, 
+      [   T[0,0]             (T[0,1]-T[1,0])/2   (T[0,2]-T[2,0])/2   (T[0,3]-T[3,0])/2
+        -(T[1,0]-T[0,1])/2    T[1,1]             (T[1,2]+T[2,1])/2   (T[1,3]+T[3,1])/2
+        -(T[2,0]-T[0,2])/2   (T[2,1]+T[1,2])/2    T[2,2]             (T[2,3]+T[3,2])/2
+        -(T[3,0]-T[0,3])/2   (T[3,1]+T[1,3])/2   (T[3,2]+T[2,3])/2    T[3,3] ]
+    For T13,
+      [  0                   (T[0,1]+T[1,0])/2    (T[0,2]+T[2,0])/2   (T[0,3]+T[3,0])/2
+        (T[1,0]+T[0,1])/2    0                    (T[1,2]-T[2,1])/2   (T[1,3]-T[3,1])/2
+        (T[2,0]+T[0,2])/2   -(T[2,1]-T[1,2])/2     0                  (T[2,3]-T[3,2])/2
+        (T[3,0]+T[0,3])/2   -(T[3,1]-T[1,3])/2   -(T[3,2]-T[2,3])/2    0 ]
+    
+    (To make the above symmetries and anti-symmetries clear, the return value of
+     tran::operator() has been formatted to demonstrate them.)
+   */
+
+  const Numeric factor =
+      both_zero ? 1.0 / 3.0
+                : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
+  const Numeric z01 = factor * std::midpoint(T[0, 1], -T[1, 0]);
+  const Numeric z02 = factor * std::midpoint(T[0, 2], -T[2, 0]);
+  const Numeric z03 = factor * std::midpoint(T[0, 3], -T[3, 0]);
+  const Numeric z12 = factor * std::midpoint(T[1, 2], T[2, 1]);
+  const Numeric z13 = factor * std::midpoint(T[1, 3], T[3, 1]);
+  const Numeric z23 = factor * std::midpoint(T[2, 3], T[3, 2]);
+  const Numeric z00 = factor * (T[0, 0] - C0) + C1;
+  const Numeric z11 = factor * (T[1, 1] - C0) + C1;
+  const Numeric z22 = factor * (T[2, 2] - C0) + C1;
+  const Numeric z33 = factor * (T[3, 3] - C0) + C1;
+  const Numeric b01 = std::midpoint(T[0, 1], T[1, 0]);
+  const Numeric b02 = std::midpoint(T[0, 2], T[2, 0]);
+  const Numeric b03 = std::midpoint(T[0, 3], T[3, 0]);
+  const Numeric b12 = std::midpoint(T[1, 2], -T[2, 1]);
+  const Numeric b13 = std::midpoint(T[1, 3], -T[3, 1]);
+  const Numeric b23 = std::midpoint(T[2, 3], -T[3, 2]);
+
+  // clang-format off
+  const muelmat Kp = muelmat{ 0.0,  b01,  b02, b03,
+                              b01,  0.0,  b12, b13,
+                              b02, -b12,  0.0, b23,
+                              b03, -b13, -b23, 0.0} * inv(muelmat
+                            { z00,  z01,  z02, z03,
+                             -z01,  z11,  z12, z13,
+                             -z02,  z12,  z22, z23,
+                             -z03,  z13,  z23, z33});
+  // clang-format on
+
+  return {a,
+          std::midpoint(Kp[0, 1], Kp[1, 0]),
+          std::midpoint(Kp[0, 2], Kp[2, 0]),
+          std::midpoint(Kp[0, 3], Kp[3, 0]),
+          std::midpoint(Kp[1, 2], -Kp[2, 1]),
+          std::midpoint(Kp[1, 3], -Kp[3, 1]),
+          std::midpoint(Kp[2, 3], -Kp[3, 2])};
 }
 }  // namespace rtepack

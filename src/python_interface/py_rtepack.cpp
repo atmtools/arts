@@ -501,6 +501,49 @@ void py_rtepack(py::module_ &m) try {
       "dJs"_a,
       "I0"_a,
       "Returns the two-level radiative transfer of the input matrices");
+
+  auto rp = m.def_submodule("rtepack");
+  auto tr = py::class_<rtepack::tran>(rp, "tran");
+  generic_interface(tr);
+  tr.def(py::init<Propmat, Propmat, Numeric>(), "k1"_a, "k2"_a, "r"_a)
+      .def("__call__", &rtepack::tran::operator(), "Returns the Mueller matrix")
+      .def("deriv",
+           &rtepack::tran::deriv,
+           "t"_a,
+           "k1"_a,
+           "k2"_a,
+           "dk"_a,
+           "r"_a,
+           "dr"_a,
+           "Returns the derivative of the Mueller matrix");
+  rp.def("logK",
+         &rtepack::logK,
+         "m"_a,
+         R"(Returns the logarithm of the Mueller matrix as a Propagation matrix
+
+This only works for a Mueller matrix that has been generated from a Propagation matrix using
+
+.. math::
+    \mathrm{M} = e^{-\mathrm{K} r},
+
+where :math:`\mathrm{M}` is the Mueller matrix, :math:`\mathrm{K}` is the Propagation matrix, and :math:`r` is the distance.
+
+The return value of this method is then not the original Propagation matrix, but rather the logarithm of the Mueller matrix
+as if it were generated from a Propagation matrix using the same equation.  That is
+
+.. math::
+    -\mathrm{K}r = \log(\mathrm{M}
+
+Parameters
+----------
+m : Muelmat
+    The Mueller matrix to compute the logarithm of.
+
+Returns
+-------
+Propmat
+    The logarithm of the Mueller matrix as a Propagation matrix.
+)");
 } catch (std::exception &e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize rtepack\n{}", e.what()));

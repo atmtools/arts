@@ -167,16 +167,30 @@ constexpr muelmat avg(muelmat a, const muelmat &b) {
   return a;
 }
 
+constexpr Numeric det(const muelmat &A) {
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+
+  return a * f * k * p - a * f * l * o - a * g * j * p + a * g * l * n +
+         a * h * j * o - a * h * k * n - b * e * k * p + b * e * l * o +
+         b * g * i * p - b * g * l * m - b * h * i * o + b * h * k * m +
+         c * e * j * p - c * e * l * n - c * f * i * p + c * f * l * m +
+         c * h * i * n - c * h * j * m - d * e * j * o + d * e * k * n +
+         d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m;
+}
+
+constexpr Numeric tr(const muelmat &A) {
+  return A[0, 0] + A[1, 1] + A[2, 2] + A[3, 3];
+}
+
+constexpr Numeric midtr(const muelmat &A) {
+  return std::midpoint(std::midpoint(A[0, 0], A[1, 1]),
+                       std::midpoint(A[2, 2], A[3, 3]));
+}
+
 constexpr muelmat inv(const muelmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
-  const Numeric div =
-      1.0 / (a * f * k * p - a * f * l * o - a * g * j * p + a * g * l * n +
-             a * h * j * o - a * h * k * n - b * e * k * p + b * e * l * o +
-             b * g * i * p - b * g * l * m - b * h * i * o + b * h * k * m +
-             c * e * j * p - c * e * l * n - c * f * i * p + c * f * l * m +
-             c * h * i * n - c * h * j * m - d * e * j * o + d * e * k * n +
-             d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m);
+  const Numeric div = 1.0 / det(A);
 
   return div * muelmat{(f * k * p - f * l * o - g * j * p + g * l * n +
                         h * j * o - h * k * n),

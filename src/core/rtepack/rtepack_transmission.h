@@ -41,6 +41,8 @@ void two_level_exp(muelmat &t,
 
 muelmat exp(propmat k, Numeric r = 1.0);
 
+propmat logK(const muelmat& m);
+
 void two_level_exp(muelmat_vector_view t,
                    const propmat_vector_const_view &k1,
                    const propmat_vector_const_view &k2,
