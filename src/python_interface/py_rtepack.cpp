@@ -532,7 +532,7 @@ The return value of this method is then not the original Propagation matrix, but
 as if it were generated from a Propagation matrix using the same equation.  That is
 
 .. math::
-    -\mathrm{K}r = \log(\mathrm{M}
+    -\mathrm{K}r = \log(\mathrm{M})
 
 Parameters
 ----------
