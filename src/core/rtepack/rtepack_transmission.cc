@@ -528,7 +528,6 @@ propmat logK(const muelmat &m) {
   const muelmat T = m * std::exp(-a);
 
   /**
-
     These coefficients C0, C1, C2, C3 are found from the eigenvalues of K, which
     have the form: lambda = exp(x), exp(-x), exp(iy), exp(-iy), where x and y are real.
 
@@ -634,16 +633,15 @@ propmat logK(const muelmat &m) {
         -(T[3,0]-T[0,3])/2   (T[3,1]+T[1,3])/2   (T[3,2]+T[2,3])/2    T[3,3] ]
     For T13,
       [  0                   (T[0,1]+T[1,0])/2    (T[0,2]+T[2,0])/2   (T[0,3]+T[3,0])/2
-        (T[1,0]+T[0,1])/2    0                    (T[1,2]-T[2,1])/2   (T[1,3]-T[3,1])/2
+        (T[1,0]+T[0,1])/2     0                   (T[1,2]-T[2,1])/2   (T[1,3]-T[3,1])/2
         (T[2,0]+T[0,2])/2   -(T[2,1]-T[1,2])/2     0                  (T[2,3]-T[3,2])/2
         (T[3,0]+T[0,3])/2   -(T[3,1]-T[1,3])/2   -(T[3,2]-T[2,3])/2    0 ]
     
     (To make the above symmetries and anti-symmetries clear, the return value of
      tran::operator() has been formatted to demonstrate them.)
    */
-
   const Numeric factor =
-      both_zero ? 1.0 / 3.0
+      (both_zero or sqrtD <= 0) ? 1.0 / 3.0
                 : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
   const Numeric z01 = factor * std::midpoint(T[0, 1], -T[1, 0]);
   const Numeric z02 = factor * std::midpoint(T[0, 2], -T[2, 0]);
@@ -666,8 +664,8 @@ propmat logK(const muelmat &m) {
   const muelmat Kp = muelmat{ 0.0,  b01,  b02, b03,
                               b01,  0.0,  b12, b13,
                               b02, -b12,  0.0, b23,
-                              b03, -b13, -b23, 0.0} * inv(muelmat
-                            { z00,  z01,  z02, z03,
+                              b03, -b13, -b23, 0.0} *
+              inv(muelmat{ z00,  z01,  z02, z03,
                              -z01,  z11,  z12, z13,
                              -z02,  z12,  z22, z23,
                              -z03,  z13,  z23, z33});
