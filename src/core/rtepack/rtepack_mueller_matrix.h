@@ -170,12 +170,10 @@ constexpr muelmat avg(muelmat a, const muelmat &b) {
 constexpr Numeric det(const muelmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
-  return a * f * k * p - a * f * l * o - a * g * j * p + a * g * l * n +
-         a * h * j * o - a * h * k * n - b * e * k * p + b * e * l * o +
-         b * g * i * p - b * g * l * m - b * h * i * o + b * h * k * m +
-         c * e * j * p - c * e * l * n - c * f * i * p + c * f * l * m +
-         c * h * i * n - c * h * j * m - d * e * j * o + d * e * k * n +
-         d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m;
+  return a * (f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n)) +
+         b * (e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o)) +
+         c * (e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m)) +
+         d * (e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n));
 }
 
 constexpr Numeric tr(const muelmat &A) {
@@ -190,40 +188,24 @@ constexpr Numeric midtr(const muelmat &A) {
 constexpr muelmat inv(const muelmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
-  const Numeric div = 1.0 / det(A);
-
-  return div * muelmat{(f * k * p - f * l * o - g * j * p + g * l * n +
-                        h * j * o - h * k * n),
-                       (-b * k * p + b * l * o + c * j * p - c * l * n -
-                        d * j * o + d * k * n),
-                       (b * g * p - b * h * o - c * f * p + c * h * n +
-                        d * f * o - d * g * n),
-                       (-b * g * l + b * h * k + c * f * l - c * h * j -
-                        d * f * k + d * g * j),
-                       (-e * k * p + e * l * o + g * i * p - g * l * m -
-                        h * i * o + h * k * m),
-                       (a * k * p - a * l * o - c * i * p + c * l * m +
-                        d * i * o - d * k * m),
-                       (-a * g * p + a * h * o + c * e * p - c * h * m -
-                        d * e * o + d * g * m),
-                       (a * g * l - a * h * k - c * e * l + c * h * i +
-                        d * e * k - d * g * i),
-                       (e * j * p - e * l * n - f * i * p + f * l * m +
-                        h * i * n - h * j * m),
-                       (-a * j * p + a * l * n + b * i * p - b * l * m -
-                        d * i * n + d * j * m),
-                       (a * f * p - a * h * n - b * e * p + b * h * m +
-                        d * e * n - d * f * m),
-                       (-a * f * l + a * h * j + b * e * l - b * h * i -
-                        d * e * j + d * f * i),
-                       (-e * j * o + e * k * n + f * i * o - f * k * m -
-                        g * i * n + g * j * m),
-                       (a * j * o - a * k * n - b * i * o + b * k * m +
-                        c * i * n - c * j * m),
-                       (-a * f * o + a * g * n + b * e * o - b * g * m -
-                        c * e * n + c * f * m),
-                       (a * f * k - a * g * j - b * e * k + b * g * i +
-                        c * e * j - c * f * i)};
+  return muelmat{
+             f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
+             b * (l * o - k * p) + c * (j * p - l * n) + d * (k * n - j * o),
+             b * (g * p - h * o) + c * (h * n - f * p) + d * (f * o - g * n),
+             b * (h * k - g * l) + c * (f * l - h * j) + d * (g * j - f * k),
+             e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o),
+             a * (k * p - l * o) + c * (l * m - i * p) + d * (i * o - k * m),
+             a * (h * o - g * p) + c * (e * p - h * m) + d * (g * m - e * o),
+             a * (g * l - h * k) + c * (h * i - e * l) + d * (e * k - g * i),
+             e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m),
+             a * (l * n - j * p) + b * (i * p - l * m) + d * (j * m - i * n),
+             a * (f * p - h * n) + b * (h * m - e * p) + d * (e * n - f * m),
+             a * (h * j - f * l) + b * (e * l - h * i) + d * (f * i - e * j),
+             e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n),
+             a * (j * o - k * n) + b * (k * m - i * o) + c * (i * n - j * m),
+             a * (g * n - f * o) + b * (e * o - g * m) + c * (f * m - e * n),
+             a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i)} /
+         det(A);
 }
 
 using muelmat_vector            = matpack::data_t<muelmat, 1>;
