@@ -505,6 +505,7 @@ void py_rtepack(py::module_ &m) try {
   auto rp = m.def_submodule("rtepack");
   auto tr = py::class_<rtepack::tran>(rp, "tran");
   generic_interface(tr);
+  tr.doc() = "Class for computing the transmission Mueller matrix and its derivative";
   tr.def(py::init<Propmat, Propmat, Numeric>(), "k1"_a, "k2"_a, "r"_a)
       .def("__call__", &rtepack::tran::operator(), "Returns the Mueller matrix")
       .def("deriv",
