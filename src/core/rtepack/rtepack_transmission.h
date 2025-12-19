@@ -2,6 +2,7 @@
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_spectral_matrix.h"
 
 namespace rtepack {
 struct tran {
@@ -18,7 +19,8 @@ struct tran {
 
   tran(const propmat &k1, const propmat &k2, const Numeric r);
 
-  muelmat operator()() const noexcept;
+  [[nodiscard]] muelmat operator()() const noexcept;
+  [[nodiscard]] muelmat expm1() const noexcept;
 
   [[nodiscard]] muelmat deriv(const muelmat &t,
                               const propmat &k1,
@@ -42,6 +44,8 @@ void two_level_exp(muelmat &t,
 muelmat exp(propmat k, Numeric r = 1.0);
 
 propmat logK(const muelmat& m);
+
+specmat sqrt(const propmat& pm);
 
 void two_level_exp(muelmat_vector_view t,
                    const propmat_vector_const_view &k1,

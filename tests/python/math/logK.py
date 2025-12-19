@@ -79,3 +79,13 @@ for i in range(10):
         pass
 
 assert made_it, "logK tests failed after 10 attempts"
+
+
+print("UNTESTED BECAUSE BAD RESULTS, JUST NOT NAN")
+for i in range(7):
+    K = pyarts.arts.Propmat([0, 0, 0, 0, 0, 0, 0])
+    K[i] = 2
+    expK = tra(K, K, 1.0)()
+
+    logK = ln(expK)
+    assert not np.isnan(logK.sum())

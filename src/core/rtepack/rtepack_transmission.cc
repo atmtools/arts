@@ -5,12 +5,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <print>
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 
 namespace rtepack {
-static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
+static constexpr Numeric too_small = 1e-4;
 
 tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
     : a{-0.5 * r * (k1.A() + k2.A())},
@@ -64,8 +66,8 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   cx = std::cosh(x);
   sx = std::sinh(x);
 
-  x_zero      = x < lower_is_considered_zero_for_sinc_likes;
-  y_zero      = y < lower_is_considered_zero_for_sinc_likes;
+  x_zero      = x < too_small;
+  y_zero      = y < too_small;
   both_zero   = y_zero and x_zero;
   either_zero = y_zero or x_zero;
 
@@ -137,6 +139,67 @@ muelmat tran::operator()() const noexcept {
     C1 * b + C2b - C3b,   M11,                  C1 * u + C2u + C3u, C1 * v + C2v + C3v,
     C1 * c - C2c + C3c, - C1 * u + C2u - C3u,   M22,                C1 * w + C2w + C3w,
     C1 * d - C2d + C3d, - C1 * v + C2v - C3v, - C1 * w + C2w - C3w, M33};
+  // clang-format on
+}
+
+muelmat tran::expm1() const noexcept {
+  if (not polarized) return {std::expm1(a)};
+
+  // 1. Compute (C0 - 1) robustly
+  Numeric C0_m1{};
+  if (both_zero) {
+    // Taylor expansion: C0 approx 1 + x^2*y^2/24
+    C0_m1 = x2 * y2 / 24.0;
+  } else {
+    // Robust formula using half-angles to avoid cancellation in (cosh(x)-1) and (cos(y)-1)
+    const Numeric sh_x2 = std::sinh(0.5 * x);
+    const Numeric si_y2 = std::sin(0.5 * y);
+    C0_m1 = 2.0 * (y2 * sh_x2 * sh_x2 - x2 * si_y2 * si_y2) * inv_x2y2;
+  }
+
+  // 2. Compute the diagonal offset: e^a * C0 - 1
+  //    = (expm1(a) + 1) * (C0_m1 + 1) - 1
+  //    = expm1(a) * (C0_m1 + 1) + C0_m1
+  const Numeric em1_a       = std::expm1(a);
+  const Numeric diag_offset = em1_a * (C0_m1 + 1.0) + C0_m1;
+
+  // 3. Compute the rest of the matrix terms
+  //    The result is: diag_offset * I + exp_a * (C1*K + C2*K^2 + C3*K^3)
+  //    Note that K and K^3 have zero diagonals, but K^2 has diagonal terms.
+
+  const Numeric C2b = C2 * (c * u + d * v);
+  const Numeric C2c = C2 * (b * u - d * w);
+  const Numeric C2d = C2 * (b * v + c * w);
+  const Numeric C2u = C2 * (b * c - v * w);
+  const Numeric C2v = C2 * (b * d + u * w);
+  const Numeric C2w = C2 * (c * d - u * v);
+
+  const Numeric C3b =
+      C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) + v * (b * v + c * w));
+  const Numeric C3c =
+      C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w));
+  const Numeric C3d =
+      C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w));
+  const Numeric C3u =
+      C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
+  const Numeric C3v =
+      C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
+  const Numeric C3w =
+      C3 * (v * (b * c - v * w) - d * (b * u - d * w) - w * (-c2 + u2 + w2));
+
+  // Diagonal contributions from K^2 term
+  const Numeric M00_rest = C2 * (b2 + c2 + d2);
+  const Numeric M11_rest = C2 * (b2 - u2 - v2);
+  const Numeric M22_rest = C2 * (c2 - u2 - w2);
+  const Numeric M33_rest = C2 * (d2 - v2 - w2);
+
+  // clang-format off
+  return muelmat{
+    diag_offset + exp_a * M00_rest,       exp_a * (C1 * b - C2b - C3b),         exp_a * (C1 * c + C2c + C3c),       exp_a * (C1 * d + C2d + C3d),
+    exp_a * (C1 * b + C2b - C3b),         diag_offset + exp_a * M11_rest,       exp_a * (C1 * u + C2u + C3u),       exp_a * (C1 * v + C2v + C3v),
+    exp_a * (C1 * c - C2c + C3c),         exp_a * (-C1 * u + C2u - C3u),        diag_offset + exp_a * M22_rest,     exp_a * (C1 * w + C2w + C3w),
+    exp_a * (C1 * d - C2d + C3d),         exp_a * (-C1 * v + C2v - C3v),        exp_a * (-C1 * w + C2w - C3w),      diag_offset + exp_a * M33_rest
+  };
   // clang-format on
 }
 
@@ -510,7 +573,11 @@ propmat logK(const muelmat &m) {
     using tr(K) = 4 a.
    */
 
-  const Numeric a = 0.25 * std::log(det(m));
+  // Small fix: in cases this matter, logK is not useful
+  const Numeric det_m = det(m);
+  const Numeric a     = (det_m > std::numeric_limits<Numeric>::min())
+                            ? 0.25 * std::log(det_m)
+                            : 0.0;
 
   /**
     We use this knowing
@@ -590,8 +657,8 @@ propmat logK(const muelmat &m) {
   // From here, we simply compute the coefficients C0, C1, C2, C3 as in tran::tran
   const Numeric x2       = x * x;
   const Numeric y2       = y * y;
-  const bool x_zero      = x < 1e-4;
-  const bool y_zero      = y < 1e-4;
+  const bool x_zero      = x < too_small;
+  const bool y_zero      = y < too_small;
   const bool both_zero   = x_zero && y_zero;
   const bool either_zero = x_zero || y_zero;
   const Numeric cy       = v;
@@ -641,8 +708,9 @@ propmat logK(const muelmat &m) {
      tran::operator() has been formatted to demonstrate them.)
    */
   const Numeric factor =
-      (both_zero or sqrtD <= 0) ? 1.0 / 3.0
-                : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
+      (both_zero or sqrtD <= 0)
+          ? 1.0 / 3.0
+          : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
   const Numeric z01 = factor * std::midpoint(T[0, 1], -T[1, 0]);
   const Numeric z02 = factor * std::midpoint(T[0, 2], -T[2, 0]);
   const Numeric z03 = factor * std::midpoint(T[0, 3], -T[3, 0]);
@@ -678,5 +746,137 @@ propmat logK(const muelmat &m) {
           std::midpoint(Kp[1, 2], -Kp[2, 1]),
           std::midpoint(Kp[1, 3], -Kp[3, 1]),
           std::midpoint(Kp[2, 3], -Kp[3, 2])};
+}
+
+specmat sqrt(const propmat &pm) {
+  const Numeric a      = pm.A();
+  const Complex sqrt_a = std::sqrt(Complex(a));
+
+  if (not pm.is_polarized()) return sqrt_a;
+
+  const Numeric b = pm.B();
+  const Numeric c = pm.C();
+  const Numeric d = pm.D();
+  const Numeric u = pm.U();
+  const Numeric v = pm.V();
+  const Numeric w = pm.W();
+
+  const Numeric b2 = b * b;
+  const Numeric c2 = c * c;
+  const Numeric d2 = d * d;
+  const Numeric u2 = u * u;
+  const Numeric v2 = v * v;
+  const Numeric w2 = w * w;
+
+  Complex d0c{}, d1c{}, d2c{}, d3c{};
+
+  constexpr auto is_small = [](auto... v) {
+    return ((v <= std::numeric_limits<Numeric>::epsilon()) and ...);
+  };
+
+  if (pm.is_rotational()) {
+    const Numeric rho = std::hypot(u, v, w);
+    if (is_small(rho)) return {0.0};
+
+    const Numeric r = std::sqrt(2.0 * rho);
+    d0c             = 0.0;
+    d1c             = 1.0 / r;
+    d2c             = -1.0 / (rho * r);
+    d3c             = 0.0;
+  } else {
+    /** Solve: 
+        0 = L^4 + B L^2 + C
+        B = U^2+V^2+W^2-B^2-C^2-D^2
+        C = - (DU - CV + BW)^2
+    */
+    const Numeric B = u2 + v2 + w2 - b2 - c2 - d2;
+    const Numeric C = -Math::pow2(d * u - c * v + b * w);
+    const Numeric S = std::sqrt(B * B - 4 * C);
+
+    const Numeric x2     = std::max(0.0, 0.5 * (S - B));
+    const Numeric abs_y2 = std::max(0.0, 0.5 * (S + B));
+    const Numeric x      = std::sqrt(x2);
+    const Complex y      = Complex(0, std::sqrt(abs_y2));
+    const Complex sx     = std::sqrt(Complex(a + x));
+    const Complex dx     = std::sqrt(Complex(a - x));
+    const Complex sy     = std::sqrt(a + y);
+    const Complex dy     = std::sqrt(a - y);
+    const Complex Sx     = sx + dx;
+    const Complex Dx     = sx - dx;
+    const Complex Sy     = sy + dy;
+    const Complex Dy     = sy - dy;
+
+    if (is_small(x2 + abs_y2)) {
+      d0c = sqrt_a;
+      if (is_small(a)) {
+        d1c = 0.5 / sqrt_a;
+        d2c = 0.125 / (a * sqrt_a);
+        d3c = 0.0625 / (a * a * sqrt_a);
+      }
+    } else {
+      const Numeric inv_sum_sq = 1.0 / (x2 + abs_y2);
+
+      d0c = (abs_y2 * Sx + x2 * Sy) * (0.5 * inv_sum_sq);
+      d2c = (Sx - Sy) * (0.5 * inv_sum_sq);
+
+      const Complex term1 = is_small(x, a) ? 0.0
+                            : is_small(x)  ? 0.5 / sqrt_a
+                                           : 0.5 * Dx / x;
+      const Complex term2 = is_small(abs_y2, a) ? 0.0
+                            : is_small(abs_y2)  ? 0.5 / sqrt_a
+                                                : 0.5 * Dy / y;
+
+      d1c = (abs_y2 * term1 + x2 * term2) * inv_sum_sq;
+      d3c = (term1 - term2) * inv_sum_sq;
+    }
+  }
+
+  // Terms for K0^2
+  const Numeric k2_00 = b2 + c2 + d2;
+  const Numeric k2_11 = b2 - u2 - v2;
+  const Numeric k2_22 = c2 - u2 - w2;
+  const Numeric k2_33 = d2 - v2 - w2;
+
+  const Numeric k2_01_val = -(c * u + d * v);
+  const Numeric k2_02_val = b * u - d * w;
+  const Numeric k2_03_val = b * v + c * w;
+  const Numeric k2_12_val = b * c - v * w;
+  const Numeric k2_13_val = b * d + u * w;
+  const Numeric k2_23_val = c * d - u * v;
+
+  // Terms for K0^3
+  const Numeric k3_01_val = b * k2_00 - u * k2_02_val - v * k2_03_val;
+  const Numeric k3_02_val = c * k2_00 + u * k2_01_val - w * k2_03_val;
+  const Numeric k3_03_val = d * k2_00 + v * k2_01_val + w * k2_02_val;
+  const Numeric k3_12_val = -c * k2_01_val + u * k2_11 - w * k2_13_val;
+  const Numeric k3_13_val = -d * k2_01_val + v * k2_11 + w * k2_12_val;
+  const Numeric k3_23_val = -d * k2_02_val + v * k2_12_val + w * k2_22;
+
+  specmat K;
+
+  K[0, 0] = d0c + d2c * k2_00;
+  K[1, 1] = d0c + d2c * k2_11;
+  K[2, 2] = d0c + d2c * k2_22;
+  K[3, 3] = d0c + d2c * k2_33;
+
+  K[0, 1] = d1c * b + d2c * k2_01_val + d3c * k3_01_val;
+  K[1, 0] = d1c * b - d2c * k2_01_val + d3c * k3_01_val;
+
+  K[0, 2] = d1c * c + d2c * k2_02_val + d3c * k3_02_val;
+  K[2, 0] = d1c * c - d2c * k2_02_val + d3c * k3_02_val;
+
+  K[0, 3] = d1c * d + d2c * k2_03_val + d3c * k3_03_val;
+  K[3, 0] = d1c * d - d2c * k2_03_val + d3c * k3_03_val;
+
+  K[1, 2] = d1c * u + d2c * k2_12_val + d3c * k3_12_val;
+  K[2, 1] = -d1c * u + d2c * k2_12_val - d3c * k3_12_val;
+
+  K[1, 3] = d1c * v + d2c * k2_13_val + d3c * k3_13_val;
+  K[3, 1] = -d1c * v + d2c * k2_13_val - d3c * k3_13_val;
+
+  K[2, 3] = d1c * w + d2c * k2_23_val + d3c * k3_23_val;
+  K[3, 2] = -d1c * w + d2c * k2_23_val - d3c * k3_23_val;
+
+  return K;
 }
 }  // namespace rtepack
