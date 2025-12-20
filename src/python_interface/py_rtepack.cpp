@@ -505,7 +505,8 @@ void py_rtepack(py::module_ &m) try {
   auto rp = m.def_submodule("rtepack");
   auto tr = py::class_<rtepack::tran>(rp, "tran");
   generic_interface(tr);
-  tr.doc() = "Class for computing the transmission Mueller matrix and its derivative";
+  tr.doc() =
+      "Class for computing the transmission Mueller matrix and its derivative";
   tr.def(py::init<Propmat, Propmat, Numeric>(), "k1"_a, "k2"_a, "r"_a)
       .def("__call__", &rtepack::tran::operator(), "Returns the Mueller matrix")
       .def("deriv",
@@ -516,11 +517,36 @@ void py_rtepack(py::module_ &m) try {
            "dk"_a,
            "r"_a,
            "dr"_a,
-           "Returns the derivative of the Mueller matrix");
-  rp.def("logK",
-         &rtepack::logK,
-         "m"_a,
-         R"(Returns the logarithm of the Mueller matrix as a Propagation matrix
+           "Returns the derivative of the Mueller matrix")
+      .def("expm1",
+           &rtepack::tran::expm1,
+           "Returns the Mueller matrix minus the identity matrix");
+  rp.def(
+        "sqrt",
+        &rtepack::sqrt,
+        "K"_a,
+        R"(Returns the square root of the Propagation matrix as a spectral matrix
+
+.. math::
+    \mathrm{K} = \mathrm{S} \mathrm{S},
+
+The return value of this method is the spectral matrix :math:`\mathrm{S}`.
+
+Parameters
+----------
+K : Specmat
+    The propagation matrix
+
+Returns
+-------
+Specmat
+    The square root of the Propagation matrix as a spectral matrix.
+)")
+      .def(
+          "logK",
+          &rtepack::logK,
+          "m"_a,
+          R"(Returns the logarithm of the Mueller matrix as a Propagation matrix
 
 This only works for a Mueller matrix that has been generated from a Propagation matrix using
 

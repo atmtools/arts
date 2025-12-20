@@ -241,3 +241,74 @@ The expression in the grid of :math:`\vec{x}` is then the following:
 where the last term is 0 for all but :math:`i=N` and :math:`i=N-1`
 and where the function :math:`f` is defined as
 the map from :math:`\vec{x}_i\rightarrow\vec{x}`.
+
+Potential improvements
+**********************
+
+Note that here, the indexing is not the same as above as
+it is experimental notation.  This section exists mostly
+as a reminder that we are using constant source and constant
+propagation matrix above.  If these are allowed to change
+within a layer, the equations below offers some approach to
+achieving it.
+
+.. note::
+
+  These are untested and not how ARTS compute things,
+  they are left as a future exercise so that we can
+  implement them later.  Just the concept, for instance,
+  of a Dawson function of a matrix is questionable.
+
+Potential 1
+^^^^^^^^^^^
+
+Linear in
+:math:`J = J_0 + (J_1 - J_0) \frac{r}{r_1}`:
+
+.. math::
+  I_1 = T_0 I_0 -
+  \left[\left(\log T_0\right)^{-1}\left(1 - T_0\right) + T_0\right]J_0 +
+  \left[1 + \left(\log T_0\right)^{-1}\left(1 - T_0\right)\right]J_1.
+
+or
+
+.. math::
+  I_1 = J_1 + T_0    \left(I_0 - J_0\right) -
+  \frac{1}{r} K^{-1} \left(1   - T_0\right) \left(J_1 - J_0\right).
+
+This is a classical solution to the radiative transfer equation to improve
+numerical stability when the propagation matrix :math:`K` is
+large.
+
+Potential 2
+^^^^^^^^^^^
+
+Linear in
+:math:`J = J_0 + (J_1 - J_0) \frac{r}{r_1}`
+and linear in
+:math:`K = K_0 + (K_1 - K_0) \frac{r}{r_1}`.
+Let
+:math:`\Delta J = J_1 - J_0` and
+:math:`\Delta K = K_1 - K_0`:
+
+.. math::
+  I_1 = J_1 + T_0 (I_0 - J_0) -
+  \sqrt{2r(\Delta K)^{-1}} \Bigl[ D_+(u_1) -
+  T_0 D_+(u_0) \Bigr] \Delta J
+
+where :math:`D_+(x)` is the Dawson function and:
+
+.. math::
+  u_0 = K_0 \sqrt{\frac{r}{2\Delta K}}, \quad
+  u_1 = u_0 + \sqrt{\frac{r \Delta K}{2}}
+
+This formulation has a problem: there is no clear solution
+to the Dawson function or to the square root at this time for
+propagation matrices.  Even if it were possible, the numerical
+stability would be questionable.  And the physical interpretation
+is also not straightforward, as an integral over a matrix is...
+questionable.
+
+Polarization is difficult to maintain here.  To my knowledge,
+the above formulation might not even tested for unpolarized radiative
+transfer.

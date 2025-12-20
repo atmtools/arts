@@ -35,7 +35,9 @@ struct propmat final : vec7 {
   [[nodiscard]] constexpr decltype(auto) W() { return data[6]; }
 
   //! Check if the matrix is purely rotational
-  [[nodiscard]] constexpr bool is_rotational() const { return A() == 0.0; }
+  [[nodiscard]] constexpr bool is_rotational() const {
+    return A() == 0.0 and B() == 0.0 and C() == 0.0 and D() == 0.0;
+  }
 
   //! Check if the matrix is polarized
   [[nodiscard]] constexpr bool is_polarized() const {
