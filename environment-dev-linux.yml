@@ -15,9 +15,10 @@ dependencies:
         - lark-parser
         - libboost-devel
         - libopenblas=*=*openmp*
+        - make
+        - matplotlib
         - nanobind=2.9
         - nbsphinx
-        - matplotlib
         - netcdf4
         - ninja
         - numpy>=2
