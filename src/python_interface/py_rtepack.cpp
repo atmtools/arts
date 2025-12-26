@@ -518,9 +518,21 @@ void py_rtepack(py::module_ &m) try {
            "r"_a,
            "dr"_a,
            "Returns the derivative of the Mueller matrix")
+      .def("evolve_operator",
+           &rtepack::tran::evolve_operator,
+           "Returns the Mueller matrix minus the identity matrix")
+      .def("evolve_operator_deriv",
+           &rtepack::tran::evolve_operator_deriv,
+           "l"_a,
+           "dk"_a,
+           "dt"_a,
+           "r"_a,
+           "dr"_a,
+           "Returns the Mueller matrix minus the identity matrix")
       .def("expm1",
            &rtepack::tran::expm1,
            "Returns the Mueller matrix minus the identity matrix");
+
   rp.def(
         "sqrt",
         &rtepack::sqrt,

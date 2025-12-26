@@ -74,6 +74,22 @@ constexpr propmat operator/(propmat a, const propmat &b) {
   return a;
 }
 
+constexpr Numeric det(const propmat &k) {
+  const auto &[a, b, c, d, u, v, w] = k.data;
+
+  const Numeric a2 = a * a;
+  const Numeric b2 = b * b;
+  const Numeric c2 = c * c;
+  const Numeric d2 = d * d;
+  const Numeric u2 = u * u;
+  const Numeric v2 = v * v;
+  const Numeric w2 = w * w;
+
+  const Numeric C = b * w - c * v + d * u;
+
+  return a2 * (a2 - b2 - c2 - d2 + u2 + v2 + w2) - C * C;
+}
+
 //! Take the average of two propmat matrixes
 constexpr propmat avg(propmat a, const propmat &b) {
   a += b;

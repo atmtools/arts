@@ -21,6 +21,7 @@ struct tran {
 
   [[nodiscard]] muelmat operator()() const noexcept;
   [[nodiscard]] muelmat expm1() const noexcept;
+  [[nodiscard]] muelmat evolve_operator() const noexcept;
 
   [[nodiscard]] muelmat deriv(const muelmat &t,
                               const propmat &k1,
@@ -28,6 +29,11 @@ struct tran {
                               const propmat &dk,
                               const Numeric r,
                               const Numeric dr) const;
+  [[nodiscard]] muelmat evolve_operator_deriv(const muelmat &l,
+                                              const propmat &dk,
+                                              const muelmat &dt,
+                                              const Numeric r,
+                                              const Numeric dr) const;
 };
 
 void two_level_exp(muelmat &t,
@@ -43,9 +49,9 @@ void two_level_exp(muelmat &t,
 
 muelmat exp(propmat k, Numeric r = 1.0);
 
-propmat logK(const muelmat& m);
+propmat logK(const muelmat &m);
 
-specmat sqrt(const propmat& pm);
+specmat sqrt(const propmat &pm);
 
 void two_level_exp(muelmat_vector_view t,
                    const propmat_vector_const_view &k1,
@@ -54,6 +60,15 @@ void two_level_exp(muelmat_vector_view t,
 
 void two_level_exp(std::vector<muelmat_vector> &T,
                    std::vector<muelmat_tensor3> &dT,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr);
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_vector> &L,
+                   std::vector<muelmat_tensor3> &dT,
+                   std::vector<muelmat_tensor3> &dL,
                    const std::vector<propmat_vector> &K,
                    const std::vector<propmat_matrix> &dK,
                    const Vector &r,
