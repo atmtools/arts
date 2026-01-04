@@ -6,9 +6,9 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <print>
 
 #include "rtepack_mueller_matrix.h"
+#include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 
 namespace rtepack {
@@ -115,18 +115,13 @@ muelmat tran::operator()() const noexcept {
   const Numeric C2v = C2 * (b * d + u * w);
   const Numeric C2w = C2 * (c * d - u * v);
 
-  const Numeric C3b =
-      C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) + v * (b * v + c * w));
-  const Numeric C3c =
-      C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w));
-  const Numeric C3d =
-      C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w));
-  const Numeric C3u =
-      C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
-  const Numeric C3v =
-      C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
-  const Numeric C3w =
-      C3 * (v * (b * c - v * w) - d * (b * u - d * w) - w * (-c2 + u2 + w2));
+  // B = u2 + v2 + w2 - b2 - c2 - d2
+  const Numeric C3b = C3 * (b * (B - w2) + w * (c * v - d * u));
+  const Numeric C3c = C3 * (c * (v2 - B) - v * (d * u + b * w));
+  const Numeric C3d = C3 * (d * (u2 - B) - u * (c * v - b * w));
+  const Numeric C3u = C3 * (d * (c * v - b * w) - u * (B + d2));
+  const Numeric C3v = C3 * (c * (d * u + b * w) - v * (B + c2));
+  const Numeric C3w = C3 * (b * (c * v - d * u) - w * (B + b2));
 
   const Numeric M00 = C0 + C2 * (b2 + c2 + d2);
   const Numeric M11 = C0 + C2 * (b2 - u2 - v2);
@@ -174,18 +169,12 @@ muelmat tran::expm1() const noexcept {
   const Numeric C2v = C2 * (b * d + u * w);
   const Numeric C2w = C2 * (c * d - u * v);
 
-  const Numeric C3b =
-      C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) + v * (b * v + c * w));
-  const Numeric C3c =
-      C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w));
-  const Numeric C3d =
-      C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w));
-  const Numeric C3u =
-      C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
-  const Numeric C3v =
-      C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
-  const Numeric C3w =
-      C3 * (v * (b * c - v * w) - d * (b * u - d * w) - w * (-c2 + u2 + w2));
+  const Numeric C3b = C3 * (b * (B - w2) + w * (c * v - d * u));
+  const Numeric C3c = C3 * (c * (v2 - B) - v * (d * u + b * w));
+  const Numeric C3d = C3 * (d * (u2 - B) - u * (c * v - b * w));
+  const Numeric C3u = C3 * (d * (c * v - b * w) - u * (B + d2));
+  const Numeric C3v = C3 * (c * (d * u + b * w) - v * (B + c2));
+  const Numeric C3w = C3 * (b * (c * v - d * u) - w * (B + b2));
 
   // Diagonal contributions from K^2 term
   const Numeric M00_rest = C2 * (b2 + c2 + d2);
@@ -201,6 +190,26 @@ muelmat tran::expm1() const noexcept {
     exp_a * (C1 * d - C2d + C3d),         exp_a * (-C1 * v + C2v - C3v),        exp_a * (-C1 * w + C2w - C3w),      diag_offset + exp_a * M33_rest
   };
   // clang-format on
+}
+
+muelmat tran::evolve_operator() const noexcept {
+  if (not polarized) {
+    return a > -1e-12 ? 1.0 : muelmat{std::expm1(a) / a};
+  }
+
+  const propmat K{a, b, c, d, u, v, w};
+
+  return inv(K) * expm1();
+}
+
+muelmat tran::evolve_operator_deriv(const muelmat &l,
+                                    const propmat &dk,
+                                    const muelmat &dt,
+                                    const Numeric r,
+                                    const Numeric dr) const {
+  const propmat K{a, b, c, d, u, v, w};
+
+  return inv(K) * ((dk * r - K * (dr / r)) * l + dt);
 }
 
 muelmat tran::deriv(const muelmat &t,
@@ -458,6 +467,52 @@ void two_level_exp(muelmat_vector_view tv,
     }
   }
 }
+
+void two_level_exp(muelmat_vector_view tv,
+                   muelmat_vector_view lv,
+                   muelmat_matrix_view dt1v,
+                   muelmat_matrix_view dt2v,
+                   muelmat_matrix_view dl1v,
+                   muelmat_matrix_view dl2v,
+                   const propmat_vector_const_view &k1v,
+                   const propmat_vector_const_view &k2v,
+                   const propmat_matrix_const_view &dk1v,
+                   const propmat_matrix_const_view &dk2v,
+                   const Numeric rv,
+                   const ConstVectorView &dr1v,
+                   const ConstVectorView &dr2v) {
+  const Size nf = tv.size();
+  const Size nq = dr1v.size();
+
+  assert(nf == k1v.size());
+  assert(nf == k2v.size());
+  assert(nf == static_cast<Size>(dk1v.ncols()));
+  assert(nf == static_cast<Size>(dk2v.ncols()));
+  assert(nq == static_cast<Size>(dk1v.nrows()));
+  assert(nq == static_cast<Size>(dk2v.nrows()));
+  assert(nf == static_cast<Size>(dt1v.ncols()));
+  assert(nf == static_cast<Size>(dt2v.ncols()));
+  assert(nq == static_cast<Size>(dt1v.nrows()));
+  assert(nq == static_cast<Size>(dt2v.nrows()));
+  assert(nq == dr2v.size());
+
+  for (Size i = 0; i < nf; ++i) {
+    const tran tran_state{k1v[i], k2v[i], rv};
+    tv[i] = tran_state();
+    lv[i] = tran_state.evolve_operator();
+
+    for (Size j = 0; j < nq; j++) {
+      dt1v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
+      dt2v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
+      dl1v[j, i] = tran_state.evolve_operator_deriv(
+          lv[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
+      dl2v[j, i] = tran_state.evolve_operator_deriv(
+          lv[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
+    }
+  }
+}
 }  // namespace
 
 muelmat exp(propmat k, Numeric r) { return tran(k, k, r)(); }
@@ -544,6 +599,100 @@ void two_level_exp(std::vector<muelmat_vector> &T,
     two_level_exp(T[i],
                   dT[i - 1][0],
                   dT[i][1],
+                  K[i - 1],
+                  K[i],
+                  dK[i - 1],
+                  dK[i],
+                  r[i - 1],
+                  dr[0, i - 1],
+                  dr[1, i - 1]);
+  }
+}
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_vector> &L,
+                   std::vector<muelmat_tensor3> &dT,
+                   std::vector<muelmat_tensor3> &dL,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr) {
+  const Size N = K.size();
+
+  ARTS_USER_ERROR_IF(
+      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
+
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(r.size()),
+      "Must have one fewer layer distances ({}) than levels ({}) in K",
+      (N - 1),
+      N);
+
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(dr.nrows()),
+      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
+      N - 1,
+      N);
+
+  T.resize(N);
+  L.resize(N);
+
+  dT.resize(N);
+  dL.resize(N);
+
+  if (N == 0) return;
+
+  const Size nv  = K[0].size();
+  const Index nq = dr.ncols();
+
+  for (auto &x : T) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : L) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : dT) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  for (auto &x : dL) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
+      nv);
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
+      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
+      nv);
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
+      "Must have same number of derivative elements ({}) in all dK:s as in dr",
+      nq);
+
+  ARTS_USER_ERROR_IF(
+      dr.npages() != 2,
+      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
+      dr.npages());
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    two_level_exp(T[i],
+                  L[i],
+                  dT[i - 1][0],
+                  dT[i][1],
+                  dL[i - 1][0],
+                  dL[i][1],
                   K[i - 1],
                   K[i],
                   dK[i - 1],

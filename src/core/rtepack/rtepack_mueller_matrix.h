@@ -127,6 +127,25 @@ struct muelmat final : mat44 {
                     a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
   }
 
+  constexpr muelmat operator-() const {
+    return muelmat{-data[0],
+                   -data[1],
+                   -data[2],
+                   -data[3],
+                   -data[4],
+                   -data[5],
+                   -data[6],
+                   -data[7],
+                   -data[8],
+                   -data[9],
+                   -data[10],
+                   -data[11],
+                   -data[12],
+                   -data[13],
+                   -data[14],
+                   -data[15]};
+  }
+
   [[nodiscard]] constexpr bool is_polarized() const noexcept {
     return data[1] != 0.0 or data[2] != 0.0 or data[3] != 0.0 or
            data[4] != 0.0 or data[6] != 0.0 or data[7] != 0.0 or

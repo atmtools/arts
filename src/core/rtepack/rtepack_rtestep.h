@@ -45,6 +45,18 @@ void two_level_linear_emission_step_by_step_full(
     const std::vector<stokvec_matrix> &dJs,
     const stokvec_vector &I0);
 
+void two_level_linear_in_J_step_by_step_full(
+    stokvec_vector &I,
+    std::vector<stokvec_matrix> &dI,
+    const std::vector<muelmat_vector> &Ts,
+    const std::vector<muelmat_vector> &Ls,
+    const std::vector<muelmat_vector> &Pi,
+    const std::vector<muelmat_tensor3> &dTs,
+    const std::vector<muelmat_tensor3> &dLs,
+    const std::vector<stokvec_vector> &Js,
+    const std::vector<stokvec_matrix> &dJs,
+    const stokvec_vector &I0);
+
 void two_level_linear_emission_step_by_step_full(
     std::vector<stokvec_vector> &Is,
     const std::vector<muelmat_vector> &Ts,

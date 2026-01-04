@@ -82,6 +82,81 @@ atm_path.size()                  = {}
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_tramat_pathLinearInTauFromPath(
+    ArrayOfMuelmatVector& spectral_tramat_path,
+    ArrayOfMuelmatVector& spectral_evomat_path,
+    ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
+    ArrayOfMuelmatTensor3& spectral_evomat_jac_path,
+    const ArrayOfPropmatVector& spectral_propmat_path,
+    const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const ArrayOfAtmPoint& atm_path,
+    const SurfaceField& surf_field,
+    const JacobianTargets& jac_targets,
+    const Index& hse_derivative) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(
+      surf_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surf_field.ellipsoid)
+
+  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
+
+  ARTS_USER_ERROR_IF(
+      not arr::same_size(
+          ray_path, spectral_propmat_path, spectral_propmat_jac_path, atm_path),
+      R"(Not same sizes:
+
+ray_path.size()                  = {},
+spectral_propmat_path.size()     = {},
+spectral_propmat_jac_path.size() = {},
+atm_path.size()                  = {}
+)",
+      ray_path.size(),
+      spectral_propmat_path.size(),
+      spectral_propmat_jac_path.size(),
+      atm_path.size());
+
+  // HSE variables
+  const Index temperature_derivative_position =
+      jac_targets.target_position(AtmKey::t);
+
+  const Size N = ray_path.size();
+
+  spectral_tramat_path.resize(N);
+  spectral_evomat_path.resize(N);
+  spectral_tramat_jac_path.resize(N);
+  spectral_evomat_jac_path.resize(N);
+
+  if (N == 0) return;
+
+  const Index nq = jac_targets.target_count();
+
+  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
+  Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
+
+  // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
+  if (hse_derivative and temperature_derivative_position >= 0) {
+    for (Size ip = 0; ip < N - 1; ip++) {
+      ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
+          ray_path_distance[ip] / (2.0 * atm_path[ip].temperature);
+      ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
+          ray_path_distance[ip] / (2.0 * atm_path[ip + 1].temperature);
+    }
+  }
+
+  rtepack::two_level_exp(spectral_tramat_path,
+                         spectral_evomat_path,
+                         spectral_tramat_jac_path,
+                         spectral_evomat_jac_path,
+                         spectral_propmat_path,
+                         spectral_propmat_jac_path,
+                         ray_path_distance,
+                         ray_path_distance_jacobian);
+}
+ARTS_METHOD_ERROR_CATCH
+
 void spectral_radStepByStepEmission(
     StokvecVector& spectral_rad,
     ArrayOfStokvecMatrix& spectral_rad_jac_path,
@@ -99,6 +174,33 @@ void spectral_radStepByStepEmission(
       spectral_tramat_path,
       spectral_tramat_cumulative_path,
       spectral_tramat_jac_path,
+      spectral_rad_srcvec_path,
+      spectral_rad_srcvec_jac_path,
+      spectral_rad_bkg);
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radLinearInTauStepByStepEmission(
+    StokvecVector& spectral_rad,
+    ArrayOfStokvecMatrix& spectral_rad_jac_path,
+    const ArrayOfMuelmatVector& spectral_tramat_path,
+    const ArrayOfMuelmatVector& spectral_lintau_path,
+    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
+    const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
+    const ArrayOfMuelmatTensor3& spectral_lintau_jac_path,
+    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
+    const ArrayOfStokvecMatrix& spectral_rad_srcvec_jac_path,
+    const StokvecVector& spectral_rad_bkg) try {
+  ARTS_TIME_REPORT
+
+  rtepack::two_level_linear_in_J_step_by_step_full(
+      spectral_rad,
+      spectral_rad_jac_path,
+      spectral_tramat_path,
+      spectral_lintau_path,
+      spectral_tramat_cumulative_path,
+      spectral_tramat_jac_path,
+      spectral_lintau_jac_path,
       spectral_rad_srcvec_path,
       spectral_rad_srcvec_jac_path,
       spectral_rad_bkg);

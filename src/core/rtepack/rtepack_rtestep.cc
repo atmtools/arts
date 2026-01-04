@@ -76,22 +76,77 @@ void two_level_linear_emission_step_by_step_full(
   for (Size iv = 0; iv < nv; iv++) {
     stokvec &Iv = I[iv];
     for (Size i = N - 2; i < N; i--) {
+      const muelmat &T = Ts[i + 1][iv];
       const stokvec Jv = avg(Js[i][iv], Js[i + 1][iv]);
 
       Iv -= Jv;
 
       for (Index iq = 0; iq < nq; iq++) {
         dI[i][iq, iv] +=
-            Pi[i][iv] *
-            (dTs[i][0, iq, iv] * Iv +
-             0.5 * (dJs[i][iq, iv] - Ts[i + 1][iv] * dJs[i][iq, iv]));
+            Pi[i][iv] * (dTs[i][0, iq, iv] * Iv +
+                         0.5 * (dJs[i][iq, iv] - T * dJs[i][iq, iv]));
         dI[i + 1][iq, iv] +=
-            Pi[i][iv] *
-            (dTs[i + 1][1, iq, iv] * Iv +
-             0.5 * (dJs[i + 1][iq, iv] - Ts[i + 1][iv] * dJs[i + 1][iq, iv]));
+            Pi[i][iv] * (dTs[i + 1][1, iq, iv] * Iv +
+                         0.5 * (dJs[i + 1][iq, iv] - T * dJs[i + 1][iq, iv]));
       }
 
-      Iv = Ts[i + 1][iv] * Iv + Jv;
+      Iv = T * Iv + Jv;
+    }
+  }
+}
+
+void two_level_linear_in_J_step_by_step_full(
+    stokvec_vector &I,
+    std::vector<stokvec_matrix> &dI,
+    const std::vector<muelmat_vector> &Ts,
+    const std::vector<muelmat_vector> &Ls,
+    const std::vector<muelmat_vector> &Pi,
+    const std::vector<muelmat_tensor3> &dTs,
+    const std::vector<muelmat_tensor3> &dLs,
+    const std::vector<stokvec_vector> &Js,
+    const std::vector<stokvec_matrix> &dJs,
+    const stokvec_vector &I0) {
+  const Size nv = I0.size();
+  const Size N  = Ts.size();
+
+  //! FIXME: Add error checks for dLs and Ls sizes
+
+  I = I0;
+  dI.resize(N);
+
+  const Index nq = dJs[0].nrows();
+
+  for (auto &x : dI) {
+    x.resize(nq, nv);
+    x = 0.0;
+  }
+
+  if (N == 0) return;
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size iv = 0; iv < nv; iv++) {
+    stokvec &IM = I[iv];
+    for (Size i = N - 2; i < N; i--) {
+      const stokvec &JN = Js[i + 1][iv];
+      const stokvec &JM = Js[i][iv];
+      const muelmat &T  = Ts[i + 1][iv];
+      const muelmat &L  = Ls[i + 1][iv];
+
+      const stokvec IMmJM = IM - JM;
+      const stokvec JMmJN = JM - JN;
+
+      for (Index iq = 0; iq < nq; iq++) {
+        dI[i][iq, iv] +=
+            Pi[i][iv] * (dJs[i][iq, iv] - L * dJs[i][iq, iv] +
+                         dTs[i][0, iq, iv] * IMmJM + dLs[i][0, iq, iv] * JMmJN);
+
+        dI[i + 1][iq, iv] +=
+            Pi[i][iv] *
+            (dTs[i + 1][1, iq, iv] * IMmJM + dLs[i + 1][1, iq, iv] * JMmJN +
+             L * dJs[i + 1][iq, iv] - T * dJs[i + 1][iq, iv]);
+      }
+
+      IM = T * IMmJM + L * JMmJN + JN;
     }
   }
 }

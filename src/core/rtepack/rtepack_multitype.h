@@ -1,5 +1,6 @@
 #pragma once
 
+#include "configtypes.h"
 #include "rtepack_concepts.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
@@ -20,32 +21,39 @@ constexpr stokvec absvec(const propmat &k) {
 //! Treat a list of propagation matrices as a list of Stokes (absorption) vectors
 stokvec_vector absvec(const propmat_vector_const_view &k);
 
-//! Get the inverse of a propagation matrix as a Mueller matrix
-constexpr muelmat inv(const propmat &k) {
+constexpr muelmat adj(const propmat &k) {
   const auto &[a, b, c, d, u, v, w] = k.data;
 
-  const Numeric div =
-      1.0 / (a * a * (a * a - b * b - c * c - d * d + u * u + v * v + w * w) -
-             b * w * (b * w - 2 * c * v + 2 * d * u) +
-             c * v * (-c * v + 2 * d * u) - d * d * u * u);
+  const Numeric a2 = a * a;
+  const Numeric b2 = b * b;
+  const Numeric c2 = c * c;
+  const Numeric d2 = d * d;
+  const Numeric u2 = u * u;
+  const Numeric v2 = v * v;
+  const Numeric w2 = w * w;
 
-  return {a * (a * a + u * u + v * v + w * w) * div,
-          -(a * (a * b + c * u + d * v) + w * (b * w - c * v + d * u)) * div,
-          (a * (-a * c + b * u - d * w) + v * (b * w - c * v + d * u)) * div,
-          (a * (-a * d + b * v + c * w) - u * (b * w - c * v + d * u)) * div,
-          (a * (-a * b + c * u + d * v) - w * (b * w - c * v + d * u)) * div,
-          a * (a * a - c * c - d * d + w * w) * div,
-          (d * (b * w - c * v + d * u) - a * (a * u - b * c + v * w)) * div,
-          (a * (-a * v + b * d + u * w) - c * (b * w - c * v + d * u)) * div,
-          (v * (b * w - c * v + d * u) - a * (a * c + b * u - d * w)) * div,
-          (a * (a * u + b * c - v * w) - d * (b * w - c * v + d * u)) * div,
-          a * (a * a - b * b - d * d + v * v) * div,
-          (b * (b * w - c * v + d * u) - a * (a * w - c * d + u * v)) * div,
-          -(a * (a * d + b * v + c * w) + u * (b * w - c * v + d * u)) * div,
-          (a * (a * v + b * d + u * w) + c * (b * w - c * v + d * u)) * div,
-          -(a * (-a * w - c * d + u * v) + b * (b * w - c * v + d * u)) * div,
-          a * (a * a - b * b - c * c + u * u) * div};
+  const Numeric C = b * w - c * v + d * u;
+
+  return muelmat{a * (a2 + u2 + v2 + w2),
+                 -a * (a * b + c * u + d * v) - w * C,
+                 a * (-a * c + b * u - d * w) + v * C,
+                 a * (-a * d + b * v + c * w) - u * C,
+                 a * (-a * b + c * u + d * v) - w * C,
+                 a * (a2 - c2 - d2 + w2),
+                 d * C - a * (a * u - b * c + v * w),
+                 a * (-a * v + b * d + u * w) - c * C,
+                 v * C - a * (a * c + b * u - d * w),
+                 a * (a * u + b * c - v * w) - d * C,
+                 a * (a2 - b2 - d2 + v2),
+                 b * C - a * (a * w - c * d + u * v),
+                 -a * (a * d + b * v + c * w) - u * C,
+                 a * (a * v + b * d + u * w) + c * C,
+                 -a * (-a * w - c * d + u * v) - b * C,
+                 a * (a2 - b2 - c2 + u2)};
 }
+
+//! Get the inverse of a propagation matrix as a Mueller matrix
+constexpr muelmat inv(const propmat &k) { return adj(k) / det(k); }
 
 //! muelmat matrix multiplied by a stokvec vector
 constexpr stokvec operator*(const muelmat &a, const stokvec &b) {
