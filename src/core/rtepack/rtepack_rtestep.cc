@@ -84,10 +84,10 @@ void two_level_linear_emission_step_by_step_full(
       for (Index iq = 0; iq < nq; iq++) {
         dI[i][iq, iv] +=
             Pi[i][iv] * (dTs[i][0, iq, iv] * Iv +
-                         0.5 * (dJs[i][iq, iv] - T * dJs[i][iq, iv]));
+                         avg(dJs[i][iq, iv], - T * dJs[i][iq, iv]));
         dI[i + 1][iq, iv] +=
             Pi[i][iv] * (dTs[i + 1][1, iq, iv] * Iv +
-                         0.5 * (dJs[i + 1][iq, iv] - T * dJs[i + 1][iq, iv]));
+                         avg(dJs[i + 1][iq, iv], - T * dJs[i + 1][iq, iv]));
       }
 
       Iv = T * Iv + Jv;
