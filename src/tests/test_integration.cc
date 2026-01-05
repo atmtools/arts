@@ -204,7 +204,7 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  assert(same_shape<2>({n, m}, Integrand));
+  assert(same_shape({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -241,7 +241,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  assert(same_shape<2>({n, m}, Integrand));
+  assert(same_shape({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -281,7 +281,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  assert(same_shape<2>({n, m}, Integrand));
+  assert(same_shape({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -320,7 +320,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  assert(same_shape<2>({n, m}, Integrand));
+  assert(same_shape({n, m}, Integrand));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -365,7 +365,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
   Index n = za_grid.size();
   Index m = aa_grid.size();
   Vector res1(n);
-  assert(same_shape<2>({n, m}, Integrand));
+  assert(same_shape({n, m}, Integrand));
 
   Numeric temp = 0.0;
 
@@ -397,7 +397,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
 Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
                                         ConstVectorView za_grid) {
   Index n = za_grid.size();
-  assert(same_shape<1>({n}, Integrand));
+  assert(same_shape({n}, Integrand));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
@@ -420,7 +420,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
                                          ConstVectorView za_grid,
                                          Numeric stepsize) {
   Index n = za_grid.size();
-  assert(same_shape<1>({n}, Integrand));
+  assert(same_shape({n}, Integrand));
 
   Numeric res = 0.0;
   // std::cout << "Stepsize: " << stepsize << '\n';
