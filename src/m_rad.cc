@@ -199,8 +199,8 @@ freq_grid.size()    = {}
       spectral_rad.size(),
       freq_grid.size())
 
-  ARTS_USER_ERROR_IF(not same_shape<2>({jac_targets.x_size(), freq_grid.size()},
-                                       spectral_rad_jac),
+  ARTS_USER_ERROR_IF(not same_shape({jac_targets.x_size(), freq_grid.size()},
+                                    spectral_rad_jac),
                      R"(spectral_rad_jac must be x-grid times frequency grid
 
 spectral_rad_jac.shape() = {:B,},

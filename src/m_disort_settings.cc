@@ -122,8 +122,7 @@ void disort_settingsLayerThermalEmissionLinearInTauImpl(
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>({static_cast<Index>(nv), static_cast<Index>(N) - 1},
-                        disort_settings.optical_thicknesses),
+      not same_shape({nv, N - 1}, disort_settings.optical_thicknesses),
       "Incorrect shape: [{}, {}] vs {:B,}",
       nv,
       N - 1,
@@ -182,8 +181,7 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>({static_cast<Index>(nv), static_cast<Index>(N) - 1},
-                        disort_settings.optical_thicknesses),
+      not same_shape({nv, N - 1}, disort_settings.optical_thicknesses),
       "Incorrect shape: [{}, {}] vs {:B,}",
       nv,
       N - 1,
@@ -463,7 +461,7 @@ void disort_settingsOpticalThicknessFromPath(
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>({nv}, spectral_propmat_path),
+      not all_same_shape({nv}, spectral_propmat_path),
       "Propagation matrices and frequency grids must have the same shape.")
 
   // No polarization allowed
@@ -673,13 +671,12 @@ void disort_settingsLegendreCoefficientsFromPath(
       spectral_phamat_spectral_path.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<2>({static_cast<Index>(F), static_cast<Index>(L)},
-                            spectral_phamat_spectral_path),
+      not all_same_shape({F, L}, spectral_phamat_spectral_path),
       "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
       std::array{F, L});
 
   ARTS_USER_ERROR_IF(
-      not same_shape<3>({F, N, L}, disort_settings.legendre_coefficients),
+      not same_shape({F, N, L}, disort_settings.legendre_coefficients),
       R"(The shape of disort_settings.legendre_coefficients must be {:B,}, but is {:B,})",
       std::array{F, static_cast<Index>(N), L},
       disort_settings.legendre_coefficients.shape());
@@ -764,13 +761,13 @@ void disort_settingsSingleScatteringAlbedoFromPath(
       spectral_absvec_scat_path.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(
+      not all_same_shape(
           {F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
       "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
       std::array{F});
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>({F, N}, disort_settings.single_scattering_albedo),
+      not same_shape({F, N}, disort_settings.single_scattering_albedo),
       R"(The shape of disort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
       std::array{F, static_cast<Index>(N)},
       disort_settings.single_scattering_albedo.shape());

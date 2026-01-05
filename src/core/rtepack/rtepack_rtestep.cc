@@ -44,19 +44,22 @@ void two_level_linear_emission_step_by_step_full(
                      dJs.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(I0, Ts, Pi, Js),
+      not all_same_shape(I0, Ts, Pi, Js),
       R"(Must have same number of frequency elements ({}) in all Ts:s, Pi:s, and Js:s)",
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<2>({nq, nv}, dJs),
-      R"(Must have same number of elements ({}, {}) in all dJs:s)",nq,
+      not all_same_shape({nq, nv}, dJs),
+      R"(Must have same number of elements ({}, {}) in all dJs:s)",
+      nq,
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<3>({2, nq, nv}, dTs),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s)", 2,
-      nq, nv);
+      not all_same_shape({2, nq, nv}, dTs),
+      R"(Must have same number of elements ({}, {}, {}) in all dTs:s)",
+      2,
+      nq,
+      nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -127,19 +130,22 @@ void two_level_linear_in_J_step_by_step_full(
                      dJs.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(I0, Ts, Ls, Pi, Js),
+      not all_same_shape(I0, Ts, Ls, Pi, Js),
       R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)",
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<2>({nq, nv}, dJs),
-      R"(Must have same number of elements ({}, {}) in all dJs:s)",nq,
+      not all_same_shape({nq, nv}, dJs),
+      R"(Must have same number of elements ({}, {}) in all dJs:s)",
+      nq,
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<3>({2, nq, nv}, dTs, dLs),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)", 2,
-      nq, nv);
+      not all_same_shape({2, nq, nv}, dTs, dLs),
+      R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)",
+      2,
+      nq,
+      nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -243,14 +249,16 @@ void two_level_linear_transmission_step(stokvec_vector &I,
                      dTs.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(I0, Ts, Pi),
+      not all_same_shape(I0, Ts, Pi),
       R"(Must have same number of frequency elements ({}) in all Ts:s, and Pi:s)",
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<3>({2, nq, nv}, dTs),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s)", 2,
-      nq, nv);
+      not all_same_shape({2, nq, nv}, dTs),
+      R"(Must have same number of elements ({}, {}, {}) in all dTs:s)",
+      2,
+      nq,
+      nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);

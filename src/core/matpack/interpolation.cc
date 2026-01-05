@@ -1225,9 +1225,9 @@ Numeric interp(StridedConstVectorView itw,
 */
 void interpweights(StridedMatrixView itw, const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  assert(same_shape<2>({n, 2},
-                       itw));  // We must store 2 interpolation
-                               // weights for each position.
+  assert(same_shape({n, 2},
+                    itw));  // We must store 2 interpolation
+                            // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1298,9 +1298,9 @@ void interpweights(StridedMatrixView itw,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 4}, itw));  // We must store 4 interpolation
-                                                // weights for each position.
+         static_cast<Size>(n));              // rgp must have same size as cgp.
+  assert(same_shape({n, 4}, itw));  // We must store 4 interpolation
+                                             // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1356,9 +1356,9 @@ void interpweights(StridedMatrixView itw,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 8}, itw));  // We must store 8 interpolation
-                                                // weights for each position.
+         static_cast<Size>(n));              // rgp must have same size as cgp.
+  assert(same_shape({n, 8}, itw));  // We must store 8 interpolation
+                                             // weights for each position.
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1412,9 +1412,8 @@ void interpweights(StridedMatrixView itw,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(
-      matpack::same_shape<2>({n, 16}, itw));  // We must store 16 interpolation
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 16}, itw));  // We must store 16 interpolation
                                               // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1475,9 +1474,8 @@ void interpweights(StridedMatrixView itw,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(
-      matpack::same_shape<2>({n, 32}, itw));  // We must store 32 interpolation
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 32}, itw));  // We must store 32 interpolation
                                               // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1544,9 +1542,8 @@ void interpweights(StridedMatrixView itw,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(
-      matpack::same_shape<2>({n, 64}, itw));  // We must store 64 interpolation
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 64}, itw));  // We must store 64 interpolation
                                               // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1594,9 +1591,9 @@ void interp(StridedVectorView ia,
             StridedConstVectorView a,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.size();
-  assert(ia.ncols() == n);  //  ia must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 2}, itw));  // We need 2 interpolation
-                                                // weights for each position.
+  assert(ia.ncols() == n);                   //  ia must have same size as cgp.
+  assert(same_shape({n, 2}, itw));  // We need 2 interpolation
+                                             // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -1656,9 +1653,9 @@ void interp(StridedVectorView ia,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 8}, itw));  // We need 8 interpolation
-                                                // weights for each position.
+         static_cast<Size>(n));              // rgp must have same size as cgp.
+  assert(same_shape({n, 8}, itw));  // We need 8 interpolation
+                                             // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -1725,9 +1722,9 @@ void interp(StridedVectorView ia,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 16}, itw));  // We need 16 interpolation
-                                                 // weights for each position.
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 16}, itw));  // We need 16 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -1801,9 +1798,9 @@ void interp(StridedVectorView ia,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 32}, itw));  // We need 32 interpolation
-                                                 // weights for each position.
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 32}, itw));  // We need 32 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -1887,9 +1884,9 @@ void interp(StridedVectorView ia,
   assert(pgp.size() ==
          static_cast<Size>(n));  // pgp must have same size as cgp.
   assert(rgp.size() ==
-         static_cast<Size>(n));  // rgp must have same size as cgp.
-  assert(matpack::same_shape<2>({n, 64}, itw));  // We need 64 interpolation
-                                                 // weights for each position.
+         static_cast<Size>(n));               // rgp must have same size as cgp.
+  assert(same_shape({n, 64}, itw));  // We need 64 interpolation
+                                              // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -1961,8 +1958,8 @@ void interpweights(StridedTensor3View itw,
                    const ArrayOfGridPos& cgp) {
   Index nr = rgp.size();
   Index nc = cgp.size();
-  assert(same_shape<3>({nr, nc, 4}, itw));  // We must store 4 interpolation
-                                            // weights for each position.
+  assert(same_shape({nr, nc, 4}, itw));  // We must store 4 interpolation
+                                         // weights for each position.
 
   // We have to loop all the points in the new grid:
   for (Index ir = 0; ir < nr; ++ir) {
@@ -2022,7 +2019,7 @@ void interpweights(StridedTensor4View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 8 interpolation weights for each position:
-  assert(same_shape<4>({np, nr, nc, 8}, itw));
+  assert(same_shape({np, nr, nc, 8}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index ip = 0; ip < np; ++ip) {
@@ -2079,7 +2076,7 @@ void interpweights(StridedTensor5View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 16 interpolation weights for each position:
-  assert(same_shape<5>({nb, np, nr, nc, 16}, itw));
+  assert(same_shape({nb, np, nr, nc, 16}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index ib = 0; ib < nb; ++ib) {
@@ -2143,7 +2140,7 @@ void interpweights(StridedTensor6View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 32 interpolation weights for each position:
-  assert(same_shape<6>({ns, nb, np, nr, nc, 32}, itw));
+  assert(same_shape({ns, nb, np, nr, nc, 32}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index is = 0; is < ns; ++is) {
@@ -2214,7 +2211,7 @@ void interpweights(StridedTensor7View itw,
   Index nr = rgp.size();
   Index nc = cgp.size();
   // We must store 64 interpolation weights for each position:
-  assert(same_shape<7>({nv, ns, nb, np, nr, nc, 64}, itw));
+  assert(same_shape({nv, ns, nb, np, nr, nc, 64}, itw));
 
   // We have to loop all the points in the new grid:
   for (Index iv = 0; iv < nv; ++iv) {
@@ -2279,9 +2276,9 @@ void interp(StridedMatrixView ia,
             const ArrayOfGridPos& cgp) {
   Index nr = rgp.size();
   Index nc = cgp.size();
-  assert(same_shape<2>({nr, nc}, ia));
-  assert(same_shape<3>({nr, nc, 4}, itw));  // We need 4 interpolation
-                                            // weights for each position.
+  assert(same_shape({nr, nc}, ia));
+  assert(same_shape({nr, nc, 4}, itw));  // We need 4 interpolation
+                                         // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -2347,8 +2344,8 @@ void interp(StridedTensor3View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  assert(same_shape<3>({np, nr, nc}, ia));
-  assert(same_shape<4>({np, nr, nc, 8}, itw));
+  assert(same_shape({np, nr, nc}, ia));
+  assert(same_shape({np, nr, nc, 8}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -2421,8 +2418,8 @@ void interp(StridedTensor4View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  assert(same_shape<4>({nb, np, nr, nc}, ia));
-  assert(same_shape<5>({nb, np, nr, nc, 16}, itw));
+  assert(same_shape({nb, np, nr, nc}, ia));
+  assert(same_shape({nb, np, nr, nc, 16}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
@@ -2499,8 +2496,8 @@ void interp(StridedTensor5View ia,
   Index np = pgp.size();
   Index nr = rgp.size();
   Index nc = cgp.size();
-  assert(same_shape<5>({ns, nb, np, nr, nc}, ia));
-  assert(same_shape<6>({ns, nb, np, nr, nc, 32}, itw));
+  assert(same_shape({ns, nb, np, nr, nc}, ia));
+  assert(same_shape({ns, nb, np, nr, nc, 32}, itw));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We

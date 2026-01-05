@@ -126,14 +126,14 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
   switch (scat_data_single.ptype) {
     case PTYPE_GENERAL:
 
-      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            scat_data_single.aa_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            scat_data_single.aa_grid.size(),
-                                            16},
-                                           scat_data_single.pha_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         scat_data_single.aa_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         scat_data_single.aa_grid.size(),
+                                         16},
+                                        scat_data_single.pha_mat_data),
                          R"(The shape of the pha_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
@@ -149,12 +149,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          16,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            scat_data_single.aa_grid.size(),
-                                            7},
-                                           scat_data_single.ext_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         scat_data_single.aa_grid.size(),
+                                         7},
+                                        scat_data_single.ext_mat_data),
                          R"(The shape of the ext_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -168,12 +168,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          7,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            scat_data_single.aa_grid.size(),
-                                            4},
-                                           scat_data_single.abs_vec_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         scat_data_single.aa_grid.size(),
+                                         4},
+                                        scat_data_single.abs_vec_data),
                          R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -191,14 +191,14 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
     case PTYPE_TOTAL_RND:
 
-      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            1,
-                                            1,
-                                            1,
-                                            6},
-                                           scat_data_single.pha_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         1,
+                                         1,
+                                         1,
+                                         6},
+                                        scat_data_single.pha_mat_data),
                          R"(The shape of the pha_mat data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
@@ -214,12 +214,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          6,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            1,
-                                            1,
-                                            1},
-                                           scat_data_single.ext_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         1,
+                                         1,
+                                         1},
+                                        scat_data_single.ext_mat_data),
                          R"(The shape of the ext_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -233,12 +233,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          1,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            1,
-                                            1,
-                                            1},
-                                           scat_data_single.abs_vec_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         1,
+                                         1,
+                                         1},
+                                        scat_data_single.abs_vec_data),
                          R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -256,14 +256,14 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
     case PTYPE_AZIMUTH_RND:
 
-      ARTS_USER_ERROR_IF(not same_shape<7>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            scat_data_single.aa_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            1,
-                                            16},
-                                           scat_data_single.pha_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         scat_data_single.aa_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         1,
+                                         16},
+                                        scat_data_single.pha_mat_data),
                          R"(The shape of the pha_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
@@ -279,12 +279,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          16,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            1,
-                                            3},
-                                           scat_data_single.ext_mat_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         1,
+                                         3},
+                                        scat_data_single.ext_mat_data),
                          R"(The shape of the ext_mat_data data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -298,12 +298,12 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          3,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape<5>({scat_data_single.f_grid.size(),
-                                            scat_data_single.T_grid.size(),
-                                            scat_data_single.za_grid.size(),
-                                            1,
-                                            2},
-                                           scat_data_single.abs_vec_data),
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
+                                         scat_data_single.T_grid.size(),
+                                         scat_data_single.za_grid.size(),
+                                         1,
+                                         2},
+                                        scat_data_single.abs_vec_data),
                          R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
@@ -339,13 +339,16 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   Index nza = ssd.za_grid.size();
   for (Index i = 0; i < nza / 2; i++) {
     ARTS_USER_ERROR_IF(
-        !is_same_within_epsilon(
-            180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * std::numeric_limits<double>::epsilon()),
+        !is_same_within_epsilon(180. - ssd.za_grid[nza - 1 - i],
+                                ssd.za_grid[i],
+                                2 * std::numeric_limits<double>::epsilon()),
         "Zenith grid of azimuthally_random single scattering data\n"
         "is not symmetric with respect to 90degree.")
   }
   ARTS_USER_ERROR_IF(
-      !is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * std::numeric_limits<double>::epsilon()),
+      !is_same_within_epsilon(ssd.za_grid[nza / 2],
+                              90.,
+                              2 * std::numeric_limits<double>::epsilon()),
       "Zenith grid of azimuthally_random single scattering data\n"
       "does not contain 90 degree grid point.")
 
@@ -358,14 +361,14 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   os_abs_vec << "abs_vec ";
 
   ARTS_USER_ERROR_IF(
-      not same_shape<7>({static_cast<Index>(ssd.f_grid.size()),
-                         static_cast<Index>(ssd.T_grid.size()),
-                         static_cast<Index>(ssd.za_grid.size()),
-                         static_cast<Index>(ssd.aa_grid.size()),
-                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
-                         1,
-                         16},
-                        ssd.pha_mat_data),
+      not same_shape({ssd.f_grid.size(),
+                      ssd.T_grid.size(),
+                      ssd.za_grid.size(),
+                      ssd.aa_grid.size(),
+                      ssd.za_grid.size() / 2 + 1,
+                      1,
+                      16},
+                     ssd.pha_mat_data),
       "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
       os_pha_mat.str(),
       ssd.f_grid.size(),
@@ -378,33 +381,33 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
       ssd.pha_mat_data.shape());
 
   ARTS_USER_ERROR_IF(
-      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
-                         static_cast<Index>(ssd.T_grid.size()),
-                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
-                         1,
-                         3},
-                        ssd.ext_mat_data),
+      not same_shape({ssd.f_grid.size(),
+                      ssd.T_grid.size(),
+                      ssd.za_grid.size() / 2 + 1,
+                      1,
+                      3},
+                     ssd.ext_mat_data),
       "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
       os_ext_mat.str(),
-      static_cast<Index>(ssd.f_grid.size()),
-      static_cast<Index>(ssd.T_grid.size()),
-      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      ssd.f_grid.size(),
+      ssd.T_grid.size(),
+      ssd.za_grid.size() / 2 + 1,
       1,
       3,
       ssd.ext_mat_data.shape());
 
   ARTS_USER_ERROR_IF(
-      not same_shape<5>({static_cast<Index>(ssd.f_grid.size()),
-                         static_cast<Index>(ssd.T_grid.size()),
-                         static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
-                         1,
-                         2},
-                        ssd.abs_vec_data),
+      not same_shape({ssd.f_grid.size(),
+                      ssd.T_grid.size(),
+                      ssd.za_grid.size() / 2 + 1,
+                      1,
+                      2},
+                     ssd.abs_vec_data),
       "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
       os_abs_vec.str(),
-      static_cast<Index>(ssd.f_grid.size()),
-      static_cast<Index>(ssd.T_grid.size()),
-      static_cast<Index>(ssd.za_grid.size()) / 2 + 1,
+      ssd.f_grid.size(),
+      ssd.T_grid.size(),
+      ssd.za_grid.size() / 2 + 1,
       1,
       2,
       ssd.abs_vec_data.shape());
@@ -469,7 +472,7 @@ void xml_io_stream<SingleScatteringData>::write(
   XMLTag open_tag;
   XMLTag close_tag;
 
-  open_tag.name=("SingleScatteringData");
+  open_tag.name = ("SingleScatteringData");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
@@ -484,7 +487,7 @@ void xml_io_stream<SingleScatteringData>::write(
   xml_write_to_stream(os_xml, ssdata.ext_mat_data, pbofs, "");
   xml_write_to_stream(os_xml, ssdata.abs_vec_data, pbofs, "");
 
-  close_tag.name=("/SingleScatteringData");
+  close_tag.name = ("/SingleScatteringData");
   close_tag.write_to_stream(os_xml);
 }
 

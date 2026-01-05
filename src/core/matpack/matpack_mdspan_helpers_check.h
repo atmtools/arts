@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "matpack_mdspan_helpers_grid_t.h"
 #include "matpack_mdspan_common_types.h"
+#include "matpack_mdspan_helpers_grid_t.h"
 
 namespace matpack {
 template <Size N>
@@ -27,31 +27,33 @@ integer_helper(ind&&...) -> integer_helper<sizeof...(ind)>;
 template <Size N>
 integer_helper(std::array<Index, N>) -> integer_helper<N>;
 
-template <Size N, ranked_md<N> First, ranked_md<N>... Rest>
-constexpr bool same_shape(const integer_helper<N>& a,
+template <any_md First, ranked_md<rank<First>()>... Rest>
+constexpr bool same_shape(const integer_helper<rank<First>()>& sz,
                           const First& b,
                           const Rest&... c) {
-  return (a.shape == b.shape()) and ((a.shape == c.shape()) and ...);
+  return (sz.shape == b.shape()) and ((sz.shape == c.shape()) and ...);
 }
 
-template <Size N, ranked_md<N> Orig, ranked_md<N> First, ranked_md<N>... Rest>
+template <any_md Orig,
+          ranked_md<rank<Orig>()> First,
+          ranked_md<rank<Orig>()>... Rest>
 constexpr bool same_shape(const Orig& a, const First& b, const Rest&... c) {
-  return same_shape(integer_helper<N>{a.shape()}, b, c...);
+  return same_shape(integer_helper<rank<Orig>()>{a.shape()}, b, c...);
 }
 
-template <Size N, ranked_md<N> B, ranked_md<N>... C>
-constexpr bool all_same_shape(const integer_helper<N>& a,
+template <any_md B, ranked_md<rank<B>()>... C>
+constexpr bool all_same_shape(const integer_helper<rank<B>()>& sz,
                               const std::vector<B>& b,
                               const std::vector<C>&... c) {
-  const auto t = [shape = a.shape](auto& x) { return x.shape() == shape; };
+  const auto t = [shape = sz.shape](auto& x) { return x.shape() == shape; };
   return stdr::all_of(b, t) and (stdr::all_of(c, t) and ...);
 }
 
-template <Size N, ranked_md<N> A, ranked_md<N> B, ranked_md<N>... C>
+template <any_md A, ranked_md<rank<A>()> B, ranked_md<rank<A>()>... C>
 constexpr bool all_same_shape(const A& a,
                               const std::vector<B>& b,
                               const std::vector<C>&... c) {
-  return all_same_shape(integer_helper<N>{a.shape()}, b, c...);
+  return all_same_shape(integer_helper<rank<A>()>{a.shape()}, b, c...);
 }
 
 constexpr bool is_increasing(const exact_md<Numeric, 1> auto& a) {
