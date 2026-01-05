@@ -275,7 +275,7 @@ void abs_lookup_dataFromProfiles(
                               AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
   ARTS_USER_ERROR_IF(
-      not same_shape<1>(pressure_profile.vec(), temperature_profile),
+      not same_shape(pressure_profile.vec(), temperature_profile),
       "Pressure and temperature profiles must agree in size.");
 
   for (Size i = 0; i < pressure_profile.size(); i++) {
@@ -285,7 +285,7 @@ void abs_lookup_dataFromProfiles(
 
   for (auto& [spec, prof] : vmr_profiles) {
     ARTS_USER_ERROR_IF(
-        not same_shape<1>(pressure_profile.vec(), prof),
+        not same_shape(pressure_profile.vec(), prof),
         "Pressure and VMR profiles must agree in size, fails for species {}",
         spec);
 

@@ -105,19 +105,19 @@ concept any_convertible_md =
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, Size N>
-concept ranked_data = any_data<T> and rank<T>() == N;
+concept ranked_data = any_data<T> and ranked<T, N>;
 
 template <class T, Size N>
-concept ranked_view = any_view<T> and rank<T>() == N;
+concept ranked_view = any_view<T> and ranked<T, N>;
 
 template <class T, Size N>
-concept ranked_strided_view = any_strided_view<T> and rank<T>() == N;
+concept ranked_strided_view = any_strided_view<T> and ranked<T, N>;
 
 template <class T, Size N>
-concept ranked_cdata = any_cdata<T> and rank<T>() == N;
+concept ranked_cdata = any_cdata<T> and ranked<T, N>;
 
 template <typename T, Size N>
-concept ranked_md = any_md<T> and rank<T>() == N;
+concept ranked_md = any_md<T> and ranked<T, N>;
 
 template <typename T, Size N>
 concept mut_ranked_md = ranked_md<T, N> and mdmutable<T>;

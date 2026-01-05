@@ -55,11 +55,11 @@ void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(
   const auto& phase_matrix = phase_matrix_opt.value();
 
   ARTS_USER_ERROR_IF(
-      not same_shape<2>(phase_matrix, spectral_phamat_spectral) or
-          not same_shape<1>(extinction_matrix,
-                            absorption_vector,
-                            spectral_propmat_scat,
-                            spectral_absvec_scat),
+      not same_shape(phase_matrix, spectral_phamat_spectral) or
+          not same_shape(extinction_matrix,
+                         absorption_vector,
+                         spectral_propmat_scat,
+                         spectral_absvec_scat),
       R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
 Phase matrix shape (must match):
@@ -110,9 +110,9 @@ void spectral_propmat_pathAddScattering(
   if (N == 0) return;
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape<1>(spectral_propmat_path.front().shape(),
-                            spectral_propmat_path,
-                            spectral_propmat_scat_path),
+      not all_same_shape(spectral_propmat_path.front().shape(),
+                         spectral_propmat_path,
+                         spectral_propmat_scat_path),
       "The inner shapes of spectral_propmat_path and spectral_propmat_scat_path must be the same (first elem shape: {:B,}).",
       spectral_propmat_path.front().shape())
 

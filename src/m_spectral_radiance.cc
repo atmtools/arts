@@ -607,7 +607,7 @@ void spectral_radSinglePathEmissionFrequencyLoop(
 
   if (N == 0) return;
 
-  ARTS_USER_ERROR_IF(not matpack::same_shape<2>({nx, nf}, spectral_rad_jac),
+  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac),
                      R"(spectral_rad_jac has wrong shape:
 Expected: ({}, {})
 Actual:   ({}, {})

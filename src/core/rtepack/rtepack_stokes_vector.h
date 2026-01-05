@@ -113,7 +113,10 @@ constexpr stokvec fma(const Numeric &x, const stokvec &a, const stokvec &b) {
 
 //! Take the average of two stokvec vectors
 constexpr stokvec avg(const stokvec &a, const stokvec &b) {
-  return fma(0.5, a, 0.5 * b);
+  return {std::midpoint(a.I(), b.I()),
+          std::midpoint(a.Q(), b.Q()),
+          std::midpoint(a.U(), b.U()),
+          std::midpoint(a.V(), b.V())};
 }
 
 /** Convertion methods for stokes vectors

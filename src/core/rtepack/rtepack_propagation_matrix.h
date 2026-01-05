@@ -3,6 +3,8 @@
 #include <compare.h>
 #include <xml.h>
 
+#include <numeric>
+
 #include "rtepack_concepts.h"
 
 namespace rtepack {
@@ -91,10 +93,14 @@ constexpr Numeric det(const propmat &k) {
 }
 
 //! Take the average of two propmat matrixes
-constexpr propmat avg(propmat a, const propmat &b) {
-  a += b;
-  a *= 0.5;
-  return a;
+constexpr propmat avg(const propmat &a, const propmat &b) {
+  return {std::midpoint(a.A(), b.A()),
+          std::midpoint(a.B(), b.B()),
+          std::midpoint(a.C(), b.C()),
+          std::midpoint(a.D(), b.D()),
+          std::midpoint(a.U(), b.U()),
+          std::midpoint(a.V(), b.V()),
+          std::midpoint(a.W(), b.W())};
 }
 
 using propmat_vector            = matpack::data_t<propmat, 1>;

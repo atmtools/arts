@@ -73,7 +73,7 @@ by simply taking multiple steps of the above equation.  Thus, going from level 0
   &\cdots& \\
   I_{N} &=& J_{N-1} + T_{N-1} \left(I_{N-1} - J_{N-1}\right)
 
-Both :math:`J_i` and :math:`T_i` depends on values at levels :math:`\vec{x}_i` and :math:`\vec{x}_{i+1}`,
+Both :math:`J_i` and :math:`T_i` depend on values at levels :math:`\vec{x}_i` and :math:`\vec{x}_{i+1}`,
 even though these have been omitted for brevity.
 There are here :math:`N-1` steps or layers, and :math:`N` levels.  Note that these steps are
 non-commutative, since the step through a layer polarizes the radiation.

@@ -194,7 +194,7 @@ muelmat tran::expm1() const noexcept {
 
 muelmat tran::evolve_operator() const noexcept {
   if (not polarized) {
-    return a > -1e-12 ? 1.0 : muelmat{std::expm1(a) / a};
+    return std::abs(a) < 1e-12 ? 1.0 : muelmat{std::expm1(a) / a};
   }
 
   const propmat K{a, b, c, d, u, v, w};
@@ -209,7 +209,7 @@ muelmat tran::evolve_operator_deriv(const muelmat &l,
                                     const Numeric dr) const {
   const propmat K{a, b, c, d, u, v, w};
 
-  return inv(K) * ((dk * r - K * (dr / r)) * l + dt);
+  return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
 }
 
 muelmat tran::deriv(const muelmat &t,
@@ -241,8 +241,8 @@ muelmat tran::deriv(const muelmat &t,
         C = - (DU - CV + BW)^2
     */
   const Numeric dB = du2 + dv2 + dw2 - db2 - dc2 - dd2;
-  const Numeric dC = -2 * (b * w - c * v + d * u) *
-                     (b * dw - c * dv + d * du + u * dd - v * dc + w * db);
+  const Numeric dC = -2 * (d * u - c * v + b * w) *
+                     (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
   const Numeric dS = (B * dB - 2 * dC) / S;
 
   const Numeric dx2 = 0.25 * (dS - dB) / x2;
@@ -278,131 +278,56 @@ muelmat tran::deriv(const muelmat &t,
                    (y_zero ? 0.0 : (dsy * iy + sy * diy + C3 * dy2))) *
                       inv_x2y2;
 
-  return {
-      (dC0 + dC2 * (b2 + c2 + d2) + C2 * (db2 + dc2 + dd2)) * exp_a +
-          da * t[0, 0],
-      (db * C1 + b * dC1 + dC2 * (-c * u - d * v) +
-       C2 * (-dc * u - dd * v - c * du - d * dv) +
-       dC3 * (b * (b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)) +
-       C3 * (db * (b2 + c2 + d2) - du * (b * u - d * w) - dv * (b * v + c * w) +
-             b * (db2 + dc2 + dd2) - u * (db * u - dd * w) -
-             v * (db * v + dc * w) - u * (b * du - d * dw) -
-             v * (b * dv + c * dw))) *
-              exp_a +
-          da * t[0, 1],
-      (dC1 * c + C1 * dc + dC2 * (b * u - d * w) +
-       C2 * (db * u - dd * w + b * du - d * dw) +
-       dC3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)) +
-       C3 * (dc * (b2 + c2 + d2) - du * (c * u + d * v) - dw * (b * v + c * w) +
-             c * (db2 + dc2 + dd2) - u * (dc * u + dd * v) -
-             w * (db * v + dc * w) - u * (c * du + d * dv) -
-             w * (b * dv + c * dw))) *
-              exp_a +
-          da * t[0, 2],
-      (dC1 * d + C1 * dd + dC2 * (b * v + c * w) +
-       C2 * (db * v + dc * w + b * dv + c * dw) +
-       dC3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w)) +
-       C3 * (dd * (b2 + c2 + d2) - dv * (c * u + d * v) + dw * (b * u - d * w) +
-             d * (db2 + dc2 + dd2) - v * (dc * u + dd * v) +
-             w * (db * u - dd * w) - v * (c * du + d * dv) +
-             w * (b * du - d * dw))) *
-              exp_a +
-          da * t[0, 3],
+  const Numeric dC2b =
+      dC2 * (c * u + d * v) + C2 * (dc * u + c * du + dd * v + d * dv);
+  const Numeric dC2c =
+      dC2 * (b * u - d * w) + C2 * (db * u + b * du - dd * w - d * dw);
+  const Numeric dC2d =
+      dC2 * (b * v + c * w) + C2 * (db * v + b * dv + dc * w + c * dw);
+  const Numeric dC2u =
+      dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw);
+  const Numeric dC2v =
+      dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw);
+  const Numeric dC2w =
+      dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv);
 
-      (db * C1 + b * dC1 + dC2 * (c * u + d * v) +
-       C2 * (dc * u + dd * v + c * du + d * dv) +
-       dC3 *
-           (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w)) +
-       C3 * (-db * (-b2 + u2 + v2) + dc * (b * c - v * w) +
-             dd * (b * d + u * w) - b * (-db2 + du2 + dv2) +
-             c * (db * c - dv * w) + d * (db * d + du * w) +
-             c * (b * dc - v * dw) + d * (b * dd + u * dw))) *
-              exp_a +
-          da * t[1, 0],
-      (dC0 + dC2 * (b2 - u2 - v2) + C2 * (db2 - du2 - dv2)) * exp_a +
-          da * t[1, 1],
-      (dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw) +
-       dC1 * u + C1 * du +
-       dC3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w)) +
-       C3 * (dc * (c * u + d * v) - du * (-b2 + u2 + v2) -
-             dw * (b * d + u * w) + c * (dc * u + dd * v) -
-             u * (-db2 + du2 + dv2) - w * (db * d + du * w) +
-             c * (c * du + d * dv) - w * (b * dd + u * dw))) *
-              exp_a +
-          da * t[1, 2],
-      (dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw) +
-       dC1 * v + C1 * dv +
-       dC3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w)) +
-       C3 * (dd * (c * u + d * v) - dv * (-b2 + u2 + v2) +
-             dw * (b * c - v * w) + d * (dc * u + dd * v) -
-             v * (-db2 + du2 + dv2) + w * (db * c - dv * w) +
-             d * (c * du + d * dv) + w * (b * dc - v * dw))) *
-              exp_a +
-          da * t[1, 3],
+  const Numeric dC3b =
+      dC3 * (b * (B - w2) + w * (c * v - d * u)) +
+      C3 * (db * (B - w2) + b * (dB - dw2) + dw * (c * v - d * u) +
+            w * (dc * v + c * dv - dd * u - d * du));
+  const Numeric dC3c =
+      dC3 * (c * (v2 - B) - v * (d * u + b * w)) +
+      C3 * (dc * (v2 - B) + c * (dv2 - dB) - dv * (d * u + b * w) -
+            v * (dd * u + d * du + db * w + b * dw));
+  const Numeric dC3d =
+      dC3 * (d * (u2 - B) - u * (c * v - b * w)) +
+      C3 * (dd * (u2 - B) + d * (du2 - dB) - du * (c * v - b * w) -
+            u * (dc * v + c * dv - db * w - b * dw));
+  const Numeric dC3u =
+      dC3 * (d * (c * v - b * w) - u * (B + d2)) +
+      C3 * (dd * (c * v - b * w) + d * (dc * v + c * dv - db * w - b * dw) -
+            du * (B + d2) - u * (dB + dd2));
+  const Numeric dC3v =
+      dC3 * (c * (d * u + b * w) - v * (B + c2)) +
+      C3 * (dc * (d * u + b * w) + c * (dd * u + d * du + db * w + b * dw) -
+            dv * (B + c2) - v * (dB + dc2));
+  const Numeric dC3w =
+      dC3 * (b * (c * v - d * u) - w * (B + b2)) +
+      C3 * (db * (c * v - d * u) + b * (dc * v + c * dv - dd * u - d * du) -
+            dw * (B + b2) - w * (dB + db2));
 
-      (dC1 * c + C1 * dc + dC2 * (-b * u + d * w) +
-       C2 * (-db * u + dd * w - b * du + d * dw) +
-       dC3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v)) +
-       C3 * (db * (b * c - v * w) - dc * (-c2 + u2 + w2) +
-             dd * (c * d - u * v) + b * (db * c - dv * w) -
-             c * (-dc2 + du2 + dw2) + d * (dc * d - du * v) +
-             b * (b * dc - v * dw) + d * (c * dd - u * dv))) *
-              exp_a +
-          da * t[2, 0],
-      (dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw) -
-       dC1 * u - C1 * du +
-       dC3 *
-           (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v)) +
-       C3 * (-db * (b * u - d * w) + du * (-c2 + u2 + w2) -
-             dv * (c * d - u * v) - b * (db * u - dd * w) +
-             u * (-dc2 + du2 + dw2) - v * (dc * d - du * v) -
-             b * (b * du - d * dw) - v * (c * dd - u * dv))) *
-              exp_a +
-          da * t[2, 1],
-      (dC0 + dC2 * (c2 - u2 - w2) + C2 * (dc2 - du2 - dw2)) * exp_a +
-          da * t[2, 2],
-      (dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv) +
-       dC1 * w + C1 * dw +
-       dC3 *
-           (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2)) +
-       C3 * (-dd * (b * u - d * w) + dv * (b * c - v * w) -
-             dw * (-c2 + u2 + w2) - d * (db * u - dd * w) +
-             v * (db * c - dv * w) - w * (-dc2 + du2 + dw2) -
-             d * (b * du - d * dw) + v * (b * dc - v * dw))) *
-              exp_a +
-          da * t[2, 3],
+  const Numeric dM00 = dC0 + dC2 * (b2 + c2 + d2) + C2 * (db2 + dc2 + dd2);
+  const Numeric dM11 = dC0 + dC2 * (b2 - u2 - v2) + C2 * (db2 - du2 - dv2);
+  const Numeric dM22 = dC0 + dC2 * (c2 - u2 - w2) + C2 * (dc2 - du2 - dw2);
+  const Numeric dM33 = dC0 + dC2 * (d2 - v2 - w2) + C2 * (dd2 - dv2 - dw2);
 
-      (dC1 * d + C1 * dd + dC2 * (-b * v - c * w) +
-       C2 * (-db * v - dc * w - b * dv - c * dw) +
-       dC3 * (b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)) +
-       C3 * (db * (b * d + u * w) + dc * (c * d - u * v) -
-             dd * (-d2 + v2 + w2) + b * (db * d + du * w) +
-             c * (dc * d - du * v) - d * (-dd2 + dv2 + dw2) +
-             b * (b * dd + u * dw) + c * (c * dd - u * dv))) *
-              exp_a +
-          da * t[3, 0],
-      (dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw) -
-       dC1 * v - C1 * dv +
-       dC3 *
-           (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)) +
-       C3 * (-db * (b * v + c * w) - du * (c * d - u * v) +
-             dv * (-d2 + v2 + w2) - b * (db * v + dc * w) -
-             u * (dc * d - du * v) + v * (-dd2 + dv2 + dw2) -
-             b * (b * dv + c * dw) - u * (c * dd - u * dv))) *
-              exp_a +
-          da * t[3, 1],
-      (dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv) -
-       dC1 * w - C1 * dw +
-       dC3 *
-           (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)) +
-       C3 * (-dc * (b * v + c * w) + du * (b * d + u * w) +
-             dw * (-d2 + v2 + w2) - c * (db * v + dc * w) +
-             u * (db * d + du * w) + w * (-dd2 + dv2 + dw2) -
-             c * (b * dv + c * dw) + u * (b * dd + u * dw))) *
-              exp_a +
-          da * t[3, 2],
-      (C2 * (dd2 - dv2 - dw2) + dC2 * (d2 - v2 - w2) + dC0) * exp_a +
-          da * t[3, 3]};
+  // clang-format off
+  return da * t + exp_a * muelmat{
+    dM00,                              dC1 * b + C1 * db - dC2b - dC3b,   dC1 * c + C1 * dc + dC2c + dC3c, dC1 * d + C1 * dd + dC2d + dC3d,
+    dC1 * b + C1 * db + dC2b - dC3b,   dM11,                              dC1 * u + C1 * du + dC2u + dC3u, dC1 * v + C1 * dv + dC2v + dC3v,
+    dC1 * c + C1 * dc - dC2c + dC3c, - dC1 * u - C1 * du + dC2u - dC3u,   dM22,                            dC1 * w + C1 * dw + dC2w + dC3w,
+    dC1 * d + C1 * dd - dC2d + dC3d, - dC1 * v - C1 * dv + dC2v - dC3v, - dC1 * w - C1 * dw + dC2w - dC3w, dM33};
+  // clang-format on
 }
 
 void two_level_exp(muelmat &t,
