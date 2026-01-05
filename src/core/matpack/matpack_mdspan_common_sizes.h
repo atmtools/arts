@@ -213,6 +213,10 @@ constexpr Size rank() {
     return -1;
 }
 
+//! Concept for types that have a rank of N
+template <typename T, Size N>
+concept ranked = rankable<T> and rank<T>() == N;
+
 //! Gets the dimension size of some extent
 template <rankable T>
 constexpr Size dimsize(const T& v, integral auto ind) {

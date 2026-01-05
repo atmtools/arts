@@ -6,12 +6,15 @@
 #include <vector>
 
 #include "matpack_mdspan_helpers_grid_t.h"
+#include "matpack_mdspan_common_types.h"
 
 namespace matpack {
 template <Size N>
 struct integer_helper {
   std::array<Index, N> shape;
+
   constexpr integer_helper(std::array<Index, N> shape) : shape(shape) {}
+
   template <integral... ind>
   constexpr integer_helper(ind&&... i)
     requires(sizeof...(ind) == N)
@@ -44,8 +47,8 @@ constexpr bool all_same_shape(const integer_helper<N>& a,
   return stdr::all_of(b, t) and (stdr::all_of(c, t) and ...);
 }
 
-template <Size N, ranked_md<N> B, ranked_md<N>... C>
-constexpr bool all_same_shape(const ranked_md<N> auto& a,
+template <Size N, ranked_md<N> A, ranked_md<N> B, ranked_md<N>... C>
+constexpr bool all_same_shape(const A& a,
                               const std::vector<B>& b,
                               const std::vector<C>&... c) {
   return all_same_shape(integer_helper<N>{a.shape()}, b, c...);

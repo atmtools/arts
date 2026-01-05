@@ -212,11 +212,11 @@ constexpr decltype(auto) sub(Self&& s, Acc&& i)
 }
 
 //! Get a positional value
-template <rankable T, Size dim = rank<T>()>
-constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
+template <rankable T>
+constexpr auto mdvalue(const T& v, const std::array<Index, rank<T>()>& pos) {
   if constexpr (any_md<T>) {
     return v.base_md()[pos];
-  } else if constexpr (dim == 1) {
+  } else if constexpr (ranked<T, 1>) {
     if constexpr (has_index_access<T>)
       return v[pos[0]];
     else
@@ -264,9 +264,9 @@ constexpr std::array<Index, N> mdpos(const std::array<Index, N>& shape,
   return pos;
 }
 
-template <rankable T, Size dim = rank<T>()>
+template <rankable T>
 constexpr auto mdvalue(const T& v,
-                       const std::array<Index, dim>& shape,
+                       const std::array<Index, rank<T>()>& shape,
                        const Index i) {
   return mdvalue(v, mdpos(shape, i));
 }

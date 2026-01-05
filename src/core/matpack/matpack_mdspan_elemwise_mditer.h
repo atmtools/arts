@@ -97,9 +97,9 @@ auto elemwise_range(T&& x) {
 };
 
 // Catch for non-matpack types (might not work, be careful)
-template <typename T>
+template <ranked<1> T>
 auto elemwise_range(T&& x)
-  requires(rank<T>() == 1 and not any_md<T>)
+  requires(not any_md<T>)
 {
   return stdr::subrange{x.begin(), x.end()};
 };
