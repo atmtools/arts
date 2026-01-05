@@ -209,7 +209,7 @@ muelmat tran::evolve_operator_deriv(const muelmat &l,
                                     const Numeric dr) const {
   const propmat K{a, b, c, d, u, v, w};
 
-  return inv(K) * ((dk * r - K * (dr / r)) * l + dt);
+  return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
 }
 
 muelmat tran::deriv(const muelmat &t,
