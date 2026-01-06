@@ -128,6 +128,26 @@ constexpr stokvec operator*(const propmat &k, const stokvec s) {
                  a * s4 + d * s1 - s2 * v - s3 * w};
 }
 
+//! Element-wise product between a propmat and a muelmat
+constexpr muelmat elem_prod(const propmat &a, const muelmat &b) {
+  return muelmat{a.A() * b[0, 0],
+                 a.B() * b[0, 1],
+                 a.C() * b[0, 2],
+                 a.D() * b[0, 3],
+                 a.B() * b[1, 0],
+                 a.A() * b[1, 1],
+                 a.U() * b[1, 2],
+                 a.V() * b[1, 3],
+                 a.C() * b[2, 0],
+                 -a.U() * b[2, 1],
+                 a.A() * b[2, 2],
+                 a.W() * b[2, 3],
+                 a.D() * b[3, 0],
+                 -a.V() * b[3, 1],
+                 -a.W() * b[3, 2],
+                 a.A() * b[3, 3]};
+}
+
 //! Transform a matrix of shape (N, 4) to a list of Stokes (absorption) vectors
 stokvec_vector to_stokvec_vector(const ConstMatrixView &v);
 

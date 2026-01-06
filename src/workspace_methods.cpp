@@ -4870,6 +4870,35 @@ the level before and one for the level after.
       .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
+  wsm_data["spectral_tramat_pathLinearInTauAndPropFromPath"] = {
+      .desc      = R"--([WIP] Gets the transmission matrix in layers along the path.
+
+The assumption is that each path variable forms a layer from the 
+ray path.  So there is a reduction in size by one.  A demand therefore
+is that there are at least 2 points in the path.
+
+The derivatives first dimensions are also 2, the first for the derivative wrt
+the level before and one for the level after.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_tramat_path",
+                    "spectral_lintau_path",
+                    "spectral_linprop_path",
+                    "spectral_tramat_jac_path",
+                    "spectral_lintau_jac_path",
+                    "spectral_linprop_jac_path"},
+      .in        = {"spectral_propmat_path",
+                    "spectral_propmat_jac_path",
+                    "ray_path",
+                    "atm_path",
+                    "surf_field",
+                    "jac_targets"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
+  };
+
   wsm_data["spectral_radStepByStepEmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path.
 
@@ -4897,6 +4926,25 @@ This uses a step-by-step solver to propagate background radiation along the path
                  "spectral_tramat_cumulative_path",
                  "spectral_tramat_jac_path",
                  "spectral_lintau_jac_path",
+                 "spectral_rad_srcvec_path",
+                 "spectral_rad_srcvec_jac_path",
+                 "spectral_rad_bkg"},
+  };
+
+  wsm_data["spectral_radLinearInTauAndPropStepByStepEmission"] = {
+      .desc   = R"--([WIP] Gets the spectral radiance from the path.
+
+This uses a step-by-step solver to propagate background radiation along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_rad", "spectral_rad_jac_path"},
+      .in     = {"spectral_tramat_path",
+                 "spectral_lintau_path",
+                 "spectral_linprop_path",
+                 "spectral_tramat_cumulative_path",
+                 "spectral_tramat_jac_path",
+                 "spectral_lintau_jac_path",
+                 "spectral_linprop_jac_path",
                  "spectral_rad_srcvec_path",
                  "spectral_rad_srcvec_jac_path",
                  "spectral_rad_bkg"},

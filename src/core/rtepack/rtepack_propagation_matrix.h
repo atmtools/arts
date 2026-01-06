@@ -103,6 +103,9 @@ constexpr propmat avg(const propmat &a, const propmat &b) {
           std::midpoint(a.W(), b.W())};
 }
 
+//! Element-wise dawson function of a propmat matrix (FIXME: implement as matrix?)
+propmat dawson(const propmat &pm);
+
 using propmat_vector            = matpack::data_t<propmat, 1>;
 using propmat_vector_view       = matpack::view_t<propmat, 1>;
 using propmat_vector_const_view = matpack::view_t<const propmat, 1>;

@@ -98,6 +98,11 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("spectral_radClearskyLinearInTauEmission");
       agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
       break;
+    case EmissionLinearInTauAndProp:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyLinearInTauAndPropEmission");
+      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
+      break;
     case EmissionAdaptiveHalfsteps:
       agenda.add("ray_path_observer_agendaExecute");
       agenda.add("ray_pointBackground");

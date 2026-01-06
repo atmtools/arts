@@ -10,16 +10,16 @@
 
 namespace rtepack {
 struct stokvec final : vec4 {
-  [[nodiscard]] constexpr stokvec(Numeric a = 0.0,
-                                  Numeric b = 0.0,
-                                  Numeric c = 0.0,
-                                  Numeric d = 0.0)
-      : vec4{a, b, c, d} {}
+  [[nodiscard]] constexpr stokvec(Numeric i = 0.0,
+                                  Numeric q = 0.0,
+                                  Numeric u = 0.0,
+                                  Numeric v = 0.0)
+      : vec4{i, q, u, v} {}
 
   constexpr stokvec(std::array<Numeric, 4> data) noexcept : vec4{data} {}
 
-  constexpr stokvec &operator=(Numeric a) {
-    data = {a, 0., 0., 0.};
+  constexpr stokvec &operator=(Numeric i) {
+    data = {i, 0., 0., 0.};
     return *this;
   }
 
@@ -60,6 +60,10 @@ struct stokvec final : vec4 {
   [[nodiscard]] constexpr Size nonzero_components() const {
     return static_cast<Size>(I() != 0.0) + static_cast<Size>(Q() != 0.0) +
            static_cast<Size>(U() != 0.0) + static_cast<Size>(V() != 0.0);
+  }
+
+  constexpr stokvec operator-() const {
+    return stokvec{-data[0], -data[1], -data[2], -data[3]};
   }
 };
 
