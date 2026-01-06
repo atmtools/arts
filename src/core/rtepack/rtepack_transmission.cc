@@ -230,18 +230,21 @@ muelmat evolve_operator_2_deriv(const tran &x,
                                 const propmat &k2,
                                 const propmat &dk_in,
                                 const Numeric r,
-                                const Numeric dr) {
-  // Incoming dk is w.r.t. one endpoint; scale by 0.5
-  const propmat dk = 0.5 * dk_in;
+                                const Numeric dr,
+                                bool k1_deriv) {
+  const Numeric sign = k1_deriv ? -1.0 : 1.0;
 
   if (not x.polarized) {
     // scalar shortcut
     const Numeric z0    = 0.5 * r * (k2.A() - k1.A());
     const Numeric daw   = Faddeeva::Dawson(z0);
     const Numeric ddaw  = 1.0 - 2.0 * z0 * daw;
-    const Numeric dz0   = 0.5 * (dk.A() * r + (k2.A() - k1.A()) * dr);
-    const Numeric denom = (x.a * r);  // Kr scalar
-    return muelmat{(-dz0 * daw / (denom * denom)) + ddaw * dz0 / denom};
+
+    const Numeric dz0   = 0.5 * ((k2.A() - k1.A()) * dr + r * sign * dk_in.A());
+    const Numeric Kr0   = x.a * -r;
+    const Numeric dKr0  = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
+
+    return muelmat{-lambda[0, 0] * dKr0 / Kr0 + ddaw * dz0 / Kr0};
   }
 
   // Stored K already has r: K = -0.5 * r * (k1 + k2)
@@ -257,10 +260,10 @@ muelmat evolve_operator_2_deriv(const tran &x,
   const muelmat dDaw_dz = ones - 2.0 * elem_prod(z, Daw);
 
   // dz from dk and dr: z = 0.5 * r * (k2 - k1)
-  const propmat dz = 0.5 * (dk * r + (k2 - k1) * dr);
+  const propmat dz = 0.5 * (dr * (k2 - k1) + r * sign * dk_in);
 
   // d(Kr) = dK * r + K * dr   (but K already has r, so dK = dk)
-  const propmat dKr = dk * r + K * dr;
+  const propmat dKr = r * dr * (k1 + k2) + 0.5 * r * r * dk_in;
 
   // dλ = -inv(Kr) * d(Kr) * λ + inv(Kr) * (D'(z) ⊙ dz)
   const muelmat term1 = -invKr * dKr * lambda;
@@ -558,9 +561,9 @@ void two_level_exp(muelmat_vector_view tv,
       dl2v0[j, i] = tran_state.evolve_operator_deriv(
           lv0[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
       dl1v1[j, i] = evolve_operator_2_deriv(
-          tran_state, lv1[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
+          tran_state, lv1[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j], true);
       dl2v1[j, i] = evolve_operator_2_deriv(
-          tran_state, lv1[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
+          tran_state, lv1[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j], false);
     }
   }
 }
