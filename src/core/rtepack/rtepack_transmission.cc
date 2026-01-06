@@ -194,6 +194,9 @@ muelmat tran::expm1() const noexcept {
 }
 
 muelmat tran::evolve_operator() const noexcept {
+  // K = - k, expm1 = exp(-k) - 1, so "-" cancels out,
+  // since we want k^-1 (1 - exp(-k)) = K^-1 * expm1
+
   if (not polarized) return std::expm1(a) / a;
 
   const propmat K{a, b, c, d, u, v, w};
@@ -236,13 +239,13 @@ muelmat evolve_operator_2_deriv(const tran &x,
 
   if (not x.polarized) {
     // scalar shortcut
-    const Numeric z0    = 0.5 * r * (k2.A() - k1.A());
-    const Numeric daw   = Faddeeva::Dawson(z0);
-    const Numeric ddaw  = 1.0 - 2.0 * z0 * daw;
+    const Numeric z0   = 0.5 * r * (k2.A() - k1.A());
+    const Numeric daw  = Faddeeva::Dawson(z0);
+    const Numeric ddaw = 1.0 - 2.0 * z0 * daw;
 
-    const Numeric dz0   = 0.5 * ((k2.A() - k1.A()) * dr + r * sign * dk_in.A());
-    const Numeric Kr0   = x.a * -r;
-    const Numeric dKr0  = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
+    const Numeric dz0  = 0.5 * ((k2.A() - k1.A()) * dr + r * sign * dk_in.A());
+    const Numeric Kr0  = x.a * -r;
+    const Numeric dKr0 = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
 
     return muelmat{-lambda[0, 0] * dKr0 / Kr0 + ddaw * dz0 / Kr0};
   }

@@ -76,16 +76,13 @@ void two_level_linear_emission_step_by_step_full(
       Iv -= Jv;
 
       if (nq) {
-        auto dI0 = dI[i][joker, iv];
-        auto dI1 = dI[i + 1][joker, iv];
-
+        auto dI0       = dI[i][joker, iv];
+        auto dI1       = dI[i + 1][joker, iv];
         const auto dT0 = dTs[i][0, joker, iv];
         const auto dJ0 = dJs[i][joker, iv];
-
         const auto dT1 = dTs[i + 1][1, joker, iv];
         const auto dJ1 = dJs[i + 1][joker, iv];
-
-        const auto &P = Pi[i][iv];
+        const auto &P  = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] += P * (dT0[iq] * Iv + avg(dJ0[iq], -(T * dJ0[iq])));
@@ -164,39 +161,37 @@ void two_level_linear_in_J_step_by_step_full(
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    stokvec &IM = I[iv];
+    stokvec &Ii = I[iv];
+
     for (Size i = N - 2; i < N; i--) {
-      const stokvec &JN = Js[i + 1][iv];
-      const stokvec &JM = Js[i][iv];
+      const stokvec &J0 = Js[i + 1][iv];
+      const stokvec &J1 = Js[i][iv];
       const muelmat &T  = Ts[i + 1][iv];
       const muelmat &L0 = L0s[i + 1][iv];
 
-      const stokvec IMmJM = IM - JM;
-      const stokvec JMmJN = JM - JN;
+      const stokvec ImJ0  = Ii - J0;
+      const stokvec J0mJ1 = J0 - J1;
 
       if (nq) {
-        auto dI0 = dI[i][joker, iv];
-        auto dI1 = dI[i + 1][joker, iv];
-
+        auto dI0        = dI[i][joker, iv];
+        auto dI1        = dI[i + 1][joker, iv];
         const auto dT0  = dTs[i][0, joker, iv];
         const auto dL00 = dL0s[i][0, joker, iv];
         const auto dJ0  = dJs[i][joker, iv];
-
         const auto dT1  = dTs[i + 1][1, joker, iv];
         const auto dL01 = dL0s[i + 1][1, joker, iv];
         const auto dJ1  = dJs[i + 1][joker, iv];
-
-        const auto &P = Pi[i][iv];
+        const auto &P   = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] +=
-              P * (dJ0[iq] - L0 * dJ0[iq] + dT0[iq] * IMmJM + dL00[iq] * JMmJN);
-          dI1[iq] += P * (dT1[iq] * IMmJM + dL01[iq] * JMmJN + L0 * dJ1[iq] -
-                          T * dJ1[iq]);
+              P * (dJ1[iq] - L0 * dJ0[iq] + dT0[iq] * ImJ0 + dL00[iq] * J0mJ1);
+          dI1[iq] += P * (dT1[iq] * ImJ0 + dL01[iq] * J0mJ1 + L0 * dJ1[iq] -
+                          T * dJ0[iq]);
         }
       }
 
-      IM = T * IMmJM + L0 * JMmJN + JN;
+      Ii = T * ImJ0 + L0 * J0mJ1 + J1;
     }
   }
 }
@@ -274,45 +269,40 @@ void two_level_linear_in_J_and_K_step_by_step_full(
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    stokvec &IM = I[iv];
+    stokvec &Ii = I[iv];
+
     for (Size i = N - 2; i < N; i--) {
-      const stokvec &JN = Js[i + 1][iv];
-      const stokvec &JM = Js[i][iv];
+      const stokvec &J0 = Js[i + 1][iv];
+      const stokvec &J1 = Js[i][iv];
       const muelmat &T  = Ts[i + 1][iv];
       const muelmat &L0 = L0s[i + 1][iv];
       const muelmat &L1 = L1s[i + 1][iv];
 
-      const stokvec IMmJM = IM - JM;
-      const stokvec JMmJN = JM - JN;
+      const stokvec ImJ0  = Ii - J0;
+      const stokvec J0mJ1 = J0 - J1;
 
       if (nq) {
-        auto dI0 = dI[i][joker, iv];
-        auto dI1 = dI[i + 1][joker, iv];
-
+        auto dI0        = dI[i][joker, iv];
+        auto dI1        = dI[i + 1][joker, iv];
         const auto dT0  = dTs[i][0, joker, iv];
         const auto dL00 = dL0s[i][0, joker, iv];
         const auto dL10 = dL1s[i][0, joker, iv];
         const auto dJ0  = dJs[i][joker, iv];
-
         const auto dT1  = dTs[i + 1][1, joker, iv];
         const auto dL01 = dL0s[i + 1][1, joker, iv];
         const auto dL11 = dL1s[i + 1][1, joker, iv];
         const auto dJ1  = dJs[i + 1][joker, iv];
-
-        const auto &P = Pi[i][iv];
+        const auto &P   = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
-          dI0[iq] +=
-              P * (dJ0[iq] - L0 * dJ0[iq] - L1 * dJ0[iq] + dT0[iq] * IMmJM +
-                   dL00[iq] * JMmJN + dL10[iq] * JMmJN);
-
-          dI1[iq] +=
-              P * (dT1[iq] * IMmJM + dL01[iq] * JMmJN + dL11[iq] * JMmJN +
-                   L0 * dJ1[iq] + L1 * dJ1[iq] - T * dJ1[iq]);
+          dI0[iq] += P * (dJ1[iq] - L0 * dJ0[iq] - L1 * dJ0[iq] +
+                          dT0[iq] * ImJ0 + dL00[iq] * J0mJ1 + dL10[iq] * J0mJ1);
+          dI1[iq] += P * (dT1[iq] * ImJ0 + dL01[iq] * J0mJ1 + dL11[iq] * J0mJ1 +
+                          L0 * dJ1[iq] + L1 * dJ1[iq] - T * dJ0[iq]);
         }
       }
 
-      IM = T * IMmJM + L0 * JMmJN + L1 * JMmJN + JN;
+      Ii = T * ImJ0 + L0 * J0mJ1 + L1 * J0mJ1 + J1;
     }
   }
 }

@@ -460,3 +460,54 @@ The derivative contribution is then given by
       &+& \frac{\partial T_{N-1}} {\partial \vec{x}_{N}} \left(I_{N-1} - J_{N-1}\right)
       &+& \frac{\partial \Lambda_{N-1}} {\partial \vec{x}_{N}} \left(J_{N-1} - J_{N}\right)
     &\Bigr]
+
+Linear propagation matrix and source function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This relaxes the assumption of constant propagation matrix within
+the layer but is otherwise similar to linear in source.
+The indexing is the same for the
+transmittance and incoming background radiation as above - in layers.  However, the source
+function and propagation matrix indexing below is now shifted to represent levels - the same indexing
+as we use for the spectral radiance term.
+
+Linear in source means that we assume :math:`J = J_0 + (J_1 - J_0) \frac{r}{r_x}`,
+where :math:`r` is the distance through the layer and :math:`r_x` is the total
+thickness of the layer.  With a linearly varying propagation matrix :math:`K = K_0 + (K_1 - K_0) \frac{r}{r_x}`, we define
+:math:`T_0 = \exp\left(- \overline{K_{0, 1}} r_x\right)`, with the overline indicate
+the arithmetic mean, and get
+
+.. math::
+  I_1 = J_1 + T_0 \left(I_0 - J_0\right) + \left(\Lambda_0^{(0)} + \Lambda_0^{(1)}\right) \left(J_0 - J_1\right).
+
+This is a classical solution to the radiative transfer equation to improve
+numerical stability when the propagation matrix :math:`K` is
+large.  Going through the motion of extending this to multiple steps as for the
+constant source case is then just a matter of adding 1 extra term
+per layer in the dot products above.  If we define
+
+.. math::
+  \Lambda_i = \Lambda_i^{(0)} + \Lambda_i^{(1)},
+
+where the first term is identical to the linear source function case,
+and the second term is a second order correction for the linear
+variation of the propagation matrix, we get
+
+
+.. math::
+
+  \Lambda_i^{(0)} &=& \frac{1}{r_i} \overline{K_{i, i+1}}^{-1} &\left(1 - T_i\right), \\
+  \Lambda_i^{(1)} &=& \frac{1}{r_i^2} \overline{K_{i, i+1}}^{-1} &D\left(\left[K_{i+1} - K_{i}\right] r_i \middle/ 2\right),
+
+where :math:`D` is the Dawson function of a matrix.
+
+The rest of the steps that follows are the same as for the linear source function
+case above, just replacing :math:`\Lambda_i` with the new definition.
+
+.. caution::
+
+  The Dawson function of a matrix is not implemented in ARTS yet.  Instead,
+  the element-wise Dawson function is used as an approximation.  This means
+  that it might be better to use the linear source function method.
+
+  Indeed, we do not know how well this approximation performs in practice.
