@@ -12,23 +12,38 @@ struct muelmat final : mat44 {
   constexpr muelmat(Numeric tau = 1.0) noexcept
       : mat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr muelmat(Numeric a,
-                    Numeric b,
-                    Numeric c,
-                    Numeric d,
-                    Numeric e,
-                    Numeric f,
-                    Numeric g,
-                    Numeric h,
-                    Numeric i,
-                    Numeric j,
-                    Numeric k,
-                    Numeric l,
-                    Numeric m,
-                    Numeric n,
-                    Numeric o,
-                    Numeric p) noexcept
-      : mat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
+  constexpr muelmat(Numeric m00,
+                    Numeric m01,
+                    Numeric m02,
+                    Numeric m03,
+                    Numeric m10,
+                    Numeric m11,
+                    Numeric m12,
+                    Numeric m13,
+                    Numeric m20,
+                    Numeric m21,
+                    Numeric m22,
+                    Numeric m23,
+                    Numeric m30,
+                    Numeric m31,
+                    Numeric m32,
+                    Numeric m33) noexcept
+      : mat44{m00,
+              m01,
+              m02,
+              m03,
+              m10,
+              m11,
+              m12,
+              m13,
+              m20,
+              m21,
+              m22,
+              m23,
+              m30,
+              m31,
+              m32,
+              m33} {}
 
   constexpr muelmat(std::array<Numeric, 16> data) noexcept : mat44{data} {}
 

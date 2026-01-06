@@ -202,6 +202,25 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name    = "spectral_radClearskyLinearInTauAndPropEmission",
+      .desc    = "[WIP] Computes clearsky emission of spectral radiances using linear-in-tau and linear-in-propmat approximation",
+      .author  = {"Richard Larsson"},
+      .methods = {"ray_pointBackground",
+                  "spectral_rad_bkgAgendasAtEndOfPath",
+                  "atm_pathFromPath",
+                  "freq_grid_pathFromPath",
+                  "spectral_propmat_pathFromPath",
+                  "spectral_tramat_pathLinearInTauAndPropFromPath",
+                  "spectral_tramat_cumulative_pathFromPath",
+                  "spectral_rad_srcvec_pathFromPropmat",
+                  "spectral_tramat_bkgFromPathPropagationBack",
+                  "spectral_radLinearInTauAndPropStepByStepEmission",
+                  "spectral_rad_jacFromBackground",
+                  "spectral_rad_jacAddPathPropagation"},
+      .out     = {"spectral_rad", "spectral_rad_jac"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radClearskyEmissionParFreq",
       .desc    = "Computes clearsky emission of spectral radiances",
       .author  = {"Richard Larsson"},

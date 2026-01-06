@@ -3,6 +3,7 @@
 #include <arts_constexpr_math.h>
 #include <arts_omp.h>
 
+#include <Faddeeva.hh>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -193,9 +194,10 @@ muelmat tran::expm1() const noexcept {
 }
 
 muelmat tran::evolve_operator() const noexcept {
-  if (not polarized) {
-    return std::abs(a) < 1e-12 ? 1.0 : muelmat{std::expm1(a) / a};
-  }
+  // K = - k, expm1 = exp(-k) - 1, so "-" cancels out,
+  // since we want k^-1 (1 - exp(-k)) = K^-1 * expm1
+
+  if (not polarized) return std::expm1(a) / a;
 
   const propmat K{a, b, c, d, u, v, w};
 
@@ -207,9 +209,75 @@ muelmat tran::evolve_operator_deriv(const muelmat &l,
                                     const muelmat &dt,
                                     const Numeric r,
                                     const Numeric dr) const {
+  if (not polarized) {
+    const Numeric da = (dr / r) * a - 0.5 * r * dk.A();
+    return muelmat{(dt[0, 0] - l[0, 0] * da) / a};
+  }
+
   const propmat K{a, b, c, d, u, v, w};
 
   return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
+}
+
+muelmat evolve_operator_2(const tran &x,
+                          const propmat &k1,
+                          const propmat &k2,
+                          const Numeric r) {
+  using Faddeeva::Dawson;
+
+  if (not x.polarized) return -Dawson(0.5 * r * (k2.A() - k1.A())) / (r * x.a);
+
+  const propmat k{x.a, x.b, x.c, x.d, x.u, x.v, x.w};
+
+  return inv(k * -r) * dawson(0.5 * r * (k2 - k1));
+}
+
+muelmat evolve_operator_2_deriv(const tran &x,
+                                const muelmat &lambda,
+                                const propmat &k1,
+                                const propmat &k2,
+                                const propmat &dk_in,
+                                const Numeric r,
+                                const Numeric dr,
+                                bool k1_deriv) {
+  const Numeric sign = k1_deriv ? -1.0 : 1.0;
+
+  if (not x.polarized) {
+    // scalar shortcut
+    const Numeric z0   = 0.5 * r * (k2.A() - k1.A());
+    const Numeric daw  = Faddeeva::Dawson(z0);
+    const Numeric ddaw = 1.0 - 2.0 * z0 * daw;
+
+    const Numeric dz0  = 0.5 * ((k2.A() - k1.A()) * dr + r * sign * dk_in.A());
+    const Numeric Kr0  = x.a * -r;
+    const Numeric dKr0 = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
+
+    return muelmat{-lambda[0, 0] * dKr0 / Kr0 - ddaw * dz0 / Kr0};
+  }
+
+  // Stored K already has r: K = -0.5 * r * (k1 + k2)
+  const propmat K{x.a, x.b, x.c, x.d, x.u, x.v, x.w};
+  const propmat Kr    = K * -r;
+  const muelmat invKr = inv(Kr);
+
+  // Dawson argument z = 0.5 * r * (k2 - k1)
+  const propmat z   = 0.5 * r * (k2 - k1);
+  const muelmat Daw = Kr * lambda;  // since λ = inv(Kr) * Daw
+
+  constexpr muelmat ones{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  const muelmat dDaw_dz = ones - 2.0 * elem_prod(z, Daw);
+
+  // dz from dk and dr: z = 0.5 * r * (k2 - k1)
+  const propmat dz = 0.5 * (dr * (k2 - k1) + r * sign * dk_in);
+
+  // d(Kr) = dK * r + K * dr   (but K already has r, so dK = dk)
+  const propmat dKr = r * dr * (k1 + k2) + 0.5 * r * r * dk_in;
+
+  // dλ = -inv(Kr) * d(Kr) * λ + inv(Kr) * (D'(z) ⊙ dz)
+  const muelmat term1 = -invKr * dKr * lambda;
+  const muelmat term2 = invKr * elem_prod(dz, dDaw_dz);
+
+  return term1 + term2;
 }
 
 muelmat tran::deriv(const muelmat &t,
@@ -411,6 +479,7 @@ void two_level_exp(muelmat_vector_view tv,
 
   assert(nf == k1v.size());
   assert(nf == k2v.size());
+  assert(nf == lv.size());
   assert(nf == static_cast<Size>(dk1v.ncols()));
   assert(nf == static_cast<Size>(dk2v.ncols()));
   assert(nq == static_cast<Size>(dk1v.nrows()));
@@ -419,6 +488,10 @@ void two_level_exp(muelmat_vector_view tv,
   assert(nf == static_cast<Size>(dt2v.ncols()));
   assert(nq == static_cast<Size>(dt1v.nrows()));
   assert(nq == static_cast<Size>(dt2v.nrows()));
+  assert(nf == static_cast<Size>(dl1v.ncols()));
+  assert(nf == static_cast<Size>(dl2v.ncols()));
+  assert(nq == static_cast<Size>(dl1v.nrows()));
+  assert(nq == static_cast<Size>(dl2v.nrows()));
   assert(nq == dr2v.size());
 
   for (Size i = 0; i < nf; ++i) {
@@ -435,6 +508,70 @@ void two_level_exp(muelmat_vector_view tv,
           lv[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
       dl2v[j, i] = tran_state.evolve_operator_deriv(
           lv[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
+    }
+  }
+}
+
+void two_level_exp(muelmat_vector_view tv,
+                   muelmat_vector_view lv0,
+                   muelmat_vector_view lv1,
+                   muelmat_matrix_view dt1v,
+                   muelmat_matrix_view dt2v,
+                   muelmat_matrix_view dl1v0,
+                   muelmat_matrix_view dl2v0,
+                   muelmat_matrix_view dl1v1,
+                   muelmat_matrix_view dl2v1,
+                   const propmat_vector_const_view &k1v,
+                   const propmat_vector_const_view &k2v,
+                   const propmat_matrix_const_view &dk1v,
+                   const propmat_matrix_const_view &dk2v,
+                   const Numeric rv,
+                   const ConstVectorView &dr1v,
+                   const ConstVectorView &dr2v) {
+  const Size nf = tv.size();
+  const Size nq = dr1v.size();
+
+  assert(nf == k1v.size());
+  assert(nf == k2v.size());
+  assert(nf == lv0.size());
+  assert(nf == lv1.size());
+  assert(nf == static_cast<Size>(dk1v.ncols()));
+  assert(nf == static_cast<Size>(dk2v.ncols()));
+  assert(nq == static_cast<Size>(dk1v.nrows()));
+  assert(nq == static_cast<Size>(dk2v.nrows()));
+  assert(nf == static_cast<Size>(dt1v.ncols()));
+  assert(nf == static_cast<Size>(dt2v.ncols()));
+  assert(nq == static_cast<Size>(dt1v.nrows()));
+  assert(nq == static_cast<Size>(dt2v.nrows()));
+  assert(nf == static_cast<Size>(dl1v0.ncols()));
+  assert(nf == static_cast<Size>(dl2v0.ncols()));
+  assert(nq == static_cast<Size>(dl1v0.nrows()));
+  assert(nq == static_cast<Size>(dl2v0.nrows()));
+  assert(nf == static_cast<Size>(dl1v1.ncols()));
+  assert(nf == static_cast<Size>(dl2v1.ncols()));
+  assert(nq == static_cast<Size>(dl1v1.nrows()));
+  assert(nq == static_cast<Size>(dl2v1.nrows()));
+  assert(nq == dr2v.size());
+
+  for (Size i = 0; i < nf; ++i) {
+    const tran tran_state{k1v[i], k2v[i], rv};
+    tv[i]  = tran_state();
+    lv0[i] = tran_state.evolve_operator();
+    lv1[i] = evolve_operator_2(tran_state, k1v[i], k2v[i], rv);
+
+    for (Size j = 0; j < nq; j++) {
+      dt1v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
+      dt2v[j, i] =
+          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
+      dl1v0[j, i] = tran_state.evolve_operator_deriv(
+          lv0[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
+      dl2v0[j, i] = tran_state.evolve_operator_deriv(
+          lv0[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
+      dl1v1[j, i] = evolve_operator_2_deriv(
+          tran_state, lv1[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j], true);
+      dl2v1[j, i] = evolve_operator_2_deriv(
+          tran_state, lv1[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j], false);
     }
   }
 }
@@ -618,6 +755,117 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                   dT[i][1],
                   dL[i - 1][0],
                   dL[i][1],
+                  K[i - 1],
+                  K[i],
+                  dK[i - 1],
+                  dK[i],
+                  r[i - 1],
+                  dr[0, i - 1],
+                  dr[1, i - 1]);
+  }
+}
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_vector> &L0,
+                   std::vector<muelmat_vector> &L1,
+                   std::vector<muelmat_tensor3> &dT,
+                   std::vector<muelmat_tensor3> &dL0,
+                   std::vector<muelmat_tensor3> &dL1,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr) {
+  const Size N = K.size();
+
+  ARTS_USER_ERROR_IF(
+      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
+
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(r.size()),
+      "Must have one fewer layer distances ({}) than levels ({}) in K",
+      (N - 1),
+      N);
+
+  ARTS_USER_ERROR_IF(
+      (N - 1) != static_cast<Size>(dr.nrows()),
+      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
+      N - 1,
+      N);
+
+  T.resize(N);
+  L0.resize(N);
+  L1.resize(N);
+
+  dT.resize(N);
+  dL0.resize(N);
+  dL1.resize(N);
+
+  if (N == 0) return;
+
+  const Size nv  = K[0].size();
+  const Index nq = dr.ncols();
+
+  for (auto &x : T) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : L0) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : L1) {
+    x.resize(nv);
+    x = 1.0;
+  }
+
+  for (auto &x : dT) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  for (auto &x : dL0) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  for (auto &x : dL1) {
+    x.resize(2, nq, nv);
+    x = 0.0;
+  }
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
+      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
+      nv);
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
+      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
+      nv);
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
+      "Must have same number of derivative elements ({}) in all dK:s as in dr",
+      nq);
+
+  ARTS_USER_ERROR_IF(
+      dr.npages() != 2,
+      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
+      dr.npages());
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    two_level_exp(T[i],
+                  L0[i],
+                  L1[i],
+                  dT[i - 1][0],
+                  dT[i][1],
+                  dL0[i - 1][0],
+                  dL0[i][1],
+                  dL1[i - 1][0],
+                  dL1[i][1],
                   K[i - 1],
                   K[i],
                   dK[i - 1],

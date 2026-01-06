@@ -73,4 +73,15 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                    const std::vector<propmat_matrix> &dK,
                    const Vector &r,
                    const Tensor3 &dr);
+
+void two_level_exp(std::vector<muelmat_vector> &T,
+                   std::vector<muelmat_vector> &L0,
+                   std::vector<muelmat_vector> &L1,
+                   std::vector<muelmat_tensor3> &dT,
+                   std::vector<muelmat_tensor3> &dL0,
+                   std::vector<muelmat_tensor3> &dL1,
+                   const std::vector<propmat_vector> &K,
+                   const std::vector<propmat_matrix> &dK,
+                   const Vector &r,
+                   const Tensor3 &dr);
 }  // namespace rtepack

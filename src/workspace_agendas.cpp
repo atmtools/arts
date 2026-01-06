@@ -183,6 +183,7 @@ is warranted.
                        "subsurf_field"},
       .enum_options = {"Emission",
                        "EmissionLinearInTau",
+                       "EmissionLinearInTauAndProp",
                        "EmissionAdaptiveHalfsteps",
                        "EmissionNoSensor"},
       .enum_default = "Emission",

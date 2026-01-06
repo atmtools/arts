@@ -627,6 +627,18 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatVector",
   };
 
+  wsv_data["spectral_linprop_jac_path"] = {
+      .desc = R"--(The partial derivatives of the linear in propagation operator derivatives along the propagation path.
+)--",
+      .type = "ArrayOfMuelmatTensor3",
+  };
+
+  wsv_data["spectral_linprop_path"] = {
+      .desc = R"--(The operator that holds the linear in propagation approximation along the propagation path.
+)--",
+      .type = "ArrayOfMuelmatVector",
+  };
+
   //! Surface
 
   wsv_data["surf_field"] = {
