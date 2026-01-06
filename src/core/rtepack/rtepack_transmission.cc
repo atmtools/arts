@@ -209,6 +209,11 @@ muelmat tran::evolve_operator_deriv(const muelmat &l,
                                     const muelmat &dt,
                                     const Numeric r,
                                     const Numeric dr) const {
+  if (not polarized) {
+    const Numeric da = (dr / r) * a - 0.5 * r * dk.A();
+    return muelmat{(dt[0, 0] - l[0, 0] * da) / a};
+  }
+
   const propmat K{a, b, c, d, u, v, w};
 
   return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
@@ -247,7 +252,7 @@ muelmat evolve_operator_2_deriv(const tran &x,
     const Numeric Kr0  = x.a * -r;
     const Numeric dKr0 = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
 
-    return muelmat{-lambda[0, 0] * dKr0 / Kr0 + ddaw * dz0 / Kr0};
+    return muelmat{-lambda[0, 0] * dKr0 / Kr0 - ddaw * dz0 / Kr0};
   }
 
   // Stored K already has r: K = -0.5 * r * (k1 + k2)
