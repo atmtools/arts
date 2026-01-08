@@ -1,5 +1,6 @@
 #include "rtepack_transmission.h"
 
+#include <arts_constants.h>
 #include <arts_constexpr_math.h>
 #include <arts_omp.h>
 
@@ -11,6 +12,7 @@
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_spectral_matrix.h"
 
 namespace rtepack {
 static constexpr Numeric too_small = 1e-4;
@@ -193,7 +195,7 @@ muelmat tran::expm1() const noexcept {
   // clang-format on
 }
 
-muelmat tran::evolve_operator() const noexcept {
+muelmat tran::linsrc() const noexcept {
   // K = - k, expm1 = exp(-k) - 1, so "-" cancels out,
   // since we want k^-1 (1 - exp(-k)) = K^-1 * expm1
 
@@ -204,11 +206,11 @@ muelmat tran::evolve_operator() const noexcept {
   return inv(K) * expm1();
 }
 
-muelmat tran::evolve_operator_deriv(const muelmat &l,
-                                    const propmat &dk,
-                                    const muelmat &dt,
-                                    const Numeric r,
-                                    const Numeric dr) const {
+muelmat tran::linsrc_deriv(const muelmat &l,
+                           const propmat &dk,
+                           const muelmat &dt,
+                           const Numeric r,
+                           const Numeric dr) const {
   if (not polarized) {
     const Numeric da = (dr / r) * a - 0.5 * r * dk.A();
     return muelmat{(dt[0, 0] - l[0, 0] * da) / a};
@@ -219,65 +221,113 @@ muelmat tran::evolve_operator_deriv(const muelmat &l,
   return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
 }
 
-muelmat evolve_operator_2(const tran &x,
-                          const propmat &k1,
-                          const propmat &k2,
-                          const Numeric r) {
+muelmat tran::linsrc_linprop(const muelmat &t,
+                             const propmat &k1,
+                             const propmat &k2,
+                             const Numeric r) const noexcept {
   using Faddeeva::Dawson;
 
-  if (not x.polarized) return -Dawson(0.5 * r * (k2.A() - k1.A())) / (r * x.a);
+  const propmat alpha2 = (k2 - k1) / (2.0 * r);
 
-  const propmat k{x.a, x.b, x.c, x.d, x.u, x.v, x.w};
+  // Ignore when the gradient is negative
+  if (alpha2.A() < 1e-8) return linsrc();
 
-  return inv(k * -r) * dawson(0.5 * r * (k2 - k1));
-}
+  if (not polarized) {
+    const Numeric alpha = std::sqrt(alpha2.A());
+    const Numeric u0    = k1.A() / (2.0 * alpha);
+    const Numeric u1    = k2.A() / (2.0 * alpha);
 
-muelmat evolve_operator_2_deriv(const tran &x,
-                                const muelmat &lambda,
-                                const propmat &k1,
-                                const propmat &k2,
-                                const propmat &dk_in,
-                                const Numeric r,
-                                const Numeric dr,
-                                bool k1_deriv) {
-  const Numeric sign = k1_deriv ? -1.0 : 1.0;
-
-  if (not x.polarized) {
-    // scalar shortcut
-    const Numeric z0   = 0.5 * r * (k2.A() - k1.A());
-    const Numeric daw  = Faddeeva::Dawson(z0);
-    const Numeric ddaw = 1.0 - 2.0 * z0 * daw;
-
-    const Numeric dz0  = 0.5 * ((k2.A() - k1.A()) * dr + r * sign * dk_in.A());
-    const Numeric Kr0  = x.a * -r;
-    const Numeric dKr0 = r * dr * (k1.A() + k2.A()) + 0.5 * r * r * dk_in.A();
-
-    return muelmat{-lambda[0, 0] * dKr0 / Kr0 - ddaw * dz0 / Kr0};
+    return (Dawson(u1) - t[0, 0] * Dawson(u0)) / (r * alpha);
   }
 
-  // Stored K already has r: K = -0.5 * r * (k1 + k2)
-  const propmat K{x.a, x.b, x.c, x.d, x.u, x.v, x.w};
-  const propmat Kr    = K * -r;
-  const muelmat invKr = inv(Kr);
+  const specmat alpha     = sqrt(alpha2);
+  const specmat alpha_inv = inv(alpha);
+  const specmat u0        = alpha_inv * (k1 / 2.0);
+  const specmat u1        = alpha_inv * (k2 / 2.0);
 
-  // Dawson argument z = 0.5 * r * (k2 - k1)
-  const propmat z   = 0.5 * r * (k2 - k1);
-  const muelmat Daw = Kr * lambda;  // since λ = inv(Kr) * Daw
+  return real(alpha_inv * (dawson(u1) - t * dawson(u0))) / r;
+}
 
-  constexpr muelmat ones{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-  const muelmat dDaw_dz = ones - 2.0 * elem_prod(z, Daw);
+muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
+                                   const muelmat &t,
+                                   const propmat &k1,
+                                   const propmat &k2,
+                                   const propmat &dk_in,
+                                   const muelmat &dt,
+                                   const Numeric r,
+                                   const Numeric dr,
+                                   bool k1_deriv) const {
+  using Faddeeva::Dawson;
 
-  // dz from dk and dr: z = 0.5 * r * (k2 - k1)
-  const propmat dz = 0.5 * (dr * (k2 - k1) + r * sign * dk_in);
+  const propmat alpha2 = (k2 - k1) / (2.0 * r);
 
-  // d(Kr) = dK * r + K * dr   (but K already has r, so dK = dk)
-  const propmat dKr = r * dr * (k1 + k2) + 0.5 * r * r * dk_in;
+  if (alpha2.A() < 1e-8) return linsrc_deriv(lambda, dk_in, dt, r, dr);
 
-  // dλ = -inv(Kr) * d(Kr) * λ + inv(Kr) * (D'(z) ⊙ dz)
-  const muelmat term1 = -invKr * dKr * lambda;
-  const muelmat term2 = invKr * elem_prod(dz, dDaw_dz);
+  if (not polarized) {
+    const Numeric k1a = k1.A();
+    const Numeric k2a = k2.A();
+    const Numeric dk  = dk_in.A();
 
-  return term1 + term2;
+    const Numeric delta_k = k2a - k1a;
+    const Numeric denom   = 2.0 * r;
+    const Numeric alpha   = std::sqrt(std::max(0.0, delta_k / denom));
+
+    const Numeric u0 = k1a / (2.0 * alpha);
+    const Numeric u1 = k2a / (2.0 * alpha);
+
+    const Numeric D0  = Dawson(u0);
+    const Numeric D1  = Dawson(u1);
+    const Numeric dD0 = 1.0 - 2.0 * u0 * D0;
+    const Numeric dD1 = 1.0 - 2.0 * u1 * D1;
+
+    const Numeric t00  = t[0, 0];
+    const Numeric dt00 = dt[0, 0];
+
+    Numeric d_alpha = 0.0, d_u0 = 0.0, d_u1 = 0.0;
+    if (k1_deriv) {
+      d_alpha = -0.5 * dk / (denom * alpha);
+      d_u0 = (dk * 2.0 * alpha - k1a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
+      d_u1 = -k2a * d_alpha / (2.0 * alpha * alpha);
+    } else {
+      d_alpha = 0.5 * dk / (denom * alpha);
+      d_u0    = -k1a * d_alpha / (2.0 * alpha * alpha);
+      d_u1 = (dk * 2.0 * alpha - k2a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
+    }
+
+    const Numeric d_num =
+        dD1 * d_u1 - dt00 * D0 - t00 * dD0 * d_u0 - t00 * D0 * d_u0;
+
+    const Numeric denom_val   = r * alpha;
+    const Numeric d_denom_val = dr * alpha + r * d_alpha;
+    const Numeric result = (d_num * denom_val - (D1 - t00 * D0) * d_denom_val) /
+                           (denom_val * denom_val);
+
+    return muelmat{result};
+  }
+
+  // These derivaties don't work so we use perturbations...
+
+  constexpr Numeric eps = 1e-6;
+
+  if (k1_deriv) {
+    const propmat k1p = k1 + dk_in * eps;
+    const Numeric rp  = r + dr * eps;
+
+    const tran tran_p{k1p, k2, rp};
+    const muelmat tp      = tran_p();
+    const muelmat lambdap = tran_p.linsrc_linprop(tp, k1p, k2, rp);
+
+    return (lambdap - lambda) / eps;
+  }
+
+  const propmat k2p = k2 + dk_in * eps;
+  const Numeric rp  = r + dr * eps;
+
+  const tran tran_p{k1, k2p, rp};
+  const muelmat tp      = tran_p();
+  const muelmat lambdap = tran_p.linsrc_linprop(tp, k1, k2p, rp);
+
+  return (lambdap - lambda) / eps;
 }
 
 muelmat tran::deriv(const muelmat &t,
@@ -461,19 +511,19 @@ void two_level_exp(muelmat_vector_view tv,
   }
 }
 
-void two_level_exp(muelmat_vector_view tv,
-                   muelmat_vector_view lv,
-                   muelmat_matrix_view dt1v,
-                   muelmat_matrix_view dt2v,
-                   muelmat_matrix_view dl1v,
-                   muelmat_matrix_view dl2v,
-                   const propmat_vector_const_view &k1v,
-                   const propmat_vector_const_view &k2v,
-                   const propmat_matrix_const_view &dk1v,
-                   const propmat_matrix_const_view &dk2v,
-                   const Numeric rv,
-                   const ConstVectorView &dr1v,
-                   const ConstVectorView &dr2v) {
+void two_level_exp_linsrc(muelmat_vector_view tv,
+                          muelmat_vector_view lv,
+                          muelmat_matrix_view dt1v,
+                          muelmat_matrix_view dt2v,
+                          muelmat_matrix_view dl1v,
+                          muelmat_matrix_view dl2v,
+                          const propmat_vector_const_view &k1v,
+                          const propmat_vector_const_view &k2v,
+                          const propmat_matrix_const_view &dk1v,
+                          const propmat_matrix_const_view &dk2v,
+                          const Numeric rv,
+                          const ConstVectorView &dr1v,
+                          const ConstVectorView &dr2v) {
   const Size nf = tv.size();
   const Size nq = dr1v.size();
 
@@ -497,37 +547,34 @@ void two_level_exp(muelmat_vector_view tv,
   for (Size i = 0; i < nf; ++i) {
     const tran tran_state{k1v[i], k2v[i], rv};
     tv[i] = tran_state();
-    lv[i] = tran_state.evolve_operator();
+    lv[i] = tran_state.linsrc();
 
     for (Size j = 0; j < nq; j++) {
       dt1v[j, i] =
           tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
       dt2v[j, i] =
           tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
-      dl1v[j, i] = tran_state.evolve_operator_deriv(
-          lv[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
-      dl2v[j, i] = tran_state.evolve_operator_deriv(
-          lv[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
+      dl1v[j, i] =
+          tran_state.linsrc_deriv(lv[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
+      dl2v[j, i] =
+          tran_state.linsrc_deriv(lv[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
     }
   }
 }
 
-void two_level_exp(muelmat_vector_view tv,
-                   muelmat_vector_view lv0,
-                   muelmat_vector_view lv1,
-                   muelmat_matrix_view dt1v,
-                   muelmat_matrix_view dt2v,
-                   muelmat_matrix_view dl1v0,
-                   muelmat_matrix_view dl2v0,
-                   muelmat_matrix_view dl1v1,
-                   muelmat_matrix_view dl2v1,
-                   const propmat_vector_const_view &k1v,
-                   const propmat_vector_const_view &k2v,
-                   const propmat_matrix_const_view &dk1v,
-                   const propmat_matrix_const_view &dk2v,
-                   const Numeric rv,
-                   const ConstVectorView &dr1v,
-                   const ConstVectorView &dr2v) {
+void two_level_exp_linsrc_linprop(muelmat_vector_view tv,
+                                  muelmat_vector_view lv,
+                                  muelmat_matrix_view dt1v,
+                                  muelmat_matrix_view dt2v,
+                                  muelmat_matrix_view dl1v,
+                                  muelmat_matrix_view dl2v,
+                                  const propmat_vector_const_view &k1v,
+                                  const propmat_vector_const_view &k2v,
+                                  const propmat_matrix_const_view &dk1v,
+                                  const propmat_matrix_const_view &dk2v,
+                                  const Numeric rv,
+                                  const ConstVectorView &dr1v,
+                                  const ConstVectorView &dr2v) {
   const Size nf = tv.size();
   const Size nq = dr1v.size();
 
@@ -555,23 +602,32 @@ void two_level_exp(muelmat_vector_view tv,
 
   for (Size i = 0; i < nf; ++i) {
     const tran tran_state{k1v[i], k2v[i], rv};
-    tv[i]  = tran_state();
-    lv0[i] = tran_state.evolve_operator();
-    lv1[i] = evolve_operator_2(tran_state, k1v[i], k2v[i], rv);
+    tv[i] = tran_state();
+    lv[i] = tran_state.linsrc_linprop(tv[i], k1v[i], k2v[i], rv);
 
     for (Size j = 0; j < nq; j++) {
       dt1v[j, i] =
           tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
       dt2v[j, i] =
           tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
-      dl1v0[j, i] = tran_state.evolve_operator_deriv(
-          lv0[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
-      dl2v0[j, i] = tran_state.evolve_operator_deriv(
-          lv0[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
-      dl1v1[j, i] = evolve_operator_2_deriv(
-          tran_state, lv1[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j], true);
-      dl2v1[j, i] = evolve_operator_2_deriv(
-          tran_state, lv1[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j], false);
+      dl1v[j, i] = tran_state.linsrc_linprop_deriv(lv[i],
+                                                   tv[i],
+                                                   k1v[i],
+                                                   k2v[i],
+                                                   dk1v[j, i],
+                                                   dt1v[j, i],
+                                                   rv,
+                                                   dr1v[j],
+                                                   true);
+      dl2v[j, i] = tran_state.linsrc_linprop_deriv(lv[i],
+                                                   tv[i],
+                                                   k1v[i],
+                                                   k2v[i],
+                                                   dk2v[j, i],
+                                                   dt2v[j, i],
+                                                   rv,
+                                                   dr2v[j],
+                                                   false);
     }
   }
 }
@@ -671,14 +727,14 @@ void two_level_exp(std::vector<muelmat_vector> &T,
   }
 }
 
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_vector> &L,
-                   std::vector<muelmat_tensor3> &dT,
-                   std::vector<muelmat_tensor3> &dL,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr) {
+void two_level_exp_linsrc(std::vector<muelmat_vector> &T,
+                          std::vector<muelmat_vector> &L,
+                          std::vector<muelmat_tensor3> &dT,
+                          std::vector<muelmat_tensor3> &dL,
+                          const std::vector<propmat_vector> &K,
+                          const std::vector<propmat_matrix> &dK,
+                          const Vector &r,
+                          const Tensor3 &dr) {
   const Size N = K.size();
 
   ARTS_USER_ERROR_IF(
@@ -749,32 +805,30 @@ void two_level_exp(std::vector<muelmat_vector> &T,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    two_level_exp(T[i],
-                  L[i],
-                  dT[i - 1][0],
-                  dT[i][1],
-                  dL[i - 1][0],
-                  dL[i][1],
-                  K[i - 1],
-                  K[i],
-                  dK[i - 1],
-                  dK[i],
-                  r[i - 1],
-                  dr[0, i - 1],
-                  dr[1, i - 1]);
+    two_level_exp_linsrc(T[i],
+                         L[i],
+                         dT[i - 1][0],
+                         dT[i][1],
+                         dL[i - 1][0],
+                         dL[i][1],
+                         K[i - 1],
+                         K[i],
+                         dK[i - 1],
+                         dK[i],
+                         r[i - 1],
+                         dr[0, i - 1],
+                         dr[1, i - 1]);
   }
 }
 
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_vector> &L0,
-                   std::vector<muelmat_vector> &L1,
-                   std::vector<muelmat_tensor3> &dT,
-                   std::vector<muelmat_tensor3> &dL0,
-                   std::vector<muelmat_tensor3> &dL1,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr) {
+void two_level_exp_linsrc_linprop(std::vector<muelmat_vector> &T,
+                                  std::vector<muelmat_vector> &L,
+                                  std::vector<muelmat_tensor3> &dT,
+                                  std::vector<muelmat_tensor3> &dL,
+                                  const std::vector<propmat_vector> &K,
+                                  const std::vector<propmat_matrix> &dK,
+                                  const Vector &r,
+                                  const Tensor3 &dr) {
   const Size N = K.size();
 
   ARTS_USER_ERROR_IF(
@@ -793,12 +847,10 @@ void two_level_exp(std::vector<muelmat_vector> &T,
       N);
 
   T.resize(N);
-  L0.resize(N);
-  L1.resize(N);
+  L.resize(N);
 
   dT.resize(N);
-  dL0.resize(N);
-  dL1.resize(N);
+  dL.resize(N);
 
   if (N == 0) return;
 
@@ -810,12 +862,7 @@ void two_level_exp(std::vector<muelmat_vector> &T,
     x = 1.0;
   }
 
-  for (auto &x : L0) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : L1) {
+  for (auto &x : L) {
     x.resize(nv);
     x = 1.0;
   }
@@ -825,12 +872,7 @@ void two_level_exp(std::vector<muelmat_vector> &T,
     x = 0.0;
   }
 
-  for (auto &x : dL0) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  for (auto &x : dL1) {
+  for (auto &x : dL) {
     x.resize(2, nq, nv);
     x = 0.0;
   }
@@ -857,22 +899,19 @@ void two_level_exp(std::vector<muelmat_vector> &T,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    two_level_exp(T[i],
-                  L0[i],
-                  L1[i],
-                  dT[i - 1][0],
-                  dT[i][1],
-                  dL0[i - 1][0],
-                  dL0[i][1],
-                  dL1[i - 1][0],
-                  dL1[i][1],
-                  K[i - 1],
-                  K[i],
-                  dK[i - 1],
-                  dK[i],
-                  r[i - 1],
-                  dr[0, i - 1],
-                  dr[1, i - 1]);
+    two_level_exp_linsrc_linprop(T[i],
+                                 L[i],
+                                 dT[i - 1][0],
+                                 dT[i][1],
+                                 dL[i - 1][0],
+                                 dL[i][1],
+                                 K[i - 1],
+                                 K[i],
+                                 dK[i - 1],
+                                 dK[i],
+                                 r[i - 1],
+                                 dr[0, i - 1],
+                                 dr[1, i - 1]);
   }
 }
 

@@ -502,7 +502,7 @@ void py_rtepack(py::module_ &m) try {
       "I0"_a,
       "Returns the two-level radiative transfer of the input matrices");
 
-  auto rp = m.def_submodule("rtepack");
+  auto rp  = m.def_submodule("rtepack");
   rp.doc() = "Module for RTEPACK functionality";
 
   auto tr = py::class_<rtepack::tran>(rp, "tran");
@@ -521,10 +521,10 @@ void py_rtepack(py::module_ &m) try {
            "dr"_a,
            "Returns the derivative of the Mueller matrix")
       .def("evolve_operator",
-           &rtepack::tran::evolve_operator,
+           &rtepack::tran::linsrc,
            "Returns the linear-in-tau evolve operator")
       .def("evolve_operator_deriv",
-           &rtepack::tran::evolve_operator_deriv,
+           &rtepack::tran::linsrc_deriv,
            "l"_a,
            "dk"_a,
            "dt"_a,

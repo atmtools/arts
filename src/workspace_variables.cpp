@@ -594,7 +594,7 @@ Shape: *jac_targets* - target count x *freq_grid*
 The outer dimension is the number of layers.
 
 The inner dimensions are the number of level derivatives,
-the number of jacbian targets, and the number of frequency points.
+the number of Jacobian targets, and the number of frequency points.
 The required number of level derivatives is determined by the appropriate
 method (a common value is 2, for the 2 levels surrounding a layer).
 
@@ -615,26 +615,14 @@ The order of the elements is such that index zero is closest to the obeserver.
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["spectral_lintau_jac_path"] = {
-      .desc = R"--(The partial derivatives of the linear in tau operator derivatives along the propagation path.
+  wsv_data["spectral_linevo_jac_path"] = {
+      .desc = R"--(The partial derivatives of the linear evolution operator along the propagation path.
 )--",
       .type = "ArrayOfMuelmatTensor3",
   };
 
-  wsv_data["spectral_lintau_path"] = {
-      .desc = R"--(The operator that holds the linear in tau approximation along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatVector",
-  };
-
-  wsv_data["spectral_linprop_jac_path"] = {
-      .desc = R"--(The partial derivatives of the linear in propagation operator derivatives along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatTensor3",
-  };
-
-  wsv_data["spectral_linprop_path"] = {
-      .desc = R"--(The operator that holds the linear in propagation approximation along the propagation path.
+  wsv_data["spectral_linevo_path"] = {
+      .desc = R"--(The linear evolution operator along the propagation path.
 )--",
       .type = "ArrayOfMuelmatVector",
   };

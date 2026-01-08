@@ -4855,9 +4855,9 @@ the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_tramat_path",
-                    "spectral_lintau_path",
+                    "spectral_linevo_path",
                     "spectral_tramat_jac_path",
-                    "spectral_lintau_jac_path"},
+                    "spectral_linevo_jac_path"},
       .in        = {"spectral_propmat_path",
                     "spectral_propmat_jac_path",
                     "ray_path",
@@ -4882,11 +4882,9 @@ the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_tramat_path",
-                    "spectral_lintau_path",
-                    "spectral_linprop_path",
+                    "spectral_linevo_path",
                     "spectral_tramat_jac_path",
-                    "spectral_lintau_jac_path",
-                    "spectral_linprop_jac_path"},
+                    "spectral_linevo_jac_path"},
       .in        = {"spectral_propmat_path",
                     "spectral_propmat_jac_path",
                     "ray_path",
@@ -4914,37 +4912,20 @@ This uses a step-by-step solver to propagate background radiation along the path
                  "spectral_rad_bkg"},
   };
 
-  wsm_data["spectral_radLinearInTauStepByStepEmission"] = {
+  wsm_data["spectral_radLinearEvolutionStepByStepEmission"] = {
       .desc   = R"--([WIP] Gets the spectral radiance from the path.
 
 This uses a step-by-step solver to propagate background radiation along the path.
+
+It assumes some linear evolution of the radiance within each layer
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path",
-                 "spectral_lintau_path",
+                 "spectral_linevo_path",
                  "spectral_tramat_cumulative_path",
                  "spectral_tramat_jac_path",
-                 "spectral_lintau_jac_path",
-                 "spectral_rad_srcvec_path",
-                 "spectral_rad_srcvec_jac_path",
-                 "spectral_rad_bkg"},
-  };
-
-  wsm_data["spectral_radLinearInTauAndPropStepByStepEmission"] = {
-      .desc   = R"--([WIP] Gets the spectral radiance from the path.
-
-This uses a step-by-step solver to propagate background radiation along the path.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_rad", "spectral_rad_jac_path"},
-      .in     = {"spectral_tramat_path",
-                 "spectral_lintau_path",
-                 "spectral_linprop_path",
-                 "spectral_tramat_cumulative_path",
-                 "spectral_tramat_jac_path",
-                 "spectral_lintau_jac_path",
-                 "spectral_linprop_jac_path",
+                 "spectral_linevo_jac_path",
                  "spectral_rad_srcvec_path",
                  "spectral_rad_srcvec_jac_path",
                  "spectral_rad_bkg"},

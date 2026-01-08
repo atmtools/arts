@@ -12,23 +12,38 @@ struct specmat final : cmat44 {
   constexpr specmat(Complex tau = 1.0) noexcept
       : cmat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr specmat(Complex a,
-                    Complex b,
-                    Complex c,
-                    Complex d,
-                    Complex e,
-                    Complex f,
-                    Complex g,
-                    Complex h,
-                    Complex i,
-                    Complex j,
-                    Complex k,
-                    Complex l,
-                    Complex m,
-                    Complex n,
-                    Complex o,
-                    Complex p) noexcept
-      : cmat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
+  constexpr specmat(Complex m00,
+                    Complex m01,
+                    Complex m02,
+                    Complex m03,
+                    Complex m10,
+                    Complex m11,
+                    Complex m12,
+                    Complex m13,
+                    Complex m20,
+                    Complex m21,
+                    Complex m22,
+                    Complex m23,
+                    Complex m30,
+                    Complex m31,
+                    Complex m32,
+                    Complex m33) noexcept
+      : cmat44{m00,
+               m01,
+               m02,
+               m03,
+               m10,
+               m11,
+               m12,
+               m13,
+               m20,
+               m21,
+               m22,
+               m23,
+               m30,
+               m31,
+               m32,
+               m33} {}
 
   constexpr specmat(std::array<Complex, 16> data) noexcept : cmat44{data} {}
 
@@ -126,6 +141,25 @@ struct specmat final : cmat44 {
                     a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
                     a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
   }
+
+  constexpr specmat operator-() const {
+    return specmat{-data[0],
+                   -data[1],
+                   -data[2],
+                   -data[3],
+                   -data[4],
+                   -data[5],
+                   -data[6],
+                   -data[7],
+                   -data[8],
+                   -data[9],
+                   -data[10],
+                   -data[11],
+                   -data[12],
+                   -data[13],
+                   -data[14],
+                   -data[15]};
+  }
 };
 
 //! Addition between specmat matrices
@@ -203,6 +237,22 @@ constexpr specmat adj(const specmat &A) {
 }
 
 constexpr specmat inv(const specmat &A) { return adj(A) / det(A); }
+
+//! Element-wise Dawson function of a specmat matrix (FIXME: make matrix-wise?)
+specmat dawson(const specmat &A);
+
+//! Element-wise erfcx function of a specmat matrix (FIXME: make matrix-wise?)
+specmat erfcx(const specmat &m);
+
+constexpr specmat elem_prod(const specmat &a, const specmat &b) {
+  specmat c;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      c[i, j] = a[i, j] * b[i, j];
+    }
+  }
+  return c;
+}
 
 using specmat_vector            = matpack::data_t<specmat, 1>;
 using specmat_vector_view       = matpack::view_t<specmat, 1>;

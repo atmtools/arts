@@ -2,10 +2,13 @@
 
 #include <debug.h>
 
+#include <Eigen/Dense>
 #include <algorithm>
 
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_spectral_matrix.h"
 #include "rtepack_stokes_vector.h"
+#include "rtepack_transmission.h"
 
 namespace rtepack {
 stokvec_vector absvec(const propmat_vector_const_view &k) {
@@ -66,9 +69,7 @@ Matrix to_matrix(const propmat &v) {
 
 Vector to_vector(const stokvec &v) { return {v.I(), v.Q(), v.U(), v.V()}; }
 
-stokvec to_stokvec(const propmat &a) {
-  return {a[0], a[1], a[2], a[3]};
-}
+stokvec to_stokvec(const propmat &a) { return {a[0], a[1], a[2], a[3]}; }
 
 stokvec to_stokvec(const ConstVectorView &a) {
   assert(a.size() == 4);
@@ -110,5 +111,66 @@ muelmat to_muelmat(const ConstMatrixView &a) {
           a[3, 1],
           a[3, 2],
           a[3, 3]};
+}
+
+muelmat real(const specmat &A) {
+  return muelmat{std::real(A.data[0]),
+                 std::real(A.data[1]),
+                 std::real(A.data[2]),
+                 std::real(A.data[3]),
+                 std::real(A.data[4]),
+                 std::real(A.data[5]),
+                 std::real(A.data[6]),
+                 std::real(A.data[7]),
+                 std::real(A.data[8]),
+                 std::real(A.data[9]),
+                 std::real(A.data[10]),
+                 std::real(A.data[11]),
+                 std::real(A.data[12]),
+                 std::real(A.data[13]),
+                 std::real(A.data[14]),
+                 std::real(A.data[15])};
+}
+
+specmat frechet_sqrt(const propmat &X, const propmat &E) {
+  specmat A  = sqrt(X);
+  muelmat Em = to_muelmat(E);
+
+  // For small matrices, use eigen-decomposition
+  Eigen::Matrix4cd a_mat;
+  Eigen::Matrix4d e_mat;
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      a_mat(i, j) = Complex{A[i, j]};
+      e_mat(i, j) = Em[i, j];
+    }
+  }
+
+  Eigen::ComplexEigenSolver<Eigen::Matrix4cd> es(a_mat);
+  const Eigen::Matrix4cd &V = es.eigenvectors();
+  Eigen::Matrix4cd D        = es.eigenvalues().asDiagonal();
+
+  // Transform E into eigenbasis
+  const auto E_tilde = V.inverse() * e_mat * V;
+
+  // Solve for S_tilde: (d_i + d_j) S_ij = E_ij
+  Eigen::Matrix4cd S_tilde = Eigen::Matrix4cd::Zero();
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      S_tilde(i, j) = E_tilde(i, j) / (D(i, i) + D(j, j));
+    }
+  }
+
+  // Transform back
+  const auto S = V * S_tilde * V.inverse();
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      A[i, j] = S(i, j);
+    }
+  }
+
+  return A;  // Convert back to specmat
 }
 }  // namespace rtepack

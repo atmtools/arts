@@ -4,6 +4,7 @@
 #include "rtepack_concepts.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_spectral_matrix.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -117,6 +118,56 @@ constexpr muelmat operator*(const muelmat &m, const propmat &k) {
                  a * m16 + d * m13 + m14 * v + m15 * w};
 }
 
+//! Mutliply a specmat with a muelmat matrix
+constexpr specmat operator*(const propmat &k, const specmat &m) {
+  const auto [a, b, c, d, u, v, w] = k.data;
+  const auto
+      [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
+          m.data;
+
+  return specmat{a * m1 + b * m5 + c * m9 + d * m13,
+                 a * m2 + b * m6 + c * m10 + d * m14,
+                 a * m3 + b * m7 + c * m11 + d * m15,
+                 a * m4 + b * m8 + c * m12 + d * m16,
+                 a * m5 + b * m1 + m13 * v + m9 * u,
+                 a * m6 + b * m2 + m10 * u + m14 * v,
+                 a * m7 + b * m3 + m11 * u + m15 * v,
+                 a * m8 + b * m4 + m12 * u + m16 * v,
+                 a * m9 + c * m1 + m13 * w - m5 * u,
+                 a * m10 + c * m2 + m14 * w - m6 * u,
+                 a * m11 + c * m3 + m15 * w - m7 * u,
+                 a * m12 + c * m4 + m16 * w - m8 * u,
+                 a * m13 + d * m1 - m5 * v - m9 * w,
+                 a * m14 + d * m2 - m10 * w - m6 * v,
+                 a * m15 + d * m3 - m11 * w - m7 * v,
+                 a * m16 + d * m4 - m12 * w - m8 * v};
+}
+
+//! Mutliply a specmat matrix with a propmat
+constexpr specmat operator*(const specmat &m, const propmat &k) {
+  const auto [a, b, c, d, u, v, w] = k.data;
+  const auto
+      [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
+          m.data;
+
+  return specmat{a * m1 + b * m2 + c * m3 + d * m4,
+                 a * m2 + b * m1 - m3 * u - m4 * v,
+                 a * m3 + c * m1 + m2 * u - m4 * w,
+                 a * m4 + d * m1 + m2 * v + m3 * w,
+                 a * m5 + b * m6 + c * m7 + d * m8,
+                 a * m6 + b * m5 - m7 * u - m8 * v,
+                 a * m7 + c * m5 + m6 * u - m8 * w,
+                 a * m8 + d * m5 + m6 * v + m7 * w,
+                 a * m9 + b * m10 + c * m11 + d * m12,
+                 a * m10 + b * m9 - m11 * u - m12 * v,
+                 a * m11 + c * m9 + m10 * u - m12 * w,
+                 a * m12 + d * m9 + m10 * v + m11 * w,
+                 a * m13 + b * m14 + c * m15 + d * m16,
+                 a * m14 + b * m13 - m15 * u - m16 * v,
+                 a * m15 + c * m13 + m14 * u - m16 * w,
+                 a * m16 + d * m13 + m14 * v + m15 * w};
+}
+
 //! Multiply a propagation matrix with a stokvec vector
 constexpr stokvec operator*(const propmat &k, const stokvec s) {
   const auto [a, b, c, d, u, v, w] = k.data;
@@ -148,6 +199,160 @@ constexpr muelmat elem_prod(const propmat &a, const muelmat &b) {
                  a.A() * b[3, 3]};
 }
 
+constexpr specmat operator*(const muelmat &a, const specmat &b) {
+  const auto [a00,
+              a01,
+              a02,
+              a03,
+              a10,
+              a11,
+              a12,
+              a13,
+              a20,
+              a21,
+              a22,
+              a23,
+              a30,
+              a31,
+              a32,
+              a33] = a;
+  const auto [b00,
+              b01,
+              b02,
+              b03,
+              b10,
+              b11,
+              b12,
+              b13,
+              b20,
+              b21,
+              b22,
+              b23,
+              b30,
+              b31,
+              b32,
+              b33] = b;
+
+  return specmat{a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
+                 a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
+                 a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32,
+                 a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33,
+                 a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
+                 a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31,
+                 a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32,
+                 a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33,
+                 a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30,
+                 a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
+                 a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
+                 a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33,
+                 a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30,
+                 a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31,
+                 a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
+                 a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
+}
+
+constexpr specmat operator*(const specmat &a, const muelmat &b) {
+  const auto [a00,
+              a01,
+              a02,
+              a03,
+              a10,
+              a11,
+              a12,
+              a13,
+              a20,
+              a21,
+              a22,
+              a23,
+              a30,
+              a31,
+              a32,
+              a33] = a;
+  const auto [b00,
+              b01,
+              b02,
+              b03,
+              b10,
+              b11,
+              b12,
+              b13,
+              b20,
+              b21,
+              b22,
+              b23,
+              b30,
+              b31,
+              b32,
+              b33] = b;
+
+  return specmat{a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
+                 a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
+                 a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32,
+                 a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33,
+                 a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
+                 a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31,
+                 a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32,
+                 a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33,
+                 a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30,
+                 a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
+                 a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
+                 a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33,
+                 a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30,
+                 a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31,
+                 a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
+                 a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
+}
+
+constexpr specmat operator-(const muelmat &m, const specmat &s) {
+  const auto
+      [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
+          m;
+  const auto
+      [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16] =
+          s;
+
+  return specmat{m1 - s1,
+                 m2 - s2,
+                 m3 - s3,
+                 m4 - s4,
+                 m5 - s5,
+                 m6 - s6,
+                 m7 - s7,
+                 m8 - s8,
+                 m9 - s9,
+                 m10 - s10,
+                 m11 - s11,
+                 m12 - s12,
+                 m13 - s13,
+                 m14 - s14,
+                 m15 - s15,
+                 m16 - s16};
+}
+
+constexpr specmat operator-(const propmat &pm, const specmat &s) {
+  const auto [a, b, c, d, u, v, w] = pm;
+  const auto
+      [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16] =
+          s;
+
+  return specmat{a - s1,
+                 b - s2,
+                 c - s3,
+                 d - s4,
+                 b - s5,
+                 a - s6,
+                 u - s7,
+                 v - s8,
+                 c - s9,
+                 -u - s10,
+                 a - s11,
+                 w - s12,
+                 d - s13,
+                 -v - s14,
+                 -w - s15,
+                 a - s16};
+}
+
 //! Transform a matrix of shape (N, 4) to a list of Stokes (absorption) vectors
 stokvec_vector to_stokvec_vector(const ConstMatrixView &v);
 
@@ -174,4 +379,9 @@ propmat to_propmat(const ConstMatrixView &a);
 
 //! Transform a matpack type to a muelmat
 muelmat to_muelmat(const ConstMatrixView &a);
+
+//! get the real part of a specmat matrix
+muelmat real(const specmat &A);
+
+specmat frechet_sqrt(const propmat& X, const propmat& E);
 }  // namespace rtepack
