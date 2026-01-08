@@ -580,8 +580,8 @@ void two_level_exp_linsrc_linprop(muelmat_vector_view tv,
 
   assert(nf == k1v.size());
   assert(nf == k2v.size());
-  assert(nf == lv0.size());
-  assert(nf == lv1.size());
+  assert(nf == lv.size());
+  assert(nf == lv.size());
   assert(nf == static_cast<Size>(dk1v.ncols()));
   assert(nf == static_cast<Size>(dk2v.ncols()));
   assert(nq == static_cast<Size>(dk1v.nrows()));
@@ -590,14 +590,10 @@ void two_level_exp_linsrc_linprop(muelmat_vector_view tv,
   assert(nf == static_cast<Size>(dt2v.ncols()));
   assert(nq == static_cast<Size>(dt1v.nrows()));
   assert(nq == static_cast<Size>(dt2v.nrows()));
-  assert(nf == static_cast<Size>(dl1v0.ncols()));
-  assert(nf == static_cast<Size>(dl2v0.ncols()));
-  assert(nq == static_cast<Size>(dl1v0.nrows()));
-  assert(nq == static_cast<Size>(dl2v0.nrows()));
-  assert(nf == static_cast<Size>(dl1v1.ncols()));
-  assert(nf == static_cast<Size>(dl2v1.ncols()));
-  assert(nq == static_cast<Size>(dl1v1.nrows()));
-  assert(nq == static_cast<Size>(dl2v1.nrows()));
+  assert(nf == static_cast<Size>(dl1v.ncols()));
+  assert(nf == static_cast<Size>(dl2v.ncols()));
+  assert(nq == static_cast<Size>(dl1v.nrows()));
+  assert(nq == static_cast<Size>(dl2v.nrows()));
   assert(nq == dr2v.size());
 
   for (Size i = 0; i < nf; ++i) {
