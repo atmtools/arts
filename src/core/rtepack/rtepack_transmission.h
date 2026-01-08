@@ -21,7 +21,11 @@ struct tran {
 
   [[nodiscard]] muelmat operator()() const noexcept;
   [[nodiscard]] muelmat expm1() const noexcept;
-  [[nodiscard]] muelmat evolve_operator() const noexcept;
+  [[nodiscard]] muelmat linsrc() const noexcept;
+  [[nodiscard]] muelmat linsrc_linprop(const muelmat &t,
+                                       const propmat &k1,
+                                       const propmat &k2,
+                                       const Numeric r) const noexcept;
 
   [[nodiscard]] muelmat deriv(const muelmat &t,
                               const propmat &k1,
@@ -29,11 +33,20 @@ struct tran {
                               const propmat &dk,
                               const Numeric r,
                               const Numeric dr) const;
-  [[nodiscard]] muelmat evolve_operator_deriv(const muelmat &l,
-                                              const propmat &dk,
-                                              const muelmat &dt,
-                                              const Numeric r,
-                                              const Numeric dr) const;
+  [[nodiscard]] muelmat linsrc_deriv(const muelmat &l,
+                                     const propmat &dk,
+                                     const muelmat &dt,
+                                     const Numeric r,
+                                     const Numeric dr) const;
+  [[nodiscard]] muelmat linsrc_linprop_deriv(const muelmat &lambda,
+                                             const muelmat &t,
+                                             const propmat &k1,
+                                             const propmat &k2,
+                                             const propmat &dk_in,
+                                             const muelmat &dt,
+                                             const Numeric r,
+                                             const Numeric dr,
+                                             bool k1_deriv) const;
 };
 
 void two_level_exp(muelmat &t,
@@ -65,23 +78,21 @@ void two_level_exp(std::vector<muelmat_vector> &T,
                    const Vector &r,
                    const Tensor3 &dr);
 
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_vector> &L,
-                   std::vector<muelmat_tensor3> &dT,
-                   std::vector<muelmat_tensor3> &dL,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr);
+void two_level_exp_linsrc(std::vector<muelmat_vector> &T,
+                          std::vector<muelmat_vector> &L,
+                          std::vector<muelmat_tensor3> &dT,
+                          std::vector<muelmat_tensor3> &dL,
+                          const std::vector<propmat_vector> &K,
+                          const std::vector<propmat_matrix> &dK,
+                          const Vector &r,
+                          const Tensor3 &dr);
 
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_vector> &L0,
-                   std::vector<muelmat_vector> &L1,
-                   std::vector<muelmat_tensor3> &dT,
-                   std::vector<muelmat_tensor3> &dL0,
-                   std::vector<muelmat_tensor3> &dL1,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr);
+void two_level_exp_linsrc_linprop(std::vector<muelmat_vector> &T,
+                                  std::vector<muelmat_vector> &L,
+                                  std::vector<muelmat_tensor3> &dT,
+                                  std::vector<muelmat_tensor3> &dL,
+                                  const std::vector<propmat_vector> &K,
+                                  const std::vector<propmat_matrix> &dK,
+                                  const Vector &r,
+                                  const Tensor3 &dr);
 }  // namespace rtepack

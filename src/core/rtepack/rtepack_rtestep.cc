@@ -95,14 +95,14 @@ void two_level_linear_emission_step_by_step_full(
   }
 }
 
-void two_level_linear_in_J_step_by_step_full(
+void two_level_linear_evolution_step_by_step_full(
     stokvec_vector &I,
     std::vector<stokvec_matrix> &dI,
     const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &L0s,
+    const std::vector<muelmat_vector> &Ls,
     const std::vector<muelmat_vector> &Pi,
     const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<muelmat_tensor3> &dL0s,
+    const std::vector<muelmat_tensor3> &dLs,
     const std::vector<stokvec_vector> &Js,
     const std::vector<stokvec_matrix> &dJs,
     const stokvec_vector &I0) {
@@ -116,29 +116,29 @@ void two_level_linear_in_J_step_by_step_full(
 
   const Size nq = dJs.front().nrows();
 
-  ARTS_USER_ERROR_IF(not arr::same_size(Ts, L0s, Pi, dTs, dL0s, Js, dJs),
+  ARTS_USER_ERROR_IF(not arr::same_size(Ts, Ls, Pi, dTs, dLs, Js, dJs),
                      R"(
-  Mismatched number of levels ({}) in Ts:s, L0s:s, Pi:s, dTs:s, dL0s:s, Js:s, and dJs:s:
-  Ts   size: {}
-  L0s  size: {}
-  Pi   size: {}
-  dTs  size: {}
-  dL0s size: {}
-  Js   size: {}
-  dJs  size: {}
+  Mismatched number of levels ({}) in Ts:s, Ls:s, Pi:s, dTs:s, dLs:s, Js:s, and dJs:s:
+  Ts  size: {}
+  Ls  size: {}
+  Pi  size: {}
+  dTs size: {}
+  dLs size: {}
+  Js  size: {}
+  dJs size: {}
 )",
                      N,
                      Ts.size(),
-                     L0s.size(),
+                     Ls.size(),
                      Pi.size(),
                      dTs.size(),
-                     dL0s.size(),
+                     dLs.size(),
                      Js.size(),
                      dJs.size());
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape(I0, Ts, L0s, Pi, Js),
-      R"(Must have same number of frequency elements ({}) in all Ts:s, L0s:s, Pi:s, and Js:s)",
+      not all_same_shape(I0, Ts, Ls, Pi, Js),
+      R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)",
       nv);
 
   ARTS_USER_ERROR_IF(
@@ -148,8 +148,8 @@ void two_level_linear_in_J_step_by_step_full(
       nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape({2, nq, nv}, dTs, dL0s),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dL0s:s)",
+      not all_same_shape({2, nq, nv}, dTs, dLs),
+      R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)",
       2,
       nq,
       nv);
@@ -167,142 +167,31 @@ void two_level_linear_in_J_step_by_step_full(
       const stokvec &J0 = Js[i + 1][iv];
       const stokvec &J1 = Js[i][iv];
       const muelmat &T  = Ts[i + 1][iv];
-      const muelmat &L0 = L0s[i + 1][iv];
+      const muelmat &L  = Ls[i + 1][iv];
 
       const stokvec ImJ0  = Ii - J0;
       const stokvec J0mJ1 = J0 - J1;
 
       if (nq) {
-        auto dI0        = dI[i][joker, iv];
-        auto dI1        = dI[i + 1][joker, iv];
-        const auto dT0  = dTs[i][0, joker, iv];
-        const auto dL00 = dL0s[i][0, joker, iv];
-        const auto dJ0  = dJs[i][joker, iv];
-        const auto dT1  = dTs[i + 1][1, joker, iv];
-        const auto dL01 = dL0s[i + 1][1, joker, iv];
-        const auto dJ1  = dJs[i + 1][joker, iv];
-        const auto &P   = Pi[i][iv];
+        auto dI0       = dI[i][joker, iv];
+        auto dI1       = dI[i + 1][joker, iv];
+        const auto dT0 = dTs[i][0, joker, iv];
+        const auto dL0 = dLs[i][0, joker, iv];
+        const auto dJ0 = dJs[i][joker, iv];
+        const auto dT1 = dTs[i + 1][1, joker, iv];
+        const auto dL1 = dLs[i + 1][1, joker, iv];
+        const auto dJ1 = dJs[i + 1][joker, iv];
+        const auto &P  = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] +=
-              P * (dJ1[iq] - L0 * dJ0[iq] + dT0[iq] * ImJ0 + dL00[iq] * J0mJ1);
-          dI1[iq] += P * (dT1[iq] * ImJ0 + dL01[iq] * J0mJ1 + L0 * dJ1[iq] -
+              P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
+          dI1[iq] += P * (dT1[iq] * ImJ0 + dL1[iq] * J0mJ1 + L * dJ1[iq] -
                           T * dJ0[iq]);
         }
       }
 
-      Ii = T * ImJ0 + L0 * J0mJ1 + J1;
-    }
-  }
-}
-
-void two_level_linear_in_J_and_K_step_by_step_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &L0s,
-    const std::vector<muelmat_vector> &L1s,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<muelmat_tensor3> &dL0s,
-    const std::vector<muelmat_tensor3> &dL1s,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0) {
-  const Size nv = I0.size();
-  const Size N  = Ts.size();
-
-  I = I0;
-  dI.resize(N);
-
-  if (N == 0) return;
-
-  const Size nq = dJs.front().nrows();
-
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(Ts, L0s, L1s, Pi, dTs, dL0s, dL1s, Js, dJs),
-      R"(
-  Mismatched number of levels ({}) in Ts:s, L0s:s, L1s:s, Pi:s, dTs:s, dL0s:s, dL1s:s, Js:s, and dJs:s:
-  Ts   size: {}
-  L0s  size: {}
-  L1s  size: {}
-  Pi   size: {}
-  dTs  size: {}
-  dL0s size: {}
-  dL1s size: {}
-  Js   size: {}
-  dJs  size: {}
-)",
-      N,
-      Ts.size(),
-      L0s.size(),
-      L1s.size(),
-      Pi.size(),
-      dTs.size(),
-      dL0s.size(),
-      dL1s.size(),
-      Js.size(),
-      dJs.size());
-
-  ARTS_USER_ERROR_IF(
-      not all_same_shape(I0, Ts, L0s, L1s, Pi, Js),
-      R"(Must have same number of frequency elements ({}) in all Ts:s, L0s:s, L1s:s, Pi:s, and Js:s)",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({nq, nv}, dJs),
-      R"(Must have same number of elements ({}, {}) in all dJs:s)",
-      nq,
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({2, nq, nv}, dTs, dL0s, dL1s),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s, dL0s:s, and dL1s:s)",
-      2,
-      nq,
-      nv);
-
-  for (auto &x : dI) {
-    x.resize(nq, nv);
-    x = 0.0;
-  }
-
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size iv = 0; iv < nv; iv++) {
-    stokvec &Ii = I[iv];
-
-    for (Size i = N - 2; i < N; i--) {
-      const stokvec &J0 = Js[i + 1][iv];
-      const stokvec &J1 = Js[i][iv];
-      const muelmat &T  = Ts[i + 1][iv];
-      const muelmat &L0 = L0s[i + 1][iv];
-      const muelmat &L1 = L1s[i + 1][iv];
-
-      const stokvec ImJ0  = Ii - J0;
-      const stokvec J0mJ1 = J0 - J1;
-
-      if (nq) {
-        auto dI0        = dI[i][joker, iv];
-        auto dI1        = dI[i + 1][joker, iv];
-        const auto dT0  = dTs[i][0, joker, iv];
-        const auto dL00 = dL0s[i][0, joker, iv];
-        const auto dL10 = dL1s[i][0, joker, iv];
-        const auto dJ0  = dJs[i][joker, iv];
-        const auto dT1  = dTs[i + 1][1, joker, iv];
-        const auto dL01 = dL0s[i + 1][1, joker, iv];
-        const auto dL11 = dL1s[i + 1][1, joker, iv];
-        const auto dJ1  = dJs[i + 1][joker, iv];
-        const auto &P   = Pi[i][iv];
-
-        for (Size iq = 0; iq < nq; iq++) {
-          dI0[iq] += P * (dJ1[iq] - L0 * dJ0[iq] - L1 * dJ0[iq] +
-                          dT0[iq] * ImJ0 + dL00[iq] * J0mJ1 + dL10[iq] * J0mJ1);
-          dI1[iq] += P * (dT1[iq] * ImJ0 + dL01[iq] * J0mJ1 + dL11[iq] * J0mJ1 +
-                          L0 * dJ1[iq] + L1 * dJ1[iq] - T * dJ0[iq]);
-        }
-      }
-
-      Ii = T * ImJ0 + L0 * J0mJ1 + L1 * J0mJ1 + J1;
+      Ii = T * ImJ0 + L * J0mJ1 + J1;
     }
   }
 }

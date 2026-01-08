@@ -50,6 +50,13 @@ struct muelmat final : mat44 {
   //! The identity matrix
   static constexpr muelmat id() { return muelmat{1.0}; }
 
+  //! The completely constant matrix
+  static constexpr muelmat constant(Numeric value) {
+    muelmat x{};
+    x.data.fill(value);
+    return x;
+  }
+
   constexpr muelmat &operator+=(const muelmat &b) {
     data[0]  += b.data[0];
     data[1]  += b.data[1];

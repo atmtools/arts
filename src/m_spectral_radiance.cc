@@ -84,9 +84,9 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_tramat_pathLinearInTauFromPath(
     ArrayOfMuelmatVector& spectral_tramat_path,
-    ArrayOfMuelmatVector& spectral_lintau_path,
+    ArrayOfMuelmatVector& spectral_linevo_path,
     ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    ArrayOfMuelmatTensor3& spectral_lintau_jac_path,
+    ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
     const ArrayOfPropmatVector& spectral_propmat_path,
     const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
     const ArrayOfPropagationPathPoint& ray_path,
@@ -125,9 +125,9 @@ atm_path.size()                  = {}
   const Size N = ray_path.size();
 
   spectral_tramat_path.resize(N);
-  spectral_lintau_path.resize(N);
+  spectral_linevo_path.resize(N);
   spectral_tramat_jac_path.resize(N);
-  spectral_lintau_jac_path.resize(N);
+  spectral_linevo_jac_path.resize(N);
 
   if (N == 0) return;
 
@@ -146,24 +146,22 @@ atm_path.size()                  = {}
     }
   }
 
-  rtepack::two_level_exp(spectral_tramat_path,
-                         spectral_lintau_path,
-                         spectral_tramat_jac_path,
-                         spectral_lintau_jac_path,
-                         spectral_propmat_path,
-                         spectral_propmat_jac_path,
-                         ray_path_distance,
-                         ray_path_distance_jacobian);
+  rtepack::two_level_exp_linsrc(spectral_tramat_path,
+                                spectral_linevo_path,
+                                spectral_tramat_jac_path,
+                                spectral_linevo_jac_path,
+                                spectral_propmat_path,
+                                spectral_propmat_jac_path,
+                                ray_path_distance,
+                                ray_path_distance_jacobian);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_tramat_pathLinearInTauAndPropFromPath(
     ArrayOfMuelmatVector& spectral_tramat_path,
-    ArrayOfMuelmatVector& spectral_lintau_path,
-    ArrayOfMuelmatVector& spectral_linprop_path,
+    ArrayOfMuelmatVector& spectral_linevo_path,
     ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    ArrayOfMuelmatTensor3& spectral_lintau_jac_path,
-    ArrayOfMuelmatTensor3& spectral_linprop_jac_path,
+    ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
     const ArrayOfPropmatVector& spectral_propmat_path,
     const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
     const ArrayOfPropagationPathPoint& ray_path,
@@ -202,11 +200,9 @@ atm_path.size()                  = {}
   const Size N = ray_path.size();
 
   spectral_tramat_path.resize(N);
-  spectral_lintau_path.resize(N);
-  spectral_linprop_path.resize(N);
+  spectral_linevo_path.resize(N);
   spectral_tramat_jac_path.resize(N);
-  spectral_lintau_jac_path.resize(N);
-  spectral_linprop_jac_path.resize(N);
+  spectral_linevo_jac_path.resize(N);
 
   if (N == 0) return;
 
@@ -225,16 +221,14 @@ atm_path.size()                  = {}
     }
   }
 
-  rtepack::two_level_exp(spectral_tramat_path,
-                         spectral_lintau_path,
-                         spectral_linprop_path,
-                         spectral_tramat_jac_path,
-                         spectral_lintau_jac_path,
-                         spectral_linprop_jac_path,
-                         spectral_propmat_path,
-                         spectral_propmat_jac_path,
-                         ray_path_distance,
-                         ray_path_distance_jacobian);
+  rtepack::two_level_exp_linsrc_linprop(spectral_tramat_path,
+                                        spectral_linevo_path,
+                                        spectral_tramat_jac_path,
+                                        spectral_linevo_jac_path,
+                                        spectral_propmat_path,
+                                        spectral_propmat_jac_path,
+                                        ray_path_distance,
+                                        ray_path_distance_jacobian);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -261,58 +255,27 @@ void spectral_radStepByStepEmission(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radLinearInTauStepByStepEmission(
+void spectral_radLinearEvolutionStepByStepEmission(
     StokvecVector& spectral_rad,
     ArrayOfStokvecMatrix& spectral_rad_jac_path,
     const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfMuelmatVector& spectral_lintau_path,
+    const ArrayOfMuelmatVector& spectral_linevo_path,
     const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
     const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    const ArrayOfMuelmatTensor3& spectral_lintau_jac_path,
+    const ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
     const ArrayOfStokvecVector& spectral_rad_srcvec_path,
     const ArrayOfStokvecMatrix& spectral_rad_srcvec_jac_path,
     const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  rtepack::two_level_linear_in_J_step_by_step_full(
+  rtepack::two_level_linear_evolution_step_by_step_full(
       spectral_rad,
       spectral_rad_jac_path,
       spectral_tramat_path,
-      spectral_lintau_path,
+      spectral_linevo_path,
       spectral_tramat_cumulative_path,
       spectral_tramat_jac_path,
-      spectral_lintau_jac_path,
-      spectral_rad_srcvec_path,
-      spectral_rad_srcvec_jac_path,
-      spectral_rad_bkg);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_radLinearInTauAndPropStepByStepEmission(
-    StokvecVector& spectral_rad,
-    ArrayOfStokvecMatrix& spectral_rad_jac_path,
-    const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfMuelmatVector& spectral_lintau_path,
-    const ArrayOfMuelmatVector& spectral_linprop_path,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
-    const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    const ArrayOfMuelmatTensor3& spectral_lintau_jac_path,
-    const ArrayOfMuelmatTensor3& spectral_linprop_jac_path,
-    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
-    const ArrayOfStokvecMatrix& spectral_rad_srcvec_jac_path,
-    const StokvecVector& spectral_rad_bkg) try {
-  ARTS_TIME_REPORT
-
-  rtepack::two_level_linear_in_J_and_K_step_by_step_full(
-      spectral_rad,
-      spectral_rad_jac_path,
-      spectral_tramat_path,
-      spectral_lintau_path,
-      spectral_linprop_path,
-      spectral_tramat_cumulative_path,
-      spectral_tramat_jac_path,
-      spectral_lintau_jac_path,
-      spectral_linprop_jac_path,
+      spectral_linevo_jac_path,
       spectral_rad_srcvec_path,
       spectral_rad_srcvec_jac_path,
       spectral_rad_bkg);

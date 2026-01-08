@@ -3,6 +3,7 @@
 #include <compare.h>
 #include <xml.h>
 
+#include <limits>
 #include <numeric>
 
 #include "rtepack_concepts.h"
@@ -47,6 +48,10 @@ struct propmat final : vec7 {
   }
 
   constexpr auto operator<=>(const propmat &pm) const { return A() <=> pm.A(); }
+
+  [[nodiscard]] constexpr propmat operator-() const {
+    return {-A(), -B(), -C(), -D(), -U(), -V(), -W()};
+  }
 };
 
 //! Addition of two propmat matrixes
