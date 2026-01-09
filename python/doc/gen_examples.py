@@ -57,11 +57,6 @@ def filename_from_path(path, prefix, save_path, fileending, suffix):
     return os.path.join(save_path, path)
 
 
-class notebook:
-    def __init__(self, str):
-        self.str = str
-
-
 class rst:
     def __init__(self, str):
         self.str = str
@@ -117,10 +112,6 @@ def from_list(lst, path, save_path, with_plots):
     pyfiles = [item for item in lst if item.endswith(".py")]
     pyfiles.sort(key=number_respecting_sort)
 
-    # Gather all notebooks
-    notebooks = [item for item in lst if item.endswith(".ipynb")]
-    notebooks.sort()
-
     otherfiles = [
         item
         for item in lst
@@ -128,15 +119,8 @@ def from_list(lst, path, save_path, with_plots):
     ]
 
     # E.g., if it is a test-data folder, we can have no files
-    if len(rsts) == 0 and len(pyfiles) == 0 and len(notebooks) == 0:
+    if len(rsts) == 0 and len(pyfiles) == 0:
         return None
-
-    assert len(notebooks) <= 1, "Max 1 ipynb file per folder"
-    assert len(rsts) * len(notebooks) == 0, "Choose rst or ipynb"
-    assert len(pyfiles) * len(notebooks) == 0, "Choose py or ipynb"
-    if len(notebooks):
-        with open(os.path.join(path, notebooks[0]), "r") as nbfile:
-            return notebook(nbfile.read())
 
     # Combine RST and Python files
     files = combine_rstpy(rsts, pyfiles)
@@ -289,12 +273,7 @@ def generate_docfiles(flat_toc, flat_txt, arts_path, save_path):
     for key in flat_txt:
         data = flat_txt[key]
 
-        if isinstance(data, notebook):
-            with open(
-                filename_from_path(key, arts_path, save_path, ".ipynb", ".py"), "w"
-            ) as f:
-                f.write(data.str)
-        elif isinstance(data, rst):
+        if isinstance(data, rst):
             extr = rst("")
 
             if key in flat_toc:
