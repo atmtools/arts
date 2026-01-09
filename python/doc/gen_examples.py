@@ -15,6 +15,11 @@ import zipfile
 INTROFILE = "README.rst"
 
 
+def number_respecting_sort(s):
+    m = re.match(r"\d+(\.\d+)?", s)
+    return (0, float(m.group())) if m else (1, s.lower())
+
+
 def title_to_heading(title):
     pos = title.rfind(".")
     if pos == -1:
@@ -106,11 +111,11 @@ def from_list(lst, path, save_path, with_plots):
 
     # Gather all RSTs
     rsts = [item for item in lst if item.endswith(".rst")]
-    rsts.sort()
+    rsts.sort(key=number_respecting_sort)
 
     # Gather all python files
     pyfiles = [item for item in lst if item.endswith(".py")]
-    pyfiles.sort()
+    pyfiles.sort(key=number_respecting_sort)
 
     # Gather all notebooks
     notebooks = [item for item in lst if item.endswith(".ipynb")]
@@ -256,7 +261,7 @@ def filetrees_to_toctrees(filetree, arts_path):
         elif isinstance(data, list):
             text = ".. toctree::\n"
             text += "   :maxdepth: 2\n\n"
-            for item in data:
+            for item in sorted(data, key=number_respecting_sort):
                 text += f"   {filename_from_path(path + '.' + item, arts_path, '', '', '')}\n"
             out[path] = rst(text)
 
