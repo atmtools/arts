@@ -108,7 +108,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
            ? 1.0 / 6.0
            : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) * inv_x2y2;
 
-  // Incase the above gets numerically unstable, we let polarized be false as a fallback
+  // In case the above gets numerically unstable, we let polarized be false as a fallback
   polarized = std::isfinite(C0) and std::isfinite(C1) and std::isfinite(C2) and
               std::isfinite(C3);
 }
@@ -208,7 +208,7 @@ muelmat tran::linsrc() const noexcept {
   };
 
   const auto func_Fp = [](Numeric z) {
-    if (std::abs(z) < 1e-4) return 0.5 + z / 3.0 + z * z / 8.0;
+    if (std::abs(z) < too_small) return 0.5 + z / 3.0 + z * z / 8.0;
     const Numeric ez = std::exp(z);
     return (ez * (z - 1.0) + 1.0) / (z * z);
   };

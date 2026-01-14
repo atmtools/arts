@@ -24,18 +24,18 @@ while N >= 2:
 
     ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
 
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in k]
 
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for x in k]
+    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in k]
 
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in k]
 
-    ws.ray_path = [PropagationPathPoint() for x in k]
+    ws.ray_path = [PropagationPathPoint() for _ in k]
 
     ws.surf_fieldEarth()
     ws.surf_field['t'] = Ts
 
-    ws.atm_path = [AtmPoint() for x in k]
+    ws.atm_path = [AtmPoint() for _ in k]
     for i in range(N):
         ws.atm_path[i]['t'] = T[i]
         ws.ray_path[i].pos[0] = i * scl
@@ -108,18 +108,18 @@ while N >= 2:
 
     ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
 
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in range(N)]
 
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for x in k]
+    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in range(N)]
 
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in range(N)]
 
-    ws.ray_path = [PropagationPathPoint() for x in k]
+    ws.ray_path = [PropagationPathPoint() for _ in range(N)]
 
     ws.surf_fieldEarth()
     ws.surf_field['t'] = Ts
 
-    ws.atm_path = [AtmPoint() for x in k]
+    ws.atm_path = [AtmPoint() for _ in range(N)]
     for i in range(N):
         ws.atm_path[i]['t'] = T[i]
         ws.ray_path[i].pos[0] = i * scl
@@ -193,18 +193,18 @@ while N >= 2:
 
     ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
 
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in k]
 
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for x in k]
+    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in k]
 
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for x in k]
+    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in k]
 
-    ws.ray_path = [PropagationPathPoint() for x in k]
+    ws.ray_path = [PropagationPathPoint() for _ in k]
 
     ws.surf_fieldEarth()
     ws.surf_field['t'] = Ts
 
-    ws.atm_path = [AtmPoint() for x in k]
+    ws.atm_path = [AtmPoint() for _ in k]
     for i in range(N):
         ws.atm_path[i]['t'] = T[i]
         ws.ray_path[i].pos[0] = i * scl

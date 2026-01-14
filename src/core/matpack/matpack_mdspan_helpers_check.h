@@ -14,7 +14,8 @@ template <typename T>
 concept any_md_compat = any_md<T> or requires(T a) { a.shape(); };
 
 template <typename T, Size N>
-concept ranked_md_compat = ranked_md<T, N> or rank<T>() == N;
+concept ranked_md_compat =
+    ranked_md<T, N> or (rank<T>() == N and requires(T a) { a.shape(); });
 
 template <Size N>
 struct integer_helper {
