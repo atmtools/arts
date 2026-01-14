@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 
+print("Wide lookup table tests")
 
 toa = 100e3
 
@@ -10,17 +11,21 @@ toa = 100e3
 
 ws = pyarts.Workspace()
 
-ws.abs_speciesSet(species=["CO2-626", "H2O-161"])
+ws.abs_speciesSet(species=["H2O-161"])
+
+print("Reading catalog data...")
 
 ws.ReadCatalogData()
 for key in ws.abs_bands:
     ws.abs_bands[key].cutoff = "ByLine"
     ws.abs_bands[key].cutoff_value = 750e9
 
-ws.abs_bands.keep_hitran_s(70)
+ws.abs_bands.keep_hitran_s(90)
 
 ws.surf_fieldPlanet(option="Earth")
 ws.surf_field["t"] = 295.0
+
+print("Reading atmospheric profile...")
 
 ws.atm_fieldRead(
     toa=toa, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
@@ -28,12 +33,12 @@ ws.atm_fieldRead(
 tdata = pyarts.arts.Tensor3(ws.atm_field["t"].data.data)
 wdata = pyarts.arts.Tensor3(ws.atm_field["H2O"].data.data)
 
-v = np.linspace(400, 2500, 101)
+v = np.linspace(400, 2500, 21)
 ws.freq_grid = pyarts.arts.convert.kaycm2freq(v)
 
 t = time()
 ws.abs_lookup_dataSimpleWide(water_affected_species=["H2O"],
-                                     pressure_range=[1e-2, 1100e2])
+                             pressure_range=[1e-2, 1100e2])
 print(round(1000 * (time() - t)), "ms to train the LUT")
 
 ws.spectral_rad_transform_operatorSet(option="Tb")

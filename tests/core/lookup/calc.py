@@ -10,7 +10,7 @@ toa = 100e3
 
 ws = pyarts.Workspace()
 
-ws.abs_speciesSet(species=["CO2-626", "H2O-161"])
+ws.abs_speciesSet(species=["H2O-161"])
 
 ws.ReadCatalogData()
 for key in ws.abs_bands:
