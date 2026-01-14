@@ -324,7 +324,7 @@ and again, we can expand these expressions and collect them by transmittance,
 but this time with an additional term per layer
 
 .. math::
-  
+
   \begin{array}{rrrrrrrrrrrrr}
   I_1 &=& J_1 &+&                       T_0(I_0 - J_0) &+&         \Lambda_0(J_0 - J_1) \\
   I_2 &=& J_2 &+&                   T_1 T_0(I_0 - J_0) &+&     T_1 \Lambda_0(J_0 - J_1) &+&     \Lambda_1(J_1 - J_2) \\
@@ -336,7 +336,7 @@ but this time with an additional term per layer
 Which in shortened matrix form is:
 
 .. math::
-  
+
   \vec{I} = \vec{J} &+& \left[
   \begin{array}{lrrcrr}
     \Pi_0^0     &             \Lambda_0 & 0                     & \cdots & 0                             & 0 \\
@@ -370,7 +370,9 @@ The partial derivative propagation is then derivable in the same way as above,
   \frac{\partial \Lambda_{N-1}}{\partial\mathbf{x}} \left(J_{N-1} - J_{N}\right) +
   \Lambda_{N-1} \left(\frac{\partial J_{N-1}}{\partial\mathbf{x}} - \frac{\partial J_{N}}{\partial\mathbf{x}}\right)
 
-And again doing the expansion of the dot products and using :math:`T_N=1` for brevity, we get for the source partial derivatives at the end of the path:
+And again doing the expansion of the dot products and
+using :math:`T_N=1` for brevity, we get for the source
+partial derivatives at the end of the path:
 
 .. math::
   \frac{\partial I_N}{\partial \mathbf{x}} &=& \Pi_{N}^0 \frac{\partial I_0}{\partial \mathbf{x}} + \frac{\partial J_{N}}{\partial \mathbf{x}}
@@ -406,8 +408,10 @@ And again doing the expansion of the dot products and using :math:`T_N=1` for br
     \frac{\partial J_{N-1}}{\partial \mathbf{x}} &-& \frac{\partial J_{N}}{\partial \mathbf{x}}
   \end{array} \right]
 
-Following the same procedure as above, we can rewrite this in terms of :math:`\vec{x}_i` instead of :math:`\mathbf{x}`.
-Here, a key difference from before is that the source term now only depends on :math:`\vec{x}_i` and not on :math:`\vec{x}_{i+1}`.
+Following the same procedure as above, we can rewrite this in
+terms of :math:`\vec{x}_i` instead of :math:`\mathbf{x}`.
+Here, a key difference from before is that the source term
+now only depends on :math:`\vec{x}_i` and not on :math:`\vec{x}_{i+1}`.
 
 The derivative contribution is then given by
 
@@ -532,3 +536,532 @@ case above, just replacing :math:`\Lambda_i` with this new definition.
 
   Also be aware that the square root of a matrix is not unique, leading to
   further potential numerical issues.
+
+Deriving the expressions
+************************
+
+This is not an important section for users of ARTS, but is included
+for completeness to show how the expressions above are derived.
+It may also be useful if you want to implement
+other variations of the radiative transfer equation solution.
+
+The matrix case is the same, provided you can treat :math:`K` and :math:`J` as
+*mostly* commuting.  This only affect the last case.  The path
+variables are in :math:`s \in [0,r]` for the distance through
+a layer of understood
+physics, with :math:`I(0)=I_0` and :math:`I(r)=I_1`.
+
+The differential equation in all cases is
+
+.. math::
+
+  \frac{dI}{ds} &= -K(s)\bigl(I(s) - J(s)\bigr)
+  \quad\Longleftrightarrow
+
+  I'(s) + K(s) I(s) &= K(s) J(s).
+
+The integrating factor is
+
+.. math::
+
+  \mu(s) = \exp\Bigl(\int_0^s K(u)du\Bigr),
+
+and then
+
+.. math::
+
+  \bigl(\mu I\bigr)' &= \mu K J
+  \quad\Rightarrow\quad
+
+  I(r) &= T(r)I_0 + T(r)\int_0^r \mu(s)K(s)J(s)ds
+
+with
+
+.. math::
+
+  T(r) &= \mu(r)^{-1} \\
+       &= \exp\Bigl(-\int_0^r K(u)du\Bigr).
+
+All three cases are just different assumptions
+for :math:`K(s)` and :math:`J(s)`.
+
+1. Constant :math:`K`, constant :math:`J`.
+   
+   Take
+
+   .. math::
+
+      K(s)&=K_0 \\ J(s)&=J_0 \\ T_0 &= e^{-K_0 r}.
+
+   Then
+
+   .. math::
+
+      \mu(s) &= e^{K_0 s} \\
+      T(r)   &=e^{-K_0 r} \\
+             &=T_0.
+
+   The solution:
+
+   .. math::
+
+      I(r)
+        &= T_0 I_0 + T_0 \int_0^r e^{K_0 s}K_0J_0ds \\
+        &= T_0 I_0 + T_0 \left(\int_0^r e^{K_0 s}ds\right) K_0 J_0  \\
+        &= T_0 I_0 + T_0 \left(e^{K_0 r} - 1\right) K_0^{-1} K_0 J_0  \\
+        &= T_0 I_0 + T_0 \left(e^{K_0 r} - 1\right) J_0 \\
+        &= T_0 I_0 + \left(1 - T_0\right) J_0.
+
+   Writing :math:`I_1 = I(r)`, we get exactly:
+
+   .. math::
+
+      I_1 = J_0 + T_0 (I_0 - J_0),
+
+   which is the form used above.  Note that no parts of this derivation
+   depends on whether or not the expression is scalar or matrix.
+
+2. Constant :math:`K`, linearly varying :math:`J`. Assume
+
+   .. math::
+
+      K(s)&=K_0 \\ J(s)&=J_0 + \frac{s}{r}(J_1 - J_0).
+
+   Again :math:`T_0 = e^{-K_0 r}`, and :math:`\mu(s)=e^{K_0 s}`.
+
+   Use the general solution:
+
+   .. math::
+
+      I(r) = T_0 I_0 + T_0 \int_0^r e^{K_0 s} K_0 J(s)ds.
+
+   Insert :math:`J(s)` and split:
+
+   .. math::
+
+      I(r)
+      &= T_0 I_0 + T_0 \int_0^r e^{K_0 s} K_0
+      \Bigl[J_0 + \frac{s}{r}(J_1-J_0)\Bigr] ds \\
+      &= T_0 I_0 +
+      T_0 \left(\int_0^r e^{K_0 s} ds\right) K_0 J_0 +
+      T_0 \left(\int_0^r s e^{K_0 s} ds\right) K_0 \frac{J_1-J_0}{r}.
+
+   Compute the two integrals:
+
+   .. math::
+
+      \int_0^r e^{K_0 s} ds &= \left(e^{K_0 r}-1\right) K_0^{-1} \\
+      \int_0^r s e^{K_0 s} ds
+      &= \Bigl[se^{K_0 s}K_0^{-1}\Bigr]_0^r - \int_0^r e^{K_0 s} K_0^{-1} ds\\
+      &= r e^{K_0 r} K_0^{-1} - \left(e^{K_0 r}-1\right)K_0^{-2}.
+
+   Insert:
+
+   .. math::
+
+      I(r)
+      = T_0 I_0
+      +
+      T_0 \left(e^{K_0 r}-1\right)K_0^{-1} K_0 J_0  +
+      T_0 \Bigl[r e^{K_0 r}K_0^{-1} - \left(e^{K_0 r}-1\right){K_0^{-2}}\Bigr]
+      K_0 \frac{J_1-J_0}{r}.
+
+   Simplify each term, using :math:`T_0=e^{-K_0 r}` and cancelling
+   where possible.
+
+   First integral term:
+
+   .. math::
+
+      T_0 \left(e^{K_0 r}-1\right)K_0^{-1} K_0 J_0
+      &= T_0 \left(e^{K_0 r}-1\right) J_0 \\
+      &= \left( 1-T_0 \right) J_0.
+
+   Second integral term:
+
+   .. math::
+
+      T_0
+      \Bigl[r e^{K_0 r}K_0^{-1} - \left(e^{K_0 r}-1\right)K_0^{-2}\Bigr]
+      K_0 \frac{J_1-J_0}{r}
+      &=
+      \left[
+      T_0 r e^{K_0 r} +
+      T_0 \left(e^{K_0 r}-1\right)K_0^{-1}
+      \right] \frac{J_1-J_0}{r} \\
+      &=
+      \left[
+      r -
+      \left(1-T_0\right)K_0^{-1}
+      \right] \frac{J_1-J_0}{r}.
+
+   So
+
+   .. math::
+
+      I(r) = T_0 I_0 + \left( 1-T_0 \right) J_0
+      +\left[r - \left( 1-T_0 \right)K_0^{-1}\right] \frac{J_1-J_0}{r}.
+
+   Rearrange as
+
+   .. math::
+
+      I_1 = J_1 + T_0 (I_0 - J_0)
+      + \underbrace{\frac{1}{r} K_0^{-1}(1-T_0)}_{\displaystyle \Lambda_0}(J_0 - J_1),
+
+   which gives the form used above
+
+
+   .. math::
+
+      I_1 &= J_1 + T_0 (I_0 - J_0) + \Lambda_0 (J_0 - J_1),\\
+      \Lambda_0 &= \frac{1}{r} K_0^{-1} \left( 1-T_0 \right) \\ &=-\log T_0 \left( 1-T_0 \right).
+
+   Again, no assumptions were made about scalar vs. matrix.
+   The only *scary* step of matrix notation non-commutativity is that you have to
+   be aware that you can write, e.g., :math:`A^3=A A^2=A^2 A`,
+   which means with :math:`\exp(A) = \sum_{n=0}^\infty \frac{A^n}{n!}`, you can do
+   :math:`\exp(A) A = \left(\sum_{n=0}^\infty \frac{A^{n}}{n!}\right) A = \sum_{n=0}^\infty \frac{A^{n+1}}{n!} = A \sum_{n=0}^\infty \frac{A^{n}}{n!} = A \exp(A)`.
+
+   .. admonition:: Implementation note
+      :class: tip
+
+      It is very important to implement the expression for :math:`\Lambda_0`
+      in a numerically stable way.  The expression above is not
+      stable for small :math:`K_0 r` (i.e., large :math:`T_0`) *as written*.
+      The key instability stems from the subtraction of two nearly equal
+      terms in :math:`1 - T_0`.  The IEEE floating point standard
+      provides a function :code:`expm1(x)`, which computes :math:`e^x - 1`
+      in a numerically stable way for small :math:`x`.
+
+      Likewise, the matrix expansion of :math:`1 - T_0` might be unstable.
+
+      So we use a special solution implementing our own version of the reduced
+      Cayley-Hamilton theorem to compute :math:`\Lambda_0` in a numerically
+      stable way
+      for matrices that conform to the propagation matrix notation in ARTS.
+      This makes use of the inversion of :math:`K` to remove components from
+      the expansion of the matrix exponential that would otherwise
+      cause numerical instability.
+
+3. Linear :math:`K(s)` and linear :math:`J(s)`.
+
+   Now set both :math:`K` and :math:`J` to
+   be linear in :math:`s` across the layer:
+
+   .. math::
+
+      K(s) &= K_0 + \frac{s}{r}(K_1-K_0),\\
+      J(s) &= J_0 + \frac{s}{r}(J_1-J_0).
+
+   Let
+
+   .. math::
+
+      \alpha &= \frac{K_1-K_0}{r},\\
+      \beta &= \frac{J_1-J_0}{r},\\
+      K(s) &= K_0 + \alpha s,\\
+      J(s) &= J_0 + \beta s.\\
+
+   3.1. Integrating factor and transmittance.
+
+     The integrating factor and transmittance become
+
+     .. math::
+
+        \mu(s)
+        &= \exp\Bigl(\int_0^s K(u)du\Bigr)\\
+        &= \exp\Bigl(\int_0^s (K_0 + \alpha u)du\Bigr) \\
+        &= \exp\bigl(K_0 s + \tfrac12 \alpha s^2\bigr)\\
+        T(r) &= \mu(r)^{-1}\\
+        &= \exp\bigl(-K_0 r - \tfrac12 \alpha r^2\bigr)\\
+        &= T_0.
+
+     That's the same :math:`T_0` as always, assuming that
+     we only evaluate the expression at :math:`0` and :math:`r`,
+     and that the layer value of :math:`K` above is the average of
+     the endpoints (:math:`K_0` and :math:`K_1`).
+
+   3.2. General solution. The general solution is still
+
+     .. math::
+
+        I(r) = T_0 I_0 + T_0 \int_0^r \mu(s) K(s) J(s)\,ds.
+
+     Insert the forms:
+
+     .. math::
+
+        \mu(s) &= e^{K_0 s + \frac12 \alpha s^2},\\
+        K(s)   &= K_0 + \alpha s,\\
+        J(s)   &= J_0 + \beta s\\
+               &= J_1 + (J_0 - J_1)\Bigl(1 - \frac{s}{r}\Bigr),
+
+     where in the last step we used that :math:`J(r)=J_1`.
+
+     Then
+
+     .. math::
+
+        I(r)
+        = T_0 I_0
+        + T_0 \int_0^r \mu(s) K(s)
+          \Bigl[J_1 + (J_0-J_1)\Bigl(1 - \frac{s}{r}\Bigr)\Bigr]\,ds.
+
+     Split the integral into the part proportional to :math:`J_1` and
+     the part proportional to :math:`(J_0-J_1)`:
+
+     .. math::
+
+        I(r)
+        = T_0 I_0
+        + T_0 \left(\int_0^r \mu(s) K(s)\,ds\right) J_1
+        + T_0 \left( \int_0^r \mu(s) K(s)
+                     \Bigl(1 - \frac{s}{r}\Bigr)\,ds \right) (J_0-J_1).
+
+     The first integral is the same as for a *constant* source
+     :math:`J(s)\equiv J_1`.  For any :math:`K(s)`, that problem has the
+     known solution
+
+     .. math::
+
+        I(r) = J_1 + T_0 (I_0 - J_1),
+
+     so comparing with the integral form gives
+
+     .. math::
+
+        T_0 \left(\int_0^r \mu(s) K(s)\,ds\right) J_1 &= (1 - T_0) J_1
+        \quad\Rightarrow\quad\\
+        \int_0^r \mu(s) K(s)\,ds &= T_0^{-1} - 1.
+
+     Insert this back:
+
+     .. math::
+
+        I(r)
+        = T_0 I_0 + (1-T_0) J_1
+          + T_0 \left( \int_0^r \mu(s) K(s)
+                       \Bigl(1 - \frac{s}{r}\Bigr)\,ds \right) (J_0-J_1).
+
+     Rearranging the first two terms:
+
+     .. math::
+
+        T_0 I_0 + (1-T_0) J_1
+        = J_1 + T_0 (I_0 - J_1)
+        = J_1 + T_0 (I_0 - J_0) + T_0 (J_0 - J_1),
+
+     so
+
+     .. math::
+
+        I(r)
+        = J_1 + T_0 (I_0 - J_0)
+        + \Biggl[
+              T_0
+              + T_0 \int_0^r \mu(s) K(s)\Bigl(1 - \frac{s}{r}\Bigr)\,ds
+            \Biggr] (J_0-J_1).
+
+     This shows that the solution has the affine form
+
+     .. math::
+
+        I_1 = J_1 + T_0 (I_0 - J_0) + \Lambda_0 (J_0 - J_1),
+
+     with
+
+     .. math::
+
+        \Lambda_0
+        = T_0
+          \Biggl[
+            1 + \int_0^r \mu(s) K(s)\Bigl(1 - \frac{s}{r}\Bigr)\,ds
+          \Biggr].
+
+     To obtain a more compact expression for :math:`\Lambda_0`,
+     use integration by parts on the remaining integral.  Note that
+
+     .. math::
+
+        \bigl[\mu(s)\bigl(1 - \tfrac{s}{r}\bigr)\bigr]'
+        = \mu'(s)\Bigl(1 - \frac{s}{r}\Bigr) - \frac{1}{r}\mu(s)
+        = \mu(s)K(s)\Bigl(1 - \frac{s}{r}\Bigr) - \frac{1}{r}\mu(s),
+
+     hence
+
+     .. math::
+
+        \mu(s)K(s)\Bigl(1 - \frac{s}{r}\Bigr)
+        = \bigl[\mu(s)\bigl(1 - \tfrac{s}{r}\bigr)\bigr]' + \frac{1}{r}\mu(s).
+
+     Integrating this from :math:`0` to :math:`r` gives
+
+     .. math::
+
+        \int_0^r \mu(s)K(s)\Bigl(1 - \frac{s}{r}\Bigr) ds
+        &= \Bigl[\mu(s)\Bigl(1 - \frac{s}{r}\Bigr)\Bigr]_0^r
+           + \frac{1}{r}\int_0^r \mu(s)\,ds \\
+        &= -1 + \frac{1}{r}\int_0^r \mu(s)\,ds,
+
+     because :math:`\mu(0)=1` and :math:`1-r/r=0`.  Inserting this into
+     the expression for :math:`\Lambda_0` gives
+
+     .. math::
+
+        \Lambda_0
+        = T_0\Biggl[1 - 1 + \frac{1}{r}\int_0^r \mu(s)\,ds\Biggr]
+        = \frac{1}{r} T_0 \int_0^r \mu(s)\,ds.
+
+     Finally, for the linear :math:`K(s)` assumed above,
+
+     .. math::
+
+        \mu(s)
+        = \exp\Bigl(\int_0^s K(u)du\Bigr)
+        = \exp\Bigl(K_0 s + \frac{K_1-K_0}{2r} s^2\Bigr),
+
+     so we obtain exactly
+
+     .. math::
+
+        \Lambda_0 = \frac{1}{r} T_0 \int_0^r
+        \exp\Bigl(K_0 s + \frac{K_1-K_0}{2r} s^2\Bigr)\,ds,
+
+     which is the expression used above (with index :math:`i`):
+
+     .. math::
+
+        \Lambda_i = \frac{1}{r_i} T_i \int_0^{r_i}
+        \exp\left(K_i s + \frac{K_{i+1}-K_i}{2 r_i} s^2\right) ds.
+
+     In other words, :math:`\Lambda_i` is precisely the coefficient
+     multiplying :math:`(J_i - J_{i+1})` that comes from solving the
+     ODE with both :math:`K` and :math:`J` linear in :math:`s`.
+
+   3.3. Dawson function connection. The starting point is
+
+      .. math::
+
+        \Lambda_0 = \frac{1}{r} T_0 \int_0^{r}
+        \exp\Bigl(K_0 s + \tfrac{K_1-K_0}{2r} s^2\Bigr)\,ds,
+
+      which is valid both for scalar and matrix-valued :math:`K_0, K_1`. In the
+      remainder of this subsection we first treat the **scalar** case (or,
+      equivalently, the case where :math:`K_0` and :math:`K_1` commute and can be
+      simultaneously diagonalized), because only then can we complete the square and
+      express the integral in terms of the (scalar) Dawson function.
+
+      Using :math:`\alpha = (K_1-K_0)/r` as above, the integral
+
+      .. math::
+
+        \int_0^{r} \exp\Bigl(K_0 s + \tfrac12 \,\alpha s^2\Bigr)\,ds
+
+      is a Gaussian-type integral with a linear term in the exponent.
+      Completing the square gives
+
+      .. math::
+
+        K_0 s + \tfrac12 \,\alpha s^2
+        &= \tfrac12 \,\alpha\Bigl(s^2 + 2\frac{K_0}{\alpha} s\Bigr) \\
+        &= \tfrac12 \,\alpha\Bigl\{\bigl(s + \tfrac{K_0}{\alpha}\bigr)^2
+        - \bigl(\tfrac{K_0}{\alpha}\bigr)^2\Bigr\}.
+
+      Thus
+
+      .. math::
+
+        \int_0^{r} \exp\Bigl(K_0 s + \tfrac12 \,\alpha s^2\Bigr)ds
+        = e^{-\frac{K_0^2}{2\alpha}}
+        \int_0^{r}
+        \exp\Bigl(\tfrac12 \,\alpha\bigl(s + \tfrac{K_0}{\alpha}\bigr)^2\Bigr)ds.
+
+      With the substitution
+
+      .. math::
+
+        t = \sqrt{\tfrac{\alpha}{2}}\Bigl(s + \tfrac{K_0}{\alpha}\Bigr)
+        \quad\Rightarrow\quad
+        ds = \sqrt{\tfrac{2}{\alpha}}\,dt,
+
+      the integral becomes
+
+      .. math::
+
+        \sqrt{\tfrac{2}{\alpha}}\, e^{-\frac{K_0^2}{2\alpha}}
+        \int_{t_0}^{t_1} e^{t^2}\,dt,
+
+      which can be expressed in terms of the Dawson function
+
+      .. math::
+
+        D(z) = e^{-z^2}\int_0^z e^{u^2}\,du.
+
+      Carrying this through in the scalar case gives the representation
+
+      .. math::
+
+        \Lambda_0
+        = \frac{1}{r}\,\sigma^{-1}\bigl(D(u_1) - T_0\,D(u_0)\bigr),
+
+      where
+
+      .. math::
+
+        \sigma &= \sqrt{\frac{K_1-K_0}{2r}}, \\
+        u_0 &= \tfrac12 \sigma^{-1} K_0, \\
+        u_1 &= \tfrac12 \sigma^{-1} K_1.
+
+      **Extension to matrices.** For *matrix*-valued :math:`K_0,K_1`, the
+      exact expression for :math:`\Lambda_0` is still
+
+      .. math::
+
+        \Lambda_0
+        = \frac{1}{r}\,T_0 \int_0^{r}
+        \exp\Bigl(K_0 s + \tfrac{K_1-K_0}{2r} s^2\Bigr)\,ds,
+
+      but the “complete the square” steps above only go through without
+      change if all matrices involved commute (for example, when
+      :math:`K_0` and :math:`K_1` are simultaneously diagonalizable).
+      Under this *commuting* assumption we may treat the matrices as if
+      they were scalars and define matrix analogues
+
+      .. math::
+
+        \boldsymbol{\sigma} = \sqrt{\frac{K_{i+1} - K_i}{2 r_i}}
+        \quad\text{(principal matrix square root)},\\
+        \mathbf{u}_0 = \tfrac12 \boldsymbol{\sigma}^{-1} K_i, \qquad
+        \mathbf{u}_1 = \tfrac12 \boldsymbol{\sigma}^{-1} K_{i+1},
+
+      and a matrix Dawson function :math:`\mathcal{D}` by functional
+      calculus applied to these commuting matrices. This leads to the
+      formal matrix expression
+
+      .. math::
+
+        \mathbf{\Lambda}_i =
+        \frac{1}{r_i}\,\boldsymbol{\sigma}^{-1}
+        \Bigl(\mathcal{D}(\mathbf{u}_1) - T_i\,\mathcal{D}(\mathbf{u}_0)\Bigr),
+
+      where all factors on the right-hand side commute because they are
+      analytic functions of :math:`K_i` and :math:`K_{i+1}`.
+
+      In practice, ARTS does *not* evaluate a full matrix Dawson
+      function. Instead, it applies the scalar Dawson function element-wise
+      in a fixed basis, which is only strictly valid if the propagation
+      matrix is diagonal (or nearly diagonal) in that basis at both ends of
+      the layer. This is why the documentation refers to the Dawson-based
+      expression as an approximation in the general polarized case.
+
+   .. admonition:: Implementation note
+      :class: tip
+
+      This method requires computing the matrix square root of
+      :math:`(K_{i+1}-K_i)/(2 r_i)`.  It also requires using a matrix
+      Dawson function.  Neither of these operations are numerically
+      stable.  It is therefore not recommended to use this method
+      unless you have a good reason to do so.  It is mainly included
+      here for completeness, and as an indicator for future improvements
+      of the radiative transfer solver in ARTS.

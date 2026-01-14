@@ -42,9 +42,10 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
         B = U^2+V^2+W^2-B^2-C^2-D^2
         C = - (DU - CV + BW)^2
     */
-  B = u2 + v2 + w2 - b2 - c2 - d2;
-  C = -Math::pow2(d * u - c * v + b * w);
-  S = std::sqrt(B * B - 4 * C);
+  B                  = u2 + v2 + w2 - b2 - c2 - d2;
+  C                  = -Math::pow2(d * u - c * v + b * w);
+  const Numeric disc = B * B - 4 * C;
+  S                  = std::sqrt(std::max<Numeric>(0.0, disc));
 
   /**
         We define: 
@@ -59,10 +60,12 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
             S+B >=  0
             The y2 sqrt is without the minus sign to avoid complex numbers
     */
-  x2 = std::sqrt(0.5 * (S - B));
-  y2 = std::sqrt(0.5 * (S + B));
-  x  = std::sqrt(x2);
-  y  = std::sqrt(y2);
+  const Numeric t1 = 0.5 * (S - B);
+  const Numeric t2 = 0.5 * (S + B);
+  x2               = std::sqrt(std::max<Numeric>(0.0, t1));
+  y2               = std::sqrt(std::max<Numeric>(0.0, t2));
+  x                = std::sqrt(x2);
+  y                = std::sqrt(y2);
 
   cy = std::cos(y);
   sy = std::sin(y);
@@ -104,6 +107,10 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   C3 = both_zero
            ? 1.0 / 6.0
            : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) * inv_x2y2;
+
+  // In case the above gets numerically unstable, we let polarized be false as a fallback
+  polarized = std::isfinite(C0) and std::isfinite(C1) and std::isfinite(C2) and
+              std::isfinite(C3);
 }
 
 muelmat tran::operator()() const noexcept {
@@ -196,29 +203,247 @@ muelmat tran::expm1() const noexcept {
 }
 
 muelmat tran::linsrc() const noexcept {
-  // K = - k, expm1 = exp(-k) - 1, so "-" cancels out,
-  // since we want k^-1 (1 - exp(-k)) = K^-1 * expm1
+  const auto func_F = [](Numeric z) {
+    return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z;
+  };
 
-  if (not polarized) return std::expm1(a) / a;
+  const auto func_Fp = [](Numeric z) {
+    if (std::abs(z) < too_small) return 0.5 + z / 3.0 + z * z / 8.0;
+    const Numeric ez = std::exp(z);
+    return (ez * (z - 1.0) + 1.0) / (z * z);
+  };
 
-  const propmat K{a, b, c, d, u, v, w};
+  if (not polarized) return {func_F(a)};
 
-  return inv(K) * expm1();
-}
+  Numeric l0, l1, l2, l3;
 
-muelmat tran::linsrc_deriv(const muelmat &l,
-                           const propmat &dk,
-                           const muelmat &dt,
-                           const Numeric r,
-                           const Numeric dr) const {
-  if (not polarized) {
-    const Numeric da = (dr / r) * a - 0.5 * r * dk.A();
-    return muelmat{(dt[0, 0] - l[0, 0] * da) / a};
+  if (both_zero) {
+    l0 = func_F(a);
+    l1 = func_Fp(a);
+
+    if (std::abs(a) < too_small) {
+      l2 = 1.0 / 6.0 + a / 12.0;
+      l3 = 1.0 / 24.0 + a / 60.0;
+    } else {
+      const Numeric ez = std::exp(a);
+      const Numeric a2 = a * a;
+      const Numeric a3 = a2 * a;
+      l2               = 0.5 * (ez * (a2 - 2.0 * a + 2.0) - 2.0) / a3;
+      l3 = (ez * (a3 - 3.0 * a2 + 6.0 * a - 6.0) + 6.0) / (6.0 * a2 * a2);
+    }
+  } else {
+    Numeric Pp, Pm_div_x;
+    if (x_zero) {
+      Pp       = func_F(a);
+      Pm_div_x = func_Fp(a);
+    } else {
+      const Numeric f1 = func_F(a + x);
+      const Numeric f2 = func_F(a - x);
+      Pp               = 0.5 * (f1 + f2);
+      Pm_div_x         = 0.5 * (f1 - f2) / x;
+    }
+
+    Numeric Qp, q_im;
+    if (y_zero) {
+      Qp   = func_F(a);
+      q_im = func_Fp(a);
+    } else {
+      const Numeric denom    = a * a + y * y;
+      const Numeric ea_cy_m1 = exp_a * cy - 1.0;
+      const Numeric ea_sy    = exp_a * sy;
+      Qp                     = (a * ea_cy_m1 + y * ea_sy) / denom;
+      const Numeric sin_y_div_y =
+          (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
+      q_im = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
+    }
+
+    l2 = (Pp - Qp) * inv_x2y2;
+    l0 = Pp - l2 * x2;
+    l3 = (Pm_div_x - q_im) * inv_x2y2;
+    l1 = Pm_div_x - l3 * x2;
   }
 
-  const propmat K{a, b, c, d, u, v, w};
+  const muelmat S_mat{0, b, c, d, b, 0, u, v, c, -u, 0, w, d, -v, -w, 0};
 
-  return inv(K) * ((0.5 * r * dk - (dr / r) * K) * l + dt);
+  const muelmat S2_mat = S_mat * S_mat;
+  const muelmat S3_mat = S_mat * S2_mat;
+
+  return muelmat{l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0} +
+         S_mat * l1 + S2_mat * l2 + S3_mat * l3;
+}
+
+muelmat tran::linsrc_deriv(const muelmat &,
+                           const propmat &dk,
+                           const muelmat &,
+                           const Numeric r,
+                           const Numeric dr) const {
+  const auto func_F = [](Numeric z) {
+    return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z;
+  };
+
+  const auto func_Fp = [](Numeric z) {
+    if (std::abs(z) < too_small) return 0.5 + z / 3.0 + z * z / 8.0;
+    const Numeric ez = std::exp(z);
+    return (ez * (z - 1.0) + 1.0) / (z * z);
+  };
+
+  const auto func_Fpp = [](Numeric z) {
+    if (std::abs(z) < too_small) return 1.0 / 3.0 + z / 4.0 + z * z / 10.0;
+    const Numeric ez = std::exp(z);
+    return (ez * (z * z - 2.0 * z + 2.0) - 2.0) / (z * z * z);
+  };
+
+  const auto func_F3p = [](Numeric z) {
+    if (std::abs(z) < too_small) return 0.25 + z * 0.2;
+    const Numeric ez = std::exp(z);
+    const Numeric z2 = z * z;
+    const Numeric z3 = z2 * z;
+    return (ez * (z3 - 3.0 * z2 + 6.0 * z - 6.0) + 6.0) / (z3 * z);
+  };
+
+  const auto func_F4p = [](Numeric z) {
+    if (std::abs(z) < too_small) return 0.2 + z / 6.0;
+    const Numeric ez = std::exp(z);
+    const Numeric z2 = z * z;
+    const Numeric z3 = z2 * z;
+    const Numeric z4 = z2 * z2;
+    const Numeric z5 = z4 * z;
+    return (ez * (z4 - 4.0 * z3 + 12.0 * z2 - 24.0 * z + 24.0) - 24.0) / z5;
+  };
+
+  const Numeric inv_r = (std::abs(r) > 1e-20) ? 1.0 / r : 0.0;
+  const Numeric dr_r  = dr * inv_r;
+  const Numeric da    = dr_r * a - 0.5 * r * dk.A();
+
+  if (not polarized) return {func_Fp(a) * da};
+
+  const Numeric db  = dr_r * b - 0.5 * r * dk.B();
+  const Numeric dc  = dr_r * c - 0.5 * r * dk.C();
+  const Numeric dd  = dr_r * d - 0.5 * r * dk.D();
+  const Numeric du  = dr_r * u - 0.5 * r * dk.U();
+  const Numeric dv  = dr_r * v - 0.5 * r * dk.V();
+  const Numeric dw  = dr_r * w - 0.5 * r * dk.W();
+  const Numeric db2 = 2.0 * db * b;
+  const Numeric dc2 = 2.0 * dc * c;
+  const Numeric dd2 = 2.0 * dd * d;
+  const Numeric du2 = 2.0 * du * u;
+  const Numeric dv2 = 2.0 * dv * v;
+  const Numeric dw2 = 2.0 * dw * w;
+  const Numeric dB  = du2 + dv2 + dw2 - db2 - dc2 - dd2;
+  const Numeric dC  = -2.0 * (d * u - c * v + b * w) *
+                     (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
+  const Numeric dS_val = (S > 1e-9) ? (B * dB - 2.0 * dC) / S : 0.0;
+  const Numeric dx2    = (x2 > 1e-9) ? 0.25 * (dS_val - dB) / x2 : 0.0;
+  const Numeric dy2    = (y2 > 1e-9) ? 0.25 * (dS_val + dB) / y2 : 0.0;
+  const Numeric dx     = (x > 1e-9) ? 0.5 * dx2 / x : 0.0;
+  const Numeric dy     = (y > 1e-9) ? 0.5 * dy2 / y : 0.0;
+
+  Numeric l1, l2, l3;
+  Numeric dl0, dl1, dl2, dl3;
+
+  if (both_zero) {
+    const Numeric fpa  = func_Fp(a);
+    const Numeric fppa = func_Fpp(a);
+    dl0                = fpa * da;
+    l1                 = fpa;
+    dl1                = fppa * da;
+
+    if (std::abs(a) < too_small) {
+      l2  = 1.0 / 6.0 + a / 12.0;
+      dl2 = da / 12.0;
+      l3  = 1.0 / 24.0 + a / 60.0;
+      dl3 = da / 60.0;
+    } else {
+      const Numeric f3pa = func_F3p(a);
+      const Numeric f4pa = func_F4p(a);
+      l2                 = 0.5 * fppa;
+      dl2                = 0.5 * f3pa * da;
+      l3                 = f3pa / 6.0;
+      dl3                = f4pa / 6.0 * da;
+    }
+  } else {
+    Numeric Pp = 0.0, Pm_div_x = 0.0, Qp = 0.0, q_im = 0.0;
+    Numeric dPp = 0.0, dPm_div_x = 0.0, dQp = 0.0, dq_im = 0.0;
+
+    if (x_zero) {
+      Pp  = func_F(a);
+      dPp = func_Fp(a) * da + 0.5 * func_Fpp(a) * dx2;
+
+      Pm_div_x  = func_Fp(a);
+      dPm_div_x = func_Fpp(a) * da + (func_F3p(a) / 6.0) * dx2;
+
+    } else {
+      const Numeric f_apx   = func_F(a + x);
+      const Numeric f_amx   = func_F(a - x);
+      const Numeric fp_apx  = func_Fp(a + x);
+      const Numeric fp_amx  = func_Fp(a - x);
+      Pp                    = 0.5 * (f_apx + f_amx);
+      const Numeric sum_fp  = fp_apx + fp_amx;
+      const Numeric diff_fp = fp_apx - fp_amx;
+      dPp                   = 0.5 * sum_fp * da + 0.5 * diff_fp * dx;
+      Pm_div_x              = 0.5 * (f_apx - f_amx) / x;
+      const Numeric dPm_da  = 0.5 * diff_fp / x;
+
+      Numeric dPm_dx;
+      if (x < 1e-3) {
+        dPm_dx = func_F3p(a) * x / 3.0;
+      } else {
+        const Numeric diff_f = f_apx - f_amx;
+        dPm_dx               = (x * sum_fp - diff_f) / (2.0 * x * x);
+      }
+
+      dPm_div_x = dPm_da * da + dPm_dx * dx;
+    }
+
+    if (y_zero) {
+      Qp    = func_F(a);
+      dQp   = func_Fp(a) * da - 0.5 * func_Fpp(a) * dy2;
+      q_im  = func_Fp(a);
+      dq_im = func_Fpp(a) * da - (func_F3p(a) / 6.0) * dy2;
+    } else {
+      const Numeric denom    = a * a + y * y;
+      const Numeric ea_cy_m1 = exp_a * cy - 1.0;
+      const Numeric ea_sy    = exp_a * sy;
+      Qp                     = (a * ea_cy_m1 + y * ea_sy) / denom;
+      const Numeric sin_y_div_y =
+          (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
+      q_im                 = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
+      const Numeric ImF    = (a * exp_a * sy - y * ea_cy_m1) / denom;
+      const Numeric A_val  = exp_a * ((a - 1.0) * cy - y * sy) + 1.0;
+      const Numeric B_val  = exp_a * ((a - 1.0) * sy + y * cy);
+      const Numeric C_val  = a * a - y * y;
+      const Numeric D_val  = 2.0 * a * y;
+      const Numeric denom2 = C_val * C_val + D_val * D_val;
+      const Numeric Fp_re  = (A_val * C_val + B_val * D_val) / denom2;
+      const Numeric Fp_im  = (B_val * C_val - A_val * D_val) / denom2;
+      dQp                  = Fp_re * da - Fp_im * dy;
+      const Numeric dImF   = Fp_im * da + Fp_re * dy;
+      dq_im                = (y * dImF - ImF * dy) / (y * y);
+    }
+
+    const Numeric inv  = inv_x2y2;
+    const Numeric dinv = -inv * inv * (dx2 + dy2);
+    l2                 = (Pp - Qp) * inv;
+    dl2                = (dPp - dQp) * inv + (Pp - Qp) * dinv;
+    dl0                = dPp - dl2 * x2 - l2 * dx2;
+    l3                 = (Pm_div_x - q_im) * inv;
+    dl3                = (dPm_div_x - dq_im) * inv + (Pm_div_x - q_im) * dinv;
+    l1                 = Pm_div_x - l3 * x2;
+    dl1                = dPm_div_x - dl3 * x2 - l3 * dx2;
+  }
+
+  const muelmat S_mat{0, b, c, d, b, 0, u, v, c, -u, 0, w, d, -v, -w, 0};
+  const muelmat dS_mat{
+      0, db, dc, dd, db, 0, du, dv, dc, -du, 0, dw, dd, -dv, -dw, 0};
+
+  const muelmat S2_mat  = S_mat * S_mat;
+  const muelmat dS2_mat = dS_mat * S_mat + S_mat * dS_mat;
+  const muelmat S3_mat  = S_mat * S2_mat;
+  const muelmat dS3_mat = dS_mat * S2_mat + S_mat * dS2_mat;
+
+  return muelmat{dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0} +
+         S_mat * dl1 + dS_mat * l1 + S2_mat * dl2 + dS2_mat * l2 +
+         S3_mat * dl3 + dS3_mat * l3;
 }
 
 muelmat tran::linsrc_linprop(const muelmat &t,
