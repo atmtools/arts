@@ -10,7 +10,7 @@ toa = 100e3
 
 ws = pyarts.Workspace()
 
-ws.abs_speciesSet(species=["CO2-626", "H2O-161"])
+ws.abs_speciesSet(species=["H2O-161"])
 
 ws.ReadCatalogData()
 for key in ws.abs_bands:
@@ -35,8 +35,7 @@ t = time()
 ws.abs_lookup_dataFromProfiles(
     pressure_profile=np.array(ws.atm_field["p"].data.flatten()),
     temperature_profile=np.array(ws.atm_field["t"].data.flatten()),
-    vmr_profiles={"CO2": np.array(ws.atm_field["CO2"].data.flatten()),
-                  "H2O": np.array(ws.atm_field["H2O"].data.flatten())},
+    vmr_profiles={"H2O": np.array(ws.atm_field["H2O"].data.flatten())},
     temperature_perturbation=np.linspace(-30, 30, 9),
     water_perturbation=np.logspace(-1, 1, 9),
     water_affected_species=["H2O"],
