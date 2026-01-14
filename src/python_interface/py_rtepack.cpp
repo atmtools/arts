@@ -225,7 +225,12 @@ void py_rtepack(py::module_ &m) try {
           "value",
           [](py::object &x) { return x.attr("__array__")(); },
           [](Propmat &x, Propmat &y) { x = y; },
-          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`");
+          "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
+      .def(
+          "inv",
+          [](const Propmat &k) { return inv(k); },
+          "Returns the inverse of the propagation matrix.");
+
   common_ndarray(pm);
   generic_interface(pm);
 
@@ -520,10 +525,10 @@ void py_rtepack(py::module_ &m) try {
            "r"_a,
            "dr"_a,
            "Returns the derivative of the Mueller matrix")
-      .def("evolve_operator",
+      .def("linsrc",
            &rtepack::tran::linsrc,
            "Returns the linear-in-tau evolve operator")
-      .def("evolve_operator_deriv",
+      .def("linsrc_deriv",
            &rtepack::tran::linsrc_deriv,
            "l"_a,
            "dk"_a,
