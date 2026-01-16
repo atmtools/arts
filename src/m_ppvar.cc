@@ -35,111 +35,6 @@ void ray_path_zeeman_magnetic_fieldFromPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_srcvec_pathFromPropmat(
-    ArrayOfStokvecVector &spectral_rad_srcvec_path,
-    ArrayOfStokvecMatrix &spectral_rad_srcvec_jac_path,
-    const ArrayOfPropmatVector &spectral_propmat_path,
-    const ArrayOfStokvecVector &spectral_nlte_srcvec_path,
-    const ArrayOfPropmatMatrix &spectral_propmat_jac_path,
-    const ArrayOfStokvecMatrix &spectral_nlte_srcvec_jac_path,
-    const ArrayOfAscendingGrid &freq_grid_path,
-    const ArrayOfAtmPoint &atm_path,
-    const JacobianTargets &jac_targets) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(not arr::same_size(spectral_propmat_path,
-                                        spectral_nlte_srcvec_path,
-                                        spectral_propmat_jac_path,
-                                        spectral_nlte_srcvec_jac_path,
-                                        freq_grid_path,
-                                        atm_path),
-                     R"(All input arrays must have the same size:
-- spectral_propmat_path:         {}
-- spectral_nlte_srcvec_path:     {}
-- spectral_propmat_jac_path:     {}
-- spectral_nlte_srcvec_jac_path: {}
-- freq_grid_path:                {}
-- atm_path:                      {}
-)",
-                     spectral_propmat_path.size(),
-                     spectral_nlte_srcvec_path.size(),
-                     spectral_propmat_jac_path.size(),
-                     spectral_nlte_srcvec_jac_path.size(),
-                     freq_grid_path.size(),
-                     atm_path.size())
-
-  String error{};
-
-  const Index np = atm_path.size();
-  if (np == 0) {
-    spectral_rad_srcvec_path.resize(0);
-    spectral_rad_srcvec_jac_path.resize(0);
-    return;
-  }
-
-  const Index nf = spectral_propmat_path.front().size();
-  const Index nq = jac_targets.target_count();
-
-  ARTS_USER_ERROR_IF(
-      not matpack::all_same_shape({nf},
-                                  spectral_propmat_path,
-                                  spectral_nlte_srcvec_path,
-                                  freq_grid_path),
-      R"(Invalid sizes (all should be the same, {}) in at least one of the input arrays:
-
-- spectral_propmat_path
-- spectral_nlte_srcvec_path
-- freq_grid_path
-)",
-      nf)
-
-  ARTS_USER_ERROR_IF(
-      not matpack::all_same_shape(
-          {nq, nf}, spectral_propmat_jac_path, spectral_nlte_srcvec_jac_path),
-      R"(Invalid sizes (all should be the same, [{}, {}]) in at least one of the input arrays:
-
-- spectral_propmat_jac_path
-- spectral_nlte_srcvec_jac_path
-)",
-      nq,
-      nf)
-
-  const Index it = jac_targets.target_position(AtmKey::t);
-
-  spectral_rad_srcvec_path.resize(np);
-  for (auto &t : spectral_rad_srcvec_path) {
-    t.resize(nf);
-    t = 0;
-  }
-  spectral_rad_srcvec_jac_path.resize(np);
-  for (auto &t : spectral_rad_srcvec_jac_path) {
-    t.resize(nq, nf);
-    t = 0;
-  }
-
-  // Loop ppath points and determine radiative properties
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index ip = 0; ip < np; ip++) {
-    try {
-      rtepack::source::level_nlte(spectral_rad_srcvec_path[ip],
-                                  spectral_rad_srcvec_jac_path[ip],
-                                  spectral_propmat_path[ip],
-                                  spectral_nlte_srcvec_path[ip],
-                                  spectral_propmat_jac_path[ip],
-                                  spectral_nlte_srcvec_jac_path[ip],
-                                  freq_grid_path[ip],
-                                  atm_path[ip].temperature,
-                                  it);
-    } catch (const std::runtime_error &e) {
-#pragma omp critical
-      if (error.empty()) error = e.what();
-    }
-  }
-
-  if (not error.empty()) throw std::runtime_error(error);
-}
-ARTS_METHOD_ERROR_CATCH
-
 void atm_pathFromPath(ArrayOfAtmPoint &atm_path,
                       const ArrayOfPropagationPathPoint &ray_path,
                       const AtmField &atm_field) try {
@@ -175,15 +70,5 @@ void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
   }
 
   if (not error.empty()) throw std::runtime_error(error);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_tramat_cumulative_pathFromPath(
-    ArrayOfMuelmatVector &spectral_tramat_cumulative_path,
-    const ArrayOfMuelmatVector &spectral_tramat_path) try {
-  ARTS_TIME_REPORT
-
-  forward_cumulative_transmission(spectral_tramat_cumulative_path,
-                                  spectral_tramat_path);
 }
 ARTS_METHOD_ERROR_CATCH

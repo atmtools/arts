@@ -43,7 +43,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
-ws.spectral_rad_observer_agendaSet(option="EmissionLinearInTauAndProp")
+ws.rte_option = "linprop"
 
 # %% Artificial Magnetic Field
 

@@ -15,6 +15,7 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "rtepack_transmission.h"
 
 namespace Python {
 template <typename T, Index M, size_t... N>
@@ -465,24 +466,6 @@ void py_rtepack(py::module_ &m) try {
 
   auto rtepack  = m.def_submodule("rtepack");
   rtepack.doc() = "Interface to some of the core RTE functionality";
-  rtepack.def(
-      "two_level_exp",
-      [](const ArrayOfPropmatVector &K,
-         const ArrayOfPropmatMatrix &dK,
-         const Vector &r,
-         const Tensor3 &dr) {
-        ArrayOfMuelmatVector T;
-        ArrayOfMuelmatTensor3 dT;
-
-        rtepack::two_level_exp(T, dT, K, dK, r, dr);
-
-        return std::pair{T, dT};
-      },
-      "K"_a,
-      "dK"_a,
-      "r"_a,
-      "dr"_a,
-      "Returns the two-level exponential of the input matrices");
 
   rtepack.def(
       "two_level_radiative_transfer",
@@ -507,6 +490,44 @@ void py_rtepack(py::module_ &m) try {
       "I0"_a,
       "Returns the two-level radiative transfer of the input matrices");
 
+  auto tramat = py::class_<TransmittanceMatrix>(m, "TransmittanceMatrix");
+  generic_interface(tramat);
+  tramat.def_rw(
+      "T",
+      &TransmittanceMatrix::T,
+      "The transmittance Mueller matrix; shape [nf, np] if defined\n\n.. :class:`~pyarts3.arts.MuelmatMatrix");
+  tramat.def_rw(
+      "dT",
+      &TransmittanceMatrix::dT,
+      "The derivative of the transmittance Mueller matrix; shape [2, nf, np, nq] if defined\n\n.. :class:`~pyarts3.arts.MuelmatTensor4");
+  tramat.def_rw(
+      "P",
+      &TransmittanceMatrix::P,
+      "The cumulative from background transmittance Mueller matrix; shape [nf, np] if defined\n\n.. :class:`~pyarts3.arts.MuelmatMatrix");
+  tramat.def_rw(
+      "L",
+      &TransmittanceMatrix::L,
+      "The linear evolution Mueller matrix; shape [nf, np] if defined\n\n.. :class:`~pyarts3.arts.MuelmatMatrix");
+  tramat.def_rw(
+      "dL",
+      &TransmittanceMatrix::dL,
+      "The derivative of the linear evolution Mueller matrix; shape [2, nf, np, nq] if defined\n\n.. :class:`~pyarts3.arts.MuelmatTensor4");
+  tramat.def_rw(
+      "opt",
+      &TransmittanceMatrix::option,
+      "The option for the transmittance matrix calculations\n\n.. :class:`~pyarts3.arts.TransmittanceOption");
+
+  auto srcvec = py::class_<SourceVector>(m, "SourceVector");
+  generic_interface(srcvec);
+  srcvec.def_rw(
+      "J",
+      &SourceVector::J,
+      "The source vectors; shape [nf, np]\n\n.. :class:`~pyarts3.arts.StokvecMatrix");
+  srcvec.def_rw(
+      "dJ",
+      &SourceVector::dJ,
+      "The derivatives of the source vectors; shape [nf, np, nq]\n\n.. :class:`~pyarts3.arts.StokvecTensor3");
+
   auto rp  = m.def_submodule("rtepack");
   rp.doc() = "Module for RTEPACK functionality";
 
@@ -530,9 +551,7 @@ void py_rtepack(py::module_ &m) try {
            "Returns the linear-in-tau evolve operator")
       .def("linsrc_deriv",
            &rtepack::tran::linsrc_deriv,
-           "l"_a,
            "dk"_a,
-           "dt"_a,
            "r"_a,
            "dr"_a,
            "Returns the derivative of the linear-in-tau evolve operator")

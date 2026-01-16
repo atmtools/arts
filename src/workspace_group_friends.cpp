@@ -202,15 +202,6 @@ This keeps four things:
 )--",
   };
 
-  wsg_data["StokvecTensor3"] = {
-      .file = "rtepack.h",
-      .desc = R"(A *Tensor3* but holds *Stokvec*.
-
-When converted to a :class:`~numpy.ndarray` this will look
-like a 4-dimensional array with the last dimension of size 4.
-)",
-  };
-
   wsg_data["StokvecTensor4"] = {
       .file = "rtepack.h",
       .desc = R"(A *Tensor4* but holds *Stokvec*.

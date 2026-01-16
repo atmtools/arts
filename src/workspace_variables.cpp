@@ -527,8 +527,10 @@ size of the local *spectral_rad* as columns.
 
   wsv_data["spectral_rad_jac_path"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
+
+The dimensions are: *freq_grid* x *ray_path* x *jac_targets* (target count)
 )--",
-      .type = "ArrayOfStokvecMatrix",
+      .type = "StokvecTensor3",
   };
 
   wsv_data["spectral_rad_scat_path"] = {
@@ -537,16 +539,15 @@ size of the local *spectral_rad* as columns.
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["spectral_rad_srcvec_jac_path"] = {
-      .desc = R"--(Source derivative vectors along the propagation path
-)--",
-      .type = "ArrayOfStokvecMatrix",
-  };
-
   wsv_data["spectral_rad_srcvec_path"] = {
       .desc = R"--(Source vectors along the propagation path
+
+The dimensions of the internal arrays are:
+
+- Source vector: *freq_grid* x *ray_path*
+- Jacobian: *freq_grid* x *ray_path* x *jac_targets* (target count)
 )--",
-      .type = "ArrayOfStokvecVector",
+      .type = "SourceVector",
   };
 
   wsv_data["spectral_rad_transform_operator"] = {
@@ -576,47 +577,31 @@ Shape: *jac_targets* - target count x *freq_grid*
       .type = "MuelmatMatrix",
   };
 
-  wsv_data["spectral_tramat_bkg"] = {
-      .desc = R"--(Transmittance from the background
-)--",
-      .type = "MuelmatVector",
-  };
-
-  wsv_data["spectral_tramat_cumulative_path"] = {
-      .desc = R"--(Cumulative transmission matrices along the propagation path
-)--",
-      .type = "ArrayOfMuelmatVector",
-  };
-
-  wsv_data["spectral_tramat_jac_path"] = {
-      .desc = R"--(Transmission derivative matrices along the propagation path.
-
-The outer dimension is the number of layers.
-
-The inner dimensions are the number of level derivatives,
-the number of Jacobian targets, and the number of frequency points.
-The required number of level derivatives is determined by the appropriate
-method (a common value is 2, for the 2 levels surrounding a layer).
-
-The order of the elements is such that index zero is closest to the obeserver.
-)--",
-      .type = "ArrayOfMuelmatTensor3",
-  };
-
   wsv_data["spectral_tramat_path"] = {
-      .desc = R"--(Transmission matrices along the propagation path.
+      .desc =
+          R"--(Transmission matrices and derivatives along the propagation path.
 
-The outer dimension is the number of layers.
+The inner dimensions depends on *rte_option* and *jac_targets*.
 
-The inner dimension is the number of frequency points.
-
-The order of the elements is such that index zero is closest to the obeserver.
+The object should have these sizes internally:
+- Transmission matrices: *freq_grid* x *ray_path*
+- Jacobian matrices: *freq_grid* x *ray_path* x *jac_targets* (target count)
+- Linear evolution operators: *freq_grid* x *ray_path* (if *rte_option* requires it)
+- Linear evolution operator Jacobians: *freq_grid* x *ray_path* x *jac_targets* (target count - if *rte_option* requires it)
+- Cumulated transmission matrices: *freq_grid* x *ray_path* (if *jac_targets* has any elements)
 )--",
-      .type = "ArrayOfMuelmatVector",
+      .type = "TransmittanceMatrix",
+  };
+
+  wsv_data["rte_option"] = {
+      .desc          = R"--(The radiative transfer equation (RTE) option.)--",
+      .type          = "TransmittanceOption",
+      .default_value = "TransmittanceOption::constant",
   };
 
   wsv_data["spectral_linevo_jac_path"] = {
-      .desc = R"--(The partial derivatives of the linear evolution operator along the propagation path.
+      .desc =
+          R"--(The partial derivatives of the linear evolution operator along the propagation path.
 )--",
       .type = "ArrayOfMuelmatTensor3",
   };

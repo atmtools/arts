@@ -5,6 +5,65 @@
 #include "rtepack_spectral_matrix.h"
 
 namespace rtepack {
+struct TransmittanceMatrix {
+  TransmittanceOption option{};
+
+  muelmat_matrix T{};
+  muelmat_matrix L{};
+  muelmat_matrix P{};
+
+  muelmat_tensor4 dT{};
+  muelmat_tensor4 dL{};
+
+  void init(const std::span<const propmat_vector> &K,
+            const std::span<const propmat_matrix> &dK,
+            const ConstVectorView &r,
+            const ConstTensor3View &dr,
+            const TransmittanceOption);
+
+  void init(const std::span<const propmat> &K,
+            const std::span<const propmat_vector> &dK,
+            const ConstVectorView &r,
+            const ConstTensor3View &dr,
+            const TransmittanceOption);
+
+  void check(Size np, Size nq, Size nf, const std::string_view caller) const;
+
+  //! Should return nf, np, nq [unchecked]
+  [[nodiscard]] std::array<Size, 3> shape() const noexcept;
+
+ private:
+  void constant(const std::span<const propmat_vector> &K,
+                const std::span<const propmat_matrix> &dK,
+                const ConstVectorView &r,
+                const ConstTensor3View &dr);
+
+  void linsrc(const std::span<const propmat_vector> &K,
+              const std::span<const propmat_matrix> &dK,
+              const ConstVectorView &r,
+              const ConstTensor3View &dr);
+
+  void linprop(const std::span<const propmat_vector> &K,
+               const std::span<const propmat_matrix> &dK,
+               const ConstVectorView &r,
+               const ConstTensor3View &dr);
+
+  void constant(const std::span<const propmat> &K,
+                const std::span<const propmat_vector> &dK,
+                const ConstVectorView &r,
+                const ConstTensor3View &dr);
+
+  void linsrc(const std::span<const propmat> &K,
+              const std::span<const propmat_vector> &dK,
+              const ConstVectorView &r,
+              const ConstTensor3View &dr);
+
+  void linprop(const std::span<const propmat> &K,
+               const std::span<const propmat_vector> &dK,
+               const ConstVectorView &r,
+               const ConstTensor3View &dr);
+};
+
 struct tran {
   Numeric a, exp_a;
   Numeric b, c, d, u, v, w;
@@ -33,9 +92,7 @@ struct tran {
                               const propmat &dk,
                               const Numeric r,
                               const Numeric dr) const;
-  [[nodiscard]] muelmat linsrc_deriv(const muelmat &l,
-                                     const propmat &dk,
-                                     const muelmat &dt,
+  [[nodiscard]] muelmat linsrc_deriv(const propmat &dk,
                                      const Numeric r,
                                      const Numeric dr) const;
   [[nodiscard]] muelmat linsrc_linprop_deriv(const muelmat &lambda,
@@ -49,50 +106,42 @@ struct tran {
                                              bool k1_deriv) const;
 };
 
-void two_level_exp(muelmat &t,
-                   muelmat_vector_view dt1,
-                   muelmat_vector_view dt2,
-                   const propmat &k1,
-                   const propmat &k2,
-                   const propmat_vector_const_view &dk1,
-                   const propmat_vector_const_view &dk2,
-                   const Numeric r,
-                   const ConstVectorView &dr1,
-                   const ConstVectorView &dr2);
-
 muelmat exp(propmat k, Numeric r = 1.0);
 
 propmat logK(const muelmat &m);
 
 specmat sqrt(const propmat &pm);
-
-void two_level_exp(muelmat_vector_view t,
-                   const propmat_vector_const_view &k1,
-                   const propmat_vector_const_view &k2,
-                   const Numeric r);
-
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_tensor3> &dT,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr);
-
-void two_level_exp_linsrc(std::vector<muelmat_vector> &T,
-                          std::vector<muelmat_vector> &L,
-                          std::vector<muelmat_tensor3> &dT,
-                          std::vector<muelmat_tensor3> &dL,
-                          const std::vector<propmat_vector> &K,
-                          const std::vector<propmat_matrix> &dK,
-                          const Vector &r,
-                          const Tensor3 &dr);
-
-void two_level_exp_linsrc_linprop(std::vector<muelmat_vector> &T,
-                                  std::vector<muelmat_vector> &L,
-                                  std::vector<muelmat_tensor3> &dT,
-                                  std::vector<muelmat_tensor3> &dL,
-                                  const std::vector<propmat_vector> &K,
-                                  const std::vector<propmat_matrix> &dK,
-                                  const Vector &r,
-                                  const Tensor3 &dr);
 }  // namespace rtepack
+
+using rtepack::TransmittanceMatrix;
+
+template <>
+struct xml_io_stream_name<TransmittanceMatrix> {
+  static constexpr std::string_view name = "TransmittanceMatrix";
+};
+
+template <>
+struct xml_io_stream_aggregate<TransmittanceMatrix> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct std::formatter<TransmittanceMatrix> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const TransmittanceMatrix &v,
+                              FmtContext &ctx) const {
+    const std::string_view sep = tags.sep();
+    return tags.format(
+        ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL);
+  }
+};

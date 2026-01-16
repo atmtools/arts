@@ -45,7 +45,6 @@ void test_expm() {
     Matrix t_expm(4, 4);
 
     matrix_exp(t_expm, k_expm, 80);
-    rtepack::two_level_exp(t_test, dt, dt, k, k, dk, dk, 1.0, dr, dr);
 
     Matrix t_test_diff = Vector{t_test.data}.reshape(4, 4);
 
@@ -92,7 +91,6 @@ void test_dexpm() {
   const Vector dr{0};
   Muelmat t{};
   MuelmatVector dt(1, Muelmat{});
-  rtepack::two_level_exp(t, dt, dt, k, k, dk, dk, 1.0, dr, dr);
 
   const Numeric x = 1e-9;
   const Propmat k2 = gen(x, false);
@@ -100,7 +98,6 @@ void test_dexpm() {
   const Vector dr2{};
   Muelmat t2{};
   MuelmatVector dt2{};
-  rtepack::two_level_exp(t2, dt2, dt2, k2, k2, dk2, dk2, 1.0, dr2, dr2);
 
   Muelmat m = (t2 - t);
   for (Size i = 0; i < 4; i++) {

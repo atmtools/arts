@@ -267,46 +267,38 @@ void spectral_propmat_scat_pathFromPath(
 }
 
 void spectral_rad_srcvec_pathAddScattering(
-    ArrayOfStokvecVector& spectral_rad_srcvec_path,
+    SourceVector& spectral_rad_srcvec_path,
     const ArrayOfStokvecVector& spectral_rad_scat_path,
     const ArrayOfPropmatVector& spectral_propmat_path) {
   ARTS_TIME_REPORT
 
   const Size np = spectral_propmat_path.size();
   ARTS_USER_ERROR_IF(
-      np != spectral_rad_srcvec_path.size(),
+      np != static_cast<Size>(spectral_rad_srcvec_path.J.ncols()),
       "Bad spectral_propmat_scat_path: incorrect number of path points")
+
   ARTS_USER_ERROR_IF(
       np != spectral_rad_scat_path.size(),
       "Bad spectral_propmat_scat_path: incorrect number of path points")
 
   if (np == 0) return;
+
   const Size nf = spectral_propmat_path.front().size();
   ARTS_USER_ERROR_IF(
-      stdr::any_of(spectral_rad_srcvec_path,
-                   Cmp::ne(nf),
-                   [](auto& v) { return v.size(); }),
+      nf != static_cast<Size>(spectral_rad_srcvec_path.J.nrows()),
       "Mismatch frequency size of spectral_propmat_path and spectral_rad_srcvec_path")
+
   ARTS_USER_ERROR_IF(
       stdr::any_of(spectral_rad_scat_path,
                    Cmp::ne(nf),
                    [](auto& v) { return v.size(); }),
       "Mismatch frequency size of spectral_propmat_path and spectral_rad_scat_path")
 
-  if (arts_omp_in_parallel()) {
-    for (Size ip = 0; ip < np; ip++) {
-      for (Size iv = 0; iv < nf; iv++) {
-        spectral_rad_srcvec_path[ip][iv] +=
-            inv(spectral_propmat_path[ip][iv]) * spectral_rad_scat_path[ip][iv];
-      }
-    }
-  } else {
-#pragma omp parallel for collapse(2)
-    for (Size ip = 0; ip < np; ip++) {
-      for (Size iv = 0; iv < nf; iv++) {
-        spectral_rad_srcvec_path[ip][iv] +=
-            inv(spectral_propmat_path[ip][iv]) * spectral_rad_scat_path[ip][iv];
-      }
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size ip = 0; ip < np; ip++) {
+    for (Size iv = 0; iv < nf; iv++) {
+      spectral_rad_srcvec_path.J[iv, ip] +=
+          inv(spectral_propmat_path[ip][iv]) * spectral_rad_scat_path[ip][iv];
     }
   }
 }
@@ -330,6 +322,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
     const AtmField& atm_field,
     const SurfaceField& surf_field,
     const Agenda& spectral_propmat_agenda,
+    const TransmittanceOption& rte_option,
     const Numeric& depolarization_factor,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
@@ -401,6 +394,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
                                                    freq_grid,
                                                    jac_targets,
                                                    sun_path,
+                                                   rte_option,
                                                    spectral_propmat_agenda,
                                                    spectral_rad_bkg,
                                                    spectral_rad_bkg_jac,

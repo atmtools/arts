@@ -1,8 +1,10 @@
 #include "rtepack_transmission.h"
 
+#include <array_algo.h>
 #include <arts_constants.h>
 #include <arts_constexpr_math.h>
 #include <arts_omp.h>
+#include <debug.h>
 
 #include <Faddeeva.hh>
 #include <algorithm>
@@ -272,9 +274,7 @@ muelmat tran::linsrc() const noexcept {
          S_mat * l1 + S2_mat * l2 + S3_mat * l3;
 }
 
-muelmat tran::linsrc_deriv(const muelmat &,
-                           const propmat &dk,
-                           const muelmat &,
+muelmat tran::linsrc_deriv(const propmat &dk,
                            const Numeric r,
                            const Numeric dr) const {
   const auto func_F = [](Numeric z) {
@@ -486,7 +486,7 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
 
   const propmat alpha2 = (k2 - k1) / (2.0 * r);
 
-  if (alpha2.A() < 1e-8) return linsrc_deriv(lambda, dk_in, dt, r, dr);
+  if (alpha2.A() < 1e-8) return linsrc_deriv(dk_in, r, dr);
 
   if (not polarized) {
     const Numeric k1a = k1.A();
@@ -673,468 +673,7 @@ muelmat tran::deriv(const muelmat &t,
   // clang-format on
 }
 
-void two_level_exp(muelmat &t,
-                   muelmat_vector_view dt1,
-                   muelmat_vector_view dt2,
-                   const propmat &k1,
-                   const propmat &k2,
-                   const propmat_vector_const_view &dk1,
-                   const propmat_vector_const_view &dk2,
-                   const Numeric r,
-                   const ConstVectorView &dr1,
-                   const ConstVectorView &dr2) {
-  assert(dk1.size() == dk2.size() and dk1.size() == dr1.size() and
-         dk1.size() == dr2.size());
-
-  const tran tran_state{k1, k2, r};
-  t = tran_state();
-
-  const auto deriv = [&](const propmat &dk, const Numeric &dr) -> muelmat {
-    return tran_state.deriv(t, k1, k2, dk, r, dr);
-  };
-
-  std::transform(dk1.begin(), dk1.end(), dr1.begin(), dt1.begin(), deriv);
-  std::transform(dk2.begin(), dk2.end(), dr2.begin(), dt2.begin(), deriv);
-}
-
-namespace {
-void two_level_exp(muelmat_vector_view tv,
-                   muelmat_matrix_view dt1v,
-                   muelmat_matrix_view dt2v,
-                   const propmat_vector_const_view &k1v,
-                   const propmat_vector_const_view &k2v,
-                   const propmat_matrix_const_view &dk1v,
-                   const propmat_matrix_const_view &dk2v,
-                   const Numeric rv,
-                   const ConstVectorView &dr1v,
-                   const ConstVectorView &dr2v) {
-  const Size nf = tv.size();
-  const Size nq = dr1v.size();
-
-  assert(nf == k1v.size());
-  assert(nf == k2v.size());
-  assert(nf == static_cast<Size>(dk1v.ncols()));
-  assert(nf == static_cast<Size>(dk2v.ncols()));
-  assert(nq == static_cast<Size>(dk1v.nrows()));
-  assert(nq == static_cast<Size>(dk2v.nrows()));
-  assert(nf == static_cast<Size>(dt1v.ncols()));
-  assert(nf == static_cast<Size>(dt2v.ncols()));
-  assert(nq == static_cast<Size>(dt1v.nrows()));
-  assert(nq == static_cast<Size>(dt2v.nrows()));
-  assert(nq == dr2v.size());
-
-  for (Size i = 0; i < nf; ++i) {
-    const tran tran_state{k1v[i], k2v[i], rv};
-    tv[i] = tran_state();
-
-    for (Size j = 0; j < nq; j++) {
-      dt1v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
-      dt2v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
-    }
-  }
-}
-
-void two_level_exp_linsrc(muelmat_vector_view tv,
-                          muelmat_vector_view lv,
-                          muelmat_matrix_view dt1v,
-                          muelmat_matrix_view dt2v,
-                          muelmat_matrix_view dl1v,
-                          muelmat_matrix_view dl2v,
-                          const propmat_vector_const_view &k1v,
-                          const propmat_vector_const_view &k2v,
-                          const propmat_matrix_const_view &dk1v,
-                          const propmat_matrix_const_view &dk2v,
-                          const Numeric rv,
-                          const ConstVectorView &dr1v,
-                          const ConstVectorView &dr2v) {
-  const Size nf = tv.size();
-  const Size nq = dr1v.size();
-
-  assert(nf == k1v.size());
-  assert(nf == k2v.size());
-  assert(nf == lv.size());
-  assert(nf == static_cast<Size>(dk1v.ncols()));
-  assert(nf == static_cast<Size>(dk2v.ncols()));
-  assert(nq == static_cast<Size>(dk1v.nrows()));
-  assert(nq == static_cast<Size>(dk2v.nrows()));
-  assert(nf == static_cast<Size>(dt1v.ncols()));
-  assert(nf == static_cast<Size>(dt2v.ncols()));
-  assert(nq == static_cast<Size>(dt1v.nrows()));
-  assert(nq == static_cast<Size>(dt2v.nrows()));
-  assert(nf == static_cast<Size>(dl1v.ncols()));
-  assert(nf == static_cast<Size>(dl2v.ncols()));
-  assert(nq == static_cast<Size>(dl1v.nrows()));
-  assert(nq == static_cast<Size>(dl2v.nrows()));
-  assert(nq == dr2v.size());
-
-  for (Size i = 0; i < nf; ++i) {
-    const tran tran_state{k1v[i], k2v[i], rv};
-    tv[i] = tran_state();
-    lv[i] = tran_state.linsrc();
-
-    for (Size j = 0; j < nq; j++) {
-      dt1v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
-      dt2v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
-      dl1v[j, i] =
-          tran_state.linsrc_deriv(lv[i], dk1v[j, i], dt1v[j, i], rv, dr1v[j]);
-      dl2v[j, i] =
-          tran_state.linsrc_deriv(lv[i], dk2v[j, i], dt2v[j, i], rv, dr2v[j]);
-    }
-  }
-}
-
-void two_level_exp_linsrc_linprop(muelmat_vector_view tv,
-                                  muelmat_vector_view lv,
-                                  muelmat_matrix_view dt1v,
-                                  muelmat_matrix_view dt2v,
-                                  muelmat_matrix_view dl1v,
-                                  muelmat_matrix_view dl2v,
-                                  const propmat_vector_const_view &k1v,
-                                  const propmat_vector_const_view &k2v,
-                                  const propmat_matrix_const_view &dk1v,
-                                  const propmat_matrix_const_view &dk2v,
-                                  const Numeric rv,
-                                  const ConstVectorView &dr1v,
-                                  const ConstVectorView &dr2v) {
-  const Size nf = tv.size();
-  const Size nq = dr1v.size();
-
-  assert(nf == k1v.size());
-  assert(nf == k2v.size());
-  assert(nf == lv.size());
-  assert(nf == lv.size());
-  assert(nf == static_cast<Size>(dk1v.ncols()));
-  assert(nf == static_cast<Size>(dk2v.ncols()));
-  assert(nq == static_cast<Size>(dk1v.nrows()));
-  assert(nq == static_cast<Size>(dk2v.nrows()));
-  assert(nf == static_cast<Size>(dt1v.ncols()));
-  assert(nf == static_cast<Size>(dt2v.ncols()));
-  assert(nq == static_cast<Size>(dt1v.nrows()));
-  assert(nq == static_cast<Size>(dt2v.nrows()));
-  assert(nf == static_cast<Size>(dl1v.ncols()));
-  assert(nf == static_cast<Size>(dl2v.ncols()));
-  assert(nq == static_cast<Size>(dl1v.nrows()));
-  assert(nq == static_cast<Size>(dl2v.nrows()));
-  assert(nq == dr2v.size());
-
-  for (Size i = 0; i < nf; ++i) {
-    const tran tran_state{k1v[i], k2v[i], rv};
-    tv[i] = tran_state();
-    lv[i] = tran_state.linsrc_linprop(tv[i], k1v[i], k2v[i], rv);
-
-    for (Size j = 0; j < nq; j++) {
-      dt1v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk1v[j, i], rv, dr1v[j]);
-      dt2v[j, i] =
-          tran_state.deriv(tv[i], k1v[i], k2v[i], dk2v[j, i], rv, dr2v[j]);
-      dl1v[j, i] = tran_state.linsrc_linprop_deriv(lv[i],
-                                                   tv[i],
-                                                   k1v[i],
-                                                   k2v[i],
-                                                   dk1v[j, i],
-                                                   dt1v[j, i],
-                                                   rv,
-                                                   dr1v[j],
-                                                   true);
-      dl2v[j, i] = tran_state.linsrc_linprop_deriv(lv[i],
-                                                   tv[i],
-                                                   k1v[i],
-                                                   k2v[i],
-                                                   dk2v[j, i],
-                                                   dt2v[j, i],
-                                                   rv,
-                                                   dr2v[j],
-                                                   false);
-    }
-  }
-}
-}  // namespace
-
 muelmat exp(propmat k, Numeric r) { return tran(k, k, r)(); }
-
-void two_level_exp(muelmat_vector_view tv,
-                   const propmat_vector_const_view &k1v,
-                   const propmat_vector_const_view &k2v,
-                   const Numeric rv) {
-  assert(k2v.size() == k1v.size());
-  assert(tv.size() == k1v.size());
-
-  std::transform(
-      k1v.begin(),
-      k1v.end(),
-      k2v.begin(),
-      tv.begin(),
-      [rv](const propmat &a, const propmat &b) { return tran(a, b, rv)(); });
-}
-
-void two_level_exp(std::vector<muelmat_vector> &T,
-                   std::vector<muelmat_tensor3> &dT,
-                   const std::vector<propmat_vector> &K,
-                   const std::vector<propmat_matrix> &dK,
-                   const Vector &r,
-                   const Tensor3 &dr) {
-  const Size N = K.size();
-
-  ARTS_USER_ERROR_IF(
-      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(r.size()),
-      "Must have one fewer layer distances ({}) than levels ({}) in K",
-      (N - 1),
-      N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(dr.nrows()),
-      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
-      N - 1,
-      N);
-
-  T.resize(N);
-
-  dT.resize(N);
-
-  if (N == 0) return;
-
-  const Size nv  = K[0].size();
-  const Index nq = dr.ncols();
-
-  for (auto &x : T) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : dT) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
-      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
-      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
-      "Must have same number of derivative elements ({}) in all dK:s as in dr",
-      nq);
-
-  ARTS_USER_ERROR_IF(
-      dr.npages() != 2,
-      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
-      dr.npages());
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size i = 1; i < N; i++) {
-    two_level_exp(T[i],
-                  dT[i - 1][0],
-                  dT[i][1],
-                  K[i - 1],
-                  K[i],
-                  dK[i - 1],
-                  dK[i],
-                  r[i - 1],
-                  dr[0, i - 1],
-                  dr[1, i - 1]);
-  }
-}
-
-void two_level_exp_linsrc(std::vector<muelmat_vector> &T,
-                          std::vector<muelmat_vector> &L,
-                          std::vector<muelmat_tensor3> &dT,
-                          std::vector<muelmat_tensor3> &dL,
-                          const std::vector<propmat_vector> &K,
-                          const std::vector<propmat_matrix> &dK,
-                          const Vector &r,
-                          const Tensor3 &dr) {
-  const Size N = K.size();
-
-  ARTS_USER_ERROR_IF(
-      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(r.size()),
-      "Must have one fewer layer distances ({}) than levels ({}) in K",
-      (N - 1),
-      N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(dr.nrows()),
-      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
-      N - 1,
-      N);
-
-  T.resize(N);
-  L.resize(N);
-
-  dT.resize(N);
-  dL.resize(N);
-
-  if (N == 0) return;
-
-  const Size nv  = K[0].size();
-  const Index nq = dr.ncols();
-
-  for (auto &x : T) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : L) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : dT) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  for (auto &x : dL) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
-      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
-      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
-      "Must have same number of derivative elements ({}) in all dK:s as in dr",
-      nq);
-
-  ARTS_USER_ERROR_IF(
-      dr.npages() != 2,
-      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
-      dr.npages());
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size i = 1; i < N; i++) {
-    two_level_exp_linsrc(T[i],
-                         L[i],
-                         dT[i - 1][0],
-                         dT[i][1],
-                         dL[i - 1][0],
-                         dL[i][1],
-                         K[i - 1],
-                         K[i],
-                         dK[i - 1],
-                         dK[i],
-                         r[i - 1],
-                         dr[0, i - 1],
-                         dr[1, i - 1]);
-  }
-}
-
-void two_level_exp_linsrc_linprop(std::vector<muelmat_vector> &T,
-                                  std::vector<muelmat_vector> &L,
-                                  std::vector<muelmat_tensor3> &dT,
-                                  std::vector<muelmat_tensor3> &dL,
-                                  const std::vector<propmat_vector> &K,
-                                  const std::vector<propmat_matrix> &dK,
-                                  const Vector &r,
-                                  const Tensor3 &dr) {
-  const Size N = K.size();
-
-  ARTS_USER_ERROR_IF(
-      N != dK.size(), "Must have same number of levels ({}) in K and dK", N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(r.size()),
-      "Must have one fewer layer distances ({}) than levels ({}) in K",
-      (N - 1),
-      N);
-
-  ARTS_USER_ERROR_IF(
-      (N - 1) != static_cast<Size>(dr.nrows()),
-      "Must have one fewer layer distance derivatives ({}) than levels ({}) in K",
-      N - 1,
-      N);
-
-  T.resize(N);
-  L.resize(N);
-
-  dT.resize(N);
-  dL.resize(N);
-
-  if (N == 0) return;
-
-  const Size nv  = K[0].size();
-  const Index nq = dr.ncols();
-
-  for (auto &x : T) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : L) {
-    x.resize(nv);
-    x = 1.0;
-  }
-
-  for (auto &x : dT) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  for (auto &x : dL) {
-    x.resize(2, nq, nv);
-    x = 0.0;
-  }
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(K, Cmp::ne(nv), [](auto &x) { return x.size(); }),
-      "Must have same number of frequency elements ({}) in all K:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(static_cast<Index>(nv)), &propmat_matrix::ncols),
-      "Must have same number of frequency elements ({}) in all dK:s as in K[0]",
-      nv);
-
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(dK, Cmp::ne(nq), &propmat_matrix::nrows),
-      "Must have same number of derivative elements ({}) in all dK:s as in dr",
-      nq);
-
-  ARTS_USER_ERROR_IF(
-      dr.npages() != 2,
-      "Must have 2 as first dimension in dr (upper and lower level distance derivatives), got {}",
-      dr.npages());
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size i = 1; i < N; i++) {
-    two_level_exp_linsrc_linprop(T[i],
-                                 L[i],
-                                 dT[i - 1][0],
-                                 dT[i][1],
-                                 dL[i - 1][0],
-                                 dL[i][1],
-                                 K[i - 1],
-                                 K[i],
-                                 dK[i - 1],
-                                 dK[i],
-                                 r[i - 1],
-                                 dr[0, i - 1],
-                                 dr[1, i - 1]);
-  }
-}
 
 propmat logK(const muelmat &m) {
   if (not m.is_polarized()) return std::log(midtr(m));
@@ -1460,5 +999,464 @@ specmat sqrt(const propmat &pm) {
   K[3, 2] = -d1c * w + d2c * k2_23_val - d3c * k3_23_val;
 
   return K;
+}
+
+void TransmittanceMatrix::constant(const std::span<const propmat> &K,
+                                   const std::span<const propmat_vector> &dK,
+                                   const ConstVectorView &r,
+                                   const ConstTensor3View &dr) {
+  const Size N  = K.size();
+  const Size nq = dr.npages();
+
+  auto dT0 = dT[0, 0];
+  auto dT1 = dT[1, 0];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    const tran tr{K[i - 1], K[i], r[i - 1]};
+    T[0, i] = tr();
+
+    for (Size iq = 0; iq < nq; iq++) {
+      dT0[i - 1, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+    }
+  }
+}
+
+void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
+                                 const std::span<const propmat_vector> &dK,
+                                 const ConstVectorView &r,
+                                 const ConstTensor3View &dr) {
+  const Size N  = K.size();
+  const Size nq = dr.npages();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dL0 = dL[0];
+  auto dL1 = dL[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    const tran tr{K[i - 1], K[i], r[i - 1]};
+    T[0, i] = tr();
+    L[0, i] = tr.linsrc();
+
+    for (Size iq = 0; iq < nq; iq++) {
+      dT0[i - 1, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dL0[i - 1, iq] = tr.linsrc_deriv(dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dL1[i, iq]     = tr.linsrc_deriv(dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+    }
+  }
+}
+
+void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
+                                  const std::span<const propmat_vector> &dK,
+                                  const ConstVectorView &r,
+                                  const ConstTensor3View &dr) {
+  const Size N  = K.size();
+  const Size nq = dr.npages();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dL0 = dL[0];
+  auto dL1 = dL[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    const tran tr{K[i - 1], K[i], r[i - 1]};
+    T[0, i] = tr();
+    L[0, i] = tr.linsrc_linprop(T[0, i], K[i - 1], K[i], r[i - 1]);
+
+    for (Size iq = 0; iq < nq; iq++) {
+      dT0[0, i - 1, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[0, i, iq] = tr.deriv(
+          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dL0[i - 1, iq] = tr.linsrc_linprop_deriv(L[0, i],
+                                               T[0, i],
+                                               K[i - 1],
+                                               K[i],
+                                               dK[i - 1][iq],
+                                               dT0[0, i - 1, iq],
+                                               r[i - 1],
+                                               dr0[i - 1, iq],
+                                               true);
+      dL1[i, iq]     = tr.linsrc_linprop_deriv(L[0, i],
+                                           T[0, i],
+                                           K[i - 1],
+                                           K[i],
+                                           dK[i][iq],
+                                           dT1[0, i - 1, iq],
+                                           r[i - 1],
+                                           dr1[i - 1, iq],
+                                           false);
+    }
+  }
+}
+
+void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
+                                   const std::span<const propmat_matrix> &dK,
+                                   const ConstVectorView &r,
+                                   const ConstTensor3View &dr) {
+  const Size nf = dT.npages();
+  const Size np = dT.nrows();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size i = 1; i < np; i++) {
+    for (Size iv = 0; iv < nf; ++iv) {
+      const tran tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
+      T[iv, i] = tran_state();
+
+      for (Size j = 0; j < nq; j++) {
+        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
+                                             K[i - 1][iv],
+                                             K[i][iv],
+                                             dK[i - 1][j, iv],
+                                             r[i - 1],
+                                             dr0[i - 1, j]);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
+                                         K[i - 1][iv],
+                                         K[i][iv],
+                                         dK[i][j, iv],
+                                         r[i - 1],
+                                         dr1[i - 1, j]);
+      }
+    }
+  }
+}
+
+void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
+                                 const std::span<const propmat_matrix> &dK,
+                                 const ConstVectorView &r,
+                                 const ConstTensor3View &dr) {
+  const Size nf = dT.npages();
+  const Size np = dT.nrows();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dL0 = dL[0];
+  auto dL1 = dL[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size i = 1; i < np; i++) {
+    for (Size iv = 0; iv < nf; ++iv) {
+      const tran tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
+      T[iv, i] = tran_state();
+      L[iv, i] = tran_state.linsrc();
+
+      for (Size j = 0; j < nq; j++) {
+        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
+                                             K[i - 1][iv],
+                                             K[i][iv],
+                                             dK[i - 1][j, iv],
+                                             r[i - 1],
+                                             dr0[i - 1, j]);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
+                                         K[i - 1][iv],
+                                         K[i][iv],
+                                         dK[i][j, iv],
+                                         r[i - 1],
+                                         dr1[i - 1, j]);
+        dL0[iv, i - 1, j] =
+            tran_state.linsrc_deriv(dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
+        dL1[iv, i, j] =
+            tran_state.linsrc_deriv(dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
+      }
+    }
+  }
+}
+
+void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
+                                  const std::span<const propmat_matrix> &dK,
+                                  const ConstVectorView &r,
+                                  const ConstTensor3View &dr) {
+  const Size nf = dT.npages();
+  const Size np = dT.nrows();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dL0 = dL[0];
+  auto dL1 = dL[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size i = 1; i < np; i++) {
+    for (Size iv = 0; iv < nf; ++iv) {
+      const tran tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
+      T[iv, i] = tran_state();
+      L[iv, i] =
+          tran_state.linsrc_linprop(T[iv, i], K[i - 1][iv], K[i][iv], r[i - 1]);
+
+      for (Size j = 0; j < nq; j++) {
+        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
+                                             K[i - 1][iv],
+                                             K[i][iv],
+                                             dK[i - 1][j, iv],
+                                             r[i - 1],
+                                             dr0[i - 1, j]);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
+                                         K[i - 1][iv],
+                                         K[i][iv],
+                                         dK[i][j, iv],
+                                         r[i - 1],
+                                         dr1[i - 1, j]);
+        dL0[iv, i - 1, j] = tran_state.linsrc_linprop_deriv(L[iv, i],
+                                                            T[iv, i],
+                                                            K[i - 1][iv],
+                                                            K[i][iv],
+                                                            dK[i - 1][j, iv],
+                                                            dT0[iv, i - 1, j],
+                                                            r[i - 1],
+                                                            dr1[i - 1, j],
+                                                            true);
+        dL1[iv, i, j]     = tran_state.linsrc_linprop_deriv(L[iv, i],
+                                                        T[iv, i],
+                                                        K[i - 1][iv],
+                                                        K[i][iv],
+                                                        dK[i][j, iv],
+                                                        dT1[iv, i, j],
+                                                        r[i - 1],
+                                                        dr1[i - 1, j],
+                                                        false);
+      }
+    }
+  }
+}
+
+void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
+                               const std::span<const propmat_matrix> &dK,
+                               const ConstVectorView &r,
+                               const ConstTensor3View &dr,
+                               const TransmittanceOption opt) {
+  option = opt;
+
+  ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
+                     "K and dK must have the same size: K: {}, dK: {}, r: {}",
+                     K.size(),
+                     dK.size(),
+                     r.size());
+
+  constexpr Size nt = 2;
+  const Size np     = K.size();
+
+  if (np == 0) {
+    T.resize(T.nrows(), 0);
+    L.resize(L.nrows(), 0);
+    P.resize(P.nrows(), 0);
+    dT.resize(nt, dT.npages(), 0, dT.ncols());
+    dL.resize(nt, dL.npages(), 0, dL.ncols());
+    return;
+  }
+
+  const Size nf = K.front().size();
+  const Size nq = dK.front().nrows();
+
+  ARTS_USER_ERROR_IF(
+      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or
+          dr.ncols() != static_cast<Index>(nq) or r.size() != np - 1,
+      "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: 2, np-1: {}, nq: {}",
+      dr.shape(),
+      r.shape(),
+      np - 1,
+      nq);
+
+  ARTS_USER_ERROR_IF(not all_same_shape({nf}, K),
+                     "All propmats in K must have same size ({}).",
+                     nf);
+
+  ARTS_USER_ERROR_IF(not all_same_shape({nq, nf}, dK),
+                     "All propmats in dK must have same shape ({}, {}).",
+                     nq,
+                     nf);
+
+  switch (option) {
+    case TransmittanceOption::linsrc:
+    case TransmittanceOption::linprop:
+      L.resize(nf, np);
+      dL.resize(nt, nf, np, nq);
+      L  = muelmat::id();
+      dL = muelmat::constant(0);
+      [[fallthrough]];
+    case TransmittanceOption::constant:
+      T.resize(nf, np);
+      dT.resize(nt, nf, np, nq);
+      T  = muelmat::id();
+      dT = muelmat::constant(0);
+      P.resize(nf, np);
+  }
+
+  switch (option) {
+    case TransmittanceOption::constant: constant(K, dK, r, dr); break;
+    case TransmittanceOption::linsrc:   linsrc(K, dK, r, dr); break;
+    case TransmittanceOption::linprop:  linprop(K, dK, r, dr); break;
+  }
+
+  for (Size i = 0; i < nf; i++) {
+    P[i, 0] = muelmat::id();
+    for (Size j = 1; j < np; j++) {
+      P[i, j] = P[i, j - 1] * T[i, j];
+    }
+  }
+}
+
+void TransmittanceMatrix::init(const std::span<const propmat> &K,
+                               const std::span<const propmat_vector> &dK,
+                               const ConstVectorView &r,
+                               const ConstTensor3View &dr,
+                               const TransmittanceOption opt) {
+  option = opt;
+
+  constexpr Size nt = 2;
+  constexpr Size nf = 1;
+  const Size np     = K.size();
+  const Size nq     = dr.npages();
+
+  ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
+                     "K and dK must have the same size: K: {}, dK: {}, r: {}",
+                     K.size(),
+                     dK.size(),
+                     r.size());
+
+  ARTS_USER_ERROR_IF(
+      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or
+          dr.ncols() != static_cast<Index>(nq) or r.size() != np - 1,
+      "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: {}, np-1: {}, nq: {}",
+      dr.shape(),
+      r.shape(),
+      nt,
+      np - 1,
+      nq);
+
+  ARTS_USER_ERROR_IF(not all_same_shape({nq}, dK),
+                     "All propmats in dK must have same shape ({}).",
+                     nq);
+
+  switch (option) {
+    case TransmittanceOption::linsrc:
+    case TransmittanceOption::linprop:
+      L.resize(nf, np);
+      dL.resize(nt, nf, np, nq);
+      L  = muelmat::id();
+      dL = muelmat::constant(0);
+      [[fallthrough]];
+    case TransmittanceOption::constant:
+      T.resize(nf, np);
+      dT.resize(nt, nf, np, nq);
+      T  = muelmat::id();
+      dT = muelmat::constant(0);
+      P.resize(nf, np);
+  }
+
+  switch (option) {
+    case TransmittanceOption::constant: constant(K, dK, r, dr); break;
+    case TransmittanceOption::linsrc:   linsrc(K, dK, r, dr); break;
+    case TransmittanceOption::linprop:  linprop(K, dK, r, dr); break;
+  }
+
+  P[0, 0] = muelmat::id();
+  for (Size j = 1; j < np; j++) {
+    P[0, j] = P[0, j - 1] * T[0, j];
+  }
+}
+
+void TransmittanceMatrix::check(Size np,
+                                Size nq,
+                                Size nf,
+                                const std::string_view caller) const {
+  switch (option) {
+    case TransmittanceOption::constant:
+      ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, P),
+                         R"(Mismatched shapes in Transmittance in {6}:
+
+T: {0:B,}
+P: {2:B,} - optional on nq > 0, nq = {5}
+
+Expected shapes: ({3}, {4})
+)",
+                         T.shape(),
+                         L.shape(),
+                         P.shape(),
+                         nf,
+                         np,
+                         nq,
+                         caller);
+
+      ARTS_USER_ERROR_IF(not same_shape({2, nf, np, nq}, dT),
+                         R"(Mismatched shapes in Transmittance in {5}:
+
+dT: {0:B,}
+
+Expected shape: (2, {2}, {3}, {4}
+)",
+                         dT.shape(),
+                         dL.shape(),
+                         nf,
+                         np,
+                         nq,
+                         caller)
+      break;
+    case TransmittanceOption::linsrc:
+    case TransmittanceOption::linprop:
+      ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, L, P),
+                         R"(Mismatched shapes in Transmittance in {6}:
+
+T: {0:B,}
+L: {1:B,}
+P: {2:B,} - optional on nq > 0, nq = {5}
+
+Expected shapes: ({3}, {4})
+)",
+                         T.shape(),
+                         L.shape(),
+                         P.shape(),
+                         nf,
+                         np,
+                         nq,
+                         caller);
+
+      ARTS_USER_ERROR_IF(not same_shape({2, nf, np, nq}, dT, dL),
+                         R"(Mismatched shapes in Transmittance in {5}:
+
+dT: {0:B,}
+dL: {1:B,}
+
+Expected shape: (2, {2}, {3}, {4}
+)",
+                         dT.shape(),
+                         dL.shape(),
+                         nf,
+                         np,
+                         nq,
+                         caller)
+      break;
+  }
+}
+
+[[nodiscard]] std::array<Size, 3> TransmittanceMatrix::shape() const noexcept {
+  return {static_cast<Size>(dT.npages()),
+          static_cast<Size>(dT.nrows()),
+          static_cast<Size>(dT.ncols())};
 }
 }  // namespace rtepack

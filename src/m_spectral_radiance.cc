@@ -13,290 +13,63 @@
 #include <time_report.h>
 #include <workspace.h>
 
-void spectral_tramat_pathFromPath(
-    ArrayOfMuelmatVector& spectral_tramat_path,
-    ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    const ArrayOfPropmatVector& spectral_propmat_path,
-    const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& atm_path,
-    const SurfaceField& surf_field,
-    const JacobianTargets& jac_targets,
-    const Index& hse_derivative) try {
+#include <algorithm>
+
+void spectral_radStepByStepEmission(StokvecVector& spectral_rad,
+                                    StokvecTensor3& spectral_rad_jac_path,
+                                    const TransmittanceMatrix& spectral_tramat,
+                                    const SourceVector& spectral_rad_srcvec,
+                                    const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  const auto [nf, np, nq] = spectral_tramat.shape();
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
+  spectral_rad_srcvec.check(np, nq, nf, "spectral_radStepByStepEmission");
+  spectral_tramat.check(np, nq, nf, "spectral_radStepByStepEmission");
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(
-          ray_path, spectral_propmat_path, spectral_propmat_jac_path, atm_path),
-      R"(Not same sizes:
+      spectral_rad_bkg.size() != nf,
+      "Bad background radiance size: spectral_rad_bkg: {}, expected: {}",
+      spectral_rad_bkg.size(),
+      nf);
 
-ray_path.size()                  = {},
-spectral_propmat_path.size()     = {},
-spectral_propmat_jac_path.size() = {},
-atm_path.size()                  = {}
-)",
-      ray_path.size(),
-      spectral_propmat_path.size(),
-      spectral_propmat_jac_path.size(),
-      atm_path.size());
+  spectral_rad.resize(nf);
+  spectral_rad_jac_path.resize(nf, np, nq);
 
-  // HSE variables
-  const Index temperature_derivative_position =
-      jac_targets.target_position(AtmKey::t);
+  stdr::copy(spectral_rad_bkg, spectral_rad.begin());
+  spectral_rad_jac_path = 0.0;
 
-  const Size N = ray_path.size();
-
-  spectral_tramat_path.resize(N);
-  spectral_tramat_jac_path.resize(N);
-
-  if (N == 0) return;
-
-  const Index nq = jac_targets.target_count();
-
-  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
-  Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
-
-  // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
-  if (hse_derivative and temperature_derivative_position >= 0) {
-    for (Size ip = 0; ip < N - 1; ip++) {
-      ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip].temperature);
-      ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip + 1].temperature);
-    }
-  }
-
-  rtepack::two_level_exp(spectral_tramat_path,
-                         spectral_tramat_jac_path,
-                         spectral_propmat_path,
-                         spectral_propmat_jac_path,
-                         ray_path_distance,
-                         ray_path_distance_jacobian);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_tramat_pathLinearInTauFromPath(
-    ArrayOfMuelmatVector& spectral_tramat_path,
-    ArrayOfMuelmatVector& spectral_linevo_path,
-    ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
-    const ArrayOfPropmatVector& spectral_propmat_path,
-    const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& atm_path,
-    const SurfaceField& surf_field,
-    const JacobianTargets& jac_targets,
-    const Index& hse_derivative) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
-
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
-
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(
-          ray_path, spectral_propmat_path, spectral_propmat_jac_path, atm_path),
-      R"(Not same sizes:
-
-ray_path.size()                  = {},
-spectral_propmat_path.size()     = {},
-spectral_propmat_jac_path.size() = {},
-atm_path.size()                  = {}
-)",
-      ray_path.size(),
-      spectral_propmat_path.size(),
-      spectral_propmat_jac_path.size(),
-      atm_path.size());
-
-  // HSE variables
-  const Index temperature_derivative_position =
-      jac_targets.target_position(AtmKey::t);
-
-  const Size N = ray_path.size();
-
-  spectral_tramat_path.resize(N);
-  spectral_linevo_path.resize(N);
-  spectral_tramat_jac_path.resize(N);
-  spectral_linevo_jac_path.resize(N);
-
-  if (N == 0) return;
-
-  const Index nq = jac_targets.target_count();
-
-  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
-  Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
-
-  // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
-  if (hse_derivative and temperature_derivative_position >= 0) {
-    for (Size ip = 0; ip < N - 1; ip++) {
-      ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip].temperature);
-      ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip + 1].temperature);
-    }
-  }
-
-  rtepack::two_level_exp_linsrc(spectral_tramat_path,
-                                spectral_linevo_path,
-                                spectral_tramat_jac_path,
-                                spectral_linevo_jac_path,
-                                spectral_propmat_path,
-                                spectral_propmat_jac_path,
-                                ray_path_distance,
-                                ray_path_distance_jacobian);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_tramat_pathLinearInTauAndPropFromPath(
-    ArrayOfMuelmatVector& spectral_tramat_path,
-    ArrayOfMuelmatVector& spectral_linevo_path,
-    ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
-    const ArrayOfPropmatVector& spectral_propmat_path,
-    const ArrayOfPropmatMatrix& spectral_propmat_jac_path,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& atm_path,
-    const SurfaceField& surf_field,
-    const JacobianTargets& jac_targets,
-    const Index& hse_derivative) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
-
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty path.");
-
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(
-          ray_path, spectral_propmat_path, spectral_propmat_jac_path, atm_path),
-      R"(Not same sizes:
-
-ray_path.size()                  = {},
-spectral_propmat_path.size()     = {},
-spectral_propmat_jac_path.size() = {},
-atm_path.size()                  = {}
-)",
-      ray_path.size(),
-      spectral_propmat_path.size(),
-      spectral_propmat_jac_path.size(),
-      atm_path.size());
-
-  // HSE variables
-  const Index temperature_derivative_position =
-      jac_targets.target_position(AtmKey::t);
-
-  const Size N = ray_path.size();
-
-  spectral_tramat_path.resize(N);
-  spectral_linevo_path.resize(N);
-  spectral_tramat_jac_path.resize(N);
-  spectral_linevo_jac_path.resize(N);
-
-  if (N == 0) return;
-
-  const Index nq = jac_targets.target_count();
-
-  const Vector ray_path_distance = distance(ray_path, surf_field.ellipsoid);
-  Tensor3 ray_path_distance_jacobian(2, N - 1, nq, 0.0);
-
-  // FIXME: UNKNOWN ORDER OF "ip" AND "ip - 1" FOR TEMPERATURE
-  if (hse_derivative and temperature_derivative_position >= 0) {
-    for (Size ip = 0; ip < N - 1; ip++) {
-      ray_path_distance_jacobian[0, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip].temperature);
-      ray_path_distance_jacobian[1, ip, temperature_derivative_position] =
-          ray_path_distance[ip] / (2.0 * atm_path[ip + 1].temperature);
-    }
-  }
-
-  rtepack::two_level_exp_linsrc_linprop(spectral_tramat_path,
-                                        spectral_linevo_path,
-                                        spectral_tramat_jac_path,
-                                        spectral_linevo_jac_path,
-                                        spectral_propmat_path,
-                                        spectral_propmat_jac_path,
-                                        ray_path_distance,
-                                        ray_path_distance_jacobian);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_radStepByStepEmission(
-    StokvecVector& spectral_rad,
-    ArrayOfStokvecMatrix& spectral_rad_jac_path,
-    const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
-    const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
-    const ArrayOfStokvecMatrix& spectral_rad_srcvec_jac_path,
-    const StokvecVector& spectral_rad_bkg) try {
-  ARTS_TIME_REPORT
-
-  rtepack::two_level_linear_emission_step_by_step_full(
-      spectral_rad,
-      spectral_rad_jac_path,
-      spectral_tramat_path,
-      spectral_tramat_cumulative_path,
-      spectral_tramat_jac_path,
-      spectral_rad_srcvec_path,
-      spectral_rad_srcvec_jac_path,
-      spectral_rad_bkg);
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_radLinearEvolutionStepByStepEmission(
-    StokvecVector& spectral_rad,
-    ArrayOfStokvecMatrix& spectral_rad_jac_path,
-    const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfMuelmatVector& spectral_linevo_path,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
-    const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
-    const ArrayOfMuelmatTensor3& spectral_linevo_jac_path,
-    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
-    const ArrayOfStokvecMatrix& spectral_rad_srcvec_jac_path,
-    const StokvecVector& spectral_rad_bkg) try {
-  ARTS_TIME_REPORT
-
-  rtepack::two_level_linear_evolution_step_by_step_full(
-      spectral_rad,
-      spectral_rad_jac_path,
-      spectral_tramat_path,
-      spectral_linevo_path,
-      spectral_tramat_cumulative_path,
-      spectral_tramat_jac_path,
-      spectral_linevo_jac_path,
-      spectral_rad_srcvec_path,
-      spectral_rad_srcvec_jac_path,
-      spectral_rad_bkg);
+  rte_emission(spectral_rad,
+               spectral_rad_jac_path,
+               spectral_tramat,
+               spectral_rad_srcvec);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_radCumulativeTransmission(
     StokvecVector& spectral_rad,
-    ArrayOfStokvecMatrix& spectral_rad_jac_path,
-    const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path,
-    const ArrayOfMuelmatTensor3& spectral_tramat_jac_path,
+    StokvecTensor3& spectral_rad_jac_path,
+    const TransmittanceMatrix& spectral_tramat_path,
     const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  rtepack::two_level_linear_transmission_step(spectral_rad,
-                                              spectral_rad_jac_path,
-                                              spectral_tramat_path,
-                                              spectral_tramat_cumulative_path,
-                                              spectral_tramat_jac_path,
-                                              spectral_rad_bkg);
+  const auto [nf, np, nq] = spectral_tramat_path.shape();
+
+  spectral_rad.resize(nf);
+  spectral_rad_jac_path.resize(nf, np, nq);
+
+  ARTS_USER_ERROR_IF(
+      spectral_rad_bkg.size() != nf,
+      "Bad background radiance size: spectral_rad_bkg: {}, expected: {}",
+      spectral_rad_bkg.size(),
+      nf);
+
+  spectral_tramat_path.check(np, nq, nf, "spectral_radCumulativeTransmission");
+
+  rte_transmission(spectral_rad,
+                   spectral_rad_jac_path,
+                   spectral_tramat_path,
+                   spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 

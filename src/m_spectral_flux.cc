@@ -4,25 +4,32 @@
 
 namespace {
 void spectral_rad_pathStepByStepEmissionForwardOnly(
-    ArrayOfStokvecVector& spectral_rad_path,
-    const ArrayOfMuelmatVector& spectral_tramat_path,
-    const ArrayOfStokvecVector& spectral_rad_srcvec_path,
+    StokvecMatrix& spectral_rad_path,
+    const TransmittanceMatrix& spectral_tramat_path,
+    const SourceVector& spectral_rad_srcvec_path,
     const StokvecVector& spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
-  spectral_rad_path.resize(spectral_tramat_path.size());
-  arr::elemwise_resize(spectral_rad_bkg.size(), spectral_rad_path);
+  const Size nf = spectral_tramat_path.dT.npages();
+  const Size np = spectral_tramat_path.dT.nrows();
+  const Size nq = spectral_tramat_path.dT.ncols();
 
-  spectral_rad_path.back() = spectral_rad_bkg;
+  spectral_tramat_path.check(
+      np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
+  spectral_rad_srcvec_path.check(
+      np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
 
-  two_level_linear_emission_step_by_step_full(
+  spectral_rad_path.resize(nf, np);
+  spectral_rad_path[joker, np] = spectral_rad_bkg;
+
+  rte_emission_path(
       spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_rad_pathClearskyEmission(
     const Workspace& ws,
-    ArrayOfStokvecVector& spectral_rad_path,
+    StokvecMatrix& spectral_rad_path,
     const AtmField& atm_field,
     const AscendingGrid& freq_grid,
     const Agenda& spectral_propmat_agenda,
@@ -30,7 +37,8 @@ void spectral_rad_pathClearskyEmission(
     const Agenda& spectral_rad_space_agenda,
     const Agenda& spectral_rad_surface_agenda,
     const SurfaceField& surf_field,
-    const SubsurfaceField& subsurf_field) try {
+    const SubsurfaceField& subsurf_field,
+    const TransmittanceOption& rte_option) try {
   ARTS_TIME_REPORT
 
   PropagationPathPoint ray_point;
@@ -68,21 +76,18 @@ void spectral_rad_pathClearskyEmission(
                                 {},
                                 ray_path,
                                 atm_path);
-  ArrayOfMuelmatVector spectral_tramat_path;
-  ArrayOfMuelmatTensor3 spectral_tramat_jac_path;
+  TransmittanceMatrix spectral_tramat_path;
   spectral_tramat_pathFromPath(spectral_tramat_path,
-                               spectral_tramat_jac_path,
                                spectral_propmat_path,
                                spectral_propmat_jac_path,
                                ray_path,
                                atm_path,
                                surf_field,
                                {},
+                               rte_option,
                                0);
-  ArrayOfStokvecVector spectral_rad_srcvec_path;
-  ArrayOfStokvecMatrix spectral_rad_srcvec_jac_path;
+  SourceVector spectral_rad_srcvec_path;
   spectral_rad_srcvec_pathFromPropmat(spectral_rad_srcvec_path,
-                                      spectral_rad_srcvec_jac_path,
                                       spectral_propmat_path,
                                       spectral_nlte_srcvec_path,
                                       spectral_propmat_jac_path,
@@ -109,7 +114,8 @@ void spectral_flux_profileFromPathField(
     const SurfaceField& surf_field,
     const SubsurfaceField& subsurf_field,
     const AscendingGrid& freq_grid,
-    const AscendingGrid& alt_grid) try {
+    const AscendingGrid& alt_grid,
+    const TransmittanceOption& rte_option) try {
   ARTS_TIME_REPORT
 
   const Size N = ray_path_field.size();
@@ -119,7 +125,7 @@ void spectral_flux_profileFromPathField(
   spectral_flux_profile.resize(M, K);
   spectral_flux_profile = 0.0;
 
-  ArrayOfArrayOfStokvecVector spectral_rad_path_field(N);
+  ArrayOfStokvecMatrix spectral_rad_path_field(N);
 
   String error{};
 #pragma omp parallel for if (not arts_omp_in_parallel())
@@ -134,7 +140,8 @@ void spectral_flux_profileFromPathField(
                                         spectral_rad_space_agenda,
                                         spectral_rad_surface_agenda,
                                         surf_field,
-                                        subsurf_field);
+                                        subsurf_field,
+                                        rte_option);
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -143,15 +150,15 @@ void spectral_flux_profileFromPathField(
 
   if (not error.empty()) throw std::runtime_error(error);
 
-  ARTS_USER_ERROR_IF(
-      not arr::each_same_size(spectral_rad_path_field, ray_path_field),
-      "Not all ray paths have the same altitude count")
-
-  for (auto& sradf : spectral_rad_path_field) {
+  for (Size i = 0; i < N; i++) {
     ARTS_USER_ERROR_IF(
-        stdr::any_of(sradf,
-                     [K](const StokvecVector& v) { return v.size() != K; }),
-        "Not all ray path spectral radiances in the field have the same frequency count")
+        spectral_rad_path_field[i].ncols() !=
+                static_cast<Index>(ray_path_field[i].size()) or
+            spectral_rad_path_field[i].nrows() != static_cast<Index>(K),
+        "Error in spectral_rad_path_field.  Expected shape: [{}, {}].  Got: {:B,}",
+        K,
+        ray_path_field[i].size(),
+        spectral_rad_path_field[i].shape());
   }
 
   struct Zenith {
@@ -186,8 +193,8 @@ void spectral_flux_profileFromPathField(
       const auto& z0 = zenith_angles[i];
       const auto& z1 = zenith_angles[i + 1];
 
-      const auto& y0 = spectral_rad_path_field[z0.outer][z0.inner];
-      const auto& y1 = spectral_rad_path_field[z1.outer][z1.inner];
+      const auto&& y0 = spectral_rad_path_field[z0.outer][joker, z0.inner];
+      const auto&& y1 = spectral_rad_path_field[z1.outer][joker, z1.inner];
 
       const Numeric w = 0.5 * pi * (cosd(z0.angle) - cosd(z1.angle));
       for (Size k = 0; k < K; k++) t[k] += w * (y0[k][0] + y1[k][0]);

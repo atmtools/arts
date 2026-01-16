@@ -23,24 +23,32 @@ ARTS_METHOD_ERROR_CATCH
 void spectral_rad_jacFromBackground(
     StokvecMatrix &spectral_rad_jac,
     const StokvecMatrix &spectral_rad_bkg_jac,
-    const MuelmatVector &background_transmittance) try {
+    const TransmittanceMatrix &spectral_tramat) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_rad_bkg_jac.ncols()) !=
-          background_transmittance.size(),
-      "spectral_rad_bkg_jac must have same number of rows as the "
-      "size of jac_targets")
+  const auto [nf, np, nq] = spectral_tramat.shape();
 
   //! The radiance derivative shape is the background shape
   spectral_rad_jac.resize(spectral_rad_bkg_jac.shape());
 
+  if (nq == 0 or np == 0) return;
+
+  const auto &&background_transmittance = spectral_tramat.P[joker, np - 1];
+
+  ARTS_USER_ERROR_IF(
+      background_transmittance.ncols() != spectral_rad_bkg_jac.ncols(),
+      "Bad size of spectral_rad_bkg_jac, its inner dimension should match the frequency size of spectral_tramat. Sizes: {} != {}",
+      spectral_rad_bkg_jac.ncols(),
+      background_transmittance.ncols());
+
   //! Set the background radiance derivative as that which is seen after "this" swath
   for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
+    const auto b = spectral_rad_bkg_jac[i];
+    auto s       = spectral_rad_jac[i];
     std::transform(background_transmittance.begin(),
                    background_transmittance.end(),
-                   spectral_rad_bkg_jac[i].begin(),
-                   spectral_rad_jac[i].begin(),
+                   b.begin(),
+                   s.begin(),
                    std::multiplies<>());
   }
 }
@@ -48,46 +56,42 @@ ARTS_METHOD_ERROR_CATCH
 
 void spectral_rad_jacAddPathPropagation(
     StokvecMatrix &spectral_rad_jac,
-    const ArrayOfStokvecMatrix &spectral_rad_jac_path,
+    const StokvecTensor3 &spectral_rad_jac_path,
     const JacobianTargets &jac_targets,
     const AtmField &atm_field,
     const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
 
-  const auto np = spectral_rad_jac_path.size();
-  const auto nj = spectral_rad_jac.nrows();
-  const auto nf = spectral_rad_jac.ncols();
-  const auto nt = jac_targets.target_count();
+  const Size nf = spectral_rad_jac_path.npages();
+  const Size np = spectral_rad_jac_path.nrows();
+  const Size nt = jac_targets.target_count();
+  const Size nx = jac_targets.x_size();
+
+  jac_targets.throwing_check(nx);
+
+  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac) or
+                         ray_path.size() != np or
+                         not same_shape({nf, np, nt}, spectral_rad_jac_path),
+                     R"(Mismatched input sizes:
+
+nf : {}
+np : {}
+nt : {}
+nx : {}
+
+spectral_rad_jac.shape()      : {:B,} [nx, nf]
+spectral_rad_jac_path.shape() : {:B,} [nf, np, nt]
+ray_path.size()               : [{}] [np]
+)",
+                     nf,
+                     np,
+                     nt,
+                     nx,
+                     spectral_rad_jac.shape(),
+                     spectral_rad_jac_path.shape(),
+                     ray_path.size())
 
   if (nt == 0) return;
-
-  ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_rad_jac.nrows()) != jac_targets.x_size(),
-      "Bad size of spectral_rad_jac, it's inner dimension should match the size of jac_targets. Sizes: "
-      "{} != {}",
-      spectral_rad_jac.nrows(),
-      jac_targets.x_size())
-
-  ARTS_USER_ERROR_IF(
-      ray_path.size() != np,
-      "ray_path must have same size as the size of spectral_rad_jac_path.  Sizes: ",
-      "{} != {}",
-      ray_path.size(),
-      np)
-
-  for (auto &dr : spectral_rad_jac_path) {
-    ARTS_USER_ERROR_IF(
-        dr.ncols() != nf or dr.nrows() != static_cast<Index>(nt),
-        "spectral_rad_jac_path elements must have same number of rows as the size of "
-        "jac_targets.  Sizes: "
-        "{:B,} != [{}, {}]",
-        dr.shape(),
-        nt,
-        nf)
-  }
-
-  //! Checks that the jac_targets can be used and throws if not
-  jac_targets.throwing_check(nj);
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jac_targets.atm) {
@@ -97,17 +101,18 @@ void spectral_rad_jacAddPathPropagation(
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto &local  = spectral_rad_jac_path[ip];
+      const auto local = spectral_rad_jac_path[joker, ip, atm_block.target_pos];
 
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
-          assert(i < static_cast<Size>(nj));
+          assert(i < static_cast<Size>(nx));
+          auto sr = spectral_rad_jac[i];
           std::transform(
-              local[atm_block.target_pos].begin(),
-              local[atm_block.target_pos].end(),
-              spectral_rad_jac[i].begin(),
-              spectral_rad_jac[i].begin(),
+              local.begin(),
+              local.end(),
+              sr.begin(),
+              sr.begin(),
               [x = w.second](const Stokvec &a, const Stokvec &b) -> Stokvec {
                 return fma(x, a, b);
               });
@@ -135,9 +140,7 @@ void spectral_radApplyUnit(StokvecVector &spectral_rad,
                                &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
-  if (spectral_rad_jac.empty()) {
-    spectral_rad_jac.resize(0, freq_grid.size());
-  }
+  if (spectral_rad_jac.empty()) spectral_rad_jac.resize(0, freq_grid.size());
 
   spectral_rad_transform_operator(
       spectral_rad, spectral_rad_jac, freq_grid, ray_point);

@@ -432,6 +432,15 @@ The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarra
 )",
   };
 
+  wsg_data["StokvecTensor3"] = {
+      .file = "rtepack.h",
+      .desc = R"(A *Tensor3* but holds *Stokvec*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 4-dimensional array with the last dimension of size 4.
+)",
+  };
+
   wsg_data["PropmatMatrix"] = {
       .file = "rtepack.h",
       .desc = R"(A matrix of *Propmat*.
@@ -848,6 +857,18 @@ of this term multiplied by a negative distance.
 )--",
   };
 
+  wsg_data["SourceVector"] = {
+      .file = "rtepack.h",
+      .desc = R"--(Source vector and derivatives.
+)--",
+  };
+
+  wsg_data["TransmittanceMatrix"] = {
+      .file = "rtepack.h",
+      .desc = R"--(Transmittance matrix and derivatives.
+)--",
+  };
+
   wsg_data["XsecRecords"] = {
       .file = "xsec_fit.h",
       .desc = R"--(A map from *SpeciesEnum* to *XsecRecord*
@@ -864,6 +885,7 @@ of this term multiplied by a negative distance.
                      {
                          "InterpolationExtrapolation",
                          "SpeciesEnum",
+                         "TransmittanceOption",
                          "AtmKey",
                          "SurfaceKey",
                          "SubsurfaceKey",

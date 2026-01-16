@@ -262,6 +262,10 @@ using muelmat_tensor3            = matpack::data_t<muelmat, 3>;
 using muelmat_tensor3_view       = matpack::view_t<muelmat, 3>;
 using muelmat_tensor3_const_view = matpack::view_t<const muelmat, 3>;
 
+using muelmat_tensor4            = matpack::data_t<muelmat, 4>;
+using muelmat_tensor4_view       = matpack::view_t<muelmat, 4>;
+using muelmat_tensor4_const_view = matpack::view_t<const muelmat, 4>;
+
 void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
                                      const Array<muelmat_vector> &T);
 
