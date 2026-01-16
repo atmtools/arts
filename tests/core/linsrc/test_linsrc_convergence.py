@@ -44,29 +44,31 @@ while N >= 2:
     ws.ray_path[-1].los_type = 'surface'
     ws.ray_point = ws.ray_path[-1]
 
-    ws.spectral_tramat_pathLinearInTauFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    ws.rte_option = "lintau"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
+    ws.rte_option = "constant"
+    ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.spectral_tramat_pathLinearInTauAndPropFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    ws.rte_option = "linprop"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linprop.append(ws.spectral_rad[0][0] * 1.0)
@@ -128,29 +130,31 @@ while N >= 2:
     ws.ray_path[-1].los_type = 'surface'
     ws.ray_point = ws.ray_path[-1]
 
-    ws.spectral_tramat_pathLinearInTauFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    ws.rte_option = "lintau"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
+    ws.rte_option = "constant"
+    ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.spectral_tramat_pathLinearInTauAndPropFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    ws.rte_option = "linprop"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linprop.append(ws.spectral_rad[0][0] * 1.0)
@@ -213,29 +217,32 @@ while N >= 2:
     ws.ray_path[-1].los_type = 'surface'
     ws.ray_point = ws.ray_path[-1]
 
-    ws.spectral_tramat_pathLinearInTauFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    
+    ws.rte_option = "lintau"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
+    ws.rte_option = "constant"
+    ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.spectral_tramat_pathLinearInTauAndPropFromPath()
-    ws.spectral_tramat_cumulative_pathFromPath()
+    ws.rte_option = "linprop"
+    ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
     ws.spectral_rad_bkgAgendasAtEndOfPath()
 
-    ws.spectral_radLinearEvolutionStepByStepEmission()
+    ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.spectral_radApplyForwardUnit()
     linprop.append(ws.spectral_rad[0][0] * 1.0)

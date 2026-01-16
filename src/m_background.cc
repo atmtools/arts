@@ -147,28 +147,6 @@ void spectral_radSurfaceBlackbody(StokvecVector& spectral_rad,
   }
 }
 
-void spectral_tramat_bkgFromPathPropagationBack(
-    MuelmatVector& spectral_tramat_bkg,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(spectral_tramat_cumulative_path.size() == 0,
-                     "Cannot extract from empty list.")
-  spectral_tramat_bkg = spectral_tramat_cumulative_path.back();
-}
-ARTS_METHOD_ERROR_CATCH
-
-void spectral_tramat_bkgFromPathPropagationFront(
-    MuelmatVector& spectral_tramat_bkg,
-    const ArrayOfMuelmatVector& spectral_tramat_cumulative_path) try {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(spectral_tramat_cumulative_path.size() == 0,
-                     "Cannot extract from empty list.")
-  spectral_tramat_bkg = spectral_tramat_cumulative_path.front();
-}
-ARTS_METHOD_ERROR_CATCH
-
 void spectral_radDefaultTransmission(StokvecVector& spectral_rad,
                                      StokvecMatrix& spectral_rad_bkg,
                                      const AscendingGrid& freq_grid,

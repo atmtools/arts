@@ -1002,30 +1002,6 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_desc  = {"Default option for the isotopologue ratios"},
   };
 
-  wsm_data["spectral_tramat_bkgFromPathPropagationBack"] = {
-      .desc =
-          R"--(Sets *spectral_tramat_bkg* to back of *spectral_tramat_cumulative_path*.
-
-This is purely compositional and it is better to use pure python code if need this functionality
-in your own control-flow.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_tramat_bkg"},
-      .in     = {"spectral_tramat_cumulative_path"},
-  };
-
-  wsm_data["spectral_tramat_bkgFromPathPropagationFront"] = {
-      .desc =
-          R"--(Sets *spectral_tramat_bkg* to front of *spectral_tramat_cumulative_path*.
-
-This is purely compositional and it is better to use pure python code if need this functionality
-in your own control-flow.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_tramat_bkg"},
-      .in     = {"spectral_tramat_cumulative_path"},
-  };
-
   wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
       .desc      = R"--(Sets a path of Zeeman effect magnetic field properties.
 
@@ -1138,15 +1114,6 @@ in your own control-flow.
       .author = {"Richard Larsson"},
       .out    = {"atm_path"},
       .in     = {"ray_path", "atm_field"},
-  };
-
-  wsm_data["spectral_tramat_cumulative_pathFromPath"] = {
-      .desc =
-          R"--(Sets *spectral_tramat_cumulative_path* by forward iteration of *spectral_tramat_path*
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_tramat_cumulative_path"},
-      .in     = {"spectral_tramat_path"},
   };
 
   wsm_data["freq_grid_pathFromPath"] = {
@@ -1322,7 +1289,7 @@ where:
     - Extracted from ARTS parameter
     - Meaning
   * - :math:`\vec{J}`
-    - *spectral_rad_srcvec_path*
+    - *spectral_rad_srcvec_path* J
     - The spectral radiance source term along the path.
   * - :math:`B(T, f)`
     - ``None`` - this is computed locally
@@ -1334,7 +1301,7 @@ where:
     - *spectral_nlte_srcvec_path*
     - The non-LTE source vector along the path.
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
-    - *spectral_rad_srcvec_jac_path*
+    - *spectral_rad_srcvec_path* dJ
     - The Jacobian of the spectral radiance source term with respect to the
       *jac_targets*.
   * - :math:`\frac{\partial B(T, f)}{\partial x}`
@@ -1358,11 +1325,10 @@ where:
 
 The output dimensions are:
 
-- *spectral_rad_srcvec_path*: *ray_path* x *freq_grid*
-- *spectral_rad_srcvec_jac_path*: *ray_path* x *freq_grid* x *jac_targets* (target count)
+- *spectral_rad_srcvec_path*: *freq_grid* x *ray_path*, *freq_grid* x *ray_path* x *jac_targets* (target count)
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_rad_srcvec_path", "spectral_rad_srcvec_jac_path"},
+      .out    = {"spectral_rad_srcvec_path"},
       .in     = {"spectral_propmat_path",
                  "spectral_nlte_srcvec_path",
                  "spectral_propmat_jac_path",
@@ -2063,7 +2029,8 @@ Gets the ellispoid from *surf_field*
                          "surf_field",
                          "subsurf_field",
                          "freq_grid",
-                         "alt_grid"},
+                         "alt_grid",
+                         "rte_option"},
       .pass_workspace = true,
   };
 
@@ -2362,7 +2329,7 @@ Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_jac"},
-      .in     = {"spectral_rad_bkg_jac", "spectral_tramat_bkg"},
+      .in     = {"spectral_rad_bkg_jac", "spectral_tramat_path"},
   };
 
   wsm_data["spectral_rad_jacAddPathPropagation"] = {
@@ -4718,7 +4685,8 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
                          "freq_grid",
                          "atm_field",
                          "surf_field",
-                         "spectral_propmat_agenda"},
+                         "spectral_propmat_agenda",
+                         "rte_option"},
       .gin            = {"depolarization_factor", "hse_derivative"},
       .gin_type       = {"Numeric", "Index"},
       .gin_value      = {Numeric{0.0}, Index{0}},
@@ -4830,67 +4798,14 @@ The derivatives first dimensions are also 2, the first for the derivative wrt
 the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_tramat_path", "spectral_tramat_jac_path"},
+      .out       = {"spectral_tramat_path"},
       .in        = {"spectral_propmat_path",
                     "spectral_propmat_jac_path",
                     "ray_path",
                     "atm_path",
                     "surf_field",
-                    "jac_targets"},
-      .gin       = {"hse_derivative"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
-  };
-
-  wsm_data["spectral_tramat_pathLinearInTauFromPath"] = {
-      .desc      = R"--([WIP] Gets the transmission matrix in layers along the path.
-
-The assumption is that each path variable forms a layer from the 
-ray path.  So there is a reduction in size by one.  A demand therefore
-is that there are at least 2 points in the path.
-
-The derivatives first dimensions are also 2, the first for the derivative wrt
-the level before and one for the level after.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_tramat_path",
-                    "spectral_linevo_path",
-                    "spectral_tramat_jac_path",
-                    "spectral_linevo_jac_path"},
-      .in        = {"spectral_propmat_path",
-                    "spectral_propmat_jac_path",
-                    "ray_path",
-                    "atm_path",
-                    "surf_field",
-                    "jac_targets"},
-      .gin       = {"hse_derivative"},
-      .gin_type  = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
-  };
-
-  wsm_data["spectral_tramat_pathLinearInTauAndPropFromPath"] = {
-      .desc      = R"--([WIP] Gets the transmission matrix in layers along the path.
-
-The assumption is that each path variable forms a layer from the 
-ray path.  So there is a reduction in size by one.  A demand therefore
-is that there are at least 2 points in the path.
-
-The derivatives first dimensions are also 2, the first for the derivative wrt
-the level before and one for the level after.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_tramat_path",
-                    "spectral_linevo_path",
-                    "spectral_tramat_jac_path",
-                    "spectral_linevo_jac_path"},
-      .in        = {"spectral_propmat_path",
-                    "spectral_propmat_jac_path",
-                    "ray_path",
-                    "atm_path",
-                    "surf_field",
-                    "jac_targets"},
+                    "jac_targets",
+                    "rte_option"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -4905,29 +4820,7 @@ This uses a step-by-step solver to propagate background radiation along the path
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path",
-                 "spectral_tramat_cumulative_path",
-                 "spectral_tramat_jac_path",
                  "spectral_rad_srcvec_path",
-                 "spectral_rad_srcvec_jac_path",
-                 "spectral_rad_bkg"},
-  };
-
-  wsm_data["spectral_radLinearEvolutionStepByStepEmission"] = {
-      .desc   = R"--([WIP] Gets the spectral radiance from the path.
-
-This uses a step-by-step solver to propagate background radiation along the path.
-
-It assumes some linear evolution of the radiance within each layer
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_rad", "spectral_rad_jac_path"},
-      .in     = {"spectral_tramat_path",
-                 "spectral_linevo_path",
-                 "spectral_tramat_cumulative_path",
-                 "spectral_tramat_jac_path",
-                 "spectral_linevo_jac_path",
-                 "spectral_rad_srcvec_path",
-                 "spectral_rad_srcvec_jac_path",
                  "spectral_rad_bkg"},
   };
 
@@ -4939,10 +4832,7 @@ path parameters.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
-      .in     = {"spectral_tramat_path",
-                 "spectral_tramat_cumulative_path",
-                 "spectral_tramat_jac_path",
-                 "spectral_rad_bkg"},
+      .in     = {"spectral_tramat_path", "spectral_rad_bkg"},
   };
 
   wsm_data["OEM"] = {

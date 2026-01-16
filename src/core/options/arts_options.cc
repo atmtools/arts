@@ -958,6 +958,87 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "TransmittanceOption",
+      .desc = R"(A flag for the transmittance model for a layer.
+      
+.. rubric:: Constant 
+
+Classical and simple solution for radiative transfer over a layer with constant
+absorption coefficient and constant source function.  Strong variations in the
+source function over the layer may lead to inaccuracies.  As may strong variations
+in the absorption coefficient.  Easiest and fastest method.
+
+.. math::
+
+    K = \frac{K_0 + K_1}{2}
+
+    T = e^{- K r}
+
+    J = \frac{J_0 + J_1}{2}
+
+    I_1 = J + T (I_0 - J)
+
+.. rubric:: Linear in Tau 
+      
+The source is linearly changing throughout the layer, while the absorption coefficient
+is constant.  Has better accuracy than the ``constant`` option when the source function
+varies strongly over the layer.  Still fast to compute, but the linear evolution operator
+is highly complex, meaning we do not know if there are edge cases where this method fails.
+
+.. math::
+
+    K = \frac{K_0 + K_1}{2}
+
+    T = e^{- K r}
+
+    J = J_0 + \left(J_1 - J_0\right) \frac{s}{r}
+
+    \Lambda_0 = \frac{1}{r}K^{-1} \left(1 - T\right)
+
+    I_1 = J_1 + T (I_0 - J_0) + \Lambda_0 \left(J_0 - J_1\right)
+
+.. rubric:: Linear in Propagation
+
+The source is linearly changing throughout the layer, as is the the absorption coefficient.
+Has theoretically better accuracy than the ``constant`` or ``linsrc`` options when the layer
+varies strongly.  However, the linear evolution operator is highly complex, meaning we do not know
+if there are edge cases where this method fails, and comparisons with ``linsrc`` have not shown
+significant improvements in accuracy - in fact sometimes it is less accurate.
+
+.. math::
+
+    K = K_0 + \left(K_1 - K_0\right) \frac{s}{r}
+
+    T = e^{- K r}
+
+    J = J_0 + \left(J_1 - J_0\right) \frac{s}{r}
+
+    \Lambda_0 = \frac{1}{r}\sqrt{\frac{K_1 - K_0}{2r}} ^ {-1} \left[D\left(\frac{1}{2} \sqrt{\frac{K_1 - K_0}{2r}} ^ {-1} K_1\right) - T D\left(\frac{1}{2} \sqrt{\frac{K_1 - K_0}{2r}} ^ {-1} K_0\right)\right],\;\mathrm{when}\;K_1 \gt K_0
+
+    \Lambda_0 = \frac{1}{r}K^{-1} \left(1 - T\right),\; \mathrm{otherwise}
+
+    I_1 = J_1 + T (I_0 - J_0) + \Lambda_0 \left(J_0 - J_1\right)
+
+where :math:`D(x)` is the Dawson function.
+)",
+      .values_and_desc =
+          {Value{"constant",
+                 "linear",
+                 "lin",
+                 R"(Linear transmittance step over constant layer)"},
+           Value{
+               "linsrc",
+               "lintau",
+               "linear-in-tau",
+               R"(Linear transmittance step over constant absorption layer with linear source function)"},
+           Value{
+               "linprop",
+               "linsrcprop",
+               "linear-in-propagation",
+               R"(Linear transmittance step over non-constant absorption layer with linear source function)"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "WorkspaceInitialization",
       .desc = "A flag for how initialize a new workspace.\n",
       .values_and_desc =

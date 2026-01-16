@@ -34,6 +34,7 @@ ws.atm_fieldRead(
 
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
+ws.rte_option = "constant"
 
 pos = [0e3, 0, 0]
 los = [20.0, 0.0]

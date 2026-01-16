@@ -51,10 +51,26 @@ constexpr bool same_shape(const Orig& a, const First& b, const Rest&... c) {
 
 template <any_md_compat B, ranked_md_compat<rank<B>()>... C>
 constexpr bool all_same_shape(const integer_helper<rank<B>()>& sz,
-                              const std::vector<B>& b,
-                              const std::vector<C>&... c) {
+                              const std::span<B>& b,
+                              const std::span<C>&... c) {
   const auto t = [shape = sz.shape](auto& x) { return x.shape() == shape; };
   return stdr::all_of(b, t) and (stdr::all_of(c, t) and ...);
+}
+
+template <any_md_compat A,
+          ranked_md_compat<rank<A>()> B,
+          ranked_md_compat<rank<A>()>... C>
+constexpr bool all_same_shape(const A& a,
+                              const std::span<B>& b,
+                              const std::span<C>&... c) {
+  return all_same_shape(integer_helper<rank<A>()>{a.shape()}, b, c...);
+}
+
+template <any_md_compat B, ranked_md_compat<rank<B>()>... C>
+constexpr bool all_same_shape(const integer_helper<rank<B>()>& sz,
+                              const std::vector<B>& b,
+                              const std::vector<C>&... c) {
+  return all_same_shape(sz, std::span{b}, std::span{c}...);
 }
 
 template <any_md_compat A,

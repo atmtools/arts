@@ -34,7 +34,7 @@ ws.atm_fieldRead(
 
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
-ws.spectral_rad_observer_agendaSet(option="EmissionLinearInTau")
+ws.rte_option = "lintau"
 
 pos = [0e3, 0, 0]
 los = [20.0, 0.0]

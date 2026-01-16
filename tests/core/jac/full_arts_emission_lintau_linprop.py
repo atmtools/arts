@@ -57,7 +57,8 @@ pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
 
-ws.spectral_radClearskyLinearInTauAndPropEmission()
+ws.rte_option = "linprop"
+ws.spectral_radClearskyEmission()
 
 x1 = 1.0 * np.array(ws.spectral_rad)
 dx1 = 1.0 * np.array(ws.spectral_rad_jac)
@@ -68,7 +69,8 @@ for i in range(3):
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = grid
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data.data[i] += DX
 
-    ws.spectral_radClearskyLinearInTauAndPropEmission()
+    ws.rte_option = "linprop"
+    ws.spectral_radClearskyEmission()
 
     x2 = 1.0 * np.array(ws.spectral_rad)
     dx2.append((x2 - x1) / DX)

@@ -2,7 +2,9 @@
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_source.h"
 #include "rtepack_stokes_vector.h"
+#include "rtepack_transmission.h"
 
 namespace rtepack {
 
@@ -68,4 +70,18 @@ void two_level_linear_transmission_step(stokvec_vector &I,
                                         const std::vector<muelmat_vector> &Pi,
                                         const std::vector<muelmat_tensor3> &dTs,
                                         const stokvec_vector &I0);
+
+void rte_emission(stokvec_vector_view I,
+                  stokvec_tensor3_view dI,
+                  const TransmittanceMatrix &tramat,
+                  const SourceVector &srcvec);
+
+void rte_emission_path(stokvec_matrix_view Is,
+                       const TransmittanceMatrix &Ts,
+                       const SourceVector &Js);
+
+void rte_transmission(stokvec_vector_view I,
+                      stokvec_tensor3_view dI,
+                      const TransmittanceMatrix &tramat,
+                      const stokvec_vector_const_view &I0);
 }  // namespace rtepack

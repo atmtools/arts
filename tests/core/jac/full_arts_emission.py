@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ws = pyarts.workspace.Workspace()
+ws.rte_option = "constant"
 
 # %% Sampled frequency range
 
