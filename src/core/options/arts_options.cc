@@ -1007,7 +1007,7 @@ significant improvements in accuracy - in fact sometimes it is less accurate.
 
 .. math::
 
-    J = K_0 + \left(K_1 - K_0\right) \frac{s}{r}
+    K = K_0 + \left(K_1 - K_0\right) \frac{s}{r}
 
     T = e^{- K r}
 

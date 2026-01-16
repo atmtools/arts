@@ -8,6 +8,7 @@ import pyarts3 as pyarts
 pyarts.data.download()
 
 ws = pyarts.workspace.Workspace()
+ws.rte_option = "constant"
 
 # %% Sampled frequency range
 line_f0 = 118750348044.712

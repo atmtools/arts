@@ -20,7 +20,9 @@ void spectral_rad_pathStepByStepEmissionForwardOnly(
       np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
 
   spectral_rad_path.resize(nf, np);
-  spectral_rad_path[joker, np] = spectral_rad_bkg;
+
+  if (np == 0) return;
+  spectral_rad_path[joker, np - 1] = spectral_rad_bkg;
 
   rte_emission_path(
       spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path);

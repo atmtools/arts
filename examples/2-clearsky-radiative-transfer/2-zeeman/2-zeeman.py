@@ -38,6 +38,7 @@ ws.spectral_rad_transform_operatorSet(option="Tb")
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.ray_pathGeometric(pos=pos, los=los, max_stepsize=1000.0)
+ws.rte_option = "constant"
 ws.spectral_radClearskyEmission()
 ws.spectral_radApplyUnitFromSpectralRadiance()
 

@@ -1034,24 +1034,27 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
   const Size N  = K.size();
   const Size nq = dr.npages();
 
-  auto dT0 = dT[0];
-  auto dT1 = dT[1];
-  auto dL0 = dL[0];
-  auto dL1 = dL[1];
+  auto dT0 = dT[0, 0];
+  auto dT1 = dT[1, 0];
+  auto dL0 = dL[0, 0];
+  auto dL1 = dL[1, 0];
   auto dr0 = dr[0];
   auto dr1 = dr[1];
+  auto T_  = T[0];
+  auto L_  = L[0];
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    const tran tr{K[i - 1], K[i], r[i - 1]};
-    T[0, i] = tr();
-    L[0, i] = tr.linsrc();
+    auto &k1 = K[i - 1];
+    auto &k2 = K[i];
+    const tran tr{k1, k2, r[i - 1]};
+    T_[i] = tr();
+    L_[i] = tr.linsrc();
 
     for (Size iq = 0; iq < nq; iq++) {
-      dT0[i - 1, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
-      dT1[i, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dT0[i - 1, iq] =
+          tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq] = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
       dL0[i - 1, iq] = tr.linsrc_deriv(dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
       dL1[i, iq]     = tr.linsrc_deriv(dK[i][iq], r[i - 1], dr1[i - 1, iq]);
     }
@@ -1065,39 +1068,42 @@ void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
   const Size N  = K.size();
   const Size nq = dr.npages();
 
-  auto dT0 = dT[0];
-  auto dT1 = dT[1];
-  auto dL0 = dL[0];
-  auto dL1 = dL[1];
+  auto dT0 = dT[0, 0];
+  auto dT1 = dT[1, 0];
+  auto dL0 = dL[0, 0];
+  auto dL1 = dL[1, 0];
   auto dr0 = dr[0];
   auto dr1 = dr[1];
+  auto T_  = T[0];
+  auto L_  = L[0];
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    const tran tr{K[i - 1], K[i], r[i - 1]};
-    T[0, i] = tr();
-    L[0, i] = tr.linsrc_linprop(T[0, i], K[i - 1], K[i], r[i - 1]);
+    auto &k1 = K[i - 1];
+    auto &k2 = K[i];
+    const tran tr{k1, k2, r[i - 1]};
+    T_[i] = tr();
+    L_[i] = tr.linsrc_linprop(T_[i], k1, k2, r[i - 1]);
 
     for (Size iq = 0; iq < nq; iq++) {
-      dT0[0, i - 1, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
-      dT1[0, i, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
-      dL0[i - 1, iq] = tr.linsrc_linprop_deriv(L[0, i],
-                                               T[0, i],
-                                               K[i - 1],
-                                               K[i],
+      dT0[i - 1, iq] =
+          tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq] = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dL0[i - 1, iq] = tr.linsrc_linprop_deriv(L_[i],
+                                               T_[i],
+                                               k1,
+                                               k2,
                                                dK[i - 1][iq],
-                                               dT0[0, i - 1, iq],
+                                               dT0[i - 1, iq],
                                                r[i - 1],
                                                dr0[i - 1, iq],
                                                true);
-      dL1[i, iq]     = tr.linsrc_linprop_deriv(L[0, i],
-                                           T[0, i],
-                                           K[i - 1],
-                                           K[i],
+      dL1[i, iq]     = tr.linsrc_linprop_deriv(L_[i],
+                                           T_[i],
+                                           k1,
+                                           k2,
                                            dK[i][iq],
-                                           dT1[0, i - 1, iq],
+                                           dT1[i, iq],
                                            r[i - 1],
                                            dr1[i - 1, iq],
                                            false);
