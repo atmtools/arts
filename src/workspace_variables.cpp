@@ -596,7 +596,7 @@ The object should have these sizes internally:
   wsv_data["rte_option"] = {
       .desc          = R"--(The radiative transfer equation (RTE) option.)--",
       .type          = "TransmittanceOption",
-      .default_value = "TransmittanceOption::constant",
+      .default_value = "TransmittanceOption::linsrc",
   };
 
   wsv_data["spectral_linevo_jac_path"] = {
