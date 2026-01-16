@@ -52,15 +52,15 @@ los = [20, 90]
 res = []
 ws.obs_pos = pos
 ws.obs_los = los
-ws.max_stepsize = 100.0
+ws.max_stepsize = 20000.0
 
 # %% Show results
 ws.ray_point_back_propagation_agendaSet(option="GeometricStepwise")
-ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-2)
 ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.spectral_ray_path[0])
 geometric = ws.spectral_rad * 1.0
 ws.ray_point_back_propagation_agendaSet(option="RefractiveStepwise")
-ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-3)
+ws.spectral_radClearskyEmissionFrequencyDependentPropagation(max_tau=1e-2)
 ws.spectral_radApplyUnitFromSpectralRadiance(ray_path=ws.spectral_ray_path[0])
 refractive = ws.spectral_rad * 1.0
 
@@ -72,7 +72,6 @@ if "ARTS_HEADLESS" not in os.environ:
     pyarts.plots.StokvecVector.plot(
         geometric - refractive, fig=fig, ax=ax, freqs=freqs)
     for a in ax.flatten():
-        a.legend()
         a.set_xlabel("Frequency offset [MHz]")
         a.set_ylabel("Spectral radiance [K]")
     ax[0, 0].set_title("Stokes I")
@@ -86,12 +85,12 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Tests
 
-assert np.allclose(geometric.flatten()[::21], [1.26516031e+02, -4.99448843e-04, -2.38994089e-03,  5.88143041e-01,
-                                               1.39502441e+02,  9.84298368e-02, -1.94638344e-02, -4.89492470e-01,
-                                               1.30367808e+02, -3.92928440e-04])
+assert np.allclose(geometric.flatten()[::21], [1.25796726e+02, -5.83741570e-04, -2.57391509e-03,  6.19248870e-01,
+                                               1.38784898e+02,  1.03384405e-01, -2.12491046e-02, -5.28908702e-01,
+                                               1.29721222e+02, -4.55868565e-04])
 
-assert np.allclose(refractive.flatten()[::21], [1.26573452e+02, -4.99213662e-04, -2.38899177e-03,  5.87893039e-01,
-                                                1.39555246e+02,  9.83904117e-02, -1.94546777e-02, -4.89281896e-01,
-                                                1.30425177e+02, -3.92760150e-04])
+assert np.allclose(refractive.flatten()[::21], [1.25859048e+02, -5.89636065e-04, -2.56081274e-03,  6.19103775e-01,
+                                                1.38852518e+02,  1.03195242e-01, -2.10922560e-02, -5.31804997e-01,
+                                                1.29761824e+02, -4.48001573e-04])
 
 assert not np.allclose(geometric, refractive)
