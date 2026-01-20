@@ -27,6 +27,8 @@ struct profiler {
 };
 
 TimeReport get_report(bool clear = true);
+
+void print_report();
 }  // namespace arts
 
 #if ARTS_PROFILING

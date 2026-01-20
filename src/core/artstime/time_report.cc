@@ -1,9 +1,12 @@
 #include "time_report.h"
 
+#include <arts_conversions.h>
 #include <arts_omp.h>
 #include <mystring.h>
 
+#include <map>
 #include <mutex>
+#include <print>
 #include <unordered_map>
 
 namespace arts {
@@ -48,5 +51,48 @@ TimeReport get_report(bool clear) {
   if (clear)
     for (auto& [key, value] : profile_report) value.clear();
   return copy;
+}
+
+void print_report() {
+  const auto report = get_report(false);
+
+  // sort
+  std::map<std::string, std::vector<StartEnd>> merged;
+  for (const auto& [core, core_report] : report) {
+    for (const auto& [name, times] : core_report) {
+      auto& merged_times = merged[name];
+      merged_times.insert(merged_times.end(), times.begin(), times.end());
+    }
+  }
+
+  std::println("| Method | Average Time | Min Time | Max Time | # Calls |");
+  std::println("|---|---|---|---|---|");
+  for (const auto& [name, times] : merged) {
+    Numeric total = 0.0;
+    Numeric max   = std::numeric_limits<Numeric>::lowest();
+    Numeric min   = std::numeric_limits<Numeric>::max();
+    for (const auto& [start, end] : times) {
+      const Numeric t  = std::chrono::duration<Numeric>(end - start).count();
+      total           += t;
+      max              = std::max(max, t);
+      min              = std::min(min, t);
+    }
+    const Numeric avg = total / static_cast<Numeric>(times.size());
+
+    const auto [ua, a] = Conversion::metric_prefix(avg);
+    const auto [um, m] = Conversion::metric_prefix(min);
+    const auto [ux, x] = Conversion::metric_prefix(max);
+
+    std::println(
+        "| {} | {:.2f} {}s | {:.2f} {}s | {:.2f} {}s | {} |",
+        name,
+        a,
+        ua,
+        m,
+        um,
+        x,
+        ux,
+        times.size());
+  }
 }
 }  // namespace arts
