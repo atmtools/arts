@@ -59,7 +59,9 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric s(Numeric T, Numeric Q) const;
+  [[nodiscard]] Numeric s(Numeric T, Numeric Q) const {
+    return a * gu * std::exp(-e0 / (Constant::k * T)) / (Math::pow3(f0) * Q);
+  }
 
   [[nodiscard]] constexpr Numeric nlte_k(Numeric ru, Numeric rl) const {
     return (rl * gu / gl - ru) * a / Math::pow3(f0);
@@ -85,7 +87,11 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const;
+  [[nodiscard]]
+  Numeric ds_de0(Numeric T, Numeric Q) const {
+    return -a * gu * std::exp(-e0 / (Constant::k * T)) /
+           (Math::pow3(f0) * Constant::k * T * Q);
+  }
 
   //! The ratio of ds_de0 / s
   [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const {
@@ -98,7 +104,11 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_df0(Numeric T, Numeric Q) const;
+  [[nodiscard]]
+  Numeric ds_df0(Numeric T, Numeric Q) const {
+    return -3 * a * gu * std::exp(-e0 / (Constant::k * T)) /
+           (Math::pow4(f0) * Q);
+  }
 
   //! The ratio of ds_df0 / s
   [[nodiscard]] constexpr Numeric ds_df0_s_ratio() const { return -3 / f0; }
@@ -109,7 +119,10 @@ struct line {
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_da(Numeric T, Numeric Q) const;
+  [[nodiscard]]
+  Numeric ds_da(Numeric T, Numeric Q) const {
+    return gu * std::exp(-e0 / (Constant::k * T)) / (Math::pow3(f0) * Q);
+  }
 
   /*! Derivative of s(T, Q) wrt to input t
 
@@ -118,7 +131,11 @@ struct line {
   @param[in] dQ_dt Partition function derivative at temperature wrt t [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
-  [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dt) const;
+  [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dT) const {
+    return a * gu * (e0 * Q - Constant::k * Math::pow2(T) * dQ_dT) *
+           std::exp(-e0 / (Constant::k * T)) /
+           (Math::pow3(f0) * Constant::k * Math::pow2(T) * Math::pow2(Q));
+  }
 
   /** Compute the HITRAN Einstein Coefficient for this line
    * 
