@@ -2,6 +2,7 @@
 #define nonstd_h
 
 #include <cmath>
+#include <utility>
 
 /*! For std functions that are changed somehow */
 namespace nonstd {
@@ -24,8 +25,9 @@ constexpr T abs(T x) noexcept {
  * @param[in] x Any real value type
  * @return x^v
  */
-inline double pow(double v, double x) {
-  return std::exp(x * std::log(v));
+template <typename T, typename U>
+constexpr auto pow(T&& v, U&& x) {
+  return std::exp(std::forward<T>(x) * std::log(std::forward<U>(v)));
 }
 
 /*! Checks if the given character in 0123456789.
@@ -79,9 +81,7 @@ constexpr bool isabc(unsigned char ch) noexcept {
  * @return true if x is a space
  */
 constexpr bool isbracket(unsigned char c) noexcept {
-  return c == '(' or c == ')' or
-         c == '[' or c == ']' or
-         c == '{' or c == '}' or
+  return c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or
          c == '<' or c == '>';
 }
 

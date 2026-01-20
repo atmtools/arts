@@ -15,6 +15,7 @@
 #include <configtypes.h>
 #include <format_tags.h>
 #include <mystring.h>
+#include <nonstd.h>
 #include <xml.h>
 
 #include <cmath>
@@ -690,37 +691,6 @@ constexpr bool operator!(const Rational a) noexcept {
   return a.numer and a.isDefined();
 }
 
-/** Square root
- * 
- * @param[in] r Any Rational
- * @return Numeric Square root of the Rational
- */
-Numeric sqrt(const Rational r);
-
-/** Power of
- * 
- * @param[in] base Any Rational
- * @param[in] exp Any Numeric
- * @return Numeric base to the power of exp
- */
-Numeric pow(const Rational base, Numeric exp);
-
-/** Power of
- * 
- * @param[in] base Any Numeric
- * @param[in] exp Any Rational
- * @return Numeric base to the power of exp
- */
-Numeric pow(Numeric base, const Rational exp);
-
-/** Power of
- * 
- * @param[in] base Any Rational
- * @param[in] exp Any Rational
- * @return Numeric base to the power of exp
- */
-Numeric pow(const Rational base, const Rational exp);
-
 /** less
  * 
  * @param[in] a Any Index
@@ -907,6 +877,20 @@ constexpr Numeric operator-(Rational y, Numeric x) noexcept {
 }
 constexpr Numeric operator-(Numeric x, Rational y) noexcept {
   return x - y.toNumeric();
+}
+
+inline Numeric sqrt(const Rational r) { return std::sqrt(r.toNumeric()); }
+
+inline Numeric pow(const Rational base, Numeric exp) {
+  return nonstd::pow(base.toNumeric(), exp);
+}
+
+inline Numeric pow(Numeric base, const Rational exp) {
+  return nonstd::pow(base, exp.toNumeric());
+}
+
+inline Numeric pow(const Rational base, const Rational exp) {
+  return pow(base, exp.toNumeric());
 }
 
 template <>

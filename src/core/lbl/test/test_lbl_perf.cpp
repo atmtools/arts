@@ -2,8 +2,6 @@
 #include <rng.h>
 #include <time_report.h>
 
-#include "lbl_temperature_model.h"
-
 Numeric lbl_temperature_t0(const Matrix& x) {
   ARTS_NAMED_TIME_REPORT("lbl_temperature_t0");
 
