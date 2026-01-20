@@ -1,6 +1,8 @@
 #ifndef nonstd_h
 #define nonstd_h
 
+#include <cmath>
+
 /*! For std functions that are changed somehow */
 namespace nonstd {
 /*! abs(x) returns |x| using -x if x < 0 or x otherwise
@@ -13,6 +15,17 @@ namespace nonstd {
 template <class T>
 constexpr T abs(T x) noexcept {
   return x < 0 ? -x : x;
+}
+
+/*! pow(x, v) returns x^v not using std::pow but using exp(v * log(x))
+ * 
+ * Reason to re-implement: factor 4 faster
+ * 
+ * @param[in] x Any real value type
+ * @return x^v
+ */
+inline double pow(double v, double x) {
+  return std::exp(x * std::log(v));
 }
 
 /*! Checks if the given character in 0123456789.
