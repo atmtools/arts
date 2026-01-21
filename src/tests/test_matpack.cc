@@ -1009,13 +1009,23 @@ void test47() {
 
 void test_wigner_error() {
   try {
-    wigner3j(1, 0, 1, 0, 0, 0);
+    wigner3j(Rational{1},
+             Rational{0},
+             Rational{1},
+             Rational{0},
+             Rational{0},
+             Rational{0});
   } catch (std::exception& e) {
     std::cerr << e.what() << '\n';
   }
 
   make_wigner_ready(250, 20000000, 3);
-  wigner3j(1, 0, 1, 0, 0, 0);
+  wigner3j(Rational{1},
+           Rational{0},
+           Rational{1},
+           Rational{0},
+           Rational{0},
+           Rational{0});
 }
 
 void test_pow_negative_one() {
