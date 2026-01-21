@@ -690,66 +690,6 @@ void test42() {
   cout << "y: " << std::format("{}", y) << '\n';
 }
 
-// Test function for internal use, must return 2 as last n2r
-constexpr Rational test_numeric2rational(const Index i,
-                                         const Index maxi,
-                                         const Rational r   = 0,
-                                         const Rational n2r = 0) {
-  if (i > maxi)
-    return n2r;
-  else {
-    return (r == n2r)
-               ? test_numeric2rational(
-                     i + 1,
-                     maxi,
-                     Rational(maxi + i, maxi),
-                     numeric2rational(1 + Numeric(i) / Numeric(maxi), 12))
-               : throw std::logic_error("Fail to initialize");
-    ;
-  }
-}
-
-void test43() {
-  // Simple construction compile-time test
-  constexpr Rational r = Rational(3, 2);  // should be 3/2
-  static_assert(r.numer == 3, "Rational fail to initialize properly");
-  static_assert(r.denom == 2, "Rational fail to initialize properly");
-
-  // Simple expression compile-time test
-  constexpr Rational r2 = 1 + r;  // should be 5/2
-  static_assert(r2.numer == 5, "Rational fail to initialize properly");
-  static_assert(r2.denom == 2, "Rational fail to initialize properly");
-
-  // Div-zero by index generates an undefined rational:  0/0
-  constexpr Rational r3 = r / 0;  // should be undefined
-  static_assert(r3.numer == 0, "Rational fail to initialize properly");
-  static_assert(r3.denom == 0, "Rational fail to initialize properly");
-  static_assert(r3 not_eq r3, "Undefined rational does not equal self");
-  static_assert(r3.isUndefined(), "Rational fail to initialize properly");
-
-  // Mul-zero gives 0/1
-  constexpr Rational r4 = r * 0;  // should be undefined
-  static_assert(r4.numer == 0, "Rational fail to initialize properly");
-  static_assert(r4.denom == 1, "Rational fail to initialize properly");
-
-  // Complicated expression compile-time test
-  constexpr Rational r5 = (Rational(1, 9) * r) % 3;  // should be 1/6
-  static_assert(r5.numer == 1, "Rational fail to initialize properly");
-  static_assert(r5.denom == 6, "Rational fail to initialize properly");
-
-  // The simplify operation simplifies expressions
-  constexpr Rational r6 = 10 % r;  // should be 1
-  static_assert(r6.numer == 1, "Rational fail to initialize properly");
-  static_assert(r6.denom == 1, "Rational fail to initialize properly");
-  static_assert(r6.toInt() == 1, "Rational fail to initialize properly");
-  static_assert(r6.toIndex() == 1, "Rational fail to initialize properly");
-  static_assert(r6.toNumeric() == 1e0, "Rational fail to initialize properly");
-
-  constexpr Index rattest = 1 << 8;
-  constexpr Rational r7   = test_numeric2rational(0, rattest);
-  static_assert(r7 == 2, "Rational fail to initialize properly");
-}
-
 void test46() {
   Vector v(5, 0.);
   nlinspace(v, 1, 10, 10);
@@ -1069,13 +1009,23 @@ void test47() {
 
 void test_wigner_error() {
   try {
-    wigner3j(1, 0, 1, 0, 0, 0);
+    wigner3j(Rational{1},
+             Rational{0},
+             Rational{1},
+             Rational{0},
+             Rational{0},
+             Rational{0});
   } catch (std::exception& e) {
     std::cerr << e.what() << '\n';
   }
 
   make_wigner_ready(250, 20000000, 3);
-  wigner3j(1, 0, 1, 0, 0, 0);
+  wigner3j(Rational{1},
+           Rational{0},
+           Rational{1},
+           Rational{0},
+           Rational{0},
+           Rational{0});
 }
 
 void test_pow_negative_one() {

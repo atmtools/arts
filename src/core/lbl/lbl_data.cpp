@@ -26,33 +26,10 @@ using Constant::h;
 using Constant::k;
 using Constant::pi;
 using Math::pow2;
-using Math::pow3;
-using Math::pow4;
 using std::exp;
 using std::expm1;
 
 namespace lbl {
-Numeric line::s(Numeric T, Numeric Q) const {
-  return a * gu * exp(-e0 / (k * T)) / (pow3(f0) * Q);
-}
-
-Numeric line::ds_dT(Numeric T, Numeric Q, Numeric dQ_dT) const {
-  return a * gu * (e0 * Q - k * pow2(T) * dQ_dT) * exp(-e0 / (k * T)) /
-         (pow3(f0) * k * pow2(T) * pow2(Q));
-}
-
-Numeric line::ds_de0(Numeric T, Numeric Q) const {
-  return -a * gu * exp(-e0 / (k * T)) / (pow3(f0) * k * T * Q);
-}
-
-Numeric line::ds_df0(Numeric T, Numeric Q) const {
-  return -3 * a * gu * exp(-e0 / (k * T)) / (pow4(f0) * Q);
-}
-
-Numeric line::ds_da(Numeric T, Numeric Q) const {
-  return gu * exp(-e0 / (k * T)) / (pow3(f0) * Q);
-}
-
 void band_data::sort(LineByLineVariable v) {
   using enum LineByLineVariable;
   switch (v) {

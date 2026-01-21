@@ -1,6 +1,9 @@
 #ifndef nonstd_h
 #define nonstd_h
 
+#include <cmath>
+#include <utility>
+
 /*! For std functions that are changed somehow */
 namespace nonstd {
 /*! abs(x) returns |x| using -x if x < 0 or x otherwise
@@ -13,6 +16,18 @@ namespace nonstd {
 template <class T>
 constexpr T abs(T x) noexcept {
   return x < 0 ? -x : x;
+}
+
+/*! pow(x, v) returns x^v not using std::pow but using exp(v * log(x))
+ * 
+ * Reason to re-implement: factor 4 faster
+ * 
+ * @param[in] x Any positive real value type
+ * @return x^v
+ */
+template <typename T, typename U>
+constexpr auto pow(T&& x, U&& v) {
+  return std::exp(std::forward<T>(v) * std::log(std::forward<U>(x)));
 }
 
 /*! Checks if the given character in 0123456789.
@@ -66,9 +81,7 @@ constexpr bool isabc(unsigned char ch) noexcept {
  * @return true if x is a space
  */
 constexpr bool isbracket(unsigned char c) noexcept {
-  return c == '(' or c == ')' or
-         c == '[' or c == ']' or
-         c == '{' or c == '}' or
+  return c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or
          c == '<' or c == '>';
 }
 

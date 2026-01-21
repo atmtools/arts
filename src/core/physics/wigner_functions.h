@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <iosfwd>
+#include <limits>
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1
@@ -97,7 +98,7 @@ std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
  *            d + e = - X -> X = - e - d
  * 
  * If there is no valid range, the function returns
- * {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED}
+ * {Rational{std::numeric_limits<Index>::max()}, Rational{std::numeric_limits<Index>::max()}}
  * 
  * @param[in] pos Position of value
  * @param[in] a An input
@@ -109,11 +110,11 @@ std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
  */
 template <Index pos>
 constexpr std::pair<Rational, Rational> wigner3j_limits(
-    [[maybe_unused]] const Rational a = 0,
-    [[maybe_unused]] const Rational b = 0,
-    [[maybe_unused]] const Rational c = 0,
-    [[maybe_unused]] const Rational d = 0,
-    [[maybe_unused]] const Rational e = 0)
+    [[maybe_unused]] const Rational a = Rational{0},
+    [[maybe_unused]] const Rational b = Rational{0},
+    [[maybe_unused]] const Rational c = Rational{0},
+    [[maybe_unused]] const Rational d = Rational{0},
+    [[maybe_unused]] const Rational e = Rational{0})
   requires(pos < 7 and pos > 0)
 {
   using std::swap;
@@ -123,13 +124,16 @@ constexpr std::pair<Rational, Rational> wigner3j_limits(
     std::pair<Rational, Rational> out{-maxX, a + b};
     if (out.first > out.second) swap(out.first, out.second);
     if (out.second > maxX) out.second = maxX;
-    if (out.first > maxX) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    if (out.first > maxX)
+      out = {Rational{std::numeric_limits<Index>::max()},
+             Rational{std::numeric_limits<Index>::lowest()}};
     return out;
   } else if constexpr (pos == 3) {
     const Rational maxX = a + b;
     const Rational minX = abs(a - b);
     if (maxX >= minX) return {minX, maxX};
-    return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    return {Rational{std::numeric_limits<Index>::max()},
+            Rational{std::numeric_limits<Index>::lowest()}};
   } else {
     const Rational lim = pos == 4   ? abs(a)
                          : pos == 5 ? abs(b)
@@ -137,7 +141,8 @@ constexpr std::pair<Rational, Rational> wigner3j_limits(
                                     /*pos == 6*/ abs(c);
     const Rational val = -e - d;
     if (-lim <= val and val <= lim) return {val, val};
-    return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    return {Rational{std::numeric_limits<Index>::max()},
+            Rational{std::numeric_limits<Index>::lowest()}};
   }
 }
 

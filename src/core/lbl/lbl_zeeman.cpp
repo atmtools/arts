@@ -83,7 +83,6 @@ Numeric case_b_g_coefficient_o2(Rational J,
   using Math::pow2, Math::pow3;
   using std::atan2, std::cos, std::sin;
 
-  if (J.isUndefined() or N.isUndefined()) return NAN;
   if (J == 0) return 0;
 
   auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) *
@@ -115,7 +114,6 @@ constexpr Numeric closed_shell_trilinear(Rational k,
                                          Numeric gperp,
                                          Numeric gpara) {
   using Math::pow2;
-  if (k.isUndefined() or j.isUndefined() or j == 0) return 0;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
 }  // namespace

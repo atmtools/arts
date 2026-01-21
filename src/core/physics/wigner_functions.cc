@@ -102,14 +102,7 @@ Numeric wigner6j(const Rational j1,
 
 std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
                                             std::pair<Rational, Rational> b) {
-  const bool invalid = a.first.isUndefined() or b.first.isUndefined();
-  if (invalid) return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
-
-  auto f = maxr(a.first, b.first);
-  auto s = minr(a.second, b.second);
-
-  if (f > s) return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
-  return {f, s};
+  return {maxr(a.first, b.first), minr(a.second, b.second)};
 }
 
 Index make_wigner_ready(int largest, [[maybe_unused]] int fastest, int size) {

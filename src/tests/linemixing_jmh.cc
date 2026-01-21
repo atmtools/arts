@@ -18,16 +18,32 @@ Numeric relaxation_matrix_element(const Index li,
                                   const Vector& ECS,
                                   const Vector& QL) {
   constexpr Index idl = 2;
-  Index Ldeb = std::max(std::abs(jji - jjip), std::abs(jjf - jjfp));
+  Index Ldeb          = std::max(std::abs(jji - jjip), std::abs(jjf - jjfp));
   if ((Ldeb % idl) not_eq 0) Ldeb += 1;
   const Index Lfin = std::min(jji + jjip, jjf + jjfp);
 
   Numeric som = 0.0;
   for (Index L = Ldeb; L <= Lfin; L += idl) {
-    Numeric RJ = wigner3j(jji, jjip, L, li, -li, 0);
-    const Numeric SS = RJ * QL[L] / ECS[L];
-    RJ = wigner3j(jjf, jjfp, L, lf, -lf, 0);
-    som += RJ * SS * wigner6j(jji, jjf, 1, jjfp, jjip, L);
+    Numeric RJ        = wigner3j(Rational{jji},
+                          Rational{jjip},
+                          Rational{L},
+                          Rational{li},
+                          Rational{-li},
+                          Rational{0});
+    const Numeric SS  = RJ * QL[L] / ECS[L];
+    RJ                = wigner3j(Rational{jjf},
+                  Rational{jjfp},
+                  Rational{L},
+                  Rational{lf},
+                  Rational{-lf},
+                  Rational{0});
+    som              += RJ * SS *
+           wigner6j(Rational{jji},
+                    Rational{jjf},
+                    Rational{1},
+                    Rational{jjfp},
+                    Rational{jjip},
+                    Rational{L});
   }
   const Numeric ROJ = Numeric(2 * jjip + 1) *
                       std::sqrt(Numeric((2 * jjf + 1) * (2 * jjfp + 1))) *
@@ -81,18 +97,18 @@ int main() try {
           // QL
           Vector QL(lmax + 1, 0);
           Vector ECS(lmax + 1, 0);
-          const Numeric AM = 1. / (1. / amasse[iPert] + 1. / 44.);
-          const Numeric ECT = 0.0006983 * AM * dx[2] * dx[2] / temp;
-          const Numeric AT = dx[1];
-          QL[0] = 0.;
-          ECS[0] = 1;
+          const Numeric AM    = 1. / (1. / amasse[iPert] + 1. / 44.);
+          const Numeric ECT   = 0.0006983 * AM * dx[2] * dx[2] / temp;
+          const Numeric AT    = dx[1];
+          QL[0]               = 0.;
+          ECS[0]              = 1;
           constexpr Index idl = 2;
-          const Numeric brot = 0.39;
+          const Numeric brot  = 0.39;
           const Numeric betaa = 1.4388 * brot / temp;
           for (Index L = 1; L <= lmax; L++) {
             const Numeric QMX = brot * Numeric((L + L + 1 - idl) * idl);
-            ECS[L] = FECS(QMX, ECT);
-            const auto AL2 = Numeric(L * L + L);
+            ECS[L]            = FECS(QMX, ECT);
+            const auto AL2    = Numeric(L * L + L);
             const Numeric SL0 =
                 AT / std::pow(AL2, dx[3]) * std::exp(-betaa * dx[4] * AL2);
             QL[L] = Numeric(L + L + 1) * SL0;
@@ -107,8 +123,8 @@ int main() try {
               Index jjf = jji + itypeR;
               if (jji >= li and jjf >= lf) {
                 nraies++;
-                ji[nraies] = jji;
-                jf[nraies] = jjf;
+                ji[nraies]    = jji;
+                jf[nraies]    = jjf;
                 typeR[nraies] = typerf[itypeR];
               }
             }

@@ -14,7 +14,6 @@ dependencies:
         - ipykernel
         - lark-parser
         - libboost-devel
-        - libopenblas=*=*openmp*
         - make
         - matplotlib
         - nanobind=2.9
@@ -22,6 +21,7 @@ dependencies:
         - netcdf4
         - ninja
         - numpy>=2
+        - openblas=*=*openmp*
         - pkg-config
         - python-build
         - requests

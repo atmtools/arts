@@ -72,7 +72,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   if (not n) return;
 
   // These are constant for a band
-  auto& l2     = bnd_qid.state.at(QuantumNumberType::l2);
+  auto& l2    = bnd_qid.state.at(QuantumNumberType::l2);
   Rational li = l2.upper;
   Rational lf = l2.lower;
 
@@ -98,15 +98,16 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                     ? atm.mean_mass()
                                     : atm.mean_mass(broadening_species),
                                 bnd_qid.isot.mass,
-                                erot(i),
-                                erot(i - 2));
+                                erot(Rational{i}),
+                                erot(Rational{i - 2}));
     return out;
   }();
 
   const auto Q = [&]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Q(i, atm.temperature, bnd.front().ls.T0, erot(i));
+      out[i] = rovib_data.Q(
+          Rational{i}, atm.temperature, bnd.front().ls.T0, erot(Rational{i}));
     return out;
   }();
 
@@ -134,9 +135,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
       Numeric sum = 0;
       for (; L <= Lf; L += 2) {
-        const Numeric a  = wig3(Ji_p, L, Ji, li, 0, -li);
-        const Numeric b  = wig3(Jf_p, L, Jf, lf, 0, -lf);
-        const Numeric c  = wig6(Ji, Jf, 1, Jf_p, Ji_p, L);
+        const Numeric a  = wig3(Ji_p, Rational{L}, Ji, li, Rational{0}, -li);
+        const Numeric b  = wig3(Jf_p, Rational{L}, Jf, lf, Rational{0}, -lf);
+        const Numeric c  = wig6(Ji, Jf, Rational{1}, Jf_p, Ji_p, Rational{L});
         sum             += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
       const Numeric ECS = Om[Ji.toIndex()];
@@ -171,12 +172,10 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       }
     }
 
-    const Rational Ji =
-        bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower;
+    const Rational Ji = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower;
     for (Size j = i + 1; j < n; j++) {
-      const Rational Jj = bnd.lines[sorting[j]]
-                              .qn.at(QuantumNumberType::J)
-                              .lower;
+      const Rational Jj =
+          bnd.lines[sorting[j]].qn.at(QuantumNumberType::J).lower;
       if (sumlw == 0) {
         W[j, i] = 0.0;
         W[i, j] = 0.0;
