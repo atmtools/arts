@@ -47,7 +47,7 @@ constexpr Rational Ml_begin(Rational,
     case ZeemanPolarization::sm:
     case ZeemanPolarization::pi:
     case ZeemanPolarization::sp: return -Jl;
-    case ZeemanPolarization::no: return 0;
+    case ZeemanPolarization::no: return Rational{0};
   }
   std::unreachable();
 }
@@ -73,7 +73,7 @@ constexpr Rational Ml_end(Rational,
     case ZeemanPolarization::sm:
     case ZeemanPolarization::pi:
     case ZeemanPolarization::sp: return Jl;
-    case ZeemanPolarization::no: return 0;
+    case ZeemanPolarization::no: return Rational{0};
   }
   std::unreachable();
 }

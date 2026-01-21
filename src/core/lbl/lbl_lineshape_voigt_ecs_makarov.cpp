@@ -36,7 +36,7 @@ Numeric wig6(const Rational& a,
 
 Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
   return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2 * Jl + 1) * (2 * Ju + 1)) *
-         wigner6j(1, 1, 1, Jl, Ju, N);
+         wigner6j(Rational{1}, Rational{1}, Rational{1}, Jl, Ju, N);
 };
 
 namespace {
@@ -50,11 +50,11 @@ namespace {
  * @return Rotational energy in Joule
  */
 template <bool rescale_pure_rotational = true>
-constexpr Numeric erot(const Rational N, const Rational j = -1) try {
+constexpr Numeric erot(const Rational N, const Rational j = Rational{-1}) try {
   const Rational J = j < 0 ? N : j;
 
   if constexpr (rescale_pure_rotational) {
-    return erot<false>(N, J) - erot<false>(1, 0);
+    return erot<false>(N, J) - erot<false>(Rational{1}, Rational{0});
   } else {
     using Conversion::mhz2joule;
     using Math::pow2;
@@ -130,15 +130,16 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
                                     ? atm.mean_mass()
                                     : atm.mean_mass(broadening_species),
                                 bnd_qid.isot.mass,
-                                erot(i),
-                                erot(i - 2));
+                                erot(Rational{i}),
+                                erot(Rational{i - 2}));
     return out;
   }();
 
   const auto Q = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Q(i, atm.temperature, bnd.front().ls.T0, erot(i));
+      out[i] = rovib_data.Q(
+          Rational{i}, atm.temperature, bnd.front().ls.T0, erot(Rational{i}));
     return out;
   }();
 
@@ -171,15 +172,17 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
                           bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
                           bk(Ji_p);
-      const auto [L0, L1] =
-          wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
-                        {Rational(2), std::numeric_limits<Index>::max()});
+      const auto [L0, L1] = wigner_limits(
+          wigner3j_limits<3>(Ni_p, Ni),
+          {Rational(2), Rational{std::numeric_limits<Index>::max()}});
       for (Rational L = L0; L <= L1; L += 2) {
-        const Numeric a = wig3(Ni_p, Ni, L, 0, 0, 0);
-        const Numeric b = wig3(Nf_p, Nf, L, 0, 0, 0);
+        const Numeric a =
+            wig3(Ni_p, Ni, L, Rational{0}, Rational{0}, Rational{0});
+        const Numeric b =
+            wig3(Nf_p, Nf, L, Rational{0}, Rational{0}, Rational{0});
         const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
         const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
-        const Numeric e = wig6(L, Ji, Ji_p, 1, Jf_p, Jf);
+        const Numeric e = wig6(L, Ji, Ji_p, Rational{1}, Jf_p, Jf);
         sum += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] /
                Om[L.toIndex()];
       }

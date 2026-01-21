@@ -19,7 +19,7 @@ concept quantum_value_holder =
     std::same_as<T, String> or std::same_as<T, Rational>;
 
 struct Value {
-  std::variant<Rational, String> value;
+  std::variant<Rational,String> value;
 
   Value();
 

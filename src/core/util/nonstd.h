@@ -22,12 +22,12 @@ constexpr T abs(T x) noexcept {
  * 
  * Reason to re-implement: factor 4 faster
  * 
- * @param[in] x Any real value type
+ * @param[in] x Any positive real value type
  * @return x^v
  */
 template <typename T, typename U>
-constexpr auto pow(T&& v, U&& x) {
-  return std::exp(std::forward<T>(x) * std::log(std::forward<U>(v)));
+constexpr auto pow(T&& x, U&& v) {
+  return std::exp(std::forward<T>(v) * std::log(std::forward<U>(x)));
 }
 
 /*! Checks if the given character in 0123456789.

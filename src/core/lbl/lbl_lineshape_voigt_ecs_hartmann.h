@@ -10,7 +10,7 @@ Numeric reduced_dipole(const Rational Jf,
                        const Rational Ji,
                        const Rational lf,
                        const Rational li,
-                       const Rational k = 1);
+                       const Rational k = Rational{1});
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
