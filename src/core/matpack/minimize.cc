@@ -153,7 +153,7 @@ struct T4 {
   int operator()(const InputType& p, ValueType& f) const {
     for (Index i = 0; i < m_values; i++) {
       const Numeric G  = T0 / T[i];
-      const Numeric GX = std::pow(G, p[2]);
+      const Numeric GX = nonstd::pow(G, p[2]);
       f[i]             = (p[0] + p[1] * (G - 1)) * GX - Y[i];
     }
     return 0;
@@ -168,7 +168,7 @@ struct T4 {
   int df(const InputType& p, JacobianType& J) const {
     for (Index i = 0; i < m_values; i++) {
       const Numeric G  = T0 / T[i];
-      const Numeric GX = std::pow(G, p[2]);
+      const Numeric GX = nonstd::pow(G, p[2]);
       J(i, 0)          = GX;
       J(i, 1)          = (G - 1) * GX;
       J(i, 2)          = (p[0] + p[1] * (G - 1)) * GX * std::log(G);
@@ -240,8 +240,8 @@ struct DPL {
   int operator()(const InputType& p, ValueType& f) const {
     for (Index i = 0; i < m_values; i++) {
       const Numeric G   = T0 / T[i];
-      const Numeric GX1 = std::pow(G, p[1]);
-      const Numeric GX3 = std::pow(G, p[3]);
+      const Numeric GX1 = nonstd::pow(G, p[1]);
+      const Numeric GX3 = nonstd::pow(G, p[3]);
       f[i]              = p[0] * GX1 + p[2] * GX3 - Y[i];
     }
     return 0;
@@ -257,8 +257,8 @@ struct DPL {
     for (Index i = 0; i < m_values; i++) {
       const Numeric G   = T0 / T[i];
       const Numeric lG  = std::log(G);
-      const Numeric GX1 = std::pow(G, p[1]);
-      const Numeric GX3 = std::pow(G, p[3]);
+      const Numeric GX1 = nonstd::pow(G, p[1]);
+      const Numeric GX3 = nonstd::pow(G, p[3]);
       J(i, 0)           = GX1;
       J(i, 1)           = p[0] * GX1 * lG;
       J(i, 2)           = GX3;
@@ -277,7 +277,7 @@ struct DPL {
   }
 };
 
-namespace{
+namespace {
 bool goodStatus(int status) {
   return status != Eigen::LevenbergMarquardtSpace::ImproperInputParameters;
 }

@@ -445,7 +445,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 
   // Scale matrix
   F  = A;
-  F /= pow(2, j);
+  F /= nonstd::pow(2.0, j);
 
   /* The higher q the more accurate is the computation,
      see user guide for accuracy */
@@ -464,7 +464,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
     cX  = X;
     cX *= c;             // cX = X*c
     N  += cX;            // N = N + X*c
-    cX *= pow(-1, k_n);  // cX = (-1)^k*c*X
+    cX *= nonstd::pow(-1, k_n);  // cX = (-1)^k*c*X
     D  += cX;            // D = D + (-1)^k*c*X
   }
 

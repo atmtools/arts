@@ -214,7 +214,7 @@ void nlogspace(Vector& x,
   Numeric a    = log(start);
   Numeric step = (log(stop) - a) / ((double)n - 1);
   x[0]         = start;
-  for (Index i = 1; i < n - 1; i++) x[i] = exp(a + (double)i * step);
+  for (Index i = 1; i < n - 1; i++) x[i] = std::exp(a + (double)i * step);
   x[n - 1] = stop;
 }
 
@@ -303,7 +303,8 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
 
     for (Index j = 0; j < m - 1; ++j) {
       res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
-                 (azi_grid[j + 1] - azi_grid[j]) * sin(zen_grid[i] * DEG2RAD);
+                 (azi_grid[j + 1] - azi_grid[j]) *
+                 std::sin(zen_grid[i] * DEG2RAD);
     }
   }
   Numeric res = 0.0;
@@ -355,7 +356,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
         temp += Integrand[i, j] * 2;
       }
       temp    += Integrand[i, m - 1];
-      temp    *= 0.5 * DEG2RAD * stepsize_aa * sin(zen_grid[i] * DEG2RAD);
+      temp    *= 0.5 * DEG2RAD * stepsize_aa * std::sin(zen_grid[i] * DEG2RAD);
       res1[i]  = temp;
     }
 
@@ -396,8 +397,8 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
   for (Index i = 0; i < n - 1; ++i) {
     // in this place 0.5 * 2 * PI is calculated:
     res += PI * DEG2RAD *
-           (Integrand[i] * sin(zen_grid[i] * DEG2RAD) +
-            Integrand[i + 1] * sin(zen_grid[i + 1] * DEG2RAD)) *
+           (Integrand[i] * std::sin(zen_grid[i] * DEG2RAD) +
+            Integrand[i + 1] * std::sin(zen_grid[i + 1] * DEG2RAD)) *
            (zen_grid[i + 1] - zen_grid[i]);
   }
 
@@ -471,7 +472,7 @@ Index int_at_step(const Numeric gp, const Index step) {
 /*! Modified gamma distribution
  *  
  *  Uses all four free parameters (n0, mu, la, ga) to calculate
- *    psd(D) = n0 * D^mu * exp( -la * x^ga )
+ *    psd(D) = n0 * D^mu * std::exp( -la * x^ga )
  *  
  *  Reference: Eq 1 of Petty & Huang, JAS, (2011).
 
@@ -499,9 +500,9 @@ void mgd(VectorView psd,
 
   if (ga == 1) {
     if (mu == 0) {
-      // Exponential distribution
+      // std::Exponential distribution
       for (Size ix = 0; ix < nx; ix++) {
-        const Numeric eterm = exp(-la * x[ix]);
+        const Numeric eterm = std::exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
       }
     } else {
@@ -511,10 +512,10 @@ void mgd(VectorView psd,
                          mu)
       // Gamma distribution
       for (Size ix = 0; ix < nx; ix++) {
-        const Numeric eterm = exp(-la * x[ix]);
-        const Numeric xterm = pow(x[ix], mu);
+        const Numeric eterm = std::exp(-la * x[ix]);
+        const Numeric xterm = nonstd::pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
-        psd[ix]             = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
+        psd[ix] = n0 * nonstd::pow(x[ix], mu) * std::exp(-la * x[ix]);
       }
     }
   } else {
@@ -528,9 +529,9 @@ void mgd(VectorView psd,
                        "Seems unreasonable. Have you mixed up the inputs?",
                        ga)
     for (Size ix = 0; ix < nx; ix++) {
-      const Numeric pterm = pow(x[ix], ga);
-      const Numeric eterm = exp(-la * pterm);
-      const Numeric xterm = pow(x[ix], mu);
+      const Numeric pterm = nonstd::pow(x[ix], ga);
+      const Numeric eterm = std::exp(-la * pterm);
+      const Numeric xterm = nonstd::pow(x[ix], mu);
       psd[ix]             = n0 * xterm * eterm;
     }
   }
@@ -579,9 +580,9 @@ void mgd_with_derivatives(VectorView psd,
 
   if (ga == 1 && !do_ga_jac) {
     if (mu == 0 && !do_mu_jac) {
-      // Exponential distribution
+      // std::Exponential distribution
       for (Size ix = 0; ix < nx; ix++) {
-        const Numeric eterm = exp(-la * x[ix]);
+        const Numeric eterm = std::exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
         if (do_n0_jac) {
           jac_data[0, ix] = eterm;
@@ -597,19 +598,19 @@ void mgd_with_derivatives(VectorView psd,
                          mu)
       // Gamma distribution
       for (Size ix = 0; ix < nx; ix++) {
-        const Numeric eterm = exp(-la * x[ix]);
-        const Numeric xterm = pow(x[ix], mu);
+        const Numeric eterm = std::exp(-la * x[ix]);
+        const Numeric xterm = nonstd::pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
         if (do_n0_jac) {
           jac_data[0, ix] = xterm * eterm;
         }
         if (do_mu_jac) {
-          jac_data[1, ix] = log(x[ix]) * psd[ix];
+          jac_data[1, ix] = std::log(x[ix]) * psd[ix];
         }
         if (do_la_jac) {
           jac_data[2, ix] = -x[ix] * psd[ix];
         }
-        psd[ix] = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
+        psd[ix] = n0 * nonstd::pow(x[ix], mu) * std::exp(-la * x[ix]);
       }
     }
   } else {
@@ -623,21 +624,21 @@ void mgd_with_derivatives(VectorView psd,
                        "Seems unreasonable. Have you mixed up the inputs?",
                        ga)
     for (Size ix = 0; ix < nx; ix++) {
-      const Numeric pterm = pow(x[ix], ga);
-      const Numeric eterm = exp(-la * pterm);
-      const Numeric xterm = pow(x[ix], mu);
+      const Numeric pterm = nonstd::pow(x[ix], ga);
+      const Numeric eterm = std::exp(-la * pterm);
+      const Numeric xterm = nonstd::pow(x[ix], mu);
       psd[ix]             = n0 * xterm * eterm;
       if (do_n0_jac) {
         jac_data[0, ix] = xterm * eterm;
       }
       if (do_mu_jac) {
-        jac_data[1, ix] = log(x[ix]) * psd[ix];
+        jac_data[1, ix] = std::log(x[ix]) * psd[ix];
       }
       if (do_la_jac) {
         jac_data[2, ix] = -pterm * psd[ix];
       }
       if (do_ga_jac) {
-        jac_data[3, ix] = -la * pterm * log(x[ix]) * psd[ix];
+        jac_data[3, ix] = -la * pterm * std::log(x[ix]) * psd[ix];
       }
     }
   }
@@ -648,18 +649,19 @@ void delanoe_shape_with_derivative(VectorView psd,
                                    const Vector& x,
                                    const Numeric& alpha,
                                    const Numeric& beta) {
-  Numeric f_c  = tgamma(4.0) / 256.0;
-  f_c         *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
-  f_c         /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
+  Numeric f_c  = std::tgamma(4.0) / 256.0;
+  f_c         *= nonstd::pow(std::tgamma((alpha + 5.0) / beta), 4 + alpha);
+  f_c         /= nonstd::pow(std::tgamma((alpha + 4.0) / beta), 5 + alpha);
 
-  Numeric f_d  = tgamma((alpha + 5.0) / beta);
-  f_d         /= tgamma((alpha + 4.0) / beta);
+  Numeric f_d  = std::tgamma((alpha + 5.0) / beta);
+  f_d         /= std::tgamma((alpha + 4.0) / beta);
 
   for (Size i = 0; i < x.size(); ++i) {
     Numeric xi = x[i];
-    psd[i]     = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
+    psd[i]     = beta * f_c * nonstd::pow(xi, alpha) *
+             std::exp(-nonstd::pow(f_d * xi, beta));
     jac_data[0, i] =
-        psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
+        psd[i] * (alpha / xi - beta * f_d * nonstd::pow(f_d * xi, beta - 1.0));
   }
 }
 
@@ -683,7 +685,7 @@ Numeric mod_gamma_dist(
 
   if (x > 0. && N0 > 0. && Lambda > 0. && (mu + 1) / gamma > 0.) {
     //Distribution function
-    dN = N0 * pow(x, mu) * exp(-Lambda * pow(x, gamma));
+    dN = N0 * nonstd::pow(x, mu) * std::exp(-Lambda * nonstd::pow(x, gamma));
 
     return dN;
   }
@@ -721,7 +723,7 @@ Numeric mod_gamma_dist(
 void unitl(Vector& x) {
   assert(x.size() > 0);
 
-  const Numeric l = sqrt(dot(x, x));
+  const Numeric l = std::sqrt(dot(x, x));
   for (Size i = 0; i < x.size(); i++) x[i] /= l;
 }
 

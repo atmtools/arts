@@ -327,43 +327,51 @@ constexpr bool iseven(const Rational r) noexcept {
 
 /** Multiplication with numeric */
 constexpr Numeric operator*(Rational y, Numeric x) noexcept {
-  return y.toNumeric() * x;
+  return static_cast<Numeric>(y) * x;
 }
 constexpr Numeric operator*(Numeric x, Rational y) noexcept {
-  return x * y.toNumeric();
+  return x * static_cast<Numeric>(y);
 }
 
 /** Division with numeric */
 constexpr Numeric operator/(Rational y, Numeric x) noexcept {
-  return y.toNumeric() / x;
+  return static_cast<Numeric>(y) / x;
 }
 constexpr Numeric operator/(Numeric x, Rational y) noexcept {
-  return x / y.toNumeric();
+  return x / static_cast<Numeric>(y);
 }
 
 /** Addition with numeric */
 constexpr Numeric operator+(Rational y, Numeric x) noexcept {
-  return y.toNumeric() + x;
+  return static_cast<Numeric>(y) + x;
 }
 constexpr Numeric operator+(Numeric x, Rational y) noexcept {
-  return x + y.toNumeric();
+  return x + static_cast<Numeric>(y);
 }
 
 /** Subtraction with numeric */
 constexpr Numeric operator-(Rational y, Numeric x) noexcept {
-  return y.toNumeric() - x;
+  return static_cast<Numeric>(y) - x;
 }
 constexpr Numeric operator-(Numeric x, Rational y) noexcept {
-  return x - y.toNumeric();
+  return x - static_cast<Numeric>(y);
 }
 
-Numeric sqrt(const Rational r);
+inline Numeric sqrtr(const Rational r) {
+  return std::sqrt(static_cast<Numeric>(r));
+}
 
-Numeric pow(const Rational base, Numeric exp);
+inline Numeric powr(const Rational base, Numeric exp) {
+  return nonstd::pow(static_cast<Numeric>(base), exp);
+}
 
-Numeric pow(Numeric base, const Rational exp);
+inline Numeric powr(Numeric base, const Rational exp) {
+  return nonstd::pow(base, static_cast<Numeric>(exp));
+}
 
-Numeric pow(const Rational base, const Rational exp);
+inline Numeric powr(const Rational base, const Rational exp) {
+  return powr(base, static_cast<Numeric>(exp));
+}
 
 template <>
 struct std::formatter<Rational> {

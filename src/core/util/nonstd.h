@@ -2,7 +2,6 @@
 #define nonstd_h
 
 #include <cmath>
-#include <utility>
 
 /*! For std functions that are changed somehow */
 namespace nonstd {
@@ -26,8 +25,9 @@ constexpr T abs(T x) noexcept {
  * @return x^v
  */
 template <typename T, typename U>
-constexpr auto pow(T&& x, U&& v) {
-  return std::exp(std::forward<T>(v) * std::log(std::forward<U>(x)));
+constexpr auto pow(const T& x, const U& v) {
+  return std::signbit(x) ? -std::exp(v * std::log(abs(x)))
+                         : std::exp(v * std::log(x));
 }
 
 /*! Checks if the given character in 0123456789.

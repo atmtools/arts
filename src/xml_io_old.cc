@@ -127,10 +127,10 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
       // Fix if tgam is different from ti0
       if (tgam != output.data.ls.T0) {
-        agam = agam * pow(tgam / output.data.ls.T0, nair);
-        sgam = sgam * pow(tgam / output.data.ls.T0, nself);
-        psf  = psf *
-              pow(tgam / output.data.ls.T0, (Numeric).25 + (Numeric)1.5 * nair);
+        agam = agam * nonstd::pow(tgam / output.data.ls.T0, nair);
+        sgam = sgam * nonstd::pow(tgam / output.data.ls.T0, nself);
+        psf  = psf * nonstd::pow(tgam / output.data.ls.T0,
+                                (Numeric).25 + (Numeric)1.5 * nair);
       }
 
       // Set line shape computer

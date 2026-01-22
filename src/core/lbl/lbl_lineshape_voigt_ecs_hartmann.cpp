@@ -54,8 +54,8 @@ Numeric reduced_dipole(const Rational Jf,
                        const Rational li,
                        const Rational k) {
   if (not iseven(Jf + lf + 1))
-    return -sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  return +sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+    return -sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+  return +sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
 }
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
@@ -142,7 +142,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       }
       const Numeric ECS = Om[Ji.toIndex()];
       const Numeric scl = sgn * ECS * Numeric(2 * Ji_p + 1) *
-                          sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
+                          sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
 
       // Add to W and rescale to upwards element by the populations
