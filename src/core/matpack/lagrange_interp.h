@@ -18,6 +18,7 @@
 #include "matpack_mdspan_common_types.h"
 
 namespace lagrange_interp {
+namespace {
 /*! Defines a transformer concept
  *
  * A transformer is a type that can be used to transform a numeric value
@@ -34,7 +35,7 @@ namespace lagrange_interp {
  *
  * where f is the transformation function defined as:
  *
- *   [constexpr] Numeric operator()(Numeric x) const [noexcept].
+ *   [static] [constexpr] Numeric operator()(Numeric x) [noexcept].
  *
  * The transformer is also responsible for cyclicity of a grid.  The transformation is considered
  * cyclic if the transformer defines the member methods:
@@ -97,10 +98,11 @@ concept fully_constant_lagrange_type_list =
 template <typename T>
 concept runtime_lagrange_type_list =
     lagrange_type_list<T> and not constant_lagrange_type_list<T>;
+}  // namespace
 
 //!  A transformer that does not transform the value
 struct identity {
-  constexpr Numeric operator()(Numeric x) const noexcept { return x; }
+  static constexpr Numeric operator()(Numeric x) noexcept { return x; }
 };
 
 /*! A transformer that cycles the value to the range [lower, upper)
@@ -113,14 +115,17 @@ struct identity {
 template <Numeric lower, Numeric upper>
   requires(lower < upper)
 struct cycler {
-  static consteval Numeric midpoint() { return std::midpoint(upper, lower); }
-  static consteval Numeric cycle() { return upper - lower; }
+  static consteval Numeric midpoint() noexcept {
+    return std::midpoint(upper, lower);
+  }
+
+  static consteval Numeric cycle() noexcept { return upper - lower; }
 
   static constexpr Numeric cycle(Numeric x) noexcept {
     return x + ((x < lower) - (x >= upper)) * cycle();
   }
 
-  constexpr Numeric operator()(Numeric x) const noexcept { return x; }
+  static constexpr Numeric operator()(Numeric x) noexcept { return x; }
 };
 
 //! [-180, 180) cycler
@@ -136,6 +141,7 @@ struct ascending_grid_t {};
 
 struct descending_grid_t {};
 
+namespace {
 using order_t = std::variant<ascending_grid_t, descending_grid_t>;
 
 template <typename T>
@@ -266,7 +272,7 @@ constexpr void find_pos(std::span<Index, X> indx,
   if constexpr (cyclic<transform>) x = transform::cycle(x);
 
   constexpr auto fractional_index =
-      [](Numeric x, Numeric x0, Numeric x1, Index n) {
+      [](Numeric x, Numeric x0, Numeric x1, Index n) static {
         const Numeric frac = (x - x0) / (x1 - x0);
         const Index p0     = static_cast<Index>(frac * (Numeric)(n));
         return std::clamp<Index>(p0, 0, n);
@@ -431,6 +437,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
   data[N] = 1.0;
   for (Size j = 0; j < N; ++j) data[N] -= data[j];
 }
+}  // namespace
 
 /******************************************************************
  * The core type for Lagrange interpolation
@@ -680,12 +687,12 @@ constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
                          std::span<const Numeric, Extent> xn,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") {
-  constexpr bool dynamic_extent = Extent == std::dynamic_extent;
+  constexpr bool has_dynamic_extent = Extent == std::dynamic_extent;
 
   const order_t order =
       check_limit<transform, Extent>(xi, xn, extrapolation_limit, N, info);
 
-  if constexpr (dynamic_extent) {
+  if constexpr (has_dynamic_extent) {
     std::vector<FlagT> lags;
     lags.reserve(xn.size());
 
@@ -851,6 +858,7 @@ constexpr auto make_lags(const Orig& xi,
  * Index manipulation
  ******************************************************************/
 
+namespace {
 //! Does not support 0-size.  Return early if size is 0.
 template <typename Indx, Size N>
 constexpr void inc(std::array<Indx, N>& s, const std::array<Indx, N>& n) {
@@ -879,6 +887,7 @@ template <fully_constant_lagrange_type_list T>
 consteval Size inner_size() {
   return T::value_type::size();
 }
+}  // namespace
 
 /******************************************************************
  * Interpolation

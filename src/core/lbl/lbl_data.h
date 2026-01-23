@@ -314,7 +314,7 @@ Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 //! Support hashing of line keys
 template <>
 struct std::hash<lbl::line_key> {
-  Size operator()(const lbl::line_key& x) const {
+  static std::size_t operator()(const lbl::line_key& x) {
     std::size_t seed = 0;
 
     boost::hash_combine(seed, std::hash<QuantumIdentifier>{}(x.band));

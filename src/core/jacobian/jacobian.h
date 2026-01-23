@@ -34,7 +34,7 @@ struct ErrorKey {
 
 template <>
 struct std::hash<ErrorKey> {
-  std::size_t operator()(const ErrorKey& g) const {
+  static std::size_t operator()(const ErrorKey& g) {
     std::size_t seed = 0;
     boost::hash_combine(seed, g.y_start);
     boost::hash_combine(seed, g.y_size);
@@ -409,7 +409,7 @@ struct std::formatter<ErrorKey> {
 
 template <>
 struct std::hash<JacobianTargetType> {
-  std::size_t operator()(const JacobianTargetType& g) const {
+  static std::size_t operator()(const JacobianTargetType& g) {
     return std::hash<JacobianTargetType::variant_t>{}(g.target);
   }
 };

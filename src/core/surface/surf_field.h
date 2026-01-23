@@ -20,7 +20,7 @@ struct SurfacePropertyTag {
 namespace std {
 template <>
 struct hash<SurfacePropertyTag> {
-  std::size_t operator()(const SurfacePropertyTag &pp) const noexcept {
+  static std::size_t operator()(const SurfacePropertyTag &pp) noexcept {
     return std::hash<String>{}(pp.name);
   }
 };

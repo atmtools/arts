@@ -62,7 +62,7 @@ namespace std {
 //! Allow SpeciesTag to be used in hashes
 template <>
 struct hash<SpeciesTag> {
-  std::size_t operator()(const SpeciesTag& g) const {
+  static std::size_t operator()(const SpeciesTag& g) {
     std::size_t seed = 0;
 
     boost::hash_combine(seed, std::hash<Index>{}(g.spec_ind));

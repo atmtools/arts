@@ -19,7 +19,7 @@ concept quantum_value_holder =
     std::same_as<T, String> or std::same_as<T, Rational>;
 
 struct Value {
-  std::variant<Rational,String> value;
+  std::variant<Rational, String> value;
 
   Value();
 
@@ -256,7 +256,7 @@ using ArrayOfQuantumLevelIdentifier = Array<QuantumLevelIdentifier>;
 
 template <>
 struct std::hash<Quantum::Value> {
-  std::size_t operator()(const Quantum::Value& g) const {
+  static std::size_t operator()(const Quantum::Value& g) {
     if (auto* ptr = std::get_if<String>(&g.value))
       return std::hash<String>{}(*ptr);
     if (auto* ptr = std::get_if<Rational>(&g.value)) {
@@ -273,7 +273,7 @@ struct std::hash<Quantum::Value> {
 
 template <>
 struct std::hash<Quantum::UpperLower> {
-  std::size_t operator()(const Quantum::UpperLower& g) const {
+  static std::size_t operator()(const Quantum::UpperLower& g) {
     std::size_t seed{};
 
     boost::hash_combine(seed, std::hash<Quantum::Value>{}(g.upper));
@@ -285,7 +285,7 @@ struct std::hash<Quantum::UpperLower> {
 
 template <>
 struct std::hash<QuantumLevel> {
-  std::size_t operator()(const QuantumLevel& g) const {
+  static std::size_t operator()(const QuantumLevel& g) {
     std::size_t seed{};
 
     // Has to be ordered or it will affect the hash
@@ -302,7 +302,7 @@ struct std::hash<QuantumLevel> {
 
 template <>
 struct std::hash<QuantumState> {
-  std::size_t operator()(const QuantumState& g) const {
+  static std::size_t operator()(const QuantumState& g) {
     std::size_t seed{};
 
     // Has to be ordered or it will affect the hash
@@ -320,7 +320,7 @@ struct std::hash<QuantumState> {
 
 template <>
 struct std::hash<QuantumLevelIdentifier> {
-  std::size_t operator()(const QuantumLevelIdentifier& g) const {
+  static std::size_t operator()(const QuantumLevelIdentifier& g) {
     std::size_t seed{};
 
     boost::hash_combine(seed, g.isot.spec);
@@ -333,7 +333,7 @@ struct std::hash<QuantumLevelIdentifier> {
 
 template <>
 struct std::hash<QuantumIdentifier> {
-  std::size_t operator()(const QuantumIdentifier& g) const {
+  static std::size_t operator()(const QuantumIdentifier& g) {
     std::size_t seed{};
 
     boost::hash_combine(seed, g.isot.spec);
