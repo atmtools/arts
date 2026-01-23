@@ -22,11 +22,11 @@
 #include <vector>
 
 bool AtmPoint::zero_wind() const noexcept {
-  return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
+  return stdr::all_of(wind, Cmp::eq<0>());
 }
 
 bool AtmPoint::zero_mag() const noexcept {
-  return std::all_of(mag.begin(), mag.end(), Cmp::eq(0));
+  return stdr::all_of(mag, Cmp::eq<0>());
 }
 
 void Atm::Data::adjust_interpolation_extrapolation() {

@@ -112,9 +112,9 @@ void spectral_propmat_jacWindFix(PropmatMatrix& spectral_propmat_jac,
 
   using enum AtmKey;
 
-  constexpr auto is_wind_u = Cmp::eq(wind_u);
-  constexpr auto is_wind_v = Cmp::eq(wind_v);
-  constexpr auto is_wind_w = Cmp::eq(wind_w);
+  constexpr auto is_wind_u = Cmp::eq<wind_u>();
+  constexpr auto is_wind_v = Cmp::eq<wind_v>();
+  constexpr auto is_wind_w = Cmp::eq<wind_w>();
 
   const auto& atm = jac_targets.atm;
 

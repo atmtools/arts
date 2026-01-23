@@ -261,7 +261,7 @@ constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
 
 template <any_md Self>
 constexpr bool any_negative(const Self& self) {
-  return stdr::any_of(elemwise_range(self), Cmp::lt(value_type<Self>{}));
+  return stdr::any_of(elemwise_range(self), Cmp::lt<value_type<Self>{}>());
 }
 
 template <any_md Self>

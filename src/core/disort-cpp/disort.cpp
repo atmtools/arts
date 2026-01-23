@@ -542,7 +542,7 @@ void main_data::set_beam_source(const Numeric I0_) {
 
   has_beam_source = I0_ > 0;
 
-  if (stdr::all_of(elemwise_range(b_pos), Cmp::eq(0)) and
+  if (stdr::all_of(elemwise_range(b_pos), Cmp::eq<0>()) and
       not has_source_poly and has_beam_source) {
     I0_orig = I0_;
     I0      = 1;

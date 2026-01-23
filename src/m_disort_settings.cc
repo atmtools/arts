@@ -468,7 +468,7 @@ void disort_settingsOpticalThicknessFromPath(
   ARTS_USER_ERROR_IF(stdr::any_of(spectral_propmat_path,
                                   [](const PropmatVector& pms) {
                                     return stdr::any_of(pms,
-                                                        Cmp::eq(true),
+                                                        Cmp::eq<true>(),
                                                         &Propmat::is_polarized);
                                   }),
                      "No implementation for polarized propagation matrices.");
@@ -482,7 +482,7 @@ void disort_settingsOpticalThicknessFromPath(
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le(0.0)),
+  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
                      R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
@@ -545,7 +545,7 @@ void disort_settingsSubsurfaceScalarAbsorption(
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le(0.0)),
+  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
                      R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
