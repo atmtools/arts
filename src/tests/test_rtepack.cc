@@ -7,6 +7,7 @@
 #include "artstime.h"
 #include "configtypes.h"
 #include "lin_alg.h"
+#include "rtepack_transmission.h"
 
 void test_expm() {
   const Numeric A = 0.01;
@@ -14,44 +15,19 @@ void test_expm() {
     auto rng = RandomNumberGenerator{}.get(0.0, A);
     auto rng2 = RandomNumberGenerator{}.get(-A, A);
 
-    Muelmat t_test;
-    MuelmatVector dt;
-
     const Propmat k{rng(), rng2(), rng2(), rng2(), rng2(), rng2(), rng2()};
-    for (auto& a : k.data) std::cout << -a << ',';
-    std::cout << '\n';
+    std::println("{:B,}", k);
 
-    const PropmatVector dk;
-    const Vector dr;
-
-    Matrix k_expm = Vector{k.A(),
-                           k.B(),
-                           k.C(),
-                           k.D(),
-                           k.B(),
-                           k.A(),
-                           k.U(),
-                           k.V(),
-                           k.C(),
-                           -k.U(),
-                           k.A(),
-                           k.W(),
-                           k.D(),
-                           -k.V(),
-                           -k.W(),
-                           k.A()}
-                        .reshape(4, 4);
+    Matrix k_expm = to_matrix(k);
     k_expm *= -1;
     Matrix t_expm(4, 4);
 
     matrix_exp(t_expm, k_expm, 80);
+    auto m = rtepack::tran(k, k, 1)();
+    auto mmat = Matrix(m);
+    mmat -= t_expm;
 
-    Matrix t_test_diff = Vector{t_test.data}.reshape(4, 4);
-
-    t_test_diff -= t_expm;
-    t_test_diff /= t_expm;
-    std::cout << std::format("{}", t_test_diff) << '\n';
-    std::cout << '\n';
+    std::println("{:B,}\n{:B,}\n{:B,}\n", t_expm, Matrix(m), mmat);
   }
 }
 

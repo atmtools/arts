@@ -8,7 +8,7 @@ Numeric species_data::Q(const Rational J,
                         const Numeric T0,
                         const Numeric energy) const {
   return std::exp(-beta(T0, T) * energy / (Constant::k * T)) * scaling(T0, T) /
-         pow(J * (J + 1), lambda(T0, T));
+         powr(J * (J + 1), lambda(T0, T));
 }
 
 Numeric species_data::Omega(const Numeric T,

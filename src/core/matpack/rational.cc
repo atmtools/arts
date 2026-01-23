@@ -49,20 +49,6 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec = 4) noexcept {
 }
 }  // namespace
 
-Numeric sqrt(const Rational r) { return std::sqrt(r.toNumeric()); }
-
-Numeric pow(const Rational base, Numeric exp) {
-  return std::pow(base.toNumeric(), exp);
-}
-
-Numeric pow(Numeric base, const Rational exp) {
-  return std::pow(base, exp.toNumeric());
-}
-
-Numeric pow(const Rational base, const Rational exp) {
-  return pow(base, exp.toNumeric());
-}
-
 std::ostream& operator<<(std::ostream& os, const Rational& a) {
   Rational r = Rational::reduce_by_gcd(a);
   r          = fixSign(r);

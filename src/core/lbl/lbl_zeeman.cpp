@@ -86,7 +86,7 @@ Numeric case_b_g_coefficient_o2(Rational J,
   if (J == 0) return 0;
 
   auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) *
-             (2 * sqrt(J * J + J) / (2 * J + 1));
+             (2 * sqrtr(J * J + J) / (2 * J + 1));
 
   auto denom =
       B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +

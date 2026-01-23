@@ -35,7 +35,7 @@ Numeric wig6(const Rational& a,
 }  // namespace
 
 Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
-  return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2 * Jl + 1) * (2 * Ju + 1)) *
+  return (iseven(Jl + N) ? 1 : -1) * sqrtr(6 * (2 * Jl + 1) * (2 * Ju + 1)) *
          wigner6j(Rational{1}, Rational{1}, Rational{1}, Jl, Ju, N);
 };
 
@@ -109,7 +109,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   if (bnd.size() == 0) return;
 
-  const auto bk = [](const Rational& r) -> Numeric { return sqrt(2 * r + 1); };
+  const auto bk = [](const Rational& r) -> Numeric { return sqrtr(2 * r + 1); };
 
   const auto n = bnd.size();
 
