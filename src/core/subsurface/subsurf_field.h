@@ -16,7 +16,7 @@ struct SubsurfacePropertyTag {
 namespace std {
 template <>
 struct hash<SubsurfacePropertyTag> {
-  std::size_t operator()(const SubsurfacePropertyTag &pp) const noexcept {
+  static std::size_t operator()(const SubsurfacePropertyTag &pp) noexcept {
     return std::hash<String>{}(pp.name);
   }
 };

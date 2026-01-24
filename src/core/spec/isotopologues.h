@@ -846,7 +846,7 @@ consteval Index operator""_isot_index(const char* x, std::size_t) {
 
 template <>
 struct std::hash<SpeciesIsotope> {
-  std::size_t operator()(const SpeciesIsotope& g) const {
+  static std::size_t operator()(const SpeciesIsotope& g) {
     return static_cast<std::size_t>(find_species_index(g));
   }
 };

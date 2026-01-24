@@ -37,7 +37,7 @@ struct SpeciesEnumPair {
 // Hash specialization for SpeciesEnumPair
 template <>
 struct std::hash<SpeciesEnumPair> {
-  std::size_t operator()(const SpeciesEnumPair& pair) const noexcept {
+  static std::size_t operator()(const SpeciesEnumPair& pair) noexcept {
     return std::hash<SpeciesEnum>{}(pair.spec1) ^
            (std::hash<SpeciesEnum>{}(pair.spec2) << sizeof(SpeciesEnum));
   }

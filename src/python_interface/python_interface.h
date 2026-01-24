@@ -106,7 +106,7 @@ const T& select_gin(const ValueHolder<T>* const x, const T& defval) {
 
 template <typename T>
 struct std::hash<Python::ValueHolder<T>> {
-  std::size_t operator()(const Python::ValueHolder<T>& x) const {
+  static std::size_t operator()(const Python::ValueHolder<T>& x) {
     return std::hash<T>{}(x->val);
   }
 };

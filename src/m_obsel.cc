@@ -57,7 +57,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel& measurement_sensor,
   ARTS_USER_ERROR_IF(n < 2, "Must have a frequency grid")
   ARTS_USER_ERROR_IF(n != stds.size(),
                      "Must have a standard deviation for each frequency point")
-  ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le(0)),
+  ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le<0.0>()),
                      "Standard deviation must be positive.\nstds := {:B,}",
                      stds)
   ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")

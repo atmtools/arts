@@ -35,7 +35,7 @@ struct ScatteringSpeciesProperty {
 namespace std {
 template <>
 struct hash<ScatteringSpeciesProperty> {
-  std::size_t operator()(const ScatteringSpeciesProperty& ssp) const {
+  static std::size_t operator()(const ScatteringSpeciesProperty& ssp) {
     std::size_t seed = 0;
     boost::hash_combine(seed, ssp.species_name);
     boost::hash_combine(seed, ssp.pproperty);

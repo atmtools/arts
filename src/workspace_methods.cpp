@@ -28,11 +28,11 @@ bool WorkspaceMethodInternalRecord::has_any() const {
 
 bool WorkspaceMethodInternalRecord::has_overloads() const {
   for (auto& str : gout_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+    if (stdr::any_of(str, Cmp::eq<','>())) return true;
   }
 
   for (auto& str : gin_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+    if (stdr::any_of(str, Cmp::eq<','>())) return true;
   }
 
   return false;
@@ -75,7 +75,7 @@ std::string WorkspaceMethodInternalRecord::docstring() const try {
 
 std::vector<std::vector<std::string>>
 WorkspaceMethodInternalRecord::generic_overloads() const {
-  const auto cmp = Cmp::eq(',');
+  const auto cmp = Cmp::eq<','>();
 
   std::vector<std::vector<std::string>> genvar;
 

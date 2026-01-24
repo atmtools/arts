@@ -172,7 +172,7 @@ struct SensorKey {
 
 template <>
 struct std::hash<SensorKey> {
-  std::size_t operator()(const SensorKey& g) const {
+  static std::size_t operator()(const SensorKey& g) {
     std::size_t seed = 0;
     boost::hash_combine(seed, std::hash<SensorKeyType>{}(g.type));
     boost::hash_combine(seed, std::hash<Index>{}(g.sensor_elem));

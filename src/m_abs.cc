@@ -288,9 +288,8 @@ void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
   }
 
   //spectral_propmatAddFaraday
-  if (stdr::any_of(abs_species, [](auto& spec) {
-        return spec.Spec() == "free_electrons"_spec;
-      })) {
+  if (stdr::any_of(
+          abs_species, Cmp::eq<"free_electrons"_spec>(), &SpeciesTag::Spec)) {
     agenda.add("spectral_propmatAddFaraday");
   }
 
