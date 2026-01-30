@@ -154,7 +154,7 @@ int main() {
   {
     constexpr Index M = 10'000'000;
     constexpr Index n = 4;
-    const Matrix x    = random_numbers(std::array<Index, 2>{M, n}, 0.0, 1.0);
+    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
 
     std::println("{}", lbl_temperature_t0(x));
     std::println("{}", lbl_temperature_t1(x));
@@ -172,7 +172,7 @@ int main() {
     std::vector<lbl::line> lines(M);
 
     constexpr Index n = 5;
-    const Matrix x    = random_numbers(std::array<Index, 2>{M, n}, 0.0, 1.0);
+    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
 
     for (Index i = 0; i < M; i++) {
       auto& line = lines[i];
