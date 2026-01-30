@@ -388,7 +388,7 @@ struct view_t final : public mdview_t<T, N> {
   }
 
   //! Used by std::indirectly_writable concept, remove comment if linter works
-  const view_t& operator=(const view_t& r) const&
+  const view_t& operator=(const view_t& r) const
     requires(not is_const)
   {
     assert(shape() == r.shape());

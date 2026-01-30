@@ -393,7 +393,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   }
 
   //! Used by std::indirectly_writable concept, remove comment if linter works
-  const strided_view_t& operator=(const strided_view_t& r) const&
+  const strided_view_t& operator=(const strided_view_t& r) const
     requires(not is_const)
   {
     assert(shape() == r.shape());
