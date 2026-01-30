@@ -13,8 +13,10 @@ struct elemwise_mditer {
   T* data{nullptr};
   Index pos{0};
 
-  using difference_type = Index;
-  using value_type      = std::remove_cvref_t<decltype(data->elem_at(0))>;
+  using iterator_concept  = std::random_access_iterator_tag;
+  using iterator_category = std::random_access_iterator_tag;
+  using difference_type   = Index;
+  using value_type        = std::remove_cvref_t<decltype(data->elem_at(0))>;
 
   constexpr elemwise_mditer()                                      = default;
   constexpr elemwise_mditer(elemwise_mditer&&) noexcept            = default;
@@ -88,6 +90,16 @@ struct elemwise_mditer {
 
   [[nodiscard]] constexpr decltype(auto) operator[](Index i) const {
     return data->elem_at(pos + i);
+  }
+
+  friend constexpr auto iter_move(const elemwise_mditer& x) noexcept {
+    return *x;
+  }
+
+  friend constexpr void iter_swap(const elemwise_mditer& a,
+                                  const elemwise_mditer& b) noexcept {
+    using std::swap;
+    swap(*a, *b);
   }
 };
 

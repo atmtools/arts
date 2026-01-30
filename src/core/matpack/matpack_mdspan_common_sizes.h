@@ -269,6 +269,9 @@ concept has_shape = rankable<T> and requires(T a) {
   { a.shape() } -> integral_array<rank<T>()>;
 };
 
+template <typename T>
+concept shaped = rankable<T> and has_shape<T, rank<T>()>;
+
 //! Get the shape
 template <rankable T>
 constexpr auto mdshape(const T& v) {

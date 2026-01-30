@@ -1,0 +1,2 @@
+add_executable(test_matpack_perf test_matpack_perf.cpp)
+target_link_libraries(test_matpack_perf PUBLIC matpack time_report rng)
