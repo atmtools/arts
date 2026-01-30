@@ -10,6 +10,8 @@
 #include <enumsLineShapeModelCoefficient.h>
 #include <enumsLineShapeModelVariable.h>
 #include <enumsQuantumNumberType.h>
+#include <enumsSpeciesEnum.h>
+#include <enumsZeemanPolarization.h>
 #include <matpack.h>
 #include <quantum.h>
 #include <xml.h>
@@ -19,9 +21,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "enumsSpeciesEnum.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
+
 
 namespace lbl {
 struct line {
@@ -219,6 +221,8 @@ struct band_data {
 
   //! Returns true if the line is new for the band_data (based on quantum numbers)
   bool merge(const line& linedata);
+
+  [[nodiscard]] Size count_zeeman_lines(const ZeemanPolarization&) const;
 };
 
 struct line_pos {
@@ -309,6 +313,10 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const Numeric T0 = 296);
 
 Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
+
+Size count_zeeman_lines(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>&,
+    ZeemanPolarization);
 }  // namespace lbl
 
 //! Support hashing of line keys

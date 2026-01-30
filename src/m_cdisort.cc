@@ -173,7 +173,7 @@ void run_cdisort(Tensor3View disort_spectral_rad_field,
         }
 
         const Numeric shift =
-            abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+            std::abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
         std::cerr
             << "Solar zenith angle coincided with one of the quadrature angles\n"
             << "We needed to shift the solar sun angle by " << shift

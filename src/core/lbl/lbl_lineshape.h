@@ -1,3 +1,5 @@
+#pragma once
+
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 

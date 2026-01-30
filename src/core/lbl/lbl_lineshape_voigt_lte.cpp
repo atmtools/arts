@@ -261,8 +261,8 @@ Complex single_shape::dF(const Complex z_, const Complex F_) {
    * y > 1e7, it always fails.  This is about the analytical form
    * above using the latest version of the MIT Faddeeva package.
   */
-  const Complex dz{std::max(1e-4 * z_.real(), 1e-4),
-                   std::max(1e-4 * z_.imag(), 1e-4)};
+  const Complex dz{std::max(1e-4 * nonstd::abs(z_.real()), 1e-4),
+                   std::max(1e-4 * nonstd::abs(z_.imag()), 1e-4)};
   const Complex F_2 = Faddeeva::w(z_ + dz);
   return (F_2 - F_) / dz;
 }

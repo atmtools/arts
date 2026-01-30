@@ -14,6 +14,7 @@
 #include <cmath>
 #include <exception>
 #include <format>
+#include <numeric>
 #include <print>
 #include <stdexcept>
 #include <type_traits>
@@ -177,6 +178,15 @@ bool band_data::merge(const line& linedata) {
   return true;
 }
 
+Size band_data::count_zeeman_lines(const ZeemanPolarization& pol) const {
+  return std::transform_reduce(
+      lines.begin(),
+      lines.end(),
+      Size{0},
+      std::plus{},
+      [pol](const auto& line) { return line.z.size(line.qn, pol); });
+}
+
 std::unordered_set<SpeciesEnum> species_in_bands(
     const std::unordered_map<QuantumIdentifier, band_data>& bands) {
   std::unordered_set<SpeciesEnum> out;
@@ -265,6 +275,15 @@ Size count_lines(
   return std::transform_reduce(
       bands.begin(), bands.end(), Size{0}, std::plus{}, [](const auto& x) {
         return x.second.size();
+      });
+}
+
+Size count_zeeman_lines(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands,
+    ZeemanPolarization pol) {
+  return std::transform_reduce(
+      bands.begin(), bands.end(), Size{0}, std::plus{}, [pol](const auto& x) {
+        return x.second.count_zeeman_lines(pol);
       });
 }
 }  // namespace lbl
