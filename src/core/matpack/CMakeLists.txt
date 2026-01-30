@@ -29,3 +29,5 @@ target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/in
 if (IPO_SUPPORTED)
   set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
+
+add_subdirectory(test)

@@ -142,7 +142,7 @@ class RandomNumberGenerator {
 
       if (min not_eq min_v) {
         n = add_one(max);
-      } else if (static_cast<std::size_t>(max - min) <= seeds.size()) {
+      } else if (static_cast<Size>(max - min) <= seeds.size()) {
         n = add_one(max);
         if (n == min) seeds.clear();
       } else {
@@ -193,6 +193,29 @@ class RandomNumberGenerator {
  *
  * @tparam random_distribution As for RandomNumberGenerator::get
  * @tparam Generator As for RandomNumberGenerator
+ * @param x The parameters passed to get_par<>(x...)
+ * @return data_t A new object of random numbers of size sz
+ */
+template <template <typename> class random_distribution =
+              std::uniform_real_distribution,
+          std::uniform_random_bit_generator Generator = std::mt19937_64,
+          typename... param_types>
+void random_numbers(matpack::mut_any_md auto &&out, param_types &&...x) {
+  using T = decltype(random_distribution(param_types{}...))::result_type;
+  static_assert(std::same_as<T, matpack::value_type<decltype(out)>>,
+                "Type mismatch in random_numbers");
+
+  std::generate(
+      out.elem_begin(),
+      out.elem_end(),
+      RandomNumberGenerator<Generator>{}.template get<random_distribution>(
+          std::forward<param_types>(x)...));
+}
+
+/** Wraps the creation of a random number a matpack type creation
+ *
+ * @tparam random_distribution As for RandomNumberGenerator::get
+ * @tparam Generator As for RandomNumberGenerator
  * @param sz Size of output matpack data
  * @param x The parameters passed to get_par<>(x...)
  * @return data_t A new object of random numbers of size sz
@@ -201,29 +224,12 @@ template <std::size_t N,
           template <typename> class random_distribution =
               std::uniform_real_distribution,
           std::uniform_random_bit_generator Generator = std::mt19937_64,
-          typename... param_types,
-          class RNG = RandomNumberGenerator<Generator>,
-          class T   = decltype(RNG{}.template get<random_distribution>(
-              param_types{}...)())>
-matpack::data_t<T, N> random_numbers(std::array<Index, N> sz,
-                                     param_types &&...x) {
-  matpack::data_t<T, N> out(sz);
-  std::generate(
-      out.elem_begin(),
-      out.elem_end(),
-      RNG{}.template get<random_distribution>(std::forward<param_types>(x)...));
-  return out;
-}
-
-/** Wraps more advanced random_numbers generator above for pure vectors
- *
- * See random_numbers above for more details
- */
-template <template <typename> class random_distribution =
-              std::uniform_real_distribution,
-          std::uniform_random_bit_generator Generator = std::mt19937_64,
           typename... param_types>
-auto random_numbers(Index n, param_types &&...x) {
-  return random_numbers<1, random_distribution, Generator>(
-      std::array<Index, 1>{n}, std::forward<param_types>(x)...);
+auto random_numbers(const matpack::integer_helper<N> &sz, param_types &&...x) {
+  using T = decltype(random_distribution(param_types{}...))::result_type;
+
+  matpack::data_t<T, N> out(sz.shape);
+  random_numbers<random_distribution, Generator>(
+      out, std::forward<param_types>(x)...);
+  return out;
 }

@@ -62,14 +62,12 @@ void test_dexpm() {
                            w + dw * x};
   };
 
-  const Propmat k = gen(0.0, false);
   const PropmatVector dk(1, gen(0.0, true));
   const Vector dr{0};
   Muelmat t{};
   MuelmatVector dt(1, Muelmat{});
 
   const Numeric x = 1e-9;
-  const Propmat k2 = gen(x, false);
   const PropmatVector dk2{};
   const Vector dr2{};
   Muelmat t2{};

@@ -2,6 +2,8 @@
 
 #include <configtypes.h>
 
+#include <algorithm>
+#include <iterator>
 #include <type_traits>
 
 namespace matpack {
@@ -10,8 +12,10 @@ struct left_mditer {
   T* data{nullptr};
   Index pos{0};
 
-  using difference_type = Index;
-  using value_type      = std::remove_cvref_t<decltype(data->operator[](0))>;
+  using iterator_concept  = std::random_access_iterator_tag;
+  using iterator_category = std::random_access_iterator_tag;
+  using difference_type   = Index;
+  using value_type        = std::remove_cvref_t<decltype(data->operator[](0))>;
 
   constexpr left_mditer()                                  = default;
   constexpr left_mditer(left_mditer&&) noexcept            = default;
@@ -79,12 +83,23 @@ struct left_mditer {
   [[nodiscard]] constexpr auto operator<=>(const left_mditer&) const noexcept =
       default;
 
+  [[nodiscard]] constexpr bool operator==(const left_mditer&) const noexcept =
+      default;
+
   [[nodiscard]] constexpr decltype(auto) operator*() const {
     return data->operator[](pos);
   }
 
   [[nodiscard]] constexpr decltype(auto) operator[](Index i) const {
     return data->operator[](pos + i);
+  }
+
+  friend constexpr auto iter_move(const left_mditer& x) noexcept { return *x; }
+
+  friend constexpr void iter_swap(const left_mditer& a,
+                                  const left_mditer& b) noexcept {
+    using std::swap;
+    swap(*a, *b);
   }
 };
 }  // namespace matpack

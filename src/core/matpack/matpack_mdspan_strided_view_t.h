@@ -385,6 +385,38 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(base(*this).is_exhaustive());
     return view_t<std::conditional_t<is_const, const T, T>, N>{*this};
   }
+
+  constexpr void swap(strided_view_t& other) noexcept
+    requires(not is_const)
+  {
+    std::swap(static_cast<base&>(*this), static_cast<base&>(other));
+  }
+
+  //! Used by std::indirectly_writable concept, remove comment if linter works
+  const strided_view_t& operator=(const strided_view_t& r) const
+    requires(not is_const)
+  {
+    assert(shape() == r.shape());
+
+    if (this != &r) {
+      stdr::copy(elemwise_range(const_cast<strided_view_t&>(*this)),
+                 elemwise_range(const_cast<strided_view_t&>(r)));
+    }
+
+    return *this;
+  }
+
+  friend constexpr void swap(const strided_view_t& a,
+                             const strided_view_t& b) noexcept
+    requires(not is_const)
+  {
+    assert(a.shape() == b.shape());
+
+    if (a.data_handle() != b.data_handle()) {
+      stdr::swap_ranges(elemwise_range(const_cast<strided_view_t&>(a)),
+                        elemwise_range(const_cast<strided_view_t&>(b)));
+    }
+  }
 };
 }  // namespace matpack
 
@@ -468,6 +500,10 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
     return ctx.out();
   }
 };
+
+template <class T, Size N>
+inline constexpr bool
+    std::ranges::enable_borrowed_range<matpack::strided_view_t<T, N>> = true;
 
 using StridedVectorView  = matpack::strided_view_t<Numeric, 1>;
 using StridedMatrixView  = matpack::strided_view_t<Numeric, 2>;

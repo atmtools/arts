@@ -3,7 +3,6 @@
 #include <compare.h>
 #include <nonstd.h>
 
-#include <concepts>
 #include <vector>
 
 #include "matpack_mdspan_common_types.h"

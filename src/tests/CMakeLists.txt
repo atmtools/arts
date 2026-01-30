@@ -167,20 +167,6 @@ add_custom_target(check-pyversion
 # #######################################################################################
 
 # ####
-add_executable(test_matpack_perf test_matpack_perf.cc)
-target_link_libraries(test_matpack_perf PUBLIC artscore)
-target_include_directories(test_matpack_perf PRIVATE ${ARTS_SOURCE_DIR}/src)
-
-add_custom_target(
-  run_matpack_perf
-  COMMAND test_matpack_perf 10 100000000 100000000 8000 2000 100000000 9000 100000000 6000 > matpack_perf.txt
-  DEPENDS test_matpack_perf
-  BYPRODUCTS matpack_perf.txt
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "Running performance test for matpack"
-)
-
-# ####
 add_executable(test_rng test_rng.cc)
 target_link_libraries(test_rng PUBLIC artscore)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
