@@ -237,49 +237,107 @@ Numeric lbl_data_line_hitran_s(const std::vector<lbl::line>& lines) {
   return result;
 }
 
-Numeric lbl_voigt_lte_single_shape(const std::vector<lbl::line>& lines,
-                                   const Vector& fs,
-                                   const AtmPoint& atm) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_single_shape; threads: {}",
+Numeric lbl_voigt_lte_calculate(PropmatVector& pm,
+                                PropmatMatrix& dpm,
+                                const QuantumIdentifier& bnd_qid,
+                                const AbsorptionBand& bnd,
+                                const Vector& fs,
+                                const AtmPoint& atm) {
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_calculate; threads: {}",
                                      arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  const auto ir                = "O2-66"_isot;
+  constexpr Vector2 los{};
+  const Jacobian::Targets jac_targets{};
 
-  Numeric result = 0.0;
-#pragma omp parallel for collapse(2) \
-    reduction(+ : result) if (arts_omp_parallel())
-  for (const auto& line : lines) {
-    for (const auto& f : fs) {
-      result += single_shape(ir, line, atm, pol, 0)(f).real();
+  ComputeData com_data(fs, atm, los, pol);
+
+  const Size n = arts_omp_get_max_threads();
+  if (n == 1) {
+    calculate(pm,
+              dpm,
+              com_data,
+              fs,
+              Range{0, fs.size()},
+              jac_targets,
+              bnd_qid,
+              bnd,
+              atm,
+              pol,
+              false);
+  } else {
+    const auto f_ranges = matpack::omp_offset_count(fs.size(), n);
+#pragma omp parallel for firstprivate(com_data)
+    for (Size i = 0; i < n; i++) {
+      calculate(pm,
+                dpm,
+                com_data,
+                fs,
+                f_ranges[i],
+                jac_targets,
+                bnd_qid,
+                bnd,
+                atm,
+                pol,
+                false);
     }
   }
-  return result;
+
+  return pm[0].A();
 }
 
-Numeric lbl_voigt_lte_mirror_single_shape(const std::vector<lbl::line>& lines,
-                                          const Vector& fs,
-                                          const AtmPoint& atm) {
+Numeric lbl_voigt_lte_mirror_calculate(PropmatVector& pm,
+                                       PropmatMatrix& dpm,
+                                       const QuantumIdentifier& bnd_qid,
+                                       const AbsorptionBand& bnd,
+                                       const Vector& fs,
+                                       const AtmPoint& atm) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_mirror_single_shape; threads: {}",
+      std::format("lbl_voigt_lte_mirror_calculate; threads: {}",
                   arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte_mirror;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  const auto ir                = "O2-66"_isot;
+  constexpr Vector2 los{};
+  const Jacobian::Targets jac_targets{};
 
-  Numeric result = 0.0;
-#pragma omp parallel for collapse(2) \
-    reduction(+ : result) if (arts_omp_parallel())
-  for (const auto& line : lines) {
-    for (const auto& f : fs) {
-      result += single_shape(ir, line, atm, pol, 0)(f).real();
+  ComputeData com_data(fs, atm, los, pol);
+
+  const Size n = arts_omp_get_max_threads();
+  if (n == 1) {
+    calculate(pm,
+              dpm,
+              com_data,
+              fs,
+              Range{0, fs.size()},
+              jac_targets,
+              bnd_qid,
+              bnd,
+              atm,
+              pol,
+              false);
+  } else {
+    const auto f_ranges = matpack::omp_offset_count(fs.size(), n);
+#pragma omp parallel for firstprivate(com_data)
+    for (Size i = 0; i < n; i++) {
+      calculate(pm,
+                dpm,
+                com_data,
+                fs,
+                f_ranges[i],
+                jac_targets,
+                bnd_qid,
+                bnd,
+                atm,
+                pol,
+                false);
     }
   }
-  return result;
+
+  return pm[0].A();
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix& mat,
@@ -337,11 +395,10 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_sort(Matrix& mat) {
-  ARTS_NAMED_TIME_REPORT("lbl_voigt_lte_matrix_prepare_sort");
+  ARTS_NAMED_TIME_REPORT(std::format(
+      "lbl_voigt_lte_matrix_prepare_sort; mat-shape: {:B,}", mat.shape()));
 
-  stdr::sort(mat, [](const ConstVectorView& a, const ConstVectorView& b) {
-    return a[0] < b[0];
-  });
+  lbl::voigt::lte::matrix::sort(mat);
 
   return mat[0, 0];
 }
@@ -357,14 +414,42 @@ Numeric lbl_voigt_lte_matrix_sumup(ComplexVectorView a,
   return a[0].real();
 }
 
+Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff(ComplexVectorView a,
+                                              const ConstMatrixView mat,
+                                              const ConstVectorView f) {
+  ARTS_NAMED_TIME_REPORT(
+      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff; threads: {}",
+                  arts_omp_get_max_threads()));
+
+  lbl::voigt::lte::matrix::sumup(
+      a, mat, f, std::numeric_limits<Numeric>::infinity());
+
+  return a[0].real();
+}
+
 Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView a,
                                        const ConstMatrixView mat,
                                        const ConstVectorView f,
                                        const std::vector<bool>& df) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}",
-                                     arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(
+      std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}",
+                  arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f, df);
+
+  return a[0, 0].real();
+}
+
+Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView a,
+                                                  const ConstMatrixView mat,
+                                                  const ConstVectorView f,
+                                                  const std::vector<bool>& df) {
+  ARTS_NAMED_TIME_REPORT(
+      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}",
+                  arts_omp_get_max_threads()));
+
+  lbl::voigt::lte::matrix::sumup(
+      a, mat, f, std::numeric_limits<Numeric>::infinity(), df);
 
   return a[0, 0].real();
 }
@@ -401,23 +486,27 @@ int main() {
   }
 
   {
-    constexpr Index M                  = 10'000;
-    constexpr Index N                  = 2'000;
-    const std::vector<lbl::line> lines = create_lines(M);
+    constexpr Index M = 10'000;
+    constexpr Index N = 2'000;
+    const QuantumIdentifier bnd_qid{"O2-66"_isot};
+    const AbsorptionBand bnd = {.lines = create_lines(M)};
     AtmPoint atm;
     atm.temperature = 250.0;
     atm.pressure    = 182.0;
     atm["O2"_spec]  = 0.21;
     const Vector f  = random_numbers<1>({N}, 0.0, 1.0);
+    PropmatVector pm(N);
+    PropmatMatrix dpm(0, N);
 
-    buf += lbl_voigt_lte_single_shape(lines, f, atm);
-    buf += lbl_voigt_lte_mirror_single_shape(lines, f, atm);
+    buf += lbl_voigt_lte_calculate(pm, dpm, bnd_qid, bnd, f, atm);
+    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
 
     const int cores = arts_omp_get_max_threads();
     omp_set_num_threads(1);
 
-    buf += lbl_voigt_lte_single_shape(lines, f, atm);
-    buf += lbl_voigt_lte_mirror_single_shape(lines, f, atm);
+    buf += lbl_voigt_lte_calculate(pm, dpm, bnd_qid, bnd, f, atm);
+    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
+
     omp_set_num_threads(cores);
   }
 
@@ -474,15 +563,18 @@ int main() {
     constexpr Index N = 2'000;
     constexpr Index n = 5;
     const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    const Vector f    = random_numbers<1>({N}, 0.0, 1.0);
+    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    stdr::sort(f);
     ComplexVector a(N);
 
     buf += lbl_voigt_lte_matrix_sumup(a, mat, f);
+    buf += lbl_voigt_lte_matrix_sumup_inf_cutoff(a, mat, f);
 
     const int cores = arts_omp_get_max_threads();
     omp_set_num_threads(1);
 
     buf += lbl_voigt_lte_matrix_sumup(a, mat, f);
+    buf += lbl_voigt_lte_matrix_sumup_inf_cutoff(a, mat, f);
     omp_set_num_threads(cores);
   }
 
@@ -539,17 +631,20 @@ int main() {
     constexpr Index N = 2'000;
     constexpr Index n = 5 + 5 * 4;
     const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    const Vector f    = random_numbers<1>({N}, 0.0, 1.0);
+    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    stdr::sort(f);
     ComplexMatrix a(N, n / 5);
     std::vector<bool> df(n / 5 - 1);
     stdr::fill(df, false);
 
     buf += lbl_voigt_lte_matrix_sumup_jac(a, mat, f, df);
+    buf += lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(a, mat, f, df);
 
     const int cores = arts_omp_get_max_threads();
     omp_set_num_threads(1);
 
     buf += lbl_voigt_lte_matrix_sumup_jac(a, mat, f, df);
+    buf += lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(a, mat, f, df);
     omp_set_num_threads(cores);
   }
 

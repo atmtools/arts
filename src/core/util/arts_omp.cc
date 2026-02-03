@@ -105,15 +105,22 @@ void arts_omp_set_dynamic(int i [[maybe_unused]]) {
 #endif
 }
 
-//! Wrapper for omp_in_parallel.
-/*!
+/*! Wrapper to determinie if parallel execution should be used.
+
   This wrapper works with and without OMP support.
 
+  \param n Number of threads threshold to enable parallel execution.  Note unsigned -1 is infinity in practice.
   \param additional_condition Additional condition that must be true to return true.
-  \return Returns true if not already in a parallel region, the maximum number of threads is
-          larger than 1, and additional_condition is true.
+  \return Returns true if not already in a parallel region, if n is larger than
+          the maximum number of threads, and additional_condition is true.
 */
-bool arts_omp_parallel(bool additional_condition) {
+bool arts_omp_parallel(unsigned long long n [[maybe_unused]],
+                       bool additional_condition [[maybe_unused]]) {
+#ifdef _OPENMP
   return additional_condition and not arts_omp_in_parallel() and
-         arts_omp_get_max_threads() > 1;
+         arts_omp_get_max_threads() > 1 and
+         arts_omp_get_max_threads() < static_cast<int>(n);
+#else
+  return false;
+#endif
 }

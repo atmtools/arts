@@ -3,7 +3,7 @@
 #include <compare.h>
 
 #include <algorithm>
-#include <ranges>
+#include <cassert>
 #include <vector>
 
 #include "matpack_mdspan_common_select.h"

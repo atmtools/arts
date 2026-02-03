@@ -24,7 +24,6 @@
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 
-
 namespace lbl {
 struct line {
   //! Einstein A coefficient
@@ -182,24 +181,59 @@ struct band_data {
 
   Numeric cutoff_value{std::numeric_limits<Numeric>::infinity()};
 
-  [[nodiscard]] auto&& back() { return lines.back(); }
-  [[nodiscard]] auto&& back() const { return lines.back(); }
-  [[nodiscard]] auto&& front() { return lines.front(); }
-  [[nodiscard]] auto&& front() const { return lines.front(); }
-  [[nodiscard]] auto size() const { return lines.size(); }
-  [[nodiscard]] auto begin() { return lines.begin(); }
-  [[nodiscard]] auto begin() const { return lines.begin(); }
-  [[nodiscard]] auto cbegin() const { return lines.cbegin(); }
-  [[nodiscard]] auto end() { return lines.end(); }
-  [[nodiscard]] auto end() const { return lines.end(); }
-  [[nodiscard]] auto cend() const { return lines.cend(); }
   template <typename T>
-  void push_back(T&& l) {
-    lines.push_back(std::forward<T>(l));
+  [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
+    return std::forward<T>(self).lines[i];
   }
-  template <typename... Ts>
-  lbl::line& emplace_back(Ts&&... l) {
-    return lines.emplace_back(std::forward<Ts>(l)...);
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) empty(this T&& self) {
+    return std::forward<T>(self).lines.empty();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) back(this T&& self) {
+    return std::forward<T>(self).lines.back();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) front(this T&& self) {
+    return std::forward<T>(self).lines.front();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) size(this T&& self) {
+    return std::forward<T>(self).lines.size();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) begin(this T&& self) {
+    return std::forward<T>(self).lines.begin();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) end(this T&& self) {
+    return std::forward<T>(self).lines.end();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) cbegin(this T&& self) {
+    return std::forward<T>(self).lines.cbegin();
+  }
+
+  template <typename T>
+  [[nodiscard]] decltype(auto) cend(this T&& self) {
+    return std::forward<T>(self).lines.cend();
+  }
+
+  template <typename U, typename T>
+  void push_back(this U&& self, T&& l) {
+    std::forward<U>(self).lines.push_back(std::forward<T>(l));
+  }
+
+  template <typename U, typename... Ts>
+  decltype(auto) emplace_back(this U&& self, Ts&&... l) {
+    return std::forward<U>(self).lines.emplace_back(std::forward<Ts>(l)...);
   }
 
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const {
@@ -317,6 +351,40 @@ Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 Size count_zeeman_lines(
     const std::unordered_map<QuantumIdentifier, lbl::band_data>&,
     ZeemanPolarization);
+
+//! Helper struct
+struct flat_band_data {
+  Size prev_size;
+  const QuantumIdentifier& band_key;
+  const band_data& band;
+};
+
+/*! Flatter view of bands for easy iteration
+
+It is not generally safe to keep references,
+so only use this in the scope where bands will remain valid and unchanged.
+
+  @param bands The bands to flatten
+  @param pol The polarization to use for counting Zeeman lines
+  @return A vector of tuples of (offset, band key, band data)
+*/
+template <class Filter>
+std::vector<flat_band_data> flatter_view(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands,
+    const ZeemanPolarization& pol,
+    Filter filter) {
+  std::vector<flat_band_data> off{};
+  off.reserve(bands.size());
+  for (auto& [key, band] : bands) {
+    if (filter(key, band)) {
+      const Size size = off.empty() ? 0
+                                    : (off.back().prev_size +
+                                       off.back().band.count_zeeman_lines(pol));
+      off.emplace_back(size, key, band);
+    }
+  }
+  return off;
+}
 }  // namespace lbl
 
 //! Support hashing of line keys

@@ -193,6 +193,8 @@ void calculate(PropmatVectorView pm,
                    ZeemanPolarization::sm,
                    ZeemanPolarization::sp}) {
     if (voigt_lte_data) voigt_lte_data->update_zeeman(los, atm.mag, pol);
+    if (voigt_lte_mirror_data) voigt_lte_mirror_data->update_zeeman(los, atm.mag, pol);
+    if (voigt_line_nlte_data) voigt_line_nlte_data->update_zeeman(los, atm.mag, pol);
 
     for (auto& [bnd_key, bnd] : bnds) {
       if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) {

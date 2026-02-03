@@ -18,7 +18,6 @@ AtmKey to_wind(const String &);
 AtmKey to_mag(const String &);
 
 namespace Atm {
-
 template <typename T>
 concept isScatteringSpeciesProperty =
     std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
@@ -46,6 +45,12 @@ using KeyVal = std::variant<AtmKey,
                             SpeciesIsotope,
                             QuantumLevelIdentifier,
                             ScatteringSpeciesProperty>;
+
+//! returns whether the key is a wind key
+bool is_wind(const KeyVal&);
+
+//! returns whether the key is a temperature key
+bool is_temperature(const KeyVal&);
 
 template <typename T>
 concept ListKeyType = requires(T a) {

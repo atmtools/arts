@@ -2175,7 +2175,7 @@ bool calculate(ComplexVectorView pm,
 
   const Size n = arts_omp_get_max_threads();
   bool has_pol = false;
-  if (arts_omp_parallel(pm.size() > n)) {
+  if (arts_omp_parallel(pm.size())) {
     const auto f_ranges = matpack::omp_offset_count(f_grid.size(), n);
     std::vector<Index> thread_has_pol(n, 0);
     std::string error;
@@ -2183,6 +2183,9 @@ bool calculate(ComplexVectorView pm,
     for (Size i = 0; i < n; i++) {
       try {
         for (auto& [qid, band] : bands) {
+          if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
+          if (spec != "AIR"_spec and spec != qid.isot.spec) continue;
+
           thread_has_pol[i] += calculate_shape(pm,
                                                dpm,
                                                f_grid,

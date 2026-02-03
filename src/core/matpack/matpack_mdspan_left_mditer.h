@@ -94,12 +94,19 @@ struct left_mditer {
     return data->operator[](pos + i);
   }
 
-  friend constexpr auto iter_move(const left_mditer& x) noexcept { return *x; }
-
   friend constexpr void iter_swap(const left_mditer& a,
                                   const left_mditer& b) noexcept {
-    using std::swap;
-    swap(*a, *b);
+    auto ap = *a;
+    auto bp = *b;
+
+    if constexpr (requires {
+                    std::swap_ranges(ap.begin(), ap.end(), bp.begin());
+                  }) {
+      std::swap_ranges(ap.begin(), ap.end(), bp.begin());
+    } else {
+      using std::swap;
+      swap(ap, bp);
+    }
   }
 };
 }  // namespace matpack

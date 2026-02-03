@@ -387,31 +387,6 @@ struct view_t final : public mdview_t<T, N> {
     std::swap(static_cast<base&>(*this), static_cast<base&>(other));
   }
 
-  //! Used by std::indirectly_writable concept, remove comment if linter works
-  const view_t& operator=(const view_t& r) const
-    requires(not is_const)
-  {
-    assert(shape() == r.shape());
-
-    if (this != &r) {
-      stdr::copy(elemwise_range(const_cast<view_t&>(*this)),
-                 elemwise_range(const_cast<view_t&>(r)));
-    }
-
-    return *this;
-  }
-
-  friend constexpr void swap(const view_t& a, const view_t& b) noexcept
-    requires(not is_const)
-  {
-    assert(a.shape() == b.shape());
-
-    if (a.data_handle() != b.data_handle()) {
-      stdr::swap_ranges(elemwise_range(const_cast<view_t&>(a)),
-                        elemwise_range(const_cast<view_t&>(b)));
-    }
-  }
-
   constexpr operator std::span<T, std::dynamic_extent>()
     requires(N == 1)
   {

@@ -2511,7 +2511,36 @@ This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .gout      = {"dispersion", "dispersion_jacobian"},
+      .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
+      .gout_type = {"Vector", "Matrix"},
+      .gout_desc =
+          {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
+           "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
+      .in        = {"spectral_propmat",
+                    "spectral_propmat_jac",
+                    "freq_grid",
+                    "jac_targets",
+                    "select_species",
+                    "abs_bands",
+                    "atm_point",
+                    "ray_point"},
+      .gin       = {"no_negative_absorption"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Turn off to allow individual absorbers to have negative absorption"},
+  };
+
+  wsm_data["spectral_propmatMemoryIntensiveAddVoigtLTE"] = {
+      .desc      = R"--(Add line-by-line absorption to the propagation matrix.
+
+See :doc:`concept.absorption.lbl` for details.
+
+This is only for LTE lines in Voigt.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
       .gout_desc =
           {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
