@@ -892,6 +892,7 @@ spectral_dispersion_jac: {:B,}
     first = false;
 
     if (flat.front().band.cutoff == LineByLineCutoffType::ByLine) {
+      lbl::voigt::lte::matrix::sort(data);
       lbl::voigt::lte::matrix::sumup(
           res, data, f_grid, flat.front().band.cutoff_value, df);
     } else {
