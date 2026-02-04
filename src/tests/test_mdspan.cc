@@ -1727,29 +1727,43 @@ void test_sort() {
 
     matpack::sort(x);
     std::println("{:B,}", x);
-    for (Size i = 1; i < N; i++) {
-      ARTS_USER_ERROR_IF(x[i - 1] >= x[i],
-                         "Not sorted at index {}: {} > {}",
-                         i - 1,
-                         x[i - 1],
-                         x[i]);
-    }
+    ARTS_USER_ERROR_IF(not stdr::is_sorted(x), "Not sorted: {:B,}", x);
   }
 
   {
-    Matrix x = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, 10);
+    constexpr Index M = 10;
+    Matrix x          = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, M);
     stdr::shuffle(x.elem_begin(), x.elem_end(), g);
 
     std::println("{:B,}", x);
 
-    matpack::sort(x, {}, [](VectorView a) { return a[0]; });
+    for (Index i = 0; i < M; i++) {
+      matpack::sort(x, {}, [i](VectorView a) { return a[i]; });
+      ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i]),
+                         "Not sorted at pivot {}\n{:B,}",
+                         i,
+                         x);
+      std::println("{:B,}", x);
+    }
+  }
+
+  {
+    constexpr Index M = 3;
+    Tensor3 x = matpack::uniform_grid(1.0, M * M * M, 1.0).reshape(M, M, M);
+    stdr::shuffle(x.elem_begin(), x.elem_end(), g);
+
     std::println("{:B,}", x);
-    for (Size i = 1; i < N / 10; i++) {
-      ARTS_USER_ERROR_IF((x[i - 1, 0] >= x[i, 0]),
-                         "Not sorted at index {}: {} > {}",
-                         i - 1,
-                         x[i - 1, 0],
-                         x[i, 0]);
+
+    for (Index i = 0; i < M; i++) {
+      for (Index j = 0; j < M; j++) {
+        matpack::sort(x, {}, [i, j](MatrixView a) { return a[i, j]; });
+        ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i, j]),
+                           "Not sorted at pivot {} {}\n{:B,}",
+                           i,
+                           j,
+                           x);
+        std::println("{:B,} - pivot {} {}", x, i, j);
+      }
     }
   }
 }

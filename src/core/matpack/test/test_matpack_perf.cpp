@@ -121,7 +121,7 @@ Numeric sort_vector(VectorView& a) {
 Numeric sort_tensor(Tensor7View& a) {
   ARTS_NAMED_TIME_REPORT("sort_tensor");
 
-  matpack::sort(a.begin(), a.end(), {}, [](auto&& A){return A.front();});
+  matpack::sort(a, {}, [](auto&& A) { return A.front(); });
 
   return a.front();
 }
