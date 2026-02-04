@@ -1,4 +1,3 @@
-#include <omp.h>
 #include <rng.h>
 #include <rtepack.h>
 #include <time_report.h>
@@ -229,13 +228,13 @@ int main() {
     buf += test_transmittance_matrix_init_linprop(K, dK, r, dr);
 
     const int x = omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     buf += test_transmittance_matrix_init_constant(K, dK, r, dr);
     buf += test_transmittance_matrix_init_linsrc(K, dK, r, dr);
     buf += test_transmittance_matrix_init_linprop(K, dK, r, dr);
 
-    omp_set_num_threads(x);
+    arts_omp_set_num_threads(x);
   }
 
   std::println(std::cerr, "Prevent optimizing away: {}", buf);

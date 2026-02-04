@@ -61,6 +61,13 @@ int arts_omp_get_thread_num() {
   return thread_num;
 }
 
+
+void arts_omp_set_num_threads(int i [[maybe_unused]]) {
+#ifdef _OPENMP
+  omp_set_num_threads(i);
+#endif
+}
+
 //! Wrapper for omp_get_nested
 /*! 
   This wrapper works with and without OMP support.

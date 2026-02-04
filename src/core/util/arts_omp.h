@@ -29,6 +29,8 @@ int arts_omp_get_thread_num();
 
 int arts_omp_get_nested();
 
+void arts_omp_set_num_threads(int i);
+
 void arts_omp_set_nested(int i);
 
 void arts_omp_set_dynamic(int i);

@@ -502,12 +502,12 @@ int main() {
     buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     buf += lbl_voigt_lte_calculate(pm, dpm, bnd_qid, bnd, f, atm);
     buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
 
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
   }
 
   {
@@ -526,10 +526,10 @@ int main() {
     lbl_voigt_lte_matrix_prepare_manylines(mat, bands, atm);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     lbl_voigt_lte_matrix_prepare_manylines(mat, bands, atm);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
 
     lbl_voigt_lte_matrix_prepare_sort(mat);
   }
@@ -552,10 +552,10 @@ int main() {
     lbl_voigt_lte_matrix_prepare_manybands(mat, bands, atm);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     lbl_voigt_lte_matrix_prepare_manybands(mat, bands, atm);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
   }
 
   {
@@ -571,11 +571,11 @@ int main() {
     buf += lbl_voigt_lte_matrix_sumup_inf_cutoff(a, mat, f);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     buf += lbl_voigt_lte_matrix_sumup(a, mat, f);
     buf += lbl_voigt_lte_matrix_sumup_inf_cutoff(a, mat, f);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
   }
 
   {
@@ -593,10 +593,10 @@ int main() {
     lbl_voigt_lte_matrix_prepare_manylines_jac(mat, bands, atm, jac_targets);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     lbl_voigt_lte_matrix_prepare_manylines_jac(mat, bands, atm, jac_targets);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
 
     lbl_voigt_lte_matrix_prepare_sort(mat);
   }
@@ -620,10 +620,10 @@ int main() {
     lbl_voigt_lte_matrix_prepare_manybands_jac(mat, bands, atm, jac_targets);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     lbl_voigt_lte_matrix_prepare_manybands_jac(mat, bands, atm, jac_targets);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
   }
 
   {
@@ -641,11 +641,11 @@ int main() {
     buf += lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(a, mat, f, df);
 
     const int cores = arts_omp_get_max_threads();
-    omp_set_num_threads(1);
+    arts_omp_set_num_threads(1);
 
     buf += lbl_voigt_lte_matrix_sumup_jac(a, mat, f, df);
     buf += lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(a, mat, f, df);
-    omp_set_num_threads(cores);
+    arts_omp_set_num_threads(cores);
   }
 
   std::println(std::cerr, "Prevent optimizing away: {}", buf);
