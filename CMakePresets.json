@@ -20,7 +20,8 @@
         "FASTWIGNER": "0",
         "NO_OPENMP": "0",
         "SPHINX_JOBS": "1",
-        "TEST_JOBS": "4"
+        "TEST_JOBS": "4",
+        "ENABLE_ASAN": "OFF"
       }
     },
     {
