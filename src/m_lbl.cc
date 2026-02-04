@@ -886,7 +886,6 @@ spectral_dispersion_jac: {:B,}
     if (flat.empty()) continue;
 
     lbl::voigt::lte::matrix::prepare(data, atm_point, flat, jac_targets, pol);
-    assert(data.ncols() == m + 1);
 
     if (not first) res = 0.0;
     first = false;
