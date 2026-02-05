@@ -92,10 +92,6 @@ struct elemwise_mditer {
     return data->elem_at(pos + i);
   }
 
-  friend constexpr auto iter_move(const elemwise_mditer& x) noexcept {
-    return *x;
-  }
-
   friend constexpr void iter_swap(const elemwise_mditer& a,
                                   const elemwise_mditer& b) noexcept {
     using std::swap;

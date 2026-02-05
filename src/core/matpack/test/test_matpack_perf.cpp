@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "matpack_mdspan_view_t.h"
-
 namespace {
 Numeric dot_vector(const ConstVectorView& a, const ConstVectorView& b) {
   ARTS_NAMED_TIME_REPORT("dot_vector");
@@ -115,7 +113,7 @@ Numeric div_tensor(Tensor7View& a, const ConstTensor7View& b) {
 Numeric sort_vector(VectorView& a) {
   ARTS_NAMED_TIME_REPORT("sort_vector");
 
-  stdr::sort(a);
+  matpack::sort(a);
 
   return a.front();
 }
@@ -123,7 +121,7 @@ Numeric sort_vector(VectorView& a) {
 Numeric sort_tensor(Tensor7View& a) {
   ARTS_NAMED_TIME_REPORT("sort_tensor");
 
-  stdr::sort(a, [](auto&& A, auto&& B){return A.front() < B.front();});
+  matpack::sort(a, {}, [](auto&& A) { return A.front(); });
 
   return a.front();
 }

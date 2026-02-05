@@ -1,4 +1,6 @@
 #include <debug.h>
+#include <matpack.h>
+#include <matpack_mdspan_helpers_eigen.h>
 
 #include <algorithm>
 #include <complex>
@@ -8,13 +10,11 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <random>
 #include <ranges>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
-
-#include <matpack.h>
-#include <matpack_mdspan_helpers_eigen.h>
 
 namespace matpack {
 static_assert(
@@ -1713,6 +1713,60 @@ void test_print() {
   test(1, 2, 2, 4);
   test(2, 2, 1, 2, 2);
 }
+
+void test_sort() {
+  std::random_device rd;
+  std::mt19937 g(rd());
+  constexpr Size N = 100;
+
+  {
+    Vector x = matpack::uniform_grid(1.0, N, 1.0);
+    stdr::shuffle(x, g);
+
+    std::println("{:B,}", x);
+
+    matpack::sort(x);
+    std::println("{:B,}", x);
+    ARTS_USER_ERROR_IF(not stdr::is_sorted(x), "Not sorted: {:B,}", x);
+  }
+
+  {
+    constexpr Index M = 10;
+    Matrix x          = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, M);
+    stdr::shuffle(x.elem_begin(), x.elem_end(), g);
+
+    std::println("{:B,}", x);
+
+    for (Index i = 0; i < M; i++) {
+      matpack::sort(x, {}, [i](VectorView a) { return a[i]; });
+      ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i]),
+                         "Not sorted at pivot {}\n{:B,}",
+                         i,
+                         x);
+      std::println("{:B,}", x);
+    }
+  }
+
+  {
+    constexpr Index M = 3;
+    Tensor3 x = matpack::uniform_grid(1.0, M * M * M, 1.0).reshape(M, M, M);
+    stdr::shuffle(x.elem_begin(), x.elem_end(), g);
+
+    std::println("{:B,}", x);
+
+    for (Index i = 0; i < M; i++) {
+      for (Index j = 0; j < M; j++) {
+        matpack::sort(x, {}, [i, j](MatrixView a) { return a[i, j]; });
+        ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i, j]),
+                           "Not sorted at pivot {} {}\n{:B,}",
+                           i,
+                           j,
+                           x);
+        std::println("{:B,} - pivot {} {}", x, i, j);
+      }
+    }
+  }
+}
 }  // namespace
 
 #define EXECUTE_TEST(X)                                                       \
@@ -1736,6 +1790,7 @@ int main() try {
   EXECUTE_TEST(test_grid)
   EXECUTE_TEST(test_einsum)
   EXECUTE_TEST(test_print)
+  EXECUTE_TEST(test_sort)
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {

@@ -37,7 +37,7 @@ x = ["Temperature", "VMR_O2", "Mag_u", "Mag_v", "Mag_w", "Wind_u", "Wind_v", "Wi
 # %% Calculations
 
 ws.spectral_propmatInit()
-ws.spectral_propmatAddVoigtLTE()
+ws.spectral_propmatMemoryIntensiveAddVoigtLTE()
 
 d = ws.spectral_dispersion * 1.0
 pm = ws.spectral_propmat * 1.0
@@ -46,7 +46,7 @@ dd = ws.spectral_dispersion_jac * 1.0
 f = ws.freq_grid * 1.0
 ws.freq_grid = f + 10
 ws.spectral_propmatInit()
-ws.spectral_propmatAddVoigtLTE()
+ws.spectral_propmatMemoryIntensiveAddVoigtLTE()
 d2 = ws.spectral_dispersion * 1.0
 pm2 = ws.spectral_propmat * 1.0
 dpm2 = (pm2 - pm) / 10
@@ -78,3 +78,4 @@ if "ARTS_HEADLESS" not in os.environ:
 
 assert np.allclose(pm, ws.spectral_propmat)
 # assert np.allclose(dpm, ws.spectral_propmat_jac)  # Disabled due zero-crossings
+

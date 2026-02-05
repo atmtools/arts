@@ -29,6 +29,31 @@ bool AtmPoint::zero_mag() const noexcept {
   return stdr::all_of(mag, Cmp::eq<0>());
 }
 
+bool Atm::is_wind(const Atm::KeyVal &key) {
+  return std::visit(
+      []<typename T>(const T &v) {
+        if constexpr (std::same_as<T, AtmKey>) {
+          return v == AtmKey::wind_u or v == AtmKey::wind_v or
+                 v == AtmKey::wind_w;
+        } else {
+          return false;
+        }
+      },
+      key);
+}
+
+bool Atm::is_temperature(const Atm::KeyVal &key) {
+  return std::visit(
+      []<typename T>(const T &v) {
+        if constexpr (std::same_as<T, AtmKey>) {
+          return v == AtmKey::t;
+        } else {
+          return false;
+        }
+      },
+      key);
+}
+
 void Atm::Data::adjust_interpolation_extrapolation() {
   if (std::holds_alternative<GeodeticField3>(data)) {
     auto &field = std::get<GeodeticField3>(data);

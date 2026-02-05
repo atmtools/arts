@@ -6,6 +6,8 @@
 #include <iterator>
 #include <type_traits>
 
+#include "matpack_mdspan_common_types.h"
+
 namespace matpack {
 template <class T>
 struct left_mditer {
@@ -94,12 +96,17 @@ struct left_mditer {
     return data->operator[](pos + i);
   }
 
-  friend constexpr auto iter_move(const left_mditer& x) noexcept { return *x; }
-
   friend constexpr void iter_swap(const left_mditer& a,
                                   const left_mditer& b) noexcept {
-    using std::swap;
-    swap(*a, *b);
+    auto ap = *a;
+    auto bp = *b;
+
+    if constexpr (any_md<value_type>) {
+      std::swap_ranges(ap.elem_begin(), ap.elem_end(), bp.elem_begin());
+    } else {
+      using std::swap;
+      swap(ap, bp);
+    }
   }
 };
 }  // namespace matpack

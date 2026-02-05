@@ -538,7 +538,7 @@ spectral_nlte_srcvec_jac_path.shape() = {:B,}
             single_propmat_path,           \
             single_propmat_jac_path,       \
             single_nlte_srcvec_path,       \
-            single_nlte_srcvec_jac_path) if (arts_omp_parallel())
+            single_nlte_srcvec_jac_path) if (arts_omp_parallel(nf))
   for (Size f = 0; f < nf; f++) {
     try {
       Stokvec& single_rad = spectral_rad[f];
@@ -819,7 +819,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(
   std::string error{};
   StokvecVector single_rad_jac;
 
-#pragma omp parallel for firstprivate(single_rad_jac) if (arts_omp_parallel())
+#pragma omp parallel for firstprivate(single_rad_jac) if (arts_omp_parallel(nf))
   for (Size f = 0; f < nf; f++) {
     try {
       single_radClearskyEmissionPropagation(ws,
