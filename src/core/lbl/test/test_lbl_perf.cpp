@@ -15,12 +15,12 @@ JacobianTargets create_jac_targets() {
 
   jac_targets.emplace_back(AtmKey::t);
   jac_targets.emplace_back(AtmKey::p);
-  // jac_targets.emplace_back(AtmKey::mag_u);
-  // jac_targets.emplace_back(AtmKey::mag_v);
-  // jac_targets.emplace_back(AtmKey::mag_w);
-  // jac_targets.emplace_back(AtmKey::wind_u);
-  // jac_targets.emplace_back(AtmKey::wind_v);
-  // jac_targets.emplace_back(AtmKey::wind_w);
+  jac_targets.emplace_back(AtmKey::mag_u);
+  jac_targets.emplace_back(AtmKey::mag_v);
+  jac_targets.emplace_back(AtmKey::mag_w);
+  jac_targets.emplace_back(AtmKey::wind_u);
+  jac_targets.emplace_back(AtmKey::wind_v);
+  jac_targets.emplace_back(AtmKey::wind_w);
   jac_targets.emplace_back(bnd_qid.isot);
   jac_targets.emplace_back(bnd_qid.isot.spec);
   return jac_targets;
