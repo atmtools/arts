@@ -338,6 +338,7 @@ struct Targets final {
   [[nodiscard]] Index target_position(const ErrorKey& t) const;
 
   void clear();
+  [[nodiscard]] bool empty() const;
 };
 
 struct TargetType {

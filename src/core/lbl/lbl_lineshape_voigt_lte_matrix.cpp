@@ -9,8 +9,6 @@
 #include <Faddeeva.hh>
 #include <algorithm>
 
-#include "matpack_mdspan_common_select.h"
-
 namespace lbl::voigt::lte::matrix {
 namespace {
 Complex z_(const ConstVectorView& v, const Numeric& f) {
@@ -68,6 +66,56 @@ Numeric scaled_gd_divf0(const Numeric& T, const Numeric& mass) {
   return std::sqrt(c * T / mass);
 }
 
+struct Zee {
+  Numeric Sz, dH;
+};
+
+void zeeman_splitting(std::vector<Zee>& zee,
+                      const lbl::line& line,
+                      const ZeemanPolarization& pol) {
+  const Size nz = line.z.size(line.qn, pol);
+  zee.resize(nz);
+  for (Size iz = 0; iz < nz; ++iz) {
+    zee[iz] = {
+        .Sz = line.z.Strength(line.qn, pol, iz),
+        .dH = line.z.Splitting(line.qn, pol, iz),
+    };
+  }
+}
+
+void prepare_wo_jac_line(MatrixView& mat,
+                         const lbl::line& line,
+                         const AtmPoint& atm,
+                         const Numeric Q,
+                         const Numeric rx,
+                         const Numeric H,
+                         const Numeric GD,
+                         const ZeemanPolarization pol) {
+  const Size nz = mat.nrows();
+
+  const Numeric s_  = line.s(atm.temperature, Q);
+  const Numeric G   = line.ls.G(atm);
+  const Numeric Y   = line.ls.Y(atm);
+  const Numeric G0  = line.ls.G0(atm);
+  const Numeric D0  = line.ls.D0(atm);
+  const Numeric DV  = line.ls.DV(atm);
+  const Numeric lmr = 1 + G;
+  const Numeric lmi = -Y;
+
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v           = mat[iz];
+    const Numeric Sz = line.z.Strength(line.qn, pol, iz);
+    const Numeric dH = line.z.Splitting(line.qn, pol, iz);
+    const Numeric s  = Sz * s_;
+    v[0]             = line.f0 + D0 + DV + H * dH;
+    v[1]             = 1.0 / (GD * v[0]);
+    v[2]             = G0 * v[1];
+    const Numeric c  = rx * s * v[1];
+    v[3]             = c * lmr;
+    v[4]             = c * lmi;
+  }
+}
+
 void prepare_wo_jac(MatrixView& mat,
                     const AtmPoint& atm,
                     const std::span<const flat_band_data>& bands,
@@ -85,322 +133,166 @@ void prepare_wo_jac(MatrixView& mat,
     const Numeric GD = scaled_gd_divf0(T, ir.mass);
 
     for (auto& line : flat.band) {
-      const Size nz     = line.z.size(line.qn, pol);
-      const Numeric s_  = line.s(T, Q);
-      const Numeric G   = line.ls.G(atm);
-      const Numeric Y   = line.ls.Y(atm);
-      const Numeric G0  = line.ls.G0(atm);
-      const Numeric D0  = line.ls.D0(atm);
-      const Numeric DV  = line.ls.DV(atm);
-      const Numeric lmr = 1 + G;
-      const Numeric lmi = -Y;
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v           = mat[idx + iz];
-        const Numeric Sz = line.z.Strength(line.qn, pol, iz);
-        const Numeric dH = line.z.Splitting(line.qn, pol, iz);
-        const Numeric s  = Sz * s_;
-        v[0]             = line.f0 + D0 + DV + H * dH;
-        v[1]             = 1.0 / (GD * v[0]);
-        v[2]             = G0 * v[1];
-        const Numeric c  = rx * s * v[1];
-        v[3]             = c * lmr;
-        v[4]             = c * lmi;
-      }
-      idx += nz;
-    }
-  }
-}
-
-void prepare_t_deriv(MatrixView& mat,
-                     const AtmPoint& atm,
-                     const std::span<const flat_band_data>& bands,
-                     const Range& range,
-                     const ZeemanPolarization& pol) {
-  const Numeric T     = atm.temperature;
-  const Numeric inv2T = 1.0 / (2.0 * T);
-
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx = flat.prev_size;
-
-    const auto& ir     = flat.band_key.isot;
-    const Numeric Q    = PartitionFunctions::Q(T, ir);
-    const Numeric dQdT = PartitionFunctions::dQdT(T, ir);
-    const Numeric rx   = Constant::inv_sqrt_pi * atm[ir] * atm[ir.spec];
-
-    for (auto& line : flat.band) {
-      const Size nz       = line.z.size(line.qn, pol);
-      const Numeric s_    = line.s(T, Q);
-      const Numeric ds_   = line.ds_dT(T, Q, dQdT);
-      const Numeric G     = line.ls.G(atm);
-      const Numeric Y     = line.ls.Y(atm);
-      const Numeric G0    = line.ls.G0(atm);
-      const Numeric dGdT  = line.ls.dG_dT(atm);
-      const Numeric dYdT  = line.ls.dY_dT(atm);
-      const Numeric dG0dT = line.ls.dG0_dT(atm);
-      const Numeric dD0dT = line.ls.dD0_dT(atm);
-      const Numeric dDVdT = line.ls.dDV_dT(atm);
-      const Numeric lmr   = 1 + G;
-      const Numeric lmi   = -Y;
-      const Numeric dlmr  = dGdT;
-      const Numeric dlmi  = -dYdT;
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v           = mat[idx + iz];
-        auto dv          = v[range];
-        const Numeric Sz = line.z.Strength(line.qn, pol, iz);
-        const Numeric s  = Sz * s_;
-        const Numeric ds = Sz * ds_;
-        dv[0]            = dD0dT + dDVdT;
-        dv[1]            = -v[1] * (inv2T + dv[0] / v[0]);
-        dv[2]            = dG0dT * v[1] + G0 * dv[1];
-        const Numeric c  = rx * s * v[1];
-        const Numeric dc = rx * (ds * v[1] + s * dv[1]);
-        dv[3]            = dc * lmr + c * dlmr;
-        dv[4]            = dc * lmi + c * dlmi;
-      }
-      idx += nz;
-    }
-  }
-}
-
-void prepare_p_deriv(MatrixView& mat,
-                     const AtmPoint& atm,
-                     const std::span<const flat_band_data>& bands,
-                     const Range& range,
-                     const ZeemanPolarization& pol) {
-  const Numeric T = atm.temperature;
-
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx = flat.prev_size;
-
-    const auto& ir   = flat.band_key.isot;
-    const Numeric Q  = PartitionFunctions::Q(T, ir);
-    const Numeric rx = Constant::inv_sqrt_pi * atm[ir] * atm[ir.spec];
-
-    for (auto& line : flat.band) {
-      const Size nz      = line.z.size(line.qn, pol);
-      const auto s_      = line.s(T, Q);
-      const auto G       = line.ls.G(atm);
-      const auto Y       = line.ls.Y(atm);
-      const auto G0      = line.ls.G0(atm);
-      const auto dGdP    = line.ls.dG_dP(atm);
-      const auto dYdP    = line.ls.dY_dP(atm);
-      const auto dG0dP   = line.ls.dG0_dP(atm);
-      const auto dD0dP   = line.ls.dD0_dP(atm);
-      const auto dDVdP   = line.ls.dDV_dP(atm);
-      const Numeric lmr  = 1 + G;
-      const Numeric lmi  = -Y;
-      const Numeric dlmr = dGdP;
-      const Numeric dlmi = -dYdP;
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v           = mat[idx + iz];
-        auto dv          = v[range];
-        const Numeric Sz = line.z.Strength(line.qn, pol, iz);
-        const Numeric s  = Sz * s_;
-        dv[0]            = dD0dP + dDVdP;
-        dv[1]            = -v[1] * dv[0] / v[0];
-        dv[2]            = dG0dP * v[1] + G0 * dv[1];
-        const Numeric c  = rx * s * v[1];
-        const Numeric dc = rx * s * dv[1];
-        dv[3]            = dc * lmr + c * dlmr;
-        dv[4]            = dc * lmi + c * dlmi;
-      }
-      idx += nz;
-    }
-  }
-}
-
-void prepare_mag_u_deriv(MatrixView& mat,
-                         const AtmPoint& atm,
-                         const std::span<const flat_band_data>& bands,
-                         const Range& range,
-                         const ZeemanPolarization& pol) {
-  const Numeric dHdu = atm.mag[0] / hypot(atm.mag);
-
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx = flat.prev_size;
-
-    for (auto& line : flat.band) {
       const Size nz = line.z.size(line.qn, pol);
-      const auto G0 = line.ls.G0(atm);
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v  = mat[idx + iz];
-        auto dv = v[range];
-        dv[0]   = line.z.Splitting(line.qn, pol, iz) * dHdu;
-        dv[1]   = -v[1] * dv[0] / v[0];
-        dv[2]   = G0 * dv[1];
-        dv[3]   = v[3] * dv[1] / v[1];
-        dv[4]   = v[4] * dv[1] / v[1];
-      }
+      auto matl     = mat[Range{idx, nz}];
+      prepare_wo_jac_line(matl, line, atm, Q, rx, H, GD, pol);
       idx += nz;
     }
   }
 }
 
-void prepare_mag_v_deriv(MatrixView& mat,
-                         const AtmPoint& atm,
-                         const std::span<const flat_band_data>& bands,
-                         const Range& range,
-                         const ZeemanPolarization& pol) {
-  const Numeric dHdv = atm.mag[1] / hypot(atm.mag);
+void prepare_t_deriv_line(MatrixView& mat,
+                          const lbl::line& line,
+                          const std::vector<Zee>& zee,
+                          const AtmPoint& atm,
+                          const Numeric Q,
+                          const Numeric dQdT,
+                          const Numeric rx,
+                          const Numeric s_,
+                          const Numeric inv2T,
+                          const Numeric G0,
+                          const Numeric lmr,
+                          const Numeric lmi,
+                          const Range& range) {
+  const Size nz = zee.size();
+  assert(static_cast<Size>(mat.nrows()) == nz);
 
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx = flat.prev_size;
+  const Numeric ds_   = line.ds_dT(atm.temperature, Q, dQdT);
+  const Numeric dGdT  = line.ls.dG_dT(atm);
+  const Numeric dYdT  = line.ls.dY_dT(atm);
+  const Numeric dG0dT = line.ls.dG0_dT(atm);
+  const Numeric dD0dT = line.ls.dD0_dT(atm);
+  const Numeric dDVdT = line.ls.dDV_dT(atm);
+  const Numeric dlmr  = dGdT;
+  const Numeric dlmi  = -dYdT;
 
-    for (auto& line : flat.band) {
-      const Size nz = line.z.size(line.qn, pol);
-      const auto G0 = line.ls.G0(atm);
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v  = mat[idx + iz];
-        auto dv = v[range];
-        dv[0]   = line.z.Splitting(line.qn, pol, iz) * dHdv;
-        dv[1]   = -v[1] * dv[0] / v[0];
-        dv[2]   = G0 * dv[1];
-        dv[3]   = v[3] * dv[1] / v[1];
-        dv[4]   = v[4] * dv[1] / v[1];
-      }
-      idx += nz;
-    }
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v           = mat[iz];
+    auto dv          = v[range];
+    const Numeric Sz = zee[iz].Sz;
+    const Numeric s  = Sz * s_;
+    const Numeric ds = Sz * ds_;
+    dv[0]            = dD0dT + dDVdT;
+    dv[1]            = -v[1] * (inv2T + dv[0] / v[0]);
+    dv[2]            = dG0dT * v[1] + G0 * dv[1];
+    const Numeric c  = rx * s * v[1];
+    const Numeric dc = rx * (ds * v[1] + s * dv[1]);
+    dv[3]            = dc * lmr + c * dlmr;
+    dv[4]            = dc * lmi + c * dlmi;
   }
 }
 
-void prepare_mag_w_deriv(MatrixView& mat,
-                         const AtmPoint& atm,
-                         const std::span<const flat_band_data>& bands,
-                         const Range& range,
-                         const ZeemanPolarization& pol) {
-  const Numeric dHdw = atm.mag[2] / hypot(atm.mag);
+void prepare_p_deriv_line(MatrixView& mat,
+                          const lbl::line& line,
+                          const std::vector<Zee>& zee,
+                          const AtmPoint& atm,
+                          const Numeric rx,
+                          const Numeric s_,
+                          const Numeric G0,
+                          const Numeric lmr,
+                          const Numeric lmi,
+                          const Range& range) {
+  const Size nz = zee.size();
+  assert(static_cast<Size>(mat.nrows()) == nz);
 
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx = flat.prev_size;
+  const Numeric dGdP  = line.ls.dG_dP(atm);
+  const Numeric dYdP  = line.ls.dY_dP(atm);
+  const Numeric dG0dP = line.ls.dG0_dP(atm);
+  const Numeric dD0dP = line.ls.dD0_dP(atm);
+  const Numeric dDVdP = line.ls.dDV_dP(atm);
+  const Numeric dlmr  = dGdP;
+  const Numeric dlmi  = -dYdP;
 
-    for (auto& line : flat.band) {
-      const Size nz = line.z.size(line.qn, pol);
-      const auto G0 = line.ls.G0(atm);
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v  = mat[idx + iz];
-        auto dv = v[range];
-        dv[0]   = line.z.Splitting(line.qn, pol, iz) * dHdw;
-        dv[1]   = -v[1] * dv[0] / v[0];
-        dv[2]   = G0 * dv[1];
-        dv[3]   = v[3] * dv[1] / v[1];
-        dv[4]   = v[4] * dv[1] / v[1];
-      }
-      idx += nz;
-    }
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v           = mat[iz];
+    auto dv          = v[range];
+    const Numeric Sz = zee[iz].Sz;
+    const Numeric s  = Sz * s_;
+    dv[0]            = dD0dP + dDVdP;
+    dv[1]            = -v[1] * dv[0] / v[0];
+    dv[2]            = dG0dP * v[1] + G0 * dv[1];
+    const Numeric c  = rx * s * v[1];
+    const Numeric dc = rx * s * dv[1];
+    dv[3]            = dc * lmr + c * dlmr;
+    dv[4]            = dc * lmi + c * dlmi;
   }
 }
 
-void prepare_deriv(MatrixView& mat,
-                   const AtmPoint& atm,
-                   const std::span<const flat_band_data>& bands,
-                   const SpeciesEnum& target_spec,
-                   const Range& range,
-                   const ZeemanPolarization& pol) {
-  const Numeric T = atm.temperature;
+void prepare_mag_deriv_line(MatrixView& mat,
+                            const std::vector<Zee>& zee,
+                            const Numeric dH,
+                            const Numeric G0,
+                            const Range& range) {
+  const Size nz = zee.size();
+  assert(static_cast<Size>(mat.nrows()) == nz);
 
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx              = flat.prev_size;
-    const band_data& band = flat.band;
-
-    const auto& ir = flat.band_key.isot;
-
-    if (ir.spec != target_spec) {
-      idx += band.count_zeeman_lines(pol);
-      continue;
-    }
-
-    const Numeric Q   = PartitionFunctions::Q(T, ir);
-    const Numeric drx = Constant::inv_sqrt_pi * atm[ir];
-    const Numeric rx  = drx * atm[ir.spec];
-
-    for (auto& line : band) {
-      const Size nz         = line.z.size(line.qn, pol);
-      const Numeric s_      = line.s(T, Q);
-      const Numeric G       = line.ls.G(atm);
-      const Numeric Y       = line.ls.Y(atm);
-      const Numeric G0      = line.ls.G0(atm);
-      const Numeric dGdVMR  = line.ls.dG_dVMR(atm, target_spec);
-      const Numeric dYdVMR  = line.ls.dY_dVMR(atm, target_spec);
-      const Numeric dG0dVMR = line.ls.dG0_dVMR(atm, target_spec);
-      const Numeric dD0dVMR = line.ls.dD0_dVMR(atm, target_spec);
-      const Numeric dDVdVMR = line.ls.dDV_dVMR(atm, target_spec);
-      const Numeric lmr     = 1 + G;
-      const Numeric lmi     = -Y;
-      const Numeric dlmr    = dGdVMR;
-      const Numeric dlmi    = -dYdVMR;
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v           = mat[idx + iz];
-        auto dv          = v[range];
-        const Numeric Sz = line.z.Strength(line.qn, pol, iz);
-        const Numeric s  = Sz * s_;
-        dv[0]            = dD0dVMR + dDVdVMR;
-        dv[1]            = -v[1] * dv[0] / v[0];
-        dv[2]            = dG0dVMR * v[1] + G0 * dv[1];
-        const Numeric c  = rx * s * v[1];
-        const Numeric dc = rx * s * dv[1] + drx * s * v[1];
-        dv[3]            = dc * lmr + c * dlmr;
-        dv[4]            = dc * lmi + c * dlmi;
-      }
-      idx += nz;
-    }
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v  = mat[iz];
+    auto dv = v[range];
+    dv[0]   = zee[iz].dH * dH;
+    dv[1]   = -v[1] * dv[0] / v[0];
+    dv[2]   = G0 * dv[1];
+    dv[3]   = v[3] * dv[1] / v[1];
+    dv[4]   = v[4] * dv[1] / v[1];
   }
 }
 
-void prepare_deriv(MatrixView& mat,
-                   const AtmPoint& atm,
-                   const std::span<const flat_band_data>& bands,
-                   const SpeciesIsotope& target_spec,
-                   const Range& range,
-                   const ZeemanPolarization& pol) {
-  const Numeric T = atm.temperature;
+void prepare_deriv_vmr_line(MatrixView& mat,
+                            const lbl::line& line,
+                            const std::vector<Zee>& zee,
+                            const AtmPoint& atm,
+                            const SpeciesEnum& target_spec,
+                            const Numeric rx,
+                            const Numeric drx,
+                            const Numeric s_,
+                            const Numeric G0,
+                            const Numeric lmr,
+                            const Numeric lmi,
+                            const Range& range) {
+  const Size nz = zee.size();
+  assert(static_cast<Size>(mat.nrows()) == nz);
 
-#pragma omp parallel for if (arts_omp_parallel(bands.size()))
-  for (const auto& flat : bands) {
-    Size idx              = flat.prev_size;
-    const band_data& band = flat.band;
+  const Numeric dGdVMR  = line.ls.dG_dVMR(atm, target_spec);
+  const Numeric dYdVMR  = line.ls.dY_dVMR(atm, target_spec);
+  const Numeric dG0dVMR = line.ls.dG0_dVMR(atm, target_spec);
+  const Numeric dD0dVMR = line.ls.dD0_dVMR(atm, target_spec);
+  const Numeric dDVdVMR = line.ls.dDV_dVMR(atm, target_spec);
+  const Numeric dlmr    = dGdVMR;
+  const Numeric dlmi    = -dYdVMR;
 
-    const auto& ir = flat.band_key.isot;
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v           = mat[iz];
+    auto dv          = v[range];
+    const Numeric Sz = zee[iz].Sz;
+    const Numeric s  = Sz * s_;
+    dv[0]            = dD0dVMR + dDVdVMR;
+    dv[1]            = -v[1] * dv[0] / v[0];
+    dv[2]            = dG0dVMR * v[1] + G0 * dv[1];
+    const Numeric c  = rx * s * v[1];
+    const Numeric dc = rx * s * dv[1] + drx * s * v[1];
+    dv[3]            = dc * lmr + c * dlmr;
+    dv[4]            = dc * lmi + c * dlmi;
+  }
+}
 
-    if (ir != target_spec) {
-      idx += band.count_zeeman_lines(pol);
-      continue;
-    }
+void prepare_deriv_isoratio_line(MatrixView& mat,
+                                 const std::vector<Zee>& zee,
+                                 const Numeric drx,
+                                 const Numeric s_,
+                                 const Numeric lmr,
+                                 const Numeric lmi,
+                                 const Range& range) {
+  const Size nz = zee.size();
+  assert(static_cast<Size>(mat.nrows()) == nz);
 
-    const Numeric Q   = PartitionFunctions::Q(T, ir);
-    const Numeric drx = Constant::inv_sqrt_pi * atm[ir.spec];
-
-    for (auto& line : band) {
-      const Size nz     = line.z.size(line.qn, pol);
-      const Numeric s_  = line.s(T, Q);
-      const Numeric G   = line.ls.G(atm);
-      const Numeric Y   = line.ls.Y(atm);
-      const Numeric lmr = 1 + G;
-      const Numeric lmi = -Y;
-
-      for (Size iz = 0; iz < nz; ++iz) {
-        auto v           = mat[idx + iz];
-        auto dv          = v[range];
-        const Numeric Sz = line.z.Strength(line.qn, pol, iz);
-        const Numeric s  = Sz * s_;
-        const Numeric dc = drx * s * v[1];
-        dv[3]            = dc * lmr;
-        dv[4]            = dc * lmi;
-      }
-      idx += nz;
-    }
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v           = mat[iz];
+    auto dv          = v[range];
+    const Numeric Sz = zee[iz].Sz;
+    const Numeric s  = Sz * s_;
+    const Numeric dc = drx * s * v[1];
+    dv[3]            = dc * lmr;
+    dv[4]            = dc * lmi;
   }
 }
 
@@ -718,45 +610,86 @@ void prepare_g_deriv(MatrixView& mat,
   }
 }
 
-void prepare_deriv(MatrixView& mat,
-                   const AtmPoint& atm,
-                   const std::span<const flat_band_data>& bands,
-                   const AtmKey& key,
-                   const Range& range,
-                   const ZeemanPolarization& pol) {
-  switch (key) {
-    using enum AtmKey;
-    case t:      prepare_t_deriv(mat, atm, bands, range, pol); break;
-    case p:      prepare_p_deriv(mat, atm, bands, range, pol); break;
-    case mag_u:  prepare_mag_u_deriv(mat, atm, bands, range, pol); break;
-    case mag_v:  prepare_mag_v_deriv(mat, atm, bands, range, pol); break;
-    case mag_w:  prepare_mag_w_deriv(mat, atm, bands, range, pol); break;
-    case wind_u: [[fallthrough]];
-    case wind_v: [[fallthrough]];
-    case wind_w: break;
+void prepare_with_atmjac_line(MatrixView& mat,
+                              const lbl::line& line,
+                              const AtmPoint& atm,
+                              const std::vector<Zee>& zee,
+                              const Numeric Q,
+                              const Numeric dQdT,
+                              const Numeric isotr,
+                              const Numeric vmr,
+                              const Numeric H,
+                              const Numeric GD,
+                              const JacobianTargets& jac_targets) {
+  const Numeric s_  = line.s(atm.temperature, Q);
+  const Numeric G   = line.ls.G(atm);
+  const Numeric Y   = line.ls.Y(atm);
+  const Numeric G0  = line.ls.G0(atm);
+  const Numeric D0  = line.ls.D0(atm);
+  const Numeric DV  = line.ls.DV(atm);
+  const Numeric lmr = 1 + G;
+  const Numeric lmi = -Y;
+  const Numeric rx  = Constant::inv_sqrt_pi * isotr * vmr;
+  const Size nz     = zee.size();
+
+  for (Size iz = 0; iz < nz; ++iz) {
+    auto v          = mat[iz];
+    v[0]            = line.f0 + D0 + DV + H * zee[iz].dH;
+    v[1]            = 1.0 / (GD * v[0]);
+    v[2]            = G0 * v[1];
+    const Numeric c = rx * zee[iz].Sz * s_ * v[1];
+    v[3]            = c * lmr;
+    v[4]            = c * lmi;
+  }
+
+  for (auto& target : jac_targets.atm) {
+    const Range r{(target.target_pos + 1) * 5, 5};
+    std::visit(
+        [&]<typename T>(const T& jac) {
+          if constexpr (std::is_same_v<T, AtmKey>) {
+            switch (jac) {
+              using enum AtmKey;
+              case t: {
+                const Numeric i = 0.5 / atm.temperature;
+                prepare_t_deriv_line(
+                    mat, line, zee, atm, Q, dQdT, rx, s_, i, G0, lmr, lmi, r);
+              } break;
+              case p:
+                prepare_p_deriv_line(
+                    mat, line, zee, atm, rx, s_, G0, lmr, lmi, r);
+                break;
+              case mag_u:
+                prepare_mag_deriv_line(mat, zee, atm.mag[0] / H, G0, r);
+                break;
+              case mag_v:
+                prepare_mag_deriv_line(mat, zee, atm.mag[1] / H, G0, r);
+                break;
+              case mag_w:
+                prepare_mag_deriv_line(mat, zee, atm.mag[2] / H, G0, r);
+                break;
+              case wind_u: [[fallthrough]];
+              case wind_v: [[fallthrough]];
+              case wind_w: break;
+            }
+          } else if constexpr (std::same_as<T, SpeciesEnum>) {
+            const Numeric drx = Constant::inv_sqrt_pi * vmr;
+            prepare_deriv_vmr_line(
+                mat, line, zee, atm, jac, rx, drx, s_, G0, lmr, lmi, r);
+          } else if constexpr (std::is_same_v<T, SpeciesIsotope>) {
+            const Numeric drx = Constant::inv_sqrt_pi * isotr;
+            prepare_deriv_isoratio_line(mat, zee, drx, s_, lmr, lmi, r);
+          }
+        },
+        target.type);
   }
 }
 
-void prepare_deriv(MatrixView&,
-                   const AtmPoint&,
-                   const std::span<const flat_band_data>&,
-                   const ScatteringSpeciesProperty&,
-                   const Range&,
-                   const ZeemanPolarization&) {}
-
-void prepare_deriv(MatrixView&,
-                   const AtmPoint&,
-                   const std::span<const flat_band_data>&,
-                   const QuantumLevelIdentifier&,
-                   const Range&,
-                   const ZeemanPolarization&) {}
-
-void prepare_deriv(MatrixView& mat,
-                   const AtmPoint& atm,
-                   const std::span<const flat_band_data>& bands,
-                   const Jacobian::LineTarget& key,
-                   const Range& range,
-                   const ZeemanPolarization& pol) {
+void prepare_line_deriv(MatrixView& mat,
+                        const AtmPoint& atm,
+                        const std::span<const flat_band_data>& bands,
+                        const Jacobian::LineTarget& key,
+                        const Range& range,
+                        const ZeemanPolarization& pol) {
   switch (key.type.var) {
     using enum LineByLineVariable;
     case f0:     prepare_f0_deriv(mat, atm, bands, key, range, pol); break;
@@ -788,19 +721,37 @@ void prepare_with_jac(MatrixView mat,
   assert(static_cast<Size>(static_cast<Size>(mat.ncols())) ==
          jac_targets.target_count() * 5 + 5);
 
-  prepare_wo_jac(mat, atm, bands, pol);
+  if (jac_targets.empty()) return prepare_wo_jac(mat, atm, bands, pol);
 
-  for (auto& target : jac_targets.atm) {
-    std::visit(
-        [&](const auto& x) {
-          prepare_deriv(
-              mat, atm, bands, x, {target.target_pos * 5 + 5, 5}, pol);
-        },
-        target.type);
-  }
+  const Numeric T = atm.temperature;
+  const Numeric H = hypot(atm.mag);
+  std::vector<Zee> zee;
 
-  for (auto& target : jac_targets.line) {
-    prepare_deriv(mat, atm, bands, target, {target.target_pos * 5 + 5, 5}, pol);
+#pragma omp parallel for if (arts_omp_parallel(bands.size())) firstprivate(zee)
+  for (const auto& flat : bands) {
+    Size idx = flat.prev_size;
+
+    const auto& ir      = flat.band_key.isot;
+    const Numeric Q     = PartitionFunctions::Q(T, ir);
+    const Numeric dQdT  = PartitionFunctions::dQdT(T, ir);
+    const Numeric vmr   = atm[ir.spec];
+    const Numeric isotr = atm[ir];
+    const Numeric GD    = scaled_gd_divf0(T, ir.mass);
+
+    for (auto& line : flat.band) {
+      zeeman_splitting(zee, line, pol);
+      const Size nz = zee.size();
+      auto matl     = mat[Range{idx, nz}];
+      prepare_with_atmjac_line(
+          matl, line, atm, zee, Q, dQdT, isotr, vmr, H, GD, jac_targets);
+      idx += nz;
+    }
+
+#pragma omp parallel for if (arts_omp_parallel())
+    for (auto& target : jac_targets.line) {
+      prepare_line_deriv(
+          mat, atm, bands, target, {target.target_pos * 5 + 5, 5}, pol);
+    }
   }
 }
 }  // namespace
@@ -913,7 +864,7 @@ void sumup(ComplexVectorView a,
   const ComplexVector cutoffs = [i0, i1, cutoff, &mat]() -> ComplexVector {
     ComplexVector res(mat.nrows());
 
-#pragma omp parallel for if (arts_omp_parallel(i1-i0))
+#pragma omp parallel for if (arts_omp_parallel(i1 - i0))
     for (Size i = i0; i < i1; i++) {
       const auto&& v = mat[i];
       res[i]         = expr(Faddeeva::w(z_(v, v[0] + cutoff)), s_(v));
@@ -1001,7 +952,7 @@ void sumup(ComplexMatrixView res,
       [nq, i0, i1, cutoff, &mat, &df]() -> ComplexMatrix {
     ComplexMatrix res(mat.nrows(), 1 + nq);
 
-#pragma omp parallel for if (arts_omp_parallel(i1-i0))
+#pragma omp parallel for if (arts_omp_parallel(i1 - i0))
     for (Size i = i0; i < i1; i++) {
       const auto&& v = mat[i];
 
