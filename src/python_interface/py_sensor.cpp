@@ -270,25 +270,18 @@ Numeric, Vector, or Matrix
   a1.def(
       "unique_freq_grids",
       [](const ArrayOfSensorObsel& x) {
-        const SensorSimulations simuls = collect_simulations(x);
-        std::vector<AscendingGrid> out;
-        out.reserve(simuls.size());
-        for (auto& k : simuls | stdv::keys) out.push_back(*k);
-        return out;
+        return std::vector{std::from_range,
+                           unique_frequency_grids(x) |
+                               stdv::transform([](auto& ptr) { return *ptr; })};
       },
       "List of the unique frequency grids");
 
   a1.def(
       "unique_poslos_grids",
       [](const ArrayOfSensorObsel& x) {
-        const SensorSimulations simuls = collect_simulations(x);
-        std::unordered_set<std::shared_ptr<const SensorPosLosVector>> vecs;
-        for (auto& k : simuls | stdv::values) vecs.insert(k.begin(), k.end());
-
-        std::vector<SensorPosLosVector> out;
-        out.reserve(vecs.size());
-        for (auto& v : vecs) out.push_back(*v);
-        return out;
+        return std::vector{std::from_range,
+                           unique_poslos_grids(x) |
+                               stdv::transform([](auto& ptr) { return *ptr; })};
       },
       "List of the unique poslos grids");
 

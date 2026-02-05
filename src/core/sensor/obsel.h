@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "matpack_mdspan_helpers_grid_t.h"
+
 namespace sensor {
 struct PosLos {
   Vector3 pos;
@@ -111,6 +113,8 @@ class Obsel {
 
   [[nodiscard]] bool same_freqs(const Obsel& other) const;
 
+  [[nodiscard]] bool same_freqs(const AscendingGrid& other) const;
+
   [[nodiscard]] bool same_freqs(
       const std::shared_ptr<const AscendingGrid>& other) const;
 
@@ -118,6 +122,8 @@ class Obsel {
 
   [[nodiscard]] bool same_poslos(
       const std::shared_ptr<const PosLosVector>& other) const;
+
+  [[nodiscard]] bool same_poslos(const PosLosVector& other) const;
 
   [[nodiscard]] const auto& f_grid_ptr() const { return f; }
   [[nodiscard]] const auto& poslos_grid_ptr() const { return poslos; }
@@ -204,9 +210,14 @@ using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;
 using SensorObsel        = sensor::Obsel;
 using ArrayOfSensorObsel = Array<SensorObsel>;
-using SensorSimulations  = std::unordered_map<
-     std::shared_ptr<const AscendingGrid>,
-     std::unordered_set<std::shared_ptr<const SensorPosLosVector>>>;
+
+struct SensorSimulationsCache {
+  const AscendingGrid& freq_grid;
+  const SensorPosLosVector& poslos_grid;
+  const Size iposlos;
+};
+
+using SensorSimulations = std::vector<SensorSimulationsCache>;
 
 void unflatten(ArrayOfSensorObsel& sensor,
                const ConstVectorView& x,
@@ -234,6 +245,12 @@ void make_exhaustive(std::span<SensorObsel> obsels);
  * @param obsels An existing list of observation elements to make exclusive
  */
 void make_exclusive(std::span<SensorObsel> obsels);
+
+std::vector<const AscendingGrid*> unique_frequency_grids(
+    const std::span<const SensorObsel>& obsels);
+
+std::vector<const SensorPosLosVector*> unique_poslos_grids(
+    const std::span<const SensorObsel>& obsels);
 
 SensorSimulations collect_simulations(
     const std::span<const SensorObsel>& obsels);

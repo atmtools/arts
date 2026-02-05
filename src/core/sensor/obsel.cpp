@@ -4,7 +4,11 @@
 #include <debug.h>
 
 #include <algorithm>
+#include <memory>
+#include <ranges>
 #include <utility>
+
+#include "matpack_mdspan_helpers_grid_t.h"
 
 bool SensorKey::operator==(const SensorKey& other) const {
   return other.sensor_elem == sensor_elem and
@@ -179,6 +183,10 @@ Obsel::Obsel(const AscendingGrid& fs,
 
 bool Obsel::same_freqs(const Obsel& other) const { return f == other.f; }
 
+bool Obsel::same_freqs(const AscendingGrid& other) const {
+  return f.get() == &other;
+}
+
 bool Obsel::same_freqs(
     const std::shared_ptr<const AscendingGrid>& other) const {
   return f == other;
@@ -191,6 +199,10 @@ bool Obsel::same_poslos(const Obsel& other) const {
 bool Obsel::same_poslos(
     const std::shared_ptr<const PosLosVector>& other) const {
   return poslos == other;
+}
+
+bool Obsel::same_poslos(const PosLosVector& other) const {
+  return poslos.get() == &other;
 }
 
 void Obsel::set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
@@ -371,12 +383,52 @@ Index Obsel::find(const AscendingGrid& freq_grid) const {
 }
 }  // namespace sensor
 
+std::vector<const AscendingGrid*> unique_frequency_grids(
+    const std::span<const SensorObsel>& obsels) {
+  std::vector<const AscendingGrid*> out;
+
+  for (const auto& obsel : obsels) {
+    const auto& f_grid = obsel.f_grid();
+
+    if (not stdr::contains(out, &f_grid)) {
+      out.push_back(&f_grid);
+    }
+  }
+
+  return out;
+}
+
+std::vector<const SensorPosLosVector*> unique_poslos_grids(
+    const std::span<const SensorObsel>& obsels) {
+  std::vector<const SensorPosLosVector*> out;
+
+  for (const auto& obsel : obsels) {
+    const auto& poslos_grid = obsel.poslos_grid();
+    if (not stdr::contains(out, &poslos_grid)) {
+      out.push_back(&poslos_grid);
+    }
+  }
+
+  return out;
+}
+
 SensorSimulations collect_simulations(
     const std::span<const SensorObsel>& obsels) {
   SensorSimulations out;
 
+  std::unordered_set<const AscendingGrid*> buf{};
+
   for (const auto& obsel : obsels) {
-    out[obsel.f_grid_ptr()].insert(obsel.poslos_grid_ptr());
+    auto& f_grid = obsel.f_grid();
+
+    if (buf.contains(&f_grid)) continue;
+    buf.insert(&f_grid);
+
+    auto& poslos = obsel.poslos_grid();
+
+    for (Size i = 0; i < poslos.size(); ++i) {
+      out.emplace_back(f_grid, poslos, i);
+    }
   }
 
   return out;
@@ -387,21 +439,14 @@ void make_exhaustive(std::span<SensorObsel> obsels) {
 
   // Early return on trivial cases
   if (simuls.size() == 0) return;
-  if (simuls.size() == 1 and simuls.begin()->second.size() <= 1) return;
+  if (simuls.size() == 1 and simuls.front().poslos_grid.size() <= 1) return;
 
   std::vector<Numeric> all_freq;  // Collect all frequencies in the simulations
   std::vector<SensorPosLos> all_geom;  // Collect all poslos in the simulations
 
-  for (auto& [freqs, geoms] : simuls) {
-    all_freq.insert(all_freq.end(), freqs->begin(), freqs->end());
-
-    for (auto& geom : geoms) {
-      for (auto& poslos : *geom) {
-        if (stdr::find(all_geom, poslos) == all_geom.end()) {
-          all_geom.push_back(poslos);
-        }
-      }
-    }
+  for (auto& [freqs, poslos, iposlos] : simuls) {
+    all_freq.insert(all_freq.end(), freqs.begin(), freqs.end());
+    all_geom.emplace_back(poslos[iposlos]);
   }
 
   stdr::sort(all_freq);
@@ -771,47 +816,47 @@ void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
                                               const ArrayOfSensorObsel& g,
                                               bofstream* pbofs,
                                               std::string_view name) {
-  const auto sen = collect_simulations(g);
+  const auto freqs_ptrs = unique_frequency_grids(g);
+  const auto plos_ptrs  = unique_poslos_grids(g);
 
-  std::vector<std::shared_ptr<const SensorPosLosVector>> plos;
-  plos.reserve(sen.size());
-  for (const auto& i : sen | stdv::values | stdv::join) {
-    if (not stdr::contains(plos, i)) {
-      plos.push_back(i);
-    }
-  }
+  const std::vector freqs{
+      std::from_range,
+      freqs_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
 
-  std::vector<std::shared_ptr<const AscendingGrid>> freqs;
-  freqs.reserve(sen.size());
-  for (const auto& i : sen | stdv::keys) freqs.push_back(i);
+  const std::vector plos{
+      std::from_range,
+      plos_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
+
+  const std::vector freqs_pos{
+      std::from_range,
+      g | stdv::transform([&freqs_ptrs](const SensorObsel& elem) -> Index {
+        for (Size i = 0; i < freqs_ptrs.size(); ++i) {
+          if (elem.same_freqs(*freqs_ptrs[i])) return i;
+        }
+        return -999;  // Should not happen
+      })};
+
+  const std::vector plos_pos{
+      std::from_range,
+      g | stdv::transform([&plos_ptrs](const SensorObsel& elem) -> Index {
+        for (Size i = 0; i < plos_ptrs.size(); ++i) {
+          if (elem.same_poslos(*plos_ptrs[i])) return i;
+        }
+        return -999;  // Should not happen
+      })};
+
+  const std::vector weights{
+      std::from_range,
+      g | stdv::transform([](auto& elem) { return elem.weight_matrix(); })};
 
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
   xml_write_to_stream(os, freqs, pbofs, "f_grid");
   xml_write_to_stream(os, plos, pbofs, "poslos");
-  xml_write_to_stream(os,
-                      g | stdv::transform([&freqs](auto& elem) {
-                        return std::distance(
-                            freqs.begin(),
-                            stdr::find(freqs, elem.f_grid_ptr()));
-                      }) | stdr::to<std::vector<Index>>(),
-                      pbofs,
-                      "f_grid_pos");
-  xml_write_to_stream(os,
-                      g | stdv::transform([&plos](auto& elem) {
-                        return std::distance(
-                            plos.begin(),
-                            stdr::find(plos, elem.poslos_grid_ptr()));
-                      }) | stdr::to<std::vector<Index>>(),
-                      pbofs,
-                      "poslos_pos");
-  xml_write_to_stream(os,
-                      g | stdv::transform([](auto& elem) {
-                        return elem.weight_matrix();
-                      }) | stdr::to<std::vector<sensor::SparseStokvecMatrix>>(),
-                      pbofs,
-                      "Weights");
+  xml_write_to_stream(os, freqs_pos, pbofs, "f_grid_pos");
+  xml_write_to_stream(os, plos_pos, pbofs, "poslos_pos");
+  xml_write_to_stream(os, weights, pbofs, "Weights");
 
   tag.write_to_end_stream(os);
 }
@@ -825,16 +870,26 @@ void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
 
   g.resize(0);
 
-  std::vector<std::shared_ptr<AscendingGrid>> f_grid;
-  std::vector<std::shared_ptr<SensorPosLosVector>> poslos;
+  std::vector<AscendingGrid> f_grid_vals;
+  std::vector<SensorPosLosVector> poslos_vals;
   std::vector<Index> f_grid_pos, poslos_pos;
   std::vector<sensor::SparseStokvecMatrix> mat;
 
-  xml_read_from_stream(is, f_grid, pbifs);
-  xml_read_from_stream(is, poslos, pbifs);
+  xml_read_from_stream(is, f_grid_vals, pbifs);
+  xml_read_from_stream(is, poslos_vals, pbifs);
   xml_read_from_stream(is, f_grid_pos, pbifs);
   xml_read_from_stream(is, poslos_pos, pbifs);
   xml_read_from_stream(is, mat, pbifs);
+
+  const std::vector f_grid{std::from_range,
+                           f_grid_vals | stdv::transform([](auto& val) {
+                             return std::make_shared<const AscendingGrid>(val);
+                           })};
+
+  const std::vector poslos{
+      std::from_range, poslos_vals | stdv::transform([](auto& val) {
+                         return std::make_shared<const SensorPosLosVector>(val);
+                       })};
 
   const Size N = f_grid_pos.size();
 

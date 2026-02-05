@@ -320,50 +320,7 @@ void measurement_vecFromSensor(
   for (auto &obsel : measurement_sensor) obsel.check();
 
   const SensorSimulations simulations = collect_simulations(measurement_sensor);
-
-  const auto flat_size = [](const SensorSimulations &simulations) {
-    Size size = 0;
-    for (const auto &[f_grid_ptr, poslos_set] : simulations) {
-      for (const auto &poslos_gs : poslos_set) {
-        size += poslos_gs->size();
-      }
-    }
-
-    return size;
-  };
-
-  const Size N = flat_size(simulations);
-
-  struct unflatten_data {
-    const std::shared_ptr<const AscendingGrid> *f_grid_ptr{nullptr};
-    const std::shared_ptr<const SensorPosLosVector> *poslos_ptr{nullptr};
-    Size ip{std::numeric_limits<Size>::max()};
-
-    unflatten_data(const SensorSimulations &simulations, Size n) {
-      for (auto &[f_grid_ptr, poslos_set] : simulations) {
-        for (auto &poslos_gs : poslos_set) {
-          const Size np = poslos_gs->size();
-          if (n < np) {
-            this->f_grid_ptr = &f_grid_ptr;
-            this->poslos_ptr = &poslos_gs;
-            this->ip         = n;
-            goto end;
-          }
-          n -= np;
-        }
-      }
-
-    end:
-      ARTS_USER_ERROR_IF(
-          f_grid_ptr == nullptr or poslos_ptr == nullptr,
-          "Failed to find f_grid_ptr and poslos_ptr for index {} in simulations",
-          n)
-      ARTS_USER_ERROR_IF(ip >= (**poslos_ptr).size(),
-                         "Index {} out of bounds for poslos_ptr with size {}",
-                         ip,
-                         (**poslos_ptr).size());
-    }
-  };
+  const Size N                        = simulations.size();
 
   std::string error{};
 
@@ -371,11 +328,9 @@ void measurement_vecFromSensor(
 #pragma omp parallel for schedule(dynamic) if (arts_omp_parallel(-1, N > 1))
   for (Size i = 0; i < N; i++) {
     try {
-      const unflatten_data unflat(simulations, i);
-
-      const Size ip    = unflat.ip;
-      auto &f_grid_ptr = *unflat.f_grid_ptr;
-      auto &poslos     = (**unflat.poslos_ptr)[ip];
+      const Size ip         = simulations[i].iposlos;
+      const auto &freq_grid = simulations[i].freq_grid;
+      const auto &poslos    = simulations[i].poslos_grid[ip];
 
       StokvecVector spectral_rad;
       StokvecMatrix spectral_rad_jac;
@@ -385,7 +340,7 @@ void measurement_vecFromSensor(
                                           spectral_rad,
                                           spectral_rad_jac,
                                           ray_path,
-                                          *f_grid_ptr,
+                                          freq_grid,
                                           jac_targets,
                                           poslos.pos,
                                           poslos.los,
@@ -396,12 +351,12 @@ void measurement_vecFromSensor(
 
       ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
       spectral_rad_transform_operator(
-          spectral_rad, spectral_rad_jac, *f_grid_ptr, ray_path.front());
+          spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
 
 #pragma omp critical
       for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
         const SensorObsel &obsel = measurement_sensor[iv];
-        if (obsel.same_freqs(f_grid_ptr)) {
+        if (obsel.same_freqs(freq_grid)) {
           measurement_vec[iv] += obsel.sumup(spectral_rad, ip);
 
           obsel.sumup(measurement_jac[iv], spectral_rad_jac, ip);
