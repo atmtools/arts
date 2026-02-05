@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <exception>
 #include <memory>
+#include <ranges>
 
 #include "workspace_class.h"
 
@@ -289,31 +290,26 @@ void measurement_vecFromOperatorPath(
   const SensorSimulations simulations =
       collect_simulations(measurement_vec_sensor);
 
-  for (auto& [f_grid_ptr, poslos_set] : simulations) {
-    for (auto& poslos_gs : poslos_set) {
-      for (Size ip = 0; ip < poslos_gs->size(); ++ip) {
-        ArrayOfPropagationPathPoint ray_path;
-        std::vector<fwd::path> path;
-        StokvecVector spectral_rad;
+  for (auto& [freq_grid, poslos_grid, iposlos] : simulations) {
+    const auto& poslos = poslos_grid[iposlos];
 
-        const SensorPosLos& poslos = (*poslos_gs)[ip];
+    ArrayOfPropagationPathPoint ray_path;
 
-        ray_path_observer_agendaExecute(
-            ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
-        spectral_rad_operator.from_path(path, ray_path);
-        std::transform(f_grid_ptr->begin(),
-                       f_grid_ptr->end(),
-                       spectral_rad.begin(),
-                       [&path, &spectral_rad_operator](Numeric f) {
-                         return spectral_rad_operator(f, path);
-                       });
+    ray_path_observer_agendaExecute(
+        ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
 
-        for (Size iv = 0; iv < measurement_vec_sensor.size(); ++iv) {
-          const SensorObsel& obsel = measurement_vec_sensor[iv];
-          if (obsel.same_freqs(f_grid_ptr)) {
-            measurement_vec[iv] += obsel.sumup(spectral_rad, ip);
-          }
-        }
+    const StokvecVector spectral_rad{
+        std::from_range,
+        freq_grid |
+            stdv::transform([path = spectral_rad_operator.from_path(ray_path),
+                             &spectral_rad_operator](Numeric f) {
+              return spectral_rad_operator(f, path);
+            })};
+
+    for (Size iv = 0; iv < measurement_vec_sensor.size(); ++iv) {
+      const SensorObsel& obsel = measurement_vec_sensor[iv];
+      if (obsel.same_freqs(freq_grid)) {
+        measurement_vec[iv] += obsel.sumup(spectral_rad, iposlos);
       }
     }
   }
