@@ -8,12 +8,21 @@
 #include <iostream>
 
 namespace {
+const QuantumIdentifier bnd_qid{"O2-66"_isot};
+
 JacobianTargets create_jac_targets() {
   JacobianTargets jac_targets;
+
   jac_targets.emplace_back(AtmKey::t);
   jac_targets.emplace_back(AtmKey::p);
-  jac_targets.emplace_back("O2"_spec);
-  jac_targets.emplace_back("O2-66"_isot);
+  // jac_targets.emplace_back(AtmKey::mag_u);
+  // jac_targets.emplace_back(AtmKey::mag_v);
+  // jac_targets.emplace_back(AtmKey::mag_w);
+  // jac_targets.emplace_back(AtmKey::wind_u);
+  // jac_targets.emplace_back(AtmKey::wind_v);
+  // jac_targets.emplace_back(AtmKey::wind_w);
+  jac_targets.emplace_back(bnd_qid.isot);
+  jac_targets.emplace_back(bnd_qid.isot.spec);
   return jac_targets;
 }
 
@@ -34,7 +43,7 @@ std::vector<lbl::line> create_lines(Index M) {
     line.z.gu() = 1.0011;
     line.z.gl() = 0.0;
     line.ls.T0  = 296.0;
-    auto& ls    = line.ls.single_models["O2"_spec];
+    auto& ls    = line.ls.single_models[bnd_qid.isot.spec];
     ls.data[LineShapeModelVariable::G0] = lbl::temperature::data(
         LineShapeModelType::T1, Vector{x[i, Range(3, 2)]});
     line.qn[QuantumNumberType::J] = {.upper = Rational(1),
@@ -233,13 +242,12 @@ Numeric lbl_data_line_hitran_s(const std::vector<lbl::line>& lines) {
 
   Numeric result = 0.0;
   for (Index i = 0; i < n; ++i)
-    result += lines[i].hitran_s("O2-66"_isot, 296.0);
+    result += lines[i].hitran_s(bnd_qid.isot, 296.0);
   return result;
 }
 
 Numeric lbl_voigt_lte_calculate(PropmatVector& pm,
                                 PropmatMatrix& dpm,
-                                const QuantumIdentifier& bnd_qid,
                                 const AbsorptionBand& bnd,
                                 const Vector& fs,
                                 const AtmPoint& atm) {
@@ -290,7 +298,6 @@ Numeric lbl_voigt_lte_calculate(PropmatVector& pm,
 
 Numeric lbl_voigt_lte_mirror_calculate(PropmatVector& pm,
                                        PropmatMatrix& dpm,
-                                       const QuantumIdentifier& bnd_qid,
                                        const AbsorptionBand& bnd,
                                        const Vector& fs,
                                        const AtmPoint& atm) {
@@ -486,26 +493,25 @@ int main() {
   }
 
   {
-    constexpr Index M = 10'000;
-    constexpr Index N = 2'000;
-    const QuantumIdentifier bnd_qid{"O2-66"_isot};
-    const AbsorptionBand bnd = {.lines = create_lines(M)};
     AtmPoint atm;
-    atm.temperature = 250.0;
-    atm.pressure    = 182.0;
-    atm["O2"_spec]  = 0.21;
-    const Vector f  = random_numbers<1>({N}, 0.0, 1.0);
+    constexpr Index M        = 10'000;
+    constexpr Index N        = 2'000;
+    const AbsorptionBand bnd = {.lines = create_lines(M)};
+    atm.temperature          = 250.0;
+    atm.pressure             = 182.0;
+    atm[bnd_qid.isot.spec]   = 0.21;
+    const Vector f           = random_numbers<1>({N}, 0.0, 1.0);
     PropmatVector pm(N);
     PropmatMatrix dpm(0, N);
 
-    buf += lbl_voigt_lte_calculate(pm, dpm, bnd_qid, bnd, f, atm);
-    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
+    buf += lbl_voigt_lte_calculate(pm, dpm, bnd, f, atm);
+    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd, f, atm);
 
     const int cores = arts_omp_get_max_threads();
     arts_omp_set_num_threads(1);
 
-    buf += lbl_voigt_lte_calculate(pm, dpm, bnd_qid, bnd, f, atm);
-    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd_qid, bnd, f, atm);
+    buf += lbl_voigt_lte_calculate(pm, dpm, bnd, f, atm);
+    buf += lbl_voigt_lte_mirror_calculate(pm, dpm, bnd, f, atm);
 
     arts_omp_set_num_threads(cores);
   }
@@ -513,12 +519,11 @@ int main() {
   {
     constexpr Index M = 1'000'000;
     AbsorptionBands bands{};
-    bands[QuantumIdentifier{"O2-66"_isot}] =
-        AbsorptionBand{.lines = create_lines(M)};
+    bands[bnd_qid] = AbsorptionBand{.lines = create_lines(M)};
     AtmPoint atm;
-    atm.temperature = 250.0;
-    atm.pressure    = 182.0;
-    atm["O2"_spec]  = 0.21;
+    atm.temperature        = 250.0;
+    atm.pressure           = 182.0;
+    atm[bnd_qid.isot.spec] = 0.21;
     Matrix mat(M, 5);
 
     constexpr Index n = 5;
@@ -539,14 +544,14 @@ int main() {
     constexpr Index N = 10'000;
     AbsorptionBands bands{};
     for (Index i = 0; i < N; ++i) {
-      QuantumIdentifier key{"O2-66"_isot};
+      QuantumIdentifier key{bnd_qid};
       key.state[QuantumNumberType::v] = {.upper = i, .lower = i};
       bands[key] = AbsorptionBand{.lines = create_lines(M)};
     }
     AtmPoint atm;
-    atm.temperature = 250.0;
-    atm.pressure    = 182.0;
-    atm["O2"_spec]  = 0.21;
+    atm.temperature        = 250.0;
+    atm.pressure           = 182.0;
+    atm[bnd_qid.isot.spec] = 0.21;
     Matrix mat(M, 5);
 
     lbl_voigt_lte_matrix_prepare_manybands(mat, bands, atm);
@@ -581,12 +586,11 @@ int main() {
   {
     constexpr Index M = 1'000'000;
     AbsorptionBands bands{};
-    bands[QuantumIdentifier{"O2-66"_isot}] =
-        AbsorptionBand{.lines = create_lines(M)};
+    bands[bnd_qid] = AbsorptionBand{.lines = create_lines(M)};
     AtmPoint atm;
     atm.temperature                   = 250.0;
     atm.pressure                      = 182.0;
-    atm["O2"_spec]                    = 0.21;
+    atm[bnd_qid.isot.spec]            = 0.21;
     const JacobianTargets jac_targets = create_jac_targets();
     Matrix mat(M, 5 + 5 * jac_targets.target_count());
 
@@ -606,14 +610,14 @@ int main() {
     constexpr Index N = 10'000;
     AbsorptionBands bands{};
     for (Index i = 0; i < N; ++i) {
-      QuantumIdentifier key{"O2-66"_isot};
+      QuantumIdentifier key           = bnd_qid;
       key.state[QuantumNumberType::v] = {.upper = i, .lower = i};
       bands[key] = AbsorptionBand{.lines = create_lines(M)};
     }
     AtmPoint atm;
     atm.temperature                   = 250.0;
     atm.pressure                      = 182.0;
-    atm["O2"_spec]                    = 0.21;
+    atm[bnd_qid.isot.spec]            = 0.21;
     const JacobianTargets jac_targets = create_jac_targets();
     Matrix mat(M, 5 + 5 * jac_targets.target_count());
 

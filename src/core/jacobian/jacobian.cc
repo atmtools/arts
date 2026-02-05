@@ -43,6 +43,8 @@ Size Targets::target_count() const {
          sensor.size() + error.size();
 }
 
+bool Targets::empty() const { return target_count() == 0; }
+
 void Targets::throwing_check(Size xsize) const {
   const auto t_size = target_count();
 
