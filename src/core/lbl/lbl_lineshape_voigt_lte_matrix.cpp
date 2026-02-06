@@ -672,11 +672,11 @@ void prepare_with_atmjac_line(MatrixView& mat,
               case wind_w: break;
             }
           } else if constexpr (std::same_as<T, SpeciesEnum>) {
-            const Numeric drx = Constant::inv_sqrt_pi * vmr;
+            const Numeric drx = Constant::inv_sqrt_pi * isotr;
             prepare_deriv_vmr_line(
                 mat, line, zee, atm, jac, rx, drx, s_, G0, lmr, lmi, r);
           } else if constexpr (std::is_same_v<T, SpeciesIsotope>) {
-            const Numeric drx = Constant::inv_sqrt_pi * isotr;
+            const Numeric drx = Constant::inv_sqrt_pi * vmr;
             prepare_deriv_isoratio_line(mat, zee, drx, s_, lmr, lmi, r);
           }
         },
