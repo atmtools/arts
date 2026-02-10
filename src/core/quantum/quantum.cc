@@ -99,6 +99,8 @@ Value::Value(QuantumNumberType type) {
     case vibInv:             value = String{"*"}; return;
     case vibRefl:            value = String{"*"}; return;
     case vibSym:             value = String{"*"}; return;
+    case G:                  value = Rational{0}; return;
+    case U:                  value = String{"*"}; return;
   }
   std::unreachable();
 }
@@ -294,13 +296,14 @@ std::strong_ordering Identifier::operator<=>(const Identifier& g) const {
     return test;
 
   for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
-    auto thi = state.find(qns);
-    auto tha = g.state.find(qns);
+    auto thi            = state.find(qns);
+    auto tha            = g.state.find(qns);
+    const bool this_end = thi == state.end();
+    const bool that_end = tha == g.state.end();
 
-    if (thi == state.end() and tha != g.state.end())
-      return std::strong_ordering::greater;
-    if (thi != state.end() and tha == g.state.end())
-      return std::strong_ordering::less;
+    if (this_end and that_end) continue;
+    if (this_end and not that_end) return std::strong_ordering::greater;
+    if (not this_end and that_end) return std::strong_ordering::less;
 
     if (std::strong_ordering test = thi->second <=> tha->second;
         test != std::strong_ordering::equal)
@@ -316,13 +319,14 @@ std::strong_ordering LevelIdentifier::operator<=>(
     return test;
 
   for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
-    auto thi = state.find(qns);
-    auto tha = g.state.find(qns);
+    auto thi            = state.find(qns);
+    auto tha            = g.state.find(qns);
+    const bool this_end = thi == state.end();
+    const bool that_end = tha == g.state.end();
 
-    if (thi == state.end() and tha != g.state.end())
-      return std::strong_ordering::greater;
-    if (thi != state.end() and tha == g.state.end())
-      return std::strong_ordering::less;
+    if (this_end and that_end) continue;
+    if (this_end and not that_end) return std::strong_ordering::greater;
+    if (not this_end and that_end) return std::strong_ordering::less;
 
     if (std::strong_ordering test = thi->second <=> tha->second;
         test != std::strong_ordering::equal)

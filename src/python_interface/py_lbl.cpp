@@ -25,8 +25,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "matpack_mdspan_helpers_grid_t.h"
-
 NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t)
 NB_MAKE_OPAQUE(lbl::line_shape::model::map_t)
 
@@ -723,12 +721,18 @@ Numeric
       .def_rw("lineshape",
               &AbsorptionBand::lineshape,
               "The lineshape type\n\n.. :class:`LineByLineLineshape`")
-      .def_rw("cutoff",
-              &AbsorptionBand::cutoff,
-              "The cutoff type\n\n.. :class:`LineByLineCutoffType`")
-      .def_rw("cutoff_value",
-              &AbsorptionBand::cutoff_value,
-              "The cutoff value [Hz]\n\n.. :class:`Numeric`")
+      .def_prop_rw(
+          "cutoff",
+          [](const AbsorptionBand& band) { return band.cutoff.type; },
+          [](AbsorptionBand& band, LineByLineCutoffType x) {
+            band.cutoff.type = x;
+          },
+          "The cutoff type\n\n.. :class:`LineByLineCutoffType`")
+      .def_prop_rw(
+          "cutoff_value",
+          [](const AbsorptionBand& band) { return band.cutoff.value; },
+          [](AbsorptionBand& band, Numeric x) { band.cutoff.value = x; },
+          "The cutoff value [Hz]\n\n.. :class:`Numeric`")
       .def(
           "keep_frequencies",
           [](AbsorptionBand& band, Vector2 freqs) {
@@ -1094,6 +1098,13 @@ spectral_propmat : PropmatVector
 )--");
 
   py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
+  partfun.def_rw("data",
+                 &PartitionFunctionsData::data,
+                 "The partition function data\n\n.. :class:`Matrix`");
+  partfun.def_rw(
+      "type",
+      &PartitionFunctionsData::type,
+      "The type of partition function data\n\n.. :class:`PartitionFunctionType`");
   generic_interface(partfun);
   partfun.doc() =
       "Data for partition functions, used in the line-by-line model";

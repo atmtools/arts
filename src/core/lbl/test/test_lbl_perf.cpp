@@ -347,21 +347,22 @@ Numeric lbl_voigt_lte_mirror_calculate(PropmatVector& pm,
   return pm[0].A();
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix& mat,
-                                               const AbsorptionBands& bands,
-                                               const AtmPoint& atm) {
+Numeric lbl_voigt_lte_matrix_prepare_manylines(
+    Matrix& mat,
+    const std::vector<lbl::flat_band_data>& flat,
+    const AtmPoint& atm) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}",
                   arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::prepare(mat, atm, bands, ZeemanPolarization::no);
+  lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(
     Matrix& mat,
-    const AbsorptionBands& bands,
+    const std::vector<lbl::flat_band_data>& flat,
     const AtmPoint& atm,
     const JacobianTargets& jac_targets) {
   ARTS_NAMED_TIME_REPORT(
@@ -369,26 +370,27 @@ Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(
                   arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(
-      mat, atm, bands, jac_targets, ZeemanPolarization::no);
+      mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix& mat,
-                                               const AbsorptionBands& bands,
-                                               const AtmPoint& atm) {
+Numeric lbl_voigt_lte_matrix_prepare_manybands(
+    Matrix& mat,
+    const std::vector<lbl::flat_band_data>& flat,
+    const AtmPoint& atm) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}",
                   arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::prepare(mat, atm, bands, ZeemanPolarization::no);
+  lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(
     Matrix& mat,
-    const AbsorptionBands& bands,
+    const std::vector<lbl::flat_band_data>& flat,
     const AtmPoint& atm,
     const JacobianTargets& jac_targets) {
   ARTS_NAMED_TIME_REPORT(
@@ -396,7 +398,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(
                   arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(
-      mat, atm, bands, jac_targets, ZeemanPolarization::no);
+      mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
@@ -525,15 +527,17 @@ int main() {
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
     Matrix mat(M, 5);
+    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
+        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     constexpr Index n = 5;
     const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
-    lbl_voigt_lte_matrix_prepare_manylines(mat, bands, atm);
+    lbl_voigt_lte_matrix_prepare_manylines(mat, flat, atm);
 
     const int cores = arts_omp_get_max_threads();
     arts_omp_set_num_threads(1);
 
-    lbl_voigt_lte_matrix_prepare_manylines(mat, bands, atm);
+    lbl_voigt_lte_matrix_prepare_manylines(mat, flat, atm);
     arts_omp_set_num_threads(cores);
 
     lbl_voigt_lte_matrix_prepare_sort(mat);
@@ -553,13 +557,15 @@ int main() {
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
     Matrix mat(M, 5);
+    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
+        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
-    lbl_voigt_lte_matrix_prepare_manybands(mat, bands, atm);
+    lbl_voigt_lte_matrix_prepare_manybands(mat, flat, atm);
 
     const int cores = arts_omp_get_max_threads();
     arts_omp_set_num_threads(1);
 
-    lbl_voigt_lte_matrix_prepare_manybands(mat, bands, atm);
+    lbl_voigt_lte_matrix_prepare_manybands(mat, flat, atm);
     arts_omp_set_num_threads(cores);
   }
 
@@ -593,13 +599,15 @@ int main() {
     atm[bnd_qid.isot.spec]            = 0.21;
     const JacobianTargets jac_targets = create_jac_targets();
     Matrix mat(M, 5 + 5 * jac_targets.target_count());
+    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
+        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
-    lbl_voigt_lte_matrix_prepare_manylines_jac(mat, bands, atm, jac_targets);
+    lbl_voigt_lte_matrix_prepare_manylines_jac(mat, flat, atm, jac_targets);
 
     const int cores = arts_omp_get_max_threads();
     arts_omp_set_num_threads(1);
 
-    lbl_voigt_lte_matrix_prepare_manylines_jac(mat, bands, atm, jac_targets);
+    lbl_voigt_lte_matrix_prepare_manylines_jac(mat, flat, atm, jac_targets);
     arts_omp_set_num_threads(cores);
 
     lbl_voigt_lte_matrix_prepare_sort(mat);
@@ -620,13 +628,15 @@ int main() {
     atm[bnd_qid.isot.spec]            = 0.21;
     const JacobianTargets jac_targets = create_jac_targets();
     Matrix mat(M, 5 + 5 * jac_targets.target_count());
+    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
+        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
-    lbl_voigt_lte_matrix_prepare_manybands_jac(mat, bands, atm, jac_targets);
+    lbl_voigt_lte_matrix_prepare_manybands_jac(mat, flat, atm, jac_targets);
 
     const int cores = arts_omp_get_max_threads();
     arts_omp_set_num_threads(1);
 
-    lbl_voigt_lte_matrix_prepare_manybands_jac(mat, bands, atm, jac_targets);
+    lbl_voigt_lte_matrix_prepare_manybands_jac(mat, flat, atm, jac_targets);
     arts_omp_set_num_threads(cores);
   }
 

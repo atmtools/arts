@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ranges>
 #include <unordered_map>
 
 #include "xml_io_base.h"
@@ -32,9 +33,23 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
                n.size()};
     tag.write_to_stream(os);
 
-    for (const auto& [key, elem] : n) {
+    std::vector<std::pair<Size, Key>> keys{
+        std::from_range,
+        n | std::views::keys |
+            std::views::transform([&](auto& key) -> std::pair<Size, Key> {
+              return {n.hash_function()(key), key};
+            })};
+
+    // Sort keys for consistent output - either by hash or by value
+    if constexpr (std::totally_ordered<Key>) {
+      std::ranges::sort(keys, {}, [](auto& a) { return a.second; });
+    } else {
+      std::ranges::sort(keys, {}, [](auto& a) { return a.first; });
+    }
+
+    for (const auto& key : keys | std::views::values) {
       xml_io_stream<Key>::write(os, key, pbofs);
-      xml_io_stream<T>::write(os, elem, pbofs);
+      xml_io_stream<T>::write(os, n.at(key), pbofs);
     }
 
     tag.write_to_end_stream(os);

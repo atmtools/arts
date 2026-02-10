@@ -118,6 +118,11 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
       deal_with_spec(HFC32);
       deal_with_spec(HFC365mfc);
       deal_with_spec(NitrogenTrifluoride);
+      deal_with_spec(TrihydrogenCation);
+      deal_with_spec(SulfurDimer);
+      deal_with_spec(CarbonylChlorofluoride);
+      deal_with_spec(NitrousAcid);
+      deal_with_spec(NitrylChloride);
       deal_with_spec(SulfurylFluoride);
       deal_with_spec(HFC4310mee);
       deal_with_spec(Germane);
@@ -191,7 +196,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Isotope>& isots) {
 }
 
 IsotopologueRatios::IsotopologueRatios() : data() {
-  for (auto& x : data) x = std::numeric_limits<Numeric>::quiet_NaN();
+  data.fill(std::numeric_limits<Numeric>::quiet_NaN());
 }
 
 Numeric IsotopologueRatios::operator[](const Index spec_ind) const {
@@ -206,14 +211,17 @@ Numeric IsotopologueRatios::operator[](const Isotope& ir) const {
   return data[spec_ind];
 }
 
-bool IsotopologueRatios::all_isotopes_have_a_value() const {
+std::vector<std::string> IsotopologueRatios::valueless_isotopes() const {
+  std::vector<std::string> names;
+
   for (Index i = 0; i < maxsize; i++) {
     if (not Isotopologues[i].is_predefined() and
         not Isotopologues[i].is_joker() and nonstd::isnan(data[i])) {
-      return false;
+      names.push_back(Isotopologues[i].FullName());
     }
   }
-  return true;
+
+  return names;
 }
 
 IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
@@ -227,7 +235,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("162", 3.10693E-04);
   set_isot_val("182", 6.23003E-07);
   set_isot_val("172", 1.15853E-07);
-  set_isot_val("262", 2.41970E-08);
+  set_isot_val("262", 2.41974E-08);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -243,7 +251,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("727", 1.36847E-07);
   set_isot_val("838", 4.44600E-08);
   set_isot_val("837", 1.65354E-08);
-  set_isot_val("737", 1.53750E-09);
+  set_isot_val("737", 1.53745E-09);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -300,14 +308,15 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   isotopologue_ratios.data[find_species_index("SO2", ISOT)] = VAL
   set_isot_val("626", .945678E+00);
   set_isot_val("646", 4.19503E-02);
-  set_isot_val("636", 0.0074989421);
-  set_isot_val("628", 0.0020417379);
+  set_isot_val("636", 7.46446E-03);
+  set_isot_val("628", 3.79256E-03);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("NO2", ISOT)] = VAL
   set_isot_val("646", .991616E+00);
   set_isot_val("656", 3.64564E-03);
+  set_isot_val("648", 3.97679E-03);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -320,7 +329,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("HNO3", ISOT)] = VAL
   set_isot_val("146", .989110E+00);
-  set_isot_val("156", 3.63600E-03);
+  set_isot_val("156", 3.63643E-03);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -371,7 +380,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("632", 1.05315E-02);
   set_isot_val("623", 7.39908E-03);
   set_isot_val("822", 1.87967E-03);
-  set_isot_val("634", 4.67508E-04);
+  set_isot_val("634", 4.67176E-04);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -400,7 +409,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("N2", ISOT)] = VAL
   set_isot_val("44", .992687E+00);
-  set_isot_val("45", 7.47809E-03);
+  set_isot_val("45", 7.29916E-03);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -443,7 +452,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("COF2", ISOT)] = VAL
   set_isot_val("269", .986544E+00);
-  set_isot_val("369", 1.10834E-02);
+  set_isot_val("369", 1.10837E-02);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -462,7 +471,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("HCOOH", ISOT)] = VAL
   set_isot_val("126", .983898E+00);
-  set_isot_val("136", 0.010913149);
+  set_isot_val("136", 1.10539E-02);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -588,9 +597,9 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("SO", ISOT)] = VAL
-  set_isot_val("26", .950605e+00);
-  set_isot_val("46", .420727e-01);
-  set_isot_val("28", .194089e-02);
+  set_isot_val("26", 9.47926E-01);
+  set_isot_val("46", 4.20500E-02);
+  set_isot_val("28", 1.90079E-03);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -626,15 +635,15 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("SO3", ISOT)] = VAL
-  set_isot_val("26", .943400E+00);
+  set_isot_val("26", 9.43434E-01);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("CS2", ISOT)] = VAL
   set_isot_val("222", 8.92811E-01);
-  set_isot_val("224", 7.92600E-02);
-  set_isot_val("223", 1.40940E-02);
-  set_isot_val("232", 1.03100E-02);
+  set_isot_val("224", 7.92103E-02);
+  set_isot_val("223", 1.40944E-02);
+  set_isot_val("232", 1.00306E-02);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -651,6 +660,7 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
 #define set_isot_val(ISOT, VAL) \
   isotopologue_ratios.data[find_species_index("CH3F", ISOT)] = VAL
   set_isot_val("219", 9.88428E-01);
+  set_isot_val("319", 1.11048E-02);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -658,8 +668,8 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("411", 3.65172E-01);
   set_isot_val("211", 2.74129E-01);
   set_isot_val("011", 2.05072E-01);
-  set_isot_val("311", 7.75517E-01);
-  set_isot_val("611", 7.75517E-01);
+  set_isot_val("311", 7.75517E-02);
+  set_isot_val("611", 7.75517E-02);
 #undef set_isot_val
 
 #define set_isot_val(ISOT, VAL) \
@@ -672,7 +682,38 @@ IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("4999", 9.96337E-01);
 #undef set_isot_val
 
-  assert(isotopologue_ratios.all_isotopes_have_a_value());
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("H3+", ISOT)] = VAL
+  set_isot_val("111", 9.99533E-01);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("CH3", ISOT)] = VAL
+  set_isot_val("2111", 9.88428E-01);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("S2", ISOT)] = VAL
+  set_isot_val("22", 9.02842E-01);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("COFCl", ISOT)] = VAL
+  set_isot_val("2695", 7.47510E-01);
+  set_isot_val("2697", 2.39035E-01);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("HONO", ISOT)] = VAL
+  set_isot_val("1646", 9.91461E-01);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) \
+  isotopologue_ratios.data[find_species_index("ClNO2", ISOT)] = VAL
+  set_isot_val("5466", 7.51352E-01);
+  set_isot_val("7466", 2.40264E-01);
+#undef set_isot_val
+
   return isotopologue_ratios;
 }
 
@@ -692,7 +733,6 @@ bool Isotope::operator!=(const Isotope& other) const {
   return not this->operator==(other);
 }
 }  // namespace Species
-
 
 void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
                                           const SpeciesIsotope& x,

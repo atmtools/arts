@@ -58,14 +58,13 @@ struct reader {
   }
 
   [[nodiscard]] constexpr bool end_of_string() const { return it == end; }
+  [[nodiscard]] constexpr std::string_view remaining_string() const {
+    return {it, end};
+  }
 };
 
-bool read_hitran_par_record(hitran_record& record,
-                            const std::string& linedata,
-                            const Numeric fmin) try {
+bool read_par_line(hitran_record& record, reader& data, const Numeric fmin) {
   using namespace Conversion;
-
-  reader data(linedata);
 
   const auto M = data.read_next<Index>(2);
   const auto I = data.read_next<char>(1);
@@ -87,18 +86,53 @@ bool read_hitran_par_record(hitran_record& record,
   record.g_upp = data.read_next<Numeric>(7);
   record.g_low = data.read_next<Numeric>(7);
 
-  if (not data.end_of_string()) {
-    const std::string_view remainder{data.it + 1, data.end};
-    const std::string_view::const_iterator space =
-        stdr::find_if(remainder, nonstd::isspace);
-    ARTS_USER_ERROR_IF(space == remainder.end(),
-                       "Failed to parse HITRAN Quantum numbers:\n\n{}",
-                       remainder);
+  return true;
+}
 
-    record.qid.state =
-        Quantum::from_hitran(std::string_view{remainder.begin(), space},
-                             std::string_view{space + 1, remainder.end()});
+bool read_hitran_par_record(
+    hitran_record& record,
+    const std::vector<HitranFileFormatType>& format_order,
+    const std::string& linedata,
+    const Numeric fmin) try {
+  using namespace Conversion;
+
+  const auto get_str = [sep = ','](reader& data) {
+    std::string_view ret = {data.it, std::find(data.it, data.end, sep)};
+    data.skip(ret.size());
+    return ret;
+  };
+
+  reader data(linedata);
+
+  std::string_view qn_up, qn_lo;
+
+  for (auto& fmt : format_order) {
+    ARTS_USER_ERROR_IF(data.end_of_string(),
+                       "Reached end of line at state option {} out of {:B,}",
+                       fmt,
+                       format_order,
+                       linedata);
+
+    switch (fmt) {
+      using enum HitranFileFormatType;
+      case par:
+        if (not read_par_line(record, data, fmin)) return false;
+        break;
+      case statep:  qn_up = get_str(data); break;
+      case statepp: qn_lo = get_str(data); break;
+      case unknown: get_str(data); break;
+    }
+
+    if (not data.end_of_string()) data.skip(1);  // Skip separator
   }
+
+  if (not qn_up.empty() and not qn_lo.empty()) {
+    record.qid.state = Quantum::from_hitran(qn_up, qn_lo);
+  }
+
+  ARTS_USER_ERROR_IF(not data.end_of_string(),
+                     "Part of the line was not parsed: '{}'",
+                     data.remaining_string())
 
   return true;
 } catch (std::exception& e) {
@@ -109,8 +143,10 @@ bool read_hitran_par_record(hitran_record& record,
 }
 }  // namespace
 
-hitran_data read_hitran_par(std::istream& file,
-                            const Vector2& frequency_range) {
+hitran_data read_hitran_par(
+    std::istream& file,
+    const std::vector<HitranFileFormatType>& format_order,
+    const Vector2& frequency_range) {
   hitran_data out;
 
   std::string linedata;
@@ -118,6 +154,7 @@ hitran_data read_hitran_par(std::istream& file,
 
   while (std::getline(file, linedata)) {
     last_ok = read_hitran_par_record(last_ok ? out.emplace_back() : out.back(),
+                                     format_order,
                                      linedata,
                                      frequency_range[0]);
 
@@ -132,9 +169,11 @@ hitran_data read_hitran_par(std::istream& file,
   return out;
 }
 
-hitran_data read_hitran_par(std::istream&& file,
-                            const Vector2& frequency_range) {
-  return read_hitran_par(file, frequency_range);
+hitran_data read_hitran_par(
+    std::istream&& file,
+    const std::vector<HitranFileFormatType>& format_order,
+    const Vector2& frequency_range) {
+  return read_hitran_par(file, format_order, frequency_range);
 }
 
 line hitran_record::from(HitranLineStrengthOption ls,

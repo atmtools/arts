@@ -21,7 +21,6 @@
 #include <xml_io_old.h>
 
 #include <algorithm>
-#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <iterator>
@@ -303,23 +302,29 @@ ARTS_METHOD_ERROR_CATCH
 void abs_bandsReadHITRAN(AbsorptionBands& abs_bands,
                          const String& filename,
                          const Vector2& frequency_range,
+                         const ArrayOfString& file_formatter,
                          const String& line_strength_option,
                          const Index& compute_zeeman_parameters) try {
   ARTS_TIME_REPORT
 
   using namespace Quantum;
 
-  const AbsorptionBand default_band{.lines        = {},
-                                    .lineshape    = LineByLineLineshape::VP_LTE,
-                                    .cutoff       = LineByLineCutoffType::None,
-                                    .cutoff_value = NAN};
+  const AbsorptionBand default_band{
+      .lines     = {},
+      .lineshape = LineByLineLineshape::VP_LTE,
+      .cutoff    = {},
+  };
+
+  const std::vector<HitranFileFormatType> format_order{
+      std::from_range,
+      file_formatter | stdv::transform(to<HitranFileFormatType>)};
 
   const auto selection = to<HitranLineStrengthOption>(line_strength_option);
 
   const bool do_zeeman = static_cast<bool>(compute_zeeman_parameters);
 
-  const auto data =
-      lbl::read_hitran_par(open_input_file(filename), frequency_range);
+  const auto data = lbl::read_hitran_par(
+      open_input_file(filename), format_order, frequency_range);
 
   abs_bands = {};
   for (auto& line : data) {
@@ -833,6 +838,8 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(
     const Index& no_negative_absorption_) try {
   ARTS_TIME_REPORT
 
+  using namespace lbl::voigt::lte;
+
   const bool no_negative_absorption =
       static_cast<bool>(no_negative_absorption_);
   const Size m = jac_targets.target_count();
@@ -871,97 +878,102 @@ spectral_dispersion_jac: {:B,}
     return std::pair{v, it};
   }();
 
+  const auto types = lbl::get_cutoff_types_and_values(abs_bands);
+
   Matrix data{};
   ComplexMatrix res(n, m + 1);
   bool first = true;
   for (ZeemanPolarization pol : enumtyps::ZeemanPolarizationTypes) {
-    const auto flat = lbl::flatter_view(
-        abs_bands,
-        pol,
-        [species](const QuantumIdentifier& key, const AbsorptionBand& band) {
-          return band.lineshape == LineByLineLineshape::VP_LTE and
-                 (species == "AIR"_spec or key.isot.spec == species);
-        });
+    for (auto& type : types) {
+      const auto flat = lbl::flatter_view(
+          abs_bands,
+          pol,
+          [species, type](const QuantumIdentifier& key,
+                          const AbsorptionBand& band) {
+            return band.lineshape == LineByLineLineshape::VP_LTE and
+                   (species == "AIR"_spec or key.isot.spec == species) and
+                   band.cutoff == type;
+          });
 
-    if (flat.empty()) continue;
+      matrix::prepare(data, atm_point, flat, jac_targets, pol);
 
-    lbl::voigt::lte::matrix::prepare(data, atm_point, flat, jac_targets, pol);
+      if (data.empty()) continue;
 
-    if (not first) res = 0.0;
-    first = false;
+      if (not first) res = 0.0;
+      first = false;
 
-    if (flat.front().band.cutoff == LineByLineCutoffType::ByLine) {
-      lbl::voigt::lte::matrix::sort(data);
-      lbl::voigt::lte::matrix::sumup(
-          res, data, f_grid, flat.front().band.cutoff_value, df);
-    } else {
-      lbl::voigt::lte::matrix::sumup(res, data, f_grid, df);
-    }
-
-    lbl::voigt::lte::matrix::str_scale(res, atm_point, f_grid, df, it);
-
-    const Propmat npm =
-        lbl::zeeman::norm_view(pol, atm_point.mag, path_point.los);
-
-    if (no_negative_absorption) {
-      for (Size i = 0; i < n; i++) {
-        if (res[i, 0].real() < 0) res[i] = 0.0;
+      if (type.type != LineByLineCutoffType::None) {
+        matrix::sort(data);
+        matrix::sumup(res, data, f_grid, type.value, df);
+      } else {
+        matrix::sumup(res, data, f_grid, df);
       }
-    }
 
-    for (Size i = 0; i < n; i++) {
-      auto v                  = res[i];
-      spectral_propmat[i]    += lbl::zeeman::scale(npm, v[0]);
-      spectral_dispersion[i] -= npm.A() * v[0].imag();
-    }
+      matrix::str_scale(res, atm_point, f_grid, df, it);
 
-    for (auto& atm_target : jac_targets.atm) {
-      std::visit(
-          [&, j = atm_target.target_pos]<typename T>(const T& type) {
-            if constexpr (std::same_as<T, AtmKey>) {
-              if (type == AtmKey::mag_u) {
-                const Propmat dnpm_du = lbl::zeeman::dnorm_view_du(
-                    pol, atm_point.mag, path_point.los);
-                for (Size i = 0; i < n; i++) {
-                  spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                      npm, dnpm_du, res[i, 0], res[i, j + 1]);
-                }
-                return;
-              }
-              if (type == AtmKey::mag_v) {
-                const Propmat dnpm_dv = lbl::zeeman::dnorm_view_dv(
-                    pol, atm_point.mag, path_point.los);
-                for (Size i = 0; i < n; i++) {
-                  spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                      npm, dnpm_dv, res[i, 0], res[i, j + 1]);
-                }
-                return;
-              }
-              if (type == AtmKey::mag_w) {
-                const Propmat dnpm_dw = lbl::zeeman::dnorm_view_dw(
-                    pol, atm_point.mag, path_point.los);
-                for (Size i = 0; i < n; i++) {
-                  spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                      npm, dnpm_dw, res[i, 0], res[i, j + 1]);
-                }
-                return;
-              }
-            }
+      const Propmat npm =
+          lbl::zeeman::norm_view(pol, atm_point.mag, path_point.los);
 
-            for (Size i = 0; i < n; i++) {
-              auto v                      = res[i];
-              spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, v[j + 1]);
-              spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
-            }
-          },
-          atm_target.type);
-    }
+      if (no_negative_absorption) {
+        for (Size i = 0; i < n; i++) {
+          if (res[i, 0].real() < 0) res[i] = 0.0;
+        }
+      }
 
-    for (Size j = jac_targets.atm.size(); j < m; j++) {
       for (Size i = 0; i < n; i++) {
-        auto v                         = res[i];
-        spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
-        spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
+        auto v                  = res[i];
+        spectral_propmat[i]    += lbl::zeeman::scale(npm, v[0]);
+        spectral_dispersion[i] -= npm.A() * v[0].imag();
+      }
+
+      for (auto& atm_target : jac_targets.atm) {
+        std::visit(
+            [&, j = atm_target.target_pos]<typename T>(const T& type) {
+              if constexpr (std::same_as<T, AtmKey>) {
+                if (type == AtmKey::mag_u) {
+                  const Propmat dnpm_du = lbl::zeeman::dnorm_view_du(
+                      pol, atm_point.mag, path_point.los);
+                  for (Size i = 0; i < n; i++) {
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
+                        npm, dnpm_du, res[i, 0], res[i, j + 1]);
+                  }
+                  return;
+                }
+                if (type == AtmKey::mag_v) {
+                  const Propmat dnpm_dv = lbl::zeeman::dnorm_view_dv(
+                      pol, atm_point.mag, path_point.los);
+                  for (Size i = 0; i < n; i++) {
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
+                        npm, dnpm_dv, res[i, 0], res[i, j + 1]);
+                  }
+                  return;
+                }
+                if (type == AtmKey::mag_w) {
+                  const Propmat dnpm_dw = lbl::zeeman::dnorm_view_dw(
+                      pol, atm_point.mag, path_point.los);
+                  for (Size i = 0; i < n; i++) {
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
+                        npm, dnpm_dw, res[i, 0], res[i, j + 1]);
+                  }
+                  return;
+                }
+              }
+
+              for (Size i = 0; i < n; i++) {
+                auto v                      = res[i];
+                spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, v[j + 1]);
+                spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
+              }
+            },
+            atm_target.type);
+      }
+
+      for (Size j = jac_targets.atm.size(); j < m; j++) {
+        for (Size i = 0; i < n; i++) {
+          auto v                         = res[i];
+          spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
+          spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
+        }
       }
     }
   }

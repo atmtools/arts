@@ -406,7 +406,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
   pos.reserve(lines.capacity());
 
   using enum LineByLineCutoffType;
-  switch (bnd.cutoff) {
+  switch (bnd.cutoff.type) {
     case None:
       for (Size iline = 0; iline < bnd.size(); iline++) {
         lines_push_back(lines, pos, spec, bnd.lines[iline], atm, pol, iline);
@@ -967,7 +967,7 @@ void ComputeData::core_calc(const band_shape& shp,
   dcut.resize(shp.size());
   filter.reserve(shp.size());
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp(cut);
     std::transform(
         f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) {
@@ -1019,7 +1019,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
         inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dT(dcut, ds, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1049,7 +1049,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
                    return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.df(dcut);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1078,7 +1078,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1107,7 +1107,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1136,7 +1136,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1175,7 +1175,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
                              line.ls.dG0_dVMR(atm, target_spec)};
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dVMR(dcut, ds, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1226,7 +1226,7 @@ void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
     dz[i] = -inv_gd;
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.df0(dcut, ds, dz, dz_fac, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.df0(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -1254,7 +1254,7 @@ void ComputeData::de0_core_calc(const band_shape& shp,
     ds[i] = ds_de0_ratio * shp.lines[i].s;
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.de0(dcut, ds, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.de0(dcut, ds, f_grid[i], filter);
@@ -1280,7 +1280,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
     ds[i]                     = ds_da_ratio * shp.lines[i].s;
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.da(dcut, ds, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.da(dcut, ds, f_grid[i], filter);
@@ -1307,7 +1307,7 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
         0, shp.lines[i].inv_gd * ls.dG0_dX(atm, key.spec, key.ls_coeff));
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dG0(dcut, dz, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dG0(dcut, dz, f_grid[i], filter);
@@ -1343,7 +1343,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
     dz[i] = -d * inv_gd;
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dD0(dcut, ds, dz, dz_fac, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dD0(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -1377,7 +1377,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
                                    atm);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dY(dcut, dz, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dY(dcut, ds, f_grid[i], filter);
@@ -1411,7 +1411,7 @@ void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
                                    atm);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dG(dcut, dz, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dG(dcut, ds, f_grid[i], filter);
@@ -1449,7 +1449,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
     dz[i] = -d * inv_gd;
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dDV(dcut, ds, dz, dz_fac, filter);
     for (Size i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dDV(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -2070,7 +2070,7 @@ bool calculate_shape(ComplexVectorView pm_,
   };
 
   bool has_pol = false;
-  switch (bnd.cutoff) {
+  switch (bnd.cutoff.type) {
     case LineByLineCutoffType::None: {
       for (Size il = 0; il < bnd.lines.size(); il++) {
         has_pol = kernel(pm, dpm, il, f_grid) or has_pol;
@@ -2083,8 +2083,8 @@ bool calculate_shape(ComplexVectorView pm_,
       ComplexMatrixView dcut = dcutoffs.view_as(nt, 1);
 
       for (Size il = 0; il < bnd.lines.size(); il++) {
-        const Numeric l = bnd.lines[il].f0 - bnd.cutoff_value;
-        const Numeric u = bnd.lines[il].f0 + bnd.cutoff_value;
+        const Numeric l = bnd.lines[il].f0 - bnd.cutoff.value;
+        const Numeric u = bnd.lines[il].f0 + bnd.cutoff.value;
         const ConstVectorView freq{u};
         const auto in = sorted_range(f_grid, l, u);
         has_pol = kernel(pm[in], dpm[joker, in], il, f_grid[in]) or has_pol;

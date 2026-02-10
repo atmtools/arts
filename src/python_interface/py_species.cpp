@@ -64,19 +64,18 @@ void py_species(py::module_& m) try {
   py::class_<SpeciesIsotopologueRatios> sirs(m, "SpeciesIsotopologueRatios");
   generic_interface(sirs);
   sirs.doc() = "Isotopologue ratios for a species";
-  sirs.def(
-          "__init__",
-          [](SpeciesIsotopologueRatios* sir) {
-            new (sir) SpeciesIsotopologueRatios(
-                Species::isotopologue_ratiosInitFromBuiltin());
-          },
-          "Builtin values")
+  sirs.def_static("builtin",
+                  &Species::isotopologue_ratiosInitFromBuiltin,
+                  "Builtin values")
       .def_ro_static("maxsize",
                      &SpeciesIsotopologueRatios::maxsize,
                      "The max size of the data\n\n.. :class:`int`")
       .def_rw("data",
               &SpeciesIsotopologueRatios::data,
-              "The isotopologue ratios\n\n.. :class:`list[Numeric]`");
+              "The isotopologue ratios\n\n.. :class:`list[Numeric]`")
+      .def("valueless_isotopes",
+           &SpeciesIsotopologueRatios::valueless_isotopes,
+           "Get a list of isotopologues without defined ratio");
 
   auto aose =
       py::bind_vector<ArrayOfSpeciesEnum, py::rv_policy::reference_internal>(

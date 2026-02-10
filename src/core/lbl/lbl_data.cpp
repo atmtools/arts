@@ -286,6 +286,32 @@ Size count_zeeman_lines(
         return x.second.count_zeeman_lines(pol);
       });
 }
+
+std::vector<LineByLineCutoff> get_cutoff_types_and_values(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands) {
+  constexpr LineByLineCutoff t{
+      .type  = LineByLineCutoffType::None,
+      .value = std::numeric_limits<Numeric>::infinity(),
+  };
+  bool found_none = false;
+
+  std::vector<LineByLineCutoff> out;
+
+  for (auto& [key, band] : bands) {
+    switch (band.cutoff.type) {
+      case LineByLineCutoffType::None: found_none = true; break;
+      default:
+        if (stdr::none_of(out, Cmp::eq(band.cutoff)))
+          out.push_back(band.cutoff);
+
+        break;
+    };
+  }
+
+  if (found_none) out.push_back(t);
+
+  return out;
+}
 }  // namespace lbl
 
 namespace {
@@ -354,11 +380,11 @@ std::string std::formatter<lbl::band_data>::to_string(
         "Line shape: "sv,
         v.lineshape,
         "; Cutoff: "sv,
-        v.cutoff == LineByLineCutoffType::None
+        v.cutoff.type == LineByLineCutoffType::None
             ? "<off>"s
             : std::format("{} at {}",
-                          v.cutoff,
-                          to_educational_string_frequency(v.cutoff_value)),
+                          v.cutoff.type,
+                          to_educational_string_frequency(v.cutoff.value)),
         "; Lines: ["sv,
         v.lines,
         ']');
@@ -367,7 +393,7 @@ std::string std::formatter<lbl::band_data>::to_string(
   const auto sep = tags.sep();
 
   std::string out =
-      tags.vformat(v.lineshape, sep, v.cutoff, sep, v.cutoff_value);
+      tags.vformat(v.lineshape, sep, v.cutoff.type, sep, v.cutoff.value);
 
   if (not tags.short_str) {
     out += tags.vformat(sep, v.lines);
@@ -390,9 +416,9 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
              "lineshape",
              String{toString(data.lineshape)},
              "cutoff_type",
-             String{toString(data.cutoff)},
+             String{toString(data.cutoff.type)},
              "cutoff_value",
-             data.cutoff_value,
+             data.cutoff.value,
              "nelem",
              static_cast<Index>(data.lines.size()));
   tag.write_to_stream(os);
@@ -418,9 +444,9 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is,
   data.lineshape = to<LineByLineLineshape>(tag);
 
   open_tag.get_attribute_value("cutoff_type", tag);
-  data.cutoff = to<LineByLineCutoffType>(tag);
+  data.cutoff.type = to<LineByLineCutoffType>(tag);
 
-  open_tag.get_attribute_value("cutoff_value", data.cutoff_value);
+  open_tag.get_attribute_value("cutoff_value", data.cutoff.value);
 
   open_tag.get_attribute_value("nelem", nelem);
   data.lines.resize(0);

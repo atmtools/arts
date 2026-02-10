@@ -26,8 +26,10 @@ struct hitran_record {
 };
 using hitran_data = std::vector<hitran_record>;
 
-hitran_data read_hitran_par(std::istream& file, const Vector2& frequency_range);
+hitran_data read_hitran_par(std::istream& file, 
+  const std::vector<HitranFileFormatType>& format_order,const Vector2& frequency_range);
 hitran_data read_hitran_par(std::istream&& file,
+  const std::vector<HitranFileFormatType>& format_order,
                             const Vector2& frequency_range);
 }  // namespace lbl
 
