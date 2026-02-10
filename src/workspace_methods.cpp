@@ -1387,6 +1387,55 @@ This is based on the works cited here: https://hitran.org/mtckd/
                     R"--(Self temperature exponent [-])--"},
   };
 
+  wsm_data["abs_predef_dataAddWaterMTCKD430"] = {
+      .desc      = R"--(Sets the data for MT CKD 4.3 Water model
+
+Note that the vectors must have the same length, and that wavenumbers must be growing
+at a constant rate.  The minimum length is 4.
+
+Note also that as this is predefined model data, the units of the values of the vectors
+must be as described by each vector.
+
+This is based on the works cited here: https://hitran.org/mtckd/
+
+.. note::
+    The method itself is implemented from scratch.  Using any version of
+    data after version 4.3 is supported by this method - all that changes
+    are the values of the vectors. 
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"abs_predef_data"},
+      .in        = {"abs_predef_data"},
+      .gin       = {"ref_temp",
+                    "ref_press",
+                    "self_absco_ref",
+                    "for_absco_ref",
+                    "for_closure_absco_ref",
+                    "wavenumbers",
+                    "self_texp"},
+      .gin_type  = {"Numeric",
+                    "Numeric",
+                    "Vector",
+                    "Vector",
+                    "Vector",
+                    "Vector",
+                    "Vector"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt},
+      .gin_desc  = {R"--(Reference temperature)--",
+                    R"--(Reference pressure)--",
+                    R"--(Self absorption [1/(cm-1 molecules/cm^2])--",
+                    R"--(Foreign absorption [1/(cm-1 molecules/cm^2)])--",
+                    R"--(Foreign closure absorption [1/(cm-1 molecules/cm^2)])--",
+                    R"--(Wavenumbers [cm-1])--",
+                    R"--(Self temperature exponent [-])--"},
+  };
+
   wsm_data["abs_predef_dataInit"] = {
       .desc   = R"--(Initialize the predefined model data
 )--",
@@ -1524,7 +1573,13 @@ Available models
 
   * - ``H2O-ForeignContCKDMT400``
     - MT CKD 4 foreign continua. |br|
-      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT350``. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT400``. |br|
+      Requires an external data source.
+    - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
+
+  * - ``H2O-ForeignContCKDMT430``
+    - MT CKD 4.3 foreign continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT430``. |br|
       Requires an external data source.
     - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
 
@@ -1562,7 +1617,13 @@ Available models
 
   * - ``H2O-SelfContCKDMT400``
     - MT CKD 4 self continua. |br|
-      Use water cutoff of 25 cm-1 and ``H2O-SelfContCKDMT350``. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-ForeignContCKDMT400``. |br|
+      Requires an external data source.
+    - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
+
+  * - ``H2O-SelfContCKDMT430``
+    - MT CKD 4.3 self continua. |br|
+      Use water cutoff of 25 cm-1 and ``H2O-ForeignContCKDMT430``. |br|
       Requires an external data source.
     - :cite:t:`Mlawer2012` and :cite:p:`MTCKD`
 
