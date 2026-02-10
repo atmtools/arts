@@ -103,6 +103,6 @@ def gen_hitran_isotopologues(molparam_txt_file=None):
             if isoname in _HITRAN_TO_ARTS_NAMES:
                 isoname = _HITRAN_TO_ARTS_NAMES[isoname]
             spec, isotnum = isoname.split('-')
-            print(f'IsotopeRecord(fromShortName("{spec}"), "{isotnum}", {isot[3]}, {isot[2]}),')
+            print(f'IsotopeRecord("{spec}"_spec, "{isotnum}", {isot[3]}, {isot[2]}),')
     print("/** AUTO-GENERATED FROM HITRAN **/")
         

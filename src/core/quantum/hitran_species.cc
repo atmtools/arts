@@ -114,6 +114,7 @@ const HitranMap molparam_map{
          // NO2
          {'1', {Species::find_species_index("NO2", "646"), 9.91616E-01}},
          {'2', {Species::find_species_index("NO2", "656"), 3.64564E-03}},
+         {'3', {Species::find_species_index("NO2", "648"), 3.97679E-03}},
      }},
     {11,
      {
@@ -255,6 +256,7 @@ const HitranMap molparam_map{
      {
          // HCOOH
          {'1', {Species::find_species_index("HCOOH", "126"), 9.83898E-01}},
+         {'2', {Species::find_species_index("HCOOH", "136"), 1.10539E-02}},
      }},
     {33,
      {
@@ -361,6 +363,7 @@ const HitranMap molparam_map{
      {
          // CH3F
          {'1', {Species::find_species_index("CH3F", "219"), 9.88428E-01}},
+         {'2', {Species::find_species_index("CH3F", "319"), 1.11048E-02}},
      }},
     {52,
      {
@@ -389,8 +392,39 @@ const HitranMap molparam_map{
          // NF3
          {'1', {Species::find_species_index("NF3", "4999"), 9.96337E-01}},
      }},
+    {56,
+     {
+         // H3+
+         {'1', {Species::find_species_index("H3+", "111"), 9.99533E-01}},
+     }},
+    {57,
+     {
+         // CH3
+         {'1', {Species::find_species_index("CH3", "2111"), 9.88428E-01}},
+     }},
+    {58,
+     {
+         // S2
+         {'1', {Species::find_species_index("S2", "22"), 9.02842E-01}},
+     }},
+    {59,
+     {
+         // COFCl
+         {'1', {Species::find_species_index("COFCl", "2695"), 7.47510E-01}},
+         {'2', {Species::find_species_index("COFCl", "2697"), 2.39035E-01}},
+     }},
+    {60,
+     {
+         // HONO
+         {'1', {Species::find_species_index("HONO", "1646"), 9.91461E-01}},
+     }},
+    {61,
+     {
+         // ClNO2
+         {'1', {Species::find_species_index("ClNO2", "5466"), 7.51352E-01}},
+         {'2', {Species::find_species_index("ClNO2", "7466"), 2.40264E-01}},
+     }},
 };
-
 using OurHitranMap = std::map<Index, std::map<char, SpeciesIsotope>>;
 
 /** Turns the string-map required at compile time into a species-map

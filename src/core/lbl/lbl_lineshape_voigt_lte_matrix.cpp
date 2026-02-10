@@ -1021,14 +1021,6 @@ void prepare(Matrix& mat,
 
 void prepare(Matrix& mat,
              const AtmPoint& atm,
-             const AbsorptionBands& bands,
-             const ZeemanPolarization& pol) {
-  auto flat = flatter_view(bands, pol, [](auto&...) { return true; });
-  prepare(mat, atm, flat, pol);
-}
-
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
              const std::span<const flat_band_data>& bands,
              const JacobianTargets& jac_targets,
              const ZeemanPolarization& pol) {
@@ -1044,15 +1036,6 @@ void prepare(Matrix& mat,
   mat.resize(n, 5 * (1 + m));
   mat = 0;  // reset for derivatives
   prepare_with_jac(mat, atm, bands, jac_targets, pol);
-}
-
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
-             const AbsorptionBands& bands,
-             const JacobianTargets& jac_targets,
-             const ZeemanPolarization& pol) {
-  auto flat = flatter_view(bands, pol, [](auto&...) { return true; });
-  prepare(mat, atm, flat, jac_targets, pol);
 }
 
 void sort(MatrixView mat) {

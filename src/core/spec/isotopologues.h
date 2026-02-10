@@ -118,7 +118,7 @@ inline constexpr std::array Isotopologues{
     Isotope("CO2"_spec, "727", 45.998262, 1),
     Isotope("CO2"_spec, "737", 47.001618, 2),
     Isotope("CO2"_spec, "827", 46.998291, 6),
-    Isotope("CO2"_spec, "828", 47.998322, 1),
+    Isotope("CO2"_spec, "828", 47.998320, 1),
     Isotope("CO2"_spec, "837", 48.001646, 12),
     Isotope("CO2"_spec, "838", 49.001675, 2),
     Isotope("CO2"_spec, "CKDMT252"),
@@ -196,6 +196,7 @@ inline constexpr std::array Isotopologues{
     /** NO2 species **/
     deal_with_spec(NitrogenDioxide),
     Isotope("NO2"_spec, "646", 45.992904, 3),
+    Isotope("NO2"_spec, "648", 47.997149, 3),
     Isotope("NO2"_spec, "656", 46.989938, 2),
     /** NO2 species **/
 
@@ -209,7 +210,7 @@ inline constexpr std::array Isotopologues{
     /** HNO3 species **/
     deal_with_spec(NitricAcid),
     Isotope("HNO3"_spec, "146", 62.995644, 6),
-    Isotope("HNO3"_spec, "156", 63.992680, 4),
+    Isotope("HNO3"_spec, "156", 63.992678, 4),
     /** HNO3 species **/
 
     /** OH species **/
@@ -335,18 +336,18 @@ inline constexpr std::array Isotopologues{
 
     /** PH3 species **/
     deal_with_spec(Phosphine),
-    Isotope("PH3"_spec, "1111", 33.997238, 2),
+    Isotope("PH3"_spec, "1111", 33.997241, 2),
     /** PH3 species **/
 
     /** COF2 species **/
     deal_with_spec(CarbonylFluoride),
     Isotope("COF2"_spec, "269", 65.991722, 1),
-    Isotope("COF2"_spec, "369", 66.995083, 2),
+    Isotope("COF2"_spec, "369", 66.995078, 2),
     /** COF2 species **/
 
     /** SF6 species **/
     deal_with_spec(SulfurHexafluoride),
-    Isotope("SF6"_spec, "29", 145.962492, 1),
+    Isotope("SF6"_spec, "29", 145.962494, 1),
     /** SF6 species **/
 
     /** H2S species **/
@@ -360,9 +361,7 @@ inline constexpr std::array Isotopologues{
     /** HCOOH species **/
     deal_with_spec(FormicAcid),
     Isotope("HCOOH"_spec, "126", 46.005480, 4),
-    Isotope("HCOOH"_spec,
-            "136",
-            47),  // FIXME: Better mass and some gj?
+    Isotope("HCOOH"_spec, "136", 47.008835, 8),
     /** HCOOH species **/
 
     /** DCOOH species **/
@@ -402,7 +401,7 @@ inline constexpr std::array Isotopologues{
 
     /** HOBr species **/
     deal_with_spec(HypobromousAcid),
-    Isotope("HOBr"_spec, "161", 97.919027, 8),
+    Isotope("HOBr"_spec, "161", 97.919030, 8),
     Isotope("HOBr"_spec, "169", 95.921076, 8),
     /** HOBr species **/
 
@@ -482,15 +481,15 @@ inline constexpr std::array Isotopologues{
 
     /** CS species **/
     deal_with_spec(CarbonMonosulfide),
-    Isotope("CS"_spec, "22", 43.971036, 1),
-    Isotope("CS"_spec, "23", 44.970399, 4),
-    Isotope("CS"_spec, "24", 45.966787, 1),
-    Isotope("CS"_spec, "32", 44.974368, 2),
+    Isotope("CS"_spec, "22", 43.972070, 1),
+    Isotope("CS"_spec, "23", 44.971456, 4),
+    Isotope("CS"_spec, "24", 45.967866, 1),
+    Isotope("CS"_spec, "32", 44.975425, 2),
     /** CS species **/
 
     /** SO3 species **/
     deal_with_spec(SulfurTrioxide),
-    Isotope("SO3"_spec, "26", 79.956820, 1),
+    Isotope("SO3"_spec, "26", 79.956815, 1),
     /** SO3 species **/
 
     /** C2N2 species **/
@@ -501,7 +500,7 @@ inline constexpr std::array Isotopologues{
     /** COCl2 species **/
     deal_with_spec(Phosgene),
     Isotope("COCl2"_spec, "2655", 97.932620, 1),
-    Isotope("COCl2"_spec, "2657", 99.929670, 16),
+    Isotope("COCl2"_spec, "2657", 99.929672, 16),
     /** COCl2 species **/
 
     /** SO species **/
@@ -514,12 +513,14 @@ inline constexpr std::array Isotopologues{
     /** CS2 species **/
     deal_with_spec(CarbonDisulfide),
     Isotope("CS2"_spec, "222", 75.944140, 1),
-    Isotope("CS2"_spec, "223", 76.943256, 4),
-    Isotope("CS2"_spec, "224", 77.939940, 1),
+    Isotope("CS2"_spec, "223", 76.943526, 4),
+    Isotope("CS2"_spec, "224", 77.939936, 1),
     Isotope("CS2"_spec, "232", 76.947495, 2),
     /** CS2 species **/
 
     deal_with_spec(Methyl),
+    Isotope("CH3"_spec, "2111", 15.023475, 1),
+
     deal_with_spec(Cyclopropene),
 
     /** H2SO4 species **/
@@ -617,6 +618,23 @@ inline constexpr std::array Isotopologues{
     Isotope("NF3"_spec, "4999", 70.998286, 3),
     /** NF3 species **/
 
+    deal_with_spec(TrihydrogenCation),
+    Isotope("H3+"_spec, "111", 3.023475, 1),
+
+    deal_with_spec(SulfurDimer),
+    Isotope("S2"_spec, "22", 63.944140, 1),
+
+    deal_with_spec(CarbonylChlorofluoride),
+    Isotope("COFCl"_spec, "2695", 81.962172, 8),
+    Isotope("COFCl"_spec, "2697", 83.959223, 8),
+
+    deal_with_spec(NitrousAcid),
+    Isotope("HONO"_spec, "1646", 47.000729, 6),
+
+    deal_with_spec(NitrylChloride),
+    Isotope("ClNO2"_spec, "5466", 80.961757, 12),
+    Isotope("ClNO2"_spec, "7466", 82.958808, 12),
+
     deal_with_spec(SulfurylFluoride),
     deal_with_spec(HFC4310mee),
 
@@ -637,6 +655,7 @@ inline constexpr std::array Isotopologues{
     /** CH3F species **/
     deal_with_spec(Fluoromethane),
     Isotope("CH3F"_spec, "219", 34.021878, 2),
+    Isotope("CH3F"_spec, "319", 35.025234, 4),
     /** CH3F species **/
 
     /** AsH3 species **/
@@ -648,7 +667,6 @@ inline constexpr std::array Isotopologues{
     deal_with_spec(Benzene),
     //Isotope("C6H6"_spec, "21", 78.11),  // FIXME: Better mass and some gj?  Mass from nih.  Partition functions missing...
     /** C6H6 species **/
-
 
     /** Model species **/
     deal_with_spec(liquidcloud),

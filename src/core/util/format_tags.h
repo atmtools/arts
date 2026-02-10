@@ -326,9 +326,16 @@ struct std::formatter<std::unordered_map<Key, Value>> {
       if (auto x = to_helper_string(v); x) return tags.format(ctx, *x);
     }
 
-    tags.add_if_bracket(ctx, '{');
-    format_map_iterable(ctx, inner_fmt().tags, v);
-    tags.add_if_bracket(ctx, '}');
+    if constexpr (std::totally_ordered<Key>) {
+      tags.add_if_bracket(ctx, '{');
+      format_map_iterable(
+          ctx, inner_fmt().tags, std::map<Key, Value>{std::from_range, v});
+      tags.add_if_bracket(ctx, '}');
+    } else {
+      tags.add_if_bracket(ctx, '{');
+      format_map_iterable(ctx, inner_fmt().tags, v);
+      tags.add_if_bracket(ctx, '}');
+    }
     return ctx.out();
   }
 };

@@ -8,8 +8,6 @@
 #include <ranges>
 #include <utility>
 
-#include "matpack_mdspan_helpers_grid_t.h"
-
 bool SensorKey::operator==(const SensorKey& other) const {
   return other.sensor_elem == sensor_elem and
          other.measurement_elem == measurement_elem and other.type == type;

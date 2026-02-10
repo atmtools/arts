@@ -113,6 +113,11 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {
       deal_with_spec(HFC32);
       deal_with_spec(HFC365mfc);
       deal_with_spec(NitrogenTrifluoride);
+      deal_with_spec(TrihydrogenCation);
+      deal_with_spec(SulfurDimer);
+      deal_with_spec(CarbonylChlorofluoride);
+      deal_with_spec(NitrousAcid);
+      deal_with_spec(NitrylChloride);
       deal_with_spec(SulfurylFluoride);
       deal_with_spec(HFC4310mee);
       deal_with_spec(Germane);
@@ -255,6 +260,11 @@ bool has_partfun(const SpeciesIsotope& ir) noexcept {
       deal_with_spec(HFC32);
       deal_with_spec(HFC365mfc);
       deal_with_spec(NitrogenTrifluoride);
+      deal_with_spec(TrihydrogenCation);
+      deal_with_spec(SulfurDimer);
+      deal_with_spec(CarbonylChlorofluoride);
+      deal_with_spec(NitrousAcid);
+      deal_with_spec(NitrylChloride);
       deal_with_spec(SulfurylFluoride);
       deal_with_spec(HFC4310mee);
       deal_with_spec(Germane);

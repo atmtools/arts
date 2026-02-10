@@ -469,7 +469,11 @@ struct std::formatter<QuantumIdentifier> {
 
     tags.format(ctx, q.isot);
 
-    for (auto& v : q.state) tags.format(ctx, " "sv, v.first, " "sv, v.second);
+    for (auto v : enumtyps::QuantumNumberTypeTypes) {
+      if (q.state.contains(v)) {
+        tags.format(ctx, " "sv, v, " "sv, q.state.at(v));
+      }
+    }
 
     return ctx.out();
   }
@@ -493,7 +497,11 @@ struct std::formatter<QuantumLevelIdentifier> {
                               FmtContext& ctx) const {
     tags.format(ctx, q.isot);
 
-    for (auto& v : q.state) tags.format(ctx, " "sv, v.first, " "sv, v.second);
+    for (auto v : enumtyps::QuantumNumberTypeTypes) {
+      if (q.state.contains(v)) {
+        tags.format(ctx, " "sv, v, " "sv, q.state.at(v));
+      }
+    }
 
     return ctx.out();
   }

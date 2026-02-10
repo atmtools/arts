@@ -327,7 +327,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
   pos.reserve(lines.capacity());
 
   using enum LineByLineCutoffType;
-  switch (bnd.cutoff) {
+  switch (bnd.cutoff.type) {
     case None:
       for (Size iline = 0; iline < bnd.size(); iline++) {
         lines_push_back(lines, pos, qid, bnd.lines[iline], atm, pol, iline);
@@ -552,7 +552,7 @@ void ComputeData::core_calc(const band_shape& shp,
   de_ratio.resize(shp.size());
   dcut.resize(shp.size());
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp(cut);
     std::transform(
         f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) {
@@ -600,7 +600,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
         inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dT(dcut, dk, de_ratio, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -630,7 +630,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
                    return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.df(dcut);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -659,7 +659,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -688,7 +688,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -717,7 +717,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != LineByLineCutoffType::None) {
+  if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {

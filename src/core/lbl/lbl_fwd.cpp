@@ -68,8 +68,8 @@ void lte::adapt() try {
 
     if (shapes.size() == 0) continue;
 
-    voigt::lte::band_shape b{std::move(shapes), band.cutoff_value};
-    switch (band.cutoff) {
+    voigt::lte::band_shape b{std::move(shapes), band.cutoff.value};
+    switch (band.cutoff.type) {
       case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
@@ -123,8 +123,8 @@ void lte_mirror::adapt() {
 
     if (shapes.size() == 0) continue;
 
-    voigt::lte_mirror::band_shape b{std::move(shapes), band.cutoff_value};
-    switch (band.cutoff) {
+    voigt::lte_mirror::band_shape b{std::move(shapes), band.cutoff.value};
+    switch (band.cutoff.type) {
       case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
@@ -177,8 +177,8 @@ void nlte::adapt() {
 
     if (shapes.size() == 0) continue;
 
-    voigt::nlte::band_shape b{std::move(shapes), band.cutoff_value};
-    switch (band.cutoff) {
+    voigt::nlte::band_shape b{std::move(shapes), band.cutoff.value};
+    switch (band.cutoff.type) {
       case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);

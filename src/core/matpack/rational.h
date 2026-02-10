@@ -19,7 +19,6 @@
 #include <xml.h>
 
 #include <cmath>
-#include <compare>
 #include <concepts>
 #include <format>
 #include <iosfwd>

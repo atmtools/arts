@@ -30,11 +30,6 @@ void prepare(Matrix& mat,
              const std::span<const flat_band_data>& bands,
              const ZeemanPolarization& pol);
 
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
-             const AbsorptionBands& bands,
-             const ZeemanPolarization& pol);
-
 void str_scale(ComplexMatrixView a,
                const AtmPoint& atm,
                const ConstVectorView& fs,
@@ -51,12 +46,6 @@ void sumup(ComplexMatrixView res,
            const ConstVectorView& fs,
            const Numeric cutoff,
            const std::vector<bool>& df);
-
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
-             const AbsorptionBands& bands,
-             const Jacobian::Targets& jac_targets,
-             const ZeemanPolarization& pol);
 
 void prepare(Matrix& mat,
              const AtmPoint& atm,

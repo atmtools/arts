@@ -44,7 +44,7 @@ ws.abs_ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 
-bandkey = "CO2-626 ElecStateLabel X X kronigParity f f r 2 1 l2 2 2 parity NODEF + v1 4 0 v2 2 2 v3 1 0"
+bandkey = "CO2-626 ElecStateLabel X X kronigParity f f r 2 1 l2 2 2 parity * + v1 4 0 v2 2 2 v3 1 0"
 ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
 ws.freq_grid = np.linspace(
     ws.abs_bands[bandkey].lines[0].f0 * 0.8,

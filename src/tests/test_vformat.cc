@@ -15,7 +15,6 @@ QuantumIdentifier get_quantum_identifier() {
 AbsorptionLine get_lbl_line() {
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
-  using enum QuantumNumberType;
 
   AbsorptionLine line{};
   line.f0 = 1.0;
@@ -23,12 +22,13 @@ AbsorptionLine get_lbl_line() {
   line.e0 = 3.0;
   line.gu = 4.0;
   line.gl = 5.0;
-  line.qn.emplace(J, Quantum::UpperLower{.upper = 1, .lower = 1});
+  line.qn.emplace(QuantumNumberType::J,
+                  Quantum::UpperLower{.upper = 1, .lower = 1});
 
-  line.ls.T0         = 300.0;
-  auto& mod          = line.ls.single_models["H2O"_spec];
-  mod.data[G0]       = {T0, Vector{6.0}};
-  mod.data[D0]       = {T1, Vector{7.0, 8.0}};
+  line.ls.T0   = 300.0;
+  auto& mod    = line.ls.single_models["H2O"_spec];
+  mod.data[G0] = {T0, Vector{6.0}};
+  mod.data[D0] = {T1, Vector{7.0, 8.0}};
   line.z.gu(6.0);
   line.z.gl(7.0);
   line.z.on = true;

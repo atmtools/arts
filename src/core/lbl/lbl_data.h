@@ -172,14 +172,30 @@ struct line {
   friend std::istream& operator>>(std::istream& is, line& x);
 };
 
+struct LineByLineCutoff {
+  LineByLineCutoffType type{LineByLineCutoffType::None};
+
+  Numeric value{std::numeric_limits<Numeric>::infinity()};
+
+  constexpr bool operator==(const LineByLineCutoff& other) const {
+    if (type != other.type) return false;
+    switch (type) {
+      case LineByLineCutoffType::None:   return true;
+      case LineByLineCutoffType::ByLine: return value == other.value;
+    }
+  }
+
+  constexpr bool operator!=(const LineByLineCutoff& other) const {
+    return not(*this == other);
+  }
+};
+
 struct band_data {
   std::vector<line> lines{};
 
   LineByLineLineshape lineshape{LineByLineLineshape::VP_LTE};
 
-  LineByLineCutoffType cutoff{LineByLineCutoffType::None};
-
-  Numeric cutoff_value{std::numeric_limits<Numeric>::infinity()};
+  LineByLineCutoff cutoff{};
 
   template <typename T>
   [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
@@ -238,9 +254,9 @@ struct band_data {
 
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const {
     using enum LineByLineCutoffType;
-    switch (cutoff) {
+    switch (cutoff.type) {
       case None:   return std::numeric_limits<Numeric>::infinity();
-      case ByLine: return cutoff_value;
+      case ByLine: return cutoff.value;
     }
     return -1;
   }
@@ -375,16 +391,20 @@ std::vector<flat_band_data> flatter_view(
     Filter filter) {
   std::vector<flat_band_data> off{};
   off.reserve(bands.size());
+
+  Size prev_size = 0;
   for (auto& [key, band] : bands) {
     if (filter(key, band)) {
-      const Size size = off.empty() ? 0
-                                    : (off.back().prev_size +
-                                       off.back().band.count_zeeman_lines(pol));
-      off.emplace_back(size, key, band);
+      prev_size += off.empty() ? 0 : off.back().band.count_zeeman_lines(pol);
+      off.emplace_back(prev_size, key, band);
     }
   }
+
   return off;
 }
+
+std::vector<LineByLineCutoff> get_cutoff_types_and_values(
+    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands);
 }  // namespace lbl
 
 //! Support hashing of line keys
