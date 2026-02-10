@@ -9,13 +9,16 @@ _HITRAN_TO_ARTS_NAMES = {
 }
 
 
-def gen_latest_molparam_map(molparam_txt_file=None):
+def get_latest_molparam_map(molparam_txt_file=None):
     """ Generates a version of latest_molparam_map used in hitran_species.cc
 
-    The variable is simply printed to stream with print() as the intent is
-    to use this output in ARTS directly.  ARTS does not use AFGL notation
-    internally, but species names that are different from Hitran are mapped to
-    ARTS names in the output.
+    The variable is returned as a dictionary mapping species to a list of
+    isotopologues. Each isotopologue is represented as a list of four items:
+    [specnum, pos, isotopologue string, abundance]
+    1. specnum: HITRAN species number
+    2. pos: position index in HITRAN notation
+    3. isotopologue string: isotopologue identifier in HITRAN notation
+    4. abundance: natural abundance of the isotopologue
     """
     def pos2char(ind):
         """ Convert an isotoplogue index to a HITRAN char for that index """
@@ -45,24 +48,34 @@ def gen_latest_molparam_map(molparam_txt_file=None):
             spec = vec[0]
             specnum = int(eval(vec[1]))
             pos = 1
-            out [spec] = []
+            out[spec] = []
         else:
             out[spec].append([specnum, pos, vec[0], vec[1]])
             pos += 1
+    return out
 
-    print ('const HitranMap molparam_map{')
+
+def gen_latest_molparam_map(molparam_txt_file=None):
+    """ Generates a version of latest_molparam_map used in hitran_species.cc
+
+    The variable is simply printed to stream with print() as the intent is
+    to use this output in ARTS directly.  ARTS does not use AFGL notation
+    internally, but species names that are different from Hitran are mapped to
+    ARTS names in the output.
+    """
+    out = get_latest_molparam_map(molparam_txt_file)
+    print('const HitranMap molparam_map{')
     for spec in out:
-        print ('{',out[spec][0][0], ', {  // ', spec, sep='')
+        print('{', out[spec][0][0], ', {  // ', spec, sep='')
         for isot in out[spec]:
             isoname = f"{spec}-{isot[2]}"
             if isoname in _HITRAN_TO_ARTS_NAMES:
                 isoname = _HITRAN_TO_ARTS_NAMES[isoname]
-            s,i = isoname.split('-')
-            print ('{', pos2char(isot[1]), ', {Species::find_species_index("', s, '", "', i, '"), ', isot[3], '}},', sep='')
-        print ('}},')
-    print ('};')
-
-
+            s, i = isoname.split('-')
+            print('{', pos2char(
+                isot[1]), ', {Species::find_species_index("', s, '", "', i, '"), ', isot[3], '}},', sep='')
+        print('}},')
+    print('};')
 
 
 def gen_hitran_isotopologues(molparam_txt_file=None):
@@ -91,7 +104,7 @@ def gen_hitran_isotopologues(molparam_txt_file=None):
             spec = vec[0]
             specnum = int(eval(vec[1]))
             pos = 1
-            out [spec] = []
+            out[spec] = []
         else:
             out[spec].append([specnum, vec[0], vec[3], vec[4]])
             pos += 1
@@ -105,4 +118,3 @@ def gen_hitran_isotopologues(molparam_txt_file=None):
             spec, isotnum = isoname.split('-')
             print(f'IsotopeRecord("{spec}"_spec, "{isotnum}", {isot[3]}, {isot[2]}),')
     print("/** AUTO-GENERATED FROM HITRAN **/")
-        

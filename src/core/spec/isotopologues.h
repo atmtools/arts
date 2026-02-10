@@ -788,7 +788,7 @@ struct IsotopologueRatios {
   friend std::ostream& operator<<(std::ostream& os,
                                   const IsotopologueRatios& iso_rat);
 
-  [[nodiscard]] bool all_isotopes_have_a_value() const;
+  [[nodiscard]] std::vector<std::string> valueless_isotopes() const;
 };
 
 IsotopologueRatios isotopologue_ratiosInitFromBuiltin();
