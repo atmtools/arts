@@ -15,6 +15,113 @@
 #include "species_tags.h"
 
 namespace Python {
+void internalCKDMT430(py::module_& m) {
+  py::class_<Absorption::PredefinedModel::MT_CKD430::WaterData> mm(
+      m, "MTCKD430WaterData");
+  generic_interface(mm);
+  mm.def(py::init<Absorption::PredefinedModel::MT_CKD430::WaterData>())
+      .def_rw("ref_temp",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::ref_temp,
+              "Reference temperature\n\n.. :class:`Numeric`")
+      .def_rw("ref_press",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::ref_press,
+              "Reference pressure\n\n.. :class:`Numeric`")
+      .def_rw(
+          "self_absco_ref",
+          &Absorption::PredefinedModel::MT_CKD430::WaterData::self_absco_ref,
+          "Self absorption\n\n.. :class:`Vector`")
+      .def_rw("for_absco_ref",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::for_absco_ref,
+              "Foreign absorption\n\n.. :class:`Vector`")
+      .def_rw("for_closure_absco_ref",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::for_closure_absco_ref,
+              "Foreign absorption closure\n\n.. :class:`Vector`")
+      .def_rw("wavenumbers",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::wavenumbers,
+              "Wavenumbers\n\n.. :class:`Vector`")
+      .def_rw("self_texp",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::self_texp,
+              "Self temperature exponent\n\n.. :class:`Vector`")
+
+      .doc() = "Water data representation for the MT CKD 4.3 model";
+
+  m.def(
+      "get_foreign_h2o_ckdmt430",
+      [](const Vector& f,
+         const AtmPoint& atm,
+         PredefinedModelData& data) -> Vector {
+        PropmatVector pm(f.size());
+        Absorption::PredefinedModel::MT_CKD430::compute_foreign_h2o(
+            pm,
+            f,
+            atm,
+            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(
+                data.at("H2O-ForeignContCKDMT430"_isot).data));
+        Vector out(pm.size());
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
+          return prop.A();
+        });
+        return out;
+      },
+      "f_grid"_a,
+      "atm"_a,
+      "predefined_model_data"_a,
+      R"--(Computes foreign absorption using MT CKD Hitran version 4.3
+
+Parameters
+----------
+f_grid : ~pyarts3.arts.Vector
+    Frequency grid [Hz]
+atm : AtmPoint
+    The atmospheric state
+predefined_model_data : ~pyarts3.arts.PredefinedModelData
+    As WSV
+
+Returns
+-------
+abs_coef : ~pyarts3.arts.Vector
+    Absorption coefficients
+)--");
+
+  m.def(
+      "get_self_h2o_ckdmt430",
+      [](const Vector& f,
+         const AtmPoint& atm,
+         PredefinedModelData& data) -> Vector {
+        PropmatVector pm(f.size());
+        Absorption::PredefinedModel::MT_CKD430::compute_self_h2o(
+            pm,
+            f,
+            atm,
+            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(
+                data.at("H2O-SelfContCKDMT430"_isot).data));
+        Vector out(pm.size());
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
+          return prop.A();
+        });
+        return out;
+      },
+      "f_grid"_a,
+      "atm"_a,
+      "predefined_model_data"_a,
+      R"--(Computes self absorption using MT CKD Hitran version 4.3
+
+Parameters
+----------
+f_grid : ~pyarts3.arts.Vector
+    Frequency grid [Hz]
+atm : AtmPoint
+    The atmospheric state
+predefined_model_data : ~pyarts3.arts.PredefinedModelData
+    As WSV
+
+Returns
+-------
+abs_coef : ~pyarts3.arts.Vector
+    Absorption coefficients
+)--");
+}
+
 void internalCKDMT400(py::module_& m) {
   py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mm(
       m, "MTCKD400WaterData");
@@ -1000,6 +1107,7 @@ spectral_propmat : PropmatVector
   internalCKDMT252(predef);
   internalCKDMT100(predef);
   internalCKDMT400(predef);
+  internalCKDMT430(predef);
   internalMPM89(predef);
   internalMPM93(predef);
   internalPWR98(predef);

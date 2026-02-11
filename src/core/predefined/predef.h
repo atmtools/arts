@@ -150,4 +150,21 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const WaterData& data);
 }  // namespace MT_CKD400
 
+namespace MT_CKD430 {
+void compute_foreign_h2o(PropmatVector& propmat_clearsky,
+                         const Vector& f_grid,
+                         const AtmPoint& atm_point,
+                         const WaterData& data);
+
+void compute_foreign_closure_h2o(PropmatVector& propmat_clearsky,
+                         const Vector& f_grid,
+                         const AtmPoint& atm_point,
+                         const WaterData& data);
+
+void compute_self_h2o(PropmatVector& propmat_clearsky,
+                      const Vector& f_grid,
+                      const AtmPoint& atm_point,
+                      const WaterData& data);
+}  // namespace MT_CKD430
+
 }  // namespace Absorption::PredefinedModel

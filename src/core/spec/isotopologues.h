@@ -96,6 +96,7 @@ inline constexpr std::array Isotopologues{
     Isotope("H2O"_spec, "ForeignContCKDMT320"),
     Isotope("H2O"_spec, "ForeignContCKDMT350"),
     Isotope("H2O"_spec, "ForeignContCKDMT400"),
+    Isotope("H2O"_spec, "ForeignContCKDMT430"),
     Isotope("H2O"_spec, "ForeignContStandardType"),
     Isotope("H2O"_spec, "MPM89"),
     Isotope("H2O"_spec, "PWR2021"),
@@ -104,6 +105,7 @@ inline constexpr std::array Isotopologues{
     Isotope("H2O"_spec, "SelfContCKDMT320"),
     Isotope("H2O"_spec, "SelfContCKDMT350"),
     Isotope("H2O"_spec, "SelfContCKDMT400"),
+    Isotope("H2O"_spec, "SelfContCKDMT430"),
     Isotope("H2O"_spec, "SelfContStandardType"),
     /** Water species **/
 

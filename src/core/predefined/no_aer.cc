@@ -20,6 +20,16 @@ void compute_self_h2o(PropmatVector &,
                       const AtmPoint &,
                       const WaterData &) NOPE;
 }  // namespace MT_CKD400
+namespace MT_CKD430 {
+void compute_foreign_h2o(PropmatVector &,
+                         const Vector &,
+                         const AtmPoint &,
+                         const WaterData &) NOPE;
+void compute_self_h2o(PropmatVector &,
+                      const Vector &,
+                      const AtmPoint &,
+                      const WaterData &) NOPE;
+}  // namespace MT_CKD430
 
 namespace MT_CKD100 {
 void oxygen_cia(PropmatVector &, const Vector &, const AtmPoint &) NOPE;

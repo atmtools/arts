@@ -59,6 +59,22 @@ bool compute_selection(
             atm_point,
             std::get<MT_CKD400::WaterData>(predefined_model_data.data));
       return true;
+    case "H2O-ForeignContCKDMT430"_isot_index:
+      if constexpr (not check_exist)
+        MT_CKD430::compute_foreign_h2o(
+            pm,
+            f,
+            atm_point,
+            std::get<MT_CKD430::WaterData>(predefined_model_data.data));
+      return true;
+    case "H2O-SelfContCKDMT430"_isot_index:
+      if constexpr (not check_exist)
+        MT_CKD430::compute_self_h2o(
+            pm,
+            f,
+            atm_point,
+            std::get<MT_CKD430::WaterData>(predefined_model_data.data));
+      return true;
     case "O2-MPM2020"_isot_index:
       if constexpr (not check_exist) MPM2020::compute(pm, f, atm_point);
       return true;

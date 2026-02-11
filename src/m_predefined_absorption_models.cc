@@ -108,6 +108,50 @@ void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
   abs_predef_data["H2O-SelfContCKDMT400"_isot].data    = x;
 }
 
+void abs_predef_dataAddWaterMTCKD430(PredefinedModelData& abs_predef_data,
+                                     const Numeric& ref_temp,
+                                     const Numeric& ref_press,
+                                     const Vector& self_absco_ref,
+                                     const Vector& for_absco_ref,
+                                     const Vector& for_closure_absco_ref,
+                                     const Vector& wavenumbers,
+                                     const Vector& self_texp) {
+  ARTS_TIME_REPORT
+
+  const auto sz = self_absco_ref.size();
+
+  ARTS_USER_ERROR_IF(
+      sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
+          sz not_eq self_texp.size() or sz not_eq for_closure_absco_ref.size(),
+      "Mismatching size, all vector inputs must be the same length")
+  ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
+  ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
+                     "The wavenumbers must be increasing in a regular manner")
+
+  using Model = Absorption::PredefinedModel::MT_CKD430::WaterData;
+  Model x;
+  x.ref_temp    = ref_temp;
+  x.ref_press   = ref_press;
+  x.self_absco_ref.resize(sz);
+  x.for_absco_ref.resize(sz);
+  x.for_closure_absco_ref.resize(sz);
+  x.wavenumbers.resize(sz);
+  x.self_texp.resize(sz);
+
+  std::copy(
+      self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
+  std::copy(
+      for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
+  std::copy(for_closure_absco_ref.begin(),
+            for_closure_absco_ref.end(),
+            x.for_closure_absco_ref.begin());
+  std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
+  std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
+
+  abs_predef_data["H2O-ForeignContCKDMT430"_isot].data = x;
+  abs_predef_data["H2O-SelfContCKDMT430"_isot].data    = x;
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_propmatAddPredefined(PropmatVector& spectral_propmat,
                                    PropmatMatrix& spectral_propmat_jac,
