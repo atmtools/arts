@@ -2,7 +2,9 @@
 
 #include <configtypes.h>
 
+#include <concepts>
 #include <experimental/mdspan>
+#include <type_traits>
 
 #include "matpack_mdspan_common_sizes.h"
 
@@ -33,6 +35,10 @@ struct strided_view_t;
 //! Our constant-sized data holder
 template <typename T, Size... N>
 struct cdata_t;
+
+//! Our constant-sized data holder
+template <class T>
+class grid_t;
 
 template <typename T>
 concept has_value_type =
@@ -65,30 +71,56 @@ concept has_mapping_type =
 template <has_element_type T>
 using mapping_type = typename std::remove_cvref_t<T>::mapping_type;
 
-// Use forward declarations of concepts
-template <typename T, typename U, Size N>
-static constexpr bool is_data =
-    std::same_as<std::remove_cvref_t<T>, data_t<U, N>>;
-
 ////////////////////////////////////////////////////////////////////////////////
 // Any matpack core type - /////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-concept any_data = std::remove_cvref_t<T>::matpack_magic_data;
+struct any_data_t : std::false_type {};
+
+template <class T, Size N>
+struct any_data_t<data_t<T, N>> : std::true_type {};
 
 template <class T>
-concept any_view = std::remove_cvref_t<T>::matpack_magic_view;
+concept any_data =
+    any_data_t<std::remove_cvref_t<T>>::value or
+    std::derived_from<std::remove_cvref_t<T>, data_t<value_type<T>, rank<T>()>>;
 
 template <class T>
-concept any_strided_view = std::remove_cvref_t<T>::matpack_magic_strided_view;
+struct any_view_t : std::false_type {};
+
+template <class T, Size N>
+struct any_view_t<view_t<T, N>> : std::true_type {};
+
+template <class T>
+concept any_view = any_view_t<std::remove_cvref_t<T>>::value;
+
+template <class T>
+struct any_strided_view_t : std::false_type {};
+
+template <class T, Size N>
+struct any_strided_view_t<strided_view_t<T, N>> : std::true_type {};
+
+template <class T>
+concept any_strided_view = any_strided_view_t<std::remove_cvref_t<T>>::value;
 
 template <class T>
 concept any_cdata = std::remove_cvref_t<T>::matpack_magic_cdata;
 
 template <class T>
-concept any_md =
-    any_data<T> or any_strided_view<T> or any_view<T> or any_cdata<T>;
+struct any_grid_t : std::false_type {};
+
+template <class T>
+struct any_grid_t<grid_t<T>> : std::true_type {};
+
+template <class T>
+concept any_grid =
+    any_grid_t<std::remove_cvref_t<T>>::value or
+    std::derived_from<std::remove_cvref_t<T>, grid_t<value_type<T>>>;
+
+template <class T>
+concept any_md = any_data<T> or any_strided_view<T> or any_view<T> or
+                 any_cdata<T> or any_grid<T>;
 
 template <class T>
 concept mut_any_md = any_md<T> and mdmutable<T>;

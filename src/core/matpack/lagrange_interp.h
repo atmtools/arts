@@ -174,7 +174,7 @@ consteval bool ascending() {
 
 template <transformer transform, Size X, grid_order grid>
 constexpr void update_pos(std::span<Index, X> indx,
-                          std::span<const Numeric, std::dynamic_extent> xi,
+                          std::span<const Numeric> xi,
                           Numeric x) {
   const Size n = xi.size();
   const Size P = X == std::dynamic_extent ? indx.size() : X;
@@ -185,11 +185,11 @@ constexpr void update_pos(std::span<Index, X> indx,
 
   const Size N  = P - 1;
   const Size Of = N / 2;
-  std::span<const Numeric, std::dynamic_extent>::iterator xp =
+  std::span<const Numeric>::iterator xp =
       xi.begin() + indx[Of];
-  const std::span<const Numeric, std::dynamic_extent>::iterator xf =
+  const std::span<const Numeric>::iterator xf =
       xi.begin() + Of;
-  const std::span<const Numeric, std::dynamic_extent>::iterator xe =
+  const std::span<const Numeric>::iterator xe =
       xi.end() - P / 2 - 1;
 
   if constexpr (cyclic<transform>) {
@@ -256,7 +256,7 @@ constexpr void update_pos(std::span<Index, X> indx,
 
 template <transformer transform, Size X, grid_order grid>
 constexpr void find_pos(std::span<Index, X> indx,
-                        std::span<const Numeric, std::dynamic_extent> xi,
+                        std::span<const Numeric> xi,
                         Numeric x) {
   const Size n = xi.size();
   const Size P = X == std::dynamic_extent ? indx.size() : X;
@@ -296,7 +296,7 @@ constexpr void find_pos(std::span<Index, X> indx,
 template <transformer transform, Size M, grid_order grid>
 constexpr void set_weights(std::span<Numeric, M> data,
                            std::span<const Index, M> indx,
-                           std::span<const Numeric, std::dynamic_extent> xi,
+                           std::span<const Numeric> xi,
                            Numeric x) {
   const Size N = (M == std::dynamic_extent) ? (indx.size() - 1) : (M - 1);
 
@@ -474,7 +474,7 @@ struct lag_t {
   constexpr lag_t& operator=(lag_t&&) noexcept = default;
 
   template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric, std::dynamic_extent> xi,
+  constexpr lag_t(std::span<const Numeric> xi,
                   Numeric x,
                   grid)
     requires(not runtime)
@@ -484,7 +484,7 @@ struct lag_t {
   }
 
   template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric, std::dynamic_extent> xi,
+  constexpr lag_t(std::span<const Numeric> xi,
                   Numeric x,
                   Index M,
                   grid)
@@ -496,7 +496,7 @@ struct lag_t {
 
   template <grid_order grid>
   constexpr lag_t(indx_t pos,
-                  std::span<const Numeric, std::dynamic_extent> xi,
+                  std::span<const Numeric> xi,
                   Numeric x,
                   grid)
       : indx(std::move(pos)) {
@@ -524,14 +524,14 @@ struct lag_t {
 namespace {
 template <transformer transform, Size poly>
 lag_t<poly, transform> poly_lag(
-    std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
+    std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > poly);
   if (xi[0] < xi[1]) return lag_t<poly, transform>(xi, x, ascending_grid_t{});
   return lag_t<poly, transform>(xi, x, descending_grid_t{});
 }
 
 template <transformer transform, typename T, Size N, Size... Ms>
-T variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
+T variant_lag_helper(std::span<const Numeric> xi,
                      Numeric x) {
   if constexpr (N == 0) {
     return lag_t<0, transform>(xi, x, ascending_grid_t{});
@@ -542,7 +542,7 @@ T variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
 }
 
 template <transformer transform, Size... poly>
-auto variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
+auto variant_lag_helper(std::span<const Numeric> xi,
                         Numeric x,
                         std::index_sequence<poly...>) {
   return variant_lag_helper<transform,
@@ -558,7 +558,7 @@ auto variant_lag_helper(std::span<const Numeric, std::dynamic_extent> xi,
  * get higher order polynomial interpolation.
  */
 template <transformer transform, Size N = 1>
-auto variant_lag(std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
+auto variant_lag(std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > 0);
   return variant_lag_helper<transform>(
       xi, x, std::make_index_sequence<N + 1>{});
@@ -570,7 +570,7 @@ auto variant_lag(std::span<const Numeric, std::dynamic_extent> xi, Numeric x) {
 
 template <transformer transform, Size Extent>
 constexpr order_t check_limit(
-    const std::span<const Numeric, std::dynamic_extent>& xi,
+    const std::span<const Numeric>& xi,
     const std::span<const Numeric, Extent>& xn,
     Numeric extrapolation_limit,
     const Index polyorder,
@@ -683,7 +683,7 @@ template <Size N,
           transformer transform,
           Size Extent,
           class FlagT = lag_t<N, transform>>
-constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
+constexpr auto make_lags(std::span<const Numeric> xi,
                          std::span<const Numeric, Extent> xn,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") {
@@ -769,7 +769,7 @@ constexpr auto make_lags(const Orig& xi,
 template <transformer transform,
           Size Extent,
           class FlagT = lag_t<-1, transform>>
-constexpr auto make_lags(std::span<const Numeric, std::dynamic_extent> xi,
+constexpr auto make_lags(std::span<const Numeric> xi,
                          std::span<const Numeric, Extent> xn,
                          const Index polyorder       = 1,
                          Numeric extrapolation_limit = 0.5,

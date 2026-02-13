@@ -454,7 +454,7 @@ void test31() {
        << std::format("{}", a) << "\n";
 
   stdr::transform(
-      elemwise_range(a), a.elem_begin(), [](auto z) { return std::sqrt(z); });
+      a | by_elem, a.elem_begin(), [](auto z) { return std::sqrt(z); });
 
   cout << "After taking the square-root:\n" << std::format("{}", a) << "\n";
 

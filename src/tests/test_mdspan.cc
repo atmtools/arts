@@ -981,7 +981,7 @@ void test_view() {
     const Size N = matpack::mdsize(exts);
     Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
     ComplexTensor3 x(xt.shape());
-    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
       return Complex{a, a + 1.0};
     });
 
@@ -1005,7 +1005,7 @@ void test_view() {
     const Size N = matpack::mdsize(exts);
     Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
     ComplexTensor3 x(xt.shape());
-    stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
       return Complex{a, a + 1.0};
     });
 
@@ -1062,7 +1062,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
             return Complex{a, a + 1.0};
           });
 
@@ -1105,7 +1105,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
             return Complex{a, a + 1.0};
           });
 
@@ -1148,7 +1148,7 @@ void test_view() {
           const Size N = matpack::mdsize(exts);
           Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
           ComplexTensor3 x(xt.shape());
-          stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
             return Complex{a, a + 1.0};
           });
 
@@ -1189,7 +1189,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
         return Complex{a, a + 1.0};
       });
 
@@ -1228,7 +1228,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
         return Complex{a, a + 1.0};
       });
 
@@ -1267,7 +1267,7 @@ void test_view() {
       const Size N = matpack::mdsize(exts);
       Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
       ComplexTensor3 x(xt.shape());
-      stdr::transform(elemwise_range(xt), x.elem_begin(), [](auto a) {
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
         return Complex{a, a + 1.0};
       });
 
