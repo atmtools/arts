@@ -69,12 +69,12 @@ struct xml_io_stream<matpack::data_t<T, N>> {
       if constexpr (xml_io_binary<T>)
         inner::put(std::span{x.data_handle(), x.size()}, pbofs);
       else
-        for (auto& v : elemwise_range(x)) inner::write(os, v, pbofs);
+        for (auto& v : x | by_elem) inner::write(os, v, pbofs);
     } else {
       if constexpr (xml_io_parseable<T>)
         std::println(os, "{:IO}", x);
       else
-        for (auto& v : elemwise_range(x)) inner::write(os, v, pbofs);
+        for (auto& v : x | by_elem) inner::write(os, v, pbofs);
     }
 
     tag.write_to_end_stream(os);
@@ -113,12 +113,12 @@ struct xml_io_stream<matpack::data_t<T, N>> {
         if constexpr (xml_io_binary<T>)
           inner::get(std::span{x.data_handle(), x.size()}, pbifs);
         else
-          for (auto& v : elemwise_range(x)) inner::read(is, v, pbifs);
+          for (auto& v : x | by_elem) inner::read(is, v, pbifs);
       } else {
         if constexpr (xml_io_parseable<T>)
           inner::parse(std::span{x.data_handle(), x.size()}, is);
         else
-          for (auto& v : elemwise_range(x)) inner::read(is, v, pbifs);
+          for (auto& v : x | by_elem) inner::read(is, v, pbifs);
       }
 
       tag.read_from_stream(is);

@@ -1,6 +1,6 @@
 #include "matpack_mdspan_view_t.h"
 
-namespace{
+namespace {
 template <typename T>
 std::string to_string_impl(const matpack::view_t<const T, 2>& md,
                            format_tags& tags,
@@ -28,7 +28,7 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
   };
 
   Size i          = 0;
-  const auto view = elemwise_range(md);
+  const auto view = md | by_elem;
   const Size sz   = md.size();
 
   for (Size j = 0; j < d; j++) add_if_bracket('[');
@@ -53,8 +53,8 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
     bool first = true;
     for (auto&& e : view) {
       if (first) {
-        out += tags.vformat(view.front());
-        first = false;
+        out   += tags.vformat(view.front());
+        first  = false;
         continue;
       }
 

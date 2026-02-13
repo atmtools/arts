@@ -25,6 +25,7 @@ struct elemwise_mditer {
   constexpr elemwise_mditer& operator=(const elemwise_mditer&)     = default;
 
   constexpr elemwise_mditer(T& x) : data(&x) {}
+  constexpr elemwise_mditer(T* x, Index p) : data(x), pos(p) {}
 
   constexpr elemwise_mditer& operator++() noexcept {
     pos++;
@@ -49,40 +50,44 @@ struct elemwise_mditer {
     pos += i;
     return *this;
   }
+
   constexpr elemwise_mditer& operator-=(Index i) noexcept {
     pos -= i;
     return *this;
   }
+
   [[nodiscard]] constexpr elemwise_mditer operator+(Index i) const noexcept {
-    elemwise_mditer out(*this);
-    out.pos += i;
-    return out;
+    return {data, pos + i};
   }
+
   [[nodiscard]] constexpr elemwise_mditer operator-(Index i) const noexcept {
-    elemwise_mditer out(*this);
-    out.pos -= i;
-    return out;
+    return {data, pos - i};
   }
+
   [[nodiscard]] constexpr friend elemwise_mditer operator+(
       Index i, const elemwise_mditer& m) noexcept {
-    return m + i;
-  }
-  [[nodiscard]] constexpr friend elemwise_mditer operator-(
-      Index i, const elemwise_mditer& m) noexcept {
-    return m - i;
+    return {m.data, m.pos + i};
   }
 
   [[nodiscard]] constexpr difference_type operator-(
       const elemwise_mditer& other) const noexcept {
     return pos - other.pos;
   }
+
   [[nodiscard]] constexpr difference_type operator+(
       const elemwise_mditer& other) const noexcept {
     return pos + other.pos;
   }
 
   [[nodiscard]] constexpr auto operator<=>(
-      const elemwise_mditer&) const noexcept = default;
+      const elemwise_mditer& m) const noexcept {
+    return pos <=> m.pos;
+  }
+
+  [[nodiscard]] constexpr bool operator==(
+      const elemwise_mditer& m) const noexcept {
+    return pos == m.pos;
+  }
 
   [[nodiscard]] constexpr decltype(auto) operator*() const {
     return data->elem_at(pos);
@@ -100,15 +105,34 @@ struct elemwise_mditer {
 };
 
 template <any_md T>
-auto elemwise_range(T&& x) {
-  return stdr::subrange{x.elem_begin(), x.elem_end()};
+constexpr auto elemwise_range(T&& x) {
+  if constexpr (requires {
+                  std::span{x.view_as(
+                      std::array<Index, 1>{static_cast<Index>(x.size())})};
+                })
+    return std::span{
+        x.view_as(std::array<Index, 1>{static_cast<Index>(x.size())})};
+  else
+    return stdr::subrange{x.elem_begin(), x.elem_end()};
 };
 
 // Catch for non-matpack types (might not work, be careful)
 template <ranked<1> T>
-auto elemwise_range(T&& x)
+constexpr auto elemwise_range(T&& x)
   requires(not any_md<T>)
 {
-  return stdr::subrange{x.begin(), x.end()};
+  if constexpr (requires { std::span{x}; })
+    return std::span{x};
+  else
+    return stdr::subrange{x.begin(), x.end()};
+};
+
+struct elemwise_r {
+  template <matpack::any_md T>
+  friend constexpr auto operator|(T&& x, elemwise_r) {
+    return elemwise_range(std::forward<T>(x));
+  }
 };
 }  // namespace matpack
+
+static constexpr matpack::elemwise_r by_elem{};

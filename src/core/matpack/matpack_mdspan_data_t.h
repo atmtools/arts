@@ -54,8 +54,6 @@ class [[nodiscard]] data_t {
   friend struct strided_view_t;
 
  public:
-  constexpr static bool matpack_magic_data = true;
-
   using base = view_t<T, N>::base;
 
   constexpr auto base_md() const { return view.base_md(); }
@@ -135,8 +133,8 @@ class [[nodiscard]] data_t {
              std::same_as<typename Imag::value_type, complex_subtype_t<T>>)
       : data_t(real.shape()) {
     assert(real.shape() == imag.shape());
-    auto r = elemwise_range(real);
-    auto i = elemwise_range(imag);
+    auto r = real | by_elem;
+    auto i = imag | by_elem;
     std::transform(stdr::begin(r),
                    stdr::end(r),
                    stdr::begin(i),
@@ -146,12 +144,12 @@ class [[nodiscard]] data_t {
 
   constexpr operator view_t<T, N>&() { return view; }
   constexpr operator const view_t<T, N>&() const { return view; }
-  constexpr operator std::span<T, std::dynamic_extent>()
+  constexpr operator std::span<T>()
     requires(N == 1)
   {
     return {begin(), end()};
   }
-  constexpr operator std::span<const T, std::dynamic_extent>() const
+  constexpr operator std::span<const T>() const
     requires(N == 1)
   {
     return {begin(), end()};

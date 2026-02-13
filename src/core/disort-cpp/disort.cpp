@@ -79,7 +79,7 @@ void source_set_k1(mathscr_v_data& data,
                    const ConstMatrixView& G,
                    const ConstVectorView& inv_mu) {
   stdr::copy(inv_mu, data.k1.elem_begin());
-  stdr::copy(elemwise_range(G), data.G.elem_begin());
+  stdr::copy(G | by_elem, data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 }
 
@@ -351,9 +351,8 @@ void main_data::diagonalize() {
       asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(i, m, -mu0);
     }
 
-    const bool all_asso_leg_term_pos_finite =
-        stdr::all_of(elemwise_range(asso_leg_term_pos),
-                     [](auto& x) { return std::isfinite(x); });
+    const bool all_asso_leg_term_pos_finite = stdr::all_of(
+        asso_leg_term_pos | by_elem, [](auto& x) { return std::isfinite(x); });
 
     for (Index l = 0; l < NLayers; l++) {
       VectorView K = Km[l];
@@ -368,8 +367,7 @@ void main_data::diagonalize() {
 
       if (scaled_omega_l != 0.0 or
           (all_asso_leg_term_pos_finite and
-           stdr::any_of(elemwise_range(weighted_asso_Leg_coeffs_l),
-                        Cmp::gt(0)))) {
+           stdr::any_of(weighted_asso_Leg_coeffs_l, Cmp::gt(0)))) {
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
@@ -424,7 +422,7 @@ void main_data::diagonalize() {
           mult(jvec[rb(N)].view_as(1, N), xtemp, asso_leg_term_neg);
           jvec[rb(N)] *= inv_mu_arr[rf(N)];
 
-          stdr::copy(elemwise_range(G), Gml.elem_begin());
+          stdr::copy(G | by_elem, Gml.elem_begin());
           solve_inplace(jvec, Gml, solve_work);
 
           for (Index j = 0; j < NQuad; j++) jvec[j] *= mu0 / (1.0 + K[j] * mu0);
@@ -542,8 +540,8 @@ void main_data::set_beam_source(const Numeric I0_) {
 
   has_beam_source = I0_ > 0;
 
-  if (stdr::all_of(elemwise_range(b_pos), Cmp::eq<0>()) and
-      not has_source_poly and has_beam_source) {
+  if (not has_source_poly and has_beam_source and
+      stdr::all_of(b_pos | by_elem, Cmp::eq<0>())) {
     I0_orig = I0_;
     I0      = 1;
   } else {

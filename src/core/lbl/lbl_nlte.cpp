@@ -31,7 +31,7 @@ GeodeticField3 level_density(const GeodeticField3& T,
   GeodeticField3 out(T);
   out.data_name = "NLTE";
 
-  stdr::transform(matpack::elemwise_range(T.data),
+  stdr::transform(T.data | by_elem,
                   out.data.elem_begin(),
                   [g, E, spec](Numeric T) -> Numeric {
                     return level_density(T, g, E, spec);

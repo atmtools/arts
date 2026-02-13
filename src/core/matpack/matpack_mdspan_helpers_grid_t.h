@@ -8,25 +8,28 @@
 #include "lagrange_interp.h"
 #include "matpack_mdspan_data_t.h"
 
-struct Ascending {
+namespace matpack {
+struct ascending_t {
   consteval static std::string_view name() { return "ascending"sv; }
   constexpr bool operator()(Numeric a, Numeric b) const { return a <= b; }
 };
 
-struct Descending {
+struct descending_t {
   consteval static std::string_view name() { return "descending"sv; }
   constexpr bool operator()(Numeric a, Numeric b) const { return a >= b; }
 };
 
-namespace matpack {
 template <typename T>
-concept sorting_t = std::same_as<T, Ascending> or std::same_as<T, Descending>;
+concept sorting_t =
+    std::same_as<T, ascending_t> or std::same_as<T, descending_t>;
 
-template <sorting_t Compare>
+template <class Compare>
 class grid_t {
+  static_assert(sorting_t<Compare>, "Must be a sorting type");
+
   Vector x;
 
-  constexpr static bool ascends = std::same_as<Compare, Ascending>;
+  constexpr static bool ascends = std::same_as<Compare, ascending_t>;
 
  public:
   using value_type = Numeric;
@@ -101,13 +104,16 @@ class grid_t {
   constexpr operator const Vector&() const { return vec(); }
   constexpr operator ConstVectorView() const { return vec(); }
   constexpr operator StridedConstVectorView() const { return vec(); }
-  constexpr operator std::span<const Numeric, std::dynamic_extent>() const {
-    return vec();
-  }
+  constexpr operator std::span<const Numeric>() const { return vec(); }
 
   template <access_operator Op>
   [[nodiscard]] constexpr auto operator[](const Op& op) const {
     return x[op];
+  }
+
+  template <typename Self>
+  [[nodiscard]] constexpr auto base_md(this Self&& self) {
+    return ConstVectorView{std::forward<Self>(self).x}.base_md();
   }
 
   [[nodiscard]] constexpr auto size() const { return x.size(); }
@@ -116,6 +122,8 @@ class grid_t {
   [[nodiscard]] constexpr auto empty() const { return x.empty(); }
   [[nodiscard]] constexpr Numeric front() const { return x.front(); }
   [[nodiscard]] constexpr Numeric back() const { return x.back(); }
+  [[nodiscard]] constexpr auto elem_begin() const { return x.elem_begin(); }
+  [[nodiscard]] constexpr auto elem_end() const { return x.elem_end(); }
 
   [[nodiscard]] constexpr std::array<Index, 1> shape() const {
     return x.shape();
@@ -186,8 +194,8 @@ template <sorting_t Compare, exact_md<Numeric, 1> md>
 }
 }  // namespace matpack
 
-using AscendingGrid        = matpack::grid_t<Ascending>;
-using DescendingGrid       = matpack::grid_t<Descending>;
+using AscendingGrid        = matpack::grid_t<matpack::ascending_t>;
+using DescendingGrid       = matpack::grid_t<matpack::descending_t>;
 using ArrayOfAscendingGrid = std::vector<AscendingGrid>;
 
 template <matpack::sorting_t Compare>

@@ -14,8 +14,6 @@
 namespace matpack {
 template <class T, Size N>
 struct strided_view_t final : public mdstrided_t<T, N> {
-  constexpr static bool matpack_magic_strided_view = true;
-
   using base = mdstrided_t<T, N>;
 
   constexpr mdstrided_t<T, N> base_md() const { return *this; }
@@ -163,7 +161,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   {
     assert(shape() == r.shape());
 
-    if (this != &r) stdr::copy(elemwise_range(r), elem_begin());
+    if (this != &r) stdr::copy(r | by_elem, elem_begin());
 
     return *this;
   }
@@ -183,11 +181,10 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::copy(elemwise_range(r), elem_begin());
+      stdr::copy(r | by_elem, elem_begin());
     } else {
-      stdr::transform(elemwise_range(r), elem_begin(), [](const auto& a) -> T {
-        return a;
-      });
+      stdr::transform(
+          r | by_elem, elem_begin(), [](const auto& a) -> T { return a; });
     }
 
     return *this;
@@ -215,14 +212,14 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a + b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a + static_cast<T>(b); });
     }
@@ -237,14 +234,14 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a - b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a - static_cast<T>(b); });
     }
@@ -259,14 +256,14 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a * b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a * static_cast<T>(b); });
     }
@@ -280,14 +277,14 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   {
     assert(shape() == r.shape());
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a / b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a / static_cast<T>(b); });
     }
@@ -298,7 +295,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t& operator+=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x += v; });
     return *this;
   }
@@ -307,7 +304,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t& operator-=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x -= v; });
     return *this;
   }
@@ -316,7 +313,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t& operator*=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x *= v; });
     return *this;
   }
@@ -325,7 +322,7 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t& operator/=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x /= v; });
     return *this;
   }
@@ -424,7 +421,7 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
     };
 
     Size i          = 0;
-    const auto view = elemwise_range(md);
+    const auto view = md | by_elem;
     const Size sz   = md.size();
     const auto sep  = tags.sep();
 

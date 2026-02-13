@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "matpack_mdspan_common_types.h"
+#include "matpack_mdspan_elemwise_mditer.h"
 
 namespace matpack {
 /** Sum all elements in the range using it's reduce operation
@@ -82,7 +83,7 @@ constexpr auto fastmean(const Self& self) {
  */
 template <any_md Self>
 constexpr auto min(const Self& self) {
-  return stdr::min(elemwise_range(self));
+  return stdr::min(self | by_elem);
 }
 
 /** Get the maximum value in the range
@@ -92,7 +93,7 @@ constexpr auto min(const Self& self) {
  */
 template <any_md Self>
 constexpr auto max(const Self& self) {
-  return stdr::max(elemwise_range(self));
+  return stdr::max(self | by_elem);
 }
 
 /** Get the maximum value in the range
@@ -102,7 +103,7 @@ constexpr auto max(const Self& self) {
  */
 template <any_md Self>
 constexpr auto minmax(const Self& self) {
-  auto e      = elemwise_range(self);
+  auto e      = self | by_elem;
   auto [a, b] = stdr::minmax_element(e);
   assert(a != stdr::end(e));
   assert(b != stdr::end(e));
@@ -118,7 +119,7 @@ template <any_md Self>
 constexpr Size nansize(const Self& self) {
   Size out = 0;
 
-  for (auto& v : elemwise_range(self)) {
+  for (auto& v : self | by_elem) {
     if (not nonstd::isnan(v)) out++;
   }
 
@@ -191,7 +192,7 @@ constexpr auto nanfastmean(const Self& self) {
 template <any_md Self>
 constexpr auto nanmin(const Self& self) {
   const auto not_isnan = [](auto& a) { return not nonstd::isnan(a); };
-  return stdr::min(elemwise_range(self) | stdv::filter(not_isnan));
+  return stdr::min(self | by_elem | stdv::filter(not_isnan));
 }
 
 /** Find the maximum value in the range that is not NaN
@@ -202,7 +203,7 @@ constexpr auto nanmin(const Self& self) {
 template <any_md Self>
 constexpr auto nanmax(const Self& self) {
   const auto not_isnan = [](auto& a) { return not nonstd::isnan(a); };
-  return stdr::max(elemwise_range(self) | stdv::filter(not_isnan));
+  return stdr::max(self | by_elem | stdv::filter(not_isnan));
 }
 
 /** Get the sum of the elementwise product of two ranges
@@ -235,17 +236,17 @@ constexpr auto hypot(const Self& self) {
 
 template <any_md Self, any_md Other>
 constexpr bool operator==(const Self& self, const Other& other) {
-  return stdr::equal(elemwise_range(self), elemwise_range(other));
+  return stdr::equal(self | by_elem, other | by_elem);
 }
 
 template <any_md Self, any_md Other>
 constexpr bool operator!=(const Self& self, const Other& other) {
-  return not stdr::equal(elemwise_range(self), elemwise_range(other));
+  return not stdr::equal(self | by_elem, other | by_elem);
 }
 
 template <any_md Self>
 constexpr bool operator==(const Self& self, const value_type<Self>& other) {
-  for (auto& v : elemwise_range(self)) {
+  for (auto& v : self | by_elem) {
     if (v != other) return false;
   }
   return true;
@@ -253,7 +254,7 @@ constexpr bool operator==(const Self& self, const value_type<Self>& other) {
 
 template <any_md Self>
 constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
-  for (auto& v : elemwise_range(self)) {
+  for (auto& v : self | by_elem) {
     if (v == other) return false;
   }
   return true;
@@ -261,12 +262,12 @@ constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
 
 template <any_md Self>
 constexpr bool any_negative(const Self& self) {
-  return stdr::any_of(elemwise_range(self), Cmp::lt<value_type<Self>{}>());
+  return stdr::any_of(self | by_elem, Cmp::lt<value_type<Self>{}>());
 }
 
 template <any_md Self>
 constexpr bool any_nan(const Self& self) {
   const auto isnan = [](auto& a) { return nonstd::isnan(a); };
-  return stdr::any_of(elemwise_range(self), isnan);
+  return stdr::any_of(self | by_elem, isnan);
 }
 }  // namespace matpack

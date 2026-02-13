@@ -221,13 +221,13 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
   matpack_common_interface(c);
 }
 
-template <class Compare, Numeric l, Numeric u, bool il, bool iu>
+template <Index l, Index u, matpack::lim il, matpack::lim iu>
 void matpack_grid_interface(
-    py::class_<matpack::ranged_grid_t<Compare, l, u, il, iu>>& c) {
+    py::class_<matpack::ranged_grid_t<l, u, il, iu>>& c) {
   using mtype = Vector;
   using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
   using mut_nd = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
-  using T      = matpack::ranged_grid_t<Compare, l, u, il, iu>;
+  using T      = matpack::ranged_grid_t<l, u, il, iu>;
 
   c.def(
       "__init__",

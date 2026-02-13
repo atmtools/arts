@@ -125,6 +125,15 @@ Numeric sort_tensor(Tensor7View& a) {
 
   return a.front();
 }
+
+Numeric dot_sum(const ConstMatrixView& a) {
+  ARTS_NAMED_TIME_REPORT(std::format("dot_sum; {:B,}", a.shape()));
+
+  return std::transform_reduce(
+      a.begin(), a.end(), Numeric{0}, std::plus<>{}, [](auto&& v) {
+        return dot(v, v);
+      });
+}
 }  // namespace
 
 int main() {
@@ -209,6 +218,22 @@ int main() {
     Vector x         = random_numbers<1>({N});
 
     buf += vector_matrix_mult(x, A, y);
+  }
+
+  {
+    constexpr Size N = 100'000;
+    constexpr Size M = 1'000;
+    const Matrix A   = random_numbers<2>({N, M});
+
+    buf += dot_sum(A);
+  }
+
+  {
+    constexpr Size M = 100'000;
+    constexpr Size N = 1'000;
+    const Matrix A   = random_numbers<2>({N, M});
+
+    buf += dot_sum(A);
   }
 
   std::println(std::cerr, "Prevent optimizing away: {}", buf);

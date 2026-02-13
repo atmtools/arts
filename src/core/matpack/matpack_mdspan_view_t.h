@@ -15,8 +15,6 @@ namespace matpack {
 //! A wrapper for mdspan that's always C-like in layout
 template <class T, Size N>
 struct view_t final : public mdview_t<T, N> {
-  constexpr static bool matpack_magic_view = true;
-
   using base = mdview_t<T, N>;
 
   constexpr mdview_t<T, N> base_md() const { return *this; }
@@ -182,7 +180,7 @@ struct view_t final : public mdview_t<T, N> {
   {
     assert(shape() == r.shape());
 
-    if (this != &r) stdr::copy(elemwise_range(r), elem_begin());
+    if (this != &r) stdr::copy(r | by_elem, elem_begin());
 
     return *this;
   }
@@ -202,11 +200,10 @@ struct view_t final : public mdview_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::copy(elemwise_range(r), elem_begin());
+      stdr::copy(r | by_elem, elem_begin());
     } else {
-      stdr::transform(elemwise_range(r), elem_begin(), [](const auto& a) -> T {
-        return a;
-      });
+      stdr::transform(
+          r | by_elem, elem_begin(), [](const auto& a) -> T { return a; });
     }
 
     return *this;
@@ -234,14 +231,14 @@ struct view_t final : public mdview_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a + b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a + static_cast<T>(b); });
     }
@@ -256,14 +253,14 @@ struct view_t final : public mdview_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a - b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a - static_cast<T>(b); });
     }
@@ -278,14 +275,14 @@ struct view_t final : public mdview_t<T, N> {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a * b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a * static_cast<T>(b); });
     }
@@ -299,14 +296,14 @@ struct view_t final : public mdview_t<T, N> {
   {
     assert(shape() == r.shape());
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(elemwise_range(*this),
-                      elemwise_range(r),
+      stdr::transform(*this | by_elem,
+                      r | by_elem,
                       elem_begin(),
                       [](auto&& a, auto&& b) -> T { return a / b; });
     } else {
       stdr::transform(
-          elemwise_range(*this),
-          elemwise_range(r),
+          *this | by_elem,
+          r | by_elem,
           elem_begin(),
           [](auto&& a, auto&& b) -> T { return a / static_cast<T>(b); });
     }
@@ -317,7 +314,7 @@ struct view_t final : public mdview_t<T, N> {
   constexpr view_t& operator+=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x += v; });
     return *this;
   }
@@ -326,7 +323,7 @@ struct view_t final : public mdview_t<T, N> {
   constexpr view_t& operator-=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x -= v; });
     return *this;
   }
@@ -335,7 +332,7 @@ struct view_t final : public mdview_t<T, N> {
   constexpr view_t& operator*=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x *= v; });
     return *this;
   }
@@ -344,7 +341,7 @@ struct view_t final : public mdview_t<T, N> {
   constexpr view_t& operator/=(U&& r)
     requires(not is_const)
   {
-    stdr::for_each(elemwise_range(*this),
+    stdr::for_each(*this | by_elem,
                    [v = std::forward_like<T>(r)](T& x) { return x /= v; });
     return *this;
   }
@@ -387,12 +384,12 @@ struct view_t final : public mdview_t<T, N> {
     std::swap(static_cast<base&>(*this), static_cast<base&>(other));
   }
 
-  constexpr operator std::span<T, std::dynamic_extent>()
+  constexpr operator std::span<T>()
     requires(N == 1)
   {
     return {begin(), end()};
   }
-  constexpr operator std::span<const T, std::dynamic_extent>() const
+  constexpr operator std::span<const T>() const
     requires(N == 1)
   {
     return {begin(), end()};

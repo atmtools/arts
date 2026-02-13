@@ -47,7 +47,7 @@ These are the common member methods for both classes:
   Example: ``for (auto& vecview : mat) { ... }``, will have ``vecview`` be a ``view_t``.  This is equivalent to orderly access to ``mat[0]``, ``mat[1]``, ``mat[2]``, then ``mat[3]``.
 - ``elem_begin`` and ``elem_end``.  There are element-wise iterators.  Combined with ``elemwise_range``, they allow iteration of the data in the view element-by-element.
   Example: ``for (auto& elem : elemwise_range(mat)) { ... }`` will iterate over all elements in the matrix.  This is equivalent to orderly access to ``mat[0, 0]``, ``mat[0, 1]``, ..., ``mat[3, 4]``.
-  This type of access is much more efficient for ``view_t`` than for ``strided_view_t``.
+  This type of access is much more efficient for ``view_t`` than for ``strided_view_t``.  Also be aware that pipe operator ``by_elem`` is available as a shorthand for ``elemwise_range``.
 - ``elem_at(i)``.  Helper method to access the element at index ``i``.  This is equivalent to ``*(elem_begin() + i)``, but for ``strided_view_t``, the implementation is the other way around (``elem_begin`` is implemented as a function of ``elem_at``).
   Example: ``mat.elem_at(0) == mat[0, 0]``.
 - ``operator=`` - copy the data from another view, or set all elements to a single value.  Examples:
