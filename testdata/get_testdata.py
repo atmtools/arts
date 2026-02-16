@@ -6,13 +6,13 @@ from requests.adapters import HTTPAdapter, Retry
 from time import sleep
 
 
-def download_file(url, destination):
+def download_file(url, destination, nretry=5):
     """Download a file from a URL to a destination file."""
     try:
         # Send a GET request to the URL
         s = requests.Session()
         retries = Retry(
-            total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
+            total=nretry, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
         )
         s.mount("https://", HTTPAdapter(max_retries=retries))
         response = s.get(url)
@@ -27,11 +27,12 @@ def download_file(url, destination):
                 file.write(chunk)
 
         return True
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as err:
+        print(f"Download failed: {err}")
         return False
 
 
-def download_file_retry(url, destination, retries=30, delay=10):
+def download_file_retry(url, destination, retries=2, delay=10):
     """Download a file from a URL to a destination file with retries."""
     x = 0
     for i in range(retries):
