@@ -46,8 +46,8 @@ def download_file_retry(url, destination, retries=30, delay=10):
 
 nargs = len(sys.argv)
 
-xml = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
-cat = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
+xml = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-xml-data/-/raw/main/"
+cat = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-cat-data/-/raw/main/"
 
 if sys.argv[1] == "xml":
     baseurl = xml
