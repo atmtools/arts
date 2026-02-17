@@ -313,7 +313,7 @@ void wsv_implement_copied(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  throw std::logic_error(\"bad copy\");\n}}");
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad copy\");\n}}");
 }
 
 void wsv_implement_from_named_type(std::ostream& os) {
@@ -326,7 +326,7 @@ void wsv_implement_from_named_type(std::ostream& os) {
 
   std::println(
       os,
-      "throw std::runtime_error(std::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}\n");
+      "\n  throw std::runtime_error(std::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}\n");
 
   std::println(os, R"(Wsv Wsv::from_index(Index x) {{
   switch (x) {{)");
@@ -340,8 +340,9 @@ void wsv_implement_from_named_type(std::ostream& os) {
 
   std::println(
       os,
-      R"xyz(    default: throw std::runtime_error(std::format("Unknown Workspace Group Index: ", x));
-  }}
+      R"xyz(  }}
+  
+  throw std::runtime_error(std::format("Unknown Workspace Group Index: {{0}}", x));
 }})xyz");
 }
 
@@ -355,7 +356,7 @@ void wsv_implement_type_name(std::ostream& os) {
     std::println(os, R"(    case {1}: return "{0}"sv;)", grps[i], i);
   }
 
-  std::println(os, "  }}\n  throw std::logic_error(\"bad type_name\");\n}}");
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad type_name\");\n}}");
 }
 
 void implement_valid_wsg(std::ostream& os) {
@@ -393,7 +394,7 @@ void wsv_implement_vformat(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}  throw std::logic_error(\"bad vformat\");\n}}");
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad vformat\");\n}}");
 }
 
 void wsv_implement_write_to_stream(std::ostream& os) {
@@ -411,7 +412,7 @@ void wsv_implement_write_to_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  return os;\n}}\n");
+  std::println(os, "  }}\n\n  return os;\n}}\n");
 
   std::println(
       os,
@@ -425,7 +426,7 @@ void wsv_implement_write_to_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  std::unreachable();\n}}");
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad write_to_file\");\n}}");
 }
 
 void wsv_implement_read_from_stream(std::ostream& os) {
@@ -443,7 +444,7 @@ void wsv_implement_read_from_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  return is;\n}}\n");
+  std::println(os, "  }}\n\n  return is;\n}}\n");
 
   std::println(
       os,
@@ -457,7 +458,7 @@ void wsv_implement_read_from_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n  throw std::logic_error(\"bad read_file\");\n}}");
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad read_file\");\n}}");
 }
 
 void wsv_implement_includes(std::ostream& os) {

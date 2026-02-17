@@ -1,15 +1,13 @@
 #pragma once
 
 #include <compare.h>
+#include <matpack.h>
 #include <xml.h>
 
-#include <limits>
 #include <numeric>
 
-#include "rtepack_concepts.h"
-
 namespace rtepack {
-struct propmat final : vec7 {
+struct propmat final : Vector7 {
   constexpr propmat(Numeric a = 0.0,
                     Numeric b = 0.0,
                     Numeric c = 0.0,
@@ -17,9 +15,9 @@ struct propmat final : vec7 {
                     Numeric u = 0.0,
                     Numeric v = 0.0,
                     Numeric w = 0.0)
-      : vec7{a, b, c, d, u, v, w} {}
+      : Vector7{a, b, c, d, u, v, w} {}
 
-  constexpr propmat(std::array<Numeric, 7> data) noexcept : vec7{data} {}
+  constexpr propmat(std::array<Numeric, 7> data) noexcept : Vector7{data} {}
 
   [[nodiscard]] constexpr decltype(auto) A() const { return data[0]; }
   [[nodiscard]] constexpr decltype(auto) B() const { return data[1]; }
@@ -128,36 +126,7 @@ propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 
 template <>
 
-struct std::formatter<rtepack::propmat> {
-  std::formatter<rtepack::vec7> fmt;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const rtepack::propmat &v,
-                              FmtContext &ctx) const {
-    return fmt.format(v, ctx);
-  }
-};
+struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
 
 template <>
-struct xml_io_stream<rtepack::propmat> {
-  static constexpr std::string_view type_name = "Propmat"sv;
-
-  static void write(std::ostream &os,
-                    const rtepack::propmat &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
-  static void read(std::istream &is,
-                   rtepack::propmat &x,
-                   bifstream *pbifs = nullptr);
-  static void put(std::span<const rtepack::propmat> x, bofstream *);
-  static void get(std::span<rtepack::propmat> x, bifstream *pbifs);
-  static void parse(std::span<rtepack::propmat> x, std::istream &);
-};
+struct xml_io_stream<rtepack::propmat> : xml_io_stream<Vector7> {};

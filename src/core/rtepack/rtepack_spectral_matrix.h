@@ -1,16 +1,16 @@
 #pragma once
 
 #include <array.h>
+#include <matpack.h>
 #include <xml.h>
-
-#include "rtepack_concepts.h"
 
 namespace rtepack {
 
 //! A 4x4 matrix of Complex values to be used as a Mueller Matrix
-struct specmat final : cmat44 {
+struct specmat final : ComplexMatrix44 {
   constexpr specmat(Complex tau = 1.0) noexcept
-      : cmat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
+      : ComplexMatrix44{
+            tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
   constexpr specmat(Complex m00,
                     Complex m01,
@@ -28,24 +28,25 @@ struct specmat final : cmat44 {
                     Complex m31,
                     Complex m32,
                     Complex m33) noexcept
-      : cmat44{m00,
-               m01,
-               m02,
-               m03,
-               m10,
-               m11,
-               m12,
-               m13,
-               m20,
-               m21,
-               m22,
-               m23,
-               m30,
-               m31,
-               m32,
-               m33} {}
+      : ComplexMatrix44{m00,
+                        m01,
+                        m02,
+                        m03,
+                        m10,
+                        m11,
+                        m12,
+                        m13,
+                        m20,
+                        m21,
+                        m22,
+                        m23,
+                        m30,
+                        m31,
+                        m32,
+                        m33} {}
 
-  constexpr specmat(std::array<Complex, 16> data) noexcept : cmat44{data} {}
+  constexpr specmat(std::array<Complex, 16> data) noexcept
+      : ComplexMatrix44{data} {}
 
   //! The identity matrix
   static constexpr specmat id() { return specmat{1.0}; }
@@ -269,36 +270,7 @@ using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
 
 template <>
 
-struct std::formatter<rtepack::specmat> {
-  std::formatter<rtepack::cmat44> fmt;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const rtepack::specmat &v,
-                              FmtContext &ctx) const {
-    return fmt.format(v, ctx);
-  }
-};
+struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::specmat> {
-  static constexpr std::string_view type_name = "Specmat"sv;
-
-  static void write(std::ostream &os,
-                    const rtepack::specmat &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
-  static void read(std::istream &is,
-                   rtepack::specmat &x,
-                   bifstream *pbifs = nullptr);
-  static void put(std::span<const rtepack::specmat> x, bofstream *);
-  static void get(std::span<rtepack::specmat> x, bifstream *pbifs);
-  static void parse(std::span<rtepack::specmat> x, std::istream &);
-};
+struct xml_io_stream<rtepack::specmat> : xml_io_stream<ComplexMatrix44> {};

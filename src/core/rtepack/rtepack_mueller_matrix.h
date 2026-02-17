@@ -1,16 +1,15 @@
 #pragma once
 
 #include <array.h>
+#include <matpack.h>
 #include <xml.h>
-
-#include "rtepack_concepts.h"
 
 namespace rtepack {
 
 //! A 4x4 matrix of Numeric values to be used as a Mueller Matrix
-struct muelmat final : mat44 {
+struct muelmat final : Matrix44 {
   constexpr muelmat(Numeric tau = 1.0) noexcept
-      : mat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
+      : Matrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
   constexpr muelmat(Numeric m00,
                     Numeric m01,
@@ -28,24 +27,24 @@ struct muelmat final : mat44 {
                     Numeric m31,
                     Numeric m32,
                     Numeric m33) noexcept
-      : mat44{m00,
-              m01,
-              m02,
-              m03,
-              m10,
-              m11,
-              m12,
-              m13,
-              m20,
-              m21,
-              m22,
-              m23,
-              m30,
-              m31,
-              m32,
-              m33} {}
+      : Matrix44{m00,
+                 m01,
+                 m02,
+                 m03,
+                 m10,
+                 m11,
+                 m12,
+                 m13,
+                 m20,
+                 m21,
+                 m22,
+                 m23,
+                 m30,
+                 m31,
+                 m32,
+                 m33} {}
 
-  constexpr muelmat(std::array<Numeric, 16> data) noexcept : mat44{data} {}
+  constexpr muelmat(std::array<Numeric, 16> data) noexcept : Matrix44{data} {}
 
   //! The identity matrix
   static constexpr muelmat id() { return muelmat{1.0}; }
@@ -275,36 +274,7 @@ Array<muelmat_vector> forward_cumulative_transmission(
 
 template <>
 
-struct std::formatter<rtepack::muelmat> {
-  std::formatter<rtepack::mat44> fmt;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const rtepack::muelmat &v,
-                              FmtContext &ctx) const {
-    return fmt.format(v, ctx);
-  }
-};
+struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::muelmat> {
-  static constexpr std::string_view type_name = "Muelmat"sv;
-
-  static void write(std::ostream &os,
-                    const rtepack::muelmat &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
-  static void read(std::istream &is,
-                   rtepack::muelmat &x,
-                   bifstream *pbifs = nullptr);
-  static void put(std::span<const rtepack::muelmat> x, bofstream *);
-  static void get(std::span<rtepack::muelmat> x, bifstream *pbifs);
-  static void parse(std::span<rtepack::muelmat> x, std::istream &);
-};
+struct xml_io_stream<rtepack::muelmat> : xml_io_stream<Matrix44> {};
