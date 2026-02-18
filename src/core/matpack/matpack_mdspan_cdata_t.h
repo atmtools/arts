@@ -349,3 +349,7 @@ struct tuple_element<I, T> {
 using Vector2 = matpack::cdata_t<Numeric, 2>;
 using Vector3 = matpack::cdata_t<Numeric, 3>;
 using Vector4 = matpack::cdata_t<Numeric, 4>;
+using Vector7 = matpack::cdata_t<Numeric, 7>;
+using Matrix33 = matpack::cdata_t<Numeric, 3, 3>;
+using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
+using ComplexMatrix44 = matpack::cdata_t<Complex, 4, 4>;

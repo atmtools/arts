@@ -1,7 +1,6 @@
 #pragma once
 
 #include "configtypes.h"
-#include "rtepack_concepts.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_spectral_matrix.h"
@@ -383,5 +382,5 @@ muelmat to_muelmat(const ConstMatrixView &a);
 //! get the real part of a specmat matrix
 muelmat real(const specmat &A);
 
-specmat frechet_sqrt(const propmat& X, const propmat& E);
+specmat frechet_sqrt(const propmat &X, const propmat &E);
 }  // namespace rtepack

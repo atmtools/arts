@@ -2,21 +2,20 @@
 
 #include <enumsPolarizationChoice.h>
 #include <enumsSpectralRadianceUnitType.h>
+#include <matpack.h>
 #include <xml.h>
 
 #include <utility>
 
-#include "rtepack_concepts.h"
-
 namespace rtepack {
-struct stokvec final : vec4 {
+struct stokvec final : Vector4 {
   [[nodiscard]] constexpr stokvec(Numeric i = 0.0,
                                   Numeric q = 0.0,
                                   Numeric u = 0.0,
                                   Numeric v = 0.0)
-      : vec4{i, q, u, v} {}
+      : Vector4{i, q, u, v} {}
 
-  constexpr stokvec(std::array<Numeric, 4> data) noexcept : vec4{data} {}
+  constexpr stokvec(std::array<Numeric, 4> data) noexcept : Vector4{data} {}
 
   constexpr stokvec &operator=(Numeric i) {
     data = {i, 0., 0., 0.};
@@ -160,36 +159,7 @@ using stokvec_tensor6_const_view = matpack::view_t<const stokvec, 6>;
 
 template <>
 
-struct std::formatter<rtepack::stokvec> {
-  std::formatter<rtepack::vec4> fmt;
-
-  [[nodiscard]] constexpr auto &inner_fmt() { return fmt.inner_fmt(); }
-  [[nodiscard]] constexpr auto &inner_fmt() const { return fmt.inner_fmt(); }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
-    return fmt.parse(ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const rtepack::stokvec &v,
-                              FmtContext &ctx) const {
-    return fmt.format(v, ctx);
-  }
-};
+struct std::formatter<rtepack::stokvec> : std::formatter<Vector4> {};
 
 template <>
-struct xml_io_stream<rtepack::stokvec> {
-  static constexpr std::string_view type_name = "Stokvec"sv;
-
-  static void write(std::ostream &os,
-                    const rtepack::stokvec &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
-  static void read(std::istream &is,
-                   rtepack::stokvec &x,
-                   bifstream *pbifs = nullptr);
-  static void put(std::span<const rtepack::stokvec> x, bofstream *);
-  static void get(std::span<rtepack::stokvec> x, bifstream *pbifs);
-  static void parse(std::span<rtepack::stokvec> x, std::istream &);
-};
+struct xml_io_stream<rtepack::stokvec> : xml_io_stream<Vector4> {};

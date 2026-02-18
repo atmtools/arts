@@ -686,7 +686,7 @@ void xml_io_stream<sensor::SparseStokvec>::put(
   for (auto& elem : x) {
     xml_io_stream<Size>::put({&elem.irow, 1}, pbofs);
     xml_io_stream<Size>::put({&elem.icol, 1}, pbofs);
-    xml_io_stream<Stokvec>::put({&elem.data, 1}, pbofs);
+    xml_io_stream<Numeric>::put({elem.data.data_handle(), 4}, pbofs);
   }
 }
 
@@ -711,7 +711,7 @@ void xml_io_stream<sensor::SparseStokvec>::get(
   for (auto& elem : x) {
     xml_io_stream<Size>::get({&elem.irow, 1}, pbifs);
     xml_io_stream<Size>::get({&elem.icol, 1}, pbifs);
-    xml_io_stream<Stokvec>::get({&elem.data, 1}, pbifs);
+    xml_io_stream<Numeric>::get({elem.data.data_handle(), 4}, pbifs);
   }
 }
 
