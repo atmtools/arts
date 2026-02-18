@@ -22,7 +22,7 @@ def download_file(url, destination, nretry=5):
         # Send a GET request to the URL
         s = requests.Session()
         retries = Retry(
-            total=nretry, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
+            total=nretry, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
         )
         s.mount("https://", HTTPAdapter(max_retries=retries))
         response = s.get(url)
