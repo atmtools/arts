@@ -28,7 +28,7 @@ if(DOWNLOAD_CATDATA_DEPS)
         COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py cat ${DOWNLOAD_CATDATA}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
-        COMMENT "Downloading test data"
+        COMMENT "Downloading cat testdata"
     )
 
     add_dependencies(check-deps arts_testdata_folder_download_cat)
@@ -81,6 +81,7 @@ if(DOWNLOAD_XMLDATA_DEPS)
         COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py xml ${DOWNLOAD_XMLDATA}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
+        COMMENT "Downloading xml testdata"
     )
 
     add_dependencies(check-deps arts_testdata_folder_download_xml)

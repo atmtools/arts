@@ -118,6 +118,16 @@ jobs:
         run: |
           cmake --preset=${{ matrix.preset }}  # -DARTS_CTEST_USER_OPTIONS="-V"
 
+      - name: Download xml testdata
+        shell: bash -l {0}
+        run: |
+          cmake --build build -j${{ matrix.jbuild }} --target arts_testdata_folder_download_xml
+
+      - name: Download cat testdata
+        shell: bash -l {0}
+        run: |
+          cmake --build build -j${{ matrix.jbuild }} --target arts_testdata_folder_download_cat
+
       - name: Build ARTS Workspace
         shell: bash -l {0}
         run: |
