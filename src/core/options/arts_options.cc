@@ -40,6 +40,17 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "AntennaType",
+      .desc =
+          R"(A switch controlling how monte carlo antenna patterns are handled.
+)",
+      .values_and_desc =
+          {Value{"PencilBeam", "Pencil beam antenna"},
+           Value{"Gaussian", "Gaussian beam antenna"},
+           Value{"Lookup", "Lookup table antenna"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "ray_path_observer_agendaSetGeometricMaxStep",
       .desc =
           R"(For use with *ray_path_observer_agendaSetGeometric*.  Determines how to densify the geometric path.
