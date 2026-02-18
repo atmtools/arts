@@ -5,6 +5,16 @@ import requests.adapters
 from requests.adapters import HTTPAdapter, Retry
 from time import sleep
 
+if os.environ.get("DEBUG_DOWNLOADING") is not None:
+    import logging
+    import http.client
+
+    http.client.HTTPConnection.debuglevel = 1
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.DEBUG)
+    logging.getLogger("urllib3").propagate = True
+
 
 def download_file(url, destination, nretry=5):
     """Download a file from a URL to a destination file."""
