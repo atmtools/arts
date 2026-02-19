@@ -123,6 +123,8 @@ jobs:
         run: |
           echo "Runner public IP:"
           curl -s https://api.ipify.org
+          echo "Test server access with dummy file download:"
+          curl -s https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt
 
       - name: Download xml testdata
         shell: bash -l {0}
