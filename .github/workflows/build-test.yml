@@ -92,6 +92,16 @@ jobs:
             jcheck: 2
 
     steps:
+      - name: Check Runner IP
+        shell: bash -l {0}
+        run: |
+          echo "Runner public IP:"
+          curl -s https://api.ipify.org
+          echo
+          echo
+          echo "Test server access with dummy file download:"
+          curl https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
@@ -117,14 +127,6 @@ jobs:
         shell: bash -l {0}
         run: |
           cmake --preset=${{ matrix.preset }}  # -DARTS_CTEST_USER_OPTIONS="-V"
-
-      - name: Check Runner IP
-        shell: bash -l {0}
-        run: |
-          echo "Runner public IP:"
-          curl -s https://api.ipify.org
-          echo "Test server access with dummy file download:"
-          curl -s https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt
 
       - name: Download xml testdata
         shell: bash -l {0}
