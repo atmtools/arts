@@ -1,18 +1,31 @@
+import logging
 import os
 import sys
 import requests
 import requests.adapters
 from requests.adapters import HTTPAdapter, Retry
-from time import sleep
+
+if os.environ.get("DEBUG_DOWNLOADING") is not None:
+    import http.client
+
+    http.client.HTTPConnection.debuglevel = 1
+
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s"
+    )
+    logging.getLogger("urllib3").setLevel(logging.DEBUG)
+    logging.getLogger("urllib3").propagate = True
+else:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def download_file(url, destination):
+def download_file(url, destination, nretry=5):
     """Download a file from a URL to a destination file."""
     try:
         # Send a GET request to the URL
         s = requests.Session()
         retries = Retry(
-            total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
+            total=nretry, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
         )
         s.mount("https://", HTTPAdapter(max_retries=retries))
         response = s.get(url)
@@ -27,33 +40,25 @@ def download_file(url, destination):
                 file.write(chunk)
 
         return True
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as err:
+        logging.error(f"Download failed: {err}")
         return False
-
-
-def download_file_retry(url, destination, retries=30, delay=10):
-    """Download a file from a URL to a destination file with retries."""
-    x = 0
-    for i in range(retries):
-        sleep(x)
-        x = delay
-        if download_file(url, destination):
-            print(f"Downloaded {destination}")
-            return
-        print(f"Failed to download from {url}, sleeping for {delay} seconds")
-    raise RuntimeError(f"Failed to download file {destination} after {retries} retries")
 
 
 nargs = len(sys.argv)
 
-xml = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
-cat = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
+xml = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-xml-data/-/raw/main/"
+cat = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-cat-data/-/raw/main/"
+xml_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
+cat_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
 
 if sys.argv[1] == "xml":
     baseurl = xml
+    baseurl_fallback = xml_fallback
     basedir = "arts-xml-data"
 elif sys.argv[1] == "cat":
     baseurl = cat
+    baseurl_fallback = cat_fallback
     basedir = "arts-cat-data"
 else:
     baseurl = ""
@@ -63,6 +68,13 @@ for file in sys.argv[2:]:
     f = f"{basedir}/{file}"
     if not os.path.exists(f):
         os.makedirs(os.path.split(f)[0], exist_ok=True)
-        download_file_retry(f"{baseurl}{file}", f)
+        if not download_file(f"{baseurl}{file}", f):
+            logging.warning(
+                f"Failed to download file {file} from {baseurl}, trying fallback URL {baseurl_fallback}"
+            )
+            baseurl = baseurl_fallback
+            if not download_file(f"{baseurl_fallback}{file}", f):
+                raise RuntimeError(f"Failed to download file {file}")
+        logging.info(f"Downloaded {file}")
     else:
-        print(f"Skipping {file}, exists at {os.path.abspath(f)}")
+        logging.info(f"Skipping {file}, exists at {os.path.abspath(f)}")
