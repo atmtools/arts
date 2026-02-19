@@ -118,6 +118,12 @@ jobs:
         run: |
           cmake --preset=${{ matrix.preset }}  # -DARTS_CTEST_USER_OPTIONS="-V"
 
+      - name: Check Runner IP
+        shell: bash -l {0}
+        run: |
+          echo "Runner public IP:"
+          curl -s https://api.ipify.org
+
       - name: Download xml testdata
         shell: bash -l {0}
         run: |
