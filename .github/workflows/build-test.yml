@@ -105,6 +105,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
+
+      - name: Download xml testdata
+        shell: bash -l {0}
+        run: |
+          python3 testdata/get_testdata.py testdata/xml_data_files.txt build/testdata
+
+      - name: Download cat testdata
+        shell: bash -l {0}
+        run: |
+          python3 testdata/get_testdata.py testdata/cat_data_files.txt build/testdata
+
       - uses: ilammy/msvc-dev-cmd@v1
         if : runner.os == 'Windows'
         with:
@@ -127,16 +138,6 @@ jobs:
         shell: bash -l {0}
         run: |
           cmake --preset=${{ matrix.preset }}  # -DARTS_CTEST_USER_OPTIONS="-V"
-
-      - name: Download xml testdata
-        shell: bash -l {0}
-        run: |
-          DEBUG_DOWNLOADING=1 cmake --build build -j1 --target arts_testdata_folder_download_xml
-
-      - name: Download cat testdata
-        shell: bash -l {0}
-        run: |
-          DEBUG_DOWNLOADING=1 cmake --build build -j1 --target arts_testdata_folder_download_cat
 
       - name: Build ARTS Workspace
         shell: bash -l {0}
