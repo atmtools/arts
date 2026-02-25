@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import requests
-import requests.adapters
 from requests.adapters import HTTPAdapter, Retry
 
 if os.environ.get("DEBUG_DOWNLOADING") is not None:
@@ -45,26 +44,32 @@ def download_file(url, destination, nretry=5):
         return False
 
 
-nargs = len(sys.argv)
-
 xml = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-xml-data/-/raw/main/"
 cat = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-cat-data/-/raw/main/"
 xml_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
 cat_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
 
-if sys.argv[1] == "xml":
+file_list_path = sys.argv[1]
+filename = os.path.basename(file_list_path)
+
+if filename.startswith("xml"):
     baseurl = xml
     baseurl_fallback = xml_fallback
     basedir = "arts-xml-data"
-elif sys.argv[1] == "cat":
+elif filename.startswith("cat"):
     baseurl = cat
     baseurl_fallback = cat_fallback
     basedir = "arts-cat-data"
 else:
-    baseurl = ""
-    basedir = "custom-data"
+    raise RuntimeError(f"Unknown file list {file_list_path}")
 
-for file in sys.argv[2:]:
+if len(sys.argv) > 2:
+    basedir = os.path.join(sys.argv[2], basedir)
+
+with open(file_list_path, "r") as f:
+    files = [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
+
+for file in files:
     f = f"{basedir}/{file}"
     if not os.path.exists(f):
         os.makedirs(os.path.split(f)[0], exist_ok=True)
