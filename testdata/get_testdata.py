@@ -1,8 +1,9 @@
 import logging
 import os
 import sys
-import requests
-from requests.adapters import HTTPAdapter, Retry
+import time
+import urllib.request
+import urllib.error
 
 if os.environ.get("DEBUG_DOWNLOADING") is not None:
     import http.client
@@ -12,36 +13,42 @@ if os.environ.get("DEBUG_DOWNLOADING") is not None:
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s"
     )
-    logging.getLogger("urllib3").setLevel(logging.DEBUG)
-    logging.getLogger("urllib3").propagate = True
 else:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def download_file(url, destination, nretry=5):
     """Download a file from a URL to a destination file."""
-    try:
-        # Send a GET request to the URL
-        s = requests.Session()
-        retries = Retry(
-            total=nretry, backoff_factor=1, status_forcelist=[500, 502, 503, 504]
-        )
-        s.mount("https://", HTTPAdapter(max_retries=retries))
-        response = s.get(url)
+    backoff_factor = 1
+    status_forcelist = [500, 502, 503, 504]
 
-        # Check if the request was successful
-        response.raise_for_status()  # Raise an error for bad responses (4xx and 5xx)
-
-        # Open the destination file in write binary mode
-        with open(destination, "wb") as file:
-            # Write the content to the file in chunks
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
-
-        return True
-    except requests.exceptions.RequestException as err:
-        logging.error(f"Download failed: {err}")
-        return False
+    for attempt in range(nretry + 1):
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req) as response:
+                with open(destination, "wb") as file:
+                    while True:
+                        chunk = response.read(8192)
+                        if not chunk:
+                            break
+                        file.write(chunk)
+            return True
+        except urllib.error.HTTPError as err:
+            if err.code in status_forcelist and attempt < nretry:
+                time.sleep(backoff_factor * (2 ** attempt))
+                continue
+            logging.error(f"Download failed: {err}")
+            return False
+        except urllib.error.URLError as err:
+            if attempt < nretry:
+                time.sleep(backoff_factor * (2 ** attempt))
+                continue
+            logging.error(f"Download failed: {err}")
+            return False
+        except Exception as err:
+            logging.error(f"Download failed: {err}")
+            return False
+    return False
 
 
 xml = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-xml-data/-/raw/main/"
