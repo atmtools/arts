@@ -1,6 +1,6 @@
 name: Build
 
-on: [push, pull_request]
+on: [workflow_call]
 
 jobs:
   build:
@@ -92,19 +92,15 @@ jobs:
             jcheck: 2
 
     steps:
-      - name: Check Runner IP
-        shell: bash -l {0}
-        run: |
-          echo "Runner public IP:"
-          curl -s https://api.ipify.org
-          echo
-          echo
-          echo "Test server access with dummy file download:"
-          curl https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
+
+      - name: Download testdata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: testdata
+          path: ./build
 
       - name: Download xml testdata
         shell: bash -l {0}
