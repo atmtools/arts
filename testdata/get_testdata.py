@@ -1,68 +1,92 @@
+import logging
 import os
 import sys
-import requests
-import requests.adapters
-from requests.adapters import HTTPAdapter, Retry
-from time import sleep
+import time
+import urllib.request
+import urllib.error
+
+if os.environ.get("DEBUG_DOWNLOADING") is not None:
+    import http.client
+
+    http.client.HTTPConnection.debuglevel = 1
+
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s"
+    )
+else:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def download_file(url, destination):
+def download_file(url, destination, nretry=5):
     """Download a file from a URL to a destination file."""
-    try:
-        # Send a GET request to the URL
-        s = requests.Session()
-        retries = Retry(
-            total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
-        )
-        s.mount("https://", HTTPAdapter(max_retries=retries))
-        response = s.get(url)
+    backoff_factor = 1
+    status_forcelist = [500, 502, 503, 504]
 
-        # Check if the request was successful
-        response.raise_for_status()  # Raise an error for bad responses (4xx and 5xx)
-
-        # Open the destination file in write binary mode
-        with open(destination, "wb") as file:
-            # Write the content to the file in chunks
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
-
-        return True
-    except requests.exceptions.RequestException:
-        return False
-
-
-def download_file_retry(url, destination, retries=30, delay=10):
-    """Download a file from a URL to a destination file with retries."""
-    x = 0
-    for i in range(retries):
-        sleep(x)
-        x = delay
-        if download_file(url, destination):
-            print(f"Downloaded {destination}")
-            return
-        print(f"Failed to download from {url}, sleeping for {delay} seconds")
-    raise RuntimeError(f"Failed to download file {destination} after {retries} retries")
+    for attempt in range(nretry + 1):
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req) as response:
+                with open(destination, "wb") as file:
+                    while True:
+                        chunk = response.read(8192)
+                        if not chunk:
+                            break
+                        file.write(chunk)
+            return True
+        except urllib.error.HTTPError as err:
+            if err.code in status_forcelist and attempt < nretry:
+                time.sleep(backoff_factor * (2 ** attempt))
+                continue
+            logging.error(f"Download failed: {err}")
+            return False
+        except urllib.error.URLError as err:
+            if attempt < nretry:
+                time.sleep(backoff_factor * (2 ** attempt))
+                continue
+            logging.error(f"Download failed: {err}")
+            return False
+        except Exception as err:
+            logging.error(f"Download failed: {err}")
+            return False
+    return False
 
 
-nargs = len(sys.argv)
+xml = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-xml-data/-/raw/main/"
+cat = "https://gitlab.rrz.uni-hamburg.de/atmtools/arts-cat-data/-/raw/main/"
+xml_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
+cat_fallback = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
 
-xml = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
-cat = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
+file_list_path = sys.argv[1]
+filename = os.path.basename(file_list_path)
 
-if sys.argv[1] == "xml":
+if filename.startswith("xml"):
     baseurl = xml
+    baseurl_fallback = xml_fallback
     basedir = "arts-xml-data"
-elif sys.argv[1] == "cat":
+elif filename.startswith("cat"):
     baseurl = cat
+    baseurl_fallback = cat_fallback
     basedir = "arts-cat-data"
 else:
-    baseurl = ""
-    basedir = "custom-data"
+    raise RuntimeError(f"Unknown file list {file_list_path}")
 
-for file in sys.argv[2:]:
+if len(sys.argv) > 2:
+    basedir = os.path.join(sys.argv[2], basedir)
+
+with open(file_list_path, "r") as f:
+    files = [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
+
+for file in files:
     f = f"{basedir}/{file}"
     if not os.path.exists(f):
         os.makedirs(os.path.split(f)[0], exist_ok=True)
-        download_file_retry(f"{baseurl}{file}", f)
+        if not download_file(f"{baseurl}{file}", f):
+            logging.warning(
+                f"Failed to download file {file} from {baseurl}, trying fallback URL {baseurl_fallback}"
+            )
+            baseurl = baseurl_fallback
+            if not download_file(f"{baseurl_fallback}{file}", f):
+                raise RuntimeError(f"Failed to download file {file}")
+        logging.info(f"Downloaded {file}")
     else:
-        print(f"Skipping {file}, exists at {os.path.abspath(f)}")
+        logging.info(f"Skipping {file}, exists at {os.path.abspath(f)}")
