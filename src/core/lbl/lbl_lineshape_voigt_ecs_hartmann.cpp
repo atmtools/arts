@@ -79,7 +79,6 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   using std::swap;
   const bool swap_order = li > lf;
   if (swap_order) swap(li, lf);
-  const int sgn = iseven(li + lf + 1) ? -1 : 1;
   if (abs(li - lf) > 1) return;
 
   const Numeric T = atm.temperature;
@@ -135,13 +134,13 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
       Numeric sum = 0;
       for (; L <= Lf; L += 2) {
-        const Numeric a  = wig3(Ji_p, Rational{L}, Ji, li, Rational{0}, -li);
-        const Numeric b  = wig3(Jf_p, Rational{L}, Jf, lf, Rational{0}, -lf);
+        const Numeric a  = wig3(Ji, Ji_p, Rational{L}, li, -li, Rational{0});
+        const Numeric b  = wig3(Jf, Jf_p, Rational{L}, lf, -lf, Rational{0});
         const Numeric c  = wig6(Ji, Jf, Rational{1}, Jf_p, Ji_p, Rational{L});
         sum             += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
       const Numeric ECS = Om[Ji.toIndex()];
-      const Numeric scl = sgn * ECS * Numeric(2 * Ji_p + 1) *
+      const Numeric scl = ECS * Numeric(2 * Ji_p + 1) *
                           sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
 
@@ -154,11 +153,6 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 
-  // Undocumented negative absolute sign
-  for (Size i = 0; i < n; i++)
-    for (Size j = 0; j < n; j++)
-      if (j not_eq i and W[i, j] > 0) W[i, j] *= -1;
-
   // Sum rule correction
   for (Size i = 0; i < n; i++) {
     Numeric sumlw = 0.0;
@@ -166,9 +160,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
     for (Size j = 0; j < n; j++) {
       if (j > i) {
-        sumlw += std::abs(dipr[j]) * W[j, i];  // Undocumented abs-sign
+        sumlw += dipr[j] * W[j, i];
       } else {
-        sumup += std::abs(dipr[j]) * W[j, i];  // Undocumented abs-sign
+        sumup += dipr[j] * W[j, i];
       }
     }
 
