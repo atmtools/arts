@@ -1,7 +1,7 @@
 dependencies:
         - ccache
         - clang
-        - clangxx
+        - clangxx<22
         - cmake
         - compiler-rt
         - docutils
