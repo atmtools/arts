@@ -2,6 +2,22 @@ import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+"""Test ECS (Energy Corrected Sudden) line mixing for O2.
+
+References
+----------
+Makarov, D. S., M. Yu. Tretyakov, and Ph. Rosenkranz, "60-GHz oxygen
+    band: Precise experimental profiles and extended absorption
+    modeling in a wide temperature range,"
+    J. Quant. Spectrosc. Radiat. Transfer, 243, 106798, 2020.
+    (O2 ECS-EP parameters for the 60-GHz microwave band)
+
+Rosenkranz, P. W., "Water vapor microwave continuum absorption:
+    A comparison of measurements and models,"
+    Radio Sci., 33(4), 919–928, 1998.
+    (PWR98 predefined O2 absorption model used for comparison)
+"""
+
 ws = pyarts.Workspace()
 
 ws.abs_speciesSet(species=["O2-66", "H2O-PWR98"])

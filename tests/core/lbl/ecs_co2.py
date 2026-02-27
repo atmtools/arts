@@ -3,6 +3,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+"""Test ECS (Energy Corrected Sudden) line mixing for CO2.
+
+References
+----------
+Rodrigues, R., K. W. Jucks, N. Lacome, Gh. Blanquet, J. Walrand,
+    W. A. Traub, B. Khalil, R. Le Doucen, A. Valentin, C. Camy-Peyret,
+    L. Bonamy, and J.-M. Hartmann, "Model, Software, and Database for
+    Computation of Line-Mixing Effects in Infrared Q Branches of
+    Atmospheric CO2 — I. Symmetric Isotopomers,"
+    J. Quant. Spectrosc. Radiat. Transfer, 57(6), 765–770, 1997.
+    (N2 and O2 ECS-EP broadening parameters for CO2)
+
+Tran, H., C. Boulet, and J.-M. Hartmann, "Line mixing and collision-
+    induced absorption by oxygen in the A band: Laboratory
+    measurements, model, and tools for atmospheric spectra
+    computations," J. Geophys. Res., 111, D15210, 2006;
+    updated parameters in Tran et al., JQSRT, 112, 925–936, 2011.
+    (CO2-CO2 self-broadening ECS-EP parameters)
+
+Hartmann, J.-M., C. Boulet, and D. Robert, "Collisional Effects on
+    Molecular Spectra," Elsevier, 2008.
+    (General ECS formalism reference)
+"""
+
 
 def calc(ws, lineshape=None):
     time_start = time.time()

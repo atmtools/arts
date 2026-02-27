@@ -9,6 +9,8 @@ bool is_voigt(LineByLineLineshape lsm) {
   switch (lsm) {
     case VP_ECS_HARTMANN:
     case VP_ECS_MAKAROV:
+    case VP_ECS_STOTOP:
+    case VP_ECS_SPHTOP:
     case VP_LTE:
     case VP_LINE_NLTE:
     case VP_LTE_MIRROR:   return true;

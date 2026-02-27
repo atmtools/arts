@@ -131,3 +131,108 @@ void abs_ecs_dataAddTran2011(LinemixingEcsData& abs_ecs_data) {
         data(T0, {Conversion::angstrom2meter(5.5)});
   }
 }
+
+void abs_ecs_dataAddBoulet1999(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  // NH3-4111 (14NH3) ECS-EP parameters for H2 and He broadening
+  // Based on Boulet et al. (1999) and Neshyba & Gamache (1999)
+  // for NH3 in a Jovian atmosphere.
+  auto& ecs = abs_ecs_data["NH3-4111"_isot];
+
+  // H2 broadening parameters
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
+  h2.lambda               = data(T0, {0.65});
+  h2.beta                 = data(T0, {0.006});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
+
+  // He broadening parameters
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.018), 0.55});
+  he.lambda               = data(T0, {0.58});
+  he.beta                 = data(T0, {0.003});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.8)});
+
+  // NH3 self-broadening parameters (approximate, based on H2 values)
+  // Needed because HITRAN catalog lines carry an NH3 self-broadening
+  // model.  In a Jovian atmosphere NH3 VMR is ~300 ppm so this
+  // contribution is negligible, but the entry must exist.
+  auto& nh3                = ecs[SpeciesEnum::Ammonia];
+  nh3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
+  nh3.lambda               = data(T0, {0.65});
+  nh3.beta                 = data(T0, {0.006});
+  nh3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
+}
+
+void abs_ecs_dataAddPH3Preliminary(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  // PH3-1111 (31PH3) ECS-EP parameters — preliminary/placeholder
+  // Should be refined against laboratory measurements.
+  auto& ecs = abs_ecs_data["PH3-1111"_isot];
+
+  // H2 broadening parameters (approximate, based on similarity to NH3)
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
+  h2.lambda               = data(T0, {0.60});
+  h2.beta                 = data(T0, {0.005});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
+
+  // He broadening parameters (approximate)
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.015), 0.50});
+  he.lambda               = data(T0, {0.55});
+  he.beta                 = data(T0, {0.003});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(2.0)});
+
+  // PH3 self-broadening parameters (approximate, based on H2 values)
+  auto& ph3                = ecs[SpeciesEnum::Phosphine];
+  ph3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
+  ph3.lambda               = data(T0, {0.60});
+  ph3.beta                 = data(T0, {0.005});
+  ph3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
+}
+
+void abs_ecs_dataAddPieroni1999(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  // CH4-211 (12CH4) ECS-EP parameters for H2 and He broadening
+  // Based on:
+  //   Pieroni et al. (1999) — ECS-EP line mixing in CH4 nu3
+  //   Pine & Gabard (2003)  — Q-branch line mixing data
+  // Parameters adapted for a Jovian (H2/He) atmosphere.
+  auto& ecs = abs_ecs_data["CH4-211"_isot];
+
+  // H2 broadening parameters
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
+  h2.lambda               = data(T0, {0.70});
+  h2.beta                 = data(T0, {0.008});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
+
+  // He broadening parameters
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.025), 0.56});
+  he.lambda               = data(T0, {0.60});
+  he.beta                 = data(T0, {0.004});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.9)});
+
+  // CH4 self-broadening parameters (approximate, based on H2 values)
+  // Needed because HITRAN catalog lines carry a CH4 self-broadening model.
+  // In a Jovian atmosphere CH4 VMR is ~0.2% so this contribution is small.
+  auto& ch4                = ecs[SpeciesEnum::Methane];
+  ch4.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
+  ch4.lambda               = data(T0, {0.70});
+  ch4.beta                 = data(T0, {0.008});
+  ch4.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
+}

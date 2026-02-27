@@ -8,6 +8,8 @@ add_library(lbl STATIC
   lbl_lineshape_voigt_ecs.cpp
   lbl_lineshape_voigt_ecs_hartmann.cpp
   lbl_lineshape_voigt_ecs_makarov.cpp
+  lbl_lineshape_voigt_ecs_stotop.cpp
+  lbl_lineshape_voigt_ecs_sphtop.cpp
   lbl_lineshape_voigt_lte.cpp
   lbl_lineshape_voigt_lte_mirrored.cpp
   lbl_lineshape_voigt_lte_matrix.cpp
