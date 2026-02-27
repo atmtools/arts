@@ -1,4 +1,4 @@
-name: Download testdata
+name: ARTS
 
 on: [push, pull_request]
 
