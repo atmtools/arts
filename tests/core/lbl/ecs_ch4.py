@@ -6,9 +6,10 @@ CH4 is a tetrahedral molecule (Td symmetry) whose sub-level structure
 Within each symmetry sub-band, lines couple only through J — identical
 to the linear molecule (Hartmann) formalism with l=0.
 
-The test uses the CH4 nu4 fundamental band (~1306 cm-1) with a single
-F1->F2 symmetry sub-band, relevant for methane retrievals in Jupiter's
-atmosphere.
+The test uses the CH4 nu3 fundamental band (~3019 cm-1) A1->A2 symmetry
+sub-band, which contains closely-spaced Q-branch lines where line mixing
+is clearly visible at high pressure.  Conditions emulate the deep Jovian
+atmosphere (T=200 K, P=10 bar, 86% H2 / 14% He).
 
 References
 ----------
@@ -41,11 +42,13 @@ ws.abs_speciesSet(species=["CH4-211"])
 print("Reading catalog data...")
 ws.ReadCatalogData()
 
-# Select the nu4 fundamental F1->F2 band with alpha=3->1 (largest sub-band, 65 lines)
+# Select the nu3 fundamental A1->A2 sub-band (15 lines including 5 Q-branch)
+# The Q-branch lines are closely spaced (~2-5 cm-1 apart) near band center,
+# so at 10 bar (HWHM ~4-5 cm-1) they overlap and line mixing is visible.
 bandkey = (
-    'CH4-211 alpha 3 1 ElecStateLabel X X n 1 1 '
-    'rovibSym F1 F2 v1 0 0 v2 0 0 v3 0 0 v4 1 0 '
-    'vibSym F2 A1'
+    "CH4-211 alpha 24 1 ElecStateLabel X X n 1 1 "
+    "rovibSym A1 A2 v1 0 0 v2 0 0 v3 1 0 v4 0 0 "
+    "vibSym F2 A1"
 )
 
 ws.abs_bands = {bandkey: ws.abs_bands[bandkey]}
@@ -55,11 +58,11 @@ print(
     + " lines"
 )
 
-# Jovian atmospheric conditions
+# Deep Jovian atmospheric conditions (~10 bar level)
 ws.jac_targets = pyarts.arts.JacobianTargets()
 ws.atm_pointInit()
-ws.atm_point.temperature = 150  # ~Jupiter at 1 bar level
-ws.atm_point.pressure = 1e5  # 1 bar
+ws.atm_point.temperature = 200  # ~Jupiter at 10 bar level
+ws.atm_point.pressure = 10e5  # 10 bar
 ws.atm_point[pyarts.arts.SpeciesEnum("CH4")] = 2e-3  # ~0.2%
 ws.atm_point[pyarts.arts.SpeciesEnum("H2")] = 0.86  # 86% H2
 ws.atm_point[pyarts.arts.SpeciesEnum("He")] = 0.14  # 14% He
@@ -74,8 +77,8 @@ ws.abs_ecs_dataInit()
 ws.abs_ecs_dataAddPieroni1999()
 ws.abs_ecs_dataAddMeanAir(vmrs=[0.86, 0.14], species=["H2", "He"])
 
-# Frequency grid spanning the nu4 P and R branches
-ws.freq_grid = np.linspace(900e2 * 29979245800, 1400e2 * 29979245800, 5001)
+# Frequency grid spanning the nu3 P, Q, and R branches
+ws.freq_grid = np.linspace(2700 * 29979245800, 3300 * 29979245800, 5001)
 
 
 def calc(ws, lineshape=None):
@@ -110,6 +113,20 @@ print(
     + str(round(neg_fraction, 3))
 )
 
+# Verify that ECS differs meaningfully from LTE in the wings
+# At 10 bar the lines overlap substantially, so line mixing should matter
+mask = pm_lte > np.max(pm_lte) * 1e-4
+rdiff = np.abs((pm_ecs[mask] - pm_lte[mask]) / pm_lte[mask])
+print(
+    "Relative ECS-LTE diff: max="
+    + str(round(np.max(rdiff), 4))
+    + ", mean="
+    + str(round(np.mean(rdiff), 4))
+)
+assert np.max(rdiff) > 0.05, (
+    "ECS should differ from LTE by at least 5% somewhere"
+)
+
 # Reset to no line mixing
 ws.abs_bands.clear_linemixing()
 pm_nolm = calc(ws, "VP_LTE")
@@ -132,7 +149,7 @@ plt.semilogy(
 
 plt.xlabel("Wavenumber [cm$^{-1}$]")
 plt.ylabel("Propagation matrix [1/m]")
-plt.title(r"CH$_4$ $\nu_4$ ECS line mixing test (Jovian atmosphere)")
+plt.title(r"CH$_4$ $\nu_3$ ECS line mixing test (deep Jovian atmosphere)")
 plt.legend()
 
 print("ECS CH4 test completed successfully")
