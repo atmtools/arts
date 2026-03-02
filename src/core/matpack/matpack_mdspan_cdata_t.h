@@ -277,6 +277,17 @@ struct [[nodiscard]] cdata_t {
   }
 };
 
+template <any_cdata out, exact_md<value_type<out>, rank<out>()> in>
+constexpr out to(const in& x) {
+  out o{};
+
+  assert(x.shape() == o.shape());
+
+  stdr::copy(x | by_elem, o.data.begin());
+
+  return o;
+}
+
 template <any_cdata T>
 constexpr T operator+(const T& x, const T& y) {
   T z  = x;
@@ -346,10 +357,10 @@ struct tuple_element<I, T> {
 };
 }  // namespace std
 
-using Vector2 = matpack::cdata_t<Numeric, 2>;
-using Vector3 = matpack::cdata_t<Numeric, 3>;
-using Vector4 = matpack::cdata_t<Numeric, 4>;
-using Vector7 = matpack::cdata_t<Numeric, 7>;
-using Matrix33 = matpack::cdata_t<Numeric, 3, 3>;
-using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
+using Vector2         = matpack::cdata_t<Numeric, 2>;
+using Vector3         = matpack::cdata_t<Numeric, 3>;
+using Vector4         = matpack::cdata_t<Numeric, 4>;
+using Vector7         = matpack::cdata_t<Numeric, 7>;
+using Matrix33        = matpack::cdata_t<Numeric, 3, 3>;
+using Matrix44        = matpack::cdata_t<Numeric, 4, 4>;
 using ComplexMatrix44 = matpack::cdata_t<Complex, 4, 4>;
