@@ -1,6 +1,6 @@
 name: Build
 
-on: [push, pull_request]
+on: [workflow_call]
 
 jobs:
   build:
@@ -95,6 +95,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
+
+      - name: Download testdata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: testdata
+          path: ./build
+
+      - name: Download xml testdata
+        shell: bash -l {0}
+        run: |
+          python3 testdata/get_testdata.py testdata/xml_data_files.txt build/testdata
+
+      - name: Download cat testdata
+        shell: bash -l {0}
+        run: |
+          python3 testdata/get_testdata.py testdata/cat_data_files.txt build/testdata
+
       - uses: ilammy/msvc-dev-cmd@v1
         if : runner.os == 'Windows'
         with:

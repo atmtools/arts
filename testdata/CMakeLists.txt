@@ -1,22 +1,13 @@
 if(NOT ARTS_CAT_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
     set(DOWNLOAD_CATDATA "") # empty
 else()
-    list(APPEND DOWNLOAD_CATDATA
-        cia/O2-CIA-O2.xml
-        cia/O2-CIA-N2.xml
-        cia/O2-CIA-O2.xml.bin
-        cia/O2-CIA-N2.xml.bin
-        lines/O2-66.xml
-        lines/N2-44.xml
-        lines/CO2-626.xml
-        lines/H2O-161.xml
-        predef/H2O-SelfContCKDMT400.xml
-        predef/H2O-ForeignContCKDMT400.xml
-        predef/H2O-SelfContCKDMT430.xml
-        predef/H2O-ForeignContCKDMT430.xml
-        xsec/O3-XFIT.xml
-        xsec/O3-XFIT.xml.bin
-    )
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/cat_data_files.txt" DOWNLOAD_CATDATA_RAW)
+    foreach(line IN LISTS DOWNLOAD_CATDATA_RAW)
+        string(STRIP "${line}" line)
+        if(NOT line STREQUAL "" AND NOT line MATCHES "^#")
+            list(APPEND DOWNLOAD_CATDATA "${line}")
+        endif()
+    endforeach()
 endif()
 
 string(REGEX REPLACE ";" " arts-cat-data/" DOWNLOAD_CATDATA_DEPS "${DOWNLOAD_CATDATA}")
@@ -25,10 +16,10 @@ if(DOWNLOAD_CATDATA_DEPS)
     string(PREPEND DOWNLOAD_CATDATA_DEPS "arts-cat-data/")
     add_custom_target(
         arts_testdata_folder_download_cat
-        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py cat ${DOWNLOAD_CATDATA}
+        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py ${CMAKE_CURRENT_SOURCE_DIR}/cat_data_files.txt
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
-        COMMENT "Downloading test data"
+        COMMENT "Downloading cat testdata"
     )
 
     add_dependencies(check-deps arts_testdata_folder_download_cat)
@@ -42,34 +33,13 @@ endif()
 if(NOT ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
     set(DOWNLOAD_XMLDATA "") # empty
 else()
-    list(APPEND DOWNLOAD_XMLDATA
-        planets/Earth/afgl/tropical/t.xml
-        planets/Earth/afgl/tropical/p.xml
-        planets/Earth/afgl/tropical/O2.xml
-        planets/Earth/afgl/tropical/CO2.xml
-        planets/Earth/afgl/tropical/H2O.xml
-        planets/Earth/afgl/tropical/O3.xml
-        planets/Earth/afgl/tropical/N2.xml
-        star/Sun/solar_spectrum_QUIET.xml
-        planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-f_grid.xml
-        planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-f_grid.xml
-        planets/Earth/Optimized-Flux-Frequencies/SW-flux-optimized-quadrature_weights.xml
-        planets/Earth/Optimized-Flux-Frequencies/LW-flux-optimized-quadrature_weights.xml
-        # scattering/H2O_ice/ScatteringMetaFile_allH2Oice.xml
-        # scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml
-        # scattering/H2O_ice/MieSphere_R5.00000e-01um.meta.xml
-        # scattering/H2O_ice/MieSphere_R5.00000e-01um.xml
-        spectroscopy/Perrin/H2O.xml.gz
-        planets/Mars/surface_elevation.xml
-        planets/Mars/isotopologue_ratios/H2O-161.xml
-        planets/Mars/Ls0.day.dust-medium/surface_temperature.xml
-        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/t.xml
-        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/p.xml
-        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/H2O.xml
-        planets/Mars/Ls0.day.dust-medium/Ls0.day.dust-medium.sol-avg/CO2.xml
-        planets/Jupiter/MPS/t.xml
-        planets/Jupiter/MPS/p.xml
-    )
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/xml_data_files.txt" DOWNLOAD_XMLDATA_RAW)
+    foreach(line IN LISTS DOWNLOAD_XMLDATA_RAW)
+        string(STRIP "${line}" line)
+        if(NOT line STREQUAL "" AND NOT line MATCHES "^#")
+            list(APPEND DOWNLOAD_XMLDATA "${line}")
+        endif()
+    endforeach()
 endif()
 
 string(REGEX REPLACE ";" " arts-xml-data/" DOWNLOAD_XMLDATA_DEPS "${DOWNLOAD_XMLDATA}")
@@ -78,9 +48,10 @@ if(DOWNLOAD_XMLDATA_DEPS)
     string(PREPEND DOWNLOAD_XMLDATA_DEPS "arts-xml-data/")
     add_custom_target(
         arts_testdata_folder_download_xml
-        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py xml ${DOWNLOAD_XMLDATA}
+        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py ${CMAKE_CURRENT_SOURCE_DIR}/xml_data_files.txt
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS get_testdata.py
+        COMMENT "Downloading xml testdata"
     )
 
     add_dependencies(check-deps arts_testdata_folder_download_xml)
