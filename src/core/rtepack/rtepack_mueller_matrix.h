@@ -128,7 +128,7 @@ struct muelmat final : Matrix44 {
                 b30,
                 b31,
                 b32,
-                b33] = b;
+                b33] = b.data;
 
     return *this = {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                     a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -208,7 +208,7 @@ constexpr muelmat avg(muelmat a, const muelmat &b) {
 }
 
 constexpr Numeric det(const muelmat &A) {
-  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A.data;
 
   return a * (f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n)) +
          b * (e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o)) +
@@ -226,7 +226,7 @@ constexpr Numeric midtr(const muelmat &A) {
 }
 
 constexpr muelmat adj(const muelmat &A) {
-  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A.data;
 
   return muelmat{
       f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
@@ -273,8 +273,14 @@ Array<muelmat_vector> forward_cumulative_transmission(
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
+
+template <>
+struct std::tuple_size<rtepack::muelmat> : std::tuple_size<Matrix44> {};
+
+template <std::size_t I>
+struct std::tuple_element<I, rtepack::muelmat>
+    : std::tuple_element<I, Matrix44> {};
 
 template <>
 struct xml_io_stream<rtepack::muelmat> : xml_io_stream<Matrix44> {};

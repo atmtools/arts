@@ -337,19 +337,21 @@ struct std::formatter<matpack::cdata_t<T, dims...>> {
 
 //! Make the constant data structured, so "[a,b,c] = Vector3{1,2,3};" works
 namespace std {
-template <matpack::any_cdata T>
-struct tuple_size<T> : std::integral_constant<Size, T::ndata> {};
+template <typename T, Size... dims>
+struct tuple_size<matpack::cdata_t<T, dims...>>
+    : std::integral_constant<std::size_t, matpack::cdata_t<T, dims...>::ndata> {
+};
 
-template <std::size_t I, matpack::any_cdata T>
-struct tuple_element<I, T> {
-  using type = matpack::value_type<T>;
+template <std::size_t I, typename T, Size... dims>
+struct tuple_element<I, matpack::cdata_t<T, dims...>> {
+  using type = T;
 };
 }  // namespace std
 
-using Vector2 = matpack::cdata_t<Numeric, 2>;
-using Vector3 = matpack::cdata_t<Numeric, 3>;
-using Vector4 = matpack::cdata_t<Numeric, 4>;
-using Vector7 = matpack::cdata_t<Numeric, 7>;
-using Matrix33 = matpack::cdata_t<Numeric, 3, 3>;
-using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
+using Vector2         = matpack::cdata_t<Numeric, 2>;
+using Vector3         = matpack::cdata_t<Numeric, 3>;
+using Vector4         = matpack::cdata_t<Numeric, 4>;
+using Vector7         = matpack::cdata_t<Numeric, 7>;
+using Matrix33        = matpack::cdata_t<Numeric, 3, 3>;
+using Matrix44        = matpack::cdata_t<Numeric, 4, 4>;
 using ComplexMatrix44 = matpack::cdata_t<Complex, 4, 4>;

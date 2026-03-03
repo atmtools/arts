@@ -123,7 +123,7 @@ struct specmat final : ComplexMatrix44 {
                 b30,
                 b31,
                 b32,
-                b33] = b;
+                b33] = b.data;
 
     return *this = {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                     a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -196,7 +196,7 @@ constexpr specmat avg(specmat a, const specmat &b) {
 }
 
 constexpr Complex det(const specmat &A) {
-  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A.data;
 
   return a * (f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n)) +
          b * (e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o)) +
@@ -216,7 +216,7 @@ constexpr Complex midtr(const specmat &A) {
 }
 
 constexpr specmat adj(const specmat &A) {
-  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A.data;
 
   return specmat{
       f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
@@ -269,8 +269,14 @@ using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
+
+template <>
+struct std::tuple_size<rtepack::specmat> : std::tuple_size<ComplexMatrix44> {};
+
+template <std::size_t I>
+struct std::tuple_element<I, rtepack::specmat>
+    : std::tuple_element<I, ComplexMatrix44> {};
 
 template <>
 struct xml_io_stream<rtepack::specmat> : xml_io_stream<ComplexMatrix44> {};

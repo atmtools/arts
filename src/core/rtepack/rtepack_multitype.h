@@ -59,8 +59,8 @@ constexpr muelmat inv(const propmat &k) { return adj(k) / det(k); }
 constexpr stokvec operator*(const muelmat &a, const stokvec &b) {
   const auto
       &[m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
-          a;
-  const auto &[s1, s2, s3, s4] = b;
+          a.data;
+  const auto &[s1, s2, s3, s4] = b.data;
   return {m1 * s1 + m2 * s2 + m3 * s3 + m4 * s4,
           m5 * s1 + m6 * s2 + m7 * s3 + m8 * s4,
           m10 * s2 + m11 * s3 + m12 * s4 + m9 * s1,
@@ -214,7 +214,7 @@ constexpr specmat operator*(const muelmat &a, const specmat &b) {
               a30,
               a31,
               a32,
-              a33] = a;
+              a33] = a.data;
   const auto [b00,
               b01,
               b02,
@@ -230,7 +230,7 @@ constexpr specmat operator*(const muelmat &a, const specmat &b) {
               b30,
               b31,
               b32,
-              b33] = b;
+              b33] = b.data;
 
   return specmat{a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                  a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -266,7 +266,7 @@ constexpr specmat operator*(const specmat &a, const muelmat &b) {
               a30,
               a31,
               a32,
-              a33] = a;
+              a33] = a.data;
   const auto [b00,
               b01,
               b02,
@@ -282,7 +282,7 @@ constexpr specmat operator*(const specmat &a, const muelmat &b) {
               b30,
               b31,
               b32,
-              b33] = b;
+              b33] = b.data;
 
   return specmat{a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                  a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -305,10 +305,10 @@ constexpr specmat operator*(const specmat &a, const muelmat &b) {
 constexpr specmat operator-(const muelmat &m, const specmat &s) {
   const auto
       [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
-          m;
+          m.data;
   const auto
       [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16] =
-          s;
+          s.data;
 
   return specmat{m1 - s1,
                  m2 - s2,
@@ -329,10 +329,10 @@ constexpr specmat operator-(const muelmat &m, const specmat &s) {
 }
 
 constexpr specmat operator-(const propmat &pm, const specmat &s) {
-  const auto [a, b, c, d, u, v, w] = pm;
+  const auto [a, b, c, d, u, v, w] = pm.data;
   const auto
       [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16] =
-          s;
+          s.data;
 
   return specmat{a - s1,
                  b - s2,

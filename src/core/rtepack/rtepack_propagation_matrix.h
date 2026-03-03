@@ -125,8 +125,14 @@ propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
+
+template <>
+struct std::tuple_size<rtepack::propmat> : std::tuple_size<Vector7> {};
+
+template <std::size_t I>
+struct std::tuple_element<I, rtepack::propmat>
+    : std::tuple_element<I, Vector7> {};
 
 template <>
 struct xml_io_stream<rtepack::propmat> : xml_io_stream<Vector7> {};
