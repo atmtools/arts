@@ -177,6 +177,12 @@ muelmat fresnel_reflectance_nonspecular(Complex Rv,
   return L2 * M_fresnel * L1;
 }
 
+Vector3 specular_reflected_direction(const Vector3& k_inc,
+                                     const Vector3& n_surface) {
+  const Vector3 out = k_inc - 2.0 * dot(k_inc, n_surface) * n_surface;
+  return normalized(out);
+}
+
 stokvec flat_scalar_reflection(stokvec I, const Numeric R, const stokvec B) {
   I      = I * R;
   I.V() *= -1.0;  //! NOTE: The elementwise multiplication is [R, R, R, -R]

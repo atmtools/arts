@@ -87,4 +87,12 @@ muelmat fresnel_reflectance_nonspecular(Complex Rv,
  */
 stokvec reflection(stokvec I, const muelmat R, const stokvec B);
 stokvec dreflection(stokvec I, const muelmat dR, const stokvec B);
+
+/** Return the outgoing propagation direction for specular reflection.
+     *
+     *  Both `k_inc` and `n_surface` are assumed to be unit vectors with
+     *  `k_inc` pointing toward the surface and `n_surface` pointing outwards.
+     */
+Vector3 specular_reflected_direction(const Vector3& k_inc,
+                                     const Vector3& n_surface);
 }  // namespace rtepack
