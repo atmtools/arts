@@ -53,9 +53,14 @@ for line in ws.abs_bands[bandkey].lines:
     qn = line.qn
     qstr = str(qn)
     parts = qstr.split()
-    # Format: "K <lower> <upper> J <lower> <upper>"
-    k_lower = int(parts[1])
-    k_upper = int(parts[2])
+    # Parse as key-value triples: "name lower upper name lower upper ..."
+    # The order of quantum numbers in the string is unspecified
+    # (unordered_map iteration order varies between libstdc++ and libc++).
+    qn_dict = {}
+    for idx in range(0, len(parts), 3):
+        qn_dict[parts[idx]] = (parts[idx + 1], parts[idx + 2])
+    k_lower = int(qn_dict['K'][0])
+    k_upper = int(qn_dict['K'][1])
     if k_lower == k_upper and line.f0 < 2000e9:
         dk0_lines.append(line)
 

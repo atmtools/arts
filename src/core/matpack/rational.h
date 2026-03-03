@@ -248,7 +248,17 @@ struct Rational {
     return Rational(std::forward<T>(a)) % b;
   }
 
-  constexpr auto operator<=>(const Rational& b) const noexcept = default;
+  constexpr auto operator<=>(const Rational& b) const noexcept {
+    //! REMINDER: This code works because GDC is guaranteed to have a positive denom
+    return (denom == b.denom) ? (numer <=> b.numer) : [*this, b] {
+      Index r1  = numer / denom;
+      Index r2  = b.numer / b.denom;
+      auto res2 = r1 <=> r2;
+      return res2 != std::strong_ordering::equal
+                 ? res2
+                 : (r1 * b.denom) <=> (r2 * denom);
+    }();
+  };
 
   constexpr bool operator==(const Rational& b) const noexcept {
     return numer == b.numer and denom == b.denom;
