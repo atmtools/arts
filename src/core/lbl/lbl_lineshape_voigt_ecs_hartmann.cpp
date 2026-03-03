@@ -35,7 +35,7 @@ Numeric wig6(const Rational& a,
 }
 
 std::function<Numeric(Rational)> erot_selection(const SpeciesIsotope& isot) {
-  if (isot.spec == SpeciesEnum::CarbonDioxide and isot.isotname == "626") {
+  if (isot == "CO2-626"_isot) {
     return [](const Rational J) -> Numeric {
       return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));
     };
@@ -127,8 +127,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       // Select upper quantum number
       if (Jf_p > Jf) continue;
 
-      Index L         = std::max(std::abs((Ji - Ji_p).toIndex()),
-                         std::abs((Jf - Jf_p).toIndex()));
+      Index L =
+          std::max(abs((Ji - Ji_p).toIndex()), abs((Jf - Jf_p).toIndex()));
       L              += L % 2;
       const Index Lf  = std::min((Ji + Ji_p).toIndex(), (Jf + Jf_p).toIndex());
 
@@ -140,8 +140,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
         sum             += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
       const Numeric ECS = Om[Ji.toIndex()];
-      const Numeric scl = ECS * Numeric(2 * Ji_p + 1) *
-                          sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
+      const Numeric scl =
+          ECS * Numeric(2 * Ji_p + 1) * sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
 
       // Add to W and rescale to upwards element by the populations

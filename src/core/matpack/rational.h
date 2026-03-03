@@ -266,7 +266,7 @@ struct Rational {
 
   template <RationalFriend T>
   friend constexpr auto operator<=>(T&& b, const Rational& a) noexcept {
-    return a <=> Rational{std::forward<T>(b)};
+    return Rational{std::forward<T>(b)} <=> a;
   }
 
   template <RationalFriend T>

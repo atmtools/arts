@@ -46,15 +46,14 @@ Numeric wig6(const Rational& a,
  */
 std::function<Numeric(Rational)> erot_selection(const SpeciesIsotope& isot) {
   // CH4 main isotopologue (12C-1H4)
-  if (isot.spec == SpeciesEnum::Methane and isot.isotname == "211") {
+  if (isot == "CH4-211"_isot) {
     return [](const Rational J) -> Numeric {
       return Conversion::kaycm2joule(5.2410) * Numeric(J * (J + 1));
     };
   }
 
-  ARTS_USER_ERROR(
-      "{} has no rotational energies for spherical top ECS in ARTS",
-      isot.FullName())
+  ARTS_USER_ERROR("{} has no rotational energies for spherical top ECS in ARTS",
+                  isot.FullName())
   return [](const Rational J) -> Numeric {
     return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();
   };
@@ -124,25 +123,24 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    auto& J           = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
     const Rational Ji = J.upper;
     const Rational Jf = J.lower;
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
 
-      auto& J_p = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      auto& J_p           = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
       const Rational Ji_p = J_p.upper;
       const Rational Jf_p = J_p.lower;
 
       // Only compute the downward element (J' ≤ J)
       if (Jf_p > Jf) continue;
 
-      Index L  = std::max(std::abs((Ji - Ji_p).toIndex()),
-                         std::abs((Jf - Jf_p).toIndex()));
-      L       += L % 2;
-      const Index Lf =
-          std::min((Ji + Ji_p).toIndex(), (Jf + Jf_p).toIndex());
+      Index L =
+          std::max(abs((Ji - Ji_p).toIndex()), abs((Jf - Jf_p).toIndex()));
+      L              += L % 2;
+      const Index Lf  = std::min((Ji + Ji_p).toIndex(), (Jf + Jf_p).toIndex());
 
       Numeric sum = 0;
       for (; L <= Lf; L += 2) {
@@ -150,12 +148,12 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
             wig3(Ji, Ji_p, Rational{L}, Rational{0}, Rational{0}, Rational{0});
         const Numeric b =
             wig3(Jf, Jf_p, Rational{L}, Rational{0}, Rational{0}, Rational{0});
-        const Numeric c = wig6(Ji, Jf, Rational{1}, Jf_p, Ji_p, Rational{L});
-        sum += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
+        const Numeric c  = wig6(Ji, Jf, Rational{1}, Jf_p, Ji_p, Rational{L});
+        sum             += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
       const Numeric ECS = Om[Ji.toIndex()];
-      const Numeric scl = ECS * Numeric(2 * Ji_p + 1) *
-                          sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
+      const Numeric scl =
+          ECS * Numeric(2 * Ji_p + 1) * sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
 
       // Downward element and detailed balance for upward
@@ -180,8 +178,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       }
     }
 
-    const Rational Ji =
-        bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower;
+    const Rational Ji = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J).lower;
     for (Size j = i + 1; j < n; j++) {
       const Rational Jj =
           bnd.lines[sorting[j]].qn.at(QuantumNumberType::J).lower;
@@ -190,8 +187,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
         W[i, j] = 0.0;
       } else {
         W[j, i] *= -sumup / sumlw;
-        W[i, j] =
-            W[j, i] * std::exp((erot(Ji) - erot(Jj)) / kelvin2joule(T));
+        W[i, j]  = W[j, i] * std::exp((erot(Ji) - erot(Jj)) / kelvin2joule(T));
       }
     }
   }
