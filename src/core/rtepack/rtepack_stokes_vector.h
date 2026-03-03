@@ -7,6 +7,8 @@
 
 #include <utility>
 
+#include "rtepack_common.h"
+
 namespace rtepack {
 struct stokvec final : Vector4 {
   [[nodiscard]] constexpr stokvec(Numeric i = 0.0,

@@ -4,6 +4,8 @@
 #include <matpack.h>
 #include <xml.h>
 
+#include "rtepack_common.h"
+
 namespace rtepack {
 
 //! A 4x4 matrix of Complex values to be used as a Mueller Matrix
