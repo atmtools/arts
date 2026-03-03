@@ -10,8 +10,6 @@
 namespace matpack {
 template <typename T, Size... dims>
 struct [[nodiscard]] cdata_t {
-  constexpr static bool matpack_magic_cdata = true;
-
   constexpr static Size N     = sizeof...(dims);
   constexpr static Size ndata = (dims * ...);
 
@@ -346,10 +344,10 @@ struct tuple_element<I, T> {
 };
 }  // namespace std
 
-using Vector2 = matpack::cdata_t<Numeric, 2>;
-using Vector3 = matpack::cdata_t<Numeric, 3>;
-using Vector4 = matpack::cdata_t<Numeric, 4>;
-using Vector7 = matpack::cdata_t<Numeric, 7>;
-using Matrix33 = matpack::cdata_t<Numeric, 3, 3>;
-using Matrix44 = matpack::cdata_t<Numeric, 4, 4>;
+using Vector2         = matpack::cdata_t<Numeric, 2>;
+using Vector3         = matpack::cdata_t<Numeric, 3>;
+using Vector4         = matpack::cdata_t<Numeric, 4>;
+using Vector7         = matpack::cdata_t<Numeric, 7>;
+using Matrix33        = matpack::cdata_t<Numeric, 3, 3>;
+using Matrix44        = matpack::cdata_t<Numeric, 4, 4>;
 using ComplexMatrix44 = matpack::cdata_t<Complex, 4, 4>;

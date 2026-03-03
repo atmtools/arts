@@ -6,6 +6,8 @@
 
 #include <numeric>
 
+#include "rtepack_common.h"
+
 namespace rtepack {
 struct propmat final : Vector7 {
   constexpr propmat(Numeric a = 0.0,
