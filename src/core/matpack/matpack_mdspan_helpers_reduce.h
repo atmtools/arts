@@ -231,7 +231,17 @@ constexpr T dot(const Self& self, const Other& other, T init = {}) {
  */
 template <any_md Self>
 constexpr auto hypot(const Self& self) {
-  return std::sqrt(dot(self, self));
+  if constexpr (any_cdata<Self> and ranked<Self, 1>) {
+    if constexpr (Self::ndata == 3) {
+      return std::hypot(self[0], self[1], self[2]);
+    } else if constexpr (Self::ndata == 2) {
+      return std::hypot(self[0], self[1]);
+    } else {
+      return std::sqrt(dot(self, self));
+    }
+  } else {
+    return std::sqrt(dot(self, self));
+  }
 }
 
 template <any_md Self, any_md Other>

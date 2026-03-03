@@ -175,16 +175,14 @@ std::pair<Vector2, Matrix33> MCAntenna::draw_los(
         R_los[joker, 1]    = R_ant2enu[1, joker];
         sampled_rte_los[1] = bore_sight_los[1];
       } else {
-        const Vector uhat{0.0, 0.0, 1.0};
-        Numeric magh;
+        const Vector3 uhat{0.0, 0.0, 1.0};
         sampled_rte_los[1] = atan2d(R_los[0, 2], R_los[1, 2]);
-        cross3(R_los[joker, 1], R_los[joker, 2], uhat);
-        magh             = hypot(R_los[joker, 1]);
-        R_los[joker, 1] /= magh;
+        R_los[joker, 1] = normalized(cross(to<Vector3>(R_los[joker, 2]), uhat));
       }
 
       // Vertical polarization basis
-      cross3(R_los[joker, 0], R_los[joker, 1], R_los[joker, 2]);
+      R_los[joker, 0] =
+          cross(to<Vector3>(R_los[joker, 1]), to<Vector3>(R_los[joker, 2]));
 
       break;
 

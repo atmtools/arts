@@ -275,6 +275,17 @@ struct [[nodiscard]] cdata_t {
   }
 };
 
+template <any_cdata out, exact_md<value_type<out>, rank<out>()> in>
+constexpr out to(const in& x) {
+  out o{};
+
+  assert(x.shape() == o.shape());
+
+  stdr::copy(x | by_elem, o.data.begin());
+
+  return o;
+}
+
 template <any_cdata T>
 constexpr T operator+(const T& x, const T& y) {
   T z  = x;

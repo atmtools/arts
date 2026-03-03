@@ -283,12 +283,9 @@ Vector3 approx_geometrical_tangent_point(Vector3 ecef,
 
     const Numeric a2 = refellipsoid[0] * refellipsoid[0];
     const Numeric b2 = refellipsoid[1] * refellipsoid[1];
-    Vector3 yunit, zunit;
 
-    cross3(zunit, decef, ecef);
-    zunit /= norm2(zunit);
-    cross3(yunit, zunit, decef);
-    yunit /= norm2(yunit);
+    const Vector3 zunit = normalized(cross(decef, ecef));
+    const Vector3 yunit = normalized(cross(zunit, decef));
 
     const Numeric yr = dot(ecef, yunit);
     const Numeric xr = dot(ecef, decef);

@@ -15,20 +15,23 @@
 #include "matpack_mdspan_common_types.h"
 
 namespace matpack {
-namespace stdx = std::experimental;
-
-using Joker                 = stdx::full_extent_t;
-constexpr inline auto joker = stdx::full_extent;
+namespace stdx               = std::experimental;
+using Joker                  = stdx::full_extent_t;
+constexpr inline Joker joker = stdx::full_extent;
 
 struct [[nodiscard]] StridedRange {
-  Index offset;
-  Index nelem;
-  Index stride;
+  Index offset{0};
+  Index nelem{0};
+  Index stride{1};
 
-  template <integral Offset = Index,
-            integral Nelem  = Index,
-            integral Stride = Index>
-  constexpr StridedRange(Offset i0 = 0, Nelem n = 0, Stride d = 1)
+  constexpr StridedRange()                                   = default;
+  constexpr StridedRange(const StridedRange&)                = default;
+  constexpr StridedRange(StridedRange&&) noexcept            = default;
+  constexpr StridedRange& operator=(const StridedRange&)     = default;
+  constexpr StridedRange& operator=(StridedRange&&) noexcept = default;
+
+  template <integral Offset, integral Nelem, integral Stride>
+  constexpr StridedRange(Offset i0, Nelem n, Stride d)
       : offset(static_cast<Index>(i0)),
         nelem(static_cast<Index>(n)),
         stride(static_cast<Index>(d)) {}
@@ -41,11 +44,17 @@ struct [[nodiscard]] StridedRange {
 };
 
 struct [[nodiscard]] Range {
-  Index offset;
-  Index nelem;
+  Index offset{0};
+  Index nelem{0};
 
-  template <integral Offset = Index, integral Nelem = Index>
-  constexpr Range(Offset i0 = 0, Nelem n = 0)
+  constexpr Range()                            = default;
+  constexpr Range(const Range&)                = default;
+  constexpr Range(Range&&) noexcept            = default;
+  constexpr Range& operator=(const Range&)     = default;
+  constexpr Range& operator=(Range&&) noexcept = default;
+
+  template <integral Offset, integral Nelem>
+  constexpr Range(Offset i0, Nelem n)
       : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
   [[nodiscard]] constexpr stdx::
@@ -54,6 +63,25 @@ struct [[nodiscard]] Range {
     return {.offset = offset, .extent = nelem, .stride = {}};
   }
 };
+
+struct PartialRange {
+  Index n;
+
+  template <integral Offset>
+  constexpr PartialRange(Offset i) : n(static_cast<Index>(i)) {}
+
+  friend constexpr Range operator|(const PartialRange& pr, Index n) {
+    return Range{pr.n, n};
+  }
+
+  friend constexpr Range operator|(Index n, const PartialRange& pr) {
+    return Range{n, pr.n};
+  }
+};
+
+namespace literals {
+constexpr PartialRange operator""_i0(unsigned long long int i) { return i; }
+}  // namespace literals
 
 template <typename T>
 concept exhaustive_access_operator =
@@ -331,3 +359,5 @@ struct std::formatter<Joker> {
     return tags.format(ctx, "joker"sv);
   }
 };
+
+using namespace matpack::literals;
