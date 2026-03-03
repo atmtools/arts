@@ -105,7 +105,13 @@ template <class T>
 concept any_strided_view = any_strided_view_t<std::remove_cvref_t<T>>::value;
 
 template <class T>
-concept any_cdata = std::remove_cvref_t<T>::matpack_magic_cdata;
+struct any_cdata_t : std::false_type {};
+
+template <class T, Size... dims>
+struct any_cdata_t<cdata_t<T, dims...>> : std::true_type {};
+
+template <class T>
+concept any_cdata = any_cdata_t<std::remove_cvref_t<T>>::value;
 
 template <class T>
 struct any_grid_t : std::false_type {};
