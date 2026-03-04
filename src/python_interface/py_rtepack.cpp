@@ -15,7 +15,6 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
-#include "rtepack_transmission.h"
 
 namespace Python {
 template <typename T, Index M, size_t... N>
@@ -608,7 +607,37 @@ Returns
 -------
 Propmat
     The logarithm of the Mueller matrix as a Propagation matrix.
-)");
+)")
+      .def(
+          "specular_reflected_direction",
+          &rtepack::specular_reflected_direction,
+          "k_inc"_a,
+          "n_surface"_a,
+          R"(Return the direction of the specularly reflected propagation vector.)")
+      .def("fresnel_reflectance",
+           &rtepack::fresnel_reflectance,
+           "Rv"_a,
+           "Rh"_a,
+           R"(Return the Fresnel Mueller matrix for the complex amplitude
+coefficients `Rv` and `Rh`.)")
+      .def("fresnel_reflectance_specular",
+           &rtepack::fresnel_reflectance_specular,
+           "Rv"_a,
+           "Rh"_a,
+           "k_inc"_a,
+           "n_surface"_a,
+           R"(Return the Fresnel Mueller matrix for specular reflection. `k_inc`
+is the incident propagation vector toward the surface and `n_surface` is the
+outward surface normal.)")
+      .def("fresnel_reflectance_nonspecular",
+           &rtepack::fresnel_reflectance_nonspecular,
+           "Rv"_a,
+           "Rh"_a,
+           "k_inc"_a,
+           "k_out"_a,
+           "n_surface"_a,
+           R"(Return the Fresnel Mueller matrix for non-specular reflection with
+independent incident and outgoing directions.)");
 } catch (std::exception &e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize rtepack\n{}", e.what()));
