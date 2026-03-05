@@ -11,7 +11,7 @@ namespace lbl::voigt::ecs::stotop {
  * For symmetric top pure rotational transitions (ΔK=0, Δv=0),
  * the reduced dipole matrix element is:
  *
- *   d(Jf, Ji, K) = (-1)^{K+Jf} sqrt(2*Jf+1) * 3j(Jf, 1, Ji; K, 0, -K)
+ *   d(Jf, Ji, K) = (-1)^{Jf+K+1} sqrt(2*Jf+1) * 3j(Jf, 1, Ji; K, 0, -K)
  *
  * @param[in] Jf  Lower state total angular momentum
  * @param[in] Ji  Upper state total angular momentum
