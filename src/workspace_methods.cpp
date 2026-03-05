@@ -1055,37 +1055,30 @@ This is based on the work of :cite:t:`Rodrigues1997`.
       .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["abs_ecs_dataAddBoulet1999"] = {
+  wsm_data["abs_ecs_dataAddNH3"] = {
       .desc   = R"--(Sets preliminary NH3-4111 band data for ECS.
 
-Sets H2 and He broadener species for the symmetric top ECS formalism.
-The ECS-EP parameters are approximate values suitable for a Jovian
-(H2/He) atmosphere.  They should be refined against laboratory measurements.
+[WIP] [UNTESTED]
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_ecs_data"},
       .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["abs_ecs_dataAddPH3Preliminary"] = {
+  wsm_data["abs_ecs_dataAddPH3"] = {
       .desc   = R"--(Sets preliminary PH3-1111 band data for ECS.
 
-Sets H2 and He broadener species for the symmetric top ECS formalism.
-The ECS-EP parameters are approximate placeholder values.
-They must be refined against laboratory measurements before production use.
+[WIP] [UNTESTED]
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_ecs_data"},
       .in     = {"abs_ecs_data"},
   };
 
-  wsm_data["abs_ecs_dataAddPieroni1999"] = {
+  wsm_data["abs_ecs_dataAddCH4"] = {
       .desc   = R"--(Sets preliminary CH4-211 band data for ECS.
 
-Sets H2, He, and CH4 (self) broadener species for the spherical top ECS
-formalism.  Based on Pieroni et al. (1999) and Pine & Gabard (2003).
-The ECS-EP parameters are approximate values suitable for a Jovian
-(H2/He) atmosphere.  They should be refined against laboratory measurements.
+[WIP] [UNTESTED]
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_ecs_data"},
