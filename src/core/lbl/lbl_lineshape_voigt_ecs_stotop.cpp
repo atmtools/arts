@@ -165,8 +165,8 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       // Only compute the downward element (J' ≤ J)
       if (Jf_p > Jf) continue;
 
-      Index L =
-          std::max(abs((Ji - Ji_p).toIndex()), abs((Jf - Jf_p).toIndex()));
+      Index L         = std::max(std::abs((Ji - Ji_p).toIndex()),
+                                 std::abs((Jf - Jf_p).toIndex()));
       L              += L % 2;
       const Index Lf  = std::min((Ji + Ji_p).toIndex(), (Jf + Jf_p).toIndex());
 
