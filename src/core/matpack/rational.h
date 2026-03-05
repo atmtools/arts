@@ -249,14 +249,15 @@ struct Rational {
   }
 
   constexpr auto operator<=>(const Rational& b) const noexcept {
-    //! REMINDER: This code works because GDC is guaranteed to have a positive denom
+    //! REMINDER: This code works because GCD is guaranteed to have a positive denom
     return (denom == b.denom) ? (numer <=> b.numer) : [*this, b] {
       Index r1  = numer / denom;
       Index r2  = b.numer / b.denom;
       auto res2 = r1 <=> r2;
       return res2 != std::strong_ordering::equal
                  ? res2
-                 : (r1 * b.denom) <=> (r2 * denom);
+                 : ((numer % denom) * b.denom) <=>
+                       ((b.numer % b.denom) * denom);
     }();
   };
 
