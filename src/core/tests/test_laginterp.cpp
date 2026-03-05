@@ -584,10 +584,10 @@ int main() {
 
   print_time_points();
 
-  test_variant_lag<0>();
-  test_variant_lag<1>();
-  test_variant_lag<2>();
-  test_variant_lag<3>();
-  test_variant_lag<4>();
-  test_variant_lag<5>();
+  test_variant_lag<0z>();
+  test_variant_lag<1z>();
+  test_variant_lag<2z>();
+  test_variant_lag<3z>();
+  test_variant_lag<4z>();
+  test_variant_lag<5z>();
 }

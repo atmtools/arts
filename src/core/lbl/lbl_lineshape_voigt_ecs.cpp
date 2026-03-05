@@ -21,6 +21,8 @@
 #include "lbl_lineshape_model.h"
 #include "lbl_lineshape_voigt_ecs_hartmann.h"
 #include "lbl_lineshape_voigt_ecs_makarov.h"
+#include "lbl_lineshape_voigt_ecs_sphtop.h"
+#include "lbl_lineshape_voigt_ecs_stotop.h"
 
 #undef WIGNER3
 #undef WIGNER6
@@ -187,6 +189,15 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
       auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
       dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& Kq = bnd.lines[i].qn.at(QuantumNumberType::K);
+      dipr[i]  = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      dipr[i]  = sphtop::reduced_dipole(J.upper, J.lower);
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -254,6 +265,12 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       hartmann::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
+      stotop::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
+      sphtop::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
       ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)
     }
@@ -314,6 +331,15 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
       dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& Kq = bnd.lines[i].qn.at(QuantumNumberType::K);
+      dipr[i]  = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
+      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
+      dipr[i]  = sphtop::reduced_dipole(J.upper, J.lower);
+      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -381,6 +407,12 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       hartmann::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
+      stotop::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
+      sphtop::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
       ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)

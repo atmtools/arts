@@ -1,10 +1,10 @@
-#include "lbl_lineshape_voigt_ecs_hartmann.h"
+#include "lbl_lineshape_voigt_ecs_sphtop.h"
 
 #include <arts_conversions.h>
 #include <atm.h>
 #include <wigner_functions.h>
 
-namespace lbl::voigt::ecs::hartmann {
+namespace lbl::voigt::ecs::sphtop {
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
 #define WIGNER6 fw6jja
@@ -34,28 +34,40 @@ Numeric wig6(const Rational& a,
       a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }
 
+/*! Compute rotational energy for a spherical top molecule
+ *
+ * E(J) = B*J*(J+1)
+ *
+ * Species-specific rotational constants:
+ *   CH4-211 (12CH4):  B0 = 5.2410 cm^{-1}
+ *
+ * @param[in] isot  The isotopologue
+ * @return A function J -> E(J) in Joule
+ */
 std::function<Numeric(Rational)> erot_selection(const SpeciesIsotope& isot) {
-  if (isot == "CO2-626"_isot) {
+  // CH4 main isotopologue (12C-1H4)
+  if (isot == "CH4-211"_isot) {
     return [](const Rational J) -> Numeric {
-      return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));
+      return Conversion::kaycm2joule(5.2410) * Numeric(J * (J + 1));
     };
   }
 
-  ARTS_USER_ERROR("{} has no rotational energies in ARTS", isot.FullName())
+  ARTS_USER_ERROR("{} has no rotational energies for spherical top ECS in ARTS",
+                  isot.FullName())
   return [](const Rational J) -> Numeric {
     return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();
   };
 }
 }  // namespace
 
-Numeric reduced_dipole(const Rational Jf,
-                       const Rational Ji,
-                       const Rational lf,
-                       const Rational li,
-                       const Rational k) {
-  if (not iseven(Jf + lf + 1))
-    return -sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  return +sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+Numeric reduced_dipole(const Rational Jf, const Rational Ji) {
+  // d(Jf, Ji) = (-1)^{Jf+1} sqrt(2*Jf+1) * 3j(Jf, 1, Ji; 0, 0, 0)
+  // This is the l=0 limit of the Hartmann formula.
+  if (not iseven(Jf + 1))
+    return -sqrtr(2 * Jf + 1) *
+           wigner3j(Jf, Rational{1}, Ji, Rational{0}, Rational{0}, Rational{0});
+  return +sqrtr(2 * Jf + 1) *
+         wigner3j(Jf, Rational{1}, Ji, Rational{0}, Rational{0}, Rational{0});
 }
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
@@ -71,21 +83,11 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   const Size n = bnd.size();
   if (not n) return;
 
-  // These are constant for a band
-  auto& l2    = bnd_qid.state.at(QuantumNumberType::l2);
-  Rational li = l2.upper;
-  Rational lf = l2.lower;
-
-  using std::swap;
-  const bool swap_order = li > lf;
-  if (swap_order) swap(li, lf);
-  if (abs(li - lf) > 1) return;
-
   const Numeric T = atm.temperature;
 
   const auto erot = erot_selection(bnd_qid.isot);
 
-  const std::array rats{bnd.max(QuantumNumberType::J), li, lf};
+  const std::array rats{bnd.max(QuantumNumberType::J)};
   const int maxL = wigner_init_size(rats);
 
   const auto Om = [&]() {
@@ -110,21 +112,29 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     return out;
   }();
 
+  // The coupling for spherical tops with l=0 is:
+  //
+  //   R(J→J'; 0) = (-1)^{J+J'+1} (2J'+1) Ω(J)
+  //     × Σ_L (2L+1) 3j(J, J', L; 0, 0, 0) × 3j(Jf, Jf', L; 0, 0, 0)
+  //                   × 6j(Ji, Jf, 1; Jf', Ji', L) × Q(L)/Ω(L)
+  //
+  // This is identical to the Hartmann (linear molecule) formula with
+  // l_i = l_f = 0.
+
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J     = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
-    Rational Ji = J.upper;
-    Rational Jf = J.lower;
-    if (swap_order) swap(Ji, Jf);
+    auto& J           = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    const Rational Ji = J.upper;
+    const Rational Jf = J.lower;
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
-      auto& J_p     = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
-      Rational Ji_p = J_p.upper;
-      Rational Jf_p = J_p.lower;
-      if (swap_order) swap(Ji_p, Jf_p);
 
-      // Select upper quantum number
+      auto& J_p           = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      const Rational Ji_p = J_p.upper;
+      const Rational Jf_p = J_p.lower;
+
+      // Only compute the downward element (J' ≤ J)
       if (Jf_p > Jf) continue;
 
       Index L         = std::max(std::abs((Ji - Ji_p).toIndex()),
@@ -134,8 +144,10 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
       Numeric sum = 0;
       for (; L <= Lf; L += 2) {
-        const Numeric a  = wig3(Ji, Ji_p, Rational{L}, li, -li, Rational{0});
-        const Numeric b  = wig3(Jf, Jf_p, Rational{L}, lf, -lf, Rational{0});
+        const Numeric a =
+            wig3(Ji, Ji_p, Rational{L}, Rational{0}, Rational{0}, Rational{0});
+        const Numeric b =
+            wig3(Jf, Jf_p, Rational{L}, Rational{0}, Rational{0}, Rational{0});
         const Numeric c  = wig6(Ji, Jf, Rational{1}, Jf_p, Ji_p, Rational{L});
         sum             += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
@@ -144,7 +156,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
           ECS * Numeric(2 * Ji_p + 1) * sqrtr((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
 
-      // Add to W and rescale to upwards element by the populations
+      // Downward element and detailed balance for upward
       W[j, i] = sum;
       W[i, j] = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
@@ -170,15 +182,14 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
     for (Size j = i + 1; j < n; j++) {
       const Rational Jj =
           bnd.lines[sorting[j]].qn.at(QuantumNumberType::J).lower;
-      if (sumlw == 0) {
+      if (std::abs(sumlw) <= std::abs(sumup) * 1e-6) {
         W[j, i] = 0.0;
         W[i, j] = 0.0;
       } else {
         W[j, i] *= -sumup / sumlw;
-        W[i, j]  = W[j, i] * std::exp((erot(Ji) - erot(Jj)) /
-                                      kelvin2joule(T));  // This gives LTE
+        W[i, j]  = W[j, i] * std::exp((erot(Ji) - erot(Jj)) / kelvin2joule(T));
       }
     }
   }
 }
-}  // namespace lbl::voigt::ecs::hartmann
+}  // namespace lbl::voigt::ecs::sphtop

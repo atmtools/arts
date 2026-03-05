@@ -1055,6 +1055,36 @@ This is based on the work of :cite:t:`Rodrigues1997`.
       .in     = {"abs_ecs_data"},
   };
 
+  wsm_data["abs_ecs_dataAddNH3"] = {
+      .desc   = R"--(Sets preliminary NH3-4111 band data for ECS.
+
+[WIP] [UNTESTED]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
+  };
+
+  wsm_data["abs_ecs_dataAddPH3"] = {
+      .desc   = R"--(Sets preliminary PH3-1111 band data for ECS.
+
+[WIP] [UNTESTED]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
+  };
+
+  wsm_data["abs_ecs_dataAddCH4"] = {
+      .desc   = R"--(Sets preliminary CH4-211 band data for ECS.
+
+[WIP] [UNTESTED]
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"abs_ecs_data"},
+      .in     = {"abs_ecs_data"},
+  };
+
   wsm_data["abs_ecs_dataInit"] = {
       .desc   = R"--(Resets/initializes the ECS data.
 )--",

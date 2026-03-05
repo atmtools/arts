@@ -248,7 +248,18 @@ struct Rational {
     return Rational(std::forward<T>(a)) % b;
   }
 
-  constexpr auto operator<=>(const Rational& b) const noexcept = default;
+  constexpr auto operator<=>(const Rational& b) const noexcept {
+    //! REMINDER: This code works because GCD is guaranteed to have a positive denom
+    return (denom == b.denom) ? (numer <=> b.numer) : [*this, b] {
+      Index r1  = numer / denom;
+      Index r2  = b.numer / b.denom;
+      auto res2 = r1 <=> r2;
+      return res2 != std::strong_ordering::equal
+                 ? res2
+                 : ((numer % denom) * b.denom) <=>
+                       ((b.numer % b.denom) * denom);
+    }();
+  };
 
   constexpr bool operator==(const Rational& b) const noexcept {
     return numer == b.numer and denom == b.denom;
@@ -266,7 +277,7 @@ struct Rational {
 
   template <RationalFriend T>
   friend constexpr auto operator<=>(T&& b, const Rational& a) noexcept {
-    return a <=> Rational{std::forward<T>(b)};
+    return Rational{std::forward<T>(b)} <=> a;
   }
 
   template <RationalFriend T>

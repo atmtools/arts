@@ -131,3 +131,91 @@ void abs_ecs_dataAddTran2011(LinemixingEcsData& abs_ecs_data) {
         data(T0, {Conversion::angstrom2meter(5.5)});
   }
 }
+
+void abs_ecs_dataAddNH3(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  auto& ecs = abs_ecs_data["NH3-4111"_isot];
+
+  // H2 broadening parameters
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
+  h2.lambda               = data(T0, {0.65});
+  h2.beta                 = data(T0, {0.006});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
+
+  // He broadening parameters
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.018), 0.55});
+  he.lambda               = data(T0, {0.58});
+  he.beta                 = data(T0, {0.003});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.8)});
+
+  auto& nh3                = ecs[SpeciesEnum::Ammonia];
+  nh3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
+  nh3.lambda               = data(T0, {0.65});
+  nh3.beta                 = data(T0, {0.006});
+  nh3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
+}
+
+void abs_ecs_dataAddPH3(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  auto& ecs = abs_ecs_data["PH3-1111"_isot];
+
+  // H2 broadening parameters (approximate, based on similarity to NH3)
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
+  h2.lambda               = data(T0, {0.60});
+  h2.beta                 = data(T0, {0.005});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
+
+  // He broadening parameters (approximate)
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.015), 0.50});
+  he.lambda               = data(T0, {0.55});
+  he.beta                 = data(T0, {0.003});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(2.0)});
+
+  // PH3 self-broadening parameters (approximate, based on H2 values)
+  auto& ph3                = ecs[SpeciesEnum::Phosphine];
+  ph3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
+  ph3.lambda               = data(T0, {0.60});
+  ph3.beta                 = data(T0, {0.005});
+  ph3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
+}
+
+void abs_ecs_dataAddCH4(LinemixingEcsData& abs_ecs_data) {
+  ARTS_TIME_REPORT
+
+  using enum LineShapeModelType;
+  using data = lbl::temperature::data;
+
+  auto& ecs = abs_ecs_data["CH4-211"_isot];
+
+  // H2 broadening parameters
+  auto& h2                = ecs[SpeciesEnum::Hydrogen];
+  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
+  h2.lambda               = data(T0, {0.70});
+  h2.beta                 = data(T0, {0.008});
+  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
+
+  // He broadening parameters
+  auto& he                = ecs[SpeciesEnum::Helium];
+  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.025), 0.56});
+  he.lambda               = data(T0, {0.60});
+  he.beta                 = data(T0, {0.004});
+  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.9)});
+
+  auto& ch4                = ecs[SpeciesEnum::Methane];
+  ch4.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
+  ch4.lambda               = data(T0, {0.70});
+  ch4.beta                 = data(T0, {0.008});
+  ch4.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
+}

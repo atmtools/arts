@@ -648,7 +648,13 @@ parameters that are mapped to the species identifier.
                "Voigt using Makarov's method of error-corrected sudden for line mixing of O2"},
            Value{
                "VP_ECS_HARTMANN",
-               "Voigt using Hartmann's method of error-corrected sudden for line mixing of CO2"}},
+               "Voigt using Hartmann's method of error-corrected sudden for line mixing of CO2"},
+           Value{
+               "VP_ECS_STOTOP",
+               "[WIP] [UNTESTED] Voigt using error-corrected sudden for line mixing of symmetric top molecules (NH3, PH3)"},
+           Value{
+               "VP_ECS_SPHTOP",
+               "[WIP] [UNTESTED] Voigt using error-corrected sudden for line mixing of spherical top molecules (CH4)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
