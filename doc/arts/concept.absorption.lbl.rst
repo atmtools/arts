@@ -541,7 +541,7 @@ then
 
 .. math::
 
-  K_{A, ecs} = N \nu \left(1 - \exp\!\left(\frac{h\nu}{kT}\right)\right) \mathrm{Re}\!\left[F_{ECS}(\nu)\right],
+  K_{A, ecs} = N \nu \left(1 - \exp\!\left(-\frac{h\nu}{kT}\right)\right) \mathrm{Re}\!\left[F_{ECS}(\nu)\right],
 
 where :math:`N` is the total number density of the absorbing species.
 
