@@ -153,16 +153,16 @@ struct xml_io_stream<std::array<T, N>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void put(std::span<const std::array<T, N>> v, bifstream* pbifs)
+  static void put(std::span<const std::array<T, N>> v, bofstream* pbofs)
     requires(xml_io_binary<T>)
   {
-    inner::put(std::span(reinterpret_cast<const T*>(v.data()), N), pbifs);
+    inner::put(std::span(reinterpret_cast<const T*>(v.data()), N), pbofs);
   }
 
-  static void get(std::span<std::array<T, N>> v, bofstream* pbofs)
+  static void get(std::span<std::array<T, N>> v, bifstream* pbifs)
     requires(xml_io_binary<T>)
   {
-    inner::get(std::span(reinterpret_cast<T*>(v.data()), N), pbofs);
+    inner::get(std::span(reinterpret_cast<T*>(v.data()), N), pbifs);
   }
 
   static void parse(std::span<std::array<T, N>> v, std::istream& is)

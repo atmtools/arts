@@ -105,7 +105,7 @@ concept xml_io_parseable = requires(std::span<T> b, std::istream& is) {
 };
 
 //! Explicitly inherit and cast between spans
-template <typename T, typename U>
+template <arts_xml_ioable U, std::derived_from<U> T>
 struct xml_io_stream_inherit : xml_io_stream<U> {
   static void get(std::span<T> b, bifstream* pbifs)
     requires(xml_io_binary<U>)

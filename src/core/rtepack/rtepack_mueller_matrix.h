@@ -275,9 +275,8 @@ Array<muelmat_vector> forward_cumulative_transmission(
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::muelmat> 
-    : xml_io_stream_inherit<rtepack::muelmat, Matrix44> {};
+struct xml_io_stream<rtepack::muelmat>
+    : xml_io_stream_inherit<Matrix44, rtepack::muelmat> {};

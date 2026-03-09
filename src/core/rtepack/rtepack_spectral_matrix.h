@@ -271,9 +271,8 @@ using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
 
 template <>
 struct xml_io_stream<rtepack::specmat>
-    : xml_io_stream_inherit<rtepack::specmat, ComplexMatrix44> {};
+    : xml_io_stream_inherit<ComplexMatrix44, rtepack::specmat> {};

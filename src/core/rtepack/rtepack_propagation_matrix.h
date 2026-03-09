@@ -127,9 +127,8 @@ propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
 
 template <>
 struct xml_io_stream<rtepack::propmat>
-    : xml_io_stream_inherit<rtepack::propmat, Vector7> {};
+    : xml_io_stream_inherit<Vector7, rtepack::propmat> {};
