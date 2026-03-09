@@ -439,10 +439,9 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
 
   for (Size i = 0; i < M; i++) {
     for (Size j = 0; j < K; j++) {
-      auto s = eqv_str[i, j, joker];
-      auto v = eqv_val[i, j, joker];
-      bubble_sort_by(
-          [&](auto I1, auto I2) { return v[I1].real() > v[I2].real(); }, s, v);
+      stdr::sort(stdv::zip(eqv_val[i, j], eqv_str[i, j]),
+                 {},
+                 [](const auto& x) { return std::get<0>(x).real(); });
     }
   }
 

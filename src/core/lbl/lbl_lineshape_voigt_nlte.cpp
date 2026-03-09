@@ -341,10 +341,9 @@ void band_shape_helper(std::vector<single_shape>& lines,
     } break;
   }
 
-  bubble_sort_by(
-      [&](const Size l1, const Size l2) { return lines[l1].f0 > lines[l2].f0; },
-      lines,
-      pos);
+  stdr::sort(stdv::zip(lines, pos), {}, [](const auto& x) {
+    return std::get<0>(x).f0;
+  });
 }
 
 band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut)

@@ -8,6 +8,7 @@
 
 #include <concepts>
 #include <optional>
+#include <ranges>
 
 #include "configtypes.h"
 #include "debug.h"
@@ -75,8 +76,8 @@ void py_disort(py::module_& m) try {
   py::class_<MatrixOfDisortBDRF> mat_disbdrf(m, "MatrixOfDisortBDRF");
   generic_interface(mat_disbdrf);
 
-  auto vecs  = py::bind_vector<std::vector<DisortBDRF>,
-                               py::rv_policy::reference_internal>(disort_nm,
+  auto vecs = py::bind_vector<std::vector<DisortBDRF>,
+                              py::rv_policy::reference_internal>(disort_nm,
                                                                  "ArrayOfBDRF");
   vecs.doc() = "An array of BDRF functions";
   generic_interface(vecs);
@@ -197,11 +198,10 @@ The relevant references are:
           "pydisort_u",
           [](disort::main_data& dis, Vector tau_, const Vector& phi) {
             std::vector<Index> sorting(tau_.size());
-            std::iota(sorting.begin(), sorting.end(), 0);
-            bubble_sort_by(
-                [&tau_](auto il, auto jl) { return tau_[il] > tau_[jl]; },
-                sorting,
-                tau_);
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) {
+              return std::get<1>(x);
+            });
 
             AscendingGrid tau{std::move(tau_)};
             Tensor3 res(tau.size(), phi.size(), dis.mu().size());
@@ -220,11 +220,10 @@ The relevant references are:
           "pydisort_flux_up",
           [](disort::main_data& dis, Vector tau_) {
             std::vector<Index> sorting(tau_.size());
-            std::iota(sorting.begin(), sorting.end(), 0);
-            bubble_sort_by(
-                [&tau_](auto il, auto jl) { return tau_[il] > tau_[jl]; },
-                sorting,
-                tau_);
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) {
+              return std::get<1>(x);
+            });
 
             AscendingGrid tau{std::move(tau_)};
             Matrix res(3, tau.size());
@@ -242,11 +241,10 @@ The relevant references are:
           "pydisort_flux_down",
           [](disort::main_data& dis, Vector tau_) {
             std::vector<Index> sorting(tau_.size());
-            std::iota(sorting.begin(), sorting.end(), 0);
-            bubble_sort_by(
-                [&tau_](auto il, auto jl) { return tau_[il] > tau_[jl]; },
-                sorting,
-                tau_);
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) {
+              return std::get<1>(x);
+            });
 
             AscendingGrid tau{std::move(tau_)};
             Matrix res(3, tau.size());

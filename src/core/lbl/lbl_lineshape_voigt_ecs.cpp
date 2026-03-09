@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <functional>
 #include <ranges>
 #include <stdexcept>
 
@@ -176,7 +177,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
     pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i]           = 0.5 * Constant::c *
+    dip[i] = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
@@ -190,10 +191,10 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
       dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
-      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& Kq = bnd.lines[i].qn.at(QuantumNumberType::K);
-      dipr[i]  = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
-      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& Kq  = bnd.lines[i].qn.at(QuantumNumberType::K);
+      dipr[i]   = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
       dipr[i]  = sphtop::reduced_dipole(J.upper, J.lower);
@@ -203,17 +204,13 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
 
   //! Must remember the sorting for the quantum numbers
   if (not presorted) {
-    std::iota(sort.begin(), sort.end(), 0);
-    bubble_sort_by(
-        [&](Size i, Size j) {
-          const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
-          const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
-          return b > a;
-        },
-        sort,
-        pop,
-        dip,
-        dipr);
+    stdr::iota(sort, 0);
+    stdr::sort(
+        stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
+          const auto& [i, pop_i, dip_i, dipr_i] = v;
+          const auto a = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
+          return a;
+        });
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
@@ -318,7 +315,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
     pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i]           = 0.5 * Constant::c *
+    dip[i] = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
@@ -332,10 +329,10 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
-      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& Kq = bnd.lines[i].qn.at(QuantumNumberType::K);
-      dipr[i]  = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
-      dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& Kq  = bnd.lines[i].qn.at(QuantumNumberType::K);
+      dipr[i]   = stotop::reduced_dipole(J.upper, J.lower, Kq.lower);
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
       dipr[i]  = sphtop::reduced_dipole(J.upper, J.lower);
@@ -345,17 +342,13 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
 
   //! Must remember the sorting for the quantum numbers
   if (not presorted) {
-    std::iota(sort.begin(), sort.end(), 0);
-    bubble_sort_by(
-        [&](Size i, Size j) {
-          const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
-          const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
-          return b > a;
-        },
-        sort,
-        pop,
-        dip,
-        dipr);
+    stdr::iota(sort, 0);
+    stdr::sort(
+        stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
+          const auto& [i, pop_i, dip_i, dipr_i] = v;
+          const auto a = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
+          return a;
+        });
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
