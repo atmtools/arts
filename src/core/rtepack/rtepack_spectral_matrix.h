@@ -275,4 +275,5 @@ template <>
 struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::specmat> : xml_io_stream<ComplexMatrix44> {};
+struct xml_io_stream<rtepack::specmat>
+    : xml_io_stream_inherit<rtepack::specmat, ComplexMatrix44> {};

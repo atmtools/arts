@@ -164,4 +164,5 @@ template <>
 struct std::formatter<rtepack::stokvec> : std::formatter<Vector4> {};
 
 template <>
-struct xml_io_stream<rtepack::stokvec> : xml_io_stream<Vector4> {};
+struct xml_io_stream<rtepack::stokvec>
+    : xml_io_stream_inherit<rtepack::stokvec, Vector4> {};

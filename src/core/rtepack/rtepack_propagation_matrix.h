@@ -131,4 +131,5 @@ template <>
 struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
 
 template <>
-struct xml_io_stream<rtepack::propmat> : xml_io_stream<Vector7> {};
+struct xml_io_stream<rtepack::propmat>
+    : xml_io_stream_inherit<rtepack::propmat, Vector7> {};

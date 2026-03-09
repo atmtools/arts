@@ -279,4 +279,5 @@ template <>
 struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::muelmat> : xml_io_stream<Matrix44> {};
+struct xml_io_stream<rtepack::muelmat> 
+    : xml_io_stream_inherit<rtepack::muelmat, Matrix44> {};
