@@ -39,8 +39,8 @@ There are two structs defined in ``xml_io_struct.h``:
     static void read(std::istream&, T&, bifstream* = nullptr) = delete;
 
     // Binary streaming IO (optional)
-    static void get(std::span<const T>, bofstream*) = delete;
-    static void put(std::span<T>, bifstream*)       = delete;
+    static void get(std::span<T>, bifstream*)       = delete;
+    static void put(std::span<const T>, bofstream*) = delete;
 
     // Text streaming (optional)
     static void parse(std::span<T>, std::istream&) = delete;

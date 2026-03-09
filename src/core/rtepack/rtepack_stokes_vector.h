@@ -160,8 +160,8 @@ using stokvec_tensor6_const_view = matpack::view_t<const stokvec, 6>;
 }  // namespace rtepack
 
 template <>
-
 struct std::formatter<rtepack::stokvec> : std::formatter<Vector4> {};
 
 template <>
-struct xml_io_stream<rtepack::stokvec> : xml_io_stream<Vector4> {};
+struct xml_io_stream<rtepack::stokvec>
+    : xml_io_stream_inherit<Vector4, rtepack::stokvec> {};
