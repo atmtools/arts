@@ -468,11 +468,9 @@ Equivalent (mostly) Python code:
         "Output generic variables not supported in meta-functions");
   }
 
-  bubble_sort_by([&wsm](Size i, Size j) { return wsm.gin[i] < wsm.gin[j]; },
-                 wsm.gin,
-                 wsm.gin_type,
-                 wsm.gin_value,
-                 wsm.gin_desc);
+  stdr::sort(stdv::zip(wsm.gin, wsm.gin_type, wsm.gin_value, wsm.gin_desc),
+             stdr::greater{},
+             [](const auto& x) { return std::get<0>(x); });
 
   for (auto ptr = stdr::adjacent_find(wsm.gin); ptr != wsm.gin.end();
        ptr      = stdr::adjacent_find(wsm.gin)) {
