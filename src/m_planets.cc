@@ -247,31 +247,13 @@ void surf_fieldPlanet(SurfaceField &surf_field,
 
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
-    case Earth:
-      surf_fieldEarth(surf_field, "WGS84", surf_elevation);
-      // molarmass_dry_air = 28.966;
-      // planet_rotation_period = 86164.1;
-      break;
-    case Io:
-      surf_fieldIo(surf_field, "Sphere", surf_elevation);
-      // molarmass_dry_air = 63.110068828000003;
-      // planet_rotation_period = 152853;
-      break;
+    case Earth: return surf_fieldEarth(surf_field, "WGS84", surf_elevation);
+    case Io:    return surf_fieldIo(surf_field, "Sphere", surf_elevation);
     case Jupiter:
-      surf_fieldJupiter(surf_field, "Sphere", surf_elevation);
-      // molarmass_dry_air = 2.22;
-      // planet_rotation_period = 35730;
-      break;
-    case Mars:
-      surf_fieldMars(surf_field, "Sphere", surf_elevation);
-      // molarmass_dry_air = 43.34;
-      // planet_rotation_period = 88643;
-      break;
-    case Venus:
-      surf_fieldVenus(surf_field, "Sphere", surf_elevation);
-      // molarmass_dry_air = 43.45;
-      // planet_rotation_period = -2.0997e7;
-      break;
+      return surf_fieldJupiter(surf_field, "Sphere", surf_elevation);
+    case Mars:  return surf_fieldMars(surf_field, "Sphere", surf_elevation);
+    case Venus: return surf_fieldVenus(surf_field, "Sphere", surf_elevation);
+    case Moon:  return surf_fieldMoon(surf_field, "Ellipsoid", surf_elevation);
   }
 }
 

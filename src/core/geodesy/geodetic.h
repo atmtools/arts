@@ -17,6 +17,8 @@
 
 #include <matpack.h>
 
+#include <vector>
+
 /** Conversion from ECEF to geocentric coordinates
 
     @param[in]   ecef  ECEF position (x,y,z)
@@ -361,5 +363,24 @@ Numeric prime_vertical_radius(Vector2 refellipsoid, Numeric lat);
     @date    2021-07-29
 */
 Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell);
+
+/** Returns the (lat, lon) coordinates of all grid points in hfield that are
+ *  mutually visible from the observer at pos.
+ *
+ *  Visibility is determined by:
+ *  1. Mutual above-horizon facing (ellipsoid normals).
+ *  2. A DDA terrain occlusion walk along the heightfield grid.
+ *
+ *  The 3×3 neighbourhood around the observer grid cell is skipped to
+ *  avoid numerical artefacts from near-zero chord lengths.
+ *
+ *  @param[in]  pos        Observer lat/lon (degrees)
+ *  @param[in]  ellipsoid  Ellipsoid semi-axes (a, b) in metres
+ *  @param[in]  hfield     Height field (elevation in metres on lat/lon grid)
+ *  @return     List of visible (lat, lon) coordinates
+ */
+std::vector<Vector2> visible_coordinates(Vector2 pos,
+                                         Vector2 ellipsoid,
+                                         const GeodeticField2& hfield);
 
 #endif  // geodetic_h

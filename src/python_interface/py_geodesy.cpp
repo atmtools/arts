@@ -1,5 +1,6 @@
 #include <geodetic.h>
 #include <nanobind/stl/pair.h>
+#include <nanobind/stl/vector.h>
 
 #include "python_interface.h"
 
@@ -455,6 +456,35 @@ Returns
 -------
 RADIUS : ~pyarts3.arts.Numeric
   The radius
+)");
+
+  geo.def("visible_coordinates",
+          &visible_coordinates,
+          "pos"_a,
+          "ellipsoid"_a,
+          "hfield"_a,
+          R"(Returns visible grid-point coordinates from an observer position.
+
+For each grid point in *hfield* that is not in the 3×3 neighbourhood of
+the observer, checks:
+
+1. The candidate lies in the observer's upper hemisphere (ellipsoid normal).
+2. The observer lies in the candidate's upper hemisphere.
+3. No intermediate terrain cell rises above the chord (DDA ray march).
+
+Parameters
+----------
+pos : ~pyarts3.arts.Vector2
+  Observer latitude and longitude (degrees)
+ellipsoid : ~pyarts3.arts.Vector2
+  Ellipsoid semi-axes (a, b) in metres
+hfield : ~pyarts3.arts.GeodeticField2
+  Surface height field (metres)
+
+Returns
+-------
+coords : list of ~pyarts3.arts.Vector2
+  Visible grid-point (lat, lon) coordinates
 )");
 
   geo.def("geodetic2geocentric",

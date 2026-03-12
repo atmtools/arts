@@ -44,10 +44,9 @@ std::vector<EnumeratedOption> internal_options_create() {
       .desc =
           R"(A switch controlling how monte carlo antenna patterns are handled.
 )",
-      .values_and_desc =
-          {Value{"PencilBeam", "Pencil beam antenna"},
-           Value{"Gaussian", "Gaussian beam antenna"},
-           Value{"Lookup", "Lookup table antenna"}},
+      .values_and_desc = {Value{"PencilBeam", "Pencil beam antenna"},
+                          Value{"Gaussian", "Gaussian beam antenna"},
+                          Value{"Lookup", "Lookup table antenna"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -662,10 +661,11 @@ parameters that are mapped to the species identifier.
       .desc = R"(The type of planetary body that should be considered.
 )",
       .values_and_desc = {Value{"Earth", "Planet is Earth"},
-                          Value{"Io", "Planet is Io"},
+                          Value{"Io", "Moon is Jupiter's Io"},
                           Value{"Jupiter", "Planet is Jupiter"},
                           Value{"Mars", "Planet is Mars"},
-                          Value{"Venus", "Planet is Venus"}},
+                          Value{"Venus", "Planet is Venus"},
+                          Value{"Moon", "Moon is Earth's Moon"}},
   });
 
   opts.emplace_back(EnumeratedOption{

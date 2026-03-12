@@ -1,5 +1,9 @@
 #pragma once
 
+#include <geodetic.h>
+
+#include <span>
+
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_stokes_vector.h"
 
@@ -95,4 +99,87 @@ stokvec dreflection(stokvec I, const muelmat dR, const stokvec B);
      */
 Vector3 specular_reflected_direction(const Vector3& k_inc,
                                      const Vector3& n_surface);
+
+/** Specular surface emission and reflection.
+ *
+ *  Implements I_out = J + R_spec * (I_in - J), where R_spec is the
+ *  polarised Fresnel Mueller matrix for the specular incident direction,
+ *  J is the subsurface thermal emission, and I_in is the incident field
+ *  arriving from the specular direction (e.g. CMB or sky radiance).
+ *
+ *  @param I_in      Incident Stokes vector from the specular direction
+ *  @param J         Subsurface thermal emission Stokes vector
+ *  @param Rv        Complex Fresnel amplitude for vertical polarisation
+ *  @param Rh        Complex Fresnel amplitude for horizontal polarisation
+ *  @param k_inc     Unit propagation vector of the incident beam
+ *  @param n_surface Outward unit surface normal
+ *  @return          Outgoing Stokes vector
+ */
+stokvec specular_radiance(const stokvec& I_in,
+                          const stokvec& J,
+                          Complex Rv,
+                          Complex Rh,
+                          const Vector3& k_inc,
+                          const Vector3& n_surface);
+
+/** Non-specular surface emission and reflection for one incident direction.
+ *
+ *  Implements I_out = J + R_nonspec * (I_in - J), where R_nonspec is the
+ *  polarised Fresnel Mueller matrix for an arbitrary incident/outgoing pair,
+ *  J is the subsurface thermal emission, and I_in is the incident field
+ *  arriving from direction k_inc (e.g. radiance from a visible surface patch).
+ *  Callers accumulate weighted contributions over all visible incoming
+ *  directions to build the full scattered field.
+ *
+ *  @param I_in      Incident Stokes vector from direction k_inc
+ *  @param J         Subsurface thermal emission Stokes vector
+ *  @param Rv        Complex Fresnel amplitude for vertical polarisation
+ *  @param Rh        Complex Fresnel amplitude for horizontal polarisation
+ *  @param k_inc     Unit propagation vector of the incident beam (toward surface)
+ *  @param k_out     Unit propagation vector of the outgoing beam (toward sensor)
+ *  @param n_surface Outward unit surface normal
+ *  @return          Outgoing Stokes vector
+ */
+stokvec nonspecular_radiance(const stokvec& I_in,
+                             const stokvec& J,
+                             Complex Rv,
+                             Complex Rh,
+                             const Vector3& k_inc,
+                             const Vector3& k_out,
+                             const Vector3& n_surface);
+
+/** Accumulate non-specular scattered radiance from all visible surface patches.
+ *
+ *  Discretises the reflectance integral
+ *    L_out = J + (1/π) ∑_j R(k̂_j, k̂_out) · L_j · cosθ_P · dΩ_j
+ *  where each visible patch j contributes solid angle
+ *    dΩ_j = A_j · cosα_j / r_j²
+ *  with A_j the cell area on the ellipsoid, α_j the emission angle at j
+ *  (angle between patch j's outward normal and the direction toward P), and
+ *  θ_P the angle of incidence at the scatter point P.
+ *
+ *  @param coords     Visible (lat, lon) pairs [degrees] from visible_coordinates()
+ *  @param sources    Source radiance (stokvec) at each visible coordinate
+ *  @param J          Thermal emission Stokes vector at the scatter point
+ *  @param Rv         Complex Fresnel amplitude for vertical polarisation
+ *  @param Rh         Complex Fresnel amplitude for horizontal polarisation
+ *  @param pos        Scatter-point (lat, lon) [degrees]
+ *  @param h_pos      Scatter-point height [m]
+ *  @param n_surface  Outward unit normal at the scatter point
+ *  @param k_out      Unit propagation direction toward the sensor
+ *  @param ellipsoid  Ellipsoid semi-axes (a, b) [m]
+ *  @param hfield     Height field — provides grid spacing and patch heights
+ *  @return           Outgoing Stokes vector toward the sensor
+ */
+stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
+                                          stokvec_vector_const_view sources,
+                                          const stokvec& J,
+                                          Complex Rv,
+                                          Complex Rh,
+                                          Vector2 pos,
+                                          Numeric h_pos,
+                                          const Vector3& n_surface,
+                                          const Vector3& k_out,
+                                          Vector2 ellipsoid,
+                                          const GeodeticField2& hfield);
 }  // namespace rtepack
