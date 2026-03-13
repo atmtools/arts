@@ -21,6 +21,7 @@
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
 #include <debug.h>
+#include <lagrange_interp.h>
 #include <lin_alg.h>
 #include <math_funcs.h>
 
@@ -77,8 +78,8 @@ std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
   const Numeric coslon = cos(lonrad);
   const Numeric sinlon = sin(lonrad);
 
-  const Numeric dr = coslat * coslon * decef[0] + sinlat * decef[2] +
-                     coslat * sinlon * decef[1];
+  const Numeric dr   = coslat * coslon * decef[0] + sinlat * decef[2] +
+                       coslat * sinlon * decef[1];
   const Numeric dlat = -sinlat * coslon / pos[0] * decef[0] +
                        coslat / pos[0] * decef[2] -
                        sinlat * sinlon / pos[0] * decef[1];
@@ -290,15 +291,15 @@ Vector3 approx_geometrical_tangent_point(Vector3 ecef,
     const Numeric yr = dot(ecef, yunit);
     const Numeric xr = dot(ecef, decef);
     const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
-                             (decef[2] * yunit[2]) / b2);
+                              (decef[2] * yunit[2]) / b2);
     Numeric xx;
     if (B == 0.0) {
       xx = 0.0;
     } else {
-      const Numeric A = (decef[0] * decef[0] + decef[1] * decef[1]) / a2 +
-                        decef[2] * decef[2] / b2;
-      const Numeric C = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
-                        yunit[2] * yunit[2] / b2;
+      const Numeric A      = (decef[0] * decef[0] + decef[1] * decef[1]) / a2 +
+                             decef[2] * decef[2] / b2;
+      const Numeric C      = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
+                             yunit[2] * yunit[2] / b2;
       const Numeric K      = -2.0 * A / B;
       const Numeric factor = 1.0 / (A + (B + C * K) * K);
       xx                   = sqrt(factor);
@@ -406,7 +407,7 @@ Numeric intersection_altitude(Vector3 ecef,
         ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
     const Numeric pp = p * p;
     const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
-                      ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
+                       ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
     if (q > pp)
       l = l_min - 1.0;
     else {
@@ -616,4 +617,120 @@ Vector2 reverse_los(Vector2 los) {
 
 Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell) {
   return ecef2geocentric(geodetic2ecef(pos, ell));
+}
+
+namespace {
+/** Walk grid cells along the chord from observer to candidate, checking whether
+ *  any intermediate terrain cell rises above the linearly-interpolated chord
+ *  height.  Returns true if the line of sight is occluded.
+ */
+bool terrain_occludes(Numeric obs_lat,
+                      Numeric obs_lon,
+                      Numeric h_obs,
+                      Numeric cand_lat,
+                      Numeric cand_lon,
+                      Numeric h_cand,
+                      const Vector& lats,
+                      const Vector& lons,
+                      const GeodeticField2& hfield) {
+  const Numeric dlat = lats[1] - lats[0];
+  const Numeric dlon = lons[1] - lons[0];
+  const Index nlat   = static_cast<Index>(lats.size());
+  const Index nlon   = static_cast<Index>(lons.size());
+
+  // Fractional grid indices
+  const Numeric fi0 = (obs_lat - lats[0]) / dlat;
+  const Numeric fj0 = (obs_lon - lons[0]) / dlon;
+  const Numeric fi1 = (cand_lat - lats[0]) / dlat;
+  const Numeric fj1 = (cand_lon - lons[0]) / dlon;
+
+  const Numeric dfi = fi1 - fi0;
+  const Numeric dfj = fj1 - fj0;
+  const Numeric len = std::sqrt(dfi * dfi + dfj * dfj);
+  if (len < 1.0) return false;  // adjacent — nothing in between
+
+  // Step one cell at a time; skip the two endpoints.
+  // Subtract a small tolerance before ceiling so that floating-point noise
+  // (len = N + tiny_eps) doesn't yield an extra step that revisits the
+  // candidate cell itself.
+  const Index nsteps = static_cast<Index>(std::ceil(len - 1e-9));
+  for (Index k = 1; k < nsteps; ++k) {
+    const Numeric t = static_cast<Numeric>(k) / len;
+    const Index ii  = std::clamp(
+        static_cast<Index>(std::lround(fi0 + t * dfi)), Index(0), nlat - 1);
+    const Index jj = std::clamp(
+        static_cast<Index>(std::lround(fj0 + t * dfj)), Index(0), nlon - 1);
+
+    if (hfield.data[ii, jj] > h_obs + t * (h_cand - h_obs)) return true;
+  }
+  return false;
+}
+}  // anonymous namespace
+
+std::vector<Vector2> visible_coordinates(Vector2 pos,
+                                         Vector2 ellipsoid,
+                                         const GeodeticField2& hfield) {
+  if (not hfield.ok()) return {};
+
+  const Vector& lats = hfield.grid<0>();
+  const Vector& lons = hfield.grid<1>();
+  const Index nlat   = lats.size();
+  const Index nlon   = lons.size();
+  if (nlat < 2 or nlon < 2) return {};
+
+  const Numeric dlat = lats[1] - lats[0];
+  const Numeric dlon = lons[1] - lons[0];
+  const Numeric lat  = pos[0];
+  const Numeric lon  = pos[1];
+
+  // Observer grid index (nearest) and elevation
+  const Index obs_ilat =
+      std::clamp(static_cast<Index>(std::lround((lat - lats[0]) / dlat)),
+                 Index(0),
+                 nlat - 1);
+  const Index obs_ilon =
+      std::clamp(static_cast<Index>(std::lround((lon - lons[0]) / dlon)),
+                 Index(0),
+                 nlon - 1);
+  const Numeric h0 = hfield.data[obs_ilat, obs_ilon];
+
+  // Outward ellipsoid normal at observer
+  const Numeric obs_latrad = DEG2RAD * lat;
+  const Numeric obs_lonrad = DEG2RAD * lon;
+  const Vector3 obs_normal{std::cos(obs_latrad) * std::cos(obs_lonrad),
+                           std::cos(obs_latrad) * std::sin(obs_lonrad),
+                           std::sin(obs_latrad)};
+
+  std::vector<Vector2> out;
+  out.reserve(static_cast<std::size_t>(nlat * nlon));
+
+  for (Index ilat = 0; ilat < nlat; ++ilat) {
+    for (Index ilon = 0; ilon < nlon; ++ilon) {
+      // Skip the 3×3 neighbourhood (avoids dot-product issues for tiny chords)
+      if (std::abs(ilat - obs_ilat) <= 1 and std::abs(ilon - obs_ilon) <= 1)
+        continue;
+
+      const Numeric flat = lats[ilat];
+      const Numeric flon = lons[ilon];
+      const Numeric h_j  = hfield.data[ilat, ilon];
+
+      // The candidate must be on the same side of Earth as the observer
+      // (not behind the globe).  For terrain grids <<< sphere radius this
+      // is equivalent to requiring the candidate's outward normal to have a
+      // positive component along the observer's outward normal.
+      const Numeric cand_latrad = DEG2RAD * flat;
+      const Numeric cand_lonrad = DEG2RAD * flon;
+      const Vector3 cand_normal{std::cos(cand_latrad) * std::cos(cand_lonrad),
+                                std::cos(cand_latrad) * std::sin(cand_lonrad),
+                                std::sin(cand_latrad)};
+      if (dot(cand_normal, obs_normal) <= 0.0) continue;
+
+      // DDA terrain occlusion test
+      if (terrain_occludes(lat, lon, h0, flat, flon, h_j, lats, lons, hfield))
+        continue;
+
+      out.push_back({flat, flon});
+    }
+  }
+  return out;
 }

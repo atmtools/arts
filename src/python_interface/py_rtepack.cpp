@@ -9,6 +9,7 @@
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
 #include <rtepack.h>
+#include <rtepack_surface.h>
 
 #include <algorithm>
 
@@ -638,6 +639,101 @@ outward surface normal.)")
            "n_surface"_a,
            R"(Return the Fresnel Mueller matrix for non-specular reflection with
 independent incident and outgoing directions.)");
+
+  rp.def("specular_reflected_direction",
+         &rtepack::specular_reflected_direction,
+         "k_inc"_a,
+         "n_surface"_a,
+         R"(Return the specular reflection direction.
+
+Parameters
+----------
+k_inc : ~pyarts3.arts.Vector3
+  Unit propagation vector of the incident beam (toward surface)
+n_surface : ~pyarts3.arts.Vector3
+  Outward unit surface normal
+
+Returns
+-------
+k_ref : ~pyarts3.arts.Vector3
+  Unit propagation vector of the specularly reflected beam (away from surface)
+)");
+
+  rp.def(
+      "nonspecular_radiance_from_patches",
+      [](const std::vector<Vector2> &coords,
+         const StokvecVector &sources,
+         const Stokvec &J,
+         Complex Rv,
+         Complex Rh,
+         Vector2 pos,
+         Numeric h_pos,
+         const Vector3 &n_surface,
+         const Vector3 &k_out,
+         Vector2 ellipsoid,
+         const GeodeticField2 &hfield) {
+        return rtepack::nonspecular_radiance_from_patches(coords,
+                                                          sources,
+                                                          J,
+                                                          Rv,
+                                                          Rh,
+                                                          pos,
+                                                          h_pos,
+                                                          n_surface,
+                                                          k_out,
+                                                          ellipsoid,
+                                                          hfield);
+      },
+      "coords"_a,
+      "sources"_a,
+      "J"_a,
+      "Rv"_a,
+      "Rh"_a,
+      "pos"_a,
+      "h_pos"_a,
+      "n_surface"_a,
+      "k_out"_a,
+      "ellipsoid"_a,
+      "hfield"_a,
+      R"(Accumulate non-specular scattered radiance from visible surface patches.
+
+Integrates the reflectance contribution from each visible patch j:
+
+    L_out = J + (1/pi) sum_j  R(k_j, k_out) . L_j . cos(theta_P) . dOmega_j
+
+where dOmega_j is the solid angle of patch j as seen from the scatter point.
+
+Parameters
+----------
+coords : list of ~pyarts3.arts.Vector2
+  Visible (lat, lon) pairs [degrees] - typically from visible_coordinates()
+sources : ~pyarts3.arts.StokvecVector
+  Source radiance at each visible coordinate
+J : ~pyarts3.arts.Stokvec
+  Thermal emission Stokes vector at the scatter point
+Rv : complex
+  Fresnel amplitude for vertical polarisation
+Rh : complex
+  Fresnel amplitude for horizontal polarisation
+pos : ~pyarts3.arts.Vector2
+  Scatter-point (lat, lon) [degrees]
+h_pos : float
+  Scatter-point height [m]
+n_surface : ~pyarts3.arts.Vector3
+  Outward unit normal at the scatter point (ECEF)
+k_out : ~pyarts3.arts.Vector3
+  Unit propagation direction toward the sensor (ECEF)
+ellipsoid : ~pyarts3.arts.Vector2
+  Ellipsoid semi-axes (a, b) [m]
+hfield : ~pyarts3.arts.GeodeticField2
+  Height field - provides grid spacing and patch heights [m]
+
+Returns
+-------
+L_out : ~pyarts3.arts.Stokvec
+  Outgoing Stokes vector toward the sensor
+)");
+
 } catch (std::exception &e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize rtepack\n{}", e.what()));
