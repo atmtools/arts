@@ -411,15 +411,13 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<RayleighScatterer>(m, "RayleighScatterer")
       .def(py::init<>())
-      .def(py::init<RayleighType, Numeric>(),
-           "type"_a,
-           "diameter"_a = 0.0)
+      .def(py::init<RayleighType, Numeric>(), "type"_a, "diameter"_a = 0.0)
       .def_rw("type",
               &RayleighScatterer::type,
-              "Rayleigh scattering model tag")
+              "Rayleigh scattering model tag\n\n.. :class:`RayleighType`")
       .def_rw("diameter",
               &RayleighScatterer::diameter,
-              "Particle diameter [m] (only for WaterDrop)")
+              "Particle diameter [m] (only for WaterDrop)\n\n.. :class:`float`")
       .def(
           "get_bulk_scattering_properties_tro_spectral",
           [](const RayleighScatterer& rs,

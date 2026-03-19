@@ -668,7 +668,7 @@ bool terrain_occludes(Numeric obs_lat,
 }  // anonymous namespace
 
 std::vector<Vector2> visible_coordinates(Vector2 pos,
-                                         Vector2 ellipsoid,
+                                         Vector2,
                                          const GeodeticField2& hfield) {
   if (not hfield.ok()) return {};
 

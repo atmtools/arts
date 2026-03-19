@@ -223,7 +223,7 @@ stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
   constexpr Numeric pi = Constant::pi;
   using Conversion::deg2rad;
 
-  assert(static_cast<Index>(coords.size()) == sources.size());
+  assert(coords.size() == sources.size());
 
   const Vector& lats     = hfield.grid<0>();
   const Vector& lons     = hfield.grid<1>();
