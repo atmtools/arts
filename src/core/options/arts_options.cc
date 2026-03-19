@@ -1084,6 +1084,25 @@ where :math:`D(x)` is the Dawson function.
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "RayleighType",
+      .desc =
+          R"(Selects the Rayleigh scattering model used by RayleighScatterer.
+
+To add a new model, add a value here and implement it in rayleigh_scatterer.cc.
+)",
+      .values_and_desc =
+          {Value{"EarthAir",
+                 R"(Empirical air molecular scattering.
+Pure scattering, no absorption.
+Number density from ideal gas law.
+)"},
+           Value{
+               "WaterDrop",
+               R"(Requires diameter. Number density from liquidcloud field.
+)"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name            = "ZeemanPolarization",
       .desc            = "A flag for the Zeeman polarization state.\n",
       .values_and_desc = {Value{"sm", "Parallel minus."},

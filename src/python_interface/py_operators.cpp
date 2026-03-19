@@ -11,6 +11,7 @@
 #include "henyey_greenstein.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
+
 namespace Python {
 void py_operators(py::module_& m) {
   py::class_<NumericUnaryOperator> nuop(m, "NumericUnaryOperator");

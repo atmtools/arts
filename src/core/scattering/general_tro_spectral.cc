@@ -1,6 +1,11 @@
 #include "general_tro_spectral.h"
 
+#include <arts_conversions.h>
+#include <legendre.h>
+
+#include <cmath>
 #include <memory>
+#include <numbers>
 
 #include "sht.h"
 

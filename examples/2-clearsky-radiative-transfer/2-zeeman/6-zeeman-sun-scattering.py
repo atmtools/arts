@@ -41,6 +41,9 @@ ws.spectral_rad_surface_agendaSet(option="Blackbody")
 ws.ray_path_observer_agendaSetGeometric()
 ws.spectral_propmat_scat_agendaSet(option="AirSimple")
 
+# %% Set up an air Rayleigh scatterer through the ScatteringSpecies interface.
+ws.scat_species = [pyarts.arts.RayleighScatterer(pyarts.arts.RayleighType("EarthAir"))]
+
 # %% Core calculations
 pos = [90e3, 0, 0]
 zens = np.linspace(0, 5, 21)

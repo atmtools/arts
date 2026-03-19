@@ -409,6 +409,32 @@ void py_scattering_species(py::module_& m) try {
           "Get bulk scattering properties")
       .doc() = "Henyey-Greenstein scatterer";
 
+  py::class_<RayleighScatterer>(m, "RayleighScatterer")
+      .def(py::init<>())
+      .def(py::init<RayleighType, Numeric>(),
+           "type"_a,
+           "diameter"_a = 0.0)
+      .def_rw("type",
+              &RayleighScatterer::type,
+              "Rayleigh scattering model tag")
+      .def_rw("diameter",
+              &RayleighScatterer::diameter,
+              "Particle diameter [m] (only for WaterDrop)")
+      .def(
+          "get_bulk_scattering_properties_tro_spectral",
+          [](const RayleighScatterer& rs,
+             const AtmPoint& atm_point,
+             const Vector& f_grid,
+             Index l) {
+            return rs.get_bulk_scattering_properties_tro_spectral(
+                atm_point, f_grid, l);
+          },
+          "atm_point"_a,
+          "f_grid"_a,
+          "l"_a,
+          "Get bulk scattering properties (TRO spectral)")
+      .doc() = "Rayleigh scatterer selected by model tag (RayleighType)";
+
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(
       m, "IrregularZenithAngleGrid");
   irr_grid.def(py::init<Vector>())

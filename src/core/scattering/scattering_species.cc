@@ -1,7 +1,61 @@
 #include "scattering_species.h"
 
+#include <arts_conversions.h>
 #include <stdexcept>
 #include <utility>
+
+template <typename T>
+concept GriddedBulkPropertiesProviderTRO =
+    requires(const T& t,
+             const AtmPoint& atm_point,
+             const Vector& f_grid,
+             std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) {
+      {
+        t.get_bulk_scattering_properties_tro_gridded(
+            atm_point, f_grid, za_scat_grid)
+      } -> std::same_as<
+          BulkScatteringProperties<scattering::Format::TRO,
+                                   scattering::Representation::Gridded>>;
+    };
+
+template <typename T>
+concept SpectralBulkPropertiesProviderTRO = requires(
+    const T& t, const AtmPoint& atm_point, const Vector& f_grid, Index degree) {
+  {
+    t.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree)
+  } -> std::same_as<ScatteringTroSpectralVector>;
+};
+
+template <typename T>
+concept GriddedBulkPropertiesProviderARO =
+    requires(const T& t,
+             const AtmPoint& atm_point,
+             const Vector& f_grid,
+             const Vector& za_inc_grid,
+             const Vector& delta_aa_grid,
+             std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) {
+      {
+        t.get_bulk_scattering_properties_aro_gridded(
+            atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid)
+      } -> std::same_as<
+          BulkScatteringProperties<scattering::Format::ARO,
+                                   scattering::Representation::Gridded>>;
+    };
+
+template <typename T>
+concept SpectralBulkPropertiesProviderARO = requires(const T& t,
+                                                     const AtmPoint& atm_point,
+                                                     const Vector& f_grid,
+                                                     const Vector& za_inc_grid,
+                                                     Index degree,
+                                                     Index order) {
+  {
+    t.get_bulk_scattering_properties_aro_spectral(
+        atm_point, f_grid, za_inc_grid, degree, order)
+  } -> std::same_as<
+      BulkScatteringProperties<scattering::Format::ARO,
+                               scattering::Representation::Spectral>>;
+};
 
 void ArrayOfScatteringSpecies::add(const scattering::Species& species_) {
   species.push_back(species_);
@@ -16,15 +70,16 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded(
     const AtmPoint& atm_point,
     const Vector& f_grid,
     std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) {
+    return {.phase_matrix      = std::nullopt,
+            .extinction_matrix = {},
+            .absorption_vector = {}};
+  }
 
-  const auto visitor = [&](const auto& spec)
+  const auto visitor = [&]<typename T>(const T& spec)
       -> BulkScatteringProperties<scattering::Format::TRO,
                                   scattering::Representation::Gridded> {
-    if constexpr (requires {
-                    spec.get_bulk_scattering_properties_tro_gridded(
-                        atm_point, f_grid, za_scat_grid);
-                  }) {
+    if constexpr (GriddedBulkPropertiesProviderTRO<T>) {
       return spec.get_bulk_scattering_properties_tro_gridded(
           atm_point, f_grid, za_scat_grid);
     } else {
@@ -44,16 +99,52 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded(
   return bsp;
 }
 
+MuelmatVector ArrayOfScatteringSpecies::get_phase_matrix_at_angle(
+    const AtmPoint& atm_point,
+    const Vector& f_grid,
+    const Vector2& los_in,
+    const Vector2& los_out) const {
+  const Size nf = f_grid.size();
+  MuelmatVector Z(nf, rtepack::muelmat{0.0});
+
+  if (species.empty()) return Z;
+
+  const Numeric cos_theta = rtepack::cos_scat_angle(los_in, los_out);
+  const Numeric scat_angle_deg =
+      Conversion::rad2deg(std::acos(cos_theta));
+
+  auto za_grid = std::make_shared<scattering::ZenithAngleGrid>(
+      scattering::IrregularZenithAngleGrid(Vector{scat_angle_deg}));
+
+  auto tro = get_bulk_scattering_properties_tro_gridded(
+      atm_point, f_grid, za_grid);
+
+  if (tro.phase_matrix.has_value()) {
+    const auto& pm = tro.phase_matrix.value();
+    for (Size iv = 0; iv < nf; iv++) {
+      const auto v = pm[0, iv, 0, joker];
+      Z[iv] = rtepack::muelmat(
+          scattering::detail::f11(v), scattering::detail::f12(v), 0.0, 0.0,
+          scattering::detail::f12(v), scattering::detail::f22(v), 0.0, 0.0,
+          0.0, 0.0, scattering::detail::f33(v), scattering::detail::f34(v),
+          0.0, 0.0, scattering::detail::f34(v), scattering::detail::f33(v));
+    }
+  }
+
+  return Z;
+}
+
 ScatteringTroSpectralVector
 ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) {
+    return {.phase_matrix      = std::nullopt,
+            .extinction_matrix = {},
+            .absorption_vector = {}};
+  }
 
   const auto visitor = [&](const auto& spec) -> ScatteringTroSpectralVector {
-    if constexpr (requires {
-                    spec.get_bulk_scattering_properties_tro_spectral(
-                        atm_point, f_grid, degree);
-                  }) {
+    if constexpr (SpectralBulkPropertiesProviderTRO<decltype(spec)>) {
       return spec.get_bulk_scattering_properties_tro_spectral(
           atm_point, f_grid, degree);
     } else {
@@ -81,19 +172,16 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded(
     const Vector& za_inc_grid,
     const Vector& delta_aa_grid,
     std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) {
+    return {.phase_matrix      = std::nullopt,
+            .extinction_matrix = {},
+            .absorption_vector = {}};
+  }
 
   const auto visitor = [&](const auto& spec)
       -> BulkScatteringProperties<scattering::Format::ARO,
                                   scattering::Representation::Gridded> {
-    if constexpr (requires {
-                    spec.get_bulk_scattering_properties_aro_gridded(
-                        atm_point,
-                        f_grid,
-                        za_inc_grid,
-                        delta_aa_grid,
-                        za_scat_grid);
-                  }) {
+    if constexpr (GriddedBulkPropertiesProviderARO<decltype(spec)>) {
       return spec.get_bulk_scattering_properties_aro_gridded(
           atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
     } else {
@@ -126,10 +214,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
   const auto visitor = [&](const auto& spec)
       -> BulkScatteringProperties<scattering::Format::ARO,
                                   scattering::Representation::Spectral> {
-    if constexpr (requires {
-                    spec.get_bulk_scattering_properties_aro_spectral(
-                        atm_point, f_grid, za_inc_grid, degree, order);
-                  }) {
+    if constexpr (SpectralBulkPropertiesProviderARO<decltype(spec)>) {
       return spec.get_bulk_scattering_properties_aro_spectral(
           atm_point, f_grid, za_inc_grid, degree, order);
     } else {
