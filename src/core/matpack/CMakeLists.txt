@@ -18,7 +18,7 @@ add_library(matpack STATIC
   matpack_mdspan_algorithm.cc
 )
 
-find_package (Eigen3 3.4 REQUIRED NO_MODULE)
+find_package (Eigen3 REQUIRED NO_MODULE)
 message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
 
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
