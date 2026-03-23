@@ -11,6 +11,7 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <scattering_species.h>
 #include <sun.h>
 #include <sun_methods.h>
 #include <workspace.h>
@@ -60,8 +61,7 @@ void sunFromGrid(Sun& sun,
                      " m )")
 
   // init sun
-  sun.spectrum = regrid_sun_spectrum(
-      sun_spectrum_raw, f_grid, temperature);  // set spectrum
+  sun.spectrum    = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);
   sun.description = description;
   sun.radius      = radius;
   sun.distance    = distance;
@@ -209,19 +209,10 @@ void spectral_propmat_scatAirSimple(PropmatVector& spectral_propmat_scat,
   ARTS_USER_ERROR_IF(spectral_propmat_scat.size() != nf,
                      "Mismatch in size of spectral_propmat_scat and freq_grid")
 
-  static constexpr std::array coefficients{
-      3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
-
-  const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
+  constexpr scattering::RayleighScatterer rayleigh{};
   for (Size f = 0; f < nf; f++) {
-    const Numeric wavelen = Conversion::freq2wavelen(freq_grid[f]) * 1e6;
-    Numeric sum           = 0;
-    Numeric pows          = 1;
-    for (auto& coef : coefficients) {
-      sum  += coef * pows;
-      pows /= Math::pow2(wavelen);
-    }
-    spectral_propmat_scat[f].A() += 1e-32 * nd * sum / Math::pow4(wavelen);
+    const auto [sca, abs] = rayleigh.cross_sections(freq_grid[f], atm_point);
+    spectral_propmat_scat[f].A() += sca + abs;
   }
 }
 
@@ -303,12 +294,14 @@ void spectral_rad_srcvec_pathAddScattering(
   }
 }
 
-void spectral_rad_scat_pathSunsFirstOrderRayleigh(
+void spectral_rad_scat_pathSunsFirstOrder(
     const Workspace& ws,
     // [np, nf]:
     ArrayOfStokvecVector& spectral_rad_scat_path,
-    // [np, nf]:
-    const ArrayOfPropmatVector& spectral_propmat_scat_path,
+    // [np]:
+    const ArrayOfScatteringSpecies& scat_species,
+    // [np]:
+    const ArrayOfAtmPoint& atm_path,
     // [np]:
     const ArrayOfPropagationPathPoint& ray_path,
     // [np, suns, np2]:
@@ -323,7 +316,6 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
     const SurfaceField& surf_field,
     const Agenda& spectral_propmat_agenda,
     const TransmittanceOption& rte_option,
-    const Numeric& depolarization_factor,
     const Index& hse_derivative) try {
   ARTS_TIME_REPORT
 
@@ -335,9 +327,8 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
   ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
 
   const Size np = ray_path.size();
-  ARTS_USER_ERROR_IF(
-      np != spectral_propmat_scat_path.size(),
-      "Bad spectral_propmat_scat_path: incorrect number of path points")
+  ARTS_USER_ERROR_IF(np != atm_path.size(),
+                     "Bad atm_path: incorrect number of path points")
   ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(),
                      "Bad ray_path_suns_path: incorrect number of path points")
 
@@ -352,7 +343,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
       stdr::any_of(spectral_rad_scat_path,
                    Cmp::ne(nf),
                    [](auto& v) { return v.size(); }),
-      "Bad spectral_rad_srcvec_path: incorrect number of frequencies")
+      "Bad spectral_rad_scat_path: incorrect number of frequencies")
 
   StokvecVector spectral_rad{};
   StokvecMatrix spectral_rad_jac{};
@@ -376,9 +367,8 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
     try {
       auto& spectral_rad_scattered = spectral_rad_scat_path[ip];
 
-      const auto& spectral_propmat_scat = spectral_propmat_scat_path[ip];
-      const auto& ray_point             = ray_path[ip];
-      const auto& suns_path             = ray_path_suns_path[ip];
+      const auto& ray_point = ray_path[ip];
+      const auto& suns_path = ray_path_suns_path[ip];
 
       for (Size isun = 0; isun < nsuns; isun++) {
         const auto& sun_path = suns_path[isun];
@@ -413,16 +403,13 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
             pi * suns[isun].sin_alpha_squared(sun_path.back().pos,
                                               surf_field.ellipsoid);
 
-        const Muelmat scatmat =
-            rtepack::rayleigh_scattering(
-                sun_path.front().los, ray_point.los, depolarization_factor) /
-            (4 * pi);
+        // Scattering phase matrix at the angle between sun and ray.
+        const auto Z = scat_species.get_phase_matrix_at_angle(
+            atm_path[ip], freq_grid, sun_path.front().los, ray_point.los);
 
-        // Add the source to the target
         for (Size iv = 0; iv < nf; iv++) {
-          spectral_rad_scattered[iv] += spectral_propmat_scat[iv] * scatmat *
-                                        radiance_2_irradiance *
-                                        spectral_rad[iv];
+          spectral_rad_scattered[iv] +=
+              Z[iv] * radiance_2_irradiance * spectral_rad[iv];
         }
       }
     } catch (const std::exception& e) {

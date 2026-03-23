@@ -197,7 +197,12 @@ This method simply is a convenience wrapper for that use case.
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "spectral_radClearskyRayleighScattering",
       .desc =
-          "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
+          "Computes clearsky emission of spectral radiances with first-order "
+          "solar scattering from scattering species.\n\n"
+          "The scattering phase matrix is obtained from the species in "
+          "*scat_species* via the get_phase_matrix dispatch, so any "
+          "ScatteringSpecies variant that implements the method contributes "
+          "automatically.",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
@@ -208,7 +213,7 @@ This method simply is a convenience wrapper for that use case.
                   "spectral_propmat_pathAddScattering",
                   "spectral_tramat_pathFromPath",
                   "spectral_rad_srcvec_pathFromPropmat",
-                  "spectral_rad_scat_pathSunsFirstOrderRayleigh",
+                  "spectral_rad_scat_pathSunsFirstOrder",
                   "spectral_rad_srcvec_pathAddScattering",
                   "spectral_radStepByStepEmission",
                   "spectral_rad_jacFromBackground",
@@ -360,6 +365,27 @@ gridded using *atm_profileExtract*.
                   "abs_lookup_dataInit",
                   "abs_lookup_dataPrecomputeAll"},
       .out     = {"abs_lookup_data"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "measurement_vecRadarSingleScat",
+      .desc = R"(Full monostatic radar forward model using the single-scattering
+approximation.
+
+Chains ``radar_bulk_backscatterFromScat``,
+``radar_spectral_radSingleScat``, and
+``measurement_vecFromRadarSpectralRad`` into a single call.
+
+The scattering species in *scat_species* provide the backscatter
+phase matrix and extinction along the path.  Gas absorption is
+included if *spectral_propmat_path* is already set (e.g. via
+``spectral_propmat_pathFromPath``).
+)",
+      .author  = {"Patrick Eriksson", "Richard Larsson"},
+      .methods = {"radar_bulk_backscatterFromScat",
+                  "radar_spectral_radSingleScat",
+                  "measurement_vecFromRadarSpectralRad"},
+      .out     = {"measurement_vec", "spectral_propmat_path"},
   });
 
   return wsm_meta;

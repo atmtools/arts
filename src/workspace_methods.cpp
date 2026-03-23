@@ -1846,6 +1846,10 @@ This method must be used inside *spectral_propmat_scat_agenda* and then be calle
   wsm_data["spectral_propmat_scatAirSimple"] = {
       .desc =
           R"--(Add simple air to *spectral_propmat_scat*.
+
+This is equivalent to pure absorption using a *RayleighType*
+of Earth air and using it to add cross-section to the
+scattering part of the propagation matrix.
 )--",
       .author = {"Jon Petersen", "Richard Larsson"},
       .out    = {"spectral_propmat_scat"},
@@ -4795,26 +4799,33 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
            "A description of the sun."},
   };
 
-  wsm_data["spectral_rad_scat_pathSunsFirstOrderRayleigh"] = {
-      .desc           = R"--(Add *suns* to *spectral_rad_srcvec_path*.
+  wsm_data["spectral_rad_scat_pathSunsFirstOrder"] = {
+      .desc   = R"--(Add first-order sun scattering source from *scat_species*.
+
+Uses the phase matrix from each scattering species variant
+(via the ``get_phase_matrix`` dispatch) to compute the
+first-order single-scattering source from each sun along the path.
+
+Every species in *scat_species* that implements ``get_phase_matrix``
+contributes its full (polarimetric) scattering matrix automatically.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_rad_scat_path"},
-      .in             = {"spectral_propmat_scat_path",
-                         "ray_path",
-                         "ray_path_suns_path",
-                         "suns",
-                         "jac_targets",
-                         "freq_grid",
-                         "atm_field",
-                         "surf_field",
-                         "spectral_propmat_agenda",
-                         "rte_option"},
-      .gin            = {"depolarization_factor", "hse_derivative"},
-      .gin_type       = {"Numeric", "Index"},
-      .gin_value      = {Numeric{0.0}, Index{0}},
-      .gin_desc       = {R"--(The depolarization factor to use.)--",
-                         "Flag to compute the hypsometric distance derivatives"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_rad_scat_path"},
+      .in     = {"scat_species",
+                 "atm_path",
+                 "ray_path",
+                 "ray_path_suns_path",
+                 "suns",
+                 "jac_targets",
+                 "freq_grid",
+                 "atm_field",
+                 "surf_field",
+                 "spectral_propmat_agenda",
+                 "rte_option"},
+      .gin            = {"hse_derivative"},
+      .gin_type       = {"Index"},
+      .gin_value      = {Index{0}},
+      .gin_desc       = {"Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
   };
 
@@ -4956,6 +4967,99 @@ path parameters.
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path", "spectral_rad_bkg"},
+  };
+
+  wsm_data["radar_spectral_radSingleScat"] = {
+      .desc   = R"--(Radar single-scattering forward model.
+
+Simulates monostatic radar backscatter along a propagation path using
+the single-scattering approximation.  Two-way attenuation by both
+gases and particles is included via the propagation matrices along
+the path.
+
+The bulk backscatter phase matrix should already be weighted by
+particle number densities (e.g., computed by a scattering method).
+
+The output *radar_spectral_rad* has dimensions [nf, np] where each
+element is a Stokes vector (I, Q, U, V).
+)--",
+      .author = {"Patrick Eriksson", "Richard Larsson"},
+      .out    = {"radar_spectral_rad"},
+      .in     = {"ray_path",
+                 "freq_grid",
+                 "surf_field",
+                 "spectral_propmat_path",
+                 "radar_bulk_backscatter",
+                 "radar_spectral_rad_transmitter",
+                 "radar_pext_scaling"},
+  };
+
+  wsm_data["measurement_vecFromRadarSpectralRad"] = {
+      .desc   = R"--(Convert radar spectral radiance to a measurement vector.
+
+Applies range binning, unit conversion, and polarisation extraction
+to the per-path-point backscatter from *radar_spectral_radSingleScat*.
+
+Range bins are specified as altitude edges [m] (if max > 1) or
+two-way travel-time edges [s].  Within each bin the path-point
+values are averaged using trapezoidal weights.
+
+Supported units (set via *radar_unit*):
+
+- ``"1"``:  raw backscatter coefficient [1/(m sr)]
+- ``"Ze"``: equivalent reflectivity factor [mm6/m3]
+- ``"dBZe"``: 10 log10(Ze) [dBZ]
+)--",
+      .author = {"Patrick Eriksson", "Richard Larsson"},
+      .out    = {"measurement_vec"},
+      .in     = {"radar_spectral_rad",
+                 "ray_path",
+                 "freq_grid",
+                 "surf_field",
+                 "radar_range_bins",
+                 "radar_unit",
+                 "radar_ze_tref",
+                 "radar_k2",
+                 "radar_dbze_min"},
+  };
+
+  wsm_data["radar_ze_cfacCalc"] = {
+      .desc = R"--(Compute conversion factor from backscatter coefficient to Ze.
+
+The factor is ``(4e18 / pi^4) * lambda^4 / |K|^2`` per frequency,
+where ``|K|^2`` is the dielectric factor of liquid water.  When
+*radar_k2* is negative, ``|K|^2`` is computed from the Liebe 1993
+refractive index model at *radar_ze_tref*.
+)--",
+      .author = {"Patrick Eriksson", "Richard Larsson"},
+      .out    = {"radar_ze_cfac"},
+      .in     = {"freq_grid", "radar_ze_tref", "radar_k2"},
+  };
+
+  wsm_data["radar_bulk_backscatterFromScat"] = {
+      .desc   = R"--(Build radar bulk backscatter and propagation matrices from
+scattering species.
+
+For each path point, queries every scattering species in *scat_species*
+for its radar single-scattering data (backscatter phase matrix at 180°
+and extinction cross-section) via std::visit dispatch.  The bulk
+backscatter and extinction are accumulated across all species.
+
+If *spectral_propmat_path* already has entries (e.g. from gas
+absorption via ``spectral_propmat_pathFromPath``), the particle
+extinction is added on top.  Otherwise the propagation matrices are
+initialised to zero and only particle extinction is included.
+
+The particle extinction added to *spectral_propmat_path* is multiplied
+by *radar_pext_scaling* (0 = no extinction, 1 = full).
+)--",
+      .author = {"Patrick Eriksson", "Richard Larsson"},
+      .out    = {"radar_bulk_backscatter", "spectral_propmat_path"},
+      .in     = {"scat_species",
+                 "atm_path",
+                 "freq_grid",
+                 "radar_pext_scaling",
+                 "spectral_propmat_path"},
   };
 
   wsm_data["OEM"] = {

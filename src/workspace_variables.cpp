@@ -612,6 +612,114 @@ The object should have these sizes internally:
       .type = "ArrayOfMuelmatVector",
   };
 
+  //! Radar
+
+  wsv_data["radar_spectral_rad"] = {
+      .desc = R"--(Radar backscattered spectral radiance.
+
+Contains the Stokes vector returned from each path point for each frequency.
+Dimensions: [nf, np] where nf is the number of frequencies
+and np is the number of path points.
+)--",
+      .type = "StokvecMatrix",
+  };
+
+  wsv_data["radar_spectral_rad_transmitter"] = {
+      .desc = R"--(Transmitter Stokes vector for radar calculations.
+
+One Stokes vector per frequency.  The first element (I) should
+normally be 1.
+
+Dimension: *freq_grid*.
+)--",
+      .type = "StokvecVector",
+  };
+
+  wsv_data["radar_unit"] = {
+      .desc          = R"--(Unit for radar reflectivity output.
+
+Allowed values:
+
+- ``"1"``:  Backscatter coefficient [1/(m sr)]
+- ``"Ze"``: Equivalent reflectivity factor [mm6/m3]
+- ``"dBZe"``: 10*log10(Ze) [dBZ]
+)--",
+      .type          = "String",
+      .default_value = "\"dBZe\"",
+  };
+
+  wsv_data["radar_range_bins"] = {
+      .desc = R"--(Range bin edges for radar simulations.
+
+Defines the boundaries for range averaging.  Must be strictly
+increasing.  If the maximum value exceeds 1, the values are
+interpreted as altitudes [m].  Otherwise they are interpreted as
+two-way travel times [s].
+
+Dimension: nbins + 1.
+)--",
+      .type = "Vector",
+  };
+
+  wsv_data["radar_ze_cfac"] = {
+      .desc =
+          R"--(Conversion factor from backscatter coefficient to reflectivity.
+
+Computed by *radar_ze_cfacCalc*.  One value per frequency.
+)--",
+      .type = "Vector",
+  };
+
+  wsv_data["radar_ze_tref"] = {
+      .desc = R"--(Reference temperature for the dielectric factor of water [K].
+
+Used in the Ze conversion.  Default is 273.15 K.
+)--",
+      .type          = "Numeric",
+      .default_value = "273.15",
+  };
+
+  wsv_data["radar_k2"] = {
+      .desc          = R"--(Dielectric factor |K|^2 for Ze conversion.
+
+If negative, |K|^2 is calculated from the Liebe93 refractive index
+model at *radar_ze_tref*.
+)--",
+      .type          = "Numeric",
+      .default_value = "-1.0",
+  };
+
+  wsv_data["radar_dbze_min"] = {
+      .desc          = R"--(Minimum dBZe value reported.
+
+Below *radar_dbze_min* the output is set to this value instead of -Inf.
+)--",
+      .type          = "Numeric",
+      .default_value = "-99.0",
+  };
+
+  wsv_data["radar_pext_scaling"] = {
+      .desc = R"--(Scaling factor for particle extinction in radar simulations.
+
+A factor applied to particle extinction.  Must be in [0, 2].
+Default is 1 (no scaling).
+)--",
+      .type = "Numeric",
+      .default_value = "1.0",
+  };
+
+  wsv_data["radar_bulk_backscatter"] = {
+      .desc = R"--(Bulk backscatter phase matrix along the propagation path.
+
+Pre-weighted (by particle number densities) backscatter phase matrix
+for each path point and frequency.
+
+Dimension: [np][nf], where np is the number of path points and nf
+is the number of frequencies.  Each element is a 4x4 Mueller matrix.
+)--",
+      .type = "ArrayOfMuelmatVector",
+  };
+
   //! Surface
 
   wsv_data["surf_field"] = {

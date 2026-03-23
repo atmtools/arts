@@ -8,6 +8,7 @@ add_library(scattering STATIC
    utils.cc
    phase_matrix.cc
    henyey_greenstein.cc
+   rayleigh_scatterer.cc
    particle_habit.cc
    scattering_habit.cc
    bulk_scattering_properties.cc

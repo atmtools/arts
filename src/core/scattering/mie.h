@@ -42,6 +42,43 @@ namespace scattering {
 using Math::pow2;
 using Math::pow3;
 
+/** Calculates the complex refractive index of liquid water following Liebe 1993.
+ *
+ * This is the widely-used double-Debye model from C. Mätzler's epswater93,
+ * following the paper version in AGARD CP-May93.  Used in radar applications
+ * for computing the dielectric factor |K|² at a reference temperature.
+ *
+ * @param frequency The frequency in Hz
+ * @param temperature The temperature in K
+ * @return The complex refractive index sqrt(epsilon)
+ */
+template <typename Scalar>
+std::complex<Scalar> refr_index_water_liebe93(Scalar frequency,
+                                              Scalar temperature) {
+  const Scalar theta = 1.0 - 300.0 / temperature;
+  const Scalar e0    = 77.66 - 103.3 * theta;
+  const Scalar e1    = 0.0671 * e0;
+  const Scalar f1    = 20.2 + 146.0 * theta + 316.0 * theta * theta;
+  const Scalar e2    = 3.52;
+  const Scalar f2    = 39.8 * f1;
+
+  const std::complex<Scalar> ifGHz(0.0, frequency / 1e9);
+
+  return std::sqrt(e2 + (e1 - e2) / (1.0 - ifGHz / f2) +
+                   (e0 - e1) / (1.0 - ifGHz / f1));
+}
+
+/** Calculates the complex dielectric factor K = (n²-1)/(n²+2).
+ *
+ * @param n Complex refractive index
+ * @return The complex K factor
+ */
+template <typename Scalar>
+std::complex<Scalar> dielectric_factor(std::complex<Scalar> n) {
+  auto n2 = n * n;
+  return (n2 - 1.0) / (n2 + 2.0);
+}
+
 /** Calculates the refractive index of water following [3].
  *
  * The implementation is essentially copied from refraction.cc but included
@@ -53,33 +90,33 @@ using Math::pow3;
 template <typename Scalar>
 std::complex<Scalar> refr_index_water_ellison07(Scalar frequency,
                                                 Scalar temperature) {
-  Numeric pi = std::numbers::pi_v<double>;
+  Numeric pi     = std::numbers::pi_v<double>;
   Numeric two_pi = pi * 2.0;
 
   // ELL07 model parameters - table 2 in Ellison (2007)
-  constexpr Numeric a1 = 79.23882;
-  constexpr Numeric a2 = 3.815866;
-  constexpr Numeric a3 = 1.634967;
-  constexpr Numeric tc = 133.1383;
-  constexpr Numeric b1 = 0.004300598;
-  constexpr Numeric b2 = 0.01117295;
-  constexpr Numeric b3 = 0.006841548;
-  constexpr Numeric c1 = 1.382264e-13;
-  constexpr Numeric c2 = 3.510354e-16;
-  constexpr Numeric c3 = 6.30035e-15;
-  constexpr Numeric d1 = 652.7648;
-  constexpr Numeric d2 = 1249.533;
-  constexpr Numeric d3 = 405.5169;
-  constexpr Numeric p0 = 0.8379692;
-  constexpr Numeric p1 = -0.006118594;
-  constexpr Numeric p2 = -0.000012936798;
-  constexpr Numeric p3 = 4235901000000.0;
-  constexpr Numeric p4 = -14260880000.0;
-  constexpr Numeric p5 = 273815700.0;
-  constexpr Numeric p6 = -1246943.0;
-  constexpr Numeric p7 = 9.618642e-14;
-  constexpr Numeric p8 = 1.795786e-16;
-  constexpr Numeric p9 = -9.310017E-18;
+  constexpr Numeric a1  = 79.23882;
+  constexpr Numeric a2  = 3.815866;
+  constexpr Numeric a3  = 1.634967;
+  constexpr Numeric tc  = 133.1383;
+  constexpr Numeric b1  = 0.004300598;
+  constexpr Numeric b2  = 0.01117295;
+  constexpr Numeric b3  = 0.006841548;
+  constexpr Numeric c1  = 1.382264e-13;
+  constexpr Numeric c2  = 3.510354e-16;
+  constexpr Numeric c3  = 6.30035e-15;
+  constexpr Numeric d1  = 652.7648;
+  constexpr Numeric d2  = 1249.533;
+  constexpr Numeric d3  = 405.5169;
+  constexpr Numeric p0  = 0.8379692;
+  constexpr Numeric p1  = -0.006118594;
+  constexpr Numeric p2  = -0.000012936798;
+  constexpr Numeric p3  = 4235901000000.0;
+  constexpr Numeric p4  = -14260880000.0;
+  constexpr Numeric p5  = 273815700.0;
+  constexpr Numeric p6  = -1246943.0;
+  constexpr Numeric p7  = 9.618642e-14;
+  constexpr Numeric p8  = 1.795786e-16;
+  constexpr Numeric p9  = -9.310017E-18;
   constexpr Numeric p10 = 1.655473e-19;
   constexpr Numeric p11 = 0.6165532;
   constexpr Numeric p12 = 0.007238532;
@@ -101,16 +138,16 @@ std::complex<Scalar> refr_index_water_ellison07(Scalar frequency,
   const Numeric delta1 = a1 * exp(-b1 * t_cels);
   const Numeric delta2 = a2 * exp(-b2 * t_cels);
   const Numeric delta3 = a3 * exp(-b3 * t_cels);
-  const Numeric tau1 = c1 * exp(d1 / (t_cels + tc));
-  const Numeric tau2 = c2 * exp(d2 / (t_cels + tc));
-  const Numeric tau3 = c3 * exp(d3 / (t_cels + tc));
+  const Numeric tau1   = c1 * exp(d1 / (t_cels + tc));
+  const Numeric tau2   = c2 * exp(d2 / (t_cels + tc));
+  const Numeric tau3   = c3 * exp(d3 / (t_cels + tc));
   const Numeric delta4 = p0 + p1 * t_cels + p2 * pow2(t_cels);
   const Numeric f0 = p3 + p4 * t_cels + p5 * pow2(t_cels) + p6 * pow3(t_cels);
   const Numeric tau4 =
       p7 + p8 * t_cels + p9 * pow2(t_cels) + p10 * pow3(t_cels);
   const Numeric delta5 = p11 + p12 * t_cels + p13 * pow2(t_cels);
-  const Numeric f1 = p14 + p15 * t_cels + p16 * pow2(t_cels);
-  const Numeric tau5 = p17 + p18 * t_cels + p19 * pow2(t_cels);
+  const Numeric f1     = p14 + p15 * t_cels + p16 * pow2(t_cels);
+  const Numeric tau5   = p17 + p18 * t_cels + p19 * pow2(t_cels);
 
   const Numeric epsilon_real =
       epsilon_s -
@@ -158,17 +195,17 @@ std::complex<Scalar> refr_index_ice_matzler06(Scalar frequency,
   // some parametrization constants
   const Scalar B1 = 0.0207;
   const Scalar B2 = 1.16e-11;
-  const Scalar b = 335.;
+  const Scalar b  = 335.;
 
   const Scalar deltabeta = exp(-9.963 + 0.0372 * (temperature - 273));
-  const Scalar ebdt = exp(b / temperature);
+  const Scalar ebdt      = exp(b / temperature);
   const Scalar betam = (B1 / temperature) * ebdt / ((ebdt - 1.) * (ebdt - 1.));
 
   const Scalar theta = 300. / temperature - 1;
-  const Scalar alfa = (0.00504 + 0.0062 * theta) * exp(-22.1 * theta);
-  const Scalar reps = 3.1884 + 9.1e-4 * (temperature - 273);
+  const Scalar alfa  = (0.00504 + 0.0062 * theta) * exp(-22.1 * theta);
+  const Scalar reps  = 3.1884 + 9.1e-4 * (temperature - 273);
 
-  Scalar f = frequency / 1e9;
+  Scalar f    = frequency / 1e9;
   Scalar beta = betam + B2 * f * f + deltabeta;
   Scalar ieps = alfa / f + beta * f;
 
@@ -200,7 +237,7 @@ VectorGen<std::complex<Scalar>> log_derivative(std::complex<Scalar> rho,
 
   result[n_steps - 1] = {0.0, 0.0};
   for (size_t step = n_steps - 1; step > 0; --step) {
-    Scalar n_f = static_cast<Scalar>(step + 1);
+    Scalar n_f       = static_cast<Scalar>(step + 1);
     result[step - 1] = n_f / rho - static_cast<std::complex<Scalar>>(1.0) /
                                        (result[step] + n_f / rho);
   }
@@ -253,8 +290,8 @@ class MieSphere {
                           Scalar temperature,
                           Scalar radius,
                           StridedConstVectorView theta) {
-    Scalar c = 2.99792458e8;
-    Scalar lambda = c / frequency;
+    Scalar c       = 2.99792458e8;
+    Scalar lambda  = c / frequency;
     std::complex n = refr_index_water_ellison07(frequency, temperature);
     return MieSphere(lambda, radius, n, theta);
   }
@@ -273,8 +310,8 @@ class MieSphere {
                        Scalar temperature,
                        Scalar radius,
                        VectorGen<Scalar> theta) {
-    Scalar c = 2.99792458e8;
-    Scalar lambda = c / frequency;
+    Scalar c       = 2.99792458e8;
+    Scalar lambda  = c / frequency;
     std::complex n = refr_index_ice_matzler06(frequency, temperature);
     return MieSphere(lambda, radius, n, theta);
   }
@@ -336,7 +373,7 @@ class MieSphere {
      * for all requested scattering angles.
      */
   MatrixGen<Scalar> get_scattering_matrix_compact() {
-    Scalar k = std::numbers::pi_v<Scalar> * 2.0 / lambda_;
+    Scalar k       = std::numbers::pi_v<Scalar> * 2.0 / lambda_;
     Index n_angles = s_1_.size();
     VectorGen<Scalar> s11(n_angles);
     VectorGen<Scalar> s12(n_angles);
@@ -355,13 +392,13 @@ class MieSphere {
     }
 
     MatrixGen<Scalar> result{theta_.size(), 6};
-    result[joker, 0] = s11;
-    result[joker, 1] = s12;
-    result[joker, 2] = s11;
-    result[joker, 3] = s33;
-    result[joker, 4] = s34;
-    result[joker, 5] = s33;
-    result /= (k * k);
+    result[joker, 0]  = s11;
+    result[joker, 1]  = s12;
+    result[joker, 2]  = s11;
+    result[joker, 3]  = s33;
+    result[joker, 4]  = s34;
+    result[joker, 5]  = s33;
+    result           /= (k * k);
     return result;
   }
 
@@ -373,9 +410,9 @@ class MieSphere {
      */
   void calculate_mie_parameters() {
     std::complex<Numeric> rho = x_ * n_;
-    size_t n_steps_x = static_cast<size_t>(x_ + 4.0 * pow(x_, 1.0 / 3.0) + 2);
+    size_t n_steps_x   = static_cast<size_t>(x_ + 4.0 * pow(x_, 1.0 / 3.0) + 2);
     size_t n_steps_rho = static_cast<size_t>(abs(rho));
-    size_t n_steps_D = std::max(n_steps_x, n_steps_rho) + 15;
+    size_t n_steps_D   = std::max(n_steps_x, n_steps_rho) + 15;
 
     auto D = log_derivative<Numeric>(rho, n_steps_D);
 
@@ -394,9 +431,9 @@ class MieSphere {
     Index n_angs = theta_.size();
 
     VectorGen<Numeric> pi_1(n_angs);
-    pi_1 = 0.0;
-    VectorGen<Numeric> pi = pi_1;
-    pi += 1.0;
+    pi_1                   = 0.0;
+    VectorGen<Numeric> pi  = pi_1;
+    pi                    += 1.0;
     VectorGen<Numeric> pi_2;
 
     // First step of iteration corresponds to n = 1
@@ -412,17 +449,17 @@ class MieSphere {
       b_n_1 = b_n;
 
       // Mie parameters
-      a_n = (D[step] / n_ + step_f / x_) * psi - psi_1;
+      a_n  = (D[step] / n_ + step_f / x_) * psi - psi_1;
       a_n /= ((D[step] / n_ + step_f / x_) * xi - xi_1);
-      b_n = (D[step] * n_ + step_f / x_) * psi - psi_1;
+      b_n  = (D[step] * n_ + step_f / x_) * psi - psi_1;
       b_n /= ((D[step] * n_ + step_f / x_) * xi - xi_1);
 
       // Scattering parameters
-      Numeric n2p1 = 2.0 * step_f + 1.0;
-      Numeric n2p1_nnp1 = n2p1 / (step_f * (step_f + 1.0));
-      q_sca_ += n2p1 * (pow(abs(a_n), 2) + pow(abs(b_n), 2));
-      q_ext_ += n2p1 * (a_n.real() + b_n.real());
-      q_back_acc += n2p1 * std::pow(-1, step + 1) * (a_n - b_n);
+      Numeric n2p1       = 2.0 * step_f + 1.0;
+      Numeric n2p1_nnp1  = n2p1 / (step_f * (step_f + 1.0));
+      q_sca_            += n2p1 * (pow(abs(a_n), 2) + pow(abs(b_n), 2));
+      q_ext_            += n2p1 * (a_n.real() + b_n.real());
+      q_back_acc        += n2p1 * std::pow(-1, step + 1) * (a_n - b_n);
       g_sca_ +=
           (n2p1_nnp1 * (a_n.real() * b_n.real() + a_n.imag() * b_n.imag()));
       if (step > 0) {
@@ -433,7 +470,7 @@ class MieSphere {
 
       VectorGen<Numeric> tau(n_angs);
       for (Index i = 0; i < n_angs; ++i) {
-        tau[i] = step_f * mu[i] * pi[i] - (step_f + 1.0) * pi_1[i];
+        tau[i]   = step_f * mu[i] * pi[i] - (step_f + 1.0) * pi_1[i];
         s_1_[i] += n2p1_nnp1 * (a_n * pi[i] + b_n * tau[i]);
         s_2_[i] += n2p1_nnp1 * (a_n * tau[i] + b_n * pi[i]);
       }
@@ -443,7 +480,7 @@ class MieSphere {
       psi_1 = psi;
       chi_2 = chi_1;
       chi_1 = chi;
-      xi_1 = xi;
+      xi_1  = xi;
 
       pi_2 = pi_1;
       pi_1 = pi;
@@ -453,10 +490,10 @@ class MieSphere {
       }
     }
 
-    g_sca_ *= 2.0 / q_sca_;
-    q_sca_ *= 2.0 / (x_ * x_);
-    q_back_ = pow(abs(q_back_acc), 2) / (x_ * x_);
-    q_ext_ *= 2.0 / (x_ * x_);
+    g_sca_  *= 2.0 / q_sca_;
+    q_sca_  *= 2.0 / (x_ * x_);
+    q_back_  = pow(abs(q_back_acc), 2) / (x_ * x_);
+    q_ext_  *= 2.0 / (x_ * x_);
   }
 
   Scalar lambda_;           // The wavelength.
@@ -467,6 +504,99 @@ class MieSphere {
   VectorGen<Scalar> theta_;
   VectorGen<std::complex<Scalar>> s_1_, s_2_;
 };
+
+/** Rayleigh sphere — analytic scattering in the small-particle limit.
+ *
+ * Valid when the size parameter x = π D / λ ≪ 1.
+ * Provides the same interface as MieSphere for the quantities needed by
+ * the radar forward model (extinction, backscattering, phase matrix).
+ *
+ * All formulae follow Bohren & Huffman (1983), Eqs. 5.7–5.16.
+ */
+template <std::floating_point Scalar>
+class RayleighSphere {
+ public:
+  /** Create a Rayleigh sphere.
+   *
+   * @param frequency Frequency in Hz
+   * @param temperature Temperature in K
+   * @param diameter Particle diameter in m
+   * @param n Complex refractive index of the particle material
+   */
+  RayleighSphere(Scalar frequency,
+                 [[maybe_unused]] Scalar temperature,
+                 Scalar diameter,
+                 std::complex<Scalar> n)
+      : frequency_(frequency), diameter_(diameter), K_(dielectric_factor(n)) {
+    constexpr Scalar pi = std::numbers::pi_v<Scalar>;
+    const Scalar la     = Constant::speed_of_light / frequency;
+    const Scalar r      = diameter / 2;
+    const Scalar x      = pi * diameter / la;
+
+    // Absorption cross-section (Bohren & Huffman Eq. 5.11)
+    c_abs_ = pi * r * r * 4.0 * x * K_.imag();
+
+    // Scattering cross-section (Bohren & Huffman Eq. 5.8)
+    c_sca_ = pi * r * r * (8.0 / 3.0) * x * x * x * x * std::norm(K_);
+
+    // Backscatter cross-section per steradian:
+    //   dσ_back/dΩ = π⁴ D⁶ |K|² / (4 λ⁴)
+    // This is the (1,1) element of the 4×4 phase matrix at 180°.
+    z11_ = Math::pow4(pi) * std::pow(diameter, Scalar{6}) * std::norm(K_) /
+           (4.0 * Math::pow4(la));
+  }
+
+  /** Create a Rayleigh sphere for liquid water (Liebe 1993 model).
+   *
+   * @param frequency Frequency in Hz
+   * @param temperature Temperature in K
+   * @param diameter Particle diameter in m
+   */
+  static RayleighSphere Liquid(Scalar frequency,
+                               Scalar temperature,
+                               Scalar diameter) {
+    auto n = refr_index_water_liebe93(frequency, temperature);
+    return RayleighSphere(frequency, temperature, diameter, n);
+  }
+
+  /// Extinction cross-section [m²]
+  Scalar get_extinction_coeff() const { return c_abs_ + c_sca_; }
+
+  /// Absorption cross-section [m²]
+  Scalar get_absorption_coeff() const { return c_abs_; }
+
+  /// Scattering cross-section [m²]
+  Scalar get_scattering_coeff() const { return c_sca_; }
+
+  /// Backscatter cross-section per steradian (Z11 at 180°) [m² sr⁻¹]
+  Scalar get_backscatter_z11() const { return z11_; }
+
+  /// Dielectric factor K = (n²-1)/(n²+2)
+  std::complex<Scalar> get_K() const { return K_; }
+
+  /// |K|²
+  Scalar get_K2() const { return std::norm(K_); }
+
+  /** 4×4 backscatter phase matrix at exactly 180°.
+   *
+   * For a Rayleigh sphere, the backscatter matrix is:
+   *   diag(z11, z11, -z11, -z11)
+   * (sign flip in S33, S44 due to exact backscatter geometry).
+   */
+  std::array<Scalar, 16> get_backscatter_matrix() const {
+    // Row-major 4×4
+    return {z11_, 0, 0, 0, 0, z11_, 0, 0, 0, 0, -z11_, 0, 0, 0, 0, -z11_};
+  }
+
+ private:
+  Scalar frequency_;
+  Scalar diameter_;
+  std::complex<Scalar> K_;
+  Scalar c_abs_{0};
+  Scalar c_sca_{0};
+  Scalar z11_{0};
+};
+
 }  // namespace scattering
 
 #endif  // SCATTERING_MIE_H_

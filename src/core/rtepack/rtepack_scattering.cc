@@ -167,7 +167,6 @@ void bulk_backscatter_commutative_transmission_rte(
   }
 }
 
-namespace {
 Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
   using Conversion::cosd;
   using Conversion::sind;
@@ -181,7 +180,6 @@ Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
   // Fix potential overflows by clamping numerical errors
   return std::clamp(theta, -1.0, 1.0);
 }
-}  // namespace
 
 muelmat rayleigh_scattering(const Vector2 &los_in,
                             const Vector2 &los_out,

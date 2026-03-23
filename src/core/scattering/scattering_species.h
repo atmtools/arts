@@ -15,14 +15,17 @@
 #include "particle_habit.h"
 #include "properties.h"
 #include "psd.h"
-#include "general_tro_spectral.h"
+#include "rayleigh_scatterer.h"
 #include "scattering_habit.h"
 
 namespace scattering {
 
 struct ScatteringDataSpec {};
 
-using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectralTRO, ScatteringHabit>;
+using Species = std::variant<HenyeyGreensteinScatterer,
+                             ScatteringGeneralSpectralTRO,
+                             ScatteringHabit,
+                             RayleighScatterer>;
 
 }  // namespace scattering
 
@@ -55,6 +58,20 @@ struct ArrayOfScatteringSpecies {
   get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
                                               const Vector& f_grid,
                                               Index degree) const;
+
+  /** TRO phase matrix at a single scattering angle.
+   *
+   * Computes the scattering angle from the two line-of-sight vectors,
+   * evaluates the gridded TRO bulk scattering properties there, and
+   * expands the compact phase matrix to full 4×4 Mueller matrices.
+   *
+   * Returns one muelmat per frequency (zero if no scatterers are present).
+   */
+  [[nodiscard]] MuelmatVector get_phase_matrix_at_angle(
+      const AtmPoint& atm_point,
+      const Vector& f_grid,
+      const Vector2& los_in,
+      const Vector2& los_out) const;
 
   [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO,
                                          scattering::Representation::Gridded>
@@ -94,6 +111,7 @@ struct std::formatter<ArrayOfScatteringSpecies> {
 };
 
 using HenyeyGreensteinScatterer = scattering::HenyeyGreensteinScatterer;
+using RayleighScatterer         = scattering::RayleighScatterer;
 using ParticleHabit             = scattering::ParticleHabit;
 using ScatteringHabit           = scattering::ScatteringHabit;
 using PSD                       = scattering::PSD;
