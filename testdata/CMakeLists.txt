@@ -28,6 +28,8 @@ if(DOWNLOAD_CATDATA_DEPS)
     # Clean
     #
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-cat-data)
+  else()
+    add_custom_target(arts_testdata_folder_download_cat COMMENT "Using user-supplied catalog")
 endif()
 
 if(NOT ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
@@ -60,4 +62,6 @@ if(DOWNLOAD_XMLDATA_DEPS)
     # Clean
     #
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-xml-data)
+else()
+    add_custom_target(arts_testdata_folder_download_xml COMMENT "Using user-supplied catalog")
 endif()
