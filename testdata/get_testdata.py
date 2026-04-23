@@ -151,7 +151,7 @@ def download_folder_zip(rel_path, basedir, baseurl):
     """Download a folder as a ZIP archive and extract in-place."""
     dest_dir = os.path.join(basedir, rel_path.rstrip("/"))
     if os.path.isdir(dest_dir):
-        logging.info(
+        logging.debug(
             f"Skipping {rel_path}, directory exists at {os.path.abspath(dest_dir)}"
         )
         return True
@@ -210,7 +210,7 @@ def download_item(rel_path, basedir, primary_url, fallback_url):
     global use_fallback
     f = f"{basedir}/{rel_path}"
     if os.path.exists(f):
-        logging.info(f"Skipping {rel_path}, exists at {os.path.abspath(f)}")
+        logging.debug(f"Skipping {rel_path}, exists at {os.path.abspath(f)}")
         return True
 
     os.makedirs(os.path.split(f)[0], exist_ok=True)
@@ -264,7 +264,7 @@ with open(file_list_path, "r") as f:
     ]
 
 for item in items:
-    logging.info(f"Processing {item}...")
+    logging.debug(f"Processing {item}...")
 
     if item.endswith("/"):
         if not use_fallback:
