@@ -2,6 +2,10 @@ import numpy as np
 import pyarts3 as pyarts
 
 
+def db_to_lin(db):
+    return 10.0 ** (db / 10.0)
+
+
 def ranges_as_lists(ranges):
     return [list(map(float, pair)) for pair in ranges]
 
@@ -44,6 +48,29 @@ def make_triangular_filter():
     filt.data = pyarts.arts.Vector(np.array([0.0, 1.0, 0.0]))
     filt.gridnames = ("frequency",)
     filt.dataname = "triangular"
+    return filt
+
+
+def make_asymmetric_sideband_filter():
+    filt = pyarts.arts.SortedGriddedField1()
+    filt.grids = (
+        pyarts.arts.AscendingGrid(np.array([7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0])),
+    )
+    filt.data = pyarts.arts.Vector(
+        np.array(
+            [
+                db_to_lin(-10.0),
+                db_to_lin(-10.0),
+                db_to_lin(-10.0),
+                db_to_lin(0.0),
+                db_to_lin(1.0),
+                db_to_lin(5.0),
+                db_to_lin(10.0),
+            ]
+        )
+    )
+    filt.gridnames = ("frequency",)
+    filt.dataname = "asymmetric_sidebands"
     return filt
 
 
@@ -172,9 +199,69 @@ def test_weighted_split_about_lo():
     )
 
 
+def test_overlapping_sidebands_with_asymmetric_bandpass():
+    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector.filter(make_asymmetric_sideband_filter())
+    selector.mix(10.0)
+
+    inspect_case(
+        "overlapping sidebands with asymmetric bandpass",
+        selector,
+        expected_global=[[10.0, 13.0], [10.0, 7.0]],
+        expected_local=[[0.0, 3.0], [0.0, 3.0]],
+        expected_affine=[[10.0, 1.0], [10.0, -1.0]],
+    )
+
+    upper_expected = np.array([db_to_lin(1.0), db_to_lin(5.0), db_to_lin(10.0)])
+    lower_expected = np.full(3, db_to_lin(-10.0))
+
+    assert_close(
+        "overlapping sidebands upper-path local gains",
+        selector.local_response(np.array([1.0, 2.0, 3.0]), 0),
+        upper_expected,
+    )
+    assert_close(
+        "overlapping sidebands lower-path local gains",
+        selector.local_response(np.array([1.0, 2.0, 3.0]), 1),
+        lower_expected,
+    )
+
+    responses = selector.channel_responses(
+        [
+            pyarts.arts.SensorDiracChannel(1.0),
+            pyarts.arts.SensorDiracChannel(2.0),
+            pyarts.arts.SensorDiracChannel(3.0),
+        ]
+    )
+
+    expected_points = [
+        np.array([9.0, 11.0]),
+        np.array([8.0, 12.0]),
+        np.array([7.0, 13.0]),
+    ]
+    expected_weights = [
+        np.array([db_to_lin(-10.0), db_to_lin(1.0)]),
+        np.array([db_to_lin(-10.0), db_to_lin(5.0)]),
+        np.array([db_to_lin(-10.0), db_to_lin(10.0)]),
+    ]
+
+    for index, response in enumerate(responses):
+        assert_close(
+            f"overlapping sidebands channel {index} points",
+            np.array(response.grids[0]),
+            expected_points[index],
+        )
+        assert_close(
+            f"overlapping sidebands channel {index} weights",
+            np.array(response.data),
+            expected_weights[index],
+        )
+
+
 test_lowpass_then_lo_then_box_spectrometer()
 test_bandpass_lo_bandpass_lo_chain()
 test_ideal_split_about_lo()
 test_weighted_split_about_lo()
+test_overlapping_sidebands_with_asymmetric_bandpass()
 
 print("\nAll heterodyne frequency-response checks passed.")
