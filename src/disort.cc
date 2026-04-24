@@ -1006,8 +1006,6 @@ void run_cdisort(Workspace& ws,
   Numeric umu0 = 0.;
   //local azimuth angle of sun
   Numeric phi0 = 0.;
-  //Intensity of incident sun beam
-  Numeric fbeam = 0.;
 
   Index N_lev = p_grid.nelem();
 
@@ -1064,27 +1062,12 @@ void run_cdisort(Workspace& ws,
   ds.nphi = static_cast<int>(nphi);
   Index Nlegendre = nstreams + 1;
 
-  /* Allocate memory */
-  c_disort_state_alloc(&ds);
-  c_disort_out_alloc(&ds, &out);
-
   // Looking direction of solar beam
   ds.bc.umu0 = umu0;
   ds.bc.phi0 = phi0;
 
   // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
-
-  // fill up azimuth angle and temperature array
-  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
-
-  if (ds.flag.planck == TRUE) {
-    for (Index i = 0; i <= ds.nlyr; i++)
-      ds.temper[i] = temperature[ds.nlyr - i];
-  }
-
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
@@ -1102,26 +1085,14 @@ void run_cdisort(Workspace& ws,
   get_angs(pfct_angs, scat_data, Npfct);
   nang = pfct_angs.nelem();
 
-  //allocate
+  //allocate per-thread working matrices (firstprivate in OMP loop)
   Matrix ext_bulk_par(1, ds.nlyr + 1), abs_bulk_par(1, ds.nlyr + 1);
   Tensor3 pha_bulk_par(1, ds.nlyr + 1, nang);
-  Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
   Tensor3 pmom(1, ds.nlyr, Nlegendre);
-  Vector f_grid_i(1);
   Matrix ssalb(1, ds.nlyr);
   Matrix ext_bulk_gas_i(1, ds.nlyr + 1);
   Matrix dtauc(1, ds.nlyr);
 
-  Matrix sca_coeff_gas_layer;
-  Matrix sca_bulk_par_layer;
-  Matrix sca_coeff_gas_level;
-  Matrix pmom_gas;
-  if (gas_scattering_do) {
-    sca_bulk_par_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
-    pmom_gas.resize(ds.nlyr, Nlegendre);
-  }
   Matrix directbeam(nf, N_lev, 0);
   Matrix deltatau(nf, N_lev - 1, 0);
   Matrix snglsctalbedo(nf, N_lev - 1, 0);
@@ -1134,8 +1105,49 @@ void run_cdisort(Workspace& ws,
     nlinspace(pfct_angs, 0, 180, nang);
   }
 
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
+  WorkspaceOmpParallelCopyGuard wss{ws};
   // loop over all frequencies
+#pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
+    firstprivate(wss,                                                        \
+                     ds,                                                     \
+                     ext_bulk_gas_i,                                         \
+                     ext_bulk_par,                                           \
+                     abs_bulk_par,                                           \
+                     pha_bulk_par,                                           \
+                     umu0,                                                   \
+                     pmom,                                                   \
+                     ssalb,                                                  \
+                     dtauc,                                                  \
+                     out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+
+    if (do_abort) {
+      continue;
+    }
+
+    Vector f_grid_i(1);
+
+    //Intensity of incident sun beam
+    Numeric fbeam = 0.;
+
+    /* Allocate memory */
+    c_disort_state_alloc(&ds);
+    c_disort_out_alloc(&ds, &out);
+
+    // fill up azimuth angle and temperature array
+    for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
+
+    if (ds.flag.planck == TRUE) {
+      for (Index i = 0; i <= ds.nlyr; i++)
+        ds.temper[i] = temperature[ds.nlyr - i];
+    }
+
+    // Transform to mu, starting with negative values
+    for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
+
     f_grid_i = f_grid[f_index];
 
     // Get particle bulk properties
@@ -1179,6 +1191,7 @@ void run_cdisort(Workspace& ws,
                  f_index);
       }
 
+      Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
       get_pfct(
           pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
@@ -1195,10 +1208,18 @@ void run_cdisort(Workspace& ws,
       // gas scattering
 
       // layer averaged particle scattering coefficient
+      Matrix sca_coeff_gas_layer(1, ds.nlyr);
+      Matrix sca_bulk_par_layer(1, ds.nlyr);
+      Matrix sca_coeff_gas_level(1, ds.nlyr + 1);
+      Matrix pmom_gas(ds.nlyr, Nlegendre);
       get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
 
       // call gas_scattering_properties
-      get_gas_scattering_properties(ws,
+      sca_coeff_gas_layer = 0;
+      sca_coeff_gas_level = 0;
+      pmom_gas = 0;
+
+      get_gas_scattering_properties(wss,
                                     sca_coeff_gas_layer,
                                     sca_coeff_gas_level,
                                     pmom_gas,
@@ -1297,10 +1318,17 @@ void run_cdisort(Workspace& ws,
 
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
-        } else
-          throw e;
+        } else {
+#pragma omp critical(run_cdisort_setabort)
+          do_abort = true;
+
+          ostringstream os;
+          os << "failure at f_index " << f_index << ":\n" << e.what();
+#pragma omp critical(run_cdisort_push_fail_msg)
+          fail_msg.push_back(os.str());
+        }
       }
-    } while (tries != Status::SUCCESS);
+    } while (tries != Status::SUCCESS and not do_abort);
 
     for (Index i = 0; i < ds.nphi; i++) {
       for (Index j = 0; j < ds.numu; j++) {
@@ -1340,6 +1368,21 @@ void run_cdisort(Workspace& ws,
             exp(-dtauc(0, ds.nlyr - k + cboxlims[0]) / umu0);
       }
     }
+
+    /* Free allocated memory */
+    c_disort_out_free(&ds, &out);
+    c_disort_state_free(&ds);
+  }
+
+  if (fail_msg.nelem()) {
+    ostringstream os;
+
+    if (!do_abort) os << "\nError messages from failed run_cdisort:\n";
+    for (ArrayOfString::const_iterator it = fail_msg.begin();
+         it != fail_msg.end();
+         it++)
+      os << *it << '\n';
+    throw runtime_error(os.str());
   }
 
   // Allocate aux data
@@ -1372,9 +1415,6 @@ void run_cdisort(Workspace& ws,
     }
   }
 
-  /* Free allocated memory */
-  c_disort_out_free(&ds, &out);
-  c_disort_state_free(&ds);
 
 #else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
@@ -1778,7 +1818,7 @@ void run_cdisort_flux(Workspace& ws,
 
           ostringstream os;
           os << "failure at f_index " << f_index << ":\n" << e.what();
-#pragma omp critical(ybatchCalc_push_fail_msg)
+#pragma omp critical(run_cdisort_flux_push_fail_msg)
           fail_msg.push_back(os.str());
         }
       }
@@ -1851,7 +1891,7 @@ void run_cdisort_flux(Workspace& ws,
          it != fail_msg.end();
          it++)
       os << *it << '\n';
-      throw runtime_error(os.str());
+    throw runtime_error(os.str());
   }
 
   // Allocate aux data

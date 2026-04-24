@@ -135,7 +135,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
 
       // set the weights to the right component
       // by adjusting the domain, we also have to adjust the weights
-      za_grid_weights[i] = w[i] * sin(za_grid[i] * DEG2RAD);
+      za_grid_weights[i] = w[i] * sin(za_grid[i] * DEG2RAD)*PI/2;
     }
   } else if (za_grid_type == "linear_mu") {
     Vector x;
