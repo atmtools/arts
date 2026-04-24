@@ -1,6 +1,10 @@
 #include <arts_omp.h>
+#include <frequency_bandpass_filters.h>
+#include <frequency_channel_selection.h>
+#include <frequency_range_selection.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/variant.h>
@@ -16,7 +20,6 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
-#include "rtepack.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
@@ -428,6 +431,192 @@ Numeric, Vector, or Matrix
   generic_interface(a2);
   vector_interface(a2);
 
+  auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
+  sch.doc() = "Base class for relative spectrometer channel responses.";
+  generic_interface(sch);
+  sch.def_prop_ro(
+         "response",
+         [](const sensor::Channel& self) -> const SortedGriddedField1& {
+           return self.channel;
+         },
+         py::rv_policy::reference_internal,
+         "Relative channel response as a gridded field."
+         "\n\n.. :class:`~pyarts3.arts.SortedGriddedField1`")
+      .def_prop_ro("freq_grid",
+                   &sensor::Channel::freq_grid,
+                   py::rv_policy::reference_internal,
+                   "Relative frequency grid.\n\n.. :class:`AscendingGrid`")
+      .def_prop_ro("weights",
+                   &sensor::Channel::weights,
+                   py::rv_policy::reference_internal,
+                   "Channel weights on the relative frequency grid."
+                   "\n\n.. :class:`Vector`")
+      .def("is_always_relative",
+           &sensor::Channel::is_always_relative,
+           "Whether the channel grid is anchored at or below zero.");
+
+  auto sbox =
+      py::class_<sensor::BoxChannel, sensor::Channel>(m, "SensorBoxChannel");
+  sbox.doc() =
+      "A channel with uniform weights across a finite relative-frequency interval.";
+  sbox.def(py::init<Numeric, Numeric, Size>(),
+           "lower"_a,
+           "upper"_a,
+           "n"_a,
+           "Construct a box channel on ``[lower, upper]`` with ``n`` points.")
+      .def(
+          py::init<Numeric, Size>(),
+          "half_width"_a,
+          "n"_a,
+          "Construct a symmetric box channel on ``[-half_width, half_width]``.")
+      .def(py::init<AscendingGrid>(),
+           "freq_grid"_a,
+           "Construct a box channel directly from a relative frequency grid.");
+  generic_interface(sbox);
+
+  auto sdirac = py::class_<sensor::DiracChannel, sensor::Channel>(
+      m, "SensorDiracChannel");
+  sdirac.doc() = "A single-frequency relative channel.";
+  sdirac
+      .def(py::init<Numeric>(),
+           "frequency"_a,
+           "Construct a Dirac channel at one relative frequency.")
+      .def(py::init<>(), "Construct a Dirac channel at 0 relative frequency.");
+  generic_interface(sdirac);
+
+  auto sgauss = py::class_<sensor::GaussianChannel, sensor::Channel>(
+      m, "SensorGaussianChannel");
+  sgauss.doc() = "A Gaussian relative channel response.";
+  sgauss
+      .def(py::init<AscendingGrid, Numeric, Numeric>(),
+           "freq_grid"_a,
+           "center"_a,
+           "std"_a,
+           "Construct a Gaussian channel on a custom relative frequency grid.")
+      .def(
+          py::init<Numeric, Numeric, Size, Size>(),
+          "center"_a,
+          "std"_a,
+          "n"_a,
+          "m"_a,
+          "Construct a Gaussian channel on ``center +/- m * std`` with ``n`` points.")
+      .def(py::init<AscendingGrid, Numeric>(),
+           "freq_grid"_a,
+           "std"_a,
+           "Construct a zero-centered Gaussian channel on a custom grid.")
+      .def(py::init<Numeric, Size, Size>(),
+           "std"_a,
+           "n"_a,
+           "m"_a,
+           "Construct a zero-centered Gaussian channel on ``+/- m * std``.");
+  generic_interface(sgauss);
+
+  auto shdfr = py::class_<sensor::HeterodyneFrequencyRange>(
+      m, "SensorHeterodyneFrequencyRange");
+  shdfr.def(py::init<>(),
+            R"(Construct an empty staged heterodyne response.
+
+  Stages can then be applied in sequence using :func:`lowpass`, :func:`highpass`,
+  :func:`bandpass`, :func:`filter`, and :func:`mix`.)");
+  shdfr.def(
+      py::init<Numeric, Vector2>(),
+      "lo"_a,
+      "bandpass"_a,
+      R"(Construct a heterodyne response from one ideal bandpass and one LO stage.
+
+  This is shorthand for creating an empty object, applying :func:`bandpass`, and
+  then applying :func:`mix`.)");
+  shdfr.def(
+      "__init__",
+      [](sensor::HeterodyneFrequencyRange* v,
+         const std::vector<Numeric>& clock_frequencies,
+         const std::vector<Vector2>& bandpasses) {
+        new (v) sensor::HeterodyneFrequencyRange(clock_frequencies, bandpasses);
+      },
+      "lo"_a,
+      "bandpasses"_a,
+      R"(Construct a heterodyne response from a sequence of ideal bandpass and LO stages.
+
+  The sequence is applied as ``bandpass[0] -> lo[0] -> bandpass[1] -> lo[1] -> ...``.)");
+  shdfr
+      .def_ro("global_ranges",
+              &sensor::HeterodyneFrequencyRange::global_ranges,
+              "Global frequency range\n\n.. :class:`list[Vector2]`")
+      .def_ro("local_ranges",
+              &sensor::HeterodyneFrequencyRange::local_ranges,
+              "Local frequency range\n\n.. :class:`list[Vector2]`")
+      .def("lowpass",
+           &sensor::HeterodyneFrequencyRange::apply_lowpass,
+           "upper"_a,
+           "Apply an ideal lowpass filter on the current local frequency axis.")
+      .def(
+          "highpass",
+          &sensor::HeterodyneFrequencyRange::apply_highpass,
+          "lower"_a,
+          "Apply an ideal highpass filter on the current local frequency axis.")
+      .def(
+          "bandpass",
+          [](sensor::HeterodyneFrequencyRange& self, const Vector2& bandpass) {
+            self.apply_bandpass(bandpass);
+          },
+          "bandpass"_a,
+          "Apply an ideal bandpass filter on the current local frequency axis.")
+      .def(
+          "filter",
+          [](sensor::HeterodyneFrequencyRange& self,
+             const SortedGriddedField1& bandpass_filter) {
+            self.apply_bandpass(bandpass_filter);
+          },
+          "bandpass_filter"_a,
+          R"(Apply a weighted bandpass filter on the current local frequency axis.
+
+  The filter weights are interpreted on the filter's relative frequency grid and
+  are zero outside that grid.)")
+      .def("mix",
+           &sensor::HeterodyneFrequencyRange::apply_mixer,
+           "lo"_a,
+           "Apply one heterodyne LO mixing stage.")
+      .def(
+          "local_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const Vector& f,
+             Size path_index) { return self.local_response(f, path_index); },
+          "f"_a,
+          "path_index"_a = 0,
+          "Evaluate one path response on the current local frequency axis.")
+      .def(
+          "global_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const Vector& f,
+             Size path_index) { return self.global_response(f, path_index); },
+          "f"_a,
+          "path_index"_a = 0,
+          "Evaluate one path response on the original real-frequency axis.")
+      .def(
+          "channel_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const sensor::Channel& channel) {
+            return sensor::FrequencyRangeBandpassFilter(
+                       self, std::vector<sensor::Channel>{channel})
+                .filters.front();
+          },
+          "channel"_a,
+          R"(Compute the real-frequency response for one spectrometer channel.
+
+  The returned gridded field is aggregated across all active mixer paths.)")
+      .def(
+          "channel_responses",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const std::vector<sensor::Channel>& channels) {
+            return sensor::FrequencyRangeBandpassFilter(self, channels).filters;
+          },
+          "channels"_a,
+          R"(Compute the real-frequency response for multiple spectrometer channels.
+
+  Each returned gridded field is aggregated across all active mixer paths for the
+  matching input channel.)");
+  shdfr.doc() = "A staged heterodyne mixer and filter response builder.";
+  generic_interface(shdfr);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize sensors\n{}", e.what()));
