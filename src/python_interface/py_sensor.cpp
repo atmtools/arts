@@ -19,6 +19,7 @@
 #include <stdexcept>
 
 #include "hpy_arts.h"
+#include "hpy_matpack.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
 
@@ -431,6 +432,65 @@ Numeric, Vector, or Matrix
   a2.doc() = "Array of SensorMetaInfo";
   generic_interface(a2);
   vector_interface(a2);
+
+    py::class_<sensor::AntennaPatternField> sapf(m, "SensorAntennaPatternField");
+    sapf.doc() =
+      "A 2D gridded antenna response on local zenith and azimuth offsets.";
+    gridded_data_interface(sapf);
+    generic_interface(sapf);
+
+    auto sap = py::class_<sensor::AntennaPattern>(m, "SensorAntennaPattern");
+    sap.doc() =
+      "Base class for angular antenna responses defined around a bore line of sight.";
+    sap.def(py::init<>(), "Construct an empty antenna pattern.")
+      .def(
+        "__init__",
+        [](sensor::AntennaPattern* self,
+         const sensor::AntennaPatternField& response) {
+        new (self) sensor::AntennaPattern{.data = response};
+        },
+        "response"_a,
+        "Construct an antenna pattern from a local zenith/azimuth response field.")
+      .def_prop_rw(
+        "response",
+        [](sensor::AntennaPattern& self) -> sensor::AntennaPatternField& {
+        return self.data;
+        },
+        [](sensor::AntennaPattern& self,
+         const sensor::AntennaPatternField& response) {
+        self.data = response;
+        },
+        py::rv_policy::reference_internal,
+        "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`")
+      .def(
+        "__call__",
+        &sensor::AntennaPattern::operator(),
+        "bore_los"_a,
+        R"(Map the local antenna pattern onto global LOS values around ``bore_los``.
+
+  Returns a list of ``(weight, los)`` pairs, where ``weight`` is a :class:`Stokvec`
+  and ``los`` is the mapped :class:`Vector2`.)");
+    generic_interface(sap);
+
+    auto spp = py::class_<sensor::PencilBeamAntenna, sensor::AntennaPattern>(
+      m, "SensorPencilBeamAntenna");
+    spp.doc() = "A 1x1 antenna response centered on the bore line of sight.";
+    spp.def(py::init<Stokvec>(),
+        "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+        "Construct a pencil-beam antenna with one Stokes weight at the bore LOS.");
+    generic_interface(spp);
+
+    auto sga = py::class_<sensor::GaussianAntenna, sensor::AntennaPattern>(
+      m, "SensorGaussianAntenna");
+    sga.doc() = "A Gaussian antenna response defined on a local zenith/azimuth grid.";
+    sga.def(py::init<ZenGrid, AziGrid, Numeric, Numeric, Stokvec>(),
+        "zen_grid"_a,
+        "azi_grid"_a,
+        "zenith_std"_a,
+        "azimuth_std"_a,
+        "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+        "Construct a Gaussian antenna response on the supplied local grids.");
+    generic_interface(sga);
 
   auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
   sch.doc() = "Base class for relative spectrometer channel responses.";
