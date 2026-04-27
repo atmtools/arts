@@ -92,12 +92,12 @@ jobs:
             jcheck: 2
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 10
 
       - name: Download testdata artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: testdata
           path: ./build
@@ -116,7 +116,7 @@ jobs:
         if : runner.os == 'Windows'
         with:
           arch: x64
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           miniforge-version: latest
           conda-remove-defaults: "true"
@@ -180,14 +180,14 @@ jobs:
           echo "Build size:"
           du -hs .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-doxygen
           path: |
             doxygen.tar.gz
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-sphinx
