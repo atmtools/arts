@@ -178,6 +178,12 @@ add_test(NAME "cpp.fast.test_antenna_pattern" COMMAND test_antenna_pattern)
 add_dependencies(check-deps test_antenna_pattern)
 
 # ####
+add_executable(test_sensor_builder test_sensor_builder.cc)
+target_link_libraries(test_sensor_builder PUBLIC artsworkspace)
+add_test(NAME "cpp.fast.test_sensor_builder" COMMAND test_sensor_builder)
+add_dependencies(check-deps test_sensor_builder)
+
+# ####
 add_executable(test_rtepack test_rtepack.cc)
 target_link_libraries(test_rtepack PUBLIC artstime rtepack rng)
 

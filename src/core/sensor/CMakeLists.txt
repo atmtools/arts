@@ -2,6 +2,7 @@ add_library(sensor STATIC
   antenna_pattern.cpp
   obsel.cpp
   sensor_meta_info.cpp
+  sensor_builder.cpp
   frequency_bandpass_filters.cpp
   frequency_channel_selection.cpp
   frequency_range_selection.cpp

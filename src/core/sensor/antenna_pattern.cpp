@@ -86,8 +86,8 @@ struct AntennaBasis {
 PencilBeamAntenna::PencilBeamAntenna(Stokvec weight)
     : AntennaPattern({.data_name  = "pencil beam"s,
                       .data       = StokvecMatrix(1, 1, weight),
-                      .grid_names = {"zenith"s, "azimuth"s},
-                      .grids      = {Vector{0.0}, Vector{0.0}}}) {}
+                      .grid_names = std::array{"zenith"s, "azimuth"s},
+                      .grids = {ZenGrid{Vector{0.0}}, AziGrid{Vector{0.0}}}}) {}
 
 GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
                                  AziGrid azi_grid,

@@ -12,6 +12,7 @@
 #include <nanobind/stl/vector.h>
 #include <obsel.h>
 #include <python_interface.h>
+#include <sensor_builder.h>
 #include <sensor_meta_info.h>
 
 #include <algorithm>
@@ -571,6 +572,75 @@ Numeric, Vector, or Matrix
            "m"_a,
            "Construct a zero-centered Gaussian channel on ``+/- m * std``.");
   generic_interface(sgauss);
+
+  auto ssb = py::class_<sensor::SensorBuilder>(m, "SensorBuilder");
+  ssb.doc() =
+      "Combines channels and an antenna pattern into sensor obsels for paired position/LOS samples.";
+  ssb.def(py::init<>(), "Construct an empty sensor builder.")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const std::vector<sensor::Channel>& channels,
+             const sensor::AntennaPattern& antenna) {
+            new (self) sensor::SensorBuilder{
+                .channels = channels,
+                .antenna  = antenna,
+            };
+          },
+          "channels"_a,
+          "antenna"_a,
+          "Construct a sensor builder from channels and one antenna pattern.")
+      .def_prop_rw(
+          "channels",
+          [](const sensor::SensorBuilder& self) { return self.channels; },
+          [](sensor::SensorBuilder& self,
+             const std::vector<sensor::Channel>& channels) {
+            self.channels = channels;
+          },
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+      .def_prop_rw(
+          "antenna",
+          [](const sensor::SensorBuilder& self) { return self.antenna; },
+          [](sensor::SensorBuilder& self,
+             const sensor::AntennaPattern& antenna) { self.antenna = antenna; },
+          "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self,
+             const std::vector<Vector3>& pos,
+             const std::vector<Vector2>& los) {
+            if (pos.size() != los.size()) {
+              throw std::invalid_argument(std::format(
+                  "SensorBuilder expects matching position and LOS counts. Got {} positions and {} LOS values.",
+                  pos.size(),
+                  los.size()));
+            }
+
+            return self(pos, los);
+          },
+          "pos"_a,
+          "los"_a,
+          R"(Build sensor obsels and metadata from paired position and bore-LOS sequences.
+
+Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
+geometry first and channel second, and the returned value is
+``(measurement_sensor, measurement_sensor_meta)``.)")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self, const SensorPosLosVector& poslos) {
+            std::vector<Vector3> pos(poslos.size());
+            std::vector<Vector2> los(poslos.size());
+
+            for (Size i = 0; i < poslos.size(); ++i) {
+              pos[i] = poslos[i].pos;
+              los[i] = poslos[i].los;
+            }
+
+            return self(pos, los);
+          },
+          "poslos"_a,
+          "Build sensor obsels and metadata from paired position/LOS samples.");
+  generic_interface(ssb);
 
   auto shdfr = py::class_<sensor::HeterodyneFrequencyRange>(
       m, "SensorHeterodyneFrequencyRange");
