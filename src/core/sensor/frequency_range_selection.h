@@ -71,26 +71,53 @@ struct HeterodyneFrequencyRange final : FrequencyRange {
 };
 }  // namespace sensor
 
+// FrequencyRange format tags and XML I/O
+
 template <>
-struct std::formatter<sensor::FrequencyRange> {
-  format_tags tags{};
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::FrequencyRange& v,
-                              FmtContext& ctx) const {
-    return tags.format(
-        ctx, "GLOBALS: "sv, v.global_ranges, "; LOCALS : "sv, v.local_ranges);
-  }
+struct format_tag_aggregate<sensor::FrequencyRange> {
+  constexpr static bool value = true;
 };
 
 template <>
-struct std::formatter<sensor::HeterodyneFrequencyRange> final
-    : std::formatter<sensor::FrequencyRange> {};
+struct xml_io_stream_name<sensor::FrequencyRange> {
+  static constexpr std::string_view name = "SensorFrequencyRange";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::FrequencyRange> {
+  static constexpr bool value = true;
+};
+
+// HeterodyneFrequencyRange format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::HeterodyneFrequencyRange> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::HeterodyneFrequencyRange> {
+  static constexpr std::string_view name = "SensorHeterodyneFrequencyRange";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::HeterodyneFrequencyRange> {
+  static constexpr bool value = true;
+};
+
+// FrequencyResponsePath format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::FrequencyResponsePath> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::FrequencyResponsePath> {
+  static constexpr std::string_view name = "SensorFrequencyResponsePath";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::FrequencyResponsePath> {
+  static constexpr bool value = true;
+};

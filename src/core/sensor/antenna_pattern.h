@@ -1,98 +1,97 @@
 #pragma once
 
-#include <enumsAntennaType.h>
 #include <matpack.h>
+#include <rtepack.h>
 
 namespace sensor {
 //! A 2D angular antenna pattern on local zenith and azimuth offsets.
 struct AntennaPattern;
 
+//! A 1x1 antenna pattern that samples only the bore line of sight.
+struct PencilBeamAntenna;
+
+//! A 2D Gaussian antenna pattern on local zenith and azimuth offsets.
+struct GaussianAntenna;
+
 //! 2D gridded field of antenna weights on local zenith and azimuth offsets.
-using AntennaPatternGriddedField =
-    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
+using AntennaPatternField = matpack::gridded_data_t<Stokvec, ZenGrid, AziGrid>;
 
 //! Concept for selecting antenna patterns.
 template <typename T>
 concept AntennaPatternSelection = std::derived_from<T, AntennaPattern>;
 
 struct AntennaPattern {
-  AntennaType type{AntennaType::PencilBeam};
+  AntennaPatternField data;  // center at [0, 0]
 
-  Numeric sigma_zenith{0.0};
-  Numeric sigma_azimuth{0.0};
-  bool lookup_uses_angular_grids{false};
+  //! Maps the local antenna pattern to global LOS values around a new bore LOS.
+  //!
+  //! Local zenith 0 points along the bore. Local azimuth 0 points toward
+  //! increasing global zenith, and local azimuth 90 points toward increasing
+  //! global azimuth.
+  [[nodiscard]] std::vector<std::pair<Stokvec, Vector2>> operator()(
+      Vector2 bore_los) const;
+};
 
-  AscendingGrid lookup_zenith_grid{};
-  AscendingGrid lookup_azimuth_grid{};
-  Matrix lookup_response{};
+struct PencilBeamAntenna final : AntennaPattern {
+  PencilBeamAntenna(Stokvec weight = {1.0, 0.0, 0.0, 0.0});
+};
 
-  AntennaPattern() = default;
-
-  static AntennaPattern pencil();
-  static AntennaPattern gaussian(Numeric zenith_std, Numeric azimuth_std);
-  static AntennaPattern gaussian_fwhm(Numeric zenith_fwhm,
-                                      Numeric azimuth_fwhm);
-  static AntennaPattern lookup(const AscendingGrid& zenith_grid,
-                               const AscendingGrid& azimuth_grid,
-                               const Matrix& response_lookup);
-  static AntennaPattern lookup(const ZenGrid& zenith_grid,
-                               const AziGrid& azimuth_grid,
-                               const Matrix& response_lookup);
-
-  void set_pencil_beam();
-  void set_gaussian(Numeric zenith_std, Numeric azimuth_std);
-  void set_gaussian_fwhm(Numeric zenith_fwhm, Numeric azimuth_fwhm);
-  void set_lookup(const AscendingGrid& zenith_grid,
-                  const AscendingGrid& azimuth_grid,
-                  ConstMatrixView response_lookup);
-  void set_lookup(const ZenGrid& zenith_grid,
-                  const AziGrid& azimuth_grid,
-                  ConstMatrixView response_lookup);
-
-  [[nodiscard]] Numeric operator()(Numeric delta_zenith,
-                                   Numeric delta_azimuth) const;
-
-  [[nodiscard]] AntennaPatternGriddedField response(
-      const AscendingGrid& zenith_grid,
-      const AscendingGrid& azimuth_grid) const;
-  [[nodiscard]] AntennaPatternGriddedField normalized_response(
-      const AscendingGrid& zenith_grid,
-      const AscendingGrid& azimuth_grid) const;
-
-  [[nodiscard]] AntennaPatternGriddedField raw_sensor(
-      const AscendingGrid& dzen_grid, const AscendingGrid& dazi_grid) const;
-  [[nodiscard]] AntennaPatternGriddedField normalized_raw_sensor(
-      const AscendingGrid& dzen_grid, const AscendingGrid& dazi_grid) const;
+struct GaussianAntenna final : AntennaPattern {
+  GaussianAntenna(ZenGrid zen_grid,
+                  AziGrid azi_grid,
+                  Numeric zenith_std,
+                  Numeric azimuth_std,
+                  Stokvec weight = {1.0, 0.0, 0.0, 0.0});
 };
 }  // namespace sensor
 
+// AntennaPattern format tags and XML I/O
+
 template <>
-struct std::formatter<sensor::AntennaPattern> {
-  format_tags tags{};
+struct format_tag_aggregate<sensor::AntennaPattern> {
+  constexpr static bool value = true;
+};
 
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+template <>
+struct xml_io_stream_name<sensor::AntennaPattern> {
+  static constexpr std::string_view name = "SensorAntennaPattern";
+};
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
+template <>
+struct xml_io_stream_aggregate<sensor::AntennaPattern> {
+  static constexpr bool value = true;
+};
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::AntennaPattern& v,
-                              FmtContext& ctx) const {
-    return tags.format(
-        ctx,
-        "type="sv,
-        v.type,
-        tags.sep(),
-        "sigma_zenith="sv,
-        v.sigma_zenith,
-        tags.sep(),
-        "sigma_azimuth="sv,
-        v.sigma_azimuth,
-        tags.sep(),
-        "lookup_shape="sv,
-        std::array{v.lookup_response.nrows(), v.lookup_response.ncols()});
-  }
+// PencilBeamAntenna format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::PencilBeamAntenna> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::PencilBeamAntenna> {
+  static constexpr std::string_view name = "SensorPencilBeamAntenna";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::PencilBeamAntenna> {
+  static constexpr bool value = true;
+};
+
+// GaussianAntenna format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::GaussianAntenna> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::GaussianAntenna> {
+  static constexpr std::string_view name = "SensorGaussianAntenna";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::GaussianAntenna> {
+  static constexpr bool value = true;
 };

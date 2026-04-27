@@ -32,3 +32,37 @@ struct FrequencyRangeBandpassFilter final : BandpassFilter {
                                const std::vector<Channel>& channels);
 };
 }  // namespace sensor
+
+// BandpassFilter format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::BandpassFilter> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::BandpassFilter> {
+  static constexpr std::string_view name = "SensorBandpassFilter";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::BandpassFilter> {
+  static constexpr bool value = true;
+};
+
+// FrequencyRangeBandpassFilter format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::FrequencyRangeBandpassFilter> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::FrequencyRangeBandpassFilter> {
+  static constexpr std::string_view name = "SensorFrequencyRangeBandpassFilter";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::FrequencyRangeBandpassFilter> {
+  static constexpr bool value = true;
+};

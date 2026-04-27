@@ -172,6 +172,12 @@ target_link_libraries(test_rng PUBLIC artscore)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 # ####
+add_executable(test_antenna_pattern test_antenna_pattern.cc)
+target_link_libraries(test_antenna_pattern PUBLIC artsworkspace)
+add_test(NAME "cpp.fast.test_antenna_pattern" COMMAND test_antenna_pattern)
+add_dependencies(check-deps test_antenna_pattern)
+
+# ####
 add_executable(test_rtepack test_rtepack.cc)
 target_link_libraries(test_rtepack PUBLIC artstime rtepack rng)
 

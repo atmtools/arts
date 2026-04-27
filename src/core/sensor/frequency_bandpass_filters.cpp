@@ -10,9 +10,7 @@ namespace sensor {
 namespace {
 constexpr Numeric response_eps = 64 * std::numeric_limits<Numeric>::epsilon();
 
-Numeric scale(Numeric x) {
-  return std::max<Numeric>(1.0, std::abs(x));
-}
+Numeric scale(Numeric x) { return std::max<Numeric>(1.0, std::abs(x)); }
 
 bool is_close(Numeric a, Numeric b) {
   return std::abs(a - b) <= response_eps * std::max(scale(a), scale(b));
@@ -23,7 +21,7 @@ Numeric sample_filter(const SortedGriddedField1& filter, Numeric f) {
 
   if (grid.empty() or f < grid.front() or f > grid.back()) return 0.0;
 
-  auto it = std::lower_bound(grid.begin(), grid.end(), f);
+  auto it = stdr::lower_bound(grid, f);
 
   if (it == grid.begin()) return filter.data.front();
   if (it == grid.end()) return filter.data.back();
@@ -50,21 +48,22 @@ void add_support_points(std::vector<Numeric>& points,
   points.push_back(low);
   if (not is_close(low, high)) points.push_back(high);
 
-  auto lower = std::lower_bound(grid.begin(), grid.end(), low);
-  auto upper = std::upper_bound(grid.begin(), grid.end(), high);
+  auto lower = stdr::lower_bound(grid, low);
+  auto upper = stdr::upper_bound(grid, high);
   for (auto it = lower; it != upper; ++it) points.push_back(*it);
 }
 
 void sort_unique(std::vector<Numeric>& points) {
-  std::sort(points.begin(), points.end());
-  points.erase(std::unique(points.begin(), points.end(), [](Numeric a, Numeric b) {
-                 return is_close(a, b);
-               }),
+  stdr::sort(points);
+  points.erase(std::unique(points.begin(),
+                           points.end(),
+                           [](Numeric a, Numeric b) { return is_close(a, b); }),
                points.end());
 }
 
-SortedGriddedField1 make_filter(const std::vector<std::pair<Numeric, Numeric>>& samples,
-                                std::string_view name) {
+SortedGriddedField1 make_filter(
+    const std::vector<std::pair<Numeric, Numeric>>& samples,
+    std::string_view name) {
   std::vector<Numeric> grid(samples.size());
   Vector data(samples.size());
 
@@ -76,7 +75,7 @@ SortedGriddedField1 make_filter(const std::vector<std::pair<Numeric, Numeric>>& 
   return {.data_name  = String{name},
           .data       = std::move(data),
           .grid_names = std::array<String, 1>{"frequency"s},
-      .grids      = std::array<AscendingGrid, 1>{AscendingGrid{grid}}};
+          .grids      = std::array<AscendingGrid, 1>{AscendingGrid{grid}}};
 }
 }  // namespace
 
@@ -104,22 +103,26 @@ FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
   filters.reserve(channels.size());
 
   for (Size ichan = 0; ichan < channels.size(); ichan++) {
-    const auto& channel = channels[ichan];
+    const auto& channel      = channels[ichan];
     const auto& channel_grid = channel.freq_grid();
     std::vector<std::pair<Numeric, Numeric>> samples;
 
     for (const auto& path : range.paths()) {
       if (channel_grid.empty()) continue;
 
-      const Numeric local_low = std::max(path.local_range[0], channel_grid.front());
-      const Numeric local_high = std::min(path.local_range[1], channel_grid.back());
+      const Numeric local_low =
+          std::max(path.local_range[0], channel_grid.front());
+      const Numeric local_high =
+          std::min(path.local_range[1], channel_grid.back());
 
-      if (local_low > local_high and not is_close(local_low, local_high)) continue;
+      if (local_low > local_high and not is_close(local_low, local_high))
+        continue;
 
       std::vector<Numeric> local_points;
       add_support_points(local_points, channel_grid, local_low, local_high);
       for (const auto& filter : path.filters) {
-        add_support_points(local_points, filter.grid<0>(), local_low, local_high);
+        add_support_points(
+            local_points, filter.grid<0>(), local_low, local_high);
       }
       sort_unique(local_points);
 
@@ -138,7 +141,8 @@ FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
     std::vector<std::pair<Numeric, Numeric>> combined;
     combined.reserve(samples.size());
     for (const auto& sample : samples) {
-      if (combined.empty() or not is_close(combined.back().first, sample.first)) {
+      if (combined.empty() or
+          not is_close(combined.back().first, sample.first)) {
         combined.push_back(sample);
       } else {
         combined.back().second += sample.second;
