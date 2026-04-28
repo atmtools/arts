@@ -16,7 +16,7 @@ jobs:
           echo "Test testdata server access:"
           curl -o /dev/null --no-progress-meter https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt && echo "OK" || echo "FAIL"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 10
 
@@ -29,7 +29,7 @@ jobs:
           python3 testdata/get_testdata.py testdata/cat_data_files.txt build/testdata
 
       - name: Upload testdata artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: testdata
           path: build/
