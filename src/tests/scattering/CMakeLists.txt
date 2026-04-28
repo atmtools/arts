@@ -40,10 +40,6 @@ add_executable(test_single_scattering_data test_single_scattering_data.cc)
 target_link_libraries(test_single_scattering_data scattering artsworkspace)
 target_include_directories(test_single_scattering_data PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
 
-if(DOWNLOAD_XMLDATA_DEPS)
-  add_dependencies(test_single_scattering_data arts_testdata_folder_download_xml)
-endif()
-
 ARTS_TEST_RUN_EXE("fast.scattering.test_single_scattering_data" test_single_scattering_data)
 add_dependencies(check-deps test_single_scattering_data)
 
@@ -58,10 +54,6 @@ target_include_directories(test_scattering_habit PRIVATE ${ARTS_SOURCE_DIR}/src/
 add_executable(test_psd test_psd.cc)
 target_link_libraries(test_psd scattering)
 target_include_directories(test_psd PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
-
-if(DOWNLOAD_XMLDATA_DEPS)
-  add_dependencies(test_particle_habit arts_testdata_folder_download_xml)
-endif()
 
 # add_test(NAME "cpp.fast.scattering.test_particle_habit" COMMAND test_particle_habit)
 #add_dependencies(check-deps test_particle_habit)
