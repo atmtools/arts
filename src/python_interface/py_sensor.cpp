@@ -436,6 +436,14 @@ See :meth:`SensorObsel.normalize` for details.
 )",
       "pol"_a = Stokvec{1., 0., 0., 0.});
 
+  a1.def(
+      "collect",
+      [](py::object& self) {
+        self.attr("collect_freq_grids")();
+        self.attr("collect_poslos_grids")();
+      },
+      R"(Calls the collect_freq_grids and collect_poslos_grids methods in said order.)");
+
   py::class_<SensorMetaInfo> smi(m, "SensorMetaInfo");
   generic_interface(smi);
   smi.def_rw(
