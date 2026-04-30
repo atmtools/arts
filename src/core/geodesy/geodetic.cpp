@@ -25,6 +25,8 @@
 #include <lin_alg.h>
 #include <math_funcs.h>
 
+#include <cmath>
+
 using Math::pow2;
 
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
@@ -135,7 +137,7 @@ Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
   } else {
     // The general algorithm not stable for lat=+-90. Catch these cases
     // Also catch near-pole cases where numerical instability can occur
-    const Numeric sq = sqrt(ecef[0] * ecef[0] + ecef[1] * ecef[1]);
+    const Numeric sq = std::hypot(ecef[0], ecef[1]);
 
     if (sq < near_pole_threshold_ecef * refellipsoid[0]) {
       // Near-pole case: use simplified formula (same as exact pole)
