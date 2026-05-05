@@ -28,6 +28,7 @@ dependencies:
         - ninja
         - numpy>=2
         - openblas=*=*openmp*
+        - pip
         - pkg-config
         - python-build
         - requests

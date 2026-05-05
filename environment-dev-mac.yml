@@ -25,6 +25,7 @@ dependencies:
         - netcdf4
         - ninja
         - numpy>=2
+        - pip
         - pkg-config
         - python-build
         - requests
