@@ -17,6 +17,7 @@ dependencies:
         - ninja
         - numpy>=2
         - openblas
+        - pip
         - pkg-config
         - python-build
         - requests
