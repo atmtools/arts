@@ -105,6 +105,48 @@ def test_lowpass_then_lo_then_box_spectrometer():
     )
 
 
+def test_default_positive_range_survives_mixes():
+    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector.mix(10.0)
+
+    assert_close(
+        "default positive range after one LO global_ranges",
+        ranges_as_lists(selector.global_ranges),
+        [[10.0, np.inf], [10.0, 0.0]],
+    )
+    assert_close(
+        "default positive range after one LO local_ranges",
+        ranges_as_lists(selector.local_ranges),
+        [[0.0, np.inf], [0.0, 10.0]],
+    )
+
+    selector.mix(1.0)
+
+    assert_close(
+        "default positive range after two LOs global_ranges",
+        ranges_as_lists(selector.global_ranges),
+        [[11.0, np.inf], [11.0, 10.0], [9.0, 0.0], [9.0, 10.0]],
+    )
+    assert_close(
+        "default positive range after two LOs local_ranges",
+        ranges_as_lists(selector.local_ranges),
+        [[0.0, np.inf], [0.0, 1.0], [0.0, 9.0], [0.0, 1.0]],
+    )
+
+    response = selector.channel_response(pyarts.arts.SensorDiracChannel(0.25))
+
+    assert_close(
+        "default positive range dirac points after two LOs",
+        np.array(response.grids[0]),
+        np.array([8.75, 9.25, 10.75, 11.25]),
+    )
+    assert_close(
+        "default positive range dirac weights after two LOs",
+        np.array(response.data),
+        np.full(4, 0.25),
+    )
+
+
 def test_bandpass_lo_bandpass_lo_chain():
     selector = pyarts.arts.SensorHeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
@@ -131,7 +173,7 @@ def test_bandpass_lo_bandpass_lo_chain():
     assert_close(
         "bandpass -> LO -> bandpass -> LO channel weights",
         np.array(response.data),
-        np.array([1.0 / 3.0, 1.0 / 3.0, 2.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]),
+        np.full(5, 1.0 / 6.0),
     )
 
 
@@ -195,7 +237,26 @@ def test_weighted_split_about_lo():
     assert_close(
         "weighted split channel weights",
         np.array(response.data),
-        np.array([0.6, 0.6]),
+        np.array([0.3, 0.3]),
+    )
+
+
+def test_zero_frequency_is_not_double_counted():
+    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector.bandpass(np.array([5.0, 15.0]))
+    selector.mix(10.0)
+
+    response = selector.channel_response(pyarts.arts.SensorDiracChannel(0.0))
+
+    assert_close(
+        "zero-frequency channel point",
+        np.array(response.grids[0]),
+        np.array([10.0]),
+    )
+    assert_close(
+        "zero-frequency channel weight",
+        np.array(response.data),
+        np.array([0.5]),
     )
 
 
@@ -240,9 +301,9 @@ def test_overlapping_sidebands_with_asymmetric_bandpass():
         np.array([7.0, 13.0]),
     ]
     expected_weights = [
-        np.array([db_to_lin(-10.0), db_to_lin(1.0)]),
-        np.array([db_to_lin(-10.0), db_to_lin(5.0)]),
-        np.array([db_to_lin(-10.0), db_to_lin(10.0)]),
+        np.array([db_to_lin(-10.0) / 2.0, db_to_lin(1.0) / 2.0]),
+        np.array([db_to_lin(-10.0) / 2.0, db_to_lin(5.0) / 2.0]),
+        np.array([db_to_lin(-10.0) / 2.0, db_to_lin(10.0) / 2.0]),
     ]
 
     for index, response in enumerate(responses):
@@ -259,9 +320,11 @@ def test_overlapping_sidebands_with_asymmetric_bandpass():
 
 
 test_lowpass_then_lo_then_box_spectrometer()
+test_default_positive_range_survives_mixes()
 test_bandpass_lo_bandpass_lo_chain()
 test_ideal_split_about_lo()
 test_weighted_split_about_lo()
+test_zero_frequency_is_not_double_counted()
 test_overlapping_sidebands_with_asymmetric_bandpass()
 
 print("\nAll heterodyne frequency-response checks passed.")

@@ -77,6 +77,22 @@ SortedGriddedField1 make_filter(
           .grid_names = std::array<String, 1>{"frequency"s},
           .grids      = std::array<AscendingGrid, 1>{AscendingGrid{grid}}};
 }
+
+void deduplicate_zero_frequency_images(
+    std::vector<std::pair<Numeric, Numeric>>& samples) {
+  std::vector<std::pair<Numeric, Numeric>> unique_samples;
+  unique_samples.reserve(samples.size());
+
+  for (const auto& sample : samples) {
+    const bool duplicate = stdr::any_of(unique_samples, [&](const auto& kept) {
+      return is_close(kept.first, sample.first);
+    });
+
+    if (not duplicate) unique_samples.push_back(sample);
+  }
+
+  samples = std::move(unique_samples);
+}
 }  // namespace
 
 Numeric BandpassFilter::operator()(Numeric f) const {
@@ -106,6 +122,7 @@ FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
     const auto& channel      = channels[ichan];
     const auto& channel_grid = channel.freq_grid();
     std::vector<std::pair<Numeric, Numeric>> samples;
+    std::vector<Numeric> local_points;
 
     for (const auto& path : range.paths()) {
       if (channel_grid.empty()) continue;
@@ -118,19 +135,44 @@ FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
       if (local_low > local_high and not is_close(local_low, local_high))
         continue;
 
-      std::vector<Numeric> local_points;
       add_support_points(local_points, channel_grid, local_low, local_high);
       for (const auto& filter : path.filters) {
         add_support_points(
             local_points, filter.grid<0>(), local_low, local_high);
       }
-      sort_unique(local_points);
+    }
 
-      for (Numeric local_frequency : local_points) {
-        const Numeric weight = path.local_weight(local_frequency) *
-                               sample_filter(channel.channel, local_frequency);
-        if (weight == 0.0) continue;
-        samples.emplace_back(path.map_to_global(local_frequency), weight);
+    sort_unique(local_points);
+
+    for (Numeric local_frequency : local_points) {
+      const Numeric channel_weight =
+          sample_filter(channel.channel, local_frequency);
+      if (channel_weight == 0.0) continue;
+
+      std::vector<std::pair<Numeric, Numeric>> folded_samples;
+      folded_samples.reserve(range.size());
+
+      for (const auto& path : range.paths()) {
+        const Numeric path_weight = path.local_weight(local_frequency);
+        if (path_weight == 0.0) continue;
+
+        folded_samples.emplace_back(path.map_to_global(local_frequency),
+                                    path_weight * channel_weight);
+      }
+
+      if (folded_samples.empty()) continue;
+
+      const Numeric fold_count = static_cast<Numeric>(folded_samples.size());
+      for (auto& sample : folded_samples) {
+        sample.second /= fold_count;
+      }
+
+      if (is_close(local_frequency, 0.0)) {
+        deduplicate_zero_frequency_images(folded_samples);
+      }
+
+      for (const auto& sample : folded_samples) {
+        samples.push_back(sample);
       }
     }
 

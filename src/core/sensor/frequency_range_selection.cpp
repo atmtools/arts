@@ -37,6 +37,7 @@ constexpr Numeric response_eps = 64 * std::numeric_limits<Numeric>::epsilon();
 Numeric scale(Numeric x) { return std::max<Numeric>(1.0, std::abs(x)); }
 
 bool is_close(Numeric a, Numeric b) {
+  if (std::isinf(a) or std::isinf(b)) return a == b;
   return std::abs(a - b) <= response_eps * std::max(scale(a), scale(b));
 }
 

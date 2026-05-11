@@ -526,6 +526,7 @@ See :meth:`SensorObsel.normalize` for details.
   auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
   sch.doc() = "Base class for relative spectrometer channel responses.";
   generic_interface(sch);
+  sch.def(py::init_implicit<SortedGriddedField1>());
   sch.def_prop_ro(
          "response",
          [](const sensor::Channel& self) -> const SortedGriddedField1& {
@@ -618,21 +619,15 @@ See :meth:`SensorObsel.normalize` for details.
             };
           },
           "channels"_a,
-          "antenna"_a,
-          "Construct a sensor builder from channels and one antenna pattern.")
-      .def_prop_rw(
+          "antenna"_a = sensor::PencilBeamAntenna{},
+          "Construct a sensor builder from channels and one antenna pattern (defaults to pencil-beam).")
+      .def_rw(
           "channels",
-          [](const sensor::SensorBuilder& self) { return self.channels; },
-          [](sensor::SensorBuilder& self,
-             const std::vector<sensor::Channel>& channels) {
-            self.channels = channels;
-          },
+          &sensor::SensorBuilder::channels,
           "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
-      .def_prop_rw(
+      .def_rw(
           "antenna",
-          [](const sensor::SensorBuilder& self) { return self.antenna; },
-          [](sensor::SensorBuilder& self,
-             const sensor::AntennaPattern& antenna) { self.antenna = antenna; },
+          &sensor::SensorBuilder::antenna,
           "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
       .def(
           "__call__",
@@ -655,6 +650,16 @@ See :meth:`SensorObsel.normalize` for details.
 Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
 geometry first and channel second, and the returned value is
 ``(measurement_sensor, measurement_sensor_meta)``.)")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self,
+             const Vector3 pos,
+             const Vector2 los) {
+            return self(std::span{&pos, 1}, std::span{&los, 1});
+          },
+          "pos"_a,
+          "los"_a,
+          R"(Build sensor obsels and metadata from paired position and bore-LOS.)")
       .def(
           "__call__",
           [](const sensor::SensorBuilder& self,
@@ -683,7 +688,7 @@ geometry first and channel second, and the returned value is
   shdfr.def(
       py::init<Numeric, Vector2>(),
       "lo"_a,
-      "bandpass"_a,
+      "bandpass"_a = Vector2{0.0, std::numeric_limits<Numeric>::infinity()},
       R"(Construct a heterodyne response from one ideal bandpass and one LO stage.
 
   This is shorthand for creating an empty object, applying :func:`bandpass`, and

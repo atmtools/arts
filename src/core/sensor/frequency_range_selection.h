@@ -38,15 +38,14 @@ struct FrequencyResponsePath {
 struct FrequencyRange {
   static constexpr Numeric inf = FrequencyResponsePath::inf;
 
+  std::vector<FrequencyResponsePath> response_paths{{}};
+
   std::vector<Vector2> global_ranges{{0, inf}};
   std::vector<Vector2> local_ranges{{0, inf}};
 
   [[nodiscard]] Size size() const;
   [[nodiscard]] const FrequencyResponsePath& path(Size index) const;
   [[nodiscard]] const std::vector<FrequencyResponsePath>& paths() const;
-
- protected:
-  std::vector<FrequencyResponsePath> response_paths{{}};
 
   void sync_ranges();
 };
