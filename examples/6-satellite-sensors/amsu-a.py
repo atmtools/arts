@@ -44,10 +44,10 @@ CHANNELS = [
     ChannelSpec(15, "$89 \\pm 1$",                   89e9,           1000e6, "Iv", 0.50, (1000e6,)),
 ]
 
-CHANNEL_COUNT    = len(CHANNELS)
-SAMPLES_PER_LOBE = 11
-POS              = [817e3, 0.0, 0.0]
-LOS              = [130.0, 0.0]
+CHANNEL_COUNT       = len(CHANNELS)
+SAMPLES_PER_CHANNEL = 11
+POS                 = [817e3, 0.0, 0.0]
+LOS                 = [130.0, 0.0]
 # fmt: on
 
 
@@ -101,7 +101,7 @@ ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Simple sensor setup: position, line-of-sight, polarization, and channels.
-sensor = pa.arts.SensorBuilder(channels=sensor_channels(CHANNELS, SAMPLES_PER_LOBE))
+sensor = pa.arts.SensorBuilder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
 ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS)
 
 for i in range(len(ws.measurement_sensor)):
