@@ -3,6 +3,11 @@
 #include <matpack.h>
 #include <rtepack.h>
 
+#include <concepts>
+
+#include "frequency_channel_selection.h"
+#include "obsel.h"
+
 namespace sensor {
 //! A 2D angular antenna pattern on local zenith and azimuth offsets.
 struct AntennaPattern;
@@ -16,20 +21,13 @@ struct GaussianAntenna;
 //! 2D gridded field of antenna weights on local zenith and azimuth offsets.
 using AntennaPatternField = matpack::gridded_data_t<Stokvec, ZenGrid, AziGrid>;
 
-//! Concept for selecting antenna patterns.
-template <typename T>
-concept AntennaPatternSelection = std::derived_from<T, AntennaPattern>;
-
 struct AntennaPattern {
   AntennaPatternField data;  // center at [0, 0]
 
-  //! Maps the local antenna pattern to global LOS values around a new bore LOS.
-  //!
-  //! Local zenith 0 points along the bore. Local azimuth 0 points toward
-  //! increasing global zenith, and local azimuth 90 points toward increasing
-  //! global azimuth.
-  [[nodiscard]] std::vector<std::pair<Stokvec, Vector2>> operator()(
-      Vector2 bore_los) const;
+  //! Builds one sensor obsel for a channel at a sensor position and bore LOS.
+  [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Vector3& pos,
+                                 const Vector2& bore_los) const;
 };
 
 struct PencilBeamAntenna final : AntennaPattern {
@@ -42,6 +40,15 @@ struct GaussianAntenna final : AntennaPattern {
                   Numeric zenith_std,
                   Numeric azimuth_std,
                   Stokvec weight = {1.0, 0.0, 0.0, 0.0});
+};
+
+//! Concept for types that can build a sensor obsel from channel geometry.
+template <typename T>
+concept AntennaPatternSelection = requires(const T& antenna,
+                                           const Channel& channel,
+                                           const Vector3& pos,
+                                           const Vector2& bore_los) {
+  { antenna(channel, pos, bore_los) } -> std::same_as<Obsel>;
 };
 }  // namespace sensor
 

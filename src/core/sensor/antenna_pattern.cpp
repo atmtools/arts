@@ -4,10 +4,13 @@
 #include <geodetic.h>
 
 #include <cmath>
+#include <memory>
 
 namespace sensor {
 
 namespace {
+using AntennaSamples = std::vector<std::pair<Stokvec, Vector2>>;
+
 struct AntennaBasis {
   Vector3 v;
   Vector3 h;
@@ -81,6 +84,38 @@ struct AntennaBasis {
 
   return out;
 }
+
+std::shared_ptr<const PosLosVector> make_poslos_grid(
+    const Vector3& pos, const AntennaSamples& antenna_samples) {
+  auto out = std::make_shared<PosLosVector>(antenna_samples.size());
+
+  for (Size i = 0; i < antenna_samples.size(); ++i) {
+    (*out)[i] = {.pos = pos, .los = antenna_samples[i].second};
+  }
+
+  return out;
+}
+
+SparseStokvecMatrix make_weight_matrix(const AntennaSamples& antenna_samples,
+                                       const Channel& channel) {
+  const auto& channel_weights = channel.weights();
+
+  SparseStokvecMatrix out(antenna_samples.size(), channel_weights.size());
+
+  for (Size iposlos = 0; iposlos < antenna_samples.size(); ++iposlos) {
+    const auto& [antenna_weight, ignored_los] = antenna_samples[iposlos];
+    static_cast<void>(ignored_los);
+
+    if (antenna_weight.is_zero()) continue;
+
+    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+      if (channel_weights[ifreq] == 0.0) continue;
+      out[iposlos, ifreq] = channel_weights[ifreq] * antenna_weight;
+    }
+  }
+
+  return out;
+}
 }  // namespace
 
 PencilBeamAntenna::PencilBeamAntenna(Stokvec weight)
@@ -100,17 +135,18 @@ GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
                                          azimuth_std,
                                          weight)) {}
 
-std::vector<std::pair<Stokvec, Vector2>> AntennaPattern::operator()(
-    Vector2 bore_los) const {
+Obsel AntennaPattern::operator()(const Channel& channel,
+                                 const Vector3& pos,
+                                 const Vector2& bore_los) const {
   ARTS_USER_ERROR_IF(not data.ok(),
                      "SensorAntennaPattern data shape does not match its grids")
 
   const auto& zen_grid = data.grid<0>();
   const auto& azi_grid = data.grid<1>();
 
-  std::vector<std::pair<Stokvec, Vector2>> out;
-  out.reserve(static_cast<std::size_t>(zen_grid.size()) *
-              static_cast<std::size_t>(azi_grid.size()));
+  std::vector<std::pair<Stokvec, Vector2>> antenna_samples;
+  antenna_samples.reserve(static_cast<std::size_t>(zen_grid.size()) *
+                          static_cast<std::size_t>(azi_grid.size()));
 
   const auto basis = antenna_basis(bore_los);
 
@@ -119,11 +155,15 @@ std::vector<std::pair<Stokvec, Vector2>> AntennaPattern::operator()(
       const Vector3 local = antenna_frame_los({zen_grid[izen], azi_grid[iazi]});
       const Vector3 enu   = normalized(local[0] * basis.v + local[1] * basis.h +
                                        local[2] * basis.k);
-      out.emplace_back(data[izen, iazi], enu2los(enu));
+      antenna_samples.emplace_back(data[izen, iazi], enu2los(enu));
     }
   }
 
-  return out;
+  return {
+      std::make_shared<const AscendingGrid>(channel.freq_grid()),
+      make_poslos_grid(pos, antenna_samples),
+      make_weight_matrix(antenna_samples, channel),
+  };
 }
 
 static_assert(AntennaPatternSelection<AntennaPattern>);

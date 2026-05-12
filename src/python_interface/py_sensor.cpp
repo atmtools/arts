@@ -491,14 +491,12 @@ See :meth:`SensorObsel.normalize` for details.
           },
           py::rv_policy::reference_internal,
           "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`")
-      .def(
-          "__call__",
-          &sensor::AntennaPattern::operator(),
-          "bore_los"_a,
-          R"(Map the local antenna pattern onto global LOS values around ``bore_los``.
-
-  Returns a list of ``(weight, los)`` pairs, where ``weight`` is a :class:`Stokvec`
-  and ``los`` is the mapped :class:`Vector2`.)");
+      .def("__call__",
+           &sensor::AntennaPattern::operator(),
+           "channel"_a,
+           "pos"_a,
+           "bore_los"_a,
+           R"(Map the local antenna pattern onto observation elements)");
   generic_interface(sap);
 
   auto spp = py::class_<sensor::PencilBeamAntenna, sensor::AntennaPattern>(

@@ -29,20 +29,19 @@ void test_sensor_builder_returns_meta_per_geometry() {
 
   const auto [obsels, meta] = builder(pos, los);
 
-  ARTS_USER_ERROR_IF(obsels.size() != 4,
-                     "Expected 4 obsels, got {}",
-                     obsels.size())
-  ARTS_USER_ERROR_IF(meta.size() != 2,
-                     "Expected 2 meta entries, got {}",
-                     meta.size())
+  ARTS_USER_ERROR_IF(
+      obsels.size() != 4, "Expected 4 obsels, got {}", obsels.size())
+  ARTS_USER_ERROR_IF(
+      meta.size() != 2, "Expected 2 meta entries, got {}", meta.size())
   ARTS_USER_ERROR_IF(meta[0].count() != 2 or meta[1].count() != 2,
                      "Each meta block must describe one 2-channel geometry")
 
   const auto& gf0 = std::get<SortedGriddedField1>(meta[0].data);
   const auto& gf1 = std::get<SortedGriddedField1>(meta[1].data);
 
-  ARTS_USER_ERROR_IF(gf0.gridname<0>() != "channel" or gf1.gridname<0>() != "channel",
-                     "SensorBuilder meta grid must be the channel axis")
+  ARTS_USER_ERROR_IF(
+      gf0.gridname<0>() != "channel" or gf1.gridname<0>() != "channel",
+      "SensorBuilder meta grid must be the channel axis")
   assert_close(gf0.grid<0>()[0], 0.0, 0.0, "meta[0] channel index 0");
   assert_close(gf0.grid<0>()[1], 1.0, 0.0, "meta[0] channel index 1");
 
@@ -50,6 +49,14 @@ void test_sensor_builder_returns_meta_per_geometry() {
                      "First geometry position mismatch")
   ARTS_USER_ERROR_IF(obsels[2].poslos_grid()[0].pos != pos[1],
                      "Second geometry position mismatch")
+  ARTS_USER_ERROR_IF(not obsels[0].same_poslos(obsels[1]),
+                     "Obsels from the same geometry must share poslos")
+  ARTS_USER_ERROR_IF(not obsels[2].same_poslos(obsels[3]),
+                     "Obsels from the same geometry must share poslos")
+  ARTS_USER_ERROR_IF(not obsels[0].same_freqs(obsels[2]),
+                     "Obsels for the same channel must share frequencies")
+  ARTS_USER_ERROR_IF(not obsels[1].same_freqs(obsels[3]),
+                     "Obsels for the same channel must share frequencies")
 }
 
 void test_sensor_builder_rejects_mismatched_geometry_counts() {
@@ -68,8 +75,9 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() {
     threw = true;
   }
 
-  ARTS_USER_ERROR_IF(not threw,
-                     "SensorBuilder must reject mismatching position and LOS counts")
+  ARTS_USER_ERROR_IF(
+      not threw,
+      "SensorBuilder must reject mismatching position and LOS counts")
 }
 }  // namespace
 

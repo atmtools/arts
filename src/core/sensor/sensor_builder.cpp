@@ -7,40 +7,6 @@
 
 namespace sensor {
 namespace {
-using AntennaSamples = std::vector<std::pair<Stokvec, Vector2>>;
-
-std::shared_ptr<const PosLosVector> make_poslos_grid(
-    const Vector3& pos, const AntennaSamples& antenna_samples) {
-  auto out = std::make_shared<PosLosVector>(antenna_samples.size());
-
-  for (Size i = 0; i < antenna_samples.size(); ++i) {
-    (*out)[i] = {.pos = pos, .los = antenna_samples[i].second};
-  }
-
-  return out;
-}
-
-SparseStokvecMatrix make_weight_matrix(const AntennaSamples& antenna_samples,
-                                       const Channel& channel) {
-  const auto& channel_weights = channel.weights();
-
-  SparseStokvecMatrix out(antenna_samples.size(), channel_weights.size());
-
-  for (Size iposlos = 0; iposlos < antenna_samples.size(); ++iposlos) {
-    const auto& [antenna_weight, ignored_los] = antenna_samples[iposlos];
-    static_cast<void>(ignored_los);
-
-    if (antenna_weight.is_zero()) continue;
-
-    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
-      if (channel_weights[ifreq] == 0.0) continue;
-      out[iposlos, ifreq] = channel_weights[ifreq] * antenna_weight;
-    }
-  }
-
-  return out;
-}
-
 SensorMetaInfo make_meta_info(Size nchannels, Size geometry_index) {
   SortedGriddedField1 gf;
   gf.data_name     = std::format("sensor-builder-{}", geometry_index);
@@ -78,38 +44,34 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
         std::make_shared<const AscendingGrid>(channel.freq_grid()));
   }
 
-  std::vector<AntennaSamples> antenna_samples;
-  antenna_samples.reserve(los.size());
-  for (const auto& bore_los : los) antenna_samples.push_back(antenna(bore_los));
-
-  std::vector<std::vector<SparseStokvecMatrix>> weight_cache(los.size());
-  for (Size ilos = 0; ilos < los.size(); ++ilos) {
-    auto& cached = weight_cache[ilos];
-    cached.reserve(channels.size());
-    for (const auto& channel : channels) {
-      cached.push_back(make_weight_matrix(antenna_samples[ilos], channel));
-    }
-  }
-
   ArrayOfSensorObsel out;
   out.reserve(pos.size() * channels.size());
 
   ArrayOfSensorMetaInfo meta;
   meta.reserve(pos.size());
 
-  const auto append_geometry =
-      [&](const Vector3& sensor_pos, Size ilos, Size geometry_index) {
-        auto poslos_grid = make_poslos_grid(sensor_pos, antenna_samples[ilos]);
+  const auto append_geometry = [&](const Vector3& sensor_pos,
+                                   const Vector2& bore_los,
+                                   Size geometry_index) {
+    std::shared_ptr<const PosLosVector> poslos_grid;
 
-        for (Size ichan = 0; ichan < channels.size(); ++ichan) {
-          out.emplace_back(
-              freq_grids[ichan], poslos_grid, weight_cache[ilos][ichan]);
-        }
+    for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+      auto obsel = antenna(channels[ichan], sensor_pos, bore_los);
+      obsel.set_f_grid_ptr(freq_grids[ichan]);
 
-        meta.push_back(make_meta_info(channels.size(), geometry_index));
-      };
+      if (not poslos_grid) {
+        poslos_grid = obsel.poslos_grid_ptr();
+      } else {
+        obsel.set_poslos_grid_ptr(poslos_grid);
+      }
 
-  for (Size i = 0; i < pos.size(); ++i) append_geometry(pos[i], i, i);
+      out.emplace_back(std::move(obsel));
+    }
+
+    meta.push_back(make_meta_info(channels.size(), geometry_index));
+  };
+
+  for (Size i = 0; i < pos.size(); ++i) append_geometry(pos[i], los[i], i);
 
   return {std::move(out), std::move(meta)};
 }
