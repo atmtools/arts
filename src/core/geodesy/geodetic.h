@@ -43,12 +43,14 @@ std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef);
 
 /** Conversion from ECEF to geodetic coordinates
 
+    Uses a non-iterative, closed-form (Bowring-style) algorithm.
+
     @param[in]   ecef          ECEF position (x,y,z)
     @param[in]   refellipsoid  As the WSV with same name.
     @return      pos           Geodetic position (h,lat,lon)
 
-    @author  Patrick Eriksson
-    @date    2021-07-29
+    @author  Oliver Lemke
+    @date    2026-05-12
 */
 Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid);
 
