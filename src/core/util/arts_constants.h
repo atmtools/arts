@@ -277,10 +277,10 @@ inline constexpr Numeric density_of_ice_at_0c = 0.9167e3;
 inline constexpr Numeric denity_of_water_at_4c = 1e3;
 
 /** Global constant, Planck temperature for cosmic background radiation [K]
-    \author Patrick Eriksson 
-    \date   08.04.2000
+    \author Richard Larsson 
+    \date   2026-05-13
 */
-inline constexpr Numeric cosmic_microwave_background_temperature = 2.735;
+inline constexpr Numeric cosmic_microwave_background_temperature = 2.725;
 
 /** Global constant, the radius of the Earth [m]
     \author Patrick Eriksson 
