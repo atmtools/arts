@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <memory>
 #include <span>
 #include <utility>
 #include <vector>
@@ -20,7 +21,17 @@ concept SensorBuilderSelection = std::derived_from<T, SensorBuilder>;
 
 struct SensorBuilder {
   std::vector<Channel> channels;
-  AntennaPattern antenna;
+  std::shared_ptr<const AntennaPattern> antenna;
+
+  SensorBuilder();
+  SensorBuilder(std::vector<Channel> channels, const AntennaPattern& antenna);
+  SensorBuilder(const SensorBuilder& other);
+  SensorBuilder(SensorBuilder&&) noexcept = default;
+  SensorBuilder& operator=(const SensorBuilder& other);
+  SensorBuilder& operator=(SensorBuilder&&) noexcept = default;
+
+  [[nodiscard]] const AntennaPattern& get_antenna() const;
+  void set_antenna(const AntennaPattern& pattern);
 
   [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(
       std::span<const Vector3> pos, std::span<const Vector2> los) const;

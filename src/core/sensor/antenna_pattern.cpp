@@ -1,5 +1,6 @@
 #include "antenna_pattern.h"
 
+#include <arts_constants.h>
 #include <arts_conversions.h>
 #include <geodetic.h>
 
@@ -9,7 +10,8 @@
 namespace sensor {
 
 namespace {
-using AntennaSamples = std::vector<std::pair<Stokvec, Vector2>>;
+constexpr Numeric gaussian_airy_hwhm_factor =
+    3.8317059702075123156 / Constant::pi;
 
 struct AntennaBasis {
   Vector3 v;
@@ -85,88 +87,192 @@ struct AntennaBasis {
   return out;
 }
 
-std::shared_ptr<const PosLosVector> make_poslos_grid(
-    const Vector3& pos, const AntennaSamples& antenna_samples) {
-  auto out = std::make_shared<PosLosVector>(antenna_samples.size());
+[[nodiscard]] Numeric gaussian_airy_std(Numeric frequency,
+                                        Numeric aperture_diameter) {
+  const Numeric wavelength = Constant::speed_of_light / frequency;
+  const Numeric hwhm_deg = Conversion::rad2deg(gaussian_airy_hwhm_factor *
+                                               wavelength / aperture_diameter);
 
-  for (Size i = 0; i < antenna_samples.size(); ++i) {
-    (*out)[i] = {.pos = pos, .los = antenna_samples[i].second};
-  }
-
-  return out;
+  return Conversion::hwhm2std(hwhm_deg);
 }
 
-SparseStokvecMatrix make_weight_matrix(const AntennaSamples& antenna_samples,
-                                       const Channel& channel) {
-  const auto& channel_weights = channel.weights();
-
-  SparseStokvecMatrix out(antenna_samples.size(), channel_weights.size());
-
-  for (Size iposlos = 0; iposlos < antenna_samples.size(); ++iposlos) {
-    const auto& [antenna_weight, ignored_los] = antenna_samples[iposlos];
-    static_cast<void>(ignored_los);
-
-    if (antenna_weight.is_zero()) continue;
-
-    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
-      if (channel_weights[ifreq] == 0.0) continue;
-      out[iposlos, ifreq] = channel_weights[ifreq] * antenna_weight;
-    }
-  }
-
-  return out;
+std::shared_ptr<const PosLosVector> make_single_poslos_grid(
+    const Vector3& pos, const Vector2& los) {
+  return std::make_shared<PosLosVector>(1, PosLos{.pos = pos, .los = los});
 }
 }  // namespace
 
-PencilBeamAntenna::PencilBeamAntenna(Stokvec weight)
-    : AntennaPattern({.data_name  = "pencil beam"s,
-                      .data       = StokvecMatrix(1, 1, weight),
-                      .grid_names = std::array{"zenith"s, "azimuth"s},
-                      .grids = {ZenGrid{Vector{0.0}}, AziGrid{Vector{0.0}}}}) {}
+PencilBeamAntenna::PencilBeamAntenna(Stokvec weight) : weight(weight) {}
 
-GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
-                                 AziGrid azi_grid,
-                                 Numeric zenith_std,
-                                 Numeric azimuth_std,
-                                 Stokvec weight)
-    : AntennaPattern(make_gaussian_field(std::move(zen_grid),
-                                         std::move(azi_grid),
-                                         zenith_std,
-                                         azimuth_std,
-                                         weight)) {}
+Obsel PencilBeamAntenna::operator()(const Channel& channel,
+                                    const Vector3& pos,
+                                    const Vector2& bore_los) const {
+  const auto& channel_weights = channel.weights();
+  const auto freq_grid =
+      std::make_shared<const AscendingGrid>(channel.freq_grid());
+  SparseStokvecMatrix weight_matrix(1, channel_weights.size());
 
-Obsel AntennaPattern::operator()(const Channel& channel,
-                                 const Vector3& pos,
-                                 const Vector2& bore_los) const {
-  ARTS_USER_ERROR_IF(not data.ok(),
-                     "SensorAntennaPattern data shape does not match its grids")
+  if (not weight.is_zero()) {
+    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+      if (channel_weights[ifreq] == 0.0) continue;
+      weight_matrix[0, ifreq] = channel_weights[ifreq] * weight;
+    }
+  }
 
-  const auto& zen_grid = data.grid<0>();
-  const auto& azi_grid = data.grid<1>();
+  return {freq_grid,
+          make_single_poslos_grid(pos, bore_los),
+          std::move(weight_matrix)};
+}
 
-  std::vector<std::pair<Stokvec, Vector2>> antenna_samples;
-  antenna_samples.reserve(static_cast<std::size_t>(zen_grid.size()) *
-                          static_cast<std::size_t>(azi_grid.size()));
+std::shared_ptr<const AntennaPattern> PencilBeamAntenna::clone() const {
+  return std::make_shared<PencilBeamAntenna>(*this);
+}
+
+Obsel GriddedAntennaPattern::operator()(const Channel& channel,
+                                        const Vector3& pos,
+                                        const Vector2& bore_los) const {
+  ARTS_USER_ERROR_IF(
+      not data.ok(),
+      "SensorGriddedAntennaPattern data shape does not match its grids")
+
+  const auto& zen_grid        = data.grid<0>();
+  const auto& azi_grid        = data.grid<1>();
+  const auto& channel_weights = channel.weights();
+  const auto freq_grid =
+      std::make_shared<const AscendingGrid>(channel.freq_grid());
+
+  const Size nsamples = zen_grid.size() * azi_grid.size();
+  auto poslos_grid    = std::make_shared<PosLosVector>(nsamples);
+  SparseStokvecMatrix weight_matrix(nsamples, channel_weights.size());
 
   const auto basis = antenna_basis(bore_los);
+  Size isample     = 0;
 
   for (Size izen = 0; izen < zen_grid.size(); ++izen) {
     for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
       const Vector3 local = antenna_frame_los({zen_grid[izen], azi_grid[iazi]});
       const Vector3 enu   = normalized(local[0] * basis.v + local[1] * basis.h +
                                        local[2] * basis.k);
-      antenna_samples.emplace_back(data[izen, iazi], enu2los(enu));
+      (*poslos_grid)[isample] = {.pos = pos, .los = enu2los(enu)};
+
+      const auto& antenna_weight = data[izen, iazi];
+      if (not antenna_weight.is_zero()) {
+        for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+          if (channel_weights[ifreq] == 0.0) continue;
+          weight_matrix[isample, ifreq] =
+              channel_weights[ifreq] * antenna_weight;
+        }
+      }
+
+      ++isample;
     }
   }
 
-  return {
-      std::make_shared<const AscendingGrid>(channel.freq_grid()),
-      make_poslos_grid(pos, antenna_samples),
-      make_weight_matrix(antenna_samples, channel),
-  };
+  return {freq_grid, poslos_grid, std::move(weight_matrix)};
+}
+
+std::shared_ptr<const AntennaPattern> GriddedAntennaPattern::clone() const {
+  return std::make_shared<GriddedAntennaPattern>(*this);
+}
+
+GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
+                                 AziGrid azi_grid,
+                                 Numeric zenith_std,
+                                 Numeric azimuth_std,
+                                 Stokvec weight) {
+  data = make_gaussian_field(std::move(zen_grid),
+                             std::move(azi_grid),
+                             zenith_std,
+                             azimuth_std,
+                             weight);
+}
+
+GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
+                                 AziGrid azi_grid,
+                                 Numeric std,
+                                 Stokvec weight)
+    : GaussianAntenna(
+          std::move(zen_grid), std::move(azi_grid), std, std, weight) {}
+
+std::shared_ptr<const AntennaPattern> GaussianAntenna::clone() const {
+  return std::make_shared<GaussianAntenna>(*this);
+}
+
+GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid,
+                                         AziGrid azi_grid,
+                                         Numeric aperture_diameter,
+                                         Stokvec weight)
+    : zen_grid(std::move(zen_grid)),
+      azi_grid(std::move(azi_grid)),
+      aperture_diameter(aperture_diameter),
+      weight(weight) {}
+
+Obsel GaussianAiryAntenna::operator()(const Channel& channel,
+                                      const Vector3& pos,
+                                      const Vector2& bore_los) const {
+  ARTS_USER_ERROR_IF(aperture_diameter <= 0.0,
+                     "Gaussian Airy antenna aperture_diameter must be positive")
+
+  const auto& channel_weights = channel.weights();
+  const auto freq_grid =
+      std::make_shared<const AscendingGrid>(channel.freq_grid());
+
+  ARTS_USER_ERROR_IF(
+      freq_grid->front() <= 0.0,
+      "Gaussian Airy antenna requires strictly positive channel frequencies because SensorBuilder only provides the channel frequency grid")
+
+  const Size nsamples = zen_grid.size() * azi_grid.size();
+  auto poslos_grid    = std::make_shared<PosLosVector>(nsamples);
+  SparseStokvecMatrix weight_matrix(nsamples, channel_weights.size());
+
+  const auto basis = antenna_basis(bore_los);
+  Size isample     = 0;
+
+  for (double izen : zen_grid) {
+    for (double iazi : azi_grid) {
+      const Vector3 local = antenna_frame_los({izen, iazi});
+      const Vector3 enu   = normalized(local[0] * basis.v + local[1] * basis.h +
+                                       local[2] * basis.k);
+      (*poslos_grid)[isample] = {.pos = pos, .los = enu2los(enu)};
+
+      ++isample;
+    }
+  }
+
+  if (not weight.is_zero()) {
+    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+      if (channel_weights[ifreq] == 0.0) continue;
+
+      const Numeric airy_std =
+          gaussian_airy_std((*freq_grid)[ifreq], aperture_diameter);
+      const GaussianAntenna frequency_pattern{
+          zen_grid, azi_grid, airy_std, weight};
+
+      isample = 0;
+      for (Size izen = 0; izen < zen_grid.size(); ++izen) {
+        for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
+          const auto& antenna_weight = frequency_pattern.data[izen, iazi];
+          if (not antenna_weight.is_zero()) {
+            weight_matrix[isample, ifreq] =
+                channel_weights[ifreq] * antenna_weight;
+          }
+
+          ++isample;
+        }
+      }
+    }
+  }
+
+  return {freq_grid, poslos_grid, std::move(weight_matrix)};
+}
+
+std::shared_ptr<const AntennaPattern> GaussianAiryAntenna::clone() const {
+  return std::make_shared<GaussianAiryAntenna>(*this);
 }
 
 static_assert(AntennaPatternSelection<AntennaPattern>);
+static_assert(AntennaPatternSelection<GriddedAntennaPattern>);
 static_assert(AntennaPatternSelection<PencilBeamAntenna>);
 static_assert(AntennaPatternSelection<GaussianAntenna>);
+static_assert(AntennaPatternSelection<GaussianAiryAntenna>);
 }  // namespace sensor

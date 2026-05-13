@@ -471,33 +471,39 @@ See :meth:`SensorObsel.normalize` for details.
   auto sap = py::class_<sensor::AntennaPattern>(m, "SensorAntennaPattern");
   sap.doc() =
       "Base class for angular antenna responses defined around a bore line of sight.";
-  sap.def(py::init<>(), "Construct an empty antenna pattern.")
+  sap.def("__call__",
+          &sensor::AntennaPattern::operator(),
+          "channel"_a,
+          "pos"_a,
+          "bore_los"_a,
+          R"(Map the antenna pattern onto one observation element.)");
+  generic_interface(sap);
+
+  auto sgp = py::class_<sensor::GriddedAntennaPattern, sensor::AntennaPattern>(
+      m, "SensorGriddedAntennaPattern");
+  sgp.doc() =
+      "A gridded angular antenna response on local zenith and azimuth offsets.";
+  sgp.def(py::init<>(), "Construct an empty gridded antenna pattern.")
       .def(
           "__init__",
-          [](sensor::AntennaPattern* self,
+          [](sensor::GriddedAntennaPattern* self,
              const sensor::AntennaPatternField& response) {
-            new (self) sensor::AntennaPattern{.data = response};
+            new (self) sensor::GriddedAntennaPattern{};
+            self->data = response;
           },
           "response"_a,
-          "Construct an antenna pattern from a local zenith/azimuth response field.")
+          "Construct a gridded antenna pattern from a local zenith/azimuth response field.")
       .def_prop_rw(
           "response",
-          [](sensor::AntennaPattern& self) -> sensor::AntennaPatternField& {
-            return self.data;
-          },
-          [](sensor::AntennaPattern& self,
+          [](sensor::GriddedAntennaPattern& self)
+              -> sensor::AntennaPatternField& { return self.data; },
+          [](sensor::GriddedAntennaPattern& self,
              const sensor::AntennaPatternField& response) {
             self.data = response;
           },
           py::rv_policy::reference_internal,
-          "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`")
-      .def("__call__",
-           &sensor::AntennaPattern::operator(),
-           "channel"_a,
-           "pos"_a,
-           "bore_los"_a,
-           R"(Map the local antenna pattern onto observation elements)");
-  generic_interface(sap);
+          "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`");
+  generic_interface(sgp);
 
   auto spp = py::class_<sensor::PencilBeamAntenna, sensor::AntennaPattern>(
       m, "SensorPencilBeamAntenna");
@@ -508,7 +514,7 @@ See :meth:`SensorObsel.normalize` for details.
       "Construct a pencil-beam antenna with one Stokes weight at the bore LOS.");
   generic_interface(spp);
 
-  auto sga = py::class_<sensor::GaussianAntenna, sensor::AntennaPattern>(
+  auto sga = py::class_<sensor::GaussianAntenna, sensor::GriddedAntennaPattern>(
       m, "SensorGaussianAntenna");
   sga.doc() =
       "A Gaussian antenna response defined on a local zenith/azimuth grid.";
@@ -520,6 +526,21 @@ See :meth:`SensorObsel.normalize` for details.
           "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
           "Construct a Gaussian antenna response on the supplied local grids.");
   generic_interface(sga);
+
+  auto sgairy = py::class_<sensor::GaussianAiryAntenna, sensor::AntennaPattern>(
+      m, "SensorGaussianAiryAntenna");
+  sgairy.doc() =
+      "A Gaussianized Airy antenna whose width scales with wavelength and aperture diameter.";
+  sgairy.def(
+      py::init<ZenGrid, AziGrid, Numeric, Stokvec>(),
+      "zen_grid"_a,
+      "azi_grid"_a,
+      "aperture_diameter"_a,
+      "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+      "Construct a Gaussian Airy antenna on the supplied local grids."
+      " The channel frequency grid must be strictly positive because the"
+      " current builder path does not carry a separate reference frequency.");
+  generic_interface(sgairy);
 
   auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
   sch.doc() = "Base class for relative spectrometer channel responses.";
@@ -611,10 +632,7 @@ See :meth:`SensorObsel.normalize` for details.
           [](sensor::SensorBuilder* self,
              const std::vector<sensor::Channel>& channels,
              const sensor::AntennaPattern& antenna) {
-            new (self) sensor::SensorBuilder{
-                .channels = channels,
-                .antenna  = antenna,
-            };
+            new (self) sensor::SensorBuilder{channels, antenna};
           },
           "channels"_a,
           "antenna"_a = sensor::PencilBeamAntenna{},
@@ -623,9 +641,15 @@ See :meth:`SensorObsel.normalize` for details.
           "channels",
           &sensor::SensorBuilder::channels,
           "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
-      .def_rw(
+      .def_prop_rw(
           "antenna",
-          &sensor::SensorBuilder::antenna,
+          [](const sensor::SensorBuilder& self)
+              -> const sensor::AntennaPattern& { return self.get_antenna(); },
+          [](sensor::SensorBuilder& self,
+             const sensor::AntennaPattern& antenna) {
+            self.set_antenna(antenna);
+          },
+          py::rv_policy::reference_internal,
           "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
       .def(
           "__call__",
