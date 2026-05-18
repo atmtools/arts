@@ -1,9 +1,8 @@
 #pragma once
 
+#include <format_tags.h>
 #include <matpack.h>
 #include <xml_io_stream.h>
-
-#include "matpack_mdspan_helpers_gridded_data_t.h"
 
 namespace sensor {
 //! Free-form channel struct.  Others inherit from this.
@@ -34,6 +33,7 @@ struct BoxChannel final : Channel {
   BoxChannel(Numeric lower, Numeric upper, Size N);  // [lower, upper]
   BoxChannel(Numeric hw, Size N);                    // [-hw, hw]
   BoxChannel(AscendingGrid f);                       // f
+  BoxChannel() = default;                            // [0, 0]
 };
 
 struct DiracChannel final : Channel {
@@ -46,6 +46,9 @@ struct GaussianChannel final : Channel {
   GaussianChannel(Numeric f0, Numeric std, Size N, Size M);   // f0 +- M*std
   GaussianChannel(AscendingGrid f, Numeric std);              // f, f0 = 0
   GaussianChannel(Numeric std, Size N, Size M);               // +-M*std, f0 = 0
+  GaussianChannel() = default;                                // f0 = 0, std = 0
+
+  [[nodiscard]] AscendingGrid center_grid() const;
 };
 }  // namespace sensor
 
@@ -69,50 +72,29 @@ struct xml_io_stream_aggregate<sensor::Channel> {
 // BoxChannel format tags and XML I/O
 
 template <>
-struct format_tag_aggregate<sensor::BoxChannel> {
-  constexpr static bool value = true;
-};
+struct std::formatter<sensor::BoxChannel>
+    : format_tag_inherit<sensor::Channel, sensor::BoxChannel> {};
 
 template <>
-struct xml_io_stream_name<sensor::BoxChannel> {
-  static constexpr std::string_view name = "SensorBoxChannel";
-};
-
-template <>
-struct xml_io_stream_aggregate<sensor::BoxChannel> {
-  static constexpr bool value = true;
-};
+struct xml_io_stream<sensor::BoxChannel>
+    : xml_io_stream_inherit<sensor::Channel, sensor::BoxChannel> {};
 
 // DiracChannel format tags and XML I/O
 
 template <>
-struct format_tag_aggregate<sensor::DiracChannel> {
-  constexpr static bool value = true;
-};
+struct std::formatter<sensor::DiracChannel>
+    : format_tag_inherit<sensor::Channel, sensor::DiracChannel> {};
 
 template <>
-struct xml_io_stream_name<sensor::DiracChannel> {
-  static constexpr std::string_view name = "SensorDiracChannel";
-};
-
-template <>
-struct xml_io_stream_aggregate<sensor::DiracChannel> {
-  static constexpr bool value = true;
-};
+struct xml_io_stream<sensor::DiracChannel>
+    : xml_io_stream_inherit<sensor::Channel, sensor::DiracChannel> {};
 
 // GaussianChannel format tags and XML I/O
 
 template <>
-struct format_tag_aggregate<sensor::GaussianChannel> {
-  constexpr static bool value = true;
-};
+struct std::formatter<sensor::GaussianChannel>
+    : format_tag_inherit<sensor::Channel, sensor::GaussianChannel> {};
 
 template <>
-struct xml_io_stream_name<sensor::GaussianChannel> {
-  static constexpr std::string_view name = "SensorGaussianChannel";
-};
-
-template <>
-struct xml_io_stream_aggregate<sensor::GaussianChannel> {
-  static constexpr bool value = true;
-};
+struct xml_io_stream<sensor::GaussianChannel>
+    : xml_io_stream_inherit<sensor::Channel, sensor::GaussianChannel> {};

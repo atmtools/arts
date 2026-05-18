@@ -14,12 +14,14 @@ template <typename T>
 constexpr bool xml_io_stream_aggregate_v = xml_io_stream_aggregate<T>::value;
 
 template <typename T>
-concept xml_io_aggregratable =
-    xml_io_stream_aggregate_v<T> and arts_aggregate<T>;
+concept xml_io_aggregratable = xml_io_stream_aggregate_v<T>;
 
 template <xml_io_aggregratable T>
 struct xml_io_stream<T> {
   constexpr static std::string_view type_name = xml_io_stream_name_v<T>;
+
+  static_assert(arts_aggregate<T>,
+                "xml_io_aggregratable types must be arts_aggregate");
 
   using _lambda = decltype([](auto& v) { return as_tuple(v); });
   using ctup_t  = std::invoke_result_t<_lambda, const T&>;

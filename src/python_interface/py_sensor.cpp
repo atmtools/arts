@@ -23,6 +23,7 @@
 #include "hpy_matpack.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "xml_io_stream.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
@@ -477,7 +478,7 @@ See :meth:`SensorObsel.normalize` for details.
           "pos"_a,
           "bore_los"_a,
           R"(Map the antenna pattern onto one observation element.)");
-  generic_interface(sap);
+  // generic_interface(sap);  -- this should break things.  The class is somewhat abstract
 
   auto sgp = py::class_<sensor::GriddedAntennaPattern, sensor::AntennaPattern>(
       m, "SensorGriddedAntennaPattern");
@@ -533,14 +534,31 @@ See :meth:`SensorObsel.normalize` for details.
       "A Gaussianized Airy antenna whose width scales with wavelength and aperture diameter.";
   sgairy.def(
       py::init<ZenGrid, AziGrid, Numeric, Stokvec>(),
-      "zen_grid"_a,
+      "dzen_grid"_a,
       "azi_grid"_a,
       "aperture_diameter"_a,
       "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
       "Construct a Gaussian Airy antenna on the supplied local grids."
       " The channel frequency grid must be strictly positive because the"
       " current builder path does not carry a separate reference frequency.");
+  sgairy.def_rw(
+      "aperture_diameter",
+      &sensor::GaussianAiryAntenna::aperture_diameter,
+      "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`Numeric`");
+  sgairy.def_rw(
+      "weight",
+      &sensor::GaussianAiryAntenna::weight,
+      "Stokes weights of the antenna response.\n\n.. :class:`Stokvec`");
+  sgairy.def_rw(
+      "zen_grid",
+      &sensor::GaussianAiryAntenna::zen_grid,
+      "Local zenith grid of the antenna response.\n\n.. :class:`ZenGrid`");
+  sgairy.def_rw(
+      "azi_grid",
+      &sensor::GaussianAiryAntenna::azi_grid,
+      "Local azimuth grid of the antenna response.\n\n.. :class:`AziGrid`");
   generic_interface(sgairy);
+  static_assert(arts_xml_ioable<sensor::GaussianAiryAntenna>);
 
   auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
   sch.doc() = "Base class for relative spectrometer channel responses.";

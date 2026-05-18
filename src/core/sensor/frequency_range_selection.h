@@ -70,6 +70,23 @@ struct HeterodyneFrequencyRange final : FrequencyRange {
 };
 }  // namespace sensor
 
+// FrequencyResponsePath format tags and XML I/O
+
+template <>
+struct format_tag_aggregate<sensor::FrequencyResponsePath> {
+  constexpr static bool value = true;
+};
+
+template <>
+struct xml_io_stream_name<sensor::FrequencyResponsePath> {
+  static constexpr std::string_view name = "SensorFrequencyResponsePath";
+};
+
+template <>
+struct xml_io_stream_aggregate<sensor::FrequencyResponsePath> {
+  static constexpr bool value = true;
+};
+
 // FrequencyRange format tags and XML I/O
 
 template <>
@@ -90,33 +107,11 @@ struct xml_io_stream_aggregate<sensor::FrequencyRange> {
 // HeterodyneFrequencyRange format tags and XML I/O
 
 template <>
-struct format_tag_aggregate<sensor::HeterodyneFrequencyRange> {
-  constexpr static bool value = true;
-};
+struct std::formatter<sensor::HeterodyneFrequencyRange>
+    : format_tag_inherit<sensor::FrequencyRange,
+                         sensor::HeterodyneFrequencyRange> {};
 
 template <>
-struct xml_io_stream_name<sensor::HeterodyneFrequencyRange> {
-  static constexpr std::string_view name = "SensorHeterodyneFrequencyRange";
-};
-
-template <>
-struct xml_io_stream_aggregate<sensor::HeterodyneFrequencyRange> {
-  static constexpr bool value = true;
-};
-
-// FrequencyResponsePath format tags and XML I/O
-
-template <>
-struct format_tag_aggregate<sensor::FrequencyResponsePath> {
-  constexpr static bool value = true;
-};
-
-template <>
-struct xml_io_stream_name<sensor::FrequencyResponsePath> {
-  static constexpr std::string_view name = "SensorFrequencyResponsePath";
-};
-
-template <>
-struct xml_io_stream_aggregate<sensor::FrequencyResponsePath> {
-  static constexpr bool value = true;
-};
+struct xml_io_stream<sensor::HeterodyneFrequencyRange>
+    : xml_io_stream_inherit<sensor::FrequencyRange,
+                            sensor::HeterodyneFrequencyRange> {};

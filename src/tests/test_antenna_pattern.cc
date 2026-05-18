@@ -21,6 +21,14 @@ void assert_stokvec(Stokvec actual,
   }
 }
 
+Stokvec sum_column_weights(const sensor::Obsel& obsel, Size ifreq) {
+  Stokvec sum{0.0, 0.0, 0.0, 0.0};
+  for (Size isample = 0; isample < obsel.poslos_grid().size(); ++isample) {
+    sum += obsel.weight_matrix()[isample, ifreq];
+  }
+  return sum;
+}
+
 void test_gaussian_initialization_uses_antenna_frame_offsets() {
   const Stokvec peak_weight{2.0, 1.0, 0.0, 0.0};
   const sensor::GaussianAntenna ant{
@@ -72,26 +80,35 @@ void test_gaussian_airy_is_frequency_dependent() {
 
   const auto obsel = ant(channel, {600e3, 10.0, 20.0}, {45.0, 30.0});
 
-  assert_stokvec(obsel.weight_matrix()[0, 0],
-                 0.5 * peak_weight,
-                 1e-12,
-                 "gaussian airy bore low frequency");
-  assert_stokvec(obsel.weight_matrix()[0, 1],
-                 0.5 * peak_weight,
-                 1e-12,
-                 "gaussian airy bore high frequency");
-
   const Numeric low_gain  = gaussian_airy_expected_gain(0.2, 100.0e9, 1.0);
   const Numeric high_gain = gaussian_airy_expected_gain(0.2, 200.0e9, 1.0);
 
+    const Numeric low_norm  = 1.0 + low_gain;
+    const Numeric high_norm = 1.0 + high_gain;
+
+    assert_stokvec(obsel.weight_matrix()[0, 0],
+           (0.5 / low_norm) * peak_weight,
+                 1e-12,
+                 "gaussian airy bore low frequency");
+  assert_stokvec(obsel.weight_matrix()[0, 1],
+           (0.5 / high_norm) * peak_weight,
+                 1e-12,
+                 "gaussian airy bore high frequency");
+
   assert_stokvec(obsel.weight_matrix()[1, 0],
-                 0.5 * low_gain * peak_weight,
+           (0.5 * low_gain / low_norm) * peak_weight,
                  1e-12,
                  "gaussian airy off-axis low frequency");
   assert_stokvec(obsel.weight_matrix()[1, 1],
-                 0.5 * high_gain * peak_weight,
+           (0.5 * high_gain / high_norm) * peak_weight,
                  1e-12,
                  "gaussian airy off-axis high frequency");
+
+    assert_stokvec(
+      sum_column_weights(obsel, 0), 0.5 * peak_weight, 1e-12, "gaussian airy normalized low frequency");
+    assert_stokvec(
+      sum_column_weights(obsel, 1), 0.5 * peak_weight, 1e-12, "gaussian airy normalized high frequency");
+
   const auto low_weight  = obsel.weight_matrix()[1, 0];
   const auto high_weight = obsel.weight_matrix()[1, 1];
   ARTS_USER_ERROR_IF(low_weight[0] <= high_weight[0],
@@ -99,7 +116,7 @@ void test_gaussian_airy_is_frequency_dependent() {
 }
 
 void test_gaussian_airy_matches_frequency_specific_gaussian_pattern() {
-  const ZenGrid zen_grid{{0.0, 0.2}};
+  const ZenGrid zen_grid{{0.1, 0.2}};
   const AziGrid azi_grid{{0.0, 0.2}};
   const Stokvec peak_weight{2.0, 0.0, 0.0, 0.0};
   const sensor::GaussianAiryAntenna ant{zen_grid, azi_grid, 1.0, peak_weight};
@@ -113,18 +130,69 @@ void test_gaussian_airy_matches_frequency_specific_gaussian_pattern() {
     const sensor::GaussianAntenna gaussian{
         zen_grid, azi_grid, airy_std, airy_std, peak_weight};
 
+    Numeric normalization = 0.0;
+    for (Size izen = 0; izen < zen_grid.size(); ++izen) {
+      for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
+        normalization += gaussian.data[izen, iazi][0] / peak_weight[0];
+      }
+    }
+
     Size isample = 0;
     for (Size izen = 0; izen < zen_grid.size(); ++izen) {
       for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
         assert_stokvec(obsel.weight_matrix()[isample, ifreq],
-                       channel.weights()[ifreq] * gaussian.data[izen, iazi],
+                       (channel.weights()[ifreq] / normalization) *
+                           gaussian.data[izen, iazi],
                        1e-12,
                        "gaussian airy per-frequency gaussian match");
         ++isample;
       }
     }
+
+    assert_stokvec(sum_column_weights(obsel, ifreq),
+                   channel.weights()[ifreq] * peak_weight,
+                   1e-12,
+                   "gaussian airy per-frequency column normalization");
   }
 }
+
+          void test_degenerate_azimuth_ring_is_collapsed() {
+            const sensor::GaussianAntenna gaussian{
+              ZenGrid{{0.0, 1.0}}, AziGrid{{0.0, 120.0, 240.0}}, 1.0, 1.0};
+            const auto gaussian_obsel =
+              gaussian(sensor::DiracChannel{100.0e9}, {600e3, 10.0, 20.0}, {45.0, 30.0});
+
+            ARTS_USER_ERROR_IF(gaussian_obsel.poslos_grid().size() != 4,
+                     "Expected zero-zenith azimuth collapse to leave 4 LOS samples, got {}",
+                     gaussian_obsel.poslos_grid().size())
+            assert_stokvec(gaussian_obsel.weight_matrix()[0, 0],
+                   {3.0, 0.0, 0.0, 0.0},
+                   1e-12,
+                   "collapsed gaussian zero-zenith ring weight");
+
+            const sensor::GaussianAiryAntenna airy{
+              ZenGrid{{0.0, 0.2}}, AziGrid{{0.0, 120.0, 240.0}}, 1.0};
+            const auto airy_obsel =
+              airy(sensor::DiracChannel{100.0e9}, {600e3, 10.0, 20.0}, {45.0, 30.0});
+            const Numeric gain = gaussian_airy_expected_gain(0.2, 100.0e9, 1.0);
+            const Numeric retained_scale = 3.0 * (1.0 + gain) / (1.0 + 3.0 * gain);
+
+            ARTS_USER_ERROR_IF(airy_obsel.poslos_grid().size() != 4,
+                     "Expected Gaussian Airy zero-zenith azimuth collapse to leave 4 LOS samples, got {}",
+                     airy_obsel.poslos_grid().size())
+            assert_stokvec(airy_obsel.weight_matrix()[0, 0],
+                           {retained_scale / (3.0 * (1.0 + gain)), 0.0, 0.0, 0.0},
+                           1e-6,
+                           "collapsed gaussian airy center is renormalized with retained points");
+            assert_stokvec(airy_obsel.weight_matrix()[1, 0],
+                           {retained_scale * gain / (3.0 * (1.0 + gain)), 0.0, 0.0, 0.0},
+                           1e-6,
+                           "collapsed gaussian airy off-axis weight is renormalized uniformly");
+            assert_stokvec(sum_column_weights(airy_obsel, 0),
+                           {1.0, 0.0, 0.0, 0.0},
+                           1e-6,
+                           "collapsed gaussian airy column renormalizes to unity");
+          }
 
 void test_gaussian_airy_rejects_nonpositive_frequencies() {
   const sensor::GaussianAiryAntenna ant{ZenGrid{{0.0}}, AziGrid{{0.0}}, 1.0};
@@ -146,6 +214,7 @@ int main() {
   test_gaussian_initialization_uses_antenna_frame_offsets();
   test_gaussian_airy_is_frequency_dependent();
   test_gaussian_airy_matches_frequency_specific_gaussian_pattern();
+  test_degenerate_azimuth_ring_is_collapsed();
   test_gaussian_airy_rejects_nonpositive_frequencies();
   return 0;
 }

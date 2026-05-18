@@ -8,6 +8,7 @@
 #include <xml_io_stream_core.h>
 #include <xml_io_stream_enum_options.h>
 #include <xml_io_stream_functional.h>
+#include <xml_io_stream_inherit.h>
 #include <xml_io_stream_map.h>
 #include <xml_io_stream_optional.h>
 #include <xml_io_stream_set.h>
