@@ -113,6 +113,37 @@ does not change the global workspace while minimizing the number of variables th
       .desc = "Represents species of scattering particles in the atmosphere.",
   };
 
+  wsg_data["LambertianSurfaceScatterer"] = {
+      .file = "surface_scattering/lambertian.h",
+      .desc = R"(A Lambertian surface scattering model.
+
+Implements a Lambertian (isotropic) bidirectional reflectance distribution
+function (BRDF):
+
+  BRDF(I->I) = reflectivity[f] / pi
+
+and the corresponding emissivity:
+
+  emissivity(I) = 1 - reflectivity[f]
+
+where ``reflectivity`` is a *Vector* over the frequency grid carried inside
+the struct (analogous to the asymmetry parameter ``g`` in
+``HenyeyGreensteinScatterer``).  The *SurfacePropertyTag* names the surface
+property this model represents for later lookup.
+)",
+  };
+
+
+  wsg_data["MapOfSurfaceScatteringModel"] = {
+      .file = "surface_scattering/surface_scattering_model.h",
+      .desc = R"(A named map of surface scattering models.
+
+Models are stored by string name for individual lookup and their bulk
+surface scattering properties are accumulated when
+``get_bulk_surface_scattering_properties`` is called.
+)",
+  };
+
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
       .desc = R"(Meta data for scattering species.
