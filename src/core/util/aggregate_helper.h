@@ -3,111 +3,295 @@
 #include <tuple>
 #include <type_traits>
 
+struct aggregate_init {
+  template <typename T>
+  constexpr operator T() const noexcept;
+};
+
 template <typename T>
 concept aggregate_0 = std::is_aggregate_v<T> and requires { T{}; };
 
 template <typename T>
-concept aggregate_1 = aggregate_0<T> and requires { T({}); };
+concept aggregate_1 = aggregate_0<T> and requires { T{aggregate_init{}}; };
 
 template <typename T>
-concept aggregate_2 = aggregate_1<T> and requires { T({}, {}); };
+concept aggregate_2 = aggregate_1<T> and requires {
+  T{aggregate_init{}, aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_3 = aggregate_2<T> and requires { T({}, {}, {}); };
+concept aggregate_3 = aggregate_2<T> and requires {
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_4 = aggregate_3<T> and requires { T({}, {}, {}, {}); };
+concept aggregate_4 = aggregate_3<T> and requires {
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_5 = aggregate_4<T> and requires { T({}, {}, {}, {}, {}); };
+concept aggregate_5 = aggregate_4<T> and requires {
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
+};
 
 template <typename T>
 concept aggregate_6 =
-    aggregate_5<T> and requires { T({}, {}, {}, {}, {}, {}); };
+    aggregate_5<T> and requires {
+      T{aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{}};
+    };
 
 template <typename T>
 concept aggregate_7 =
-    aggregate_6<T> and requires { T({}, {}, {}, {}, {}, {}, {}); };
+    aggregate_6<T> and requires {
+      T{aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{}};
+    };
 
 template <typename T>
 concept aggregate_8 =
-    aggregate_7<T> and requires { T({}, {}, {}, {}, {}, {}, {}, {}); };
+    aggregate_7<T> and requires {
+      T{aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{}};
+    };
 
 template <typename T>
 concept aggregate_9 =
-    aggregate_8<T> and requires { T({}, {}, {}, {}, {}, {}, {}, {}, {}); };
+    aggregate_8<T> and requires {
+      T{aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{}};
+    };
 
 template <typename T>
 concept aggregate_10 =
-    aggregate_9<T> and requires { T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}); };
+    aggregate_9<T> and requires {
+      T{aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{},
+        aggregate_init{}};
+    };
 
 template <typename T>
 concept aggregate_11 = aggregate_10<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_12 = aggregate_11<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_13 = aggregate_12<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_14 = aggregate_13<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_15 = aggregate_14<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_16 = aggregate_15<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_17 = aggregate_16<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_18 = aggregate_17<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_19 = aggregate_18<T> and requires {
-  T({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_20 = aggregate_19<T> and requires {
-  T({},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {});
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
