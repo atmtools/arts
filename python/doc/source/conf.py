@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_copybutton',
     'sphinx_favicon',
+    'sphinx_sitemap',
     'matplotlib.sphinxext.plot_directive',
     'nbsphinx',
     'sphinx.ext.graphviz',
@@ -358,3 +359,6 @@ graphviz_output_format = 'svg'
 bibtex_bibfiles = ['j_full.bib', 'references.bib']
 bibtex_default_style = 'plain'
 
+# Sitemap configuration
+html_baseurl = 'https://atmtools.github.io/arts-docs-master/'
+sitemap_url_scheme = "{link}"

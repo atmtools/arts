@@ -4,30 +4,51 @@
 """
 
 import os
-from importlib_metadata import files
 import pyarts3 as pyarts
+
+
+def get_arts_data_path():
+    path = None
+    test = False
+    for p in pyarts.arts.globals.parameters.datapath:
+        if "arts-cat-data" in p:
+            path = p
+            test = True
+            break
+
+    if not test:
+        raise RuntimeError(
+            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data."
+        )
+
+    return path
 
 
 def test_iso(fn: str):
     data = pyarts.xml.load(fn)
 
-    assert isinstance(data, pyarts.arts.SpeciesIsotopologueInfo), \
+    assert isinstance(data, pyarts.arts.SpeciesIsotopologueInfo), (
         f"Wrong type for {fn}: {type(data)}"
+    )
 
-    iso = os.path.basename(fn).split('.')[0]
-    [spec, code] = iso.split('-')
+    iso = os.path.basename(fn).split(".")[0]
+    [spec, code] = iso.split("-")
 
-    assert data.species == spec or data.code == code, \
+    assert data.species == spec or data.code == code, (
         f"[Unmaintainable isotopologues data]: {fn} has species {data.species} and code {data.code}, but expected {spec} and {code} from filename"
+    )
 
-    assert data.mass > 0, \
+    assert data.mass > 0, (
         f"[Unmaintainable isotopologues data]: {fn} has bad mass {data.mass}.  Set to round atomic weights if you do not know."
+    )
 
-    assert data.default_ratio >= 0, \
+    assert data.default_ratio >= 0, (
         f"[Unmaintainable isotopologues data]: {fn} has bad default_ratio {data.default_ratio}.  Set to zero to ignore by default."
+    )
 
-    assert data.degeneracy > 0 or data.degeneracy == -1, \
+    assert data.degeneracy > 0 or data.degeneracy == -1, (
         f"[Unmaintainable isotopologues data]: {fn} has invalid degeneracy {data.degeneracy}.  Set to -1 if unknown."
+    )
 
     return iso, data
 
@@ -35,21 +56,25 @@ def test_iso(fn: str):
 def test_hitran(fn: str):
     data = pyarts.xml.load(fn)
 
-    assert isinstance(data, pyarts.arts.HitranSpeciesInfo), \
+    assert isinstance(data, pyarts.arts.HitranSpeciesInfo), (
         f"Wrong type for {fn}: {type(data)}"
+    )
 
     try:
-        iso = os.path.basename(fn).split('.')[0]
-        [spec, code] = iso.split('-')
+        iso = os.path.basename(fn).split(".")[0]
+        [spec, code] = iso.split("-")
     except (IndexError, ValueError):
         raise ValueError(
-            f"Invalid filename format for {fn}.  Should be <spec>-<code>.xml, where spec is a string and code is the isotopologue code.")
+            f"Invalid filename format for {fn}.  Should be <spec>-<code>.xml, where spec is a string and code is the isotopologue code."
+        )
 
-    assert data.spec.spec == spec or data.spec.isotname == code, \
+    assert data.spec.spec == spec or data.spec.isotname == code, (
         f"[Unmaintainable hitran data]: {fn} has species {data.species} and code {data.code}, but expected {spec} and {code} from filename"
+    )
 
-    assert data.ratio >= 0, \
+    assert data.ratio >= 0, (
         f"[Unmaintainable hitran data]: {fn} has bad ratio {data.ratio}.  Must be positive."
+    )
 
     return iso, data
 
@@ -57,24 +82,29 @@ def test_hitran(fn: str):
 def test_jpl(fn: str):
     data = pyarts.xml.load(fn)
 
-    assert isinstance(data, pyarts.arts.JplSpeciesInfo), \
+    assert isinstance(data, pyarts.arts.JplSpeciesInfo), (
         f"Wrong type for {fn}: {type(data)}"
+    )
 
     try:
-        iso = os.path.basename(fn).split('.')
+        iso = os.path.basename(fn).split(".")
         code = int(iso[0])
     except (IndexError, ValueError):
         raise ValueError(
-            f"Invalid filename format for {fn}.  Should be <code>.xml, where code is an integer from JPL.")
+            f"Invalid filename format for {fn}.  Should be <code>.xml, where code is an integer from JPL."
+        )
 
-    assert data.id == code, \
+    assert data.id == code, (
         f"[Unmaintainable jpl data]: {fn} has id {data.id}, but expected {code} from filename"
+    )
 
-    assert data.T0 > 0, \
+    assert data.T0 > 0, (
         f"[Unmaintainable jpl data]: {fn} has bad T0 {data.T0}.  Must be positive."
+    )
 
-    assert data.QT0 > 0, \
+    assert data.QT0 > 0, (
         f"[Unmaintainable jpl data]: {fn} has bad QT0 {data.QT0}.  Must be positive."
+    )
 
     return str(data.spec), data
 
@@ -82,22 +112,26 @@ def test_jpl(fn: str):
 def test_species(fn: str):
     data = pyarts.xml.load(fn)
 
-    assert isinstance(data, pyarts.arts.SpeciesEnumInfo), \
+    assert isinstance(data, pyarts.arts.SpeciesEnumInfo), (
         f"Wrong type for {fn}: {type(data)}"
+    )
 
     try:
-        iso = os.path.basename(fn).split('.')
+        iso = os.path.basename(fn).split(".")
         code = int(iso[0])
         spec = iso[1]
     except (IndexError, ValueError):
         raise ValueError(
-            f"Invalid filename format for {fn}.  Should be <code>.<spec>.xml, where code is an integer and spec is a string.")
+            f"Invalid filename format for {fn}.  Should be <code>.<spec>.xml, where code is an integer and spec is a string."
+        )
 
-    assert data.enum_value == code, \
+    assert data.enum_value == code, (
         f"[Unmaintainable species data]: {fn} has enum_value {data.enum_value}, but expected {code} from filename"
+    )
 
-    assert data.shortname == spec, \
+    assert data.shortname == spec, (
         f"[Unmaintainable species data]: {fn} has shortname {data.shortname}, but expected {spec} from filename"
+    )
 
     return iso[1], data
 
@@ -105,29 +139,23 @@ def test_species(fn: str):
 def test_partfun(fn: str):
     data = pyarts.xml.load(fn)
 
-    assert isinstance(data, pyarts.arts.PartitionFunctionsData), \
+    assert isinstance(data, pyarts.arts.PartitionFunctionsData), (
         f"Wrong type for {fn}: {type(data)}"
+    )
 
     try:
-        iso = os.path.basename(fn).split('.')
+        iso = os.path.basename(fn).split(".")
         spec = iso[0]
     except (IndexError, ValueError):
         raise ValueError(
-            f"Invalid filename format for {fn}.  Should be <spec>.xml, where spec is a string.")
+            f"Invalid filename format for {fn}.  Should be <spec>.xml, where spec is a string."
+        )
 
     return spec, data
 
 
 def all_isotopologues():
-    test = False
-    for path in pyarts.arts.globals.parameters.datapath:
-        if path.endswith("arts-cat-data"):
-            test = True
-            break
-
-    if not test:
-        raise RuntimeError(
-            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data.")
+    path = get_arts_data_path()
 
     out = {}
     isot_path = os.path.join(path, "isotopologues")
@@ -142,15 +170,7 @@ def all_isotopologues():
 
 
 def all_hitran():
-    test = False
-    for path in pyarts.arts.globals.parameters.datapath:
-        if path.endswith("arts-cat-data"):
-            test = True
-            break
-
-    if not test:
-        raise RuntimeError(
-            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data.")
+    path = get_arts_data_path()
 
     out = {}
     hitran_path = os.path.join(path, "hitran")
@@ -179,41 +199,36 @@ def all_hitran():
 
         # unique characters for each species
         testspec[data.spec.spec].append(data.hitchar)
-        testind[data.hitind].append(data.spec.spec)    # same species for same
+        testind[data.hitind].append(data.spec.spec)  # same species for same
         # different species for same character
         testchar[data.hitchar].append(data.hitind)
 
     for spec in testspec:
         n = len(testspec[spec])
         x = set(testspec[spec])
-        assert len(
-            x) == n, f"[Unmaintainable isotopologues data]: Species {spec} has duplicate characters: {testspec[spec]}"
+        assert len(x) == n, (
+            f"[Unmaintainable isotopologues data]: Species {spec} has duplicate characters: {testspec[spec]}"
+        )
 
     for ind in testind:
         n = len(testind[ind])
         x = set(testind[ind])
-        assert len(
-            x) == 1, f"[Unmaintainable isotopologues data]: Hitran index {ind} corresponds to multiple species: {testind[ind]}"
+        assert len(x) == 1, (
+            f"[Unmaintainable isotopologues data]: Hitran index {ind} corresponds to multiple species: {testind[ind]}"
+        )
 
     for char in testchar:
         n = len(testchar[char])
         x = set(testchar[char])
-        assert len(
-            x) == n, f"[Unmaintainable isotopologues data]: Character {char} corresponds to multiple hitran indices: {testchar[char]}"
+        assert len(x) == n, (
+            f"[Unmaintainable isotopologues data]: Character {char} corresponds to multiple hitran indices: {testchar[char]}"
+        )
 
     return out
 
 
 def all_jpl():
-    test = False
-    for path in pyarts.arts.globals.parameters.datapath:
-        if path.endswith("arts-cat-data"):
-            test = True
-            break
-
-    if not test:
-        raise RuntimeError(
-            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data.")
+    path = get_arts_data_path()
 
     out = {}
     jpl_path = os.path.join(path, "jpl")
@@ -225,22 +240,15 @@ def all_jpl():
         out[key] = ext
 
     testcode = [spec for spec in out]
-    assert len(testcode) == len(set(testcode)), \
+    assert len(testcode) == len(set(testcode)), (
         f"[Unmaintainable jpl data]: Duplicate codes found: {testcode}"
+    )
 
     return out
 
 
 def all_species():
-    test = False
-    for path in pyarts.arts.globals.parameters.datapath:
-        if path.endswith("arts-cat-data"):
-            test = True
-            break
-
-    if not test:
-        raise RuntimeError(
-            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data.")
+    path = get_arts_data_path()
 
     out = {}
     species_path = os.path.join(path, "species")
@@ -250,23 +258,16 @@ def all_species():
 
         key, ext = test_species(os.path.join(species_path, file))
         out[key] = ext
-    
-    assert len(out) == len(set(out.keys())), \
+
+    assert len(out) == len(set(out.keys())), (
         f"[Unmaintainable species data]: Duplicate species found: {list(out.keys())}"
+    )
 
     return out
 
 
 def all_partfun():
-    test = False
-    for path in pyarts.arts.globals.parameters.datapath:
-        if path.endswith("arts-cat-data"):
-            test = True
-            break
-
-    if not test:
-        raise RuntimeError(
-            "Data path does not include arts-cat-data. Please update your data path to include arts-cat-data.")
+    path = get_arts_data_path()
 
     out = {}
     partfun_path = os.path.join(path, "partition-functions")
@@ -292,24 +293,30 @@ jpl_keys = set(jpl.keys())
 specs_keys = set(specs.keys())
 pfun_keys = set(pfun.keys())
 
-specs_from_iso = set([s.split('-')[0] for s in iso_keys])
-specs_from_hit = set([s.split('-')[0] for s in hit_keys])
-specs_from_jpl = set([s.split('-')[0] for s in jpl_keys])
+specs_from_iso = set([s.split("-")[0] for s in iso_keys])
+specs_from_hit = set([s.split("-")[0] for s in hit_keys])
+specs_from_jpl = set([s.split("-")[0] for s in jpl_keys])
 
-assert iso_keys.issubset(pfun_keys), \
-  f"[Unmaintainable data]: Partition function isotopologues do not match isotopologues.  Missing: {iso_keys - pfun_keys}"
+assert iso_keys.issubset(pfun_keys), (
+    f"[Unmaintainable data]: Partition function isotopologues do not match isotopologues.  Missing: {iso_keys - pfun_keys}"
+)
 
-assert hit_keys.issubset(iso_keys), \
-  f"[Unmaintainable data]: HITRAN isotopologues do not match isotopologues.  Missing: {hit_keys - iso_keys}"
+assert hit_keys.issubset(iso_keys), (
+    f"[Unmaintainable data]: HITRAN isotopologues do not match isotopologues.  Missing: {hit_keys - iso_keys}"
+)
 
-assert jpl_keys.issubset(iso_keys), \
-  f"[Unmaintainable data]: JPL isotopologues do not match isotopologues.  Missing: {jpl_keys - iso_keys}"
+assert jpl_keys.issubset(iso_keys), (
+    f"[Unmaintainable data]: JPL isotopologues do not match isotopologues.  Missing: {jpl_keys - iso_keys}"
+)
 
-assert specs_from_iso.issubset(specs_keys), \
-  f"[Unmaintainable data]: Isotopologue species do not match species.  Missing: {specs_from_iso - specs_keys}"
+assert specs_from_iso.issubset(specs_keys), (
+    f"[Unmaintainable data]: Isotopologue species do not match species.  Missing: {specs_from_iso - specs_keys}"
+)
 
-assert specs_from_hit.issubset(specs_keys), \
-  f"[Unmaintainable data]: HITRAN species do not match species.  Missing: {specs_from_hit - specs_keys}"
+assert specs_from_hit.issubset(specs_keys), (
+    f"[Unmaintainable data]: HITRAN species do not match species.  Missing: {specs_from_hit - specs_keys}"
+)
 
-assert specs_from_iso.issubset(specs_keys), \
-  f"[Unmaintainable data]: JPL species do not match species.  Missing: {specs_from_iso - specs_keys}"
+assert specs_from_iso.issubset(specs_keys), (
+    f"[Unmaintainable data]: JPL species do not match species.  Missing: {specs_from_iso - specs_keys}"
+)

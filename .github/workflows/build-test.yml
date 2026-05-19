@@ -62,7 +62,7 @@ jobs:
             jcheck: 2
 
           - name: mac-default-clang
-            os: macos-15
+            os: macos-26
             preset: default-clang-conda
             pyarts: "yes"
             check: "yes"
@@ -72,7 +72,7 @@ jobs:
             jcheck: 2
 
           - name: mac-reldeb-clang
-            os: macos-15
+            os: macos-26
             preset: reldeb-clang-conda
             pyarts: "yes"
             check: "yes"
@@ -82,7 +82,7 @@ jobs:
             jcheck: 2
 
           - name: windows-default-msvc
-            os: windows-2025
+            os: windows-2025-vs2026
             preset: default-msvc-conda
             pyarts: "yes"
             check: "yes"
@@ -92,31 +92,21 @@ jobs:
             jcheck: 2
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 10
 
       - name: Download testdata artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: testdata
           path: ./build
-
-      - name: Download xml testdata
-        shell: bash -l {0}
-        run: |
-          python3 testdata/get_testdata.py testdata/xml_data_files.txt build/testdata
-
-      - name: Download cat testdata
-        shell: bash -l {0}
-        run: |
-          python3 testdata/get_testdata.py testdata/cat_data_files.txt build/testdata
 
       - uses: ilammy/msvc-dev-cmd@v1
         if : runner.os == 'Windows'
         with:
           arch: x64
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           miniforge-version: latest
           conda-remove-defaults: "true"
@@ -180,14 +170,14 @@ jobs:
           echo "Build size:"
           du -hs .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-doxygen
           path: |
             doxygen.tar.gz
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-sphinx

@@ -1,63 +1,75 @@
-if(NOT ARTS_CAT_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
-    set(DOWNLOAD_CATDATA "") # empty
+if (ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
+  add_custom_target(
+    get-testdata-xml
+    COMMAND ${Python_EXECUTABLE}
+            ${ARTS_SOURCE_DIR}/testdata/get_testdata.py
+            ${ARTS_SOURCE_DIR}/testdata/xml_data_files.txt
+    WORKING_DIRECTORY ${ARTS_BINARY_DIR}/testdata
+    COMMENT "Downloading arts-xml-data"
+  )
 else()
-    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/cat_data_files.txt" DOWNLOAD_CATDATA_RAW)
-    foreach(line IN LISTS DOWNLOAD_CATDATA_RAW)
-        string(STRIP "${line}" line)
-        if(NOT line STREQUAL "" AND NOT line MATCHES "^#")
-            list(APPEND DOWNLOAD_CATDATA "${line}")
-        endif()
-    endforeach()
+  add_custom_target(get-testdata-xml
+    COMMENT "arts-xml-data is user-supplied"
+  )
 endif()
 
-string(REGEX REPLACE ";" " arts-cat-data/" DOWNLOAD_CATDATA_DEPS "${DOWNLOAD_CATDATA}")
-
-if(DOWNLOAD_CATDATA_DEPS)
-    string(PREPEND DOWNLOAD_CATDATA_DEPS "arts-cat-data/")
-    add_custom_target(
-        arts_testdata_folder_download_cat
-        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py ${CMAKE_CURRENT_SOURCE_DIR}/cat_data_files.txt
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS get_testdata.py
-        COMMENT "Downloading cat testdata"
-    )
-
-    add_dependencies(check-deps arts_testdata_folder_download_cat)
-
-    #
-    # Clean
-    #
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-cat-data)
-endif()
-
-if(NOT ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
-    set(DOWNLOAD_XMLDATA "") # empty
+if (ARTS_CAT_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
+  add_custom_target(
+    get-testdata-cat
+    COMMAND ${Python_EXECUTABLE}
+            ${ARTS_SOURCE_DIR}/testdata/get_testdata.py
+            ${ARTS_SOURCE_DIR}/testdata/cat_data_files.txt
+    WORKING_DIRECTORY ${ARTS_BINARY_DIR}/testdata
+    COMMENT "Downloading arts-cat-data"
+  )
 else()
-    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/xml_data_files.txt" DOWNLOAD_XMLDATA_RAW)
-    foreach(line IN LISTS DOWNLOAD_XMLDATA_RAW)
-        string(STRIP "${line}" line)
-        if(NOT line STREQUAL "" AND NOT line MATCHES "^#")
-            list(APPEND DOWNLOAD_XMLDATA "${line}")
-        endif()
-    endforeach()
+  add_custom_target(get-testdata-cat
+    COMMENT "arts-cat-data is user-supplied"
+  )
 endif()
 
-string(REGEX REPLACE ";" " arts-xml-data/" DOWNLOAD_XMLDATA_DEPS "${DOWNLOAD_XMLDATA}")
-
-if(DOWNLOAD_XMLDATA_DEPS)
-    string(PREPEND DOWNLOAD_XMLDATA_DEPS "arts-xml-data/")
-    add_custom_target(
-        arts_testdata_folder_download_xml
-        COMMAND ${Python_EXECUTABLE} ${ARTS_SOURCE_DIR}/testdata/get_testdata.py ${CMAKE_CURRENT_SOURCE_DIR}/xml_data_files.txt
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS get_testdata.py
-        COMMENT "Downloading xml testdata"
-    )
-
-    add_dependencies(check-deps arts_testdata_folder_download_xml)
-
-    #
-    # Clean
-    #
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES arts-xml-data)
+if (ARTS_XML_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
+  add_custom_target(
+    refresh-testdata-xml
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${ARTS_BINARY_DIR}/testdata/arts-xml-data
+    COMMAND ${Python_EXECUTABLE}
+            ${ARTS_SOURCE_DIR}/testdata/get_testdata.py
+            ${ARTS_SOURCE_DIR}/testdata/xml_data_files.txt
+    WORKING_DIRECTORY ${ARTS_BINARY_DIR}/testdata
+    COMMENT "Refreshing arts-xml-data"
+  )
+else()
+  add_custom_target(refresh-testdata-xml
+    COMMENT "arts-xml-data is user-supplied, skipping refresh"
+  )
 endif()
+
+if (ARTS_CAT_DATA_DIR MATCHES "^${ARTS_BINARY_DIR}")
+  add_custom_target(
+    refresh-testdata-cat
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${ARTS_BINARY_DIR}/testdata/arts-cat-data
+    COMMAND ${Python_EXECUTABLE}
+            ${ARTS_SOURCE_DIR}/testdata/get_testdata.py
+            ${ARTS_SOURCE_DIR}/testdata/cat_data_files.txt
+    WORKING_DIRECTORY ${ARTS_BINARY_DIR}/testdata
+    COMMENT "Refreshing arts-cat-data"
+  )
+else()
+  add_custom_target(refresh-testdata-cat
+    COMMENT "arts-cat-data is user-supplied, skipping refresh"
+  )
+endif()
+
+add_custom_target(
+  get-testdata
+  DEPENDS get-testdata-xml get-testdata-cat
+  COMMENT "Testdata ready"
+)
+
+add_custom_target(
+  refresh-testdata
+  DEPENDS refresh-testdata-xml refresh-testdata-cat
+  COMMENT "Testdata refreshed"
+)
+
+add_dependencies(check-deps get-testdata)

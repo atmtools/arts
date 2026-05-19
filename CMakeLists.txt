@@ -161,6 +161,7 @@ include (CheckTypeSize)
 include (CheckFunctionExists)
 
 include (ArtsTestcases)
+include (ArtsTestdata)
 
 set (DATA_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/arts)
 
@@ -457,36 +458,10 @@ endif (TEST_JOBS)
 
 
 ########### Path to arts-xml-data ##########
-if (ARTS_XML_DATA_PATH)
-  get_filename_component (ARTS_XML_DATA_DIR "${ARTS_XML_DATA_PATH}" ABSOLUTE)
-  if (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
-    message(FATAL_ERROR "ARTS_XML_DATA_PATH is not a valid directory: ${ARTS_XML_DATA_PATH}")
-  endif()
-else ()
-  get_filename_component (ARTS_XML_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-xml-data" ABSOLUTE)
-  if (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
-    set (ARTS_XML_DATA_DIR "${ARTS_BINARY_DIR}/testdata/arts-xml-data")
-    message (STATUS "Did not find arts-xml-data, will be partially downloaded to ${ARTS_XML_DATA_DIR}")
-  else()
-    message(STATUS "Found arts-xml-data in ${ARTS_XML_DATA_DIR}")
-  endif()
-endif ()
+setup_arts_xml_data()
 
 ########### Path to arts-cat-data ##########
-if (ARTS_CAT_DATA_PATH)
-  get_filename_component (ARTS_CAT_DATA_DIR "${ARTS_CAT_DATA_PATH}" ABSOLUTE)
-  if (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
-    message(FATAL_ERROR "ARTS_CAT_DATA_PATH is not a valid directory: ${ARTS_XML_DATA_PATH}")
-  endif()
-else ()
-  get_filename_component (ARTS_CAT_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-cat-data" ABSOLUTE)
-  if (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
-    set (ARTS_CAT_DATA_DIR "${ARTS_BINARY_DIR}/testdata/arts-cat-data")
-    message (STATUS "Did not find arts-cat-data, will be partially downloaded to ${ARTS_CAT_DATA_DIR}")
-  else()
-    message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
-  endif()
-endif ()
+setup_arts_cat_data()
 
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (CTEST_MISC_OPTIONS -C \${CONFIGURATION})

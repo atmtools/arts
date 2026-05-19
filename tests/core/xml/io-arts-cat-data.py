@@ -6,7 +6,7 @@ resave = bool(sys.argv[1] == "save") if len(sys.argv) > 1 else False
 
 test = False
 for path in pyarts.arts.globals.parameters.datapath:
-    if path.endswith("arts-cat-data"):
+    if "arts-cat-data" in path:
         test = True
         break
 
@@ -62,3 +62,4 @@ if test:
 
 else:
     print("arts-cat-data not found in datapath - no test run")
+    sys.exit(1)

@@ -19,7 +19,8 @@ list(LENGTH partfun_xml_files partfun_xml_files_count)
 message(STATUS "Found ${partfun_xml_files_count} partition function XML files")
 
 if (partfun_xml_files_count EQUAL 0)
-    message(WARNING "No partition function XML files found in ${ARTS_CAT_DATA_DIR}/partition-functions/")
+  message(FATAL_ERROR "No partition function XML files found in ${ARTS_CAT_DATA_DIR}/partition-functions/
+You need to pass -DARTS_CAT_DATA_PATH=<path> to cmake to point to the directory containing your copy of arts-cat-data.")
 endif()
 
 # Generate auto_partfun.h for the ARTS interface
