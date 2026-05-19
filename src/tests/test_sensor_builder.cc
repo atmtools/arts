@@ -126,13 +126,15 @@ void test_sensor_builder_uses_gaussian_airy_frequency_dependence() {
 
   const Numeric low_gain  = gaussian_airy_expected_gain(0.2, 100.0e9, 1.0);
   const Numeric high_gain = gaussian_airy_expected_gain(0.2, 200.0e9, 1.0);
+  const Numeric low_norm  = 1.0 + low_gain;
+  const Numeric high_norm = 1.0 + high_gain;
 
   assert_stokvec(obsels[0].weight_matrix()[1, 0],
-                 0.5 * low_gain * peak_weight,
+                 0.5 * low_gain * peak_weight / low_norm,
                  1e-12,
                  "builder gaussian airy off-axis low frequency");
   assert_stokvec(obsels[0].weight_matrix()[1, 1],
-                 0.5 * high_gain * peak_weight,
+                 0.5 * high_gain * peak_weight / high_norm,
                  1e-12,
                  "builder gaussian airy off-axis high frequency");
 }
