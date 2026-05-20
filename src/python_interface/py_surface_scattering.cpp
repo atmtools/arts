@@ -38,7 +38,7 @@ void py_surface_scattering(py::module_& m) try {
              const Vector& aa_inc_grid,
              const Vector& za_scat_grid,
              const Vector& aa_scat_grid) {
-            return self.get_bulk_surface_scattering_properties(
+            return self.get_surface_scattering_model_properties(
                 surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
           },
           "surf_point"_a,
@@ -115,7 +115,7 @@ void py_surface_scattering(py::module_& m) try {
              const Vector& aa_inc_grid,
              const Vector& za_scat_grid,
              const Vector& aa_scat_grid) {
-            return self.get_bulk_surface_scattering_properties(
+            return self.get_surface_scattering_model_properties(
                 surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
           },
           "surf_point"_a,

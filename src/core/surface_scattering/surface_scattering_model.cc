@@ -10,8 +10,8 @@ void MapOfSurfaceScatteringModel::add(
   models[name] = model;
 }
 
-surface_scattering::BulkSurfaceScatteringProperties
-MapOfSurfaceScatteringModel::get_bulk_surface_scattering_properties(
+surface_scattering::SurfaceScatteringModelProperties
+MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     const SurfacePoint& surf_point,
     const Vector& f_grid,
     const Vector& za_inc_grid,
@@ -19,14 +19,15 @@ MapOfSurfaceScatteringModel::get_bulk_surface_scattering_properties(
     const Vector& za_scat_grid,
     const Vector& aa_scat_grid) const {
   if (models.empty()) {
-    const Index nf = f_grid.size();
-    return {std::nullopt, Matrix(nf, 4, 0.0)};
+    const Index nf  = f_grid.size();
+    const Index nzs = za_scat_grid.size();
+    return {std::nullopt, Tensor3(nf, nzs, 4, 0.0)};
   }
 
   const auto visitor =
-      [&](const auto& model) -> surface_scattering::BulkSurfaceScatteringProperties {
+      [&](const auto& model) -> surface_scattering::SurfaceScatteringModelProperties {
     if constexpr (requires {
-                    model.get_bulk_surface_scattering_properties(
+                    model.get_surface_scattering_model_properties(
                         surf_point,
                         f_grid,
                         za_inc_grid,
@@ -34,7 +35,7 @@ MapOfSurfaceScatteringModel::get_bulk_surface_scattering_properties(
                         za_scat_grid,
                         aa_scat_grid);
                   }) {
-      return model.get_bulk_surface_scattering_properties(
+      return model.get_surface_scattering_model_properties(
           surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
     } else {
       throw std::runtime_error(std::format(

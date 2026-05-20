@@ -9,8 +9,8 @@ LambertianSurfaceScatterer::LambertianSurfaceScatterer(SurfacePropertyTag tag,
     : reflectivity_tag(std::move(tag)),
       reflectivity(std::move(reflectivity_)) {}
 
-BulkSurfaceScatteringProperties
-LambertianSurfaceScatterer::get_bulk_surface_scattering_properties(
+SurfaceScatteringModelProperties
+LambertianSurfaceScatterer::get_surface_scattering_model_properties(
     const SurfacePoint& /*surf_point*/,
     const Vector& f_grid,
     const Vector& za_inc_grid,
@@ -30,7 +30,7 @@ LambertianSurfaceScatterer::get_bulk_surface_scattering_properties(
   const Index nas  = aa_scat_grid.size();
 
   Tensor7 brdf(nf, nzi, nai, nzs, nas, 4, 4, 0.0);
-  Matrix  emissivity(nf, 4, 0.0);
+  Tensor3 emissivity(nf, nzs, 4, 0.0);
 
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = reflectivity[f];
@@ -40,10 +40,11 @@ LambertianSurfaceScatterer::get_bulk_surface_scattering_properties(
         for (Index zs = 0; zs < nzs; ++zs)
           for (Index as = 0; as < nas; ++as)
             brdf[f, zi, ai, zs, as, 0, 0] = brdf_val;
-    emissivity[f, 0] = 1.0 - r;
+    for (Index zs = 0; zs < nzs; ++zs)
+      emissivity[f, zs, 0] = 1.0 - r;
   }
 
-  return BulkSurfaceScatteringProperties{
+  return SurfaceScatteringModelProperties{
       .brdf_matrix       = std::move(brdf),
       .emissivity_vector = std::move(emissivity),
   };
@@ -54,8 +55,8 @@ std::ostream& operator<<(std::ostream& os,
   return os << "LambertianSurfaceScatterer(" << s.reflectivity_tag.name << ")";
 }
 
-BulkSurfaceScatteringProperties& BulkSurfaceScatteringProperties::operator+=(
-    const BulkSurfaceScatteringProperties& other) {
+SurfaceScatteringModelProperties& SurfaceScatteringModelProperties::operator+=(
+    const SurfaceScatteringModelProperties& other) {
   if (brdf_matrix.has_value()) {
     ARTS_USER_ERROR_IF(
         !other.brdf_matrix.has_value(),

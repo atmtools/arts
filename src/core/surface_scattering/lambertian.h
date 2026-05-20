@@ -18,8 +18,7 @@ namespace surface_scattering {
  *   BRDF(I->I) = reflectivity[f] / pi
  *   emissivity(I) = 1 - reflectivity[f]
  *
- * The reflectivity vector is carried directly in the struct (analogous to
- * the asymmetry parameter g in HenyeyGreensteinScatterer). The
+ * The reflectivity vector is carried directly in the struct. The
  * SurfacePropertyTag names the surface property this model represents,
  * providing a semantic key for future lookup from SurfacePoint.
  */
@@ -37,8 +36,8 @@ struct LambertianSurfaceScatterer {
   LambertianSurfaceScatterer& operator=(const LambertianSurfaceScatterer&) = default;
   LambertianSurfaceScatterer& operator=(LambertianSurfaceScatterer&&) noexcept = default;
 
-  [[nodiscard]] BulkSurfaceScatteringProperties
-  get_bulk_surface_scattering_properties(const SurfacePoint& surf_point,
+  [[nodiscard]] SurfaceScatteringModelProperties
+  get_surface_scattering_model_properties(const SurfacePoint& surf_point,
                                          const Vector& f_grid,
                                          const Vector& za_inc_grid,
                                          const Vector& aa_inc_grid,
