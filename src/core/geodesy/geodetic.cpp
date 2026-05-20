@@ -47,21 +47,6 @@ inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
 inline constexpr Numeric POLELATZZZ =
     90 - 1e-8;  // Rename to POLELAT when other one removed
 
-/** Threshold for near-pole detection in ECEF to geodetic conversion
-
-    When the horizontal distance from the z-axis (sqrt(x^2 + y^2)) is
-    smaller than this threshold times the semi-major axis, the point
-    is treated as being on the pole to avoid numerical instability.
-*/
-inline constexpr Numeric near_pole_threshold_ecef = 1e-15;
-
-/** Maximum iterations for ECEF to geodetic conversion
-
-     Prevents infinite loops in edge cases where the iterative
-     algorithm fails to converge.
-*/
-inline constexpr Index max_ecef2geodetic_iter = 100;
-
 /*===========================================================================
   === The functions, in alphabetical order
   ===========================================================================*/
