@@ -46,8 +46,8 @@ struct MapOfSurfaceScatteringModel {
            const surface_scattering::SurfaceScatteringModel& model);
 
   /// Accumulate bulk surface scattering properties from all stored models
-  [[nodiscard]] surface_scattering::BulkSurfaceScatteringProperties
-  get_bulk_surface_scattering_properties(const SurfacePoint& surf_point,
+  [[nodiscard]] surface_scattering::SurfaceScatteringModelProperties
+  get_surface_scattering_model_properties(const SurfacePoint& surf_point,
                                          const Vector& f_grid,
                                          const Vector& za_inc_grid,
                                          const Vector& aa_inc_grid,
