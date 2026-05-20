@@ -3,6 +3,7 @@
 #include <tuple>
 #include <type_traits>
 
+namespace {
 struct aggregate_init {
   template <typename T>
   constexpr operator T() const noexcept;
@@ -15,9 +16,8 @@ template <typename T>
 concept aggregate_1 = aggregate_0<T> and requires { T{aggregate_init{}}; };
 
 template <typename T>
-concept aggregate_2 = aggregate_1<T> and requires {
-  T{aggregate_init{}, aggregate_init{}};
-};
+concept aggregate_2 =
+    aggregate_1<T> and requires { T{aggregate_init{}, aggregate_init{}}; };
 
 template <typename T>
 concept aggregate_3 = aggregate_2<T> and requires {
@@ -31,73 +31,72 @@ concept aggregate_4 = aggregate_3<T> and requires {
 
 template <typename T>
 concept aggregate_5 = aggregate_4<T> and requires {
-  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
 };
 
 template <typename T>
-concept aggregate_6 =
-    aggregate_5<T> and requires {
-      T{aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{}};
-    };
+concept aggregate_6 = aggregate_5<T> and requires {
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_7 =
-    aggregate_6<T> and requires {
-      T{aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{}};
-    };
+concept aggregate_7 = aggregate_6<T> and requires {
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_8 =
-    aggregate_7<T> and requires {
-      T{aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{}};
-    };
+concept aggregate_8 = aggregate_7<T> and requires {
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_9 =
-    aggregate_8<T> and requires {
-      T{aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{}};
-    };
+concept aggregate_9 = aggregate_8<T> and requires {
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
+};
 
 template <typename T>
-concept aggregate_10 =
-    aggregate_9<T> and requires {
-      T{aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{},
-        aggregate_init{}};
-    };
+concept aggregate_10 = aggregate_9<T> and requires {
+  T{aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{},
+    aggregate_init{}};
+};
 
 template <typename T>
 concept aggregate_11 = aggregate_10<T> and requires {
@@ -272,26 +271,11 @@ concept aggregate_19 = aggregate_18<T> and requires {
 
 template <typename T>
 concept aggregate_20 = aggregate_19<T> and requires {
-  T{aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{}};
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
 };
 
 template <typename T>
@@ -356,6 +340,7 @@ concept aggregate_19_exact = aggregate_19<T> and not aggregate_20<T>;
 
 template <typename T>
 concept aggregate_20_exact = aggregate_20<T>;
+}  // namespace
 
 auto as_tuple(aggregate_0_exact auto&) { return std::tuple<>(); }
 
