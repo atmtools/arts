@@ -114,10 +114,12 @@ std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
 Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
   Vector3 pos;
   // Bowring's closed-form algorithm (non-iterative)
-  const Numeric a   = refellipsoid[0];
-  const Numeric b   = refellipsoid[1];
-  const Numeric e2  = 1.0 - (b * b) / (a * a);
-  const Numeric ep2 = (a * a) / (b * b) - 1.0;  // 2nd eccentricity squared
+  const Numeric a         = refellipsoid[0];
+  const Numeric b         = refellipsoid[1];
+  const Numeric a_minus_b = a - b;
+  const Numeric a_plus_b  = a + b;
+  const Numeric e2        = (a_minus_b * a_plus_b) / (a * a);
+  const Numeric ep2       = (a_minus_b * a_plus_b) / (b * b);
 
   const Numeric p = std::hypot(ecef[0], ecef[1]);
   const Numeric z = ecef[2];
