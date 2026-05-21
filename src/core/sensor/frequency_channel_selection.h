@@ -26,7 +26,7 @@ struct Channel {
 
   [[nodiscard]] const AscendingGrid& freq_grid() const;
   [[nodiscard]] const Vector& weights() const;
-  [[nodiscard]] bool is_always_relative() const;
+  [[nodiscard]] Size size() const { return channel.data.size(); }
 };
 
 struct BoxChannel final : Channel {
@@ -49,6 +49,37 @@ struct GaussianChannel final : Channel {
   GaussianChannel() = default;                                // f0 = 0, std = 0
 
   [[nodiscard]] AscendingGrid center_grid() const;
+};
+
+struct Spectrometer {
+  std::vector<Channel> channels;
+
+ private:
+  void sync_frequency_grids();
+
+ public:
+  [[nodiscard]] bool is_synced() const;
+
+  /** Make a simple spectrometer
+
+  The spectrometer will have the same channel response for each position
+  but will be shifted by the frequencies in freq_offsets.
+
+  So if base_channel is f: [-1, 1], w: [0.5, 0.5], and freq_offset is [2, 3, 4],
+  the resulting channels will be [[1, 2], [2, 3], [3, 4]] with the weights [0.5, 0.5] for each channel.
+
+  But, since this is supposed to simulate a spectrometer, the true frequency grid of each channel
+  will be [1, 2, 3, 4] for all channels but the weights will be [0.5, 0.5, 0, 0], [0, 0.5, 0.5, 0], and
+  [0, 0, 0.5, 0.5] for each channel respectively.
+
+  @param[in] base_channel The base channel
+  @param[in] freq_offsets The frequency offsets for each channel
+*/
+  Spectrometer(const Channel& base_channel, const AscendingGrid& freq_offsets);
+
+  Spectrometer(std::vector<Channel> channels) : channels(std::move(channels)) {}
+
+  operator const std::vector<Channel>&() const { return channels; }
 };
 }  // namespace sensor
 
@@ -98,3 +129,18 @@ struct std::formatter<sensor::GaussianChannel>
 template <>
 struct xml_io_stream<sensor::GaussianChannel>
     : xml_io_stream_inherit<sensor::Channel, sensor::GaussianChannel> {};
+
+// Spectrometer format tags and XML I/O
+
+template <>
+struct std::formatter<sensor::Spectrometer>
+    : std::formatter<std::vector<sensor::Channel>> {};
+
+template <>
+struct xml_io_stream<sensor::Spectrometer> {
+  static void write(std::ostream&,
+                    const sensor::Spectrometer&,
+                    bofstream*       = nullptr,
+                    std::string_view = ""sv);
+  static void read(std::istream&, sensor::Spectrometer&, bifstream* = nullptr);
+};

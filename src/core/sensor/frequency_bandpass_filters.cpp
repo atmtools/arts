@@ -1,10 +1,13 @@
 #include "frequency_bandpass_filters.h"
 
+#include <lagrange_interp.h>
+
 #include <algorithm>
 #include <cmath>
 #include <format>
 #include <limits>
 #include <string_view>
+#include <variant>
 
 namespace sensor {
 namespace {
@@ -55,9 +58,7 @@ void add_support_points(std::vector<Numeric>& points,
 
 void sort_unique(std::vector<Numeric>& points) {
   stdr::sort(points);
-  points.erase(std::unique(points.begin(),
-                           points.end(),
-                           [](Numeric a, Numeric b) { return is_close(a, b); }),
+  points.erase(std::unique(points.begin(), points.end(), &is_close),
                points.end());
 }
 
@@ -93,29 +94,104 @@ void deduplicate_zero_frequency_images(
 
   samples = std::move(unique_samples);
 }
-}  // namespace
 
-Numeric BandpassFilter::operator()(Numeric f) const {
-  Numeric weight = 0.0;
-  for (const auto& filter : filters) weight += sample_filter(filter, f);
-  return weight;
+using InterpolationPoint =
+    std::variant<lagrange_interp::lag_t<0, lagrange_interp::identity>,
+                 lagrange_interp::lag_t<1, lagrange_interp::identity>>;
+
+struct FoldedLocalPoint {
+  InterpolationPoint interpolation;
+  std::vector<std::pair<Numeric, Numeric>> folded_samples;
+};
+
+InterpolationPoint make_interpolation_point(const AscendingGrid& grid,
+                                            Numeric f) {
+  return lagrange_interp::variant_lag<lagrange_interp::identity>(grid, f);
 }
 
-Vector BandpassFilter::operator()(ConstVectorView f) const {
-  Vector out(f.size(), 0.0);
-
-  for (Size i = 0; i < out.size(); i++) out[i] = (*this)(f[i]);
-
-  return out;
+Numeric interpolate_channel_weight(const Vector& weights,
+                                   const InterpolationPoint& point) {
+  return std::visit(
+      [&weights](const auto& lag) {
+        return lagrange_interp::interp(weights, lag);
+      },
+      point);
 }
 
-FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
-    const FrequencyRange& range, const std::vector<Channel>& channels)
-    : FrequencyRangeBandpassFilter(
-          range, std::span<const Channel>{channels.data(), channels.size()}) {}
+std::vector<Numeric> collect_local_points(const FrequencyRange& range,
+                                          const AscendingGrid& channel_grid) {
+  std::vector<Numeric> local_points;
 
-FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
+  for (const auto& path : range.paths()) {
+    if (channel_grid.empty()) continue;
+
+    const Numeric local_low =
+        std::max(path.local_range[0], channel_grid.front());
+    const Numeric local_high =
+        std::min(path.local_range[1], channel_grid.back());
+
+    if (local_low > local_high and not is_close(local_low, local_high)) {
+      continue;
+    }
+
+    add_support_points(local_points, channel_grid, local_low, local_high);
+    for (const auto& filter : path.filters) {
+      add_support_points(local_points, filter.grid<0>(), local_low, local_high);
+    }
+  }
+
+  sort_unique(local_points);
+  return local_points;
+}
+
+std::vector<std::pair<Numeric, Numeric>> fold_unit_samples(
+    const FrequencyRange& range, Numeric local_frequency) {
+  std::vector<std::pair<Numeric, Numeric>> folded_samples;
+  folded_samples.reserve(range.size());
+
+  for (const auto& path : range.paths()) {
+    const Numeric path_weight = path.local_weight(local_frequency);
+    if (path_weight == 0.0) continue;
+
+    folded_samples.emplace_back(path.map_to_global(local_frequency),
+                                path_weight);
+  }
+
+  if (folded_samples.empty()) return folded_samples;
+
+  const Numeric fold_count = static_cast<Numeric>(folded_samples.size());
+  for (auto& sample : folded_samples) {
+    sample.second /= fold_count;
+  }
+
+  if (is_close(local_frequency, 0.0)) {
+    deduplicate_zero_frequency_images(folded_samples);
+  }
+
+  return folded_samples;
+}
+
+void combine_samples(std::vector<std::pair<Numeric, Numeric>>& samples) {
+  std::sort(samples.begin(), samples.end(), [](const auto& a, const auto& b) {
+    return a.first < b.first;
+  });
+
+  std::vector<std::pair<Numeric, Numeric>> combined;
+  combined.reserve(samples.size());
+  for (const auto& sample : samples) {
+    if (combined.empty() or not is_close(combined.back().first, sample.first)) {
+      combined.push_back(sample);
+    } else {
+      combined.back().second += sample.second;
+    }
+  }
+
+  samples = std::move(combined);
+}
+
+std::vector<SortedGriddedField1> build_filters(
     const FrequencyRange& range, const std::span<const Channel>& channels) {
+  std::vector<SortedGriddedField1> filters;
   filters.reserve(channels.size());
 
   for (Size ichan = 0; ichan < channels.size(); ichan++) {
@@ -149,50 +225,93 @@ FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
           sample_filter(channel.channel, local_frequency);
       if (channel_weight == 0.0) continue;
 
-      std::vector<std::pair<Numeric, Numeric>> folded_samples;
-      folded_samples.reserve(range.size());
-
-      for (const auto& path : range.paths()) {
-        const Numeric path_weight = path.local_weight(local_frequency);
-        if (path_weight == 0.0) continue;
-
-        folded_samples.emplace_back(path.map_to_global(local_frequency),
-                                    path_weight * channel_weight);
-      }
-
+      auto folded_samples = fold_unit_samples(range, local_frequency);
       if (folded_samples.empty()) continue;
 
-      const Numeric fold_count = static_cast<Numeric>(folded_samples.size());
-      for (auto& sample : folded_samples) {
-        sample.second /= fold_count;
-      }
-
-      if (is_close(local_frequency, 0.0)) {
-        deduplicate_zero_frequency_images(folded_samples);
-      }
-
       for (const auto& sample : folded_samples) {
-        samples.push_back(sample);
+        samples.emplace_back(sample.first, sample.second * channel_weight);
       }
     }
 
-    std::sort(samples.begin(), samples.end(), [](const auto& a, const auto& b) {
-      return a.first < b.first;
-    });
-
-    std::vector<std::pair<Numeric, Numeric>> combined;
-    combined.reserve(samples.size());
-    for (const auto& sample : samples) {
-      if (combined.empty() or
-          not is_close(combined.back().first, sample.first)) {
-        combined.push_back(sample);
-      } else {
-        combined.back().second += sample.second;
-      }
-    }
-
+    combine_samples(samples);
     filters.push_back(
-        make_filter(combined, std::format("channel-response-{}", ichan)));
+        make_filter(samples, std::format("channel-response-{}", ichan)));
   }
+
+  return filters;
+}
+
+std::vector<SortedGriddedField1> build_synced_filters(
+    const FrequencyRange& range, const Spectrometer& spectrometer) {
+  const auto& channels = spectrometer.channels;
+  if (channels.empty()) return {};
+
+  if (not spectrometer.is_synced()) {
+    return build_filters(
+        range, std::span<const Channel>{channels.data(), channels.size()});
+  }
+
+  const auto& channel_grid = channels.front().freq_grid();
+  const auto local_points  = collect_local_points(range, channel_grid);
+
+  std::vector<FoldedLocalPoint> folded_points;
+  folded_points.reserve(local_points.size());
+  for (Numeric local_frequency : local_points) {
+    auto folded_samples = fold_unit_samples(range, local_frequency);
+    if (folded_samples.empty()) continue;
+
+    folded_points.push_back(
+        {make_interpolation_point(channel_grid, local_frequency),
+         std::move(folded_samples)});
+  }
+
+  std::vector<SortedGriddedField1> filters;
+  filters.reserve(channels.size());
+
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    const auto& weights = channels[ichan].weights();
+    std::vector<std::pair<Numeric, Numeric>> samples;
+
+    for (const auto& point : folded_points) {
+      const Numeric channel_weight =
+          interpolate_channel_weight(weights, point.interpolation);
+      if (channel_weight == 0.0) continue;
+
+      for (const auto& sample : point.folded_samples) {
+        samples.emplace_back(sample.first, sample.second * channel_weight);
+      }
+    }
+
+    combine_samples(samples);
+    filters.push_back(
+        make_filter(samples, std::format("channel-response-{}", ichan)));
+  }
+
+  return filters;
+}
+}  // namespace
+
+Numeric BandpassFilter::operator()(Numeric f) const {
+  Numeric weight = 0.0;
+  for (const auto& filter : filters) weight += sample_filter(filter, f);
+  return weight;
+}
+
+Vector BandpassFilter::operator()(ConstVectorView f) const {
+  Vector out(f.size(), 0.0);
+
+  for (Size i = 0; i < out.size(); i++) out[i] = (*this)(f[i]);
+
+  return out;
+}
+
+FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
+    const FrequencyRange& range, const std::span<const Channel>& channels) {
+  filters = build_filters(range, channels);
+}
+
+FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
+    const FrequencyRange& range, const Spectrometer& spectrometer) {
+  filters = build_synced_filters(range, spectrometer);
 }
 }  // namespace sensor

@@ -309,49 +309,7 @@ Numeric, Vector, or Matrix
 
   a1.def(
       "collect_freq_grids",
-      [](ArrayOfSensorObsel& x) {
-        if (x.empty()) return;
-
-        const auto tmp = [&x]() {
-          std::set<std::shared_ptr<const AscendingGrid>> freq_set;
-          for (const auto& obsel : x) freq_set.insert(obsel.f_grid_ptr());
-          if (freq_set.size() == 1)
-            return std::make_pair(true, *freq_set.begin());
-
-          std::vector<Numeric> fs;
-          fs.reserve(std::accumulate(
-              freq_set.begin(),
-              freq_set.end(),
-              Size(0),
-              [](Size a, const auto& b) { return a + b->size(); }));
-          for (auto& freqs : freq_set) fs.append_range(*freqs);
-
-          stdr::sort(fs);
-          fs.erase(std::unique(fs.begin(), fs.end()), fs.end());
-          return std::make_pair(
-              false, std::make_shared<const AscendingGrid>(std::move(fs)));
-        }();
-
-        //! Clang bug workaround
-        const auto& early    = tmp.first;
-        const auto& freq_ptr = tmp.second;
-
-        if (early) return;
-
-#pragma omp parallel for if (not arts_omp_in_parallel())
-        for (Size i = 0; i < x.size(); i++) {
-          sensor::SparseStokvecMatrix w(x[i].poslos_grid().size(),
-                                        freq_ptr->size());
-          for (const auto& we : x[i].weight_matrix()) {
-            const Index ifreq = stdr::distance(
-                freq_ptr->begin(),
-                stdr::lower_bound(*freq_ptr, x[i].f_grid()[we.icol]));
-            w[we.irow, ifreq] = we.data;
-          }
-
-          x[i] = {freq_ptr, x[i].poslos_grid_ptr(), std::move(w)};
-        }
-      },
+      [](ArrayOfSensorObsel& x) { collect_frequency_grids(x); },
       R"(Collect all frequency grids in a single grid.
 
 .. tip::
@@ -478,7 +436,7 @@ See :meth:`SensorObsel.normalize` for details.
           "pos"_a,
           "bore_los"_a,
           R"(Map the antenna pattern onto one observation element.)");
-  // generic_interface(sap);  -- this should break things.  The class is somewhat abstract
+  // generic_interface(sap);  -- this should break things.  The class is abstract
 
   auto sgp = py::class_<sensor::GriddedAntennaPattern, sensor::AntennaPattern>(
       m, "SensorGriddedAntennaPattern");
@@ -494,14 +452,9 @@ See :meth:`SensorObsel.normalize` for details.
           },
           "response"_a,
           "Construct a gridded antenna pattern from a local zenith/azimuth response field.")
-      .def_prop_rw(
+      .def_rw(
           "response",
-          [](sensor::GriddedAntennaPattern& self)
-              -> sensor::AntennaPatternField& { return self.data; },
-          [](sensor::GriddedAntennaPattern& self,
-             const sensor::AntennaPatternField& response) {
-            self.data = response;
-          },
+          &sensor::GriddedAntennaPattern::data,
           py::rv_policy::reference_internal,
           "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`");
   generic_interface(sgp);
@@ -580,10 +533,7 @@ See :meth:`SensorObsel.normalize` for details.
                    &sensor::Channel::weights,
                    py::rv_policy::reference_internal,
                    "Channel weights on the relative frequency grid."
-                   "\n\n.. :class:`Vector`")
-      .def("is_always_relative",
-           &sensor::Channel::is_always_relative,
-           "Whether the channel grid is anchored at or below zero.");
+                   "\n\n.. :class:`Vector`");
 
   auto sbox =
       py::class_<sensor::BoxChannel, sensor::Channel>(m, "SensorBoxChannel");
@@ -641,6 +591,48 @@ See :meth:`SensorObsel.normalize` for details.
            "Construct a zero-centered Gaussian channel on ``+/- m * std``.");
   generic_interface(sgauss);
 
+  auto sspec = py::class_<sensor::Spectrometer>(m, "SensorSpectrometer");
+  sspec.doc() =
+      "A spectrometer made from channels arranged on one shared relative-frequency grid.";
+  sspec
+      .def(
+          py::init<const sensor::Channel&, const AscendingGrid&>(),
+          "base_channel"_a,
+          "freq_offsets"_a,
+          "Construct a spectrometer by shifting one base channel across the supplied relative-frequency offsets.")
+      .def(py::init<std::vector<sensor::Channel>>(),
+           "channels"_a,
+           "Construct a spectrometer from explicit channels.")
+      .def_prop_ro(
+          "channels",
+          [](const sensor::Spectrometer& self)
+              -> const std::vector<sensor::Channel>& { return self.channels; },
+          py::rv_policy::reference_internal,
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+      .def(
+          "is_synced",
+          &sensor::Spectrometer::is_synced,
+          "Return whether all channels share the same relative-frequency grid.")
+      .def(
+          "__len__",
+          [](const sensor::Spectrometer& self) { return self.channels.size(); })
+      .def(
+          "__getitem__",
+          [](const sensor::Spectrometer& self,
+             Size i) -> const sensor::Channel& { return self.channels.at(i); },
+          py::rv_policy::reference_internal)
+      .def(
+          "__iter__",
+          [](const sensor::Spectrometer& self) {
+            return py::make_iterator(py::type<sensor::Spectrometer>(),
+                                     "sensor-spectrometer-iterator",
+                                     self.channels.begin(),
+                                     self.channels.end());
+          },
+          py::rv_policy::reference_internal,
+          "Iterate over the spectrometer channels.");
+  generic_interface(sspec);
+
   auto ssb = py::class_<sensor::SensorBuilder>(m, "SensorBuilder");
   ssb.doc() =
       "Combines channels and an antenna pattern into sensor obsels for paired position/LOS samples.";
@@ -650,11 +642,34 @@ See :meth:`SensorObsel.normalize` for details.
           [](sensor::SensorBuilder* self,
              const std::vector<sensor::Channel>& channels,
              const sensor::AntennaPattern& antenna) {
-            new (self) sensor::SensorBuilder{channels, antenna};
+            new (self) sensor::SensorBuilder{channels, antenna.clone()};
           },
           "channels"_a,
           "antenna"_a = sensor::PencilBeamAntenna{},
           "Construct a sensor builder from channels and one antenna pattern (defaults to pencil-beam).")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const sensor::Spectrometer& spectrometer,
+             const sensor::AntennaPattern& antenna) {
+            new (self) sensor::SensorBuilder{spectrometer, antenna.clone()};
+          },
+          "spectrometer"_a,
+          "antenna"_a = sensor::PencilBeamAntenna{},
+          "Construct a sensor builder from a spectrometer and one antenna pattern (defaults to pencil-beam).")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const sensor::AntennaPattern& antenna,
+             const sensor::Spectrometer& spectrometer,
+             const sensor::HeterodyneFrequencyRange& backend) {
+            new (self)
+                sensor::SensorBuilder{spectrometer, backend, antenna.clone()};
+          },
+          "antenna"_a,
+          "spectrometer"_a,
+          "backend"_a,
+          "Construct a sensor builder from an antenna, a spectrometer, and a backend frequency response.")
       .def_rw(
           "channels",
           &sensor::SensorBuilder::channels,
@@ -662,10 +677,14 @@ See :meth:`SensorObsel.normalize` for details.
       .def_prop_rw(
           "antenna",
           [](const sensor::SensorBuilder& self)
-              -> const sensor::AntennaPattern& { return self.get_antenna(); },
+              -> std::shared_ptr<const sensor::AntennaPattern> {
+            if (not self.antenna)
+              throw std::runtime_error("SensorBuilder has no antenna pattern");
+            return self.antenna->clone();
+          },
           [](sensor::SensorBuilder& self,
              const sensor::AntennaPattern& antenna) {
-            self.set_antenna(antenna);
+            self.antenna = antenna.clone();
           },
           py::rv_policy::reference_internal,
           "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
@@ -804,24 +823,40 @@ geometry first and channel second, and the returned value is
           [](const sensor::HeterodyneFrequencyRange& self,
              const sensor::Channel& channel) {
             return sensor::FrequencyRangeBandpassFilter(
-                       self, std::vector<sensor::Channel>{channel})
+                       self, std::span<const sensor::Channel>{&channel, 1})
                 .filters.front();
           },
           "channel"_a,
           R"(Compute the real-frequency response for one spectrometer channel.
 
-  The returned gridded field is aggregated across all active mixer paths.)")
+      The returned gridded field is aggregated across all active mixer paths.)")
       .def(
           "channel_responses",
           [](const sensor::HeterodyneFrequencyRange& self,
              const std::vector<sensor::Channel>& channels) {
-            return sensor::FrequencyRangeBandpassFilter(self, channels).filters;
+            return sensor::FrequencyRangeBandpassFilter(
+                       self,
+                       std::span<const sensor::Channel>{channels.data(),
+                                                        channels.size()})
+                .filters;
           },
           "channels"_a,
           R"(Compute the real-frequency response for multiple spectrometer channels.
 
+      Each returned gridded field is aggregated across all active mixer paths for the
+      matching input channel.)")
+      .def(
+          "channel_responses",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const sensor::Spectrometer& spectrometer) {
+            return sensor::FrequencyRangeBandpassFilter(self, spectrometer)
+                .filters;
+          },
+          "spectrometer"_a,
+          R"(Compute the real-frequency response for all channels in a spectrometer.
+
   Each returned gridded field is aggregated across all active mixer paths for the
-  matching input channel.)");
+  matching spectrometer channel.)");
   shdfr.doc() = "A staged heterodyne mixer and filter response builder.";
   generic_interface(shdfr);
 } catch (std::exception& e) {

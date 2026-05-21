@@ -2,15 +2,18 @@
 
 #include <matpack.h>
 
+#include <algorithm>
 #include <boost/math/distributions/normal.hpp>
+#include <numeric>
 #include <ranges>
+#include <vector>
+
+#include "compare.h"
 
 namespace sensor {
 const AscendingGrid& Channel::freq_grid() const { return channel.grid<0>(); }
 
 const Vector& Channel::weights() const { return channel.data; }
-
-bool Channel::is_always_relative() const { return freq_grid().front() <= 0; }
 
 DiracChannel::DiracChannel(Numeric f)
     : Channel{.channel = {
@@ -73,4 +76,90 @@ static_assert(FrequencyChannelSelection<Channel>);
 static_assert(FrequencyChannelSelection<BoxChannel>);
 static_assert(FrequencyChannelSelection<DiracChannel>);
 static_assert(FrequencyChannelSelection<GaussianChannel>);
+
+void Spectrometer::sync_frequency_grids() {
+  std::vector<Numeric> f;
+  f.reserve(std::transform_reduce(channels.begin(),
+                                  channels.end(),
+                                  Size{},
+                                  std::plus<>{},
+                                  [](const Channel& c) { return c.size(); }));
+
+  for (const auto& channel : channels) {
+    const auto& freqs = channel.freq_grid();
+    f.insert(f.end(), freqs.begin(), freqs.end());
+  }
+
+  stdr::sort(f);
+  f.erase(std::unique(f.begin(), f.end()), f.end());
+
+  const auto fs = AscendingGrid(std::move(f));
+  Vector ws(fs.size(), 0);
+
+  for (Channel& channel : channels) {
+    const auto& ch_fs = channel.freq_grid();
+    const auto& ch_ws = channel.weights();
+    const Size n      = ch_fs.size();
+
+    const auto fs_ptr_first = stdr::lower_bound(fs, ch_fs.front());
+    const Size OFFSET       = std::distance(fs.begin(), fs_ptr_first);
+    const auto ws_ptr_first = ws.begin() + OFFSET;
+
+    auto fs_ptr = fs_ptr_first;
+    auto ws_ptr = ws_ptr_first;
+    for (Size i = 0; i < n; i++) {
+      while (*fs_ptr < ch_fs[i]) {
+        ++fs_ptr;
+        ++ws_ptr;
+      }
+      *ws_ptr = ch_ws[i];
+    }
+
+    channel.channel.grid<0>() = fs;
+    channel.channel.data      = ws;
+
+    fs_ptr = fs_ptr_first;
+    ws_ptr = ws_ptr_first;
+    for (Size i = 0; i < n; i++) {
+      while (*fs_ptr < ch_fs[i]) {
+        ++fs_ptr;
+        ++ws_ptr;
+      }
+      *ws_ptr = 0.0;
+    }
+  }
+}
+
+bool Spectrometer::is_synced() const {
+  return channels.empty() or stdr::all_of(channels,
+                                          Cmp::eq(channels.front().freq_grid()),
+                                          &Channel::freq_grid);
+}
+
+Spectrometer::Spectrometer(const Channel& base_channel,
+                           const AscendingGrid& freq_offsets)
+    : channels(freq_offsets.size(), base_channel) {
+  for (Size i = 0; i < channels.size(); ++i) {
+    Vector f                       = channels[i].channel.grid<0>();
+    f                             += freq_offsets[i];
+    channels[i].channel.grid<0>()  = f;
+  }
+
+  sync_frequency_grids();
+}
 }  // namespace sensor
+
+void xml_io_stream<sensor::Spectrometer>::write(
+    std::ostream& os,
+    const sensor::Spectrometer& spec,
+    bofstream* pbofs,
+    std::string_view name) {
+  xml_io_stream<std::vector<sensor::Channel>>::write(
+      os, spec.channels, pbofs, name);
+}
+
+void xml_io_stream<sensor::Spectrometer>::read(std::istream& is,
+                                               sensor::Spectrometer& spec,
+                                               bifstream* pbifs) {
+  xml_io_stream<std::vector<sensor::Channel>>::read(is, spec.channels, pbifs);
+}

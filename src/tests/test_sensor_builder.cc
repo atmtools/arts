@@ -51,7 +51,7 @@ void test_sensor_builder_returns_meta_per_geometry() {
   sensor::SensorBuilder builder(
       {sensor::BoxChannel{AscendingGrid{100.0, 101.0}},
        sensor::DiracChannel{200.0}},
-      sensor::PencilBeamAntenna{});
+      std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -90,7 +90,7 @@ void test_sensor_builder_returns_meta_per_geometry() {
 
 void test_sensor_builder_rejects_mismatched_geometry_counts() {
   sensor::SensorBuilder builder({sensor::DiracChannel{}},
-                                sensor::PencilBeamAntenna{});
+                                std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -111,8 +111,8 @@ void test_sensor_builder_uses_gaussian_airy_frequency_dependence() {
   const Stokvec peak_weight{2.0, 0.0, 0.0, 0.0};
   sensor::SensorBuilder builder(
       {sensor::BoxChannel{AscendingGrid{100.0e9, 200.0e9}}},
-      sensor::GaussianAiryAntenna{
-          ZenGrid{{0.0, 0.2}}, AziGrid{{0.0}}, 1.0, peak_weight});
+      std::make_shared<const sensor::GaussianAiryAntenna>(
+          ZenGrid{{0.0, 0.2}}, AziGrid{{0.0}}, 1.0, peak_weight));
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 1> los{{{45.0, 30.0}}};

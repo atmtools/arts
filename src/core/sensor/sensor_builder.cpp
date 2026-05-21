@@ -1,6 +1,7 @@
 #include "sensor_builder.h"
 
 #include <debug.h>
+#include <frequency_bandpass_filters.h>
 
 #include <format>
 #include <memory>
@@ -26,33 +27,50 @@ SensorMetaInfo make_meta_info(Size nchannels, Size geometry_index) {
 
   return SensorMetaInfo{std::move(gf)};
 }
+
+std::vector<Channel> make_channels(const Spectrometer& spectrometer,
+                                   const FrequencyRange& backend) {
+  auto filters = FrequencyRangeBandpassFilter(backend, spectrometer).filters;
+
+  std::vector<Channel> channels;
+  channels.reserve(filters.size());
+
+  for (auto& filter : filters) {
+    channels.push_back(Channel{.channel = std::move(filter)});
+  }
+
+  return channels;
+}
 }  // namespace
 
 SensorBuilder::SensorBuilder() : antenna(PencilBeamAntenna{}.clone()) {}
 
 SensorBuilder::SensorBuilder(std::vector<Channel> channels,
-                             const AntennaPattern& antenna)
-    : channels(std::move(channels)), antenna(antenna.clone()) {}
+                             std::shared_ptr<const AntennaPattern> antenna)
+    : channels(std::move(channels)), antenna(std::move(antenna)) {}
 
-SensorBuilder::SensorBuilder(const SensorBuilder& other)
-    : channels(other.channels), antenna(clone_antenna(other.antenna)) {}
+SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
+                             std::shared_ptr<const AntennaPattern> antenna)
+    : SensorBuilder(std::vector<Channel>{spectrometer.channels},
+                    std::move(antenna)) {
+  preserve_common_frequency_grid = spectrometer.is_synced();
+}
+
+SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
+                             const FrequencyRange& backend,
+                             std::shared_ptr<const AntennaPattern> antenna)
+    : SensorBuilder(make_channels(spectrometer, backend), std::move(antenna)) {
+  preserve_common_frequency_grid = spectrometer.is_synced();
+}
 
 SensorBuilder& SensorBuilder::operator=(const SensorBuilder& other) {
   if (this != &other) {
-    channels = other.channels;
-    antenna  = clone_antenna(other.antenna);
+    channels                       = other.channels;
+    antenna                        = clone_antenna(other.antenna);
+    preserve_common_frequency_grid = other.preserve_common_frequency_grid;
   }
 
   return *this;
-}
-
-const AntennaPattern& SensorBuilder::get_antenna() const {
-  ARTS_USER_ERROR_IF(not antenna, "SensorBuilder requires an antenna pattern")
-  return *antenna;
-}
-
-void SensorBuilder::set_antenna(const AntennaPattern& pattern) {
-  antenna = pattern.clone();
 }
 
 std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
@@ -89,7 +107,7 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
     std::shared_ptr<const PosLosVector> poslos_grid;
 
     for (Size ichan = 0; ichan < channels.size(); ++ichan) {
-      auto obsel = get_antenna()(channels[ichan], sensor_pos, bore_los);
+      auto obsel = antenna->operator()(channels[ichan], sensor_pos, bore_los);
       obsel.set_f_grid_ptr(freq_grids[ichan]);
 
       if (not poslos_grid) {
@@ -105,6 +123,8 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
   };
 
   for (Size i = 0; i < pos.size(); ++i) append_geometry(pos[i], los[i], i);
+
+  if (preserve_common_frequency_grid) collect_frequency_grids(out);
 
   return {std::move(out), std::move(meta)};
 }

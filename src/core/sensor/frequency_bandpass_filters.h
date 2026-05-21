@@ -29,7 +29,7 @@ struct FrequencyRangeBandpassFilter final : BandpassFilter {
   FrequencyRangeBandpassFilter(const FrequencyRange& range,
                                const std::span<const Channel>& channels);
   FrequencyRangeBandpassFilter(const FrequencyRange& range,
-                               const std::vector<Channel>& channels);
+                               const Spectrometer& spectrometer);
 };
 }  // namespace sensor
 

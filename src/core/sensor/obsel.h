@@ -7,8 +7,6 @@
 
 #include <boost/container_hash/hash.hpp>
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "matpack_mdspan_helpers_grid_t.h"
 
@@ -264,6 +262,8 @@ void make_exhaustive(std::span<SensorObsel> obsels);
  * @param obsels An existing list of observation elements to make exclusive
  */
 void make_exclusive(std::span<SensorObsel> obsels);
+
+void collect_frequency_grids(std::span<SensorObsel> obsels);
 
 std::vector<const AscendingGrid*> unique_frequency_grids(
     const std::span<const SensorObsel>& obsels);
