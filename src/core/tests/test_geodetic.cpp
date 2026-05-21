@@ -60,7 +60,52 @@ void print_stats(const Stats& s, std::string_view label) {
                s.count);
 }
 
-inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
+struct LosStats {
+  Numeric max_dza = 0;
+  Numeric max_daa = 0;
+  Numeric avg_dza = 0;
+  Numeric avg_daa = 0;
+  Index count     = 0;
+};
+
+void update_los_stats(LosStats& s,
+                      const Vector2& old_los,
+                      const Vector2& new_los) {
+  const Numeric dza = std::abs(old_los[0] - new_los[0]);
+  Numeric daa       = std::abs(old_los[1] - new_los[1]);
+  if (daa > 180.0) daa = 360.0 - daa;
+
+  s.max_dza = std::max(s.max_dza, dza);
+  s.max_daa = std::max(s.max_daa, daa);
+
+  s.avg_dza += dza;
+  s.avg_daa += daa;
+  ++s.count;
+}
+
+void print_los_stats(const LosStats& s, std::string_view label) {
+  if (s.count == 0) {
+    std::println("{}: no samples", label);
+    return;
+  }
+  const auto n = static_cast<Numeric>(s.count);
+  std::println(R"({}:
+  max_dza  = {:.6e} deg
+  max_daa  = {:.6e} deg
+  avg_dza  = {:.6e} deg
+  avg_daa  = {:.6e} deg
+  samples  = {})",
+               label,
+               s.max_dza,
+               s.max_daa,
+               s.avg_dza / n,
+               s.avg_daa / n,
+               s.count);
+}
+
+inline constexpr Numeric POLELATZZZ = 90 - 1e-8;
+inline constexpr Numeric DEG2RAD    = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG    = Conversion::rad2deg(1);
 
 /** Threshold for near-pole detection in ECEF to geodetic conversion
 
@@ -124,6 +169,34 @@ Vector3 ecef2geodetic_old(Vector3 ecef, Vector2 refellipsoid) {
   return pos;
 }
 
+std::pair<Vector3, Vector2> ecef2geodetic_los_with_ecef2geodetic_old(
+    Vector3 ecef, Vector3 decef, Vector2 refellipsoid) {
+  Vector3 pos = ecef2geodetic_old(ecef, refellipsoid);
+
+  const Numeric latrad = DEG2RAD * pos[1];
+  const Numeric lonrad = DEG2RAD * pos[2];
+  const Numeric coslat = cos(latrad);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslon = cos(lonrad);
+  const Numeric sinlon = sin(lonrad);
+
+  // See
+  // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
+  Vector3 enu;
+  enu[0] = -sinlon * decef[0] + coslon * decef[1];
+  enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] +
+           coslat * decef[2];
+  enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] +
+           sinlat * decef[2];
+
+  Vector2 los = enu2los(enu);
+
+  // Azimuth at poles needs special treatment
+  if (fabs(pos[1]) > POLELATZZZ) los[1] = RAD2DEG * atan2(decef[1], decef[0]);
+
+  return {pos, los};
+}
+
 }  // namespace
 
 int main() {
@@ -149,6 +222,7 @@ int main() {
   };
   const Vector lats{-90.0,
                     -89.99,
+                    -89.91,
                     -80.0,
                     -60.0,
                     -45.0,
@@ -160,10 +234,25 @@ int main() {
                     45.0,
                     60.0,
                     80.0,
+                    89.91,
                     89.99,
                     90.0};
   const Vector lons{
       -180.0, -135.0, -90.0, -45.0, 0.0, 45.0, 90.0, 135.0, 180.0};
+  const Vector zas{0.0,
+                   0.01,
+                   1.0,
+                   15.0,
+                   30.0,
+                   45.0,
+                   60.0,
+                   90.0,
+                   120.0,
+                   150.0,
+                   179.0,
+                   179.99,
+                   180.0};
+  const Vector aas{0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0, 360.0};
 
   Stats stats_wgs84_high;     // WGS-84 overall for high altitude (>100km)
   Stats stats_wgs84_low;      // WGS-84 overall for low altitude (<=100km)
@@ -181,6 +270,27 @@ int main() {
   Stats stats_mid_rt_high;    // Mid-lat round-trip for high altitude (>100km)
   Stats stats_sphere_rt_low;  // Sphere round-trip for low altitude (<=100km)
   Stats stats_sphere_rt_high;  // Sphere round-trip for high altitude (>100km)
+
+  // LOS old-vs-new stats
+  LosStats stats_los_low;
+  LosStats stats_los_high;
+  LosStats stats_los_poles_low;
+  LosStats stats_los_poles_high;
+  LosStats stats_los_mid_low;
+  LosStats stats_los_mid_high;
+  LosStats stats_los_at_zenith_low;
+  LosStats stats_los_at_zenith_high;
+
+  // LOS round-trip stats
+  LosStats stats_los_rt_low;        // LOS round-trip for low altitude (<=100km)
+  LosStats stats_los_rt_high;       // LOS round-trip for high altitude (>100km)
+  LosStats stats_los_poles_rt_low;  // Near-pole LOS round-trip for low altitude
+  LosStats
+      stats_los_poles_rt_high;     // Near-pole LOS round-trip for high altitude
+  LosStats stats_los_mid_rt_low;   // Mid-lat LOS round-trip for low altitude
+  LosStats stats_los_mid_rt_high;  // Mid-lat LOS round-trip for high altitude
+  LosStats stats_los_at_zenith_rt_low;   // za=0/180 LOS round-trip low alt
+  LosStats stats_los_at_zenith_rt_high;  // za=0/180 LOS round-trip high alt
 
   // --- Accuracy test ---
   for (Numeric h : alts) {
@@ -240,6 +350,71 @@ int main() {
           update_stats(stats_sphere_rt_high, geo, new_s);
         else
           update_stats(stats_sphere_rt_low, geo, new_s);
+
+        for (Numeric za : zas) {
+          for (Numeric aa : aas) {
+            Vector2 los{za, aa};
+            auto [ecef_los, decef_los] = geodetic_los2ecef(geo, los, wgs84);
+
+            bool is_at_zenith = (za == 0.0 || za == 180.0);
+
+            // Accuracy comparison: old vs new ecef2geodetic_los
+            auto [pos_old, los_old] = ecef2geodetic_los_with_ecef2geodetic_old(
+                ecef_los, decef_los, wgs84);
+            auto [pos_new, los_new] =
+                ecef2geodetic_los(ecef_los, decef_los, wgs84);
+            if (is_at_zenith) {
+              if (is_high_altitude)
+                update_los_stats(stats_los_at_zenith_high, los_old, los_new);
+              else
+                update_los_stats(stats_los_at_zenith_low, los_old, los_new);
+            } else {
+              if (is_high_altitude) {
+                update_los_stats(stats_los_high, los_old, los_new);
+                if (std::abs(lat) > 89.9) {
+                  update_los_stats(stats_los_poles_high, los_old, los_new);
+                } else if (std::abs(lat) < 80.0) {
+                  update_los_stats(stats_los_mid_high, los_old, los_new);
+                }
+              } else {
+                update_los_stats(stats_los_low, los_old, los_new);
+                if (std::abs(lat) > 89.9) {
+                  update_los_stats(stats_los_poles_low, los_old, los_new);
+                } else if (std::abs(lat) < 80.0) {
+                  update_los_stats(stats_los_mid_low, los_old, los_new);
+                }
+              }
+            }
+
+            // LOS round-trip test
+            auto [geo_rt, los_rt] =
+                ecef2geodetic_los(ecef_los, decef_los, wgs84);
+
+            if (is_at_zenith) {
+              if (is_high_altitude)
+                update_los_stats(stats_los_at_zenith_rt_high, los, los_rt);
+              else
+                update_los_stats(stats_los_at_zenith_rt_low, los, los_rt);
+            } else {
+              if (is_high_altitude)
+                update_los_stats(stats_los_rt_high, los, los_rt);
+              else
+                update_los_stats(stats_los_rt_low, los, los_rt);
+
+              if (std::abs(lat) > 89.9) {
+                if (is_high_altitude)
+                  update_los_stats(stats_los_poles_rt_high, los, los_rt);
+                else
+                  update_los_stats(stats_los_poles_rt_low, los, los_rt);
+              } else if (std::abs(lat) < 80.0) {
+                if (is_high_altitude)
+                  update_los_stats(stats_los_mid_rt_high, los, los_rt);
+                else
+                  update_los_stats(stats_los_mid_rt_low, los, los_rt);
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -267,6 +442,37 @@ int main() {
               "Mid-latitude round-trip (high altitude >100km)");
   print_stats(stats_sphere_rt_low, "Sphere round-trip (low altitude <=100km)");
   print_stats(stats_sphere_rt_high, "Sphere round-trip (high altitude >100km)");
+
+  std::println(
+      "=== LOS accuracy comparison (ecef2geodetic_los_old vs ecef2geodetic_los) ===");
+  print_los_stats(stats_los_low, "LOS (low altitude <=100km)");
+  print_los_stats(stats_los_high, "LOS (high altitude >100km)");
+  print_los_stats(stats_los_poles_low, "Near-pole LOS (low altitude <=100km)");
+  print_los_stats(stats_los_poles_high, "Near-pole LOS (high altitude >100km)");
+  print_los_stats(stats_los_mid_low, "Mid-latitude LOS (low altitude <=100km)");
+  print_los_stats(stats_los_mid_high,
+                  "Mid-latitude LOS (high altitude >100km)");
+  print_los_stats(stats_los_at_zenith_low,
+                  "LOS at zenith/nadir (low altitude <=100km)");
+  print_los_stats(stats_los_at_zenith_high,
+                  "LOS at zenith/nadir (high altitude >100km)");
+
+  std::println(
+      "=== LOS round-trip error (geodetic_los2ecef -> ecef2geodetic_los) ===");
+  print_los_stats(stats_los_rt_low, "LOS round-trip (low altitude <=100km)");
+  print_los_stats(stats_los_rt_high, "LOS round-trip (high altitude >100km)");
+  print_los_stats(stats_los_poles_rt_low,
+                  "Near-pole LOS round-trip (low altitude <=100km)");
+  print_los_stats(stats_los_poles_rt_high,
+                  "Near-pole LOS round-trip (high altitude >100km)");
+  print_los_stats(stats_los_mid_rt_low,
+                  "Mid-latitude LOS round-trip (low altitude <=100km)");
+  print_los_stats(stats_los_mid_rt_high,
+                  "Mid-latitude LOS round-trip (high altitude >100km)");
+  print_los_stats(stats_los_at_zenith_rt_low,
+                  "LOS at zenith/nadir round-trip (low altitude <=100km)");
+  print_los_stats(stats_los_at_zenith_rt_high,
+                  "LOS at zenith/nadir round-trip (high altitude >100km)");
 
   // --- Performance test ---
   constexpr Index n_perf = 1'000'000;
