@@ -165,14 +165,22 @@ int main() {
   const Vector lons{
       -180.0, -135.0, -90.0, -45.0, 0.0, 45.0, 90.0, 135.0, 180.0};
 
-  Stats stats_wgs84_high;   // WGS-84 overall for high altitude (>100km)
-  Stats stats_wgs84_low;    // WGS-84 overall for low altitude (<=100km)
-  Stats stats_sphere_high;  // Sphere for high altitude (>100km)
-  Stats stats_sphere_low;   // Sphere for low altitude (<=100km)
-  Stats stats_poles_high;   // |lat| > 89.9 for high altitude (>100km)
-  Stats stats_poles_low;    // |lat| > 89.9 for low altitude (<=100km)
-  Stats stats_mid_high;     // |lat| < 80 for high altitude (>100km)
-  Stats stats_mid_low;      // |lat| < 80 for low altitude (<=100km)
+  Stats stats_wgs84_high;     // WGS-84 overall for high altitude (>100km)
+  Stats stats_wgs84_low;      // WGS-84 overall for low altitude (<=100km)
+  Stats stats_sphere_high;    // Sphere for high altitude (>100km)
+  Stats stats_sphere_low;     // Sphere for low altitude (<=100km)
+  Stats stats_poles_high;     // |lat| > 89.9 for high altitude (>100km)
+  Stats stats_poles_low;      // |lat| > 89.9 for low altitude (<=100km)
+  Stats stats_mid_high;       // |lat| < 80 for high altitude (>100km)
+  Stats stats_mid_low;        // |lat| < 80 for low altitude (<=100km)
+  Stats stats_wgs84_rt_low;   // WGS-84 round-trip for low altitude (<=100km)
+  Stats stats_wgs84_rt_high;  // WGS-84 round-trip for high altitude (>100km)
+  Stats stats_poles_rt_low;   // Near-pole round-trip for low altitude (<=100km)
+  Stats stats_poles_rt_high;  // Near-pole round-trip for high altitude (>100km)
+  Stats stats_mid_rt_low;     // Mid-lat round-trip for low altitude (<=100km)
+  Stats stats_mid_rt_high;    // Mid-lat round-trip for high altitude (>100km)
+  Stats stats_sphere_rt_low;  // Sphere round-trip for low altitude (<=100km)
+  Stats stats_sphere_rt_high;  // Sphere round-trip for high altitude (>100km)
 
   // --- Accuracy test ---
   for (Numeric h : alts) {
@@ -192,16 +200,31 @@ int main() {
         else
           update_stats(stats_wgs84_low, old_pos, new_pos);
 
+        if (is_high_altitude)
+          update_stats(stats_wgs84_rt_high, geo, new_pos);
+        else
+          update_stats(stats_wgs84_rt_low, geo, new_pos);
+
         if (std::abs(lat) > 89.9) {
           if (is_high_altitude)
             update_stats(stats_poles_high, old_pos, new_pos);
           else
             update_stats(stats_poles_low, old_pos, new_pos);
+
+          if (is_high_altitude)
+            update_stats(stats_poles_rt_high, geo, new_pos);
+          else
+            update_stats(stats_poles_rt_low, geo, new_pos);
         } else if (std::abs(lat) < 80.0) {
           if (is_high_altitude)
             update_stats(stats_mid_high, old_pos, new_pos);
           else
             update_stats(stats_mid_low, old_pos, new_pos);
+
+          if (is_high_altitude)
+            update_stats(stats_mid_rt_high, geo, new_pos);
+          else
+            update_stats(stats_mid_rt_low, geo, new_pos);
         }
 
         // Spherical case
@@ -212,11 +235,16 @@ int main() {
           update_stats(stats_sphere_high, old_s, new_s);
         else
           update_stats(stats_sphere_low, old_s, new_s);
+
+        if (is_high_altitude)
+          update_stats(stats_sphere_rt_high, geo, new_s);
+        else
+          update_stats(stats_sphere_rt_low, geo, new_s);
       }
     }
   }
 
-  std::println("=== Accuracy comparison (old vs new) ===");
+  std::println("=== Accuracy comparison (old vs new ecef2geodetic) ===");
   print_stats(stats_wgs84_low, "WGS-84 overall (low altitude <=100km)");
   print_stats(stats_wgs84_high, "WGS-84 overall (high altitude >100km)");
   print_stats(stats_poles_low, "Near-pole (low altitude <=100km)");
@@ -225,6 +253,20 @@ int main() {
   print_stats(stats_mid_high, "Mid-latitude (high altitude >100km)");
   print_stats(stats_sphere_low, "Sphere (low altitude <=100km)");
   print_stats(stats_sphere_high, "Sphere (high altitude >100km)");
+
+  std::println("=== Round-trip error (original geodetic vs ecef2geodetic) ===");
+  print_stats(stats_wgs84_rt_low, "WGS-84 round-trip (low altitude <=100km)");
+  print_stats(stats_wgs84_rt_high, "WGS-84 round-trip (high altitude >100km)");
+  print_stats(stats_poles_rt_low,
+              "Near-pole round-trip (low altitude <=100km)");
+  print_stats(stats_poles_rt_high,
+              "Near-pole round-trip (high altitude >100km)");
+  print_stats(stats_mid_rt_low,
+              "Mid-latitude round-trip (low altitude <=100km)");
+  print_stats(stats_mid_rt_high,
+              "Mid-latitude round-trip (high altitude >100km)");
+  print_stats(stats_sphere_rt_low, "Sphere round-trip (low altitude <=100km)");
+  print_stats(stats_sphere_rt_high, "Sphere round-trip (high altitude >100km)");
 
   // --- Performance test ---
   constexpr Index n_perf = 1'000'000;
