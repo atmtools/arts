@@ -822,9 +822,10 @@ geometry first and channel second, and the returned value is
           "channel_response",
           [](const sensor::HeterodyneFrequencyRange& self,
              const sensor::Channel& channel) {
-            return sensor::FrequencyRangeBandpassFilter(
-                       self, std::span<const sensor::Channel>{&channel, 1})
-                .filters.front();
+          return sensor::make_bandpass_channels(
+                  self, std::span<const sensor::Channel>{&channel, 1})
+             .front()
+             .channel;
           },
           "channel"_a,
           R"(Compute the real-frequency response for one spectrometer channel.
@@ -834,11 +835,16 @@ geometry first and channel second, and the returned value is
           "channel_responses",
           [](const sensor::HeterodyneFrequencyRange& self,
              const std::vector<sensor::Channel>& channels) {
-            return sensor::FrequencyRangeBandpassFilter(
-                       self,
-                       std::span<const sensor::Channel>{channels.data(),
-                                                        channels.size()})
-                .filters;
+            auto response_channels = sensor::make_bandpass_channels(
+                self,
+                std::span<const sensor::Channel>{channels.data(),
+                                                 channels.size()});
+            std::vector<SortedGriddedField1> out;
+            out.reserve(response_channels.size());
+            for (auto& response : response_channels) {
+              out.push_back(std::move(response.channel));
+            }
+            return out;
           },
           "channels"_a,
           R"(Compute the real-frequency response for multiple spectrometer channels.
@@ -849,8 +855,14 @@ geometry first and channel second, and the returned value is
           "channel_responses",
           [](const sensor::HeterodyneFrequencyRange& self,
              const sensor::Spectrometer& spectrometer) {
-            return sensor::FrequencyRangeBandpassFilter(self, spectrometer)
-                .filters;
+            auto response_channels =
+                sensor::make_bandpass_channels(self, spectrometer);
+            std::vector<SortedGriddedField1> out;
+            out.reserve(response_channels.size());
+            for (auto& response : response_channels) {
+              out.push_back(std::move(response.channel));
+            }
+            return out;
           },
           "spectrometer"_a,
           R"(Compute the real-frequency response for all channels in a spectrometer.

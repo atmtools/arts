@@ -189,10 +189,10 @@ void combine_samples(std::vector<std::pair<Numeric, Numeric>>& samples) {
   samples = std::move(combined);
 }
 
-std::vector<SortedGriddedField1> build_filters(
+std::vector<Channel> build_channels(
     const FrequencyRange& range, const std::span<const Channel>& channels) {
-  std::vector<SortedGriddedField1> filters;
-  filters.reserve(channels.size());
+  std::vector<Channel> out;
+  out.reserve(channels.size());
 
   for (Size ichan = 0; ichan < channels.size(); ichan++) {
     const auto& channel      = channels[ichan];
@@ -234,20 +234,22 @@ std::vector<SortedGriddedField1> build_filters(
     }
 
     combine_samples(samples);
-    filters.push_back(
-        make_filter(samples, std::format("channel-response-{}", ichan)));
+    out.push_back(
+        Channel{.channel = make_filter(samples,
+                                       std::format("channel-response-{}",
+                                                   ichan))});
   }
 
-  return filters;
+  return out;
 }
 
-std::vector<SortedGriddedField1> build_synced_filters(
+std::vector<Channel> build_synced_channels(
     const FrequencyRange& range, const Spectrometer& spectrometer) {
   const auto& channels = spectrometer.channels;
   if (channels.empty()) return {};
 
   if (not spectrometer.is_synced()) {
-    return build_filters(
+    return build_channels(
         range, std::span<const Channel>{channels.data(), channels.size()});
   }
 
@@ -265,8 +267,8 @@ std::vector<SortedGriddedField1> build_synced_filters(
          std::move(folded_samples)});
   }
 
-  std::vector<SortedGriddedField1> filters;
-  filters.reserve(channels.size());
+  std::vector<Channel> out;
+  out.reserve(channels.size());
 
   for (Size ichan = 0; ichan < channels.size(); ++ichan) {
     const auto& weights = channels[ichan].weights();
@@ -283,35 +285,23 @@ std::vector<SortedGriddedField1> build_synced_filters(
     }
 
     combine_samples(samples);
-    filters.push_back(
-        make_filter(samples, std::format("channel-response-{}", ichan)));
+    out.push_back(
+        Channel{.channel = make_filter(samples,
+                                       std::format("channel-response-{}",
+                                                   ichan))});
   }
-
-  return filters;
-}
-}  // namespace
-
-Numeric BandpassFilter::operator()(Numeric f) const {
-  Numeric weight = 0.0;
-  for (const auto& filter : filters) weight += sample_filter(filter, f);
-  return weight;
-}
-
-Vector BandpassFilter::operator()(ConstVectorView f) const {
-  Vector out(f.size(), 0.0);
-
-  for (Size i = 0; i < out.size(); i++) out[i] = (*this)(f[i]);
 
   return out;
 }
+}  // namespace
 
-FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
+std::vector<Channel> make_bandpass_channels(
     const FrequencyRange& range, const std::span<const Channel>& channels) {
-  filters = build_filters(range, channels);
+  return build_channels(range, channels);
 }
 
-FrequencyRangeBandpassFilter::FrequencyRangeBandpassFilter(
+std::vector<Channel> make_bandpass_channels(
     const FrequencyRange& range, const Spectrometer& spectrometer) {
-  filters = build_synced_filters(range, spectrometer);
+  return build_synced_channels(range, spectrometer);
 }
 }  // namespace sensor

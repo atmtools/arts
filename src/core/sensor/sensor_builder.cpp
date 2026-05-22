@@ -27,20 +27,6 @@ SensorMetaInfo make_meta_info(Size nchannels, Size geometry_index) {
 
   return SensorMetaInfo{std::move(gf)};
 }
-
-std::vector<Channel> make_channels(const Spectrometer& spectrometer,
-                                   const FrequencyRange& backend) {
-  auto filters = FrequencyRangeBandpassFilter(backend, spectrometer).filters;
-
-  std::vector<Channel> channels;
-  channels.reserve(filters.size());
-
-  for (auto& filter : filters) {
-    channels.push_back(Channel{.channel = std::move(filter)});
-  }
-
-  return channels;
-}
 }  // namespace
 
 SensorBuilder::SensorBuilder() : antenna(PencilBeamAntenna{}.clone()) {}
@@ -59,7 +45,8 @@ SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
 SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
                              const FrequencyRange& backend,
                              std::shared_ptr<const AntennaPattern> antenna)
-    : SensorBuilder(make_channels(spectrometer, backend), std::move(antenna)) {
+    : SensorBuilder(make_bandpass_channels(backend, spectrometer),
+                    std::move(antenna)) {
   preserve_common_frequency_grid = spectrometer.is_synced();
 }
 
