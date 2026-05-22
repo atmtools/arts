@@ -47,21 +47,6 @@ inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
 inline constexpr Numeric POLELATZZZ =
     90 - 1e-8;  // Rename to POLELAT when other one removed
 
-/** Threshold for near-pole detection in ECEF to geodetic conversion
-
-    When the horizontal distance from the z-axis (sqrt(x^2 + y^2)) is
-    smaller than this threshold times the semi-major axis, the point
-    is treated as being on the pole to avoid numerical instability.
-*/
-inline constexpr Numeric near_pole_threshold_ecef = 1e-15;
-
-/** Maximum iterations for ECEF to geodetic conversion
-
-     Prevents infinite loops in edge cases where the iterative
-     algorithm fails to converge.
-*/
-inline constexpr Index max_ecef2geodetic_iter = 100;
-
 /*===========================================================================
   === The functions, in alphabetical order
   ===========================================================================*/
@@ -128,46 +113,32 @@ std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
 
 Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
   Vector3 pos;
+  // Bowring's closed-form algorithm (non-iterative)
+  const Numeric a         = refellipsoid[0];
+  const Numeric b         = refellipsoid[1];
+  const Numeric a_minus_b = a - b;
+  const Numeric a_plus_b  = a + b;
+  const Numeric e2        = (a_minus_b * a_plus_b) / (a * a);
+  const Numeric ep2       = (a_minus_b * a_plus_b) / (b * b);
 
-  // Use geocentric function if geoid is spherical
-  if (is_ellipsoid_spherical(refellipsoid)) {
-    pos     = ecef2geocentric(ecef);
-    pos[0] -= refellipsoid[0];
+  const Numeric p = std::hypot(ecef[0], ecef[1]);
+  const Numeric z = ecef[2];
 
-  } else {
-    // The general algorithm not stable for lat=+-90. Catch these cases
-    // Also catch near-pole cases where numerical instability can occur
-    const Numeric sq = std::hypot(ecef[0], ecef[1]);
+  const Numeric theta = atan2(z * a, p * b);
+  const Numeric st    = sin(theta);
+  const Numeric ct    = cos(theta);
 
-    if (sq < near_pole_threshold_ecef * refellipsoid[0]) {
-      // Near-pole case: use simplified formula (same as exact pole)
-      pos[0] = fabs(ecef[2]) - refellipsoid[1];
-      pos[1] = ecef[2] >= 0 ? 90 : -90;
-      pos[2] = RAD2DEG * atan2(ecef[1], ecef[0]);
+  const Numeric latrad =
+      atan2(z + ep2 * b * st * st * st, p - e2 * a * ct * ct * ct);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslat = cos(latrad);
 
-    } else {
-      // General algorithm
-      pos[2] = RAD2DEG * atan2(ecef[1], ecef[0]);
+  const Numeric N = a / sqrt(1.0 - e2 * sinlat * sinlat);
 
-      Numeric B0       = atan2(ecef[2], sq);
-      Numeric B        = B0 - 1, N;
-      const Numeric e2 = 1 - (refellipsoid[1] * refellipsoid[1]) /
-                                 (refellipsoid[0] * refellipsoid[0]);
-      Index num_iter = 0;
-      // 1e-15 seems to give a accuracy of better than 2 cm
-      while (fabs(B - B0) > 1e-15 && num_iter < max_ecef2geodetic_iter) {
-        N      = refellipsoid[0] / sqrt(1 - e2 * sin(B0) * sin(B0));
-        pos[0] = sq / cos(B0) - N;
-        B      = B0;
-        B0     = atan((ecef[2] / sq) * 1 / (1 - e2 * N / (N + pos[0])));
-        ++num_iter;
-      }
-      ARTS_USER_ERROR_IF(num_iter == max_ecef2geodetic_iter,
-                         "ECEF to geodetic conversion did not converge. "
-                         "Input may be too close to singular values.");
-      pos[1] = RAD2DEG * B;
-    }
-  }
+  // Robust height formula avoiding division by cos(lat)
+  pos[0] = p * coslat + z * sinlat - a * a / N;
+  pos[1] = RAD2DEG * latrad;
+  pos[2] = RAD2DEG * atan2(ecef[1], ecef[0]);
 
   return pos;
 }

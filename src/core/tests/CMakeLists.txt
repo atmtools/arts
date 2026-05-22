@@ -15,3 +15,8 @@ add_executable(test_laginterp test_laginterp.cpp)
 target_link_libraries(test_laginterp PUBLIC matpack rng)
 add_test(NAME "cpp.fast.core.test_laginterp" COMMAND test_laginterp)
 add_dependencies(check-deps test_laginterp)
+
+add_executable(test_geodetic test_geodetic.cpp)
+target_link_libraries(test_geodetic PUBLIC geodesy matpack)
+add_test(NAME "cpp.fast.core.test_geodetic" COMMAND test_geodetic)
+add_dependencies(check-deps test_geodetic)
