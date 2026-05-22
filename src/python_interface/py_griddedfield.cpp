@@ -197,6 +197,13 @@ void py_griddedfield(py::module_& m) try {
       m, "ArrayOfNamedGriddedField2");
   generic_interface(d2);
   vector_interface(d2);
+
+  auto vsgf1num = py::bind_vector<Array<SortedGriddedField1>,
+                                  py::rv_policy::reference_internal>(
+      m, "ArrayOfSortedGriddedField1");
+  vsgf1num.doc() = "A list of :class:`~pyarts3.arts.SortedGriddedField1`";
+  generic_interface(vsgf1num);
+  vector_interface(vsgf1num);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize gridded field\n{}", e.what()));

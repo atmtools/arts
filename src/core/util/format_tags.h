@@ -17,6 +17,8 @@
 #include <utility>
 #include <variant>
 
+#include "aggregate_helper.h"
+
 using namespace std::literals;
 
 template <typename T>
@@ -602,5 +604,57 @@ struct std::formatter<std::function<R(Ts...)>> {
   FmtContext::iterator format(const std::function<R(Ts...)>&,
                               FmtContext& ctx) const {
     return tags.format(ctx, "<functional>");
+  }
+};
+
+template <typename T>
+struct format_tag_aggregate {
+  constexpr static bool value = false;
+};
+
+template <typename T>
+constexpr bool format_tag_aggregate_v = format_tag_aggregate<T>::value;
+
+template <typename T>
+concept format_tag_aggratable = format_tag_aggregate_v<T>;
+
+template <format_tag_aggratable T>
+struct std::formatter<T> {
+  static_assert(arts_aggregate<T>,
+                "format_tag_aggratable types must be arts_aggregate");
+
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const T& v, FmtContext& ctx) const {
+    return tags.format(ctx, as_tuple(v));
+  }
+};
+
+template <arts_formattable T, std::derived_from<T> U>
+struct format_tag_inherit {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(
+      std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const U& v, FmtContext& ctx) const {
+    return tags.format(ctx, reinterpret_cast<const T&>(v));
   }
 };

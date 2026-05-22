@@ -166,6 +166,12 @@ constexpr auto angstrom2meter(auto x) noexcept { return x * 1e-10; }
 /** Conversion from meter to Å **/
 constexpr auto meter2angstrom(auto x) noexcept { return x * 1e10; }
 
+/** Conversion from HWHM to STD */
+constexpr auto hwhm2std(auto x) noexcept { return x / (Constant::sqrt_ln_2 * Constant::sqrt_2); }
+
+/** Conversion from FWHM to STD */
+constexpr auto fwhm2std(auto x) noexcept { return 0.5 * hwhm2std(x); }
+
 //! Converts the number to a metric prefix (kilo:=k, Mega:=M, nano:=n, etc)
 // And empty char (' ') is used when no conversion happens.  The function returns a pair
 // containing the prefix character and the scaled value.

@@ -17,8 +17,8 @@ namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
 
-template <typename T, typename U = T>
-void xml_interface(py::class_<T>& c) {
+template <typename T, typename U = T, class... E>
+void xml_interface(py::class_<T, E...>& c) {
   c.def(
       "savexml",
       [](const T& x,
@@ -260,8 +260,8 @@ void value_holder_interface(py::class_<ValueHolder<T>>& c) {
   }
 }
 
-template <typename T>
-void str_interface(py::class_<T>& c) {
+template <typename T, class... E>
+void str_interface(py::class_<T, E...>& c) {
   c.def("__format__", [](const T& x, std::string fmt) {
     if constexpr (std::formattable<T, char>) {
       fmt = std::format("{}{}{}", "{:"sv, fmt, "}"sv);

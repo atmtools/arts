@@ -42,3 +42,4 @@ qdrant_storage/
 .roo/
 tests/core/sensor/sensor_count.xml
 tests/core/xml/test.xml
+tmp/

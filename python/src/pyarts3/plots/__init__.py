@@ -54,6 +54,7 @@ from . import StokvecVector
 from . import SubsurfaceField
 from . import Sun
 from . import SurfaceField
+from . import SensorObsel
 from . import Vector
 from . import ZenGrid
 

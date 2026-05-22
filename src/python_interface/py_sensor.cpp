@@ -1,12 +1,18 @@
+#include <antenna_pattern.h>
 #include <arts_omp.h>
+#include <frequency_bandpass_filters.h>
+#include <frequency_channel_selection.h>
+#include <frequency_range_selection.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <obsel.h>
 #include <python_interface.h>
+#include <sensor_builder.h>
 #include <sensor_meta_info.h>
 
 #include <algorithm>
@@ -14,9 +20,10 @@
 #include <stdexcept>
 
 #include "hpy_arts.h"
+#include "hpy_matpack.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
-#include "rtepack.h"
+#include "xml_io_stream.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
@@ -263,7 +270,11 @@ Numeric, Vector, or Matrix
       .def_prop_ro(
           "poslos",
           &SensorObsel::poslos_grid,
-          "Position and line of sight grid\n\n.. :class:`SensorPosLosVector`");
+          "Position and line of sight grid\n\n.. :class:`SensorPosLosVector`")
+      .def("normalize",
+           &SensorObsel::normalize,
+           "pol"_a = Stokvec{1., 0., 0., 0.},
+           R"(Normalize the weights so that they sum to pol.)");
 
   auto a0 = py::bind_vector<Array<SensorPosLosVector>,
                             py::rv_policy::reference_internal>(
@@ -298,49 +309,7 @@ Numeric, Vector, or Matrix
 
   a1.def(
       "collect_freq_grids",
-      [](ArrayOfSensorObsel& x) {
-        if (x.empty()) return;
-
-        const auto tmp = [&x]() {
-          std::set<std::shared_ptr<const AscendingGrid>> freq_set;
-          for (const auto& obsel : x) freq_set.insert(obsel.f_grid_ptr());
-          if (freq_set.size() == 1)
-            return std::make_pair(true, *freq_set.begin());
-
-          std::vector<Numeric> fs;
-          fs.reserve(std::accumulate(
-              freq_set.begin(),
-              freq_set.end(),
-              Size(0),
-              [](Size a, const auto& b) { return a + b->size(); }));
-          for (auto& freqs : freq_set) fs.append_range(*freqs);
-
-          stdr::sort(fs);
-          fs.erase(std::unique(fs.begin(), fs.end()), fs.end());
-          return std::make_pair(
-              false, std::make_shared<const AscendingGrid>(std::move(fs)));
-        }();
-
-        //! Clang bug workaround
-        const auto& early    = tmp.first;
-        const auto& freq_ptr = tmp.second;
-
-        if (early) return;
-
-#pragma omp parallel for if (not arts_omp_in_parallel())
-        for (Size i = 0; i < x.size(); i++) {
-          sensor::SparseStokvecMatrix w(x[i].poslos_grid().size(),
-                                        freq_ptr->size());
-          for (const auto& we : x[i].weight_matrix()) {
-            const Index ifreq = stdr::distance(
-                freq_ptr->begin(),
-                stdr::lower_bound(*freq_ptr, x[i].f_grid()[we.icol]));
-            w[we.irow, ifreq] = we.data;
-          }
-
-          x[i] = {freq_ptr, x[i].poslos_grid_ptr(), std::move(w)};
-        }
-      },
+      [](ArrayOfSensorObsel& x) { collect_frequency_grids(x); },
       R"(Collect all frequency grids in a single grid.
 
 .. tip::
@@ -410,6 +379,30 @@ Numeric, Vector, or Matrix
       of one channel will affect all channels.
 )");
 
+  a1.def(
+      "normalize",
+      [](ArrayOfSensorObsel& x, Stokvec pol) {
+        for (auto& obsel : x) obsel.normalize(pol);
+      },
+      R"(Normalize the weights of each obsel so that they sum to pol.
+
+See :meth:`SensorObsel.normalize` for details.
+
+.. note::
+      The polarization of each channel will be the same.  This is a
+      catch-all method that simply helps when you want something up-and-running.
+      Each channel must be normalized separately if they have different polarizations.
+)",
+      "pol"_a = Stokvec{1., 0., 0., 0.});
+
+  a1.def(
+      "collect",
+      [](py::object& self) {
+        self.attr("collect_freq_grids")();
+        self.attr("collect_poslos_grids")();
+      },
+      R"(Calls the collect_freq_grids and collect_poslos_grids methods in said order.)");
+
   py::class_<SensorMetaInfo> smi(m, "SensorMetaInfo");
   generic_interface(smi);
   smi.def_rw(
@@ -428,6 +421,456 @@ Numeric, Vector, or Matrix
   generic_interface(a2);
   vector_interface(a2);
 
+  py::class_<sensor::AntennaPatternField> sapf(m, "SensorAntennaPatternField");
+  sapf.doc() =
+      "A 2D gridded antenna response on local zenith and azimuth offsets.";
+  gridded_data_interface(sapf);
+  generic_interface(sapf);
+
+  auto sap = py::class_<sensor::AntennaPattern>(m, "SensorAntennaPattern");
+  sap.doc() =
+      "Base class for angular antenna responses defined around a bore line of sight.";
+  sap.def("__call__",
+          &sensor::AntennaPattern::operator(),
+          "channel"_a,
+          "pos"_a,
+          "bore_los"_a,
+          R"(Map the antenna pattern onto one observation element.)");
+  // generic_interface(sap);  -- this should break things.  The class is abstract
+
+  auto sgp = py::class_<sensor::GriddedAntennaPattern, sensor::AntennaPattern>(
+      m, "SensorGriddedAntennaPattern");
+  sgp.doc() =
+      "A gridded angular antenna response on local zenith and azimuth offsets.";
+  sgp.def(py::init<>(), "Construct an empty gridded antenna pattern.")
+      .def(
+          "__init__",
+          [](sensor::GriddedAntennaPattern* self,
+             const sensor::AntennaPatternField& response) {
+            new (self) sensor::GriddedAntennaPattern{};
+            self->data = response;
+          },
+          "response"_a,
+          "Construct a gridded antenna pattern from a local zenith/azimuth response field.")
+      .def_rw(
+          "response",
+          &sensor::GriddedAntennaPattern::data,
+          py::rv_policy::reference_internal,
+          "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`");
+  generic_interface(sgp);
+
+  auto spp = py::class_<sensor::PencilBeamAntenna, sensor::AntennaPattern>(
+      m, "SensorPencilBeamAntenna");
+  spp.doc() = "A 1x1 antenna response centered on the bore line of sight.";
+  spp.def(
+      py::init<Stokvec>(),
+      "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+      "Construct a pencil-beam antenna with one Stokes weight at the bore LOS.");
+  generic_interface(spp);
+
+  auto sga = py::class_<sensor::GaussianAntenna, sensor::GriddedAntennaPattern>(
+      m, "SensorGaussianAntenna");
+  sga.doc() =
+      "A Gaussian antenna response defined on a local zenith/azimuth grid.";
+  sga.def(py::init<ZenGrid, AziGrid, Numeric, Numeric, Stokvec>(),
+          "zen_grid"_a,
+          "azi_grid"_a,
+          "zenith_std"_a,
+          "azimuth_std"_a,
+          "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+          "Construct a Gaussian antenna response on the supplied local grids.");
+  generic_interface(sga);
+
+  auto sgairy = py::class_<sensor::GaussianAiryAntenna, sensor::AntennaPattern>(
+      m, "SensorGaussianAiryAntenna");
+  sgairy.doc() =
+      "A Gaussianized Airy antenna whose width scales with wavelength and aperture diameter.";
+  sgairy.def(
+      py::init<ZenGrid, AziGrid, Numeric, Stokvec>(),
+      "dzen_grid"_a,
+      "azi_grid"_a,
+      "aperture_diameter"_a,
+      "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+      "Construct a Gaussian Airy antenna on the supplied local grids."
+      " The channel frequency grid must be strictly positive because the"
+      " current builder path does not carry a separate reference frequency.");
+  sgairy.def_rw(
+      "aperture_diameter",
+      &sensor::GaussianAiryAntenna::aperture_diameter,
+      "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`Numeric`");
+  sgairy.def_rw(
+      "weight",
+      &sensor::GaussianAiryAntenna::weight,
+      "Stokes weights of the antenna response.\n\n.. :class:`Stokvec`");
+  sgairy.def_rw(
+      "zen_grid",
+      &sensor::GaussianAiryAntenna::zen_grid,
+      "Local zenith grid of the antenna response.\n\n.. :class:`ZenGrid`");
+  sgairy.def_rw(
+      "azi_grid",
+      &sensor::GaussianAiryAntenna::azi_grid,
+      "Local azimuth grid of the antenna response.\n\n.. :class:`AziGrid`");
+  generic_interface(sgairy);
+  static_assert(arts_xml_ioable<sensor::GaussianAiryAntenna>);
+
+  auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
+  sch.doc() = "Base class for relative spectrometer channel responses.";
+  generic_interface(sch);
+  sch.def(py::init_implicit<SortedGriddedField1>());
+  sch.def_prop_ro(
+         "response",
+         [](const sensor::Channel& self) -> const SortedGriddedField1& {
+           return self.channel;
+         },
+         py::rv_policy::reference_internal,
+         "Relative channel response as a gridded field."
+         "\n\n.. :class:`~pyarts3.arts.SortedGriddedField1`")
+      .def_prop_ro("freq_grid",
+                   &sensor::Channel::freq_grid,
+                   py::rv_policy::reference_internal,
+                   "Relative frequency grid.\n\n.. :class:`AscendingGrid`")
+      .def_prop_ro("weights",
+                   &sensor::Channel::weights,
+                   py::rv_policy::reference_internal,
+                   "Channel weights on the relative frequency grid."
+                   "\n\n.. :class:`Vector`");
+
+  auto sbox =
+      py::class_<sensor::BoxChannel, sensor::Channel>(m, "SensorBoxChannel");
+  sbox.doc() =
+      "A channel with uniform weights across a finite relative-frequency interval.";
+  sbox.def(py::init<Numeric, Numeric, Size>(),
+           "lower"_a,
+           "upper"_a,
+           "n"_a,
+           "Construct a box channel on ``[lower, upper]`` with ``n`` points.")
+      .def(
+          py::init<Numeric, Size>(),
+          "half_width"_a,
+          "n"_a,
+          "Construct a symmetric box channel on ``[-half_width, half_width]``.")
+      .def(py::init<AscendingGrid>(),
+           "freq_grid"_a,
+           "Construct a box channel directly from a relative frequency grid.");
+  generic_interface(sbox);
+
+  auto sdirac = py::class_<sensor::DiracChannel, sensor::Channel>(
+      m, "SensorDiracChannel");
+  sdirac.doc() = "A single-frequency relative channel.";
+  sdirac
+      .def(py::init<Numeric>(),
+           "frequency"_a,
+           "Construct a Dirac channel at one relative frequency.")
+      .def(py::init<>(), "Construct a Dirac channel at 0 relative frequency.");
+  generic_interface(sdirac);
+
+  auto sgauss = py::class_<sensor::GaussianChannel, sensor::Channel>(
+      m, "SensorGaussianChannel");
+  sgauss.doc() = "A Gaussian relative channel response.";
+  sgauss
+      .def(py::init<AscendingGrid, Numeric, Numeric>(),
+           "freq_grid"_a,
+           "center"_a,
+           "std"_a,
+           "Construct a Gaussian channel on a custom relative frequency grid.")
+      .def(
+          py::init<Numeric, Numeric, Size, Size>(),
+          "center"_a,
+          "std"_a,
+          "n"_a,
+          "m"_a,
+          "Construct a Gaussian channel on ``center +/- m * std`` with ``n`` points.")
+      .def(py::init<AscendingGrid, Numeric>(),
+           "freq_grid"_a,
+           "std"_a,
+           "Construct a zero-centered Gaussian channel on a custom grid.")
+      .def(py::init<Numeric, Size, Size>(),
+           "std"_a,
+           "n"_a,
+           "m"_a,
+           "Construct a zero-centered Gaussian channel on ``+/- m * std``.");
+  generic_interface(sgauss);
+
+  auto sspec = py::class_<sensor::Spectrometer>(m, "SensorSpectrometer");
+  sspec.doc() =
+      "A spectrometer made from channels arranged on one shared relative-frequency grid.";
+  sspec
+      .def(
+          py::init<const sensor::Channel&, const AscendingGrid&>(),
+          "base_channel"_a,
+          "freq_offsets"_a,
+          "Construct a spectrometer by shifting one base channel across the supplied relative-frequency offsets.")
+      .def(py::init<std::vector<sensor::Channel>>(),
+           "channels"_a,
+           "Construct a spectrometer from explicit channels.")
+      .def_prop_ro(
+          "channels",
+          [](const sensor::Spectrometer& self)
+              -> const std::vector<sensor::Channel>& { return self.channels; },
+          py::rv_policy::reference_internal,
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+      .def(
+          "is_synced",
+          &sensor::Spectrometer::is_synced,
+          "Return whether all channels share the same relative-frequency grid.")
+      .def(
+          "__len__",
+          [](const sensor::Spectrometer& self) { return self.channels.size(); })
+      .def(
+          "__getitem__",
+          [](const sensor::Spectrometer& self,
+             Size i) -> const sensor::Channel& { return self.channels.at(i); },
+          py::rv_policy::reference_internal)
+      .def(
+          "__iter__",
+          [](const sensor::Spectrometer& self) {
+            return py::make_iterator(py::type<sensor::Spectrometer>(),
+                                     "sensor-spectrometer-iterator",
+                                     self.channels.begin(),
+                                     self.channels.end());
+          },
+          py::rv_policy::reference_internal,
+          "Iterate over the spectrometer channels.");
+  generic_interface(sspec);
+
+  auto ssb = py::class_<sensor::SensorBuilder>(m, "SensorBuilder");
+  ssb.doc() =
+      "Combines channels and an antenna pattern into sensor obsels for paired position/LOS samples.";
+  ssb.def(py::init<>(), "Construct an empty sensor builder.")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const std::vector<sensor::Channel>& channels,
+             const sensor::AntennaPattern& antenna) {
+            new (self) sensor::SensorBuilder{channels, antenna.clone()};
+          },
+          "channels"_a,
+          "antenna"_a = sensor::PencilBeamAntenna{},
+          "Construct a sensor builder from channels and one antenna pattern (defaults to pencil-beam).")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const sensor::Spectrometer& spectrometer,
+             const sensor::AntennaPattern& antenna) {
+            new (self) sensor::SensorBuilder{spectrometer, antenna.clone()};
+          },
+          "spectrometer"_a,
+          "antenna"_a = sensor::PencilBeamAntenna{},
+          "Construct a sensor builder from a spectrometer and one antenna pattern (defaults to pencil-beam).")
+      .def(
+          "__init__",
+          [](sensor::SensorBuilder* self,
+             const sensor::AntennaPattern& antenna,
+             const sensor::Spectrometer& spectrometer,
+             const sensor::HeterodyneFrequencyRange& backend) {
+            new (self)
+                sensor::SensorBuilder{spectrometer, backend, antenna.clone()};
+          },
+          "antenna"_a,
+          "spectrometer"_a,
+          "backend"_a,
+          "Construct a sensor builder from an antenna, a spectrometer, and a backend frequency response.")
+      .def_rw(
+          "channels",
+          &sensor::SensorBuilder::channels,
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+      .def_prop_rw(
+          "antenna",
+          [](const sensor::SensorBuilder& self)
+              -> std::shared_ptr<const sensor::AntennaPattern> {
+            if (not self.antenna)
+              throw std::runtime_error("SensorBuilder has no antenna pattern");
+            return self.antenna->clone();
+          },
+          [](sensor::SensorBuilder& self,
+             const sensor::AntennaPattern& antenna) {
+            self.antenna = antenna.clone();
+          },
+          py::rv_policy::reference_internal,
+          "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self,
+             const std::vector<Vector3>& pos,
+             const std::vector<Vector2>& los) {
+            if (pos.size() != los.size()) {
+              throw std::invalid_argument(std::format(
+                  "SensorBuilder expects matching position and LOS counts. Got {} positions and {} LOS values.",
+                  pos.size(),
+                  los.size()));
+            }
+
+            return self(pos, los);
+          },
+          "pos"_a,
+          "los"_a,
+          R"(Build sensor obsels and metadata from paired position and bore-LOS sequences.
+
+Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
+geometry first and channel second, and the returned value is
+``(measurement_sensor, measurement_sensor_meta)``.)")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self,
+             const Vector3 pos,
+             const Vector2 los) {
+            return self(std::span{&pos, 1}, std::span{&los, 1});
+          },
+          "pos"_a,
+          "los"_a,
+          R"(Build sensor obsels and metadata from paired position and bore-LOS.)")
+      .def(
+          "__call__",
+          [](const sensor::SensorBuilder& self,
+             const SensorPosLosVector& poslos) {
+            std::vector<Vector3> pos(poslos.size());
+            std::vector<Vector2> los(poslos.size());
+
+            for (Size i = 0; i < poslos.size(); ++i) {
+              pos[i] = poslos[i].pos;
+              los[i] = poslos[i].los;
+            }
+
+            return self(pos, los);
+          },
+          "poslos"_a,
+          "Build sensor obsels and metadata from paired position/LOS samples.");
+  generic_interface(ssb);
+
+  auto shdfr = py::class_<sensor::HeterodyneFrequencyRange>(
+      m, "SensorHeterodyneFrequencyRange");
+  shdfr.def(py::init<>(),
+            R"(Construct an empty staged heterodyne response.
+
+  Stages can then be applied in sequence using :func:`lowpass`, :func:`highpass`,
+  :func:`bandpass`, :func:`filter`, and :func:`mix`.)");
+  shdfr.def(
+      py::init<Numeric, Vector2>(),
+      "lo"_a,
+      "bandpass"_a = Vector2{0.0, std::numeric_limits<Numeric>::infinity()},
+      R"(Construct a heterodyne response from one ideal bandpass and one LO stage.
+
+  This is shorthand for creating an empty object, applying :func:`bandpass`, and
+  then applying :func:`mix`.)");
+  shdfr.def(
+      "__init__",
+      [](sensor::HeterodyneFrequencyRange* v,
+         const std::vector<Numeric>& clock_frequencies,
+         const std::vector<Vector2>& bandpasses) {
+        new (v) sensor::HeterodyneFrequencyRange(clock_frequencies, bandpasses);
+      },
+      "lo"_a,
+      "bandpasses"_a,
+      R"(Construct a heterodyne response from a sequence of ideal bandpass and LO stages.
+
+  The sequence is applied as ``bandpass[0] -> lo[0] -> bandpass[1] -> lo[1] -> ...``.)");
+  shdfr
+      .def_ro("global_ranges",
+              &sensor::HeterodyneFrequencyRange::global_ranges,
+              "Global frequency range\n\n.. :class:`list[Vector2]`")
+      .def_ro("local_ranges",
+              &sensor::HeterodyneFrequencyRange::local_ranges,
+              "Local frequency range\n\n.. :class:`list[Vector2]`")
+      .def("lowpass",
+           &sensor::HeterodyneFrequencyRange::apply_lowpass,
+           "upper"_a,
+           "Apply an ideal lowpass filter on the current local frequency axis.")
+      .def(
+          "highpass",
+          &sensor::HeterodyneFrequencyRange::apply_highpass,
+          "lower"_a,
+          "Apply an ideal highpass filter on the current local frequency axis.")
+      .def(
+          "bandpass",
+          [](sensor::HeterodyneFrequencyRange& self, const Vector2& bandpass) {
+            self.apply_bandpass(bandpass);
+          },
+          "bandpass"_a,
+          "Apply an ideal bandpass filter on the current local frequency axis.")
+      .def(
+          "filter",
+          [](sensor::HeterodyneFrequencyRange& self,
+             const SortedGriddedField1& bandpass_filter) {
+            self.apply_bandpass(bandpass_filter);
+          },
+          "bandpass_filter"_a,
+          R"(Apply a weighted bandpass filter on the current local frequency axis.
+
+  The filter weights are interpreted on the filter's relative frequency grid and
+  are zero outside that grid.)")
+      .def("mix",
+           &sensor::HeterodyneFrequencyRange::apply_mixer,
+           "lo"_a,
+           "Apply one heterodyne LO mixing stage.")
+      .def(
+          "local_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const Vector& f,
+             Size path_index) { return self.local_response(f, path_index); },
+          "f"_a,
+          "path_index"_a = 0,
+          "Evaluate one path response on the current local frequency axis.")
+      .def(
+          "global_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const Vector& f,
+             Size path_index) { return self.global_response(f, path_index); },
+          "f"_a,
+          "path_index"_a = 0,
+          "Evaluate one path response on the original real-frequency axis.")
+      .def(
+          "channel_response",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const sensor::Channel& channel) {
+          return sensor::make_bandpass_channels(
+                  self, std::span<const sensor::Channel>{&channel, 1})
+             .front()
+             .channel;
+          },
+          "channel"_a,
+          R"(Compute the real-frequency response for one spectrometer channel.
+
+      The returned gridded field is aggregated across all active mixer paths.)")
+      .def(
+          "channel_responses",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const std::vector<sensor::Channel>& channels) {
+            auto response_channels = sensor::make_bandpass_channels(
+                self,
+                std::span<const sensor::Channel>{channels.data(),
+                                                 channels.size()});
+            std::vector<SortedGriddedField1> out;
+            out.reserve(response_channels.size());
+            for (auto& response : response_channels) {
+              out.push_back(std::move(response.channel));
+            }
+            return out;
+          },
+          "channels"_a,
+          R"(Compute the real-frequency response for multiple spectrometer channels.
+
+      Each returned gridded field is aggregated across all active mixer paths for the
+      matching input channel.)")
+      .def(
+          "channel_responses",
+          [](const sensor::HeterodyneFrequencyRange& self,
+             const sensor::Spectrometer& spectrometer) {
+            auto response_channels =
+                sensor::make_bandpass_channels(self, spectrometer);
+            std::vector<SortedGriddedField1> out;
+            out.reserve(response_channels.size());
+            for (auto& response : response_channels) {
+              out.push_back(std::move(response.channel));
+            }
+            return out;
+          },
+          "spectrometer"_a,
+          R"(Compute the real-frequency response for all channels in a spectrometer.
+
+  Each returned gridded field is aggregated across all active mixer paths for the
+  matching spectrometer channel.)");
+  shdfr.doc() = "A staged heterodyne mixer and filter response builder.";
+  generic_interface(shdfr);
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize sensors\n{}", e.what()));

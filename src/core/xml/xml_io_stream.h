@@ -103,28 +103,3 @@ template <typename T>
 concept xml_io_parseable = requires(std::span<T> b, std::istream& is) {
   xml_io_stream<T>::parse(b, is);
 };
-
-//! Explicitly inherit and cast between spans
-template <arts_xml_ioable U, std::derived_from<U> T>
-struct xml_io_stream_inherit : xml_io_stream<U> {
-  static void get(std::span<T> b, bifstream* pbifs)
-    requires(xml_io_binary<U>)
-  {
-    xml_io_stream<U>::get(std::span{reinterpret_cast<U*>(b.data()), b.size()},
-                          pbifs);
-  }
-
-  static void put(std::span<const T> b, bofstream* pbofs)
-    requires(xml_io_binary<U>)
-  {
-    xml_io_stream<U>::put(
-        std::span{reinterpret_cast<const U*>(b.data()), b.size()}, pbofs);
-  }
-
-  static void parse(std::span<T> b, std::istream& is)
-    requires(xml_io_parseable<U>)
-  {
-    xml_io_stream<U>::parse(std::span{reinterpret_cast<U*>(b.data()), b.size()},
-                            is);
-  }
-};

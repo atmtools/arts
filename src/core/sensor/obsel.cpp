@@ -1,11 +1,13 @@
 #include "obsel.h"
 
+#include <arts_omp.h>
 #include <compare.h>
 #include <debug.h>
 
 #include <algorithm>
 #include <memory>
 #include <ranges>
+#include <set>
 #include <utility>
 
 bool SensorKey::operator==(const SensorKey& other) const {
@@ -516,12 +518,47 @@ void make_exclusive(std::span<SensorObsel> obsels) {
     for (const auto& w : elem.weight_matrix()) {
       const Index iposlos =
           stdr::distance(stdr::begin(gs), stdr::find(gs, old_gs[w.irow]));
-      const Index ifreq  = stdr::distance(stdr::begin(fs),
+      const Index ifreq = stdr::distance(stdr::begin(fs),
                                          stdr::lower_bound(fs, old_fs[w.icol]));
       ws[iposlos, ifreq] = w.data;
     }
 
     elem = SensorObsel(AscendingGrid{fs}, gs, std::move(ws));
+  }
+}
+
+void collect_frequency_grids(std::span<SensorObsel> obsels) {
+  if (obsels.empty()) return;
+
+  std::set<std::shared_ptr<const AscendingGrid>> freq_set;
+  for (const auto& obsel : obsels) freq_set.insert(obsel.f_grid_ptr());
+
+  if (freq_set.size() == 1) return;
+
+  Size total_size = 0;
+  for (const auto& freqs : freq_set) total_size += freqs->size();
+
+  std::vector<Numeric> fs;
+  fs.reserve(total_size);
+  for (const auto& freqs : freq_set) fs.append_range(*freqs);
+
+  stdr::sort(fs);
+  fs.erase(std::unique(fs.begin(), fs.end()), fs.end());
+
+  const auto freq_ptr = std::make_shared<const AscendingGrid>(std::move(fs));
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (auto& obsel : obsels) {
+    sensor::SparseStokvecMatrix w(obsel.poslos_grid().size(), freq_ptr->size());
+
+    for (const auto& we : obsel.weight_matrix()) {
+      const Index ifreq =
+          stdr::distance(freq_ptr->begin(),
+                         stdr::lower_bound(*freq_ptr, obsel.f_grid()[we.icol]));
+      w[we.irow, ifreq] = we.data;
+    }
+
+    obsel = {freq_ptr, obsel.poslos_grid_ptr(), std::move(w)};
   }
 }
 
@@ -537,7 +574,7 @@ void set_frq(const SensorObsel& v,
   const auto xs = std::make_shared<const AscendingGrid>(
       x.begin(), x.end(), [](auto& x) { return x; });
 
-  // Must copy, as we may change the shared_ptr later
+  // Copy the shared_ptr value before updating matching obsels.
   const auto fs = v.f_grid_ptr();
 
   for (auto& elem : sensor) {
@@ -573,12 +610,12 @@ void set_poslos(const SensorObsel& v,
 
   const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
 
-  // Must copy, as we may change the shared_ptr later
+  // Copy the shared_ptr value before updating matching obsels.
   const auto ps = v.poslos_grid_ptr();
 
   for (auto& elem : sensor) {
     if (elem.poslos_grid_ptr() == ps) {
-      elem.set_poslos_grid_ptr(ps);  // may change here
+      elem.set_poslos_grid_ptr(xs);  // may change here
     }
   }
 }
