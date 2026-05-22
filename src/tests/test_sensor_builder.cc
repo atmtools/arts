@@ -1,4 +1,5 @@
 #include <arts_conversions.h>
+#include <obsel.h>
 #include <sensor_builder.h>
 
 #include <array>
@@ -138,11 +139,62 @@ void test_sensor_builder_uses_gaussian_airy_frequency_dependence() {
                  1e-12,
                  "builder gaussian airy off-axis high frequency");
 }
+
+void test_unflatten_updates_shared_poslos_grids() {
+  auto freq_grid = std::make_shared<const AscendingGrid>(AscendingGrid{100.0});
+
+  SensorPosLosVector poslos_grid(1);
+  poslos_grid[0] = {.pos = {600e3, 10.0, 20.0}, .los = {30.0, 40.0}};
+  auto shared_poslos =
+      std::make_shared<const SensorPosLosVector>(std::move(poslos_grid));
+
+  sensor::SparseStokvecMatrix weights(1, 1);
+  weights[0, 0] = {1.0, 0.0, 0.0, 0.0};
+
+  ArrayOfSensorObsel obsels(2);
+  obsels[0] = {freq_grid, shared_poslos, weights};
+  obsels[1] = {freq_grid, shared_poslos, weights};
+
+  const auto original_poslos = obsels[0].poslos_grid_ptr();
+  const Vector zeniths{15.0};
+
+  unflatten(obsels, zeniths, obsels[0], SensorKeyType::zen);
+
+  ARTS_USER_ERROR_IF(obsels[0].poslos_grid_ptr() == original_poslos,
+                     "unflatten must replace the shared poslos grid")
+  ARTS_USER_ERROR_IF(not obsels[0].same_poslos(obsels[1]),
+                     "obsels sharing a geometry must still share it after unflatten")
+  assert_close(obsels[0].poslos_grid()[0].los[0],
+               15.0,
+               0.0,
+               "updated zenith for first obsel");
+  assert_close(obsels[1].poslos_grid()[0].los[0],
+               15.0,
+               0.0,
+               "updated zenith for second obsel");
+  assert_close(obsels[0].poslos_grid()[0].los[1],
+               40.0,
+               0.0,
+               "azimuth must remain unchanged");
+
+  const auto original_freq = obsels[0].f_grid_ptr();
+  const Vector freqs{101.0};
+
+  unflatten(obsels, freqs, obsels[0], SensorKeyType::freq);
+
+  ARTS_USER_ERROR_IF(obsels[0].f_grid_ptr() == original_freq,
+                     "unflatten must replace the shared frequency grid")
+  ARTS_USER_ERROR_IF(not obsels[0].same_freqs(obsels[1]),
+                     "obsels sharing frequencies must still share them after unflatten")
+  assert_close(obsels[0].f_grid()[0], 101.0, 0.0, "updated frequency for first obsel");
+  assert_close(obsels[1].f_grid()[0], 101.0, 0.0, "updated frequency for second obsel");
+}
 }  // namespace
 
 int main() {
   test_sensor_builder_returns_meta_per_geometry();
   test_sensor_builder_rejects_mismatched_geometry_counts();
   test_sensor_builder_uses_gaussian_airy_frequency_dependence();
+  test_unflatten_updates_shared_poslos_grids();
   return 0;
 }

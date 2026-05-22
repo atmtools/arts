@@ -574,8 +574,8 @@ void set_frq(const SensorObsel& v,
   const auto xs = std::make_shared<const AscendingGrid>(
       x.begin(), x.end(), [](auto& x) { return x; });
 
-  // Must copy, as we may change the shared_ptr later
-  const auto& fs = v.f_grid_ptr();
+  // Copy the shared_ptr value before updating matching obsels.
+  const auto fs = v.f_grid_ptr();
 
   for (auto& elem : sensor) {
     if (elem.f_grid_ptr() == fs) {
@@ -610,12 +610,12 @@ void set_poslos(const SensorObsel& v,
 
   const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
 
-  // Must copy, as we may change the shared_ptr later
-  const auto& ps = v.poslos_grid_ptr();
+  // Copy the shared_ptr value before updating matching obsels.
+  const auto ps = v.poslos_grid_ptr();
 
   for (auto& elem : sensor) {
     if (elem.poslos_grid_ptr() == ps) {
-      elem.set_poslos_grid_ptr(ps);  // may change here
+      elem.set_poslos_grid_ptr(xs);  // may change here
     }
   }
 }
