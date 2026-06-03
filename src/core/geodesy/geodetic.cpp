@@ -184,7 +184,7 @@ Numeric ecef_distance(Vector3 ecef1, Vector3 ecef2) {
   const Numeric dx = ecef2[0] - ecef1[0];
   const Numeric dy = ecef2[1] - ecef1[1];
   const Numeric dz = ecef2[2] - ecef1[2];
-  return sqrt(dx * dx + dy * dy + dz * dz);
+  return std::hypot(dx, dy, dz);
 }
 
 Vector3 ecef_vector_distance(Vector3 ecef0, Vector3 ecef1) {
