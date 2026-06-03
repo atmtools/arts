@@ -14,22 +14,31 @@ namespace surface_scattering {
 
 /** Lambertian surface scattering model.
  *
- * Implements a Lambertian (isotropic) BRDF:
- *   BRDF(I->I) = reflectivity[f] / pi
- *   emissivity(I) = 1 - reflectivity[f]
+ * Implements a Lambertian (isotropic) BRDF.  The reflectivity is stored as a
+ * spectral field on an arbitrary, sorted frequency grid
+ * (SortedGriddedField1).  At runtime the field is linearly interpolated onto
+ * the simulation's f_grid, decoupling the stored spectral resolution from the
+ * simulation grid.
  *
- * The reflectivity vector is carried directly in the struct. The
- * SurfacePropertyTag names the surface property this model represents,
+ *   BRDF(I->I) = r(f) / pi
+ *   emissivity(I) = 1 - r(f)
+ *
+ * where r(f) is the reflectivity interpolated to frequency f.
+ *
+ * The SurfacePropertyTag names the surface property this model represents,
  * providing a semantic key for future lookup from SurfacePoint.
  */
 struct LambertianSurfaceScatterer {
   /// Tag identifying the surface property (e.g., "albedo")
   SurfacePropertyTag reflectivity_tag{};
-  /// Reflectivity values over f_grid (must match the f_grid passed to get_*)
-  Vector reflectivity{};
+  /// Reflectivity spectrum on an arbitrary sorted frequency grid.
+  /// The single grid dimension must be in Hz (ascending order).
+  /// Values are expected in [0, 1]; out-of-range values are clamped.
+  SortedGriddedField1 reflectivity_spectrum{};
 
   LambertianSurfaceScatterer() = default;
-  LambertianSurfaceScatterer(SurfacePropertyTag tag, Vector reflectivity_);
+  LambertianSurfaceScatterer(SurfacePropertyTag tag,
+                             SortedGriddedField1 spectrum_);
 
   LambertianSurfaceScatterer(const LambertianSurfaceScatterer&)            = default;
   LambertianSurfaceScatterer(LambertianSurfaceScatterer&&) noexcept        = default;
@@ -44,8 +53,12 @@ struct LambertianSurfaceScatterer {
                                          const Vector& za_scat_grid,
                                          const Vector& aa_scat_grid) const;
 
-  [[nodiscard]] const Vector& get_reflectivity() const { return reflectivity; }
-  void set_reflectivity(const Vector& r) { reflectivity = r; }
+  [[nodiscard]] const SortedGriddedField1& get_reflectivity_spectrum() const {
+    return reflectivity_spectrum;
+  }
+  void set_reflectivity_spectrum(const SortedGriddedField1& s) {
+    reflectivity_spectrum = s;
+  }
 
   friend std::ostream& operator<<(std::ostream& os,
                                    const LambertianSurfaceScatterer& s);
@@ -72,7 +85,10 @@ struct std::formatter<surface_scattering::LambertianSurfaceScatterer> {
     if (tags.names) {
       return tags.format(ctx, "LambertianSurfaceScatterer"sv);
     }
-    return tags.format(ctx, v.reflectivity_tag.name, ": "sv, v.reflectivity);
+    return tags.format(ctx,
+                       v.reflectivity_tag.name,
+                       ": "sv,
+                       v.reflectivity_spectrum);
   }
 };
 
@@ -89,4 +105,3 @@ struct xml_io_stream<surface_scattering::LambertianSurfaceScatterer> {
                    surface_scattering::LambertianSurfaceScatterer& x,
                    bifstream* pbifs = nullptr);
 };
-

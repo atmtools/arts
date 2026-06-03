@@ -17,18 +17,38 @@ void py_surface_scattering(py::module_& m) try {
   //
   py::class_<LambertianSurfaceScatterer> lss(m, "LambertianSurfaceScatterer");
   lss.def(py::init<>())
-      .def(py::init<SurfacePropertyTag, Vector>(),
+      .def(py::init<SurfacePropertyTag, SortedGriddedField1>(),
            "reflectivity_tag"_a,
-           "reflectivity"_a,
-           "Create a Lambertian surface scatterer from a tag and reflectivity vector")
+           "reflectivity_spectrum"_a,
+           R"(Create a Lambertian surface scatterer from a tag and a spectral reflectivity field.
+
+Parameters
+----------
+reflectivity_tag : SurfacePropertyTag
+    Semantic key identifying this surface property (e.g. "albedo").
+reflectivity_spectrum : SortedGriddedField1
+    Reflectivity as a function of frequency [Hz].  The frequency grid must
+    be sorted in ascending order.  Values are expected in [0, 1]; values
+    outside this range are clamped at runtime.
+)")
       .def_rw("reflectivity_tag",
               &LambertianSurfaceScatterer::reflectivity_tag,
               "Surface property tag identifying this model\n\n.. :class:`SurfacePropertyTag`")
       .def_prop_rw(
-          "reflectivity",
-          [](const LambertianSurfaceScatterer& self) { return self.get_reflectivity(); },
-          [](LambertianSurfaceScatterer& self, const Vector& r) { self.set_reflectivity(r); },
-          "Reflectivity vector over f_grid\n\n.. :class:`Vector`")
+          "reflectivity_spectrum",
+          [](const LambertianSurfaceScatterer& self) {
+            return self.get_reflectivity_spectrum();
+          },
+          [](LambertianSurfaceScatterer& self, const SortedGriddedField1& s) {
+            self.set_reflectivity_spectrum(s);
+          },
+          R"(Spectral reflectivity field on an arbitrary sorted frequency grid.
+
+The frequency axis must be in Hz (ascending).  Values should lie in [0, 1];
+they are clamped when the BRDF is computed.
+
+.. :class:`SortedGriddedField1`
+)")
       .def(
           "get_bulk_surface_scattering_properties",
           [](const LambertianSurfaceScatterer& self,
@@ -49,7 +69,13 @@ void py_surface_scattering(py::module_& m) try {
           "aa_scat_grid"_a,
           "Compute bulk surface scattering properties for this Lambertian model");
   generic_interface(lss);
-  lss.doc() = "Lambertian surface scattering model";
+  lss.doc() = R"(Lambertian (isotropic) surface scattering model.
+
+The reflectivity is stored as a :class:`~pyarts3.arts.SortedGriddedField1`
+on an arbitrary sorted frequency grid.  At runtime the spectrum is linearly
+interpolated onto the simulation's ``f_grid``, so the stored spectral
+resolution is fully independent of the simulation grid.
+)";
 
   //
   // MapOfSurfaceScatteringModel
@@ -134,4 +160,3 @@ void py_surface_scattering(py::module_& m) try {
 }
 
 }  // namespace Python
-
