@@ -29,16 +29,13 @@ namespace surface_scattering {
  * providing a semantic key for future lookup from SurfacePoint.
  */
 struct LambertianSurfaceScatterer {
-  /// Tag identifying the surface property (e.g., "albedo")
-  SurfacePropertyTag reflectivity_tag{};
   /// Reflectivity spectrum on an arbitrary sorted frequency grid.
   /// The single grid dimension must be in Hz (ascending order).
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField1 reflectivity_spectrum{};
 
   LambertianSurfaceScatterer() = default;
-  LambertianSurfaceScatterer(SurfacePropertyTag tag,
-                             SortedGriddedField1 spectrum_);
+  LambertianSurfaceScatterer(SortedGriddedField1 spectrum_);
 
   LambertianSurfaceScatterer(const LambertianSurfaceScatterer&)            = default;
   LambertianSurfaceScatterer(LambertianSurfaceScatterer&&) noexcept        = default;
@@ -81,16 +78,13 @@ struct LambertianSurfaceScatterer {
  * Extrapolation beyond the stored grids is permitted (values are still clamped).
  */
 struct LambertianSurfaceScattererField {
-  /// Tag identifying the surface property (e.g., "albedo")
-  SurfacePropertyTag reflectivity_tag{};
   /// Reflectivity on a sorted (lat [deg], lon [deg], freq [Hz]) grid.
   /// All three grid dimensions must be in ascending order.
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField3 reflectivity_field{};
 
   LambertianSurfaceScattererField() = default;
-  LambertianSurfaceScattererField(SurfacePropertyTag tag,
-                                  SortedGriddedField3 field_);
+  LambertianSurfaceScattererField(SortedGriddedField3 field_);
 
   LambertianSurfaceScattererField(const LambertianSurfaceScattererField&)            = default;
   LambertianSurfaceScattererField(LambertianSurfaceScattererField&&) noexcept        = default;
@@ -140,7 +134,7 @@ struct std::formatter<surface_scattering::LambertianSurfaceScatterer> {
       return tags.format(ctx, "LambertianSurfaceScatterer"sv);
     }
     return tags.format(ctx,
-                       v.reflectivity_tag.name,
+                       "LambertianSurfaceScatterer"sv,
                        ": "sv,
                        v.reflectivity_spectrum);
   }
@@ -166,7 +160,7 @@ struct std::formatter<surface_scattering::LambertianSurfaceScattererField> {
       return tags.format(ctx, "LambertianSurfaceScattererField"sv);
     }
     return tags.format(ctx,
-                       v.reflectivity_tag.name,
+                       "LambertianSurfaceScattererField"sv,
                        ": "sv,
                        v.reflectivity_field);
   }

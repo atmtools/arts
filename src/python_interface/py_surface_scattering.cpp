@@ -32,23 +32,17 @@ void py_surface_scattering(py::module_& m) try {
   //
   py::class_<LambertianSurfaceScatterer> lss(m, "LambertianSurfaceScatterer");
   lss.def(py::init<>())
-      .def(py::init<SurfacePropertyTag, SortedGriddedField1>(),
-           "reflectivity_tag"_a,
+      .def(py::init<SortedGriddedField1>(),
            "reflectivity_spectrum"_a,
-           R"(Create a Lambertian surface scatterer from a tag and a spectral reflectivity field.
+           R"(Create a Lambertian surface scatterer from a spectral reflectivity field.
 
 Parameters
 ----------
-reflectivity_tag : SurfacePropertyTag
-    Semantic key identifying this surface property (e.g. "albedo").
 reflectivity_spectrum : SortedGriddedField1
     Reflectivity as a function of frequency [Hz].  The frequency grid must
     be sorted in ascending order.  Values are expected in [0, 1]; values
     outside this range are clamped at runtime.
 )")
-      .def_rw("reflectivity_tag",
-              &LambertianSurfaceScatterer::reflectivity_tag,
-              "Surface property tag identifying this model\n\n.. :class:`SurfacePropertyTag`")
       .def_prop_rw(
           "reflectivity_spectrum",
           [](const LambertianSurfaceScatterer& self) {
@@ -101,24 +95,19 @@ resolution is fully independent of the simulation grid.
   //
   py::class_<LambertianSurfaceScattererField> lssf(m, "LambertianSurfaceScattererField");
   lssf.def(py::init<>())
-      .def(py::init<SurfacePropertyTag, SortedGriddedField3>(),
-           "reflectivity_tag"_a,
+      .def(py::init<SortedGriddedField3>(),
            "reflectivity_field"_a,
            R"(Create a spatially-varying Lambertian surface scatterer.
 
 Parameters
 ----------
-reflectivity_tag : SurfacePropertyTag
-    Semantic key identifying this surface property (e.g. "albedo").
 reflectivity_field : SortedGriddedField3
     Reflectivity as a function of latitude [deg], longitude [deg], and
     frequency [Hz].  All three grids must be sorted in ascending order.
     Values are expected in [0, 1]; values outside this range are clamped
     at runtime.
 )")
-      .def_rw("reflectivity_tag",
-              &LambertianSurfaceScattererField::reflectivity_tag,
-              "Surface property tag identifying this model\n\n.. :class:`SurfacePropertyTag`")
+      
       .def_prop_rw(
           "reflectivity_field",
           [](const LambertianSurfaceScattererField& self) {

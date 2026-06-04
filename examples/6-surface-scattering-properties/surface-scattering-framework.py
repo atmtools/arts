@@ -21,8 +21,8 @@ refl2d_data=np.random.rand(len(lat),len(lon),len(freq2d))
 refl2d=paa3.SortedGriddedField3(data=refl2d_data, grids=[lat,lon,freq2d])
 
 
-Lambertian=paa3.LambertianSurfaceScatterer('Surface1',refl1d)
-LambertianField=paa3.LambertianSurfaceScattererField('Surface1',refl2d)
+Lambertian=paa3.LambertianSurfaceScatterer(refl1d)
+LambertianField=paa3.LambertianSurfaceScattererField(refl2d)
 
 surface_models=paa3.MapOfSurfaceScatteringModel()
 surface_models.add('type1',Lambertian)
