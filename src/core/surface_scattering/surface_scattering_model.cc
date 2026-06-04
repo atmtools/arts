@@ -13,6 +13,8 @@ void MapOfSurfaceScatteringModel::add(
 surface_scattering::SurfaceScatteringModelProperties
 MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     const SurfacePoint& surf_point,
+    Numeric lat,
+    Numeric lon,
     const Vector& f_grid,
     const Vector& za_inc_grid,
     const Vector& aa_inc_grid,
@@ -29,6 +31,8 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     if constexpr (requires {
                     model.get_surface_scattering_model_properties(
                         surf_point,
+                        lat,
+                        lon,
                         f_grid,
                         za_inc_grid,
                         aa_inc_grid,
@@ -36,7 +40,7 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
                         aa_scat_grid);
                   }) {
       return model.get_surface_scattering_model_properties(
-          surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
+          surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
     } else {
       throw std::runtime_error(std::format(
           "Method not implemented for surface scattering model:\n{:N}", model));

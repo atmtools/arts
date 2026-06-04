@@ -133,6 +133,25 @@ property this model represents for later lookup.
 )",
   };
 
+  wsg_data["LambertianSurfaceScattererField"] = {
+      .file = "surface_scattering/lambertian.h",
+      .desc = R"(A spatially-varying Lambertian surface scattering model.
+
+Extends *LambertianSurfaceScatterer* by storing the reflectivity as a
+three-dimensional field over latitude [deg], longitude [deg], and
+frequency [Hz] (a *SortedGriddedField3*).  At runtime the field is
+bilinearly interpolated in the geographic dimensions and linearly
+interpolated onto the simulation frequency grid, so both the stored
+spatial and spectral resolutions are fully independent of the simulation.
+
+  BRDF(I->I) = reflectivity[lat, lon, f] / pi
+  emissivity(I) = 1 - reflectivity[lat, lon, f]
+
+Values are clamped to [0, 1] after interpolation.
+Extrapolation beyond the stored grids is permitted.
+)",
+  };
+
 
   wsg_data["MapOfSurfaceScatteringModel"] = {
       .file = "surface_scattering/surface_scattering_model.h",

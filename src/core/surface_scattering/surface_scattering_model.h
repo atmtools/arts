@@ -20,7 +20,7 @@
 namespace surface_scattering {
 
 /// Variant type holding any concrete surface scattering model
-using SurfaceScatteringModel = std::variant<LambertianSurfaceScatterer>;
+using SurfaceScatteringModel = std::variant<LambertianSurfaceScatterer, LambertianSurfaceScattererField>;
 
 }  // namespace surface_scattering
 
@@ -29,6 +29,7 @@ using SurfaceScatteringModel = surface_scattering::SurfaceScatteringModel;
 /// Pull LambertianSurfaceScatterer into the global namespace (mirrors
 /// the pattern for HenyeyGreensteinScatterer in scattering_species.h)
 using LambertianSurfaceScatterer = surface_scattering::LambertianSurfaceScatterer;
+using LambertianSurfaceScattererField = surface_scattering::LambertianSurfaceScattererField;
 
 /** Named map of surface scattering models.
  *
@@ -48,6 +49,8 @@ struct MapOfSurfaceScatteringModel {
   /// Accumulate bulk surface scattering properties from all stored models
   [[nodiscard]] surface_scattering::SurfaceScatteringModelProperties
   get_surface_scattering_model_properties(const SurfacePoint& surf_point,
+                                         Numeric lat,
+                                         Numeric lon,
                                          const Vector& f_grid,
                                          const Vector& za_inc_grid,
                                          const Vector& aa_inc_grid,
