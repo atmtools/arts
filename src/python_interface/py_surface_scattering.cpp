@@ -6,12 +6,27 @@
 #include <python_interface.h>
 #include <surface_scattering/lambertian.h>
 #include <surface_scattering/surface_scattering_model.h>
+#include <surface_scattering/surface_scattering_properties.h>
 
 #include "hpy_arts.h"
 
 namespace Python {
 
 void py_surface_scattering(py::module_& m) try {
+  //
+  // SurfaceScatteringModelProperties
+  //
+  py::class_<surface_scattering::SurfaceScatteringModelProperties>(
+      m, "SurfaceScatteringModelProperties")
+      .def(py::init<>())
+      .def_rw("brdf_matrix",
+              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix,
+              "Optional BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]")
+      .def_rw("emissivity_vector",
+              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector,
+              "Emissivity vector: dims [nf, nza_scat, 4]")
+      .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).";
+
   //
   // LambertianSurfaceScatterer
   //
@@ -53,15 +68,19 @@ they are clamped when the BRDF is computed.
           "get_bulk_surface_scattering_properties",
           [](const LambertianSurfaceScatterer& self,
              const SurfacePoint& surf_point,
+             Numeric lat,
+             Numeric lon,
              const Vector& f_grid,
              const Vector& za_inc_grid,
              const Vector& aa_inc_grid,
              const Vector& za_scat_grid,
              const Vector& aa_scat_grid) {
             return self.get_surface_scattering_model_properties(
-                surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
+                surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
           },
           "surf_point"_a,
+          "lat"_a,
+          "lon"_a,
           "f_grid"_a,
           "za_inc_grid"_a,
           "aa_inc_grid"_a,
@@ -75,6 +94,77 @@ The reflectivity is stored as a :class:`~pyarts3.arts.SortedGriddedField1`
 on an arbitrary sorted frequency grid.  At runtime the spectrum is linearly
 interpolated onto the simulation's ``f_grid``, so the stored spectral
 resolution is fully independent of the simulation grid.
+)";
+
+  //
+  // LambertianSurfaceScattererField
+  //
+  py::class_<LambertianSurfaceScattererField> lssf(m, "LambertianSurfaceScattererField");
+  lssf.def(py::init<>())
+      .def(py::init<SurfacePropertyTag, SortedGriddedField3>(),
+           "reflectivity_tag"_a,
+           "reflectivity_field"_a,
+           R"(Create a spatially-varying Lambertian surface scatterer.
+
+Parameters
+----------
+reflectivity_tag : SurfacePropertyTag
+    Semantic key identifying this surface property (e.g. "albedo").
+reflectivity_field : SortedGriddedField3
+    Reflectivity as a function of latitude [deg], longitude [deg], and
+    frequency [Hz].  All three grids must be sorted in ascending order.
+    Values are expected in [0, 1]; values outside this range are clamped
+    at runtime.
+)")
+      .def_rw("reflectivity_tag",
+              &LambertianSurfaceScattererField::reflectivity_tag,
+              "Surface property tag identifying this model\n\n.. :class:`SurfacePropertyTag`")
+      .def_prop_rw(
+          "reflectivity_field",
+          [](const LambertianSurfaceScattererField& self) {
+            return self.get_reflectivity_field();
+          },
+          [](LambertianSurfaceScattererField& self, const SortedGriddedField3& f) {
+            self.set_reflectivity_field(f);
+          },
+          R"(Spatially-varying reflectivity field on sorted (lat, lon, freq) grids.
+
+Grid dimensions: latitude [deg], longitude [deg], frequency [Hz] — all ascending.
+Values should lie in [0, 1]; they are clamped when the BRDF is computed.
+
+.. :class:`SortedGriddedField3`
+)")
+      .def(
+          "get_bulk_surface_scattering_properties",
+          [](const LambertianSurfaceScattererField& self,
+             const SurfacePoint& surf_point,
+             Numeric lat,
+             Numeric lon,
+             const Vector& f_grid,
+             const Vector& za_inc_grid,
+             const Vector& aa_inc_grid,
+             const Vector& za_scat_grid,
+             const Vector& aa_scat_grid) {
+            return self.get_surface_scattering_model_properties(
+                surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
+          },
+          "surf_point"_a,
+          "lat"_a,
+          "lon"_a,
+          "f_grid"_a,
+          "za_inc_grid"_a,
+          "aa_inc_grid"_a,
+          "za_scat_grid"_a,
+          "aa_scat_grid"_a,
+          "Compute bulk surface scattering properties for this spatially-varying Lambertian model");
+  generic_interface(lssf);
+  lssf.doc() = R"(Spatially-varying Lambertian (isotropic) surface scattering model.
+
+The reflectivity is stored as a :class:`~pyarts3.arts.SortedGriddedField3`
+on sorted (latitude [deg], longitude [deg], frequency [Hz]) grids.
+At runtime the field is bilinearly interpolated in the geographic dimensions
+and linearly interpolated onto the simulation's ``f_grid``, so the stored
+spatial and spectral resolutions are fully independent of the simulation.
 )";
 
   //
@@ -136,15 +226,19 @@ resolution is fully independent of the simulation grid.
           "get_bulk_surface_scattering_properties",
           [](const MapOfSurfaceScatteringModel& self,
              const SurfacePoint& surf_point,
+             Numeric lat,
+             Numeric lon,
              const Vector& f_grid,
              const Vector& za_inc_grid,
              const Vector& aa_inc_grid,
              const Vector& za_scat_grid,
              const Vector& aa_scat_grid) {
             return self.get_surface_scattering_model_properties(
-                surf_point, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
+                surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
           },
           "surf_point"_a,
+          "lat"_a,
+          "lon"_a,
           "f_grid"_a,
           "za_inc_grid"_a,
           "aa_inc_grid"_a,
