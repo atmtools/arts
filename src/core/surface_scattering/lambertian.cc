@@ -2,6 +2,7 @@
 
 #include <lagrange_interp.h>
 #include <xml_io_base.h>
+#include <cmath>
 
 namespace surface_scattering {
 
@@ -23,6 +24,7 @@ SurfaceScatteringModelProperties lambertian_properties(
   Tensor7 brdf(nf, nzi, nai, nzs, nas, 4, 4, 0.0);
   Tensor3 emissivity(nf, nzs, 4, 0.0);
 
+  const Numeric inv_pi = Numeric{1} / std::acos(Numeric{-1});
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
 
@@ -43,10 +45,8 @@ SurfaceScatteringModelProperties lambertian_properties(
 
 }  // namespace
 
-LambertianSurfaceScatterer::LambertianSurfaceScatterer(SurfacePropertyTag tag,
-                                                       SortedGriddedField1 spectrum_)
-    : reflectivity_tag(std::move(tag)),
-      reflectivity_spectrum(std::move(spectrum_)) {}
+LambertianSurfaceScatterer::LambertianSurfaceScatterer(SortedGriddedField1 spectrum_)
+    : reflectivity_spectrum(std::move(spectrum_)) {}
 
 SurfaceScatteringModelProperties
 LambertianSurfaceScatterer::get_surface_scattering_model_properties(
@@ -87,13 +87,12 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
 
 std::ostream& operator<<(std::ostream& os,
                          const LambertianSurfaceScatterer& s) {
-  return os << "LambertianSurfaceScatterer(" << s.reflectivity_tag.name << ")";
+  return os << "LambertianSurfaceScatterer";
 }
 
 LambertianSurfaceScattererField::LambertianSurfaceScattererField(
-    SurfacePropertyTag tag, SortedGriddedField3 field_)
-    : reflectivity_tag(std::move(tag)),
-      reflectivity_field(std::move(field_)) {}
+    SortedGriddedField3 field_)
+    : reflectivity_field(std::move(field_)) {}
 
 SurfaceScatteringModelProperties
 LambertianSurfaceScattererField::get_surface_scattering_model_properties(
@@ -150,7 +149,7 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
 
 std::ostream& operator<<(std::ostream& os,
                          const LambertianSurfaceScattererField& s) {
-  return os << "LambertianSurfaceScattererField(" << s.reflectivity_tag.name << ")";
+  return os << "LambertianSurfaceScattererField";
 }
 
 SurfaceScatteringModelProperties& SurfaceScatteringModelProperties::operator+=(
@@ -177,7 +176,6 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScatterer>::write(
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
-  xml_write_to_stream(os, x.reflectivity_tag.name, pbofs);
   xml_write_to_stream(os, x.reflectivity_spectrum, pbofs);
 
   tag.write_to_end_stream(os);
@@ -191,7 +189,6 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScatterer>::read(
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  xml_read_from_stream(is, x.reflectivity_tag.name, pbifs);
   xml_read_from_stream(is, x.reflectivity_spectrum, pbifs);
 
   tag.read_from_stream(is);
@@ -206,7 +203,6 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScattererField>::write(
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
-  xml_write_to_stream(os, x.reflectivity_tag.name, pbofs);
   xml_write_to_stream(os, x.reflectivity_field, pbofs);
 
   tag.write_to_end_stream(os);
@@ -220,7 +216,6 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScattererField>::read(
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  xml_read_from_stream(is, x.reflectivity_tag.name, pbifs);
   xml_read_from_stream(is, x.reflectivity_field, pbifs);
 
   tag.read_from_stream(is);
