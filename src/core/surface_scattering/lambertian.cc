@@ -8,6 +8,12 @@ namespace surface_scattering {
 
 namespace {
 
+//! Longitude cyclers for interpolation
+//! Standard [-180, 180] range
+using lon_cycler_180 = lagrange_interp::loncross;  // cycler<-180.0, 180.0>
+//! Alternative [0, 360] range
+using lon_cycler_360 = lagrange_interp::cycler<0.0, 360.0>;
+
 /** Compute Lambertian BRDF and emissivity from a per-frequency reflectivity vector.
  *
  * @param r_data  Reflectivity values (one per frequency); may be raw interpolated
@@ -24,7 +30,6 @@ SurfaceScatteringModelProperties lambertian_properties(
   Tensor7 brdf(nf, nzi, nai, nzs, nas, 4, 4, 0.0);
   Tensor3 emissivity(nf, nzs, 4, 0.0);
 
-  const Numeric inv_pi = Numeric{1} / std::acos(Numeric{-1});
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
 
@@ -119,12 +124,11 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
 
   using id = lagrange_interp::identity;
 
-  // Single-point spatial lags (no extrapolation limit check; values are
-  // clamped to [0, 1] after interpolation so linear extrapolation is safe).
+  // Single-point spatial lags with cyclic interpolation
+  // Latitude: non-cyclic (use identity), as poles are not continuous
   const auto lat_lag = reflectivity_field.grid<0>().lag<1, id>(lat);
-  const auto lon_lag = reflectivity_field.grid<1>().lag<1, id>(lon);
-
-  // Multi-point frequency lag with unlimited extrapolation.
+  
+  // Multi-point frequency lag with unlimited extrapolation (non-cyclic).
   const auto freq_lag = reflectivity_field.grid<2>().lag<1, id>(
       f_grid,
       std::numeric_limits<Numeric>::max(),
@@ -134,9 +138,25 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
   // linearly interpolate across (lat, lon, freq).
   const Index nf = f_grid.size();
   Vector r_data(nf);
-  for (Index f = 0; f < nf; ++f) {
-    r_data[f] = lagrange_interp::interp(
-        reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
+  
+  // Longitude: adaptive cycler based on grid range
+  // Detect grid convention: if grid starts negative -> [-180, 180], else -> [0, 360]
+  const auto lon_grid_front = reflectivity_field.grid<1>().front();
+  
+  if (lon_grid_front < 0.0) {
+    // Grid is in [-180, 180] range: use loncross cycler
+    const auto lon_lag = reflectivity_field.grid<1>().lag<1, lon_cycler_180>(lon);
+    for (Index f = 0; f < nf; ++f) {
+      r_data[f] = lagrange_interp::interp(
+          reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
+    }
+  } else {
+    // Grid is in [0, 360] range: use cycler<0, 360>
+    const auto lon_lag = reflectivity_field.grid<1>().lag<1, lon_cycler_360>(lon);
+    for (Index f = 0; f < nf; ++f) {
+      r_data[f] = lagrange_interp::interp(
+          reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
+    }
   }
 
   return lambertian_properties(r_data,
