@@ -128,10 +128,17 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
   // Latitude: non-cyclic (use identity), as poles are not continuous
   const auto lat_lag = reflectivity_field.grid<0>().lag<1, id>(lat);
   
-  // Multi-point frequency lag with unlimited extrapolation (non-cyclic).
+  // Map InterpolationExtrapolation to extrapolation_limit for frequency grid
+  // Linear: unlimited extrapolation; None/Nearest/Zero: clamp at bounds
+  const Numeric extrap_limit = 
+      (interp_extrapolation == InterpolationExtrapolation::Linear)
+          ? std::numeric_limits<Numeric>::max()
+          : 0.0;
+  
+  // Multi-point frequency lag using member-controlled extrapolation.
   const auto freq_lag = reflectivity_field.grid<2>().lag<1, id>(
       f_grid,
-      std::numeric_limits<Numeric>::max(),
+      extrap_limit,
       "Reflectivity frequency grid");
 
   // Interpolate: for each target frequency, fix spatial position and
@@ -224,6 +231,7 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScattererField>::write(
   tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.reflectivity_field, pbofs);
+  xml_write_to_stream(os, x.interp_extrapolation, pbofs);
 
   tag.write_to_end_stream(os);
 }
@@ -237,6 +245,7 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScattererField>::read(
   tag.check_name(type_name);
 
   xml_read_from_stream(is, x.reflectivity_field, pbifs);
+  xml_read_from_stream(is, x.interp_extrapolation, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

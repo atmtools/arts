@@ -3,6 +3,7 @@
 #include <arts_constants.h>
 #include <configtypes.h>
 #include <debug.h>
+#include <enumsInterpolationExtrapolation.h>
 #include <format_tags.h>
 #include <matpack.h>
 #include <surf.h>
@@ -83,6 +84,11 @@ struct LambertianSurfaceScattererField {
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField3 reflectivity_field{};
 
+  /// Interpolation and extrapolation method for latitude and longitude.
+  /// Controls how values outside the grid domain are handled.
+  InterpolationExtrapolation interp_extrapolation{
+      InterpolationExtrapolation::Linear};
+
   LambertianSurfaceScattererField() = default;
   LambertianSurfaceScattererField(SortedGriddedField3 field_);
 
@@ -162,7 +168,9 @@ struct std::formatter<surface_scattering::LambertianSurfaceScattererField> {
     return tags.format(ctx,
                        "LambertianSurfaceScattererField"sv,
                        ": "sv,
-                       v.reflectivity_field);
+                       v.reflectivity_field,
+                       ", "sv,
+                       v.interp_extrapolation);
   }
 };
 
