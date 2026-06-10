@@ -123,6 +123,10 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
 
 .. :class:`SortedGriddedField3`
 )")
+      .def_rw(
+          "interp_extrapolation",
+          &LambertianSurfaceScattererField::interp_extrapolation,
+          "Interpolation and extrapolation method for latitude and longitude dimensions")
       .def(
           "get_bulk_surface_scattering_properties",
           [](const LambertianSurfaceScattererField& self,
