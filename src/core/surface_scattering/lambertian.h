@@ -35,6 +35,11 @@ struct LambertianSurfaceScatterer {
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField1 reflectivity_spectrum{};
 
+  /// Interpolation and extrapolation method for latitude and longitude.
+  /// Controls how values outside the grid domain are handled.
+  InterpolationExtrapolation interp_extrapolation{
+    InterpolationExtrapolation::Nearest};
+
   LambertianSurfaceScatterer() = default;
   LambertianSurfaceScatterer(SortedGriddedField1 spectrum_);
 
@@ -84,10 +89,11 @@ struct LambertianSurfaceScattererField {
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField3 reflectivity_field{};
 
-  /// Interpolation and extrapolation method for latitude and longitude.
-  /// Controls how values outside the grid domain are handled.
+  /// Interpolation and extrapolation method for frequency grid.
+  /// Controls how frequency values outside the stored range are handled.
+  /// Default is Nearest: clamp to nearest grid boundary value.
   InterpolationExtrapolation interp_extrapolation{
-      InterpolationExtrapolation::Linear};
+      InterpolationExtrapolation::Nearest};
 
   LambertianSurfaceScattererField() = default;
   LambertianSurfaceScattererField(SortedGriddedField3 field_);

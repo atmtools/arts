@@ -25,6 +25,27 @@ void validate_longitude_grid(const Vector& lon_grid) {
   }
 }
 
+/** Map InterpolationExtrapolation to frequency extrapolation limit.
+ *
+ * Determines how far the interpolation can extrapolate beyond grid boundaries:
+ * - Linear: unlimited extrapolation (max limit)
+ * - Nearest/None/Zero: clamp at boundaries (0.0 limit)
+ *
+ * @param extrap The extrapolation mode
+ * @return Numeric extrapolation limit for lagrange_interp::lag()
+ */
+Numeric frequency_extrap_limit(InterpolationExtrapolation extrap) {
+  switch (extrap) {
+    case InterpolationExtrapolation::Linear:
+      return std::numeric_limits<Numeric>::max();
+    case InterpolationExtrapolation::Nearest:
+    case InterpolationExtrapolation::None:
+    case InterpolationExtrapolation::Zero:
+      return 0.0;
+  }
+  std::unreachable();
+}
+
 /** Compute Lambertian BRDF and emissivity from a per-frequency reflectivity vector.
  *
  * @param r_data  Reflectivity values (one per frequency); may be raw interpolated
@@ -86,10 +107,14 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
   // max) so that simulations whose f_grid slightly exceeds the stored range
   // are handled gracefully; values are clamped to [0, 1] afterwards.
   using id = lagrange_interp::identity;
+
+  // Frequency extrapolation limit based on member setting
+  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+
   const auto f_lag = lagrange_interp::make_lags<1, id>(
       reflectivity_spectrum.grid<0>(),
       f_grid,
-      std::numeric_limits<Numeric>::max(),
+      extrap_limit,
       "Reflectivity frequency grid");
   const auto r_data = lagrange_interp::reinterp(reflectivity_spectrum.data, f_lag);
 
@@ -141,12 +166,8 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
   // Latitude: non-cyclic (use identity), as poles are not continuous
   const auto lat_lag = reflectivity_field.grid<0>().lag<1, id>(lat);
   
-  // Map InterpolationExtrapolation to extrapolation_limit for frequency grid
-  // Linear: unlimited extrapolation; None/Nearest/Zero: clamp at bounds
-  const Numeric extrap_limit = 
-      (interp_extrapolation == InterpolationExtrapolation::Linear)
-          ? std::numeric_limits<Numeric>::max()
-          : 0.0;
+  // Frequency extrapolation limit based on member setting
+  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
   
   // Multi-point frequency lag using member-controlled extrapolation.
   const auto freq_lag = reflectivity_field.grid<2>().lag<1, id>(
