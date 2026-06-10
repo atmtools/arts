@@ -8,11 +8,22 @@ namespace surface_scattering {
 
 namespace {
 
-//! Longitude cyclers for interpolation
-//! Standard [-180, 180] range
-using lon_cycler_180 = lagrange_interp::loncross;  // cycler<-180.0, 180.0>
-//! Alternative [0, 360] range
-using lon_cycler_360 = lagrange_interp::cycler<0.0, 360.0>;
+//! Longitude cycler for [-180, 180] range
+using lon_cycler = lagrange_interp::loncross;  // cycler<-180.0, 180.0>
+
+/** Validate that longitude grid is within [-180, 180] range.
+ *
+ * @param lon_grid The longitude grid to validate
+ * @throw ARTS_USER_ERROR if any grid value is outside [-180, 180]
+ */
+void validate_longitude_grid(const Vector& lon_grid) {
+  for (const auto lon : lon_grid) {
+    ARTS_USER_ERROR_IF(
+        lon < -180.0 || lon > 180.0,
+        "Longitude grid value ", lon, " is outside the supported range [-180, 180]. "
+        "Only longitude grids in the [-180, 180] convention are supported.");
+  }
+}
 
 /** Compute Lambertian BRDF and emissivity from a per-frequency reflectivity vector.
  *
@@ -97,7 +108,9 @@ std::ostream& operator<<(std::ostream& os,
 
 LambertianSurfaceScattererField::LambertianSurfaceScattererField(
     SortedGriddedField3 field_)
-    : reflectivity_field(std::move(field_)) {}
+    : reflectivity_field(std::move(field_)) {
+  validate_longitude_grid(reflectivity_field.grid<1>());
+}
 
 SurfaceScatteringModelProperties
 LambertianSurfaceScattererField::get_surface_scattering_model_properties(
@@ -146,24 +159,11 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
   const Index nf = f_grid.size();
   Vector r_data(nf);
   
-  // Longitude: adaptive cycler based on grid range
-  // Detect grid convention: if grid starts negative -> [-180, 180], else -> [0, 360]
-  const auto lon_grid_front = reflectivity_field.grid<1>().front();
-  
-  if (lon_grid_front < 0.0) {
-    // Grid is in [-180, 180] range: use loncross cycler
-    const auto lon_lag = reflectivity_field.grid<1>().lag<1, lon_cycler_180>(lon);
-    for (Index f = 0; f < nf; ++f) {
-      r_data[f] = lagrange_interp::interp(
-          reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
-    }
-  } else {
-    // Grid is in [0, 360] range: use cycler<0, 360>
-    const auto lon_lag = reflectivity_field.grid<1>().lag<1, lon_cycler_360>(lon);
-    for (Index f = 0; f < nf; ++f) {
-      r_data[f] = lagrange_interp::interp(
-          reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
-    }
+  // Longitude: use [-180, 180] cycler (validated at construction time)
+  const auto lon_lag = reflectivity_field.grid<1>().lag<1, lon_cycler>(lon);
+  for (Index f = 0; f < nf; ++f) {
+    r_data[f] = lagrange_interp::interp(
+        reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
   }
 
   return lambertian_properties(r_data,
