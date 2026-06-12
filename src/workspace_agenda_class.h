@@ -68,6 +68,8 @@ class Agenda {
 
   [[nodiscard]] std::string sphinx_list(
       const std::string_view prep = "- ") const;
+
+  void change_default(const std::string_view name, Wsv value);
 };
 
 template <>

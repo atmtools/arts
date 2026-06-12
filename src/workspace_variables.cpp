@@ -372,8 +372,28 @@ The units are *spectral_rad_jac* per meter.
       .type = "ArrayOfStokvecMatrix",
   };
 
+  wsv_data["spectral_nlte_srcvec_jac_profile"] = {
+      .desc = R"--(Additional non-LTE derivative in a propagation profile
+
+.. note::
+    Polarization is considered but if the profile is polarized,
+    using it in anyways will yield invalid results.
+)--",
+      .type = "ArrayOfStokvecMatrix",
+  };
+
   wsv_data["spectral_nlte_srcvec_path"] = {
       .desc = R"--(Additional non-LTE along the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["spectral_nlte_srcvec_profile"] = {
+      .desc = R"--(Additional non-LTE in a propagation profile
+
+.. note::
+    Polarization is considered but if the profile is polarized,
+    using it in anyways will yield invalid results.
 )--",
       .type = "ArrayOfStokvecVector",
   };
@@ -425,8 +445,28 @@ The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit
       .type = "ArrayOfPropmatMatrix",
   };
 
+  wsv_data["spectral_propmat_jac_profile"] = {
+      .desc = R"--(Propagation derivative matrices in a propagation profile
+
+.. note::
+    Polarization is considered but if the profile is polarized,
+    using it in anyways will yield invalid results.
+)--",
+      .type = "ArrayOfPropmatMatrix",
+  };
+
   wsv_data["spectral_propmat_path"] = {
       .desc = R"--(Propagation matrices along the propagation path
+)--",
+      .type = "ArrayOfPropmatVector",
+  };
+
+  wsv_data["spectral_propmat_profile"] = {
+      .desc = R"--(Propagation matrices in a propagation profile
+
+.. note::
+    Polarization is considered but if the profile is polarized,
+    using it in anyways will yield invalid results.
 )--",
       .type = "ArrayOfPropmatVector",
   };

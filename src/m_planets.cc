@@ -250,7 +250,7 @@ void surf_fieldPlanet(SurfaceField &surf_field,
     case Earth: return surf_fieldEarth(surf_field, "WGS84", surf_elevation);
     case Io:    return surf_fieldIo(surf_field, "Sphere", surf_elevation);
     case Jupiter:
-      return surf_fieldJupiter(surf_field, "Sphere", surf_elevation);
+      return surf_fieldJupiter(surf_field, "Ellipsoid", surf_elevation);
     case Mars:  return surf_fieldMars(surf_field, "Sphere", surf_elevation);
     case Venus: return surf_fieldVenus(surf_field, "Sphere", surf_elevation);
     case Moon:  return surf_fieldMoon(surf_field, "Ellipsoid", surf_elevation);
@@ -273,6 +273,6 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
   gravity_operator = NumericTernaryOperator{EllipsoidGravity{
       .GM = Constant::G * mass,
       .a  = surf_field.ellipsoid[0],
-      .e  = std::sqrt(
-          1 - Math::pow2(surf_field.ellipsoid[1] / surf_field.ellipsoid[0]))}};
+      .b  = surf_field.ellipsoid[1],
+  }};
 }

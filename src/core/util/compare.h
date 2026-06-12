@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 namespace Cmp {
 //! Returns a 'less than' lambda expression for use in, e.g., std::any_of
 constexpr auto lt(auto v) {
@@ -69,5 +71,26 @@ constexpr auto contains(const auto& v) {
 template <auto V>
 constexpr auto contains() {
   return [](const auto& x) static { return x.contains(V); };
+}
+
+//! Returns a `this->in` lambda expression for use in, e.g., std::any_of
+template <std::ranges::forward_range R>
+constexpr auto in_sorted(const R& v) {
+  return [&v](const auto& x) { return std::ranges::binary_search(v, x); };
+}
+
+template <std::ranges::forward_range R>
+constexpr auto in(const R& v) {
+  return [&v](const auto& x) { return std::ranges::contains(v, x); };
+}
+
+template <std::ranges::forward_range R>
+constexpr auto not_in_sorted(const R& v) {
+  return [test = in_sorted(v)](const auto& x) { return not test(x); };
+}
+
+template <std::ranges::forward_range R>
+constexpr auto not_in(const R& v) {
+  return [test = in(v)](const auto& x) { return not test(x); };
 }
 }  // namespace Cmp

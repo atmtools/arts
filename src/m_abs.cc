@@ -231,9 +231,8 @@ void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
   }
 }
 
-void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
-                                 const ArrayOfSpeciesTag& abs_species,
-                                 const AbsorptionBands& abs_bands,
+void spectral_propmat_agendaAuto(const Workspace& ws,
+                                 Agenda& spectral_propmat_agenda,
                                  const Index& use_abs_lookup_data,
                                  const Numeric& T_extrapolfac,
                                  const Index& ignore_errors,
@@ -249,7 +248,15 @@ void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
 
   AgendaCreator agenda("spectral_propmat_agenda");
 
-  const SpeciesTagTypeStatus any_species(abs_species);
+  const bool has_abs_species     = ws.contains("abs_species");
+  const bool has_abs_bands       = ws.contains("abs_bands");
+  const bool has_abs_cia_data    = ws.contains("abs_cia_data");
+  const bool has_abs_xfit_data   = ws.contains("abs_xfit_data");
+  const bool has_abs_predef_data = ws.contains("abs_predef_data");
+
+  const SpeciesTagTypeStatus any_species(
+      has_abs_species ? ws.get<ArrayOfSpeciesTag>("abs_species")
+                      : ArrayOfSpeciesTag{});
 
   // spectral_propmatInit
   agenda.add("spectral_propmatInit");
@@ -263,33 +270,32 @@ void spectral_propmat_agendaAuto(Agenda& spectral_propmat_agenda,
                SetWsv{"water_interp_order", water_interp_order},
                SetWsv{"f_interp_order", f_interp_order},
                SetWsv{"extpolfac", extpolfac});
-  } else if (abs_bands.size()) {
+  } else if (has_abs_bands) {
     agenda.add("spectral_propmatAddLines",
                SetWsv{"no_negative_absorption", no_negative_absorption});
   }
 
   //spectral_propmatAddHitranXsec
-  if (any_species.XsecFit) {
+  if (any_species.XsecFit or has_abs_xfit_data) {
     agenda.add("spectral_propmatAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
   }
 
   //spectral_propmatAddCIA
-  if (any_species.Cia) {
+  if (any_species.Cia or has_abs_cia_data) {
     agenda.add("spectral_propmatAddCIA",
                SetWsv{"T_extrapolfac", T_extrapolfac},
                SetWsv{"ignore_errors", ignore_errors});
   }
 
   //spectral_propmatAddPredefined
-  if (any_species.Predefined) {
+  if (any_species.Predefined or has_abs_predef_data) {
     agenda.add("spectral_propmatAddPredefined");
   }
 
   //spectral_propmatAddFaraday
-  if (stdr::any_of(
-          abs_species, Cmp::eq<"free_electrons"_spec>(), &SpeciesTag::Spec)) {
+  if (any_species.FreeElectrons) {
     agenda.add("spectral_propmatAddFaraday");
   }
 

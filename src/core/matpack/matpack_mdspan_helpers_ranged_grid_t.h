@@ -85,17 +85,17 @@ template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl>
     return *this;
   }
 
-  template <Size N, lagrange_interp::transformer transform>
+  template <Size N, lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(Numeric x) const {
     return lagrange_interp::lag_t<N, transform>{*this, x, lag_sorting_t{}};
   }
 
-  template <lagrange_interp::transformer transform>
+  template <lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(Numeric x, Size N) const {
     return lagrange_interp::lag_t<-1, transform>{*this, x, N, lag_sorting_t{}};
   }
 
-  template <Size N, lagrange_interp::transformer transform>
+  template <Size N, lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> x,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") const {
@@ -103,7 +103,7 @@ template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl>
         *this, x, extrapolation_limit, info);
   }
 
-  template <lagrange_interp::transformer transform>
+  template <lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> x,
                          Size N,
                          Numeric extrapolation_limit = 0.5,

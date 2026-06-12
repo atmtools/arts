@@ -6,6 +6,9 @@
 #include <py_auto_wsg.h>
 #include <workspace.h>
 
+#include <memory>
+#include <variant>
+
 #include "hpy_opaque.h"
 
 using ssize_t = Py_ssize_t;
@@ -14,6 +17,11 @@ using ssize_t = Py_ssize_t;
 namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
+
+template <typename... T>
+bool has_selected_value(const std::variant<std::shared_ptr<T>...>& x) {
+  return std::visit([](const auto& ptr) { return static_cast<bool>(ptr); }, x);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,6 +47,18 @@ T& select_gout(T* const x, Workspace& ws, const char* const name) {
 template <WorkspaceGroup T>
 T& select_gout(ValueHolder<T>* const x, Workspace& ws, const char* const name) {
   return x ? static_cast<T&>(*x) : ws.get_or<T>(name);
+}
+
+template <typename... T>
+std::variant<std::shared_ptr<T>...>& select_gout(
+    std::variant<std::shared_ptr<T>...>* const x,
+    Workspace&,
+    const char* const name) {
+  if (not x or not has_selected_value(*x)) {
+    throw std::runtime_error(std::format("Unknown output: \"{}\"", name));
+  }
+
+  return *x;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +108,17 @@ const T& select_gin(const ValueHolder<T>* const x, const char* const name) {
   return x ? static_cast<const T&>(*x)
            : throw std::runtime_error(
                  std::format("Unknown input: \"{}\"", name));
+}
+
+template <typename... T>
+const std::variant<std::shared_ptr<T>...>& select_gin(
+    const std::variant<std::shared_ptr<T>...>* const x,
+    const char* const name) {
+  if (not x or not has_selected_value(*x)) {
+    throw std::runtime_error(std::format("Unknown input: \"{}\"", name));
+  }
+
+  return *x;
 }
 
 template <WorkspaceGroup T>

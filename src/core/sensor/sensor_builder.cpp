@@ -29,28 +29,27 @@ SensorMetaInfo make_meta_info(Size nchannels, Size geometry_index) {
 }
 }  // namespace
 
-SensorBuilder::SensorBuilder() : antenna(PencilBeamAntenna{}.clone()) {}
+Builder::Builder() : antenna(PencilBeamAntenna{}.clone()) {}
 
-SensorBuilder::SensorBuilder(std::vector<Channel> channels,
-                             std::shared_ptr<const AntennaPattern> antenna)
+Builder::Builder(std::vector<Channel> channels,
+                 std::shared_ptr<const AntennaPattern> antenna)
     : channels(std::move(channels)), antenna(std::move(antenna)) {}
 
-SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
-                             std::shared_ptr<const AntennaPattern> antenna)
-    : SensorBuilder(std::vector<Channel>{spectrometer.channels},
-                    std::move(antenna)) {
+Builder::Builder(const Spectrometer& spectrometer,
+                 std::shared_ptr<const AntennaPattern> antenna)
+    : Builder(std::vector<Channel>{spectrometer.channels}, std::move(antenna)) {
   preserve_common_frequency_grid = spectrometer.is_synced();
 }
 
-SensorBuilder::SensorBuilder(const Spectrometer& spectrometer,
-                             const FrequencyRange& backend,
-                             std::shared_ptr<const AntennaPattern> antenna)
-    : SensorBuilder(make_bandpass_channels(backend, spectrometer),
-                    std::move(antenna)) {
+Builder::Builder(const Spectrometer& spectrometer,
+                 const FrequencyRange& backend,
+                 std::shared_ptr<const AntennaPattern> antenna)
+    : Builder(make_bandpass_channels(backend, spectrometer),
+              std::move(antenna)) {
   preserve_common_frequency_grid = spectrometer.is_synced();
 }
 
-SensorBuilder& SensorBuilder::operator=(const SensorBuilder& other) {
+Builder& Builder::operator=(const Builder& other) {
   if (this != &other) {
     channels                       = other.channels;
     antenna                        = clone_antenna(other.antenna);
@@ -60,18 +59,16 @@ SensorBuilder& SensorBuilder::operator=(const SensorBuilder& other) {
   return *this;
 }
 
-std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
+std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::operator()(
     std::span<const Vector3> pos, std::span<const Vector2> los) const {
-  ARTS_USER_ERROR_IF(channels.empty(),
-                     "SensorBuilder requires at least one channel")
-  ARTS_USER_ERROR_IF(not antenna, "SensorBuilder requires an antenna pattern")
+  ARTS_USER_ERROR_IF(channels.empty(), "Builder requires at least one channel")
+  ARTS_USER_ERROR_IF(not antenna, "Builder requires an antenna pattern")
   ARTS_USER_ERROR_IF(pos.empty(),
-                     "SensorBuilder requires at least one sensor position")
-  ARTS_USER_ERROR_IF(los.empty(),
-                     "SensorBuilder requires at least one bore LOS")
+                     "Builder requires at least one sensor position")
+  ARTS_USER_ERROR_IF(los.empty(), "Builder requires at least one bore LOS")
   ARTS_USER_ERROR_IF(
       pos.size() != los.size(),
-      "SensorBuilder requires matching position and LOS counts. Got {} positions and {} LOS values.",
+      "Builder requires matching position and LOS counts. Got {} positions and {} LOS values.",
       pos.size(),
       los.size())
 
@@ -116,5 +113,5 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> SensorBuilder::operator()(
   return {std::move(out), std::move(meta)};
 }
 
-static_assert(SensorBuilderSelection<SensorBuilder>);
+static_assert(BuilderSelection<Builder>);
 }  // namespace sensor

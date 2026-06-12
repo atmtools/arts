@@ -13,7 +13,7 @@
 #include "python_interface.h"
 
 namespace Python {
-using id = lagrange_interp::lag_t<-1, lagrange_interp::identity>;
+using id = lagrange_interp::lag_t<-1, lagrange_interp::grid_identity>;
 using lc = lagrange_interp::lag_t<-1, lagrange_interp::loncross>;
 
 using PythonLag  = std::variant<id, lc>;

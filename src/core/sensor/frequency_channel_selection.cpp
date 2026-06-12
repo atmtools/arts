@@ -147,6 +147,13 @@ Spectrometer::Spectrometer(const Channel& base_channel,
 
   sync_frequency_grids();
 }
+
+Spectrometer::Spectrometer(const AscendingGrid& freq_offsets)
+    : channels(std::from_range,
+               freq_offsets |
+                   stdv::transform([](auto f) -> DiracChannel { return f; })) {
+  sync_frequency_grids();
+}
 }  // namespace sensor
 
 void xml_io_stream<sensor::Spectrometer>::write(

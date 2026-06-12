@@ -53,8 +53,10 @@ std::pair<Numeric, Numeric> HydrostaticPressure::level(Index alt_ind,
   const auto latlag = interp::latlag(pre.grid<1>(), la);
   const auto lonlag = interp::lonlag(pre.grid<2>(), lo);
   const auto iw     = interp::interpweights(latlag, lonlag);
-  const Numeric p   = interp::get(pre, alt_ind, iw, latlag, lonlag);
-  const Numeric d   = interp::get(grad_p, alt_ind, iw, latlag, lonlag);
+  const Numeric p   = interp::get<lagrange_interp::log_transform>(
+      pre, alt_ind, iw, latlag, lonlag);
+  const Numeric d = interp::get<lagrange_interp::value_identity>(
+      grad_p, alt_ind, iw, latlag, lonlag);
   return {p, d};
 }
 

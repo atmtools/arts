@@ -34,7 +34,8 @@ void internalCKDMT430(py::module_& m) {
               &Absorption::PredefinedModel::MT_CKD430::WaterData::for_absco_ref,
               "Foreign absorption\n\n.. :class:`Vector`")
       .def_rw("for_closure_absco_ref",
-              &Absorption::PredefinedModel::MT_CKD430::WaterData::for_closure_absco_ref,
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::
+                  for_closure_absco_ref,
               "Foreign absorption closure\n\n.. :class:`Vector`")
       .def_rw("wavenumbers",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::wavenumbers,
@@ -1027,7 +1028,9 @@ void py_predefined(py::module_& m) try {
   generic_interface(var);
 
   //! ARTS Workspace class, must live on the main (m) namespace
-  auto pdmd = py::bind_map<PredefinedModelData>(m, "PredefinedModelData");
+  auto pdmd =
+      py::bind_map<PredefinedModelData, py::rv_policy::reference_internal>(
+          m, "PredefinedModelData");
   generic_interface(pdmd);
   pdmd.def_static(
           "fromcatalog",

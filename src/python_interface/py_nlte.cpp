@@ -7,16 +7,19 @@
 
 namespace Python {
 void py_nlte(py::module_& m) try {
-  auto vec =
-      py::bind_map<QuantumIdentifierVectorMap>(m, "QuantumIdentifierVectorMap");
+  auto vec = py::bind_map<QuantumIdentifierVectorMap,
+                          py::rv_policy::reference_internal>(
+      m, "QuantumIdentifierVectorMap");
   generic_interface(vec);
 
-  auto num =
-      py::bind_map<QuantumIdentifierNumericMap>(m, "QuantumIdentifierNumericMap");
+  auto num = py::bind_map<QuantumIdentifierNumericMap,
+                          py::rv_policy::reference_internal>(
+      m, "QuantumIdentifierNumericMap");
   generic_interface(num);
 
-  auto gf1 =
-      py::bind_map<QuantumIdentifierGriddedField1Map>(m, "QuantumIdentifierGriddedField1Map");
+  auto gf1 = py::bind_map<QuantumIdentifierGriddedField1Map,
+                          py::rv_policy::reference_internal>(
+      m, "QuantumIdentifierGriddedField1Map");
   generic_interface(gf1);
 } catch (std::exception& e) {
   throw std::runtime_error(

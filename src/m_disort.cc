@@ -122,7 +122,7 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
               });
         },
         variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
-        variant_lag<identity>(zen_grid, ray_point.los[0]));
+        variant_lag<grid_identity>(zen_grid, ray_point.los[0]));
   } else {
     std::visit(
         [&](auto&& alt, auto&& aa, auto&& za) {
@@ -131,9 +131,9 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
                 return interp(d, alt, aa, za);
               });
         },
-        variant_lag<identity>(std::span{alt_grid}.subspan(1), z),
+        variant_lag<grid_identity>(std::span{alt_grid}.subspan(1), z),
         variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
-        variant_lag<identity>(zen_grid, ray_point.los[0]));
+        variant_lag<grid_identity>(zen_grid, ray_point.los[0]));
   }
 }
 

@@ -158,7 +158,7 @@ Below follows a complete list of all single species tags that can be set using t
                        x.FullName(),
                        x.is_predefined() ? "Predefined Model"sv
                        : x.is_normal()   ? "Normal Isotopologue"sv
-                                         : "Joker"sv,
+                                         : "All Isotopologues"sv,
                        x.is_normal() ? std::format("{}", x.mass) : ""s,
                        x.is_normal() ? std::format("{}", x.gi) : ""s);
   }

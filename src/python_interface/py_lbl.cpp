@@ -29,13 +29,15 @@ namespace Python {
 void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
-  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t>(
+  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t,
+                            py::rv_policy::reference_internal>(
       lbl, "LineShapeSpeciesModelMap");
   lssmm.doc() = "A map from model variable to line shape models";
   generic_interface(lssmm);
 
   auto lsmm =
-      py::bind_map<lbl::line_shape::model::map_t>(lbl, "LineShapeModelMap");
+      py::bind_map<lbl::line_shape::model::map_t,
+                   py::rv_policy::reference_internal>(lbl, "LineShapeModelMap");
   lsmm.doc() = "A map from species to species line shape models";
   generic_interface(lsmm);
 
@@ -989,10 +991,12 @@ fmax : ~pyarts3.arts.Numeric
          R"(The Omega coefficient for the ECS model)");
 
   auto lsed =
-      py::bind_map<LinemixingSpeciesEcsData>(m, "LinemixingSpeciesEcsData");
+      py::bind_map<LinemixingSpeciesEcsData, py::rv_policy::reference_internal>(
+          m, "LinemixingSpeciesEcsData");
   generic_interface(lsed);
 
-  auto led = py::bind_map<LinemixingEcsData>(m, "LinemixingEcsData");
+  auto led = py::bind_map<LinemixingEcsData, py::rv_policy::reference_internal>(
+      m, "LinemixingEcsData");
   generic_interface(led);
 
   lbl.def(

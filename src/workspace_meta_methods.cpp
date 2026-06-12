@@ -169,15 +169,13 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
-                  "atm_pathFromPath",
-                  "freq_grid_pathFromPath",
-                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_and_atm_path_agendaExecute",
                   "spectral_tramat_pathFromPath",
                   "spectral_rad_srcvec_pathFromPropmat",
                   "spectral_radStepByStepEmission",
                   "spectral_rad_jacFromBackground",
                   "spectral_rad_jacAddPathPropagation"},
-      .out     = {"spectral_rad", "spectral_rad_jac"},
+      .out     = {"spectral_rad", "spectral_rad_jac", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -186,12 +184,10 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
-                  "atm_pathFromPath",
-                  "freq_grid_pathFromPath",
-                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_and_atm_path_agendaExecute",
                   "spectral_radSetToBackground",
                   "spectral_radSinglePathEmissionFrequencyLoop"},
-      .out     = {"spectral_rad", "spectral_rad_jac"},
+      .out     = {"spectral_rad", "spectral_rad_jac", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -201,9 +197,7 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
-                  "atm_pathFromPath",
-                  "freq_grid_pathFromPath",
-                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_and_atm_path_agendaExecute",
                   "spectral_propmat_scat_pathFromPath",
                   "spectral_propmat_pathAddScattering",
                   "spectral_tramat_pathFromPath",
@@ -213,7 +207,7 @@ This method simply is a convenience wrapper for that use case.
                   "spectral_radStepByStepEmission",
                   "spectral_rad_jacFromBackground",
                   "spectral_rad_jacAddPathPropagation"},
-      .out     = {"spectral_rad", "spectral_rad_jac"},
+      .out     = {"spectral_rad", "spectral_rad_jac", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -222,14 +216,12 @@ This method simply is a convenience wrapper for that use case.
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
-                  "atm_pathFromPath",
-                  "freq_grid_pathFromPath",
-                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_and_atm_path_agendaExecute",
                   "spectral_tramat_pathFromPath",
                   "spectral_radCumulativeTransmission",
                   "spectral_rad_jacFromBackground",
                   "spectral_rad_jacAddPathPropagation"},
-      .out     = {"spectral_rad", "spectral_rad_jac"},
+      .out     = {"spectral_rad", "spectral_rad_jac", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -247,14 +239,12 @@ This method simply is a convenience wrapper for that use case.
       .desc    = "Computes clearsky transmission of spectral radiances",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
-                  "atm_pathFromPath",
-                  "freq_grid_pathFromPath",
-                  "spectral_propmat_pathFromPath",
+                  "spectral_propmat_and_atm_path_agendaExecute",
                   "spectral_tramat_pathFromPath",
                   "spectral_radCumulativeTransmission",
                   "spectral_rad_jacFromBackground",
                   "spectral_rad_jacAddPathPropagation"},
-      .out     = {"spectral_rad", "spectral_rad_jac"},
+      .out     = {"spectral_rad", "spectral_rad_jac", "ray_path"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

@@ -23,8 +23,7 @@ struct AntennaBasis {
 
 struct AntennaGeometrySample {
   Size sample_index{};
-  Numeric ant_zen{};
-  Numeric ant_azi{};
+  Numeric offset_zenith{};
   bool has_response{};
   bool is_representative{};
 };
@@ -80,8 +79,6 @@ template <typename ZenGridT, typename AziGridT>
   std::vector<AntennaGeometrySample> samples;
   samples.reserve(zen_grid.size() * azi_grid.size());
 
-  using Conversion::atan2d;
-
   for (Numeric izen : zen_grid) {
     Size degenerate_sample_index = std::numeric_limits<Size>::max();
 
@@ -89,7 +86,7 @@ template <typename ZenGridT, typename AziGridT>
       const Vector3 local   = antenna_frame_los({izen, iazi});
       const bool degenerate = antenna_azimuth_is_degenerate(local);
 
-      Size sample_index = degenerate_sample_index;
+      Size sample_index      = degenerate_sample_index;
       bool is_representative = false;
       if (sample_index == std::numeric_limits<Size>::max()) {
         const Vector3 enu = normalized(local[0] * basis.v + local[1] * basis.h +
@@ -101,14 +98,13 @@ template <typename ZenGridT, typename AziGridT>
         if (degenerate) degenerate_sample_index = sample_index;
       }
 
-      auto& sample = samples.emplace_back(AntennaGeometrySample{
-          .sample_index      = sample_index,
-          .has_response      = local[2] > 0.0,
-          .is_representative = is_representative});
+      auto& sample = samples.emplace_back(
+          AntennaGeometrySample{.sample_index      = sample_index,
+                                .has_response      = local[2] > 0.0,
+                                .is_representative = is_representative});
 
       if (sample.has_response) {
-        sample.ant_zen = atan2d(local[0], local[2]);
-        sample.ant_azi = atan2d(local[1], local[2]);
+        sample.offset_zenith = std::abs(izen);
       }
     }
   }
@@ -123,13 +119,9 @@ template <typename ZenGridT, typename AziGridT>
 
 [[nodiscard]] AntennaPatternField make_gaussian_field(ZenGrid zen_grid,
                                                       AziGrid azi_grid,
-                                                      Numeric zenith_std,
-                                                      Numeric azimuth_std,
+                                                      Numeric std,
                                                       Stokvec weight) {
-  ARTS_USER_ERROR_IF(zenith_std <= 0.0,
-                     "Gaussian antenna zenith_std must be positive")
-  ARTS_USER_ERROR_IF(azimuth_std <= 0.0,
-                     "Gaussian antenna azimuth_std must be positive")
+  ARTS_USER_ERROR_IF(std <= 0.0, "Gaussian antenna std must be positive")
 
   AntennaPatternField out{
       .data_name  = "gaussian"s,
@@ -137,8 +129,6 @@ template <typename ZenGridT, typename AziGridT>
       .grid_names = {"zenith"s, "azimuth"s},
       .grids      = {std::move(zen_grid), std::move(azi_grid)},
   };
-
-  using Conversion::atan2d;
 
   for (Size izen = 0; izen < out.grid<0>().size(); ++izen) {
     for (Size iazi = 0; iazi < out.grid<1>().size(); ++iazi) {
@@ -150,11 +140,8 @@ template <typename ZenGridT, typename AziGridT>
         continue;
       }
 
-      const Numeric ant_zen = atan2d(local[0], local[2]);
-      const Numeric ant_azi = atan2d(local[1], local[2]);
-      const Numeric exponent =
-          -0.5 * ((ant_zen / zenith_std) * (ant_zen / zenith_std) +
-                  (ant_azi / azimuth_std) * (ant_azi / azimuth_std));
+      const Numeric offset_zenith = out.grid<0>()[izen];
+      const Numeric exponent      = -0.5 * Math::pow2(offset_zenith / std);
 
       out[izen, iazi] = std::exp(exponent) * weight;
     }
@@ -172,10 +159,9 @@ template <typename ZenGridT, typename AziGridT>
   return Conversion::hwhm2std(hwhm_deg);
 }
 
-[[nodiscard]] Numeric gaussian_airy_response(Numeric ant_zen,
-                                             Numeric ant_azi,
-                                             Numeric inv_std_sq) {
-  return std::exp(-0.5 * (ant_zen * ant_zen + ant_azi * ant_azi) * inv_std_sq);
+[[nodiscard]] Numeric gaussian_airy_response(Numeric offset_zenith,
+                                             Numeric airy_std) {
+  return std::exp(-0.5 * Math::pow2(offset_zenith / airy_std));
 }
 
 std::shared_ptr<const PosLosVector> make_single_poslos_grid(
@@ -215,7 +201,7 @@ Obsel GriddedAntennaPattern::operator()(const Channel& channel,
                                         const Vector2& bore_los) const {
   ARTS_USER_ERROR_IF(
       not data.ok(),
-      "SensorGriddedAntennaPattern data shape does not match its grids")
+      "GriddedAntennaPattern data shape does not match its grids")
 
   const auto& zen_grid        = data.grid<0>();
   const auto& azi_grid        = data.grid<1>();
@@ -232,9 +218,15 @@ Obsel GriddedAntennaPattern::operator()(const Channel& channel,
 
   for (Size izen = 0; izen < zen_grid.size(); ++izen) {
     for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
+      const auto& sample = geometry.samples[igrid];
+      if (not sample.is_representative) {
+        ++igrid;
+        continue;
+      }
+
       const auto& antenna_weight = data[izen, iazi];
       if (not antenna_weight.is_zero()) {
-        const Size sample_index = geometry.samples[igrid].sample_index;
+        const Size sample_index = sample.sample_index;
         for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
           if (channel_weights[ifreq] == 0.0) continue;
           weight_matrix[sample_index, ifreq] +=
@@ -253,35 +245,33 @@ std::shared_ptr<const AntennaPattern> GriddedAntennaPattern::clone() const {
   return std::make_shared<GriddedAntennaPattern>(*this);
 }
 
-GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
-                                 AziGrid azi_grid,
-                                 Numeric zenith_std,
-                                 Numeric azimuth_std,
-                                 Stokvec weight) {
-  data = make_gaussian_field(std::move(zen_grid),
-                             std::move(azi_grid),
-                             zenith_std,
-                             azimuth_std,
-                             weight);
+namespace {
+AziGrid make_azi_grid(Size size) {
+  ARTS_USER_ERROR_IF(size < 1,
+                     "Gaussian antenna azimuth size must be at least 1")
+
+  return Vector{nlinspace(0.0, 360.0, size + 1)[Range(0, size)]};
 }
+}  // namespace
 
 GaussianAntenna::GaussianAntenna(ZenGrid zen_grid,
-                                 AziGrid azi_grid,
                                  Numeric std,
-                                 Stokvec weight)
-    : GaussianAntenna(
-          std::move(zen_grid), std::move(azi_grid), std, std, weight) {}
+                                 Size azi_grid_size,
+                                 Stokvec weight) {
+  data = make_gaussian_field(
+      std::move(zen_grid), make_azi_grid(azi_grid_size), std, weight);
+}
 
 std::shared_ptr<const AntennaPattern> GaussianAntenna::clone() const {
   return std::make_shared<GaussianAntenna>(*this);
 }
 
 GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid,
-                                         AziGrid azi_grid,
                                          Numeric aperture_diameter,
+                                         Size azi_grid_size,
                                          Stokvec weight)
     : zen_grid(std::move(zen_grid)),
-      azi_grid(std::move(azi_grid)),
+      azi_grid(make_azi_grid(azi_grid_size)),
       aperture_diameter(aperture_diameter),
       weight(weight) {}
 
@@ -297,7 +287,7 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
 
   ARTS_USER_ERROR_IF(
       freq_grid->front() <= 0.0,
-      "Gaussian Airy antenna requires strictly positive channel frequencies because SensorBuilder only provides the channel frequency grid")
+      "Gaussian Airy antenna requires strictly positive channel frequencies because sensor builder only provides the channel frequency grid")
 
   auto geometry =
       make_antenna_geometry_layout(zen_grid, azi_grid, pos, bore_los);
@@ -305,22 +295,21 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
                                     channel_weights.size());
 
   if (not weight.is_zero()) {
-    Vector inv_std_sq(channel_weights.size(), 0.0);
+    Vector airy_std(channel_weights.size(), 0.0);
     Vector normalization(channel_weights.size(), 0.0);
     Vector retained_scale(channel_weights.size(), 0.0);
 
     for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
       if (channel_weights[ifreq] == 0.0) continue;
 
-      const Numeric airy_std =
+      airy_std[ifreq] =
           gaussian_airy_std((*freq_grid)[ifreq], aperture_diameter);
-      inv_std_sq[ifreq] = 1.0 / (airy_std * airy_std);
 
       Numeric retained_mass = 0.0;
       for (const auto& sample : geometry.samples) {
         if (not sample.has_response) continue;
-        normalization[ifreq] += gaussian_airy_response(
-            sample.ant_zen, sample.ant_azi, inv_std_sq[ifreq]);
+        normalization[ifreq] +=
+            gaussian_airy_response(sample.offset_zenith, airy_std[ifreq]);
       }
 
       if (normalization[ifreq] == 0.0) continue;
@@ -330,10 +319,8 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
         if (not sample.is_representative) continue;
 
         const Numeric single_weight =
-            channel_weights[ifreq] * gaussian_airy_response(
-                                        sample.ant_zen,
-                                        sample.ant_azi,
-                                        inv_std_sq[ifreq]) /
+            channel_weights[ifreq] *
+            gaussian_airy_response(sample.offset_zenith, airy_std[ifreq]) /
             normalization[ifreq];
 
         retained_mass += single_weight;
@@ -354,10 +341,8 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
         if (retained_scale[ifreq] == 0.0) continue;
 
         const Numeric single_weight =
-            channel_weights[ifreq] * gaussian_airy_response(
-                                        sample.ant_zen,
-                                        sample.ant_azi,
-                                        inv_std_sq[ifreq]) /
+            channel_weights[ifreq] *
+            gaussian_airy_response(sample.offset_zenith, airy_std[ifreq]) /
             normalization[ifreq];
         if (single_weight == 0.0) continue;
 

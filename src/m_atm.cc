@@ -200,7 +200,8 @@ void atm_fieldAppendBaseData(AtmField &atm_field,
                              const String &deal_with_field_component,
                              const Index &replace_existing,
                              const Index &allow_missing_pressure,
-                             const Index &allow_missing_temperature) {
+                             const Index &allow_missing_temperature,
+                             const Index &pressure_log_interp) {
   ARTS_TIME_REPORT
 
   std::unordered_map<AtmKey, Index> keys;
@@ -220,11 +221,14 @@ void atm_fieldAppendBaseData(AtmField &atm_field,
 
   using enum AtmKey;
 
-  ARTS_USER_ERROR_IF(
-      not atm_field.contains(p) and
-          not static_cast<bool>(allow_missing_pressure),
-      "Pressure is missing from the read atmospheric field at \"{}\"",
-      basename)
+  if (atm_field.contains(p)) {
+    atm_field[p].log_interpolation = pressure_log_interp;
+  } else {
+    ARTS_USER_ERROR_IF(
+        not static_cast<bool>(allow_missing_pressure),
+        "Pressure is missing from the read atmospheric field at \"{}\"",
+        basename)
+  }
 
   ARTS_USER_ERROR_IF(
       not atm_field.contains(t) and
@@ -818,4 +822,45 @@ void atm_fieldFromProfile(
 
   atm_field = Atm::atm_from_profile(
       atm_profile, alt_grid, altitude_extrapolation, alt_grid.back());
+}
+
+void atm_fieldWindIncludePlanetRotation(AtmField &atm_field,
+                                        const SurfaceField &surf_field,
+                                        const Numeric &planet_rotation_period) {
+  ARTS_USER_ERROR_IF(not atm_field.contains(AtmKey::wind_u),
+                     "AtmField must contain wind_u field")
+
+  auto lat_corr = [k1  = 2 * Constant::pi / planet_rotation_period,
+                   ell = surf_field.ellipsoid](Numeric alt, Numeric lat) {
+    const Numeric k2 = k1 * Conversion::cosd(lat);
+    const Numeric re = prime_vertical_radius(ell, lat);
+
+    return k2 * (re + alt);
+  };
+
+  auto &wind = atm_field[AtmKey::wind_u];
+
+  if (auto gf3 = wind.get_if<GeodeticField3>(); gf3) {
+    const auto &alt_grid = gf3->grid<0>();
+    const auto &lat_grid = gf3->grid<1>();
+
+    for (Size ialt = 0; ialt < alt_grid.size(); ialt++) {
+      for (Size ilat = 0; ilat < lat_grid.size(); ilat++) {
+        gf3->data[ialt, ilat] += lat_corr(alt_grid[ialt], lat_grid[ilat]);
+      }
+    }
+  } else if (auto num = wind.get_if<Numeric>(); num) {
+    atm_field[AtmKey::wind_u].data = NumericTernaryOperator{
+        [x = *num, lat_corr](Numeric alt, Numeric lat, Numeric) {
+          return x + lat_corr(alt, lat);
+        }};
+  } else if (auto fun = wind.get_if<NumericTernaryOperator>(); fun) {
+    atm_field[AtmKey::wind_u].data = NumericTernaryOperator{
+        [f = fun->f, lat_corr](Numeric alt, Numeric lat, Numeric lon) {
+          return f(alt, lat, lon) + lat_corr(alt, lat);
+        }};
+  } else {
+    ARTS_USER_ERROR(
+        "Unsupported data type for wind_u field when including planet rotation");
+  }
 }

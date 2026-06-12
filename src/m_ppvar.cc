@@ -41,6 +41,8 @@ void atm_pathFromPath(ArrayOfAtmPoint &atm_path,
   ARTS_TIME_REPORT
 
   forward_atm_path(atm_path_resize(atm_path, ray_path), ray_path, atm_field);
+
+  for (auto &p : atm_path) p.check();
 }
 ARTS_METHOD_ERROR_CATCH
 

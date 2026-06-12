@@ -11,12 +11,12 @@ def assert_close(name, got, expected, atol=1e-12):
 
 
 def test_sensor_builder_from_sequences():
-    builder = pyarts.arts.SensorBuilder(
+    builder = pyarts.arts.sensor.Builder(
         [
-            pyarts.arts.SensorBoxChannel(pyarts.arts.AscendingGrid([100.0, 101.0])),
-            pyarts.arts.SensorDiracChannel(200.0),
+            pyarts.arts.sensor.BoxChannel(pyarts.arts.AscendingGrid([100.0, 101.0])),
+            pyarts.arts.sensor.DiracChannel(200.0),
         ],
-        pyarts.arts.SensorPencilBeamAntenna(),
+        pyarts.arts.sensor.PencilBeamAntenna(),
     )
 
     pos = [
@@ -47,9 +47,9 @@ def test_sensor_builder_from_sequences():
 
 
 def test_sensor_builder_from_poslos_vector_and_length_guard():
-    builder = pyarts.arts.SensorBuilder(
-        [pyarts.arts.SensorDiracChannel()],
-        pyarts.arts.SensorPencilBeamAntenna(),
+    builder = pyarts.arts.sensor.Builder(
+        [pyarts.arts.sensor.DiracChannel()],
+        pyarts.arts.sensor.PencilBeamAntenna(),
     )
 
     poslos = pyarts.arts.SensorPosLosVector()
@@ -77,7 +77,8 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
     except ValueError:
         pass
     else:
-        raise AssertionError("SensorBuilder must reject mismatching position/LOS lengths")
+        raise AssertionError(
+            "Sensor builder must reject mismatching position/LOS lengths")
 
 
 test_sensor_builder_from_sequences()

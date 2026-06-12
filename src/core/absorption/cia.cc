@@ -146,7 +146,7 @@ void cia_interpolation(VectorView result,
     default: T_order = 3; break;
   }
 
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
 
   // Find frequency grid positions:
   const auto f_lag = lagrange_interp::make_lags<f_order, id>(

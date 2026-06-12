@@ -11,9 +11,9 @@
 #include "time_test_util.h"
 
 namespace {
-template <lagrange_interp::transformer t>
+template <lagrange_interp::grid_transformer t>
 consteval std::string_view transform_name() {
-  if constexpr (std::same_as<t, lagrange_interp::identity>) {
+  if constexpr (std::same_as<t, lagrange_interp::grid_identity>) {
     return "identity"sv;
   } else if constexpr (std::same_as<t, lagrange_interp::loncross>) {
     return "loncross"sv;
@@ -38,15 +38,16 @@ bool all_close(const std::vector<Numeric>& a) {
 }
 
 template <Size N,
-          lagrange_interp::transformer Transformer1,
-          lagrange_interp::transformer Transformer2>
+          lagrange_interp::grid_transformer Transformer1,
+          lagrange_interp::grid_transformer Transformer2>
 void test_fixed() {
   using namespace lagrange_interp;
 
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
 
-  test_timer_t test_fixed_time{std::format("test_fixed N={} {}-{}", N, name1, name2)};
+  test_timer_t test_fixed_time{
+      std::format("test_fixed N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -259,15 +260,16 @@ flat_interp: {:B,})",
   }
 }
 
-template <lagrange_interp::transformer Transformer1,
-          lagrange_interp::transformer Transformer2>
+template <lagrange_interp::grid_transformer Transformer1,
+          lagrange_interp::grid_transformer Transformer2>
 void test_runtime(Size N) {
   using namespace lagrange_interp;
 
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
 
-  test_timer_t test_fixed_time{std::format("test_runtime N={} {}-{}", N, name1, name2)};
+  test_timer_t test_fixed_time{
+      std::format("test_runtime N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -533,7 +535,8 @@ void test_variant_lag() {
   for (Size i = 1; i < 10; ++i) {
     Vector grid = nlinspace(-100, 100, i);
     const auto lagt =
-        lagrange_interp::variant_lag<lagrange_interp::identity, N>(grid, 1);
+        lagrange_interp::variant_lag<lagrange_interp::grid_identity, N>(grid,
+                                                                        1);
     Size x = std::visit([](auto v) { return v.PolyOrder; }, lagt);
     ARTS_USER_ERROR_IF(x > N, "PolyOrder {} exceeds max lag size {}", x, N);
     ARTS_USER_ERROR_IF(i > N and x != N,
@@ -548,23 +551,33 @@ void test_variant_lag() {
 
 int main() {
   for (Index i = 0; i < 5; ++i) {
-    test_fixed<0, lagrange_interp::identity, lagrange_interp::identity>();
-    test_fixed<1, lagrange_interp::identity, lagrange_interp::identity>();
-    test_fixed<2, lagrange_interp::identity, lagrange_interp::identity>();
-    test_fixed<3, lagrange_interp::identity, lagrange_interp::identity>();
-    test_fixed<4, lagrange_interp::identity, lagrange_interp::identity>();
+    test_fixed<0,
+               lagrange_interp::grid_identity,
+               lagrange_interp::grid_identity>();
+    test_fixed<1,
+               lagrange_interp::grid_identity,
+               lagrange_interp::grid_identity>();
+    test_fixed<2,
+               lagrange_interp::grid_identity,
+               lagrange_interp::grid_identity>();
+    test_fixed<3,
+               lagrange_interp::grid_identity,
+               lagrange_interp::grid_identity>();
+    test_fixed<4,
+               lagrange_interp::grid_identity,
+               lagrange_interp::grid_identity>();
 
-    test_fixed<0, lagrange_interp::identity, lagrange_interp::loncross>();
-    test_fixed<1, lagrange_interp::identity, lagrange_interp::loncross>();
-    test_fixed<2, lagrange_interp::identity, lagrange_interp::loncross>();
-    test_fixed<3, lagrange_interp::identity, lagrange_interp::loncross>();
-    test_fixed<4, lagrange_interp::identity, lagrange_interp::loncross>();
+    test_fixed<0, lagrange_interp::grid_identity, lagrange_interp::loncross>();
+    test_fixed<1, lagrange_interp::grid_identity, lagrange_interp::loncross>();
+    test_fixed<2, lagrange_interp::grid_identity, lagrange_interp::loncross>();
+    test_fixed<3, lagrange_interp::grid_identity, lagrange_interp::loncross>();
+    test_fixed<4, lagrange_interp::grid_identity, lagrange_interp::loncross>();
 
-    test_fixed<0, lagrange_interp::loncross, lagrange_interp::identity>();
-    test_fixed<1, lagrange_interp::loncross, lagrange_interp::identity>();
-    test_fixed<2, lagrange_interp::loncross, lagrange_interp::identity>();
-    test_fixed<3, lagrange_interp::loncross, lagrange_interp::identity>();
-    test_fixed<4, lagrange_interp::loncross, lagrange_interp::identity>();
+    test_fixed<0, lagrange_interp::loncross, lagrange_interp::grid_identity>();
+    test_fixed<1, lagrange_interp::loncross, lagrange_interp::grid_identity>();
+    test_fixed<2, lagrange_interp::loncross, lagrange_interp::grid_identity>();
+    test_fixed<3, lagrange_interp::loncross, lagrange_interp::grid_identity>();
+    test_fixed<4, lagrange_interp::loncross, lagrange_interp::grid_identity>();
 
     test_fixed<0, lagrange_interp::loncross, lagrange_interp::loncross>();
     test_fixed<1, lagrange_interp::loncross, lagrange_interp::loncross>();
@@ -573,9 +586,12 @@ int main() {
     test_fixed<4, lagrange_interp::loncross, lagrange_interp::loncross>();
 
     for (Size N = 0; N < 5; ++N) {
-      test_runtime<lagrange_interp::identity, lagrange_interp::identity>(N);
-      test_runtime<lagrange_interp::identity, lagrange_interp::loncross>(N);
-      test_runtime<lagrange_interp::loncross, lagrange_interp::identity>(N);
+      test_runtime<lagrange_interp::grid_identity,
+                   lagrange_interp::grid_identity>(N);
+      test_runtime<lagrange_interp::grid_identity, lagrange_interp::loncross>(
+          N);
+      test_runtime<lagrange_interp::loncross, lagrange_interp::grid_identity>(
+          N);
       test_runtime<lagrange_interp::loncross, lagrange_interp::loncross>(N);
     }
 

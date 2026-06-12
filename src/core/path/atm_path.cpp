@@ -19,12 +19,37 @@ ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
 void forward_atm_path(ArrayOfAtmPoint &atm_path,
                       const ArrayOfPropagationPathPoint &rad_path,
                       const AtmField &atm) {
-  stdr::transform(rad_path,
-                  atm_path.begin(),
-                  [&atm](const PropagationPathPoint &pp) -> AtmPoint {
-                    if (pp.has(PathPositionType::atm)) return atm.at(pp.pos);
-                    return atm.at(atm.top_of_atmosphere, pp.pos[1], pp.pos[2]);
-                  });
+  std::string error{};
+
+  atm_path.resize(atm_path.size());
+
+#pragma omp parallel for
+  for (Size i = 0; i < rad_path.size(); i++) {
+    auto &pp = rad_path[i];
+    auto &ap = atm_path[i];
+    try {
+      if (pp.has(PathPositionType::atm)) {
+        ap = atm.at(pp.pos);
+      } else {
+        ap = atm.at(atm.top_of_atmosphere, pp.pos[1], pp.pos[2]);
+      }
+    } catch (const std::exception &e) {
+#pragma omp critical
+      if (error.empty()) {
+        error = std::format(
+            R"(Error extracting atmospheric point from path at index {}:
+pos: {:B,}
+los: {:B,}
+Error message: {})",
+            i,
+            pp.pos,
+            pp.los,
+            e.what());
+      }
+    }
+  }
+
+  ARTS_USER_ERROR_IF(not error.empty(), error);
 }
 
 ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,

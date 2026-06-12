@@ -5,10 +5,10 @@
 #include <workspace.h>
 
 namespace {
-auto spectral_propmat_pathProfile(const Workspace& ws,
-                                  const Agenda& spectral_propmat_agenda,
-                                  const AscendingGrid& freq_grid,
-                                  const ArrayOfAtmPoint& atm_path) {
+auto spectral_propmat_profileFromAtm(const Workspace& ws,
+                                     const Agenda& spectral_propmat_agenda,
+                                     const AscendingGrid& freq_grid,
+                                     const ArrayOfAtmPoint& atm_profile) {
   struct spectral_propmat_pathFromPathOutput {
     ArrayOfPropmatVector k;
     ArrayOfStokvecVector s;
@@ -17,7 +17,7 @@ auto spectral_propmat_pathProfile(const Workspace& ws,
   };
   spectral_propmat_pathFromPathOutput out;
 
-  const Size np = atm_path.size();
+  const Size np = atm_profile.size();
   out.k.resize(np);
   out.s.resize(np);
   out.dk.resize(np);
@@ -38,7 +38,7 @@ auto spectral_propmat_pathProfile(const Workspace& ws,
                                      {},
                                      {},
                                      {},
-                                     atm_path[ip],
+                                     atm_profile[ip],
                                      spectral_propmat_agenda);
     } catch (const std::runtime_error& e) {
 #pragma omp critical
@@ -55,7 +55,7 @@ StokvecVector interp(const StokvecConstMatrixView& data,
                      const Numeric& zen) {
   const Size NF = data.shape().back();
 
-  const auto za = zen_grid.lag<1, lagrange_interp::identity>(zen);
+  const auto za = zen_grid.lag<1, lagrange_interp::grid_identity>(zen);
 
   StokvecVector out(NF);
 
@@ -115,8 +115,8 @@ void zen_gridProfilePseudo2D(ZenGrid& zen_grid,
   };
 
   if (static_cast<bool>(consider_limb)) {
-    Vector zenith_limb = zenith_level_limb(
-        alt_grid, surf_field.ellipsoid, lat, lon, azi);
+    Vector zenith_limb =
+        zenith_level_limb(alt_grid, surf_field.ellipsoid, lat, lon, azi);
     stdr::sort(zenith_limb);
     const auto [it, _] = stdr::unique(zenith_limb);
 
@@ -150,7 +150,7 @@ void spectral_rad_fieldProfilePseudo2D(
     const Workspace& ws,
     GriddedSpectralField6& spectral_rad_field,
     const Agenda& spectral_propmat_agenda,
-    const ArrayOfAtmPoint& atm_path,
+    const ArrayOfAtmPoint& atm_profile,
     const SurfaceField& surf_field,
     const AscendingGrid& freq_grid,
     const ZenGrid& zen_grid,
@@ -168,14 +168,14 @@ void spectral_rad_fieldProfilePseudo2D(
       surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(
-      not arr::same_size(alt_grid, atm_path),
+      not arr::same_size(alt_grid, atm_profile),
       R"(Altitude grid and atmospheric point grid must have the same size
 
 Altitude grid size:          {}
 Atmospheric point grid size: {}
 )",
       alt_grid.size(),
-      atm_path.size())
+      atm_profile.size())
 
   ARTS_USER_ERROR_IF(zen_grid.empty(), "Need some zenith angles")
 
@@ -204,15 +204,14 @@ Atmospheric point grid size: {}
 
   if (NA == 0) return;
 
-  const auto propmat_data = spectral_propmat_pathProfile(
-      ws, spectral_propmat_agenda, freq_grid, atm_path);
+  const auto propmat_data = spectral_propmat_profileFromAtm(
+      ws, spectral_propmat_agenda, freq_grid, atm_profile);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
   const Numeric t_surf     = surf_field[SurfaceKey::t].at(lat, lon);
   const Vector2 ell        = surf_field.ellipsoid;
 
-  const Vector zenith_limb =
-      zenith_level_limb(alt_grid, ell, lat, lon, azi);
+  const Vector zenith_limb = zenith_level_limb(alt_grid, ell, lat, lon, azi);
 
   ARTS_USER_ERROR_IF(
       zen_grid.front() != 0.0 or zen_grid.back() != 180.0 or
@@ -257,8 +256,8 @@ Atmospheric point grid size: {}
       const auto& K1 = propmat_data.k[end];
       const auto& J0 = propmat_data.s[beg];
       const auto& J1 = propmat_data.s[end];
-      const auto& T0 = atm_path[beg].temperature;
-      const auto& T1 = atm_path[end].temperature;
+      const auto& T0 = atm_profile[beg].temperature;
+      const auto& T1 = atm_profile[end].temperature;
 
       rtepack::nlte_step(I, freq_grid, K0, K1, J0, J1, T0, T1, r);
     }

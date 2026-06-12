@@ -421,13 +421,16 @@ See :meth:`SensorObsel.normalize` for details.
   generic_interface(a2);
   vector_interface(a2);
 
-  py::class_<sensor::AntennaPatternField> sapf(m, "SensorAntennaPatternField");
+  auto sen = m.def_submodule("sensor",
+                             "Classes and functions to help create a sensor");
+
+  py::class_<sensor::AntennaPatternField> sapf(sen, "AntennaPatternField");
   sapf.doc() =
       "A 2D gridded antenna response on local zenith and azimuth offsets.";
   gridded_data_interface(sapf);
   generic_interface(sapf);
 
-  auto sap = py::class_<sensor::AntennaPattern>(m, "SensorAntennaPattern");
+  auto sap = py::class_<sensor::AntennaPattern>(sen, "AntennaPattern");
   sap.doc() =
       "Base class for angular antenna responses defined around a bore line of sight.";
   sap.def("__call__",
@@ -439,7 +442,7 @@ See :meth:`SensorObsel.normalize` for details.
   // generic_interface(sap);  -- this should break things.  The class is abstract
 
   auto sgp = py::class_<sensor::GriddedAntennaPattern, sensor::AntennaPattern>(
-      m, "SensorGriddedAntennaPattern");
+      sen, "GriddedAntennaPattern");
   sgp.doc() =
       "A gridded angular antenna response on local zenith and azimuth offsets.";
   sgp.def(py::init<>(), "Construct an empty gridded antenna pattern.")
@@ -456,11 +459,11 @@ See :meth:`SensorObsel.normalize` for details.
           "response",
           &sensor::GriddedAntennaPattern::data,
           py::rv_policy::reference_internal,
-          "Local antenna response field.\n\n.. :class:`~pyarts3.arts.SensorAntennaPatternField`");
+          "Local antenna response field.\n\n.. :class:`~pyarts3.arts.sensor.AntennaPatternField`");
   generic_interface(sgp);
 
   auto spp = py::class_<sensor::PencilBeamAntenna, sensor::AntennaPattern>(
-      m, "SensorPencilBeamAntenna");
+      sen, "PencilBeamAntenna");
   spp.doc() = "A 1x1 antenna response centered on the bore line of sight.";
   spp.def(
       py::init<Stokvec>(),
@@ -469,28 +472,28 @@ See :meth:`SensorObsel.normalize` for details.
   generic_interface(spp);
 
   auto sga = py::class_<sensor::GaussianAntenna, sensor::GriddedAntennaPattern>(
-      m, "SensorGaussianAntenna");
+      sen, "GaussianAntenna");
   sga.doc() =
-      "A Gaussian antenna response defined on a local zenith/azimuth grid.";
-  sga.def(py::init<ZenGrid, AziGrid, Numeric, Numeric, Stokvec>(),
-          "zen_grid"_a,
-          "azi_grid"_a,
-          "zenith_std"_a,
-          "azimuth_std"_a,
-          "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
-          "Construct a Gaussian antenna response on the supplied local grids.");
+      "A Gaussian antenna response defined by angular offset from the bore LOS on a local zenith/azimuth grid.";
+  sga.def(
+      py::init<ZenGrid, Numeric, Size, Stokvec>(),
+      "grid"_a,
+      "std"_a,
+      "azi_grid_size"_a = Size{2},
+      "weight"_a        = Stokvec{1.0, 0.0, 0.0, 0.0},
+      "Construct a Gaussian antenna response on the supplied local grid.  The azimuth grid is constructed from the provided size");
   generic_interface(sga);
 
   auto sgairy = py::class_<sensor::GaussianAiryAntenna, sensor::AntennaPattern>(
-      m, "SensorGaussianAiryAntenna");
+      sen, "GaussianAiryAntenna");
   sgairy.doc() =
       "A Gaussianized Airy antenna whose width scales with wavelength and aperture diameter.";
   sgairy.def(
-      py::init<ZenGrid, AziGrid, Numeric, Stokvec>(),
-      "dzen_grid"_a,
-      "azi_grid"_a,
+      py::init<ZenGrid, Numeric, Size, Stokvec>(),
+      "grid"_a,
       "aperture_diameter"_a,
-      "weight"_a = Stokvec{1.0, 0.0, 0.0, 0.0},
+      "azi_grid_size"_a = Size{2},
+      "weight"_a        = Stokvec{1.0, 0.0, 0.0, 0.0},
       "Construct a Gaussian Airy antenna on the supplied local grids."
       " The channel frequency grid must be strictly positive because the"
       " current builder path does not carry a separate reference frequency.");
@@ -513,7 +516,7 @@ See :meth:`SensorObsel.normalize` for details.
   generic_interface(sgairy);
   static_assert(arts_xml_ioable<sensor::GaussianAiryAntenna>);
 
-  auto sch  = py::class_<sensor::Channel>(m, "SensorChannel");
+  auto sch  = py::class_<sensor::Channel>(sen, "Channel");
   sch.doc() = "Base class for relative spectrometer channel responses.";
   generic_interface(sch);
   sch.def(py::init_implicit<SortedGriddedField1>());
@@ -536,7 +539,7 @@ See :meth:`SensorObsel.normalize` for details.
                    "\n\n.. :class:`Vector`");
 
   auto sbox =
-      py::class_<sensor::BoxChannel, sensor::Channel>(m, "SensorBoxChannel");
+      py::class_<sensor::BoxChannel, sensor::Channel>(sen, "BoxChannel");
   sbox.doc() =
       "A channel with uniform weights across a finite relative-frequency interval.";
   sbox.def(py::init<Numeric, Numeric, Size>(),
@@ -554,8 +557,8 @@ See :meth:`SensorObsel.normalize` for details.
            "Construct a box channel directly from a relative frequency grid.");
   generic_interface(sbox);
 
-  auto sdirac = py::class_<sensor::DiracChannel, sensor::Channel>(
-      m, "SensorDiracChannel");
+  auto sdirac =
+      py::class_<sensor::DiracChannel, sensor::Channel>(sen, "DiracChannel");
   sdirac.doc() = "A single-frequency relative channel.";
   sdirac
       .def(py::init<Numeric>(),
@@ -565,7 +568,7 @@ See :meth:`SensorObsel.normalize` for details.
   generic_interface(sdirac);
 
   auto sgauss = py::class_<sensor::GaussianChannel, sensor::Channel>(
-      m, "SensorGaussianChannel");
+      sen, "GaussianChannel");
   sgauss.doc() = "A Gaussian relative channel response.";
   sgauss
       .def(py::init<AscendingGrid, Numeric, Numeric>(),
@@ -591,7 +594,7 @@ See :meth:`SensorObsel.normalize` for details.
            "Construct a zero-centered Gaussian channel on ``+/- m * std``.");
   generic_interface(sgauss);
 
-  auto sspec = py::class_<sensor::Spectrometer>(m, "SensorSpectrometer");
+  auto sspec = py::class_<sensor::Spectrometer>(sen, "Spectrometer");
   sspec.doc() =
       "A spectrometer made from channels arranged on one shared relative-frequency grid.";
   sspec
@@ -600,6 +603,10 @@ See :meth:`SensorObsel.normalize` for details.
           "base_channel"_a,
           "freq_offsets"_a,
           "Construct a spectrometer by shifting one base channel across the supplied relative-frequency offsets.")
+      .def(
+          py::init_implicit<const AscendingGrid&>(),
+          "freq_offsets"_a,
+          "Construct a spectrometer with Dirac channels across the supplied relative-frequency offsets.")
       .def(py::init<std::vector<sensor::Channel>>(),
            "channels"_a,
            "Construct a spectrometer from explicit channels.")
@@ -608,7 +615,7 @@ See :meth:`SensorObsel.normalize` for details.
           [](const sensor::Spectrometer& self)
               -> const std::vector<sensor::Channel>& { return self.channels; },
           py::rv_policy::reference_internal,
-          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.sensor.Channel]`")
       .def(
           "is_synced",
           &sensor::Spectrometer::is_synced,
@@ -633,38 +640,37 @@ See :meth:`SensorObsel.normalize` for details.
           "Iterate over the spectrometer channels.");
   generic_interface(sspec);
 
-  auto ssb = py::class_<sensor::SensorBuilder>(m, "SensorBuilder");
+  auto ssb = py::class_<sensor::Builder>(sen, "Builder");
   ssb.doc() =
       "Combines channels and an antenna pattern into sensor obsels for paired position/LOS samples.";
   ssb.def(py::init<>(), "Construct an empty sensor builder.")
       .def(
           "__init__",
-          [](sensor::SensorBuilder* self,
+          [](sensor::Builder* self,
              const std::vector<sensor::Channel>& channels,
              const sensor::AntennaPattern& antenna) {
-            new (self) sensor::SensorBuilder{channels, antenna.clone()};
+            new (self) sensor::Builder{channels, antenna.clone()};
           },
           "channels"_a,
           "antenna"_a = sensor::PencilBeamAntenna{},
           "Construct a sensor builder from channels and one antenna pattern (defaults to pencil-beam).")
       .def(
           "__init__",
-          [](sensor::SensorBuilder* self,
+          [](sensor::Builder* self,
              const sensor::Spectrometer& spectrometer,
              const sensor::AntennaPattern& antenna) {
-            new (self) sensor::SensorBuilder{spectrometer, antenna.clone()};
+            new (self) sensor::Builder{spectrometer, antenna.clone()};
           },
           "spectrometer"_a,
           "antenna"_a = sensor::PencilBeamAntenna{},
           "Construct a sensor builder from a spectrometer and one antenna pattern (defaults to pencil-beam).")
       .def(
           "__init__",
-          [](sensor::SensorBuilder* self,
+          [](sensor::Builder* self,
              const sensor::AntennaPattern& antenna,
              const sensor::Spectrometer& spectrometer,
              const sensor::HeterodyneFrequencyRange& backend) {
-            new (self)
-                sensor::SensorBuilder{spectrometer, backend, antenna.clone()};
+            new (self) sensor::Builder{spectrometer, backend, antenna.clone()};
           },
           "antenna"_a,
           "spectrometer"_a,
@@ -672,30 +678,29 @@ See :meth:`SensorObsel.normalize` for details.
           "Construct a sensor builder from an antenna, a spectrometer, and a backend frequency response.")
       .def_rw(
           "channels",
-          &sensor::SensorBuilder::channels,
-          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.SensorChannel]`")
+          &sensor::Builder::channels,
+          "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.sensor.Channel]`")
       .def_prop_rw(
           "antenna",
-          [](const sensor::SensorBuilder& self)
+          [](const sensor::Builder& self)
               -> std::shared_ptr<const sensor::AntennaPattern> {
             if (not self.antenna)
-              throw std::runtime_error("SensorBuilder has no antenna pattern");
+              throw std::runtime_error("Sensor builder has no antenna pattern");
             return self.antenna->clone();
           },
-          [](sensor::SensorBuilder& self,
-             const sensor::AntennaPattern& antenna) {
+          [](sensor::Builder& self, const sensor::AntennaPattern& antenna) {
             self.antenna = antenna.clone();
           },
           py::rv_policy::reference_internal,
-          "Angular antenna response.\n\n.. :class:`~pyarts3.arts.SensorAntennaPattern`")
+          "Angular antenna response.\n\n.. :class:`~pyarts3.arts.sensor.AntennaPattern`")
       .def(
           "__call__",
-          [](const sensor::SensorBuilder& self,
+          [](const sensor::Builder& self,
              const std::vector<Vector3>& pos,
              const std::vector<Vector2>& los) {
             if (pos.size() != los.size()) {
               throw std::invalid_argument(std::format(
-                  "SensorBuilder expects matching position and LOS counts. Got {} positions and {} LOS values.",
+                  "Sensor builder expects matching position and LOS counts. Got {} positions and {} LOS values.",
                   pos.size(),
                   los.size()));
             }
@@ -711,7 +716,7 @@ geometry first and channel second, and the returned value is
 ``(measurement_sensor, measurement_sensor_meta)``.)")
       .def(
           "__call__",
-          [](const sensor::SensorBuilder& self,
+          [](const sensor::Builder& self,
              const Vector3 pos,
              const Vector2 los) {
             return self(std::span{&pos, 1}, std::span{&los, 1});
@@ -721,8 +726,7 @@ geometry first and channel second, and the returned value is
           R"(Build sensor obsels and metadata from paired position and bore-LOS.)")
       .def(
           "__call__",
-          [](const sensor::SensorBuilder& self,
-             const SensorPosLosVector& poslos) {
+          [](const sensor::Builder& self, const SensorPosLosVector& poslos) {
             std::vector<Vector3> pos(poslos.size());
             std::vector<Vector2> los(poslos.size());
 
@@ -738,7 +742,7 @@ geometry first and channel second, and the returned value is
   generic_interface(ssb);
 
   auto shdfr = py::class_<sensor::HeterodyneFrequencyRange>(
-      m, "SensorHeterodyneFrequencyRange");
+      sen, "HeterodyneFrequencyRange");
   shdfr.def(py::init<>(),
             R"(Construct an empty staged heterodyne response.
 
@@ -822,10 +826,10 @@ geometry first and channel second, and the returned value is
           "channel_response",
           [](const sensor::HeterodyneFrequencyRange& self,
              const sensor::Channel& channel) {
-          return sensor::make_bandpass_channels(
-                  self, std::span<const sensor::Channel>{&channel, 1})
-             .front()
-             .channel;
+            return sensor::make_bandpass_channels(
+                       self, std::span<const sensor::Channel>{&channel, 1})
+                .front()
+                .channel;
           },
           "channel"_a,
           R"(Compute the real-frequency response for one spectrometer channel.

@@ -227,7 +227,9 @@ Returns
 
   //////////////////////////////////////////////////////////////////////
 
-  auto sev = py::bind_map<SpeciesEnumVectors>(m, "SpeciesEnumVectors");
+  auto sev =
+      py::bind_map<SpeciesEnumVectors, py::rv_policy::reference_internal>(
+          m, "SpeciesEnumVectors");
   generic_interface(sev);
 
   py::class_<SpeciesIsotopologueInfo> isinfo(m, "SpeciesIsotopologueInfo");

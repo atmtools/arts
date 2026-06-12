@@ -169,12 +169,22 @@ def time_report_table(res, dt, unit):
         A string containing the time report in Markdown table format.
     """
 
+    if len(res) == 0:
+        return "No methods to report."
+
     keys = np.array(list(res.keys()))
     vs = np.array([dt[key][1] for key in keys])
     keys = keys[np.argsort(vs)][::-1]
+    maxl = max(6, max([len(key) for key in keys]))
+    N = 20
 
-    out = f"| Method    | Total Time [{unit}]  | Min Time [{unit}] | Max Time [{unit}] | Average Time [{unit}] | Times Called |\n"
-    out += "| --------- | ------------ | ------------ | -------- | ------------ | ------------ |\n"
+    def pad(s, n = N, r=False):
+        s = str(s)
+        padding = ' ' * (n - len(s))
+        return padding + s if r else s + padding
+
+    out = f"| {pad('Method', maxl)} | {pad(f"Total Time [{unit}]")} | {pad(f"Min Time [{unit}]")} | {pad(f"Max Time [{unit}]", N)} | {pad(f"Average Time [{unit}]")} | {pad("Times Called")} |\n"
+    out += f"| {'-' * maxl} | {'-' * N} | {'-' * N} | {'-' * N} | {'-' * N} | {'-' * N} |\n"
 
     for key in keys:
         numc = len(res[key])
@@ -183,6 +193,6 @@ def time_report_table(res, dt, unit):
         mint = min(dts)
         maxt = max(dts)
         tott = dt[key][1]
-        out += f"| {key} | {round(tott,1)} | {round(mint,1)} | {round(maxt,1)} | {round(avgt,1)} | {numc} |\n"
+        out += f"| {key:<{maxl}} | {pad(round(tott,1), r=1)} | {pad(round(mint,1), r=1)} | {pad(round(maxt,1), r=1)} | {pad(round(avgt,1), r=1)} | {pad(numc, r=1)} |\n"
 
     return out

@@ -75,7 +75,7 @@ def make_asymmetric_sideband_filter():
 
 
 def test_lowpass_then_lo_then_box_spectrometer():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     print("test_lowpass_then_lo_then_box_spectrometer")
     selector.lowpass(15.0)
     print("Apply lowpass keeping 0-15:", selector)
@@ -90,7 +90,7 @@ def test_lowpass_then_lo_then_box_spectrometer():
         expected_affine=[[16.0, -1.0]],
     )
 
-    channel = pyarts.arts.SensorBoxChannel(2.6, 4.6, 5)
+    channel = pyarts.arts.sensor.BoxChannel(2.6, 4.6, 5)
     response = selector.channel_response(channel)
 
     assert_close(
@@ -106,7 +106,7 @@ def test_lowpass_then_lo_then_box_spectrometer():
 
 
 def test_default_positive_range_survives_mixes():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.mix(10.0)
 
     assert_close(
@@ -133,7 +133,7 @@ def test_default_positive_range_survives_mixes():
         [[0.0, np.inf], [0.0, 1.0], [0.0, 9.0], [0.0, 1.0]],
     )
 
-    response = selector.channel_response(pyarts.arts.SensorDiracChannel(0.25))
+    response = selector.channel_response(pyarts.arts.sensor.DiracChannel(0.25))
 
     assert_close(
         "default positive range dirac points after two LOs",
@@ -148,7 +148,7 @@ def test_default_positive_range_survives_mixes():
 
 
 def test_bandpass_lo_bandpass_lo_chain():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(3.0)
     selector.bandpass(np.array([3.0, 7.0]))
@@ -162,7 +162,7 @@ def test_bandpass_lo_bandpass_lo_chain():
         expected_affine=[[9.0, 1.0], [9.0, -1.0]],
     )
 
-    channel = pyarts.arts.SensorBoxChannel(0.0, 1.0, 3)
+    channel = pyarts.arts.sensor.BoxChannel(0.0, 1.0, 3)
     response = selector.channel_response(channel)
 
     assert_close(
@@ -178,7 +178,7 @@ def test_bandpass_lo_bandpass_lo_chain():
 
 
 def test_ideal_split_about_lo():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(10.0)
 
@@ -203,7 +203,7 @@ def test_ideal_split_about_lo():
 
 
 def test_weighted_split_about_lo():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.filter(make_triangular_filter())
     selector.mix(10.0)
 
@@ -226,7 +226,7 @@ def test_weighted_split_about_lo():
         np.array([0.6]),
     )
 
-    channel = pyarts.arts.SensorDiracChannel(2.0)
+    channel = pyarts.arts.sensor.DiracChannel(2.0)
     response = selector.channel_response(channel)
 
     assert_close(
@@ -242,11 +242,11 @@ def test_weighted_split_about_lo():
 
 
 def test_zero_frequency_is_not_double_counted():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(10.0)
 
-    response = selector.channel_response(pyarts.arts.SensorDiracChannel(0.0))
+    response = selector.channel_response(pyarts.arts.sensor.DiracChannel(0.0))
 
     assert_close(
         "zero-frequency channel point",
@@ -261,7 +261,7 @@ def test_zero_frequency_is_not_double_counted():
 
 
 def test_overlapping_sidebands_with_asymmetric_bandpass():
-    selector = pyarts.arts.SensorHeterodyneFrequencyRange()
+    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
     selector.filter(make_asymmetric_sideband_filter())
     selector.mix(10.0)
 
@@ -289,9 +289,9 @@ def test_overlapping_sidebands_with_asymmetric_bandpass():
 
     responses = selector.channel_responses(
         [
-            pyarts.arts.SensorDiracChannel(1.0),
-            pyarts.arts.SensorDiracChannel(2.0),
-            pyarts.arts.SensorDiracChannel(3.0),
+            pyarts.arts.sensor.DiracChannel(1.0),
+            pyarts.arts.sensor.DiracChannel(2.0),
+            pyarts.arts.sensor.DiracChannel(3.0),
         ]
     )
 

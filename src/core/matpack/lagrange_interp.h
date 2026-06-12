@@ -19,9 +19,9 @@
 
 namespace lagrange_interp {
 namespace {
-/*! Defines a transformer concept
+/*! Defines a grid transformer concept
  *
- * A transformer is a type that can be used to transform a numeric value
+ * A grid transformer is a type that can be used to transform a numeric value
  * to another numeric value.  It is used to transform values in the Lagrange
  * interpolation mechanism.
  *
@@ -29,33 +29,69 @@ namespace {
  *
  *   wj(x) = (x - x0) * (x - x1) * ... * (x - xm) / ((xj - x0) * (xj - x1) * ... * (xj - xm)) for all j != m.
  *
- * A transformer redefines this to:
+ * A grid transformer redefines this to:
  *
  *   wj(x) = (f(x) - f(x0)) * (f(x) - f(x1)) * ... * (f(x) - f(xm)) / ((f(xj) - f(x0)) * (f(xj) - f(x1)) * ... * (f(xj) - f(xm))) for all j != m,
  *
  * where f is the transformation function defined as:
  *
- *   [static] [constexpr] Numeric operator()(Numeric x) [noexcept].
+ *   static [constexpr] Numeric op(Numeric x) [noexcept].
  *
- * The transformer is also responsible for cyclicity of a grid.  The transformation is considered
- * cyclic if the transformer defines the member methods:
+ * The grid transformer is also responsible for cyclicity of a grid.  The transformation is considered
+ * cyclic if the grid transformer defines the member methods:
  *
  *  static [constexpr] Numeric cycle(Numeric), and
  *  static [consteval] Numeric cycle(), and
  *  static [consteval] Numeric midpoint().
  *
- * The first method cycles the value x to the range defined by the transformer.
- * The second returns the full cycle of the transformer.
+ * The first method cycles the value x to the range defined by the grid transformer.
+ * The second returns the full cycle of the grid transformer.
  * The third returns the midpoint of the cycle.
  *
- * Note that cyclicity is only dealt with by the cycle method and not by the operator().
+ * Note that cyclicity is only dealt with by the cycle method and not by the op().
  */
 template <typename T>
-concept transformer = std::same_as<decltype(T{}(Numeric{})), Numeric>;
+concept grid_transformer = std::same_as<decltype(T::op(Numeric{})), Numeric>;
+
+/*! Defines a value transformer concept
+ *
+ * A value transformer takes a type and transforms its value before interpolation and back after interpolation.
+ *
+ * This is useful for interpolating values such as exponential curves.
+ *
+ * To achieve this, the value transformer defines two static methods:
+ *   static [constexpr] Numeric forward(Numeric x) [noexcept], and
+ *   static [constexpr] Numeric inverse(Numeric x) [noexcept].
+ *
+ * These are used such that the interpolation result is given by inverse(sum_j w_j * forward(y_j))
+ *
+ * Note that the value transformer must also define a value_type.  Use Any if the forward/inverse methods
+ * are expected to be generic or the type if they are not.
+ */
+template <typename T>
+concept value_transformer = requires(
+    T a,
+    std::conditional_t<std::same_as<Any, typename T::value_type>,
+                       Numeric,
+                       typename T::value_type> v) {
+  {
+    T::forward(v)
+  }
+  -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>,
+                                     Numeric,
+                                     typename T::value_type>>;
+  {
+    T::inverse(v)
+  }
+  -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>,
+                                     Numeric,
+                                     typename T::value_type>>;
+};
 
 template <typename T>
 concept cyclic =
-    transformer<T> and std::same_as<decltype(T::cycle(Numeric{})), Numeric> and
+    grid_transformer<T> and
+    std::same_as<decltype(T::cycle(Numeric{})), Numeric> and
     std::same_as<decltype(T::cycle()), Numeric> and T::cycle() > 0.0 and
     std::same_as<decltype(T::midpoint()), Numeric>;
 
@@ -100,21 +136,36 @@ concept runtime_lagrange_type_list =
     lagrange_type_list<T> and not constant_lagrange_type_list<T>;
 }  // namespace
 
-//!  A transformer that does not transform the value
-struct identity {
-  static constexpr Numeric operator()(Numeric x) noexcept { return x; }
+//!  A grid_transformer that does not transform the value of the grid
+struct grid_identity {
+  static constexpr Numeric op(Numeric x) noexcept { return x; }
 };
 
-/*! A transformer that cycles the value to the range [lower, upper)
+//!  A value_transformer that does not transform the value of the grid
+struct value_identity {
+  using value_type = Any;
+
+  template <typename T>
+  static constexpr auto forward(T&& x) noexcept {
+    return std::forward<T>(x);
+  }
+
+  template <typename T>
+  static constexpr auto inverse(T&& x) noexcept {
+    return std::forward<T>(x);
+  }
+};
+
+/*! A grid_transformer that cycles the value to the range [lower, upper)
  *
  * Note that only values [2 * lower - upper, 2 * upper - lower) are
  * cycled.  This is to ensure that the transformation is quick.  If
- * you need a greater range, please implement another transformer
+ * you need a greater range, please implement another grid_transformer
  * and keep this fast.
  */
 template <Numeric lower, Numeric upper>
   requires(lower < upper)
-struct cycler {
+struct cycler final : grid_identity {
   static consteval Numeric midpoint() noexcept {
     return std::midpoint(upper, lower);
   }
@@ -124,8 +175,14 @@ struct cycler {
   static constexpr Numeric cycle(Numeric x) noexcept {
     return x + ((x < lower) - (x >= upper)) * cycle();
   }
+};
 
-  static constexpr Numeric operator()(Numeric x) noexcept { return x; }
+//!  A value_transformer that interpolates the logarithm of the value, useful for exponential curves
+struct log_transform {
+  using value_type = Numeric;
+
+  static Numeric forward(Numeric x) noexcept;
+  static Numeric inverse(Numeric x) noexcept;
 };
 
 //! [-180, 180) cycler
@@ -134,7 +191,7 @@ using loncross = cycler<-180.0, 180.0>;
 /******************************************************************
  * Knowledge about the order of the interpolation is very important
  * for the interpolation to work correctly.  The order is defined
- * by the transformer and the size of the input array.
+ * by the grid_transformer and the size of the input array.
  ******************************************************************/
 
 struct ascending_grid_t {};
@@ -172,7 +229,7 @@ consteval bool ascending() {
  * the previous x.
  ******************************************************************/
 
-template <transformer transform, Size X, grid_order grid>
+template <grid_transformer transform, Size X, grid_order grid>
 constexpr void update_pos(std::span<Index, X> indx,
                           std::span<const Numeric> xi,
                           Numeric x) {
@@ -183,14 +240,11 @@ constexpr void update_pos(std::span<Index, X> indx,
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
 
-  const Size N  = P - 1;
-  const Size Of = N / 2;
-  std::span<const Numeric>::iterator xp =
-      xi.begin() + indx[Of];
-  const std::span<const Numeric>::iterator xf =
-      xi.begin() + Of;
-  const std::span<const Numeric>::iterator xe =
-      xi.end() - P / 2 - 1;
+  const Size N                                = P - 1;
+  const Size Of                               = N / 2;
+  std::span<const Numeric>::iterator xp       = xi.begin() + indx[Of];
+  const std::span<const Numeric>::iterator xf = xi.begin() + Of;
+  const std::span<const Numeric>::iterator xe = xi.end() - P / 2 - 1;
 
   if constexpr (cyclic<transform>) {
     if constexpr (ascending<grid>()) {
@@ -254,7 +308,7 @@ constexpr void update_pos(std::span<Index, X> indx,
  * with sorted evenly spaced arrays.  
  ******************************************************************/
 
-template <transformer transform, Size X, grid_order grid>
+template <grid_transformer transform, Size X, grid_order grid>
 constexpr void find_pos(std::span<Index, X> indx,
                         std::span<const Numeric> xi,
                         Numeric x) {
@@ -293,7 +347,7 @@ constexpr void find_pos(std::span<Index, X> indx,
  * The Lagrange interpolation weights
  ******************************************************************/
 
-template <transformer transform, Size M, grid_order grid>
+template <grid_transformer transform, Size M, grid_order grid>
 constexpr void set_weights(std::span<Numeric, M> data,
                            std::span<const Index, M> indx,
                            std::span<const Numeric> xi,
@@ -301,7 +355,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
   const Size N = (M == std::dynamic_extent) ? (indx.size() - 1) : (M - 1);
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
-  x = transform{}(x);
+  x = transform::op(x);
 
   // Last value must make the sum equal to 1
   // And i != j in the internal loop
@@ -310,7 +364,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
     if constexpr (ascending<grid>()) {
       if (x < xi.front()) {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
           if (xj > transform::midpoint()) xj -= transform::cycle();
 
           Numeric numer = 1.0;
@@ -318,7 +372,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
 
           for (Size k = 0; k < N; ++k) {
             Size m     = indx[k + (k >= j)];  // i != j
-            Numeric xm = transform{}(xi[m]);
+            Numeric xm = transform::op(xi[m]);
             if (xm > transform::midpoint()) xm -= transform::cycle();
 
             numer *= x - xm;
@@ -329,7 +383,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
         }
       } else if (x > xi.back()) {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
           if (xj < transform::midpoint()) xj += transform::cycle();
 
           Numeric numer = 1.0;
@@ -337,7 +391,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
 
           for (Size k = 0; k < N; ++k) {
             Size m     = indx[k + (k >= j)];  // i != j
-            Numeric xm = transform{}(xi[m]);
+            Numeric xm = transform::op(xi[m]);
             if (xm < transform::midpoint()) xm += transform::cycle();
             numer *= x - xm;
             denom *= xj - xm;
@@ -346,14 +400,14 @@ constexpr void set_weights(std::span<Numeric, M> data,
         }
       } else {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
 
           Numeric numer = 1.0;
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
             Size m      = indx[k + (k >= j)];  // i != j
-            Numeric xm  = transform{}(xi[m]);
+            Numeric xm  = transform::op(xi[m]);
             numer      *= x - xm;
             denom      *= xj - xm;
           }
@@ -364,7 +418,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
     } else {
       if (x < xi.back()) {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
           if (xj > transform::midpoint()) xj -= transform::cycle();
 
           Numeric numer = 1.0;
@@ -372,7 +426,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
 
           for (Size k = 0; k < N; ++k) {
             Size m     = indx[k + (k >= j)];  // i != j
-            Numeric xm = transform{}(xi[m]);
+            Numeric xm = transform::op(xi[m]);
             if (xm > transform::midpoint()) xm -= transform::cycle();
 
             numer *= x - xm;
@@ -383,7 +437,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
         }
       } else if (x > xi.front()) {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
           if (xj < transform::midpoint()) xj += transform::cycle();
 
           Numeric numer = 1.0;
@@ -391,7 +445,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
 
           for (Size k = 0; k < N; ++k) {
             Size m     = indx[k + (k >= j)];  // i != j
-            Numeric xm = transform{}(xi[m]);
+            Numeric xm = transform::op(xi[m]);
             if (xm < transform::midpoint()) xm += transform::cycle();
             numer *= x - xm;
             denom *= xj - xm;
@@ -400,14 +454,14 @@ constexpr void set_weights(std::span<Numeric, M> data,
         }
       } else {
         for (Size j = 0; j < N; ++j) {
-          Numeric xj = transform{}(xi[indx[j]]);
+          Numeric xj = transform::op(xi[indx[j]]);
 
           Numeric numer = 1.0;
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
             Size m      = indx[k + (k >= j)];  // i != j
-            Numeric xm  = transform{}(xi[m]);
+            Numeric xm  = transform::op(xi[m]);
             numer      *= x - xm;
             denom      *= xj - xm;
           }
@@ -418,14 +472,14 @@ constexpr void set_weights(std::span<Numeric, M> data,
     }
   } else {
     for (Size j = 0; j < N; ++j) {
-      Numeric xj = transform{}(xi[indx[j]]);
+      Numeric xj = transform::op(xi[indx[j]]);
 
       Numeric numer = 1.0;
       Numeric denom = 1.0;
 
       for (Size k = 0; k < N; ++k) {
         Size m      = indx[k + (k >= j)];  // i != j
-        Numeric xm  = transform{}(xi[m]);
+        Numeric xm  = transform::op(xi[m]);
         numer      *= x - xm;
         denom      *= xj - xm;
       }
@@ -447,7 +501,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
  * to N + 1, where N is the polynomial order.
  ******************************************************************/
 
-template <Index N, transformer transform = identity>
+template <Index N, grid_transformer transform = grid_identity>
 struct lag_t {
   static constexpr bool cyclic     = lagrange_interp::cyclic<transform>;
   static constexpr bool runtime    = N == -1;
@@ -474,9 +528,7 @@ struct lag_t {
   constexpr lag_t& operator=(lag_t&&) noexcept = default;
 
   template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric> xi,
-                  Numeric x,
-                  grid)
+  constexpr lag_t(std::span<const Numeric> xi, Numeric x, grid)
     requires(not runtime)
   {
     find_pos<transform, N + 1, grid>(indx, xi, x);
@@ -484,10 +536,7 @@ struct lag_t {
   }
 
   template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric> xi,
-                  Numeric x,
-                  Index M,
-                  grid)
+  constexpr lag_t(std::span<const Numeric> xi, Numeric x, Index M, grid)
     requires(runtime)
       : data(M + 1), indx(M + 1) {
     find_pos<transform, std::dynamic_extent, grid>(indx, xi, x);
@@ -495,10 +544,7 @@ struct lag_t {
   }
 
   template <grid_order grid>
-  constexpr lag_t(indx_t pos,
-                  std::span<const Numeric> xi,
-                  Numeric x,
-                  grid)
+  constexpr lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
       : indx(std::move(pos)) {
     if constexpr (runtime) data.resize(indx.size());
     set_weights<transform, N + 1, grid>(data, indx, xi, x);
@@ -522,17 +568,15 @@ struct lag_t {
  ******************************************************************/
 
 namespace {
-template <transformer transform, Size poly>
-lag_t<poly, transform> poly_lag(
-    std::span<const Numeric> xi, Numeric x) {
+template <grid_transformer transform, Size poly>
+lag_t<poly, transform> poly_lag(std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > poly);
   if (xi[0] < xi[1]) return lag_t<poly, transform>(xi, x, ascending_grid_t{});
   return lag_t<poly, transform>(xi, x, descending_grid_t{});
 }
 
-template <transformer transform, typename T, Size N, Size... Ms>
-T variant_lag_helper(std::span<const Numeric> xi,
-                     Numeric x) {
+template <grid_transformer transform, typename T, Size N, Size... Ms>
+T variant_lag_helper(std::span<const Numeric> xi, Numeric x) {
   if constexpr (N == 0) {
     return lag_t<0, transform>(xi, x, ascending_grid_t{});
   } else {
@@ -541,7 +585,7 @@ T variant_lag_helper(std::span<const Numeric> xi,
   }
 }
 
-template <transformer transform, Size... poly>
+template <grid_transformer transform, Size... poly>
 auto variant_lag_helper(std::span<const Numeric> xi,
                         Numeric x,
                         std::index_sequence<poly...>) {
@@ -557,7 +601,7 @@ auto variant_lag_helper(std::span<const Numeric> xi,
  * neighbor or linear interpolation.  You can specify other values for N to
  * get higher order polynomial interpolation.
  */
-template <transformer transform, Size N = 1>
+template <grid_transformer transform, Size N = 1>
 auto variant_lag(std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > 0);
   return variant_lag_helper<transform>(
@@ -568,13 +612,12 @@ auto variant_lag(std::span<const Numeric> xi, Numeric x) {
  * Check limits
  ******************************************************************/
 
-template <transformer transform, Size Extent>
-constexpr order_t check_limit(
-    const std::span<const Numeric>& xi,
-    const std::span<const Numeric, Extent>& xn,
-    Numeric extrapolation_limit,
-    const Index polyorder,
-    const char* info) try {
+template <grid_transformer transform, Size Extent>
+constexpr order_t check_limit(const std::span<const Numeric>& xi,
+                              const std::span<const Numeric, Extent>& xn,
+                              Numeric extrapolation_limit,
+                              const Index polyorder,
+                              const char* info) try {
   const Index n        = xi.size();
   const bool ascending = n <= 1 or xi[0] < xi[1];
   auto retval =
@@ -647,7 +690,7 @@ The actual minimum value is {8}
       std::format("Error in check_limit for {}:\n{}", info, e.what()));
 }
 
-template <transformer transform,
+template <grid_transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New>
 constexpr order_t check_limit(const Orig& xi,
@@ -664,7 +707,7 @@ constexpr order_t check_limit(const Orig& xi,
   }
 }
 
-template <transformer transform, matpack::ranked_md<1> Orig, Size N>
+template <grid_transformer transform, matpack::ranked_md<1> Orig, Size N>
 constexpr order_t check_limit(const Orig& xi,
                               const std::array<Numeric, N>& xn,
                               Numeric extrapolation_limit,
@@ -680,7 +723,7 @@ constexpr order_t check_limit(const Orig& xi,
 
 //! Fixed version of make_lags
 template <Size N,
-          transformer transform,
+          grid_transformer transform,
           Size Extent,
           class FlagT = lag_t<N, transform>>
 constexpr auto make_lags(std::span<const Numeric> xi,
@@ -736,7 +779,7 @@ constexpr auto make_lags(std::span<const Numeric> xi,
 }
 
 template <Size N,
-          transformer transform,
+          grid_transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<N, transform>>
@@ -754,7 +797,7 @@ constexpr auto make_lags(const Orig& xi,
 }
 
 template <Size N,
-          transformer transform,
+          grid_transformer transform,
           matpack::ranked_md<1> Orig,
           Size M,
           class FlagT = lag_t<N, transform>>
@@ -766,7 +809,7 @@ constexpr auto make_lags(const Orig& xi,
 }
 
 //! Dynamic version of make_lags
-template <transformer transform,
+template <grid_transformer transform,
           Size Extent,
           class FlagT = lag_t<-1, transform>>
 constexpr auto make_lags(std::span<const Numeric> xi,
@@ -824,7 +867,7 @@ constexpr auto make_lags(std::span<const Numeric> xi,
   }
 }
 
-template <transformer transform,
+template <grid_transformer transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<-1, transform>>
@@ -842,7 +885,7 @@ constexpr auto make_lags(const Orig& xi,
   }
 }
 
-template <transformer transform,
+template <grid_transformer transform,
           matpack::ranked_md<1> Orig,
           Size M,
           class FlagT = lag_t<-1, transform>>
@@ -902,7 +945,9 @@ consteval Size inner_size() {
  ******************************************************************/
 
 //! Reuse interpolation weights.
-template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto interp(const matpack::ranked_md<N> auto& field,
                       const matpack::ranked_md<N> auto& itw,
                       const FlagTs&... lags) {
@@ -914,14 +959,19 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
 
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
     out += std::apply(
-        [&](auto&&... i) { return field[lags.indx[i]...] * itw[i...]; }, s);
+        [&](auto&&... i) {
+          return transform::forward(field[lags.indx[i]...]) * itw[i...];
+        },
+        s);
   }
 
-  return out;
+  return transform::inverse(out);
 }
 
 //! Direct interpolation.
-template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto interp(const matpack::ranked_md<N> auto& field,
                       const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
@@ -933,12 +983,13 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
     out += std::apply(
         [&](auto&&... i) {
-          return (field[lags.indx[i]...] * ... * lags.data[i]);
+          return (transform::forward(field[lags.indx[i]...]) * ... *
+                  lags.data[i]);
         },
         s);
   }
 
-  return out;
+  return transform::inverse(out);
 }
 
 /******************************************************************
@@ -958,7 +1009,9 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
  ******************************************************************/
 
 //! Reuse output and interpolation weights.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
                         const matpack::ranked_md<N> auto& field,
                         const matpack::ranked_md<2 * N> auto& itw,
@@ -969,13 +1022,17 @@ constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
 
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
     std::apply(
-        [&](auto&&... i) { out[i...] = interp(field, itw[i...], lags[i]...); },
+        [&](auto&&... i) {
+          out[i...] = interp<transform>(field, itw[i...], lags[i]...);
+        },
         s);
   }
 }
 
 //! Reuse output.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
                         const matpack::ranked_md<N> auto& field,
                         const FlagTs&... lags) {
@@ -983,12 +1040,16 @@ constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
 
   const std::array<Index, N> n{out.shape()};
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { out[i...] = interp(field, lags[i]...); }, s);
+    std::apply(
+        [&](auto&&... i) { out[i...] = interp<transform>(field, lags[i]...); },
+        s);
   }
 }
 
 //! Reuse interpolation weights.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
                         const matpack::ranked_md<2 * N> auto& itw,
                         const FlagTs&... lags) {
@@ -996,28 +1057,30 @@ constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
     matpack::cdata_t<T, FlagTs::size()...> out{};
-    reinterp(out, field, itw, lags...);
+    reinterp<transform>(out, field, itw, lags...);
     return out;
   } else {
     matpack::data_t<T, N> out(lags.size()...);
-    reinterp(out, field, itw, lags...);
+    reinterp<transform>(out, field, itw, lags...);
     return out;
   }
 }
 
 //! Direct reinterpolation.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
                         const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
     matpack::cdata_t<T, FlagTs::size()...> out{};
-    reinterp(out, field, lags...);
+    reinterp<transform>(out, field, lags...);
     return out;
   } else {
     matpack::data_t<T, N> out(lags.size()...);
-    reinterp(out, field, lags...);
+    reinterp<transform>(out, field, lags...);
     return out;
   }
 }
@@ -1037,26 +1100,33 @@ constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
  ******************************************************************/
 
 //! Reuse output and interpolation weights.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr void flat_interp(matpack::mut_ranked_md<1> auto&& out,
                            const matpack::ranked_md<N> auto& field,
                            const matpack::ranked_md<N + 1> auto& itw,
                            const FlagTs&... lags) {
   const Size n = out.size();
-  for (Size i = 0; i < n; ++i) out[i] = interp(field, itw[i], lags[i]...);
+  for (Size i = 0; i < n; ++i)
+    out[i] = interp<transform>(field, itw[i], lags[i]...);
 }
 
 //! Reuse output.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr void flat_interp(matpack::mut_ranked_md<1> auto&& out,
                            const matpack::ranked_md<N> auto& field,
                            const FlagTs&... lags) {
   const Size n = out.size();
-  for (Size i = 0; i < n; ++i) out[i] = interp(field, lags[i]...);
+  for (Size i = 0; i < n; ++i) out[i] = interp<transform>(field, lags[i]...);
 }
 
 //! Reuse interpolation weights.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
                            const matpack::ranked_md<N + 1> auto& itw,
                            const FlagTs&... lags) {
@@ -1064,28 +1134,30 @@ constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
     matpack::cdata_t<T, size(FlagTs{}...)> out{};
-    flat_interp(out, field, itw, lags...);
+    flat_interp<transform>(out, field, itw, lags...);
     return out;
   } else {
     matpack::data_t<T, 1> out(size(lags...));
-    flat_interp(out, field, itw, lags...);
+    flat_interp<transform>(out, field, itw, lags...);
     return out;
   }
 }
 
 //! Direct interpolation.
-template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity,
+          lagrange_type_list... FlagTs,
+          Size N = sizeof...(FlagTs)>
 constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
                            const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
     matpack::cdata_t<T, size(FlagTs{}...)> out{};
-    flat_interp(out, field, lags...);
+    flat_interp<transform>(out, field, lags...);
     return out;
   } else {
     matpack::data_t<T, 1> out(size(lags...));
-    flat_interp(out, field, lags...);
+    flat_interp<transform>(out, field, lags...);
     return out;
   }
 }
@@ -1183,7 +1255,7 @@ constexpr auto reinterpweights(const FlagTs&... lags) {
 }
 }  // namespace lagrange_interp
 
-template <Index N, lagrange_interp::transformer transform>
+template <Index N, lagrange_interp::grid_transformer transform>
 struct std::formatter<lagrange_interp::lag_t<N, transform>> {
   format_tags tags;
 
@@ -1202,12 +1274,12 @@ struct std::formatter<lagrange_interp::lag_t<N, transform>> {
   }
 };
 
-template <Index N, lagrange_interp::transformer transform>
+template <Index N, lagrange_interp::grid_transformer transform>
 struct xml_io_stream_name<lagrange_interp::lag_t<N, transform>> {
   static constexpr std::string_view name = "lagrange_interp";
 };
 
-template <Index N, lagrange_interp::transformer transform>
+template <Index N, lagrange_interp::grid_transformer transform>
 struct xml_io_stream<lagrange_interp::lag_t<N, transform>> {
   static constexpr std::string_view type_name =
       xml_io_stream_name_v<lagrange_interp::lag_t<N, transform>>;

@@ -192,6 +192,7 @@ add_library(artsworkspace STATIC
   m_partfun.cc
   m_planets.cc
   m_ppvar.cc
+  m_profile.cc
   m_propagation_path.cc
   m_propagation_path_observer.cc
   m_propmat.cc

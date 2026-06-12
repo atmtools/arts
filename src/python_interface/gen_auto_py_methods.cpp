@@ -131,7 +131,7 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
     } else if (uses_variadic(wsm.gout_type[i])) {
       std::println(
           os,
-          R"-x-(        auto& {0} = _{0} ? *_{0} : throw std::runtime_error(R"(Unknown output: "{0}")");)-x-",
+          R"-x-(        auto& {0} = select_gout(_{0}, _ws, "{0}");)-x-",
           wsm.gout[i],
           wsm.gout_type[i]);
     } else {
@@ -156,7 +156,7 @@ std::string method_gin_selection(const std::string& name,
     } else if (uses_variadic(wsm.gin_type[i])) {
       std::println(
           os,
-          R"-x-(        const auto& {0} = _{0} ? *_{0} : throw std::runtime_error(R"(Unknown input: "{0}")");)-x-",
+          R"-x-(        const auto& {0} = select_gin(_{0}, "{0}");)-x-",
           wsm.gin[i]);
     } else {
       if (has_default) {
@@ -569,7 +569,7 @@ std::string method_error(const std::string& name,
           t));
     } else if (uses_variadic(tt)) {
       arg.push_back(std::format(
-          R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string("None"))",
+          R"(_{0} and has_selected_value(*_{0}) ? std::format("User-provided {{}}", type(_{0})) : std::string("None"))",
           t));
     } else {
       arg.push_back(
@@ -600,6 +600,11 @@ std::string method_error(const std::string& name,
     if (tt == "Any") {
       arg.push_back(std::format(
           R"(_{0} ? std::format("User-provided {{}}", _{0} -> type_name()) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+          t,
+          v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
+    } else if (uses_variadic(tt)) {
+      arg.push_back(std::format(
+          R"(_{0} and has_selected_value(*_{0}) ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
           t,
           v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
     } else {

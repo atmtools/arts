@@ -96,8 +96,8 @@ void deduplicate_zero_frequency_images(
 }
 
 using InterpolationPoint =
-    std::variant<lagrange_interp::lag_t<0, lagrange_interp::identity>,
-                 lagrange_interp::lag_t<1, lagrange_interp::identity>>;
+    std::variant<lagrange_interp::lag_t<0, lagrange_interp::grid_identity>,
+                 lagrange_interp::lag_t<1, lagrange_interp::grid_identity>>;
 
 struct FoldedLocalPoint {
   InterpolationPoint interpolation;
@@ -106,7 +106,7 @@ struct FoldedLocalPoint {
 
 InterpolationPoint make_interpolation_point(const AscendingGrid& grid,
                                             Numeric f) {
-  return lagrange_interp::variant_lag<lagrange_interp::identity>(grid, f);
+  return lagrange_interp::variant_lag<lagrange_interp::grid_identity>(grid, f);
 }
 
 Numeric interpolate_channel_weight(const Vector& weights,
@@ -189,8 +189,8 @@ void combine_samples(std::vector<std::pair<Numeric, Numeric>>& samples) {
   samples = std::move(combined);
 }
 
-std::vector<Channel> build_channels(
-    const FrequencyRange& range, const std::span<const Channel>& channels) {
+std::vector<Channel> build_channels(const FrequencyRange& range,
+                                    const std::span<const Channel>& channels) {
   std::vector<Channel> out;
   out.reserve(channels.size());
 
@@ -235,16 +235,15 @@ std::vector<Channel> build_channels(
 
     combine_samples(samples);
     out.push_back(
-        Channel{.channel = make_filter(samples,
-                                       std::format("channel-response-{}",
-                                                   ichan))});
+        Channel{.channel = make_filter(
+                    samples, std::format("channel-response-{}", ichan))});
   }
 
   return out;
 }
 
-std::vector<Channel> build_synced_channels(
-    const FrequencyRange& range, const Spectrometer& spectrometer) {
+std::vector<Channel> build_synced_channels(const FrequencyRange& range,
+                                           const Spectrometer& spectrometer) {
   const auto& channels = spectrometer.channels;
   if (channels.empty()) return {};
 
@@ -286,9 +285,8 @@ std::vector<Channel> build_synced_channels(
 
     combine_samples(samples);
     out.push_back(
-        Channel{.channel = make_filter(samples,
-                                       std::format("channel-response-{}",
-                                                   ichan))});
+        Channel{.channel = make_filter(
+                    samples, std::format("channel-response-{}", ichan))});
   }
 
   return out;
@@ -300,8 +298,8 @@ std::vector<Channel> make_bandpass_channels(
   return build_channels(range, channels);
 }
 
-std::vector<Channel> make_bandpass_channels(
-    const FrequencyRange& range, const Spectrometer& spectrometer) {
+std::vector<Channel> make_bandpass_channels(const FrequencyRange& range,
+                                            const Spectrometer& spectrometer) {
   return build_synced_channels(range, spectrometer);
 }
 }  // namespace sensor

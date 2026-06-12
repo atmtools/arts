@@ -357,9 +357,14 @@ std::vector<Field::KeyVal> Field::keys() const {
 Point Field::at(Numeric lat, Numeric lon) const {
   Point out;
 
-  for (auto &key : keys()) {
-    out[key] = this->operator[](key).at(lat, lon);
-  }
+  static_assert(
+      sizeof(SurfaceField) == sizeof(std::unordered_map<SurfaceKey, Data>) * 2 +
+                                  2 * sizeof(Numeric),
+      "The loops below must be over all keys, a size change of SurfaceField indicates that the number of keys have changed");
+  out.prop.reserve(props.size());
+
+  for (auto &[key, data] : other) out[key] = data.at(lat, lon);
+  for (auto &[key, data] : props) out[key] = data.at(lat, lon);
 
   out.normal = normal(lat, lon);
 

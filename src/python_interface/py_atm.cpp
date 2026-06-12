@@ -72,6 +72,9 @@ void py_atm(py::module_ &m) try {
           "lon_low",
           &Atm::Data::lon_low,
           "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("log_interpolation",
+              &Atm::Data::log_interpolation,
+              "Whether to interpolate in log-space.\n\n.. :class:`bool`")
       .def(
           "set_extrapolation",
           [](Atm::Data &self, InterpolationExtrapolation x) {

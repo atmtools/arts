@@ -248,8 +248,8 @@ void py_surf(py::module_ &m) try {
       &SubsurfaceField::other,
       "Other data in the subsurface field\n\n.. :class:`dict[SubsurfaceKey, SubsurfaceData]`");
   ssf.def_rw(
-      "prop",
-      &SubsurfaceField::prop,
+      "props",
+      &SubsurfaceField::props,
       "Properties of the subsurface field\n\n.. :class:`dict[SubsurfacePropertyTag, SubsurfaceData]`");
   ssf.def_rw(
       "bottom_depth",
@@ -323,8 +323,8 @@ void py_surf(py::module_ &m) try {
              &SubsurfacePoint::density,
              "Density [kg/m^3]\n\n.. :class:`Numeric`");
   ssp.def_rw(
-      "prop",
-      &SubsurfacePoint::prop,
+      "props",
+      &SubsurfacePoint::props,
       "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");
   ssp.def("__getitem__",
           [](SubsurfacePoint &self, const SubsurfaceKeyVal &key) {
