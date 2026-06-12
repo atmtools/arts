@@ -14,6 +14,8 @@
 
 #include <stdexcept>
 
+#include "lagrange_interp.h"
+
 AtmKey to_wind(const String &);
 AtmKey to_mag(const String &);
 
@@ -47,10 +49,10 @@ using KeyVal = std::variant<AtmKey,
                             ScatteringSpeciesProperty>;
 
 //! returns whether the key is a wind key
-bool is_wind(const KeyVal&);
+bool is_wind(const KeyVal &);
 
 //! returns whether the key is a temperature key
-bool is_temperature(const KeyVal&);
+bool is_temperature(const KeyVal &);
 
 template <typename T>
 concept ListKeyType = requires(T a) {
@@ -159,7 +161,7 @@ struct Point {
   [[nodiscard]] std::pair<Numeric, Numeric> levels(
       const QuantumIdentifier &band) const;
 
-  void check_and_fix();
+  void check();
 };
 
 //! All the field data; if these types grow too much we might want to
@@ -185,12 +187,14 @@ concept RawDataType =
 //! Hold all atmospheric data
 struct Data {
   FieldData data{FunctionalData{}};
+
   InterpolationExtrapolation alt_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation alt_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
+  bool log_interpolation{false};
 
   // Standard
   Data();
@@ -214,8 +218,14 @@ struct Data {
   [[nodiscard]] String data_type() const;
 
   template <RawDataType T>
+  [[nodiscard]] decltype(auto) get_if(this auto &&self) {
+    return std::get_if<std::remove_cvref_t<T>>(&self.data);
+  }
+
+  template <RawDataType T>
   [[nodiscard]] const T &get(this auto &&self) {
-    auto *out = std::get_if<std::remove_cvref_t<T>>(&self.data);
+    auto *out = self.template get_if<T>();
+
     if (out == nullptr) {
       throw std::invalid_argument(
           std::format("Expected type {} not in data.  Instead type {} found.",
@@ -458,23 +468,28 @@ struct std::formatter<Atm::Data> {
     if (tags.short_str) return tags.format(ctx, v.data);
 
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx, v.data, sep);
-    tags.add_if_bracket(ctx, '[');
-    tags.format(ctx,
-                v.alt_upp,
-                sep,
-                v.alt_low,
-                sep,
-                v.lat_upp,
-                sep,
-                v.lat_low,
-                sep,
-                v.lon_upp,
-                sep,
-                v.lon_low);
-    tags.add_if_bracket(ctx, ']');
-    tags.add_if_bracket(ctx, ']');
+    if (tags.help) tags.add_if_bracket(ctx, '[');
+    tags.format(ctx, v.data);
+
+    if (tags.help) {
+      tags.format(ctx, sep);
+      tags.add_if_bracket(ctx, '[');
+      tags.format(ctx,
+                  v.alt_upp,
+                  sep,
+                  v.alt_low,
+                  sep,
+                  v.lat_upp,
+                  sep,
+                  v.lat_low,
+                  sep,
+                  v.lon_upp,
+                  sep,
+                  v.lon_low);
+      tags.add_if_bracket(ctx, ']');
+      tags.add_if_bracket(ctx, ']');
+    }
+
     return ctx.out();
   }
 };

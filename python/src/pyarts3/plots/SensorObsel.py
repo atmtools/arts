@@ -332,10 +332,10 @@ def plot(data: pyarts.arts.SensorObsel,
         import pyarts3 as pyarts
         import numpy as np
 
-        ant = pyarts.arts.SensorGaussianAiryAntenna(np.linspace(0, 1, 11),
-                                                    np.linspace(0, 330, 12),
-                                                    0.3)
-        ch = pyarts.arts.SensorDiracChannel(100e9)
+        ant = pyarts.arts.sensor.GaussianAiryAntenna(np.linspace(0, 1, 11),
+                                                     np.linspace(0, 330, 12),
+                                                     0.3)
+        ch = pyarts.arts.sensor.DiracChannel(100e9)
         obsel = ant(ch, [1, 0, 0], [90, 0])
 
         pyarts.plots.SensorObsel.plot(obsel, polar=True, point_spread=True)

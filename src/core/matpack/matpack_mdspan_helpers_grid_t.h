@@ -133,17 +133,17 @@ class grid_t {
                                        lagrange_interp::ascending_grid_t,
                                        lagrange_interp::descending_grid_t>;
 
-  template <Size N, lagrange_interp::transformer transform>
+  template <Size N, lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(Numeric xi) const {
     return lagrange_interp::lag_t<N, transform>{x, xi, lagsorter{}};
   }
 
-  template <lagrange_interp::transformer transform>
+  template <lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(Numeric xi, Size N) const {
     return lagrange_interp::lag_t<-1, transform>{x, xi, N, lagsorter{}};
   }
 
-  template <Size N, lagrange_interp::transformer transform>
+  template <Size N, lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> xi,
                          Numeric extrapolation_limit = 0.5,
                          const char* info            = "UNNAMED") const {
@@ -151,7 +151,7 @@ class grid_t {
         x, xi, extrapolation_limit, info);
   }
 
-  template <lagrange_interp::transformer transform>
+  template <lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> xi,
                          Size N,
                          Numeric extrapolation_limit = 0.5,

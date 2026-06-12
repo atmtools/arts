@@ -64,7 +64,7 @@ freq_wind_shift_jac_path size: {} element(s)
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmat_pathAdaptiveHalfPath(
+void spectral_propmat_pathAddAdaptiveHalfPath(
     const Workspace &ws,
     ArrayOfPropmatVector &spectral_propmat_path,
     ArrayOfStokvecVector &spectral_nlte_srcvec_path,
@@ -83,18 +83,6 @@ void spectral_propmat_pathAdaptiveHalfPath(
     const Numeric &max_tau,
     const Numeric &cutoff_tau) try {
   ARTS_TIME_REPORT
-
-  spectral_propmat_pathFromPath(ws,
-                                spectral_propmat_path,
-                                spectral_nlte_srcvec_path,
-                                spectral_propmat_jac_path,
-                                spectral_nlte_srcvec_jac_path,
-                                spectral_propmat_agenda,
-                                freq_grid_path,
-                                freq_wind_shift_jac_path,
-                                jac_targets,
-                                ray_path,
-                                atm_path);
 
   const Size nf = freq_grid.size();
 
@@ -154,19 +142,19 @@ void spectral_propmat_pathAdaptiveHalfPath(
                                       jac_targets,
                                       nrp,
                                       nap);
-        ray_path.insert_range(ray_path.begin() + ip+1, nrp);
-        atm_path.insert_range(atm_path.begin() + ip+1 , nap);
-        freq_grid_path.insert_range(freq_grid_path.begin() + ip+1 , nfgp);
+        ray_path.insert_range(ray_path.begin() + ip + 1, nrp);
+        atm_path.insert_range(atm_path.begin() + ip + 1, nap);
+        freq_grid_path.insert_range(freq_grid_path.begin() + ip + 1, nfgp);
         freq_wind_shift_jac_path.insert_range(
-            freq_wind_shift_jac_path.begin() + ip+1 , nfwsjp);
+            freq_wind_shift_jac_path.begin() + ip + 1, nfwsjp);
         spectral_propmat_path.insert_range(
-            spectral_propmat_path.begin() + ip+1 , nspp);
+            spectral_propmat_path.begin() + ip + 1, nspp);
         spectral_nlte_srcvec_path.insert_range(
-            spectral_nlte_srcvec_path.begin() + ip+1 , nsnsp);
+            spectral_nlte_srcvec_path.begin() + ip + 1, nsnsp);
         spectral_propmat_jac_path.insert_range(
-            spectral_propmat_jac_path.begin() + ip+1 , nspjp);
+            spectral_propmat_jac_path.begin() + ip + 1, nspjp);
         spectral_nlte_srcvec_jac_path.insert_range(
-            spectral_nlte_srcvec_jac_path.begin() + ip+1 , nsnsjp);
+            spectral_nlte_srcvec_jac_path.begin() + ip + 1, nsnsjp);
         ip += nrp.size();
       }
     }
@@ -230,3 +218,26 @@ void spectral_propmat_path_species_splitFromPath(
   if (not error.empty()) throw std::runtime_error(error);
 }
 ARTS_METHOD_ERROR_CATCH
+
+void spectral_propmat_and_atm_path_agendaSetAdaptive(
+    Agenda &spectral_propmat_and_atm_path_agenda,
+    const Numeric &max_tau,
+    const Numeric &cutoff_tau) {
+  assert(stdr::contains(internal_workspace_methods()
+                            .at("spectral_propmat_pathAddAdaptiveHalfPath")
+                            .gin,
+                        "max_tau"));
+  assert(stdr::contains(internal_workspace_methods()
+                            .at("spectral_propmat_pathAddAdaptiveHalfPath")
+                            .gin,
+                        "cutoff_tau"));
+  assert(internal_workspace_methods()
+             .at("spectral_propmat_pathAddAdaptiveHalfPath")
+             .gin.size() == 2);
+
+  spectral_propmat_and_atm_path_agenda =
+      get_spectral_propmat_and_atm_path_agenda("AdaptiveHalfPath");
+  spectral_propmat_and_atm_path_agenda.change_default("max_tau"sv, max_tau);
+  spectral_propmat_and_atm_path_agenda.change_default("cutoff_tau"sv,
+                                                      cutoff_tau);
+}

@@ -51,7 +51,7 @@ ws.spectral_radApplyUnitFromSpectralRadiance()
 srad0 = copy(ws.spectral_rad)
 path0 = copy(ws.ray_path)
 
-ws.spectral_propmat_pathAdaptiveHalfPath(
+ws.spectral_propmat_pathAddAdaptiveHalfPath(
     max_stepsize=100., max_tau=0.05, cutoff_tau=3.0)
 ws.spectral_radSetToBackground()
 ws.spectral_radSinglePathEmissionFrequencyLoop()

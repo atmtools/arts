@@ -39,7 +39,7 @@ struct Point {
   Numeric temperature{0};
   Numeric density{0};
 
-  std::unordered_map<SubsurfacePropertyTag, Numeric> prop;
+  std::unordered_map<SubsurfacePropertyTag, Numeric> props;
 
   Point();
   Point(const Point &);
@@ -62,7 +62,7 @@ struct Point {
       if constexpr (isSubsurfaceKey<T>) {
         return has(std::forward<Ts>(keys)...);
       } else if constexpr (isSubsurfacePropertyTag<T>) {
-        return prop.contains(key) and has(std::forward<Ts>(keys)...);
+        return props.contains(key) and has(std::forward<Ts>(keys)...);
       } else {
         static_assert(
             isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
@@ -72,7 +72,7 @@ struct Point {
       if constexpr (isSubsurfaceKey<T>) {
         return true;
       } else if constexpr (isSubsurfacePropertyTag<T>) {
-        return prop.contains(key);
+        return props.contains(key);
       } else {
         static_assert(
             isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
@@ -173,7 +173,7 @@ struct Data {
 
 struct Field final {
   std::unordered_map<SubsurfaceKey, Data> other;
-  std::unordered_map<SubsurfacePropertyTag, Data> prop;
+  std::unordered_map<SubsurfacePropertyTag, Data> props;
 
   Numeric bottom_depth{std::numeric_limits<Numeric>::max()};
 

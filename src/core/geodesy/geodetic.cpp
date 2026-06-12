@@ -748,3 +748,22 @@ std::vector<Vector2> visible_coordinates(Vector2 pos,
   }
   return out;
 }
+
+Numeric refell2r(const Vector2 ell, const Numeric lat) {
+  using Conversion::cosd;
+  using Conversion::sind;
+
+  const auto [a, b] = ell;
+
+  assert(a > 0);
+  assert(b > 0);
+  assert(a >= b);
+
+  const Numeric e2 = 1 - Math::pow2(b / a);
+  const Numeric c  = 1 - e2;
+
+  const Numeric ct = cosd(lat);
+  const Numeric st = sind(lat);
+
+  return b / std::sqrt(c * ct * ct + st * st);
+}

@@ -2,6 +2,7 @@
 
 #include <auto_wsa.h>
 #include <auto_wsa_options.h>
+#include <workspace.h>
 
 #include <string>
 #include <unordered_map>
@@ -99,7 +100,8 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("spectral_rad_bkgAgendasAtEndOfPath");
       agenda.add("atm_pathFromPath");
       agenda.add("freq_grid_pathFromPath");
-      agenda.add("spectral_propmat_pathAdaptiveHalfPath");
+      agenda.add("spectral_propmat_pathFromPath");
+      agenda.add("spectral_propmat_pathAddAdaptiveHalfPath");
       agenda.add("spectral_radSetToBackground");
       agenda.add("spectral_radSinglePathEmissionFrequencyLoop");
       agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
@@ -166,10 +168,19 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
 
   using enum measurement_inversion_agendaPredefined;
   switch (to<measurement_inversion_agendaPredefined>(option)) {
-    case Standard:
+    case LowMemory:
       agenda.add("measurement_vec_errorFromModelState");
       agenda.add("jac_targetsConditionalClear");
-      agenda.add("measurement_vecFromSensor");
+      agenda.add("measurement_vecFromSensor", SetWsv("kernel", "Low Memory"s));
+      agenda.add("measurement_jacTransformations");
+      agenda.add("measurement_vecConditionalAddError");
+      agenda.add("measurement_vec_fitFromMeasurement");
+      break;
+    case HighPerformance:
+      agenda.add("measurement_vec_errorFromModelState");
+      agenda.add("jac_targetsConditionalClear");
+      agenda.add("measurement_vecFromSensor",
+                 SetWsv("kernel", "High Performance"s));
       agenda.add("measurement_jacTransformations");
       agenda.add("measurement_vecConditionalAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
@@ -245,6 +256,71 @@ Agenda get_ray_point_back_propagation_agenda(const std::string_view option) {
   switch (to<ray_point_back_propagation_agendaPredefined>(option)) {
     case GeometricStepwise:  agenda.add("ray_pointPastGeometric"); break;
     case RefractiveStepwise: agenda.add("ray_pointPastRefractive"); break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
+Agenda get_spectral_propmat_and_atm_path_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_propmat_and_atm_path_agenda");
+
+  using enum spectral_propmat_and_atm_path_agendaPredefined;
+  switch (to<spectral_propmat_and_atm_path_agendaPredefined>(option)) {
+    case Default:
+      agenda.add("atm_pathFromPath");
+      agenda.add("freq_grid_pathFromPath");
+      agenda.add("spectral_propmat_pathFromPath");
+      agenda.add("Touch", "ray_path");
+      break;
+    case AdaptiveHalfPath:
+      agenda.add("atm_pathFromPath");
+      agenda.add("freq_grid_pathFromPath");
+      agenda.add("spectral_propmat_pathFromPath");
+      agenda.add("spectral_propmat_pathAddAdaptiveHalfPath");
+      break;
+    case Profile2Path:
+      agenda.add("Profile2Path");
+      agenda.add("Touch", "ray_path");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
+Agenda get_ray_path_observer_agenda(const std::string_view option) {
+  AgendaCreator agenda("ray_path_observer_agenda");
+
+  using enum ray_path_observer_agendaPredefined;
+  switch (to<ray_path_observer_agendaPredefined>(option)) {
+    case GeometricProfile:
+      agenda.add("ray_pathInit",
+                 SetWsv{"pos", "obs_pos"},
+                 SetWsv{"los", "obs_los"},
+                 SetWsv("as_sensor", Index{1}));
+      agenda.add("ray_pathSetGeometricExtremes",
+                 SetWsv("surf_search_accuracy", Numeric{0.1}),
+                 SetWsv("surf_safe_search", Index{1}));
+      agenda.add("ray_pathAddGeometricAltitudeGridCrossings");
+      break;
+    case GeometricDefault: {
+      Agenda out;
+      auto& wsm_def = internal_workspace_methods()
+                          .at("ray_path_observer_agendaSetGeometric")
+                          .gin_value;
+      ray_path_observer_agendaSetGeometric(out,
+                                           wsm_def[0]->get<String>(),
+                                           wsm_def[1]->get<Numeric>(),
+                                           wsm_def[2]->get<Numeric>(),
+                                           wsm_def[3]->get<AtmKey>(),
+                                           wsm_def[4]->get<Index>(),
+                                           wsm_def[5]->get<Index>(),
+                                           wsm_def[6]->get<Index>(),
+                                           wsm_def[7]->get<Index>(),
+                                           wsm_def[8]->get<Index>(),
+                                           wsm_def[9]->get<Index>(),
+                                           wsm_def[10]->get<Index>());
+      return out;
+    } break;
   }
 
   return std::move(agenda).finalize(true);

@@ -86,7 +86,7 @@ VARIABLE(X3);
                                                                           \
     if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;           \
                                                                           \
-    return res / vmr;                                                     \
+    return vmr != 0.0 ? res / vmr : 0.0;                                  \
   }                                                                       \
                                                                           \
   [[nodiscard]] Numeric model::d##mod##_dVMR(const AtmPoint& atm,         \
@@ -144,7 +144,7 @@ VARIABLE(DV);
                                                                   \
     if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;   \
                                                                   \
-    return res / vmr;                                             \
+    return vmr != 0.0 ? res / vmr : 0.0;                          \
   }
 
 #define VARIABLE(deriv)   \

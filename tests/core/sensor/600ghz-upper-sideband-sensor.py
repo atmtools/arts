@@ -18,27 +18,27 @@ AZI = np.linspace(0.0, 360.0, 9)[:-1]
 if_offsets = pyarts.arts.AscendingGrid(np.linspace(IF_LOW, IF_HIGH, NCHANNELS))
 print(f"if_offsets:   {time.time() - start_time:.2f} seconds")
 
-spectrometer = pyarts.arts.SensorSpectrometer(
-    pyarts.arts.SensorDiracChannel(),
+spectrometer = pyarts.arts.sensor.Spectrometer(
+    pyarts.arts.sensor.DiracChannel(),
     if_offsets,
 )
 print(f"spectrometer: {time.time() - start_time:.2f} seconds")
 
-backend = pyarts.arts.SensorHeterodyneFrequencyRange(
+backend = pyarts.arts.sensor.HeterodyneFrequencyRange(
     LO,
     np.array([LO + IF_LOW, LO + IF_HIGH]),
 )
 print(f"backend:      {time.time() - start_time:.2f} seconds")
 
-antenna = pyarts.arts.SensorGaussianAiryAntenna(
+antenna = pyarts.arts.sensor.GaussianAiryAntenna(
     ZEN,
-    AZI,
     APERTURE_DIAMETER,
+    8,
     "I",
 )
 print(f"antenna:      {time.time() - start_time:.2f} seconds")
 
-sensor = pyarts.arts.SensorBuilder(antenna, spectrometer, backend)
+sensor = pyarts.arts.sensor.Builder(antenna, spectrometer, backend)
 print(f"sensor:       {time.time() - start_time:.2f} seconds")
 
 ws = pyarts.Workspace()

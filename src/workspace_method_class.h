@@ -3,6 +3,7 @@
 #include <format_tags.h>
 #include <wsv_value_wrapper.h>
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -46,6 +47,8 @@ class Method {
 
   [[nodiscard]] std::string sphinx_list_item() const;
   [[nodiscard]] bool is_callback() const;
+
+  void change_default(Wsv value);
 };
 
 template <>
@@ -88,6 +91,10 @@ struct std::formatter<Method> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Method& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      return tags.format(ctx, v.get_name());
+    }
+
     tags.add_if_bracket(ctx, '[');
     tags.add_if_bracket(ctx, '\n');
 
@@ -139,28 +146,21 @@ struct std::formatter<Agenda> {
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      tags.format(ctx, v.get_name(), '\n');
+      tags.format(ctx, v.get_name(), ':', '\n');
 
-      std::vector<std::string> setvals;
-      for (auto& method : v.get_methods()) {
-        if (method.get_setval().has_value()) {
-          auto x = method.get_setval()->vformat("({})"sv);
-          x.replace(x.find('\n'), 1, " "sv);
-          if (x.size() > 50) x = x.substr(0, 47) + "...";
-          setvals.push_back(
-              std::format("{} = {}", method.get_name().substr(1), x));
-        } else {
-          tags.format(ctx,
-                      "  "sv,
-                      method.get_name(),
-                      '(',
-                      std::format("{:,}", setvals),
-                      ")\n"sv);
-          setvals.clear();
+      for (const auto& method : v.get_methods()) {
+        const auto& method_name = method.get_name();
+        if (method_name.starts_with(named_input_prefix) or
+            method_name.starts_with(internal_prefix)) {
+          continue;
         }
+
+        tags.format(ctx, "  - "sv, method.get_name(), '\n');
       }
 
-      return tags.format(ctx, std::format("{:n}", setvals));
+      if (v.get_methods().empty()) tags.format(ctx, "  (no methods)", '\n');
+
+      return ctx.out();
     }
 
     tags.add_if_bracket(ctx, '[');

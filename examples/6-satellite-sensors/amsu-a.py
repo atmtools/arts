@@ -57,14 +57,14 @@ def sensor_channels(channels, n):
 
     for ch in channels:
         # The range is [f_ref, 0], [f_ref, inf]
-        x = pa.arts.SensorHeterodyneFrequencyRange(ch.reference_hz, [0, np.inf])
+        x = pa.arts.sensor.HeterodyneFrequencyRange(ch.reference_hz, [0, np.inf])
 
         # Zero or more mixes, which add more ranges follow.
         for lo in ch.lo_offsets_hz:
             x.mix(lo)
 
         # The channel response is a simple boxcar with the specified bandwidth.
-        m = pa.arts.SensorBoxChannel(0, ch.bandwidth_hz / 2, n)
+        m = pa.arts.sensor.BoxChannel(0, ch.bandwidth_hz / 2, n)
         v = x.channel_response(m)
 
         out.append(v)
@@ -84,7 +84,7 @@ def extract_channels(spectral_rad, measurement_sensor):
 
 
 # %% Download data and set up workspace
-ws = pa.workspace.Workspace()
+ws = pa.Workspace()
 pa.data.download()
 
 # %% Use built-in spectroscopic data.
@@ -101,7 +101,7 @@ ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Simple sensor setup: position, line-of-sight, polarization, and channels.
-sensor = pa.arts.SensorBuilder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
+sensor = pa.arts.sensor.Builder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
 ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS)
 
 for i in range(len(ws.measurement_sensor)):
@@ -170,8 +170,8 @@ fig_channels.tight_layout()
 if "ARTS_HEADLESS" not in os.environ:
     plt.show()
 
-ref = [294.813805535829, 297.18778420039365, 283.26228661223786, 262.0365042504266, 244.4836135697355, 226.2694109308727, 216.11284609241537,
-       209.72414936956548, 210.3336073749979, 219.42825163097098, 230.06432799428234, 241.47556633001957, 252.6256887712745, 261.4587517221863, 292.20874260781585]
+ref = [294.82020426974526, 297.1947623380882, 283.302312755353, 262.0990916297846, 244.54610199393989, 226.31688048929024, 216.13528849096693,
+       209.71768967552475, 210.24931675027358, 219.3006268679223, 229.9146206010939, 241.32757369987274, 252.48941437009185, 261.41619227415606, 292.22500426558753]
 
 assert np.allclose(ws.measurement_vec, ref), \
     f"Mismatch to reference simulations.\nReference:   {ref}\nSimulations: {ws.measurement_vec:B,}"

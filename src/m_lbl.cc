@@ -344,7 +344,7 @@ void abs_bandsReadJPL(AbsorptionBands& abs_bands, const String& filename) try {
 
   abs_bands = {};
   for (auto& line : data) {
-    abs_bands[line.qid.qid].lines.emplace_back(line.from());
+    abs_bands[line.jpl_id.qid].lines.emplace_back(line.from());
   }
 
   for (auto& [_, band] : abs_bands) {

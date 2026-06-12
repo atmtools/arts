@@ -35,7 +35,9 @@ void py_lookup(py::module_& m) try {
              &AbsorptionLookupTable::xsec,
              "The absorption cross section table\n\n.. :class:`Tensor4`");
 
-  auto alts = py::bind_map<AbsorptionLookupTables>(m, "AbsorptionLookupTables");
+  auto alts =
+      py::bind_map<AbsorptionLookupTables, py::rv_policy::reference_internal>(
+          m, "AbsorptionLookupTables");
   generic_interface(alts);
 
   alts.def(

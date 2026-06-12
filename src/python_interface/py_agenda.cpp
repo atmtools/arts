@@ -9,9 +9,9 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
-#include <xpy_auto_wsg_wsv_implicit.h>
 #include <workspace.h>
 #include <workspace_groups.h>
+#include <xpy_auto_wsg_wsv_implicit.h>
 
 #include <algorithm>
 #include <exception>
@@ -128,7 +128,8 @@ void py_agenda(py::module_& m) try {
           "The output variables of the method.\n\n.. :class:`list` of :class:`str`")
       .doc() = "The method class of ARTS";
 
-  auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>>(m, "WsvMap");
+  auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>,
+                             py::rv_policy::reference_internal>(m, "WsvMap");
   wsvmap.doc() =
       unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
   wsvmap.def(

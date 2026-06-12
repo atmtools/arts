@@ -54,6 +54,40 @@ calculations that are happening deep in your ARTS method calls.
           },
   };
 
+  wsa_data["spectral_propmat_and_atm_path_agenda"] = {
+      .desc =
+          R"--(Computes several path parameters along the path.
+
+The main use of this agenda is to allow adapting the path points
+based on spectral parameters.
+)--",
+      .output = {"spectral_propmat_path",
+                 "spectral_nlte_srcvec_path",
+                 "spectral_propmat_jac_path",
+                 "spectral_nlte_srcvec_jac_path",
+                 "freq_grid_path",
+                 "freq_wind_shift_jac_path",
+                 "atm_path",
+                 "ray_path"},
+      .input =
+          {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
+      .enum_options = {"Default", "AdaptiveHalfPath", "Profile2Path"},
+      .enum_default = "Default",
+      .output_constraints =
+          {
+              {"spectral_propmat_path.size() == spectral_nlte_srcvec_path.size() and spectral_propmat_path.size() == spectral_propmat_jac_path.size()  and spectral_propmat_path.size() == spectral_nlte_srcvec_jac_path.size() and spectral_propmat_path.size() == freq_grid_path.size() and spectral_propmat_path.size() == freq_wind_shift_jac_path.size() and spectral_propmat_path.size() == atm_path.size() and spectral_propmat_path.size() == ray_path.size()",
+               "On output, all path arrays have the same size.",
+               "spectral_propmat_path.size()",
+               "spectral_nlte_srcvec_path.size()",
+               "spectral_propmat_jac_path.size()",
+               "spectral_nlte_srcvec_jac_path.size()",
+               "freq_grid_path.size()",
+               "freq_wind_shift_jac_path.size()",
+               "atm_path.size()",
+               "ray_path.size()"},
+          },
+  };
+
   wsa_data["single_propmat_agenda"] = {
       .desc =
           R"--(Computes the propagation matrix, the non-LTE source vector, the dispersion, and their derivatives.
@@ -125,7 +159,7 @@ If you do not need single-frequency-point calculations, consider using
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc   = R"--(Gets the propagation path as it is observed.
+      .desc         = R"--(Gets the propagation path as it is observed.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
@@ -133,8 +167,10 @@ position and line of sight.
 .. tip::
     The perhaps easiest way to set this agenda up is to use the *ray_path_observer_agendaSetGeometric* method.
 )--",
-      .output = {"ray_path"},
-      .input  = {"obs_pos", "obs_los"},
+      .output       = {"ray_path"},
+      .input        = {"obs_pos", "obs_los"},
+      .enum_options = {"GeometricDefault", "GeometricProfile"},
+      .enum_default = "GeometricDefault",
   };
 
   wsa_data["ray_point_back_propagation_agenda"] = {
@@ -341,8 +377,8 @@ it does a lot of unnecessary checks and operations that are not always needed.
 )--",
       .output       = {"measurement_vec_fit", "measurement_jac"},
       .input        = {"jac_targets", "do_jac"},
-      .enum_options = {"Standard"},
-      .enum_default = "Standard",
+      .enum_options = {"LowMemory", "HighPerformance"},
+      .enum_default = "LowMemory",
       .output_constraints =
           {
               {"do_jac != static_cast<Index>(measurement_jac.size() == 0)",

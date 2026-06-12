@@ -86,7 +86,7 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
   const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
   // Check if frequency is inside the range covered by the data:
-  lagrange_interp::check_limit<lagrange_interp::identity>(
+  lagrange_interp::check_limit<lagrange_interp::grid_identity>(
       data_f_grid, f_grid_active, 0.5, 1, "Frequency grid for sun spectrum");
 
   {
@@ -132,53 +132,6 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
-
-namespace {
-/*!
-    Reference ellipsoid radius, directly from *refellipsoid*.
-
-    Gives the distance from the Earth's centre and the reference ellipsoid as a
-    function of geoCENTRIC latitude.
-
-    For 1D, extract r directly as refellipsoid[0] to save time.
-
-    This is the basic function to calculate the reference ellipsoid radius.
-    However, inside the atmosphere this radius is just used at the positions of
-    the lat_grid. A linear interpolation is applied between these points. This
-    is handled by other functions. For 2D and 3D and the grid position is
-    known, use *refell2d*. The function pos2refell_r handles all this in a
-    general way (but not always the fastest option).
-
-    \return                 Ellispoid radius
-    \param  refellipsoid    [a, b]
-    \param  latitude        A geoecentric latitude.
-
-    \author Patrick Eriksson 
-    \date   2012-02-07
-
-    Update for new definition of ellipsoid and interface
-    \author Richard Larsson
-    \date   2024-05-15
-*/
-Numeric refell2r(const Vector2 ell, const Numeric lat) {
-  using Conversion::cosd;
-  using Conversion::sind;
-
-  const auto [a, b] = ell;
-
-  assert(a > 0);
-  assert(b > 0);
-  assert(a >= b);
-
-  const Numeric e2 = 1 - Math::pow2(b / a);
-  const Numeric c  = 1 - e2;
-
-  const Numeric ct = cosd(lat);
-  const Numeric st = sind(lat);
-
-  return b / std::sqrt(c * ct * ct + st * st);
-}
-}  // namespace
 
 /*! 
    Conversion from spherical to cartesian coordinates.

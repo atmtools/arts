@@ -440,6 +440,22 @@ std::string Agenda::sphinx_list(const std::string_view prep) const {
   return out;
 }
 
+void Agenda::change_default(const std::string_view name, Wsv value) {
+  assert(not name.empty());
+
+  for (Method& method : methods) {
+    const auto& method_name = method.get_name();
+    if (method_name.starts_with(internal_prefix) and
+        method_name.ends_with(name)) {
+      method.change_default(std::move(value));
+      return;
+    }
+  }
+
+  ARTS_USER_ERROR(std::format(
+      R"(Agenda "{}" does not have a default input "{}")", this->name, name));
+}
+
 void xml_io_stream<Agenda>::write(std::ostream& os,
                                   const Agenda& x,
                                   bofstream* pbofs,

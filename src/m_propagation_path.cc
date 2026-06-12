@@ -109,6 +109,26 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
   path::fill_geometric_crossings(ray_path, surf_field, alt, lat, lon);
 }
 
+void ray_pathAddGeometricAltitudeGridCrossings(
+    ArrayOfPropagationPathPoint& ray_path,
+    const AscendingGrid& alt_grid,
+    const SurfaceField& surf_field) {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(
+      surf_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surf_field.ellipsoid)
+
+  path::fill_geometric_altitude_crossings(ray_path, surf_field, alt_grid);
+
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(ray_path,
+                   Cmp::not_in_sorted(alt_grid),
+                   [](const PropagationPathPoint& p) { return p.altitude(); }),
+      "Failed to add only geometric altitude grid crossings");
+}
+
 void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,
                                    const SurfaceField& surf_field,
                                    const Numeric& max_step) {

@@ -10,7 +10,7 @@ namespace lbl {
 struct jpl_record {
   static constexpr Numeric T0 = 300.0;
 
-  Jpl::LineDataMod qid;  // ID of the species
+  Jpl::LineDataMod jpl_id;  // ID of the species
 
   // JPL format in order [F13.4,2F8.4,I2,F10.4,I3,I7,I4,12I2]
   Numeric f0;   // Central frequency
@@ -47,7 +47,7 @@ struct std::formatter<lbl::jpl_record> {
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, '[');
     tags.format(ctx,
-                v.qid,
+                v.jpl_id,
                 sep,
                 v.f0,
                 sep,

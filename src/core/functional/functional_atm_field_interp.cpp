@@ -50,60 +50,6 @@ Matrix interpweights(const latlags& b, const lonlags& c) {
       c);
 }
 
-Numeric get(const GeodeticField3& f,
-            const Numeric alt,
-            const Numeric lat,
-            const Numeric lon) {
-  if (not f.ok()) throw std::runtime_error("bad field");
-  return std::visit(
-      [&data = f.data](auto&& al, auto&& la, auto&& lo) {
-        return lagrange_interp::interp(data, al, la, lo);
-      },
-      altlag(f.grid<0>(), alt),
-      latlag(f.grid<1>(), lat),
-      lonlag(f.grid<2>(), lon));
-}
-
-Numeric get(const GeodeticField3& f,
-            const Tensor3& iw,
-            const altlags& alt,
-            const latlags& lat,
-            const lonlags& lon) {
-  if (not f.ok()) throw std::runtime_error("bad field");
-  return std::visit(
-      [&data = f.data, &iw](auto&& al, auto&& la, auto&& lo) {
-        return lagrange_interp::interp(data, iw, al, la, lo);
-      },
-      alt,
-      lat,
-      lon);
-}
-
-Numeric get(const GeodeticField3& f,
-            Index ialt,
-            const Matrix& iw,
-            const latlags& lat,
-            const lonlags& lon) {
-  if (not f.ok()) throw std::runtime_error("bad field");
-  return std::visit(
-      [data = f.data[ialt], &iw](auto&& la, auto&& lo) {
-        return lagrange_interp::interp(data, iw, la, lo);
-      },
-      lat,
-      lon);
-}
-
-Numeric get(const Numeric num, const Numeric, const Numeric, const Numeric) {
-  return num;
-}
-
-Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>& fd,
-            const Numeric alt,
-            const Numeric lat,
-            const Numeric lon) {
-  return fd(alt, lat, lon);
-}
-
 std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
                                                    const Numeric alt,
                                                    const Numeric lat,
@@ -114,7 +60,7 @@ std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
   const Index nlat = gf3.grid<1>().size();
   const Index nlon = gf3.grid<2>().size();
 
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
 
   return std::visit(

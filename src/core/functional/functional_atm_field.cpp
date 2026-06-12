@@ -5,14 +5,18 @@
 #include <utility>
 
 #include "functional_atm_field_interp.h"
+#include "lagrange_interp.h"
 
 namespace Atm {
 Numeric MagnitudeField::operator()(Numeric alt,
                                    Numeric lat,
                                    Numeric lon) const {
-  const Numeric M = Atm::interp::get(magnitude, alt, lat, lon);
-  const Numeric T = Atm::interp::get(theta, alt, lat, lon);
-  const Numeric P = Atm::interp::get(phi, alt, lat, lon);
+  const Numeric M = Atm::interp::get<lagrange_interp::value_identity>(
+      magnitude, alt, lat, lon);
+  const Numeric T =
+      Atm::interp::get<lagrange_interp::value_identity>(theta, alt, lat, lon);
+  const Numeric P =
+      Atm::interp::get<lagrange_interp::value_identity>(phi, alt, lat, lon);
 
   const Vector3 x = geocentric2ecef({M, T, P});
 

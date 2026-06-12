@@ -180,12 +180,14 @@ void Method::operator()(Workspace& ws) const try {
         
 Method outputs: {:B,}
 Method inputs:  {:B,}
-(NOTE: "_" and "@" prefixes are used for default and user inputs, respectively)
+(NOTE: "{}" and "{}" prefixes are used for default and user inputs, respectively)
 
 {})",
                                        name,
                                        inargs,
                                        outargs,
+                                       internal_prefix,
+                                       named_input_prefix,
                                        std::string_view(e.what())));
 }
 
@@ -290,6 +292,11 @@ std::string Method::sphinx_list_item() const {
   }
 
   return std::format("*{}*{}", name, setvals);
+}
+
+void Method::change_default(Wsv value) {
+  assert(setval.has_value());
+  setval = std::move(value);
 }
 
 void xml_io_stream<Wsv>::write(std::ostream& os,

@@ -385,4 +385,32 @@ std::vector<Vector2> visible_coordinates(Vector2 pos,
                                          Vector2 ellipsoid,
                                          const GeodeticField2& hfield);
 
+/*!
+    Reference ellipsoid radius, directly from *refellipsoid*.
+
+    Gives the distance from the Earth's centre and the reference ellipsoid as a
+    function of geoCENTRIC latitude.
+
+    For 1D, extract r directly as refellipsoid[0] to save time.
+
+    This is the basic function to calculate the reference ellipsoid radius.
+    However, inside the atmosphere this radius is just used at the positions of
+    the lat_grid. A linear interpolation is applied between these points. This
+    is handled by other functions. For 2D and 3D and the grid position is
+    known, use *refell2d*. The function pos2refell_r handles all this in a
+    general way (but not always the fastest option).
+
+    \return                 Ellispoid radius
+    \param  refellipsoid    [a, b]
+    \param  latitude        A geoecentric latitude.
+
+    \author Patrick Eriksson 
+    \date   2012-02-07
+
+    Update for new definition of ellipsoid and interface
+    \author Richard Larsson
+    \date   2024-05-15
+*/
+Numeric refell2r(const Vector2 ell, const Numeric lat);
+
 #endif  // geodetic_h

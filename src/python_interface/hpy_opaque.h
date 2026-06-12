@@ -3,7 +3,7 @@
 #include <nanobind/nanobind.h>
 #include <workspace.h>
 
-NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::identity>>);
+NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::grid_identity>>);
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::loncross>>);
 NB_MAKE_OPAQUE(std::unordered_map<std::string, Wsv>);
 NB_MAKE_OPAQUE(QuantumLevel);

@@ -1145,18 +1145,6 @@ in your own control-flow.
       .in     = {"ray_path", "atm_field"},
   };
 
-  wsm_data["freq_grid_pathFromPath"] = {
-      .desc   = R"--(Gets the frequency grids along the path.
-
-The derivative transformation for wind parameters is also returned.
-
-See *spectral_propmat_jacWindFix* for use of the wind shift data.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
-      .in     = {"freq_grid", "ray_path", "atm_path"},
-  };
-
   wsm_data["spectral_propmat_pathFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix and non-LTE source term along the path.
@@ -1179,7 +1167,7 @@ Also outputs the *freq_grid_path* as a side effect (of wind).
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_propmat_pathAdaptiveHalfPath"] = {
+  wsm_data["spectral_propmat_pathAddAdaptiveHalfPath"] = {
       .desc =
           R"--(Same as *spectral_propmat_pathFromPath* but with adaptive path.
 
@@ -1202,7 +1190,11 @@ Note that the input
                     "freq_wind_shift_jac_path",
                     "ray_path",
                     "atm_path"},
-      .in        = {"freq_grid_path",
+      .in        = {"spectral_propmat_path",
+                    "spectral_nlte_srcvec_path",
+                    "spectral_propmat_jac_path",
+                    "spectral_nlte_srcvec_jac_path",
+                    "freq_grid_path",
                     "freq_wind_shift_jac_path",
                     "ray_path",
                     "atm_path",
@@ -1219,6 +1211,34 @@ Note that the input
           {R"--(Maximum allowed optical thickness per step)--",
            R"--(Cutoff optical thickness for stopping the adaptive stepping)--"},
       .pass_workspace = true,
+  };
+
+  wsm_data["spectral_propmat_and_atm_path_agendaSetAdaptive"] = {
+      .desc =
+          R"--(Sets the *spectral_propmat_and_atm_path_agenda* to adaptive mode with the provided parameters.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_propmat_and_atm_path_agenda"},
+      // Reuse parameters of the pathFromPath method
+      .gin = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin,
+      .gin_type =
+          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_type,
+      .gin_value =
+          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_value,
+      .gin_desc =
+          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_desc,
+  };
+
+  wsm_data["freq_grid_pathFromPath"] = {
+      .desc   = R"--(Gets the frequency grids along the path.
+
+The derivative transformation for wind parameters is also returned.
+
+See *spectral_propmat_jacWindFix* for use of the wind shift data.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
+      .in     = {"freq_grid", "ray_path", "atm_path"},
   };
 
   wsm_data["spectral_propmat_path_species_splitFromPath"] = {
@@ -3631,6 +3651,19 @@ Points are added where the ray path crosses any of the three grids in pure geome
           {"The atmospheric field key for which the grid is expected if adding grid crossings is desired"},
   };
 
+  wsm_data["ray_pathAddGeometricAltitudeGridCrossings"] = {
+      .desc =
+          R"--(Fill the path with with points that crosses the *alt_grid*
+
+Also checks that only crossings of the *alt_grid* are in *ray_path* upon exit.
+
+The intent is to use this only with methods that work on altitude profiles.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "alt_grid", "surf_field"},
+  };
+
   wsm_data["ray_pathFillGeometricHalfStep"] = {
       .desc =
           R"--(Fill the path with geometric step points.
@@ -4026,8 +4059,32 @@ the first 5 dimensions are computed in parallel.
       .pass_workspace = true,
   };
 
+  wsm_data["atm_fieldWindIncludePlanetRotation"] = {
+      .desc      = R"(Add planetary rotation to the wind field u-component.
+
+This is added as 
+
+.. math::
+    \delta u = \frac{2 \pi}{R} \left(\frac{a}{\sqrt{1 - e^2 \sin^2\theta}} + z\right) \cos\theta,
+
+where
+:math:`R` is the rotation period of the planet,
+:math:`\theta` is the latitude,
+:math:`a` is the equatorial radius of the planet,
+:math:`e` is the eccentricity of the planet, and
+:math:`z` is the altitude.
+)",
+      .author    = {"Patrick Eriksson", "Richard Larsson"},
+      .out       = {"atm_field"},
+      .in        = {"atm_field", "surf_field"},
+      .gin       = {"planet_rotation_period"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The rotation period of the planet in seconds"},
+  };
+
   wsm_data["atm_fieldAppendBaseData"] = {
-      .desc      = R"--(Append base data to the atmospheric field
+      .desc   = R"--(Append base data to the atmospheric field
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form
@@ -4053,28 +4110,35 @@ exists in the atmospheric field.
 The ``allow_missing_pressure`` and ``allow_missing_temperature`` are used to determine
 if the method should throw if the pressure or temperature is missing.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atm_field"},
-      .in        = {"atm_field"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "deal_with_field_component",
-                    "replace_existing",
-                    "allow_missing_pressure",
-                    "allow_missing_temperature"},
-      .gin_type  = {"String", "String", "String", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt,
-                    String{"Linear"},
-                    String{"Throw"},
-                    Index{1},
-                    Index{0},
-                    Index{0}},
-      .gin_desc  = {"The base name of the files",
-                    "The extrapolation to use.",
-                    "How to deal with the field component.",
-                    "Whether or not to replace existing data",
-                    "Whether or not to allow missing pressure data",
-                    "Whether or not to allow missing temperature data"},
+      .author = {"Richard Larsson"},
+      .out    = {"atm_field"},
+      .in     = {"atm_field"},
+      .gin    = {"basename",
+                 "extrapolation",
+                 "deal_with_field_component",
+                 "replace_existing",
+                 "allow_missing_pressure",
+                 "allow_missing_temperature",
+                 "pressure_log_interp"},
+      .gin_type =
+          {"String", "String", "String", "Index", "Index", "Index", "Index"},
+      .gin_value =
+          {
+              std::nullopt,
+              String{"Linear"},
+              String{"Throw"},
+              Index{1},
+              Index{0},
+              Index{0},
+              Index{1},
+          },
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "How to deal with the field component.",
+                   "Whether or not to replace existing data",
+                   "Whether or not to allow missing pressure data",
+                   "Whether or not to allow missing temperature data",
+                   "Whether or not to use log interpolation for pressure data"},
   };
 
   wsm_data["atm_fieldAppendLineSpeciesData"] = {
@@ -4944,7 +5008,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
                     "freq_grid",
                     "atm_field",
                     "surf_field",
-                    "spectral_propmat_agenda",
+                    "spectral_propmat_and_atm_path_agenda",
                     "rte_option"},
       .gin       = {"depolarization_factor", "hse_derivative"},
       .gin_type  = {"Numeric", "Index"},
@@ -5975,6 +6039,54 @@ Additional work is requires if proper coverage of the limb is required
       .in     = {"subsurf_field", "ray_path"},
   };
 
+  wsm_data["Profile2Path"] = {
+      .desc =
+          R"(Turns profile data into path data.
+
+Only valid when local spectral properties are identical in all directions.
+Neither polarization nor wind calculations are possible with this method.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_propmat_path",
+                 "spectral_nlte_srcvec_path",
+                 "spectral_propmat_jac_path",
+                 "spectral_nlte_srcvec_jac_path",
+                 "atm_path",
+                 "freq_grid_path",
+                 "freq_wind_shift_jac_path"},
+      .in     = {"freq_grid",
+                 "alt_grid",
+                 "ray_path",
+                 "atm_profile",
+                 "spectral_propmat_profile",
+                 "spectral_propmat_jac_profile",
+                 "spectral_nlte_srcvec_profile",
+                 "spectral_nlte_srcvec_jac_profile"},
+  };
+
+  wsm_data["ProfileFromAltitude"] = {
+      .desc =
+          R"(Turns profile data into path data.
+
+Only valid when local spectral properties are identical in all directions.
+Neither polarization nor wind calculations are possible with this method.
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"atm_profile",
+                         "spectral_propmat_profile",
+                         "spectral_propmat_jac_profile",
+                         "spectral_nlte_srcvec_profile",
+                         "spectral_nlte_srcvec_jac_profile"},
+      .in             = {"spectral_propmat_agenda",
+                         "jac_targets",
+                         "alt_grid",
+                         "atm_field",
+                         "freq_grid",
+                         "lat",
+                         "lon"},
+      .pass_workspace = true,
+  };
+
   /* 
   MANUAL ENTRIES BELOW THIS POINT MESSES WITH THE LOGIC OF WSM_DATA
   */
@@ -5994,9 +6106,6 @@ Additional work is requires if proper coverage of the limb is required
     std::vector<std::string> gin_desc{
         "Whether or not to use the lookup table instead of pure line-by-line calculations"};
     std::vector<std::optional<Wsv>> gin_value{Index{0}};
-    std::vector<std::string> gout{};
-    std::vector<std::string> gout_type{};
-    std::vector<std::string> gout_desc{};
 
     for (auto& method : {"spectral_propmatInit",
                          "spectral_propmatAddCIA",
@@ -6010,26 +6119,12 @@ Additional work is requires if proper coverage of the limb is required
 
         for (Size i = 0; i < x.gin.size(); i++) {
           if (auto ptr = stdr::find(gin, x.gin[i]); ptr != gin.end()) {
-            gin_desc[ptr - gin.begin()] +=
-                std::format(", *{}*", std::string_view{method});
+            gin_desc[ptr - gin.begin()] += std::format(", *{}*", method);
           } else {
             gin.emplace_back(x.gin[i]);
             gin_type.emplace_back(x.gin_type[i]);
-            gin_desc.emplace_back(
-                std::format("See *{}*", std::string_view{method}));
+            gin_desc.emplace_back(std::format("See *{}*", method));
             gin_value.emplace_back(x.gin_value[i]);
-          }
-        }
-
-        for (Size i = 0; i < x.gout.size(); i++) {
-          if (auto ptr = stdr::find(gout, x.gout[i]); ptr != gout.end()) {
-            gout_desc[ptr - gout.begin()] +=
-                std::format(", *{}*", std::string_view{method});
-          } else {
-            gout.emplace_back(x.gout[i]);
-            gout_type.emplace_back(x.gout_type[i]);
-            gout_desc.emplace_back(
-                std::format("See *{}*", std::string_view{method}));
           }
         }
       } catch (std::out_of_range&) {
@@ -6044,7 +6139,7 @@ cannot generate automatic method signature for "{}"
 
     wsm_data[meta] = {
         .desc =
-            R"--(Sets the *spectral_propmat_agenda* automatically from absorption data and species tag meta information.
+            R"--(Sets the *spectral_propmat_agenda* automatically from absorption data on the workspace, and species tag meta information.
 
 The following methods are considered for addition to the agenda:
 
@@ -6061,16 +6156,13 @@ Note that the signature of this method changes depending on the input methods.  
 because several generic input parameters are used in the methods.  Please see the individual methods
 for more information.
 )--",
-        .author    = {"Richard Larsson"},
-        .out       = {"spectral_propmat_agenda"},
-        .gout      = gout,
-        .gout_type = gout_type,
-        .gout_desc = gout_desc,
-        .in        = {"abs_species", "abs_bands"},
-        .gin       = gin,
-        .gin_type  = gin_type,
-        .gin_value = gin_value,
-        .gin_desc  = gin_desc,
+        .author         = {"Richard Larsson"},
+        .out            = {"spectral_propmat_agenda"},
+        .gin            = gin,
+        .gin_type       = gin_type,
+        .gin_value      = gin_value,
+        .gin_desc       = gin_desc,
+        .pass_workspace = true,
     };
   }
 

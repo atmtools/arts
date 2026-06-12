@@ -54,7 +54,8 @@ using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a Speciestagtype
 struct SpeciesTagTypeStatus {
-  bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false};
+  bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false},
+      FreeElectrons{false};
   SpeciesTagTypeStatus(const ArrayOfSpeciesTag& abs_species);
 };
 

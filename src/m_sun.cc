@@ -321,7 +321,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
     const AscendingGrid& freq_grid,
     const AtmField& atm_field,
     const SurfaceField& surf_field,
-    const Agenda& spectral_propmat_agenda,
+    const Agenda& spectral_propmat_and_atm_path_agenda,
     const TransmittanceOption& rte_option,
     const Numeric& depolarization_factor,
     const Index& hse_derivative) try {
@@ -381,25 +381,26 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(
       const auto& suns_path             = ray_path_suns_path[ip];
 
       for (Size isun = 0; isun < nsuns; isun++) {
-        const auto& sun_path = suns_path[isun];
-        const auto& sun      = suns[isun];
+        auto sun_path   = suns_path[isun];
+        const auto& sun = suns[isun];
 
         spectral_radSunOrCosmicBackground(
             spectral_rad_bkg, freq_grid, sun_path, sun, surf_field);
 
-        spectral_radClearskyBackgroundTransmission(ws,
-                                                   spectral_rad,
-                                                   spectral_rad_jac,
-                                                   atm_field,
-                                                   freq_grid,
-                                                   jac_targets,
-                                                   sun_path,
-                                                   rte_option,
-                                                   spectral_propmat_agenda,
-                                                   spectral_rad_bkg,
-                                                   spectral_rad_bkg_jac,
-                                                   surf_field,
-                                                   hse_derivative);
+        spectral_radClearskyBackgroundTransmission(
+            ws,
+            spectral_rad,
+            spectral_rad_jac,
+            sun_path,
+            atm_field,
+            freq_grid,
+            jac_targets,
+            rte_option,
+            spectral_propmat_and_atm_path_agenda,
+            spectral_rad_bkg,
+            spectral_rad_bkg_jac,
+            surf_field,
+            hse_derivative);
 
         ARTS_USER_ERROR_IF(spectral_rad.size() != nf,
                            "Bad size spectral_rad (",

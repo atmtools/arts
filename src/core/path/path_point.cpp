@@ -19,17 +19,6 @@
 #include <utility>
 
 namespace path {
-Numeric PropagationPathPoint::altitude() const noexcept { return pos[0]; }
-Numeric& PropagationPathPoint::altitude() noexcept { return pos[0]; }
-Numeric PropagationPathPoint::latitude() const noexcept { return pos[1]; }
-Numeric& PropagationPathPoint::latitude() noexcept { return pos[1]; }
-Numeric PropagationPathPoint::longitude() const noexcept { return pos[2]; }
-Numeric& PropagationPathPoint::longitude() noexcept { return pos[2]; }
-Numeric PropagationPathPoint::zenith() const noexcept { return los[0]; }
-Numeric& PropagationPathPoint::zenith() noexcept { return los[0]; }
-Numeric PropagationPathPoint::azimuth() const noexcept { return los[1]; }
-Numeric& PropagationPathPoint::azimuth() noexcept { return los[1]; }
-
 Vector2 mirror(const Vector2 los) {
   Vector2 los_mirrored;
   los_mirrored[0] = 180 - los[0];

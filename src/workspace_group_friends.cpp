@@ -679,8 +679,7 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
   }
 
   for (const auto& [name, g] : internal_workspace_groups()) {
-    if (auto ptr = wsg_data.find(name); ptr != wsg_data.end())
-      wsg_data.erase(ptr);
+    wsg_data.erase(name);
   }
   return wsg_data;
 }

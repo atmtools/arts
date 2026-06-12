@@ -38,16 +38,30 @@ struct PropagationPathPoint {
     return pos_type == x or los_type == x;
   }
 
-  [[nodiscard]] Numeric altitude() const noexcept;
-  Numeric& altitude() noexcept;
-  [[nodiscard]] Numeric latitude() const noexcept;
-  Numeric& latitude() noexcept;
-  [[nodiscard]] Numeric longitude() const noexcept;
-  Numeric& longitude() noexcept;
-  [[nodiscard]] Numeric zenith() const noexcept;
-  Numeric& zenith() noexcept;
-  [[nodiscard]] Numeric azimuth() const noexcept;
-  Numeric& azimuth() noexcept;
+  template <typename Self>
+  [[nodiscard]] constexpr decltype(auto) altitude(this Self&& p) noexcept {
+    return std::forward<Self>(p).pos[0];
+  }
+
+  template <typename Self>
+  [[nodiscard]] constexpr decltype(auto) latitude(this Self&& p) noexcept {
+    return std::forward<Self>(p).pos[1];
+  }
+
+  template <typename Self>
+  [[nodiscard]] constexpr decltype(auto) longitude(this Self&& p) noexcept {
+    return std::forward<Self>(p).pos[2];
+  }
+
+  template <typename Self>
+  [[nodiscard]] constexpr decltype(auto) zenith(this Self&& p) noexcept {
+    return std::forward<Self>(p).los[0];
+  }
+
+  template <typename Self>
+  [[nodiscard]] constexpr decltype(auto) azimuth(this Self&& p) noexcept {
+    return std::forward<Self>(p).los[1];
+  }
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;

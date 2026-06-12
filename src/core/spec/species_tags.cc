@@ -168,7 +168,10 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
     const ArrayOfSpeciesTag& abs_species) {
   for (auto& tag : abs_species) {
     switch (tag.type) {
-      case SpeciesTagType::Plain:      Plain = true; break;
+      case SpeciesTagType::Plain:
+        Plain         = true;
+        FreeElectrons = FreeElectrons or tag.Spec() == "free_electrons"_spec;
+        break;
       case SpeciesTagType::Predefined: Predefined = true; break;
       case SpeciesTagType::Cia:        Cia = true; break;
       case SpeciesTagType::XsecFit:    XsecFit = true; break;

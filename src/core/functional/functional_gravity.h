@@ -5,7 +5,7 @@
 struct EllipsoidGravity {
   Numeric GM;
   Numeric a;
-  Numeric e;
+  Numeric b;
 
   Numeric operator()(Numeric h, Numeric lat, Numeric lon) const;
 

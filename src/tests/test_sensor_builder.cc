@@ -49,10 +49,9 @@ Numeric gaussian_airy_expected_gain(Numeric zenith_deg,
 }
 
 void test_sensor_builder_returns_meta_per_geometry() {
-  sensor::SensorBuilder builder(
-      {sensor::BoxChannel{AscendingGrid{100.0, 101.0}},
-       sensor::DiracChannel{200.0}},
-      std::make_shared<const sensor::PencilBeamAntenna>());
+  sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0, 101.0}},
+                           sensor::DiracChannel{200.0}},
+                          std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -71,7 +70,7 @@ void test_sensor_builder_returns_meta_per_geometry() {
 
   ARTS_USER_ERROR_IF(
       gf0.gridname<0>() != "channel" or gf1.gridname<0>() != "channel",
-      "SensorBuilder meta grid must be the channel axis")
+      "Builder meta grid must be the channel axis")
   assert_close(gf0.grid<0>()[0], 0.0, 0.0, "meta[0] channel index 0");
   assert_close(gf0.grid<0>()[1], 1.0, 0.0, "meta[0] channel index 1");
 
@@ -90,8 +89,8 @@ void test_sensor_builder_returns_meta_per_geometry() {
 }
 
 void test_sensor_builder_rejects_mismatched_geometry_counts() {
-  sensor::SensorBuilder builder({sensor::DiracChannel{}},
-                                std::make_shared<const sensor::PencilBeamAntenna>());
+  sensor::Builder builder({sensor::DiracChannel{}},
+                          std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -103,17 +102,15 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() {
     threw = true;
   }
 
-  ARTS_USER_ERROR_IF(
-      not threw,
-      "SensorBuilder must reject mismatching position and LOS counts")
+  ARTS_USER_ERROR_IF(not threw,
+                     "Builder must reject mismatching position and LOS counts")
 }
 
 void test_sensor_builder_uses_gaussian_airy_frequency_dependence() {
   const Stokvec peak_weight{2.0, 0.0, 0.0, 0.0};
-  sensor::SensorBuilder builder(
-      {sensor::BoxChannel{AscendingGrid{100.0e9, 200.0e9}}},
-      std::make_shared<const sensor::GaussianAiryAntenna>(
-          ZenGrid{{0.0, 0.2}}, AziGrid{{0.0}}, 1.0, peak_weight));
+  sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0e9, 200.0e9}}},
+                          std::make_shared<const sensor::GaussianAiryAntenna>(
+                              ZenGrid{{0.0, 0.2}}, 1.0, 1, peak_weight));
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 1> los{{{45.0, 30.0}}};
@@ -162,8 +159,9 @@ void test_unflatten_updates_shared_poslos_grids() {
 
   ARTS_USER_ERROR_IF(obsels[0].poslos_grid_ptr() == original_poslos,
                      "unflatten must replace the shared poslos grid")
-  ARTS_USER_ERROR_IF(not obsels[0].same_poslos(obsels[1]),
-                     "obsels sharing a geometry must still share it after unflatten")
+  ARTS_USER_ERROR_IF(
+      not obsels[0].same_poslos(obsels[1]),
+      "obsels sharing a geometry must still share it after unflatten")
   assert_close(obsels[0].poslos_grid()[0].los[0],
                15.0,
                0.0,
@@ -184,10 +182,13 @@ void test_unflatten_updates_shared_poslos_grids() {
 
   ARTS_USER_ERROR_IF(obsels[0].f_grid_ptr() == original_freq,
                      "unflatten must replace the shared frequency grid")
-  ARTS_USER_ERROR_IF(not obsels[0].same_freqs(obsels[1]),
-                     "obsels sharing frequencies must still share them after unflatten")
-  assert_close(obsels[0].f_grid()[0], 101.0, 0.0, "updated frequency for first obsel");
-  assert_close(obsels[1].f_grid()[0], 101.0, 0.0, "updated frequency for second obsel");
+  ARTS_USER_ERROR_IF(
+      not obsels[0].same_freqs(obsels[1]),
+      "obsels sharing frequencies must still share them after unflatten")
+  assert_close(
+      obsels[0].f_grid()[0], 101.0, 0.0, "updated frequency for first obsel");
+  assert_close(
+      obsels[1].f_grid()[0], 101.0, 0.0, "updated frequency for second obsel");
 }
 }  // namespace
 

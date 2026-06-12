@@ -9,9 +9,9 @@ LOS = [45, 30]
 zen_grid = np.geomspace(1, 3, NZA) - 1
 azi_grid = np.linspace(0, 360, NAZ + 1)[:-1]
 
-ant1 = pa.arts.SensorGaussianAiryAntenna(zen_grid, azi_grid, 30e-2, "Iv")
-ant2 = pa.arts.SensorGaussianAiryAntenna(zen_grid + 1e-3, azi_grid, 30e-2, "I")
-ch = pa.arts.SensorBoxChannel(1e9, 1e12, 1001)
+ant1 = pa.arts.sensor.GaussianAiryAntenna(zen_grid, 30e-2, NAZ, "Iv")
+ant2 = pa.arts.sensor.GaussianAiryAntenna(zen_grid + 1e-3, 30e-2, NAZ, "I")
+ch = pa.arts.sensor.BoxChannel(1e9, 1e12, 1001)
 
 obsel1 = ant1(ch, POS, LOS)
 obsel2 = ant2(ch, POS, LOS)
@@ -30,7 +30,7 @@ assert len(poslos1) == (NZA * NAZ - NAZ + 1), \
 assert len(poslos2) == NZA * NAZ, \
     "Should have one poslos per non-zero DZA, but only one for zero DZA - has no zero DZA"
 
-ant = pa.arts.SensorGaussianAiryAntenna(zen_grid, azi_grid, 30e-2, "I")
+ant = pa.arts.sensor.GaussianAiryAntenna(zen_grid, 30e-2, NAZ, "I")
 
 pa.plots.plot(obsel1, point_spread=True)
 pa.plots.plot(obsel2, point_spread=True, frame='local', type='contour', levels=10)

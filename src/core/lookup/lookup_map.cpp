@@ -135,7 +135,7 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::pressure_lagrange(
   ARTS_USER_ERROR_IF(not do_p(), "No pressure grid set.");
   const std::array<Numeric, 1> plog_local = {std::log(pressure)};
   const Vector& plog_v(*log_p_grid);
-  return lagrange_interp::make_lags<lagrange_interp::identity>(
+  return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       plog_v,
       plog_local,
       interpolation_order,
@@ -150,7 +150,7 @@ std::vector<lagrange_interp::lag_t<-1>> table::frequency_lagrange(
     const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_f(), "No frequency grid set.");
   const Vector& f_grid_v(*f_grid);
-  return lagrange_interp::make_lags<lagrange_interp::identity>(
+  return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       f_grid_v,
       freq_grid,
       interpolation_order,
@@ -168,7 +168,7 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::water_lagrange(
   const std::array<Numeric, 1> x{water_vmr /
                                  interp(water_atmref, pressure_lagrange[0])};
   const Vector& xi(*w_pert);
-  return lagrange_interp::make_lags<lagrange_interp::identity>(
+  return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       xi, x, interpolation_order, extpolation_factor, "Water VMR");
 }
 ARTS_METHOD_ERROR_CATCH
@@ -182,7 +182,7 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::temperature_lagrange(
   const std::array<Numeric, 1> x{temperature -
                                  interp(t_atmref, pressure_lagrange[0])};
   const Vector& xi(*t_pert);
-  return lagrange_interp::make_lags<lagrange_interp::identity>(
+  return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       xi, x, interpolation_order, extpolation_factor, "Temperature");
 }
 ARTS_METHOD_ERROR_CATCH

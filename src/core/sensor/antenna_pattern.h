@@ -76,16 +76,10 @@ struct GaussianAntenna final : GriddedAntennaPattern {
   GaussianAntenna(GaussianAntenna&&)                 = default;
   GaussianAntenna& operator=(GaussianAntenna&&)      = default;
 
-  GaussianAntenna(ZenGrid zen_grid,
-                  AziGrid azi_grid,
-                  Numeric zenith_std,
-                  Numeric azimuth_std,
-                  Stokvec weight = {1.0, 0.0, 0.0, 0.0});
-
-  GaussianAntenna(ZenGrid zen_grid,
-                  AziGrid azi_grid,
+  GaussianAntenna(ZenGrid grid,
                   Numeric std,
-                  Stokvec weight = {1.0, 0.0, 0.0, 0.0});
+                  Size azi_grid_size = 2,
+                  Stokvec weight     = {1.0, 0.0, 0.0, 0.0});
 
   [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
 };
@@ -103,9 +97,9 @@ struct GaussianAiryAntenna final : AntennaPattern {
   GaussianAiryAntenna& operator=(GaussianAiryAntenna&&)      = default;
 
   GaussianAiryAntenna(ZenGrid zen_grid,
-                      AziGrid azi_grid,
                       Numeric aperture_diameter,
-                      Stokvec weight = {1.0, 0.0, 0.0, 0.0});
+                      Size azi_grid_size = 2,
+                      Stokvec weight     = {1.0, 0.0, 0.0, 0.0});
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
                                  const Vector3& pos,

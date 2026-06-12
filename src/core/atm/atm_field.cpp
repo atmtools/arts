@@ -21,6 +21,8 @@
 #include <variant>
 #include <vector>
 
+#include "lagrange_interp.h"
+
 bool AtmPoint::zero_wind() const noexcept {
   return stdr::all_of(wind, Cmp::eq<0>());
 }
@@ -592,60 +594,58 @@ std::vector<KeyVal> Field::keys() const {
   return out;
 }
 
-void Point::check_and_fix() try {
-  ARTS_USER_ERROR_IF(nonstd::isnan(pressure), "Pressure is NaN")
-  ARTS_USER_ERROR_IF(nonstd::isnan(temperature), "Temperature is NaN")
+void Point::check() {
+  const auto isnan = [](Numeric v) { return std::isnan(v); };
 
-  if (stdr::all_of(wind, [](auto v) { return nonstd::isnan(v); })) {
-    wind = {0., 0., 0.};
-  } else {
-    ARTS_USER_ERROR_IF(
-        stdr::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
-        "Cannot have partially missing wind field.  Consider setting the missing field to zero or add it completely.\n"
-        "Wind field [wind_u, wind_v, wind_w] is: {:B,}",
-        wind)
+  std::vector<std::string> errors;
+
+  if (not(pressure >= 0.0)) {
+    errors.emplace_back(std::format(" - Bad pressure: {}", pressure));
   }
 
-  if (stdr::all_of(mag, [](auto v) { return nonstd::isnan(v); })) {
-    mag = {0., 0., 0.};
-  } else {
-    ARTS_USER_ERROR_IF(
-        stdr::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
-        "Cannot have partially missing magnetic field.  Consider setting the missing field to zero or add it completely.\n"
-        "Magnetic field [mag_u, mag_v, mag_w] is: {:B,}",
-        mag)
+  if (not(temperature >= 0.0)) {
+    errors.emplace_back(std::format(" - Bad temperature: {}", temperature));
   }
 
-  for (auto &spec : specs) {
-    ARTS_USER_ERROR_IF(nonstd::isnan(spec.second) or spec.second < 0.0,
-                       "VMR for \"{}\" is {}",
-                       toString<1>(spec.first),
-                       spec.second)
+  if (stdr::any_of(wind, isnan)) {
+    errors.emplace_back(
+        std::format(" - Bad wind field [wind_u, wind_v, wind_w]: {:B,}", wind));
   }
 
-  for (auto &isot : isots) {
-    //! Cannot check isnan because it is a valid state for isotopologue ratios
-    ARTS_USER_ERROR_IF(isot.second < 0.0,
-                       "Isotopologue ratio for \"{}\" is {}",
-                       isot.first.FullName(),
-                       isot.second)
+  if (stdr::any_of(mag, isnan)) {
+    errors.emplace_back(
+        std::format(" - Bad magnetic field [mag_u, mag_v, mag_w]: {:B,}", mag));
   }
 
-  for (auto &nl : nlte) {
-    ARTS_USER_ERROR_IF(nonstd::isnan(nl.second) or nl.second < 0.0,
-                       "Non-LTE ratio for \"{}\" is {}",
-                       nl.first,
-                       nl.second)
+  if (stdr::any_of(specs | stdv::values, isnan) or
+      stdr::any_of(specs | stdv::values, Cmp::lt(0.0))) {
+    errors.emplace_back(std::format(" - Bad species VMR: {:NB,}", specs));
   }
 
-  for (auto &pp : ssprops) {
-    ARTS_USER_ERROR_IF(nonstd::isnan(pp.second),
-                       "Scattering Species Property value for \"",
-                       pp.first,
-                       pp.second)
+  if (stdr::any_of(isots | stdv::values, isnan) or
+      stdr::any_of(isots | stdv::values, Cmp::lt(0.0))) {
+    errors.emplace_back(
+        std::format(" - Bad isotopologue ratio: {:NB,}", isots));
+  }
+
+  if (stdr::any_of(nlte | stdv::values, isnan) or
+      stdr::any_of(nlte | stdv::values, Cmp::lt(0.0))) {
+    errors.emplace_back(std::format(" - Bad non-LTE ratio: {:NB,}", nlte));
+  }
+
+  if (stdr::any_of(ssprops | stdv::values, isnan)) {
+    errors.emplace_back(
+        std::format(" - Bad scattering species property: {:NB,}", ssprops));
+  }
+
+  if (not errors.empty()) {
+    throw std::runtime_error(
+        std::format("Invalid AtmPoint:\n {}",
+                    errors | stdv::transform([](const std::string &s) {
+                      return s + '\n';
+                    }) | stdr::to<std::vector<String>>()));
   }
 }
-ARTS_METHOD_ERROR_CATCH
 
 Data &Field::operator[](const AtmKey &key) { return other[key]; }
 
@@ -881,16 +881,30 @@ struct PositionalNumeric {
   const Numeric alt;
   const Numeric lat;
   const Numeric lon;
+  const bool log;
 
   operator Numeric() const {
-    return std::visit([&](auto &d) { return get(d, alt, lat, lon); }, data);
+    if (log) {
+      return std::visit(
+          [&](auto &d) {
+            return get<lagrange_interp::log_transform>(d, alt, lat, lon);
+          },
+          data);
+    }
+
+    return std::visit(
+        [&](auto &d) {
+          return get<lagrange_interp::value_identity>(d, alt, lat, lon);
+        },
+        data);
   }
 };
 
 std::optional<Numeric> get_optional_limit(const Data &data,
                                           const Numeric alt,
                                           const Numeric lat,
-                                          const Numeric lon) {
+                                          const Numeric lon,
+                                          const bool log_interpolation) {
   const auto lim = Atm::find_limit(
       data,
       std::visit([](auto &d) { return Atm::find_limits(d); }, data.data),
@@ -908,8 +922,11 @@ std::optional<Numeric> get_optional_limit(const Data &data,
   if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
 
   if (lim.type == InterpolationExtrapolation::Nearest)
-    return PositionalNumeric{
-        .data = data.data, .alt = lim.alt, .lat = lim.lat, .lon = lim.lon};
+    return PositionalNumeric{.data = data.data,
+                             .alt  = lim.alt,
+                             .lat  = lim.lat,
+                             .lon  = lim.lon,
+                             .log  = log_interpolation};
 
   return std::nullopt;
 }
@@ -919,8 +936,12 @@ std::optional<Numeric> get_optional_limit(const Data &data,
 Numeric Data::at(const Numeric alt,
                  const Numeric lat,
                  const Numeric lon) const {
-  return interp::get_optional_limit(*this, alt, lat, lon)
-      .value_or(interp::PositionalNumeric{data, alt, lat, lon});
+  return interp::get_optional_limit(*this, alt, lat, lon, log_interpolation)
+      .value_or(interp::PositionalNumeric{.data = data,
+                                          .alt  = alt,
+                                          .lat  = lat,
+                                          .lon  = lon,
+                                          .log  = log_interpolation});
 }
 
 Numeric Data::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
@@ -935,8 +956,22 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
       alt)
 
   Point out;
-  for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);
-  out.check_and_fix();
+
+  static_assert(
+      sizeof(AtmField) ==
+          sizeof(std::unordered_map<AtmKey, Data>) * 5 + sizeof(Numeric),
+      "The loops below must be over all keys, a size change of AtmField indicates that the number of keys have changed");
+  out.specs.reserve(specs.size());
+  out.isots.reserve(isots.size());
+  out.nlte.reserve(nlte.size());
+  out.ssprops.reserve(ssprops.size());
+
+  for (auto &[key, data] : other) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : specs) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : isots) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : nlte) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : ssprops) out[key] = data.at(alt, lat, lon);
+
   return out;
 }
 ARTS_METHOD_ERROR_CATCH
@@ -944,6 +979,7 @@ ARTS_METHOD_ERROR_CATCH
 Point Field::at(const Vector3 pos) const try {
   return at(pos[0], pos[1], pos[2]);
 }
+
 ARTS_METHOD_ERROR_CATCH
 }  // namespace Atm
 

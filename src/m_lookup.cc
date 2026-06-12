@@ -25,8 +25,6 @@ std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(
     const Index& water_interp_order,
     const Index& f_interp_order,
     const Numeric& extpolfac) {
-  ARTS_TIME_REPORT
-
   if constexpr (calc) {
     Vector absorption(freq_grid.size(), 0.0);
 

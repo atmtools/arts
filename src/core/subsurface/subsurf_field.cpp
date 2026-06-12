@@ -29,10 +29,10 @@ Numeric &Point::operator[](SubsurfaceKey x) {
 }
 
 Numeric Point::operator[](const SubsurfacePropertyTag &x) const {
-  return prop.at(x);
+  return props.at(x);
 }
 
-Numeric &Point::operator[](const SubsurfacePropertyTag &x) { return prop[x]; }
+Numeric &Point::operator[](const SubsurfacePropertyTag &x) { return props[x]; }
 
 Numeric Point::operator[](const KeyVal &x) const {
   return std::visit([this](auto &key) { return this->operator[](key); }, x);
@@ -60,7 +60,7 @@ std::vector<KeyVal> Point::keys() const {
   std::vector<KeyVal> out;
   out.reserve(size());
   for (auto &a : enumtyps::SubsurfaceKeyTypes) out.emplace_back(a);
-  for (auto &a : prop | stdv::keys) out.emplace_back(a);
+  for (auto &a : props | stdv::keys) out.emplace_back(a);
   return out;
 }
 
@@ -253,7 +253,7 @@ Numeric get(const GeodeticField3 &gf3,
             const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
 
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
 
   return std::visit(
@@ -330,7 +330,7 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
   const Index nlat = gf3.grid<1>().size();
   const Index nlon = gf3.grid<2>().size();
 
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
 
   return std::visit(
@@ -464,13 +464,13 @@ Index Field::size() const { return nbasic(); }
   std::vector<KeyVal> out;
   out.reserve(size());
   for (const auto &[key, _] : other) out.emplace_back(key);
-  for (const auto &[key, _] : prop) out.emplace_back(key);
+  for (const auto &[key, _] : props) out.emplace_back(key);
   return out;
 }
 
 Data &Field::operator[](const SubsurfaceKey &key) { return other[key]; }
 
-Data &Field::operator[](const SubsurfacePropertyTag &key) { return prop[key]; }
+Data &Field::operator[](const SubsurfacePropertyTag &key) { return props[key]; }
 
 Data &Field::operator[](const KeyVal &key) {
   return std::visit([this](auto &k) -> Data & { return this->operator[](k); },
@@ -482,7 +482,7 @@ const Data &Field::operator[](const SubsurfaceKey &key) const {
 }
 
 const Data &Field::operator[](const SubsurfacePropertyTag &key) const {
-  return prop.at(key);
+  return props.at(key);
 }
 
 const Data &Field::operator[](const KeyVal &key) const {
@@ -508,7 +508,16 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
       alt)
 
   Point out;
-  for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);
+
+  static_assert(
+      sizeof(SubsurfaceField) ==
+          sizeof(std::unordered_map<SubsurfaceKey, Data>) * 2 + sizeof(Numeric),
+      "The loops below must be over all keys, a size change of SubsurfaceField indicates that the number of keys have changed");
+  out.props.reserve(props.size());
+
+  for (auto &[key, data] : other) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : props) out[key] = data.at(alt, lat, lon);
+
   return out;
 }
 ARTS_METHOD_ERROR_CATCH
@@ -526,7 +535,7 @@ std::string std::formatter<SubsurfacePoint>::to_string(
                                  R"("density": )"sv,
                                  v.density,
                                  "\nproperties:\n"sv,
-                                 v.prop);
+                                 v.props);
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
@@ -545,7 +554,7 @@ std::string std::formatter<SubsurfaceField>::to_string(
                        v.other.size(),
                        sep,
                        R"("Prop": )"sv,
-                       v.prop.size());
+                       v.props.size());
   } else {
     const std::string_view sep = tags.sep();
 
@@ -555,8 +564,8 @@ std::string std::formatter<SubsurfaceField>::to_string(
       out += tags.vformat(sep, R"("Other": )"sv, v.other);
     }
 
-    if (not v.prop.empty()) {
-      out += tags.vformat(sep, R"("Prop": )"sv, v.prop);
+    if (not v.props.empty()) {
+      out += tags.vformat(sep, R"("Prop": )"sv, v.props);
     }
   }
 

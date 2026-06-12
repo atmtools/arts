@@ -77,6 +77,8 @@ struct Spectrometer {
 */
   Spectrometer(const Channel& base_channel, const AscendingGrid& freq_offsets);
 
+  Spectrometer(const AscendingGrid& freq_offsets);
+
   Spectrometer(std::vector<Channel> channels) : channels(std::move(channels)) {}
 
   operator const std::vector<Channel>&() const { return channels; }
