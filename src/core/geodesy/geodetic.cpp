@@ -31,6 +31,7 @@ using Math::pow2;
 
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
+inline constexpr Numeric PI      = Conversion::pi;
 
 /** Threshold for non-spherical ellipsoid
   
@@ -38,6 +39,14 @@ inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
     treated as spherical for efficiency reasons.
 */
 inline constexpr Numeric ellipsoid_radii_threshold = 1e-3;
+
+/** Threshold (radians) for treating a zenith angle as nadir or zenith.
+
+    Line-of-sight azimuth is undefined exactly at the zenith/nadir, so any
+    zenith angle within this tolerance of 0 or pi is treated as such and the
+    azimuth is set to 0.
+*/
+inline constexpr Numeric LOS_ZENITH_POLE_THRESHOLD = 1e-4;
 
 /** Size of north and south poles
   
@@ -166,8 +175,15 @@ std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
 
   Vector2 los = enu2los(enu);
 
-  // Azimuth at poles needs special treatment
-  if (fabs(pos[1]) > POLELATZZZ) los[1] = RAD2DEG * atan2(decef[1], decef[0]);
+  const Numeric zenith = los[0] * DEG2RAD;
+
+  if (std::abs(zenith - PI) < LOS_ZENITH_POLE_THRESHOLD ||
+      std::abs(zenith) < LOS_ZENITH_POLE_THRESHOLD) {
+    los[1] = 0.0;
+  } else if (fabs(pos[1]) > POLELATZZZ) {
+    // Azimuth at poles needs special treatment
+    los[1] = RAD2DEG * atan2(decef[1], decef[0]);
+  };
 
   return {pos, los};
 }
@@ -184,7 +200,7 @@ Numeric ecef_distance(Vector3 ecef1, Vector3 ecef2) {
   const Numeric dx = ecef2[0] - ecef1[0];
   const Numeric dy = ecef2[1] - ecef1[1];
   const Numeric dz = ecef2[2] - ecef1[2];
-  return sqrt(dx * dx + dy * dy + dz * dz);
+  return std::hypot(dx, dy, dz);
 }
 
 Vector3 ecef_vector_distance(Vector3 ecef0, Vector3 ecef1) {
