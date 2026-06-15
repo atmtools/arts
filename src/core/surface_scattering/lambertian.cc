@@ -106,7 +106,7 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
   // Extrapolation beyond the stored grid is permitted (extrapolation_limit =
   // max) so that simulations whose f_grid slightly exceeds the stored range
   // are handled gracefully; values are clamped to [0, 1] afterwards.
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
 
   // Frequency extrapolation limit based on member setting
   const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
@@ -127,7 +127,7 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
 }
 
 std::ostream& operator<<(std::ostream& os,
-                         const LambertianSurfaceScatterer& s) {
+                         [[maybe_unused]] const LambertianSurfaceScatterer& s) {
   return os << "LambertianSurfaceScatterer";
 }
 
@@ -160,7 +160,7 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
       reflectivity_field.grid<2>().empty(),
       "reflectivity_field frequency grid is empty.");
 
-  using id = lagrange_interp::identity;
+  using id = lagrange_interp::grid_identity;
 
   // Single-point spatial lags with cyclic interpolation
   // Latitude: non-cyclic (use identity), as poles are not continuous
@@ -196,7 +196,7 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
 }
 
 std::ostream& operator<<(std::ostream& os,
-                         const LambertianSurfaceScattererField& s) {
+                         [[maybe_unused]] const LambertianSurfaceScattererField& s) {
   return os << "LambertianSurfaceScattererField";
 }
 
