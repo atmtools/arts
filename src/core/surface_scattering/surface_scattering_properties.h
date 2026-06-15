@@ -3,14 +3,15 @@
 #include <matpack.h>
 
 #include <optional>
+#include "rtepack.h"
 
 namespace surface_scattering {
 
 /// BRDF Mueller matrix over (f_grid, za_inc, aa_inc, za_scat, aa_scat, 4, 4)
-using BRDFMatrix = Tensor7;
+using BRDFMatrix = MuelmatTensor5;
 
 /// Emissivity vector over (f_grid, za_scat, 4)
-using EmissivityVector = Tensor3;
+using EmissivityVector = StokvecTensor3;
 
 /** Bulk surface scattering properties accumulated across all surface models.
  *

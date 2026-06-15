@@ -23,7 +23,8 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
   if (models.empty()) {
     const Index nf  = f_grid.size();
     const Index nzs = za_scat_grid.size();
-    return {std::nullopt, Tensor3(nf, nzs, 4, 0.0)};
+    const Index nas = aa_scat_grid.size();
+    return {std::nullopt, StokvecTensor3(nf, nzs, nas, 0.0)};
   }
 
   const auto visitor =

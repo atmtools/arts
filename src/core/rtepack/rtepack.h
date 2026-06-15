@@ -69,6 +69,7 @@ using MuelmatVectorView           = rtepack::muelmat_vector_view;
 using MuelmatConstVectorView      = rtepack::muelmat_vector_const_view;
 using MuelmatMatrix               = rtepack::muelmat_matrix;
 using MuelmatTensor3              = rtepack::muelmat_tensor3;
+using MuelmatTensor5              = rtepack::muelmat_tensor5;
 using MuelmatMatrixView           = rtepack::muelmat_matrix_view;
 using MuelmatConstMatrixView      = rtepack::muelmat_matrix_const_view;
 using MuelmatTensor4              = rtepack::muelmat_tensor4;

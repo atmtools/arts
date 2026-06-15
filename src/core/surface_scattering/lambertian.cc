@@ -1,4 +1,5 @@
 #include "lambertian.h"
+#include "rtepack.h"
 
 #include <lagrange_interp.h>
 #include <xml_io_base.h>
@@ -59,19 +60,28 @@ Numeric frequency_extrap_limit(InterpolationExtrapolation extrap) {
 SurfaceScatteringModelProperties lambertian_properties(
     const auto& r_data,
     Index nf, Index nzi, Index nai, Index nzs, Index nas) {
-  Tensor7 brdf(nf, nzi, nai, nzs, nas, 4, 4, 0.0);
-  Tensor3 emissivity(nf, nzs, 4, 0.0);
+  MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, 0.0);
+  // Tensor3 emissivity(nf, nzs, 4, 0.0);
+  StokvecTensor3 emissivity(nf, nzs, nas, 0.0);
+
+  Muelmat isotropic_brdf;
+  Stokvec isotropic_emissivity;
 
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
+
+    isotropic_brdf[0, 0] = r;
+    isotropic_emissivity[0] = 1.0 - r;
 
     for (Index zi = 0; zi < nzi; ++zi)
       for (Index ai = 0; ai < nai; ++ai)
         for (Index zs = 0; zs < nzs; ++zs)
           for (Index as = 0; as < nas; ++as)
-            brdf[f, zi, ai, zs, as, 0, 0] = r;
+            brdf[f, zi, ai, zs, as] = isotropic_brdf;
     for (Index zs = 0; zs < nzs; ++zs)
-      emissivity[f, zs, 0] = 1.0 - r;
+      for (Index as = 0; as < nas; ++as)
+        emissivity[f, zs, as] = isotropic_emissivity;
+
   }
 
   return SurfaceScatteringModelProperties{
