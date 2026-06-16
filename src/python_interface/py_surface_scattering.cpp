@@ -237,9 +237,20 @@ spatial and spectral resolutions are fully independent of the simulation.
           "aa_inc_grid"_a,
           "za_scat_grid"_a,
           "aa_scat_grid"_a,
-          "Accumulate bulk surface scattering properties from all stored models");
+          "Accumulate bulk surface scattering properties from all stored models")
+      .def_rw(
+          "weighting_option",
+          &MapOfSurfaceScatteringModel::weighting_option,
+          "Weighting option for combining multiple models: Maximum or Average");
   generic_interface(mossm);
   mossm.doc() = "Named map of surface scattering models";
+
+  // Weighting enum for combining multiple models
+  py::enum_<MapOfSurfaceScatteringModel::Weighting>(mossm, "Weighting")
+      .value("Maximum", MapOfSurfaceScatteringModel::Weighting::Maximum,
+             "Take the maximum value across models for each BRDF/emissivity element")
+      .value("Average", MapOfSurfaceScatteringModel::Weighting::Average,
+             "Take the average value across models for each BRDF/emissivity element");
 
 } catch (std::exception& e) {
   throw std::runtime_error(
