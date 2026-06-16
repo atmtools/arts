@@ -47,6 +47,16 @@ Vector MapOfSurfaceScatteringModel::maximum_weighting(
       w = 1.;
     }
   }
+
+  // Now we check if the sum of the weights is 1, if not we normalize the weights
+  // This can happen if more then one value has the same value as the maximum
+  Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
+  if (sum_weights > 1) {
+    for (auto& w : weights) {
+      w /= sum_weights;
+    }
+  }
+
   return weights;
 }
 
@@ -55,11 +65,13 @@ Vector MapOfSurfaceScatteringModel::average_weighting(
   Vector weights = get_raw_weighting(surf_point);
   // Since we now have the weights, we now set every weight to the average of the weights
   Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
+
   if (sum_weights > 0) {
     for (auto& w : weights) {
       w /= sum_weights;
     }
   }
+
   return weights;
 }
 
@@ -115,18 +127,8 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
   std::cout << "weighting option: " << (weighting_option == Weighting::Maximum ? "Maximum" : "Average") << "\n";
   if (weighting_option == Weighting::Maximum) {
     weights = maximum_weighting(surf_point);
-    std::cout << "Using maximum weighting: [";
-    for (size_t i = 0; i < weights.size(); ++i) {
-      std::cout << weights[i] << (i < weights.size() - 1 ? ", " : "");
-    }
-    std::cout << "]" << "\n";
   } else if (weighting_option == Weighting::Average) {
     weights = average_weighting(surf_point);
-    std::cout << "Using average weighting: [";
-    for (size_t i = 0; i < weights.size(); ++i) {
-      std::cout << weights[i] << (i < weights.size() - 1 ? ", " : "");
-    }
-    std::cout << "]" << "\n";
   } else {
     throw std::runtime_error("Invalid weighting option");
   }
@@ -137,11 +139,6 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
   for (const auto& [key, model] : models) {
     surface_scattering::SurfaceScatteringModelProperties model_props =
         std::visit(visitor, model);
-
-    std::cout << "Model " << key << " has " << model_props.emissivity_vector.size() << " elements" << std::endl;
-    std::cout << "Model " << key << " has weight " << weights[i] << std::endl;
-
-
 
     model_props *= weights[i];
     bsp += model_props;
