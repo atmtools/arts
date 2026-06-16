@@ -59,7 +59,7 @@ they are clamped when the BRDF is computed.
 .. :class:`SortedGriddedField1`
 )")
       .def(
-          "get_bulk_surface_scattering_properties",
+          "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScatterer& self,
              const SurfacePoint& surf_point,
              Numeric lat,
@@ -128,7 +128,7 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
           &LambertianSurfaceScattererField::interp_extrapolation,
           "Interpolation and extrapolation method for latitude and longitude dimensions")
       .def(
-          "get_bulk_surface_scattering_properties",
+          "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScattererField& self,
              const SurfacePoint& surf_point,
              Numeric lat,
@@ -216,7 +216,7 @@ spatial and spectral resolutions are fully independent of the simulation.
           },
           py::rv_policy::reference_internal)
       .def(
-          "get_bulk_surface_scattering_properties",
+          "get_surface_scattering_model_properties",
           [](const MapOfSurfaceScatteringModel& self,
              const SurfacePoint& surf_point,
              Numeric lat,
