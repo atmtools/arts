@@ -63,9 +63,9 @@ field3_uniform = arts.SortedGriddedField3(
 sc_field = arts.LambertianSurfaceScattererField(field3_uniform)
 
 # Use lat=30, lon=45 (an interior point — should extrapolate uniformly)
-props1 = sc1.get_bulk_surface_scattering_properties(
+props1 = sc1.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-props_f = sc_field.get_bulk_surface_scattering_properties(
+props_f = sc_field.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 
 brdf1  = np.array(props1.brdf_matrix)
@@ -107,7 +107,7 @@ import math
 expected_brdf = 0.5
 expected_emiss = 0.5
 
-props_mid = sc_lin.get_bulk_surface_scattering_properties(
+props_mid = sc_lin.get_surface_scattering_model_properties(
     surf_pt, 0.0, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 brdf_mid  = np.array(props_mid.brdf_matrix)
 emiss_mid = np.array(props_mid.emissivity_vector)
@@ -121,7 +121,7 @@ for fi in range(len(f_grid)):
 
 # Also check at lat=-90 (should give r_south) and lat=+90 (r_north)
 for lat_val, r_expected in [(-90.0, r_south), (90.0, r_north)]:
-    props_e = sc_lin.get_bulk_surface_scattering_properties(
+    props_e = sc_lin.get_surface_scattering_model_properties(
         surf_pt, lat_val, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
     brdf_e  = np.array(props_e.brdf_matrix)
     for fi in range(len(f_grid)):
@@ -142,7 +142,7 @@ try:
     sc_reload = arts.LambertianSurfaceScattererField()
     sc_reload.readxml(fname)
 
-    props_orig   = sc_field.get_bulk_surface_scattering_properties(
+    props_orig   = sc_field.get_surface_scattering_model_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
     props_reload = sc_reload.get_bulk_surface_scattering_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
@@ -164,7 +164,7 @@ mosm = arts.MapOfSurfaceScatteringModel()
 mosm.add("albedo_field", sc_field)
 assert "albedo_field" in mosm, "Model not in map"
 
-bulk = mosm.get_bulk_surface_scattering_properties(
+bulk = mosm.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 brdf_bulk = np.array(bulk.brdf_matrix)
 assert not np.all(brdf_bulk == 0.0), "Bulk BRDF should be non-zero"

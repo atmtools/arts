@@ -26,6 +26,9 @@ struct SurfaceScatteringModelProperties {
 
   SurfaceScatteringModelProperties& operator+=(
       const SurfaceScatteringModelProperties& other);
+
+  SurfaceScatteringModelProperties& operator*=(Numeric scalar);    
+
 };
 
 }  // namespace surface_scattering

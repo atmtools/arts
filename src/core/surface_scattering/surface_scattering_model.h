@@ -56,6 +56,20 @@ struct MapOfSurfaceScatteringModel {
                                          const Vector& aa_inc_grid,
                                          const Vector& za_scat_grid,
                                          const Vector& aa_scat_grid) const;
+
+  // weigthing options for combining multiple models
+  enum class Weighting : std::uint8_t  {
+    Maximum,  // Take the maximum value across models for each BRDF/emissivity element
+    Average,  // Take the average value across models for each BRDF/emissivity element
+  };
+  Weighting weighting_option = Weighting::Maximum;
+
+private:
+  [[nodiscard]] Vector maximum_weighting(const SurfacePoint& surf_point) const;
+  [[nodiscard]] Vector average_weighting(const SurfacePoint& surf_point) const;
+  [[nodiscard]] Vector get_raw_weighting(const SurfacePoint& surf_point) const;
+
+
 };
 
 template <>
