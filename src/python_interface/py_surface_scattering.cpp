@@ -21,10 +21,10 @@ void py_surface_scattering(py::module_& m) try {
       .def(py::init<>())
       .def_rw("brdf_matrix",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix,
-              "Optional BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]")
+              "Optional BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
       .def_rw("emissivity_vector",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector,
-              "Emissivity vector: dims [nf, nza_scat, 4]")
+              "Emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
       .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).";
 
   //
@@ -126,7 +126,7 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
       .def_rw(
           "interp_extrapolation",
           &LambertianSurfaceScattererField::interp_extrapolation,
-          "Interpolation and extrapolation method for latitude and longitude dimensions")
+          "Interpolation and extrapolation method for latitude and longitude dimensions\n\n.. :class:`class-information`")
       .def(
           "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScattererField& self,
@@ -241,7 +241,7 @@ spatial and spectral resolutions are fully independent of the simulation.
       .def_rw(
           "weighting_option",
           &MapOfSurfaceScatteringModel::weighting_option,
-          "Weighting option for combining multiple models: Maximum or Average");
+          "Weighting option for combining multiple models: Maximum or Average\n\n.. :class:`class-information`");
   generic_interface(mossm);
   mossm.doc() = "Named map of surface scattering models";
 
