@@ -632,6 +632,15 @@ like a 5-dimensional array with the last two dimensions of size 4.
       .dim_size = {"{}.npages()", "{}.nrows()", "{}.ncols()"},
   };
 
+  wsg_data["MuelmatTensor5"] = {
+      .file = "rtepack.h",
+      .desc = R"(A *Tensor5* of *Muelmat*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 7-dimensional array with the last two dimensions of size 4.
+)",
+  };
+
   wsg_data["Muelmat"] = {
       .file = "rtepack.h",
       .desc = "A single Mueller 4x4 matrix.\n",
