@@ -1902,8 +1902,8 @@ Numeric Absorption::Lines::SelfVMR(
 Numeric Absorption::reduced_rovibrational_dipole(
     Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
   if (not iseven(Jf + lf + 1))
-    return -sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  return +sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+    return -sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, lf, li - lf, -li);
+  return +sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, lf, li - lf, -li);
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf,
