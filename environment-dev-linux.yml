@@ -19,7 +19,7 @@ dependencies:
         - llvm-openmp
         - matplotlib
         - netcdf4
-        - numpy
+        - numpy<2.5
         - pkg-config
         - pytest
         - python-build
