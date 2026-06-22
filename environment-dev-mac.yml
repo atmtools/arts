@@ -19,7 +19,7 @@ dependencies:
         - libcxx-devel
         - libmicrohttpd
         - llvm-openmp
-        - matplotlib
+        - matplotlib<3.11
         - nanobind=2.9
         - nbsphinx
         - netcdf4
