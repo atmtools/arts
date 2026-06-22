@@ -54,8 +54,8 @@ Numeric reduced_dipole(const Rational Jf,
                        const Rational li,
                        const Rational k) {
   if (not iseven(Jf + lf + 1))
-    return -sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  return +sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+    return -sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, lf, li - lf, -li);
+  return +sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, lf, li - lf, -li);
 }
 
 void relaxation_matrix_offdiagonal(MatrixView& W,
