@@ -148,6 +148,40 @@ is warranted.
       .enum_default = "Emission",
   };
 
+  wsa_data["spectral_rad_incoming_agenda"] = {
+    .desc =
+        R"--(Computes spectral radiance as seen from the input position.
+
+The intent of this agenda is to provide the spectral radiance as seen from a
+position and line of sights. The main intent is to provide the spectral radiance
+coming to the surface for surface scattering calculations.
+
+)--",
+    .output       = {"spectral_rad", "spectral_rad_jac"},
+    .input        = {"freq_grid",
+                     "jac_targets",
+                     "obs_pos",
+                     "obs_los",
+                     "atm_field",
+                     "surf_field",
+                     "subsurf_field"},
+    .enum_options = {"Emission"},
+    .enum_default = "Emission",
+    .output_constraints =
+        {
+                {"spectral_rad.size() == freq_grid.size()",
+                 "On output, *spectral_rad* has the size of *freq_grid*.",
+                 "spectral_rad.size()",
+                 "freq_grid.size()"},
+                {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+                 "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+                 "spectral_rad_jac.shape()",
+                 "freq_grid.size()",
+                 "jac_targets.x_size()"},
+            },
+    };
+
+
   wsa_data["single_rad_space_agenda"] = {
       .desc =
           R"--(Gets spectral radiance as seen of space for a single frequency.
