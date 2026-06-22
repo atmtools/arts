@@ -118,6 +118,20 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
   return std::move(agenda).finalize(false);
 }
 
+Agenda get_spectral_rad_incoming_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_incoming_agenda");
+
+  using enum spectral_rad_incoming_agendaPredefined;
+  switch (to<spectral_rad_incoming_agendaPredefined>(option)) {
+    case Emission:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyEmission");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
 Agenda get_spectral_rad_space_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_rad_space_agenda");
 
