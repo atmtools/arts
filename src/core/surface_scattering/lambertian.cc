@@ -62,16 +62,16 @@ SurfaceScatteringModelProperties lambertian_properties(
     Index nf, Index nzi, Index nai, Index nzs, Index nas) {
   MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, 0.0);
   // Tensor3 emissivity(nf, nzs, 4, 0.0);
-  StokvecTensor3 emissivity(nf, nzs, nas, 0.0);
+  MuelmatTensor3 emissivity(nf, nzs, nas, 0.0);
 
   Muelmat isotropic_brdf;
-  Stokvec isotropic_emissivity;
+  Muelmat isotropic_emissivity;
 
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
 
     isotropic_brdf[0, 0] = r;
-    isotropic_emissivity[0] = 1.0 - r;
+    isotropic_emissivity[0,0] = 1.0 - r;
 
     for (Index zi = 0; zi < nzi; ++zi)
       for (Index ai = 0; ai < nai; ++ai)
@@ -81,7 +81,6 @@ SurfaceScatteringModelProperties lambertian_properties(
     for (Index zs = 0; zs < nzs; ++zs)
       for (Index as = 0; as < nas; ++as)
         emissivity[f, zs, as] = isotropic_emissivity;
-
   }
 
   return SurfaceScatteringModelProperties{
@@ -212,14 +211,7 @@ std::ostream& operator<<(std::ostream& os,
 
 SurfaceScatteringModelProperties& SurfaceScatteringModelProperties::operator+=(
     const SurfaceScatteringModelProperties& other) {
-  if (brdf_matrix.has_value()) {
-    ARTS_USER_ERROR_IF(
-        !other.brdf_matrix.has_value(),
-        "BRDF matrix missing in calculation of bulk surface scattering properties.");
-    *brdf_matrix += *other.brdf_matrix;
-  } else if (other.brdf_matrix.has_value()) {
-    brdf_matrix = other.brdf_matrix;
-  }
+  brdf_matrix += other.brdf_matrix;
   emissivity_vector += other.emissivity_vector;
   return *this;
 }

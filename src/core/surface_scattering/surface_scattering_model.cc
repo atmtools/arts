@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include "rtepack.h"
 
 void MapOfSurfaceScatteringModel::add(
     const std::string& name,
@@ -91,7 +92,9 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     const Index nf  = f_grid.size();
     const Index nzs = za_scat_grid.size();
     const Index nas = aa_scat_grid.size();
-    return {std::nullopt, StokvecTensor3(nf, nzs, nas, 0.0)};
+    const Index nzi = za_inc_grid.size();
+    const Index nai = aa_inc_grid.size();
+    return {.brdf_matrix=MuelmatTensor5(nf, nzi, nai, nzs, nas,0.0), .emissivity_vector=MuelmatTensor3(nf, nzs, nas, 0.0)};
   }
 
   const auto visitor = [&](const auto& model)
@@ -148,10 +151,8 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
 }
 
 surface_scattering::SurfaceScatteringModelProperties&
-surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar) {
-  if (brdf_matrix) {
-    *brdf_matrix *= scalar;
-  }
+surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar) {  
+  brdf_matrix *= scalar;
   emissivity_vector *= scalar;
   return *this;
 }
