@@ -15,7 +15,7 @@ dependencies:
         - lark-parser
         - libboost-devel
         - make
-        - matplotlib<3.11
+        - matplotlib<3.12
         - nanobind=2.9
         - nbsphinx
         - netcdf4

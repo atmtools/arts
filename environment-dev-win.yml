@@ -10,7 +10,7 @@ dependencies:
         - libboost-devel
         - libcxx
         - llvm-openmp < 21
-        - matplotlib<3.11
+        - matplotlib<3.12
         - nanobind=2.9
         - nbsphinx
         - netcdf4
