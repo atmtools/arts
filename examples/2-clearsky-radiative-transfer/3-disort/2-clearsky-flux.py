@@ -68,9 +68,7 @@ assert np.allclose(
 ), "Mismatch from historical Disort spectral fluxes"
 
 fig = plt.figure(figsize=(16, 5))
-fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig,
-                      alts=ws.disort_spectral_flux_field.alt_grid / 1e3,
-                      freqs=ws.freq_grid / 1e9, levels=50)
+fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig, levels=50)
 fig.suptitle("Disort clearsky spectral fluxes")
 [a.set_ylabel("Altitude [km]") for a in ax]
 [a.set_xlabel("Frequency [GHz]") for a in ax]

@@ -80,10 +80,7 @@ ws.disort_spectral_flux_fieldFromAgenda()
 
 f, s = pyarts.plot(
     ws.disort_spectral_flux_field,
-    freqs=pyarts.arts.convert.freq2kaycm(ws.freq_grid),
-    alts=ws.disort_spectral_flux_field.alt_grid/1e3,
     select='down_diffuse',
-    plotstyle='plot',
 )
 s.set_xlabel("Kaysers [cm$^{-1}$]")
 s.set_ylabel("Altitude [km]")
