@@ -1,6 +1,7 @@
 #include <arts_omp.h>
 #include <geodetic.h>
 #include <workspace.h>
+#include "rtepack.h"
 
 namespace {
 Vector2 specular_losNormal(const Vector2& normal, const Vector2& los, const Vector3& pos, const Vector2& ell) {
@@ -205,5 +206,127 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
   for (Size i = 0; i < NF; i++) {
     spectral_rad[i] = rtepack::reflection(spectral_rad[i], spectral_surf_refl[i], spectral_rad_surface[i]);
   }
+}
+ARTS_METHOD_ERROR_CATCH
+
+
+
+void spectral_radSurfaceScatteringFlatDiffuse(
+    const Workspace& ws,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
+    const AscendingGrid& freq_grid,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const MapOfSurfaceScatteringModel& surface_models,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const ZenGrid& zen_grid,
+    const AziGrid& az_grid,
+    const Vector&  zen_grid_weights,
+    const Vector&   az_grid_weights,
+    const Agenda& spectral_rad_incoming_agenda,
+    const Agenda& spectral_rad_closed_surface_agenda) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(
+      surf_field.bad_ellipsoid(),
+      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+      surf_field.ellipsoid)
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  Vector za_out           = {ray_point.los[0]};
+  Vector aa_out           = {ray_point.los[1]};
+  SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(surf_point,
+                                                             ray_point.pos[1],
+                                                             ray_point.pos[2],
+                                                             freq_grid,
+                                                             zen_grid,
+                                                             az_grid,
+                                                             za_out,
+                                                             aa_out);
+
+  StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
+  StokvecTensor4 spectral_rad_incoming_jac(zen_grid.size(), az_grid.size(), freq_grid.size(), jac_targets.x_size());
+  for (Size j = 0; j < zen_grid.size(); j++) {
+    for (Size k = 0; k < az_grid.size(); k++) {
+      const Vector2 los_incoming = {zen_grid[j], az_grid[k]};
+
+      StokvecVector spectral_rad_incoming_temp;
+      StokvecMatrix spectral_rad_incoming_jac_temp;
+
+      spectral_rad_incoming_agendaExecute(ws,
+                                          spectral_rad_incoming_temp,
+                                          spectral_rad_incoming_jac_temp,
+                                          freq_grid,
+                                          jac_targets,
+                                          ray_point.pos,
+                                          los_incoming,
+                                          atm_field,
+                                          surf_field,
+                                          subsurf_field,
+                                          spectral_rad_incoming_agenda);
+
+      spectral_rad_incoming[j, k, joker] = spectral_rad_incoming_temp;
+      spectral_rad_incoming_jac[j,k,joker,joker] =
+          spectral_rad_incoming_jac_temp;
+    }
+  }
+
+  StokvecVector  spectral_rad_scattered(freq_grid.size());
+  StokvecMatrix  spectral_rad_scattered_jac(jac_targets.x_size(),freq_grid.size());
+
+  // integrate over the incoming directions to get the scattered upward radiation
+  for (Size i_za  = 0; i_za < zen_grid.size(); i_za ++) {
+    for (Size i_aa = 0; i_aa < az_grid.size(); i_aa ++) {
+
+      // calculate scattered upward radiation
+      for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+        const Muelmat R  = surface_props.brdf_matrix[i_f, i_za, i_aa, 0, 0];
+        spectral_rad_scattered[i_f] += R * spectral_rad_incoming[i_za, i_aa, i_f] *
+                           zen_grid_weights[i_za] * az_grid_weights[i_aa];
+
+      }
+
+      //Calculate scattered upward radiation jacobian 
+      //For now, there is no jacobian for the surface scattering model!!!
+      for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+        for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+          const Muelmat R  = surface_props.brdf_matrix[i_f, i_za, i_aa, 0, 0];
+          spectral_rad_scattered_jac[i_jac, i_f] += R * spectral_rad_incoming_jac[i_za, i_aa, i_f, i_jac] *
+                           zen_grid_weights[i_za] * az_grid_weights[i_aa];
+        }
+      }
+    }
+  }
+
+  //Calculate jacobian for subsurface emission
+  //For now, there is no jacobian for the surface scattering model!!!
+  StokvecMatrix spectral_rad_jac_subsurface(jac_targets.x_size(), freq_grid.size());
+  for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+    for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+      spectral_rad_jac_subsurface[i_jac, i_f] = surface_props.emissivity_vector[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+    }
+  }
+
+
+
+
 }
 ARTS_METHOD_ERROR_CATCH

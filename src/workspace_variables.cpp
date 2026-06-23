@@ -616,29 +616,6 @@ will lead to undefined behavior with possibly bad values being computed.
       .dims = {"NALT", "NLAT", "NLON", "NZENITH", "NAZIMUTH", "NFREQ"},
   };
 
-  wsv_data["spectral_rad_incoming"] = {
-      .desc = R"--(A spectral radiance vector.
-
-This is the representation of the spectral radiances at discrete frequencies for
-discrete viewing directions (second and third dimension).
-
-The unit of spectral radiance is [W / m :math:`^2` sr Hz].
-
-The first dimension of this variable should be the size of the local *freq_grid*.
-)--",
-      .type = "StokvecTensor3",
-  };
-
-  wsv_data["spectral_rad_incoming_jac"] = {
-    .desc =
-        R"--(Jacobian of *spectral_rad_incoming* with respect to *jac_targets*.
-
-The last dimensionof this variable should be the size of the local *jac_targets*
-and the first dimension of *spectral_rad_incoming* should be the size of the local *freq_grid*.
-)--",
-    .type = "StokvecTensor4",
-  };
-
   wsv_data["spectral_rad_jac"] = {
       .desc =
           R"--(Jacobian of *spectral_rad* with respect to *jac_targets*.

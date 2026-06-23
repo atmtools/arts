@@ -11,7 +11,7 @@ namespace surface_scattering {
 using BRDFMatrix = MuelmatTensor5;
 
 /// Emissivity vector over (f_grid, za_scat, 4)
-using EmissivityVector = StokvecTensor3;
+using EmissivityVector = MuelmatTensor3;
 
 /** Bulk surface scattering properties accumulated across all surface models.
  *
@@ -20,7 +20,7 @@ using EmissivityVector = StokvecTensor3;
  */
 struct SurfaceScatteringModelProperties {
   /// Optional BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
-  std::optional<BRDFMatrix> brdf_matrix;
+  BRDFMatrix brdf_matrix;
   /// Emissivity vector: dims [n_f, n_za_scat, 4]
   EmissivityVector emissivity_vector;
 
