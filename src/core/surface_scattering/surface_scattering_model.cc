@@ -144,10 +144,17 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
         std::visit(visitor, model);
 
     model_props *= weights[i];
-    bsp += model_props;
+    if (i == 0) {
+      bsp = model_props;
+    } else {
+      bsp += model_props;
+    }
     i++;
   }
   return bsp;
+
+  std::cerr << " after sum:\n";
+
 }
 
 surface_scattering::SurfaceScatteringModelProperties&

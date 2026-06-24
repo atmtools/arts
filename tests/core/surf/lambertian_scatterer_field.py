@@ -144,7 +144,7 @@ try:
 
     props_orig   = sc_field.get_surface_scattering_model_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-    props_reload = sc_reload.get_bulk_surface_scattering_properties(
+    props_reload = sc_reload.get_surface_scattering_model_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 
     brdf_orig   = np.array(props_orig.brdf_matrix)
