@@ -2330,6 +2330,36 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
       .pass_workspace = true,
   };
 
+  wsm_data["spectral_radSurfaceScatteringFlatDiffuse"] = {
+      .desc =
+          R"--(Set surface spectral radiance to use sub-surface emission and surface scattering.
+
+The input path point must be close to the surface.
+
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks lives under the *SurfacePropertyTag* keys, which must be the same as in
+*surface_models*.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "zen_grid",
+                         "az_grid",
+                         "zen_grid_weights",
+                         "az_grid_weights",
+                         "spectral_rad_observer_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .pass_workspace = true,
+  };
 
   wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
       .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.

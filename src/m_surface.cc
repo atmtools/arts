@@ -235,6 +235,21 @@ void spectral_radSurfaceScatteringFlatDiffuse(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field.ellipsoid)
 
+  Vector za_out           = {ray_point.los[0]};
+  Vector aa_out           = {ray_point.los[1]};
+  SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // get the emissivity matrix and BRDF matrix, which are members of surface_props
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(surf_point,
+                                                             ray_point.pos[1],
+                                                             ray_point.pos[2],
+                                                             freq_grid,
+                                                             zen_grid,
+                                                             az_grid,
+                                                             za_out,
+                                                             aa_out);
+
   // get the subsurface emission
   StokvecVector spectral_rad_surface;
   StokvecMatrix spectral_rad_jac_surface;
@@ -248,20 +263,7 @@ void spectral_radSurfaceScatteringFlatDiffuse(
                                      subsurf_field,
                                      spectral_rad_closed_surface_agenda);
 
-  Vector za_out           = {ray_point.los[0]};
-  Vector aa_out           = {ray_point.los[1]};
-  SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
-
-  const surface_scattering::SurfaceScatteringModelProperties surface_props =
-      surface_models.get_surface_scattering_model_properties(surf_point,
-                                                             ray_point.pos[1],
-                                                             ray_point.pos[2],
-                                                             freq_grid,
-                                                             zen_grid,
-                                                             az_grid,
-                                                             za_out,
-                                                             aa_out);
-
+  // get the incoming radiation
   StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
   StokvecTensor4 spectral_rad_incoming_jac(zen_grid.size(), az_grid.size(), freq_grid.size(), jac_targets.x_size());
   for (Size j = 0; j < zen_grid.size(); j++) {
@@ -289,6 +291,7 @@ void spectral_radSurfaceScatteringFlatDiffuse(
     }
   }
 
+  // Calculate scattered radiation
   StokvecVector  spectral_rad_scattered(freq_grid.size());
   StokvecMatrix  spectral_rad_scattered_jac(jac_targets.x_size(),freq_grid.size());
 
@@ -316,6 +319,11 @@ void spectral_radSurfaceScatteringFlatDiffuse(
     }
   }
 
+  // Calculate upward emission
+  for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+    spectral_rad_surface[i_f] = surface_props.emissivity_vector[i_f, 0, 0] * spectral_rad_surface[i_f];
+  }
+
   //Calculate jacobian for subsurface emission
   //For now, there is no jacobian for the surface scattering model!!!
   StokvecMatrix spectral_rad_jac_subsurface(jac_targets.x_size(), freq_grid.size());
@@ -327,6 +335,10 @@ void spectral_radSurfaceScatteringFlatDiffuse(
 
 
 
+  spectral_rad += spectral_rad_scattered;
+  spectral_rad += spectral_rad_surface;
+  spectral_rad_jac += spectral_rad_scattered_jac;
+  spectral_rad_jac += spectral_rad_jac_surface;
 
 }
 ARTS_METHOD_ERROR_CATCH
