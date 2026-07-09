@@ -2,8 +2,6 @@ import numpy as np
 import pyarts3 as pa
 import matplotlib.pyplot as plt
 
-pa.arts.globals.omp_set_num_threads(1)
-
 ws = pa.workspace.Workspace()
 
 # %% Sampled frequency range
