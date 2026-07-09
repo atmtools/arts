@@ -371,10 +371,19 @@ void make_files(const std::vector<std::string>& full_filenames) {
 }  // namespace
 
 int main(int argn, char** argv) try {
-  if (argn < 2)
+  if (argn != 2) throw std::runtime_error("USAGE: PROG <file-with-xml-list>");
+
+  std::vector<std::string> xmlfiles;
+  std::ifstream in{argv[1]};
+  if (!in)
     throw std::runtime_error(
-        "USAGE: PROG INPUT1.XML INPUT2.xml ... INPUTX.xml");
-  const std::vector<std::string> xmlfiles{argv + 1, argv + argn};
+        std::format("Failed to open list file: {}", argv[1]));
+
+  std::string line;
+  while (std::getline(in, line)) {
+    if (!line.empty() && line.back() == '\r') line.pop_back();
+    if (!line.empty()) xmlfiles.push_back(std::move(line));
+  }
 
   make_files(xmlfiles);
 
