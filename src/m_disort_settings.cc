@@ -514,7 +514,7 @@ void disort_settingsOpticalThicknessFromPath(
   }();
 
   ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
-                     R"(Atmospheric layer thickness must be upward.
+                     R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
 
@@ -540,7 +540,7 @@ ray_path: {:B,}
                            R"(
 Not strictly increasing optical thicknesses between layers.
 
-Check *spectral_propmat_path* contain zeroes or downward values for A().
+Check *spectral_propmat_path* contain zeroes or negative values for A().
 
 Value:                {}
 Frequency grid index: {}
@@ -577,7 +577,7 @@ void disort_settingsSubsurfaceScalarAbsorption(
   }();
 
   ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
-                     R"(Atmospheric layer thickness must be upward.
+                     R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
 
