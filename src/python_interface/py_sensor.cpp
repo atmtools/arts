@@ -438,6 +438,7 @@ See :meth:`SensorObsel.normalize` for details.
           "channel"_a,
           "pos"_a,
           "bore_los"_a,
+          "ell"_a,
           R"(Map the antenna pattern onto one observation element.)");
   // generic_interface(sap);  -- this should break things.  The class is abstract
 
@@ -513,6 +514,12 @@ See :meth:`SensorObsel.normalize` for details.
       "azi_grid",
       &sensor::GaussianAiryAntenna::azi_grid,
       "Local azimuth grid of the antenna response.\n\n.. :class:`AziGrid`");
+  sgairy.def(
+      "std",
+      [](const sensor::GaussianAiryAntenna& self, py::object& f_) {
+        return vectorize([&self](Numeric f) { return self.std(f); }, f_);
+      },
+      "Standard deviation of the antenna response at a given frequency.");
   generic_interface(sgairy);
   static_assert(arts_xml_ioable<sensor::GaussianAiryAntenna>);
 
@@ -697,7 +704,8 @@ See :meth:`SensorObsel.normalize` for details.
           "__call__",
           [](const sensor::Builder& self,
              const std::vector<Vector3>& pos,
-             const std::vector<Vector2>& los) {
+             const std::vector<Vector2>& los,
+             const Vector2& ell) {
             if (pos.size() != los.size()) {
               throw std::invalid_argument(std::format(
                   "Sensor builder expects matching position and LOS counts. Got {} positions and {} LOS values.",
@@ -705,10 +713,11 @@ See :meth:`SensorObsel.normalize` for details.
                   los.size()));
             }
 
-            return self(pos, los);
+            return self(pos, los, ell);
           },
           "pos"_a,
           "los"_a,
+          "ell"_a,
           R"(Build sensor obsels and metadata from paired position and bore-LOS sequences.
 
 Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
@@ -718,15 +727,19 @@ geometry first and channel second, and the returned value is
           "__call__",
           [](const sensor::Builder& self,
              const Vector3 pos,
-             const Vector2 los) {
-            return self(std::span{&pos, 1}, std::span{&los, 1});
+             const Vector2 los,
+             const Vector2 ell) {
+            return self(std::span{&pos, 1}, std::span{&los, 1}, ell);
           },
           "pos"_a,
           "los"_a,
+          "ell"_a,
           R"(Build sensor obsels and metadata from paired position and bore-LOS.)")
       .def(
           "__call__",
-          [](const sensor::Builder& self, const SensorPosLosVector& poslos) {
+          [](const sensor::Builder& self,
+             const SensorPosLosVector& poslos,
+             const Vector2& ell) {
             std::vector<Vector3> pos(poslos.size());
             std::vector<Vector2> los(poslos.size());
 
@@ -735,9 +748,10 @@ geometry first and channel second, and the returned value is
               los[i] = poslos[i].los;
             }
 
-            return self(pos, los);
+            return self(pos, los, ell);
           },
           "poslos"_a,
+          "ell"_a,
           "Build sensor obsels and metadata from paired position/LOS samples.");
   generic_interface(ssb);
 

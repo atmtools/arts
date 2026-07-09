@@ -28,9 +28,8 @@ struct WorkspaceAgendaInternalRecord {
   std::vector<std::string> enum_options{};
   std::string enum_default{};
   std::vector<StringVectorAgendaHelper> output_constraints{};
+  std::string named_operator{};
 };
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas();
-
-std::unordered_map<std::string, std::string> internal_workspace_agenda_names();

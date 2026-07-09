@@ -40,6 +40,11 @@ class band_matrix {
     return AB[j, KU + KL + i - j];
   }
 
+  template <typename T>
+  void zero(this T&& self) {
+    std::forward<T>(self).AB = 0.0;
+  }
+
   //! Solves the system of equations A * x = b destructively
   int solve(Vector& bx);
 };

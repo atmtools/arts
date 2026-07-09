@@ -39,6 +39,8 @@ struct Builder {
   Builder& operator=(Builder&&) noexcept = default;
 
   [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(
-      std::span<const Vector3> pos, std::span<const Vector2> los) const;
+      std::span<const Vector3> pos,
+      std::span<const Vector2> los,
+      const Vector2& ell) const;
 };
 }  // namespace sensor

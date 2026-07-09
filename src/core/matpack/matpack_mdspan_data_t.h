@@ -262,6 +262,14 @@ class [[nodiscard]] data_t {
     reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
   }
 
+  template <stdr::forward_range U>
+  constexpr void append_range(U&& x)
+    requires(N == 1 and std::convertible_to<stdr::range_value_t<U>, T>)
+  {
+    data.append_range(std::forward<U>(x));
+    reset_view(std::array<Index, N>{static_cast<Index>(data.size())});
+  }
+
   constexpr void pop_back()
     requires(N == 1)
   {

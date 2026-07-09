@@ -39,7 +39,7 @@ add_test(NAME "cpp.fast.disort-cpp-test-5" COMMAND disort-cpp-test-5)
 add_test(NAME "cpp.fast.disort-cpp-test-8" COMMAND disort-cpp-test-8)
 add_test(NAME "cpp.fast.disort-cpp-test-9" COMMAND disort-cpp-test-9)
 add_test(NAME "cpp.fast.disort-cpp-test-11" COMMAND disort-cpp-test-11)
-add_test(NAME "cpp.fast.disort-test-clearsky-multilayer" COMMAND disort-cpp-test-11)
+add_test(NAME "cpp.fast.disort-test-clearsky-multilayer" COMMAND disort-test-clearsky-multilayer)
 
 add_dependencies(check-deps disort-cpp-test-1)
 add_dependencies(check-deps disort-cpp-test-2)

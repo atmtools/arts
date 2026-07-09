@@ -82,6 +82,31 @@ void py_disort(py::module_& m) try {
   vecs.doc() = "An array of BDRF functions";
   generic_interface(vecs);
 
+  py::class_<disort::coupling_result> coupling_result(disort_nm,
+                                                      "CouplingResult");
+  generic_interface(coupling_result);
+  coupling_result
+      .def_rw("iterations",
+              &disort::coupling_result::iterations,
+              "Number of fixed-point iterations\n\n.. :class:`Index`")
+      .def_rw(
+          "max_relative_change",
+          &disort::coupling_result::max_relative_change,
+          "Maximum relative interface update in the last iteration\n\n.. :class:`Numeric`")
+      .def_rw("converged",
+              &disort::coupling_result::converged,
+              "Whether the interface exchange converged\n\n.. :class:`bool`");
+  coupling_result.doc() = "The result of a DISORT interface coupling";
+
+  disort_nm.def("couple",
+                &disort::couple,
+                "atmosphere"_a,
+                "subsurface"_a,
+                "tolerance"_a      = 1e-6,
+                "max_iterations"_a = 16,
+                "relaxation"_a     = 1.0,
+                "Iteratively exchange DISORT interface boundary conditions.");
+
   py::class_<disort::main_data> x(m, "cppdisort");
   x.doc() = unwrap_stars(R"(A DISORT object.
 
@@ -303,11 +328,11 @@ The relevant references are:
   disort_settings.def_rw("legendre_coefficients",
                          &DisortSettings::legendre_coefficients,
                          ".. :class:`Tensor3`");
-  disort_settings.def_rw("positive_boundary_condition",
-                         &DisortSettings::positive_boundary_condition,
+  disort_settings.def_rw("upward_boundary_condition",
+                         &DisortSettings::upward_boundary_condition,
                          ".. :class:`Tensor3`");
-  disort_settings.def_rw("negative_boundary_condition",
-                         &DisortSettings::negative_boundary_condition,
+  disort_settings.def_rw("downward_boundary_condition",
+                         &DisortSettings::downward_boundary_condition,
                          ".. :class:`Tensor3`");
 
   py::class_<DisortFlux> df(m, "DisortFlux");
@@ -346,7 +371,7 @@ The relevant references are:
             "Azimuth grid\n\n.. :class:`AziGrid`");
   dr.def_rw("data",
             &DisortRadiance::data,
-            "Radiance field (layer values)\n\n.. :class:`Matrix`");
+            "Radiance field (layer values)\n\n.. :class:`Tensor4`");
 } catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));

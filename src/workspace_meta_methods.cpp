@@ -60,8 +60,34 @@ channel is independent.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name   = "disort_spectral_flux_fieldCoupledProfiles",
+      .desc   = R"(Use Disort for calculations of spectral flux field.
+
+The subsurface and atmosphere is computed separately before being coupled
+at each frequency.
+)",
+      .author = {"Richard Larsson"},
+      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings",
+                  "disort_spectral_flux_fieldCoupledCalc"},
+      .out     = {"disort_spectral_flux_field"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
+      .name   = "disort_spectral_rad_fieldCoupledProfiles",
+      .desc   = R"(Use Disort for calculations of spectral radiance field.
+
+The subsurface and atmosphere is computed separately before being coupled
+at each frequency.
+)",
+      .author = {"Richard Larsson"},
+      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings",
+                  "disort_spectral_rad_fieldCoupledCalc"},
+      .out     = {"disort_spectral_rad_field"},
+  });
+
+  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name   = "disort_spectral_flux_fieldFromAgenda",
-      .desc   = R"(Use Disort for clearsky calculations of spectral flux field.
+      .desc   = R"(Use Disort for calculations of spectral flux field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.

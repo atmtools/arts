@@ -16,21 +16,19 @@ const AscendingGrid& Channel::freq_grid() const { return channel.grid<0>(); }
 const Vector& Channel::weights() const { return channel.data; }
 
 DiracChannel::DiracChannel(Numeric f)
-    : Channel{.channel = {
-                  .data_name  = "dirac"s,
-                  .data       = Vector(1, 1.0),
-                  .grid_names = std::array<String, 1>{"frequency"s},
-                  .grids = std::array<AscendingGrid, 1>{AscendingGrid{f}}}} {}
+    : Channel{.channel = {.data_name  = "dirac"s,
+                          .data       = {1.0},
+                          .grid_names = {"frequency"s},
+                          .grids      = {AscendingGrid{f}}}} {}
 
 DiracChannel::DiracChannel() : DiracChannel(0) {}
 
 BoxChannel::BoxChannel(AscendingGrid f)
-    : Channel{
-          .channel = {
-              .data_name = "box"s,
-              .data = Vector(f.size(), 1.0 / static_cast<Numeric>(f.size())),
-              .grid_names = std::array<String, 1>{"frequency"s},
-              .grids      = std::array<AscendingGrid, 1>{std::move(f)}}} {}
+    : Channel{.channel = {.data_name = "box"s,
+                          .data = Vector(f.size(),
+                                         1.0 / static_cast<Numeric>(f.size())),
+                          .grid_names = {"frequency"s},
+                          .grids      = {std::move(f)}}} {}
 
 BoxChannel::BoxChannel(Numeric lower, Numeric upper, Size N)
     : BoxChannel{nlinspace(lower, upper, N)} {}
@@ -48,8 +46,8 @@ SortedGriddedField1 gauss(AscendingGrid&& f, Numeric f0, Numeric std) {
 
   return {.data_name  = "gaussian"s,
           .data       = std::move(data),
-          .grid_names = std::array<String, 1>{"frequency"s},
-          .grids      = std::array<AscendingGrid, 1>{std::move(f)}};
+          .grid_names = {"frequency"s},
+          .grids      = {std::move(f)}};
 }
 }  // namespace
 

@@ -5,6 +5,7 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
@@ -137,6 +138,12 @@ void py_surf(py::module_ &m) try {
           &SurfaceField::ellipsoid,
           "Ellipsoid parameters (semi-major axis, semi-minor axis)\n\n.. :class:`Vector2`");
   fld.def("keys", &SurfaceField::keys, "Available keys");
+  fld.def("single_value",
+          &SurfaceField::single_value,
+          "key"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get a single value at a position");
   generic_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 

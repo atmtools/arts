@@ -103,7 +103,7 @@ constexpr auto pa2hpa(auto x) noexcept { return x * 1e-2; }
 constexpr auto hpa2bar(auto x) noexcept { return x * 1e-3; }
 
 /** Conversion from bar to hPa */
-constexpr auto bar2hpa(auto x) noexcept{ return x * 1e3; }
+constexpr auto bar2hpa(auto x) noexcept { return x * 1e3; }
 
 /** Conversion from Torr to Pa */
 constexpr auto torr2pa(auto x) noexcept { return x * atm2pa(1.0 / 760.0); }
@@ -167,10 +167,20 @@ constexpr auto angstrom2meter(auto x) noexcept { return x * 1e-10; }
 constexpr auto meter2angstrom(auto x) noexcept { return x * 1e10; }
 
 /** Conversion from HWHM to STD */
-constexpr auto hwhm2std(auto x) noexcept { return x / (Constant::sqrt_ln_2 * Constant::sqrt_2); }
+constexpr auto hwhm2std(auto x) noexcept {
+  return x / (Constant::sqrt_ln_2 * Constant::sqrt_2);
+}
 
 /** Conversion from FWHM to STD */
 constexpr auto fwhm2std(auto x) noexcept { return 0.5 * hwhm2std(x); }
+
+/** Conversion from HWHM to STD */
+constexpr auto std2hwhm(auto x) noexcept {
+  return x * (Constant::sqrt_ln_2 * Constant::sqrt_2);
+}
+
+/** Conversion from FWHM to STD */
+constexpr auto std2fwhm(auto x) noexcept { return 2 * std2hwhm(x); }
 
 //! Converts the number to a metric prefix (kilo:=k, Mega:=M, nano:=n, etc)
 // And empty char (' ') is used when no conversion happens.  The function returns a pair

@@ -60,7 +60,9 @@ Builder& Builder::operator=(const Builder& other) {
 }
 
 std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::operator()(
-    std::span<const Vector3> pos, std::span<const Vector2> los) const {
+    std::span<const Vector3> pos,
+    std::span<const Vector2> los,
+    const Vector2& ell) const {
   ARTS_USER_ERROR_IF(channels.empty(), "Builder requires at least one channel")
   ARTS_USER_ERROR_IF(not antenna, "Builder requires an antenna pattern")
   ARTS_USER_ERROR_IF(pos.empty(),
@@ -87,11 +89,13 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::operator()(
 
   const auto append_geometry = [&](const Vector3& sensor_pos,
                                    const Vector2& bore_los,
+                                   const Vector2& ell,
                                    Size geometry_index) {
     std::shared_ptr<const PosLosVector> poslos_grid;
 
     for (Size ichan = 0; ichan < channels.size(); ++ichan) {
-      auto obsel = antenna->operator()(channels[ichan], sensor_pos, bore_los);
+      auto obsel =
+          antenna->operator()(channels[ichan], sensor_pos, bore_los, ell);
       obsel.set_f_grid_ptr(freq_grids[ichan]);
 
       if (not poslos_grid) {
@@ -106,7 +110,7 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::operator()(
     meta.push_back(make_meta_info(channels.size(), geometry_index));
   };
 
-  for (Size i = 0; i < pos.size(); ++i) append_geometry(pos[i], los[i], i);
+  for (Size i = 0; i < pos.size(); ++i) append_geometry(pos[i], los[i], ell, i);
 
   if (preserve_common_frequency_grid) collect_frequency_grids(out);
 

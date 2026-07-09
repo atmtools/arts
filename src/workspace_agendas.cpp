@@ -1,5 +1,7 @@
 #include "workspace_agendas.h"
 
+#include <unique_unordered_map.h>
+
 #include <format>
 
 using namespace std::literals;
@@ -7,7 +9,7 @@ using namespace std::literals;
 namespace {
 std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas_creator() {
-  std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
+  UniqueMap<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
   wsa_data["spectral_propmat_agenda"] = {
       .desc =
@@ -293,17 +295,43 @@ as well.
                        "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
-      .output_constraints = {
-          {"spectral_rad.size() == freq_grid.size()",
-           "On output, *spectral_rad* has the size of *freq_grid*.",
-           "spectral_rad.size()",
-           "freq_grid.size()"},
-          {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-           "spectral_rad_jac.shape()",
-           "freq_grid.size()",
-           "jac_targets.x_size()"},
-      }};
+      .output_constraints =
+          {
+              {"spectral_rad.size() == freq_grid.size()",
+               "On output, *spectral_rad* has the size of *freq_grid*.",
+               "spectral_rad.size()",
+               "freq_grid.size()"},
+              {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
+               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
+               "spectral_rad_jac.shape()",
+               "freq_grid.size()",
+               "jac_targets.x_size()"},
+          },
+      .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
+
+  wsa_data["spectral_rad_closed_surface_agenda"] = {
+      .desc         = R"--(A closed surface agenda.
+
+It behave exactly like *spectral_rad_surface_agenda*.  It exists
+to allow chaining surface agendas.  The idea is that the main
+*spectral_rad_surface_agenda* variable is the first interface
+and can chain into another surface agenda - this one.
+
+Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
+whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
+the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
+and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
+It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
+that is being emitted.  That's the type of use case this agenda is made for and why it exists!
+)--",
+      .output       = wsa_data.at("spectral_rad_surface_agenda").output,
+      .input        = wsa_data.at("spectral_rad_surface_agenda").input,
+      .enum_options = {"Blackbody"},
+      .enum_default = "Blackbody",
+      .output_constraints =
+          wsa_data.at("spectral_rad_surface_agenda").output_constraints,
+      .named_operator =
+          wsa_data.at("spectral_rad_surface_agenda").named_operator};
 
   wsa_data["single_rad_surface_agenda"] = {
       .desc =
@@ -406,19 +434,46 @@ it does a lot of unnecessary checks and operations that are not always needed.
            "spectral_surf_refl_jac.shape()"}}};
 
   wsa_data["disort_settings_agenda"] = {
-      .desc   = R"--(An agenda for setting up Disort.
+      .desc           = R"--(An agenda for setting up Disort.
 
 See *disort_settings_agendaSetup* for prepared agenda settings.
 
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
-      .output = {"disort_settings"},
-      .input  = {"freq_grid",
-                 "ray_path",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension"}};
+      .output         = {"disort_settings"},
+      .input          = {"freq_grid",
+                         "ray_path",
+                         "disort_quadrature_dimension",
+                         "disort_fourier_mode_dimension",
+                         "disort_legendre_polynomial_dimension"},
+      .named_operator = "DisortSettingsAgendaOperator"};
+
+  wsa_data["atm_disort_settings_agenda"] = {
+      .desc =
+          R"--(A specialization of *disort_settings_agenda* for atmospheric calculations.
+
+.. seealso::
+    *subsurf_disort_settings_agenda* for a similar agenda for subsurface calculations..
+)--",
+      .output = wsa_data.at("disort_settings_agenda").output,
+      .input  = wsa_data.at("disort_settings_agenda").input,
+      .output_constraints =
+          wsa_data.at("disort_settings_agenda").output_constraints,
+      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
+
+  wsa_data["subsurf_disort_settings_agenda"] = {
+      .desc =
+          R"--(A specialization of *disort_settings_agenda* for subsurface calculations.
+
+.. seealso::
+    *atm_disort_settings_agenda* for a similar agenda for atmospheric calculations.
+)--",
+      .output = wsa_data.at("disort_settings_agenda").output,
+      .input  = wsa_data.at("disort_settings_agenda").input,
+      .output_constraints =
+          wsa_data.at("disort_settings_agenda").output_constraints,
+      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["disort_settings_downwelling_wrapper_agenda"] = {
       .desc   = R"--(An wrapper agenda for calling *disort_settings_agenda*.
@@ -458,15 +513,18 @@ as a boundary condition to subsurface radiance calculation.
           name);
     }
 
-    record.desc += std::format(R"(
+    record.desc +=
+        std::format(R"(
 You can execute *{0}* directly from the workspace by calling *{0}Execute*.
 
-As all agendas in ARTS, it is also customizable via its operator helper class: *{0}Operator*.
+As all agendas in ARTS, it is also customizable via its operator helper class: *{1}*.
 See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
 
 Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully define an agenda in python.
 )",
-                               name);
+                    name,
+                    record.named_operator.empty() ? name + "Operator"
+                                                  : record.named_operator);
     if (not record.output_constraints.empty()) {
       record.desc +=
           std::format(R"(
@@ -481,20 +539,12 @@ Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully d
     record.desc += "\n";
   }
 
-  return wsa_data;
+  return std::move(wsa_data.map);
 }
 }  // namespace
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
 internal_workspace_agendas() {
   static const auto out = internal_workspace_agendas_creator();
-  return out;
-}
-
-std::unordered_map<std::string, std::string> internal_workspace_agenda_names() {
-  std::unordered_map<std::string, std::string> out;
-
-  out["spectral_rad_closed_surface_agenda"] = "spectral_rad_surface_agenda";
-
   return out;
 }

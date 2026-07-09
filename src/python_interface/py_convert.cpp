@@ -91,6 +91,30 @@ These all should work with any array-like type
       rad2deg, Numeric, "radians [rad]", "degrees [deg]", "rad", "deg");
   PythonInterfaceConvert(
       deg2rad, Numeric, "degrees [deg]", "radians [rad]", "deg", "rad");
+  PythonInterfaceConvert(fwhm2std,
+                         Numeric,
+                         "Full Width at Half Maximum",
+                         "Standard Deviation",
+                         "fwhm",
+                         "std");
+  PythonInterfaceConvert(hwhm2std,
+                         Numeric,
+                         "Half Width at Half Maximum",
+                         "Standard Deviation",
+                         "hwhm",
+                         "std");
+  PythonInterfaceConvert(std2fwhm,
+                         Numeric,
+                         "Standard Deviation",
+                         "Full Width at Half Maximum",
+                         "std",
+                         "fwhm");
+  PythonInterfaceConvert(std2hwhm,
+                         Numeric,
+                         "Standard Deviation",
+                         "Half Width at Half Maximum",
+                         "std",
+                         "hwhm");
 
   convert.def(
       "metric_prefix",

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -49,7 +50,13 @@ void add_select_options(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data,
 }
 
 void agenda_operators(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data) {
+  std::set<std::string> ops{};
   for (auto& [name, ag] : internal_workspace_agendas()) {
+    if (not ag.named_operator.empty()) {
+      ops.insert(ag.named_operator);
+      continue;
+    }
+
     wsg_data[name + "Operator"] = {
         .file = "auto_agenda_operators.h",
         .desc =
@@ -58,6 +65,22 @@ void agenda_operators(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data) {
             name +
             "*\n\n.. note::\n    Output constraints must be followed\n\n",
     };
+  }
+
+  for (const auto& op : ops) {
+    auto& v = wsg_data[op];
+    v = {.file = "auto_agenda_operators.h", .desc = "A common agenda operator"};
+
+    for (auto& [name, ag] : internal_workspace_agendas()) {
+      if (ag.named_operator != op) continue;
+
+      v.desc +=
+          "\n\n" + ag.desc +
+          "\n\nThis is the free-form customization point of the agenda *" +
+          name + "*";
+    }
+
+    v.desc += "\n\n.. note::\n    Output constraints must be followed\n\n";
   }
 }
 

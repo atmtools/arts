@@ -382,6 +382,7 @@ namespace Python {{
 void py_auto_agenda_operators(py::module_& m) {{
 )");
 
+  std::set<std::string> seen;
   for (auto& [name, ag] : internal_workspace_agendas()) {
     std::vector<std::string> input;
     std::vector<std::string> vars;
@@ -414,19 +415,23 @@ void py_auto_agenda_operators(py::module_& m) {{
           unwrap_stars(short_doc(v)));
     }
 
+    const std::string op =
+        ag.named_operator.empty() ? (name + "Operator") : ag.named_operator;
+    if (auto [_, new_] = seen.insert(op); not new_) continue;
+
     std::print(cpp,
                R"(
-  py::class_<{0}Operator> {0}_operator(m, "{0}Operator");
+  py::class_<{7}> {0}_operator(m, "{7}");
     {0}_operator.def("__init__",
-            []({0}Operator* op, {0}Operator::func_t f) {{
-              new (op) {0}Operator([f = std::move(f)]({1:,}) {{
+            []({7}* op, {7}::func_t f) {{
+              new (op) {7}([f = std::move(f)]({1:,}) {{
                 py::gil_scoped_acquire gil{{}};
                 return f({2:,});
               }});
             }})
         .def(
             "__call__",
-            []({0}Operator& f, {1:,}) {{
+            []({7}& f, {1:,}) {{
               return f.f({2:,});
             }},
             {3:,},
@@ -442,9 +447,9 @@ Returns
 )-x-"
             );
     generic_interface({0}_operator);
-    py::implicitly_convertible<{0}Operator::func_t,
-                               {0}Operator>();
-    {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda: :attr:`~pyarts3.workspace.Workspace.{0}`.
+    py::implicitly_convertible<{7}::func_t,
+                               {7}>();
+    {0}_operator.doc() = R"-x-(This is the operator for free customization of the agenda.  See :attr:`~pyarts3.arts.{7}` for more information.
 
 The python meta-code to make use of this operator class instead of the standard agenda in a workspace reads like this:
 
@@ -486,7 +491,8 @@ Failure to follow these rules will result in a runtime error.
                vars,
                params,
                retval,
-               ag.output);
+               ag.output,
+               op);
   }
 
   std::println(cpp, "}}}}\n");

@@ -86,6 +86,16 @@ void py_path(py::module_& m) try {
                       })};
       },
       "Get all the azimuths in the path");
+  a1.def(
+      "to_ecef",
+      [](const ArrayOfPropagationPathPoint& path, const Vector2& ellipsoid) {
+        return ArrayOfVector3{
+            std::from_range,
+            path | stdv::transform([ellipsoid](const PropagationPathPoint& p) {
+              return geodetic2ecef(p.pos, ellipsoid);
+            })};
+      },
+      "Get all the ECEF positions in the path");
   generic_interface(a1);
   vector_interface(a1);
 

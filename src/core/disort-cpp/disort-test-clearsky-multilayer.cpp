@@ -2950,8 +2950,8 @@ int main() {
   dis.omega()               = 0.0;
   dis.f()                   = 0.0;
   dis.all_legendre_coeffs() = Matrix(N, 1, 1.0);
-  dis.positive_boundary()   = 0.0;
-  dis.negative_boundary()   = 0.0;
+  dis.upward_boundary()   = 0.0;
+  dis.downward_boundary()   = 0.0;
   dis.brdf_modes()[0]       = disort::BDRF{[](MatrixView x,
                                         const ConstVectorView&,
                                         const ConstVectorView&) { x = 0.0; }};

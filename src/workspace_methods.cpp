@@ -276,6 +276,9 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 )",
                                            agname));
 
+    const std::string op =
+        ag.named_operator.empty() ? (agname + "Operator") : ag.named_operator;
+
     std::vector<std::string> input = ag.input;
     input.push_back(agname);
     std::vector<std::string> input_op = ag.input;
@@ -293,25 +296,27 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
     wsm_data[agname + "ExecuteOperator"] = {
         .desc = std::format(
-            "Executes an operator emulating *{0}*, see it, and also *{0}Operator*, for more details\n",
-            agname),
+            "Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n",
+            agname,
+            op),
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
         .gin       = {agname + "_operator"},
-        .gin_type  = {agname + "Operator"},
+        .gin_type  = {op},
         .gin_value = {std::nullopt},
         .gin_desc  = {"Operator for *" + agname + "*"},
     };
 
     wsm_data[agname + "SetOperator"] = {
         .desc = std::format(
-            "Set *{0}* to exclusively use provided external operator.  See *{0}Operator* for more details.\n",
-            agname),
+            "Set *{0}* to exclusively use provided external operator.  See *{1}* for more details.\n",
+            agname,
+            op),
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
-        .gin_type  = {agname + "Operator"},
+        .gin_type  = {op},
         .gin_value = {std::nullopt},
         .gin_desc  = {"Operator for *" + agname + "*"},
     };
@@ -5609,13 +5614,10 @@ A description of the options is given below.
 )--",
         .author    = {"Richard Larsson"},
         .out       = {"disort_settings_agenda"},
-        .gin       = {"sun_setting", other.gin[0], "fading_bottom"},
-        .gin_type  = {"String", other.gin_type[0], "Index"},
-        .gin_value = {String{"None"}, other.gin_value[0], Index{1}},
-        .gin_desc =
-            {"Sun settings",
-             other.gin_desc[0],
-             "If true, the bottom layer has no input from below (i.e., no emission or transmission from below)."},
+        .gin       = {"sun_setting", other.gin[0]},
+        .gin_type  = {"String", other.gin_type[0]},
+        .gin_value = {String{"None"}, other.gin_value[0]},
+        .gin_desc  = {"Sun settings", other.gin_desc[0]},
     };
   }
 
@@ -5833,6 +5835,28 @@ Sets both upper and lower bounds.
       .gin_desc  = {"The azimuthal angles"},
   };
 
+  wsm_data["disort_spectral_rad_fieldCoupledCalc"] = {
+      .desc      = R"(Perform Disort calculations for spectral radiance.
+
+This effectively executed *disort_spectral_rad_fieldCalc* for both atmospheric
+and subsurface calculations based on their settings.  It then couples the two
+fields by setting the lower boundary of the atmospheric field to the upper boundary
+of the subsurface field, and vice versa (in a relaxed linear interpolation way).
+The coupling is iterated until the change in the coupled boundary is below some
+relative tolerance or a maximum number of iterations is reached.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
+      .in        = {"atm_disort_settings", "subsurf_disort_settings"},
+      .gin       = {"azi_grid", "tolerance", "max_iterations", "relaxation"},
+      .gin_type  = {"AziGrid", "Numeric", "Index", "Numeric"},
+      .gin_value = {AziGrid{{0.0}}, Numeric{1e-4}, Index{20}, Numeric{0.5}},
+      .gin_desc  = {"The azimuthal angles",
+                    "Maximum relative change to be considered in the coupling",
+                    "Maximum iterations in the coupling",
+                    "The rate of approach to the coupled boundary"},
+  };
+
 #ifdef ENABLE_CDISORT
   wsm_data["disort_spectral_rad_fieldCalcCdisort"] = {
       .desc      = R"(Perform CDisort calculations for spectral radiance.
@@ -5861,23 +5885,25 @@ CDisort is only included for testing and comparisons with our own disort impleme
       .in     = {"disort_settings"},
   };
 
-  wsm_data["SpectralFluxDisort"] = {
-      .desc      = R"(Integrate Disort spectral radiance.
+  wsm_data["disort_spectral_flux_fieldCoupledCalc"] = {
+      .desc      = R"(Perform Disort calculations for spectral flux.
+
+This effectively executed *disort_spectral_flux_fieldCalc* for both atmospheric
+and subsurface calculations based on their settings.  It then couples the two
+fields by setting the lower boundary of the atmospheric field to the upper boundary
+of the subsurface field, and vice versa (in a relaxed linear interpolation way).
+The coupling is iterated until the change in the coupled boundary is below some
+relative tolerance or a maximum number of iterations is reached.
 )",
       .author    = {"Richard Larsson"},
-      .gout      = {"spectral_flux_field_up", "spectral_flux_field_down"},
-      .gout_type = {"Matrix", "Matrix"},
-      .gout_desc = {"Upward spectral flux field",
-                    "Downward spectral flux field"},
-      .in        = {"disort_spectral_flux_field"},
-  };
-
-  wsm_data["spectral_radIntegrateDisort"] = {
-      .desc   = R"(Integrate Disort spectral radiance.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_rad"},
-      .in     = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out       = {"disort_spectral_flux_field"},
+      .in        = {"atm_disort_settings", "subsurf_disort_settings"},
+      .gin       = {"tolerance", "max_iterations", "relaxation"},
+      .gin_type  = {"Numeric", "Index", "Numeric"},
+      .gin_value = {Numeric{1e-4}, Index{20}, Numeric{0.5}},
+      .gin_desc  = {"Maximum relative change to be considered in the coupling",
+                    "Maximum iterations in the coupling",
+                    "The rate of approach to the coupled boundary"},
   };
 
   wsm_data["spectral_radFromDisort"] = {
@@ -5977,6 +6003,30 @@ the smallest possible numerical offset from that angle in the signed direction.
       .pass_workspace = true,
   };
 
+  wsm_data["ray_path_observersFromSensor"] = {
+      .desc =
+          R"(Extract position and line of sights for a sensor.
+
+This is a simple wrapper method useful in conjunction with *ray_path_fieldFromObserverAgenda*
+to get the sensor geometry.  The 
+
+The output ``ray_path_observers_weights`` contains the weights for the ray path observers.
+It will have the dimension of *ray_path_observers* and sum to 1.  The values will be the summed weights
+of the sensor element at ``idx`` at the chosen ``pol`` polarization.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"ray_path_observers"},
+      .gout      = {"ray_path_observers_weights"},
+      .gout_type = {"Vector"},
+      .gout_desc = {"The weights for the ray path field"},
+      .in        = {"measurement_sensor"},
+      .gin       = {"idx", "pol"},
+      .gin_type  = {"Index", "Stokvec"},
+      .gin_value = {Index{0}, Stokvec{1.0, 0.0, 0.0, 0.0}},
+      .gin_desc  = {"The index of the sensor element to extract",
+                    "The polarization to extract"},
+  };
+
   wsm_data["ray_path_observersFluxProfile"] = {
       .desc =
           R"(Add :math:`n` observers per altitude point.
@@ -6062,6 +6112,29 @@ Neither polarization nor wind calculations are possible with this method.
                  "spectral_propmat_jac_profile",
                  "spectral_nlte_srcvec_profile",
                  "spectral_nlte_srcvec_jac_profile"},
+  };
+
+  wsm_data["CoupledAtmosphereAndSubsurfaceDisortSettings"] = {
+      .desc =
+          R"(Use *alt_grid* to create a coupled atmospheric and subsurface *DisortSettings*.
+
+The surface elevation at the input *lat* and *lon* must be within the *alt_grid* range.
+When used to compute *disort_spectral_rad_field* or *disort_spectral_flux_field*, their
+respective internal altitude grids will contain the surface elevation as a grid point.
+)",
+      .author         = {"Richard Larsson"},
+      .out            = {"atm_disort_settings", "subsurf_disort_settings"},
+      .in             = {"atm_disort_settings_agenda",
+                         "subsurf_disort_settings_agenda",
+                         "surf_field",
+                         "freq_grid",
+                         "alt_grid",
+                         "lat",
+                         "lon",
+                         "disort_quadrature_dimension",
+                         "disort_fourier_mode_dimension",
+                         "disort_legendre_polynomial_dimension"},
+      .pass_workspace = true,
   };
 
   wsm_data["ProfileFromAltitude"] = {

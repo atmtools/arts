@@ -47,11 +47,10 @@ void ray_path_observersFieldProfilePseudo2D(
                      "Must have at least 2 observers per meta-direction.")
 
   const Vector3 top_pos = {atm_field.top_of_atmosphere, lat, lon};
-  const Vector3 bot_pos = {
-      surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
+  const Vector3 bot_pos = {surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
 
-  const Numeric za_surf_limb = surf_tangent_zenithFromAgenda(
-      ws, top_pos, ray_path_observer_agenda, azi);
+  const Numeric za_surf_limb =
+      surf_tangent_zenithFromAgenda(ws, top_pos, ray_path_observer_agenda, azi);
 
   const Index N = nlimb + nup + ndown;
   arr::resize(0, ray_path_observers);
@@ -84,6 +83,36 @@ void ray_path_observersFieldProfilePseudo2D(
                                   .pos      = top_pos,
                                   .los      = {za, azi}});
   }
+}
+
+void ray_path_observersFromSensor(
+    ArrayOfPropagationPathPoint& ray_path_observers,
+    Vector& ray_path_observers_weights,
+    const ArrayOfSensorObsel& measurment_sensor,
+    const Index& idx,
+    const Stokvec& pol) {
+  ARTS_USER_ERROR_IF(static_cast<Size>(idx) >= measurment_sensor.size(),
+                     "Sensor index out of bounds: {} not in [0, {})",
+                     idx,
+                     measurment_sensor.size())
+
+  const auto& obsel  = measurment_sensor[idx];
+  const auto& poslos = obsel.poslos_grid();
+  const Size n       = poslos.size();
+
+  ray_path_observers.clear();
+  ray_path_observers_weights.clear();
+
+  ray_path_observers.reserve(n);
+  ray_path_observers_weights.reserve(n);
+
+  for (Size i = 0; i < n; i++) {
+    const auto& pl = poslos[i];
+    ray_path_observers.push_back({.pos = pl.pos, .los = pl.los});
+    ray_path_observers_weights.push_back(obsel.sumup(pol, i));
+  }
+
+  ray_path_observers_weights /= sum(ray_path_observers_weights);
 }
 
 void ray_path_observersFluxProfile(

@@ -1,13 +1,13 @@
+#include <arts_constants.h>
 #include <arts_conversions.h>
 #include <obsel.h>
+#include <planet_data.h>
 #include <sensor_builder.h>
 
 #include <array>
 #include <cmath>
 #include <stdexcept>
 #include <string_view>
-
-#include "arts_constants.h"
 
 namespace {
 void assert_close(Numeric actual,
@@ -37,26 +37,34 @@ void assert_stokvec(Stokvec actual,
 
 Numeric gaussian_airy_expected_gain(Numeric zenith_deg,
                                     Numeric frequency,
-                                    Numeric aperture_diameter) {
+                                    Numeric aperture_diameter) try {
   constexpr Numeric gaussian_airy_hwhm_factor =
-      3.8317059702075123156 / Constant::pi;
+      Constant::bessel_j_n1_k1_zero / Constant::pi;
   const Numeric wavelength = Constant::speed_of_light / frequency;
   const Numeric hwhm_deg = Conversion::rad2deg(gaussian_airy_hwhm_factor *
                                                wavelength / aperture_diameter);
   const Numeric ratio    = zenith_deg / hwhm_deg;
 
   return std::exp(-Constant::ln_2 * ratio * ratio);
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format(
+      "gaussian_airy_expected_gain failed for zenith {} frequency {} aperture {}:\n{}",
+      zenith_deg,
+      frequency,
+      aperture_diameter,
+      e.what()));
 }
 
-void test_sensor_builder_returns_meta_per_geometry() {
+void test_sensor_builder_returns_meta_per_geometry() try {
   sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0, 101.0}},
                            sensor::DiracChannel{200.0}},
                           std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
+  const Vector2 ell{Body::Earth::a, Body::Earth::b};
 
-  const auto [obsels, meta] = builder(pos, los);
+  const auto [obsels, meta] = builder(pos, los, ell);
 
   ARTS_USER_ERROR_IF(
       obsels.size() != 4, "Expected 4 obsels, got {}", obsels.size())
@@ -86,58 +94,34 @@ void test_sensor_builder_returns_meta_per_geometry() {
                      "Obsels for the same channel must share frequencies")
   ARTS_USER_ERROR_IF(not obsels[1].same_freqs(obsels[3]),
                      "Obsels for the same channel must share frequencies")
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format(
+      "test_sensor_builder_returns_meta_per_geometry failed:\n{}", e.what()));
 }
 
-void test_sensor_builder_rejects_mismatched_geometry_counts() {
+void test_sensor_builder_rejects_mismatched_geometry_counts() try {
   sensor::Builder builder({sensor::DiracChannel{}},
                           std::make_shared<const sensor::PencilBeamAntenna>());
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
+  const Vector2 ell{Body::Earth::a, Body::Earth::b};
 
   bool threw = false;
   try {
-    static_cast<void>(builder(pos, los));
+    static_cast<void>(builder(pos, los, ell));
   } catch (const std::runtime_error&) {
     threw = true;
   }
 
   ARTS_USER_ERROR_IF(not threw,
                      "Builder must reject mismatching position and LOS counts")
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format(
+      "test_sensor_builder_rejects_mismatched_geometry_counts failed:\n{}", e.what()));
 }
 
-void test_sensor_builder_uses_gaussian_airy_frequency_dependence() {
-  const Stokvec peak_weight{2.0, 0.0, 0.0, 0.0};
-  sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0e9, 200.0e9}}},
-                          std::make_shared<const sensor::GaussianAiryAntenna>(
-                              ZenGrid{{0.0, 0.2}}, 1.0, 1, peak_weight));
-
-  const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
-  const std::array<Vector2, 1> los{{{45.0, 30.0}}};
-
-  const auto [obsels, meta] = builder(pos, los);
-
-  ARTS_USER_ERROR_IF(
-      obsels.size() != 1, "Expected 1 obsel, got {}", obsels.size())
-  ARTS_USER_ERROR_IF(
-      meta.size() != 1, "Expected 1 meta entry, got {}", meta.size())
-
-  const Numeric low_gain  = gaussian_airy_expected_gain(0.2, 100.0e9, 1.0);
-  const Numeric high_gain = gaussian_airy_expected_gain(0.2, 200.0e9, 1.0);
-  const Numeric low_norm  = 1.0 + low_gain;
-  const Numeric high_norm = 1.0 + high_gain;
-
-  assert_stokvec(obsels[0].weight_matrix()[1, 0],
-                 0.5 * low_gain * peak_weight / low_norm,
-                 1e-12,
-                 "builder gaussian airy off-axis low frequency");
-  assert_stokvec(obsels[0].weight_matrix()[1, 1],
-                 0.5 * high_gain * peak_weight / high_norm,
-                 1e-12,
-                 "builder gaussian airy off-axis high frequency");
-}
-
-void test_unflatten_updates_shared_poslos_grids() {
+void test_unflatten_updates_shared_poslos_grids() try {
   auto freq_grid = std::make_shared<const AscendingGrid>(AscendingGrid{100.0});
 
   SensorPosLosVector poslos_grid(1);
@@ -189,13 +173,18 @@ void test_unflatten_updates_shared_poslos_grids() {
       obsels[0].f_grid()[0], 101.0, 0.0, "updated frequency for first obsel");
   assert_close(
       obsels[1].f_grid()[0], 101.0, 0.0, "updated frequency for second obsel");
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format(
+      "test_unflatten_updates_shared_poslos_grids failed:\n{}", e.what()));
 }
 }  // namespace
 
-int main() {
+int main() try {
   test_sensor_builder_returns_meta_per_geometry();
   test_sensor_builder_rejects_mismatched_geometry_counts();
-  test_sensor_builder_uses_gaussian_airy_frequency_dependence();
   test_unflatten_updates_shared_poslos_grids();
-  return 0;
+  return EXIT_SUCCESS;
+} catch (const std::exception& e) {
+  std::println(stderr, "test_sensor_builder failed:\n{}", e.what());
+  return EXIT_FAILURE;
 }

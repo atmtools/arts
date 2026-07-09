@@ -169,6 +169,7 @@ class Obsel {
    */
   void normalize(Stokvec pol = {1., 0., 0., 0.});
 
+  [[nodiscard]] Numeric sumup(const Stokvec& i, Index ip) const;
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
   void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
 

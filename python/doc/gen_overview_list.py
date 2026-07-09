@@ -16,8 +16,6 @@ def agendas():
     existing = pyarts.workspace.Workspace().__dir__()
 
     main = list(pyarts.arts.globals.workspace_agendas().keys())
-    extra = list(pyarts.arts.globals.workspace_agendas_extra().keys())
-    main.extend(extra)
     vars = sort_ignore_case(main)
     txt = f""".. hlist::
     :columns: {_hlist_num_cols(vars)}
