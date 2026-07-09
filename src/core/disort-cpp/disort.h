@@ -6,6 +6,7 @@
 
 #include <format>
 #include <iosfwd>
+#include <limits>
 #include <string_view>
 
 #include "disort-eigen.h"
@@ -23,6 +24,8 @@ struct radiances {
               AziGrid azi_grid,
               ZenGrid zen_grid);
 
+  [[nodiscard]] radiances combine(const radiances& other) const;
+
   void sort(const Vector& solver_mu);
 };
 
@@ -34,6 +37,8 @@ struct fluxes {
   Matrix down_direct;       // nf, nl - 1
 
   void resize(AscendingGrid freq_grid, DescendingGrid alt_grid);
+
+  [[nodiscard]] fluxes combine(const fluxes& other) const;
 };
 
 struct BDRF {
@@ -102,6 +107,12 @@ struct flux_data {
   Vector u0_neg;
 };
 
+struct coupling_result {
+  Index iterations{0};
+  Numeric max_relative_change{0.0};
+  bool converged{false};
+};
+
 /** The main data structure for the DISORT algorithm
  * 
  * This pre-allocates all the memory needed for the computations
@@ -130,8 +141,8 @@ class main_data {
   Vector f_arr{};                          // [NLayers]
   Matrix source_poly_coeffs{};             // [NLayers, Nscoeffs]
   Matrix Leg_coeffs_all{};                 // [NLayers, NLeg_all]
-  Matrix b_pos{};                          // [NFourier, N]
-  Matrix b_neg{};                          // [NFourier, N]
+  Matrix boundary_up{};                    // [NFourier, N]
+  Matrix boundary_down{};                  // [NFourier, N]
   std::vector<BDRF> brdf_fourier_modes{};  // [NBDRF]
   Numeric mu0{};
   Numeric I0{};
@@ -221,8 +232,8 @@ class main_data {
             AscendingGrid tau_arr,
             Vector omega_arr,
             Matrix Leg_coeffs_all,
-            Matrix b_pos,
-            Matrix b_neg,
+            Matrix boundary_up,
+            Matrix boundary_down,
             Vector f_arr,
             Matrix source_poly_coeffs,
             std::vector<BDRF> brdf_fourier_modes,
@@ -323,6 +334,7 @@ class main_data {
     */
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
+  void layer_um(MatrixView um, Size l) const;
   void gridded_u(Tensor3View, const Vector& phi) const;
   void gridded_flux(VectorView up,
                     VectorView down,
@@ -475,8 +487,8 @@ class main_data {
     * - K_collect 
     * - B_collect 
     * - source_poly_coeffs 
-    * - b_pos 
-    * - b_neg 
+    * - boundary_up 
+    * - boundary_down 
     * - tau_arr 
     * - scaled_tau_arr_with_0 
     * - brdf_fourier_modes 
@@ -523,7 +535,7 @@ class main_data {
     * Not safe for parallel use.
     * 
     * Depends on:
-    * - b_pos
+    * - boundary_up
     *
     * Modifies:
     * - I0_orig
@@ -575,10 +587,10 @@ class main_data {
   [[nodiscard]] auto&& all_legendre_coeffs() const { return Leg_coeffs_all; }
 
   //! Positive Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto&& positive_boundary() const { return b_pos; }
+  [[nodiscard]] auto&& upward_boundary() const { return boundary_up; }
 
   //! Negative Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto&& negative_boundary() const { return b_neg; }
+  [[nodiscard]] auto&& downward_boundary() const { return boundary_down; }
 
   //! Fourier modes of the BRDF - NBDRF
   [[nodiscard]] auto&& brdf_modes() const { return brdf_fourier_modes; }
@@ -615,10 +627,10 @@ class main_data {
   }
 
   //! Positive Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto positive_boundary() { return MatrixView{b_pos}; }
+  [[nodiscard]] auto upward_boundary() { return MatrixView{boundary_up}; }
 
   //! Negative Fourier coefficients of the beam source - NFourier x N
-  [[nodiscard]] auto negative_boundary() { return MatrixView{b_neg}; }
+  [[nodiscard]] auto downward_boundary() { return MatrixView{boundary_down}; }
 
   //! Fourier modes of the BRDF - NBDRF
   [[nodiscard]] auto brdf_modes() { return std::span{brdf_fourier_modes}; }
@@ -626,22 +638,34 @@ class main_data {
   //! The cosine of the beam source zenith angle
   [[nodiscard]] Numeric& solar_zenith() { return mu0; }
 
-  /** The intensity of the beam source
-    * 
-    * This function is disabled, use set_beam_source instead, or if
-    * it is part of a larger update, use update_all.
-    *
-    * If you really want the beam source intensity, you can use the
-    * const version of this function by first const-casting your object.
-    */
-  [[nodiscard]] Numeric& beam_source() = delete;
-
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
 
   //! Get weights on a grid
   [[nodiscard]] ZenGriddedField1 gridded_weights() const;
 };
+
+/** Iteratively exchange interface boundary conditions between two DISORT models
+  *
+  * The atmosphere lower boundary is updated from the subsurface top interface
+  * field, and the subsurface upper boundary is updated from the atmosphere
+  * bottom interface field. The exchanged quantities are the Fourier-mode
+  * boundary arrays expected by main_data::positive_boundary and
+  * main_data::negative_boundary.
+  *
+  * Both models must use the same quadrature and Fourier dimensions.
+  *
+  * @param atmosphere Atmospheric DISORT model. Its positive boundary is updated.
+  * @param subsurface Subsurface DISORT model. Its negative boundary is updated.
+  * @param tolerance Relative convergence tolerance for exchanged boundaries.
+  * @param max_iterations Maximum number of fixed-point iterations.
+  * @param relaxation Under-relaxation factor in (0, 1].
+  */
+[[nodiscard]] coupling_result couple(main_data& atmosphere,
+                                     main_data& subsurface,
+                                     Numeric tolerance    = 1e-6,
+                                     Index max_iterations = 16,
+                                     Numeric relaxation   = 1.0);
 }  // namespace disort
 
 using DisortBDRF         = disort::BDRF;
@@ -684,10 +708,10 @@ struct DisortSettings {
   Tensor3 legendre_coefficients{};
 
   // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2
-  Tensor3 positive_boundary_condition{};
+  Tensor3 upward_boundary_condition{};
 
   // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.
-  Tensor3 negative_boundary_condition{};
+  Tensor3 downward_boundary_condition{};
 
   DisortSettings() = default;
 
@@ -781,11 +805,11 @@ struct std::formatter<disort::main_data> {
                        "Leg_coeffs_all: "sv,
                        v.Leg_coeffs_all,
                        sep,
-                       "b_pos: "sv,
-                       v.b_pos,
+                       "boundary_up: "sv,
+                       v.boundary_up,
                        sep,
-                       "b_neg: "sv,
-                       v.b_neg,
+                       "boundary_down: "sv,
+                       v.boundary_down,
                        sep,
                        "brdf_fourier_modes: "sv,
                        // v.brdf_fourier_modes,
@@ -941,129 +965,129 @@ struct std::formatter<DisortSettings> {
     if (tags.short_str) {
       return tags.format(
           ctx,
-          R"-x-(quadrature_dimension:          ")-x-"sv,
+          R"-x-(quadrature_dimension:          )-x-"sv,
           v.quadrature_dimension,
           R"-x-(
-legendre_polynomial_dimension: ")-x-"sv,
+legendre_polynomial_dimension: )-x-"sv,
           v.legendre_polynomial_dimension,
           R"-x-(
-fourier_mode_dimension:        ")-x-"sv,
+fourier_mode_dimension:        )-x-"sv,
           v.fourier_mode_dimension,
           R"-x-(
-freq_grid.size():         ")-x-"sv,
+freq_grid.size():              )-x-"sv,
           v.freq_grid.size(),
           R"-x-(
-alt_grid.size():          ")-x-"sv,
+alt_grid.size():               )-x-"sv,
           v.alt_grid.size(),
           R"-x-(
-nsrc:                          ")-x-"sv,
+nsrc:                          )-x-"sv,
           v.source_polynomial.ncols(),
           R"-x-(
-nbrdf:                         ")-x-"sv,
+nbrdf:                         )-x-"sv,
           v.bidirectional_reflectance_distribution_functions.ncols(),
           R"-x-(
 
-solar_source.shape():                                     ")-x-"sv,
+solar_source.shape():                                     )-x-"sv,
           v.solar_source.shape(),
           R"-x-( - should be freq_grid.size().
-solar_zenith_angle.shape():                               ")-x-"sv,
+solar_zenith_angle.shape():                               )-x-"sv,
           v.solar_zenith_angle.shape(),
           R"-x-( - should be freq_grid.size().
-solar_azimuth_angle.shape():                              ")-x-"sv,
+solar_azimuth_angle.shape():                              )-x-"sv,
           v.solar_azimuth_angle.shape(),
           R"-x-( - should be freq_grid.size().
-bidirectional_reflectance_distribution_functions.shape(): ")-x-"sv,
+bidirectional_reflectance_distribution_functions.shape(): )-x-"sv,
           v.bidirectional_reflectance_distribution_functions.shape(),
           R"-x-( - should be freq_grid.size() x nbrdf.
-optical_thicknesses.shape():                              ")-x-"sv,
+optical_thicknesses.shape():                              )-x-"sv,
           v.optical_thicknesses.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
-single_scattering_albedo.shape():                         ")-x-"sv,
+single_scattering_albedo.shape():                         )-x-"sv,
           v.single_scattering_albedo.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
-fractional_scattering.shape():                            ")-x-"sv,
+fractional_scattering.shape():                            )-x-"sv,
           v.fractional_scattering.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
-source_polynomial.shape():                                ")-x-"sv,
+source_polynomial.shape():                                )-x-"sv,
           v.source_polynomial.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nsrc.
-legendre_coefficients.shape():                            ")-x-"sv,
+legendre_coefficients.shape():                            )-x-"sv,
           v.legendre_coefficients.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nleg.
-positive_boundary_condition.shape():                      ")-x-"sv,
-          v.positive_boundary_condition.shape(),
+upward_boundary_condition.shape():                        )-x-"sv,
+          v.upward_boundary_condition.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x (quadrature_dimension / 2).
-negative_boundary_condition.shape():                      ")-x-"sv,
-          v.negative_boundary_condition.shape(),
+downward_boundary_condition.shape():                      )-x-"sv,
+          v.downward_boundary_condition.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x (quadrature_dimension / 2).)-x-"sv);
     }
     return tags.format(
         ctx,
-        R"-x-(quadrature_dimension:          ")-x-"sv,
+        R"-x-(quadrature_dimension:          )-x-"sv,
         v.quadrature_dimension,
         R"-x-(
-legendre_polynomial_dimension: ")-x-"sv,
+legendre_polynomial_dimension: )-x-"sv,
         v.legendre_polynomial_dimension,
         R"-x-(
-fourier_mode_dimension:        ")-x-"sv,
+fourier_mode_dimension:        )-x-"sv,
         v.fourier_mode_dimension,
         R"-x-(
-freq_grid:                ")-x-"sv,
+freq_grid:                     )-x-"sv,
         v.freq_grid,
         R"-x-(
-alt_grid:                 ")-x-"sv,
+alt_grid:                      )-x-"sv,
         v.alt_grid,
         R"-x-(
-nsrc:                          ")-x-"sv,
+nsrc:                          )-x-"sv,
         v.source_polynomial.ncols(),
         R"-x-(
-nbrdf:                         ")-x-"sv,
+nbrdf:                         )-x-"sv,
         v.bidirectional_reflectance_distribution_functions.ncols(),
         R"-x-(
 
 solar_source:
-")-x-"sv,
+)-x-"sv,
         v.solar_source,
         R"-x-(
 solar_zenith_angle:
-")-x-"sv,
+)-x-"sv,
         v.solar_zenith_angle,
         R"-x-(
 solar_azimuth_angle:
-")-x-"sv,
+)-x-"sv,
         v.solar_azimuth_angle,
         R"-x-(
 bidirectional_reflectance_distribution_functions:
-")-x-"sv,
+)-x-"sv,
         v.bidirectional_reflectance_distribution_functions,
         R"-x-(
 optical_thicknesses:
-")-x-"sv,
+)-x-"sv,
         v.optical_thicknesses,
         R"-x-(
 single_scattering_albedo:
-")-x-"sv,
+)-x-"sv,
         v.single_scattering_albedo,
         R"-x-(
 fractional_scattering:
-")-x-"sv,
+)-x-"sv,
         v.fractional_scattering,
         R"-x-(
 source_polynomial:
-")-x-"sv,
+)-x-"sv,
         v.source_polynomial,
         R"-x-(
 legendre_coefficients:
-")-x-"sv,
+)-x-"sv,
         v.legendre_coefficients,
         R"-x-(
-positive_boundary_condition:
-")-x-"sv,
-        v.positive_boundary_condition,
+upward_boundary_condition:
+)-x-"sv,
+        v.upward_boundary_condition,
         R"-x-(
-negative_boundary_condition:
-")-x-"sv,
-        v.negative_boundary_condition);
+downward_boundary_condition:
+)-x-"sv,
+        v.downward_boundary_condition);
   }
 };
 

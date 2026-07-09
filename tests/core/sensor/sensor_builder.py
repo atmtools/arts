@@ -28,7 +28,7 @@ def test_sensor_builder_from_sequences():
         pyarts.arts.Vector2([40.0, 50.0]),
     ]
 
-    obsels, meta = builder(pos, los)
+    obsels, meta = builder(pos, los, pyarts.arts.planets.Earth.ellipsoid)
 
     assert len(obsels) == 4
     assert len(meta) == 2
@@ -60,7 +60,7 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
         ]
     )
 
-    obsels, meta = builder(poslos)
+    obsels, meta = builder(poslos, pyarts.arts.planets.Earth.ellipsoid)
 
     assert len(obsels) == 2
     assert len(meta) == 2
@@ -73,7 +73,7 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
         builder([pyarts.arts.Vector3([600e3, 10.0, 20.0])], [
             pyarts.arts.Vector2([20.0, 30.0]),
             pyarts.arts.Vector2([40.0, 50.0]),
-        ])
+        ],  pyarts.arts.planets.Earth.ellipsoid)
     except ValueError:
         pass
     else:

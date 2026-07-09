@@ -245,6 +245,22 @@ void Obsel::normalize(Stokvec pol) {
   }
 }
 
+Numeric Obsel::sumup(const Stokvec& i, Index ip) const {
+  assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);
+
+  // w is a sparse sorted matrix of shape poslos->size() x f->size()
+  const SparseStokvec v0{.irow = static_cast<Size>(ip),
+                         .icol = static_cast<Size>(0)};
+  const SparseStokvec vn{.irow = static_cast<Size>(ip),
+                         .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
+                                      stdr::upper_bound(w, vn)};
+
+  Numeric sum = 0.0;
+  for (const auto& ws : span) sum += dot(i, ws.data);
+  return sum;
+}
+
 Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
   assert(i.size() == f->size());
   assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);

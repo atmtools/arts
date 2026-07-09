@@ -43,7 +43,7 @@ print(f"sensor:       {time.time() - start_time:.2f} seconds")
 
 ws = pyarts.Workspace()
 
-ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS)
+ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS, pyarts.arts.planets.Earth.ellipsoid)
 
 assert len(ws.measurement_sensor.unique_freq_grids()) == 1
 assert len(ws.measurement_sensor[0].f_grid) == NCHANNELS

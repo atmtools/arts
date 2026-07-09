@@ -24,9 +24,8 @@ std::vector<std::pair<std::string, std::vector<std::string>>> files() {
   std::vector<std::pair<std::string, std::vector<std::string>>> files;
 
   for (const auto& [group_name, group] : data) {
-    auto ptr = std::find_if(files.begin(),
-                            files.end(),
-                            [f = group.file](auto& p) { return f == p.first; });
+    auto ptr = stdr::find_if(
+        files, [f = group.file](auto& p) { return f == p.first; });
     if (ptr == files.end()) {
       files.emplace_back(group.file, std::vector<std::string>{group_name});
     } else {
@@ -34,18 +33,13 @@ std::vector<std::pair<std::string, std::vector<std::string>>> files() {
     }
   }
 
-  std::sort(files.begin(), files.end(), [](auto& a, auto& b) {
-    return a.first < b.first;
-  });
+  stdr::sort(files, [](auto& a, auto& b) { return a.first < b.first; });
 
-  for (auto& [file, groups] : files) {
-    std::sort(groups.begin(), groups.end());
-  }
+  for (auto& [file, groups] : files) stdr::sort(groups);
 
   // auto_wsa_operators.h must be last as it is auto-generated and need all the other types:
-  auto ptr = std::find_if(files.begin(), files.end(), [](auto& p) {
-    return p.first == "auto_agenda_operators.h";
-  });
+  auto ptr = stdr::find_if(
+      files, [](auto& p) { return p.first == "auto_agenda_operators.h"; });
 
   if (ptr == files.end())
     throw std::logic_error("Missing auto_agenda_operators.h");
@@ -63,7 +57,7 @@ std::vector<std::string> groups() {
     groups.push_back(group_name);
   }
 
-  std::sort(groups.begin(), groups.end());
+  stdr::sort(groups);
 
   return groups;
 }
@@ -200,23 +194,33 @@ void agenda_operators() {
 
   const auto to_strings = stdr::to<std::vector<std::string>>();
 
+  const auto wsv_type = [&wsv](const std::string& v) {
+    try {
+      return wsv.at(v).type;
+    } catch (const std::out_of_range&) {
+      throw std::runtime_error(
+          std::format("Workspace variable \"{}\" not found", v));
+    }
+  };
+
   const auto agenda_types =
-      stdv::transform([&wsv](const std::string& v) { return wsv.at(v).type; }) |
+      stdv::transform([&](const std::string& v) { return wsv_type(v); }) |
       to_strings;
 
-  const auto cref_agenda_types = stdv::transform([&wsv](const std::string& v) {
-                                   return "const " + wsv.at(v).type + "&";
+  const auto cref_agenda_types = stdv::transform([&](const std::string& v) {
+                                   return "const " + wsv_type(v);
+                                   +"&";
                                  }) |
                                  to_strings;
 
   const auto named_ref_agenda_types =
       stdv::transform(
-          [&wsv](const std::string& v) { return wsv.at(v).type + "& " + v; }) |
+          [&](const std::string& v) { return wsv_type(v) + "& " + v; }) |
       to_strings;
 
   const auto named_cref_agenda_types =
-      stdv::transform([&wsv](const std::string& v) {
-        return "const " + wsv.at(v).type + "& " + v;
+      stdv::transform([&](const std::string& v) {
+        return "const " + wsv_type(v) + "& " + v;
       }) |
       to_strings;
 
@@ -234,8 +238,7 @@ void agenda_operators() {
 
 )");
 
-  std::string errors{};
-
+  std::vector<std::string> errors;
   for (auto& [name, ag] : wsa) {
     try {
       const auto remove_output =
@@ -249,13 +252,17 @@ void agenda_operators() {
                                stdr::distance(o.begin(), stdr::find(o, v)));
           });
 
+      const std::string op = ag.named_operator.empty()
+                                 ? std::string(name + "Operator")
+                                 : ag.named_operator;
+
       std::println(h,
                    R"(
-using {0}Operator
+using {0}
    = CustomOperator<std::tuple<{1:,}>,
                     {2:,}>;
 )",
-                   name,
+                   op,
                    ag.output | agenda_types,
                    ag.input | cref_agenda_types);
 
@@ -263,14 +270,14 @@ using {0}Operator
 
       std::print(
           cpp,
-          R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {0}Operator& {0}_operator) try {{
+          R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {6}& {0}_operator) try {{
   ARTS_TIME_REPORT
   
   auto _tup = {0}_operator({4:,});
   {5} // end
 }}  ARTS_METHOD_ERROR_CATCH
 
-void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
+void {0}SetOperator(Agenda& {0}, const {6}& {0}_operator) {{
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("{0}");
@@ -285,18 +292,20 @@ void {0}SetOperator(Agenda& {0}, const {0}Operator& {0}_operator) {{
           ag.input | remove_output | named_cref_agenda_types,
           ag.output.empty() ? ""sv : ", "sv,
           ag.input,
-          ag.output | output_string | to_strings);
+          ag.output | output_string | to_strings,
+          op);
     } catch (std::exception& e) {
-      throw std::runtime_error(
-          std::format("Error generating agenda operator for agenda: {}\n  {}\n",
-                      name,
-                      e.what()));
+      errors.push_back(std::format(
+          "Error generating agenda operator for agenda: \"{}\"\n  {}\n",
+          name,
+          e.what()));
     }
   }
 
   if (not errors.empty()) {
-    std::cerr << "Please add the following to workspace_groups.cpp:\n\n"
-              << errors << '\n';
+    throw std::runtime_error(
+        std::format("Error generating agenda operators:\n{}\n",
+                    std::format("  {:n}\n", errors)));
   }
 }
 
@@ -338,9 +347,8 @@ void wsv_implement_from_named_type(std::ostream& os) {
         group);
   }
 
-  std::println(
-      os,
-      R"xyz(  }}
+  std::println(os,
+               R"xyz(  }}
   
   throw std::runtime_error(std::format("Unknown Workspace Group Index: {{0}}", x));
 }})xyz");
@@ -426,7 +434,8 @@ void wsv_implement_write_to_stream(std::ostream& os) {
         i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad write_to_file\");\n}}");
+  std::println(os,
+               "  }}\n\n  throw std::logic_error(\"bad write_to_file\");\n}}");
 }
 
 void wsv_implement_read_from_stream(std::ostream& os) {

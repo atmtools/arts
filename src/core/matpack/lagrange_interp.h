@@ -601,7 +601,7 @@ auto variant_lag_helper(std::span<const Numeric> xi,
  * neighbor or linear interpolation.  You can specify other values for N to
  * get higher order polynomial interpolation.
  */
-template <grid_transformer transform, Size N = 1>
+template <grid_transformer transform = grid_identity, Size N = 1>
 auto variant_lag(std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > 0);
   return variant_lag_helper<transform>(

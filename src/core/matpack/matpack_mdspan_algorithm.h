@@ -41,4 +41,40 @@ data_t<value_type<T>, 1 + rank<T>()> create(const std::vector<T>& vec) {
   for (Size i = 0; i < vec.size(); i++) out[i] = vec[i];
   return out;
 }
+
+template <mut_any_md T>
+value_type<T> clamp(T& a, const value_type<T>& min, const value_type<T>& max) {
+  value_type<T> out{};
+
+  auto a_ptr       = a.elem_begin();
+  const auto a_end = a.elem_end();
+
+  while (a_ptr < a_end) {
+    auto& x = *a_ptr++;
+    x       = std::clamp(x, min, max);
+  }
+
+  return out;
+}
+
+template <mut_any_md T, exact_md<value_type<T>, rank<T>()> U>
+value_type<T> copy_maxreliff(const U& b, T& a) {
+  value_type<T> out{};
+
+  auto a_ptr       = a.elem_begin();
+  auto b_ptr       = b.elem_begin();
+  const auto a_end = a.elem_end();
+
+  while (a_ptr < a_end) {
+    auto& x             = *a_ptr++;
+    auto& y             = *b_ptr++;
+    const Numeric num   = std::abs(x - y);
+    const Numeric denom = std::max(std::abs(x), std::abs(y));
+    const Numeric rel   = denom > 0 ? num / denom : 0.0;
+    out                 = std::max(out, rel);
+    x                   = y;
+  }
+
+  return out;
+}
 }  // namespace matpack

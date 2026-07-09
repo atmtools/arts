@@ -13,7 +13,7 @@
 void disort_spectral_rad_fieldCalc(DisortRadiance& disort_spectral_rad_field,
                                    ZenGriddedField1& disort_quadrature,
                                    const DisortSettings& disort_settings,
-                                   const AziGrid& phis) {
+                                   const AziGrid& phis) try {
   ARTS_TIME_REPORT
 
   const Index nv    = disort_settings.frequency_count();
@@ -52,9 +52,10 @@ void disort_spectral_rad_fieldCalc(DisortRadiance& disort_spectral_rad_field,
   ARTS_USER_ERROR_IF(
       error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
+ARTS_METHOD_ERROR_CATCH
 
 void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
-                                    const DisortSettings& disort_settings) {
+                                    const DisortSettings& disort_settings) try {
   ARTS_TIME_REPORT
 
   const Index nv = disort_settings.frequency_count();
@@ -82,6 +83,143 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field,
 
   ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
+ARTS_METHOD_ERROR_CATCH
+
+////////////////////////////////////////////////////////////////////////
+// Coupled Disort
+////////////////////////////////////////////////////////////////////////
+
+void disort_spectral_rad_fieldCoupledCalc(
+    DisortRadiance& disort_spectral_rad_field,
+    ZenGriddedField1& disort_quadrature,
+    const DisortSettings& atm_disort_settings,
+    const DisortSettings& subsurf_disort_settings,
+    const AziGrid& phis,
+    const Numeric& tolerance,
+    const Index& max_iterations,
+    const Numeric& relaxation) try {
+  ARTS_TIME_REPORT
+
+  const Index nv    = atm_disort_settings.frequency_count();
+  const Index np    = atm_disort_settings.layer_count();
+  const Index nquad = atm_disort_settings.quadrature_dimension;
+
+  disort::main_data dis_atm     = atm_disort_settings.init();
+  disort::main_data dis_subsurf = subsurf_disort_settings.init();
+  Tensor3 ims(np, phis.size(), nquad / 2);
+  Tensor3 tms(np, phis.size(), nquad);
+
+  //! Supplementary outputs
+  disort_quadrature = dis_atm.gridded_weights();
+
+  //! Main outputs
+  DisortRadiance disort_atm_spectral_rad_field,
+      disort_subsurf_spectral_rad_field;
+  disort_atm_spectral_rad_field.resize(atm_disort_settings.freq_grid,
+                                       atm_disort_settings.alt_grid,
+                                       phis,
+                                       disort_quadrature.grid<0>());
+  disort_subsurf_spectral_rad_field.resize(subsurf_disort_settings.freq_grid,
+                                           subsurf_disort_settings.alt_grid,
+                                           phis,
+                                           disort_quadrature.grid<0>());
+
+  String error;
+#pragma omp parallel for if (not arts_omp_in_parallel()) \
+    firstprivate(dis_atm, dis_subsurf, tms, ims)
+  for (Index iv = 0; iv < nv; iv++) {
+    try {
+      atm_disort_settings.set(dis_atm, iv);
+      subsurf_disort_settings.set(dis_subsurf, iv);
+
+      const auto _ = disort::couple(
+          dis_atm, dis_subsurf, tolerance, max_iterations, relaxation);
+
+      dis_atm.gridded_u_corr(
+          disort_atm_spectral_rad_field.data[iv], tms, ims, phis);
+      dis_subsurf.gridded_u_corr(
+          disort_subsurf_spectral_rad_field.data[iv], tms, ims, phis);
+    } catch (const std::exception& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+
+  //! FIXME: It would be nice to remove this if the internal angles can be solved
+  disort_atm_spectral_rad_field.sort(dis_atm.mu());
+  disort_subsurf_spectral_rad_field.sort(dis_subsurf.mu());
+
+  disort_spectral_rad_field =
+      disort_atm_spectral_rad_field.combine(disort_subsurf_spectral_rad_field);
+
+  ARTS_USER_ERROR_IF(
+      error.size(), "Error occurred in disort-spectral:\n{}", error);
+}
+ARTS_METHOD_ERROR_CATCH
+
+void disort_spectral_flux_fieldCoupledCalc(
+    DisortFlux& disort_spectral_flux_field,
+    const DisortSettings& atm_disort_settings,
+    const DisortSettings& subsurf_disort_settings,
+    const Numeric& tolerance,
+    const Index& max_iterations,
+    const Numeric& relaxation) try {
+  ARTS_TIME_REPORT
+
+  const Index nv = atm_disort_settings.frequency_count();
+
+  DisortFlux disort_atm_spectral_flux_field, disort_subsurf_spectral_flux_field;
+  disort_atm_spectral_flux_field.resize(atm_disort_settings.freq_grid,
+                                        atm_disort_settings.alt_grid);
+
+  disort_subsurf_spectral_flux_field.resize(subsurf_disort_settings.freq_grid,
+                                            subsurf_disort_settings.alt_grid);
+
+  disort::main_data dis_atm, dis_subsurf;
+  try {
+    dis_atm = atm_disort_settings.init();
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in atmosphere disort settings:\n" +
+                             std::string(e.what()));
+  }
+  try {
+    dis_subsurf = subsurf_disort_settings.init();
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in subsurface disort settings:\n" +
+                             std::string(e.what()));
+  }
+
+  String error;
+
+#pragma omp parallel for if (not arts_omp_in_parallel()) \
+    firstprivate(dis_atm, dis_subsurf)
+  for (Index iv = 0; iv < nv; iv++) {
+    try {
+      atm_disort_settings.set(dis_atm, iv);
+      subsurf_disort_settings.set(dis_subsurf, iv);
+
+      const auto _ = disort::couple(
+          dis_atm, dis_subsurf, tolerance, max_iterations, relaxation);
+
+      dis_atm.gridded_flux(disort_atm_spectral_flux_field.up[iv],
+                           disort_atm_spectral_flux_field.down_diffuse[iv],
+                           disort_atm_spectral_flux_field.down_direct[iv]);
+      dis_subsurf.gridded_flux(
+          disort_subsurf_spectral_flux_field.up[iv],
+          disort_subsurf_spectral_flux_field.down_diffuse[iv],
+          disort_subsurf_spectral_flux_field.down_direct[iv]);
+    } catch (const std::exception& e) {
+#pragma omp critical
+      if (error.empty()) error = e.what();
+    }
+  }
+
+  disort_spectral_flux_field = disort_atm_spectral_flux_field.combine(
+      disort_subsurf_spectral_flux_field);
+
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
+}
+ARTS_METHOD_ERROR_CATCH
 
 ////////////////////////////////////////////////////////////////////////
 // Integrate functions
@@ -122,7 +260,7 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
               });
         },
         variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
-        variant_lag<grid_identity>(zen_grid, ray_point.los[0]));
+        variant_lag(zen_grid, ray_point.los[0]));
   } else {
     std::visit(
         [&](auto&& alt, auto&& aa, auto&& za) {
@@ -131,27 +269,10 @@ void spectral_radFromDisort(StokvecVector& spectral_rad,
                 return interp(d, alt, aa, za);
               });
         },
-        variant_lag<grid_identity>(std::span{alt_grid}.subspan(1), z),
+        variant_lag(std::span{alt_grid}.subspan(1), z),
         variant_lag<aa_cyc_t>(azi_grid, ray_point.los[1]),
-        variant_lag<grid_identity>(zen_grid, ray_point.los[0]));
+        variant_lag(zen_grid, ray_point.los[0]));
   }
-}
-
-void spectral_radIntegrateDisort(
-    StokvecVector& /*spectral_rad*/,
-    const DisortRadiance& /*disort_spectral_rad_field*/,
-    const ZenGriddedField1& /*disort_quadrature*/) {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR("Not implemented")
-}
-
-void SpectralFluxDisort(Matrix& /*spectral_flux_field_up*/,
-                        Matrix& /*spectral_flux_field_down*/,
-                        const DisortFlux& /*disort_spectral_flux_field*/) {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR("Not implemented")
 }
 
 void disort_spectral_rad_fieldApplyUnit(

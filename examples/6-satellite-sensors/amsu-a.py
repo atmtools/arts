@@ -48,6 +48,7 @@ CHANNEL_COUNT       = len(CHANNELS)
 SAMPLES_PER_CHANNEL = 11
 POS                 = [817e3, 0.0, 0.0]
 LOS                 = [130.0, 0.0]
+ELL                 = pa.arts.planets.Earth.ellipsoid
 # fmt: on
 
 
@@ -102,7 +103,7 @@ ws.ray_path_observer_agendaSetGeometric()
 
 # %% Simple sensor setup: position, line-of-sight, polarization, and channels.
 sensor = pa.arts.sensor.Builder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
-ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS)
+ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS, ELL)
 
 for i in range(len(ws.measurement_sensor)):
     ws.measurement_sensor[i].normalize(CHANNELS[i].polarization)

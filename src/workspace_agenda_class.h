@@ -52,7 +52,7 @@ class Agenda {
 
   [[nodiscard]] const std::string& get_name() const { return name; }
 
-  void set_name(const std::string& v) { name = v; }
+  void set_name(const std::string& v, bool finalize_fix=false);
 
   [[nodiscard]] bool has_method(const std::string& method) const;
 

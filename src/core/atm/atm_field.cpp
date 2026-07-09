@@ -946,6 +946,19 @@ Numeric Data::at(const Numeric alt,
 
 Numeric Data::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
 
+namespace {
+Numeric point_at_error(const Data &data,
+                       const Numeric alt,
+                       const Numeric lat,
+                       const Numeric lon,
+                       const auto &key) try {
+  return data.at(alt, lat, lon);
+} catch (std::exception &e) {
+  throw std::runtime_error(
+      std::format("Error while getting value for key {}: {}", key, e.what()));
+}
+}  // namespace
+
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
     try {
   ARTS_USER_ERROR_IF(
@@ -966,11 +979,25 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
   out.nlte.reserve(nlte.size());
   out.ssprops.reserve(ssprops.size());
 
-  for (auto &[key, data] : other) out[key] = data.at(alt, lat, lon);
-  for (auto &[key, data] : specs) out[key] = data.at(alt, lat, lon);
-  for (auto &[key, data] : isots) out[key] = data.at(alt, lat, lon);
-  for (auto &[key, data] : nlte) out[key] = data.at(alt, lat, lon);
-  for (auto &[key, data] : ssprops) out[key] = data.at(alt, lat, lon);
+  for (auto &[key, data] : other) {
+    out[key] = point_at_error(data, alt, lat, lon, key);
+  }
+
+  for (auto &[key, data] : specs) {
+    out[key] = point_at_error(data, alt, lat, lon, key);
+  }
+
+  for (auto &[key, data] : isots) {
+    out[key] = point_at_error(data, alt, lat, lon, key);
+  }
+
+  for (auto &[key, data] : nlte) {
+    out[key] = point_at_error(data, alt, lat, lon, key);
+  }
+
+  for (auto &[key, data] : ssprops) {
+    out[key] = point_at_error(data, alt, lat, lon, key);
+  }
 
   return out;
 }

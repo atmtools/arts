@@ -149,6 +149,17 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
   return std::move(agenda).finalize(true);
 }
 
+Agenda get_spectral_rad_closed_surface_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_closed_surface_agenda");
+
+  using enum spectral_rad_closed_surface_agendaPredefined;
+  switch (to<spectral_rad_closed_surface_agendaPredefined>(option)) {
+    case Blackbody: agenda.add("spectral_radSurfaceBlackbody"); break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
 Agenda get_inversion_iterate_agenda(const std::string_view option) {
   AgendaCreator agenda("inversion_iterate_agenda");
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <ranges>
 
 #include "lagrange_interp.h"
 #include "matpack_mdspan_data_t.h"
@@ -11,12 +12,12 @@
 namespace matpack {
 struct ascending_t {
   consteval static std::string_view name() { return "ascending"sv; }
-  constexpr bool operator()(Numeric a, Numeric b) const { return a <= b; }
+  constexpr static bool operator()(Numeric a, Numeric b) { return a <= b; }
 };
 
 struct descending_t {
   consteval static std::string_view name() { return "descending"sv; }
-  constexpr bool operator()(Numeric a, Numeric b) const { return a >= b; }
+  constexpr static bool operator()(Numeric a, Numeric b) { return a >= b; }
 };
 
 template <typename T>
@@ -34,14 +35,23 @@ class grid_t {
  public:
   using value_type = Numeric;
 
-  static constexpr bool is_sorted(const exact_md<Numeric, 1> auto& x) {
-    return stdr::is_sorted(x, Compare{});
+  template <stdr::forward_range T>
+  static constexpr bool is_sorted(const T& x)
+    requires std::
+        invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>>
+  {
+    return stdr::is_sorted(x, Compare::operator());
   }
 
-  static constexpr void assert_sorted(const exact_md<Numeric, 1> auto& x) {
-    if (not is_sorted(x))
+  template <stdr::forward_range T>
+  static constexpr void assert_sorted(const T& x)
+    requires std::
+        invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>>
+  {
+    if (not is_sorted(x)) {
       throw std::runtime_error(std::format(
           "Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
+    }
   }
 
   grid_t(Index N) : x(N) {
@@ -158,6 +168,44 @@ class grid_t {
                          const char* info            = "UNNAMED") const {
     return lagrange_interp::make_lags<transform>(
         x, xi, N, extrapolation_limit, info);
+  }
+
+  void clear() { x.clear(); }
+
+  template <stdr::forward_range T>
+  void extend(T&& other)
+    requires std::invocable<Compare, stdr::range_value_t<T>, Numeric> and
+             std::convertible_to<stdr::range_value_t<T>, Numeric>
+  {
+    if (stdr::empty(other)) return;
+
+    if (not is_sorted(other)) {
+      throw std::runtime_error(
+          std::format("Expected {} sort.  Input list:\n{:B,}",
+                      Compare::name(),
+                      Vector{std::from_range, other}));
+    }
+
+    if (not is_sorted(std::array{back(), *stdr::begin(other)})) {
+      throw std::runtime_error(
+          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}",
+                      Compare::name(),
+                      x,
+                      Vector{std::from_range, other}));
+    }
+
+    x.append_range(std::forward<T>(other));
+  }
+
+  void push_back(Numeric value) {
+    if (not is_sorted(std::array{back(), value})) {
+      throw std::runtime_error(
+          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}",
+                      Compare::name(),
+                      x,
+                      value));
+    }
+    x.push_back(value);
   }
 };
 

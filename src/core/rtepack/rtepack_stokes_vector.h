@@ -109,6 +109,12 @@ constexpr stokvec operator*(stokvec a, const Numeric &b) {
   return a;
 }
 
+//! Scaling a stokvec vector
+constexpr stokvec operator/(stokvec a, const Numeric &b) {
+  a /= b;
+  return a;
+}
+
 constexpr stokvec fma(const Numeric &x, const stokvec &a, const stokvec &b) {
   return {std::fma(x, a.I(), b.I()),
           std::fma(x, a.Q(), b.Q()),

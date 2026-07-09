@@ -198,10 +198,6 @@ You have somehow created the agenda without checking it.
 Please manually call finalize() on the agenda
 )--");
   }}
-
-  if (const auto& n = {0}.get_name(); n != "{0}") {{
-    throw std::runtime_error(std::format("Mismatch with name: {{}}", n));
-  }}
 )xx",
                name);
 }
@@ -368,10 +364,6 @@ bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {{)--");
   for (auto& ag : agmap) {
     std::println(os, R"(  if (ag == "{0}") return has_{0};)", ag.first);
   }
-  for (auto& ag : internal_workspace_agenda_names()) {
-    std::println(
-        os, R"(  if (ag == "{0}") return has_{1};)", ag.first, ag.second);
-  }
   std::println(os, R"--(
   throw std::runtime_error(std::format("Not a predefined agenda: \"{{}}\"", ag));
 }}
@@ -383,12 +375,6 @@ void WorkspaceAgendaBoolHandler::set(const std::string& ag) {{
                  R"(  if (ag == "{0}") {{has_{0} = true; return;}})",
                  ag.first,
                  ag.first);
-  }
-  for (auto& ag : internal_workspace_agenda_names()) {
-    std::println(os,
-                 R"(  if (ag == "{0}") {{has_{1} = true; return;}})",
-                 ag.first,
-                 ag.second);
   }
   std::println(os, R"--(
   throw std::runtime_error(std::format("Not a predefined agenda: \"{{}}\"", ag));

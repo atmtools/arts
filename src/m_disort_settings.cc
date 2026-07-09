@@ -9,8 +9,10 @@
 #include <sun_methods.h>
 #include <workspace.h>
 
+#include <algorithm>
 #include <exception>
 #include <numeric>
+#include <ranges>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Disort settings initialization
@@ -227,7 +229,7 @@ spectral_nlte_srcvec_path.size(): {}
       Numeric y0 = planck(f, t0) + (invK0 * S0).I();
       Numeric y1 = planck(f, t1) + (invK1 * S1).I();
 
-      // Numerically, these may be slightly negative even though they can mathematically only be exactly 0.
+      // Numerically, these may be slightly downward even though they can mathematically only be exactly 0.
       if (y0 < 0) y0 = 0.0;
       if (y1 < 0) y1 = 0.0;
 
@@ -243,13 +245,13 @@ spectral_nlte_srcvec_path.size(): {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Disort positive boundary condition - from "surface", "subsurface" or "below"
+// Disort upward boundary condition - from "surface", "subsurface" or "below"
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSurfaceEmission(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  disort_settings.positive_boundary_condition = 0.0;
+  disort_settings.upward_boundary_condition = 0.0;
 }
 
 void disort_settingsSurfaceEmissionByTemperature(
@@ -264,17 +266,46 @@ void disort_settingsSurfaceEmissionByTemperature(
   const Numeric T = surf_field.single_value(
       SurfaceKey::t, ray_point.latitude(), ray_point.longitude());
 
-  auto& limit = disort_settings.positive_boundary_condition = 0.0;
+  auto& limit = disort_settings.upward_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(
       static_cast<Index>(nv) != limit.npages(),
-      "Frequency grid size does not match the positive boundary condition size: {} vs {}",
+      "Frequency grid size does not match the upward boundary condition size: {} vs {}",
       nv,
       limit.npages())
 
   ARTS_USER_ERROR_IF(
       limit.nrows() < 1,
-      "Must have at least one fourier mode to use the positive boundary condition.")
+      "Must have at least one fourier mode to use the upward boundary condition.")
+
+  for (Size iv = 0; iv < nv; iv++) {
+    limit[iv, 0, joker] = planck(freq_grid[iv], T);
+  }
+}
+
+void disort_settingsSubsurfaceDownwardEmissionBySurfaceTemperature(
+    DisortSettings& disort_settings,
+    const AscendingGrid& freq_grid,
+    const PropagationPathPoint& ray_point,
+    const SurfaceField& surf_field) {
+  ARTS_TIME_REPORT
+
+  const auto nv = freq_grid.size();
+
+  const Numeric T = surf_field.single_value(
+      SurfaceKey::t, ray_point.latitude(), ray_point.longitude());
+
+  auto& limit = disort_settings.downward_boundary_condition = 0.0;
+
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(nv) != limit.npages(),
+      "Frequency grid size does not match the downward boundary condition size: {} vs {}",
+      nv,
+      limit.npages())
+
+  ARTS_USER_ERROR_IF(
+      limit.nrows() < 1,
+      "Must have at least one fourier mode to use the downward boundary condition.")
 
   for (Size iv = 0; iv < nv; iv++) {
     limit[iv, 0, joker] = planck(freq_grid[iv], T);
@@ -289,19 +320,19 @@ void disort_settingsSubsurfaceEmissionByTemperature(
 
   const auto nv = freq_grid.size();
 
-  auto& limit = disort_settings.positive_boundary_condition = 0.0;
+  auto& limit = disort_settings.upward_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(subsurf_profile.size() < 2, "Need at least two points")
 
   ARTS_USER_ERROR_IF(
       static_cast<Index>(nv) != limit.npages(),
-      "Frequency grid size does not match the positive boundary condition size: {} vs {}",
+      "Frequency grid size does not match the upward boundary condition size: {} vs {}",
       nv,
       limit.npages())
 
   ARTS_USER_ERROR_IF(
       limit.nrows() < 1,
-      "Must have at least one fourier mode to use the positive boundary condition.")
+      "Must have at least one fourier mode to use the upward boundary condition.")
 
   const Numeric Tbot = subsurf_profile.back().temperature;
 
@@ -311,13 +342,13 @@ void disort_settingsSubsurfaceEmissionByTemperature(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Disort negative boundary condition - from "space", "atmosphere" or "above"
+// Disort downward boundary condition - from "space", "atmosphere" or "above"
 ////////////////////////////////////////////////////////////////////////////////
 
 void disort_settingsNoSpaceEmission(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  disort_settings.negative_boundary_condition = 0.0;
+  disort_settings.downward_boundary_condition = 0.0;
 }
 
 void disort_settingsCosmicMicrowaveBackgroundRadiation(
@@ -326,20 +357,20 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(
 
   const Index nv = freq_grid.size();
 
-  disort_settings.negative_boundary_condition = 0.0;
+  disort_settings.downward_boundary_condition = 0.0;
 
   ARTS_USER_ERROR_IF(
-      nv != disort_settings.negative_boundary_condition.npages(),
-      "Frequency grid size does not match the negative boundary condition size: {} vs {}",
+      nv != disort_settings.downward_boundary_condition.npages(),
+      "Frequency grid size does not match the downward boundary condition size: {} vs {}",
       nv,
-      disort_settings.negative_boundary_condition.npages())
+      disort_settings.downward_boundary_condition.npages())
 
   ARTS_USER_ERROR_IF(
-      disort_settings.negative_boundary_condition.nrows() < 1,
-      "Must have at least one fourier mode to use the negative boundary condition.")
+      disort_settings.downward_boundary_condition.nrows() < 1,
+      "Must have at least one fourier mode to use the downward boundary condition.")
 
   for (Index iv = 0; iv < nv; iv++) {
-    disort_settings.negative_boundary_condition[iv, 0, joker] = planck(
+    disort_settings.downward_boundary_condition[iv, 0, joker] = planck(
         freq_grid[iv], Constant::cosmic_microwave_background_temperature);
   }
 }
@@ -358,7 +389,7 @@ void disort_settingsDownwellingObserver(
 
   const auto& ray_point = ray_path.front();
 
-  auto& limit = disort_settings.negative_boundary_condition = 0;
+  auto& limit = disort_settings.downward_boundary_condition = 0;
 
   const Index nv = freq_grid.size();
   const Index N  = disort_settings.quadrature_dimension / 2;
@@ -900,8 +931,7 @@ Agenda disort_settings_agendaSetup(
 
 Agenda disort_settings_agendaSubsurfaceSetup(
     const disort_settings_agenda_setup_sun_type& sun_setting,
-    const Numeric& min_optical_depth,
-    const Index& fading_bottom) {
+    const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -915,12 +945,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(
   agenda.add("disort_settingsSubsurfaceScalarAbsorption",
              SetWsv("min_optical_depth", min_optical_depth));
   agenda.add("disort_settingsSubsurfaceScalarSingleScatteringAlbedo");
-
-  if (fading_bottom) {
-    agenda.add("disort_settingsNoSurfaceEmission");
-  } else {
-    agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
-  }
+  agenda.add("disort_settingsSubsurfaceEmissionByTemperature");
   agenda.add("disort_settingsSubsurfaceLayerThermalEmissionLinearInTau");
   agenda.add("disort_settingsNoLegendre");
 
@@ -960,12 +985,103 @@ void disort_settings_agendaSetup(Agenda& disort_settings_agenda,
 
 void disort_settings_agendaSubsurfaceSetup(Agenda& disort_settings_agenda,
                                            const String& sun_setting,
-                                           const Numeric& min_optical_depth,
-                                           const Index& fading_bottom) {
+                                           const Numeric& min_optical_depth) {
   ARTS_TIME_REPORT
 
   disort_settings_agenda = disort_settings_agendaSubsurfaceSetup(
       to<disort_settings_agenda_setup_sun_type>(sun_setting),
-      min_optical_depth,
-      fading_bottom);
+      min_optical_depth);
 }
+
+void CoupledAtmosphereAndSubsurfaceDisortSettings(
+    const Workspace& ws,
+    DisortSettings& atm_disort_settings,
+    DisortSettings& subsurf_disort_settings,
+    const Agenda& atm_disort_settings_agenda,
+    const Agenda& subsurf_disort_settings_agenda,
+    const SurfaceField& surf_field,
+    const AscendingGrid& freq_grid,
+    const AscendingGrid& alt_grid,
+    const Numeric& lat,
+    const Numeric& lon,
+    const Index& disort_quadrature_dimension,
+    const Index& disort_fourier_mode_dimension,
+    const Index& disort_legendre_polynomial_dimension) try {
+  ARTS_TIME_REPORT
+
+  const Numeric surf_elev = surf_field.single_value(SurfaceKey::h, lat, lon);
+
+  ARTS_USER_ERROR_IF(
+      alt_grid.front() > surf_elev or alt_grid.back() < surf_elev,
+      R"(Surface elevation out of bounds:
+
+surface elevation: {}
+alt_grid:          {:B,}
+)",
+      surf_elev,
+      alt_grid);
+
+  const auto to_ppp = [lat, lon](Numeric z, PathPositionType type) {
+    return PropagationPathPoint{
+        .pos_type = type,
+        .los_type = type,
+        .pos      = {z, lat, lon},
+        .los      = {180.0, 0.0},
+        .nreal    = 1.0,
+        .ngroup   = 1.0,
+    };
+  };
+
+  const auto surf_elev_iter        = stdr::lower_bound(alt_grid, surf_elev);
+  const bool surf_elev_in_alt_grid = *surf_elev_iter != surf_elev;
+
+  ArrayOfPropagationPathPoint subsurf_ray_path{
+      std::from_range,
+      std::span{alt_grid.begin(), surf_elev_iter} |
+          stdv::transform([to_ppp](Numeric z) {
+            return to_ppp(z, PathPositionType::surface);
+          })};
+  if (surf_elev_in_alt_grid)
+    subsurf_ray_path.push_back(to_ppp(surf_elev, PathPositionType::surface));
+
+  ArrayOfPropagationPathPoint atm_ray_path{
+      to_ppp(surf_elev, PathPositionType::atm)};
+  atm_ray_path.append_range(std::span{surf_elev_iter + 1, alt_grid.end()} |
+                            stdv::transform([to_ppp](Numeric z) {
+                              return to_ppp(z, PathPositionType::atm);
+                            }));
+
+  stdr::reverse(subsurf_ray_path);
+  stdr::reverse(atm_ray_path);
+  atm_ray_path.back().los_type      = PathPositionType::surface;
+  subsurf_ray_path.front().los_type = PathPositionType::atm;
+
+  try {
+    subsurf_disort_settings_agendaExecute(ws,
+                                          subsurf_disort_settings,
+                                          freq_grid,
+                                          subsurf_ray_path,
+                                          disort_quadrature_dimension,
+                                          disort_fourier_mode_dimension,
+                                          disort_legendre_polynomial_dimension,
+                                          subsurf_disort_settings_agenda);
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in subsurface disort settings agenda:\n" +
+                             std::string(e.what()));
+  }
+
+  try {
+    atm_disort_settings_agendaExecute(ws,
+                                      atm_disort_settings,
+                                      freq_grid,
+                                      atm_ray_path,
+                                      disort_quadrature_dimension,
+                                      disort_fourier_mode_dimension,
+                                      disort_legendre_polynomial_dimension,
+                                      atm_disort_settings_agenda);
+  } catch (std::exception& e) {
+    throw std::runtime_error("Error in atmospheric disort settings agenda:\n" +
+                             std::string(e.what()));
+  }
+}
+ARTS_METHOD_ERROR_CATCH

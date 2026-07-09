@@ -27,9 +27,6 @@ struct GaussianAntenna;
 //! A Gaussianized Airy antenna pattern with frequency-dependent width.
 struct GaussianAiryAntenna;
 
-//! 2D gridded field of antenna weights on local zenith and azimuth offsets.
-using AntennaPatternField = matpack::gridded_data_t<Stokvec, ZenGrid, AziGrid>;
-
 struct AntennaPattern {
   virtual ~AntennaPattern()                        = default;
   AntennaPattern()                                 = default;
@@ -41,20 +38,11 @@ struct AntennaPattern {
   //! Builds one sensor obsel for a channel at a sensor position and bore LOS.
   [[nodiscard]] virtual Obsel operator()(const Channel& channel,
                                          const Vector3& pos,
-                                         const Vector2& bore_los) const = 0;
+                                         const Vector2& bore_los,
+                                         const Vector2& ell) const = 0;
 
   //! Creates an owning copy preserving the dynamic antenna type.
   [[nodiscard]] virtual std::shared_ptr<const AntennaPattern> clone() const = 0;
-};
-
-struct GriddedAntennaPattern : AntennaPattern {
-  AntennaPatternField data;  // center at [0, 0]
-
-  [[nodiscard]] Obsel operator()(const Channel& channel,
-                                 const Vector3& pos,
-                                 const Vector2& bore_los) const override;
-
-  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
 };
 
 struct PencilBeamAntenna final : AntennaPattern {
@@ -64,7 +52,23 @@ struct PencilBeamAntenna final : AntennaPattern {
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
                                  const Vector3& pos,
-                                 const Vector2& bore_los) const override;
+                                 const Vector2& bore_los,
+                                 const Vector2& ell) const override;
+
+  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
+};
+
+//! 2D gridded field of antenna weights on local zenith and azimuth offsets.
+using AntennaPatternField = matpack::gridded_data_t<Numeric, ZenGrid, AziGrid>;
+
+struct GriddedAntennaPattern : AntennaPattern {
+  AntennaPatternField data;  // center at [0, 0]
+  Stokvec weight{1.0, 0.0, 0.0, 0.0};
+
+  [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Vector3& pos,
+                                 const Vector2& bore_los,
+                                 const Vector2& ell) const override;
 
   [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
 };
@@ -103,9 +107,11 @@ struct GaussianAiryAntenna final : AntennaPattern {
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
                                  const Vector3& pos,
-                                 const Vector2& bore_los) const override;
+                                 const Vector2& bore_los,
+                                 const Vector2& ell) const override;
 
   [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
+  [[nodiscard]] Numeric std(Numeric frequency) const;
 };
 
 //! Concept for types that can build a sensor obsel from channel geometry.
@@ -113,8 +119,9 @@ template <typename T>
 concept AntennaPatternSelection = requires(const T& antenna,
                                            const Channel& channel,
                                            const Vector3& pos,
-                                           const Vector2& bore_los) {
-  { antenna(channel, pos, bore_los) } -> std::same_as<Obsel>;
+                                           const Vector2& bore_los,
+                                           const Vector2& ell) {
+  { antenna(channel, pos, bore_los, ell) } -> std::same_as<Obsel>;
 };
 }  // namespace sensor
 

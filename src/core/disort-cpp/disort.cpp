@@ -6,6 +6,7 @@
 #include <debug.h>
 #include <legendre.h>
 #include <matpack.h>
+#include <matpack_mdspan_helpers_eigen.h>
 #include <time_report.h>
 #include <xml.h>
 
@@ -30,6 +31,212 @@ void radiances::resize(AscendingGrid f_grid,
       freq_grid.size(), alt_grid.size() - 1, azi_grid.size(), zen_grid.size());
 }
 
+namespace {
+enum class CoupledType : char {
+  freq_unique,
+  alt_unique,
+  freq_coupled,
+  alt_coupled
+};
+
+/*! Couple the sizes of two radiance grids.
+ *
+ * Grid extension always [first, second] and never [second, first], only alt or freq.
+ * May miss first value of second if it is equal to last value of first.  This is intended behavior.
+ *
+ * @param freq_grid The first frequency grid
+ * @param freq_grid_second The second frequency grid
+ * @param alt_grid The first altitude grid
+ * @param alt_grid_second The second altitude grid
+ * @param azi_grid The first azimuth grid
+ * @param azi_grid_second The second azimuth grid
+ * @param zen_grid The first zenith grid
+ * @param zen_grid_second The second zenith grid
+ *
+ * @return A pair of the coupled type and the new radiances object with the coupled size.
+ */
+std::pair<CoupledType, radiances> coupled_size(
+    AscendingGrid freq_grid,
+    const AscendingGrid& freq_grid_second,
+    DescendingGrid alt_grid,
+    const DescendingGrid& alt_grid_second,
+    AziGrid azi_grid,
+    const AziGrid& azi_grid_second,
+    ZenGrid zen_grid,
+    const ZenGrid& zen_grid_second) {
+  const bool freq_match = freq_grid == freq_grid_second;
+  const bool azi_match  = azi_grid == azi_grid_second;
+  const bool zen_match  = zen_grid == zen_grid_second;
+  const bool alt_match  = alt_grid == alt_grid_second;
+
+  ARTS_USER_ERROR_IF((azi_match + zen_match + freq_match + alt_match) != 3,
+                     "Cannot couple disort radiances");
+
+  std::pair<CoupledType, radiances> out;
+
+  if (not freq_match) {
+    const bool correct = freq_grid.back() <= freq_grid_second.front();
+
+    if (not correct) {
+      throw std::runtime_error(
+          std::format(R"(Incorrectly overlapping frequency grids.
+      
+original:  {:Bs,}
+extension: {:Bs,}
+)",
+                      freq_grid,
+                      freq_grid_second));
+    }
+
+    const bool coupled = freq_grid.back() == freq_grid_second.front();
+    out.first = coupled ? CoupledType::freq_coupled : CoupledType::freq_unique;
+
+    freq_grid.extend(freq_grid_second | stdv::drop(coupled));
+  } else if (not alt_match) {
+    const bool correct = alt_grid.back() >= alt_grid_second.front();
+
+    if (not correct) {
+      throw std::runtime_error(
+          std::format(R"(Incorrectly overlapping altitude grids.
+
+original:  {:Bs,}
+extension: {:Bs,}
+)",
+                      alt_grid,
+                      alt_grid_second));
+    }
+
+    const bool coupled = alt_grid.back() == alt_grid_second.front();
+    out.first = coupled ? CoupledType::alt_coupled : CoupledType::alt_unique;
+
+    alt_grid.extend(alt_grid_second | stdv::drop(coupled));
+  } else {
+    throw std::runtime_error(
+        "Coupling of disort radiances with different angular grids is "
+        "not implemented nor is it intended to be implemented");
+  }
+
+  out.second.resize(std::move(freq_grid),
+                    std::move(alt_grid),
+                    std::move(azi_grid),
+                    std::move(zen_grid));
+
+  return out;
+}
+
+/*! Couple the sizes of two fluxes grids.
+ *
+ * Grid extension always [first, second] and never [second, first], only alt or freq.
+ * May miss first value of second if it is equal to last value of first.  This is intended behavior.
+ *
+ * @param freq_grid The first frequency grid
+ * @param freq_grid_second The second frequency grid
+ * @param alt_grid The first altitude grid
+ * @param alt_grid_second The second altitude grid
+ * @param azi_grid The first azimuth grid
+ * @param azi_grid_second The second azimuth grid
+ * @param zen_grid The first zenith grid
+ * @param zen_grid_second The second zenith grid
+ *
+ * @return A pair of the coupled type and the new fluxes object with the coupled size.
+ */
+std::pair<CoupledType, fluxes> coupled_size(
+    AscendingGrid freq_grid,
+    const AscendingGrid& freq_grid_second,
+    DescendingGrid alt_grid,
+    const DescendingGrid& alt_grid_second) {
+  const bool freq_match = freq_grid == freq_grid_second;
+  const bool alt_match  = alt_grid == alt_grid_second;
+
+  ARTS_USER_ERROR_IF((freq_match + alt_match) != 1,
+                     "Cannot couple disort fluxes");
+
+  std::pair<CoupledType, fluxes> out;
+
+  if (not freq_match) {
+    const bool correct = freq_grid.back() <= freq_grid_second.front();
+
+    if (not correct) {
+      throw std::runtime_error(
+          std::format(R"(Incorrectly overlapping frequency grids.
+      
+original:  {:Bs,}
+extension: {:Bs,}
+)",
+                      freq_grid,
+                      freq_grid_second));
+    }
+
+    const bool coupled = freq_grid.back() == freq_grid_second.front();
+    out.first = coupled ? CoupledType::freq_coupled : CoupledType::freq_unique;
+
+    freq_grid.extend(freq_grid_second | stdv::drop(coupled));
+  } else if (not alt_match) {
+    const bool correct = alt_grid.back() >= alt_grid_second.front();
+
+    if (not correct) {
+      throw std::runtime_error(
+          std::format(R"(Incorrectly overlapping altitude grids.
+      
+original:  {:Bs,}
+extension: {:Bs,}
+)",
+                      alt_grid,
+                      alt_grid_second));
+    }
+
+    const bool coupled = alt_grid.back() == alt_grid_second.front();
+    out.first = coupled ? CoupledType::alt_coupled : CoupledType::alt_unique;
+
+    alt_grid.extend(alt_grid_second | stdv::drop(coupled));
+  } else {
+    throw std::runtime_error(
+        "Coupling of disort fluxes with different angular grids is "
+        "not implemented nor is it intended to be implemented");
+  }
+
+  out.second.resize(std::move(freq_grid), std::move(alt_grid));
+
+  return out;
+}
+}  // namespace
+
+[[nodiscard]] radiances radiances::combine(const radiances& other) const {
+  auto [type, out] = coupled_size(freq_grid,
+                                  other.freq_grid,
+                                  alt_grid,
+                                  other.alt_grid,
+                                  azi_grid,
+                                  other.azi_grid,
+                                  zen_grid,
+                                  other.zen_grid);
+
+  switch (type) {
+    using enum CoupledType;
+    case freq_unique:
+      out.data[Range(0, freq_grid.size())]                      = data;
+      out.data[Range(freq_grid.size(), other.freq_grid.size())] = other.data;
+      break;
+    case freq_coupled:
+      out.data[Range(0, freq_grid.size()), joker, joker, joker] = data;
+      out.data[Range(freq_grid.size(), other.freq_grid.size() - 1)] =
+          other.data[Range(1, other.freq_grid.size() - 1)];
+      break;
+    case alt_unique:
+      out.data[joker, Range(0, alt_grid.size() - 1)] = data;
+      out.data[joker, Range(alt_grid.size(), other.alt_grid.size() - 1)] =
+          other.data;
+      break;
+    case alt_coupled:
+      out.data[joker, Range(0, alt_grid.size() - 1)] = data;
+      out.data[joker, Range(alt_grid.size() - 1, other.alt_grid.size() - 1)] =
+          other.data;
+      break;
+  }
+
+  return out;
+}
+
 void radiances::sort(const Vector& solver_mu) {
   using Conversion::acosd;
 
@@ -51,6 +258,58 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
   up.resize(freq_grid.size(), alt_grid.size() - 1);
   down_diffuse.resize(freq_grid.size(), alt_grid.size() - 1);
   down_direct.resize(freq_grid.size(), alt_grid.size() - 1);
+}
+
+[[nodiscard]] fluxes fluxes::combine(const fluxes& other) const {
+  auto [type, out] =
+      coupled_size(freq_grid, other.freq_grid, alt_grid, other.alt_grid);
+
+  switch (type) {
+    using enum CoupledType;
+    case freq_unique: {
+      Range f{0, freq_grid.size()};
+      Range g{freq_grid.size(), other.freq_grid.size()};
+      out.up[f]           = up;
+      out.up[g]           = other.up;
+      out.down_diffuse[f] = down_diffuse;
+      out.down_diffuse[g] = other.down_diffuse;
+      out.down_direct[f]  = down_direct;
+      out.down_direct[g]  = other.down_direct;
+    } break;
+    case freq_coupled: {
+      Range f{0, freq_grid.size()};
+      Range g{freq_grid.size(), other.freq_grid.size() - 1};
+      Range h{1, other.freq_grid.size() - 1};
+      out.up[f]           = up;
+      out.up[g]           = other.up[h];
+      out.down_diffuse[f] = down_diffuse;
+      out.down_diffuse[g] = other.down_diffuse[h];
+      out.down_direct[f]  = down_direct;
+      out.down_direct[g]  = other.down_direct[h];
+    } break;
+    case alt_unique: {
+      Range f{0, alt_grid.size() - 1};
+      Range g{alt_grid.size(), other.alt_grid.size() - 1};
+      out.up[joker, f]           = up;
+      out.up[joker, g]           = other.up;
+      out.down_diffuse[joker, f] = down_diffuse;
+      out.down_diffuse[joker, g] = other.down_diffuse;
+      out.down_direct[joker, f]  = down_direct;
+      out.down_direct[joker, g]  = other.down_direct;
+    } break;
+    case alt_coupled: {
+      Range f{0, alt_grid.size() - 1};
+      Range g{alt_grid.size() - 1, other.alt_grid.size() - 1};
+      out.up[joker, f]           = up;
+      out.up[joker, g]           = other.up;
+      out.down_diffuse[joker, f] = down_diffuse;
+      out.down_diffuse[joker, g] = other.down_diffuse;
+      out.down_direct[joker, f]  = down_direct;
+      out.down_direct[joker, g]  = other.down_direct;
+    } break;
+  }
+
+  return out;
 }
 
 void BDRF::operator()(MatrixView x,
@@ -203,8 +462,8 @@ void main_data::solve_for_coefs() {
       }
     }
 
-    const auto b_pos_m = b_pos[m];
-    const auto b_neg_m = b_neg[m];
+    const auto boundary_up_m   = boundary_up[m];
+    const auto boundary_down_m = boundary_down[m];
 
     // Fill RHS
     {
@@ -244,14 +503,14 @@ void main_data::solve_for_coefs() {
         }
 
         for (Index i = 0; i < N; i++) {
-          RHS[i] += b_neg_m[i] - B_collect_m[0, N + i];
-          RHS[n - N + i] +=
-              b_pos_m[i] + (BDRF_RHS_contribution[i] - B_collect_m[ln, i]) *
-                               std::exp(-scaled_tau_arr_with_0.back() / mu0);
+          RHS[i]         += boundary_down_m[i] - B_collect_m[0, N + i];
+          RHS[n - N + i] += boundary_up_m[i] +
+                            (BDRF_RHS_contribution[i] - B_collect_m[ln, i]) *
+                                std::exp(-scaled_tau_arr_with_0.back() / mu0);
         }
       } else {
-        RHS[rf(N)]           += b_neg_m;
-        RHS[Range{n - N, N}] += b_pos_m;
+        RHS[rf(N)]           += boundary_down_m;
+        RHS[Range{n - N, N}] += boundary_up_m;
       }
     }
 
@@ -305,7 +564,10 @@ void main_data::solve_for_coefs() {
     {
       ARTS_NAMED_TIME_REPORT("disort::solve-band"s);
 
-      LHSB.solve(RHS);
+      if (LHSB.solve(RHS)) {
+        throw std::runtime_error(
+            std::format("Disort failed to converge for Fourier mode {}.", m));
+      }
 
       einsum<"ijm", "ijm", "im">(
           GC_collect[m], G_collect_m, RHS.view_as(NLayers, NQuad));
@@ -430,8 +692,12 @@ void main_data::diagonalize() {
           mult(Bm[l], G, jvec, -1);
         }
       } else {
-        G[rb(N), rf(N)] = 1.0;
-        G[rf(N), rb(N)] = 1.0;
+        G[rf(N), rf(N)]           = 0.0;
+        G[rb(N), rb(N)]           = 0.0;
+        G[rb(N), rf(N)]           = 0.0;
+        G[rf(N), rb(N)]           = 0.0;
+        diagonal(G[rb(N), rf(N)]) = 1.0;
+        diagonal(G[rf(N), rb(N)]) = 1.0;
         for (Index i = 0; i < N; i++) {
           K[i]     = -inv_mu_arr[i];
           K[i + N] = inv_mu_arr[i];
@@ -541,7 +807,8 @@ void main_data::set_beam_source(const Numeric I0_) {
   has_beam_source = I0_ > 0;
 
   if (not has_source_poly and has_beam_source and
-      stdr::all_of(b_pos | by_elem, Cmp::eq<0>())) {
+      stdr::all_of(boundary_up | by_elem, Cmp::eq<0>()) and
+      stdr::all_of(boundary_down | by_elem, Cmp::eq<0>())) {
     I0_orig = I0_;
     I0      = 1;
   } else {
@@ -581,15 +848,15 @@ void main_data::check_input_size() const {
                      NLayers,
                      NLeg_all);
 
-  ARTS_USER_ERROR_IF((b_pos.shape() != std::array{NFourier, N}),
+  ARTS_USER_ERROR_IF((boundary_up.shape() != std::array{NFourier, N}),
                      "{:B,} vs [{}, {}]",
-                     b_pos.shape(),
+                     boundary_up.shape(),
                      NFourier,
                      N)
 
-  ARTS_USER_ERROR_IF((b_neg.shape() != std::array{NFourier, N}),
+  ARTS_USER_ERROR_IF((boundary_down.shape() != std::array{NFourier, N}),
                      "{:B,} vs [{}, {}]",
-                     b_neg.shape(),
+                     boundary_down.shape(),
                      NFourier,
                      N)
 
@@ -674,13 +941,17 @@ void main_data::source_function() {
                NLayers);
 }
 
-void main_data::update_all(const Numeric I0_) try {
+void main_data::update_all(const Numeric I0_) {
   ARTS_TIME_REPORT
 
   check_input_value();
 
+  LHSB.zero();
+
   set_weighted_Leg_coeffs_all();
-  if (I0_ >= 0) set_beam_source(I0_);
+  if (I0_ >= 0 or has_beam_source) {
+    set_beam_source(I0_ >= 0 ? I0_ : I0 * I0_orig);
+  }
   set_scales();
   set_ims_factors();
   diagonalize();
@@ -688,7 +959,6 @@ void main_data::update_all(const Numeric I0_) try {
   source_function();
   solve_for_coefs();
 }
-ARTS_METHOD_ERROR_CATCH
 
 main_data::main_data(const Index NLayers_,
                      const Index NQuad_,
@@ -712,8 +982,8 @@ main_data::main_data(const Index NLayers_,
       f_arr(NLayers),
       source_poly_coeffs(NLayers, Nscoeffs),
       Leg_coeffs_all(NLayers, NLeg_all),
-      b_pos(NFourier, N),
-      b_neg(NFourier, N),
+      boundary_up(NFourier, N),
+      boundary_down(NFourier, N),
       brdf_fourier_modes(NBDRF),
       // Derived data
       scale_tau(NLayers),
@@ -782,8 +1052,8 @@ main_data::main_data(const Index NQuad_,
                      AscendingGrid tau_arr_,
                      Vector omega_arr_,
                      Matrix Leg_coeffs_all_,
-                     Matrix b_pos_,
-                     Matrix b_neg_,
+                     Matrix boundary_up_,
+                     Matrix boundary_down_,
                      Vector f_arr_,
                      Matrix source_poly_coeffs_,
                      std::vector<BDRF> brdf_fourier_modes_,
@@ -806,8 +1076,8 @@ main_data::main_data(const Index NQuad_,
       f_arr(std::move(f_arr_)),
       source_poly_coeffs(std::move(source_poly_coeffs_)),
       Leg_coeffs_all(std::move(Leg_coeffs_all_)),
-      b_pos(std::move(b_pos_)),
-      b_neg(std::move(b_neg_)),
+      boundary_up(std::move(boundary_up_)),
+      boundary_down(std::move(boundary_down_)),
       brdf_fourier_modes(std::move(brdf_fourier_modes_)),
       mu0(mu0_),
       I0(I0_),
@@ -1316,7 +1586,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
 
 void main_data::gridded_flux(VectorView flux_up,
                              VectorView flux_do,
-                             VectorView flux_dd) const try {
+                             VectorView flux_dd) const {
   ARTS_TIME_REPORT
 
   Vector u0(NQuad);
@@ -1354,20 +1624,40 @@ void main_data::gridded_flux(VectorView flux_up,
     flux_dd[l] = I0_orig * I0 * direct_beam;
   }
 }
-ARTS_METHOD_ERROR_CATCH
+
+void main_data::layer_um(MatrixView um, Size l) const {
+  ARTS_TIME_REPORT
+
+  assert(l < NLayers);
+  assert(um.nrows() == NFourier);
+  assert(um.ncols() == NQuad);
+
+  Matrix exponent(NFourier, NQuad, 1);
+
+  const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
+
+  static_assert(
+      matpack::einsum_optpath<"mi", "mij", "mj">(),
+      "On Failure, the einsum has been changed to not use optimal path");
+  exponent[joker, rf(N)] = expK_collect[joker, l, rf(N)];
+  einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
+
+  if (has_beam_source) {
+    eintra<"mi", "mi", "mi">([x = std::exp(-scaled_tau_arr_l / mu0)](
+                                 auto b, auto c) { return std::fma(x, b, c); },
+                             um,
+                             B_collect[joker, l],
+                             um);
+  }
+
+  if (has_source_poly) um[0] += SRC0[l];
+}
 
 void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
   ARTS_TIME_REPORT
 
   Matrix exponent(NFourier, NQuad, 1);
   Matrix um(NFourier, NQuad);
-
-  const auto cp = eintra<Matrix, "pm", "p", "m">(
-      [i0 = I0_orig, p0 = phi0](auto p, auto m) {
-        return i0 * std::cos(static_cast<Numeric>(m) * (p0 - p));
-      },
-      phi,
-      stdv::iota(Index{0}, NFourier));
 
   for (Index l = 0; l < NLayers; l++) {
     const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1393,7 +1683,15 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
     static_assert(
         matpack::einsum_optpath<"pi", "im", "pm">(),
         "On Failure, the einsum has been changed to not use optimal path");
-    einsum<"pi", "im", "pm">(out[l], transpose(um), cp);
+    einsum<"pi", "im", "pm">(
+        out[l],
+        transpose(um),
+        eintra<Matrix, "pm", "p", "m">(
+            [i0 = I0_orig, p0 = phi0](auto p, auto m) {
+              return i0 * std::cos(static_cast<Numeric>(m) * (p0 - p));
+            },
+            phi,
+            stdv::iota(Index{0}, NFourier)));
   }
 }
 
@@ -1561,6 +1859,101 @@ ZenGriddedField1 main_data::gridded_weights() const {
 
   return disort_quadrature;
 }
+
+coupling_result couple(main_data& atmosphere,
+                       main_data& subsurface,
+                       const Numeric tolerance,
+                       const Index max_iterations,
+                       const Numeric relaxation) {
+  ARTS_USER_ERROR_IF(max_iterations < 1,
+                     "max_iterations must be at least 1, got {}",
+                     max_iterations);
+  ARTS_USER_ERROR_IF(
+      tolerance < 0, "tolerance must be non-negative, got {}", tolerance);
+  ARTS_USER_ERROR_IF(relaxation <= 0 or relaxation > 1,
+                     "relaxation must be in (0, 1], got {}",
+                     relaxation);
+
+  MatrixView atm_up       = atmosphere.upward_boundary();
+  MatrixView subsurf_down = subsurface.downward_boundary();
+  const Size NLayer       = atmosphere.tau().size();
+  const Size Nquad        = atmosphere.mu().size();
+  const Size N            = Nquad / 2;
+  const Size Nfourier     = atm_up.nrows();
+  const Size nbrdfs       = atmosphere.brdf_modes().size();
+  const Range front       = rf(N);
+  const Range back        = rb(N);
+
+  ARTS_USER_ERROR_IF(
+      Nquad != subsurface.mu().size(),
+      "The coupled models must use the same quadrature dimension, got {} vs {}",
+      Nquad,
+      subsurface.mu().size());
+  ARTS_USER_ERROR_IF(
+      atm_up.shape() != subsurf_down.shape(),
+      "The coupled models must use identical boundary dimensions, got {:B,} vs. {:B,}",
+      atm_up.shape(),
+      subsurf_down.shape());
+
+  coupling_result out{};
+  Matrix res(Nfourier, Nquad), atm_sum(Nfourier, N), subsurf_sum(Nfourier, N);
+  StridedMatrixView atm_res = res[joker, front], subsurf_res = res[joker, back];
+  auto eatm_sum     = matpack::eigen::as_eigen(atm_sum);
+  auto esubsurf_sum = matpack::eigen::as_eigen(subsurf_sum);
+
+  const Tensor3 ImR = [nbrdfs, N, &atmosphere] -> Tensor3 {
+    Tensor3 R(nbrdfs, N, N);
+    Matrix mathscr_D_neg(N, N);
+
+    for (Size m = 0; m < nbrdfs; ++m) {
+      const bool m_equals_0_bool = m == 0;
+      atmosphere.brdf_modes()[m](
+          mathscr_D_neg, atmosphere.mu()[rf(N)], atmosphere.mu()[rb(N)]),
+          einsum<"ij", "", "ij", "j", "j">(R[m],
+                                           -(1 + m_equals_0_bool),
+                                           mathscr_D_neg,
+                                           atmosphere.mu()[rf(N)],
+                                           atmosphere.weights());
+      diagonal(R[m]) += 1.0;
+    }
+
+    return R;
+  }();
+
+  for (; out.iterations < max_iterations and not out.converged;
+       out.iterations++) {
+    atmosphere.layer_um(res, NLayer - 1);
+    clamp(res, 0.0, std::numeric_limits<Numeric>::max());
+    eatm_sum.noalias() = relaxation * atm_res + (1 - relaxation) * atm_up;
+
+    //! Only 1-R is transmitted from the atmosphere into the subsurface
+    for (Size m = 0; m < nbrdfs; ++m) {
+      eatm_sum.row(m) = ImR[m] * eatm_sum.row(m);
+    }
+
+    subsurface.layer_um(res, 0);
+    clamp(res, 0.0, std::numeric_limits<Numeric>::max());
+    esubsurf_sum.noalias() =
+        relaxation * subsurf_res + (1 - relaxation) * subsurf_down;
+
+    out.max_relative_change = std::max(copy_maxreliff(atm_sum, subsurf_down),
+                                       copy_maxreliff(subsurf_sum, atm_up));
+    out.converged           = out.max_relative_change <= tolerance;
+
+    if (not out.converged) {
+      if (out.iterations == 0) {
+        //! see set_beam_source for why this is called.
+        atmosphere.update_all(atmosphere.beam_source());
+        subsurface.update_all(subsurface.beam_source());
+      } else {
+        atmosphere.solve_for_coefs();
+        subsurface.solve_for_coefs();
+      }
+    }
+  }
+
+  return out;
+}
 }  // namespace disort
 
 void DisortSettings::resize(Index quadrature_dimension_,
@@ -1586,9 +1979,9 @@ void DisortSettings::resize(Index quadrature_dimension_,
   fractional_scattering.resize(nfreq, nlay);
   source_polynomial.resize(nfreq, nlay, 0);
   legendre_coefficients.resize(nfreq, nlay, legendre_polynomial_dimension);
-  positive_boundary_condition.resize(
+  upward_boundary_condition.resize(
       nfreq, fourier_mode_dimension, quadrature_dimension / 2);
-  negative_boundary_condition.resize(
+  downward_boundary_condition.resize(
       nfreq, fourier_mode_dimension, quadrature_dimension / 2);
 }
 
@@ -1611,16 +2004,16 @@ void DisortSettings::check() const {
            std::array{nfreq, nlay, source_polynomial.ncols()}) or
           (legendre_coefficients.shape() !=
            std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
-          (positive_boundary_condition.shape() !=
+          (upward_boundary_condition.shape() !=
            std::array{
                nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
-          (negative_boundary_condition.shape() !=
+          (downward_boundary_condition.shape() !=
            std::array{
                nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
           legendre_polynomial_dimension > legendre_coefficients.ncols(),
-      R"-x-(Input is incorrect.
+      R"-x-(Input is of incorrect size.
 
-{:s}
+{:Bs,}
 
 Also note that the reduced Legendre polynomial dimension is {}.  It must be at most {}.
 )-x-",
@@ -1629,7 +2022,7 @@ Also note that the reduced Legendre polynomial dimension is {}.  It must be at m
       legendre_coefficients.ncols());
 }
 
-disort::main_data DisortSettings::init() const try {
+disort::main_data DisortSettings::init() const {
   check();
   return disort::main_data(
       alt_grid.size() - 1,
@@ -1640,10 +2033,8 @@ disort::main_data DisortSettings::init() const try {
       legendre_polynomial_dimension,
       bidirectional_reflectance_distribution_functions.ncols());
 }
-ARTS_METHOD_ERROR_CATCH
 
-disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
-    try {
+disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const {
   using Conversion::cosd;
   using Conversion::deg2rad;
 
@@ -1660,19 +2051,18 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const
   dis.omega()               = single_scattering_albedo[iv];
   dis.f()                   = fractional_scattering[iv];
   dis.all_legendre_coeffs() = legendre_coefficients[iv];
-  dis.positive_boundary()   = positive_boundary_condition[iv];
-  dis.negative_boundary()   = negative_boundary_condition[iv];
+  dis.upward_boundary()     = upward_boundary_condition[iv];
+  dis.downward_boundary()   = downward_boundary_condition[iv];
   dis.source_poly()         = source_polynomial[iv];
 
   dis.update_all(solar_source[iv]);
 
   return dis;
 }
-ARTS_METHOD_ERROR_CATCH
 
 #ifdef ENABLE_CDISORT
 disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis,
-                                               Index iv) const try {
+                                               Index iv) const {
   using Conversion::cosd;
   using Conversion::deg2rad;
 
@@ -1689,12 +2079,11 @@ disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis,
   dis.omega()               = single_scattering_albedo[iv];
   dis.f()                   = fractional_scattering[iv];
   dis.all_legendre_coeffs() = legendre_coefficients[iv];
-  dis.positive_boundary()   = positive_boundary_condition[iv];
-  dis.negative_boundary()   = negative_boundary_condition[iv];
+  dis.upward_boundary()     = upward_boundary_condition[iv];
+  dis.downward_boundary()   = downward_boundary_condition[iv];
 
   return dis;
 }
-ARTS_METHOD_ERROR_CATCH
 #endif
 
 void xml_io_stream<DisortBDRF>::read(std::istream& is,
@@ -1744,8 +2133,8 @@ void xml_io_stream<DisortSettings>::read(std::istream& is_xml,
   xml_read_from_stream(is_xml, v.fractional_scattering, pbifs);
   xml_read_from_stream(is_xml, v.source_polynomial, pbifs);
   xml_read_from_stream(is_xml, v.legendre_coefficients, pbifs);
-  xml_read_from_stream(is_xml, v.positive_boundary_condition, pbifs);
-  xml_read_from_stream(is_xml, v.negative_boundary_condition, pbifs);
+  xml_read_from_stream(is_xml, v.upward_boundary_condition, pbifs);
+  xml_read_from_stream(is_xml, v.downward_boundary_condition, pbifs);
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
@@ -1785,14 +2174,12 @@ void xml_io_stream<DisortSettings>::write(std::ostream& os_xml,
   xml_write_to_stream(os_xml, v.source_polynomial, pbofs, "source_polynomial");
   xml_write_to_stream(
       os_xml, v.legendre_coefficients, pbofs, "legendre_coefficients");
+  xml_write_to_stream(
+      os_xml, v.upward_boundary_condition, pbofs, "upward_boundary_condition");
   xml_write_to_stream(os_xml,
-                      v.positive_boundary_condition,
+                      v.downward_boundary_condition,
                       pbofs,
-                      "positive_boundary_condition");
-  xml_write_to_stream(os_xml,
-                      v.negative_boundary_condition,
-                      pbofs,
-                      "negative_boundary_condition");
+                      "downward_boundary_condition");
 
   close_tag.name = type_name;
   close_tag.write_to_end_stream(os_xml);

@@ -157,6 +157,11 @@ Agenda required output: {:B,}
                                        e.what()));
 }
 
+void Agenda::set_name(const std::string& v, bool finalize_fix) {
+  name = v;
+  finalize(finalize_fix);
+}
+
 void Agenda::share_workspace(Workspace& out, const Workspace& in) const try {
   for (auto& str : share) {
     if (not out.contains(str)) out.set(str, in.share(str));

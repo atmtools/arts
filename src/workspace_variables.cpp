@@ -526,25 +526,6 @@ Shape: *model_state_vec* x *freq_grid*
       .type = "StokvecMatrix",
   };
 
-  wsv_data["spectral_rad_closed_surface_agenda"] = {
-      .desc          = R"--(A closed surface agenda.
-
-It behave exactly like *spectral_rad_surface_agenda*.  It exists
-to allow chaining surface agendas.  The idea is that the main
-*spectral_rad_surface_agenda* variable is the first interface
-and can chain into another surface agenda - this one.
-
-Thus this agenda must be "closed".  It cannot call another *spectral_rad_surface_agenda*,
-whereas *spectral_rad_surface_agenda* can call this agenda.  Imagine a chain where
-the *spectral_rad_surface_agenda* gets the reflectance from a land surface model
-and calls the *spectral_rad_observer_agenda* to compute the downwelling radiation at the surface.
-It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
-that is being emitted.  That's the type of use case this agenda is made for and why it exists!
-)--",
-      .type          = "Agenda",
-      .default_value = "get_spectral_rad_surface_agenda(\"Blackbody\"sv)",
-  };
-
   wsv_data["spectral_rad_field"] = {
       .desc = R"(The spectral radiance field.
 
@@ -1124,6 +1105,18 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
 
   wsv_data["disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations.
+)",
+      .type = "DisortSettings",
+  };
+
+  wsv_data["atm_disort_settings"] = {
+      .desc = R"(Contains the full settings of spectral Disort calculations for atmospheric conditions.
+)",
+      .type = "DisortSettings",
+  };
+
+  wsv_data["subsurf_disort_settings"] = {
+      .desc = R"(Contains the full settings of spectral Disort calculations for subsurface conditions.
 )",
       .type = "DisortSettings",
   };
