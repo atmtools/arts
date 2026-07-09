@@ -18,6 +18,12 @@ endforeach()
 list(LENGTH partfun_xml_files partfun_xml_files_count)
 message(STATUS "Found ${partfun_xml_files_count} partition function XML files")
 
+set(partfun_xml_files_list ${CMAKE_CURRENT_BINARY_DIR}/partfun_xml_files.txt)
+file(WRITE ${partfun_xml_files_list} "")
+foreach(xml_file IN LISTS partfun_xml_files)
+    file(APPEND ${partfun_xml_files_list} "${xml_file}\n")
+endforeach()
+
 if (partfun_xml_files_count EQUAL 0)
   message(FATAL_ERROR "No partition function XML files found in ${ARTS_CAT_DATA_DIR}/partition-functions/
 You need to pass -DARTS_CAT_DATA_PATH=<path> to cmake to point to the directory containing your copy of arts-cat-data.")
@@ -26,8 +32,8 @@ endif()
 # Generate auto_partfun.h for the ARTS interface
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/auto_partfun.h ${partfun_cpp_files}
-        COMMAND partfun_generator ${partfun_xml_files}
-        DEPENDS partfun_generator ${partfun_xml_files}
+        COMMAND partfun_generator ${partfun_xml_files_list}
+        DEPENDS partfun_generator ${partfun_xml_files} ${partfun_xml_files_list}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating automatic partition function interface"
 )
