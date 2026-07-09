@@ -16,7 +16,7 @@ dependencies:
         - libboost-devel
         - make
         - matplotlib<3.12
-        - nanobind=2.9
+        - nanobind<=2.13
         - nbsphinx
         - netcdf4
         - ninja
