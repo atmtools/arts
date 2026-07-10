@@ -145,15 +145,15 @@ void disort_spectral_rad_fieldCoupledCalc(
     }
   }
 
+  ARTS_USER_ERROR_IF(
+      error.size(), "Error occurred in disort-spectral:\n{}", error);
+
   //! FIXME: It would be nice to remove this if the internal angles can be solved
   disort_atm_spectral_rad_field.sort(dis_atm.mu());
   disort_subsurf_spectral_rad_field.sort(dis_subsurf.mu());
 
   disort_spectral_rad_field =
       disort_atm_spectral_rad_field.combine(disort_subsurf_spectral_rad_field);
-
-  ARTS_USER_ERROR_IF(
-      error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -214,10 +214,10 @@ void disort_spectral_flux_fieldCoupledCalc(
     }
   }
 
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
+
   disort_spectral_flux_field = disort_atm_spectral_flux_field.combine(
       disort_subsurf_spectral_flux_field);
-
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 

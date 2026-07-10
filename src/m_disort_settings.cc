@@ -1032,8 +1032,7 @@ alt_grid:          {:B,}
     };
   };
 
-  const auto surf_elev_iter        = stdr::lower_bound(alt_grid, surf_elev);
-  const bool surf_elev_in_alt_grid = *surf_elev_iter != surf_elev;
+  const auto surf_elev_iter = stdr::lower_bound(alt_grid, surf_elev);
 
   ArrayOfPropagationPathPoint subsurf_ray_path{
       std::from_range,
@@ -1041,8 +1040,9 @@ alt_grid:          {:B,}
           stdv::transform([to_ppp](Numeric z) {
             return to_ppp(z, PathPositionType::surface);
           })};
-  if (surf_elev_in_alt_grid)
+  if (subsurf_ray_path.back().pos[0] != surf_elev) {
     subsurf_ray_path.push_back(to_ppp(surf_elev, PathPositionType::surface));
+  }
 
   ArrayOfPropagationPathPoint atm_ray_path{
       to_ppp(surf_elev, PathPositionType::atm)};
