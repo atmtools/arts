@@ -65,9 +65,9 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
     } else {
       const auto& v          = wsm.gin.at(i);
       std::string_view comma = "";
-      os << ",\n    std::variant<";
+      os << ",\n    Python::Supergeneric<";
       for (auto& arg : generics[i]) {
-        os << std::exchange(comma, ", ") << "std::shared_ptr<py" << arg << ">";
+        os << std::exchange(comma, ", ") << "py" << arg;
       }
       os << "> * const _" << v;
     }
@@ -98,9 +98,9 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
     } else {
       const auto& v          = wsm.gin.at(i);
       std::string_view comma = "";
-      os << ",\n    const std::variant<";
+      os << ",\n    const Python::Supergeneric<";
       for (auto& arg : generics[index]) {
-        os << std::exchange(comma, ", ") << "std::shared_ptr<py" << arg << ">";
+        os << std::exchange(comma, ", ") << "py" << arg;
       }
       os << "> * const _" << v;
     }

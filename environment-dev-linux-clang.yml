@@ -21,7 +21,7 @@ dependencies:
         - libcxx
         - libcxx-devel
         - llvm-openmp
-        - nanobind=2.9
+        - nanobind<=2.13
         - nbsphinx
         - matplotlib<3.12
         - netcdf4
