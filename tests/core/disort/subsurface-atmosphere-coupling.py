@@ -50,15 +50,14 @@ ws.disort_spectral_rad_fieldCoupledProfiles(
     tolerance=1e-8,
     max_iterations=100,
     relaxation=0.5)
+ws.spectral_rad_transform_operatorSet(option="Tb")
+ws.ray_point
+ws.disort_spectral_rad_fieldApplyUnit()
 
 # %% Plot results
-f = ws.disort_spectral_rad_field.freq_grid
+f = ws.disort_spectral_rad_field.freq_grid / 1e9
 
-fig, ax = pa.plot(ws.disort_spectral_rad_field, levels=50)
+plt.plot(f, ws.disort_spectral_rad_field.data[:, :, 0, 0])
 
-for i in range(2):
-    ax[i].set_xticks(ws.freq_grid[::20], (ws.freq_grid[::20] / 1e9).round(1))
-    ax[i].set_ylabel("Quadrature angle [deg]")
-    ax[i].set_xlabel("Dirac frequency [GHz]")
-ax[0].set_title("Upward spectral radiance")
-ax[1].set_title("Downward spectral radiance")
+plt.xlabel("Frequency [GHz]")
+plt.ylabel("Brightness temperature [K]")

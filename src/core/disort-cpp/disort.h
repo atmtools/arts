@@ -6,7 +6,6 @@
 
 #include <format>
 #include <iosfwd>
-#include <limits>
 #include <string_view>
 
 #include "disort-eigen.h"
@@ -162,6 +161,8 @@ class main_data {
   Tensor4 G_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
   Tensor3 K_collect{};                  // [NFourier, NLayers, NQuad]
   Tensor3 expK_collect{};               // [NFourier, NLayers, NQuad]
+  Tensor3 exponent{};                   // [NLayers, NFourier, NQuad]
+  Tensor3 um{};                         // [NLayers, NFourier, NQuad]
   Tensor3 B_collect{};                  // [NFourier, NLayers, NQuad]
   Numeric I0_orig{};
   Numeric f_avg{};
@@ -334,7 +335,7 @@ class main_data {
     */
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
-  void layer_um(MatrixView um, Size l) const;
+  [[nodiscard]] ConstMatrixView layer_um(Size l) const;
   void gridded_u(Tensor3View, const Vector& phi) const;
   void gridded_flux(VectorView up,
                     VectorView down,
@@ -450,6 +451,8 @@ class main_data {
     * - exp_K
     */
   void transmission();
+
+  void rad_field();
 
   /** Compute the source function
     *
@@ -1145,6 +1148,24 @@ struct std::formatter<DisortFlux> {
 
   template <class FmtContext>
   FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      return tags.format(ctx,
+                         "freq_grid.shape:    "sv,
+                         v.freq_grid.shape(),
+                         '\n',
+                         "alt_grid.shape:     "sv,
+                         v.alt_grid.shape(),
+                         '\n',
+                         "down_diffuse.shape: "sv,
+                         v.down_diffuse.shape(),
+                         '\n',
+                         "down_direct.shape:  "sv,
+                         v.down_direct.shape(),
+                         '\n',
+                         "up.shape:           "sv,
+                         v.up.shape());
+    }
+
     auto sep = tags.sep();
     return tags.format(ctx,
                        v.freq_grid,
@@ -1187,6 +1208,24 @@ struct std::formatter<DisortRadiance> {
 
   template <class FmtContext>
   FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
+    if (tags.short_str) {
+      return tags.format(ctx,
+                         "freq_grid.shape: "sv,
+                         v.freq_grid.shape(),
+                         '\n',
+                         "alt_grid.shape:  "sv,
+                         v.alt_grid.shape(),
+                         '\n',
+                         "azi_grid.shape:  "sv,
+                         v.azi_grid.shape(),
+                         '\n',
+                         "zen_grid.shape:  "sv,
+                         v.zen_grid.shape(),
+                         '\n',
+                         "data.shape:      "sv,
+                         v.data.shape());
+    }
+
     auto sep = tags.sep();
     return tags.format(ctx,
                        v.freq_grid,

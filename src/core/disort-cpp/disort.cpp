@@ -32,12 +32,7 @@ void radiances::resize(AscendingGrid f_grid,
 }
 
 namespace {
-enum class CoupledType : char {
-  freq_unique,
-  alt_unique,
-  freq_coupled,
-  alt_coupled
-};
+enum class CoupledType : char { freq_unique, freq_coupled, alt_coupled };
 
 /*! Couple the sizes of two radiance grids.
  *
@@ -106,10 +101,15 @@ extension: {:Bs,}
                       alt_grid_second));
     }
 
-    const bool coupled = alt_grid.back() == alt_grid_second.front();
-    out.first = coupled ? CoupledType::alt_coupled : CoupledType::alt_unique;
+    if (alt_grid.back() != alt_grid_second.front()) {
+      throw std::runtime_error(
+          "Unique altitude grids not supported for disort radiances as the "
+          "altitude grid represent layer boundaries and the two grids would "
+          "not be compatible for coupling");
+    }
 
-    alt_grid.extend(alt_grid_second | stdv::drop(coupled));
+    out.first = CoupledType::alt_coupled;
+    alt_grid.extend(alt_grid_second | stdv::drop(1));
   } else {
     throw std::runtime_error(
         "Coupling of disort radiances with different angular grids is "
@@ -185,10 +185,16 @@ extension: {:Bs,}
                       alt_grid_second));
     }
 
-    const bool coupled = alt_grid.back() == alt_grid_second.front();
-    out.first = coupled ? CoupledType::alt_coupled : CoupledType::alt_unique;
+    if (alt_grid.back() != alt_grid_second.front()) {
+      throw std::runtime_error(
+          "Unique altitude grids not supported for disort radiances as the "
+          "altitude grid represent layer boundaries and the two grids would "
+          "not be compatible for coupling");
+    }
 
-    alt_grid.extend(alt_grid_second | stdv::drop(coupled));
+    out.first = CoupledType::alt_coupled;
+
+    alt_grid.extend(alt_grid_second | stdv::drop(1));
   } else {
     throw std::runtime_error(
         "Coupling of disort fluxes with different angular grids is "
@@ -201,7 +207,7 @@ extension: {:Bs,}
 }
 }  // namespace
 
-[[nodiscard]] radiances radiances::combine(const radiances& other) const {
+radiances radiances::combine(const radiances& other) const {
   auto [type, out] = coupled_size(freq_grid,
                                   other.freq_grid,
                                   alt_grid,
@@ -214,23 +220,16 @@ extension: {:Bs,}
   switch (type) {
     using enum CoupledType;
     case freq_unique:
-      out.data[Range(0, freq_grid.size())]                      = data;
-      out.data[Range(freq_grid.size(), other.freq_grid.size())] = other.data;
+      out.data[Range(0, data.nbooks())]                   = data;
+      out.data[Range(data.nbooks(), other.data.nbooks())] = other.data;
       break;
     case freq_coupled:
-      out.data[Range(0, freq_grid.size()), joker, joker, joker] = data;
-      out.data[Range(freq_grid.size(), other.freq_grid.size() - 1)] =
-          other.data[Range(1, other.freq_grid.size() - 1)];
-      break;
-    case alt_unique:
-      out.data[joker, Range(0, alt_grid.size() - 1)] = data;
-      out.data[joker, Range(alt_grid.size(), other.alt_grid.size() - 1)] =
-          other.data;
+      out.data[Range(0, data.nbooks())]                       = data;
+      out.data[Range(data.nbooks() - 1, other.data.nbooks())] = other.data;
       break;
     case alt_coupled:
-      out.data[joker, Range(0, alt_grid.size() - 1)] = data;
-      out.data[joker, Range(alt_grid.size() - 1, other.alt_grid.size() - 1)] =
-          other.data;
+      out.data[joker, Range(0, data.npages())]                   = data;
+      out.data[joker, Range(data.npages(), other.data.npages())] = other.data;
       break;
   }
 
@@ -267,8 +266,8 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
   switch (type) {
     using enum CoupledType;
     case freq_unique: {
-      Range f{0, freq_grid.size()};
-      Range g{freq_grid.size(), other.freq_grid.size()};
+      const Range f{0, up.nrows()};
+      const Range g{up.nrows(), other.up.nrows()};
       out.up[f]           = up;
       out.up[g]           = other.up;
       out.down_diffuse[f] = down_diffuse;
@@ -277,29 +276,18 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
       out.down_direct[g]  = other.down_direct;
     } break;
     case freq_coupled: {
-      Range f{0, freq_grid.size()};
-      Range g{freq_grid.size(), other.freq_grid.size() - 1};
-      Range h{1, other.freq_grid.size() - 1};
+      const Range f{0, up.nrows()};
+      const Range g{up.nrows() - 1, other.up.nrows()};
       out.up[f]           = up;
-      out.up[g]           = other.up[h];
+      out.up[g]           = other.up;
       out.down_diffuse[f] = down_diffuse;
-      out.down_diffuse[g] = other.down_diffuse[h];
+      out.down_diffuse[g] = other.down_diffuse;
       out.down_direct[f]  = down_direct;
-      out.down_direct[g]  = other.down_direct[h];
-    } break;
-    case alt_unique: {
-      Range f{0, alt_grid.size() - 1};
-      Range g{alt_grid.size(), other.alt_grid.size() - 1};
-      out.up[joker, f]           = up;
-      out.up[joker, g]           = other.up;
-      out.down_diffuse[joker, f] = down_diffuse;
-      out.down_diffuse[joker, g] = other.down_diffuse;
-      out.down_direct[joker, f]  = down_direct;
-      out.down_direct[joker, g]  = other.down_direct;
+      out.down_direct[g]  = other.down_direct;
     } break;
     case alt_coupled: {
-      Range f{0, alt_grid.size() - 1};
-      Range g{alt_grid.size() - 1, other.alt_grid.size() - 1};
+      const Range f{0, up.ncols()};
+      const Range g{up.ncols(), other.up.ncols()};
       out.up[joker, f]           = up;
       out.up[joker, g]           = other.up;
       out.down_diffuse[joker, f] = down_diffuse;
@@ -922,6 +910,35 @@ void main_data::transmission() {
       K_collect,
       scaled_tau_arr_with_0[Range(1, NLayers)],
       scaled_tau_arr_with_0[Range(0, NLayers)]);
+
+  for (Index j = 0; j < NFourier; j++) {
+    exponent[joker, j, rf(N)] = expK_collect[j, joker, rf(N)];
+  }
+}
+
+void main_data::rad_field() {
+  ARTS_TIME_REPORT
+
+  static_assert(
+      matpack::einsum_optpath<"mi", "mij", "mj">(),
+      "On Failure, the einsum has been changed to not use optimal path");
+  for (Index l = 0; l < NLayers; l++) {
+    einsum<"mi", "mij", "mj">(um[l], GC_collect[joker, l], exponent[l]);
+  }
+
+  if (has_beam_source) {
+    for (Index l = 0; l < NLayers; l++) {
+      eintra<"mi", "mi", "mi">(
+          [x = std::exp(-scaled_tau_arr_with_0[l + 1] / mu0)](auto b, auto c) {
+            return std::fma(x, b, c);
+          },
+          um[l],
+          B_collect[joker, l],
+          um[l]);
+    }
+  }
+
+  if (has_source_poly) um[joker, 0] += SRC0;
 }
 
 void main_data::source_function() {
@@ -946,8 +963,6 @@ void main_data::update_all(const Numeric I0_) {
 
   check_input_value();
 
-  LHSB.zero();
-
   set_weighted_Leg_coeffs_all();
   if (I0_ >= 0 or has_beam_source) {
     set_beam_source(I0_ >= 0 ? I0_ : I0 * I0_orig);
@@ -958,6 +973,7 @@ void main_data::update_all(const Numeric I0_) {
   transmission();
   source_function();
   solve_for_coefs();
+  rad_field();
 }
 
 main_data::main_data(const Index NLayers_,
@@ -999,6 +1015,8 @@ main_data::main_data(const Index NLayers_,
       G_collect(NFourier, NLayers, NQuad, NQuad),
       K_collect(NFourier, NLayers, NQuad),
       expK_collect(NFourier, NLayers, NQuad),
+      exponent(NLayers, NFourier, NQuad, 1.0),
+      um(NLayers, NFourier, NQuad),
       B_collect(NFourier, NLayers, NQuad),
       // Pure compute allocations
       n(NQuad * NLayers),
@@ -1096,6 +1114,8 @@ main_data::main_data(const Index NQuad_,
       G_collect(NFourier, NLayers, NQuad, NQuad),
       K_collect(NFourier, NLayers, NQuad),
       expK_collect(NFourier, NLayers, NQuad),
+      exponent(NLayers, NFourier, NQuad, 1.0),
+      um(NLayers, NFourier, NQuad),
       B_collect(NFourier, NLayers, NQuad),
       // Pure compute allocations
       n(NQuad * NLayers),
@@ -1589,30 +1609,15 @@ void main_data::gridded_flux(VectorView flux_up,
                              VectorView flux_dd) const {
   ARTS_TIME_REPORT
 
-  Vector u0(NQuad);
-  Vector exponent(NQuad, 1);
-
   for (Index l = 0; l < NLayers; l++) {
-    const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-
-    if (has_source_poly) {
-      u0 = SRC0[l];
-    } else {
-      u0 = 0.0;
-    }
+    const auto&& u0 = um[l, 0];
 
     const Numeric direct_beam =
         has_beam_source ? I0 * mu0 * std::exp(-tau_arr[l] / mu0) : 0;
     const Numeric direct_beam_scaled =
-        has_beam_source ? I0 * mu0 * std::exp(-scaled_tau_arr_l / mu0) : 0;
-    if (has_beam_source) {
-      for (Index i = 0; i < NQuad; i++) {
-        u0[i] += B_collect[0, l, i] * std::exp(-scaled_tau_arr_l / mu0);
-      }
-    }
-
-    exponent[rf(N)] = expK_collect[0, l, rf(N)];
-    mult(u0, GC_collect[0, l], exponent, 1.0, 1.0);
+        has_beam_source
+            ? I0 * mu0 * std::exp(-scaled_tau_arr_with_0[l + 1] / mu0)
+            : 0;
 
     flux_up[l] =
         Constant::two_pi * I0_orig *
@@ -1625,67 +1630,22 @@ void main_data::gridded_flux(VectorView flux_up,
   }
 }
 
-void main_data::layer_um(MatrixView um, Size l) const {
-  ARTS_TIME_REPORT
+ConstMatrixView main_data::layer_um(Size l) const {
+  assert(l < static_cast<Size>(NLayers));
 
-  assert(l < NLayers);
-  assert(um.nrows() == NFourier);
-  assert(um.ncols() == NQuad);
-
-  Matrix exponent(NFourier, NQuad, 1);
-
-  const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-
-  static_assert(
-      matpack::einsum_optpath<"mi", "mij", "mj">(),
-      "On Failure, the einsum has been changed to not use optimal path");
-  exponent[joker, rf(N)] = expK_collect[joker, l, rf(N)];
-  einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
-
-  if (has_beam_source) {
-    eintra<"mi", "mi", "mi">([x = std::exp(-scaled_tau_arr_l / mu0)](
-                                 auto b, auto c) { return std::fma(x, b, c); },
-                             um,
-                             B_collect[joker, l],
-                             um);
-  }
-
-  if (has_source_poly) um[0] += SRC0[l];
+  return um[l];
 }
 
 void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
   ARTS_TIME_REPORT
 
-  Matrix exponent(NFourier, NQuad, 1);
-  Matrix um(NFourier, NQuad);
-
   for (Index l = 0; l < NLayers; l++) {
-    const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-
-    static_assert(
-        matpack::einsum_optpath<"mi", "mij", "mj">(),
-        "On Failure, the einsum has been changed to not use optimal path");
-    exponent[joker, rf(N)] = expK_collect[joker, l, rf(N)];
-    einsum<"mi", "mij", "mj">(um, GC_collect[joker, l], exponent);
-
-    if (has_beam_source) {
-      eintra<"mi", "mi", "mi">(
-          [x = std::exp(-scaled_tau_arr_l / mu0)](auto b, auto c) {
-            return std::fma(x, b, c);
-          },
-          um,
-          B_collect[joker, l],
-          um);
-    }
-
-    if (has_source_poly) um[0] += SRC0[l];
-
     static_assert(
         matpack::einsum_optpath<"pi", "im", "pm">(),
         "On Failure, the einsum has been changed to not use optimal path");
     einsum<"pi", "im", "pm">(
         out[l],
-        transpose(um),
+        transpose(um[l]),
         eintra<Matrix, "pm", "p", "m">(
             [i0 = I0_orig, p0 = phi0](auto p, auto m) {
               return i0 * std::cos(static_cast<Numeric>(m) * (p0 - p));
@@ -1922,7 +1882,7 @@ coupling_result couple(main_data& atmosphere,
 
   for (; out.iterations < max_iterations and not out.converged;
        out.iterations++) {
-    atmosphere.layer_um(res, NLayer - 1);
+    res = atmosphere.layer_um(NLayer - 1);
     clamp(res, 0.0, std::numeric_limits<Numeric>::max());
     eatm_sum.noalias() = relaxation * atm_res + (1 - relaxation) * atm_up;
 
@@ -1931,7 +1891,7 @@ coupling_result couple(main_data& atmosphere,
       eatm_sum.row(m) = ImR[m] * eatm_sum.row(m);
     }
 
-    subsurface.layer_um(res, 0);
+    res = subsurface.layer_um(0);
     clamp(res, 0.0, std::numeric_limits<Numeric>::max());
     esubsurf_sum.noalias() =
         relaxation * subsurf_res + (1 - relaxation) * subsurf_down;
@@ -1948,6 +1908,8 @@ coupling_result couple(main_data& atmosphere,
       } else {
         atmosphere.solve_for_coefs();
         subsurface.solve_for_coefs();
+        atmosphere.rad_field();
+        subsurface.rad_field();
       }
     }
   }
