@@ -405,11 +405,12 @@ struct std::formatter<BlockMatrix> {
 
   template <class FmtContext>
   FmtContext::iterator format(const BlockMatrix &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, "["sv);
-    if (v.not_null())
+    if (v.not_null()) {
       return v.is_dense() ? tags.format(ctx, v.dense())
                           : tags.format(ctx, v.sparse());
-    tags.add_if_bracket(ctx, "]"sv);
+    }
+
+    tags.add_if_bracket(ctx, "[]"sv);
     return ctx.out();
   }
 };
