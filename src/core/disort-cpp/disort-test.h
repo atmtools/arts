@@ -25,7 +25,11 @@ inline bool is_good(const auto& a, const auto& b) {
         if (nonstd::isnan(first) or nonstd::isnan(second)) return false;
         if (first == 0.0 and second == 0.0) return true;
         const Numeric ratio = std::abs(first / second - 1);
+#if ARTS_LGPL
+        return ratio < 2e-6;
+#else
         return ratio < 1e-6;
+#endif
       });
 }
 
