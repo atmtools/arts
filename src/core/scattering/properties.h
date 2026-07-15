@@ -60,7 +60,7 @@ struct std::formatter<ScatteringSpeciesProperty> {
   FmtContext::iterator format(const ScatteringSpeciesProperty& v,
                               FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    return tags.format(ctx, quote, v.species_name, '_', v.pproperty, quote);
+    return tags.format(ctx, quote, v.species_name, "_"sv, v.pproperty, quote);
   }
 };
 

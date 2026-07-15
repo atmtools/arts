@@ -58,7 +58,7 @@ include(CMakeDependentOption)
 option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
 option (ENABLE_ASAN "Turn on address sanitizer" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
-option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
+option (ENABLE_CXX26 "Turn on C++26 (use is risky, there are known issues)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
@@ -109,11 +109,11 @@ else()
   message(STATUS "Compiling ARTS without time profiling information (-DENABLE_ARTS_PROFILING=ON to enable)")
 endif()
 
-########### C++20/23 Support ##########
+########### C++23/26 Support ##########
 
 if (NOT CMAKE_CXX_STANDARD)
-  if (ENABLE_CXX23)
-    set(CMAKE_CXX_STANDARD 23)
+  if (ENABLE_CXX26)
+    set(CMAKE_CXX_STANDARD 26)
   else ()
     set(CMAKE_CXX_STANDARD 23)
   endif ()

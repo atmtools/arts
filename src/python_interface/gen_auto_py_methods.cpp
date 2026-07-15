@@ -504,7 +504,7 @@ std::string method_resolution_simple(const std::string& name,
 }
 
 std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
-  return stdr::count(wsm.gout_type, "Any") + stdr::count(wsm.gin_type, "Any");
+  return stdr::count(wsm.gout_type, "Any"sv) + stdr::count(wsm.gin_type, "Any"sv);
 }
 
 std::string method_resolution(const std::string& name,

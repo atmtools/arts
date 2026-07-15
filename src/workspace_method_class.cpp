@@ -249,8 +249,8 @@ struct std::formatter<std::vector<SetvalHelper>> {
                               FmtContext& ctx) const {
     if (vec.empty()) return ctx.out();
 
-    std::format_to(ctx.out(), ", using");
-    std::string_view s = ": ";
+    std::format_to(ctx.out(), ", using"sv);
+    std::string_view s = ": "sv;
     for (auto& v : vec) {
       std::format_to(ctx.out(),
                      "{}{} = *{}*",

@@ -425,7 +425,7 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
     const Size sz   = md.size();
     const auto sep  = tags.sep();
 
-    for (Size j = 0; j < d; j++) tags.add_if_bracket(ctx, '[');
+    for (Size j = 0; j < d; j++) tags.add_if_bracket(ctx, "["sv);
 
     if (tags.short_str and sz > 8) {
       tags.format(ctx,
@@ -454,10 +454,10 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
         ++i;
 
         if (const Size spaces = row_sep(i); spaces < N) {
-          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, ']');
-          tags.format(ctx, sep, '\n');
-          for (Size j = 0; j < spaces; j++) tags.add_if_bracket(ctx, ' ');
-          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, '[');
+          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, "]"sv);
+          tags.format(ctx, sep, "\n"sv);
+          for (Size j = 0; j < spaces; j++) tags.add_if_bracket(ctx, " "sv);
+          for (Size j = spaces; j < N; j++) tags.add_if_bracket(ctx, "["sv);
         } else {
           tags.format(ctx, sep);
         }
@@ -466,7 +466,7 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
       }
     }
 
-    for (Size i = 0; i < d; i++) tags.add_if_bracket(ctx, ']');
+    for (Size i = 0; i < d; i++) tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }

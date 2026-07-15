@@ -405,11 +405,12 @@ struct std::formatter<BlockMatrix> {
 
   template <class FmtContext>
   FmtContext::iterator format(const BlockMatrix &v, FmtContext &ctx) const {
-    if (v.not_null())
+    if (v.not_null()) {
       return v.is_dense() ? tags.format(ctx, v.dense())
                           : tags.format(ctx, v.sparse());
-   tags.add_if_bracket(ctx, '[');
-   tags.add_if_bracket(ctx, ']');
+    }
+
+    tags.add_if_bracket(ctx, "[]"sv);
     return ctx.out();
   }
 };
@@ -432,9 +433,9 @@ struct std::formatter<CovarianceMatrix> {
   FmtContext::iterator format(const CovarianceMatrix &v,
                               FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, Matrix{v}, sep, v.get_inverse());
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

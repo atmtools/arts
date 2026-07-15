@@ -34,7 +34,8 @@ std::string_view format_tags::quote() const {
 }
 
 template <>
-void format_tags::add_if_bracket(std::format_context& ctx, char x) const try {
+void format_tags::add_if_bracket(std::format_context& ctx,
+                                 std::string_view x) const try {
   if (bracket) std::format_to(ctx.out(), "{}", x);
 } catch (const std::exception& e) {
   throw std::runtime_error("Error in single_format with fmt-string: " +

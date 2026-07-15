@@ -170,7 +170,7 @@ struct std::formatter<SpeciesEnumPair> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesEnumPair& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.spec1, '-', v.spec2);
+    return tags.format(ctx, v.spec1, "-"sv, v.spec2);
   }
 };
 

@@ -57,6 +57,6 @@ struct std::formatter<NumericTernary> {
 
   template <class FmtContext>
   FmtContext::iterator format(const NumericTernary&, FmtContext& ctx) const {
-    return tags.format(ctx, "<numeric-ternary>");
+    return tags.format(ctx, "<numeric-ternary>"sv);
   }
 };

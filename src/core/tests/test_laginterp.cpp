@@ -535,7 +535,7 @@ void test_variant_lag() {
   for (Size i = 1; i < 10; ++i) {
     Vector grid = nlinspace(-100, 100, i);
     const auto lagt =
-        lagrange_interp::variant_lag<lagrange_interp::grid_identity, N>(grid,
+        lagrange_interp::variant_lag<lagrange_interp::grid_identity, N>(std::span{grid},
                                                                         1);
     Size x = std::visit([](auto v) { return v.PolyOrder; }, lagt);
     ARTS_USER_ERROR_IF(x > N, "PolyOrder {} exceeds max lag size {}", x, N);

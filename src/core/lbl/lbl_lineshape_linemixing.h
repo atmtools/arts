@@ -52,7 +52,7 @@ struct std::formatter<LinemixingSingleEcsData> {
                               FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.scaling,
                 sep,
@@ -61,7 +61,7 @@ struct std::formatter<LinemixingSingleEcsData> {
                 v.lambda,
                 sep,
                 v.collisional_distance);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }

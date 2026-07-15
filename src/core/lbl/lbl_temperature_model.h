@@ -365,15 +365,16 @@ struct std::formatter<lbl::temperature::data> {
     if (tags.help) {
       tags.format(ctx, "Equation: "sv, to_educational_string(v));
     } else if (tags.io) {
-      tags.format(ctx, v.Type(), ' ');
+      tags.format(ctx, v.Type(), " "sv);
       if (lbl::temperature::model_size(v.Type()) ==
-          std::numeric_limits<Size>::max())
-        tags.format(ctx, v.X().size(), ' ');
+          std::numeric_limits<Size>::max()) {
+        tags.format(ctx, v.X().size(), " "sv);
+      }
       tags.format(ctx, v.X());
     } else {
-      tags.add_if_bracket(ctx, '[');
+      tags.add_if_bracket(ctx, "["sv);
       tags.format(ctx, v.Type(), tags.sep(), v.X());
-      tags.add_if_bracket(ctx, ']');
+      tags.add_if_bracket(ctx, "]"sv);
     }
 
     return ctx.out();

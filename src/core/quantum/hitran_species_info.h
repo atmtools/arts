@@ -25,8 +25,14 @@ struct std::formatter<HitranSpeciesInfo> {
   template <class FmtContext>
   FmtContext::iterator format(const HitranSpeciesInfo& v,
                               FmtContext& ctx) const {
-    return tags.format(
-        ctx, v.spec.FullName(), ' ', v.hitind, ' ', v.hitchar, ' ', v.ratio);
+    return tags.format(ctx,
+                       v.spec.FullName(),
+                       " "sv,
+                       v.hitind,
+                       " "sv,
+                       std::string_view(&v.hitchar, 1),
+                       " "sv,
+                       v.ratio);
   }
 };
 

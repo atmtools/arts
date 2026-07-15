@@ -1368,7 +1368,7 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
   std::string out;
 
   if (tags.short_str) {
-    const char sep = ' ';
+    const std::string_view sep = " "sv;
 
     out = tags.vformat(R"("top_of_atmosphere": )"sv,
                        v.top_of_atmosphere,

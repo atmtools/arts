@@ -144,7 +144,7 @@ struct std::formatter<ScatteringMetaData> {
   template <class FmtContext>
   FmtContext::iterator format(const ScatteringMetaData& v,
                               FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
 
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
@@ -170,7 +170,7 @@ struct std::formatter<ScatteringMetaData> {
                 sep,
                 v.diameter_area_equ_aerodynamical);
 
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

@@ -29,13 +29,13 @@ struct std::formatter<JplSpeciesInfo> {
   FmtContext::iterator format(const JplSpeciesInfo& v, FmtContext& ctx) const {
     return tags.format(ctx,
                        v.spec,
-                       ' ',
+                       " "sv,
                        v.id,
-                       ' ',
+                       " "sv,
                        v.has_qn,
-                       ' ',
+                       " "sv,
                        v.QT0,
-                       ' ',
+                       " "sv,
                        v.T0);
   }
 };

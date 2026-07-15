@@ -216,7 +216,7 @@ struct std::formatter<SpeciesIsotopologueRatios> {
     tags.format(ctx, Species::Isotopologues[0].FullName(), sep, v.data[0]);
     for (Index i = 1; i < v.maxsize; i++) {
       tags.format(
-          ctx, '\n', Species::Isotopologues[i].FullName(), sep, v.data[i]);
+          ctx, "\n"sv, Species::Isotopologues[i].FullName(), sep, v.data[i]);
     }
 
     return ctx.out();

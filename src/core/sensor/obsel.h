@@ -310,9 +310,9 @@ struct std::formatter<sensor::SparseStokvec> {
                               FmtContext& ctx) const {
     const auto sep = tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, w.irow, sep, w.icol, sep, w.data);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }
@@ -337,9 +337,9 @@ struct std::formatter<sensor::SparseStokvecMatrix> {
                               FmtContext& ctx) const {
     const auto sep = tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     for (auto& w : v) tags.format(ctx, w, sep);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
