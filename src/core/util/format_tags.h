@@ -129,7 +129,9 @@ struct format_tags {
   }
 
   template <std::formattable<char> T>
-  [[nodiscard]] std::string vformat(const T& x) const try {
+  [[nodiscard]] std::string vformat(const T& x) const
+    requires(no_raw_chars<T>)
+  try {
     if constexpr (arts_formattable<T>)
       return std::vformat(get_format_args(), std::make_format_args(x));
     else
@@ -141,7 +143,7 @@ struct format_tags {
 
   template <std::formattable<char>... Ts>
   [[nodiscard]] std::string vformat(const Ts&... xs) const
-    requires(sizeof...(Ts) > 1)
+    requires(sizeof...(Ts) > 1 and no_raw_chars<Ts...>)
   {
     return (... + vformat(xs));
   }
