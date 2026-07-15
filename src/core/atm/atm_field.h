@@ -468,12 +468,12 @@ struct std::formatter<Atm::Data> {
     if (tags.short_str) return tags.format(ctx, v.data);
 
     const std::string_view sep = tags.sep();
-    if (tags.help) tags.add_if_bracket(ctx, '[');
+    if (tags.help) tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.data);
 
     if (tags.help) {
       tags.format(ctx, sep);
-      tags.add_if_bracket(ctx, '[');
+      tags.add_if_bracket(ctx, "["sv);
       tags.format(ctx,
                   v.alt_upp,
                   sep,
@@ -486,8 +486,7 @@ struct std::formatter<Atm::Data> {
                   v.lon_upp,
                   sep,
                   v.lon_low);
-      tags.add_if_bracket(ctx, ']');
-      tags.add_if_bracket(ctx, ']');
+      tags.add_if_bracket(ctx, "]]"sv);
     }
 
     return ctx.out();

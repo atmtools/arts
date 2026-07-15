@@ -109,11 +109,11 @@ else()
   message(STATUS "Compiling ARTS without time profiling information (-DENABLE_ARTS_PROFILING=ON to enable)")
 endif()
 
-########### C++20/23 Support ##########
+########### C++23/26 Support ##########
 
 if (NOT CMAKE_CXX_STANDARD)
-  if (ENABLE_CXX23)
-    set(CMAKE_CXX_STANDARD 23)
+  if (ENABLE_CXX26)
+    set(CMAKE_CXX_STANDARD 26)
   else ()
     set(CMAKE_CXX_STANDARD 23)
   endif ()

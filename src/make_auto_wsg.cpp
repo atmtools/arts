@@ -208,8 +208,7 @@ void agenda_operators() {
       to_strings;
 
   const auto cref_agenda_types = stdv::transform([&](const std::string& v) {
-                                   return "const " + wsv_type(v);
-                                   +"&";
+                                   return "const " + wsv_type(v) + "&";
                                  }) |
                                  to_strings;
 

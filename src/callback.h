@@ -40,7 +40,7 @@ struct std::formatter<CallbackOperator> {
                               FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
 
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
 
     tags.format(ctx,
                 quote,
@@ -55,7 +55,7 @@ struct std::formatter<CallbackOperator> {
                 ": "sv,
                 v.outputs);
 
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };

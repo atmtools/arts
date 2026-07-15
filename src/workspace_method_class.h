@@ -95,8 +95,8 @@ struct std::formatter<Method> {
       return tags.format(ctx, v.get_name());
     }
 
-    tags.add_if_bracket(ctx, '[');
-    tags.add_if_bracket(ctx, '\n');
+    tags.add_if_bracket(ctx, "["sv);
+    tags.add_if_bracket(ctx, "\n"sv);
 
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
@@ -123,8 +123,8 @@ struct std::formatter<Method> {
                   v.get_ins());
     }
 
-    tags.add_if_bracket(ctx, '\n');
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "\n"sv);
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -146,7 +146,7 @@ struct std::formatter<Agenda> {
   template <class FmtContext>
   FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     if (tags.short_str) {
-      tags.format(ctx, v.get_name(), ':', '\n');
+      tags.format(ctx, v.get_name(), ":\n"sv);
 
       for (const auto& method : v.get_methods()) {
         const auto& method_name = method.get_name();
@@ -155,15 +155,15 @@ struct std::formatter<Agenda> {
           continue;
         }
 
-        tags.format(ctx, "  - "sv, method.get_name(), '\n');
+        tags.format(ctx, "  - "sv, method.get_name(), "\n"sv);
       }
 
-      if (v.get_methods().empty()) tags.format(ctx, "  (no methods)", '\n');
+      if (v.get_methods().empty()) tags.format(ctx, "  (no methods)\n"sv);
 
       return ctx.out();
     }
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
 
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
@@ -175,7 +175,7 @@ struct std::formatter<Agenda> {
                   quote,
                   " (checked: "sv,
                   v.is_checked(),
-                  ')');
+                  ")"sv);
     }
 
     tags.format(ctx,
@@ -188,7 +188,7 @@ struct std::formatter<Agenda> {
                 "  Copied: "sv,
                 v.get_copy());
 
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

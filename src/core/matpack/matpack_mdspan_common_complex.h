@@ -43,14 +43,14 @@ struct std::formatter<std::complex<T>> {
   template <class FmtContext>
   FmtContext::iterator format(const std::complex<T>& v, FmtContext& ctx) const {
     if (tags.io) {
-      tags.format(ctx, v.real(), ' ', v.imag());
+      tags.format(ctx, v.real(), " "sv, v.imag());
     } else if (tags.comma) {
-      tags.format(ctx, '(', v.real(), ' ', v.imag(), "j)"sv);
+      tags.format(ctx, "("sv, v.real(), " "sv, v.imag(), "j)"sv);
     } else {
       if (v.imag() < 0) {
-        tags.format(ctx, v.real(), v.imag(), 'j');
+        tags.format(ctx, v.real(), v.imag(), "j"sv);
       } else {
-        tags.format(ctx, v.real(), '+', v.imag(), 'j');
+        tags.format(ctx, v.real(), "+"sv, v.imag(), "j"sv);
       }
     }
 

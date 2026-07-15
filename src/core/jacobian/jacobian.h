@@ -404,7 +404,7 @@ struct std::formatter<ErrorKey> {
 
   template <class FmtContext>
   FmtContext::iterator format(const ErrorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx, '[', v.y_start, ", "sv, v.y_start + v.y_size, ')');
+    return tags.format(ctx, "["sv, v.y_start, ", "sv, v.y_start + v.y_size, ")"sv);
   }
 };
 
@@ -671,7 +671,7 @@ struct std::formatter<JacobianTargets> {
 
   template <class FmtContext>
   FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
 
     const std::string_view sep = tags.sep();
 
@@ -697,7 +697,7 @@ struct std::formatter<JacobianTargets> {
       tags.format(ctx, R"("error": )"sv, v.error);
     }
 
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };

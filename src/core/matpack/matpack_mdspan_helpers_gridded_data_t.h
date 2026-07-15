@@ -240,8 +240,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
  public:
   template <class FmtContext>
   FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
-    tags.add_if_bracket(ctx, '{');
-    tags.add_if_bracket(ctx, '\n');
+    tags.add_if_bracket(ctx, "{\n"sv);
 
     if constexpr (constexpr Size N = 0; n > N) grid<N>(v, ctx);
     if constexpr (constexpr Size N = 1; n > N) grid<N>(v, ctx);
@@ -261,8 +260,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
 
     tags.format(ctx, v.data);
 
-    tags.add_if_bracket(ctx, '\n');
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "\n}"sv);
     return ctx.out();
   }
 };

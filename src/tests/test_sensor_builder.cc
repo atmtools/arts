@@ -21,40 +21,6 @@ void assert_close(Numeric actual,
                      expected)
 }
 
-void assert_stokvec(Stokvec actual,
-                    Stokvec expected,
-                    Numeric tol,
-                    std::string_view name) {
-  for (Size i = 0; i < 4; ++i) {
-    ARTS_USER_ERROR_IF(std::abs(actual[i] - expected[i]) > tol,
-                       "{} mismatch at {}: actual {} expected {}",
-                       name,
-                       i,
-                       actual,
-                       expected)
-  }
-}
-
-Numeric gaussian_airy_expected_gain(Numeric zenith_deg,
-                                    Numeric frequency,
-                                    Numeric aperture_diameter) try {
-  constexpr Numeric gaussian_airy_hwhm_factor =
-      Constant::bessel_j_n1_k1_zero / Constant::pi;
-  const Numeric wavelength = Constant::speed_of_light / frequency;
-  const Numeric hwhm_deg = Conversion::rad2deg(gaussian_airy_hwhm_factor *
-                                               wavelength / aperture_diameter);
-  const Numeric ratio    = zenith_deg / hwhm_deg;
-
-  return std::exp(-Constant::ln_2 * ratio * ratio);
-} catch (const std::exception& e) {
-  throw std::runtime_error(std::format(
-      "gaussian_airy_expected_gain failed for zenith {} frequency {} aperture {}:\n{}",
-      zenith_deg,
-      frequency,
-      aperture_diameter,
-      e.what()));
-}
-
 void test_sensor_builder_returns_meta_per_geometry() try {
   sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0, 101.0}},
                            sensor::DiracChannel{200.0}},

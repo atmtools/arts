@@ -401,7 +401,7 @@ struct std::formatter<PropagationPathPoint> {
                               FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     if (tags.io) {
       tags.format(ctx, v.pos, sep, v.los, sep, v.nreal, sep, v.ngroup);
     } else {
@@ -418,7 +418,7 @@ struct std::formatter<PropagationPathPoint> {
                   sep,
                   v.ngroup);
     }
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }

@@ -90,7 +90,7 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
       const Absorption::PredefinedModel::MT_CKD400::WaterData &v,
       FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.ref_temp,
                 sep,
@@ -105,7 +105,7 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD400::WaterData> {
                 v.wavenumbers,
                 sep,
                 v.self_texp);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -127,7 +127,7 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD430::WaterData> {
       const Absorption::PredefinedModel::MT_CKD430::WaterData &v,
       FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.ref_temp,
                 sep,
@@ -140,7 +140,7 @@ struct std::formatter<Absorption::PredefinedModel::MT_CKD430::WaterData> {
                 v.for_closure_absco_ref,
                 sep,
                 v.self_texp);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -160,7 +160,7 @@ struct std::formatter<Absorption::PredefinedModel::ModelName> {
   template <class FmtContext>
   FmtContext::iterator format(const Absorption::PredefinedModel::ModelName &,
                               FmtContext &ctx) const {
-    return tags.format(ctx, "[]");
+    return tags.format(ctx, "[]"sv);
   }
 };
 

@@ -94,13 +94,13 @@ struct std::formatter<SpeciesTag> {
 
     switch (v.type) {
       case SpeciesTagType::Plain:
-        if (not v.is_joker()) tags.format(ctx, '-', v.Isotopologue().isotname);
+        if (not v.is_joker()) tags.format(ctx, "-"sv, v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Predefined:
-        tags.format(ctx, '-', v.Isotopologue().isotname);
+        tags.format(ctx, "-"sv, v.Isotopologue().isotname);
         break;
       case SpeciesTagType::Cia:
-        tags.format(ctx, "-CIA-", v.cia_2nd_species);
+        tags.format(ctx, "-CIA-"sv, v.cia_2nd_species);
         break;
       case SpeciesTagType::XsecFit: tags.format(ctx, "-XFIT"sv); break;
     }

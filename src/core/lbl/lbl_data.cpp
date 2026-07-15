@@ -349,24 +349,24 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
                         v.ls,
                         "; Quantum state: "sv,
                         v.qn,
-                        ';');
+                        ";"sv);
   }
 
   if (tags.io) {
     return tags.vformat(v.f0,
-                        ' ',
+                        " "sv,
                         v.a,
-                        ' ',
+                        " "sv,
                         v.e0,
-                        ' ',
+                        " "sv,
                         v.gu,
-                        ' ',
+                        " "sv,
                         v.gl,
-                        ' ',
+                        " "sv,
                         v.z,
-                        ' ',
+                        " "sv,
                         v.ls,
-                        ' ',
+                        " "sv,
                         v.qn);
   }
 
@@ -392,7 +392,7 @@ std::string std::formatter<lbl::band_data>::to_string(
                           to_educational_string_frequency(v.cutoff.value)),
         "; Lines: ["sv,
         v.lines,
-        ']');
+        "]"sv);
   }
 
   const auto sep = tags.sep();

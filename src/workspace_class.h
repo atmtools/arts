@@ -122,11 +122,11 @@ struct std::formatter<Workspace> {
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
     for (auto& [name, wsv] : v) {
       tags.format(ctx, quote, name, quote, ": "sv, wsv, sep);
     }
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
 
     return ctx.out();
   }

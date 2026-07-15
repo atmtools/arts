@@ -320,7 +320,7 @@ struct std::formatter<StridedRange> {
   template <class FmtContext>
   FmtContext::iterator format(const StridedRange& v, FmtContext& ctx) const {
     return tags.format(
-        ctx, "sr["sv, v.offset, tags.sep(), v.nelem, tags.sep(), v.stride, ']');
+        ctx, "sr["sv, v.offset, tags.sep(), v.nelem, tags.sep(), v.stride, "]"sv);
   }
 };
 
@@ -338,7 +338,7 @@ struct std::formatter<Range> {
 
   template <class FmtContext>
   FmtContext::iterator format(const Range& v, FmtContext& ctx) const {
-    return tags.format(ctx, "r["sv, v.offset, tags.sep(), v.nelem, ']');
+    return tags.format(ctx, "r["sv, v.offset, tags.sep(), v.nelem, "]"sv);
   }
 };
 

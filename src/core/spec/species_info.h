@@ -77,6 +77,6 @@ struct std::formatter<SpeciesIsotopologueInfo> {
   template <class FmtContext>
   FmtContext::iterator format(const SpeciesIsotopologueInfo& v,
                               FmtContext& ctx) const {
-    return tags.format(ctx, v.species, '-', v.code);
+    return tags.format(ctx, v.species, "-"sv, v.code);
   }
 };

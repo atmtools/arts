@@ -265,12 +265,11 @@ struct std::formatter<Surf::Data> {
   FmtContext::iterator format(const Surf::Data &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.data, sep);
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.lat_upp, sep, v.lat_low, sep, v.lon_upp, sep, v.lon_low);
-    tags.add_if_bracket(ctx, ']');
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]]"sv);
     return ctx.out();
   }
 };
@@ -291,14 +290,14 @@ struct std::formatter<SurfaceField> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SurfaceField &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
     tags.format(ctx, R"("Ellipsoid": )"sv, v.ellipsoid);
 
     if (tags.short_str) {
       tags.format(ctx,
                   R"(, "SurfaceKey": )"sv,
                   v.other.size(),
-                  R"(, "SurfacePropertyTag": )",
+                  R"(, "SurfacePropertyTag": )"sv,
                   v.props.size());
     } else {
       const std::string_view sep = tags.sep();
@@ -311,7 +310,7 @@ struct std::formatter<SurfaceField> {
                   v.props);
     }
 
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };
@@ -332,7 +331,7 @@ struct std::formatter<SurfacePoint> {
 
   template <class FmtContext>
   FmtContext::iterator format(const SurfacePoint &v, FmtContext &ctx) const {
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
     tags.format(ctx,
                 R"("elevation": )"sv,
                 v.elevation,
@@ -342,13 +341,13 @@ struct std::formatter<SurfacePoint> {
                 v.normal);
 
     if (tags.short_str) {
-      tags.format(ctx, R"(, "SurfacePropertyTag": )", v.prop.size());
+      tags.format(ctx, R"(, "SurfacePropertyTag": )"sv, v.prop.size());
     } else {
       const std::string_view sep = tags.sep();
       tags.format(ctx, sep, R"("SurfacePropertyTag": )"sv, v.prop);
     }
 
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };

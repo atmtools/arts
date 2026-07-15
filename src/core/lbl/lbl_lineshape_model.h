@@ -249,11 +249,11 @@ struct std::formatter<LineShapeSpeciesModel> {
     if (tags.help) {
       tags.format(ctx, "Data: "sv, v.data);
     } else if (tags.io) {
-      tags.format(ctx, v.data.size(), ' ', v.data);
+      tags.format(ctx, v.data.size(), " "sv, v.data);
     } else {
-      tags.add_if_bracket(ctx, '[');
+      tags.add_if_bracket(ctx, "["sv);
       tags.format(ctx, v.data);
-      tags.add_if_bracket(ctx, ']');
+      tags.add_if_bracket(ctx, "]"sv);
     }
 
     return ctx.out();
@@ -285,13 +285,13 @@ struct std::formatter<lbl::line_shape::model> {
 
     if (tags.io) {
       return tags.format(
-          ctx, v.T0, ' ', v.single_models.size(), ' ', v.single_models);
+          ctx, v.T0, " "sv, v.single_models.size(), " "sv, v.single_models);
     }
 
     const auto sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.T0, sep, v.single_models);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }

@@ -45,7 +45,7 @@ struct std::formatter<lbl::jpl_record> {
   template <class FmtContext>
   FmtContext::iterator format(const lbl::jpl_record& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.jpl_id,
                 sep,
@@ -62,7 +62,7 @@ struct std::formatter<lbl::jpl_record> {
                 v.g_upp,
                 sep,
                 v.qnfmt);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

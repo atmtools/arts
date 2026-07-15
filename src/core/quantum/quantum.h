@@ -380,7 +380,7 @@ struct std::formatter<Quantum::UpperLower> {
   template <class FmtContext>
   FmtContext::iterator format(const Quantum::UpperLower& q,
                               FmtContext& ctx) const {
-    return tags.format(ctx, q.upper, ' ', q.lower);
+    return tags.format(ctx, q.upper, " "sv, q.lower);
   }
 };
 
@@ -459,7 +459,7 @@ struct std::formatter<QuantumIdentifier> {
     if (tags.help) {
       tags.format(ctx, "Species: "sv, q.isot, " Quantum Numbers:"sv);
       for (auto& [k, v] : q.state) {
-        tags.format(ctx, ' ', k, ": "sv, v, ',');
+        tags.format(ctx, " "sv, k, ": "sv, v, ","sv);
       }
       return ctx.out();
     }

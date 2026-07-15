@@ -49,7 +49,7 @@ struct std::formatter<lbl::hitran_record> {
   FmtContext::iterator format(const lbl::hitran_record& v,
                               FmtContext& ctx) const {
     const auto sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.qid,
                 sep,
@@ -72,7 +72,7 @@ struct std::formatter<lbl::hitran_record> {
                 v.g_upp,
                 sep,
                 v.g_low);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

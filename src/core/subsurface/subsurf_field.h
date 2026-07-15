@@ -277,9 +277,9 @@ struct std::formatter<SubsurfaceData> {
   template <class FmtContext>
   FmtContext::iterator format(const SubsurfaceData &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.data, sep);
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.alt_upp,
                 sep,
@@ -292,8 +292,7 @@ struct std::formatter<SubsurfaceData> {
                 v.lon_upp,
                 sep,
                 v.lon_low);
-    tags.add_if_bracket(ctx, ']');
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]]"sv);
     return ctx.out();
   }
 };

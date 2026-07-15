@@ -133,7 +133,7 @@ struct std::formatter<XsecRecord> {
     }
 
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 v.FitMinPressures(),
                 sep,
@@ -144,7 +144,7 @@ struct std::formatter<XsecRecord> {
                 v.FitMaxTemperatures(),
                 sep,
                 v.FitCoeffs());
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
 
     return ctx.out();
   }

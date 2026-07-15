@@ -476,12 +476,12 @@ struct std::formatter<lbl::zeeman::model> {
         tags.format(ctx, "<off>"sv);
       }
     } else if (tags.io) {
-      tags.format(ctx, Index{v.on}, ' ', v.gu(), ' ', v.gl());
+      tags.format(ctx, Index{v.on}, " "sv, v.gu(), " "sv, v.gl());
     } else {
       const auto sep = tags.sep();
-      tags.add_if_bracket(ctx, '[');
+      tags.add_if_bracket(ctx, "["sv);
       tags.format(ctx, v.on, sep, v.gu(), sep, v.gl());
-      tags.add_if_bracket(ctx, ']');
+      tags.add_if_bracket(ctx, "]"sv);
     }
 
     return ctx.out();

@@ -45,6 +45,24 @@ concept arts_formattable =
       std::format("{:hnsqNBIO,}", x);
     };
 
+namespace {
+template <typename T>
+concept is_raw_char_pointer =
+    std::same_as<T, char*> or std::same_as<T, const char*> or
+    std::same_as<T, const char* const> or
+    (std::is_array_v<T> and
+     std::same_as<std::remove_cvref_t<std::remove_all_extents_t<T>>, char>);
+
+template <typename T>
+concept is_raw_char =
+    std::same_as<T, char> or std::same_as<T, char*> or
+    std::same_as<T, const char*> or std::same_as<T, const char* const> or
+    is_raw_char_pointer<T>;
+
+template <typename... Ts>
+concept no_raw_chars = not(is_raw_char<Ts> or ...);
+}  // namespace
+
 template <typename T>
 concept arts_formattable_or_value_type =
     arts_formattable<T> or std::integral<T> or std::floating_point<T> or
@@ -86,8 +104,8 @@ struct format_tags {
   [[nodiscard]] std::string_view quote() const;
 
   template <class FmtContext>
-  void add_if_bracket(FmtContext& ctx, char x) const {
-    if (bracket) ctx.out() += x;
+  void add_if_bracket(FmtContext& ctx, std::string_view x) const {
+    if (bracket) single_format(ctx, x);
   }
 
   template <class FmtContext>
@@ -97,13 +115,15 @@ struct format_tags {
 
   template <class FmtContext, std::formattable<char> T>
   void single_format(FmtContext& ctx, const T& x) const {
-    std::formatter<T> fmt;
+    std::formatter<T> fmt{};
     compat(fmt);
     fmt.format(x, ctx);
   }
 
-  template <class FmtContext, std::formattable<char> T, typename... Rest>
-  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const {
+  template <class FmtContext, std::formattable<char> T, no_raw_chars... Rest>
+  constexpr auto format(FmtContext& ctx, const T& x, const Rest&... r) const
+    requires(no_raw_chars<T>)
+  {
     single_format(ctx, x);
     return format(ctx, r...);
   }
@@ -128,7 +148,8 @@ struct format_tags {
 };
 
 template <>
-void format_tags::add_if_bracket(std::format_context& ctx, char x) const;
+void format_tags::add_if_bracket(std::format_context& ctx,
+                                 std::string_view x) const;
 
 template <>
 std::string format_tags::vformat(const std::string& x) const;
@@ -221,7 +242,7 @@ void format_value_iterable(FmtContext& ctx,
                            const iterable& v) {
   const std::size_t n = std::size(v);
   if (tags.io) {
-    for (auto&& a : v) tags.format(ctx, ' ', a);
+    for (auto&& a : v) tags.format(ctx, " "sv, a);
   } else if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
     auto&& s       = v.begin();
@@ -253,7 +274,7 @@ void format_map_iterable(FmtContext& ctx,
                          const iterable& m) {
   const std::size_t n = std::size(m);
   if (tags.io) {
-    for (auto&& [k, v] : m) tags.format(ctx, ' ', k, ' ', v);
+    for (auto&& [k, v] : m) tags.format(ctx, " "sv, k, " "sv, v);
   } else if (tags.short_str and n > 8) {
     const auto sep = tags.sep();
     auto&& kv      = m.begin();
@@ -333,14 +354,14 @@ struct std::formatter<std::unordered_map<Key, Value>> {
     }
 
     if constexpr (std::totally_ordered<Key>) {
-      tags.add_if_bracket(ctx, '{');
+      tags.add_if_bracket(ctx, "{"sv);
       format_map_iterable(
           ctx, inner_fmt().tags, std::map<Key, Value>{std::from_range, v});
-      tags.add_if_bracket(ctx, '}');
+      tags.add_if_bracket(ctx, "}"sv);
     } else {
-      tags.add_if_bracket(ctx, '{');
+      tags.add_if_bracket(ctx, "{"sv);
       format_map_iterable(ctx, inner_fmt().tags, v);
-      tags.add_if_bracket(ctx, '}');
+      tags.add_if_bracket(ctx, "}"sv);
     }
     return ctx.out();
   }
@@ -367,9 +388,9 @@ struct std::formatter<std::map<Key, Value>> {
       if (auto x = to_helper_string(v); x) return tags.format(ctx, *x);
     }
 
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{"sv);
     format_map_iterable(ctx, inner_fmt().tags, v);
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}"sv);
 
     return ctx.out();
   }
@@ -397,9 +418,9 @@ struct std::formatter<std::span<T>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    inner_fmt().tags.add_if_bracket(ctx, '[');
+    inner_fmt().tags.add_if_bracket(ctx, "["sv);
     format_value_iterable(ctx, inner_fmt().tags, v);
-    inner_fmt().tags.add_if_bracket(ctx, ']');
+    inner_fmt().tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -426,9 +447,9 @@ struct std::formatter<std::set<T>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    inner_fmt().tags.add_if_bracket(ctx, '{');
+    inner_fmt().tags.add_if_bracket(ctx, "{"sv);
     format_value_iterable(ctx, inner_fmt().tags, v);
-    inner_fmt().tags.add_if_bracket(ctx, '}');
+    inner_fmt().tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };
@@ -456,9 +477,9 @@ struct std::formatter<std::unordered_set<T>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    inner_fmt().tags.add_if_bracket(ctx, '{');
+    inner_fmt().tags.add_if_bracket(ctx, "{"sv);
     format_value_iterable(ctx, inner_fmt().tags, v);
-    inner_fmt().tags.add_if_bracket(ctx, '}');
+    inner_fmt().tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };
@@ -486,9 +507,9 @@ struct std::formatter<std::vector<T, Allocator>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    inner_fmt().tags.add_if_bracket(ctx, '[');
+    inner_fmt().tags.add_if_bracket(ctx, "["sv);
     format_value_iterable(ctx, inner_fmt().tags, v);
-    inner_fmt().tags.add_if_bracket(ctx, ']');
+    inner_fmt().tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -516,9 +537,9 @@ struct std::formatter<std::array<T, N>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    inner_fmt().tags.add_if_bracket(ctx, '[');
+    inner_fmt().tags.add_if_bracket(ctx, "["sv);
     format_value_iterable(ctx, inner_fmt().tags, v);
-    inner_fmt().tags.add_if_bracket(ctx, ']');
+    inner_fmt().tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
@@ -542,9 +563,9 @@ struct std::formatter<std::pair<A, B>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    tags.add_if_bracket(ctx, '(');
+    tags.add_if_bracket(ctx, "("sv);
     tags.format(ctx, v.first, tags.sep(), v.second);
-    tags.add_if_bracket(ctx, ')');
+    tags.add_if_bracket(ctx, ")"sv);
     return ctx.out();
   }
 };
@@ -567,7 +588,7 @@ struct std::formatter<std::tuple<WT...>> {
               std::index_sequence<Ints...>,
               const tuple<WT...>& v) const {
     if (tags.io)
-      (tags.format(ctx, std::get<Ints>(v), '\n'), ...);
+      (tags.format(ctx, std::get<Ints>(v), "\n"sv), ...);
     else
       (tags.format(ctx, std::get<Ints>(v), tags.sep()), ...);
   }
@@ -580,9 +601,9 @@ struct std::formatter<std::tuple<WT...>> {
         return inner_fmt().tags.format(ctx, *x);
     }
 
-    tags.add_if_bracket(ctx, '(');
+    tags.add_if_bracket(ctx, "("sv);
     format(ctx, std::index_sequence_for<WT...>{}, v);
-    tags.add_if_bracket(ctx, ')');
+    tags.add_if_bracket(ctx, ")"sv);
     return ctx.out();
   }
 };

@@ -545,7 +545,7 @@ std::string std::formatter<SubsurfaceField>::to_string(
   std::string out;
 
   if (tags.short_str) {
-    const char sep = ' ';
+    const std::string_view sep = " "sv;
 
     out = tags.vformat(R"("bottom_depth": )"sv,
                        v.bottom_depth,

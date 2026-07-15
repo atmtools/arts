@@ -398,7 +398,7 @@ struct std::formatter<Rational> {
   template <class FmtContext>
   FmtContext::iterator format(const Rational& v, FmtContext& ctx) const {
     if (v.denom == 1) return tags.format(ctx, v.numer);
-    return tags.format(ctx, v.numer, '/', v.denom);
+    return tags.format(ctx, v.numer, "/"sv, v.denom);
   }
 };
 

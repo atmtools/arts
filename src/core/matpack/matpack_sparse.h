@@ -202,18 +202,18 @@ struct std::formatter<Sparse> {
     std::string_view first = tags.sep();
     std::string_view sep   = ""sv;
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
 
     for (int k = 0; k < v.matrix.outerSize(); ++k) {
       for (Iter it(v.matrix, k); it; ++it) {
         tags.format(ctx, std::exchange(sep, first));
-        tags.add_if_bracket(ctx, '[');
+        tags.add_if_bracket(ctx, "["sv);
         tags.format(ctx, it.row(), sep, it.col(), sep, it.value());
-        tags.add_if_bracket(ctx, ']');
+        tags.add_if_bracket(ctx, "]"sv);
       }
     }
 
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };

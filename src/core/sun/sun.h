@@ -123,7 +123,7 @@ struct std::formatter<Sun> {
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
-    tags.add_if_bracket(ctx, '[');
+    tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,
                 quote,
                 v.description,
@@ -138,7 +138,7 @@ struct std::formatter<Sun> {
                 v.latitude,
                 sep,
                 v.longitude);
-    tags.add_if_bracket(ctx, ']');
+    tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
