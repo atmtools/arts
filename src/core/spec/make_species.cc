@@ -91,9 +91,9 @@ inline constexpr std::array Isotopologues{{)");
 }  // namespace
 
 int main(int argc, char** argv) try {
-  if (argc != 3) {
+  if (argc != 2) {
     std::println(
-        stderr, "Usage: {} <arts-cat-data> <builtin-predefined-models>", argv[0]);
+        stderr, "Usage: {} <arts-cat-data>", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -107,8 +107,6 @@ int main(int argc, char** argv) try {
                  "isotopologues/");
     return EXIT_FAILURE;
   }
-
-  species.insert_range(read_split_species(argv[2]));
 
   std::ofstream h("auto_isotopologues.h", std::ios::out);
   write_header(h, species);
