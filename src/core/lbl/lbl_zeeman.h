@@ -416,8 +416,7 @@ constexpr Propmat scale(const Propmat &a, const Propmat &da, const Complex F, co
 }
 };  // namespace lbl::zeeman
 
-template <>
-struct std::formatter<lbl::zeeman::model> {
+template <> struct std::formatter<lbl::zeeman::model> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
@@ -427,8 +426,7 @@ struct std::formatter<lbl::zeeman::model> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::zeeman::model &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::zeeman::model &v, FmtContext &ctx) const {
     if (tags.help) {
       if (v.on) {
         tags.format(ctx, "<on>; Upper state: "sv, v.gu(), "; Lower state: "sv, v.gl());

@@ -16,9 +16,7 @@ void forward_cumulative_transmission(Array<muelmat_vector> &Pi, const Array<muel
   Pi.front() = T.front();
 
   for (Size i = 1; i < N; i++) {
-    for (auto &&[Pi1, Pi0, T] : stdv::zip(Pi[i], Pi[i - 1], T[i])) {
-      Pi1 = Pi0 * T;
-    }
+    for (auto &&[Pi1, Pi0, T] : stdv::zip(Pi[i], Pi[i - 1], T[i])) { Pi1 = Pi0 * T; }
   }
 }
 

@@ -183,58 +183,39 @@ struct band_data {
 
   LineByLineCutoff cutoff{};
 
-  template <typename T>
-  [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
+  template <typename T> [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
     return std::forward<T>(self).lines[i];
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) empty(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) empty(this T&& self) {
     return std::forward<T>(self).lines.empty();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) back(this T&& self) {
-    return std::forward<T>(self).lines.back();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) back(this T&& self) { return std::forward<T>(self).lines.back(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) front(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) front(this T&& self) {
     return std::forward<T>(self).lines.front();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) size(this T&& self) {
-    return std::forward<T>(self).lines.size();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) size(this T&& self) { return std::forward<T>(self).lines.size(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) begin(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) begin(this T&& self) {
     return std::forward<T>(self).lines.begin();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) end(this T&& self) {
-    return std::forward<T>(self).lines.end();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) end(this T&& self) { return std::forward<T>(self).lines.end(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) cbegin(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) cbegin(this T&& self) {
     return std::forward<T>(self).lines.cbegin();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) cend(this T&& self) {
-    return std::forward<T>(self).lines.cend();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) cend(this T&& self) { return std::forward<T>(self).lines.cend(); }
 
-  template <typename U, typename T>
-  void push_back(this U&& self, T&& l) {
+  template <typename U, typename T> void push_back(this U&& self, T&& l) {
     std::forward<U>(self).lines.push_back(std::forward<T>(l));
   }
 
-  template <typename U, typename... Ts>
-  decltype(auto) emplace_back(this U&& self, Ts&&... l) {
+  template <typename U, typename... Ts> decltype(auto) emplace_back(this U&& self, Ts&&... l) {
     return std::forward<U>(self).lines.emplace_back(std::forward<Ts>(l)...);
   }
 
@@ -387,8 +368,7 @@ std::vector<LineByLineCutoff> get_cutoff_types_and_values(
 }  // namespace lbl
 
 //! Support hashing of line keys
-template <>
-struct std::hash<lbl::line_key> {
+template <> struct std::hash<lbl::line_key> {
   static std::size_t operator()(const lbl::line_key& x) {
     std::size_t seed = 0;
 
@@ -409,8 +389,7 @@ using AbsorptionBand = lbl::band_data;
 //! A list of multiple bands
 using AbsorptionBands = std::unordered_map<QuantumIdentifier, AbsorptionBand>;
 
-template <>
-struct std::formatter<lbl::line> {
+template <> struct std::formatter<lbl::line> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -422,14 +401,12 @@ struct std::formatter<lbl::line> {
 
   [[nodiscard]] std::string to_string(const lbl::line& v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<lbl::band_data> {
+template <> struct std::formatter<lbl::band_data> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -441,14 +418,12 @@ struct std::formatter<lbl::band_data> {
 
   [[nodiscard]] std::string to_string(const lbl::band_data& v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<lbl::line_key> {
+template <> struct std::formatter<lbl::line_key> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -458,15 +433,13 @@ struct std::formatter<lbl::line_key> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
     return tags.format(ctx, v.band, sep, v.line, sep, v.spec);
   }
 };
 
-template <>
-struct xml_io_stream<AbsorptionBand> {
+template <> struct xml_io_stream<AbsorptionBand> {
   static constexpr std::string_view type_name = "AbsorptionBand"sv;
 
   static void write(std::ostream&         os,
@@ -477,8 +450,7 @@ struct xml_io_stream<AbsorptionBand> {
   static void read(std::istream& is, AbsorptionBand& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<LblLineKey> {
+template <> struct xml_io_stream<LblLineKey> {
   static constexpr std::string_view type_name = "LblLineKey"sv;
 
   static void write(std::ostream& os, const LblLineKey& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
@@ -486,5 +458,4 @@ struct xml_io_stream<LblLineKey> {
   static void read(std::istream& is, LblLineKey& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands&);
+template <> std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands&);

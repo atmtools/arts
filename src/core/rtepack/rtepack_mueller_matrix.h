@@ -220,8 +220,6 @@ void forward_cumulative_transmission(Array<muelmat_vector> &Pi, const Array<muel
 Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T);
 }  // namespace rtepack
 
-template <>
-struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
+template <> struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
 
-template <>
-struct xml_io_stream<rtepack::muelmat> : xml_io_stream_inherit<Matrix44, rtepack::muelmat> {};
+template <> struct xml_io_stream<rtepack::muelmat> : xml_io_stream_inherit<Matrix44, rtepack::muelmat> {};

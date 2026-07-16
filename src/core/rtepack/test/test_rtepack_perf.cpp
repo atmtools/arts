@@ -12,9 +12,7 @@ Numeric test_expm(const PropmatVector& K) {
 
   Numeric sum = 0.0;
 
-  for (auto& k : K) {
-    sum += rtepack::tran(k, k, 1.0)()[0, 0];
-  }
+  for (auto& k : K) { sum += rtepack::tran(k, k, 1.0)()[0, 0]; }
 
   return sum;
 }
@@ -37,9 +35,7 @@ Numeric test_linsrc(const PropmatVector& K) {
 
   Numeric sum = 0.0;
 
-  for (auto& k : K) {
-    sum += rtepack::tran(k, k, 1.0).linsrc()[0, 0];
-  }
+  for (auto& k : K) { sum += rtepack::tran(k, k, 1.0).linsrc()[0, 0]; }
 
   return sum;
 }
@@ -49,9 +45,7 @@ Numeric test_linsrc_deriv(const PropmatVector& K) {
 
   Numeric sum = 0.0;
 
-  for (auto& k : K) {
-    sum += rtepack::tran(k, k, 1.0).linsrc_deriv(k, 1.0, 0.0)[0, 0];
-  }
+  for (auto& k : K) { sum += rtepack::tran(k, k, 1.0).linsrc_deriv(k, 1.0, 0.0)[0, 0]; }
 
   return sum;
 }
@@ -104,9 +98,7 @@ Numeric test_logk(const PropmatVector& K) {
 
   Numeric sum = 0.0;
 
-  for (auto& k : K) {
-    sum += rtepack::logK(rtepack::tran(k, k, 1.0)()).A();
-  }
+  for (auto& k : K) { sum += rtepack::logK(rtepack::tran(k, k, 1.0)()).A(); }
 
   return sum;
 }
@@ -116,9 +108,7 @@ Numeric test_sqrt(const PropmatVector& K) {
 
   Numeric sum = 0.0;
 
-  for (auto& k : K) {
-    sum += rtepack::sqrt(k)[0, 0].real();
-  }
+  for (auto& k : K) { sum += rtepack::sqrt(k)[0, 0].real(); }
 
   return sum;
 }

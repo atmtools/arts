@@ -35,11 +35,8 @@ constexpr Size model_size(LineShapeModelType type) {
 
 namespace model {
 namespace {
-#define EMPTY(name, deriv)                                          \
-  template <typename... T>                                          \
-  [[nodiscard]] constexpr Numeric d##name##_d##deriv(const T&...) { \
-    return 0;                                                       \
-  }
+#define EMPTY(name, deriv) \
+  template <typename... T> [[nodiscard]] constexpr Numeric d##name##_d##deriv(const T&...) { return 0; }
 EMPTY(T0, X1)
 EMPTY(T0, X2)
 EMPTY(T0, X3)
@@ -303,8 +300,7 @@ class data {
 
 std::string to_educational_string(const lbl::temperature::data&, std::optional<LineShapeModelVariable> = std::nullopt);
 
-template <>
-struct std::formatter<lbl::temperature::data> {
+template <> struct std::formatter<lbl::temperature::data> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -314,8 +310,7 @@ struct std::formatter<lbl::temperature::data> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::temperature::data& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::temperature::data& v, FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Equation: "sv, to_educational_string(v));
     } else if (tags.io) {
@@ -334,8 +329,7 @@ struct std::formatter<lbl::temperature::data> {
   }
 };
 
-template <>
-struct xml_io_stream<lbl::temperature::data> {
+template <> struct xml_io_stream<lbl::temperature::data> {
   static constexpr std::string_view type_name = "TemperatureData"sv;
 
   static void write(std::ostream&                 os,

@@ -19,8 +19,7 @@ struct species_model {
   map_t data{};
 
   //! Removes the variables from the model.
-  template <LineShapeModelVariable... V>
-  map_t::size_type remove_variables() {
+  template <LineShapeModelVariable... V> map_t::size_type remove_variables() {
     return (... + std::erase_if(data, [v = V](const auto& x) { return x.first == v; }));
   }
 
@@ -173,8 +172,7 @@ using LineShapeSpeciesModel = lbl::line_shape::species_model;
 
 using LineShapeModel = lbl::line_shape::model;
 
-template <>
-struct std::formatter<LineShapeSpeciesModel> {
+template <> struct std::formatter<LineShapeSpeciesModel> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -184,8 +182,7 @@ struct std::formatter<LineShapeSpeciesModel> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const LineShapeSpeciesModel& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const LineShapeSpeciesModel& v, FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Data: "sv, v.data);
     } else if (tags.io) {
@@ -200,8 +197,7 @@ struct std::formatter<LineShapeSpeciesModel> {
   }
 };
 
-template <>
-struct std::formatter<lbl::line_shape::model> {
+template <> struct std::formatter<lbl::line_shape::model> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -211,8 +207,7 @@ struct std::formatter<lbl::line_shape::model> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::line_shape::model& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::line_shape::model& v, FmtContext& ctx) const {
     if (tags.help) {
       return tags.format(ctx, "Reference temperature: "sv, v.T0, " K; Single models: "sv, v.single_models);
     }
@@ -231,8 +226,7 @@ struct std::formatter<lbl::line_shape::model> {
 template <>
 std::optional<std::string> to_helper_string<LineShapeSpeciesModel::map_t>(const LineShapeSpeciesModel::map_t&);
 
-template <>
-struct xml_io_stream<lbl::line_shape::model> {
+template <> struct xml_io_stream<lbl::line_shape::model> {
   static constexpr std::string_view type_name = "LineShapeModel"sv;
 
   static void write(std::ostream&                 os,
@@ -243,8 +237,7 @@ struct xml_io_stream<lbl::line_shape::model> {
   static void read(std::istream& is, lbl::line_shape::model& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<lbl::line_shape::species_model> {
+template <> struct xml_io_stream<lbl::line_shape::species_model> {
   static constexpr std::string_view type_name = "LineShapeSpeciesModel"sv;
 
   static void write(std::ostream&                         os,

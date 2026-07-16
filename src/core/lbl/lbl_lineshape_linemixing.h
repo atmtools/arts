@@ -30,8 +30,7 @@ using LinemixingSingleEcsData  = lbl::linemixing::species_data;
 using LinemixingSpeciesEcsData = std::unordered_map<SpeciesEnum, LinemixingSingleEcsData>;
 using LinemixingEcsData        = std::unordered_map<SpeciesIsotope, LinemixingSpeciesEcsData>;
 
-template <>
-struct std::formatter<LinemixingSingleEcsData> {
+template <> struct std::formatter<LinemixingSingleEcsData> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
@@ -53,8 +52,7 @@ struct std::formatter<LinemixingSingleEcsData> {
   }
 };
 
-template <>
-struct xml_io_stream<LinemixingSingleEcsData> {
+template <> struct xml_io_stream<LinemixingSingleEcsData> {
   static constexpr std::string_view type_name = "LinemixingSingleEcsData"sv;
 
   static void write(std::ostream                  &os,

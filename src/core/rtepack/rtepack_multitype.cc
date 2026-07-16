@@ -136,18 +136,14 @@ specmat frechet_sqrt(const propmat &X, const propmat &E) {
   // Solve for S_tilde: (d_i + d_j) S_ij = E_ij
   Eigen::Matrix4cd S_tilde = Eigen::Matrix4cd::Zero();
   for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      S_tilde(i, j) = E_tilde(i, j) / (D(i, i) + D(j, j));
-    }
+    for (int j = 0; j < 4; ++j) { S_tilde(i, j) = E_tilde(i, j) / (D(i, i) + D(j, j)); }
   }
 
   // Transform back
   const auto S = V * S_tilde * V.inverse();
 
   for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      A[i, j] = S(i, j);
-    }
+    for (int j = 0; j < 4; ++j) { A[i, j] = S(i, j); }
   }
 
   return A;  // Convert back to specmat

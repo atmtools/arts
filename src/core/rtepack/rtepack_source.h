@@ -46,18 +46,15 @@ void level_nlte(stokvec_vector_view              J,
 
 using rtepack::SourceVector;
 
-template <>
-struct xml_io_stream_name<SourceVector> {
+template <> struct xml_io_stream_name<SourceVector> {
   static constexpr std::string_view name = "SourceVector";
 };
 
-template <>
-struct xml_io_stream_aggregate<SourceVector> {
+template <> struct xml_io_stream_aggregate<SourceVector> {
   static constexpr bool value = true;
 };
 
-template <>
-struct std::formatter<SourceVector> {
+template <> struct std::formatter<SourceVector> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
@@ -67,8 +64,7 @@ struct std::formatter<SourceVector> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SourceVector &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SourceVector &v, FmtContext &ctx) const {
     return tags.format(ctx, v.J, tags.sep(), v.dJ);
   }
 };

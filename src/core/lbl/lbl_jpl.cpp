@@ -19,8 +19,7 @@ struct reader {
 
   reader(const std::string& s) : it(s.begin()), end(s.end()) {}
 
-  template <typename T>
-  constexpr T read_next(Size n, std::string_view error_context) {
+  template <typename T> constexpr T read_next(Size n, std::string_view error_context) {
     std::string_view orig(it, it + n);
     std::string_view sv = orig;
     skip(n);

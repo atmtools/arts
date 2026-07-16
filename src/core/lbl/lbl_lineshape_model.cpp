@@ -283,8 +283,7 @@ void model::clear_zeroes() {
 }
 }  // namespace lbl::line_shape
 
-template <>
-std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_t>(
+template <> std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_t>(
     const lbl::line_shape::species_model::map_t& map) {
   std::string out{};
 

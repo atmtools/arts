@@ -198,9 +198,7 @@ specmat erfcx(const specmat &m);
 constexpr specmat elem_prod(const specmat &a, const specmat &b) {
   specmat c;
   for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      c[i, j] = a[i, j] * b[i, j];
-    }
+    for (int j = 0; j < 4; j++) { c[i, j] = a[i, j] * b[i, j]; }
   }
   return c;
 }
@@ -218,8 +216,6 @@ using specmat_tensor3_view       = matpack::view_t<specmat, 3>;
 using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
 }  // namespace rtepack
 
-template <>
-struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
+template <> struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
 
-template <>
-struct xml_io_stream<rtepack::specmat> : xml_io_stream_inherit<ComplexMatrix44, rtepack::specmat> {};
+template <> struct xml_io_stream<rtepack::specmat> : xml_io_stream_inherit<ComplexMatrix44, rtepack::specmat> {};

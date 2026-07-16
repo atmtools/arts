@@ -122,8 +122,6 @@ using propmat_tensor3_const_view = matpack::view_t<const propmat, 3>;
 propmat_vector operator*(Numeric x, const propmat_vector_const_view &y);
 }  // namespace rtepack
 
-template <>
-struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
+template <> struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
 
-template <>
-struct xml_io_stream<rtepack::propmat> : xml_io_stream_inherit<Vector7, rtepack::propmat> {};
+template <> struct xml_io_stream<rtepack::propmat> : xml_io_stream_inherit<Vector7, rtepack::propmat> {};

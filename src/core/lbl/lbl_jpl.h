@@ -30,8 +30,7 @@ jpl_data read_jpl_lines(std::istream& file);
 jpl_data read_jpl_lines(std::istream&& file);
 }  // namespace lbl
 
-template <>
-struct std::formatter<lbl::jpl_record> {
+template <> struct std::formatter<lbl::jpl_record> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -41,8 +40,7 @@ struct std::formatter<lbl::jpl_record> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::jpl_record& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::jpl_record& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.jpl_id, sep, v.f0, sep, v.df, sep, v.s, sep, v.dr, sep, v.E, sep, v.g_upp, sep, v.qnfmt);

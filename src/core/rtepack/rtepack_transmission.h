@@ -115,18 +115,15 @@ specmat sqrt(const propmat &pm);
 
 using rtepack::TransmittanceMatrix;
 
-template <>
-struct xml_io_stream_name<TransmittanceMatrix> {
+template <> struct xml_io_stream_name<TransmittanceMatrix> {
   static constexpr std::string_view name = "TransmittanceMatrix";
 };
 
-template <>
-struct xml_io_stream_aggregate<TransmittanceMatrix> {
+template <> struct xml_io_stream_aggregate<TransmittanceMatrix> {
   static constexpr bool value = true;
 };
 
-template <>
-struct std::formatter<TransmittanceMatrix> {
+template <> struct std::formatter<TransmittanceMatrix> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
@@ -136,8 +133,7 @@ struct std::formatter<TransmittanceMatrix> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const TransmittanceMatrix &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const TransmittanceMatrix &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
     return tags.format(ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL);
   }

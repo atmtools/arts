@@ -77,8 +77,7 @@ Rational band_data::max(QuantumNumberType x) const try {
 } catch (std::exception&) { throw; }
 
 namespace {
-template <typename T>
-auto local_get_value(T& abs_bands, const line_key& type)
+template <typename T> auto local_get_value(T& abs_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
   auto ptr = abs_bands.find(type.band);
 
@@ -431,8 +430,7 @@ void xml_io_stream<LblLineKey>::read(std::istream& is, LblLineKey& x, bifstream*
   tag.check_end_name(type_name);
 } catch (const std::exception& e) { throw std::runtime_error(std::format("Error reading LblLineKey:\n{}", e.what())); }
 
-template <>
-std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands& bands) {
+template <> std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands& bands) {
   std::string out{};
 
   std::string_view x = ""sv;

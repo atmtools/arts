@@ -1208,9 +1208,7 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
 
   for (Size i = 0; i < nf; i++) {
     P[i, 0] = muelmat::id();
-    for (Size j = 1; j < np; j++) {
-      P[i, j] = P[i, j - 1] * T[i, j];
-    }
+    for (Size j = 1; j < np; j++) { P[i, j] = P[i, j - 1] * T[i, j]; }
   }
 }
 
@@ -1267,9 +1265,7 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   }
 
   P[0, 0] = muelmat::id();
-  for (Size j = 1; j < np; j++) {
-    P[0, j] = P[0, j - 1] * T[0, j];
-  }
+  for (Size j = 1; j < np; j++) { P[0, j] = P[0, j - 1] * T[0, j]; }
 }
 
 void TransmittanceMatrix::check(Size np, Size nq, Size nf, const std::string_view caller) const {

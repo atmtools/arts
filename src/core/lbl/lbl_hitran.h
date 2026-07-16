@@ -32,8 +32,7 @@ hitran_data read_hitran_par(std::istream&&                           file,
                             const Vector2&                           frequency_range);
 }  // namespace lbl
 
-template <>
-struct std::formatter<lbl::hitran_record> {
+template <> struct std::formatter<lbl::hitran_record> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -43,8 +42,7 @@ struct std::formatter<lbl::hitran_record> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::hitran_record& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::hitran_record& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,

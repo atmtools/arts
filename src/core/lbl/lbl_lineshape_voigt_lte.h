@@ -128,11 +128,10 @@ constexpr auto frequency_span(const auto& list, const Size start, const Size cou
 }
 }  // namespace detail
 
-template <typename... Ts>
-constexpr auto frequency_spans(const Numeric                        cutoff,
-                               const Numeric                        f,
-                               const std::span<const single_shape>& lines,
-                               const Ts&... lists) {
+template <typename... Ts> constexpr auto frequency_spans(const Numeric                        cutoff,
+                                                         const Numeric                        f,
+                                                         const std::span<const single_shape>& lines,
+                                                         const Ts&... lists) {
   assert(lines.size() == (static_cast<Size>(lists.size()) and ...));
 
   const auto [start, count] = find_offset_and_count_of_frequency_range(lines, f, cutoff);
