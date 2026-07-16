@@ -16,8 +16,7 @@
 
 namespace Quantum {
 template <typename T>
-concept quantum_value_holder =
-    std::same_as<T, String> or std::same_as<T, Rational>;
+concept quantum_value_holder = std::same_as<T, String> or std::same_as<T, Rational>;
 
 struct Value {
   std::variant<Rational, String> value;
@@ -33,10 +32,7 @@ struct Value {
   Value& operator=(const Value&)     = default;
   Value& operator=(Value&&) noexcept = default;
 
-  template <quantum_value_holder T>
-  T get() const {
-    return std::get<T>(value);
-  }
+  template <quantum_value_holder T> T get() const { return std::get<T>(value); }
 
   operator Rational() const;
   operator String() const;
@@ -73,7 +69,7 @@ std::istream& operator>>(std::istream&, State&);
 
 struct LevelIdentifier {
   SpeciesIsotope isot;
-  Level state;
+  Level          state;
 
   LevelIdentifier(SpeciesIsotope, const Level&);
   explicit LevelIdentifier(const std::string_view);
@@ -86,14 +82,14 @@ struct LevelIdentifier {
 
   [[nodiscard]] Size size() const;
 
-  bool operator==(const LevelIdentifier& l) const;
-  bool operator!=(const LevelIdentifier& l) const;
+  bool                 operator==(const LevelIdentifier& l) const;
+  bool                 operator!=(const LevelIdentifier& l) const;
   std::strong_ordering operator<=>(const LevelIdentifier& g) const;
 };
 
 struct Identifier {
   SpeciesIsotope isot;
-  State state;
+  State          state;
 
   Identifier(SpeciesIsotope, const State&);
   explicit Identifier(const std::string_view);
@@ -109,8 +105,8 @@ struct Identifier {
 
   [[nodiscard]] Size size() const;
 
-  bool operator==(const Identifier& l) const;
-  bool operator!=(const Identifier& l) const;
+  bool                 operator==(const Identifier& l) const;
+  bool                 operator!=(const Identifier& l) const;
   std::strong_ordering operator<=>(const Identifier& g) const;
 };
 
@@ -118,57 +114,23 @@ State from_hitran(std::string_view upp, std::string_view low);
 
 //! A default state of global quantum numbers
 [[maybe_unused]] inline constexpr std::array global_types{
-    QuantumNumberType::alpha,
-    QuantumNumberType::config,
-    QuantumNumberType::ElecStateLabel,
-    QuantumNumberType::L,
-    QuantumNumberType::Lambda,
-    QuantumNumberType::Omega,
-    QuantumNumberType::S,
-    QuantumNumberType::Sigma,
-    QuantumNumberType::SpinComponentLabel,
-    QuantumNumberType::asSym,
-    QuantumNumberType::elecInv,
-    QuantumNumberType::elecRefl,
-    QuantumNumberType::elecSym,
-    QuantumNumberType::kronigParity,
-    QuantumNumberType::l,
-    QuantumNumberType::l1,
-    QuantumNumberType::l10,
-    QuantumNumberType::l11,
-    QuantumNumberType::l12,
-    QuantumNumberType::l2,
-    QuantumNumberType::l3,
-    QuantumNumberType::l4,
-    QuantumNumberType::l5,
-    QuantumNumberType::l6,
-    QuantumNumberType::l7,
-    QuantumNumberType::l8,
-    QuantumNumberType::l9,
-    QuantumNumberType::n,
-    QuantumNumberType::parity,
-    QuantumNumberType::r,
-    QuantumNumberType::rotSym,
-    QuantumNumberType::rovibSym,
-    QuantumNumberType::sym,
-    QuantumNumberType::tau,
-    QuantumNumberType::term,
-    QuantumNumberType::v,
-    QuantumNumberType::v1,
-    QuantumNumberType::v10,
-    QuantumNumberType::v11,
-    QuantumNumberType::v12,
-    QuantumNumberType::v2,
-    QuantumNumberType::v3,
-    QuantumNumberType::v4,
-    QuantumNumberType::v5,
-    QuantumNumberType::v6,
-    QuantumNumberType::v7,
-    QuantumNumberType::v8,
-    QuantumNumberType::v9,
-    QuantumNumberType::vibInv,
-    QuantumNumberType::vibRefl,
-    QuantumNumberType::vibSym};
+    QuantumNumberType::alpha,   QuantumNumberType::config,       QuantumNumberType::ElecStateLabel,
+    QuantumNumberType::L,       QuantumNumberType::Lambda,       QuantumNumberType::Omega,
+    QuantumNumberType::S,       QuantumNumberType::Sigma,        QuantumNumberType::SpinComponentLabel,
+    QuantumNumberType::asSym,   QuantumNumberType::elecInv,      QuantumNumberType::elecRefl,
+    QuantumNumberType::elecSym, QuantumNumberType::kronigParity, QuantumNumberType::l,
+    QuantumNumberType::l1,      QuantumNumberType::l10,          QuantumNumberType::l11,
+    QuantumNumberType::l12,     QuantumNumberType::l2,           QuantumNumberType::l3,
+    QuantumNumberType::l4,      QuantumNumberType::l5,           QuantumNumberType::l6,
+    QuantumNumberType::l7,      QuantumNumberType::l8,           QuantumNumberType::l9,
+    QuantumNumberType::n,       QuantumNumberType::parity,       QuantumNumberType::r,
+    QuantumNumberType::rotSym,  QuantumNumberType::rovibSym,     QuantumNumberType::sym,
+    QuantumNumberType::tau,     QuantumNumberType::term,         QuantumNumberType::v,
+    QuantumNumberType::v1,      QuantumNumberType::v10,          QuantumNumberType::v11,
+    QuantumNumberType::v12,     QuantumNumberType::v2,           QuantumNumberType::v3,
+    QuantumNumberType::v4,      QuantumNumberType::v5,           QuantumNumberType::v6,
+    QuantumNumberType::v7,      QuantumNumberType::v8,           QuantumNumberType::v9,
+    QuantumNumberType::vibInv,  QuantumNumberType::vibRefl,      QuantumNumberType::vibSym};
 
 //! A default state of local quantum numbers
 [[maybe_unused]] inline constexpr std::array local_types{QuantumNumberType::F,
@@ -196,9 +158,7 @@ State from_hitran(std::string_view upp, std::string_view low);
  * @param qid State to select from
  * @return State of all qns in qid
  */
-template <typename list_type>
-[[nodiscard]] Identifier global_state(const list_type& qns,
-                                      const Identifier& qid) {
+template <typename list_type> [[nodiscard]] Identifier global_state(const list_type& qns, const Identifier& qid) {
   Identifier out(qid.isot);
   for (auto qn : qns) {
     if (qid.state.contains(qn)) out.state.emplace(qn, qid.state.at(qn));
@@ -211,8 +171,7 @@ template <typename list_type>
  * @param qid State to select from
  * @return State of all qns in qid
  */
-template <typename list_type>
-[[nodiscard]] State local_state(const list_type& qns, const Identifier& qid) {
+template <typename list_type> [[nodiscard]] State local_state(const list_type& qns, const Identifier& qid) {
   State out;
   for (auto qn : qns) {
     if (qid.state.contains(qn)) out.emplace(qn, qid.state.at(qn));
@@ -224,27 +183,25 @@ template <typename list_type>
 enum class VAMDC : char {
   asymcs,  // Schema for specifying the quantum numbers of closed-shell asymmetric top molecules
   asymos,  // Schema for specifying the quantum numbers of open-shell asymmetric top molecules
-  dcs,  // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
-  hunda,  // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
-  hundb,  // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
-  lpcs,  // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
-  lpos,  // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
-  ltcs,  // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
-  ltos,  // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
-  nltcs,  // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
-  nltos,  // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
-  sphcs,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-  sphos,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-  stcs  // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
+  dcs,     // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
+  hunda,   // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
+  hundb,   // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
+  lpcs,    // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
+  lpos,    // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
+  ltcs,    // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
+  ltos,    // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
+  nltcs,   // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
+  nltos,   // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
+  sphcs,   // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+  sphos,   // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+  stcs     // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
 };
 
 bool vamdcCheck(const State& l, VAMDC type);
 
-bool contains_any_of(const State& state,
-                     std::initializer_list<QuantumNumberType> keys);
+bool contains_any_of(const State& state, std::initializer_list<QuantumNumberType> keys);
 
-bool contains_all_of(const State& state,
-                     std::initializer_list<QuantumNumberType> keys);
+bool contains_all_of(const State& state, std::initializer_list<QuantumNumberType> keys);
 }  // namespace Quantum
 
 using QuantumIdentifier      = Quantum::Identifier;
@@ -255,11 +212,9 @@ using QuantumLevel           = Quantum::Level;
 using ArrayOfQuantumIdentifier      = Array<QuantumIdentifier>;
 using ArrayOfQuantumLevelIdentifier = Array<QuantumLevelIdentifier>;
 
-template <>
-struct std::hash<Quantum::Value> {
+template <> struct std::hash<Quantum::Value> {
   static std::size_t operator()(const Quantum::Value& g) {
-    if (auto* ptr = std::get_if<String>(&g.value))
-      return std::hash<String>{}(*ptr);
+    if (auto* ptr = std::get_if<String>(&g.value)) return std::hash<String>{}(*ptr);
     if (auto* ptr = std::get_if<Rational>(&g.value)) {
       std::size_t seed{};
 
@@ -272,8 +227,7 @@ struct std::hash<Quantum::Value> {
   }
 };
 
-template <>
-struct std::hash<Quantum::UpperLower> {
+template <> struct std::hash<Quantum::UpperLower> {
   static std::size_t operator()(const Quantum::UpperLower& g) {
     std::size_t seed{};
 
@@ -284,8 +238,7 @@ struct std::hash<Quantum::UpperLower> {
   }
 };
 
-template <>
-struct std::hash<QuantumLevel> {
+template <> struct std::hash<QuantumLevel> {
   static std::size_t operator()(const QuantumLevel& g) {
     std::size_t seed{};
 
@@ -301,8 +254,7 @@ struct std::hash<QuantumLevel> {
   }
 };
 
-template <>
-struct std::hash<QuantumState> {
+template <> struct std::hash<QuantumState> {
   static std::size_t operator()(const QuantumState& g) {
     std::size_t seed{};
 
@@ -310,8 +262,7 @@ struct std::hash<QuantumState> {
     for (auto& qns : enumtyps::QuantumNumberTypeTypes) {
       if (auto iter = g.find(qns); iter != g.end()) {
         boost::hash_combine(seed, iter->first);
-        boost::hash_combine(seed,
-                            std::hash<Quantum::UpperLower>{}(iter->second));
+        boost::hash_combine(seed, std::hash<Quantum::UpperLower>{}(iter->second));
       }
     }
 
@@ -319,8 +270,7 @@ struct std::hash<QuantumState> {
   }
 };
 
-template <>
-struct std::hash<QuantumLevelIdentifier> {
+template <> struct std::hash<QuantumLevelIdentifier> {
   static std::size_t operator()(const QuantumLevelIdentifier& g) {
     std::size_t seed{};
 
@@ -332,8 +282,7 @@ struct std::hash<QuantumLevelIdentifier> {
   }
 };
 
-template <>
-struct std::hash<QuantumIdentifier> {
+template <> struct std::hash<QuantumIdentifier> {
   static std::size_t operator()(const QuantumIdentifier& g) {
     std::size_t seed{};
 
@@ -345,94 +294,77 @@ struct std::hash<QuantumIdentifier> {
   }
 };
 
-template <>
-struct std::formatter<Quantum::Value> {
+template <> struct std::formatter<Quantum::Value> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Quantum::Value& q, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Quantum::Value& q, FmtContext& ctx) const {
     return tags.format(ctx, q.value);
   }
 };
 
-template <>
-struct std::formatter<Quantum::UpperLower> {
+template <> struct std::formatter<Quantum::UpperLower> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Quantum::UpperLower& q,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Quantum::UpperLower& q, FmtContext& ctx) const {
     return tags.format(ctx, q.upper, " "sv, q.lower);
   }
 };
 
-template <>
-struct std::formatter<QuantumLevel> {
+template <> struct std::formatter<QuantumLevel> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const QuantumLevel& q, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const QuantumLevel& q, FmtContext& ctx) const {
     std::string_view first = ""sv;
 
     if (tags.io) tags.format(ctx, q.size(), std::exchange(first, " "sv));
 
-    for (auto& v : q) {
-      tags.format(ctx, std::exchange(first, " "sv), v.first, " "sv, v.second);
-    }
+    for (auto& v : q) { tags.format(ctx, std::exchange(first, " "sv), v.first, " "sv, v.second); }
 
     return ctx.out();
   }
 };
 
-template <>
-struct std::formatter<QuantumState> {
+template <> struct std::formatter<QuantumState> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const QuantumState& q, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const QuantumState& q, FmtContext& ctx) const {
     std::string_view first = ""sv;
 
     if (tags.io) tags.format(ctx, q.size(), std::exchange(first, " "sv));
 
-    for (auto& v : q) {
-      tags.format(ctx, std::exchange(first, " "sv), v.first, " "sv, v.second);
-    }
+    for (auto& v : q) { tags.format(ctx, std::exchange(first, " "sv), v.first, " "sv, v.second); }
 
     return ctx.out();
   }
@@ -440,130 +372,96 @@ struct std::formatter<QuantumState> {
 
 std::string to_educational_string(const QuantumIdentifier&);
 
-template <>
-struct std::formatter<QuantumIdentifier> {
+template <> struct std::formatter<QuantumIdentifier> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const QuantumIdentifier& q,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const QuantumIdentifier& q, FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Species: "sv, q.isot, " Quantum Numbers:"sv);
-      for (auto& [k, v] : q.state) {
-        tags.format(ctx, " "sv, k, ": "sv, v, ","sv);
-      }
+      for (auto& [k, v] : q.state) { tags.format(ctx, " "sv, k, ": "sv, v, ","sv); }
       return ctx.out();
     }
 
-    if (tags.depth > 0) {
-      return tags.format(ctx, to_educational_string(q));
-    }
+    if (tags.depth > 0) { return tags.format(ctx, to_educational_string(q)); }
 
     tags.format(ctx, q.isot);
 
     for (auto v : enumtyps::QuantumNumberTypeTypes) {
-      if (q.state.contains(v)) {
-        tags.format(ctx, " "sv, v, " "sv, q.state.at(v));
-      }
+      if (q.state.contains(v)) { tags.format(ctx, " "sv, v, " "sv, q.state.at(v)); }
     }
 
     return ctx.out();
   }
 };
 
-template <>
-struct std::formatter<QuantumLevelIdentifier> {
+template <> struct std::formatter<QuantumLevelIdentifier> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const QuantumLevelIdentifier& q,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const QuantumLevelIdentifier& q, FmtContext& ctx) const {
     tags.format(ctx, q.isot);
 
     for (auto v : enumtyps::QuantumNumberTypeTypes) {
-      if (q.state.contains(v)) {
-        tags.format(ctx, " "sv, v, " "sv, q.state.at(v));
-      }
+      if (q.state.contains(v)) { tags.format(ctx, " "sv, v, " "sv, q.state.at(v)); }
     }
 
     return ctx.out();
   }
 };
 
-template <>
-struct xml_io_stream<QuantumLevel> {
+template <> struct xml_io_stream<QuantumLevel> {
   constexpr static std::string_view type_name = "QuantumLevel"sv;
 
   static void parse(std::span<QuantumLevel>, std::istream& is);
 
-  static void write(std::ostream& os,
-                    const QuantumLevel& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const QuantumLevel& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   QuantumLevel& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, QuantumLevel& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<QuantumState> {
+template <> struct xml_io_stream<QuantumState> {
   constexpr static std::string_view type_name = "QuantumState"sv;
 
   static void parse(std::span<QuantumState>, std::istream& is);
 
-  static void write(std::ostream& os,
-                    const QuantumState& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const QuantumState& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   QuantumState& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, QuantumState& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<QuantumIdentifier> {
+template <> struct xml_io_stream<QuantumIdentifier> {
   constexpr static std::string_view type_name = "QuantumIdentifier"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&            os,
                     const QuantumIdentifier& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*               pbofs = nullptr,
+                    std::string_view         name  = ""sv);
 
-  static void read(std::istream& is,
-                   QuantumIdentifier& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, QuantumIdentifier& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<QuantumLevelIdentifier> {
+template <> struct xml_io_stream<QuantumLevelIdentifier> {
   constexpr static std::string_view type_name = "QuantumLevelIdentifier"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                 os,
                     const QuantumLevelIdentifier& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                    pbofs = nullptr,
+                    std::string_view              name  = ""sv);
 
-  static void read(std::istream& is,
-                   QuantumLevelIdentifier& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, QuantumLevelIdentifier& x, bifstream* pbifs = nullptr);
 };

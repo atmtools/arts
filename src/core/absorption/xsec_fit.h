@@ -40,10 +40,7 @@ class XsecRecord {
      \param[in] pressure    Scalar pressure.
      \param[in] temperature Scalar temperature.
      */
-  void Extract(VectorView result,
-               const Vector& f_grid,
-               Numeric pressure,
-               Numeric temperature) const;
+  void Extract(VectorView result, const Vector& f_grid, Numeric pressure, Numeric temperature) const;
 
   /************ VERSION 2 *************/
   /** Get mininum pressures from fit */
@@ -80,10 +77,7 @@ class XsecRecord {
 
  private:
   /** Calculate crosssections */
-  void CalcXsec(VectorView xsec,
-                const Index dataset,
-                const Numeric pressure,
-                const Numeric temperature) const;
+  void CalcXsec(VectorView xsec, const Index dataset, const Numeric pressure, const Numeric temperature) const;
 
   // /** Calculate temperature derivative of crosssections */
   // void CalcDT(VectorView xsec_dt,
@@ -103,34 +97,29 @@ class XsecRecord {
 
   static constexpr Index mversion{3};
   /* VERSION 3 */
-  Vector mfitminpressures;
-  Vector mfitmaxpressures;
-  Vector mfitmintemperatures;
-  Vector mfitmaxtemperatures;
+  Vector                    mfitminpressures;
+  Vector                    mfitmaxpressures;
+  Vector                    mfitmintemperatures;
+  Vector                    mfitmaxtemperatures;
   ArrayOfGriddedField1Named mfitcoeffs;
 };
 
 using XsecRecords = std::unordered_map<SpeciesEnum, XsecRecord>;
 
-template <>
-struct std::formatter<XsecRecord> {
+template <> struct std::formatter<XsecRecord> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
-    if (tags.short_str) {
-      return tags.format(ctx, "XsecRecord()"sv);
-    }
+  template <class FmtContext> FmtContext::iterator format(const XsecRecord& v, FmtContext& ctx) const {
+    if (tags.short_str) { return tags.format(ctx, "XsecRecord()"sv); }
 
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
@@ -150,14 +139,10 @@ struct std::formatter<XsecRecord> {
   }
 };
 
-template <>
-struct xml_io_stream<XsecRecord> {
+template <> struct xml_io_stream<XsecRecord> {
   static constexpr std::string_view type_name = "XsecRecord"sv;
 
-  static void write(std::ostream& os,
-                    const XsecRecord& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const XsecRecord& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, XsecRecord& x, bifstream* pbifs = nullptr);
 };

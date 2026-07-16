@@ -1,9 +1,9 @@
 #include <fastgl.h>
+#include <hpy_arts.h>
 #include <legendre.h>
 #include <matpack.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/pair.h>
-#include <hpy_arts.h>
 #include <wigner_functions.h>
 
 #include <utility>
@@ -16,13 +16,12 @@ void py_math(py::module_& m) try {
   auto math  = m.def_submodule("math");
   math.doc() = "Contains select mathematics from Arts internal functions";
 
-  math.def(
-      "make_wigner_ready",
-      &make_wigner_ready,
-      "fastest"_a     = 250,
-      "largest"_a     = 20000000,
-      "symbol_size"_a = 6,
-      R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
+  math.def("make_wigner_ready",
+           &make_wigner_ready,
+           "fastest"_a     = 250,
+           "largest"_a     = 20000000,
+           "symbol_size"_a = 6,
+           R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
 
 Parameters
 ----------
@@ -246,9 +245,7 @@ w : list[float]
       .def(
           "__getitem__",
           [](const Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx) {
-            if (idx.first < 0 or idx.second < 0 or
-                static_cast<Size>(idx.first) >= self.N or
-                idx.second >= idx.first)
+            if (idx.first < 0 or idx.second < 0 or static_cast<Size>(idx.first) >= self.N or idx.second >= idx.first)
               throw std::out_of_range(
                   "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
 
@@ -258,12 +255,8 @@ w : list[float]
           R"(Get the value at the given index pair)")
       .def(
           "__setitem__",
-          [](Legendre::SchmidtMatrix& self,
-             std::pair<Index, Index> idx,
-             Numeric value) {
-            if (idx.first < 0 or idx.second < 0 or
-                static_cast<Size>(idx.first) >= self.N or
-                idx.second >= idx.first)
+          [](Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx, Numeric value) {
+            if (idx.first < 0 or idx.second < 0 or static_cast<Size>(idx.first) >= self.N or idx.second >= idx.first)
               throw std::out_of_range(
                   "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
 
@@ -300,7 +293,6 @@ dPnm : ~pyarts3.arts.math.SchmidtMatrix
     The Polynominal matrix derivative (nmax+1 x nmax+1).
 )");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize math\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize math\n{}", e.what()));
 }
 }  // namespace Python

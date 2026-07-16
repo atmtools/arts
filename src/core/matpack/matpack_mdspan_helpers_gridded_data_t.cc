@@ -20,19 +20,13 @@ GeodeticField3 make_geodetic(const GriddedField3& gf) {
   lats.reserve(gf.shape()[1]);
   lons.reserve(gf.shape()[2]);
 
-  for (Size i = 0; i < gf.grid<0>().size(); ++i) {
-    alts.emplace_back(gf.grid<0>()[i], i);
-  }
+  for (Size i = 0; i < gf.grid<0>().size(); ++i) { alts.emplace_back(gf.grid<0>()[i], i); }
 
-  for (Size i = 0; i < gf.grid<1>().size(); ++i) {
-    lats.emplace_back(gf.grid<1>()[i], i);
-  }
+  for (Size i = 0; i < gf.grid<1>().size(); ++i) { lats.emplace_back(gf.grid<1>()[i], i); }
 
   for (Size i = 0; i < gf.grid<2>().size(); ++i) {
     Numeric lon = gf.grid<2>()[i];
-    while (lagrange_interp::loncross::cycle(lon) != lon) {
-      lon = lagrange_interp::loncross::cycle(lon);
-    }
+    while (lagrange_interp::loncross::cycle(lon) != lon) { lon = lagrange_interp::loncross::cycle(lon); }
     lons.emplace_back(lon, i);
   }
 
@@ -60,8 +54,7 @@ GeodeticField3 make_geodetic(const GriddedField3& gf) {
   for (Size i = 0; i < alts.size(); ++i) {
     for (Size j = 0; j < lats.size(); ++j) {
       for (Size k = 0; k < lons.size(); ++k) {
-        out.data[i, j, k] =
-            gf.data[alts[i].second, lats[j].second, lons[k].second];
+        out.data[i, j, k] = gf.data[alts[i].second, lats[j].second, lons[k].second];
       }
     }
   }
@@ -82,15 +75,11 @@ GeodeticField2 make_geodetic(const GriddedField2& gf) {
   lats.reserve(gf.shape()[0]);
   lons.reserve(gf.shape()[1]);
 
-  for (Size i = 0; i < gf.grid<0>().size(); ++i) {
-    lats.emplace_back(gf.grid<0>()[i], i);
-  }
+  for (Size i = 0; i < gf.grid<0>().size(); ++i) { lats.emplace_back(gf.grid<0>()[i], i); }
 
   for (Size i = 0; i < gf.grid<1>().size(); ++i) {
     Numeric lon = gf.grid<1>()[i];
-    while (lagrange_interp::loncross::cycle(lon) != lon) {
-      lon = lagrange_interp::loncross::cycle(lon);
-    }
+    while (lagrange_interp::loncross::cycle(lon) != lon) { lon = lagrange_interp::loncross::cycle(lon); }
     lons.emplace_back(lon, i);
   }
 
@@ -111,9 +100,7 @@ GeodeticField2 make_geodetic(const GriddedField2& gf) {
   out.data.resize(lats.size(), lons.size());
 
   for (Size j = 0; j < lats.size(); ++j) {
-    for (Size k = 0; k < lons.size(); ++k) {
-      out.data[j, k] = gf.data[lats[j].second, lons[k].second];
-    }
+    for (Size k = 0; k < lons.size(); ++k) { out.data[j, k] = gf.data[lats[j].second, lons[k].second]; }
   }
 
   return out;

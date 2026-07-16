@@ -12,9 +12,7 @@
 namespace {
 std::vector<std::string> errors;
 
-std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
-  return ofs[i % ofs.size()];
-}
+std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) { return ofs[i % ofs.size()]; }
 
 std::string share_type(const std::string& name) {
   const auto& wsgs = internal_workspace_groups();
@@ -22,9 +20,8 @@ std::string share_type(const std::string& name) {
   return "std::shared_ptr<" + name + ">";
 }
 
-std::string variable(const std::string& name,
-                     const WorkspaceVariableRecord& wsv) try {
-  const auto& wsgs = internal_workspace_groups();
+std::string variable(const std::string& name, const WorkspaceVariableRecord& wsv) try {
+  const auto&        wsgs = internal_workspace_groups();
   std::ostringstream os;
 
   std::print(os,
@@ -54,17 +51,14 @@ std::string variable(const std::string& name,
   if (wsv.type == "Agenda") os << get_agenda_io(name);
 
   if (wsv.default_value) {
-    os << "\n.. rubric:: Default value\n\n"
-       << to_defval_str(*wsv.default_value, "``"sv) << "\n\n";
+    os << "\n.. rubric:: Default value\n\n" << to_defval_str(*wsv.default_value, "``"sv) << "\n\n";
   }
 
   os << variable_used_by(name) << '\n';
 
-  return fix_newlines(os.str()) + "\n.. :class:`~pyarts3.arts." + wsv.type +
-         "`\n)-x-\");\n\n";
+  return fix_newlines(os.str()) + "\n.. :class:`~pyarts3.arts." + wsv.type + "`\n)-x-\");\n\n";
 } catch (std::exception& e) {
-  std::cerr << "Error in variable " << '"' << name << '"' << ":\n"
-            << e.what() << '\n';
+  std::cerr << "Error in variable " << '"' << name << '"' << ":\n" << e.what() << '\n';
   std::exit(1);
 }
 
@@ -72,19 +66,15 @@ void variables(const int nfiles) {
   const auto& wsvs = workspace_variables();
 
   std::vector<std::ofstream> ofs(nfiles);
-  for (int i = 0; i < nfiles; i++) {
-    ofs[i].open(std::format("py_auto_wsv_{}.cpp", i));
-  }
+  for (int i = 0; i < nfiles; i++) { ofs[i].open(std::format("py_auto_wsv_{}.cpp", i)); }
 
   for (int i = 0; i < nfiles; i++) {
-    select_ofstream(ofs, i)
-        << R"--(#include <python_interface.h>
+    select_ofstream(ofs, i) << R"--(#include <python_interface.h>
 
 #include <nanobind/stl/shared_ptr.h>
 
 namespace Python {
-void py_auto_wsv_)--"
-        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+void py_auto_wsv_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   int ifile = 0;
@@ -95,9 +85,7 @@ void py_auto_wsv_)--"
     ERRORAPPEND;
   }
 
-  for (int i = 0; i < nfiles; i++) {
-    select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
-  }
+  for (int i = 0; i < nfiles; i++) { select_ofstream(ofs, i) << "}\n}  // namespace Python\n"; }
 }
 }  // namespace
 
@@ -112,9 +100,7 @@ int main(int argc, char** argv) {
 
   if (errors.size()) {
     std::cerr << "Errors (" << errors.size() << "):\n";
-    for (auto& e : errors) {
-      std::cerr << e << '\n';
-    }
+    for (auto& e : errors) { std::cerr << e << '\n'; }
     return EXIT_FAILURE;
   }
 

@@ -20,7 +20,7 @@ void create_headers() {
 
 void create_header() try {
   std::ofstream os("enums.h");
-  const auto& opts = internal_options();
+  const auto&   opts = internal_options();
 
   os << R"--(#pragma once
 
@@ -28,26 +28,17 @@ void create_header() try {
 
 )--";
 
-  for (const auto& opt : opts) {
-    os << "#include \"enums" << opt.name << ".h\"\n";
-  }
+  for (const auto& opt : opts) { os << "#include \"enums" << opt.name << ".h\"\n"; }
 } catch (const std::exception& e) {
   std::cerr << "Error creating enum header: " << e.what() << '\n';
   throw;
 }
 
-template <typename T>
-std::span<const T> partial_span(const std::vector<T>& vec,
-                                std::size_t N,
-                                std::size_t i) {
-  if (i >= N) {
-    throw std::out_of_range("Partial span exceeds vector size");
-  }
+template <typename T> std::span<const T> partial_span(const std::vector<T>& vec, std::size_t N, std::size_t i) {
+  if (i >= N) { throw std::out_of_range("Partial span exceeds vector size"); }
 
   const std::size_t size = vec.size() / N;
-  if (i == N - 1) {
-    return std::span<const T>(vec.begin() + i * size, vec.end());
-  }
+  if (i == N - 1) { return std::span<const T>(vec.begin() + i * size, vec.end()); }
   return std::span<const T>(vec.begin() + i * size, size);
 }
 
@@ -56,9 +47,7 @@ void create_cc() {
 
   os << "#include \"enums.h\"\n\n";
 
-  for (const auto& opt : internal_options()) {
-    os << opt.impl() << '\n';
-  }
+  for (const auto& opt : internal_options()) { os << opt.impl() << '\n'; }
 }
 }  // namespace
 

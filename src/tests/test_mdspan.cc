@@ -17,18 +17,12 @@
 #include <vector>
 
 namespace matpack {
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 1>>>);
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 2>>>);
-static_assert(
-    std::random_access_iterator<left_mditer<strided_view_t<Numeric, 9>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 1>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 2>>>);
-static_assert(
-    std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 9>>>);
+static_assert(std::random_access_iterator<left_mditer<strided_view_t<Numeric, 1>>>);
+static_assert(std::random_access_iterator<left_mditer<strided_view_t<Numeric, 2>>>);
+static_assert(std::random_access_iterator<left_mditer<strided_view_t<Numeric, 9>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 1>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 2>>>);
+static_assert(std::random_access_iterator<elemwise_mditer<strided_view_t<Numeric, 9>>>);
 
 static_assert(strided_view_t<Numeric, 10>::is_strided);
 static_assert(not strided_view_t<Numeric, 10>::is_const);
@@ -61,561 +55,306 @@ void test_type_access() {
 
   {
     static_assert(std::same_as<left_mdsel_t<int, 1, true, int>, int&>);
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 1, true, int>, const int&>);
+    static_assert(std::same_as<left_mdsel_t<const int, 1, true, int>, const int&>);
 
-    static_assert(
-        std::same_as<left_mdsel_t<int, 1, true, Range>, view_t<int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<const int, 1, true, Range>,
-                               view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 1, true, Range>, view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 1, true, Range>, view_t<const int, 1>>);
 
-    static_assert(std::same_as<left_mdsel_t<int, 1, true, StridedRange>,
-                               strided_view_t<int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<const int, 1, true, StridedRange>,
-                               strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 1, true, StridedRange>, strided_view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 1, true, StridedRange>, strided_view_t<const int, 1>>);
 
-    static_assert(
-        std::same_as<left_mdsel_t<int, 1, true, Joker>, view_t<int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<const int, 1, true, Joker>,
-                               view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 1, true, Joker>, view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 1, true, Joker>, view_t<const int, 1>>);
   }
 
   // 2
 
   {
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, int, int>, const int&>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, int>, const int&>);
     static_assert(std::same_as<left_mdsel_t<int, 2, true, int, int>, int&>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, Joker>,
-                               view_t<const int, 1>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 2, true, int, Joker>, view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, Joker>, view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, int, Joker>, view_t<int, 1>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, Range>,
-                               view_t<const int, 1>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 2, true, int, Range>, view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, Range>, view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, int, Range>, view_t<int, 1>>);
 
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, int, StridedRange>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, int, StridedRange>,
-                               strided_view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, int, StridedRange>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, int, StridedRange>, strided_view_t<int, 1>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, int>,
-                               strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, int>,
-                               strided_view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, int>, strided_view_t<int, 1>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, Joker>,
-                               view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 2, true, Joker, Joker>, view_t<int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, Joker>, view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, Joker>, view_t<int, 2>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, Range>,
-                               strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, Range>,
-                               strided_view_t<int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, Range>, strided_view_t<int, 2>>);
 
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, Joker, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, StridedRange>,
-                               strided_view_t<int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Joker, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Joker, StridedRange>, strided_view_t<int, 2>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, int>,
-                               strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, int>,
-                               strided_view_t<int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, int>, strided_view_t<int, 1>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, Joker>,
-                               view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 2, true, Range, Joker>, view_t<int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, Joker>, view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, Joker>, view_t<int, 2>>);
 
-    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, Range>,
-                               strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, Range>,
-                               strided_view_t<int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, Range>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, Range, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, StridedRange, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, int>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, StridedRange, Joker>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, Joker>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 2, true, StridedRange, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, Range>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, Range, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, Range, StridedRange>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, StridedRange, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, int>,
-                               strided_view_t<int, 1>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, StridedRange, Joker>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, Joker>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 2, true, StridedRange, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, Range>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 2, true, StridedRange, StridedRange>,
-                  strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 2, true, StridedRange, StridedRange>,
-                     strided_view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 2, true, StridedRange, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 2, true, StridedRange, StridedRange>, strided_view_t<int, 2>>);
   }
 
   // 3
 
   {
-    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, int, int>,
-                               const int&>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, int, int>, int&>);
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, int, int>, const int&>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, int>, int&>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, int, Joker>, view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, Joker>, view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, int, Range>, view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, Range>, view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, int, StridedRange>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, StridedRange>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Joker, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, int>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Joker, Joker>, view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, Joker>, view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Joker, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, Range>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, int, Joker>,
-                     view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, Joker>,
-                               view_t<int, 1>>);
+        std::same_as<left_mdsel_t<const int, 3, true, int, Joker, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Range, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, int>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Range, Joker>, view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, Joker>, view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, Range, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, Range>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, int, Range>,
-                     view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, int, Range>,
-                               view_t<int, 1>>);
+        std::same_as<left_mdsel_t<const int, 3, true, int, Range, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, int>, strided_view_t<int, 1>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, int, StridedRange>,
-                     strided_view_t<const int, 1>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, int, StridedRange>,
-                     strided_view_t<int, 1>>);
+        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, Joker>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, Joker>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Joker, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, int>,
-                               strided_view_t<int, 1>>);
+        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, Range>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Joker, Joker>,
-                     view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, Joker>,
-                               view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, int, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, int>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, int, Joker>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, Joker>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, int, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, Range>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Joker, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Joker, Range>,
-                               strided_view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, int, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, int>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, Joker>, view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, Joker>, view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, Range>, strided_view_t<int, 3>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Joker, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, Joker, StridedRange>,
-                     strided_view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, StridedRange>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, int>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, Range>, strided_view_t<int, 3>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Range, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, int>,
-                               strided_view_t<int, 1>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, StridedRange>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, StridedRange>, strided_view_t<int, 3>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Range, Joker>,
-                     view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, Joker>,
-                               view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, StridedRange, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, int>, strided_view_t<int, 2>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Range, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, int, Range, Range>,
-                               strided_view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, StridedRange, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, Joker>, strided_view_t<int, 3>>);
 
     static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, Range, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, Range, StridedRange>,
-                     strided_view_t<int, 2>>);
+        std::same_as<left_mdsel_t<const int, 3, true, Joker, StridedRange, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, Range>, strided_view_t<int, 3>>);
 
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, int>,
-                     strided_view_t<int, 1>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, Joker>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, Joker>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, int, StridedRange, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, int, StridedRange, Range>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, int, StridedRange, StridedRange>,
-            strided_view_t<const int, 2>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, int, StridedRange, StridedRange>,
-                  strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, int, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, int>,
-                               strided_view_t<int, 1>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, int, Joker>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, Joker>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, int, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, int, Range>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, int, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, int, StridedRange>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, int>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, Joker>,
-                     view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, Joker>,
-                               view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Joker, Range>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, Range>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Joker, Joker, StridedRange>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, Joker, StridedRange>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, int>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, Joker>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, Joker>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, Range, Range>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, Range, Range>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Joker, Range, StridedRange>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, Range, StridedRange>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Joker, StridedRange, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, int>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Joker, StridedRange, Joker>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, Joker>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Joker, StridedRange, Range>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, Range>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, Joker, StridedRange, StridedRange>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, Joker, StridedRange, StridedRange>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, int, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, int>,
-                               strided_view_t<int, 1>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, int, Joker>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, Joker>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, int, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, Range>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, int, StridedRange>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, int, StridedRange>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, int>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, Joker>,
-                     view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, Joker>,
-                               view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, Range>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, Range>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Range, Joker, StridedRange>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, Joker, StridedRange>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Range, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, int>,
-                               strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Range, Joker>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, Joker>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, Range, Range>,
-                     strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, Range>,
-                               strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Range, Range, StridedRange>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, Range, StridedRange>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, Range, StridedRange, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, int>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Range, StridedRange, Joker>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, Joker>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, Range, StridedRange, Range>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, Range>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, Range, StridedRange, StridedRange>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, Range, StridedRange, StridedRange>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, int>,
-                     strided_view_t<const int, 1>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, int>,
-                     strided_view_t<int, 1>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, Joker>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, Joker>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, Range>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, Range>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, int, StridedRange>,
-            strided_view_t<const int, 2>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, int, StridedRange>,
-                  strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Joker, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, int>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, StridedRange, Joker, Joker>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, Joker>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, StridedRange, Joker, Range>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, Range>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, Joker, StridedRange>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, Joker, StridedRange>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Range, int>,
-                     strided_view_t<const int, 2>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, int>,
-                     strided_view_t<int, 2>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, StridedRange, Range, Joker>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, Joker>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<
-                  left_mdsel_t<const int, 3, true, StridedRange, Range, Range>,
-                  strided_view_t<const int, 3>>);
-    static_assert(
-        std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, Range>,
-                     strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, Range, StridedRange>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, Range, StridedRange>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, StridedRange, int>,
-            strided_view_t<const int, 2>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, StridedRange, int>,
-                  strided_view_t<int, 2>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, StridedRange, Joker>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, StridedRange, Joker>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(
-        std::same_as<
-            left_mdsel_t<const int, 3, true, StridedRange, StridedRange, Range>,
-            strided_view_t<const int, 3>>);
-    static_assert(std::same_as<
-                  left_mdsel_t<int, 3, true, StridedRange, StridedRange, Range>,
-                  strided_view_t<int, 3>>);
-
-    static_assert(std::same_as<left_mdsel_t<const int,
-                                            3,
-                                            true,
-                                            StridedRange,
-                                            StridedRange,
-                                            StridedRange>,
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Joker, StridedRange, StridedRange>,
                                strided_view_t<const int, 3>>);
-    static_assert(std::same_as<left_mdsel_t<int,
-                                            3,
-                                            true,
-                                            StridedRange,
-                                            StridedRange,
-                                            StridedRange>,
-                               strided_view_t<int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Joker, StridedRange, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, int, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, int>, strided_view_t<int, 1>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, int, Joker>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, Joker>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, int, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, Range>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, int, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, int, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, int>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, Joker>, view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, Joker>, view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, Range>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, Joker, StridedRange>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Joker, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Range, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, int>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Range, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, Range, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, Range>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, Range, StridedRange>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, Range, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, StridedRange, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, int>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, StridedRange, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, Range, StridedRange, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, Range>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, Range, StridedRange, StridedRange>,
+                               strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, Range, StridedRange, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, int>, strided_view_t<const int, 1>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, int>, strided_view_t<int, 1>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, Joker>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, Joker>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, Range>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, Range>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, int, StridedRange>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, int, StridedRange>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Joker, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, int>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Joker, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Joker, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, Range>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Joker, StridedRange>,
+                               strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Joker, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Range, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, int>, strided_view_t<int, 2>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Range, Joker>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Range, Range>, strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, Range>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, Range, StridedRange>,
+                               strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, Range, StridedRange>, strided_view_t<int, 3>>);
+
+    static_assert(
+        std::same_as<left_mdsel_t<const int, 3, true, StridedRange, StridedRange, int>, strided_view_t<const int, 2>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, StridedRange, int>, strided_view_t<int, 2>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, StridedRange, Joker>,
+                               strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, StridedRange, Joker>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, StridedRange, Range>,
+                               strided_view_t<const int, 3>>);
+    static_assert(std::same_as<left_mdsel_t<int, 3, true, StridedRange, StridedRange, Range>, strided_view_t<int, 3>>);
+
+    static_assert(std::same_as<left_mdsel_t<const int, 3, true, StridedRange, StridedRange, StridedRange>,
+                               strided_view_t<const int, 3>>);
+    static_assert(
+        std::same_as<left_mdsel_t<int, 3, true, StridedRange, StridedRange, StridedRange>, strided_view_t<int, 3>>);
   }
 
   // Matpack named types
 
-  Joker j{};
-  Range r{0, 1};
+  Joker        j{};
+  Range        r{0, 1};
   StridedRange sr{0, 1, 1};
 
   // 1
@@ -647,7 +386,7 @@ void test_type_access() {
   }
 
   {
-    Vector b{};
+    Vector        b{};
     const Vector& x = b;
 
     static_assert(std::same_as<decltype(x[0]), const Numeric&>);
@@ -695,7 +434,7 @@ void test_type_access() {
   }
 
   {
-    Matrix b{};
+    Matrix     b{};
     MatrixView x = b;
 
     static_assert(std::same_as<decltype(x[0]), VectorView>);
@@ -730,7 +469,7 @@ void test_type_access() {
   }
 
   {
-    Matrix b{};
+    Matrix            b{};
     StridedMatrixView x = b;
 
     static_assert(std::same_as<decltype(x[0]), StridedVectorView>);
@@ -765,7 +504,7 @@ void test_type_access() {
   }
 
   {
-    Matrix b{};
+    Matrix          b{};
     ConstMatrixView x = b;
 
     static_assert(std::same_as<decltype(x[0]), ConstVectorView>);
@@ -800,7 +539,7 @@ void test_type_access() {
   }
 
   {
-    Matrix b{};
+    Matrix                 b{};
     StridedConstMatrixView x = b;
 
     static_assert(std::same_as<decltype(x[0]), StridedConstVectorView>);
@@ -869,7 +608,7 @@ void test_type_access() {
   }
 
   {
-    const Matrix b{};
+    const Matrix  b{};
     const Matrix& x = b;
 
     static_assert(std::same_as<decltype(x[0]), ConstVectorView>);
@@ -932,14 +671,13 @@ void test_view() {
     ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0 and x[4] == 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
 
-    ARTS_USER_ERROR_IF(&x[2] != &v[1],
-                       "Pointing error (Vector and strided views)");
+    ARTS_USER_ERROR_IF(&x[2] != &v[1], "Pointing error (Vector and strided views)");
   }
 
   {
     std::array<Index, 3> exts{5, 5, 5};
-    const Size N = matpack::mdsize(exts);
-    Tensor3 x    = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    const Size           N = matpack::mdsize(exts);
+    Tensor3              x = matpack::uniform_grid(1, N, 1.0).reshape(exts);
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -950,16 +688,14 @@ void test_view() {
     ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
 
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(),
-                       "Pointing error (Tensor3 and views)");
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
-                       "Pointing error (Tensor3 and views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(), "Pointing error (Tensor3 and views)");
+    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(), "Pointing error (Tensor3 and views)");
   }
 
   {
     std::array<Index, 3> exts{5, 5, 5};
-    const Size N = matpack::mdsize(exts);
-    Tensor3 x    = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    const Size           N = matpack::mdsize(exts);
+    Tensor3              x = matpack::uniform_grid(1, N, 1.0).reshape(exts);
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -978,12 +714,10 @@ void test_view() {
 
   {
     std::array<Index, 3> exts{5, 5, 5};
-    const Size N = matpack::mdsize(exts);
-    Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-    ComplexTensor3 x(xt.shape());
-    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-      return Complex{a, a + 1.0};
-    });
+    const Size           N  = matpack::mdsize(exts);
+    Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    ComplexTensor3       x(xt.shape());
+    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -1002,12 +736,10 @@ void test_view() {
 
   {
     std::array<Index, 3> exts{5, 5, 5};
-    const Size N = matpack::mdsize(exts);
-    Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-    ComplexTensor3 x(xt.shape());
-    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-      return Complex{a, a + 1.0};
-    });
+    const Size           N  = matpack::mdsize(exts);
+    Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+    ComplexTensor3       x(xt.shape());
+    stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
     ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
     ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
@@ -1026,9 +758,8 @@ void test_view() {
 
   {
     std::array<Index, 3> exts{5, 5, 5};
-    const Size N = matpack::mdsize(exts);
-    ComplexTensor3 x(matpack::uniform_grid(1, N, 1.0).reshape(exts),
-                     matpack::uniform_grid(2, N, 1.0).reshape(exts));
+    const Size           N = matpack::mdsize(exts);
+    ComplexTensor3 x(matpack::uniform_grid(1, N, 1.0).reshape(exts), matpack::uniform_grid(2, N, 1.0).reshape(exts));
     StridedTensor3View xr{x.real()};
     StridedTensor3View xi{x.imag()};
 
@@ -1045,12 +776,10 @@ void test_view() {
     ARTS_USER_ERROR_IF(not(xi[0] != 0 and xi[2] != 0), "imag {:B}", x);
     ARTS_USER_ERROR_IF(not(xi[1] == 0 and xi[3] == 0), "imag {:B}", x);
 
-    ARTS_USER_ERROR_IF(xr[2].base::data_handle() !=
-                           xr[StridedRange(0, 3, 2)][1].base::data_handle(),
+    ARTS_USER_ERROR_IF(xr[2].base::data_handle() != xr[StridedRange(0, 3, 2)][1].base::data_handle(),
                        "Pointing error (ComplexTensor3 real views)");
 
-    ARTS_USER_ERROR_IF(xi[2].base::data_handle() !=
-                           xi[StridedRange(0, 3, 2)][1].base::data_handle(),
+    ARTS_USER_ERROR_IF(xi[2].base::data_handle() != xi[StridedRange(0, 3, 2)][1].base::data_handle(),
                        "Pointing error (ComplexTensor3 imag views)");
   }
 
@@ -1059,16 +788,14 @@ void test_view() {
       for (Index IIJ = 0; IIJ < 5; IIJ++) {
         for (Index IIK = 0; IIK < 5; IIK++) {
           std::array<Index, 3> exts{5, 5, 5};
-          const Size N = matpack::mdsize(exts);
-          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-          ComplexTensor3 x(xt.shape());
-          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-            return Complex{a, a + 1.0};
-          });
+          const Size           N  = matpack::mdsize(exts);
+          Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3       x(xt.shape());
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
           StridedTensor3View xr{x.real()};
           StridedTensor3View xi{x.imag()};
-          ComplexTensor3 y(xr, xi);
+          ComplexTensor3     y(xr, xi);
 
           xr[joker, RIJ, RIK] = 0;
           xi[joker, IIJ, IIK] = 0;
@@ -1079,16 +806,14 @@ void test_view() {
                 const bool r_zero = (j == RIJ and k == RIK);
                 const bool i_zero = (j == IIJ and k == IIK);
 
-                Complex c{r_zero ? 0 : y[i, j, k].real(),
-                          i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF(
-                    (x[i, j, k] != c),
-                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                    i,
-                    j,
-                    k,
-                    x[i, j, k],
-                    c);
+                Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                                   i,
+                                   j,
+                                   k,
+                                   x[i, j, k],
+                                   c);
               }
             }
           }
@@ -1102,15 +827,13 @@ void test_view() {
       for (Index III = 0; III < 5; III++) {
         for (Index IIK = 0; IIK < 5; IIK++) {
           std::array<Index, 3> exts{5, 5, 5};
-          const Size N = matpack::mdsize(exts);
-          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-          ComplexTensor3 x(xt.shape());
-          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-            return Complex{a, a + 1.0};
-          });
+          const Size           N  = matpack::mdsize(exts);
+          Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3       x(xt.shape());
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-          auto xr{x.real()};
-          auto xi{x.imag()};
+          auto           xr{x.real()};
+          auto           xi{x.imag()};
           ComplexTensor3 y(xr, xi);
 
           xr[RII, joker, RIK] = 0;
@@ -1122,16 +845,14 @@ void test_view() {
                 const bool r_zero = (i == RII and k == RIK);
                 const bool i_zero = (i == III and k == IIK);
 
-                Complex c{r_zero ? 0 : y[i, j, k].real(),
-                          i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF(
-                    (x[i, j, k] != c),
-                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                    i,
-                    j,
-                    k,
-                    x[i, j, k],
-                    c);
+                Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                                   i,
+                                   j,
+                                   k,
+                                   x[i, j, k],
+                                   c);
               }
             }
           }
@@ -1145,15 +866,13 @@ void test_view() {
       for (Index III = 0; III < 5; III++) {
         for (Index IIJ = 0; IIJ < 5; IIJ++) {
           std::array<Index, 3> exts{5, 5, 5};
-          const Size N = matpack::mdsize(exts);
-          Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-          ComplexTensor3 x(xt.shape());
-          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-            return Complex{a, a + 1.0};
-          });
+          const Size           N  = matpack::mdsize(exts);
+          Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+          ComplexTensor3       x(xt.shape());
+          stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-          auto xr{x.real()};
-          auto xi{x.imag()};
+          auto           xr{x.real()};
+          auto           xi{x.imag()};
           ComplexTensor3 y(xr, xi);
 
           xr[RII, RIJ, joker] = 0;
@@ -1165,16 +884,14 @@ void test_view() {
                 const bool r_zero = (i == RII and j == RIJ);
                 const bool i_zero = (i == III and j == IIJ);
 
-                Complex c{r_zero ? 0 : y[i, j, k].real(),
-                          i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF(
-                    (x[i, j, k] != c),
-                    "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                    i,
-                    j,
-                    k,
-                    x[i, j, k],
-                    c);
+                Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+                ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                                   i,
+                                   j,
+                                   k,
+                                   x[i, j, k],
+                                   c);
               }
             }
           }
@@ -1186,15 +903,13 @@ void test_view() {
   for (Index RII = 0; RII < 5; RII++) {
     for (Index III = 0; III < 5; III++) {
       std::array<Index, 3> exts{5, 5, 5};
-      const Size N = matpack::mdsize(exts);
-      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-      ComplexTensor3 x(xt.shape());
-      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-        return Complex{a, a + 1.0};
-      });
+      const Size           N  = matpack::mdsize(exts);
+      Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3       x(xt.shape());
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-      auto xr{x.real()};
-      auto xi{x.imag()};
+      auto           xr{x.real()};
+      auto           xi{x.imag()};
       ComplexTensor3 y(xr, xi);
 
       xr[RII, joker, joker] = 0;
@@ -1206,16 +921,14 @@ void test_view() {
             const bool r_zero = (i == RII);
             const bool i_zero = (i == III);
 
-            Complex c{r_zero ? 0 : y[i, j, k].real(),
-                      i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF(
-                (x[i, j, k] != c),
-                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                i,
-                j,
-                k,
-                x[i, j, k],
-                c);
+            Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                               i,
+                               j,
+                               k,
+                               x[i, j, k],
+                               c);
           }
         }
       }
@@ -1225,15 +938,13 @@ void test_view() {
   for (Index RIJ = 0; RIJ < 5; RIJ++) {
     for (Index IIJ = 0; IIJ < 5; IIJ++) {
       std::array<Index, 3> exts{5, 5, 5};
-      const Size N = matpack::mdsize(exts);
-      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-      ComplexTensor3 x(xt.shape());
-      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-        return Complex{a, a + 1.0};
-      });
+      const Size           N  = matpack::mdsize(exts);
+      Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3       x(xt.shape());
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-      auto xr{x.real()};
-      auto xi{x.imag()};
+      auto           xr{x.real()};
+      auto           xi{x.imag()};
       ComplexTensor3 y(xr, xi);
 
       xr[joker, RIJ, joker] = 0;
@@ -1245,16 +956,14 @@ void test_view() {
             const bool r_zero = (j == RIJ);
             const bool i_zero = (j == IIJ);
 
-            Complex c{r_zero ? 0 : y[i, j, k].real(),
-                      i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF(
-                (x[i, j, k] != c),
-                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                i,
-                j,
-                k,
-                x[i, j, k],
-                c);
+            Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                               i,
+                               j,
+                               k,
+                               x[i, j, k],
+                               c);
           }
         }
       }
@@ -1264,15 +973,13 @@ void test_view() {
   for (Index RIK = 0; RIK < 5; RIK++) {
     for (Index IIK = 0; IIK < 5; IIK++) {
       std::array<Index, 3> exts{5, 5, 5};
-      const Size N = matpack::mdsize(exts);
-      Tensor3 xt   = matpack::uniform_grid(1, N, 1.0).reshape(exts);
-      ComplexTensor3 x(xt.shape());
-      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) {
-        return Complex{a, a + 1.0};
-      });
+      const Size           N  = matpack::mdsize(exts);
+      Tensor3              xt = matpack::uniform_grid(1, N, 1.0).reshape(exts);
+      ComplexTensor3       x(xt.shape());
+      stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-      auto xr{x.real()};
-      auto xi{x.imag()};
+      auto           xr{x.real()};
+      auto           xi{x.imag()};
       ComplexTensor3 y(xr, xi);
 
       xr[joker, joker, RIK] = 0;
@@ -1284,16 +991,14 @@ void test_view() {
             const bool r_zero = (k == RIK);
             const bool i_zero = (k == IIK);
 
-            Complex c{r_zero ? 0 : y[i, j, k].real(),
-                      i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF(
-                (x[i, j, k] != c),
-                "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
-                i,
-                j,
-                k,
-                x[i, j, k],
-                c);
+            Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
+            ARTS_USER_ERROR_IF((x[i, j, k] != c),
+                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                               i,
+                               j,
+                               k,
+                               x[i, j, k],
+                               c);
           }
         }
       }
@@ -1304,11 +1009,9 @@ void test_view() {
 void test_eigen() {
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::mdview_t<Complex, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView                  y{matpack::mdview_t<Complex, 2>{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{matpack::mdview_t<Complex, 2>{
-        copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
     ARTS_USER_ERROR_IF(not(y == test), "Error")
 
@@ -1324,24 +1027,17 @@ void test_eigen() {
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexVectorView y{
-        matpack::mdview_t<Complex, 1>{x.data(), std::array<Index, 1>{8}}};
+    ComplexVectorView                  y{matpack::mdview_t<Complex, 1>{x.data(), std::array<Index, 1>{8}}};
 
     const std::complex<Numeric> z = dot(y, y);
-    ARTS_USER_ERROR_IF(
-        z != std::transform_reduce(
-                 x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}),
-        "{}",
-        z)
+    ARTS_USER_ERROR_IF(z != std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}), "{}", z)
   }
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::mdview_t<Complex, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView                  y{matpack::mdview_t<Complex, 2>{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{matpack::mdview_t<Complex, 2>{
-        copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
     ARTS_USER_ERROR_IF(not(y == test), "Error")
 
@@ -1354,11 +1050,9 @@ void test_eigen() {
 
   {
     std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
-    ComplexMatrixView y{matpack::mdview_t<Complex, 2>{
-        x.data(), std::array{Index{2}, Index{4}}}};
+    ComplexMatrixView                  y{matpack::mdview_t<Complex, 2>{x.data(), std::array{Index{2}, Index{4}}}};
     std::vector<std::complex<Numeric>> copy = x;
-    const ComplexMatrixView test{matpack::mdview_t<Complex, 2>{
-        copy.data(), std::array{Index{2}, Index{4}}}};
+    const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
     ARTS_USER_ERROR_IF(not(y == test), "Error")
 
@@ -1387,7 +1081,7 @@ void test_data() {
 
 void test_complex() {
   {
-    Complex x{0, 0};
+    Complex       x{0, 0};
     const Complex y{0, 0};
     ARTS_USER_ERROR_IF(x != y, "{} {}", x, y)
     ARTS_USER_ERROR_IF(not(real_val(x) == real_val(y)), "Error")
@@ -1460,42 +1154,28 @@ void test_math() {
     ARTS_USER_ERROR_IF(not(min(StridedConstVectorView{x}) == 0), "Error")
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstVectorView{x}.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(StridedVectorView{x}.elem_begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(StridedConstVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(StridedVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(StridedConstVectorView{x}.elem_begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.begin())>);
     static_assert(std::random_access_iterator<decltype(VectorView{x}.begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstVectorView{x}.begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(StridedVectorView{x}.begin())>);
-    static_assert(std::random_access_iterator<
-                  decltype(StridedConstVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(StridedVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(StridedConstVectorView{x}.begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(VectorView{x}.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstVectorView{x}.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(StridedVectorView{x}.elem_end())>);
-    static_assert(std::random_access_iterator<
-                  decltype(StridedConstVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(StridedVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(StridedConstVectorView{x}.elem_end())>);
 
     static_assert(std::random_access_iterator<decltype(x.end())>);
     static_assert(std::random_access_iterator<decltype(VectorView{x}.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstVectorView{x}.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(StridedVectorView{x}.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(StridedConstVectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(StridedVectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(StridedConstVectorView{x}.end())>);
   }
 
   {
@@ -1505,40 +1185,28 @@ void test_math() {
     ARTS_USER_ERROR_IF(not(min(ConstMatrixView{x}) == 0), "Error")
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.elem_begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.begin())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.begin())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.begin())>);
 
     static_assert(std::random_access_iterator<decltype(x.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(MatrixView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.elem_end())>);
 
     static_assert(std::random_access_iterator<decltype(x.end())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.end())>);
-    static_assert(
-        std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(ConstMatrixView{x}.end())>);
   }
 }
 
@@ -1548,16 +1216,15 @@ void test_mult() {
     for (Index i = 0; i < 4; i++)
       for (Index j = 0; j < 4; j++) A[i, j] = static_cast<Numeric>(i);
     const Vector y({1, 2, 3, 4});
-    Vector x(4);
-    Vector eig_x{A * y};
+    Vector       x(4);
+    Vector       eig_x{A * y};
     mult(x, A, y);
     ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
   }
   {
     ComplexMatrix A(4, 4, 1);
     for (Index i = 0; i < 4; i++)
-      for (Index j = 0; j < 4; j++)
-        A[i, j] = {static_cast<Numeric>(i), 2 * static_cast<Numeric>(i)};
+      for (Index j = 0; j < 4; j++) A[i, j] = {static_cast<Numeric>(i), 2 * static_cast<Numeric>(i)};
     ComplexVector y({1, 2, 3, 4}), x(4);
 
     ComplexVector eig_x{A * y};
@@ -1569,7 +1236,7 @@ void test_mult() {
 void test_const_data() {
   {
     constexpr matpack::cdata_t<Numeric, 3> x{1, 2, 3};
-    Vector y(x);
+    Vector                                 y(x);
 
     ARTS_USER_ERROR_IF(x != y, "Bad")
     ARTS_USER_ERROR_IF((x[2] != y.back()), "Bad")
@@ -1577,7 +1244,7 @@ void test_const_data() {
   }
   {
     constexpr matpack::cdata_t<Numeric, 3, 3> x{2, 3, 4};
-    Matrix y(x);
+    Matrix                                    y(x);
 
     ARTS_USER_ERROR_IF(x != y, "Bad")
     ARTS_USER_ERROR_IF((x[2, 2] != y[2, 2]), "Bad")
@@ -1588,20 +1255,15 @@ void test_const_data() {
 void test_sorted_grid() {
   {
     const AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
-    ARTS_USER_ERROR_IF(x.size() != 8,
-                       "Should be working, just testing existence of size()");
+    ARTS_USER_ERROR_IF(x.size() != 8, "Should be working, just testing existence of size()");
   }
   {
     bool correctly_fails;
     try {
       const AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8, 8};
       correctly_fails = false;
-    } catch (...) {
-      correctly_fails = true;
-    }
-    ARTS_USER_ERROR_IF(
-        not correctly_fails,
-        "Should not be able to initialize with non-ascending grid")
+    } catch (...) { correctly_fails = true; }
+    ARTS_USER_ERROR_IF(not correctly_fails, "Should not be able to initialize with non-ascending grid")
   }
 }
 
@@ -1638,9 +1300,7 @@ void test_grid() {
   try {
     x       = std::move(xtmp);
     set_low = true;
-  } catch (...) {
-    set_low = false;
-  }
+  } catch (...) { set_low = false; }
   ARTS_USER_ERROR_IF(set_low, "Should not be able to set low value");
   xtmp.pop_back();
   x = std::move(xtmp);
@@ -1651,9 +1311,7 @@ void test_grid() {
   try {
     x        = std::move(xtmp);
     set_same = true;
-  } catch (...) {
-    set_same = false;
-  }
+  } catch (...) { set_same = false; }
   ARTS_USER_ERROR_IF(set_same, "Should not be able to set same value");
   xtmp.pop_back();
   x = std::move(xtmp);
@@ -1665,7 +1323,7 @@ void test_grid() {
 }
 
 void test_einsum() {
-  const Size n = 5, m = 3;
+  const Size   n = 5, m = 3;
   const Matrix A = matpack::uniform_grid(1.0, n * m, 1.0).reshape(n, m);
   const Vector x = matpack::uniform_grid(1.0, m, 1.0);
 
@@ -1684,9 +1342,7 @@ void test_einsum() {
     einsum<"j", "ij", "j">(y0, A, x);
 
     for (Size i = 0; i < n; i++) {
-      for (Size j = 0; j < m; j++) {
-        y1[j] += A[i, j] * x[j];
-      }
+      for (Size j = 0; j < m; j++) { y1[j] += A[i, j] * x[j]; }
     }
 
     ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
@@ -1696,7 +1352,7 @@ void test_einsum() {
 void test_print() {
   auto test = [](auto... sz) {
     Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    auto v = std::move(x).reshape(sz...);
+    auto   v = std::move(x).reshape(sz...);
     std::print("x = np.array(\n{:B,}\n)\n", v);
     std::print("assert np.all(np.equal(x.shape, (");
     (std::print("{}, ", sz), ...);
@@ -1716,8 +1372,8 @@ void test_print() {
 
 void test_sort() {
   std::random_device rd;
-  std::mt19937 g(rd());
-  constexpr Size N = 100;
+  std::mt19937       g(rd());
+  constexpr Size     N = 100;
 
   {
     Vector x = matpack::uniform_grid(1.0, N, 1.0);
@@ -1732,24 +1388,21 @@ void test_sort() {
 
   {
     constexpr Index M = 10;
-    Matrix x          = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, M);
+    Matrix          x = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, M);
     stdr::shuffle(x.elem_begin(), x.elem_end(), g);
 
     std::println("{:B,}", x);
 
     for (Index i = 0; i < M; i++) {
       matpack::sort(x, {}, [i](VectorView a) { return a[i]; });
-      ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i]),
-                         "Not sorted at pivot {}\n{:B,}",
-                         i,
-                         x);
+      ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i]), "Not sorted at pivot {}\n{:B,}", i, x);
       std::println("{:B,}", x);
     }
   }
 
   {
     constexpr Index M = 3;
-    Tensor3 x = matpack::uniform_grid(1.0, M * M * M, 1.0).reshape(M, M, M);
+    Tensor3         x = matpack::uniform_grid(1.0, M * M * M, 1.0).reshape(M, M, M);
     stdr::shuffle(x.elem_begin(), x.elem_end(), g);
 
     std::println("{:B,}", x);
@@ -1757,11 +1410,7 @@ void test_sort() {
     for (Index i = 0; i < M; i++) {
       for (Index j = 0; j < M; j++) {
         matpack::sort(x, {}, [i, j](MatrixView a) { return a[i, j]; });
-        ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i, j]),
-                           "Not sorted at pivot {} {}\n{:B,}",
-                           i,
-                           j,
-                           x);
+        ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i, j]), "Not sorted at pivot {} {}\n{:B,}", i, j, x);
         std::println("{:B,} - pivot {} {}", x, i, j);
       }
     }
@@ -1794,7 +1443,6 @@ int main() try {
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
-  std::print(
-      std::cerr, "ERROR: See below\n\n{}\n\nERROR: See above\n", e.what());
+  std::print(std::cerr, "ERROR: See below\n\n{}\n\nERROR: See above\n", e.what());
   return EXIT_FAILURE;
 }

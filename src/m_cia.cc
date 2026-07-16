@@ -28,14 +28,14 @@ void spectral_propmatAddCIA(  // WS Output:
     PropmatVector& spectral_propmat,
     PropmatMatrix& spectral_propmat_jac,
     // WS Input:
-    const SpeciesEnum& select_species,
+    const SpeciesEnum&     select_species,
     const JacobianTargets& jac_targets,
-    const AscendingGrid& f_grid,
-    const AtmPoint& atm_point,
-    const CIARecords& abs_cia_data,
+    const AscendingGrid&   f_grid,
+    const AtmPoint&        atm_point,
+    const CIARecords&      abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
-    const Index& ignore_errors) {
+    const Index&   ignore_errors) {
   ARTS_TIME_REPORT
 
   // Size of problem
@@ -43,34 +43,28 @@ void spectral_propmatAddCIA(  // WS Output:
   const Index nq = jac_targets.target_count();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(static_cast<Index>(spectral_propmat.size()) not_eq nf,
-                     "*f_grid* must match *spectral_propmat*")
-  ARTS_USER_ERROR_IF(
-      spectral_propmat_jac.nrows() not_eq nq,
-      "*spectral_propmat_jac* must match derived form of *jac_targets*")
-  ARTS_USER_ERROR_IF(
-      spectral_propmat_jac.ncols() not_eq nf,
-      "*spectral_propmat_jac* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(any_negative(f_grid.vec()),
-                     "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(static_cast<Index>(spectral_propmat.size()) not_eq nf, "*f_grid* must match *spectral_propmat*")
+  ARTS_USER_ERROR_IF(spectral_propmat_jac.nrows() not_eq nq,
+                     "*spectral_propmat_jac* must match derived form of *jac_targets*")
+  ARTS_USER_ERROR_IF(spectral_propmat_jac.ncols() not_eq nf,
+                     "*spectral_propmat_jac* must have frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(any_negative(f_grid.vec()), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const auto end       = jac_targets.atm.end();
-  const auto jac_freqs = std::array{jac_targets.find(AtmKey::wind_u),
-                                    jac_targets.find(AtmKey::wind_v),
-                                    jac_targets.find(AtmKey::wind_w)};
+  const auto end = jac_targets.atm.end();
+  const auto jac_freqs =
+      std::array{jac_targets.find(AtmKey::wind_u), jac_targets.find(AtmKey::wind_v), jac_targets.find(AtmKey::wind_w)};
   const auto jac_temps = jac_targets.find(AtmKey::t);
 
-  const bool do_wind_jac =
-      stdr::any_of(jac_freqs, [end](const auto& x) { return x != end; });
-  const bool do_temp_jac = jac_temps != end;
-  const Numeric dt       = do_temp_jac ? jac_temps->d : 0.0;
-  const Numeric df       = jac_freqs[0] != end   ? jac_freqs[0]->d
-                           : jac_freqs[1] != end ? jac_freqs[1]->d
-                           : jac_freqs[2] != end ? jac_freqs[2]->d
-                                                 : 0.0;
+  const bool    do_wind_jac = stdr::any_of(jac_freqs, [end](const auto& x) { return x != end; });
+  const bool    do_temp_jac = jac_temps != end;
+  const Numeric dt          = do_temp_jac ? jac_temps->d : 0.0;
+  const Numeric df          = jac_freqs[0] != end   ? jac_freqs[0]->d
+                              : jac_freqs[1] != end ? jac_freqs[1]->d
+                              : jac_freqs[2] != end ? jac_freqs[2]->d
+                                                    : 0.0;
 
   Vector dfreq;
   Vector dabs_t{atm_point.temperature + dt};
@@ -80,15 +74,10 @@ void spectral_propmatAddCIA(  // WS Output:
     for (Size iv = 0; iv < f_grid.size(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
-  Vector dxsec_temp_dF(do_wind_jac ? f_grid.size() : 0),
-      dxsec_temp_dT(do_temp_jac ? f_grid.size() : 0);
+  Vector dxsec_temp_dF(do_wind_jac ? f_grid.size() : 0), dxsec_temp_dT(do_temp_jac ? f_grid.size() : 0);
 
-  ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df),
-                     "df must be >0 and not NaN or Inf: {}",
-                     df)
-  ARTS_USER_ERROR_IF(do_temp_jac and !std::isnormal(dt),
-                     "dt must be >0 and not NaN or Inf: {}",
-                     dt)
+  ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df), "df must be >0 and not NaN or Inf: {}", df)
+  ARTS_USER_ERROR_IF(do_temp_jac and !std::isnormal(dt), "dt must be >0 and not NaN or Inf: {}", dt)
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
@@ -102,60 +91,36 @@ void spectral_propmatAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Iterate over map entries where key is SpeciesEnumPair and value is CIARecord.
   for (const auto& [species_pair, this_cia] : abs_cia_data) {
-    if (select_species != "AIR"_spec and select_species != species_pair.spec1)
-      continue;
+    if (select_species != "AIR"_spec and select_species != species_pair.spec1) continue;
 
     // We have to multiply with the number density of the second CIA species.
     // We do not have to multiply with the first, since we still
     // want to return a (unary) absorption cross-section, not an
     // absorption coefficient.
-    const Numeric nd_sec =
-        number_density(atm_point.pressure, atm_point.temperature) *
-        atm_point[species_pair.spec2];
+    const Numeric nd_sec = number_density(atm_point.pressure, atm_point.temperature) * atm_point[species_pair.spec2];
     // Get the binary absorption cross sections from the CIA data:
 
     try {
-      this_cia.Extract(xsec_temp,
-                       f_grid,
-                       atm_point.temperature,
-                       T_extrapolfac,
-                       ignore_errors);
-      if (do_wind_jac) {
-        this_cia.Extract(dxsec_temp_dF,
-                         dfreq,
-                         atm_point.temperature,
-                         T_extrapolfac,
-                         ignore_errors);
-      }
+      this_cia.Extract(xsec_temp, f_grid, atm_point.temperature, T_extrapolfac, ignore_errors);
+      if (do_wind_jac) { this_cia.Extract(dxsec_temp_dF, dfreq, atm_point.temperature, T_extrapolfac, ignore_errors); }
       if (do_temp_jac) {
-        this_cia.Extract(dxsec_temp_dT,
-                         f_grid,
-                         atm_point.temperature + dt,
-                         T_extrapolfac,
-                         ignore_errors);
+        this_cia.Extract(dxsec_temp_dT, f_grid, atm_point.temperature + dt, T_extrapolfac, ignore_errors);
       }
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR(
-          "Problem with CIA species {}:\n{}", species_pair, e.what())
+      ARTS_USER_ERROR("Problem with CIA species {}:\n{}", species_pair, e.what())
     }
 
-    const Numeric nd =
-        number_density(atm_point.pressure, atm_point.temperature);
-    const Numeric dnd_dt =
-        dnumber_density_dt(atm_point.pressure, atm_point.temperature);
+    const Numeric nd     = number_density(atm_point.pressure, atm_point.temperature);
+    const Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
     const Numeric dnd_dt_sec =
-        dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
-        atm_point[species_pair.spec2];
+        dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[species_pair.spec2];
     for (Size iv = 0; iv < f_grid.size(); iv++) {
-      spectral_propmat[iv].A() +=
-          nd_sec * xsec_temp[iv] * nd * atm_point[species_pair.spec1];
+      spectral_propmat[iv].A() += nd_sec * xsec_temp[iv] * nd * atm_point[species_pair.spec1];
 
       if (jac_temps != end) {
         const auto iq = jac_temps->target_pos;
         spectral_propmat_jac[iq, iv].A() +=
-            ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
-              xsec_temp[iv] * dnd_dt_sec) *
-                 nd +
+            ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt + xsec_temp[iv] * dnd_dt_sec) * nd +
              xsec_temp[iv] * nd_sec * dnd_dt) *
             atm_point[species_pair.spec1];
       }
@@ -164,8 +129,7 @@ void spectral_propmatAddCIA(  // WS Output:
         if (j != end) {
           const auto iq = j->target_pos;
           spectral_propmat_jac[iq, iv].A() +=
-              nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
-              atm_point[species_pair.spec2];
+              nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd * atm_point[species_pair.spec2];
         }
       }
 
@@ -187,7 +151,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
     CIARecords& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
-    const String& catalogpath) {
+    const String&            catalogpath) {
   ARTS_TIME_REPORT
 
   ArrayOfString subfolders;
@@ -204,17 +168,14 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
     ArrayOfString cia_names;
 
-    SpeciesEnumPair species_key{.spec1 = abs_specie.Spec(),
-                                .spec2 = abs_specie.cia_2nd_species};
+    SpeciesEnumPair species_key{.spec1 = abs_specie.Spec(), .spec2 = abs_specie.cia_2nd_species};
 
     // If this species pair already exists in map, skip it
     if (abs_cia_data.contains(species_key)) continue;
 
-    cia_names.push_back(String(toString<1>(abs_specie.Spec())) + "-" +
-                        String(toString<1>(abs_specie.cia_2nd_species)));
+    cia_names.push_back(String(toString<1>(abs_specie.Spec())) + "-" + String(toString<1>(abs_specie.cia_2nd_species)));
 
-    cia_names.push_back(String(toString<1>(abs_specie.cia_2nd_species)) + "-" +
-                        String(toString<1>(abs_specie.Spec())));
+    cia_names.push_back(String(toString<1>(abs_specie.cia_2nd_species)) + "-" + String(toString<1>(abs_specie.Spec())));
 
     ArrayOfString checked_dirs;
 
@@ -224,17 +185,13 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
       for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
         ArrayOfString files;
-        checked_dirs.push_back(
-            std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
+        checked_dirs.push_back(std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
         try {
           files = list_directory(*(checked_dirs.end() - 1));
-        } catch (const std::runtime_error& e) {
-          continue;
-        }
+        } catch (const std::runtime_error& e) { continue; }
 
         for (Index i = files.size() - 1; i >= 0; i--) {
-          if (files[i].find(cia_name) != 0 ||
-              files[i].rfind(".cia") != files[i].length() - 4) {
+          if (files[i].find(cia_name) != 0 || files[i].rfind(".cia") != files[i].length() - 4) {
             files.erase(files.begin() + i);
           }
         }
@@ -265,7 +222,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
     CIARecords& abs_cia_data,
     // WS Input:
     const ArrayOfSpeciesTag& abs_species,
-    const String& filename) {
+    const String&            filename) {
   ARTS_TIME_REPORT
 
   xml_read_from_file(filename, abs_cia_data);
@@ -281,48 +238,38 @@ void abs_cia_dataReadFromXML(  // WS Output:
   for (auto& abs_specie : abs_species) {
     if (abs_specie.Type() != SpeciesTagType::Cia) continue;
 
-    SpeciesEnumPair species_key{.spec1 = abs_specie.Spec(),
-                                .spec2 = abs_specie.cia_2nd_species};
+    SpeciesEnumPair species_key{.spec1 = abs_specie.Spec(), .spec2 = abs_specie.cia_2nd_species};
 
     // If this species pair is not in the map, it was not present in the input file
-    if (not abs_cia_data.contains(species_key)) {
-      missing_tags.push_back(std::format("{}", species_key));
-    }
+    if (not abs_cia_data.contains(species_key)) { missing_tags.push_back(std::format("{}", species_key)); }
   }
 
-  ARTS_USER_ERROR_IF(
-      missing_tags.size(),
-      "The following CIA tag(s) are missing in input file: {:B,}",
-      missing_tags);
+  ARTS_USER_ERROR_IF(missing_tags.size(), "The following CIA tag(s) are missing in input file: {:B,}", missing_tags);
 }
 
-void abs_cia_dataReadSpeciesSplitCatalog(CIARecords& abs_cia_data,
+void abs_cia_dataReadSpeciesSplitCatalog(CIARecords&              abs_cia_data,
                                          const ArrayOfSpeciesTag& abs_species,
-                                         const String& basename,
-                                         const Index& ignore_missing_) try {
+                                         const String&            basename,
+                                         const Index&             ignore_missing_) try {
   ARTS_TIME_REPORT
 
   abs_cia_data.clear();
 
   const bool ignore_missing = static_cast<bool>(ignore_missing_);
 
-  ArrayOfString names{};
+  ArrayOfString                names{};
   std::vector<SpeciesEnumPair> specs{};
   for (auto& tag : abs_species) {
     if (tag.type == SpeciesTagType::Cia) {
-      names.emplace_back(std::format("{}-CIA-{}",
-                                     toString<1>(tag.Spec()),
-                                     toString<1>(tag.cia_2nd_species)));
-      specs.emplace_back(
-          SpeciesEnumPair{.spec1 = tag.Spec(), .spec2 = tag.cia_2nd_species});
+      names.emplace_back(std::format("{}-CIA-{}", toString<1>(tag.Spec()), toString<1>(tag.cia_2nd_species)));
+      specs.emplace_back(SpeciesEnumPair{.spec1 = tag.Spec(), .spec2 = tag.cia_2nd_species});
     }
   }
 
   names.erase(std::unique(names.begin(), names.end()), names.end());
 
   const std::filesystem::path inpath{basename.c_str()};
-  const bool is_dir =
-      basename.back() == '/' or std::filesystem::is_directory(inpath);
+  const bool                  is_dir = basename.back() == '/' or std::filesystem::is_directory(inpath);
 
   for (Size i = 0; i < names.size(); i++) {
     const auto& name = names[i];

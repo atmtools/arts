@@ -16,9 +16,7 @@ namespace Minimize {
  * @param[in] order The order of the polynomial to fit, e.g., 3 means x**3 is largest factor
  * @return A Vector if successful, otherwise an empty optional
  */
-std::optional<Vector> polyfit(const StridedConstVectorView& X,
-                              const StridedConstVectorView& Y,
-                              const Index& order);
+std::optional<Vector> polyfit(const StridedConstVectorView& X, const StridedConstVectorView& Y, const Index& order);
 }  // namespace Minimize
 
 #endif  // minimize_wrap_h

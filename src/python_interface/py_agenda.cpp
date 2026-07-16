@@ -29,13 +29,10 @@ extern Parameters parameters;
 namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, const String& key);
 
-std::filesystem::path correct_include_path(
-    const std::filesystem::path& path_copy) {
+std::filesystem::path correct_include_path(const std::filesystem::path& path_copy) {
   std::filesystem::path path = path_copy;
   for (auto& prefix : parameters.includepath) {
-    if (std::filesystem::is_regular_file(
-            path = std::filesystem::path(prefix.c_str()) / path_copy))
-      break;
+    if (std::filesystem::is_regular_file(path = std::filesystem::path(prefix.c_str()) / path_copy)) break;
   }
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
@@ -47,9 +44,7 @@ std::filesystem::path correct_include_path(
   std::filesystem::path dir_path = path;
   dir_path.remove_filename();
   String new_inc = dir_path.string();
-  if (std::find(parameters.includepath.begin(),
-                parameters.includepath.end(),
-                new_inc) == parameters.includepath.end())
+  if (std::find(parameters.includepath.begin(), parameters.includepath.end(), new_inc) == parameters.includepath.end())
     parameters.includepath.emplace_back(new_inc);
 
   return path;
@@ -60,17 +55,16 @@ void py_agenda(py::module_& m) try {
   generic_interface(cbd);
   cbd.def(
          "__init__",
-         [](CallbackOperator* cb,
+         [](CallbackOperator*                      cb,
             const std::function<void(Workspace&)>& f,
-            const std::vector<std::string>& i,
-            const std::vector<std::string>& o) {
-           new (cb)
-               CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) {
-                                  py::gil_scoped_acquire gil{};
-                                  f(ws);
-                                }),
-                                i,
-                                o);
+            const std::vector<std::string>&        i,
+            const std::vector<std::string>&        o) {
+           new (cb) CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) {
+                                       py::gil_scoped_acquire gil{};
+                                       f(ws);
+                                     }),
+                                     i,
+                                     o);
          },
          "f"_a,
          "inputs"_a  = std::vector<std::string>{},
@@ -81,9 +75,7 @@ void py_agenda(py::module_& m) try {
   py::class_<Wsv> wsv(m, "Wsv");
   generic_interface(wsv);
   wsv.def_prop_ro(
-         "value",
-         [](Wsv& v) { return to_py(v); },
-         "A workspace variable.\n\n.. :class:`~pyarts3.arts.Any`")
+         "value", [](Wsv& v) { return to_py(v); }, "A workspace variable.\n\n.. :class:`~pyarts3.arts.Any`")
       .doc() = "A workspace variable wrapper - no manual use required";
   wsv_implicit(wsv);
 
@@ -92,21 +84,17 @@ void py_agenda(py::module_& m) try {
   methods
       .def(
           "__init__",
-          [](Method* me,
-             const std::string& n,
-             const std::vector<std::string>& a,
-             const std::unordered_map<std::string, std::string>& kw) {
-            new (me) Method{n, a, kw};
-          },
+          [](Method*                                             me,
+             const std::string&                                  n,
+             const std::vector<std::string>&                     a,
+             const std::unordered_map<std::string, std::string>& kw) { new (me) Method{n, a, kw}; },
           "name"_a,
           "args"_a,
           "kwargs"_a,
           "A named method with args and kwargs")
       .def(
           "__init__",
-          [](Method* me, const std::string& n, const py::object* const v) {
-            new (me) Method{n, from(v).copied()};
-          },
+          [](Method* me, const std::string& n, const py::object* const v) { new (me) Method{n, from(v).copied()}; },
           "name"_a,
           "wsv"_a,
           "A method that sets a workspace variable")
@@ -119,29 +107,23 @@ void py_agenda(py::module_& m) try {
           },
           "The value (if any) of a set method.\n\n.. :class:`~pyarts3.arts.Wsv`.\n\n.. :class:`None`")
       .def_prop_ro(
-          "name",
-          [](const Method& method) { return method.get_name(); },
-          "The name of the method.\n\n.. :class:`str`")
+          "name", [](const Method& method) { return method.get_name(); }, "The name of the method.\n\n.. :class:`str`")
       .def_prop_ro(
           "output",
           [](const Method& method) { return method.get_outs(); },
           "The output variables of the method.\n\n.. :class:`list` of :class:`str`")
       .doc() = "The method class of ARTS";
 
-  auto wsvmap = py::bind_map<std::unordered_map<std::string, Wsv>,
-                             py::rv_policy::reference_internal>(m, "WsvMap");
-  wsvmap.doc() =
-      unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
+  auto wsvmap  = py::bind_map<std::unordered_map<std::string, Wsv>, py::rv_policy::reference_internal>(m, "WsvMap");
+  wsvmap.doc() = unwrap_stars("A map from *String* to :class:`~pyarts3.arts.Wsv`");
   wsvmap.def(
       "__init__",
-      [](std::unordered_map<std::string, Wsv>* m,
-         const std::vector<std::string>& files,
-         bool allow_errors) {
+      [](std::unordered_map<std::string, Wsv>* m, const std::vector<std::string>& files, bool allow_errors) {
         new (m) std::unordered_map<std::string, Wsv>{};
         auto& map = *m;
 
         std::vector<std::string> actual_error{};
-        std::size_t n = internal_workspace_groups().size();
+        std::size_t              n = internal_workspace_groups().size();
 
         for (std::size_t i = 0; i < files.size(); ++i) {
           bool happy = false;
@@ -158,9 +140,7 @@ void py_agenda(py::module_& m) try {
             }
           }
 
-          if (not happy) {
-            actual_error.push_back(files[i]);
-          }
+          if (not happy) { actual_error.push_back(files[i]); }
         }
 
         if (not actual_error.empty()) {
@@ -168,11 +148,10 @@ void py_agenda(py::module_& m) try {
             if (map.contains("errors")) return;
             map.emplace("errors", Wsv{actual_error});
           } else {
-            throw std::runtime_error(std::format(
-                "Could not read {}/{} files as a workspace group:\n{:B,}",
-                actual_error.size(),
-                files.size(),
-                actual_error));
+            throw std::runtime_error(std::format("Could not read {}/{} files as a workspace group:\n{:B,}",
+                                                 actual_error.size(),
+                                                 files.size(),
+                                                 actual_error));
           }
         }
       },
@@ -193,10 +172,7 @@ allow_errors : bool, optional
 )");
   wsvmap.def(
       "write_split",
-      [](std::unordered_map<std::string, Wsv>& map,
-         std::optional<std::string> basename,
-         FileType ftype,
-         bool clobber) {
+      [](std::unordered_map<std::string, Wsv>& map, std::optional<std::string> basename, FileType ftype, bool clobber) {
         std::vector<std::string> files;
 
         for (const auto& [key, value] : map) {
@@ -242,10 +218,7 @@ list of str
   py::class_<Agenda> ag(m, "Agenda");
   generic_interface(ag);
   ag.def(py::init<std::string>(), "name"_a, "Create with name")
-      .def("document",
-           &Agenda::sphinx_list,
-           "prep"_a = std::string_view{"- "},
-           "Returns a list of methods and state")
+      .def("document", &Agenda::sphinx_list, "prep"_a = std::string_view{"- "}, "Returns a list of methods and state")
       .def("add",
            &Agenda::add,
            "method"_a.none(false),
@@ -280,28 +253,21 @@ so Copy(a, out=b) will not even see the b variable.
           "fix"_a = false,
           "Finalize the agenda, making it possible to use it in the workspace")
       .def_prop_ro(
-          "name",
-          [](const Agenda& agenda) { return agenda.get_name(); },
-          "The name of the agenda.\n\n.. :class:`str`")
+          "name", [](const Agenda& agenda) { return agenda.get_name(); }, "The name of the agenda.\n\n.. :class:`str`")
       .def(
           "_set_name",
-          [](Agenda& agenda, const std::string& name) {
-            agenda.set_name(name);
-          },
+          [](Agenda& agenda, const std::string& name) { agenda.set_name(name); },
           "The name of the agenda.\n\n.. :class:`str`")
       .def_prop_ro(
           "methods",
           [](const Agenda& agenda) { return agenda.get_methods(); },
           "The methods of the agenda.\n\n.. :class:`list[~pyarts3.arts.Method]`");
 
-  auto va =
-      py::bind_vector<std::vector<Agenda>, py::rv_policy::reference_internal>(
-          m, "ArrayOfAgenda");
+  auto va  = py::bind_vector<std::vector<Agenda>, py::rv_policy::reference_internal>(m, "ArrayOfAgenda");
   va.doc() = "A list of :class:`~pyarts3.arts.Agenda`";
   generic_interface(va);
   vector_interface(va);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));
 }
 }  // namespace Python

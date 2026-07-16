@@ -5,7 +5,7 @@
 #include "predef.h"
 
 namespace Absorption::PredefinedModel::MPM93 {
-//! Ported from legacy continua. 
+//! Ported from legacy continua.
 /*!
   see publication side of National Telecommunications and Information Administration
   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
@@ -30,45 +30,36 @@ namespace Absorption::PredefinedModel::MPM93 {
    \date 2001-11-05
  */
 //! New implementation
-void nitrogen(PropmatVector& propmat_clearsky,
-              const Vector& f_grid,
-              const AtmPoint& atm_point) {
-  using std::pow;
+void nitrogen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Constant::pi, Constant::speed_of_light;
+  using std::pow;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric n2 = atm_point["N2"_spec];
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric n2   = atm_point["N2"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 N2 continuum model
   // (AGARD 52nd Specialists Meeting of the Electromagnetic Wave
   // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21):
-  constexpr Numeric xT = 3.500;  // temperature exponent [1]
-  constexpr Numeric xf = 1.500;  // frequency exponent [1]
-  constexpr Numeric gxf =
-      9.000 * xf;  // needed for the unit conversion of G
-  constexpr Numeric S = 2.296e-31;  // line strength  [1/Pa² * 1/Hz]
-  static const Numeric G =
-      1.930e-5 *
-      pow(10.000, -gxf);  // frequency factor [1/Hz^xf]
+  constexpr Numeric    xT  = 3.500;                         // temperature exponent [1]
+  constexpr Numeric    xf  = 1.500;                         // frequency exponent [1]
+  constexpr Numeric    gxf = 9.000 * xf;                    // needed for the unit conversion of G
+  constexpr Numeric    S   = 2.296e-31;                     // line strength  [1/Pa² * 1/Hz]
+  static const Numeric G   = 1.930e-5 * pow(10.000, -gxf);  // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
 
   constexpr Numeric fac = 4.0 * pi / speed_of_light;  //  = 4 * pi / c
 
-  const Numeric th = 300.0 / t;
-  const Numeric strength =
-        S * pow((p_pa * (1.0000 - h2o)), 2.0) *
-        pow(th, xT);
+  const Numeric th       = 300.0 / t;
+  const Numeric strength = S * pow((p_pa * (1.0000 - h2o)), 2.0) * pow(th, xT);
 
-    // Loop frequency:
-    for (Size s = 0; s < f_grid.size(); ++s) {
-      propmat_clearsky[s].A() += n2 * 
-                     fac * 
-                     strength *               // strength
-                     pow(f_grid[s], 2.0) /  (1.000 + G * pow(f_grid[s], xf)) * // frequency dependence
-                     n2;  // N2 vmr
-    }
+  // Loop frequency:
+  for (Size s = 0; s < f_grid.size(); ++s) {
+    propmat_clearsky[s].A() += n2 * fac * strength *                                     // strength
+                               pow(f_grid[s], 2.0) / (1.000 + G * pow(f_grid[s], xf)) *  // frequency dependence
+                               n2;                                                       // N2 vmr
+  }
 }
 }  // namespace Absorption::PredefinedModel::MPM93

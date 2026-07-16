@@ -14,86 +14,72 @@ inline constexpr char named_input_prefix = '@';
 inline constexpr char internal_prefix    = '_';
 
 class Method {
-  std::string name{};
+  std::string              name{};
   std::vector<std::string> outargs{};
   std::vector<std::string> inargs{};
-  std::optional<Wsv> setval{std::nullopt};
-  bool overwrite_setval{false};
+  std::optional<Wsv>       setval{std::nullopt};
+  bool                     overwrite_setval{false};
 
  public:
   Method();
-  Method(const std::string& name,
-         const std::vector<std::string>& args,
+  Method(const std::string&                                  name,
+         const std::vector<std::string>&                     args,
          const std::unordered_map<std::string, std::string>& kwargs);
   Method(std::string name, const Wsv& wsv, bool = false);
-  Method(const std::string& name,
+  Method(const std::string&              name,
          const std::vector<std::string>& ins,
          const std::vector<std::string>& outs,
-         const std::optional<Wsv>& wsv,
-         bool overwrite);
+         const std::optional<Wsv>&       wsv,
+         bool                            overwrite);
 
-  [[nodiscard]] const std::string& get_name() const { return name; }
-  [[nodiscard]] const std::vector<std::string>& get_outs() const {
-    return outargs;
-  }
-  [[nodiscard]] const std::vector<std::string>& get_ins() const {
-    return inargs;
-  }
-  [[nodiscard]] const std::optional<Wsv>& get_setval() const { return setval; }
-  [[nodiscard]] bool overwrite() const { return overwrite_setval; }
+  [[nodiscard]] const std::string&              get_name() const { return name; }
+  [[nodiscard]] const std::vector<std::string>& get_outs() const { return outargs; }
+  [[nodiscard]] const std::vector<std::string>& get_ins() const { return inargs; }
+  [[nodiscard]] const std::optional<Wsv>&       get_setval() const { return setval; }
+  [[nodiscard]] bool                            overwrite() const { return overwrite_setval; }
 
   void operator()(Workspace& ws) const;
   void add_defaults_to_agenda(Agenda& agenda) const;
 
   [[nodiscard]] std::string sphinx_list_item() const;
-  [[nodiscard]] bool is_callback() const;
+  [[nodiscard]] bool        is_callback() const;
 
   void change_default(Wsv value);
 };
 
-template <>
-struct std::formatter<Wsv> {
+template <> struct std::formatter<Wsv> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   [[nodiscard]] std::string to_string(const Wsv& wsv) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Wsv& v, FmtContext& ctx) const {
-    if (tags.short_str) {
-      return tags.format(ctx, tags.quote(), v.type_name(), tags.quote());
-    }
+  template <class FmtContext> FmtContext::iterator format(const Wsv& v, FmtContext& ctx) const {
+    if (tags.short_str) { return tags.format(ctx, tags.quote(), v.type_name(), tags.quote()); }
 
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<Method> {
+template <> struct std::formatter<Method> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Method& v, FmtContext& ctx) const {
-    if (tags.short_str) {
-      return tags.format(ctx, v.get_name());
-    }
+  template <class FmtContext> FmtContext::iterator format(const Method& v, FmtContext& ctx) const {
+    if (tags.short_str) { return tags.format(ctx, v.get_name()); }
 
     tags.add_if_bracket(ctx, "["sv);
     tags.add_if_bracket(ctx, "\n"sv);
@@ -109,18 +95,8 @@ struct std::formatter<Method> {
     if (v.get_setval().has_value()) {
       tags.format(ctx, v.get_setval().value());
     } else {
-      tags.format(ctx,
-                  quote,
-                  "outputs"sv,
-                  quote,
-                  ": "sv,
-                  v.get_outs(),
-                  sep,
-                  quote,
-                  "inputs"sv,
-                  quote,
-                  ": "sv,
-                  v.get_ins());
+      tags.format(
+          ctx, quote, "outputs"sv, quote, ": "sv, v.get_outs(), sep, quote, "inputs"sv, quote, ": "sv, v.get_ins());
     }
 
     tags.add_if_bracket(ctx, "\n"sv);
@@ -129,31 +105,25 @@ struct std::formatter<Method> {
   }
 };
 
-template <>
-struct std::formatter<Agenda> {
+template <> struct std::formatter<Agenda> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Agenda& v, FmtContext& ctx) const {
     if (tags.short_str) {
       tags.format(ctx, v.get_name(), ":\n"sv);
 
       for (const auto& method : v.get_methods()) {
         const auto& method_name = method.get_name();
-        if (method_name.starts_with(named_input_prefix) or
-            method_name.starts_with(internal_prefix)) {
-          continue;
-        }
+        if (method_name.starts_with(named_input_prefix) or method_name.starts_with(internal_prefix)) { continue; }
 
         tags.format(ctx, "  - "sv, method.get_name(), "\n"sv);
       }
@@ -168,51 +138,27 @@ struct std::formatter<Agenda> {
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
-    if (tags.names) {
-      tags.format(ctx,
-                  quote,
-                  v.get_name(),
-                  quote,
-                  " (checked: "sv,
-                  v.is_checked(),
-                  ")"sv);
-    }
+    if (tags.names) { tags.format(ctx, quote, v.get_name(), quote, " (checked: "sv, v.is_checked(), ")"sv); }
 
-    tags.format(ctx,
-                sep,
-                v.get_methods(),
-                sep,
-                "  Shared: "sv,
-                v.get_share(),
-                sep,
-                "  Copied: "sv,
-                v.get_copy());
+    tags.format(ctx, sep, v.get_methods(), sep, "  Shared: "sv, v.get_share(), sep, "  Copied: "sv, v.get_copy());
 
     tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
 
-template <>
-struct xml_io_stream<Wsv> {
+template <> struct xml_io_stream<Wsv> {
   static constexpr std::string_view type_name = "Wsv"sv;
 
-  static void write(std::ostream& os,
-                    const Wsv& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const Wsv& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, Wsv& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<Method> {
+template <> struct xml_io_stream<Method> {
   static constexpr std::string_view type_name = "Method"sv;
 
-  static void write(std::ostream& os,
-                    const Method& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const Method& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, Method& x, bifstream* pbifs = nullptr);
 };

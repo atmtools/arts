@@ -1,9 +1,6 @@
 #include "xml_io_stream_matpack_range.h"
 
-void xml_io_stream<Range>::write(std::ostream &os,
-                                 const Range &x,
-                                 bofstream *pbofs,
-                                 std::string_view name) {
+void xml_io_stream<Range>::write(std::ostream &os, const Range &x, bofstream *pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 

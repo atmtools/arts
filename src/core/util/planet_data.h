@@ -1,7 +1,7 @@
 #pragma once
 
-#include <configtypes.h>
 #include <arts_constants.h>
+#include <configtypes.h>
 
 namespace Body {
 namespace Earth {
@@ -26,9 +26,9 @@ inline constexpr Numeric day = 1.026 * 24 * 60 * 60;
 }  // namespace Mars
 
 namespace Moon {
-inline constexpr Numeric a  = 1738.1e3;
-inline constexpr Numeric b  = 1736.0e3;
-inline constexpr Numeric GM = 4902.800118 * 1e9;
+inline constexpr Numeric a   = 1738.1e3;
+inline constexpr Numeric b   = 1736.0e3;
+inline constexpr Numeric GM  = 4902.800118 * 1e9;
 inline constexpr Numeric day = 29.5 * 24 * 60 * 60;
 }  // namespace Moon
 

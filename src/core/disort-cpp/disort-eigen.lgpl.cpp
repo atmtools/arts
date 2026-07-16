@@ -2,10 +2,7 @@
 
 #include <lin_alg.h>
 
-Index diagonalize_inplace(MatrixView P,
-                          VectorView W,
-                          MatrixView A,
-                          real_diagonalize_workdata& workdata) {
+Index diagonalize_inplace(MatrixView P, VectorView W, MatrixView A, real_diagonalize_workdata& workdata) {
   /* Wraps the standard lin-alg diagonalize method
    */
 

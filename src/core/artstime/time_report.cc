@@ -15,7 +15,7 @@ std::string short_name(const std::string& name) {
   const auto p1 = split(name, "(");
 
   const auto s1 = std::span{p1}.first(std::max<Size>(p1.size() - 1, 1));
-  String s      = join(s1, "(");
+  String     s  = join(s1, "(");
   trim(s);
 
   const auto p2 = split(s, " ");
@@ -28,15 +28,13 @@ TimeReport profile_report;
 std::mutex mprofile_report;
 }  // namespace
 
-profiler::profiler(std::string&& key)
-    : name(std::move(key)), start(std::chrono::system_clock::now()) {}
+profiler::profiler(std::string&& key) : name(std::move(key)), start(std::chrono::system_clock::now()) {}
 
-profiler::profiler(std::source_location loc)
-    : profiler(short_name(loc.function_name())) {}
+profiler::profiler(std::source_location loc) : profiler(short_name(loc.function_name())) {}
 
 profiler::~profiler() {
   const time_t end{std::chrono::system_clock::now()};
-  const int core = arts_omp_get_thread_num();
+  const int    core = arts_omp_get_thread_num();
 
   // Lock might add extra pause inbetween thread calls, but it is safe
   std::scoped_lock lock{mprofile_report};
@@ -83,16 +81,7 @@ void print_report() {
     const auto [um, m] = Conversion::metric_prefix(min);
     const auto [ux, x] = Conversion::metric_prefix(max);
 
-    std::println(
-        "| {} | {:.2f} {}s | {:.2f} {}s | {:.2f} {}s | {} |",
-        name,
-        a,
-        ua,
-        m,
-        um,
-        x,
-        ux,
-        times.size());
+    std::println("| {} | {:.2f} {}s | {:.2f} {}s | {:.2f} {}s | {} |", name, a, ua, m, um, x, ux, times.size());
   }
 }
 }  // namespace arts

@@ -1,8 +1,7 @@
 #include "phase_matrix.h"
 
 namespace scattering {
-ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
-                                         std::shared_ptr<const Vector> f_grid_)
+ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_, std::shared_ptr<const Vector> f_grid_)
     : t_grid(std::move(t_grid_)),
       f_grid(std::move(f_grid_)),
       aa_inc_grid(nullptr),
@@ -10,10 +9,9 @@ ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector> t_grid_,
       aa_scat_grid(nullptr),
       za_scat_grid(nullptr) {}
 
-ScatteringDataGrids::ScatteringDataGrids(
-    std::shared_ptr<const Vector> t_grid_,
-    std::shared_ptr<const Vector> f_grid_,
-    std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
+ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector>          t_grid_,
+                                         std::shared_ptr<const Vector>          f_grid_,
+                                         std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
     : t_grid(std::move(t_grid_)),
       f_grid(std::move(f_grid_)),
       aa_inc_grid(nullptr),
@@ -21,12 +19,11 @@ ScatteringDataGrids::ScatteringDataGrids(
       aa_scat_grid(nullptr),
       za_scat_grid(std::move(za_scat_grid_)) {}
 
-ScatteringDataGrids::ScatteringDataGrids(
-    std::shared_ptr<const Vector> t_grid_,
-    std::shared_ptr<const Vector> f_grid_,
-    std::shared_ptr<const Vector> za_inc_grid_,
-    std::shared_ptr<const Vector> delta_aa_grid_,
-    std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
+ScatteringDataGrids::ScatteringDataGrids(std::shared_ptr<const Vector>          t_grid_,
+                                         std::shared_ptr<const Vector>          f_grid_,
+                                         std::shared_ptr<const Vector>          za_inc_grid_,
+                                         std::shared_ptr<const Vector>          delta_aa_grid_,
+                                         std::shared_ptr<const ZenithAngleGrid> za_scat_grid_)
     : t_grid(std::move(t_grid_)),
       f_grid(std::move(f_grid_)),
       aa_inc_grid(nullptr),
@@ -47,8 +44,7 @@ Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
   return mat;
 }
 
-ComplexMatrix expand_phase_matrix(
-    const StridedConstComplexVectorView &compact) {
+ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact) {
   ComplexMatrix mat{4, 4};
   mat[0, 0] = detail::f11(compact);
   mat[0, 1] = detail::f12(compact);
@@ -61,32 +57,19 @@ ComplexMatrix expand_phase_matrix(
   return mat;
 }
 
-RegridWeights calc_regrid_weights(
-    std::shared_ptr<const Vector> t_grid,
-    std::shared_ptr<const Vector> f_grid,
-    std::shared_ptr<const Vector> aa_inc_grid,
-    std::shared_ptr<const Vector> za_inc_grid,
-    std::shared_ptr<const Vector> aa_scat_grid,
-    std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
-    ScatteringDataGrids new_grids) {
+RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
+                                  std::shared_ptr<const Vector>          f_grid,
+                                  std::shared_ptr<const Vector>          aa_inc_grid,
+                                  std::shared_ptr<const Vector>          za_inc_grid,
+                                  std::shared_ptr<const Vector>          aa_scat_grid,
+                                  std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
+                                  ScatteringDataGrids                    new_grids) {
   RegridWeights res{};
 
-  if (!t_grid) {
-    ARTS_USER_ERROR(
-        "The old t_grid must be provided for calculating regridding weights.");
-  }
-  if (!new_grids.t_grid) {
-    ARTS_USER_ERROR(
-        "The new t_grid must be provided for calculating regridding weights.");
-  }
-  if (!f_grid) {
-    ARTS_USER_ERROR(
-        "The old f_grid must be provided for calculating regridding weights.");
-  }
-  if (!new_grids.f_grid) {
-    ARTS_USER_ERROR(
-        "The new f_grid must be provided for calculating regridding weights.");
-  }
+  if (!t_grid) { ARTS_USER_ERROR("The old t_grid must be provided for calculating regridding weights."); }
+  if (!new_grids.t_grid) { ARTS_USER_ERROR("The new t_grid must be provided for calculating regridding weights."); }
+  if (!f_grid) { ARTS_USER_ERROR("The old f_grid must be provided for calculating regridding weights."); }
+  if (!new_grids.f_grid) { ARTS_USER_ERROR("The new f_grid must be provided for calculating regridding weights."); }
 
   res.t_grid_weights = ArrayOfGridPos(new_grids.t_grid->size());
   gridpos(res.t_grid_weights, *t_grid, *new_grids.t_grid, 1e99);
@@ -95,30 +78,22 @@ RegridWeights calc_regrid_weights(
 
   if ((aa_inc_grid) && (new_grids.aa_inc_grid)) {
     res.aa_inc_grid_weights = ArrayOfGridPos(new_grids.aa_inc_grid->size());
-    gridpos(
-        res.aa_inc_grid_weights, *aa_inc_grid, *new_grids.aa_inc_grid, 1e99);
+    gridpos(res.aa_inc_grid_weights, *aa_inc_grid, *new_grids.aa_inc_grid, 1e99);
   }
   if ((za_inc_grid) && (new_grids.za_inc_grid)) {
     res.za_inc_grid_weights = ArrayOfGridPos(new_grids.za_inc_grid->size());
-    gridpos(
-        res.za_inc_grid_weights, *za_inc_grid, *new_grids.za_inc_grid, 1e99);
+    gridpos(res.za_inc_grid_weights, *za_inc_grid, *new_grids.za_inc_grid, 1e99);
   }
   if ((aa_scat_grid) && (new_grids.aa_scat_grid)) {
     res.aa_scat_grid_weights = ArrayOfGridPos(new_grids.aa_scat_grid->size());
-    gridpos(
-        res.aa_scat_grid_weights, *aa_scat_grid, *new_grids.aa_scat_grid, 1e99);
+    gridpos(res.aa_scat_grid_weights, *aa_scat_grid, *new_grids.aa_scat_grid, 1e99);
   }
   if ((za_scat_grid) && (new_grids.za_scat_grid)) {
-    res.za_scat_grid_weights = ArrayOfGridPos(
-        std::visit([](const auto &grd) { return grd.angles.size(); },
-                   *new_grids.za_scat_grid));
+    res.za_scat_grid_weights =
+        ArrayOfGridPos(std::visit([](const auto &grd) { return grd.angles.size(); }, *new_grids.za_scat_grid));
     gridpos(res.za_scat_grid_weights,
-            std::visit(
-                [](const auto &grd) { return static_cast<Vector>(grd.angles); },
-                *za_scat_grid),
-            std::visit(
-                [](const auto &grd) { return static_cast<Vector>(grd.angles); },
-                *new_grids.za_scat_grid),
+            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); }, *za_scat_grid),
+            std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); }, *new_grids.za_scat_grid),
             1e99);
   }
   return res;

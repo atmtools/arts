@@ -8,29 +8,21 @@
 #include "xml_io_stream.h"
 #include "xml_io_stream_core.h"
 
-template <typename T>
-struct xml_io_stream_name<Array<T>> {
+template <typename T> struct xml_io_stream_name<Array<T>> {
   static constexpr std::string_view name = "Array"sv;
 };
 
-template <>
-struct xml_io_stream_name<ArrayOfString> {
+template <> struct xml_io_stream_name<ArrayOfString> {
   static constexpr std::string_view name = "ArrayOfString"sv;
 };
 
-template <arts_xml_ioable T>
-  requires(std::is_default_constructible_v<T>)
-struct xml_io_stream<Array<T>> {
+template <arts_xml_ioable T> requires(std::is_default_constructible_v<T>) struct xml_io_stream<Array<T>> {
   constexpr static std::string_view type_name = xml_io_stream_name_v<Array<T>>;
 
   using inner = xml_io_stream<T>;
 
-  static void write(std::ostream& os,
-                    const Array<T>& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) try {
-    XMLTag tag{
-        type_name, "name", name, "type", inner::type_name, "nelem", n.size()};
+  static void write(std::ostream& os, const Array<T>& n, bofstream* pbofs = nullptr, std::string_view name = ""sv) try {
+    XMLTag tag{type_name, "name", name, "type", inner::type_name, "nelem", n.size()};
     tag.write_to_stream(os);
 
     if (pbofs) {
@@ -49,9 +41,7 @@ struct xml_io_stream<Array<T>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void extend(std::istream& is,
-                     Array<T>& n,
-                     bifstream* pbifs = nullptr) try {
+  static void extend(std::istream& is, Array<T>& n, bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -80,48 +70,38 @@ struct xml_io_stream<Array<T>> {
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format(
-        "Cannot extend {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(std::format("Cannot extend {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 
-  static void append(std::istream& is,
-                     Array<T>& n,
-                     bifstream* pbifs = nullptr) try {
+  static void append(std::istream& is, Array<T>& n, bifstream* pbifs = nullptr) try {
     T x;
     xml_read_from_stream(is, x, pbifs);
     n.emplace_back(std::move(x));
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format(
-        "Cannot append {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(std::format("Cannot append {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 
-  static void read(std::istream& is,
-                   Array<T>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, Array<T>& n, bifstream* pbifs = nullptr) try {
     n.clear();
     extend(is, n, pbifs);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format(
-        "Cannot read {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(std::format("Cannot read {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 };
 
-template <typename T, Size N>
-struct xml_io_stream_name<std::array<T, N>> {
+template <typename T, Size N> struct xml_io_stream_name<std::array<T, N>> {
   static constexpr std::string_view name = xml_io_stream_name_v<Array<T>>;
 };
 
-template <arts_xml_ioable T, Size N>
-struct xml_io_stream<std::array<T, N>> {
-  constexpr static std::string_view type_name =
-      xml_io_stream_name_v<std::array<T, N>>;
+template <arts_xml_ioable T, Size N> struct xml_io_stream<std::array<T, N>> {
+  constexpr static std::string_view type_name = xml_io_stream_name_v<std::array<T, N>>;
 
   using inner = xml_io_stream<T>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&           os,
                     const std::array<T, N>& n,
-                    bofstream* pbofs = nullptr,
-                    std::string_view = ""sv) try {
+                    bofstream*              pbofs = nullptr,
+                    std::string_view              = ""sv) try {
     if (pbofs) {
       if constexpr (xml_io_binary<T>)
         put(std::span{&n, 1}, pbofs);
@@ -136,9 +116,7 @@ struct xml_io_stream<std::array<T, N>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void read(std::istream& is,
-                   std::array<T, N>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, std::array<T, N>& n, bifstream* pbifs = nullptr) try {
     if (pbifs) {
       if constexpr (xml_io_binary<T>)
         get(std::span{&n, 1}, pbifs);
@@ -153,21 +131,15 @@ struct xml_io_stream<std::array<T, N>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void put(std::span<const std::array<T, N>> v, bofstream* pbofs)
-    requires(xml_io_binary<T>)
-  {
+  static void put(std::span<const std::array<T, N>> v, bofstream* pbofs) requires(xml_io_binary<T>) {
     inner::put(std::span(reinterpret_cast<const T*>(v.data()), N), pbofs);
   }
 
-  static void get(std::span<std::array<T, N>> v, bifstream* pbifs)
-    requires(xml_io_binary<T>)
-  {
+  static void get(std::span<std::array<T, N>> v, bifstream* pbifs) requires(xml_io_binary<T>) {
     inner::get(std::span(reinterpret_cast<T*>(v.data()), N), pbifs);
   }
 
-  static void parse(std::span<std::array<T, N>> v, std::istream& is)
-    requires(xml_io_parseable<T>)
-  {
+  static void parse(std::span<std::array<T, N>> v, std::istream& is) requires(xml_io_parseable<T>) {
     inner::parse(std::span(reinterpret_cast<T*>(v.data()), v.size()), is);
   }
 };

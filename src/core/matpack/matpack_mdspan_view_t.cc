@@ -2,9 +2,7 @@
 
 namespace {
 template <typename T>
-std::string to_string_impl(const matpack::view_t<const T, 2>& md,
-                           format_tags& tags,
-                           const std::span<const Size> nl) {
+std::string to_string_impl(const matpack::view_t<const T, 2>& md, format_tags& tags, const std::span<const Size> nl) {
   std::string out;
   out.reserve(md.size() * 10);
 
@@ -27,7 +25,7 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
     if (test) out.push_back(c);
   };
 
-  Size i          = 0;
+  Size       i    = 0;
   const auto view = md | by_elem;
   const Size sz   = md.size();
 
@@ -80,26 +78,18 @@ std::string to_string_impl(const matpack::view_t<const T, 2>& md,
 }
 }  // namespace
 
-std::string to_string(const matpack::view_t<const Numeric, 2>& x,
-                      format_tags& tags,
-                      const std::span<const Size> nl) {
+std::string to_string(const matpack::view_t<const Numeric, 2>& x, format_tags& tags, const std::span<const Size> nl) {
   return to_string_impl(x, tags, nl);
 }
 
-std::string to_string(const matpack::view_t<const Complex, 2>& x,
-                      format_tags& tags,
-                      const std::span<const Size> nl) {
+std::string to_string(const matpack::view_t<const Complex, 2>& x, format_tags& tags, const std::span<const Size> nl) {
   return to_string_impl(x, tags, nl);
 }
 
-std::string to_string(const matpack::view_t<Numeric, 2>& x,
-                      format_tags& tags,
-                      const std::span<const Size> nl) {
+std::string to_string(const matpack::view_t<Numeric, 2>& x, format_tags& tags, const std::span<const Size> nl) {
   return to_string(matpack::view_t<const Numeric, 2>{x}, tags, nl);
 }
 
-std::string to_string(const matpack::view_t<Complex, 2>& x,
-                      format_tags& tags,
-                      const std::span<const Size> nl) {
+std::string to_string(const matpack::view_t<Complex, 2>& x, format_tags& tags, const std::span<const Size> nl) {
   return to_string(matpack::view_t<const Complex, 2>{x}, tags, nl);
 }

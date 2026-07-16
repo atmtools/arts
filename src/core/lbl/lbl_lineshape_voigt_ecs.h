@@ -16,9 +16,9 @@ struct ComputeData {
   Numeric gd_fac{};  //! Doppler broadening factor of a band
 
   //! Size of line shapes
-  Vector pop{};
-  Vector dip{};
-  Vector dipr{};
+  Vector       pop{};
+  Vector       dip{};
+  Vector       dipr{};
   ArrayOfIndex sort{};
 
   //! Size of line shapes x size of line shapes
@@ -36,55 +36,53 @@ struct ComputeData {
   ComplexTensor3 Vs{};
 
   //! Size of frequency
-  Vector scl{};
+  Vector        scl{};
   ComplexVector shape{};
 
   //! The orientation of the polarization
   Propmat npm{};
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const ConstVectorView& f_grid,
-              const AtmPoint& atm,
-              const Vector2& los           = {},
+  ComputeData(const ConstVectorView&   f_grid,
+              const AtmPoint&          atm,
+              const Vector2&           los = {},
               const ZeemanPolarization pol = ZeemanPolarization::no);
 
-  void update_zeeman(const Vector2& los,
-                     const Vector3& mag,
-                     const ZeemanPolarization pol);
+  void update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol);
 
   void core_calc_eqv();
   void core_calc(const ConstVectorView& f_grid);
-  void adapt_single(const QuantumIdentifier& bnd_qid,
-                    const band_data& bnd,
+  void adapt_single(const QuantumIdentifier&        bnd_qid,
+                    const band_data&                bnd,
                     const LinemixingSpeciesEcsData& rovib_data,
-                    const AtmPoint& atm,
-                    const bool presorted = false);
-  void adapt_multi(const QuantumIdentifier& bnd_qid,
-                   const band_data& bnd,
+                    const AtmPoint&                 atm,
+                    const bool                      presorted = false);
+  void adapt_multi(const QuantumIdentifier&        bnd_qid,
+                   const band_data&                bnd,
                    const LinemixingSpeciesEcsData& rovib_data,
-                   const AtmPoint& atm,
-                   const bool presorted = false);
+                   const AtmPoint&                 atm,
+                   const bool                      presorted = false);
 };
 
-void calculate(PropmatVectorView pm,
-               PropmatMatrixView dpm,
-               ComputeData& com_data,
-               const ConstVectorView f_grid,
-               const Range& f_range,
-               const Jacobian::Targets& jac_targets,
-               const QuantumIdentifier& bnd_qid,
-               const band_data& bnd,
+void calculate(PropmatVectorView               pm,
+               PropmatMatrixView               dpm,
+               ComputeData&                    com_data,
+               const ConstVectorView           f_grid,
+               const Range&                    f_range,
+               const Jacobian::Targets&        jac_targets,
+               const QuantumIdentifier&        bnd_qid,
+               const band_data&                bnd,
                const LinemixingSpeciesEcsData& rovib_data,
-               const AtmPoint& atm,
-               const ZeemanPolarization pol,
-               const bool no_negative_absorption);
+               const AtmPoint&                 atm,
+               const ZeemanPolarization        pol,
+               const bool                      no_negative_absorption);
 
-void equivalent_values(ComplexTensor3View eqv_str,
-                       ComplexTensor3View eqv_val,
-                       ComputeData& com_data,
-                       const QuantumIdentifier& bnd_qid,
-                       const band_data& bnd,
+void equivalent_values(ComplexTensor3View              eqv_str,
+                       ComplexTensor3View              eqv_val,
+                       ComputeData&                    com_data,
+                       const QuantumIdentifier&        bnd_qid,
+                       const band_data&                bnd,
                        const LinemixingSpeciesEcsData& rovib_data,
-                       const AtmPoint& atm,
-                       const Vector& T);
+                       const AtmPoint&                 atm,
+                       const Vector&                   T);
 }  // namespace lbl::voigt::ecs

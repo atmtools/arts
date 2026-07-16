@@ -33,21 +33,12 @@ std::string_view format_tags::quote() const {
   return ""sv;
 }
 
-template <>
-void format_tags::add_if_bracket(std::format_context& ctx,
-                                 std::string_view x) const try {
+template <> void format_tags::add_if_bracket(std::format_context& ctx, std::string_view x) const try {
   if (bracket) std::format_to(ctx.out(), "{}", x);
 } catch (const std::exception& e) {
-  throw std::runtime_error("Error in single_format with fmt-string: " +
-                           get_format_args() + "\n" + e.what());
+  throw std::runtime_error("Error in single_format with fmt-string: " + get_format_args() + "\n" + e.what());
 }
 
-template <>
-std::string format_tags::vformat(const std::string& x) const {
-  return x;
-}
+template <> std::string format_tags::vformat(const std::string& x) const { return x; }
 
-template <>
-std::string format_tags::vformat(const std::string_view& x) const {
-  return std::string(x);
-}
+template <> std::string format_tags::vformat(const std::string_view& x) const { return std::string(x); }

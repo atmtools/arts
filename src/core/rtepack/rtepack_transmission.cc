@@ -20,9 +20,7 @@ namespace rtepack {
 static constexpr Numeric too_small = 1e-4;
 
 tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
-    : a{-0.5 * r * (k1.A() + k2.A())},
-      exp_a{std::exp(a)},
-      polarized(k1.is_polarized() or k2.is_polarized()) {
+    : a{-0.5 * r * (k1.A() + k2.A())}, exp_a{std::exp(a)}, polarized(k1.is_polarized() or k2.is_polarized()) {
   if (not polarized) return;
 
   b = -0.5 * r * (k1.B() + k2.B());
@@ -106,13 +104,10 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
   C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
   C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
-  C3 = both_zero
-           ? 1.0 / 6.0
-           : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) * inv_x2y2;
+  C3 = both_zero ? 1.0 / 6.0 : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) * inv_x2y2;
 
   // In case the above gets numerically unstable, we let polarized be false as a fallback
-  polarized = std::isfinite(C0) and std::isfinite(C1) and std::isfinite(C2) and
-              std::isfinite(C3);
+  polarized = std::isfinite(C0) and std::isfinite(C1) and std::isfinite(C2) and std::isfinite(C3);
 }
 
 muelmat tran::operator()() const noexcept {
@@ -161,7 +156,7 @@ muelmat tran::expm1() const noexcept {
     // Robust formula using half-angles to avoid cancellation in (cosh(x)-1) and (cos(y)-1)
     const Numeric sh_x2 = std::sinh(0.5 * x);
     const Numeric si_y2 = std::sin(0.5 * y);
-    C0_m1 = 2.0 * (y2 * sh_x2 * sh_x2 - x2 * si_y2 * si_y2) * inv_x2y2;
+    C0_m1               = 2.0 * (y2 * sh_x2 * sh_x2 - x2 * si_y2 * si_y2) * inv_x2y2;
   }
 
   // 2. Compute the diagonal offset: e^a * C0 - 1
@@ -205,9 +200,7 @@ muelmat tran::expm1() const noexcept {
 }
 
 muelmat tran::linsrc() const noexcept {
-  const auto func_F = [](Numeric z) {
-    return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z;
-  };
+  const auto func_F = [](Numeric z) { return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z; };
 
   const auto func_Fp = [](Numeric z) {
     if (std::abs(z) < too_small) return 0.5 + z / 3.0 + z * z / 8.0;
@@ -231,7 +224,7 @@ muelmat tran::linsrc() const noexcept {
       const Numeric a2 = a * a;
       const Numeric a3 = a2 * a;
       l2               = 0.5 * (ez * (a2 - 2.0 * a + 2.0) - 2.0) / a3;
-      l3 = (ez * (a3 - 3.0 * a2 + 6.0 * a - 6.0) + 6.0) / (6.0 * a2 * a2);
+      l3               = (ez * (a3 - 3.0 * a2 + 6.0 * a - 6.0) + 6.0) / (6.0 * a2 * a2);
     }
   } else {
     Numeric Pp, Pm_div_x;
@@ -250,13 +243,12 @@ muelmat tran::linsrc() const noexcept {
       Qp   = func_F(a);
       q_im = func_Fp(a);
     } else {
-      const Numeric denom    = a * a + y * y;
-      const Numeric ea_cy_m1 = exp_a * cy - 1.0;
-      const Numeric ea_sy    = exp_a * sy;
-      Qp                     = (a * ea_cy_m1 + y * ea_sy) / denom;
-      const Numeric sin_y_div_y =
-          (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
-      q_im = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
+      const Numeric denom       = a * a + y * y;
+      const Numeric ea_cy_m1    = exp_a * cy - 1.0;
+      const Numeric ea_sy       = exp_a * sy;
+      Qp                        = (a * ea_cy_m1 + y * ea_sy) / denom;
+      const Numeric sin_y_div_y = (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
+      q_im                      = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
     }
 
     l2 = (Pp - Qp) * inv_x2y2;
@@ -270,16 +262,11 @@ muelmat tran::linsrc() const noexcept {
   const muelmat S2_mat = S_mat * S_mat;
   const muelmat S3_mat = S_mat * S2_mat;
 
-  return muelmat{l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0} +
-         S_mat * l1 + S2_mat * l2 + S3_mat * l3;
+  return muelmat{l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0, 0, 0, 0, 0, l0} + S_mat * l1 + S2_mat * l2 + S3_mat * l3;
 }
 
-muelmat tran::linsrc_deriv(const propmat &dk,
-                           const Numeric r,
-                           const Numeric dr) const {
-  const auto func_F = [](Numeric z) {
-    return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z;
-  };
+muelmat tran::linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const {
+  const auto func_F = [](Numeric z) { return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z; };
 
   const auto func_Fp = [](Numeric z) {
     if (std::abs(z) < too_small) return 0.5 + z / 3.0 + z * z / 8.0;
@@ -317,21 +304,20 @@ muelmat tran::linsrc_deriv(const propmat &dk,
 
   if (not polarized) return {func_Fp(a) * da};
 
-  const Numeric db  = dr_r * b - 0.5 * r * dk.B();
-  const Numeric dc  = dr_r * c - 0.5 * r * dk.C();
-  const Numeric dd  = dr_r * d - 0.5 * r * dk.D();
-  const Numeric du  = dr_r * u - 0.5 * r * dk.U();
-  const Numeric dv  = dr_r * v - 0.5 * r * dk.V();
-  const Numeric dw  = dr_r * w - 0.5 * r * dk.W();
-  const Numeric db2 = 2.0 * db * b;
-  const Numeric dc2 = 2.0 * dc * c;
-  const Numeric dd2 = 2.0 * dd * d;
-  const Numeric du2 = 2.0 * du * u;
-  const Numeric dv2 = 2.0 * dv * v;
-  const Numeric dw2 = 2.0 * dw * w;
-  const Numeric dB  = du2 + dv2 + dw2 - db2 - dc2 - dd2;
-  const Numeric dC  = -2.0 * (d * u - c * v + b * w) *
-                     (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
+  const Numeric db     = dr_r * b - 0.5 * r * dk.B();
+  const Numeric dc     = dr_r * c - 0.5 * r * dk.C();
+  const Numeric dd     = dr_r * d - 0.5 * r * dk.D();
+  const Numeric du     = dr_r * u - 0.5 * r * dk.U();
+  const Numeric dv     = dr_r * v - 0.5 * r * dk.V();
+  const Numeric dw     = dr_r * w - 0.5 * r * dk.W();
+  const Numeric db2    = 2.0 * db * b;
+  const Numeric dc2    = 2.0 * dc * c;
+  const Numeric dd2    = 2.0 * dd * d;
+  const Numeric du2    = 2.0 * du * u;
+  const Numeric dv2    = 2.0 * dv * v;
+  const Numeric dw2    = 2.0 * dw * w;
+  const Numeric dB     = du2 + dv2 + dw2 - db2 - dc2 - dd2;
+  const Numeric dC     = -2.0 * (d * u - c * v + b * w) * (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
   const Numeric dS_val = (S > 1e-9) ? (B * dB - 2.0 * dC) / S : 0.0;
   const Numeric dx2    = (x2 > 1e-9) ? 0.25 * (dS_val - dB) / x2 : 0.0;
   const Numeric dy2    = (y2 > 1e-9) ? 0.25 * (dS_val + dB) / y2 : 0.0;
@@ -401,24 +387,23 @@ muelmat tran::linsrc_deriv(const propmat &dk,
       q_im  = func_Fp(a);
       dq_im = func_Fpp(a) * da - (func_F3p(a) / 6.0) * dy2;
     } else {
-      const Numeric denom    = a * a + y * y;
-      const Numeric ea_cy_m1 = exp_a * cy - 1.0;
-      const Numeric ea_sy    = exp_a * sy;
-      Qp                     = (a * ea_cy_m1 + y * ea_sy) / denom;
-      const Numeric sin_y_div_y =
-          (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
-      q_im                 = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
-      const Numeric ImF    = (a * exp_a * sy - y * ea_cy_m1) / denom;
-      const Numeric A_val  = exp_a * ((a - 1.0) * cy - y * sy) + 1.0;
-      const Numeric B_val  = exp_a * ((a - 1.0) * sy + y * cy);
-      const Numeric C_val  = a * a - y * y;
-      const Numeric D_val  = 2.0 * a * y;
-      const Numeric denom2 = C_val * C_val + D_val * D_val;
-      const Numeric Fp_re  = (A_val * C_val + B_val * D_val) / denom2;
-      const Numeric Fp_im  = (B_val * C_val - A_val * D_val) / denom2;
-      dQp                  = Fp_re * da - Fp_im * dy;
-      const Numeric dImF   = Fp_im * da + Fp_re * dy;
-      dq_im                = (y * dImF - ImF * dy) / (y * y);
+      const Numeric denom       = a * a + y * y;
+      const Numeric ea_cy_m1    = exp_a * cy - 1.0;
+      const Numeric ea_sy       = exp_a * sy;
+      Qp                        = (a * ea_cy_m1 + y * ea_sy) / denom;
+      const Numeric sin_y_div_y = (std::abs(y) < 1e-6) ? 1.0 - y * y / 6.0 : std::sin(y) / y;
+      q_im                      = (a * exp_a * sin_y_div_y - ea_cy_m1) / denom;
+      const Numeric ImF         = (a * exp_a * sy - y * ea_cy_m1) / denom;
+      const Numeric A_val       = exp_a * ((a - 1.0) * cy - y * sy) + 1.0;
+      const Numeric B_val       = exp_a * ((a - 1.0) * sy + y * cy);
+      const Numeric C_val       = a * a - y * y;
+      const Numeric D_val       = 2.0 * a * y;
+      const Numeric denom2      = C_val * C_val + D_val * D_val;
+      const Numeric Fp_re       = (A_val * C_val + B_val * D_val) / denom2;
+      const Numeric Fp_im       = (B_val * C_val - A_val * D_val) / denom2;
+      dQp                       = Fp_re * da - Fp_im * dy;
+      const Numeric dImF        = Fp_im * da + Fp_re * dy;
+      dq_im                     = (y * dImF - ImF * dy) / (y * y);
     }
 
     const Numeric inv  = inv_x2y2;
@@ -433,23 +418,18 @@ muelmat tran::linsrc_deriv(const propmat &dk,
   }
 
   const muelmat S_mat{0, b, c, d, b, 0, u, v, c, -u, 0, w, d, -v, -w, 0};
-  const muelmat dS_mat{
-      0, db, dc, dd, db, 0, du, dv, dc, -du, 0, dw, dd, -dv, -dw, 0};
+  const muelmat dS_mat{0, db, dc, dd, db, 0, du, dv, dc, -du, 0, dw, dd, -dv, -dw, 0};
 
   const muelmat S2_mat  = S_mat * S_mat;
   const muelmat dS2_mat = dS_mat * S_mat + S_mat * dS_mat;
   const muelmat S3_mat  = S_mat * S2_mat;
   const muelmat dS3_mat = dS_mat * S2_mat + S_mat * dS2_mat;
 
-  return muelmat{dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0} +
-         S_mat * dl1 + dS_mat * l1 + S2_mat * dl2 + dS2_mat * l2 +
-         S3_mat * dl3 + dS3_mat * l3;
+  return muelmat{dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0, 0, 0, 0, 0, dl0} + S_mat * dl1 + dS_mat * l1 + S2_mat * dl2 +
+         dS2_mat * l2 + S3_mat * dl3 + dS3_mat * l3;
 }
 
-muelmat tran::linsrc_linprop(const muelmat &t,
-                             const propmat &k1,
-                             const propmat &k2,
-                             const Numeric r) const noexcept {
+muelmat tran::linsrc_linprop(const muelmat &t, const propmat &k1, const propmat &k2, const Numeric r) const noexcept {
   using Faddeeva::Dawson;
 
   const propmat alpha2 = (k2 - k1) / (2.0 * r);
@@ -479,9 +459,9 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
                                    const propmat &k2,
                                    const propmat &dk_in,
                                    const muelmat &dt,
-                                   const Numeric r,
-                                   const Numeric dr,
-                                   bool k1_deriv) const {
+                                   const Numeric  r,
+                                   const Numeric  dr,
+                                   bool           k1_deriv) const {
   using Faddeeva::Dawson;
 
   const propmat alpha2 = (k2 - k1) / (2.0 * r);
@@ -511,21 +491,19 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
     Numeric d_alpha = 0.0, d_u0 = 0.0, d_u1 = 0.0;
     if (k1_deriv) {
       d_alpha = -0.5 * dk / (denom * alpha);
-      d_u0 = (dk * 2.0 * alpha - k1a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
-      d_u1 = -k2a * d_alpha / (2.0 * alpha * alpha);
+      d_u0    = (dk * 2.0 * alpha - k1a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
+      d_u1    = -k2a * d_alpha / (2.0 * alpha * alpha);
     } else {
       d_alpha = 0.5 * dk / (denom * alpha);
       d_u0    = -k1a * d_alpha / (2.0 * alpha * alpha);
-      d_u1 = (dk * 2.0 * alpha - k2a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
+      d_u1    = (dk * 2.0 * alpha - k2a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
     }
 
-    const Numeric d_num =
-        dD1 * d_u1 - dt00 * D0 - t00 * dD0 * d_u0 - t00 * D0 * d_u0;
+    const Numeric d_num = dD1 * d_u1 - dt00 * D0 - t00 * dD0 * d_u0 - t00 * D0 * d_u0;
 
     const Numeric denom_val   = r * alpha;
     const Numeric d_denom_val = dr * alpha + r * d_alpha;
-    const Numeric result = (d_num * denom_val - (D1 - t00 * D0) * d_denom_val) /
-                           (denom_val * denom_val);
+    const Numeric result      = (d_num * denom_val - (D1 - t00 * D0) * d_denom_val) / (denom_val * denom_val);
 
     return muelmat{result};
   }
@@ -538,7 +516,7 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
     const propmat k1p = k1 + dk_in * eps;
     const Numeric rp  = r + dr * eps;
 
-    const tran tran_p{k1p, k2, rp};
+    const tran    tran_p{k1p, k2, rp};
     const muelmat tp      = tran_p();
     const muelmat lambdap = tran_p.linsrc_linprop(tp, k1p, k2, rp);
 
@@ -548,7 +526,7 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
   const propmat k2p = k2 + dk_in * eps;
   const Numeric rp  = r + dr * eps;
 
-  const tran tran_p{k1, k2p, rp};
+  const tran    tran_p{k1, k2p, rp};
   const muelmat tp      = tran_p();
   const muelmat lambdap = tran_p.linsrc_linprop(tp, k1, k2p, rp);
 
@@ -559,8 +537,8 @@ muelmat tran::deriv(const muelmat &t,
                     const propmat &k1,
                     const propmat &k2,
                     const propmat &dk,
-                    const Numeric r,
-                    const Numeric dr) const {
+                    const Numeric  r,
+                    const Numeric  dr) const {
   const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A()));
   if (not polarized) return {da * exp_a};
 
@@ -584,8 +562,7 @@ muelmat tran::deriv(const muelmat &t,
         C = - (DU - CV + BW)^2
     */
   const Numeric dB = du2 + dv2 + dw2 - db2 - dc2 - dd2;
-  const Numeric dC = -2 * (d * u - c * v + b * w) *
-                     (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
+  const Numeric dC = -2 * (d * u - c * v + b * w) * (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
   const Numeric dS = (B * dB - 2 * dC) / S;
 
   const Numeric dx2 = 0.25 * (dS - dB) / x2;
@@ -601,63 +578,44 @@ muelmat tran::deriv(const muelmat &t,
   const Numeric diy    = -dy * iy * iy;
   const Numeric dx2dy2 = dx2 + dy2;
 
-  const Numeric dC0 =
-      either_zero ? 0.0
-                  : (dcy * x2 + cy * dx2 + dcx * y2 + cx * dy2 - C0 * dx2dy2) *
-                        inv_x2y2;
-  const Numeric dC1 =
-      either_zero
-          ? 0.0
-          : (dsy * x2 * iy + sy * dx2 * iy + sy * x2 * diy + dsx * y2 * ix +
-             sx * dy2 * ix + sx * y2 * dix - C1 * dx2dy2) *
-                inv_x2y2;
-  const Numeric dC2 = both_zero ? 0.0
-                                : ((x_zero ? 0.0 : (dcx - C2 * dx2)) -
-                                   (y_zero ? 0.0 : (dcy + C2 * dy2))) *
-                                      inv_x2y2;
+  const Numeric dC0 = either_zero ? 0.0 : (dcy * x2 + cy * dx2 + dcx * y2 + cx * dy2 - C0 * dx2dy2) * inv_x2y2;
+  const Numeric dC1 = either_zero ? 0.0
+                                  : (dsy * x2 * iy + sy * dx2 * iy + sy * x2 * diy + dsx * y2 * ix + sx * dy2 * ix +
+                                     sx * y2 * dix - C1 * dx2dy2) *
+                                        inv_x2y2;
+  const Numeric dC2 =
+      both_zero ? 0.0 : ((x_zero ? 0.0 : (dcx - C2 * dx2)) - (y_zero ? 0.0 : (dcy + C2 * dy2))) * inv_x2y2;
   const Numeric dC3 =
-      both_zero ? 0.0
-                : ((x_zero ? 0.0 : (dsx * ix + sx * dix - C3 * dx2)) -
-                   (y_zero ? 0.0 : (dsy * iy + sy * diy + C3 * dy2))) *
-                      inv_x2y2;
+      both_zero
+          ? 0.0
+          : ((x_zero ? 0.0 : (dsx * ix + sx * dix - C3 * dx2)) - (y_zero ? 0.0 : (dsy * iy + sy * diy + C3 * dy2))) *
+                inv_x2y2;
 
-  const Numeric dC2b =
-      dC2 * (c * u + d * v) + C2 * (dc * u + c * du + dd * v + d * dv);
-  const Numeric dC2c =
-      dC2 * (b * u - d * w) + C2 * (db * u + b * du - dd * w - d * dw);
-  const Numeric dC2d =
-      dC2 * (b * v + c * w) + C2 * (db * v + b * dv + dc * w + c * dw);
-  const Numeric dC2u =
-      dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw);
-  const Numeric dC2v =
-      dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw);
-  const Numeric dC2w =
-      dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv);
+  const Numeric dC2b = dC2 * (c * u + d * v) + C2 * (dc * u + c * du + dd * v + d * dv);
+  const Numeric dC2c = dC2 * (b * u - d * w) + C2 * (db * u + b * du - dd * w - d * dw);
+  const Numeric dC2d = dC2 * (b * v + c * w) + C2 * (db * v + b * dv + dc * w + c * dw);
+  const Numeric dC2u = dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw);
+  const Numeric dC2v = dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw);
+  const Numeric dC2w = dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv);
 
   const Numeric dC3b =
       dC3 * (b * (B - w2) + w * (c * v - d * u)) +
-      C3 * (db * (B - w2) + b * (dB - dw2) + dw * (c * v - d * u) +
-            w * (dc * v + c * dv - dd * u - d * du));
+      C3 * (db * (B - w2) + b * (dB - dw2) + dw * (c * v - d * u) + w * (dc * v + c * dv - dd * u - d * du));
   const Numeric dC3c =
       dC3 * (c * (v2 - B) - v * (d * u + b * w)) +
-      C3 * (dc * (v2 - B) + c * (dv2 - dB) - dv * (d * u + b * w) -
-            v * (dd * u + d * du + db * w + b * dw));
+      C3 * (dc * (v2 - B) + c * (dv2 - dB) - dv * (d * u + b * w) - v * (dd * u + d * du + db * w + b * dw));
   const Numeric dC3d =
       dC3 * (d * (u2 - B) - u * (c * v - b * w)) +
-      C3 * (dd * (u2 - B) + d * (du2 - dB) - du * (c * v - b * w) -
-            u * (dc * v + c * dv - db * w - b * dw));
+      C3 * (dd * (u2 - B) + d * (du2 - dB) - du * (c * v - b * w) - u * (dc * v + c * dv - db * w - b * dw));
   const Numeric dC3u =
       dC3 * (d * (c * v - b * w) - u * (B + d2)) +
-      C3 * (dd * (c * v - b * w) + d * (dc * v + c * dv - db * w - b * dw) -
-            du * (B + d2) - u * (dB + dd2));
+      C3 * (dd * (c * v - b * w) + d * (dc * v + c * dv - db * w - b * dw) - du * (B + d2) - u * (dB + dd2));
   const Numeric dC3v =
       dC3 * (c * (d * u + b * w) - v * (B + c2)) +
-      C3 * (dc * (d * u + b * w) + c * (dd * u + d * du + db * w + b * dw) -
-            dv * (B + c2) - v * (dB + dc2));
+      C3 * (dc * (d * u + b * w) + c * (dd * u + d * du + db * w + b * dw) - dv * (B + c2) - v * (dB + dc2));
   const Numeric dC3w =
       dC3 * (b * (c * v - d * u) - w * (B + b2)) +
-      C3 * (db * (c * v - d * u) + b * (dc * v + c * dv - dd * u - d * du) -
-            dw * (B + b2) - w * (dB + db2));
+      C3 * (db * (c * v - d * u) + b * (dc * v + c * dv - dd * u - d * du) - dw * (B + b2) - w * (dB + db2));
 
   const Numeric dM00 = dC0 + dC2 * (b2 + c2 + d2) + C2 * (db2 + dc2 + dd2);
   const Numeric dM11 = dC0 + dC2 * (b2 - u2 - v2) + C2 * (db2 - du2 - dv2);
@@ -696,9 +654,7 @@ propmat logK(const muelmat &m) {
 
   // Small fix: in cases this matter, logK is not useful
   const Numeric det_m = det(m);
-  const Numeric a     = (det_m > std::numeric_limits<Numeric>::min())
-                            ? 0.25 * std::log(det_m)
-                            : 0.0;
+  const Numeric a     = (det_m > std::numeric_limits<Numeric>::min()) ? 0.25 * std::log(det_m) : 0.0;
 
   /**
     We use this knowing
@@ -776,22 +732,21 @@ propmat logK(const muelmat &m) {
   const Numeric y = std::acos(v);
 
   // From here, we simply compute the coefficients C0, C1, C2, C3 as in tran::tran
-  const Numeric x2       = x * x;
-  const Numeric y2       = y * y;
-  const bool x_zero      = x < too_small;
-  const bool y_zero      = y < too_small;
-  const bool both_zero   = x_zero && y_zero;
-  const bool either_zero = x_zero || y_zero;
-  const Numeric cy       = v;
-  const Numeric sy       = std::sin(y);
-  const Numeric cx       = u;
-  const Numeric sx       = std::sinh(x);
-  const Numeric ix       = x_zero ? 0.0 : 1.0 / x;
-  const Numeric iy       = y_zero ? 0.0 : 1.0 / y;
-  const Numeric inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);
-  const Numeric C0       = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
-  const Numeric C1 =
-      either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+  const Numeric x2          = x * x;
+  const Numeric y2          = y * y;
+  const bool    x_zero      = x < too_small;
+  const bool    y_zero      = y < too_small;
+  const bool    both_zero   = x_zero && y_zero;
+  const bool    either_zero = x_zero || y_zero;
+  const Numeric cy          = v;
+  const Numeric sy          = std::sin(y);
+  const Numeric cx          = u;
+  const Numeric sx          = std::sinh(x);
+  const Numeric ix          = x_zero ? 0.0 : 1.0 / x;
+  const Numeric iy          = y_zero ? 0.0 : 1.0 / y;
+  const Numeric inv_x2y2    = both_zero ? 1.0 : 1.0 / (x2 + y2);
+  const Numeric C0          = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
+  const Numeric C1          = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
   // Skipping C2 and C3
 
   /**
@@ -829,9 +784,7 @@ propmat logK(const muelmat &m) {
      tran::operator() has been formatted to demonstrate them.)
    */
   const Numeric factor =
-      (both_zero or sqrtD <= 0)
-          ? 1.0 / 3.0
-          : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
+      (both_zero or sqrtD <= 0) ? 1.0 / 3.0 : ((x_zero ? 1.0 : sx * ix) - (y_zero ? 1.0 : sy * iy)) / sqrtD;
   const Numeric z01 = factor * std::midpoint(T[0, 1], -T[1, 0]);
   const Numeric z02 = factor * std::midpoint(T[0, 2], -T[2, 0]);
   const Numeric z03 = factor * std::midpoint(T[0, 3], -T[3, 0]);
@@ -891,9 +844,7 @@ specmat sqrt(const propmat &pm) {
 
   Complex d0c{}, d1c{}, d2c{}, d3c{};
 
-  constexpr auto is_small = [](auto... v) {
-    return ((v <= std::numeric_limits<Numeric>::epsilon()) and ...);
-  };
+  constexpr auto is_small = [](auto... v) { return ((v <= std::numeric_limits<Numeric>::epsilon()) and ...); };
 
   if (pm.is_rotational()) {
     const Numeric rho = std::hypot(u, v, w);
@@ -940,12 +891,8 @@ specmat sqrt(const propmat &pm) {
       d0c = (abs_y2 * Sx + x2 * Sy) * (0.5 * inv_sum_sq);
       d2c = (Sx - Sy) * (0.5 * inv_sum_sq);
 
-      const Complex term1 = is_small(x, a) ? 0.0
-                            : is_small(x)  ? 0.5 / sqrt_a
-                                           : 0.5 * Dx / x;
-      const Complex term2 = is_small(abs_y2, a) ? 0.0
-                            : is_small(abs_y2)  ? 0.5 / sqrt_a
-                                                : 0.5 * Dy / y;
+      const Complex term1 = is_small(x, a) ? 0.0 : is_small(x) ? 0.5 / sqrt_a : 0.5 * Dx / x;
+      const Complex term2 = is_small(abs_y2, a) ? 0.0 : is_small(abs_y2) ? 0.5 / sqrt_a : 0.5 * Dy / y;
 
       d1c = (abs_y2 * term1 + x2 * term2) * inv_sum_sq;
       d3c = (term1 - term2) * inv_sum_sq;
@@ -1001,10 +948,10 @@ specmat sqrt(const propmat &pm) {
   return K;
 }
 
-void TransmittanceMatrix::constant(const std::span<const propmat> &K,
+void TransmittanceMatrix::constant(const std::span<const propmat>        &K,
                                    const std::span<const propmat_vector> &dK,
-                                   const ConstVectorView &r,
-                                   const ConstTensor3View &dr) {
+                                   const ConstVectorView                 &r,
+                                   const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -1019,18 +966,16 @@ void TransmittanceMatrix::constant(const std::span<const propmat> &K,
     T[0, i] = tr();
 
     for (Size iq = 0; iq < nq; iq++) {
-      dT0[i - 1, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
-      dT1[i, iq] = tr.deriv(
-          T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dT0[i - 1, iq] = tr.deriv(T[0, i], K[i - 1], K[i], dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq]     = tr.deriv(T[0, i], K[i - 1], K[i], dK[i][iq], r[i - 1], dr1[i - 1, iq]);
     }
   }
 }
 
-void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
+void TransmittanceMatrix::linsrc(const std::span<const propmat>        &K,
                                  const std::span<const propmat_vector> &dK,
-                                 const ConstVectorView &r,
-                                 const ConstTensor3View &dr) {
+                                 const ConstVectorView                 &r,
+                                 const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -1045,26 +990,25 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    auto &k1 = K[i - 1];
-    auto &k2 = K[i];
+    auto      &k1 = K[i - 1];
+    auto      &k2 = K[i];
     const tran tr{k1, k2, r[i - 1]};
     T_[i] = tr();
     L_[i] = tr.linsrc();
 
     for (Size iq = 0; iq < nq; iq++) {
-      dT0[i - 1, iq] =
-          tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
-      dT1[i, iq] = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dT0[i - 1, iq] = tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq]     = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
       dL0[i - 1, iq] = tr.linsrc_deriv(dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
       dL1[i, iq]     = tr.linsrc_deriv(dK[i][iq], r[i - 1], dr1[i - 1, iq]);
     }
   }
 }
 
-void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
+void TransmittanceMatrix::linprop(const std::span<const propmat>        &K,
                                   const std::span<const propmat_vector> &dK,
-                                  const ConstVectorView &r,
-                                  const ConstTensor3View &dr) {
+                                  const ConstVectorView                 &r,
+                                  const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -1079,42 +1023,27 @@ void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    auto &k1 = K[i - 1];
-    auto &k2 = K[i];
+    auto      &k1 = K[i - 1];
+    auto      &k2 = K[i];
     const tran tr{k1, k2, r[i - 1]};
     T_[i] = tr();
     L_[i] = tr.linsrc_linprop(T_[i], k1, k2, r[i - 1]);
 
     for (Size iq = 0; iq < nq; iq++) {
-      dT0[i - 1, iq] =
-          tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
-      dT1[i, iq] = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
-      dL0[i - 1, iq] = tr.linsrc_linprop_deriv(L_[i],
-                                               T_[i],
-                                               k1,
-                                               k2,
-                                               dK[i - 1][iq],
-                                               dT0[i - 1, iq],
-                                               r[i - 1],
-                                               dr0[i - 1, iq],
-                                               true);
-      dL1[i, iq]     = tr.linsrc_linprop_deriv(L_[i],
-                                           T_[i],
-                                           k1,
-                                           k2,
-                                           dK[i][iq],
-                                           dT1[i, iq],
-                                           r[i - 1],
-                                           dr1[i - 1, iq],
-                                           false);
+      dT0[i - 1, iq] = tr.deriv(T_[i], k1, k2, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq]);
+      dT1[i, iq]     = tr.deriv(T_[i], k1, k2, dK[i][iq], r[i - 1], dr1[i - 1, iq]);
+      dL0[i - 1, iq] =
+          tr.linsrc_linprop_deriv(L_[i], T_[i], k1, k2, dK[i - 1][iq], dT0[i - 1, iq], r[i - 1], dr0[i - 1, iq], true);
+      dL1[i, iq] =
+          tr.linsrc_linprop_deriv(L_[i], T_[i], k1, k2, dK[i][iq], dT1[i, iq], r[i - 1], dr1[i - 1, iq], false);
     }
   }
 }
 
 void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
                                    const std::span<const propmat_matrix> &dK,
-                                   const ConstVectorView &r,
-                                   const ConstTensor3View &dr) {
+                                   const ConstVectorView                 &r,
+                                   const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1131,18 +1060,9 @@ void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
       T[iv, i] = tran_state();
 
       for (Size j = 0; j < nq; j++) {
-        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
-                                             K[i - 1][iv],
-                                             K[i][iv],
-                                             dK[i - 1][j, iv],
-                                             r[i - 1],
-                                             dr0[i - 1, j]);
-        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
-                                         K[i - 1][iv],
-                                         K[i][iv],
-                                         dK[i][j, iv],
-                                         r[i - 1],
-                                         dr1[i - 1, j]);
+        dT0[iv, i - 1, j] =
+            tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
+        dT1[iv, i, j] = tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
       }
     }
   }
@@ -1150,8 +1070,8 @@ void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
                                  const std::span<const propmat_matrix> &dK,
-                                 const ConstVectorView &r,
-                                 const ConstTensor3View &dr) {
+                                 const ConstVectorView                 &r,
+                                 const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1171,22 +1091,11 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
       L[iv, i] = tran_state.linsrc();
 
       for (Size j = 0; j < nq; j++) {
-        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
-                                             K[i - 1][iv],
-                                             K[i][iv],
-                                             dK[i - 1][j, iv],
-                                             r[i - 1],
-                                             dr0[i - 1, j]);
-        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
-                                         K[i - 1][iv],
-                                         K[i][iv],
-                                         dK[i][j, iv],
-                                         r[i - 1],
-                                         dr1[i - 1, j]);
-        dL0[iv, i - 1, j] =
-            tran_state.linsrc_deriv(dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
-        dL1[iv, i, j] =
-            tran_state.linsrc_deriv(dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
+        dT0[iv, i - 1, j] =
+            tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
+        dL0[iv, i - 1, j] = tran_state.linsrc_deriv(dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
+        dL1[iv, i, j]     = tran_state.linsrc_deriv(dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
       }
     }
   }
@@ -1194,8 +1103,8 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
                                   const std::span<const propmat_matrix> &dK,
-                                  const ConstVectorView &r,
-                                  const ConstTensor3View &dr) {
+                                  const ConstVectorView                 &r,
+                                  const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1212,22 +1121,12 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
     for (Size iv = 0; iv < nf; ++iv) {
       const tran tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
       T[iv, i] = tran_state();
-      L[iv, i] =
-          tran_state.linsrc_linprop(T[iv, i], K[i - 1][iv], K[i][iv], r[i - 1]);
+      L[iv, i] = tran_state.linsrc_linprop(T[iv, i], K[i - 1][iv], K[i][iv], r[i - 1]);
 
       for (Size j = 0; j < nq; j++) {
-        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i],
-                                             K[i - 1][iv],
-                                             K[i][iv],
-                                             dK[i - 1][j, iv],
-                                             r[i - 1],
-                                             dr0[i - 1, j]);
-        dT1[iv, i, j]     = tran_state.deriv(T[iv, i],
-                                         K[i - 1][iv],
-                                         K[i][iv],
-                                         dK[i][j, iv],
-                                         r[i - 1],
-                                         dr1[i - 1, j]);
+        dT0[iv, i - 1, j] =
+            tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i - 1][j, iv], r[i - 1], dr0[i - 1, j]);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], K[i - 1][iv], K[i][iv], dK[i][j, iv], r[i - 1], dr1[i - 1, j]);
         dL0[iv, i - 1, j] = tran_state.linsrc_linprop_deriv(L[iv, i],
                                                             T[iv, i],
                                                             K[i - 1][iv],
@@ -1237,15 +1136,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
                                                             r[i - 1],
                                                             dr1[i - 1, j],
                                                             true);
-        dL1[iv, i, j]     = tran_state.linsrc_linprop_deriv(L[iv, i],
-                                                        T[iv, i],
-                                                        K[i - 1][iv],
-                                                        K[i][iv],
-                                                        dK[i][j, iv],
-                                                        dT1[iv, i, j],
-                                                        r[i - 1],
-                                                        dr1[i - 1, j],
-                                                        false);
+        dL1[iv, i, j]     = tran_state.linsrc_linprop_deriv(
+            L[iv, i], T[iv, i], K[i - 1][iv], K[i][iv], dK[i][j, iv], dT1[iv, i, j], r[i - 1], dr1[i - 1, j], false);
       }
     }
   }
@@ -1253,9 +1145,9 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                                const std::span<const propmat_matrix> &dK,
-                               const ConstVectorView &r,
-                               const ConstTensor3View &dr,
-                               const TransmittanceOption opt) {
+                               const ConstVectorView                 &r,
+                               const ConstTensor3View                &dr,
+                               const TransmittanceOption              opt) {
   option = opt;
 
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
@@ -1265,7 +1157,7 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                      r.size());
 
   constexpr Size nt = 2;
-  const Size np     = K.size();
+  const Size     np = K.size();
 
   if (np == 0) {
     T.resize(T.nrows(), 0);
@@ -1280,22 +1172,17 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   const Size nq = dK.front().nrows();
 
   ARTS_USER_ERROR_IF(
-      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or
-          dr.ncols() != static_cast<Index>(nq) or r.size() != np - 1,
+      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
+          r.size() != np - 1,
       "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: 2, np-1: {}, nq: {}",
       dr.shape(),
       r.shape(),
       np - 1,
       nq);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nf}, K),
-                     "All propmats in K must have same size ({}).",
-                     nf);
+  ARTS_USER_ERROR_IF(not all_same_shape({nf}, K), "All propmats in K must have same size ({}).", nf);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nq, nf}, dK),
-                     "All propmats in dK must have same shape ({}, {}).",
-                     nq,
-                     nf);
+  ARTS_USER_ERROR_IF(not all_same_shape({nq, nf}, dK), "All propmats in dK must have same shape ({}, {}).", nq, nf);
 
   switch (option) {
     case TransmittanceOption::linsrc:
@@ -1321,23 +1208,21 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
 
   for (Size i = 0; i < nf; i++) {
     P[i, 0] = muelmat::id();
-    for (Size j = 1; j < np; j++) {
-      P[i, j] = P[i, j - 1] * T[i, j];
-    }
+    for (Size j = 1; j < np; j++) { P[i, j] = P[i, j - 1] * T[i, j]; }
   }
 }
 
-void TransmittanceMatrix::init(const std::span<const propmat> &K,
+void TransmittanceMatrix::init(const std::span<const propmat>        &K,
                                const std::span<const propmat_vector> &dK,
-                               const ConstVectorView &r,
-                               const ConstTensor3View &dr,
-                               const TransmittanceOption opt) {
+                               const ConstVectorView                 &r,
+                               const ConstTensor3View                &dr,
+                               const TransmittanceOption              opt) {
   option = opt;
 
   constexpr Size nt = 2;
   constexpr Size nf = 1;
-  const Size np     = K.size();
-  const Size nq     = dr.npages();
+  const Size     np = K.size();
+  const Size     nq = dr.npages();
 
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
                      "K and dK must have the same size: K: {}, dK: {}, r: {}",
@@ -1346,8 +1231,8 @@ void TransmittanceMatrix::init(const std::span<const propmat> &K,
                      r.size());
 
   ARTS_USER_ERROR_IF(
-      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or
-          dr.ncols() != static_cast<Index>(nq) or r.size() != np - 1,
+      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
+          r.size() != np - 1,
       "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: {}, np-1: {}, nq: {}",
       dr.shape(),
       r.shape(),
@@ -1355,9 +1240,7 @@ void TransmittanceMatrix::init(const std::span<const propmat> &K,
       np - 1,
       nq);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nq}, dK),
-                     "All propmats in dK must have same shape ({}).",
-                     nq);
+  ARTS_USER_ERROR_IF(not all_same_shape({nq}, dK), "All propmats in dK must have same shape ({}).", nq);
 
   switch (option) {
     case TransmittanceOption::linsrc:
@@ -1382,15 +1265,10 @@ void TransmittanceMatrix::init(const std::span<const propmat> &K,
   }
 
   P[0, 0] = muelmat::id();
-  for (Size j = 1; j < np; j++) {
-    P[0, j] = P[0, j - 1] * T[0, j];
-  }
+  for (Size j = 1; j < np; j++) { P[0, j] = P[0, j - 1] * T[0, j]; }
 }
 
-void TransmittanceMatrix::check(Size np,
-                                Size nq,
-                                Size nf,
-                                const std::string_view caller) const {
+void TransmittanceMatrix::check(Size np, Size nq, Size nf, const std::string_view caller) const {
   switch (option) {
     case TransmittanceOption::constant:
       ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, P),
@@ -1461,8 +1339,6 @@ Expected shape: (2, {2}, {3}, {4}
 }
 
 [[nodiscard]] std::array<Size, 3> TransmittanceMatrix::shape() const noexcept {
-  return {static_cast<Size>(dT.npages()),
-          static_cast<Size>(dT.nrows()),
-          static_cast<Size>(dT.ncols())};
+  return {static_cast<Size>(dT.npages()), static_cast<Size>(dT.nrows()), static_cast<Size>(dT.ncols())};
 }
 }  // namespace rtepack

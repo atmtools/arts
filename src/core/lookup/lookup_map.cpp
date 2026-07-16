@@ -19,31 +19,21 @@ bool table::do_p() const { return log_p_grid and not log_p_grid->empty(); }
 
 bool table::do_f() const { return f_grid and not f_grid->empty(); }
 
-Index table::t_size() const {
-  return do_t() ? static_cast<Index>(t_pert->size()) : 1;
-}
+Index table::t_size() const { return do_t() ? static_cast<Index>(t_pert->size()) : 1; }
 
-Index table::w_size() const {
-  return do_w() ? static_cast<Index>(w_pert->size()) : 1;
-}
+Index table::w_size() const { return do_w() ? static_cast<Index>(w_pert->size()) : 1; }
 
-Index table::p_size() const {
-  return do_p() ? static_cast<Index>(log_p_grid->size()) : 1;
-}
+Index table::p_size() const { return do_p() ? static_cast<Index>(log_p_grid->size()) : 1; }
 
-Index table::f_size() const {
-  return do_f() ? static_cast<Index>(f_grid->size()) : 1;
-}
+Index table::f_size() const { return do_f() ? static_cast<Index>(f_grid->size()) : 1; }
 
-std::array<Index, 4> table::grid_shape() const {
-  return {t_size(), w_size(), p_size(), f_size()};
-}
+std::array<Index, 4> table::grid_shape() const { return {t_size(), w_size(), p_size(), f_size()}; }
 
-table::table(const SpeciesEnum& species,
-             const ArrayOfAtmPoint& atmref,
+table::table(const SpeciesEnum&                   species,
+             const ArrayOfAtmPoint&               atmref,
              std::shared_ptr<const AscendingGrid> f_grid_,
-             const AbsorptionBands& abs_bands,
-             const LinemixingEcsData& abs_ecs_data,
+             const AbsorptionBands&               abs_bands,
+             const LinemixingEcsData&             abs_ecs_data,
              std::shared_ptr<const AscendingGrid> t_pert_,
              std::shared_ptr<const AscendingGrid> w_pert_) try
     : f_grid(std::move(f_grid_)),
@@ -56,39 +46,31 @@ table::table(const SpeciesEnum& species,
   const bool do_water = do_w();
 
   log_p_grid = std::make_shared<const DescendingGrid>(
-      atmref.begin(), atmref.end(), [](const AtmPoint& x) {
-        return std::log(x.pressure);
-      });
+      atmref.begin(), atmref.end(), [](const AtmPoint& x) { return std::log(x.pressure); });
 
   xsec.resize(grid_shape());
 
-  std::transform(
-      atmref.begin(),
-      atmref.end(),
-      water_atmref.begin(),
-      [do_water](const auto& x) { return do_water ? x["H2O"_spec] : NAN; });
+  std::transform(atmref.begin(), atmref.end(), water_atmref.begin(), [do_water](const auto& x) {
+    return do_water ? x["H2O"_spec] : NAN;
+  });
 
-  std::transform(
-      atmref.begin(), atmref.end(), t_atmref.begin(), [](const auto& x) {
-        return x.temperature;
-      });
+  std::transform(atmref.begin(), atmref.end(), t_atmref.begin(), [](const auto& x) { return x.temperature; });
 
-  String error;
-  PropmatVector pm(f_grid->size());
-  StokvecVector sv(f_grid->size());
-  PropmatMatrix dpm(0, f_grid->size());
-  StokvecMatrix dsv(0, f_grid->size());
-  const JacobianTargets jac_targets = {};
-  const Vector2 los                 = {180, 0};
-  const bool no_negative_absorption = true;
+  String                error;
+  PropmatVector         pm(f_grid->size());
+  StokvecVector         sv(f_grid->size());
+  PropmatMatrix         dpm(0, f_grid->size());
+  StokvecMatrix         dsv(0, f_grid->size());
+  const JacobianTargets jac_targets            = {};
+  const Vector2         los                    = {180, 0};
+  const bool            no_negative_absorption = true;
 
-  const AscendingGrid empty_water({1.0});
-  const AscendingGrid empty_t_pert({0.0});
+  const AscendingGrid  empty_water({1.0});
+  const AscendingGrid  empty_t_pert({0.0});
   const AscendingGrid& water_vmr_local(do_water ? *w_pert : empty_water);
   const AscendingGrid& t_pert_local(do_t() ? *t_pert : empty_t_pert);
 
-#pragma omp parallel for collapse(3) if (not arts_omp_in_parallel()) \
-    firstprivate(pm, sv, dpm, dsv)
+#pragma omp parallel for collapse(3) if (not arts_omp_in_parallel()) firstprivate(pm, sv, dpm, dsv)
   for (Size it = 0; it < t_pert_local.size(); ++it) {
     for (Size iw = 0; iw < water_vmr_local.size(); ++iw) {
       for (Size ip = 0; ip < atmref.size(); ++ip) {
@@ -113,9 +95,7 @@ table::table(const SpeciesEnum& species,
                          no_negative_absorption);
 
           const Numeric inv_nd = 1.0 / atm_point.number_density(species);
-          for (Size ifreq = 0; ifreq < f_grid->size(); ++ifreq) {
-            xsec[it, iw, ip, ifreq] = pm[ifreq].A() * inv_nd;
-          }
+          for (Size ifreq = 0; ifreq < f_grid->size(); ++ifreq) { xsec[it, iw, ip, ifreq] = pm[ifreq].A() * inv_nd; }
         } catch (std::runtime_error& e) {
 #pragma omp critical
           error += std::format("ERROR:\n{}\n\n", e.what());
@@ -128,74 +108,62 @@ table::table(const SpeciesEnum& species,
 }
 ARTS_METHOD_ERROR_CATCH
 
-std::array<lagrange_interp::lag_t<-1>, 1> table::pressure_lagrange(
-    const Numeric& pressure,
-    const Index interpolation_order,
-    const Numeric& extpolation_factor) const try {
+std::array<lagrange_interp::lag_t<-1>, 1> table::pressure_lagrange(const Numeric& pressure,
+                                                                   const Index    interpolation_order,
+                                                                   const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_p(), "No pressure grid set.");
   const std::array<Numeric, 1> plog_local = {std::log(pressure)};
-  const Vector& plog_v(*log_p_grid);
+  const Vector&                plog_v(*log_p_grid);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
-      plog_v,
-      plog_local,
-      interpolation_order,
-      extpolation_factor,
-      "Log-Pressure");
+      plog_v, plog_local, interpolation_order, extpolation_factor, "Log-Pressure");
 }
 ARTS_METHOD_ERROR_CATCH
 
-std::vector<lagrange_interp::lag_t<-1>> table::frequency_lagrange(
-    const Vector& freq_grid,
-    const Index interpolation_order,
-    const Numeric& extpolation_factor) const try {
+std::vector<lagrange_interp::lag_t<-1>> table::frequency_lagrange(const Vector&  freq_grid,
+                                                                  const Index    interpolation_order,
+                                                                  const Numeric& extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_f(), "No frequency grid set.");
   const Vector& f_grid_v(*f_grid);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
-      f_grid_v,
-      freq_grid,
-      interpolation_order,
-      extpolation_factor,
-      "Frequency");
+      f_grid_v, freq_grid, interpolation_order, extpolation_factor, "Frequency");
 }
 ARTS_METHOD_ERROR_CATCH
 
 std::array<lagrange_interp::lag_t<-1>, 1> table::water_lagrange(
-    const Numeric& water_vmr,
+    const Numeric&                                   water_vmr,
     const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
-    const Index interpolation_order,
-    const Numeric& extpolation_factor) const try {
+    const Index                                      interpolation_order,
+    const Numeric&                                   extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_w(), "No water grid set.");
-  const std::array<Numeric, 1> x{water_vmr /
-                                 interp(water_atmref, pressure_lagrange[0])};
-  const Vector& xi(*w_pert);
+  const std::array<Numeric, 1> x{water_vmr / interp(water_atmref, pressure_lagrange[0])};
+  const Vector&                xi(*w_pert);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       xi, x, interpolation_order, extpolation_factor, "Water VMR");
 }
 ARTS_METHOD_ERROR_CATCH
 
 std::array<lagrange_interp::lag_t<-1>, 1> table::temperature_lagrange(
-    const Numeric& temperature,
+    const Numeric&                                   temperature,
     const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
-    const Index interpolation_order,
-    const Numeric& extpolation_factor) const try {
+    const Index                                      interpolation_order,
+    const Numeric&                                   extpolation_factor) const try {
   ARTS_USER_ERROR_IF(not do_t(), "No temperature grid set.");
-  const std::array<Numeric, 1> x{temperature -
-                                 interp(t_atmref, pressure_lagrange[0])};
-  const Vector& xi(*t_pert);
+  const std::array<Numeric, 1> x{temperature - interp(t_atmref, pressure_lagrange[0])};
+  const Vector&                xi(*t_pert);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       xi, x, interpolation_order, extpolation_factor, "Temperature");
 }
 ARTS_METHOD_ERROR_CATCH
 
-void table::absorption(VectorView absorption,
-                       const SpeciesEnum& species,
-                       const Index& p_interp_order,
-                       const Index& t_interp_order,
-                       const Index& water_interp_order,
-                       const Index& f_interp_order,
-                       const AtmPoint& atm_point,
+void table::absorption(VectorView           absorption,
+                       const SpeciesEnum&   species,
+                       const Index&         p_interp_order,
+                       const Index&         t_interp_order,
+                       const Index&         water_interp_order,
+                       const Index&         f_interp_order,
+                       const AtmPoint&      atm_point,
                        const AscendingGrid& freq_grid,
-                       const Numeric& extpolfac) const try {
+                       const Numeric&       extpolfac) const try {
   check();
 
   if (xsec.empty()) return;
@@ -204,36 +172,27 @@ void table::absorption(VectorView absorption,
   const auto flag = frequency_lagrange(freq_grid, f_interp_order, extpolfac);
 
   // Pressure grid positions
-  const auto plag =
-      pressure_lagrange(atm_point.pressure, p_interp_order, extpolfac);
+  const auto plag = pressure_lagrange(atm_point.pressure, p_interp_order, extpolfac);
 
   Vector xsec_local(freq_grid.size());
 
   // Optional grid positions by switching
   if (do_w() and do_t()) {
-    const auto wlag = water_lagrange(
-        atm_point["H2O"_spec], plag, water_interp_order, extpolfac);
-    const auto tlag = temperature_lagrange(
-        atm_point.temperature, plag, t_interp_order, extpolfac);
-    xsec_local =
-        reinterp(xsec, tlag, wlag, plag, flag).reshape(freq_grid.size());
+    const auto wlag = water_lagrange(atm_point["H2O"_spec], plag, water_interp_order, extpolfac);
+    const auto tlag = temperature_lagrange(atm_point.temperature, plag, t_interp_order, extpolfac);
+    xsec_local      = reinterp(xsec, tlag, wlag, plag, flag).reshape(freq_grid.size());
   } else if (do_w()) {
-    const auto wlag = water_lagrange(
-        atm_point["H2O"_spec], plag, water_interp_order, extpolfac);
-    xsec_local = reinterp(xsec[0], wlag, plag, flag).reshape(freq_grid.size());
+    const auto wlag = water_lagrange(atm_point["H2O"_spec], plag, water_interp_order, extpolfac);
+    xsec_local      = reinterp(xsec[0], wlag, plag, flag).reshape(freq_grid.size());
   } else if (do_t()) {
-    const auto tlag = temperature_lagrange(
-        atm_point.temperature, plag, t_interp_order, extpolfac);
-    xsec_local = reinterp(xsec[joker, 0, joker, joker], tlag, plag, flag)
-                     .reshape(freq_grid.size());
+    const auto tlag = temperature_lagrange(atm_point.temperature, plag, t_interp_order, extpolfac);
+    xsec_local      = reinterp(xsec[joker, 0, joker, joker], tlag, plag, flag).reshape(freq_grid.size());
   } else {
     xsec_local = reinterp(xsec[0][0], plag, flag).reshape(freq_grid.size());
   }
 
   const Numeric nd = atm_point.number_density(species);
-  for (Size i = 0; i < freq_grid.size(); ++i) {
-    absorption[i] += xsec_local[i] * nd;
-  }
+  for (Size i = 0; i < freq_grid.size(); ++i) { absorption[i] += xsec_local[i] * nd; }
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -247,9 +206,8 @@ void table::check() const {
                      do_p());
 
   const auto [t_size, w_size, p_size, f_size] = grid_shape();
-  ARTS_USER_ERROR_IF(
-      (xsec.shape() != std::array{t_size, w_size, p_size, f_size}),
-      R"(The shape of the absorption cross section table is incorrect.
+  ARTS_USER_ERROR_IF((xsec.shape() != std::array{t_size, w_size, p_size, f_size}),
+                     R"(The shape of the absorption cross section table is incorrect.
 
   Found:    {4:B,},
   Expected: [{0}, {1}, {2}, {3}]
@@ -259,11 +217,11 @@ void table::check() const {
       {2} = p_size
       {3} = f_size
 )",
-      t_size,
-      w_size,
-      p_size,
-      f_size,
-      xsec.shape());
+                     t_size,
+                     w_size,
+                     p_size,
+                     f_size,
+                     xsec.shape());
 
   ARTS_USER_ERROR_IF(water_atmref.size() != static_cast<Size>(p_size),
                      R"(Bad size of water_atmref
@@ -282,10 +240,10 @@ void table::check() const {
                      t_atmref.size());
 }
 
-void extend_atmosphere(ArrayOfAtmPoint& atm,
+void extend_atmosphere(ArrayOfAtmPoint&                 atm,
                        const InterpolationExtrapolation extrapolation_type,
-                       const Numeric new_max_pressure,
-                       const Numeric new_min_pressure) {
+                       const Numeric                    new_max_pressure,
+                       const Numeric                    new_min_pressure) {
   if (not std::isnan(new_max_pressure)) {
     ARTS_USER_ERROR_IF(new_max_pressure <= atm.back().pressure,
                        "The new maximum pressure must be greater than the "
@@ -306,10 +264,10 @@ void extend_atmosphere(ArrayOfAtmPoint& atm,
 }
 }  // namespace lookup
 
-void xml_io_stream<AbsorptionLookupTable>::write(std::ostream& os,
+void xml_io_stream<AbsorptionLookupTable>::write(std::ostream&                os,
                                                  const AbsorptionLookupTable& x,
-                                                 bofstream* pbofs,
-                                                 std::string_view name) {
+                                                 bofstream*                   pbofs,
+                                                 std::string_view             name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -324,9 +282,7 @@ void xml_io_stream<AbsorptionLookupTable>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<AbsorptionLookupTable>::read(std::istream& is,
-                                                AbsorptionLookupTable& x,
-                                                bifstream* pbifs) {
+void xml_io_stream<AbsorptionLookupTable>::read(std::istream& is, AbsorptionLookupTable& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

@@ -56,19 +56,14 @@ namespace {
    Calls- c_errmsg
  -------------------------------------------------------------------*/
 
-Index c_asymmetric_matrix(MatrixView P,
-                          VectorView W,
-                          MatrixView A,
-                          VectorView work,
-                          std::span<Index> iwork) {
+Index c_asymmetric_matrix(MatrixView P, VectorView W, MatrixView A, VectorView work, std::span<Index> iwork) {
   using Math::pow2;
   using nonstd::abs;
   using std::copysign;
   using std::min;
   using std::sqrt;
 
-  constexpr Numeric c1 = 0.4375, c2 = 0.5, c3 = 0.75, c4 = 0.95, c5 = 16,
-                    c6 = 256;
+  constexpr Numeric c1 = 0.4375, c2 = 0.5, c3 = 0.75, c4 = 0.95, c5 = 16, c6 = 256;
 
   constexpr Numeric tol = std::numeric_limits<Numeric>::epsilon();
 
@@ -129,7 +124,7 @@ Index c_asymmetric_matrix(MatrixView P,
    */
 
   for (Index j = k; j >= 0; j--) {
-    const Range oj{0, j}, jm{j + 1, m - j - 1};
+    const Range   oj{0, j}, jm{j + 1, m - j - 1};
     const Numeric row = abssum(A[j, oj]) + abssum(A[j, jm]);
 
     if (row == 0) {
@@ -151,7 +146,7 @@ Index c_asymmetric_matrix(MatrixView P,
    */
 
   for (Index j = l; j <= k; j++) {
-    const Range oj{0, j}, jm{j + 1, m - j - 1};
+    const Range   oj{0, j}, jm{j + 1, m - j - 1};
     const Numeric col = abssum(A[oj, j]) + abssum(A[jm, j]);
 
     if (col == 0) {
@@ -186,8 +181,8 @@ Index c_asymmetric_matrix(MatrixView P,
         }
       }
 
-      Numeric f       = 1;
-      Numeric g       = row / c5;
+      Numeric       f = 1;
+      Numeric       g = row / c5;
       const Numeric h = col + row;
 
       while (col < g) {
@@ -245,7 +240,7 @@ Index c_asymmetric_matrix(MatrixView P,
          * Form (I-(U*UT)/H)*A
          */
         for (Index j = n; j < m; j++) {
-          const Range nk{n, k - n + 1};
+          const Range   nk{n, k - n + 1};
           const Numeric f = dot(rwork[nk], A[nk, j]) / h;
 
           for (Index i = n; i <= k; i++) A[i, j] -= rwork[i] * f;
@@ -255,7 +250,7 @@ Index c_asymmetric_matrix(MatrixView P,
          * Form (i-(u*ut)/h)*a*(i-(u*ut)/h)
          */
         for (Index i = 0; i <= k; i++) {
-          const Range nk{n, k - n + 1};
+          const Range   nk{n, k - n + 1};
           const Numeric f = dot(rwork[nk], A[i, nk]) / h;
 
           for (Index j = n; j <= k; j++) A[i, j] -= rwork[j] * f;
@@ -279,7 +274,7 @@ Index c_asymmetric_matrix(MatrixView P,
 
         if (n + 1 <= k) {
           for (Index j = 0; j < m; j++) {
-            const Range nk{n + 1, k - n};
+            const Range   nk{n + 1, k - n};
             const Numeric g = dot(rwork[nk], P[nk, j]) / f;
 
             for (Index i = n + 1; i <= k; i++) P[i, j] += g * rwork[i];
@@ -291,14 +286,14 @@ Index c_asymmetric_matrix(MatrixView P,
 
   const Range zl{0, l};
   const Range km{k + 1, m - k - 1};
-  auto dA = diagonal(A);
-  W[zl]   = dA[zl];
-  W[km]   = dA[km];
+  auto        dA = diagonal(A);
+  W[zl]          = dA[zl];
+  W[km]          = dA[km];
 
-  Index i, in, j, ka, lb = 0;
+  Index   i, in, j, ka, lb = 0;
   Numeric p = 0, q = 0, r = 0, s, uu, vv, w, x, y, z;
 
-  Index n   = k;
+  Index   n = k;
   Numeric t = 0;
   /*
    * Search for next eigenvalues
@@ -602,10 +597,7 @@ S550:
 }
 }  // namespace
 
-Index diagonalize_inplace(MatrixView P,
-                          VectorView W,
-                          MatrixView A,
-                          real_diagonalize_workdata& workdata) {
+Index diagonalize_inplace(MatrixView P, VectorView W, MatrixView A, real_diagonalize_workdata& workdata) {
   /* Note that this is code ported from cdisort.
 
   If it turns out that porting the code has broken something,

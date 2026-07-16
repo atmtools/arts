@@ -10,10 +10,7 @@ void xml_io_stream<Numeric>::put(std::span<const Numeric> v, bofstream* pbofs) {
   for (auto& elem : v) *pbofs << elem;
 }
 
-void xml_io_stream<Numeric>::write(std::ostream& os,
-                                   const Numeric& n,
-                                   bofstream* pbofs,
-                                   std::string_view name) {
+void xml_io_stream<Numeric>::write(std::ostream& os, const Numeric& n, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -25,17 +22,13 @@ void xml_io_stream<Numeric>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<Numeric>::get(std::span<Numeric> v, bifstream* pbifs) {
-  pbifs->readDoubleArray(v.data(), v.size());
-}
+void xml_io_stream<Numeric>::get(std::span<Numeric> v, bifstream* pbifs) { pbifs->readDoubleArray(v.data(), v.size()); }
 
 void xml_io_stream<Numeric>::parse(std::span<Numeric> v, std::istream& is) {
   for (auto& x : v) is >> double_imanip() >> x;
 }
 
-void xml_io_stream<Numeric>::read(std::istream& is,
-                                  Numeric& n,
-                                  bifstream* pbifs) {
+void xml_io_stream<Numeric>::read(std::istream& is, Numeric& n, bifstream* pbifs) {
   XMLTag tag{};
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -52,16 +45,14 @@ void xml_io_stream<Numeric>::read(std::istream& is,
 
 //! COMPLEX
 
-void xml_io_stream<std::complex<Numeric>>::put(
-    std::span<const std::complex<Numeric>> v, bofstream* pbofs) {
-  xml_io_stream<Numeric>::put(
-      {reinterpret_cast<const Numeric*>(v.data()), 2 * v.size()}, pbofs);
+void xml_io_stream<std::complex<Numeric>>::put(std::span<const std::complex<Numeric>> v, bofstream* pbofs) {
+  xml_io_stream<Numeric>::put({reinterpret_cast<const Numeric*>(v.data()), 2 * v.size()}, pbofs);
 }
 
-void xml_io_stream<std::complex<Numeric>>::write(std::ostream& os,
+void xml_io_stream<std::complex<Numeric>>::write(std::ostream&                os,
                                                  const std::complex<Numeric>& n,
-                                                 bofstream* pbofs,
-                                                 std::string_view name) {
+                                                 bofstream*                   pbofs,
+                                                 std::string_view             name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -73,21 +64,15 @@ void xml_io_stream<std::complex<Numeric>>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<std::complex<Numeric>>::get(
-    std::span<std::complex<Numeric>> v, bifstream* pbifs) {
-  xml_io_stream<Numeric>::get(
-      {reinterpret_cast<Numeric*>(v.data()), 2 * v.size()}, pbifs);
+void xml_io_stream<std::complex<Numeric>>::get(std::span<std::complex<Numeric>> v, bifstream* pbifs) {
+  xml_io_stream<Numeric>::get({reinterpret_cast<Numeric*>(v.data()), 2 * v.size()}, pbifs);
 }
 
-void xml_io_stream<std::complex<Numeric>>::parse(
-    std::span<std::complex<Numeric>> v, std::istream& is) {
-  xml_io_stream<Numeric>::parse(
-      {reinterpret_cast<Numeric*>(v.data()), 2 * v.size()}, is);
+void xml_io_stream<std::complex<Numeric>>::parse(std::span<std::complex<Numeric>> v, std::istream& is) {
+  xml_io_stream<Numeric>::parse({reinterpret_cast<Numeric*>(v.data()), 2 * v.size()}, is);
 }
 
-void xml_io_stream<std::complex<Numeric>>::read(std::istream& is,
-                                                std::complex<Numeric>& n,
-                                                bifstream* pbifs) {
+void xml_io_stream<std::complex<Numeric>>::read(std::istream& is, std::complex<Numeric>& n, bifstream* pbifs) {
   XMLTag tag{};
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -108,10 +93,7 @@ void xml_io_stream<Index>::put(std::span<const Index> v, bofstream* pbofs) {
   for (auto& elem : v) *pbofs << elem;
 }
 
-void xml_io_stream<Index>::write(std::ostream& os,
-                                 const Index& n,
-                                 bofstream* pbofs,
-                                 std::string_view name) {
+void xml_io_stream<Index>::write(std::ostream& os, const Index& n, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -159,10 +141,7 @@ void xml_io_stream<Size>::put(std::span<const Size> v, bofstream* pbofs) {
   }
 }
 
-void xml_io_stream<Size>::write(std::ostream& os,
-                                const Size& n,
-                                bofstream* pbofs,
-                                std::string_view name) {
+void xml_io_stream<Size>::write(std::ostream& os, const Size& n, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -203,10 +182,7 @@ void xml_io_stream<Size>::read(std::istream& is, Size& n, bifstream* pbifs) {
 
 //! STRING
 
-void xml_io_stream<String>::write(std::ostream& os_xml,
-                                  const String& str,
-                                  bofstream*,
-                                  std::string_view name) {
+void xml_io_stream<String>::write(std::ostream& os_xml, const String& str, bofstream*, std::string_view name) {
   XMLTag open_tag;
   XMLTag close_tag;
 
@@ -221,11 +197,9 @@ void xml_io_stream<String>::write(std::ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
-void xml_io_stream<String>::read(std::istream& is_xml,
-                                 String& str,
-                                 bifstream*) {
+void xml_io_stream<String>::read(std::istream& is_xml, String& str, bifstream*) {
   XMLTag tag;
-  char dummy;
+  char   dummy;
 
   tag.read_from_stream(is_xml);
   tag.check_name("String");
@@ -245,9 +219,7 @@ void xml_io_stream<String>::read(std::istream& is_xml,
   } while (is_xml.good() && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
-  if (!string_starts_with_quotes) {
-    xml_parse_error("String must begin with \"");
-  }
+  if (!string_starts_with_quotes) { xml_parse_error("String must begin with \""); }
 
   //catch case where string is empty. CPD 29/8/05
   dummy = (char)is_xml.peek();
@@ -257,9 +229,7 @@ void xml_io_stream<String>::read(std::istream& is_xml,
     std::stringbuf strbuf;
 
     is_xml.get(strbuf, '"');
-    if (is_xml.fail()) {
-      xml_parse_error("String must end with \"");
-    }
+    if (is_xml.fail()) { xml_parse_error("String must end with \""); }
     str = strbuf.str();
   }
 
@@ -285,20 +255,14 @@ void xml_io_stream<bool>::read(std::istream& is, bool& n, bifstream*) {
 
 //! ANY
 
-void xml_io_stream<bool>::write(std::ostream& os,
-                                const bool& n,
-                                bofstream*,
-                                std::string_view name) {
+void xml_io_stream<bool>::write(std::ostream& os, const bool& n, bofstream*, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
   std::println(os, "{}", Index{n});
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<Any>::write(std::ostream& os,
-                               const Any&,
-                               bofstream*,
-                               std::string_view name) {
+void xml_io_stream<Any>::write(std::ostream& os, const Any&, bofstream*, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
   tag.write_to_end_stream(os);

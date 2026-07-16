@@ -11,18 +11,12 @@ void py_rng(py::module_& m) try {
   using RNG = RandomNumberGenerator<>;
   py::class_<RNG> rngs(m, "RandomNumberGenerator");
 
-  rngs.def(py::init<Time>(),
-           "Initialize the RNG with the time seed (at startup by default)",
-           "time"_a = Time{})
-      .def(py::init<std::mt19937_64::result_type>(),
-           "Initialize the RNG with an integer seed",
-           "seed"_a);
+  rngs.def(py::init<Time>(), "Initialize the RNG with the time seed (at startup by default)", "time"_a = Time{})
+      .def(py::init<std::mt19937_64::result_type>(), "Initialize the RNG with an integer seed", "seed"_a);
 
   rngs.def(
       "uniform_int_distribution",
-      [](RNG& r,
-         Index lower_bound,
-         Index upper_bound) -> std::function<Index()> {
+      [](RNG& r, Index lower_bound, Index upper_bound) -> std::function<Index()> {
         return r.get<std::uniform_int_distribution>(lower_bound, upper_bound);
       },
       "Generate random numbers following a uniform distribution",
@@ -31,9 +25,7 @@ void py_rng(py::module_& m) try {
 
   rngs.def(
       "uniform_real_distribution",
-      [](RNG& r,
-         Numeric lower_bound,
-         Numeric upper_bound) -> std::function<Numeric()> {
+      [](RNG& r, Numeric lower_bound, Numeric upper_bound) -> std::function<Numeric()> {
         return r.get<std::uniform_real_distribution>(lower_bound, upper_bound);
       },
       "Generate random numbers following a uniform distribution",
@@ -51,9 +43,7 @@ void py_rng(py::module_& m) try {
 
   rngs.def(
       "exponential_distribution",
-      [](RNG& r, Numeric lambda) -> std::function<Numeric()> {
-        return r.get<std::exponential_distribution>(lambda);
-      },
+      [](RNG& r, Numeric lambda) -> std::function<Numeric()> { return r.get<std::exponential_distribution>(lambda); },
       "Generate random numbers following an exponential distribution",
       "lambda"_a = 1.0);
 
@@ -77,9 +67,7 @@ void py_rng(py::module_& m) try {
 
   rngs.def(
       "chi_squared_distribution",
-      [](RNG& r, Numeric n) -> std::function<Numeric()> {
-        return r.get<std::chi_squared_distribution>(n);
-      },
+      [](RNG& r, Numeric n) -> std::function<Numeric()> { return r.get<std::chi_squared_distribution>(n); },
       "Generate random numbers following a chi-squared distribution",
       "n"_a = 1.0);
 
@@ -94,9 +82,7 @@ void py_rng(py::module_& m) try {
 
   rngs.def(
       "weibull_distribution",
-      [](RNG& r, Numeric a, Numeric b) -> std::function<Numeric()> {
-        return r.get<std::weibull_distribution>(a, b);
-      },
+      [](RNG& r, Numeric a, Numeric b) -> std::function<Numeric()> { return r.get<std::weibull_distribution>(a, b); },
       "Generate random numbers following a weibull distribution",
       "a"_a = 1.0,
       "b"_a = 1.0);
@@ -112,34 +98,26 @@ void py_rng(py::module_& m) try {
 
   rngs.def(
       "poisson_distribution",
-      [](RNG& r, Numeric mean) -> std::function<Index()> {
-        return r.get<std::poisson_distribution>(mean);
-      },
+      [](RNG& r, Numeric mean) -> std::function<Index()> { return r.get<std::poisson_distribution>(mean); },
       "Generate random numbers following a poisson distribution",
       "mean"_a = 1.0);
 
   rngs.def(
       "geometric_distribution",
-      [](RNG& r, Numeric p) -> std::function<Index()> {
-        return r.get<std::geometric_distribution>(p);
-      },
+      [](RNG& r, Numeric p) -> std::function<Index()> { return r.get<std::geometric_distribution>(p); },
       "Generate random numbers following a geometric distribution",
       "p"_a = 0.5);
 
   rngs.def(
       "binomial_distribution",
-      [](RNG& r, Index n, Numeric p) -> std::function<Index()> {
-        return r.get<std::binomial_distribution>(n, p);
-      },
+      [](RNG& r, Index n, Numeric p) -> std::function<Index()> { return r.get<std::binomial_distribution>(n, p); },
       "Generate random numbers following a binomial distribution",
       "n"_a = 1,
       "p"_a = 0.5);
 
   rngs.def(
       "student_t_distribution",
-      [](RNG& r, Numeric n) -> std::function<Numeric()> {
-        return r.get<std::student_t_distribution>(n);
-      },
+      [](RNG& r, Numeric n) -> std::function<Numeric()> { return r.get<std::student_t_distribution>(n); },
       "Generate random numbers following a student t distribution",
       "n"_a = 1.0);
 
@@ -153,8 +131,7 @@ void py_rng(py::module_& m) try {
   rng.def(
       "uniform_int_distribution",
       [](Size N, Index lower_bound, Index upper_bound) {
-        auto f = RandomNumberGenerator<>{}.get<std::uniform_int_distribution>(
-            lower_bound, upper_bound);
+        auto f = RandomNumberGenerator<>{}.get<std::uniform_int_distribution>(lower_bound, upper_bound);
 
         IndexVector x(N);
 
@@ -201,8 +178,7 @@ IndexVector
   rng.def(
       "uniform_real_distribution",
       [](Size N, Numeric lower_bound, Numeric upper_bound) {
-        auto f = RandomNumberGenerator<>{}.get<std::uniform_real_distribution>(
-            lower_bound, upper_bound);
+        auto f = RandomNumberGenerator<>{}.get<std::uniform_real_distribution>(lower_bound, upper_bound);
 
         Vector x(N);
 
@@ -249,8 +225,7 @@ Vector
   rng.def(
       "normal_distribution",
       [](Size N, Numeric mean, Numeric stddev) {
-        auto f = RandomNumberGenerator<>{}.get<std::normal_distribution>(
-            mean, stddev);
+        auto f = RandomNumberGenerator<>{}.get<std::normal_distribution>(mean, stddev);
 
         Vector x(N);
 
@@ -297,8 +272,7 @@ Vector
   rng.def(
       "exponential_distribution",
       [](Size N, Numeric lambda) {
-        auto f = RandomNumberGenerator<>{}.get<std::exponential_distribution>(
-            lambda);
+        auto f = RandomNumberGenerator<>{}.get<std::exponential_distribution>(lambda);
 
         Vector x(N);
 
@@ -343,8 +317,7 @@ Vector
   rng.def(
       "gamma_distribution",
       [](Size N, Numeric alpha, Numeric beta) {
-        auto f =
-            RandomNumberGenerator<>{}.get<std::gamma_distribution>(alpha, beta);
+        auto f = RandomNumberGenerator<>{}.get<std::gamma_distribution>(alpha, beta);
 
         Vector x(N);
 
@@ -392,8 +365,7 @@ Vector
   rng.def(
       "lognormal_distribution",
       [](Size N, Numeric mean, Numeric stddev) {
-        auto f = RandomNumberGenerator<>{}.get<std::lognormal_distribution>(
-            mean, stddev);
+        auto f = RandomNumberGenerator<>{}.get<std::lognormal_distribution>(mean, stddev);
 
         Vector x(N);
 
@@ -441,8 +413,7 @@ Vector
   rng.def(
       "chi_squared_distribution",
       [](Size N, Numeric n) {
-        auto f =
-            RandomNumberGenerator<>{}.get<std::chi_squared_distribution>(n);
+        auto f = RandomNumberGenerator<>{}.get<std::chi_squared_distribution>(n);
 
         Vector x(N);
 
@@ -487,8 +458,7 @@ Vector
   rng.def(
       "cauchy_distribution",
       [](Size N, Numeric location, Numeric scale) {
-        auto f = RandomNumberGenerator<>{}.get<std::cauchy_distribution>(
-            location, scale);
+        auto f = RandomNumberGenerator<>{}.get<std::cauchy_distribution>(location, scale);
 
         Vector x(N);
 
@@ -536,8 +506,7 @@ Vector
   rng.def(
       "weibull_distribution",
       [](Size N, Numeric shape, Numeric scale) {
-        auto f = RandomNumberGenerator<>{}.get<std::weibull_distribution>(
-            shape, scale);
+        auto f = RandomNumberGenerator<>{}.get<std::weibull_distribution>(shape, scale);
 
         Vector x(N);
 
@@ -585,8 +554,7 @@ Vector
   rng.def(
       "fisher_f_distribution",
       [](Size N, Numeric d1, Numeric d2) {
-        auto f =
-            RandomNumberGenerator<>{}.get<std::fisher_f_distribution>(d1, d2);
+        auto f = RandomNumberGenerator<>{}.get<std::fisher_f_distribution>(d1, d2);
 
         Vector x(N);
 
@@ -725,8 +693,7 @@ Vector
   rng.def(
       "binomial_distribution",
       [](Size N, Index n, Numeric p) {
-        auto f =
-            RandomNumberGenerator<>{}.get<std::binomial_distribution>(n, p);
+        auto f = RandomNumberGenerator<>{}.get<std::binomial_distribution>(n, p);
 
         IndexVector x(N);
 
@@ -816,7 +783,6 @@ Vector
       "n"_a = 1.0);
 
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize RNG\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize RNG\n{}", e.what()));
 }
 }  // namespace Python

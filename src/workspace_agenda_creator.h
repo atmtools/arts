@@ -6,16 +6,14 @@
 #include "workspace_method_class.h"
 
 struct SetWsv {
-  std::string name;
+  std::string                name;
   std::optional<std::string> other{std::nullopt};
-  std::optional<Wsv> wsv{std::nullopt};
+  std::optional<Wsv>         wsv{std::nullopt};
 
   SetWsv(std::string n);
   SetWsv(const char* const n) : SetWsv(std::string{n}) {}
-  SetWsv(std::string n, WorkspaceGroup auto wsv_value)
-      : name(std::move(n)), wsv(std::move(wsv_value)) {}
-  SetWsv(std::string n, const char* wsv_name)
-      : name(std::move(n)), other(wsv_name) {}
+  SetWsv(std::string n, WorkspaceGroup auto wsv_value) : name(std::move(n)), wsv(std::move(wsv_value)) {}
+  SetWsv(std::string n, const char* wsv_name) : name(std::move(n)), other(wsv_name) {}
 };
 
 class AgendaCreator {
@@ -35,8 +33,7 @@ class AgendaCreator {
 
   AgendaCreator& ignore(const std::string& name);
 
-  template <std::convertible_to<SetWsv>... T>
-  AgendaCreator& add(const std::string& name, T&&... v) {
+  template <std::convertible_to<SetWsv>... T> AgendaCreator& add(const std::string& name, T&&... v) {
     return add(name, std::vector<SetWsv>{std::forward<T>(v)...});
   }
 

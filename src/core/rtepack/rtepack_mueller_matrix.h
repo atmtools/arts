@@ -10,8 +10,7 @@ namespace rtepack {
 
 //! A 4x4 matrix of Numeric values to be used as a Mueller Matrix
 struct muelmat final : Matrix44 {
-  constexpr muelmat(Numeric tau = 1.0) noexcept
-      : Matrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
+  constexpr muelmat(Numeric tau = 1.0) noexcept : Matrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
   constexpr muelmat(Numeric m00,
                     Numeric m01,
@@ -29,22 +28,7 @@ struct muelmat final : Matrix44 {
                     Numeric m31,
                     Numeric m32,
                     Numeric m33) noexcept
-      : Matrix44{m00,
-                 m01,
-                 m02,
-                 m03,
-                 m10,
-                 m11,
-                 m12,
-                 m13,
-                 m20,
-                 m21,
-                 m22,
-                 m23,
-                 m30,
-                 m31,
-                 m32,
-                 m33} {}
+      : Matrix44{m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33} {}
 
   constexpr muelmat(std::array<Numeric, 16> data) noexcept : Matrix44{data} {}
 
@@ -99,38 +83,8 @@ struct muelmat final : Matrix44 {
   }
 
   constexpr muelmat &operator*=(const muelmat &b) {
-    const auto [a00,
-                a01,
-                a02,
-                a03,
-                a10,
-                a11,
-                a12,
-                a13,
-                a20,
-                a21,
-                a22,
-                a23,
-                a30,
-                a31,
-                a32,
-                a33] = data;
-    const auto [b00,
-                b01,
-                b02,
-                b03,
-                b10,
-                b11,
-                b12,
-                b13,
-                b20,
-                b21,
-                b22,
-                b23,
-                b30,
-                b31,
-                b32,
-                b33] = b;
+    const auto [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = data;
+    const auto [b00, b01, b02, b03, b10, b11, b12, b13, b20, b21, b22, b23, b30, b31, b32, b33] = b;
 
     return *this = {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                     a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -170,10 +124,8 @@ struct muelmat final : Matrix44 {
   }
 
   [[nodiscard]] constexpr bool is_polarized() const noexcept {
-    return data[1] != 0.0 or data[2] != 0.0 or data[3] != 0.0 or
-           data[4] != 0.0 or data[6] != 0.0 or data[7] != 0.0 or
-           data[8] != 0.0 or data[9] != 0.0 or data[11] != 0.0 or
-           data[12] != 0.0 or data[13] != 0.0 or data[14] != 0.0;
+    return data[1] != 0.0 or data[2] != 0.0 or data[3] != 0.0 or data[4] != 0.0 or data[6] != 0.0 or data[7] != 0.0 or
+           data[8] != 0.0 or data[9] != 0.0 or data[11] != 0.0 or data[12] != 0.0 or data[13] != 0.0 or data[14] != 0.0;
   }
 };
 
@@ -218,35 +170,31 @@ constexpr Numeric det(const muelmat &A) {
          d * (e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n));
 }
 
-constexpr Numeric tr(const muelmat &A) {
-  return A[0, 0] + A[1, 1] + A[2, 2] + A[3, 3];
-}
+constexpr Numeric tr(const muelmat &A) { return A[0, 0] + A[1, 1] + A[2, 2] + A[3, 3]; }
 
 constexpr Numeric midtr(const muelmat &A) {
-  return std::midpoint(std::midpoint(A[0, 0], A[1, 1]),
-                       std::midpoint(A[2, 2], A[3, 3]));
+  return std::midpoint(std::midpoint(A[0, 0], A[1, 1]), std::midpoint(A[2, 2], A[3, 3]));
 }
 
 constexpr muelmat adj(const muelmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
-  return muelmat{
-      f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
-      b * (l * o - k * p) + c * (j * p - l * n) + d * (k * n - j * o),
-      b * (g * p - h * o) + c * (h * n - f * p) + d * (f * o - g * n),
-      b * (h * k - g * l) + c * (f * l - h * j) + d * (g * j - f * k),
-      e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o),
-      a * (k * p - l * o) + c * (l * m - i * p) + d * (i * o - k * m),
-      a * (h * o - g * p) + c * (e * p - h * m) + d * (g * m - e * o),
-      a * (g * l - h * k) + c * (h * i - e * l) + d * (e * k - g * i),
-      e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m),
-      a * (l * n - j * p) + b * (i * p - l * m) + d * (j * m - i * n),
-      a * (f * p - h * n) + b * (h * m - e * p) + d * (e * n - f * m),
-      a * (h * j - f * l) + b * (e * l - h * i) + d * (f * i - e * j),
-      e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n),
-      a * (j * o - k * n) + b * (k * m - i * o) + c * (i * n - j * m),
-      a * (g * n - f * o) + b * (e * o - g * m) + c * (f * m - e * n),
-      a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i)};
+  return muelmat{f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
+                 b * (l * o - k * p) + c * (j * p - l * n) + d * (k * n - j * o),
+                 b * (g * p - h * o) + c * (h * n - f * p) + d * (f * o - g * n),
+                 b * (h * k - g * l) + c * (f * l - h * j) + d * (g * j - f * k),
+                 e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o),
+                 a * (k * p - l * o) + c * (l * m - i * p) + d * (i * o - k * m),
+                 a * (h * o - g * p) + c * (e * p - h * m) + d * (g * m - e * o),
+                 a * (g * l - h * k) + c * (h * i - e * l) + d * (e * k - g * i),
+                 e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m),
+                 a * (l * n - j * p) + b * (i * p - l * m) + d * (j * m - i * n),
+                 a * (f * p - h * n) + b * (h * m - e * p) + d * (e * n - f * m),
+                 a * (h * j - f * l) + b * (e * l - h * i) + d * (f * i - e * j),
+                 e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n),
+                 a * (j * o - k * n) + b * (k * m - i * o) + c * (i * n - j * m),
+                 a * (g * n - f * o) + b * (e * o - g * m) + c * (f * m - e * n),
+                 a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i)};
 }
 
 constexpr muelmat inv(const muelmat &A) { return adj(A) / det(A); }
@@ -267,16 +215,11 @@ using muelmat_tensor4            = matpack::data_t<muelmat, 4>;
 using muelmat_tensor4_view       = matpack::view_t<muelmat, 4>;
 using muelmat_tensor4_const_view = matpack::view_t<const muelmat, 4>;
 
-void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
-                                     const Array<muelmat_vector> &T);
+void forward_cumulative_transmission(Array<muelmat_vector> &Pi, const Array<muelmat_vector> &T);
 
-Array<muelmat_vector> forward_cumulative_transmission(
-    const Array<muelmat_vector> &T);
+Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T);
 }  // namespace rtepack
 
-template <>
-struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
+template <> struct std::formatter<rtepack::muelmat> : std::formatter<Matrix44> {};
 
-template <>
-struct xml_io_stream<rtepack::muelmat>
-    : xml_io_stream_inherit<Matrix44, rtepack::muelmat> {};
+template <> struct xml_io_stream<rtepack::muelmat> : xml_io_stream_inherit<Matrix44, rtepack::muelmat> {};

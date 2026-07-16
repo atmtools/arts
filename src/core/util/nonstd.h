@@ -12,10 +12,7 @@ namespace nonstd {
  * @param[in] x Any real value type
  * @return |x|
  */
-template <class T>
-constexpr T abs(T x) noexcept {
-  return x < 0 ? -x : x;
-}
+template <class T> constexpr T abs(T x) noexcept { return x < 0 ? -x : x; }
 
 /*! pow(x, v) returns x^v not using std::pow but using exp(v * log(x))
  * 
@@ -24,10 +21,8 @@ constexpr T abs(T x) noexcept {
  * @param[in] x Any positive real value type
  * @return x^v
  */
-template <typename T, typename U>
-constexpr auto pow(const T& x, const U& v) {
-  return std::signbit(x) ? -std::exp(v * std::log(abs(x)))
-                         : std::exp(v * std::log(x));
+template <typename T, typename U> constexpr auto pow(const T& x, const U& v) {
+  return std::signbit(x) ? -std::exp(v * std::log(abs(x))) : std::exp(v * std::log(x));
 }
 
 /*! Checks if the given character in 0123456789.
@@ -40,8 +35,8 @@ constexpr auto pow(const T& x, const U& v) {
  * @return int from a simple boolean.
  */
 constexpr int isdigit(int ch) noexcept {
-  return ch == '0' or ch == '1' or ch == '2' or ch == '3' or ch == '4' or
-         ch == '5' or ch == '6' or ch == '7' or ch == '8' or ch == '9';
+  return ch == '0' or ch == '1' or ch == '2' or ch == '3' or ch == '4' or ch == '5' or ch == '6' or ch == '7' or
+         ch == '8' or ch == '9';
 }
 
 /** Returns true if x is a standard space-character
@@ -52,8 +47,7 @@ constexpr int isdigit(int ch) noexcept {
  * @return true if x is a space
  */
 constexpr bool isspace(unsigned char ch) noexcept {
-  return ch == ' ' or ch == '\n' or ch == '\r' or ch == '\t' or ch == '\f' or
-         ch == '\v';
+  return ch == ' ' or ch == '\n' or ch == '\r' or ch == '\t' or ch == '\f' or ch == '\v';
 }
 
 /** Returns true if x is a standard abc/ABC-character
@@ -62,17 +56,13 @@ constexpr bool isspace(unsigned char ch) noexcept {
  * @return true if x is a space
  */
 constexpr bool isabc(unsigned char ch) noexcept {
-  return ch == 'a' or ch == 'b' or ch == 'c' or ch == 'd' or ch == 'e' or
-         ch == 'f' or ch == 'g' or ch == 'h' or ch == 'i' or ch == 'j' or
-         ch == 'k' or ch == 'l' or ch == 'm' or ch == 'n' or ch == 'o' or
-         ch == 'p' or ch == 'q' or ch == 'r' or ch == 's' or ch == 't' or
-         ch == 'u' or ch == 'v' or ch == 'w' or ch == 'x' or ch == 'y' or
-         ch == 'z' or ch == 'A' or ch == 'B' or ch == 'C' or ch == 'D' or
-         ch == 'E' or ch == 'F' or ch == 'G' or ch == 'H' or ch == 'I' or
-         ch == 'J' or ch == 'K' or ch == 'L' or ch == 'M' or ch == 'N' or
-         ch == 'O' or ch == 'P' or ch == 'Q' or ch == 'R' or ch == 'S' or
-         ch == 'T' or ch == 'U' or ch == 'V' or ch == 'W' or ch == 'X' or
-         ch == 'Y' or ch == 'Z';
+  return ch == 'a' or ch == 'b' or ch == 'c' or ch == 'd' or ch == 'e' or ch == 'f' or ch == 'g' or ch == 'h' or
+         ch == 'i' or ch == 'j' or ch == 'k' or ch == 'l' or ch == 'm' or ch == 'n' or ch == 'o' or ch == 'p' or
+         ch == 'q' or ch == 'r' or ch == 's' or ch == 't' or ch == 'u' or ch == 'v' or ch == 'w' or ch == 'x' or
+         ch == 'y' or ch == 'z' or ch == 'A' or ch == 'B' or ch == 'C' or ch == 'D' or ch == 'E' or ch == 'F' or
+         ch == 'G' or ch == 'H' or ch == 'I' or ch == 'J' or ch == 'K' or ch == 'L' or ch == 'M' or ch == 'N' or
+         ch == 'O' or ch == 'P' or ch == 'Q' or ch == 'R' or ch == 'S' or ch == 'T' or ch == 'U' or ch == 'V' or
+         ch == 'W' or ch == 'X' or ch == 'Y' or ch == 'Z';
 }
 
 /** Returns true if x is a standard bracket-character
@@ -81,8 +71,7 @@ constexpr bool isabc(unsigned char ch) noexcept {
  * @return true if x is a space
  */
 constexpr bool isbracket(unsigned char c) noexcept {
-  return c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or
-         c == '<' or c == '>';
+  return c == '(' or c == ')' or c == '[' or c == ']' or c == '{' or c == '}' or c == '<' or c == '>';
 }
 
 /*! Checks if the given value is nan

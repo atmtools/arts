@@ -61,21 +61,14 @@ void py_global(py::module_& m) try {
   global.doc() = "Global settings and data";
 
   py::class_<Parameters> param(global, "parameters");
-  param
-      .def_rw_static("includepath",
-                     &parameters.includepath,
-                     "Automatic include paths\n\n.. :class:`ArrayOfString`")
-      .def_rw_static("datapath",
-                     &parameters.datapath,
-                     "Automatic data paths\n\n.. :class:`ArrayOfString`")
+  param.def_rw_static("includepath", &parameters.includepath, "Automatic include paths\n\n.. :class:`ArrayOfString`")
+      .def_rw_static("datapath", &parameters.datapath, "Automatic data paths\n\n.. :class:`ArrayOfString`")
       .doc() = "Access to static settings data";
   generic_interface(param);
 
   py::class_<WorkspaceGroupRecord> wsgs(global, "WorkspaceGroupRecord");
-  wsgs.def_ro(
-          "file", &WorkspaceGroupRecord::file, "File path\n\n.. :class:`str`")
-      .def_ro(
-          "desc", &WorkspaceGroupRecord::desc, "Description\n\n.. :class:`str`")
+  wsgs.def_ro("file", &WorkspaceGroupRecord::file, "File path\n\n.. :class:`str`")
+      .def_ro("desc", &WorkspaceGroupRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace group records";
   generic_interface(wsgs);
 
@@ -89,14 +82,11 @@ Return
     Map of variables)");
 
   py::class_<WorkspaceVariableRecord> wsvs(global, "WorkspaceVariableRecord");
-  wsvs.def_ro(
-          "default_value",
-          &WorkspaceVariableRecord::default_value,
-          "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
+  wsvs.def_ro("default_value",
+              &WorkspaceVariableRecord::default_value,
+              "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
       .def_ro("type", &WorkspaceVariableRecord::type, "Type\n\n.. :class:`str`")
-      .def_ro("desc",
-              &WorkspaceVariableRecord::desc,
-              "Description\n\n.. :class:`str`")
+      .def_ro("desc", &WorkspaceVariableRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace variable records";
   generic_interface(wsvs);
 
@@ -110,13 +100,8 @@ Return
     Map of variables)");
 
   py::class_<WsvShortForm> wsv_short(global, "WsvShortForm");
-  wsv_short
-      .def_ro("desc",
-              &WsvShortForm::desc,
-              "Description of the shortname\n\n.. :class:`str`")
-      .def_ro("title",
-              &WsvShortForm::title,
-              "Variable naming title\n\n.. :class:`str`")
+  wsv_short.def_ro("desc", &WsvShortForm::desc, "Description of the shortname\n\n.. :class:`str`")
+      .def_ro("title", &WsvShortForm::title, "Variable naming title\n\n.. :class:`str`")
       .doc() = "Workspace variable shortname records";
   generic_interface(wsv_short);
 
@@ -129,44 +114,23 @@ Return
 :class:`dict`
     Map of shortnames to their descriptions)");
 
-  py::class_<WorkspaceMethodInternalRecord> wsms(
-      global, "WorkspaceMethodInternalRecord");
-  wsms.def_ro("output",
-              &WorkspaceMethodInternalRecord::out,
-              "Outputs\n\n.. :class:`list[str]`")
-      .def_ro("input",
-              &WorkspaceMethodInternalRecord::in,
-              "Inputs\n\n.. :class:`list[str]`")
-      .def_ro("author",
-              &WorkspaceMethodInternalRecord::author,
-              "Authors\n\n.. :class:`list[str]`")
-      .def_ro("gout",
-              &WorkspaceMethodInternalRecord::gout,
-              "Generic output\n\n.. :class:`list[str]`")
-      .def_ro("gout_type",
-              &WorkspaceMethodInternalRecord::gout_type,
-              "Generic output type\n\n.. :class:`list[str]`")
-      .def_ro("gout_desc",
-              &WorkspaceMethodInternalRecord::gout_desc,
-              "Generic output description\n\n.. :class:`list[str]`")
-      .def_ro("gin",
-              &WorkspaceMethodInternalRecord::gin,
-              "Generic input\n\n.. :class:`list[str]`")
-      .def_ro("gin_type",
-              &WorkspaceMethodInternalRecord::gin_type,
-              "Generic input type\n\n.. :class:`list[str]`")
-      .def_ro("gin_desc",
-              &WorkspaceMethodInternalRecord::gin_desc,
-              "Generic input description\n\n.. :class:`list[str]`")
+  py::class_<WorkspaceMethodInternalRecord> wsms(global, "WorkspaceMethodInternalRecord");
+  wsms.def_ro("output", &WorkspaceMethodInternalRecord::out, "Outputs\n\n.. :class:`list[str]`")
+      .def_ro("input", &WorkspaceMethodInternalRecord::in, "Inputs\n\n.. :class:`list[str]`")
+      .def_ro("author", &WorkspaceMethodInternalRecord::author, "Authors\n\n.. :class:`list[str]`")
+      .def_ro("gout", &WorkspaceMethodInternalRecord::gout, "Generic output\n\n.. :class:`list[str]`")
+      .def_ro("gout_type", &WorkspaceMethodInternalRecord::gout_type, "Generic output type\n\n.. :class:`list[str]`")
+      .def_ro(
+          "gout_desc", &WorkspaceMethodInternalRecord::gout_desc, "Generic output description\n\n.. :class:`list[str]`")
+      .def_ro("gin", &WorkspaceMethodInternalRecord::gin, "Generic input\n\n.. :class:`list[str]`")
+      .def_ro("gin_type", &WorkspaceMethodInternalRecord::gin_type, "Generic input type\n\n.. :class:`list[str]`")
+      .def_ro(
+          "gin_desc", &WorkspaceMethodInternalRecord::gin_desc, "Generic input description\n\n.. :class:`list[str]`")
       .def_ro("gin_value",
               &WorkspaceMethodInternalRecord::gin_value,
               "Generic input default value\n\n.. :class:`list[Wsv | None]`")
-      .def_ro("pass_workspace",
-              &WorkspaceMethodInternalRecord::pass_workspace,
-              "Pass workspace\n\n.. :class:`bool`")
-      .def_ro("desc",
-              &WorkspaceMethodInternalRecord::desc,
-              "Description\n\n.. :class:`str`")
+      .def_ro("pass_workspace", &WorkspaceMethodInternalRecord::pass_workspace, "Pass workspace\n\n.. :class:`bool`")
+      .def_ro("desc", &WorkspaceMethodInternalRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Method records used as workspace variables";
   generic_interface(wsms);
 
@@ -179,17 +143,10 @@ Return
 :class:`dict`
     Map of methods)");
 
-  py::class_<WorkspaceAgendaInternalRecord> wsas(
-      global, "WorkspaceAgendaInternalRecord");
-  wsas.def_ro("desc",
-              &WorkspaceAgendaInternalRecord::desc,
-              "Description\n\n.. :class:`str`")
-      .def_ro("output",
-              &WorkspaceAgendaInternalRecord::output,
-              "Outputs\n\n.. :class:`list[str]`")
-      .def_ro("input",
-              &WorkspaceAgendaInternalRecord::input,
-              "Inputs\n\n.. :class:`list[str]`")
+  py::class_<WorkspaceAgendaInternalRecord> wsas(global, "WorkspaceAgendaInternalRecord");
+  wsas.def_ro("desc", &WorkspaceAgendaInternalRecord::desc, "Description\n\n.. :class:`str`")
+      .def_ro("output", &WorkspaceAgendaInternalRecord::output, "Outputs\n\n.. :class:`list[str]`")
+      .def_ro("input", &WorkspaceAgendaInternalRecord::input, "Inputs\n\n.. :class:`list[str]`")
       .doc() = "Agenda records used as workspace variables";
   generic_interface(wsas);
 
@@ -203,9 +160,7 @@ Return
       "option_groups",
       [] -> std::vector<std::string> {
         std::vector<std::string> out(internal_options().size());
-        for (Size i = 0; i < out.size(); i++) {
-          out[i] = internal_options()[i].name;
-        }
+        for (Size i = 0; i < out.size(); i++) { out[i] = internal_options()[i].name; }
         return out;
       },
       "Get a copy of all named options\n\n"
@@ -245,26 +200,21 @@ Parameters
 
   py::class_<global_data>(global, "data")
       .def(py::init<>())
-      .def_ro_static(
-          "is_lgpl",
-          &global_data::is_lgpl,
-          "Whether the ARTS library is compiled licensed under the LGPL\n\n.. :class:`bool`")
-      .def_ro_static(
-          "has_sht",
-          &global_data::has_sht,
-          "Whether the ARTS library is compiled to be able to use the SHT library\n\n.. :class:`bool`")
-      .def_ro_static(
-          "has_cdisort",
-          &global_data::has_cdisort,
-          "Whether the ARTS library is compiled with CDisort support\n\n.. :class:`bool`")
-      .def_ro_static(
-          "has_profiling",
-          &global_data::has_profiling,
-          "Whether the ARTS library is compiled with time profiling\n\n.. :class:`bool`")
-      .def_ro_static(
-          "arts_source_dir",
-          &global_data::arts_source_dir,
-          "The original ARTS source directory, if available\n\n.. :class:`str`")
+      .def_ro_static("is_lgpl",
+                     &global_data::is_lgpl,
+                     "Whether the ARTS library is compiled licensed under the LGPL\n\n.. :class:`bool`")
+      .def_ro_static("has_sht",
+                     &global_data::has_sht,
+                     "Whether the ARTS library is compiled to be able to use the SHT library\n\n.. :class:`bool`")
+      .def_ro_static("has_cdisort",
+                     &global_data::has_cdisort,
+                     "Whether the ARTS library is compiled with CDisort support\n\n.. :class:`bool`")
+      .def_ro_static("has_profiling",
+                     &global_data::has_profiling,
+                     "Whether the ARTS library is compiled with time profiling\n\n.. :class:`bool`")
+      .def_ro_static("arts_source_dir",
+                     &global_data::arts_source_dir,
+                     "The original ARTS source directory, if available\n\n.. :class:`str`")
       .def("__repr__",
            [](const global_data&) {
              return std::format(R"(Global state of ARTS:
@@ -275,8 +225,7 @@ has_sht: {}
                                 global_data::is_lgpl,
                                 global_data::has_sht);
            })
-      .doc() =
-      "A set of global data that we might need from ARTS inside pyarts";
+      .doc() = "A set of global data that we might need from ARTS inside pyarts";
 
   global.def("time_report",
              &arts::get_report,
@@ -305,7 +254,6 @@ Return
 See above, :class:`dict`
 )");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
 }
 }  // namespace Python

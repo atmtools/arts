@@ -83,24 +83,15 @@ Rational::Rational(const std::string_view s) {
     const String b{s.substr(slash_pos + 1, len)};
     try {
       *this = Rational(std::stoi(a), std::stoi(b));
-    } catch (...) {
-      ARTS_USER_ERROR(
-          "Cannot interpret either '{}' or '{}' as an integer (or neither)",
-          a,
-          b);
-    }
+    } catch (...) { ARTS_USER_ERROR("Cannot interpret either '{}' or '{}' as an integer (or neither)", a, b); }
   } else {
     try {
       *this = Rational(std::stoi(std::string{s}));
-    } catch (...) {
-      ARTS_USER_ERROR("Cannot interpret '{}' as an integer", s);
-    }
+    } catch (...) { ARTS_USER_ERROR("Cannot interpret '{}' as an integer", s); }
   }
 }
 
-void simplify_in_place(Rational& r) noexcept {
-  r = fixSign(Rational::reduce_by_gcd(r));
-}
+void simplify_in_place(Rational& r) noexcept { r = fixSign(Rational::reduce_by_gcd(r)); }
 
 bifstream& Rational::read(bifstream& bif) {
   bif >> numer >> denom;
@@ -113,9 +104,9 @@ bofstream& Rational::write(bofstream& bof) const {
   return bof;
 }
 
-void xml_io_stream<Rational>::write(std::ostream& os_xml,
-                                    const Rational& rational,
-                                    bofstream* pbofs,
+void xml_io_stream<Rational>::write(std::ostream&    os_xml,
+                                    const Rational&  rational,
+                                    bofstream*       pbofs,
                                     std::string_view name) {
   std::println(os_xml, R"(<{0} name="{1}">)", type_name, name);
 
@@ -127,9 +118,7 @@ void xml_io_stream<Rational>::write(std::ostream& os_xml,
   std::println(os_xml, R"(</{0}>)", type_name);
 }
 
-void xml_io_stream<Rational>::read(std::istream& is_xml,
-                                   Rational& rational,
-                                   bifstream* pbifs) {
+void xml_io_stream<Rational>::read(std::istream& is_xml, Rational& rational, bifstream* pbifs) {
   XMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -137,14 +126,10 @@ void xml_io_stream<Rational>::read(std::istream& is_xml,
 
   if (pbifs) {
     *pbifs >> rational;
-    if (pbifs->fail()) {
-      xml_data_parse_error(tag, "");
-    }
+    if (pbifs->fail()) { xml_data_parse_error(tag, ""); }
   } else {
     is_xml >> rational;
-    if (is_xml.fail()) {
-      xml_data_parse_error(tag, "");
-    }
+    if (is_xml.fail()) { xml_data_parse_error(tag, ""); }
   }
 
   tag.read_from_stream(is_xml);

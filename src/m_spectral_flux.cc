@@ -3,44 +3,39 @@
 #include <workspace.h>
 
 namespace {
-void spectral_rad_pathStepByStepEmissionForwardOnly(
-    StokvecMatrix& spectral_rad_path,
-    const TransmittanceMatrix& spectral_tramat_path,
-    const SourceVector& spectral_rad_srcvec_path,
-    const StokvecVector& spectral_rad_bkg) try {
+void spectral_rad_pathStepByStepEmissionForwardOnly(StokvecMatrix&             spectral_rad_path,
+                                                    const TransmittanceMatrix& spectral_tramat_path,
+                                                    const SourceVector&        spectral_rad_srcvec_path,
+                                                    const StokvecVector&       spectral_rad_bkg) try {
   ARTS_TIME_REPORT
 
   const Size nf = spectral_tramat_path.dT.npages();
   const Size np = spectral_tramat_path.dT.nrows();
   const Size nq = spectral_tramat_path.dT.ncols();
 
-  spectral_tramat_path.check(
-      np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
-  spectral_rad_srcvec_path.check(
-      np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
+  spectral_tramat_path.check(np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
+  spectral_rad_srcvec_path.check(np, nq, nf, "spectral_rad_pathStepByStepEmissionForwardOnly");
 
   spectral_rad_path.resize(nf, np);
 
   if (np == 0) return;
   spectral_rad_path[joker, np - 1] = spectral_rad_bkg;
 
-  rte_emission_path(
-      spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path);
+  rte_emission_path(spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_pathClearskyEmission(
-    const Workspace& ws,
-    StokvecMatrix& spectral_rad_path,
-    const AtmField& atm_field,
-    const AscendingGrid& freq_grid,
-    const Agenda& spectral_propmat_agenda,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const Agenda& spectral_rad_space_agenda,
-    const Agenda& spectral_rad_surface_agenda,
-    const SurfaceField& surf_field,
-    const SubsurfaceField& subsurf_field,
-    const TransmittanceOption& rte_option) try {
+void spectral_rad_pathClearskyEmission(const Workspace&                   ws,
+                                       StokvecMatrix&                     spectral_rad_path,
+                                       const AtmField&                    atm_field,
+                                       const AscendingGrid&               freq_grid,
+                                       const Agenda&                      spectral_propmat_agenda,
+                                       const ArrayOfPropagationPathPoint& ray_path,
+                                       const Agenda&                      spectral_rad_space_agenda,
+                                       const Agenda&                      spectral_rad_surface_agenda,
+                                       const SurfaceField&                surf_field,
+                                       const SubsurfaceField&             subsurf_field,
+                                       const TransmittanceOption&         rte_option) try {
   ARTS_TIME_REPORT
 
   PropagationPathPoint ray_point;
@@ -60,9 +55,8 @@ void spectral_rad_pathClearskyEmission(
   ArrayOfAtmPoint atm_path;
   atm_pathFromPath(atm_path, ray_path, atm_field);
   ArrayOfAscendingGrid freq_grid_path;
-  ArrayOfVector3 freq_wind_shift_jac_path;
-  freq_grid_pathFromPath(
-      freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
+  ArrayOfVector3       freq_wind_shift_jac_path;
+  freq_grid_pathFromPath(freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
   ArrayOfPropmatVector spectral_propmat_path;
   ArrayOfStokvecVector spectral_nlte_srcvec_path;
   ArrayOfPropmatMatrix spectral_propmat_jac_path;
@@ -97,27 +91,24 @@ void spectral_rad_pathClearskyEmission(
                                       freq_grid_path,
                                       atm_path,
                                       {});
-  spectral_rad_pathStepByStepEmissionForwardOnly(spectral_rad_path,
-                                                 spectral_tramat_path,
-                                                 spectral_rad_srcvec_path,
-                                                 spectral_rad_bkg);
+  spectral_rad_pathStepByStepEmissionForwardOnly(
+      spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path, spectral_rad_bkg);
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace
 
-void spectral_flux_profileFromPathField(
-    const Workspace& ws,
-    Matrix& spectral_flux_profile,
-    const ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const AtmField& atm_field,
-    const Agenda& spectral_propmat_agenda,
-    const Agenda& spectral_rad_space_agenda,
-    const Agenda& spectral_rad_surface_agenda,
-    const SurfaceField& surf_field,
-    const SubsurfaceField& subsurf_field,
-    const AscendingGrid& freq_grid,
-    const AscendingGrid& alt_grid,
-    const TransmittanceOption& rte_option) try {
+void spectral_flux_profileFromPathField(const Workspace&                          ws,
+                                        Matrix&                                   spectral_flux_profile,
+                                        const ArrayOfArrayOfPropagationPathPoint& ray_path_field,
+                                        const AtmField&                           atm_field,
+                                        const Agenda&                             spectral_propmat_agenda,
+                                        const Agenda&                             spectral_rad_space_agenda,
+                                        const Agenda&                             spectral_rad_surface_agenda,
+                                        const SurfaceField&                       surf_field,
+                                        const SubsurfaceField&                    subsurf_field,
+                                        const AscendingGrid&                      freq_grid,
+                                        const AscendingGrid&                      alt_grid,
+                                        const TransmittanceOption&                rte_option) try {
   ARTS_TIME_REPORT
 
   const Size N = ray_path_field.size();
@@ -153,19 +144,17 @@ void spectral_flux_profileFromPathField(
   if (not error.empty()) throw std::runtime_error(error);
 
   for (Size i = 0; i < N; i++) {
-    ARTS_USER_ERROR_IF(
-        spectral_rad_path_field[i].ncols() !=
-                static_cast<Index>(ray_path_field[i].size()) or
-            spectral_rad_path_field[i].nrows() != static_cast<Index>(K),
-        "Error in spectral_rad_path_field.  Expected shape: [{}, {}].  Got: {:B,}",
-        K,
-        ray_path_field[i].size(),
-        spectral_rad_path_field[i].shape());
+    ARTS_USER_ERROR_IF(spectral_rad_path_field[i].ncols() != static_cast<Index>(ray_path_field[i].size()) or
+                           spectral_rad_path_field[i].nrows() != static_cast<Index>(K),
+                       "Error in spectral_rad_path_field.  Expected shape: [{}, {}].  Got: {:B,}",
+                       K,
+                       ray_path_field[i].size(),
+                       spectral_rad_path_field[i].shape());
   }
 
   struct Zenith {
-    Size outer;
-    Size inner;
+    Size    outer;
+    Size    inner;
     Numeric angle;
   };
 
@@ -173,18 +162,15 @@ void spectral_flux_profileFromPathField(
   for (Size m = 0; m < M; m++) {
     zenith_angles.resize(0);
     const Numeric alt = alt_grid[m];
-    VectorView t      = spectral_flux_profile[m];
+    VectorView    t   = spectral_flux_profile[m];
 
     for (Size i = 0; i < ray_path_field.size(); i++) {
       for (Size j = 0; j < ray_path_field[i].size(); j++) {
-        if (alt == ray_path_field[i][j].altitude()) {
-          zenith_angles.emplace_back(i, j, ray_path_field[i][j].zenith());
-        }
+        if (alt == ray_path_field[i][j].altitude()) { zenith_angles.emplace_back(i, j, ray_path_field[i][j].zenith()); }
       }
     }
 
-    ARTS_USER_ERROR_IF(
-        zenith_angles.size() == 0, "No ray paths intersects altitude {} m", alt)
+    ARTS_USER_ERROR_IF(zenith_angles.size() == 0, "No ray paths intersects altitude {} m", alt)
 
     stdr::sort(zenith_angles, {}, &Zenith::angle);
 
@@ -205,14 +191,11 @@ void spectral_flux_profileFromPathField(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void flux_profileIntegrate(Vector& flux_profile,
-                           const Matrix& spectral_flux_profile,
-                           const AscendingGrid& freq_grid) {
+void flux_profileIntegrate(Vector& flux_profile, const Matrix& spectral_flux_profile, const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(freq_grid.size()) != spectral_flux_profile.extent(1),
-      "Frequency grid and spectral flux profile size mismatch")
+  ARTS_USER_ERROR_IF(static_cast<Index>(freq_grid.size()) != spectral_flux_profile.extent(1),
+                     "Frequency grid and spectral flux profile size mismatch")
 
   const Size K = spectral_flux_profile.extent(0);
 
@@ -221,7 +204,7 @@ void flux_profileIntegrate(Vector& flux_profile,
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size k = 0; k < K; k++) {
-    auto s  = spectral_flux_profile[k];
+    auto  s = spectral_flux_profile[k];
     auto& y = flux_profile[k];
     for (Size i = 0; i < freq_grid.size() - 1; i++) {
       const auto w  = 0.5 * (freq_grid[i + 1] - freq_grid[i]);
@@ -230,52 +213,41 @@ void flux_profileIntegrate(Vector& flux_profile,
   }
 }
 
-void nlte_line_flux_profileIntegrate(
-    QuantumIdentifierVectorMap& nlte_line_flux_profile,
-    const Matrix& spectral_flux_profile,
-    const AbsorptionBands& abs_bands,
-    const ArrayOfAtmPoint& atm_path,
-    const AscendingGrid& freq_grid) {
+void nlte_line_flux_profileIntegrate(QuantumIdentifierVectorMap& nlte_line_flux_profile,
+                                     const Matrix&               spectral_flux_profile,
+                                     const AbsorptionBands&      abs_bands,
+                                     const ArrayOfAtmPoint&      atm_path,
+                                     const AscendingGrid&        freq_grid) {
   ARTS_TIME_REPORT
 
   const Size K = spectral_flux_profile.extent(0);
   const Size M = spectral_flux_profile.extent(1);
 
-  ARTS_USER_ERROR_IF(freq_grid.size() != M,
-                     "Frequency grid and spectral flux profile size mismatch")
+  ARTS_USER_ERROR_IF(freq_grid.size() != M, "Frequency grid and spectral flux profile size mismatch")
 
-  ARTS_USER_ERROR_IF(
-      atm_path.size() != K,
-      "Atmospheric point and spectral flux profile size mismatch");
+  ARTS_USER_ERROR_IF(atm_path.size() != K, "Atmospheric point and spectral flux profile size mismatch");
 
   nlte_line_flux_profile.clear();
   for (const auto& [key, band] : abs_bands) {
     ARTS_USER_ERROR_IF(band.size() != 1, "Only one line per band is supported");
 
-    ARTS_USER_ERROR_IF(not is_voigt(band.lineshape),
-                       "Only one line per band is supported");
+    ARTS_USER_ERROR_IF(not is_voigt(band.lineshape), "Only one line per band is supported");
 
     Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape(), 0.0);
 
     for (Size k = 0; k < K; k++) {
-      lbl::compute_voigt(weighted_spectral_flux_profile[k],
-                         band.lines.front(),
-                         freq_grid,
-                         atm_path[k],
-                         key.isot.mass);
+      lbl::compute_voigt(weighted_spectral_flux_profile[k], band.lines.front(), freq_grid, atm_path[k], key.isot.mass);
     }
 
     weighted_spectral_flux_profile *= spectral_flux_profile;
 
-    flux_profileIntegrate(
-        nlte_line_flux_profile[key], weighted_spectral_flux_profile, freq_grid);
+    flux_profileIntegrate(nlte_line_flux_profile[key], weighted_spectral_flux_profile, freq_grid);
   }
 }
 
-void spectral_flux_profileFromSpectralRadianceField(
-    Matrix& spectral_flux_profile,
-    const GriddedSpectralField6& spectral_rad_field,
-    const Stokvec& pol) {
+void spectral_flux_profileFromSpectralRadianceField(Matrix&                      spectral_flux_profile,
+                                                    const GriddedSpectralField6& spectral_rad_field,
+                                                    const Stokvec&               pol) {
   ARTS_TIME_REPORT
 
   using Constant::pi;
@@ -327,11 +299,10 @@ NFRE: {}
     for (Size i = 0; i < NALT; i++) {
       for (Size j = 0; j < NFRE; j++) {
         for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
-          const Size iza1   = iza0 + 1;
-          const Numeric wza = 0.5 * pi * (cosd(za[iza0]) - cosd(za[iza1]));
+          const Size    iza1 = iza0 + 1;
+          const Numeric wza  = 0.5 * pi * (cosd(za[iza0]) - cosd(za[iza1]));
 
-          spectral_flux_profile[i, j] +=
-              wza * (dot(s[i, iza0, j], pol) + dot(s[i, iza1, j], pol));
+          spectral_flux_profile[i, j] += wza * (dot(s[i, iza0, j], pol) + dot(s[i, iza1, j], pol));
         }
       }
     }
@@ -342,17 +313,15 @@ NFRE: {}
     for (Size i = 0; i < NALT; i++) {
       for (Size j = 0; j < NFRE; j++) {
         for (Size iza0 = 0; iza0 < NZA - 1; iza0++) {
-          const Size iza1   = iza0 + 1;
-          const Numeric wza = 0.25 * (cosd(za[iza0]) - cosd(za[iza1]));
+          const Size    iza1 = iza0 + 1;
+          const Numeric wza  = 0.25 * (cosd(za[iza0]) - cosd(za[iza1]));
 
           for (Size iaa0 = 0; iaa0 < NAA - 1; iaa0++) {
-            const Size iaa1 = iaa0 + 1;
-            const Numeric w = wza * deg2rad(aa[iaa0] - aa[iaa1]);
+            const Size    iaa1 = iaa0 + 1;
+            const Numeric w    = wza * deg2rad(aa[iaa0] - aa[iaa1]);
 
-            spectral_flux_profile[i, j] +=
-                w *
-                (dot(s[i, iza0, iaa0, j], pol) + dot(s[i, iza1, iaa0, j], pol) +
-                 dot(s[i, iza0, iaa1, j], pol) + dot(s[i, iza1, iaa1, j], pol));
+            spectral_flux_profile[i, j] += w * (dot(s[i, iza0, iaa0, j], pol) + dot(s[i, iza1, iaa0, j], pol) +
+                                                dot(s[i, iza0, iaa1, j], pol) + dot(s[i, iza1, iaa1, j], pol));
           }
         }
       }

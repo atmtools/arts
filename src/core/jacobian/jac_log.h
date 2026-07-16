@@ -25,37 +25,27 @@ struct loginv {
   Vector operator()(ConstVectorView x, const SubsurfaceField& y) const;
 
   Matrix operator()(ConstMatrixView dy, ConstVectorView x) const;
-  Matrix operator()(ConstMatrixView dy,
-                    ConstVectorView x,
-                    const AtmField& y) const;
-  Matrix operator()(ConstMatrixView dy,
-                    ConstVectorView x,
-                    const SurfaceField& y) const;
-  Matrix operator()(ConstMatrixView dy,
-                    ConstVectorView x,
-                    const SubsurfaceField& y) const;
+  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const AtmField& y) const;
+  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const SurfaceField& y) const;
+  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const SubsurfaceField& y) const;
 };
 
 void make_logfit(Jacobian::AtmTarget&, const AtmField&);
 void make_logfit(Jacobian::SurfaceTarget&, const SurfaceField&);
 void make_logfit(Jacobian::SubsurfaceTarget&, const SubsurfaceField&);
 
-template <>
-struct xml_io_stream_name<loginv> {
+template <> struct xml_io_stream_name<loginv> {
   constexpr static std::string_view name = "loginv";
 };
 
-template <>
-struct xml_io_stream_name<logfwd> {
+template <> struct xml_io_stream_name<logfwd> {
   constexpr static std::string_view name = "logfwd";
 };
 
-template <>
-struct xml_io_stream_aggregate<loginv> {
+template <> struct xml_io_stream_aggregate<loginv> {
   constexpr static bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<logfwd> {
+template <> struct xml_io_stream_aggregate<logfwd> {
   constexpr static bool value = true;
 };

@@ -35,27 +35,23 @@ struct SpeciesEnumPair {
 };
 
 // Hash specialization for SpeciesEnumPair
-template <>
-struct std::hash<SpeciesEnumPair> {
+template <> struct std::hash<SpeciesEnumPair> {
   static std::size_t operator()(const SpeciesEnumPair& pair) noexcept {
-    return std::hash<SpeciesEnum>{}(pair.spec1) ^
-           (std::hash<SpeciesEnum>{}(pair.spec2) << sizeof(SpeciesEnum));
+    return std::hash<SpeciesEnum>{}(pair.spec1) ^ (std::hash<SpeciesEnum>{}(pair.spec2) << sizeof(SpeciesEnum));
   }
 };
 
 using CIARecords = std::unordered_map<SpeciesEnumPair, CIARecord>;
 
 /* Header with implementation. */
-void cia_interpolation(VectorView result,
+void cia_interpolation(VectorView             result,
                        const ConstVectorView& frequency,
-                       const Numeric& temperature,
-                       const GriddedField2& cia_data,
-                       const Numeric& T_extrapolfac,
-                       const Index& robust);
+                       const Numeric&         temperature,
+                       const GriddedField2&   cia_data,
+                       const Numeric&         T_extrapolfac,
+                       const Index&           robust);
 
-CIARecord* cia_get_data(const std::shared_ptr<CIARecords>& cia_data,
-                        const SpeciesEnum sp1,
-                        const SpeciesEnum sp2);
+CIARecord* cia_get_data(const std::shared_ptr<CIARecords>& cia_data, const SpeciesEnum sp1, const SpeciesEnum sp2);
 
 /** CIA data for a single pair of molecules.
  
@@ -102,11 +98,11 @@ class CIARecord {
      \param[in] dataset Index of dataset to use.
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      */
-  void Extract(VectorView result,
+  void Extract(VectorView             result,
                const ConstVectorView& f_grid,
-               const Numeric& temperature,
-               const Numeric& T_extrapolfac,
-               const Index& robust) const;
+               const Numeric&         temperature,
+               const Numeric&         T_extrapolfac,
+               const Index&           robust) const;
 
   /** Scalar version of extract.
      
@@ -122,7 +118,7 @@ class CIARecord {
   [[nodiscard]] Numeric Extract(const Numeric& frequency,
                                 const Numeric& temperature,
                                 const Numeric& T_extrapolfac,
-                                const Index& robust) const;
+                                const Index&   robust) const;
 
   /** Read CIA catalog file. */
   void ReadFromCIA(const String& filename);
@@ -138,9 +134,7 @@ class CIARecord {
 
  private:
   /** Append dataset to mdata. */
-  void AppendDataset(const Vector& freq,
-                     const Vector& temp,
-                     const ArrayOfVector& cia);
+  void AppendDataset(const Vector& freq, const Vector& temp, const ArrayOfVector& cia);
 
   /** The data itself, directly from the HITRAN file. 
      
@@ -156,60 +150,48 @@ class CIARecord {
   ArrayOfGriddedField2 mdata;
 };
 
-template <>
-struct std::formatter<SpeciesEnumPair> {
+template <> struct std::formatter<SpeciesEnumPair> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SpeciesEnumPair& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SpeciesEnumPair& v, FmtContext& ctx) const {
     return tags.format(ctx, v.spec1, "-"sv, v.spec2);
   }
 };
 
-template <>
-struct xml_io_stream_name<SpeciesEnumPair> {
+template <> struct xml_io_stream_name<SpeciesEnumPair> {
   static constexpr std::string_view name = "SpeciesEnumPair"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<SpeciesEnumPair> {
+template <> struct xml_io_stream_aggregate<SpeciesEnumPair> {
   static constexpr bool value = true;
 };
 
-template <>
-struct std::formatter<CIARecord> {
+template <> struct std::formatter<CIARecord> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const CIARecord& v, FmtContext& ctx) const {
     return tags.format(ctx, v.Data());
   }
 };
 
-template <>
-struct xml_io_stream<CIARecord> {
+template <> struct xml_io_stream<CIARecord> {
   static constexpr std::string_view type_name = "CIARecord"sv;
 
-  static void write(std::ostream& os,
-                    const CIARecord& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const CIARecord& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, CIARecord& x, bifstream* pbifs = nullptr);
 };

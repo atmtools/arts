@@ -16,8 +16,7 @@
 
 namespace Python {
 void internalCKDMT430(py::module_& m) {
-  py::class_<Absorption::PredefinedModel::MT_CKD430::WaterData> mm(
-      m, "MTCKD430WaterData");
+  py::class_<Absorption::PredefinedModel::MT_CKD430::WaterData> mm(m, "MTCKD430WaterData");
   generic_interface(mm);
   mm.def(py::init<Absorption::PredefinedModel::MT_CKD430::WaterData>())
       .def_rw("ref_temp",
@@ -26,16 +25,14 @@ void internalCKDMT430(py::module_& m) {
       .def_rw("ref_press",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::ref_press,
               "Reference pressure\n\n.. :class:`Numeric`")
-      .def_rw(
-          "self_absco_ref",
-          &Absorption::PredefinedModel::MT_CKD430::WaterData::self_absco_ref,
-          "Self absorption\n\n.. :class:`Vector`")
+      .def_rw("self_absco_ref",
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::self_absco_ref,
+              "Self absorption\n\n.. :class:`Vector`")
       .def_rw("for_absco_ref",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::for_absco_ref,
               "Foreign absorption\n\n.. :class:`Vector`")
       .def_rw("for_closure_absco_ref",
-              &Absorption::PredefinedModel::MT_CKD430::WaterData::
-                  for_closure_absco_ref,
+              &Absorption::PredefinedModel::MT_CKD430::WaterData::for_closure_absco_ref,
               "Foreign absorption closure\n\n.. :class:`Vector`")
       .def_rw("wavenumbers",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::wavenumbers,
@@ -48,20 +45,15 @@ void internalCKDMT430(py::module_& m) {
 
   m.def(
       "get_foreign_h2o_ckdmt430",
-      [](const Vector& f,
-         const AtmPoint& atm,
-         PredefinedModelData& data) -> Vector {
+      [](const Vector& f, const AtmPoint& atm, PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD430::compute_foreign_h2o(
             pm,
             f,
             atm,
-            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(
-                data.at("H2O-ForeignContCKDMT430"_isot).data));
+            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(data.at("H2O-ForeignContCKDMT430"_isot).data));
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -86,20 +78,15 @@ abs_coef : ~pyarts3.arts.Vector
 
   m.def(
       "get_self_h2o_ckdmt430",
-      [](const Vector& f,
-         const AtmPoint& atm,
-         PredefinedModelData& data) -> Vector {
+      [](const Vector& f, const AtmPoint& atm, PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD430::compute_self_h2o(
             pm,
             f,
             atm,
-            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(
-                data.at("H2O-SelfContCKDMT430"_isot).data));
+            std::get<Absorption::PredefinedModel::MT_CKD430::WaterData>(data.at("H2O-SelfContCKDMT430"_isot).data));
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -124,8 +111,7 @@ abs_coef : ~pyarts3.arts.Vector
 }
 
 void internalCKDMT400(py::module_& m) {
-  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mm(
-      m, "MTCKD400WaterData");
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mm(m, "MTCKD400WaterData");
   generic_interface(mm);
   mm.def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
       .def_rw("ref_temp",
@@ -137,10 +123,9 @@ void internalCKDMT400(py::module_& m) {
       .def_rw("ref_h2o_vmr",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr,
               "Reference water VMR\n\n.. :class:`Numeric`")
-      .def_rw(
-          "self_absco_ref",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref,
-          "Self absorption\n\n.. :class:`Vector`")
+      .def_rw("self_absco_ref",
+              &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref,
+              "Self absorption\n\n.. :class:`Vector`")
       .def_rw("for_absco_ref",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref,
               "Foreign absorption\n\n.. :class:`Vector`")
@@ -155,20 +140,15 @@ void internalCKDMT400(py::module_& m) {
 
   m.def(
       "get_foreign_h2o_ckdmt400",
-      [](const Vector& f,
-         const AtmPoint& atm,
-         PredefinedModelData& data) -> Vector {
+      [](const Vector& f, const AtmPoint& atm, PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD400::compute_foreign_h2o(
             pm,
             f,
             atm,
-            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
-                data.at("H2O-ForeignContCKDMT400"_isot).data));
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.at("H2O-ForeignContCKDMT400"_isot).data));
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -193,20 +173,15 @@ abs_coef : ~pyarts3.arts.Vector
 
   m.def(
       "get_self_h2o_ckdmt400",
-      [](const Vector& f,
-         const AtmPoint& atm,
-         PredefinedModelData& data) -> Vector {
+      [](const Vector& f, const AtmPoint& atm, PredefinedModelData& data) -> Vector {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD400::compute_self_h2o(
             pm,
             f,
             atm,
-            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(
-                data.at("H2O-SelfContCKDMT400"_isot).data));
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.at("H2O-SelfContCKDMT400"_isot).data));
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -237,9 +212,7 @@ void internalMPM89(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM89::water(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -265,9 +238,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM89::oxygen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -295,9 +266,7 @@ void internalMPM93(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MPM93::nitrogen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -325,9 +294,7 @@ void internalELL07(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::ELL07::compute(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -355,9 +322,7 @@ void internalPWR98(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR98::water(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -383,9 +348,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR98::oxygen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -413,9 +376,7 @@ void internalPWR20xx(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -441,9 +402,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_o2_2021(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -469,9 +428,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -497,9 +454,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_o2_2022(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -525,9 +480,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -555,9 +508,7 @@ void internalTRE05(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::TRE05::oxygen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -585,9 +536,7 @@ void internalCKDMT100(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -613,9 +562,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -641,9 +588,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -671,9 +616,7 @@ void internalCKDMT252(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -699,9 +642,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -727,9 +668,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -755,9 +694,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -785,9 +722,7 @@ void internalSTANDARD(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::water_self(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -813,9 +748,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::water_foreign(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -841,9 +774,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::nitrogen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -869,9 +800,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::Standard::oxygen(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -899,9 +828,7 @@ void internalCKDMT350(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -927,9 +854,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -957,9 +882,7 @@ void internalCKDMT320(py::module_& m) {
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT320::compute_self_h2o(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -985,9 +908,7 @@ abs_coef : ~pyarts3.arts.Vector
         PropmatVector pm(f.size());
         Absorption::PredefinedModel::CKDMT320::compute_foreign_h2o(pm, f, atm);
         Vector out(pm.size());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
-          return prop.A();
-        });
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) { return prop.A(); });
         return out;
       },
       "f_grid"_a,
@@ -1028,9 +949,7 @@ void py_predefined(py::module_& m) try {
   generic_interface(var);
 
   //! ARTS Workspace class, must live on the main (m) namespace
-  auto pdmd =
-      py::bind_map<PredefinedModelData, py::rv_policy::reference_internal>(
-          m, "PredefinedModelData");
+  auto pdmd = py::bind_map<PredefinedModelData, py::rv_policy::reference_internal>(m, "PredefinedModelData");
   generic_interface(pdmd);
   pdmd.def_static(
           "fromcatalog",
@@ -1038,20 +957,14 @@ void py_predefined(py::module_& m) try {
             auto out = PredefinedModelData{};
             for (auto& mod : specs) {
               if (mod.type == SpeciesTagType::Predefined) {
-                String filename = (std::filesystem::path(basename) /
-                                   (mod.Isotopologue().FullName() + ".xml"))
-                                      .string();
+                String filename = (std::filesystem::path(basename) / (mod.Isotopologue().FullName() + ".xml")).string();
                 if (find_xml_file_existence(filename)) {
                   PredefinedModelData data;
                   xml_read_from_file(filename, data);
-                  std::visit(
-                      [&](auto& model) {
-                        out[mod.Isotopologue()].data = model;
-                      },
-                      data.at(mod.Isotopologue()).data);
+                  std::visit([&](auto& model) { out[mod.Isotopologue()].data = model; },
+                             data.at(mod.Isotopologue()).data);
                 } else {
-                  out[mod.Isotopologue()].data =
-                      Absorption::PredefinedModel::ModelName{};
+                  out[mod.Isotopologue()].data = Absorption::PredefinedModel::ModelName{};
                 }
               }
             }
@@ -1063,21 +976,15 @@ void py_predefined(py::module_& m) try {
       .def(
           "spectral_propmat",
           [](const PredefinedModelData& self,
-             const AscendingGrid& f,
-             const AtmPoint& atm,
-             const SpeciesEnum& spec,
+             const AscendingGrid&       f,
+             const AtmPoint&            atm,
+             const SpeciesEnum&         spec,
              const py::kwargs&) {
-            PropmatVector spectral_propmat(f.size());
-            PropmatMatrix spectral_propmat_jac(0, f.size());
+            PropmatVector   spectral_propmat(f.size());
+            PropmatMatrix   spectral_propmat_jac(0, f.size());
             JacobianTargets jac_targets{};
 
-            spectral_propmatAddPredefined(spectral_propmat,
-                                          spectral_propmat_jac,
-                                          self,
-                                          spec,
-                                          jac_targets,
-                                          f,
-                                          atm);
+            spectral_propmatAddPredefined(spectral_propmat, spectral_propmat_jac, self, spec, jac_targets, f, atm);
 
             return spectral_propmat;
           },
@@ -1119,7 +1026,6 @@ spectral_propmat : PropmatVector
   internalELL07(predef);
   internalSTANDARD(predef);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize predefined\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize predefined\n{}", e.what()));
 }
 }  // namespace Python

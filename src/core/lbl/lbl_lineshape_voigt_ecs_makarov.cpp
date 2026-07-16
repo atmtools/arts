@@ -13,24 +13,14 @@ namespace lbl::voigt::ecs::makarov {
 #endif
 
 namespace {
-Numeric wig3(const Rational& a,
-             const Rational& b,
-             const Rational& c,
-             const Rational& d,
-             const Rational& e,
-             const Rational& f) {
-  return WIGNER3(
-      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+Numeric wig3(
+    const Rational& a, const Rational& b, const Rational& c, const Rational& d, const Rational& e, const Rational& f) {
+  return WIGNER3(a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }
 
-Numeric wig6(const Rational& a,
-             const Rational& b,
-             const Rational& c,
-             const Rational& d,
-             const Rational& e,
-             const Rational& f) {
-  return WIGNER6(
-      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+Numeric wig6(
+    const Rational& a, const Rational& b, const Rational& c, const Rational& d, const Rational& e, const Rational& f) {
+  return WIGNER6(a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
 }
 }  // namespace
 
@@ -80,32 +70,28 @@ constexpr Numeric erot(const Rational N, const Rational j = Rational{-1}) try {
       if (N == 1)  // erot<false>(1, 0)
         return mhz2joule(C1 - (xlambda + B0 * (2. * XN - 1.) + xgama * XN));
       return mhz2joule(C1 - (xlambda + B0 * (2. * XN - 1.) + xgama * XN) +
-                       std::sqrt(pow2(B0 * (2. * XN - 1.)) + pow2(xlambda) -
-                                 2. * B0 * xlambda));
+                       std::sqrt(pow2(B0 * (2. * XN - 1.)) + pow2(xlambda) - 2. * B0 * xlambda));
     }
     if (J > N)
-      return mhz2joule(C1 -
-                       (xlambda - B0 * (2. * XN + 3.) - xgama * (XN + 1.)) -
-                       std::sqrt(pow2(B0 * (2. * XN + 3.)) + pow2(xlambda) -
-                                 2. * B0 * xlambda));
+      return mhz2joule(C1 - (xlambda - B0 * (2. * XN + 3.) - xgama * (XN + 1.)) -
+                       std::sqrt(pow2(B0 * (2. * XN + 3.)) + pow2(xlambda) - 2. * B0 * xlambda));
     return mhz2joule(C1);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 }  // namespace
 
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm) try {
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm) try {
   using Conversion::kelvin2joule;
 
-  ARTS_USER_ERROR_IF(
-      bnd_qid.isot != "O2-66"_isot, "Bad isotopologue: {}", bnd_qid.isot)
+  ARTS_USER_ERROR_IF(bnd_qid.isot != "O2-66"_isot, "Bad isotopologue: {}", bnd_qid.isot)
 
   if (bnd.size() == 0) return;
 
@@ -113,33 +99,30 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S           = bnd_qid.state.at(QuantumNumberType::S);
+  auto&          S  = bnd_qid.state.at(QuantumNumberType::S);
   const Rational Si = S.upper;
   const Rational Sf = S.lower;
 
-  const std::array rats{
-      bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
-  const int maxL = wigner_init_size(rats);
+  const std::array rats{bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
+  const int        maxL = wigner_init_size(rats);
 
   const auto Om = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Omega(atm.temperature,
-                                bnd.front().ls.T0,
-                                broadening_species == SpeciesEnum::Bath
-                                    ? atm.mean_mass()
-                                    : atm.mean_mass(broadening_species),
-                                bnd_qid.isot.mass,
-                                erot(Rational{i}),
-                                erot(Rational{i - 2}));
+      out[i] = rovib_data.Omega(
+          atm.temperature,
+          bnd.front().ls.T0,
+          broadening_species == SpeciesEnum::Bath ? atm.mean_mass() : atm.mean_mass(broadening_species),
+          bnd_qid.isot.mass,
+          erot(Rational{i}),
+          erot(Rational{i - 2}));
     return out;
   }();
 
   const auto Q = [&, maxL]() {
     Vector out(maxL);
     for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Q(
-          Rational{i}, atm.temperature, bnd.front().ls.T0, erot(Rational{i}));
+      out[i] = rovib_data.Q(Rational{i}, atm.temperature, bnd.front().ls.T0, erot(Rational{i}));
     return out;
   }();
 
@@ -168,31 +151,24 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum       = 0;
-      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
-                          bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
-                          bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(
-          wigner3j_limits<3>(Ni_p, Ni),
-          {Rational(2), Rational{std::numeric_limits<Index>::max()}});
+      Numeric       sum = 0;
+      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) *
+                          bk(Ji) * bk(Ji_p);
+      const auto [L0, L1] =
+          wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), Rational{std::numeric_limits<Index>::max()}});
       for (Rational L = L0; L <= L1; L += 2) {
-        const Numeric a =
-            wig3(Ni_p, Ni, L, Rational{0}, Rational{0}, Rational{0});
-        const Numeric b =
-            wig3(Nf_p, Nf, L, Rational{0}, Rational{0}, Rational{0});
-        const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
-        const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
-        const Numeric e = wig6(L, Ji, Ji_p, Rational{1}, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] /
-               Om[L.toIndex()];
+        const Numeric a  = wig3(Ni_p, Ni, L, Rational{0}, Rational{0}, Rational{0});
+        const Numeric b  = wig3(Nf_p, Nf, L, Rational{0}, Rational{0}, Rational{0});
+        const Numeric c  = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
+        const Numeric d  = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
+        const Numeric e  = wig6(L, Ji, Ji_p, Rational{1}, Jf_p, Jf);
+        sum             += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] / Om[L.toIndex()];
       }
       sum *= scl * Om[Ni.toIndex()];
 
       // Add to W and rescale to upwards element by the populations
       W[i, j] = sum;
-      W[j, i] =
-          sum * std::exp((bnd.lines[sorting[j]].e0 - bnd.lines[sorting[i]].e0) /
-                         kelvin2joule(atm.temperature));
+      W[j, i] = sum * std::exp((bnd.lines[sorting[j]].e0 - bnd.lines[sorting[i]].e0) / kelvin2joule(atm.temperature));
     }
   }
   arts_wigner_thread_free();
@@ -219,9 +195,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       } else {
         W[j, i] *= -sumup / sumlw;
         W[i, j] =
-            W[j, i] *
-            std::exp((bnd.lines[sorting[i]].e0 - bnd.lines[sorting[j]].e0) /
-                     kelvin2joule(atm.temperature));
+            W[j, i] * std::exp((bnd.lines[sorting[i]].e0 - bnd.lines[sorting[j]].e0) / kelvin2joule(atm.temperature));
       }
     }
   }

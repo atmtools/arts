@@ -47,9 +47,7 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
     return true;
   }})");
       } else {
-        std::print(os,
-                   "static_assert(false, \"Missing custom code for {0}\");",
-                   group);
+        std::print(os, "static_assert(false, \"Missing custom code for {0}\");", group);
       }
     } else {
       std::println(os,
@@ -93,8 +91,7 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
 
   std::print(os, "\n  return false;\n}}\n}}\n");
 } catch (const std::exception& e) {
-  std::println(
-      stderr, "Error in implement_convert_const_py_object: {}", e.what());
+  std::println(stderr, "Error in implement_convert_const_py_object: {}", e.what());
   throw;
 }
 
@@ -247,8 +244,7 @@ void groups(const std::string& fname) try {
 #include <hpy_vector.h>
 )--");
 
-  for (auto& [group, wsg] :
-       std::array{wsgs, workspace_group_friends()} | stdv::join) {
+  for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
     std::println(hos, "NB_MAKE_OPAQUE(Array<{}>);\n", group);
     if (wsg.map_type) std::println(hos, "NB_MAKE_OPAQUE({});\n", group);
   }
@@ -336,13 +332,9 @@ struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
   std::println(osc, R"(#include "py_auto_wsgdocs.h"
 )");
 
-  for (auto& [group, wsg] :
-       std::array{wsgs, workspace_group_friends()} | stdv::join) {
-    const auto info =
-        unwrap_stars(std::format("{}\n{}{}",
-                                 wsg.desc,
-                                 Python::group_generics_inout(group),
-                                 Python::group_workspace_types(group)));
+  for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
+    const auto info = unwrap_stars(
+        std::format("{}\n{}{}", wsg.desc, Python::group_generics_inout(group), Python::group_workspace_types(group)));
 
     std::println(osh,
 
@@ -386,8 +378,8 @@ void py_auto_agenda_operators(py::module_& m) {{
   for (auto& [name, ag] : internal_workspace_agendas()) {
     std::vector<std::string> input;
     std::vector<std::string> vars;
-    std::string params;
-    std::string retval;
+    std::string              params;
+    std::string              retval;
 
     input.reserve(ag.input.size());
     vars.reserve(ag.input.size());
@@ -415,8 +407,7 @@ void py_auto_agenda_operators(py::module_& m) {{
           unwrap_stars(short_doc(v)));
     }
 
-    const std::string op =
-        ag.named_operator.empty() ? (name + "Operator") : ag.named_operator;
+    const std::string op = ag.named_operator.empty() ? (name + "Operator") : ag.named_operator;
     if (auto [_, new_] = seen.insert(op); not new_) continue;
 
     std::print(cpp,
@@ -496,9 +487,7 @@ Failure to follow these rules will result in a runtime error.
   }
 
   std::println(cpp, "}}}}\n");
-} catch (const std::exception& e) {
-  std::println(stderr, "Error in agenda_operators: {}", e.what());
-}
+} catch (const std::exception& e) { std::println(stderr, "Error in agenda_operators: {}", e.what()); }
 
 void wsv_implicit() try {
   std::ofstream cpp("py_auto_wsg_wsv_implicit.cpp");
@@ -525,17 +514,14 @@ void wsv_implicit(py::class_<Wsv>& wsv) {{)");
         R"(wsv.def( "__init__", [] (Wsv* v, {0}<{1}>& a) {{ new (v) Wsv{{ std::move(a) }}; }}, "a"_a.noconvert());)",
         group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
         group.first);
-    std::println(
-        cpp,
-        R"(py::implicitly_convertible<{0}<{1}>, Wsv>();)",
-        group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
-        group.first);
+    std::println(cpp,
+                 R"(py::implicitly_convertible<{0}<{1}>, Wsv>();)",
+                 group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
+                 group.first);
   }
 
   cpp << "}\n}  // namespace Python\n";
-} catch (const std::exception& e) {
-  std::println(stderr, "Error in wsv_implicit: {}", e.what());
-}
+} catch (const std::exception& e) { std::println(stderr, "Error in wsv_implicit: {}", e.what()); }
 }  // namespace
 
 int main() try {

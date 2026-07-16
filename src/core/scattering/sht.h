@@ -34,13 +34,14 @@
 #include <array.h>
 #include <arts_conversions.h>
 #include <matpack.h>
-#include "integration.h"
 
 #include <complex>
 #include <map>
 #include <memory>
 #include <numbers>
 #include <utility>
+
+#include "integration.h"
 
 typedef struct shtns_info *shtns_cfg;
 
@@ -55,8 +56,7 @@ using std::numbers::pi_v;
  * requirements which is ensured by using fftw_malloc and fftw_free
  * functions to allocate and free memory, respectively.
  */
-template <typename Numeric>
-class FFTWArray {
+template <typename Numeric> class FFTWArray {
  public:
   FFTWArray() = default;
   FFTWArray(Index n);
@@ -68,14 +68,11 @@ class FFTWArray {
 
 class ShtnsHandle {
  public:
-  [[nodiscard]] static shtns_cfg get(Index l_max,
-                                     Index m_max,
-                                     Index n_aa,
-                                     Index n_za);
+  [[nodiscard]] static shtns_cfg get(Index l_max, Index m_max, Index n_aa, Index n_za);
 
  private:
   static std::array<Index, 4> current_config_;
-  static shtns_cfg shtns_;
+  static shtns_cfg            shtns_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +110,7 @@ class SHT {
    * @param radians If true the zenith-angle grid is returned in radians.
    * @return A vector containing the azimuth angles in degree (or radians).
    */
-  [[nodiscard]] static Vector get_azimuth_angle_grid(Index n_aa,
-                                                     bool radians = false);
+  [[nodiscard]] static Vector get_azimuth_angle_grid(Index n_aa, bool radians = false);
 
   /// Pointer to the azimuth angle grid in degrees.
   [[nodiscard]] std::shared_ptr<const Vector> get_aa_grid_ptr() const;
@@ -124,8 +120,7 @@ class SHT {
    * @param radians If true the zenith-angle grid is returned in radians.
    * @return A vector containing the zenith-angle grid in degree (or radians).
    */
-  [[nodiscard]] static FejerGrid get_zenith_angle_grid(Index n_pts,
-                                                       bool radians = false);
+  [[nodiscard]] static FejerGrid get_zenith_angle_grid(Index n_pts, bool radians = false);
 
   [[nodiscard]] FejerGrid get_zenith_angle_grid(bool radians = false) const;
 
@@ -147,8 +142,7 @@ class SHT {
    * @return The number of spherical harmonics coefficients for a complex
    * transform.
    */
-  [[nodiscard]] static Index calc_n_spectral_coeffs_cmplx(Index l_max,
-                                                          Index m_max);
+  [[nodiscard]] static Index calc_n_spectral_coeffs_cmplx(Index l_max, Index m_max);
 
   /** Calc l_max for m_max == l_max.
    *
@@ -167,8 +161,7 @@ class SHT {
    * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
-  [[nodiscard]] static std::array<Index, 4> get_config_lonlat(Index n_aa,
-                                                              Index n_za);
+  [[nodiscard]] static std::array<Index, 4> get_config_lonlat(Index n_aa, Index n_za);
 
   /** SHT parameters for given SHT maximum degree and order of SHT
    * @param l_max: The maximum degree l of the SHT.
@@ -177,8 +170,7 @@ class SHT {
    * m_max, n_aa and n_za that are valid inputs to initialize
    * the SHTns library.
    */
-  [[nodiscard]] static std::array<Index, 4> get_config_lm(Index l_max,
-                                                          Index m_max);
+  [[nodiscard]] static std::array<Index, 4> get_config_lm(Index l_max, Index m_max);
 
   /**
    * Create a spherical harmonics transformation object.
@@ -258,9 +250,7 @@ class SHT {
    * to the input data. Row indices should correspond to azimuth angles
    * and columns to zenith angle.
    */
-  template <typename T>
-  void set_spatial_coeffs(
-      const matpack::strided_view_t<const T, 2> &view) const {
+  template <typename T> void set_spatial_coeffs(const matpack::strided_view_t<const T, 2> &view) const {
     assert(view.nrows() == n_aa_);
     assert(view.ncols() == n_za_);
     Index index = 0;
@@ -284,8 +274,7 @@ class SHT {
    * to the input data. Row indices should correspond to azimuth angles
    * and columns to zenith angles.
    */
-  void set_spectral_coeffs(
-      const matpack::strided_view_t<const Complex, 1> &view) const;
+  void set_spectral_coeffs(const matpack::strided_view_t<const Complex, 1> &view) const;
 
   /**
    * Copy spherical harmonics coefficients into the array that holds spectral
@@ -294,8 +283,7 @@ class SHT {
    * @param m SpectralCoeffs The spherical harmonics coefficients
    * representing the data.
    */
-  void set_spectral_coeffs_cmplx(
-      const matpack::strided_view_t<const Complex, 1> &view) const;
+  void set_spectral_coeffs_cmplx(const matpack::strided_view_t<const Complex, 1> &view) const;
 
   /**
    * Return content of the array that holds spatial data for
@@ -407,9 +395,7 @@ class SHT {
    * @param phi The azimuth angles in radians.
    * @return theta The zenith angle in radians.
    */
-  Numeric evaluate(const StridedConstComplexVectorView &view,
-                   Numeric phi,
-                   Numeric theta);
+  Numeric evaluate(const StridedConstComplexVectorView &view, Numeric phi, Numeric theta);
 
   /** Evaluate spectral representation at given point.
    *
@@ -435,29 +421,24 @@ class SHT {
    */
   Vector evaluate(const StridedConstComplexVectorView &view, const Vector &thetas);
 
-  template <typename Vec1, typename Vec2>
-  friend matpack::data_t<typename Vec1::value_type, 1> add_coeffs(
+  template <typename Vec1, typename Vec2> friend matpack::data_t<typename Vec1::value_type, 1> add_coeffs(
       const SHT &sht_v, const Vec1 &v, const SHT &sht_w, const Vec2 &w);
 
-  template <typename T>
-  friend matpack::data_t<T, 2> add_coeffs(
-      const SHT &sht_inc_v,
-      const SHT &sht_scat_v,
-      const matpack::strided_view_t<const T, 2> &v,
-      const SHT &sht_inc_w,
-      const SHT &sht_scat_w,
-      const matpack::strided_view_t<const T, 2> &w);
+  template <typename T> friend matpack::data_t<T, 2> add_coeffs(const SHT                                 &sht_inc_v,
+                                                                const SHT                                 &sht_scat_v,
+                                                                const matpack::strided_view_t<const T, 2> &v,
+                                                                const SHT                                 &sht_inc_w,
+                                                                const SHT                                 &sht_scat_w,
+                                                                const matpack::strided_view_t<const T, 2> &w);
 
  private:
-  bool is_trivial_;
-  Index l_max_, m_max_, n_aa_, n_za_, n_spectral_coeffs_,
-      n_spectral_coeffs_cmplx_;
+  bool  is_trivial_;
+  Index l_max_, m_max_, n_aa_, n_za_, n_spectral_coeffs_, n_spectral_coeffs_cmplx_;
 
-  sht::FFTWArray<std::complex<double>> spectral_coeffs_, spectral_coeffs_cmplx_,
-      spatial_coeffs_cmplx_;
-  sht::FFTWArray<double> spatial_coeffs_;
-  std::shared_ptr<Vector> aa_grid_;
-  std::shared_ptr<ZenithAngleGrid> za_grid_;
+  sht::FFTWArray<std::complex<double>> spectral_coeffs_, spectral_coeffs_cmplx_, spatial_coeffs_cmplx_;
+  sht::FFTWArray<double>               spatial_coeffs_;
+  std::shared_ptr<Vector>              aa_grid_;
+  std::shared_ptr<ZenithAngleGrid>     za_grid_;
 };
 
 /** SHT instance provider.
@@ -503,11 +484,10 @@ extern SHTProvider provider;
  * @return A spectral coefficient field containing spectral coefficients
  * of the sum of v and w for the transform object sht_v.
  */
-template <typename Vec1, typename Vec2>
-matpack::data_t<typename Vec1::value_type, 1> add_coeffs(const SHT &sht_v,
-                                                               const Vec1 &v,
-                                                               const SHT &sht_w,
-                                                               const Vec2 &w) {
+template <typename Vec1, typename Vec2> matpack::data_t<typename Vec1::value_type, 1> add_coeffs(const SHT  &sht_v,
+                                                                                                 const Vec1 &v,
+                                                                                                 const SHT  &sht_w,
+                                                                                                 const Vec2 &w) {
   auto result = matpack::data_t<typename Vec1::value_type, 1>(v);
 
   if (sht_w.is_trivial_) {
@@ -549,32 +529,27 @@ matpack::data_t<typename Vec1::value_type, 1> add_coeffs(const SHT &sht_v,
   * of the sum of v and w for the transform objects sht_inc_v and
   * sht_scat_v.
   */
-template <typename T>
-matpack::data_t<T, 2> add_coeffs(
-    const SHT &sht_inc_v,
-    const SHT &sht_scat_v,
-    const matpack::strided_view_t<const T, 2> &v,
-    const SHT &sht_inc_w,
-    const SHT &sht_scat_w,
-    const matpack::strided_view_t<const T, 2> &w) {
+template <typename T> matpack::data_t<T, 2> add_coeffs(const SHT                                 &sht_inc_v,
+                                                       const SHT                                 &sht_scat_v,
+                                                       const matpack::strided_view_t<const T, 2> &v,
+                                                       const SHT                                 &sht_inc_w,
+                                                       const SHT                                 &sht_scat_w,
+                                                       const matpack::strided_view_t<const T, 2> &w) {
   Index nlm_inc  = sht_inc_v.get_n_spectral_coeffs_cmplx();
   Index nlm_scat = sht_scat_v.get_n_spectral_coeffs();
-  auto result    = ComplexMatrix(nlm_inc, nlm_scat);
+  auto  result   = ComplexMatrix(nlm_inc, nlm_scat);
 
   Index index_l = 0;
   for (int l = 0; l <= static_cast<int>(sht_inc_v.l_max_); ++l) {
-    int m_max = static_cast<int>(
-        (l <= static_cast<int>(sht_inc_v.m_max_)) ? l : sht_inc_v.m_max_);
+    int m_max = static_cast<int>((l <= static_cast<int>(sht_inc_v.m_max_)) ? l : sht_inc_v.m_max_);
     for (int m = -m_max; m <= m_max; ++m) {
       if ((l > sht_inc_w.l_max_) || (std::abs(m) > sht_inc_w.m_max_)) {
         result[index_l, joker] = v.row(index_l, joker);
       } else {
-        int h = static_cast<int>(
-            std::min<int>(static_cast<int>(sht_inc_w.m_max_), l));
+        int h       = static_cast<int>(std::min<int>(static_cast<int>(sht_inc_w.m_max_), l));
         int index_r = l * (2 * h + 1) - h * h + m;
 
-        auto r =
-            add_coeffs(sht_scat_v, v.row(index_l), sht_scat_w, w.row(index_r));
+        auto r                 = add_coeffs(sht_scat_v, v.row(index_l), sht_scat_w, w.row(index_r));
         result[index_l, joker] = r;
       }
       ++index_l;

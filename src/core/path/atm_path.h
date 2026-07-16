@@ -10,8 +10,7 @@
  * @param[in] rad_path As WSV
  * @return ArrayOfAtmPoint& As ppvar_atm WSV
  */
-ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm,
-                                 const ArrayOfPropagationPathPoint &rad_path);
+ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm, const ArrayOfPropagationPathPoint &rad_path);
 
 /** Fills the propagation path atmospheric point variable, size is known
  *
@@ -19,9 +18,9 @@ ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm,
  * @param[in] rad_path As WSV
  * @param[in] atm_field As WSV
  */
-void forward_atm_path(ArrayOfAtmPoint &ppvar_atm,
+void forward_atm_path(ArrayOfAtmPoint                   &ppvar_atm,
                       const ArrayOfPropagationPathPoint &rad_path,
-                      const AtmField &atm_field);
+                      const AtmField                    &atm_field);
 
 /** Outputs the propagation path atmospheric point variable
  *
@@ -29,8 +28,7 @@ void forward_atm_path(ArrayOfAtmPoint &ppvar_atm,
  * @param[in] atm_field As WSV
  * @return ArrayOfAtmPoint As ppvar_atm WSV
  */
-ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
-                                 const AtmField &atm_field);
+ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path, const AtmField &atm_field);
 
 /** Frequency shift at a single ray path ppoint
  * 
@@ -39,10 +37,10 @@ ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
  * @param rad_path path point of the radiation
  * @param atm_path path point of the atmosphere
  */
-void forward_path_freq(AscendingGrid &path_freq,
-                       const AscendingGrid &main_freq,
+void forward_path_freq(AscendingGrid              &path_freq,
+                       const AscendingGrid        &main_freq,
                        const PropagationPathPoint &rad_path,
-                       const AtmPoint &atm_path);
+                       const AtmPoint             &atm_path);
 
 /** Set frequency grid along the atmospheric path
  * 
@@ -52,10 +50,10 @@ void forward_path_freq(AscendingGrid &path_freq,
  * @param[in] ppvar_atm As WSV
  * @return ArrayOfVector& As ppvar_f WSV
  */
-void forward_path_freq(ArrayOfAscendingGrid &ppvar_f,
-                       const AscendingGrid &f_grid,
+void forward_path_freq(ArrayOfAscendingGrid              &ppvar_f,
+                       const AscendingGrid               &f_grid,
                        const ArrayOfPropagationPathPoint &rad_path,
-                       const ArrayOfAtmPoint &ppvar_atm);
+                       const ArrayOfAtmPoint             &ppvar_atm);
 
 /** Extracts a 1D atmospheric "path" from a 3D atmospheric field
  *
@@ -66,6 +64,6 @@ void forward_path_freq(ArrayOfAscendingGrid &ppvar_f,
  * @return ArrayOfAtmPoint A "path" through the 3D atmospheric field
  */
 ArrayOfAtmPoint extract1D(const AtmField &atm_field,
-                          const Vector &z_grid,
-                          const Vector &lat_grid = {0},
-                          const Vector &lon_grid = {0});
+                          const Vector   &z_grid,
+                          const Vector   &lat_grid = {0},
+                          const Vector   &lon_grid = {0});

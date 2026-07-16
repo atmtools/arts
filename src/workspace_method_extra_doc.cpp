@@ -9,19 +9,13 @@
 #include <ranges>
 
 namespace {
-std::string& docstr(std::unordered_map<std::string, std::string>& map,
-                    const std::string& key) {
+std::string& docstr(std::unordered_map<std::string, std::string>& map, const std::string& key) {
   const auto& orig = workspace_methods();
-  if (orig.find(key) == orig.end()) {
-    throw std::runtime_error(
-        std::format(R"(No method "{}" in ARTS methods)", key));
-  }
+  if (orig.find(key) == orig.end()) { throw std::runtime_error(std::format(R"(No method "{}" in ARTS methods)", key)); }
   return map[key];
 }
 
-std::string replace(std::string str,
-                    const std::string& from,
-                    const std::string& to) {
+std::string replace(std::string str, const std::string& from, const std::string& to) {
   size_t start_pos = str.find(from);
   if (start_pos == std::string::npos) return str;
   str.replace(start_pos, from.length(), to);
@@ -72,18 +66,13 @@ Before that, a concise overview of what each option does is available by the typ
       method.in[3].substr(1),
       method.in[4].substr(1));
 
-  for (auto layer_emission_setting :
-       enumstrs::disort_settings_agenda_setup_layer_emission_typeNames<>) {
-    for (auto scattering_setting :
-         enumstrs::disort_settings_agenda_setup_scattering_typeNames<>) {
-      for (auto space_setting :
-           enumstrs::disort_settings_agenda_setup_space_typeNames<>) {
-        for (auto sun_setting :
-             enumstrs::disort_settings_agenda_setup_sun_typeNames<>) {
-          for (auto surface_setting :
-               enumstrs::disort_settings_agenda_setup_surface_typeNames<>) {
-            Agenda x{};
-            Vector y{-99, 0, 99};
+  for (auto layer_emission_setting : enumstrs::disort_settings_agenda_setup_layer_emission_typeNames<>) {
+    for (auto scattering_setting : enumstrs::disort_settings_agenda_setup_scattering_typeNames<>) {
+      for (auto space_setting : enumstrs::disort_settings_agenda_setup_space_typeNames<>) {
+        for (auto sun_setting : enumstrs::disort_settings_agenda_setup_sun_typeNames<>) {
+          for (auto surface_setting : enumstrs::disort_settings_agenda_setup_surface_typeNames<>) {
+            Agenda      x{};
+            Vector      y{-99, 0, 99};
             std::string docstr{};
             try {
               disort_settings_agendaSetup(x,
@@ -95,13 +84,8 @@ Before that, a concise overview of what each option does is available by the typ
                                           y,
                                           123);
               docstr = replace(
-                  replace(
-                      x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection"),
-                  "123",
-                  "min_optical_depth");
-            } catch (std::exception& e) {
-              docstr = std::format("Invalid combination: {}", e.what());
-            }
+                  replace(x.sphinx_list(), "[-99, 0, 99]", "lambertian_reflection"), "123", "min_optical_depth");
+            } catch (std::exception& e) { docstr = std::format("Invalid combination: {}", e.what()); }
 
             doc += std::format(
                 R"(
@@ -164,20 +148,16 @@ Below follows a complete list of all single species tags that can be set using t
   }
 
   doc += "\n\nAnd in short: ";
-  for (auto& x : Species::Isotopologues | stdv::drop(1)) {
-    doc += std::format("``{}``, ", x.FullName());
-  }
+  for (auto& x : Species::Isotopologues | stdv::drop(1)) { doc += std::format("``{}``, ", x.FullName()); }
   doc += '\n';
 
   return doc;
 }
 
-std::unordered_map<std::string, std::string>
-workspace_method_extra_doc_internal() {
+std::unordered_map<std::string, std::string> workspace_method_extra_doc_internal() {
   std::unordered_map<std::string, std::string> doc{};
 
-  docstr(doc, "disort_settings_agendaSetup") =
-      get_disort_settings_agendaSetup_doc();
+  docstr(doc, "disort_settings_agendaSetup") = get_disort_settings_agendaSetup_doc();
 
   docstr(doc, "abs_speciesSet") = get_abs_speciesSet_doc();
 
@@ -185,8 +165,7 @@ workspace_method_extra_doc_internal() {
 }
 }  // namespace
 
-const std::unordered_map<std::string, std::string>&
-workspace_method_extra_doc() {
+const std::unordered_map<std::string, std::string>& workspace_method_extra_doc() {
   static auto doc = workspace_method_extra_doc_internal();
   return doc;
 }

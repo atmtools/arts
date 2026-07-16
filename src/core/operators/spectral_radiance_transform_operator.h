@@ -7,13 +7,9 @@
 #include "operators.h"
 
 struct SpectralRadianceTransformOperator {
-  using Op = CustomOperator<void,
-                            StokvecVector&,
-                            StokvecMatrix&,
-                            const AscendingGrid&,
-                            const PropagationPathPoint&>;
+  using Op = CustomOperator<void, StokvecVector&, StokvecMatrix&, const AscendingGrid&, const PropagationPathPoint&>;
 
-  Op f{};
+  Op          f{};
   std::string type{"CustomOperator"};
 
   SpectralRadianceTransformOperator(SpectralRadianceUnitType);
@@ -21,57 +17,44 @@ struct SpectralRadianceTransformOperator {
 
   SpectralRadianceTransformOperator();
   SpectralRadianceTransformOperator(const SpectralRadianceTransformOperator& x);
-  SpectralRadianceTransformOperator(
-      SpectralRadianceTransformOperator&& x) noexcept;
-  SpectralRadianceTransformOperator& operator=(
-      const SpectralRadianceTransformOperator& x);
-  SpectralRadianceTransformOperator& operator=(
-      SpectralRadianceTransformOperator&& x) noexcept;
+  SpectralRadianceTransformOperator(SpectralRadianceTransformOperator&& x) noexcept;
+  SpectralRadianceTransformOperator& operator=(const SpectralRadianceTransformOperator& x);
+  SpectralRadianceTransformOperator& operator=(SpectralRadianceTransformOperator&& x) noexcept;
 
-  SpectralRadianceTransformOperator(
-      SpectralRadianceTransformOperator::Op&& x) noexcept;
-  SpectralRadianceTransformOperator(
-      const SpectralRadianceTransformOperator::Op& x);
+  SpectralRadianceTransformOperator(SpectralRadianceTransformOperator::Op&& x) noexcept;
+  SpectralRadianceTransformOperator(const SpectralRadianceTransformOperator::Op& x);
 
-  void operator()(StokvecVector& spectral_rad,
-                  StokvecMatrix& spectral_rad_jac,
-                  const AscendingGrid& freq_grid,
+  void operator()(StokvecVector&              spectral_rad,
+                  StokvecMatrix&              spectral_rad_jac,
+                  const AscendingGrid&        freq_grid,
                   const PropagationPathPoint& ray_point) const;
 };
 
 SpectralRadianceTransformOperator::Op from(SpectralRadianceUnitType x);
 
-template <>
-struct std::formatter<SpectralRadianceTransformOperator> {
+template <> struct std::formatter<SpectralRadianceTransformOperator> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const SpectralRadianceTransformOperator& op,
-                              FmtContext& ctx) const {
-    return tags.format(
-        ctx, "<SpectralRadianceTransformOperator::"sv, op.type, ">"sv);
+  FmtContext::iterator format(const SpectralRadianceTransformOperator& op, FmtContext& ctx) const {
+    return tags.format(ctx, "<SpectralRadianceTransformOperator::"sv, op.type, ">"sv);
   }
 };
 
-template <>
-struct xml_io_stream<SpectralRadianceTransformOperator> {
-  static constexpr std::string_view type_name =
-      "SpectralRadianceTransformOperator"sv;
+template <> struct xml_io_stream<SpectralRadianceTransformOperator> {
+  static constexpr std::string_view type_name = "SpectralRadianceTransformOperator"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                            os,
                     const SpectralRadianceTransformOperator& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                               pbofs = nullptr,
+                    std::string_view                         name  = ""sv);
 
-  static void read(std::istream& is,
-                   SpectralRadianceTransformOperator& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, SpectralRadianceTransformOperator& x, bifstream* pbifs = nullptr);
 };

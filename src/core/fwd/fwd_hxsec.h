@@ -10,9 +10,9 @@ namespace fwd::hxsec {
 
 class full {
   struct single {
-    Numeric scl{};
-    Numeric P{};
-    Numeric T{};
+    Numeric     scl{};
+    Numeric     P{};
+    Numeric     T{};
     XsecRecord* xsecrec{};
 
     single()                         = default;
@@ -26,9 +26,9 @@ class full {
     [[nodiscard]] Complex at(const Numeric frequency) const;
   };
 
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>    atm{};
   std::shared_ptr<XsecRecords> xsecrec{};
-  std::vector<single> models{};
+  std::vector<single>          models{};
 
   void adapt();
 

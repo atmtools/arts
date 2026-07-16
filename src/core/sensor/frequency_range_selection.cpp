@@ -10,13 +10,9 @@
 namespace sensor {
 Size FrequencyRange::size() const { return response_paths.size(); }
 
-const FrequencyResponsePath& FrequencyRange::path(Size index) const {
-  return response_paths.at(index);
-}
+const FrequencyResponsePath& FrequencyRange::path(Size index) const { return response_paths.at(index); }
 
-const std::vector<FrequencyResponsePath>& FrequencyRange::paths() const {
-  return response_paths;
-}
+const std::vector<FrequencyResponsePath>& FrequencyRange::paths() const { return response_paths; }
 
 void FrequencyRange::sync_ranges() {
   global_ranges.clear();
@@ -42,39 +38,28 @@ bool is_close(Numeric a, Numeric b) {
 }
 
 bool is_in_closed_interval(Numeric x, Numeric low, Numeric high) {
-  return x >= low - response_eps * scale(low) and
-         x <= high + response_eps * scale(high);
+  return x >= low - response_eps * scale(low) and x <= high + response_eps * scale(high);
 }
 
 void assert_frange(const Vector2& sideband) {
-  if (sideband[0] > sideband[1] or is_close(sideband[0], sideband[1]) or
-      sideband[0] < 0) {
+  if (sideband[0] > sideband[1] or is_close(sideband[0], sideband[1]) or sideband[0] < 0) {
     throw std::invalid_argument(std::format(
-        "Frequency range must be unique, sorted, and non-negative.  Got: [{}, {}].",
-        sideband[0],
-        sideband[1]));
+        "Frequency range must be unique, sorted, and non-negative.  Got: [{}, {}].", sideband[0], sideband[1]));
   }
 }
 
 void assert_bandpass_ranges(const std::span<const Vector2>& bandpasses) {
-  if (bandpasses.empty()) {
-    throw std::invalid_argument("At least one sideband must be provided.");
-  }
+  if (bandpasses.empty()) { throw std::invalid_argument("At least one sideband must be provided."); }
 
   for (auto sideband : bandpasses) assert_frange(sideband);
 }
 
 void assert_lo_nonnegative(const Numeric& LO) {
-  if (LO < 0) {
-    throw std::invalid_argument(
-        std::format("LO frequency must be non-negative.  Got: {}.", LO));
-  }
+  if (LO < 0) { throw std::invalid_argument(std::format("LO frequency must be non-negative.  Got: {}.", LO)); }
 }
 
 void assert_clocks(const std::span<const Numeric>& clocks) {
-  if (clocks.empty()) {
-    throw std::invalid_argument("At least one LO frequency must be provided.");
-  }
+  if (clocks.empty()) { throw std::invalid_argument("At least one LO frequency must be provided."); }
 
   for (auto clock : clocks) assert_lo_nonnegative(clock);
 }
@@ -82,21 +67,18 @@ void assert_clocks(const std::span<const Numeric>& clocks) {
 void assert_weighted_bandpass(const SortedGriddedField1& bandpass_filter) {
   const auto& grid = bandpass_filter.grid<0>();
 
-  if (grid.empty()) {
-    throw std::invalid_argument("Bandpass filter grid must not be empty.");
-  }
+  if (grid.empty()) { throw std::invalid_argument("Bandpass filter grid must not be empty."); }
 
   if (grid.size() != bandpass_filter.data.size()) {
-    throw std::invalid_argument(std::format(
-        "Bandpass filter grid and data must have the same size.  Got {} grid points and {} weights.",
-        grid.size(),
-        bandpass_filter.data.size()));
+    throw std::invalid_argument(
+        std::format("Bandpass filter grid and data must have the same size.  Got {} grid points and {} weights.",
+                    grid.size(),
+                    bandpass_filter.data.size()));
   }
 
   for (Size i = 1; i < grid.size(); i++) {
     if (grid[i - 1] > grid[i] or is_close(grid[i - 1], grid[i])) {
-      throw std::invalid_argument(
-          "Bandpass filter grid must be unique and sorted.");
+      throw std::invalid_argument("Bandpass filter grid must be unique and sorted.");
     }
   }
 }
@@ -114,25 +96,26 @@ Numeric sample_filter(const SortedGriddedField1& filter, Numeric f) {
   const Size upper = static_cast<Size>(std::distance(grid.begin(), it));
   if (is_close(*it, f)) return filter.data[upper];
 
-  const Size lower = upper - 1;
-  const Numeric x0 = grid[lower];
-  const Numeric x1 = grid[upper];
-  const Numeric y0 = filter.data[lower];
-  const Numeric y1 = filter.data[upper];
+  const Size    lower = upper - 1;
+  const Numeric x0    = grid[lower];
+  const Numeric x1    = grid[upper];
+  const Numeric y0    = filter.data[lower];
+  const Numeric y1    = filter.data[upper];
 
   const Numeric t = (f - x0) / (x1 - x0);
   return y0 + t * (y1 - y0);
 }
 
-std::vector<SortedGriddedField1> transformed_filters(
-    const std::vector<SortedGriddedField1>& filters, Numeric LO, bool upper) {
+std::vector<SortedGriddedField1> transformed_filters(const std::vector<SortedGriddedField1>& filters,
+                                                     Numeric                                 LO,
+                                                     bool                                    upper) {
   std::vector<SortedGriddedField1> out;
   out.reserve(filters.size());
 
   for (const auto& filter : filters) {
-    const auto& grid = filter.grid<0>();
+    const auto&          grid = filter.grid<0>();
     std::vector<Numeric> mapped(grid.size());
-    Vector weights(filter.data.size());
+    Vector               weights(filter.data.size());
 
     if (upper) {
       for (Size i = 0; i < grid.size(); i++) {
@@ -147,24 +130,20 @@ std::vector<SortedGriddedField1> transformed_filters(
       }
     }
 
-    out.push_back(
-        {.data_name  = filter.data_name,
-         .data       = std::move(weights),
-         .grid_names = filter.grid_names,
-         .grids      = std::array<AscendingGrid, 1>{AscendingGrid{mapped}}});
+    out.push_back({.data_name  = filter.data_name,
+                   .data       = std::move(weights),
+                   .grid_names = filter.grid_names,
+                   .grids      = std::array<AscendingGrid, 1>{AscendingGrid{mapped}}});
   }
 
   return out;
 }
 
-void apply_interval_clip(std::vector<FrequencyResponsePath>& paths,
-                         Numeric low,
-                         Numeric high) {
+void apply_interval_clip(std::vector<FrequencyResponsePath>& paths, Numeric low, Numeric high) {
   std::erase_if(paths, [low, high](FrequencyResponsePath& path) {
     path.local_range[0] = std::max(path.local_range[0], low);
     path.local_range[1] = std::min(path.local_range[1], high);
-    return path.local_range[0] >= path.local_range[1] or
-           is_close(path.local_range[0], path.local_range[1]);
+    return path.local_range[0] >= path.local_range[1] or is_close(path.local_range[0], path.local_range[1]);
   });
 }
 }  // namespace
@@ -177,23 +156,16 @@ Numeric FrequencyResponsePath::map_to_global(Numeric local_frequency) const {
   return intercept + slope * local_frequency;
 }
 
-std::optional<Numeric> FrequencyResponsePath::map_to_local(
-    Numeric global_frequency) const {
+std::optional<Numeric> FrequencyResponsePath::map_to_local(Numeric global_frequency) const {
   const Numeric local_frequency = (global_frequency - intercept) / slope;
 
-  if (not is_in_closed_interval(
-          local_frequency, local_range[0], local_range[1])) {
-    return std::nullopt;
-  }
+  if (not is_in_closed_interval(local_frequency, local_range[0], local_range[1])) { return std::nullopt; }
 
   return std::clamp(local_frequency, local_range[0], local_range[1]);
 }
 
 Numeric FrequencyResponsePath::local_weight(Numeric local_frequency) const {
-  if (not is_in_closed_interval(
-          local_frequency, local_range[0], local_range[1])) {
-    return 0.0;
-  }
+  if (not is_in_closed_interval(local_frequency, local_range[0], local_range[1])) { return 0.0; }
 
   Numeric weight = 1.0;
 
@@ -210,18 +182,17 @@ Numeric FrequencyResponsePath::global_weight(Numeric global_frequency) const {
   return local_frequency.has_value() ? local_weight(*local_frequency) : 0.0;
 }
 
-HeterodyneFrequencyRange::HeterodyneFrequencyRange(
-    const std::span<const Numeric>& clocks,
-    const std::span<const Vector2>& bandpasses)
+HeterodyneFrequencyRange::HeterodyneFrequencyRange(const std::span<const Numeric>& clocks,
+                                                   const std::span<const Vector2>& bandpasses)
     : FrequencyRange() {
   const Size N = clocks.size();
 
   if (N != bandpasses.size()) {
-    throw std::invalid_argument(std::format(
-        "Number of clock frequencies and bandpasses must match.  Got: {} clock "
-        "frequencies and {} bandpasses.",
-        clocks.size(),
-        bandpasses.size()));
+    throw std::invalid_argument(
+        std::format("Number of clock frequencies and bandpasses must match.  Got: {} clock "
+                    "frequencies and {} bandpasses.",
+                    clocks.size(),
+                    bandpasses.size()));
   }
 
   assert_bandpass_ranges(bandpasses);
@@ -233,15 +204,12 @@ HeterodyneFrequencyRange::HeterodyneFrequencyRange(
   }
 }
 
-HeterodyneFrequencyRange::HeterodyneFrequencyRange(Numeric clock_frequency,
-                                                   const Vector2& sideband)
-    : HeterodyneFrequencyRange(std::span{&clock_frequency, 1},
-                               std::span{&sideband, 1}) {}
+HeterodyneFrequencyRange::HeterodyneFrequencyRange(Numeric clock_frequency, const Vector2& sideband)
+    : HeterodyneFrequencyRange(std::span{&clock_frequency, 1}, std::span{&sideband, 1}) {}
 
 void HeterodyneFrequencyRange::apply_lowpass(Numeric upper_frequency) {
   if (upper_frequency < 0) {
-    throw std::invalid_argument(std::format(
-        "Lowpass cutoff must be non-negative.  Got: {}.", upper_frequency));
+    throw std::invalid_argument(std::format("Lowpass cutoff must be non-negative.  Got: {}.", upper_frequency));
   }
 
   apply_interval_clip(response_paths, 0.0, upper_frequency);
@@ -250,8 +218,7 @@ void HeterodyneFrequencyRange::apply_lowpass(Numeric upper_frequency) {
 
 void HeterodyneFrequencyRange::apply_highpass(Numeric lower_frequency) {
   if (lower_frequency < 0) {
-    throw std::invalid_argument(std::format(
-        "Highpass cutoff must be non-negative.  Got: {}.", lower_frequency));
+    throw std::invalid_argument(std::format("Highpass cutoff must be non-negative.  Got: {}.", lower_frequency));
   }
 
   apply_interval_clip(response_paths, lower_frequency, inf);
@@ -264,13 +231,10 @@ void HeterodyneFrequencyRange::apply_bandpass(const Vector2& bandpass_range) {
   sync_ranges();
 }
 
-void HeterodyneFrequencyRange::apply_bandpass(
-    const SortedGriddedField1& bandpass_filter) {
+void HeterodyneFrequencyRange::apply_bandpass(const SortedGriddedField1& bandpass_filter) {
   assert_weighted_bandpass(bandpass_filter);
 
-  apply_interval_clip(response_paths,
-                      bandpass_filter.grid<0>().front(),
-                      bandpass_filter.grid<0>().back());
+  apply_interval_clip(response_paths, bandpass_filter.grid<0>().front(), bandpass_filter.grid<0>().back());
 
   for (auto& path : response_paths) path.filters.push_back(bandpass_filter);
 
@@ -290,9 +254,8 @@ void HeterodyneFrequencyRange::apply_mixer(Numeric clock_frequency) {
     if (upper_low < upper_high and not is_close(upper_low, upper_high)) {
       auto upper         = path;
       upper.intercept   += upper.slope * clock_frequency;
-      upper.local_range  = {upper_low - clock_frequency,
-                            upper_high - clock_frequency};
-      upper.filters = transformed_filters(path.filters, clock_frequency, true);
+      upper.local_range  = {upper_low - clock_frequency, upper_high - clock_frequency};
+      upper.filters      = transformed_filters(path.filters, clock_frequency, true);
       mixed_paths.push_back(std::move(upper));
     }
 
@@ -303,9 +266,8 @@ void HeterodyneFrequencyRange::apply_mixer(Numeric clock_frequency) {
       auto lower         = path;
       lower.intercept   += lower.slope * clock_frequency;
       lower.slope       *= -1;
-      lower.local_range  = {clock_frequency - lower_high,
-                            clock_frequency - lower_low};
-      lower.filters = transformed_filters(path.filters, clock_frequency, false);
+      lower.local_range  = {clock_frequency - lower_high, clock_frequency - lower_low};
+      lower.filters      = transformed_filters(path.filters, clock_frequency, false);
       mixed_paths.push_back(std::move(lower));
     }
   }
@@ -314,26 +276,20 @@ void HeterodyneFrequencyRange::apply_mixer(Numeric clock_frequency) {
   sync_ranges();
 }
 
-Vector HeterodyneFrequencyRange::local_response(
-    ConstVectorView local_frequency_grid, Size path_index) const {
+Vector HeterodyneFrequencyRange::local_response(ConstVectorView local_frequency_grid, Size path_index) const {
   const auto& response_path = path(path_index);
-  Vector response(local_frequency_grid.size());
+  Vector      response(local_frequency_grid.size());
 
-  for (Size i = 0; i < response.size(); i++) {
-    response[i] = response_path.local_weight(local_frequency_grid[i]);
-  }
+  for (Size i = 0; i < response.size(); i++) { response[i] = response_path.local_weight(local_frequency_grid[i]); }
 
   return response;
 }
 
-Vector HeterodyneFrequencyRange::global_response(
-    ConstVectorView global_frequency_grid, Size path_index) const {
+Vector HeterodyneFrequencyRange::global_response(ConstVectorView global_frequency_grid, Size path_index) const {
   const auto& response_path = path(path_index);
-  Vector response(global_frequency_grid.size());
+  Vector      response(global_frequency_grid.size());
 
-  for (Size i = 0; i < response.size(); i++) {
-    response[i] = response_path.global_weight(global_frequency_grid[i]);
-  }
+  for (Size i = 0; i < response.size(); i++) { response[i] = response_path.global_weight(global_frequency_grid[i]); }
 
   return response;
 }

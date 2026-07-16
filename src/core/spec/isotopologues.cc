@@ -9,7 +9,7 @@
 
 namespace Species {
 String isotopologues_names(SpeciesEnum spec) {
-  auto x = isotopologues(spec);
+  auto               x = isotopologues(spec);
   std::ostringstream os;
   for (auto& s : x) os << s.FullName() << '\n';
   return os.str();
@@ -35,18 +35,13 @@ String update_isot_name(const String& old_name) {
   return old_name;
 }
 
-const Isotope& Isotope::from_name(const std::string_view name) {
-  return select(name);
-}
+const Isotope& Isotope::from_name(const std::string_view name) { return select(name); }
 
 String Isotope::FullName() const {
-  return is_joker() ? String{toString<1>(spec)}
-                    : std::format("{}-{}", toString<1>(spec), isotname);
+  return is_joker() ? String{toString<1>(spec)} : std::format("{}-{}", toString<1>(spec), isotname);
 }
 
-std::ostream& operator<<(std::ostream& os, const Isotope& ir) {
-  return os << ir.FullName();
-}
+std::ostream& operator<<(std::ostream& os, const Isotope& ir) { return os << ir.FullName(); }
 
 std::ostream& operator<<(std::ostream& os, const std::vector<Isotope>& isots) {
   for (const auto& i : isots) os << i << ' ';
@@ -60,8 +55,7 @@ Numeric IsotopologueRatios::operator[](const Index spec_ind) const {
 
 Numeric IsotopologueRatios::operator[](const Isotope& ir) const {
   const Index spec_ind = find_species_index(ir);
-  ARTS_USER_ERROR_IF(
-      spec_ind >= maxsize or spec_ind < 0, "Invalid species {}", ir.FullName())
+  ARTS_USER_ERROR_IF(spec_ind >= maxsize or spec_ind < 0, "Invalid species {}", ir.FullName())
   return data[spec_ind];
 }
 
@@ -69,8 +63,7 @@ std::vector<std::string> IsotopologueRatios::valueless_isotopes() const {
   std::vector<std::string> names;
 
   for (Index i = 0; i < maxsize; i++) {
-    if (not Isotopologues[i].is_predefined() and
-        not Isotopologues[i].is_joker() and nonstd::isnan(data[i])) {
+    if (not Isotopologues[i].is_predefined() and not Isotopologues[i].is_joker() and nonstd::isnan(data[i])) {
       names.push_back(Isotopologues[i].FullName());
     }
   }
@@ -82,8 +75,7 @@ namespace {
 consteval IsotopologueRatios from_builtin() {
   IsotopologueRatios isotopologue_ratios{};
 
-  stdr::copy(Isotopologues | std::views::transform(&Isotope::builtin_ratio),
-             isotopologue_ratios.data.begin());
+  stdr::copy(Isotopologues | std::views::transform(&Isotope::builtin_ratio), isotopologue_ratios.data.begin());
 
   return isotopologue_ratios;
 }
@@ -91,10 +83,7 @@ consteval IsotopologueRatios from_builtin() {
 consteval bool all_values() {
   for (const auto& iso : Isotopologues) {
     if (not(iso.is_predefined() or iso.is_joker())) {
-      if (nonstd::isnan(iso.builtin_ratio) or nonstd::isnan(iso.mass) or
-          iso.gi == 0) {
-        return false;
-      }
+      if (nonstd::isnan(iso.builtin_ratio) or nonstd::isnan(iso.mass) or iso.gi == 0) { return false; }
     }
   }
   return true;
@@ -112,18 +101,12 @@ const IsotopologueRatios& isotopologue_ratiosInitFromBuiltin() {
 }
 
 std::strong_ordering Isotope::operator<=>(const Isotope& other) const {
-  if (std::strong_ordering test = spec <=> other.spec;
-      test != std::strong_ordering::equal)
-    return test;
+  if (std::strong_ordering test = spec <=> other.spec; test != std::strong_ordering::equal) return test;
   return isotname <=> other.isotname;
 }
 static_assert(std::strong_ordering::equal == std::strong_ordering::equivalent);
 
-bool Isotope::operator==(const Isotope& other) const {
-  return this->operator<=>(other) == std::strong_ordering::equal;
-}
+bool Isotope::operator==(const Isotope& other) const { return this->operator<=>(other) == std::strong_ordering::equal; }
 
-bool Isotope::operator!=(const Isotope& other) const {
-  return not this->operator==(other);
-}
+bool Isotope::operator!=(const Isotope& other) const { return not this->operator==(other); }
 }  // namespace Species

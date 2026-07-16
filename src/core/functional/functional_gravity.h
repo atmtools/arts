@@ -18,12 +18,10 @@ struct EllipsoidGravity {
   static EllipsoidGravity Saturn();
 };
 
-template <>
-struct xml_io_stream_name<EllipsoidGravity> {
+template <> struct xml_io_stream_name<EllipsoidGravity> {
   static constexpr std::string_view name = "EllipsoidGravity";
 };
 
-template <>
-struct xml_io_stream_aggregate<EllipsoidGravity> {
+template <> struct xml_io_stream_aggregate<EllipsoidGravity> {
   static constexpr bool value = true;
 };

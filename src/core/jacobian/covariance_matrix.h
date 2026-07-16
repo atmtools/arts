@@ -33,8 +33,7 @@ using IndexPair = std::pair<Index, Index>;
 
 class BlockMatrix {
  public:
-  using variant_t =
-      std::variant<std::shared_ptr<Matrix>, std::shared_ptr<Sparse>>;
+  using variant_t = std::variant<std::shared_ptr<Matrix>, std::shared_ptr<Sparse>>;
 
   variant_t data;
 
@@ -106,10 +105,7 @@ class Block {
      *        covariance matrix.
      * @param dense A shared pointer to a den matrix of type Matrix
      */
-  Block(Range row_range,
-        Range column_range,
-        IndexPair indices,
-        BlockMatrix matrix);
+  Block(Range row_range, Range column_range, IndexPair indices, BlockMatrix matrix);
 
   Block();
   Block(const Block &);
@@ -150,12 +146,12 @@ class Block {
   [[nodiscard]] bool is_sparse() const { return matrix_.is_sparse(); }
 
   [[nodiscard]] const Matrix &get_dense() const { return matrix_.dense(); }
-  Matrix &get_dense() { return matrix_.dense(); }
+  Matrix                     &get_dense() { return matrix_.dense(); }
 
   [[nodiscard]] const Sparse &get_sparse() const { return matrix_.sparse(); }
-  Sparse &get_sparse() { return matrix_.sparse(); }
+  Sparse                     &get_sparse() { return matrix_.sparse(); }
 
-  Range row_range_, column_range_;
+  Range     row_range_, column_range_;
   IndexPair indices_;
 
   BlockMatrix matrix_;
@@ -166,7 +162,7 @@ void mult(StridedMatrixView, const Block &, StridedConstMatrixView);
 void mult(StridedVectorView, const Block &, StridedConstVectorView);
 
 StridedMatrixView operator+=(StridedMatrixView, const Block &);
-void add_inv(StridedMatrixView A, const Block &);
+void              add_inv(StridedMatrixView A, const Block &);
 
 //------------------------------------------------------------------------------
 // Covariance Matrices
@@ -201,7 +197,7 @@ class CovarianceMatrix {
   ~CovarianceMatrix();
 
   explicit operator Matrix() const;
-  Matrix get_inverse() const;
+  Matrix   get_inverse() const;
 
   Index nrows() const;
   Index ncols() const;
@@ -243,7 +239,7 @@ class CovarianceMatrix {
      * @return Reference to the std::vector holding the block
      * objects of this covariance matrix.
      */
-  std::vector<Block> &get_blocks() { return correlations_; };
+  std::vector<Block>       &get_blocks() { return correlations_; };
   const std::vector<Block> &get_blocks() const { return correlations_; };
 
   /** Blocks of the inverse covariance matrix.
@@ -251,7 +247,7 @@ class CovarianceMatrix {
      * @return Reference to the std::vector holding the blocks
      * objects of the inverse of the covariance matrix.
      */
-  std::vector<Block> &get_inverse_blocks() { return inverses_; };
+  std::vector<Block>       &get_inverse_blocks() { return inverses_; };
   const std::vector<Block> &get_inverse_blocks() const { return inverses_; };
 
   /**
@@ -340,39 +336,25 @@ class CovarianceMatrix {
   Vector inverse_diagonal() const;
 
   // Friend declarations.
-  friend void mult(StridedMatrixView,
-                   StridedConstMatrixView,
-                   const CovarianceMatrix &);
-  friend void mult(StridedMatrixView,
-                   const CovarianceMatrix &,
-                   StridedConstMatrixView);
-  friend void mult(StridedVectorView,
-                   const CovarianceMatrix &,
-                   StridedConstVectorView);
+  friend void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+  friend void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+  friend void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-  friend void mult_inv(StridedMatrixView,
-                       StridedConstMatrixView,
-                       const CovarianceMatrix &);
-  friend void mult_inv(StridedMatrixView,
-                       const CovarianceMatrix &,
-                       StridedConstMatrixView);
-  friend void solve(StridedVectorView,
-                    const CovarianceMatrix &,
-                    StridedConstVectorView);
+  friend void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+  friend void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
+  friend void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-  friend StridedMatrixView operator+=(StridedMatrixView,
-                                      const CovarianceMatrix &);
-  friend void add_inv(StridedMatrixView, const CovarianceMatrix &);
+  friend StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
+  friend void              add_inv(StridedMatrixView, const CovarianceMatrix &);
 
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:
   void generate_blocks(std::vector<std::vector<const Block *>> &) const;
-  void invert_correlation_block(std::vector<Block> &inverses,
-                                std::vector<const Block *> &blocks) const;
+  void invert_correlation_block(std::vector<Block> &inverses, std::vector<const Block *> &blocks) const;
   bool has_inverse(IndexPair indices) const;
 
-  std::vector<Block> correlations_;
+  std::vector<Block>         correlations_;
   mutable std::vector<Block> inverses_;
 };
 
@@ -380,58 +362,44 @@ void mult(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
 void mult(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
 void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
-void mult_inv(StridedMatrixView,
-              StridedConstMatrixView,
-              const CovarianceMatrix &);
-void mult_inv(StridedMatrixView,
-              const CovarianceMatrix &,
-              StridedConstMatrixView);
+void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
+void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
 void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 
 StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
-void add_inv(StridedMatrixView, const CovarianceMatrix &);
+void              add_inv(StridedMatrixView, const CovarianceMatrix &);
 
-template <>
-struct std::formatter<BlockMatrix> {
+template <> struct std::formatter<BlockMatrix> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const BlockMatrix &v, FmtContext &ctx) const {
-    if (v.not_null()) {
-      return v.is_dense() ? tags.format(ctx, v.dense())
-                          : tags.format(ctx, v.sparse());
-    }
+  template <class FmtContext> FmtContext::iterator format(const BlockMatrix &v, FmtContext &ctx) const {
+    if (v.not_null()) { return v.is_dense() ? tags.format(ctx, v.dense()) : tags.format(ctx, v.sparse()); }
 
     tags.add_if_bracket(ctx, "[]"sv);
     return ctx.out();
   }
 };
 
-template <>
-struct std::formatter<CovarianceMatrix> {
+template <> struct std::formatter<CovarianceMatrix> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const CovarianceMatrix &v,
-                              FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const CovarianceMatrix &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, Matrix{v}, sep, v.get_inverse());
@@ -440,44 +408,31 @@ struct std::formatter<CovarianceMatrix> {
   }
 };
 
-template <>
-struct xml_io_stream<BlockMatrix> {
+template <> struct xml_io_stream<BlockMatrix> {
   static constexpr std::string_view type_name = "BlockMatrix"sv;
 
-  static void write(std::ostream &os,
-                    const BlockMatrix &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream &os, const BlockMatrix &x, bofstream *pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream &is,
-                   BlockMatrix &x,
-                   bifstream *pbifs = nullptr);
+  static void read(std::istream &is, BlockMatrix &x, bifstream *pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<Block> {
+template <> struct xml_io_stream<Block> {
   static constexpr std::string_view type_name = "Block"sv;
 
-  static void write(std::ostream &os,
-                    const Block &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream &os, const Block &x, bofstream *pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream &is, Block &x, bifstream *pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<CovarianceMatrix> {
+template <> struct xml_io_stream<CovarianceMatrix> {
   static constexpr std::string_view type_name = "CovarianceMatrix"sv;
 
-  static void write(std::ostream &os,
+  static void write(std::ostream           &os,
                     const CovarianceMatrix &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream              *pbofs = nullptr,
+                    std::string_view        name  = ""sv);
 
-  static void read(std::istream &is,
-                   CovarianceMatrix &x,
-                   bifstream *pbifs = nullptr);
+  static void read(std::istream &is, CovarianceMatrix &x, bifstream *pbifs = nullptr);
 };
 
 #endif  // covariance_matrix_h

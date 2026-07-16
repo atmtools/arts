@@ -5,8 +5,7 @@
 #include "species_enum_info.h"
 
 namespace {
-std::set<SpeciesEnumInfo> read_split_species(
-    const std::filesystem::path& path) {
+std::set<SpeciesEnumInfo> read_split_species(const std::filesystem::path& path) {
   std::set<SpeciesEnumInfo> species_set{};
 
   for (const auto& entry : std::filesystem::directory_iterator(path)) {
@@ -15,8 +14,7 @@ std::set<SpeciesEnumInfo> read_split_species(
       xml_read_from_file(entry.path().string(), info);
 
       if (species_set.count(info) > 0) {
-        throw std::runtime_error(std::format(
-            "Duplicate species enum info found: {}", info.shortname));
+        throw std::runtime_error(std::format("Duplicate species enum info found: {}", info.shortname));
       }
 
       species_set.insert(info);
@@ -38,8 +36,7 @@ const std::vector<SpeciesEnumInfo>& get_species_enum_info();
 )");
 }
 
-void write_source(std::ostream& os,
-                  const std::set<SpeciesEnumInfo>& species_set) {
+void write_source(std::ostream& os, const std::set<SpeciesEnumInfo>& species_set) {
   std::println(os,
                R"(#include "auto_species_enum_info.h"
 
@@ -51,11 +48,7 @@ std::vector<SpeciesEnumInfo> get_species_enum_info_local() {{
                species_set.size());
 
   for (const auto& info : species_set) {
-    std::println(os,
-                 R"(  info.emplace_back({}, "{}", "{}");)",
-                 info.enum_value,
-                 info.shortname,
-                 info.longname);
+    std::println(os, R"(  info.emplace_back({}, "{}", "{}");)", info.enum_value, info.shortname, info.longname);
   }
 
   std::println(os, R"(
@@ -69,8 +62,7 @@ const std::vector<SpeciesEnumInfo>& get_species_enum_info() {{
 }})");
 }
 
-void write_isot_source(std::ostream& os,
-                       const std::set<SpeciesEnumInfo>& species_set) {
+void write_isot_source(std::ostream& os, const std::set<SpeciesEnumInfo>& species_set) {
   std::println(os,
                R"(#include "isotopologues.h"
 
@@ -98,8 +90,7 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {{
 }}  // namespace Species)");
 }
 
-void write_partfun_wrap_header(std::ostream& os,
-                               const std::set<SpeciesEnumInfo>& species_set) {
+void write_partfun_wrap_header(std::ostream& os, const std::set<SpeciesEnumInfo>& species_set) {
   std::println(os,
                R"(#include "partfun.h"
 
@@ -113,10 +104,7 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {{
     case SpeciesEnum::Bath: break;)");
 
   for (const auto& info : species_set) {
-    std::println(
-        os,
-        R"(    case SpeciesEnum::{0}: return compute{0}<d>(T, ir.isotname);)",
-        info.longname);
+    std::println(os, R"(    case SpeciesEnum::{0}: return compute{0}<d>(T, ir.isotname);)", info.longname);
   }
   std::println(os,
                R"(    case SpeciesEnum::unused: break;
@@ -130,9 +118,7 @@ bool has_partfun(const SpeciesIsotope& ir) noexcept {{
     case SpeciesEnum::Bath: break;)");
   for (const auto& info : species_set) {
     std::println(
-        os,
-        R"(    case SpeciesEnum::{0}: return std::ranges::binary_search(has{0}, ir.isotname);)",
-        info.longname);
+        os, R"(    case SpeciesEnum::{0}: return std::ranges::binary_search(has{0}, ir.isotname);)", info.longname);
   }
   std::println(os,
                R"(    case SpeciesEnum::unused: break;
@@ -150,12 +136,11 @@ int main(int argc, char** argv) try {
     return EXIT_FAILURE;
   }
 
-  const std::filesystem::path path = argv[1];
-  auto species_set                 = read_split_species(path / "species/");
+  const std::filesystem::path path        = argv[1];
+  auto                        species_set = read_split_species(path / "species/");
 
   if (species_set.empty()) {
-    std::println(
-        stderr, "No species enum info found in {}/{}", argv[1], "species/");
+    std::println(stderr, "No species enum info found in {}/{}", argv[1], "species/");
     return EXIT_FAILURE;
   }
 

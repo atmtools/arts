@@ -42,7 +42,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   const Index n = A.nrows();
   assert((LU.shape() == std::array{n, n}));
 
-  int n_int, info;
+  int  n_int, info;
   auto ipiv = std::vector<int>(n);
 
   LU = transpose(A);
@@ -55,9 +55,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   lapack::dgetrf_(&n_int, &n_int, LU.data_handle(), &n_int, ipiv.data(), &info);
 
   // Copy pivot array to pivot vector.
-  for (Index i = 0; i < n; i++) {
-    indx[i] = ipiv[i];
-  }
+  for (Index i = 0; i < n; i++) { indx[i] = ipiv[i]; }
 }
 
 //! LU backsubstitution
@@ -71,10 +69,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void lubacksub(VectorView x,
-               ConstMatrixView LU,
-               ConstVectorView b,
-               const ArrayOfIndex& indx) {
+void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx) {
   Index n = LU.nrows();
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU
@@ -86,31 +81,22 @@ void lubacksub(VectorView x,
   assert(LU.stride(1) == 1);
   assert(b.stride(0) == 1);
 
-  char trans = 'N';
-  int n_int  = (int)n;
-  int one    = (int)1;
-  std::vector<int> ipiv(n);
+  char                trans = 'N';
+  int                 n_int = (int)n;
+  int                 one   = (int)1;
+  std::vector<int>    ipiv(n);
   std::vector<double> rhs(n);
-  int info;
+  int                 info;
 
   for (Index i = 0; i < n; i++) {
     ipiv[i] = (int)indx[i];
     rhs[i]  = b[i];
   }
 
-  lapack::dgetrs_(&trans,
-                  &n_int,
-                  &one,
-                  const_cast<Numeric*>(LU.data_handle()),
-                  &n_int,
-                  ipiv.data(),
-                  rhs.data(),
-                  &n_int,
-                  &info);
+  lapack::dgetrs_(
+      &trans, &n_int, &one, const_cast<Numeric*>(LU.data_handle()), &n_int, ipiv.data(), rhs.data(), &n_int, &info);
 
-  for (Index i = 0; i < n; i++) {
-    x[i] = rhs[i];
-  }
+  for (Index i = 0; i < n; i++) { x[i] = rhs[i]; }
 }
 
 //! Solve a linear system.
@@ -132,7 +118,7 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   assert(n == static_cast<Index>(b.size()));
 
   // Allocate matrix and index vector for the LU decomposition.
-  Matrix LU = Matrix(n, n);
+  Matrix       LU = Matrix(n, n);
   ArrayOfIndex indx(n);
 
   // Perform LU decomposition.
@@ -153,23 +139,15 @@ void inv_inplace(MatrixView A, inv_workdata& wo) {
   int n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(
-      &n_int, &n_int, A.data_handle(), &n_int, wo.ipiv.data(), &info);
+  lapack::dgetrf_(&n_int, &n_int, A.data_handle(), &n_int, wo.ipiv.data(), &info);
 
   // Invert matrix.
   int lwork = n_int;
 
-  lapack::dgetri_(&n_int,
-                  A.data_handle(),
-                  &n_int,
-                  wo.ipiv.data(),
-                  wo.work.data(),
-                  &lwork,
-                  &info);
+  lapack::dgetri_(&n_int, A.data_handle(), &n_int, wo.ipiv.data(), wo.work.data(), &lwork, &info);
 
   // Check for success.
-  ARTS_USER_ERROR_IF(info not_eq 0,
-                     "Error inverting matrix: Matrix not of full rank.");
+  ARTS_USER_ERROR_IF(info not_eq 0, "Error inverting matrix: Matrix not of full rank.");
 }
 
 //! Matrix Inverse
@@ -210,36 +188,20 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   Index n = A.ncols();
 
   // Workdata
-  Ainv      = A;
-  int n_int = int(n), lwork = n_int, info;
-  std::vector<int> ipiv(n);
+  Ainv                       = A;
+  int                  n_int = int(n), lwork = n_int, info;
+  std::vector<int>     ipiv(n);
   std::vector<Complex> work(lwork);
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::zgetrf_(&n_int,
-                  &n_int,
-                  const_cast<Complex*>(Ainv.data_handle()),
-                  &n_int,
-                  ipiv.data(),
-                  &info);
-  lapack::zgetri_(&n_int,
-                  const_cast<Complex*>(Ainv.data_handle()),
-                  &n_int,
-                  ipiv.data(),
-                  work.data(),
-                  &lwork,
-                  &info);
+  lapack::zgetrf_(&n_int, &n_int, const_cast<Complex*>(Ainv.data_handle()), &n_int, ipiv.data(), &info);
+  lapack::zgetri_(&n_int, const_cast<Complex*>(Ainv.data_handle()), &n_int, ipiv.data(), work.data(), &lwork, &info);
 
   // Check for success.
-  ARTS_USER_ERROR_IF(info not_eq 0,
-                     "Error inverting matrix: Matrix not of full rank.");
+  ARTS_USER_ERROR_IF(info not_eq 0, "Error inverting matrix: Matrix not of full rank.");
 }
 
-void diagonalize_inplace(MatrixView P,
-                         VectorView WR,
-                         VectorView WI,
-                         MatrixView A,
-                         diagonalize_workdata& wo) {
+void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A, diagonalize_workdata& wo) {
   Index n = A.ncols();
 
   // A must be a square matrix.
@@ -289,10 +251,7 @@ void diagonalize_inplace(MatrixView P,
   inplace_transpose(P);
 }
 
-void diagonalize_inplace(MatrixView P,
-                         VectorView WR,
-                         VectorView WI,
-                         MatrixView A) {
+void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A) {
   diagonalize_workdata wo(A.ncols());
   diagonalize_inplace(P, WR, WI, A, wo);
 }
@@ -315,10 +274,7 @@ void diagonalize_inplace(MatrixView P,
  * \param[out] WI The imaginary eigenvalues.
  * \param[in]  A The matrix to diagonalize.
  */
-void diagonalize(MatrixView P,
-                 VectorView WR,
-                 VectorView WI,
-                 ConstMatrixView A) {
+void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A) {
   Matrix A_tmp{A};
   Matrix P2{P};
   Vector WR2{WR};
@@ -332,11 +288,7 @@ void diagonalize(MatrixView P,
   WR = WR2;
 }
 
-void diagonalize(MatrixView P,
-                 VectorView WR,
-                 VectorView WI,
-                 ConstMatrixView A,
-                 diagonalize_workdata& wo) {
+void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A, diagonalize_workdata& wo) {
   Matrix A_tmp{A};
   Matrix P2{P};
   Vector WR2{WR};
@@ -362,9 +314,7 @@ void diagonalize(MatrixView P,
  * \param[out] W The eigenvalues.
  * \param[in]  A The matrix to diagonalize.
  */
-void diagonalize(ComplexMatrixView P,
-                 ComplexVectorView W,
-                 const ConstComplexMatrixView A) {
+void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A) {
   Index n = A.ncols();
 
   // A must be a square matrix.
@@ -376,17 +326,16 @@ void diagonalize(ComplexMatrixView P,
   ComplexMatrix A_tmp{transpose(A)};
 
   // Integers
-  int LDA = int(A.ncols()), LDA_L = int(A.ncols()), LDA_R = int(A.ncols()),
-      n_int = int(n), info;
+  int LDA = int(A.ncols()), LDA_L = int(A.ncols()), LDA_R = int(A.ncols()), n_int = int(n), info;
 
   // We want to calculate RP not LP
   char l_eig = 'N', r_eig = 'V';
 
   // Work matrix
-  int lwork = 2 * n_int + n_int * n_int;
+  int           lwork = 2 * n_int + n_int * n_int;
   ComplexVector work(lwork);
   ComplexVector lpdata(0);
-  Vector rwork(2 * n_int);
+  Vector        rwork(2 * n_int);
 
   // Main calculations.  Note that errors in the output is ignored
   lapack::zgeev_(&l_eig,
@@ -432,8 +381,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 
   Numeric A_norm_inf, c;
   Numeric j;
-  Matrix D(n, n), N(n, n), X(n, n), cX(n, n, 0.0), B(n, n, 0.0);
-  Vector N_col_vec(n, 0.), F_col_vec(n, 0.);
+  Matrix  D(n, n), N(n, n), X(n, n), cX(n, n, 0.0), B(n, n, 0.0);
+  Vector  N_col_vec(n, 0.), F_col_vec(n, 0.);
 
   A_norm_inf = norm_inf(A);
 
@@ -462,10 +411,10 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
     mult(B, F, X);  // X = F * X
     X   = B;
     cX  = X;
-    cX *= c;             // cX = X*c
-    N  += cX;            // N = N + X*c
+    cX *= c;                     // cX = X*c
+    N  += cX;                    // N = N + X*c
     cX *= nonstd::pow(-1, k_n);  // cX = (-1)^k*c*X
-    D  += cX;            // D = D + (-1)^k*c*X
+    D  += cX;                    // D = D + (-1)^k*c*X
   }
 
   /*Solve the equation system DF=N for F using LU decomposition,
@@ -543,9 +492,7 @@ void id_mat(MatrixView I) {
     \author Richard Larsson
     \date   2012-08-03
 */
-Numeric det(ConstMatrixView A) {
-  return matpack::eigen::as_eigen(A).determinant();
-}
+Numeric det(ConstMatrixView A) { return matpack::eigen::as_eigen(A).determinant(); }
 
 /*!
     Determines coefficients for linear regression
@@ -594,9 +541,7 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
 
   Numeric s1 = 0, xm = 0, s3 = 0, s4 = 0;
 
-  for (Size i = 0; i < n; i++) {
-    xm += x[i] / Numeric(n);
-  }
+  for (Size i = 0; i < n; i++) { xm += x[i] / Numeric(n); }
 
   for (Size i = 0; i < n; i++) {
     const Numeric xv  = x[i] - xm;
@@ -609,14 +554,11 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   p[0] = s3 / Numeric(n) - p[1] * xm;
 }
 
-Numeric lsf(VectorView x,
-            ConstMatrixView A,
-            ConstVectorView y,
-            bool residual) noexcept {
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) noexcept {
   // Size of the problem
   const Index n = x.size();
-  Matrix AT, ATA(n, n);
-  Vector ATy(n);
+  Matrix      AT, ATA(n, n);
+  Vector      ATy(n);
 
   // Solver
   AT = transpose(A);
@@ -641,31 +583,19 @@ void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
   assert((A.shape() == std::array{n, n}));
 
   char trans = 'N';
-  int n_int  = static_cast<int>(n);
-  int info{};
-  int one = 1;
+  int  n_int = static_cast<int>(n);
+  int  info{};
+  int  one = 1;
 
   // Standard case: The arts matrix is not transposed, the leading
   // dimension is the row stride of the matrix.
   n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int,
-                  &n_int,
-                  const_cast<Numeric*>(inplace_transpose(A).data_handle()),
-                  &n_int,
-                  wo.ipiv.data(),
-                  &info);
+  lapack::dgetrf_(
+      &n_int, &n_int, const_cast<Numeric*>(inplace_transpose(A).data_handle()), &n_int, wo.ipiv.data(), &info);
 
-  lapack::dgetrs_(&trans,
-                  &n_int,
-                  &one,
-                  A.data_handle(),
-                  &n_int,
-                  wo.ipiv.data(),
-                  X.data_handle(),
-                  &n_int,
-                  &info);
+  lapack::dgetrs_(&trans, &n_int, &one, A.data_handle(), &n_int, wo.ipiv.data(), X.data_handle(), &n_int, &info);
 }
 
 void solve_inplace(VectorView X, MatrixView A) {

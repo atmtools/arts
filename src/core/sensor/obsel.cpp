@@ -11,8 +11,7 @@
 #include <utility>
 
 bool SensorKey::operator==(const SensorKey& other) const {
-  return other.sensor_elem == sensor_elem and
-         other.measurement_elem == measurement_elem and other.type == type;
+  return other.sensor_elem == sensor_elem and other.measurement_elem == measurement_elem and other.type == type;
 }
 
 namespace sensor {
@@ -26,9 +25,7 @@ bool SparseStokvec::operator==(const SparseStokvec& other) const {
   return (irow == other.irow) and (icol == other.icol);
 }
 
-bool SparseStokvec::operator!=(const SparseStokvec& other) const {
-  return not(*this == other);
-}
+bool SparseStokvec::operator!=(const SparseStokvec& other) const { return not(*this == other); }
 
 bool SparseStokvec::operator<(const SparseStokvec& other) const {
   if (irow < other.irow) return true;
@@ -36,9 +33,7 @@ bool SparseStokvec::operator<(const SparseStokvec& other) const {
   return icol < other.icol;
 }
 
-bool SparseStokvec::operator<=(const SparseStokvec& other) const {
-  return (*this < other) or (*this == other);
-}
+bool SparseStokvec::operator<=(const SparseStokvec& other) const { return (*this < other) or (*this == other); }
 
 bool SparseStokvec::operator>(const SparseStokvec& other) const {
   if (irow > other.irow) return true;
@@ -46,21 +41,15 @@ bool SparseStokvec::operator>(const SparseStokvec& other) const {
   return icol > other.icol;
 }
 
-bool SparseStokvec::operator>=(const SparseStokvec& other) const {
-  return (*this > other) or (*this == other);
-}
+bool SparseStokvec::operator>=(const SparseStokvec& other) const { return (*this > other) or (*this == other); }
 
 bool SparseStokvecMatrix::operator==(const SparseStokvecMatrix& other) const {
-  return rows == other.rows and cols == other.cols and
-         sparse_data == other.sparse_data;
+  return rows == other.rows and cols == other.cols and sparse_data == other.sparse_data;
 }
 
-bool SparseStokvecMatrix::operator!=(const SparseStokvecMatrix& other) const {
-  return not(*this == other);
-}
+bool SparseStokvecMatrix::operator!=(const SparseStokvecMatrix& other) const { return not(*this == other); }
 
-SparseStokvecMatrix::SparseStokvecMatrix(const StokvecMatrix& m)
-    : rows(m.nrows()), cols(m.ncols()) {
+SparseStokvecMatrix::SparseStokvecMatrix(const StokvecMatrix& m) : rows(m.nrows()), cols(m.ncols()) {
   //! NOTE: Retains sorting
   for (Size i = 0; i < rows; ++i) {
     for (Size j = 0; j < cols; ++j) {
@@ -71,9 +60,7 @@ SparseStokvecMatrix::SparseStokvecMatrix(const StokvecMatrix& m)
   assert(stdr::is_sorted(sparse_data));
 }
 
-SparseStokvecMatrix& SparseStokvecMatrix::operator=(const StokvecMatrix& m) {
-  return *this = SparseStokvecMatrix(m);
-}
+SparseStokvecMatrix& SparseStokvecMatrix::operator=(const StokvecMatrix& m) { return *this = SparseStokvecMatrix(m); }
 
 Index SparseStokvecMatrix::nrows() const { return rows; }
 
@@ -83,9 +70,7 @@ Size SparseStokvecMatrix::size() const { return sparse_data.size(); }
 
 bool SparseStokvecMatrix::empty() const { return sparse_data.empty(); }
 
-const std::vector<SparseStokvec>& SparseStokvecMatrix::vector() const {
-  return sparse_data;
-}
+const std::vector<SparseStokvec>& SparseStokvecMatrix::vector() const { return sparse_data; }
 
 void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size size) {
   rows = nrows;
@@ -94,17 +79,13 @@ void SparseStokvecMatrix::resize(Size nrows, Size ncols, Size size) {
   sparse_data.resize(size);
 }
 
-std::array<Index, 2> SparseStokvecMatrix::shape() const {
-  return {static_cast<Index>(rows), static_cast<Index>(cols)};
-}
+std::array<Index, 2> SparseStokvecMatrix::shape() const { return {static_cast<Index>(rows), static_cast<Index>(cols)}; }
 
 Stokvec& SparseStokvecMatrix::operator[](Size i, Size j) {
   const SparseStokvec newdata{.irow = i, .icol = j};
-  auto it = stdr::lower_bound(sparse_data, newdata);
+  auto                it = stdr::lower_bound(sparse_data, newdata);
 
-  if (it != sparse_data.end() and newdata == *it) {
-    return it->data;
-  }
+  if (it != sparse_data.end() and newdata == *it) { return it->data; }
 
   auto newit = sparse_data.insert(it, newdata);
 
@@ -116,36 +97,24 @@ Stokvec& SparseStokvecMatrix::operator[](Size i, Size j) {
 
 Stokvec SparseStokvecMatrix::operator[](Size i, Size j) const {
   const SparseStokvec newdata{.irow = i, .icol = j};
-  auto it = stdr::lower_bound(sparse_data, newdata);
+  auto                it = stdr::lower_bound(sparse_data, newdata);
 
-  if (it != sparse_data.end() and newdata == *it) {
-    return it->data;
-  }
+  if (it != sparse_data.end() and newdata == *it) { return it->data; }
 
   return {};
 }
 
-std::vector<SparseStokvec>::iterator SparseStokvecMatrix::begin() {
-  return sparse_data.begin();
-}
+std::vector<SparseStokvec>::iterator SparseStokvecMatrix::begin() { return sparse_data.begin(); }
 
-std::vector<SparseStokvec>::iterator SparseStokvecMatrix::end() {
-  return sparse_data.end();
-}
+std::vector<SparseStokvec>::iterator SparseStokvecMatrix::end() { return sparse_data.end(); }
 
-std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::begin() const {
-  return sparse_data.begin();
-}
+std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::begin() const { return sparse_data.begin(); }
 
-std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::end() const {
-  return sparse_data.end();
-}
+std::vector<SparseStokvec>::const_iterator SparseStokvecMatrix::end() const { return sparse_data.end(); }
 
 SparseStokvecMatrix::operator StokvecMatrix() const {
   StokvecMatrix m(rows, cols, Stokvec{0.0, 0.0, 0.0, 0.0});
-  for (const auto& elem : sparse_data) {
-    m[elem.irow, elem.icol] = elem.data;
-  }
+  for (const auto& elem : sparse_data) { m[elem.irow, elem.icol] = elem.data; }
   return m;
 }
 
@@ -154,56 +123,37 @@ void Obsel::check() const {
 
   assert(poslos);
 
-  ARTS_USER_ERROR_IF(
-      (w.shape() != std::array{static_cast<Index>(poslos->size()),
-                               static_cast<Index>(f->size())}),
-      R"(Weight matrix must have the same shape as the poslos times the frequency grids:
+  ARTS_USER_ERROR_IF((w.shape() != std::array{static_cast<Index>(poslos->size()), static_cast<Index>(f->size())}),
+                     R"(Weight matrix must have the same shape as the poslos times the frequency grids:
   weight_matrix.shape() = {:B,}
   poslos->size()        = {}
   f->size()             = {}
 )",
-      w.shape(),
-      poslos->size(),
-      f->size());
+                     w.shape(),
+                     poslos->size(),
+                     f->size());
 }
 
-Obsel::Obsel(std::shared_ptr<const AscendingGrid> fs,
-             std::shared_ptr<const PosLosVector> pl,
-             SparseStokvecMatrix ws)
+Obsel::Obsel(std::shared_ptr<const AscendingGrid> fs, std::shared_ptr<const PosLosVector> pl, SparseStokvecMatrix ws)
     : f{std::move(fs)}, poslos{std::move(pl)}, w{std::move(ws)} {
   check();
 }
 
-Obsel::Obsel(const AscendingGrid& fs,
-             const PosLosVector& pl,
-             SparseStokvecMatrix ws)
-    : Obsel::Obsel(std::make_shared<const AscendingGrid>(fs),
-                   std::make_shared<const PosLosVector>(pl),
-                   std::move(ws)) {}
+Obsel::Obsel(const AscendingGrid& fs, const PosLosVector& pl, SparseStokvecMatrix ws)
+    : Obsel::Obsel(std::make_shared<const AscendingGrid>(fs), std::make_shared<const PosLosVector>(pl), std::move(ws)) {
+}
 
 bool Obsel::same_freqs(const Obsel& other) const { return f == other.f; }
 
-bool Obsel::same_freqs(const AscendingGrid& other) const {
-  return f.get() == &other;
-}
+bool Obsel::same_freqs(const AscendingGrid& other) const { return f.get() == &other; }
 
-bool Obsel::same_freqs(
-    const std::shared_ptr<const AscendingGrid>& other) const {
-  return f == other;
-}
+bool Obsel::same_freqs(const std::shared_ptr<const AscendingGrid>& other) const { return f == other; }
 
-bool Obsel::same_poslos(const Obsel& other) const {
-  return poslos == other.poslos;
-}
+bool Obsel::same_poslos(const Obsel& other) const { return poslos == other.poslos; }
 
-bool Obsel::same_poslos(
-    const std::shared_ptr<const PosLosVector>& other) const {
-  return poslos == other;
-}
+bool Obsel::same_poslos(const std::shared_ptr<const PosLosVector>& other) const { return poslos == other; }
 
-bool Obsel::same_poslos(const PosLosVector& other) const {
-  return poslos.get() == &other;
-}
+bool Obsel::same_poslos(const PosLosVector& other) const { return poslos.get() == &other; }
 
 void Obsel::set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
   ARTS_USER_ERROR_IF(not n, "Must exist");
@@ -224,9 +174,7 @@ void Obsel::set_weight_matrix(SparseStokvecMatrix n) {
 
 void Obsel::normalize(Stokvec pol) {
   const Stokvec x = std::transform_reduce(
-      w.begin(), w.end(), Stokvec{}, std::plus<>(), [](const SparseStokvec& e) {
-        return e.data;
-      });
+      w.begin(), w.end(), Stokvec{}, std::plus<>(), [](const SparseStokvec& e) { return e.data; });
 
   if (x.I() != 0.0) pol.I() = std::abs(pol.I() / x.I());
 
@@ -249,12 +197,9 @@ Numeric Obsel::sumup(const Stokvec& i, Index ip) const {
   assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);
 
   // w is a sparse sorted matrix of shape poslos->size() x f->size()
-  const SparseStokvec v0{.irow = static_cast<Size>(ip),
-                         .icol = static_cast<Size>(0)};
-  const SparseStokvec vn{.irow = static_cast<Size>(ip),
-                         .icol = std::numeric_limits<Size>::max()};
-  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
-                                      stdr::upper_bound(w, vn)};
+  const SparseStokvec            v0{.irow = static_cast<Size>(ip), .icol = static_cast<Size>(0)};
+  const SparseStokvec            vn{.irow = static_cast<Size>(ip), .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0), stdr::upper_bound(w, vn)};
 
   Numeric sum = 0.0;
   for (const auto& ws : span) sum += dot(i, ws.data);
@@ -266,12 +211,9 @@ Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
   assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);
 
   // w is a sparse sorted matrix of shape poslos->size() x f->size()
-  const SparseStokvec v0{.irow = static_cast<Size>(ip),
-                         .icol = static_cast<Size>(0)};
-  const SparseStokvec vn{.irow = static_cast<Size>(ip),
-                         .icol = std::numeric_limits<Size>::max()};
-  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
-                                      stdr::upper_bound(w, vn)};
+  const SparseStokvec            v0{.irow = static_cast<Size>(ip), .icol = static_cast<Size>(0)};
+  const SparseStokvec            vn{.irow = static_cast<Size>(ip), .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0), stdr::upper_bound(w, vn)};
 
   Numeric sum = 0.0;
   for (const auto& ws : span) {
@@ -284,18 +226,13 @@ Numeric Obsel::sumup(const StokvecVectorView& i, Index ip) const {
 void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
   // j is a matrix of shape JACS x f->size()
   // w is a sparse sorted matrix of shape poslos->size() x f->size()
-  const SparseStokvec v0{.irow = static_cast<Size>(ip),
-                         .icol = static_cast<Size>(0)};
-  const SparseStokvec vn{.irow = static_cast<Size>(ip),
-                         .icol = std::numeric_limits<Size>::max()};
-  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0),
-                                      stdr::upper_bound(w, vn)};
+  const SparseStokvec            v0{.irow = static_cast<Size>(ip), .icol = static_cast<Size>(0)};
+  const SparseStokvec            vn{.irow = static_cast<Size>(ip), .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0), stdr::upper_bound(w, vn)};
 
   for (Index ij = 0; ij < j.nrows(); ij++) {
     auto jac = j[ij];
-    for (auto& ws : span) {
-      out[ij] += dot(jac[ws.icol], ws.data);
-    }
+    for (auto& ws : span) { out[ij] += dot(jac[ws.icol], ws.data); }
   }
 }
 
@@ -317,10 +254,8 @@ void Obsel::flat(VectorView x, const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
     case freq:
-      ARTS_USER_ERROR_IF(x.size() != f_grid().size(),
-                         "Bad size. x.size(): {}, f_grid().size(): {}",
-                         x.size(),
-                         f_grid().size())
+      ARTS_USER_ERROR_IF(
+          x.size() != f_grid().size(), "Bad size. x.size(): {}, f_grid().size(): {}", x.size(), f_grid().size())
       x = f_grid();
       break;
     case zen:
@@ -328,50 +263,35 @@ void Obsel::flat(VectorView x, const SensorKeyType& key) const {
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
                          poslos_grid().size())
-      std::transform(poslos_grid().begin(),
-                     poslos_grid().end(),
-                     x.begin(),
-                     [](auto& poslos) { return poslos.los[0]; });
+      std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.los[0]; });
       break;
     case azi:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
                          poslos_grid().size())
-      std::transform(poslos_grid().begin(),
-                     poslos_grid().end(),
-                     x.begin(),
-                     [](auto& poslos) { return poslos.los[1]; });
+      std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.los[1]; });
       break;
     case alt:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
                          poslos_grid().size())
-      std::transform(poslos_grid().begin(),
-                     poslos_grid().end(),
-                     x.begin(),
-                     [](auto& poslos) { return poslos.pos[0]; });
+      std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[0]; });
       break;
     case lat:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
                          poslos_grid().size())
-      std::transform(poslos_grid().begin(),
-                     poslos_grid().end(),
-                     x.begin(),
-                     [](auto& poslos) { return poslos.pos[1]; });
+      std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[1]; });
       break;
     case lon:
       ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
                          "Bad size. x.size(): {}, poslos_grid().size(): {}",
                          x.size(),
                          poslos_grid().size())
-      std::transform(poslos_grid().begin(),
-                     poslos_grid().end(),
-                     x.begin(),
-                     [](auto& poslos) { return poslos.pos[2]; });
+      std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[2]; });
       break;
   }
 }
@@ -383,53 +303,42 @@ Vector Obsel::flat(const SensorKeyType& key) const {
 }
 
 Index Obsel::find(const Vector3& pos, const Vector2& los) const {
-  const auto&& first     = poslos->begin();
-  const auto&& last      = poslos->end();
-  const auto same_poslos = [&](const auto& p) {
-    return (&pos == &p.pos) and (&los == &p.los);
-  };
+  const auto&& first       = poslos->begin();
+  const auto&& last        = poslos->end();
+  const auto   same_poslos = [&](const auto& p) { return (&pos == &p.pos) and (&los == &p.los); };
 
   const auto&& it = std::find_if(first, last, same_poslos);
 
   return (it == last) ? dont_have : std::distance(first, it);
 }
 
-Index Obsel::find(const AscendingGrid& freq_grid) const {
-  return (f.get() != &freq_grid) ? dont_have : 0;
-}
+Index Obsel::find(const AscendingGrid& freq_grid) const { return (f.get() != &freq_grid) ? dont_have : 0; }
 }  // namespace sensor
 
-std::vector<const AscendingGrid*> unique_frequency_grids(
-    const std::span<const SensorObsel>& obsels) {
+std::vector<const AscendingGrid*> unique_frequency_grids(const std::span<const SensorObsel>& obsels) {
   std::vector<const AscendingGrid*> out;
 
   for (const auto& obsel : obsels) {
     const auto& f_grid = obsel.f_grid();
 
-    if (not stdr::contains(out, &f_grid)) {
-      out.push_back(&f_grid);
-    }
+    if (not stdr::contains(out, &f_grid)) { out.push_back(&f_grid); }
   }
 
   return out;
 }
 
-std::vector<const SensorPosLosVector*> unique_poslos_grids(
-    const std::span<const SensorObsel>& obsels) {
+std::vector<const SensorPosLosVector*> unique_poslos_grids(const std::span<const SensorObsel>& obsels) {
   std::vector<const SensorPosLosVector*> out;
 
   for (const auto& obsel : obsels) {
     const auto& poslos_grid = obsel.poslos_grid();
-    if (not stdr::contains(out, &poslos_grid)) {
-      out.push_back(&poslos_grid);
-    }
+    if (not stdr::contains(out, &poslos_grid)) { out.push_back(&poslos_grid); }
   }
 
   return out;
 }
 
-SensorSimulations collect_simulations(
-    const std::span<const SensorObsel>& obsels) {
+SensorSimulations collect_simulations(const std::span<const SensorObsel>& obsels) {
   SensorSimulations out;
 
   std::unordered_set<const AscendingGrid*> buf{};
@@ -442,9 +351,7 @@ SensorSimulations collect_simulations(
 
     auto& poslos = obsel.poslos_grid();
 
-    for (Size i = 0; i < poslos.size(); ++i) {
-      out.emplace_back(f_grid, poslos, i);
-    }
+    for (Size i = 0; i < poslos.size(); ++i) { out.emplace_back(f_grid, poslos, i); }
   }
 
   return out;
@@ -457,7 +364,7 @@ void make_exhaustive(std::span<SensorObsel> obsels) {
   if (simuls.size() == 0) return;
   if (simuls.size() == 1 and simuls.front().poslos_grid.size() <= 1) return;
 
-  std::vector<Numeric> all_freq;  // Collect all frequencies in the simulations
+  std::vector<Numeric>      all_freq;  // Collect all frequencies in the simulations
   std::vector<SensorPosLos> all_geom;  // Collect all poslos in the simulations
 
   for (auto& [freqs, poslos, iposlos] : simuls) {
@@ -476,12 +383,10 @@ void make_exhaustive(std::span<SensorObsel> obsels) {
     sensor::SparseStokvecMatrix weights(all_geom.size(), all_freq.size());
 
     for (auto& w : elem.weight_matrix()) {
-      const Size ig  = w.irow;  // Index in poslos_grid
-      const Size iv  = w.icol;  // Index in f_grid
-      const Size ign = stdr::distance(
-          all_geom.begin(), stdr::find(all_geom, elem.poslos_grid()[ig]));
-      const Size ivn = stdr::distance(
-          all_freq.begin(), stdr::lower_bound(all_freq, elem.f_grid()[iv]));
+      const Size ig     = w.irow;  // Index in poslos_grid
+      const Size iv     = w.icol;  // Index in f_grid
+      const Size ign    = stdr::distance(all_geom.begin(), stdr::find(all_geom, elem.poslos_grid()[ig]));
+      const Size ivn    = stdr::distance(all_freq.begin(), stdr::lower_bound(all_freq, elem.f_grid()[iv]));
       weights[ign, ivn] = w.data;
     }
 
@@ -490,10 +395,10 @@ void make_exhaustive(std::span<SensorObsel> obsels) {
 }
 
 void make_exclusive(std::span<SensorObsel> obsels) {
-  Vector fs{};
+  Vector             fs{};
   SensorPosLosVector gs{};
-  std::vector<Size> freq_indices{};
-  std::vector<Size> poslos_indices{};
+  std::vector<Size>  freq_indices{};
+  std::vector<Size>  poslos_indices{};
 
   for (auto& elem : obsels) {
     freq_indices.resize(0);
@@ -519,24 +424,18 @@ void make_exclusive(std::span<SensorObsel> obsels) {
     const auto nposlos = static_cast<Index>(poslos_indices.size());
     gs.resize(nposlos);
     auto& old_gs = elem.poslos_grid();
-    for (Index i = 0; i < nposlos; i++) {
-      gs[i] = old_gs[poslos_indices[i]];
-    }
+    for (Index i = 0; i < nposlos; i++) { gs[i] = old_gs[poslos_indices[i]]; }
 
     const auto nfreqs = static_cast<Index>(freq_indices.size());
     fs.resize(nfreqs);
     auto& old_fs = elem.f_grid();
-    for (Index j = 0; j < nfreqs; j++) {
-      fs[j] = fs[freq_indices[j]];
-    }
+    for (Index j = 0; j < nfreqs; j++) { fs[j] = fs[freq_indices[j]]; }
 
     sensor::SparseStokvecMatrix ws(nposlos, nfreqs);
     for (const auto& w : elem.weight_matrix()) {
-      const Index iposlos =
-          stdr::distance(stdr::begin(gs), stdr::find(gs, old_gs[w.irow]));
-      const Index ifreq = stdr::distance(stdr::begin(fs),
-                                         stdr::lower_bound(fs, old_fs[w.icol]));
-      ws[iposlos, ifreq] = w.data;
+      const Index iposlos = stdr::distance(stdr::begin(gs), stdr::find(gs, old_gs[w.irow]));
+      const Index ifreq   = stdr::distance(stdr::begin(fs), stdr::lower_bound(fs, old_fs[w.icol]));
+      ws[iposlos, ifreq]  = w.data;
     }
 
     elem = SensorObsel(AscendingGrid{fs}, gs, std::move(ws));
@@ -568,9 +467,7 @@ void collect_frequency_grids(std::span<SensorObsel> obsels) {
     sensor::SparseStokvecMatrix w(obsel.poslos_grid().size(), freq_ptr->size());
 
     for (const auto& we : obsel.weight_matrix()) {
-      const Index ifreq =
-          stdr::distance(freq_ptr->begin(),
-                         stdr::lower_bound(*freq_ptr, obsel.f_grid()[we.icol]));
+      const Index ifreq = stdr::distance(freq_ptr->begin(), stdr::lower_bound(*freq_ptr, obsel.f_grid()[we.icol]));
       w[we.irow, ifreq] = we.data;
     }
 
@@ -579,16 +476,11 @@ void collect_frequency_grids(std::span<SensorObsel> obsels) {
 }
 
 namespace {
-void set_frq(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.f_grid().size(),
-                     "Bad size. x.size(): {}, f_grid().size(): {}",
-                     x.size(),
-                     v.f_grid().size())
+void set_frq(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
+  ARTS_USER_ERROR_IF(
+      x.size() != v.f_grid().size(), "Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size())
 
-  const auto xs = std::make_shared<const AscendingGrid>(
-      x.begin(), x.end(), [](auto& x) { return x; });
+  const auto xs = std::make_shared<const AscendingGrid>(x.begin(), x.end(), [](auto& x) { return x; });
 
   // Copy the shared_ptr value before updating matching obsels.
   const auto fs = v.f_grid_ptr();
@@ -601,9 +493,7 @@ void set_frq(const SensorObsel& v,
 }
 
 template <bool pos, Index k>
-void set_poslos(const SensorObsel& v,
-                ArrayOfSensorObsel& sensor,
-                const ConstVectorView x) {
+void set_poslos(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
                      "Bad size. x.size(): {}, poslos_grid().size(): {}",
                      x.size(),
@@ -611,18 +501,14 @@ void set_poslos(const SensorObsel& v,
 
   SensorPosLosVector xsv = v.poslos_grid();
 
-  std::transform(xsv.begin(),
-                 xsv.end(),
-                 x.begin(),
-                 xsv.begin(),
-                 [](auto poslos, Numeric val) {
-                   if constexpr (pos) {
-                     poslos.pos[k] = val;
-                   } else {
-                     poslos.los[k] = val;
-                   }
-                   return poslos;
-                 });
+  std::transform(xsv.begin(), xsv.end(), x.begin(), xsv.begin(), [](auto poslos, Numeric val) {
+    if constexpr (pos) {
+      poslos.pos[k] = val;
+    } else {
+      poslos.los[k] = val;
+    }
+    return poslos;
+  });
 
   const auto xs = std::make_shared<const SensorPosLosVector>(std::move(xsv));
 
@@ -636,41 +522,28 @@ void set_poslos(const SensorObsel& v,
   }
 }
 
-void set_alt(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
+void set_alt(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   set_poslos<true, 0>(v, sensor, x);
 }
 
-void set_lat(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
+void set_lat(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   set_poslos<true, 1>(v, sensor, x);
 }
 
-void set_lon(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
+void set_lon(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   set_poslos<true, 2>(v, sensor, x);
 }
 
-void set_zen(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
+void set_zen(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   set_poslos<false, 0>(v, sensor, x);
 }
 
-void set_azi(const SensorObsel& v,
-             ArrayOfSensorObsel& sensor,
-             const ConstVectorView x) {
+void set_azi(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
   set_poslos<false, 1>(v, sensor, x);
 }
 }  // namespace
 
-void unflatten(ArrayOfSensorObsel& sensor,
-               const ConstVectorView& x,
-               const SensorObsel& v,
-               const SensorKeyType& key) {
+void unflatten(ArrayOfSensorObsel& sensor, const ConstVectorView& x, const SensorObsel& v, const SensorKeyType& key) {
   switch (key) {
     using enum SensorKeyType;
     case freq: set_frq(v, sensor, x); break;
@@ -682,10 +555,10 @@ void unflatten(ArrayOfSensorObsel& sensor,
   }
 }
 
-void xml_io_stream<SensorPosLos>::write(std::ostream& os,
+void xml_io_stream<SensorPosLos>::write(std::ostream&       os,
                                         const SensorPosLos& x,
-                                        bofstream* pbofs,
-                                        std::string_view name) {
+                                        bofstream*          pbofs,
+                                        std::string_view    name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -698,9 +571,7 @@ void xml_io_stream<SensorPosLos>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SensorPosLos>::read(std::istream& is,
-                                       SensorPosLos& x,
-                                       bifstream* pbifs) {
+void xml_io_stream<SensorPosLos>::read(std::istream& is, SensorPosLos& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -715,27 +586,19 @@ void xml_io_stream<SensorPosLos>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SensorPosLos>::put(std::span<const SensorPosLos> x,
-                                      bofstream* pbofs) {
-  xml_io_stream<Numeric>::put(
-      std::span{reinterpret_cast<const Numeric*>(x.data()), x.size() * 5},
-      pbofs);
+void xml_io_stream<SensorPosLos>::put(std::span<const SensorPosLos> x, bofstream* pbofs) {
+  xml_io_stream<Numeric>::put(std::span{reinterpret_cast<const Numeric*>(x.data()), x.size() * 5}, pbofs);
 }
 
-void xml_io_stream<SensorPosLos>::get(std::span<SensorPosLos> x,
-                                      bifstream* pbifs) {
-  xml_io_stream<Numeric>::get(
-      std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, pbifs);
+void xml_io_stream<SensorPosLos>::get(std::span<SensorPosLos> x, bifstream* pbifs) {
+  xml_io_stream<Numeric>::get(std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, pbifs);
 }
 
-void xml_io_stream<SensorPosLos>::parse(std::span<SensorPosLos> x,
-                                        std::istream& is) {
-  xml_io_stream<Numeric>::parse(
-      std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, is);
+void xml_io_stream<SensorPosLos>::parse(std::span<SensorPosLos> x, std::istream& is) {
+  xml_io_stream<Numeric>::parse(std::span{reinterpret_cast<Numeric*>(x.data()), x.size() * 5}, is);
 }
 
-void xml_io_stream<sensor::SparseStokvec>::put(
-    std::span<const sensor::SparseStokvec> x, bofstream* pbofs) {
+void xml_io_stream<sensor::SparseStokvec>::put(std::span<const sensor::SparseStokvec> x, bofstream* pbofs) {
   for (auto& elem : x) {
     xml_io_stream<Size>::put({&elem.irow, 1}, pbofs);
     xml_io_stream<Size>::put({&elem.icol, 1}, pbofs);
@@ -743,10 +606,10 @@ void xml_io_stream<sensor::SparseStokvec>::put(
   }
 }
 
-void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
+void xml_io_stream<sensor::SparseStokvec>::write(std::ostream&                os,
                                                  const sensor::SparseStokvec& x,
-                                                 bofstream* pbofs,
-                                                 std::string_view name) {
+                                                 bofstream*                   pbofs,
+                                                 std::string_view             name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -759,8 +622,7 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<sensor::SparseStokvec>::get(
-    std::span<sensor::SparseStokvec> x, bifstream* pbifs) {
+void xml_io_stream<sensor::SparseStokvec>::get(std::span<sensor::SparseStokvec> x, bifstream* pbifs) {
   for (auto& elem : x) {
     xml_io_stream<Size>::get({&elem.irow, 1}, pbifs);
     xml_io_stream<Size>::get({&elem.icol, 1}, pbifs);
@@ -768,16 +630,11 @@ void xml_io_stream<sensor::SparseStokvec>::get(
   }
 }
 
-void xml_io_stream<sensor::SparseStokvec>::parse(
-    std::span<sensor::SparseStokvec> x, std::istream& is) {
-  for (auto& v : x) {
-    is >> v.irow >> v.icol >> v.data;
-  }
+void xml_io_stream<sensor::SparseStokvec>::parse(std::span<sensor::SparseStokvec> x, std::istream& is) {
+  for (auto& v : x) { is >> v.irow >> v.icol >> v.data; }
 }
 
-void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is,
-                                                sensor::SparseStokvec& x,
-                                                bifstream* pbifs) {
+void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is, sensor::SparseStokvec& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -792,11 +649,10 @@ void xml_io_stream<sensor::SparseStokvec>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<sensor::SparseStokvecMatrix>::write(
-    std::ostream& os,
-    const sensor::SparseStokvecMatrix& x,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<sensor::SparseStokvecMatrix>::write(std::ostream&                      os,
+                                                       const sensor::SparseStokvecMatrix& x,
+                                                       bofstream*                         pbofs,
+                                                       std::string_view                   name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -807,13 +663,14 @@ void xml_io_stream<sensor::SparseStokvecMatrix>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<sensor::SparseStokvecMatrix>::read(
-    std::istream& is, sensor::SparseStokvecMatrix& x, bifstream* pbifs) {
+void xml_io_stream<sensor::SparseStokvecMatrix>::read(std::istream&                is,
+                                                      sensor::SparseStokvecMatrix& x,
+                                                      bifstream*                   pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  Index nr, nc;
+  Index                              nr, nc;
   std::vector<sensor::SparseStokvec> vector;
 
   xml_read_from_stream(is, nr, pbifs);
@@ -828,10 +685,10 @@ void xml_io_stream<sensor::SparseStokvecMatrix>::read(
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SensorObsel>::write(std::ostream& os,
+void xml_io_stream<SensorObsel>::write(std::ostream&      os,
                                        const SensorObsel& g,
-                                       bofstream* pbofs,
-                                       std::string_view name) {
+                                       bofstream*         pbofs,
+                                       std::string_view   name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -842,15 +699,13 @@ void xml_io_stream<SensorObsel>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SensorObsel>::read(std::istream& is,
-                                      SensorObsel& x,
-                                      bifstream* pbifs) {
+void xml_io_stream<SensorObsel>::read(std::istream& is, SensorObsel& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  AscendingGrid f_grid;
-  SensorPosLosVector poslos_grid;
+  AscendingGrid               f_grid;
+  SensorPosLosVector          poslos_grid;
   sensor::SparseStokvecMatrix weight_matrix;
 
   xml_read_from_stream(is, f_grid, pbifs);
@@ -863,42 +718,32 @@ void xml_io_stream<SensorObsel>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
+void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream&             os,
                                               const ArrayOfSensorObsel& g,
-                                              bofstream* pbofs,
-                                              std::string_view name) {
+                                              bofstream*                pbofs,
+                                              std::string_view          name) {
   const auto freqs_ptrs = unique_frequency_grids(g);
   const auto plos_ptrs  = unique_poslos_grids(g);
 
-  const std::vector freqs{
-      std::from_range,
-      freqs_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
+  const std::vector freqs{std::from_range, freqs_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
 
-  const std::vector plos{
-      std::from_range,
-      plos_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
+  const std::vector plos{std::from_range, plos_ptrs | stdv::transform([](auto& ptr) { return *ptr; })};
 
-  const std::vector freqs_pos{
-      std::from_range,
-      g | stdv::transform([&freqs_ptrs](const SensorObsel& elem) -> Index {
-        for (Size i = 0; i < freqs_ptrs.size(); ++i) {
-          if (elem.same_freqs(*freqs_ptrs[i])) return i;
-        }
-        return -999;  // Should not happen
-      })};
+  const std::vector freqs_pos{std::from_range, g | stdv::transform([&freqs_ptrs](const SensorObsel& elem) -> Index {
+                                                 for (Size i = 0; i < freqs_ptrs.size(); ++i) {
+                                                   if (elem.same_freqs(*freqs_ptrs[i])) return i;
+                                                 }
+                                                 return -999;  // Should not happen
+                                               })};
 
-  const std::vector plos_pos{
-      std::from_range,
-      g | stdv::transform([&plos_ptrs](const SensorObsel& elem) -> Index {
-        for (Size i = 0; i < plos_ptrs.size(); ++i) {
-          if (elem.same_poslos(*plos_ptrs[i])) return i;
-        }
-        return -999;  // Should not happen
-      })};
+  const std::vector plos_pos{std::from_range, g | stdv::transform([&plos_ptrs](const SensorObsel& elem) -> Index {
+                                                for (Size i = 0; i < plos_ptrs.size(); ++i) {
+                                                  if (elem.same_poslos(*plos_ptrs[i])) return i;
+                                                }
+                                                return -999;  // Should not happen
+                                              })};
 
-  const std::vector weights{
-      std::from_range,
-      g | stdv::transform([](auto& elem) { return elem.weight_matrix(); })};
+  const std::vector weights{std::from_range, g | stdv::transform([](auto& elem) { return elem.weight_matrix(); })};
 
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
@@ -912,18 +757,16 @@ void xml_io_stream<ArrayOfSensorObsel>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
-                                             ArrayOfSensorObsel& g,
-                                             bifstream* pbifs) {
+void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is, ArrayOfSensorObsel& g, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
   g.resize(0);
 
-  std::vector<AscendingGrid> f_grid_vals;
-  std::vector<SensorPosLosVector> poslos_vals;
-  std::vector<Index> f_grid_pos, poslos_pos;
+  std::vector<AscendingGrid>               f_grid_vals;
+  std::vector<SensorPosLosVector>          poslos_vals;
+  std::vector<Index>                       f_grid_pos, poslos_pos;
   std::vector<sensor::SparseStokvecMatrix> mat;
 
   xml_read_from_stream(is, f_grid_vals, pbifs);
@@ -932,15 +775,13 @@ void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
   xml_read_from_stream(is, poslos_pos, pbifs);
   xml_read_from_stream(is, mat, pbifs);
 
-  const std::vector f_grid{std::from_range,
-                           f_grid_vals | stdv::transform([](auto& val) {
-                             return std::make_shared<const AscendingGrid>(val);
-                           })};
+  const std::vector f_grid{std::from_range, f_grid_vals | stdv::transform([](auto& val) {
+                                              return std::make_shared<const AscendingGrid>(val);
+                                            })};
 
-  const std::vector poslos{
-      std::from_range, poslos_vals | stdv::transform([](auto& val) {
-                         return std::make_shared<const SensorPosLosVector>(val);
-                       })};
+  const std::vector poslos{std::from_range, poslos_vals | stdv::transform([](auto& val) {
+                                              return std::make_shared<const SensorPosLosVector>(val);
+                                            })};
 
   const Size N = f_grid_pos.size();
 
@@ -953,9 +794,7 @@ void xml_io_stream<ArrayOfSensorObsel>::read(std::istream& is,
   g.reserve(N);
   for (Size i = 0; i < N; i++) {
     try {
-      g.emplace_back(f_grid.at(f_grid_pos[i]),
-                     poslos.at(poslos_pos[i]),
-                     std::move(mat[i]));
+      g.emplace_back(f_grid.at(f_grid_pos[i]), poslos.at(poslos_pos[i]), std::move(mat[i]));
     } catch (const std::out_of_range&) {
       throw std::runtime_error(std::format(
           R"(Out of range:

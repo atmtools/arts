@@ -48,33 +48,33 @@ void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void OEM(const Workspace& ws,
-         Vector& model_state_vec,
-         Vector& measurement_vec_fit,
-         Matrix& measurement_jac,
-         AtmField& atm_field,
-         AbsorptionBands& abs_bands,
-         ArrayOfSensorObsel& measurement_sensor,
-         SurfaceField& surf_field,
-         SubsurfaceField& subsurf_field,
-         Matrix& measurement_gain_mat,
-         Vector& oem_diagnostics,
-         Vector& lm_ga_history,
-         ArrayOfString& errors,
-         const JacobianTargets& jac_targets,
-         const Vector& model_state_vec_apriori,
+void OEM(const Workspace&        ws,
+         Vector&                 model_state_vec,
+         Vector&                 measurement_vec_fit,
+         Matrix&                 measurement_jac,
+         AtmField&               atm_field,
+         AbsorptionBands&        abs_bands,
+         ArrayOfSensorObsel&     measurement_sensor,
+         SurfaceField&           surf_field,
+         SubsurfaceField&        subsurf_field,
+         Matrix&                 measurement_gain_mat,
+         Vector&                 oem_diagnostics,
+         Vector&                 lm_ga_history,
+         ArrayOfString&          errors,
+         const JacobianTargets&  jac_targets,
+         const Vector&           model_state_vec_apriori,
          const CovarianceMatrix& model_state_covmat,
-         const Vector& measurement_vec,
+         const Vector&           measurement_vec,
          const CovarianceMatrix& measurement_vec_error_covmat,
-         const Agenda& inversion_iterate_agenda,
-         const String& method,
-         const Numeric& max_start_cost,
-         const Vector& model_state_covmat_normalization,
-         const Index& max_iter,
-         const Numeric& stop_dx,
-         const Vector& lm_ga_settings,
-         const Index& clear_matrices,
-         const Index& display_progress) {
+         const Agenda&           inversion_iterate_agenda,
+         const String&           method,
+         const Numeric&          max_start_cost,
+         const Vector&           model_state_covmat_normalization,
+         const Index&            max_iter,
+         const Numeric&          stop_dx,
+         const Vector&           lm_ga_settings,
+         const Index&            clear_matrices,
+         const Index&            display_progress) {
   ARTS_TIME_REPORT
 
   // Main sizes
@@ -112,8 +112,7 @@ void OEM(const Workspace& ws,
   oem_diagnostics.resize(5);
   oem_diagnostics = NAN;
   //
-  if (method == "ml" || method == "lm" || method == "ml_cg" ||
-      method == "lm_cg") {
+  if (method == "ml" || method == "lm" || method == "ml_cg" || method == "lm_cg") {
     lm_ga_history.resize(max_iter + 1);
     lm_ga_history = NAN;
   } else {
@@ -158,20 +157,15 @@ void OEM(const Workspace& ws,
   // TODO: Get this from invlib log.
   // Start value of cost function
   Numeric cost_start = NAN;
-  if (method == "ml" || method == "lm" || display_progress ||
-      max_start_cost > 0) {
+  if (method == "ml" || method == "lm" || display_progress || max_start_cost > 0) {
     Vector dy   = measurement_vec;
     dy         -= measurement_vec_fit;
     Vector sdy  = measurement_vec;
-    mult_inv(sdy.view_as(sdy.size(), 1),
-             measurement_vec_error_covmat,
-             dy.view_as(dy.size(), 1));
+    mult_inv(sdy.view_as(sdy.size(), 1), measurement_vec_error_covmat, dy.view_as(dy.size(), 1));
     Vector dx   = model_state_vec;
     dx         -= model_state_vec_apriori;
     Vector sdx  = model_state_vec;
-    mult_inv(sdx.view_as(sdx.size(), 1),
-             model_state_covmat,
-             dx.view_as(dx.size(), 1));
+    mult_inv(sdx.view_as(sdx.size(), 1), model_state_covmat, dx.view_as(dx.size(), 1));
     cost_start  = dot(dx, sdx) + dot(dy, sdy);
     cost_start /= static_cast<Numeric>(m);
   }
@@ -191,103 +185,89 @@ void OEM(const Workspace& ws,
   }
   // Otherwise do inversion
   else {
-    bool apply_norm = false;
+    bool        apply_norm = false;
     oem::Matrix T{};
     if (model_state_covmat_normalization.size() == static_cast<Size>(n)) {
       T.resize(n, n);
       T           *= 0.0;
       diagonal(T)  = model_state_covmat_normalization;
-      for (Index i = 0; i < n; i++) {
-        T(i, i) = model_state_covmat_normalization[i];
-      }
+      for (Index i = 0; i < n; i++) { T(i, i) = model_state_covmat_normalization[i]; }
       apply_norm = true;
     }
 
-    oem::CovarianceMatrix Se(measurement_vec_error_covmat),
-        Sa(model_state_covmat);
-    oem::Vector xa_oem(model_state_vec_apriori), y_oem(measurement_vec),
-        x_oem(model_state_vec);
-    oem::AgendaWrapper aw(&ws,
-                          (unsigned int)m,
-                          (unsigned int)n,
-                          measurement_jac,
-                          measurement_vec_fit,
-                          &atm_field,
-                          &abs_bands,
-                          &measurement_sensor,
-                          &surf_field,
-                          &subsurf_field,
-                          &jac_targets,
-                          &inversion_iterate_agenda);
+    oem::CovarianceMatrix Se(measurement_vec_error_covmat), Sa(model_state_covmat);
+    oem::Vector           xa_oem(model_state_vec_apriori), y_oem(measurement_vec), x_oem(model_state_vec);
+    oem::AgendaWrapper    aw(&ws,
+                             (unsigned int)m,
+                             (unsigned int)n,
+                             measurement_jac,
+                             measurement_vec_fit,
+                             &atm_field,
+                             &abs_bands,
+                             &measurement_sensor,
+                             &surf_field,
+                             &subsurf_field,
+                             &jac_targets,
+                             &inversion_iterate_agenda);
     oem::OEM_STANDARD<oem::AgendaWrapper> oem(aw, xa_oem, Sa, Se);
-    oem::OEM_MFORM<oem::AgendaWrapper> oem_m(aw, xa_oem, Sa, Se);
-    int oem_verbosity = static_cast<int>(display_progress);
+    oem::OEM_MFORM<oem::AgendaWrapper>    oem_m(aw, xa_oem, Sa, Se);
+    int                                   oem_verbosity = static_cast<int>(display_progress);
 
     int return_code = 0;
 
     try {
       if (method == "li") {
         oem::Std s(T, apply_norm);
-        oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
-        return_code = oem.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
+        oem::GN  gn(stop_dx, 1, s);  // Linear case, only one step.
+        return_code        = oem.compute<oem::GN, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
         ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
-        oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
+        oem::GN  gn(stop_dx, 1, s);  // Linear case, only one step.
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
         //            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg") {
-        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::CG    cg(T, apply_norm, 1e-10, 0);
         oem::GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
-        return_code = oem.compute<oem::GN_CG, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
+        return_code = oem.compute<oem::GN_CG, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg_m") {
-        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::CG    cg(T, apply_norm, 1e-10, 0);
         oem::GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
-        return_code = oem_m.compute<oem::GN_CG, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
+        return_code = oem_m.compute<oem::GN_CG, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn") {
         oem::Std s(T, apply_norm);
-        oem::GN gn(stop_dx, (unsigned int)max_iter, s);
-        return_code = oem.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
+        oem::GN  gn(stop_dx, (unsigned int)max_iter, s);
+        return_code        = oem.compute<oem::GN, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
         ARTS_USER_ERROR("{} is not supported", method)
         oem::Std s(T, apply_norm);
-        oem::GN gn(stop_dx, (unsigned int)max_iter, s);
+        oem::GN  gn(stop_dx, (unsigned int)max_iter, s);
         //        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
         //            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg") {
-        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::CG    cg(T, apply_norm, 1e-10, 0);
         oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-        return_code = oem.compute<oem::GN_CG, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
+        return_code        = oem.compute<oem::GN_CG, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg_m") {
-        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::CG    cg(T, apply_norm, 1e-10, 0);
         oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-        return_code = oem_m.compute<oem::GN_CG, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
+        return_code        = oem_m.compute<oem::GN_CG, oem::ArtsLog>(x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if ((method == "lm") || (method == "ml")) {
-        oem::Std s(T, apply_norm);
-        Sparse diagonal =
-            Sparse::diagonal(model_state_covmat.inverse_diagonal());
+        oem::Std         s(T, apply_norm);
+        Sparse           diagonal = Sparse::diagonal(model_state_covmat.inverse_diagonal());
         CovarianceMatrix SaDiag{};
         SaDiag.add_correlation_inverse(
-            Block(Range(0, n),
-                  Range(0, n),
-                  std::make_pair(0, 0),
-                  std::make_shared<Sparse>(diagonal)));
+            Block(Range(0, n), Range(0, n), std::make_pair(0, 0), std::make_shared<Sparse>(diagonal)));
         oem::CovarianceMatrix SaInvLM = inv(oem::CovarianceMatrix(SaDiag));
-        oem::LM lm(SaInvLM, s);
+        oem::LM               lm(SaInvLM, s);
 
         lm.set_tolerance(stop_dx);
         lm.set_maximum_iterations((unsigned int)max_iter);
@@ -298,23 +278,16 @@ void OEM(const Workspace& ws,
         lm.set_lambda_threshold(lm_ga_settings[4]);
         lm.set_lambda_constraint(lm_ga_settings[5]);
 
-        return_code = oem.compute<oem::LM&, oem::ArtsLog>(
-            x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
+        return_code        = oem.compute<oem::LM&, oem::ArtsLog>(x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
-        if (lm.get_lambda() > lm.get_lambda_maximum()) {
-          oem_diagnostics[0] = 2;
-        }
+        if (lm.get_lambda() > lm.get_lambda_maximum()) { oem_diagnostics[0] = 2; }
       } else if ((method == "lm_cg") || (method == "ml_cg")) {
         oem::CG cg(T, apply_norm, 1e-10, 0);
 
-        Sparse diagonal =
-            Sparse::diagonal(model_state_covmat.inverse_diagonal());
+        Sparse           diagonal = Sparse::diagonal(model_state_covmat.inverse_diagonal());
         CovarianceMatrix SaDiag{};
         SaDiag.add_correlation_inverse(
-            Block(Range(0, n),
-                  Range(0, n),
-                  std::make_pair(0, 0),
-                  std::make_shared<Sparse>(diagonal)));
+            Block(Range(0, n), Range(0, n), std::make_pair(0, 0), std::make_shared<Sparse>(diagonal)));
         oem::LM_CG lm(SaDiag, cg);
 
         lm.set_maximum_iterations((unsigned int)max_iter);
@@ -324,12 +297,9 @@ void OEM(const Workspace& ws,
         lm.set_lambda_threshold(lm_ga_settings[3]);
         lm.set_lambda_maximum(lm_ga_settings[4]);
 
-        return_code = oem.compute<oem::LM_CG&, oem::ArtsLog>(
-            x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
+        return_code        = oem.compute<oem::LM_CG&, oem::ArtsLog>(x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
-        if (lm.get_lambda() > lm.get_lambda_maximum()) {
-          oem_diagnostics[0] = 2;
-        }
+        if (lm.get_lambda() > lm.get_lambda_maximum()) { oem_diagnostics[0] = 2; }
       }
 
       oem_diagnostics[2] = oem.cost / static_cast<Numeric>(m);
@@ -344,14 +314,10 @@ void OEM(const Workspace& ws,
       std::vector<std::string> sv  = oem::handle_nested_exception(e);
       for (auto& s : sv) {
         std::stringstream ss{s};
-        std::string t{};
-        while (std::getline(ss, t)) {
-          errors.push_back(t.c_str());
-        }
+        std::string       t{};
+        while (std::getline(ss, t)) { errors.push_back(t.c_str()); }
       }
-    } catch (...) {
-      throw;
-    }
+    } catch (...) { throw; }
 
     model_state_vec     = x_oem;
     measurement_vec_fit = aw.get_measurement_vec();
@@ -372,45 +338,38 @@ void OEM(const Workspace& ws,
   }
 }
 
-void measurement_vec_error_covmat_observation_systemCalc(
-    Matrix& measurement_vec_error_covmat_observation_system,
-    const Matrix& measurement_gain_mat,
-    const CovarianceMatrix& measurement_vec_error_covmat) {
+void measurement_vec_error_covmat_observation_systemCalc(Matrix&       measurement_vec_error_covmat_observation_system,
+                                                         const Matrix& measurement_gain_mat,
+                                                         const CovarianceMatrix& measurement_vec_error_covmat) {
   ARTS_TIME_REPORT
 
-  Index n(measurement_gain_mat.nrows()), m(measurement_gain_mat.ncols());
+  Index  n(measurement_gain_mat.nrows()), m(measurement_gain_mat.ncols());
   Matrix tmp1(m, n);
 
   ARTS_USER_ERROR_IF(
       (m == 0) || (n == 0),
       "The gain matrix *measurement_gain_mat* is required to compute the observation error covariance matrix.");
-  ARTS_USER_ERROR_IF(
-      (measurement_vec_error_covmat.nrows() != m) ||
-          (measurement_vec_error_covmat.ncols() != m),
-      "The covariance matrix measurement_vec_error_covmat has invalid dimensions.");
+  ARTS_USER_ERROR_IF((measurement_vec_error_covmat.nrows() != m) || (measurement_vec_error_covmat.ncols() != m),
+                     "The covariance matrix measurement_vec_error_covmat has invalid dimensions.");
 
   measurement_vec_error_covmat_observation_system.resize(n, n);
   mult(tmp1, measurement_vec_error_covmat, transpose(measurement_gain_mat));
-  mult(measurement_vec_error_covmat_observation_system,
-       measurement_gain_mat,
-       tmp1);
+  mult(measurement_vec_error_covmat_observation_system, measurement_gain_mat, tmp1);
 }
 
-void model_state_covmat_smoothing_errorCalc(
-    Matrix& model_state_covmat_smoothing_error,
-    const Matrix& measurement_averaging_kernel,
-    const CovarianceMatrix& model_state_covmat) {
+void model_state_covmat_smoothing_errorCalc(Matrix&                 model_state_covmat_smoothing_error,
+                                            const Matrix&           measurement_averaging_kernel,
+                                            const CovarianceMatrix& model_state_covmat) {
   ARTS_TIME_REPORT
 
-  Index n(measurement_averaging_kernel.ncols());
+  Index  n(measurement_averaging_kernel.ncols());
   Matrix tmp1(n, n), tmp2(n, n);
 
   ARTS_USER_ERROR_IF(
       n == 0,
       "The averaging kernel matrix *measurement_gain_mat* is required to compute the smoothing error covariance matrix.");
-  ARTS_USER_ERROR_IF(
-      (model_state_covmat.nrows() != n) || (model_state_covmat.ncols() != n),
-      "The covariance matrix *model_state_covmat* invalid dimensions.");
+  ARTS_USER_ERROR_IF((model_state_covmat.nrows() != n) || (model_state_covmat.ncols() != n),
+                     "The covariance matrix *model_state_covmat* invalid dimensions.");
 
   model_state_covmat_smoothing_error.resize(n, n);
 
@@ -422,7 +381,7 @@ void model_state_covmat_smoothing_errorCalc(
   mult(model_state_covmat_smoothing_error, tmp1, tmp2);
 }
 
-void measurement_averaging_kernelCalc(Matrix& measurement_averaging_kernel,
+void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel,
                                       const Matrix& measurement_gain_mat,
                                       const Matrix& measurement_jac) {
   ARTS_TIME_REPORT

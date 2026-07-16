@@ -44,7 +44,6 @@ Return
     Atmospheric ratio of isotopologue
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize hitran\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize hitran\n{}", e.what()));
 }
 }  // namespace Python

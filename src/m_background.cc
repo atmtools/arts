@@ -8,33 +8,25 @@
 
 #include <algorithm>
 
-void spectral_rad_bkgAgendasAtEndOfPath(
-    const Workspace& ws,
-    StokvecVector& spectral_rad_bkg,
-    StokvecMatrix& spectral_rad_bkg_jac,
-    const AscendingGrid& freq_grid,
-    const JacobianTargets& jac_targets,
-    const PropagationPathPoint& ray_point,
-    const SurfaceField& surf_field,
-    const SubsurfaceField& subsurf_field,
-    const Agenda& spectral_rad_space_agenda,
-    const Agenda& spectral_rad_surface_agenda) try {
+void spectral_rad_bkgAgendasAtEndOfPath(const Workspace&            ws,
+                                        StokvecVector&              spectral_rad_bkg,
+                                        StokvecMatrix&              spectral_rad_bkg_jac,
+                                        const AscendingGrid&        freq_grid,
+                                        const JacobianTargets&      jac_targets,
+                                        const PropagationPathPoint& ray_point,
+                                        const SurfaceField&         surf_field,
+                                        const SubsurfaceField&      subsurf_field,
+                                        const Agenda&               spectral_rad_space_agenda,
+                                        const Agenda&               spectral_rad_surface_agenda) try {
   ARTS_TIME_REPORT
 
   using enum PathPositionType;
   switch (ray_point.los_type) {
-    case atm:
-      ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
-      break;
+    case atm:     ARTS_USER_ERROR("Undefined what to do with an atmospheric background") break;
     case unknown: ARTS_USER_ERROR("Undefined background type"); break;
     case space:
-      spectral_rad_space_agendaExecute(ws,
-                                       spectral_rad_bkg,
-                                       spectral_rad_bkg_jac,
-                                       freq_grid,
-                                       jac_targets,
-                                       ray_point,
-                                       spectral_rad_space_agenda);
+      spectral_rad_space_agendaExecute(
+          ws, spectral_rad_bkg, spectral_rad_bkg_jac, freq_grid, jac_targets, ray_point, spectral_rad_space_agenda);
       break;
     case surface:
       spectral_rad_surface_agendaExecute(ws,
@@ -55,78 +47,66 @@ namespace {
 StokvecVector from_temp(const ConstVectorView& freq_grid, const Numeric t) {
   StokvecVector v(freq_grid.size(), 0.0);
   std::transform(
-      freq_grid.begin(), freq_grid.end(), v.begin(), [t](auto f) -> Stokvec {
-        return {planck(f, t), 0, 0, 0};
-      });
+      freq_grid.begin(), freq_grid.end(), v.begin(), [t](auto f) -> Stokvec { return {planck(f, t), 0, 0, 0}; });
   return v;
 }
 }  // namespace
 
-void spectral_radUniformCosmicBackground(StokvecVector& spectral_rad,
-                                         const AscendingGrid& freq_grid) {
+void spectral_radUniformCosmicBackground(StokvecVector& spectral_rad, const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
   constexpr auto t = Constant::cosmic_microwave_background_temperature;
   spectral_rad     = from_temp(freq_grid, t);
 }
 
-void spectral_radSunOrCosmicBackground(
-    StokvecVector& spectral_rad,
-    const AscendingGrid& freq_grid,
-    const ArrayOfPropagationPathPoint& sun_path,
-    const Sun& sun,
-    const SurfaceField& surf_field) try {
+void spectral_radSunOrCosmicBackground(StokvecVector&                     spectral_rad,
+                                       const AscendingGrid&               freq_grid,
+                                       const ArrayOfPropagationPathPoint& sun_path,
+                                       const Sun&                         sun,
+                                       const SurfaceField&                surf_field) try {
   ARTS_TIME_REPORT
 
   spectral_rad.resize(freq_grid.size());
 
-  if (set_spectral_rad_if_sun_intersection(
-          spectral_rad, sun, sun_path.back(), surf_field))
-    return;
+  if (set_spectral_rad_if_sun_intersection(spectral_rad, sun, sun_path.back(), surf_field)) return;
 
   spectral_radUniformCosmicBackground(spectral_rad, freq_grid);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radSunsOrCosmicBackground(StokvecVector& spectral_rad,
-                                        const AscendingGrid& freq_grid,
+void spectral_radSunsOrCosmicBackground(StokvecVector&              spectral_rad,
+                                        const AscendingGrid&        freq_grid,
                                         const PropagationPathPoint& ray_point,
-                                        const ArrayOfSun& suns,
-                                        const SurfaceField& surf_field) {
+                                        const ArrayOfSun&           suns,
+                                        const SurfaceField&         surf_field) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
 
   spectral_rad.resize(freq_grid.size());
 
   for (auto& sun : suns) {
-    if (set_spectral_rad_if_sun_intersection(
-            spectral_rad, sun, ray_point, surf_field)) {
-      return;
-    }
+    if (set_spectral_rad_if_sun_intersection(spectral_rad, sun, ray_point, surf_field)) { return; }
   }
 
   spectral_radUniformCosmicBackground(spectral_rad, freq_grid);
 }
 
-void spectral_radSurfaceBlackbody(StokvecVector& spectral_rad,
-                                  StokvecMatrix& spectral_rad_jac,
-                                  const AscendingGrid& freq_grid,
-                                  const SurfaceField& surf_field,
-                                  const JacobianTargets& jac_targets,
+void spectral_radSurfaceBlackbody(StokvecVector&              spectral_rad,
+                                  StokvecMatrix&              spectral_rad_jac,
+                                  const AscendingGrid&        freq_grid,
+                                  const SurfaceField&         surf_field,
+                                  const JacobianTargets&      jac_targets,
                                   const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
   constexpr auto key = SurfaceKey::t;
 
-  ARTS_USER_ERROR_IF(not surf_field.contains(key),
-                     "Surface field does not contain temperature")
+  ARTS_USER_ERROR_IF(not surf_field.contains(key), "Surface field does not contain temperature")
 
-  const auto t =
-      surf_field.single_value(key, ray_point.pos[1], ray_point.pos[2]);
+  const auto t = surf_field.single_value(key, ray_point.pos[1], ray_point.pos[2]);
   spectral_rad = from_temp(freq_grid, t);
 
   spectral_rad_jacEmpty(spectral_rad_jac, freq_grid, jac_targets);
@@ -139,17 +119,15 @@ void spectral_radSurfaceBlackbody(StokvecVector& spectral_rad,
 
       for (Size i = 0; i < freq_grid.size(); i++) {
         const Numeric dBdt = dplanck_dt(freq_grid[i], t);
-        for (const auto& w : ws) {
-          spectral_rad_jac[w.first + target.x_start, i] += w.second * dBdt;
-        }
+        for (const auto& w : ws) { spectral_rad_jac[w.first + target.x_start, i] += w.second * dBdt; }
       }
     }
   }
 }
 
-void spectral_radDefaultTransmission(StokvecVector& spectral_rad,
-                                     StokvecMatrix& spectral_rad_bkg,
-                                     const AscendingGrid& freq_grid,
+void spectral_radDefaultTransmission(StokvecVector&         spectral_rad,
+                                     StokvecMatrix&         spectral_rad_bkg,
+                                     const AscendingGrid&   freq_grid,
                                      const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 

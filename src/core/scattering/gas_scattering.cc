@@ -22,10 +22,9 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad) {
   using Constant::pi;
   using Math::pow2;
 
-  ARTS_USER_ERROR_IF(
-      theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
-      "Error in calc_rayleighPhaMat: Scattering angle must be in the range [0, pi], is {}",
-      theta_rad);
+  ARTS_USER_ERROR_IF(theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
+                     "Error in calc_rayleighPhaMat: Scattering angle must be in the range [0, pi], is {}",
+                     theta_rad);
 
   Vector pha_mat_int(6, 0.0);
 

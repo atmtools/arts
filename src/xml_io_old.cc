@@ -45,9 +45,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
     extract(c, line, 1);
 
     // check for empty line
-    if (c == '@') {
-      comment = false;
-    }
+    if (c == '@') { comment = false; }
   }
 
   // read the arts identifier String
@@ -59,8 +57,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
   try {
     if (artsid.length() != 0) {
       // Set the species
-      const auto& isotopologue =
-          SpeciesIsotope::from_name(Species::update_isot_name(artsid));
+      const auto& isotopologue = SpeciesIsotope::from_name(Species::update_isot_name(artsid));
       ARTS_USER_ERROR_IF(
           isotopologue.is_joker(),
           "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
@@ -108,9 +105,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
       ArrayOfNumeric maux;
       maux.resize(naux);
 
-      for (Index j = 0; j < naux; j++) {
-        icecream >> double_imanip() >> maux[j];
-      }
+      for (Index j = 0; j < naux; j++) { icecream >> double_imanip() >> maux[j]; }
 
       // Extract accuracies:
       try {
@@ -122,15 +117,13 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
         icecream >> double_imanip() >> unused_numeric /*dnair*/;
         icecream >> double_imanip() >> unused_numeric /*dnself*/;
         icecream >> double_imanip() >> unused_numeric /*dpsf*/;
-      } catch (const std::runtime_error&) {
-      }
+      } catch (const std::runtime_error&) {}
 
       // Fix if tgam is different from ti0
       if (tgam != output.data.ls.T0) {
         agam = agam * nonstd::pow(tgam / output.data.ls.T0, nair);
         sgam = sgam * nonstd::pow(tgam / output.data.ls.T0, nself);
-        psf  = psf * nonstd::pow(tgam / output.data.ls.T0,
-                                (Numeric).25 + (Numeric)1.5 * nair);
+        psf  = psf * nonstd::pow(tgam / output.data.ls.T0, (Numeric).25 + (Numeric)1.5 * nair);
       }
 
       // Set line shape computer
@@ -143,8 +136,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
 
       if (not(output.data.gu > 0.0)) output.data.gu = 1.;
       if (not(output.data.gl > 0.0)) output.data.gl = 1.;
-      output.data.a =
-          output.data.compute_a(I0, isotopologue, output.data.ls.T0);
+      output.data.a = output.data.compute_a(I0, isotopologue, output.data.ls.T0);
     }
   } catch (std::exception& e) {
     throw std::runtime_error(std::format(R"(Cannot parse line: 
@@ -164,9 +156,7 @@ The error is:
   return output;
 }
 
-lbl::line_shape::model from_artscat4(std::istream& is,
-                                     const Numeric T0_,
-                                     const QuantumIdentifier& qid) {
+lbl::line_shape::model from_artscat4(std::istream& is, const Numeric T0_, const QuantumIdentifier& qid) {
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
 
@@ -189,14 +179,12 @@ lbl::line_shape::model from_artscat4(std::istream& is,
 
   // G0 main coefficient
   for (auto& spec : species) {
-    is >> double_imanip() >>
-        out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X0);
+    is >> double_imanip() >> out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X0);
   };
 
   // G0 exponent is same as D0 exponent
   for (auto& spec : species) {
-    is >> double_imanip() >>
-        out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X1);
+    is >> double_imanip() >> out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X1);
     out.single_models[spec].data[D0].X(LineShapeModelCoefficient::X1) =
         out.single_models[spec].data[G0].X(LineShapeModelCoefficient::X1);
   };
@@ -204,8 +192,7 @@ lbl::line_shape::model from_artscat4(std::istream& is,
   // D0 coefficient
   out.single_models[species[0]].data[D0].X(LineShapeModelCoefficient::X0) = 0;
   for (auto& spec : species | stdv::drop(1)) {
-    is >> double_imanip() >>
-        out.single_models[spec].data[D0].X(LineShapeModelCoefficient::X0);
+    is >> double_imanip() >> out.single_models[spec].data[D0].X(LineShapeModelCoefficient::X0);
   }
 
   return out;
@@ -244,9 +231,7 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
     extract(c, line, 1);
 
     // check for empty line
-    if (c == '@') {
-      comment = false;
-    }
+    if (c == '@') { comment = false; }
   }
 
   // read the arts identifier String
@@ -258,8 +243,7 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
   try {
     if (artsid.length() != 0) {
       // Set line ID
-      const auto& isotopologue =
-          SpeciesIsotope::from_name(Species::update_isot_name(artsid));
+      const auto& isotopologue = SpeciesIsotope::from_name(Species::update_isot_name(artsid));
       ARTS_USER_ERROR_IF(
           isotopologue.is_joker(),
           "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
@@ -317,22 +301,17 @@ The error is:
 }
 }  // namespace
 
-void xml_io_stream<ArrayOfArtscatMeta>::write(std::ostream&,
-                                              const ArrayOfArtscatMeta&,
-                                              bofstream*,
-                                              std::string_view) {
+void xml_io_stream<ArrayOfArtscatMeta>::write(std::ostream&, const ArrayOfArtscatMeta&, bofstream*, std::string_view) {
   assert(false);
 }
 
-void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml,
-                                             ArrayOfArtscatMeta& meta,
-                                             bifstream*) {
+void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml, ArrayOfArtscatMeta& meta, bifstream*) {
   meta.clear();
 
   XMLTag tag;
 
   String version;
-  Index nelem;
+  Index  nelem;
 
   tag.read_from_stream(is_xml);
   tag.check_name("ArrayOfLineRecord");
@@ -343,21 +322,15 @@ void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml,
   if (version == "ARTSCAT-3") {
     for (Index i = 0; i < nelem; ++i) {
       meta.emplace_back() = ReadFromArtscat3Stream(is_xml);
-      ARTS_USER_ERROR_IF(
-          meta.back().bad,
-          "Error reading line data from ARTSCAT-3.  Check the input file.");
+      ARTS_USER_ERROR_IF(meta.back().bad, "Error reading line data from ARTSCAT-3.  Check the input file.");
     }
   } else if (version == "ARTSCAT-4") {
     for (Index i = 0; i < nelem; ++i) {
       meta.emplace_back() = ReadFromArtscat4Stream(is_xml);
-      ARTS_USER_ERROR_IF(
-          meta.back().bad,
-          "Error reading line data from ARTSCAT-4.  Check the input file.");
+      ARTS_USER_ERROR_IF(meta.back().bad, "Error reading line data from ARTSCAT-4.  Check the input file.");
     }
   } else {
-    ARTS_USER_ERROR(
-        "Unknown version of ARTSCAT: {}, supported versions are ARTSCAT-3 and ARTSCAT-4",
-        version);
+    ARTS_USER_ERROR("Unknown version of ARTSCAT: {}, supported versions are ARTSCAT-3 and ARTSCAT-4", version);
   }
 
   tag.read_from_stream(is_xml);

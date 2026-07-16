@@ -74,10 +74,10 @@ Numeric barometric_heightformula(  //output is p1
  * @date   2010-10-26
  */
 Numeric dinvplanckdI(const Numeric& i, const Numeric& f) {
-  constexpr Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
-  constexpr Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
-  const Numeric d     = b * f * f * f / i;
-  const Numeric binv  = a * f / log1p(d);
+  constexpr Numeric a    = PLANCK_CONST / BOLTZMAN_CONST;
+  constexpr Numeric b    = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
+  const Numeric     d    = b * f * f * f / i;
+  const Numeric     binv = a * f / log1p(d);
 
   return binv * binv / (a * f * i * (1 / d + 1));
 }
@@ -102,11 +102,7 @@ Numeric dinvplanckdI(const Numeric& i, const Numeric& f) {
  *  @author Patrick Eriksson
  *  @date   2004-09-21
  */
-void fresnel(Complex& Rv,
-             Complex& Rh,
-             const Complex& n1,
-             const Complex& n2,
-             const Numeric& theta) {
+void fresnel(Complex& Rv, Complex& Rh, const Complex& n1, const Complex& n2, const Numeric& theta) {
   const Numeric theta1    = DEG2RAD * theta;
   const Numeric costheta1 = cos(theta1);
   const Numeric costheta2 = cos(asin(n1.real() * sin(theta1) / n2.real()));
@@ -120,9 +116,7 @@ void fresnel(Complex& Rv,
   Rh = (a - b) / (a + b);
 }
 
-std::pair<Complex, Complex> fresnel(const Complex& n1,
-                                    const Complex& n2,
-                                    const Numeric& theta) {
+std::pair<Complex, Complex> fresnel(const Complex& n1, const Complex& n2, const Numeric& theta) {
   const Numeric theta1    = DEG2RAD * theta;
   const Numeric costheta1 = std::cos(theta1);
   const Numeric sintheta2 = n1.real() * std::sin(theta1) / n2.real();
@@ -212,8 +206,7 @@ Numeric planck(const Numeric& f, const Numeric& t) {
  * @date   2015-12-15
  */
 void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF(b.size() not_eq f.size(),
-                     "Vector size mismatch: frequency dim is bad")
+  ARTS_USER_ERROR_IF(b.size() not_eq f.size(), "Vector size mismatch: frequency dim is bad")
   for (Size i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
 }
 
@@ -258,8 +251,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
   // nb. expm1(x) should be more accurate than exp(x) - 1, so use it
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * b * Math::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) /
-         Math::pow2(t);
+  return a * b * Math::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Math::pow2(t);
 }
 
 /** dplanck_dt
@@ -276,8 +268,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
  * @date   2019-10-11
  */
 void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF(dbdt.size() not_eq f.size(),
-                     "Vector size mismatch: frequency dim is bad")
+  ARTS_USER_ERROR_IF(dbdt.size() not_eq f.size(), "Vector size mismatch: frequency dim is bad")
   for (Size i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
 }
 
@@ -319,8 +310,7 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t) {
 
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * Math::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) *
-         inv_exp_t_m1;
+  return a * Math::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
 }
 
 /** dplanck_df

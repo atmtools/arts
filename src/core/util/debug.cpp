@@ -19,26 +19,18 @@ std::string src_location::get() {
       loc.column());
 }
 
-std::string src_location::getfunc() {
-  return loc.function_name();
-}
+std::string src_location::getfunc() { return loc.function_name(); }
 
 namespace arts {
-std::runtime_error catch_errors(std::logic_error& e,
-                                const std::string_view context) {
-  return std::runtime_error(std::format("Assertion error caught in:\n{}\n\n{}",
-                                        context,
-                                        std::string_view(e.what())));
+std::runtime_error catch_errors(std::logic_error& e, const std::string_view context) {
+  return std::runtime_error(std::format("Assertion error caught in:\n{}\n\n{}", context, std::string_view(e.what())));
 }
 
-std::runtime_error catch_errors(std::exception& e,
-                                const std::string_view context) {
-  return std::runtime_error(
-      std::format("{}\n{}", context, std::string_view(e.what())));
+std::runtime_error catch_errors(std::exception& e, const std::string_view context) {
+  return std::runtime_error(std::format("{}\n{}", context, std::string_view(e.what())));
 }
 
-std::runtime_error user_error(const std::string_view msg,
-                              const std::string_view context) {
+std::runtime_error user_error(const std::string_view msg, const std::string_view context) {
   return std::runtime_error(std::format(
       R"(User error found in:                                   
                                                      

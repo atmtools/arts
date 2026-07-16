@@ -3,12 +3,11 @@
 
 #include <memory>
 
-void measurement_vec_errorFromModelState(
-    Vector& measurement_vec_error,
-    Matrix& measurement_jac_error,
-    const ArrayOfSensorObsel& measurement_sensor,
-    const JacobianTargets& jac_targets,
-    const Vector& model_state_vec) try {
+void measurement_vec_errorFromModelState(Vector&                   measurement_vec_error,
+                                         Matrix&                   measurement_jac_error,
+                                         const ArrayOfSensorObsel& measurement_sensor,
+                                         const JacobianTargets&    jac_targets,
+                                         const Vector&             model_state_vec) try {
   ARTS_TIME_REPORT
 
   measurement_vec_error.resize(measurement_sensor.size());
@@ -19,17 +18,16 @@ void measurement_vec_errorFromModelState(
 
   for (auto& elem : jac_targets.error) {
     elem.update_model(measurement_vec_error, model_state_vec);
-    elem.update_jac(
-        measurement_jac_error, model_state_vec, measurement_vec_error);
+    elem.update_jac(measurement_jac_error, model_state_vec, measurement_vec_error);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vecConditionalAddError(Vector& measurement_vec,
-                                        Matrix& measurement_jac,
+void measurement_vecConditionalAddError(Vector&       measurement_vec,
+                                        Matrix&       measurement_jac,
                                         const Vector& measurement_vec_error,
                                         const Matrix& measurement_jac_error,
-                                        const Index& do_jac) try {
+                                        const Index&  do_jac) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(measurement_vec.shape() != measurement_vec_error.shape(),
@@ -58,38 +56,31 @@ measurement_jac_error.shape() : {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void jac_targetsAddErrorPolyFit(JacobianTargets& jac_targets,
+void jac_targetsAddErrorPolyFit(JacobianTargets&          jac_targets,
                                 const ArrayOfSensorObsel& measurement_sensor,
-                                const Vector& t,
-                                const Index& sensor_elem,
-                                const Index& polyorder) {
+                                const Vector&             t,
+                                const Index&              sensor_elem,
+                                const Index&              polyorder) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
+  ARTS_USER_ERROR_IF(polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
 
   std::vector<std::pair<Size, const void*>> sensor_grid_ptrs;
   for (Size i = 0; i < measurement_sensor.size(); i++) {
-    const void* ptr =
-        reinterpret_cast<const void*>(measurement_sensor[i].f_grid_ptr().get());
-    if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) {
-      sensor_grid_ptrs.emplace_back(i, ptr);
-    }
+    const void* ptr = reinterpret_cast<const void*>(measurement_sensor[i].f_grid_ptr().get());
+    if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) { sensor_grid_ptrs.emplace_back(i, ptr); }
   }
 
-  ARTS_USER_ERROR_IF(
-      sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem),
-      "There are only {0} independent sensor frequency grids.  "
-      "Cannot select index: {1}, please choose an index less than {0}.",
-      sensor_grid_ptrs.size(),
-      sensor_elem)
+  ARTS_USER_ERROR_IF(sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem),
+                     "There are only {0} independent sensor frequency grids.  "
+                     "Cannot select index: {1}, please choose an index less than {0}.",
+                     sensor_grid_ptrs.size(),
+                     sensor_elem)
 
   const Size y_start = sensor_grid_ptrs[sensor_elem].first;
   const Size y_size  = [&]() -> Size {
     for (Size i = y_start + 1; i < measurement_sensor.size(); i++) {
-      if (not measurement_sensor[y_start].same_freqs(measurement_sensor[i])) {
-        return i;
-      }
+      if (not measurement_sensor[y_start].same_freqs(measurement_sensor[i])) { return i; }
     }
 
     return measurement_sensor.size();
@@ -114,7 +105,5 @@ Grid (size: {}): {:B,}
                      t)
 
   make_polyfit(
-      jac_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size}),
-      static_cast<Size>(polyorder),
-      t);
+      jac_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size}), static_cast<Size>(polyorder), t);
 }

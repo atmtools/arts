@@ -11,43 +11,33 @@
 #include "xml_io_stream_core.h"
 #include "xml_io_stream_variant.h"
 
-template <typename R, typename... Ts>
-struct xml_io_stream_name<std::function<R(Ts...)>> {
+template <typename R, typename... Ts> struct xml_io_stream_name<std::function<R(Ts...)>> {
   static constexpr std::string_view name = "Function"sv;
 };
 
-template <typename T>
-struct xml_io_stream_functional {
+template <typename T> struct xml_io_stream_functional {
   using func_t    = void (*)();
   using structs_t = void;
   static constexpr std::array<func_t*, 0> funcs{};
 };
 
-template <typename R, typename... Ts>
-struct xml_io_stream_functional<std::function<R(Ts...)>> {
+template <typename R, typename... Ts> struct xml_io_stream_functional<std::function<R(Ts...)>> {
   using func_t    = R (*)(Ts...);
   using structs_t = void;  // Overload to std::variant to use
   static constexpr std::array<func_t*, 0> funcs{};
 };
 
 template <typename R, typename... Ts>
-  requires(
-      std::same_as<
-          typename xml_io_stream_functional<std::function<R(Ts...)>>::structs_t,
-          void> or
-      arts_xml_ioable<typename xml_io_stream_functional<
-          std::function<R(Ts...)>>::structs_t>)
+requires(std::same_as<typename xml_io_stream_functional<std::function<R(Ts...)>>::structs_t, void> or
+         arts_xml_ioable<typename xml_io_stream_functional<std::function<R(Ts...)>>::structs_t>)
 struct xml_io_stream<std::function<R(Ts...)>> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<std::function<R(Ts...)>>;
+  static constexpr std::string_view type_name = xml_io_stream_name_v<std::function<R(Ts...)>>;
 
   using func_helper_t = xml_io_stream_functional<std::function<R(Ts...)>>;
   using func_t        = typename func_helper_t::func_t;
   using structs_t     = typename func_helper_t::structs_t;
 
-  template <Size I = 0>
-  static structs_t write_struct_helper(const std::function<R(Ts...)>& f
-                                       [[maybe_unused]]) {
+  template <Size I = 0> static structs_t write_struct_helper(const std::function<R(Ts...)>& f [[maybe_unused]]) {
     if constexpr (I < std::variant_size_v<structs_t>) {
       using T = std::variant_alternative_t<I, structs_t>;
 
@@ -59,19 +49,13 @@ struct xml_io_stream<std::function<R(Ts...)>> {
     }
   }
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                  os,
                     const std::function<R(Ts...)>& f,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) try {
+                    bofstream*                     pbofs = nullptr,
+                    std::string_view               name  = ""sv) try {
     const func_t* ptr = f.template target<func_t>();
 
-    XMLTag tag{type_name,
-               "name",
-               name,
-               "empty",
-               Index{not f},
-               "type",
-               ptr ? "array"sv : "struct"sv};
+    XMLTag tag{type_name, "name", name, "empty", Index{not f}, "type", ptr ? "array"sv : "struct"sv};
     tag.write_to_stream(os);
 
     if (f) {
@@ -98,15 +82,10 @@ struct xml_io_stream<std::function<R(Ts...)>> {
     tag.write_to_end_stream(os);
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot write {} (with mangled-name: '{}')\n{}",
-                    type_name,
-                    f.target_type().name(),
-                    e.what()));
+        std::format("Cannot write {} (with mangled-name: '{}')\n{}", type_name, f.target_type().name(), e.what()));
   }
 
-  static void read(std::istream& is,
-                   std::function<R(Ts...)>& f,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, std::function<R(Ts...)>& f, bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -128,8 +107,7 @@ struct xml_io_stream<std::function<R(Ts...)>> {
         if constexpr (not std::same_as<void, structs_t>) {
           structs_t x{};
           xml_read_from_stream(is, x, pbifs);
-          f = std::visit([](auto& v) -> std::function<R(Ts...)> { return v; },
-                         x);
+          f = std::visit([](auto& v) -> std::function<R(Ts...)> { return v; }, x);
         } else {
           throw std::runtime_error("Cannot read function structs");
         }
@@ -141,7 +119,6 @@ struct xml_io_stream<std::function<R(Ts...)>> {
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(
-        std::format("Cannot read {}\n{}", type_name, e.what()));
+    throw std::runtime_error(std::format("Cannot read {}\n{}", type_name, e.what()));
   }
 };

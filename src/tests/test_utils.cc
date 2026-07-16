@@ -21,9 +21,7 @@ using std::abs;
 void add_noise(VectorView v, Numeric scale) {
   Rand<Numeric> rand(0, scale);
 
-  for (Size i = 0; i < v.size(); i++) {
-    v[i] += rand();
-  }
+  for (Size i = 0; i < v.size(); i++) { v[i] += rand(); }
 }
 
 //! Fill matrix with random values.
@@ -46,9 +44,7 @@ void random_fill_matrix(StridedMatrixView A, Numeric range, bool positive) {
   Rand<Numeric> rand(positive ? 0 : -range, range);
 
   for (Index i = 0; i < m; i++) {
-    for (Index j = 0; j < n; j++) {
-      A[i, j] = (Numeric)rand();
-    }
+    for (Index j = 0; j < n; j++) { A[i, j] = (Numeric)rand(); }
   }
 }
 void random_fill_matrix(StridedComplexMatrixView A, Numeric range, bool positive) {
@@ -58,9 +54,7 @@ void random_fill_matrix(StridedComplexMatrixView A, Numeric range, bool positive
   Rand<Numeric> rand(positive ? 0 : -range, range);
 
   for (Index i = 0; i < m; i++) {
-    for (Index j = 0; j < n; j++) {
-      A[i, j] = Complex((Numeric)rand(), (Numeric)rand());
-    }
+    for (Index j = 0; j < n; j++) { A[i, j] = Complex((Numeric)rand(), (Numeric)rand()); }
   }
 }
 
@@ -141,9 +135,7 @@ void random_fill_matrix_symmetric(StridedMatrixView A, Numeric range, bool posit
   Matrix M(A);
   A += transpose(M);
 }
-void random_fill_matrix_symmetric(StridedComplexMatrixView A,
-                                  Numeric range,
-                                  bool positive) {
+void random_fill_matrix_symmetric(StridedComplexMatrixView A, Numeric range, bool positive) {
   random_fill_matrix(A, range, positive);
   ComplexMatrix M(A);
   A += transpose(M);
@@ -173,9 +165,7 @@ void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positiv
   mult(A, M, transpose(M));
 
   // Add identity matrix.
-  for (Index i = 0; i < n; i++) {
-    A[i, i] += 1.0;
-  }
+  for (Index i = 0; i < n; i++) { A[i, i] += 1.0; }
 }
 
 //! Generate random, positive semi-definite matrix.
@@ -190,9 +180,7 @@ void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positiv
   the are taken from the range [-range, range].
   \param[in] positive See above.
 */
-void random_fill_matrix_pos_semi_def(StridedMatrixView A,
-                                     Numeric range,
-                                     bool positive) {
+void random_fill_matrix_pos_semi_def(StridedMatrixView A, Numeric range, bool positive) {
   random_fill_matrix(A, range, positive);
   Matrix M(A);
   mult(A, M, transpose(M));
@@ -215,9 +203,7 @@ void random_fill_vector(VectorView v, Numeric range, bool positive) {
 
   Rand<Numeric> rand(positive ? 0 : -range, range);
 
-  for (Index i = 0; i < n; i++) {
-    v[i] = rand();
-  }
+  for (Index i = 0; i < n; i++) { v[i] = rand(); }
 }
 
 //! Pick random random submatrix of size m times n.
@@ -237,7 +223,7 @@ StridedMatrixView random_submatrix(StridedMatrixView A, int m, int n) {
   assert((0 <= n) && (m <= n0));
 
   Rand<Index> rand_m(0, (m0 - m - 1)), rand_n(0, (n0 - n - 1));
-  Index m1, n1;
+  Index       m1, n1;
   m1 = rand_m();
   n1 = rand_n();
 
@@ -255,7 +241,7 @@ StridedMatrixView random_submatrix(StridedMatrixView A, int m, int n) {
 */
 Range random_range(Index n) {
   Rand<Index> extent(1, n);
-  Index e = extent();
+  Index       e = extent();
 
   Index s = 0;
   if (0 <= (n - e - 1)) {
@@ -277,9 +263,7 @@ Range random_range(Index n) {
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric get_maximum_error(ConstVectorView v1,
-                          ConstVectorView v2,
-                          bool relative) {
+Numeric get_maximum_error(ConstVectorView v1, ConstVectorView v2, bool relative) {
   Index n = std::min(v1.size(), v2.size());
 
   Numeric max = 0.0, err = 0.0;
@@ -288,17 +272,13 @@ Numeric get_maximum_error(ConstVectorView v1,
     err = 0.0;
 
     if (relative) {
-      if (v2[i] != 0.0) {
-        err = abs((v2[i] - v1[i]) / v2[i]);
-      }
+      if (v2[i] != 0.0) { err = abs((v2[i] - v1[i]) / v2[i]); }
 
     } else {
       err = abs(v2[i] - v2[i]);
     }
 
-    if (err > max) {
-      max = err;
-    }
+    if (err > max) { max = err; }
   }
   return err;
 }
@@ -315,9 +295,7 @@ Numeric get_maximum_error(ConstVectorView v1,
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric get_maximum_error(StridedConstMatrixView A1,
-                          StridedConstMatrixView A2,
-                          bool relative) {
+Numeric get_maximum_error(StridedConstMatrixView A1, StridedConstMatrixView A2, bool relative) {
   Index m = std::min(A1.nrows(), A2.nrows());
   Index n = std::min(A1.ncols(), A2.ncols());
 
@@ -328,25 +306,19 @@ Numeric get_maximum_error(StridedConstMatrixView A1,
       err = 0.0;
 
       if (relative) {
-        if (A2[i, j] != 0.0) {
-          err = abs((A2[i, j] - A1[i, j]) / A2[i, j]);
-        }
+        if (A2[i, j] != 0.0) { err = abs((A2[i, j] - A1[i, j]) / A2[i, j]); }
 
       } else {
         err = A2[i, j] - A1[i, j];
       }
 
-      if (err > max) {
-        max = err;
-      }
+      if (err > max) { max = err; }
     }
   }
 
   return max;
 }
-Numeric get_maximum_error(StridedConstComplexMatrixView A1,
-                          StridedConstComplexMatrixView A2,
-                          bool relative) {
+Numeric get_maximum_error(StridedConstComplexMatrixView A1, StridedConstComplexMatrixView A2, bool relative) {
   Index m = std::min(A1.nrows(), A2.nrows());
   Index n = std::min(A1.ncols(), A2.ncols());
 
@@ -357,17 +329,13 @@ Numeric get_maximum_error(StridedConstComplexMatrixView A1,
       err = 0.0;
 
       if (relative) {
-        if (A2[i, j].real() != 0.0 && A2[i, j].imag() != 0.0) {
-          err = abs((A2[i, j] - A1[i, j]) / A2[i, j]);
-        }
+        if (A2[i, j].real() != 0.0 && A2[i, j].imag() != 0.0) { err = abs((A2[i, j] - A1[i, j]) / A2[i, j]); }
 
       } else {
         err = abs(A2[i, j] - A1[i, j]);
       }
 
-      if (err > max) {
-        max = err;
-      }
+      if (err > max) { max = err; }
     }
   }
 

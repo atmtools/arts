@@ -8,6 +8,7 @@
 
 #include <matpack.h>
 #include <matpack_mdspan_helpers_eigen.h>
+
 #include <iostream>
 
 using std::cout;
@@ -63,11 +64,10 @@ void test01() {
   ComplexMatrix C(4, 4);
   for (Index i = 0; i < 4; i++) {
     X1[i, 0] = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
-    X2[i] = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
+    X2[i]    = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
     for (Index j = 0; j < 4; j++) {
       A[i, j] = Complex((Numeric)i + (Numeric)j, 0.0) + Complex(1.0, 1.0);
-      B[i, j] =
-          Complex(2.0 * (Numeric)i + 4.0 * (Numeric)j, 0.0) + Complex(3.0, 3.0);
+      B[i, j] = Complex(2.0 * (Numeric)i + 4.0 * (Numeric)j, 0.0) + Complex(3.0, 3.0);
     }
   }
 
@@ -78,16 +78,13 @@ void test01() {
             << matpack::eigen::mat(C) << "\n\n";
   mult(C, C, C);
   mult(C, C, C);
-  std::cout
-      << "Same matrix can be both input and output, here is the above to the power of 4:\n"
-      << matpack::eigen::mat(C) << "\n\n";
+  std::cout << "Same matrix can be both input and output, here is the above to the power of 4:\n"
+            << matpack::eigen::mat(C) << "\n\n";
   mult(C[joker, 1], A, X2);
   std::cout << matpack::eigen::mat(A) << "\nx\n"
             << matpack::eigen::row_vec(X2) << "\n=\n"
             << matpack::eigen::row_vec(C[joker, 1]) << "\n\n";
-  mult(C[Range(1, 3), Range(0, 3)],
-       A[Range(1, 3), Range(1, 2)],
-       B[Range(1, 2), Range(1, 3)]);
+  mult(C[Range(1, 3), Range(0, 3)], A[Range(1, 3), Range(1, 2)], B[Range(1, 2), Range(1, 3)]);
   std::cout << matpack::eigen::mat(A[Range(1, 3), Range(1, 2)]) << "\nx\n"
             << matpack::eigen::mat(B[Range(1, 2), Range(1, 3)]) << "\n=\n"
             << matpack::eigen::mat(C[Range(1, 3), Range(0, 3)]) << "\n\n";
@@ -126,21 +123,16 @@ void test02() {
   static_assert(a / fyr == a / 4.f, "Bad operator/ Complex float");
 
   // Test the most basic test of (1, 0)*z and (0, 1)*z
-  static_assert(r * a == Complex(one * one, one * two),
-                "Bad Complex(1, 0) Complex ");
-  static_assert(i * a == Complex(-one * two, one * one),
-                "Bad Complex(0, 1) Complex ");
+  static_assert(r * a == Complex(one * one, one * two), "Bad Complex(1, 0) Complex ");
+  static_assert(i * a == Complex(-one * two, one * one), "Bad Complex(0, 1) Complex ");
 
   // Test key helper function
   static_assert(abs2(c) == tre * tre + fyr * fyr, "Bad Numeric abs2(Complex)");
 
   // Test Complex-Complex operators
-  static_assert(a + b == Complex(one + tre, two + two),
-                "Bad operator+ Complex Complex");
-  static_assert(a - b == Complex(one - tre, two - two),
-                "Bad operator- Complex Complex");
-  static_assert(a * b == Complex(one * tre - two * two, one * two + two * tre),
-                "Bad operator* Complex Complex");
+  static_assert(a + b == Complex(one + tre, two + two), "Bad operator+ Complex Complex");
+  static_assert(a - b == Complex(one - tre, two - two), "Bad operator- Complex Complex");
+  static_assert(a * b == Complex(one * tre - two * two, one * two + two * tre), "Bad operator* Complex Complex");
   /*! FIXME: Why is this failing on windows???
   static_assert(
       a / b == Complex(one * tre + two * two, two * tre - one * two) / abs2(b),
@@ -149,7 +141,7 @@ void test02() {
 }
 
 int main() {
-//   test01();
+  //   test01();
 
   Complex a(0, 0);
   real_val(a) += 1;

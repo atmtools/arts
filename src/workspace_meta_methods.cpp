@@ -39,8 +39,7 @@ radiance before being averaged into a channel.  The bandwidth of each
 channel is the same.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit",
-                  "measurement_sensorAddSimpleGaussian"},
+      .methods = {"measurement_sensorInit", "measurement_sensorAddSimpleGaussian"},
       .out     = {"measurement_sensor", "measurement_sensor_meta"},
   });
 
@@ -54,47 +53,43 @@ radiance before being averaged into a channel.  The bandwidth of each
 channel is independent.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit",
-                  "measurement_sensorAddVectorGaussian"},
+      .methods = {"measurement_sensorInit", "measurement_sensorAddVectorGaussian"},
       .out     = {"measurement_sensor", "measurement_sensor_meta"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_flux_fieldCoupledProfiles",
-      .desc   = R"(Use Disort for calculations of spectral flux field.
+      .name    = "disort_spectral_flux_fieldCoupledProfiles",
+      .desc    = R"(Use Disort for calculations of spectral flux field.
 
 The subsurface and atmosphere is computed separately before being coupled
 at each frequency.
 )",
-      .author = {"Richard Larsson"},
-      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings",
-                  "disort_spectral_flux_fieldCoupledCalc"},
+      .author  = {"Richard Larsson"},
+      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings", "disort_spectral_flux_fieldCoupledCalc"},
       .out     = {"disort_spectral_flux_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_rad_fieldCoupledProfiles",
-      .desc   = R"(Use Disort for calculations of spectral radiance field.
+      .name    = "disort_spectral_rad_fieldCoupledProfiles",
+      .desc    = R"(Use Disort for calculations of spectral radiance field.
 
 The subsurface and atmosphere is computed separately before being coupled
 at each frequency.
 )",
-      .author = {"Richard Larsson"},
-      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings",
-                  "disort_spectral_rad_fieldCoupledCalc"},
+      .author  = {"Richard Larsson"},
+      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings", "disort_spectral_rad_fieldCoupledCalc"},
       .out     = {"disort_spectral_rad_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_flux_fieldFromAgenda",
-      .desc   = R"(Use Disort for calculations of spectral flux field.
+      .name    = "disort_spectral_flux_fieldFromAgenda",
+      .desc    = R"(Use Disort for calculations of spectral flux field.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
-      .author = {"Richard Larsson"},
-      .methods = {"disort_settings_agendaExecute",
-                  "disort_spectral_flux_fieldCalc"},
+      .author  = {"Richard Larsson"},
+      .methods = {"disort_settings_agendaExecute", "disort_spectral_flux_fieldCalc"},
       .out     = {"disort_spectral_flux_field"},
   });
 
@@ -107,8 +102,7 @@ This wrapper helps setting up a downlooking ray path through the atmosphere to f
 basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricDownlooking",
-                  "disort_spectral_flux_fieldFromAgenda"},
+      .methods = {"ray_pathGeometricDownlooking", "disort_spectral_flux_fieldFromAgenda"},
       .out     = {"disort_spectral_flux_field", "ray_path"},
   });
 
@@ -121,8 +115,7 @@ The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"disort_settings_agendaExecute",
-                  "disort_spectral_rad_fieldCalc"},
+      .methods = {"disort_settings_agendaExecute", "disort_spectral_rad_fieldCalc"},
       .out     = {"disort_spectral_rad_field", "disort_quadrature"},
   });
 
@@ -135,8 +128,7 @@ This wrapper helps setting up a downlooking ray path through the atmosphere to f
 basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricDownlooking",
-                  "disort_spectral_rad_fieldFromAgenda"},
+      .methods = {"ray_pathGeometricDownlooking", "disort_spectral_rad_fieldFromAgenda"},
       .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 
@@ -149,16 +141,15 @@ This wrapper helps setting up a downlooking ray path to form the
 basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathFromPointAndDepth",
-                  "disort_spectral_rad_fieldFromAgenda"},
+      .methods = {"ray_pathFromPointAndDepth", "disort_spectral_rad_fieldFromAgenda"},
       .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 
 #ifdef ENABLE_CDISORT
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name   = "disort_spectral_rad_fieldFromAgendaCdisort",
-      .desc   = "Use the disort settings agenda to calculate spectral radiance",
-      .author = {"Oliver Lemke"},
+      .name    = "disort_spectral_rad_fieldFromAgendaCdisort",
+      .desc    = "Use the disort settings agenda to calculate spectral radiance",
+      .author  = {"Oliver Lemke"},
       .methods = {"disort_settings_agendaExecute",
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
@@ -167,12 +158,10 @@ basis for the agenda to setup the Disort calculations.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_rad_fieldProfileCdisort",
-      .desc =
-          "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
+      .name    = "disort_spectral_rad_fieldProfileCdisort",
+      .desc    = "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
       .author  = {"Oliver Lemke"},
-      .methods = {"ray_pathGeometricDownlooking",
-                  "disort_spectral_rad_fieldFromAgendaCdisort"},
+      .methods = {"ray_pathGeometricDownlooking", "disort_spectral_rad_fieldFromAgendaCdisort"},
       .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
   });
 #endif
@@ -217,9 +206,8 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radClearskyRayleighScattering",
-      .desc =
-          "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
+      .name    = "spectral_radClearskyRayleighScattering",
+      .desc    = "Computes clearsky emission of spectral radiances with solar Rayleigh scattering",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
@@ -277,55 +265,41 @@ This method simply is a convenience wrapper for that use case.
       .name             = "atm_fieldRead",
       .desc             = "Read atmospheric data files from a directory",
       .author           = {"Richard Larsson"},
-      .methods          = {"atm_fieldInit",
-                           "atm_fieldAppendBaseData",
-                           "atm_fieldAppendAuto"},
+      .methods          = {"atm_fieldInit", "atm_fieldAppendBaseData", "atm_fieldAppendAuto"},
       .out              = {"atm_field"},
       .preset_gin       = {"replace_existing"},
       .preset_gin_value = {Index{0}},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radSubsurfaceDisortEmission",
-      .desc =
-          "Get the spectral radiance from subsurface emission simulated using Disort",
+      .name    = "spectral_radSubsurfaceDisortEmission",
+      .desc    = "Get the spectral radiance from subsurface emission simulated using Disort",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathFromPointAndDepth",
                   "disort_settings_downwelling_wrapper_agendaExecute",
                   "disort_spectral_rad_fieldCalc",
                   "spectral_radFromDisort"},
-      .out     = {"spectral_rad",
-                  "disort_settings",
-                  "ray_path",
-                  "disort_spectral_rad_field",
-                  "disort_quadrature"},
+      .out     = {"spectral_rad", "disort_settings", "ray_path", "disort_spectral_rad_field", "disort_quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "atm_fieldFitNonLTE",
       .desc    = "Fits non-LTE atmospheric field values",
       .author  = {"Richard Larsson"},
-      .methods = {"atm_profileFromGrid",
-                  "atm_profileFitNonLTE",
-                  "atm_fieldFromProfile"},
+      .methods = {"atm_profileFromGrid", "atm_profileFitNonLTE", "atm_fieldFromProfile"},
       .out     = {"atm_field"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "UpdateModelStates",
-      .desc =
-          "Update state of the model in preparation for a forward model run",
+      .name    = "UpdateModelStates",
+      .desc    = "Update state of the model in preparation for a forward model run",
       .author  = {"Richard Larsson"},
       .methods = {"abs_bandsFromModelState",
                   "surf_fieldFromModelState",
                   "subsurf_fieldFromModelState",
                   "atm_fieldFromModelState",
                   "measurement_sensorFromModelState"},
-      .out     = {"abs_bands",
-                  "surf_field",
-                  "subsurf_field",
-                  "atm_field",
-                  "measurement_sensor"},
+      .out     = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -342,9 +316,8 @@ This method simply is a convenience wrapper for that use case.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "measurement_jacTransformations",
-      .desc =
-          "Apply all transformations to the Jacobian related to states in *model_state_vecFromData*",
+      .name    = "measurement_jacTransformations",
+      .desc    = "Apply all transformations to the Jacobian related to states in *model_state_vecFromData*",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_jacAtmosphereTransformation",
                   "measurement_jacSurfaceTransformation",
@@ -358,8 +331,7 @@ This method simply is a convenience wrapper for that use case.
       .name    = "model_state_vec_aprioriFromData",
       .desc    = "Get *model_state_vec_apriori* from available data",
       .author  = {"Richard Larsson"},
-      .methods = {"model_state_vecFromData",
-                  "model_state_vec_aprioriFromState"},
+      .methods = {"model_state_vecFromData", "model_state_vec_aprioriFromState"},
       .out     = {"model_state_vec_apriori"},
   });
 
@@ -372,9 +344,7 @@ calculate the *abs_lookup_data*.  The atmospheric field is first
 gridded using *atm_profileExtract*.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"atm_profileExtract",
-                  "abs_lookup_dataInit",
-                  "abs_lookup_dataPrecomputeAll"},
+      .methods = {"atm_profileExtract", "abs_lookup_dataInit", "abs_lookup_dataPrecomputeAll"},
       .out     = {"abs_lookup_data"},
   });
 
@@ -388,11 +358,8 @@ const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
 }
 
 WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
-    const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsms)
-    const try {
-  if (wsms.contains(name)) {
-    throw std::runtime_error("Meta-function " + name + " already exists");
-  }
+    const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsms) const try {
+  if (wsms.contains(name)) { throw std::runtime_error("Meta-function " + name + " already exists"); }
 
   WorkspaceMethodInternalRecord wsm{
       .desc   = desc,
@@ -408,55 +375,41 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
     wsm.desc += "  - *" + m + "*\n";
 
     const auto ptr = wsms.find(m);
-    if (ptr == wsms.end()) {
-      throw std::runtime_error(std::format(R"(Method "{}" not found)", m));
-    }
+    if (ptr == wsms.end()) { throw std::runtime_error(std::format(R"(Method "{}" not found)", m)); }
 
     const auto& wm = ptr->second;
 
     if (wm.has_any() or wm.has_overloads()) {
-      throw std::runtime_error(std::format(
-          R"(Method "{}"  has overloads and does not work with meta-functions)",
-          m));
+      throw std::runtime_error(std::format(R"(Method "{}"  has overloads and does not work with meta-functions)", m));
     }
 
     wsm.author.insert(wsm.author.end(), wm.author.begin(), wm.author.end());
     wsm.gout.insert(wsm.gout.end(), wm.gout.begin(), wm.gout.end());
-    wsm.gout_type.insert(
-        wsm.gout_type.end(), wm.gout_type.begin(), wm.gout_type.end());
-    wsm.gout_desc.insert(
-        wsm.gout_desc.end(), wm.gout_desc.begin(), wm.gout_desc.end());
+    wsm.gout_type.insert(wsm.gout_type.end(), wm.gout_type.begin(), wm.gout_type.end());
+    wsm.gout_desc.insert(wsm.gout_desc.end(), wm.gout_desc.begin(), wm.gout_desc.end());
     wsm.gin.insert(wsm.gin.end(), wm.gin.begin(), wm.gin.end());
-    wsm.gin_type.insert(
-        wsm.gin_type.end(), wm.gin_type.begin(), wm.gin_type.end());
-    wsm.gin_value.insert(
-        wsm.gin_value.end(), wm.gin_value.begin(), wm.gin_value.end());
-    wsm.gin_desc.insert(
-        wsm.gin_desc.end(), wm.gin_desc.begin(), wm.gin_desc.end());
+    wsm.gin_type.insert(wsm.gin_type.end(), wm.gin_type.begin(), wm.gin_type.end());
+    wsm.gin_value.insert(wsm.gin_value.end(), wm.gin_value.begin(), wm.gin_value.end());
+    wsm.gin_desc.insert(wsm.gin_desc.end(), wm.gin_desc.begin(), wm.gin_desc.end());
     wsm.pass_workspace = wsm.pass_workspace or wm.pass_workspace;
 
     stdr::copy_if(wm.in, std::back_inserter(wsm.in), [&](const std::string& i) {
       const auto cmp = Cmp::eq(i);
-      return stdr::none_of(wsm.in, cmp) and stdr::none_of(first_out, cmp) and
-             stdr::none_of(first_inout, cmp) and not stdr::any_of(wm.out, cmp);
+      return stdr::none_of(wsm.in, cmp) and stdr::none_of(first_out, cmp) and stdr::none_of(first_inout, cmp) and
+             not stdr::any_of(wm.out, cmp);
     });
 
-    stdr::copy_if(
-        wm.out, std::back_inserter(first_out), [&](const std::string& o) {
-          const auto cmp = Cmp::eq(o);
-          return stdr::none_of(wsm.in, cmp) and
-                 stdr::none_of(first_out, cmp) and
-                 stdr::none_of(first_inout, cmp) and
-                 not stdr::any_of(wm.in, cmp);
-        });
+    stdr::copy_if(wm.out, std::back_inserter(first_out), [&](const std::string& o) {
+      const auto cmp = Cmp::eq(o);
+      return stdr::none_of(wsm.in, cmp) and stdr::none_of(first_out, cmp) and stdr::none_of(first_inout, cmp) and
+             not stdr::any_of(wm.in, cmp);
+    });
 
-    stdr::copy_if(
-        wm.out, std::back_inserter(first_inout), [&](const std::string& o) {
-          const auto cmp = Cmp::eq(o);
-          return stdr::none_of(wsm.in, cmp) and
-                 stdr::none_of(first_out, cmp) and
-                 stdr::none_of(first_inout, cmp) and stdr::any_of(wm.in, cmp);
-        });
+    stdr::copy_if(wm.out, std::back_inserter(first_inout), [&](const std::string& o) {
+      const auto cmp = Cmp::eq(o);
+      return stdr::none_of(wsm.in, cmp) and stdr::none_of(first_out, cmp) and stdr::none_of(first_inout, cmp) and
+             stdr::any_of(wm.in, cmp);
+    });
   }
 
   wsm.desc += R"(
@@ -470,42 +423,32 @@ Equivalent (mostly) Python code:
   # ...
 
 )";
-  for (const auto& m : methods) {
-    wsm.desc += "   ws." + m + "()\n";
-  }
+  for (const auto& m : methods) { wsm.desc += "   ws." + m + "()\n"; }
   wsm.desc += "\n";
 
   stdr::sort(wsm.author);
-  wsm.author.erase(std::unique(wsm.author.begin(), wsm.author.end()),
-                   wsm.author.end());
+  wsm.author.erase(std::unique(wsm.author.begin(), wsm.author.end()), wsm.author.end());
 
-  if (not wsm.gout.empty()) {
-    throw std::runtime_error(
-        "Output generic variables not supported in meta-functions");
-  }
+  if (not wsm.gout.empty()) { throw std::runtime_error("Output generic variables not supported in meta-functions"); }
 
-  stdr::sort(stdv::zip(wsm.gin, wsm.gin_type, wsm.gin_value, wsm.gin_desc),
-             stdr::greater{},
-             [](const auto& x) { return std::get<0>(x); });
+  stdr::sort(stdv::zip(wsm.gin, wsm.gin_type, wsm.gin_value, wsm.gin_desc), stdr::greater{}, [](const auto& x) {
+    return std::get<0>(x);
+  });
 
-  for (auto ptr = stdr::adjacent_find(wsm.gin); ptr != wsm.gin.end();
-       ptr      = stdr::adjacent_find(wsm.gin)) {
+  for (auto ptr = stdr::adjacent_find(wsm.gin); ptr != wsm.gin.end(); ptr = stdr::adjacent_find(wsm.gin)) {
     const auto idx0 = std::distance(wsm.gin.begin(), ptr);
     const auto idx1 = idx0 + 1;
 
     if (wsm.gin_type[idx0] != wsm.gin_type[idx1]) {
-      throw std::runtime_error("Incompatible types for generic input " +
-                               wsm.gin[idx0]);
+      throw std::runtime_error("Incompatible types for generic input " + wsm.gin[idx0]);
     }
 
     if (wsm.gin_desc[idx0] != wsm.gin_desc[idx1]) {
-      throw std::runtime_error("Incompatible descriptions for generic input " +
-                               wsm.gin[idx0]);
+      throw std::runtime_error("Incompatible descriptions for generic input " + wsm.gin[idx0]);
     }
 
     //! Keep preferably nullopt value
-    wsm.gin_value.erase(wsm.gin_value.begin() +
-                        (wsm.gin_value[idx0] == std::nullopt ? idx0 : idx1));
+    wsm.gin_value.erase(wsm.gin_value.begin() + (wsm.gin_value[idx0] == std::nullopt ? idx0 : idx1));
 
     wsm.gin.erase(ptr);
     wsm.gin_type.erase(wsm.gin_type.begin() + idx0);
@@ -515,8 +458,7 @@ Equivalent (mostly) Python code:
   ARTS_USER_ERROR_IF(preset_gin.size() != preset_gin_value.size(),
                      "preset_gin and preset_gin_value must have the same size")
   for (auto& preset : preset_gin) {
-    for (auto ptr = stdr::find(wsm.gin, preset); ptr != wsm.gin.end();
-         ptr      = stdr::adjacent_find(wsm.gin)) {
+    for (auto ptr = stdr::find(wsm.gin, preset); ptr != wsm.gin.end(); ptr = stdr::adjacent_find(wsm.gin)) {
       const auto idx0 = std::distance(wsm.gin.begin(), ptr);
 
       wsm.gin.erase(ptr);
@@ -533,37 +475,28 @@ Equivalent (mostly) Python code:
   for (Size i = 0; i < out.size(); i++) {
     const auto& o = out[i];
 
-    if (stdr::binary_search(first_inout, o)) {
-      wsm.in.insert(wsm.in.begin() + i, o);
-    }
+    if (stdr::binary_search(first_inout, o)) { wsm.in.insert(wsm.in.begin() + i, o); }
   }
 
   for (auto& o : first_inout) {
     if (stdr::none_of(out, Cmp::eq(o))) {
-      throw std::runtime_error("Input output variable " + o +
-                               " is not declared as output");
+      throw std::runtime_error("Input output variable " + o + " is not declared as output");
     }
   }
 
   return wsm;
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error creating meta-function \"{}\":\n\n{}",
-                  name,
-                  std::string_view(e.what())));
+  throw std::runtime_error(std::format("Error creating meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
 }
 
 std::string WorkspaceMethodInternalMetaRecord::call(
-    const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsms)
-    const try {
+    const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsms) const try {
   const auto& wsvs = internal_workspace_variables();
   const auto& wsas = internal_workspace_agendas();
 
   const auto ptr = wsms.find(name);
-  if (ptr == wsms.end()) {
-    throw std::runtime_error("Meta-function " + name + " not found");
-  }
-  const auto& wsm = ptr->second;
+  if (ptr == wsms.end()) { throw std::runtime_error("Meta-function " + name + " not found"); }
+  const auto&              wsm = ptr->second;
   std::vector<std::string> first_out;
 
   std::stringstream code;
@@ -587,10 +520,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
     const auto& wm = wsms.at(m);
     for (const auto& outvar : wm.out) {
       const auto cmp = Cmp::eq(outvar);
-      if (stdr::any_of(first_out, cmp) or stdr::any_of(wsm.in, cmp) or
-          stdr::any_of(out, cmp)) {
-        continue;
-      }
+      if (stdr::any_of(first_out, cmp) or stdr::any_of(wsm.in, cmp) or stdr::any_of(out, cmp)) { continue; }
       first_out.push_back(outvar);
 
       auto wsvptr = wsvs.find(outvar);
@@ -605,8 +535,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
         continue;
       }
 
-      throw std::runtime_error("Output " + outvar +
-                               " not found as Agenda or Variable");
+      throw std::runtime_error("Output " + outvar + " not found as Agenda or Variable");
     }
 
     code << "  " << wm.call(m) << '\n';
@@ -616,7 +545,5 @@ std::string WorkspaceMethodInternalMetaRecord::call(
   return code.str();
 } catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("Error creating call for meta-function \"{}\":\n\n{}",
-                  name,
-                  std::string_view(e.what())));
+      std::format("Error creating call for meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
 }

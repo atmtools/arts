@@ -14,7 +14,7 @@
 
 /// Holds the command line parameters.
 extern Parameters parameters;
-Parameters parameters{};
+Parameters        parameters{};
 
 //! Parse path environment variable
 /** 

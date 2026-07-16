@@ -48,9 +48,7 @@ String comma(bool& first, const String& spaces) {
   return std::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
 }
 
-void join(String& res,
-          const std::span<const String>& list,
-          const String& with) {
+void join(String& res, const std::span<const String>& list, const String& with) {
   res.clear();
 
   if (list.empty()) return;

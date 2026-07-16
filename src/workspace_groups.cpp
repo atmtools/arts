@@ -13,10 +13,9 @@
 
 namespace stdr = std::ranges;
 
-void add_arrays_of(
-    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
-    const std::vector<std::string>& types,
-    std::vector<std::string> extra_headers) {
+void add_arrays_of(std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
+                   const std::vector<std::string>&                        types,
+                   std::vector<std::string>                               extra_headers) {
   for (const auto& type : types) {
     auto& v = wsg_data["ArrayOf" + type] = {
         .file = "vector",
@@ -31,16 +30,13 @@ void add_arrays_of(
 
 namespace {
 void add_select_options(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data,
-                        const std::vector<std::string>& select_options) {
+                        const std::vector<std::string>&               select_options) {
   const auto& options = internal_options();
 
   for (const auto& opt : select_options) {
-    auto it =
-        stdr::find_if(options, [&opt](const auto& o) { return o.name == opt; });
+    auto it = stdr::find_if(options, [&opt](const auto& o) { return o.name == opt; });
 
-    if (it == options.end())
-      throw std::runtime_error("Option " + opt +
-                               " not found in internal options.");
+    if (it == options.end()) throw std::runtime_error("Option " + opt + " not found in internal options.");
 
     wsg_data[opt] = {
         .file = "enums.h",
@@ -59,33 +55,26 @@ void agenda_operators(UniqueMap<std::string, WorkspaceGroupRecord>& wsg_data) {
 
     wsg_data[name + "Operator"] = {
         .file = "auto_agenda_operators.h",
-        .desc =
-            ag.desc +
-            "\n\nThis is the free-form customization point of the agenda *" +
-            name +
-            "*\n\n.. note::\n    Output constraints must be followed\n\n",
+        .desc = ag.desc + "\n\nThis is the free-form customization point of the agenda *" + name +
+                "*\n\n.. note::\n    Output constraints must be followed\n\n",
     };
   }
 
   for (const auto& op : ops) {
     auto& v = wsg_data[op];
-    v = {.file = "auto_agenda_operators.h", .desc = "A common agenda operator"};
+    v       = {.file = "auto_agenda_operators.h", .desc = "A common agenda operator"};
 
     for (auto& [name, ag] : internal_workspace_agendas()) {
       if (ag.named_operator != op) continue;
 
-      v.desc +=
-          "\n\n" + ag.desc +
-          "\n\nThis is the free-form customization point of the agenda *" +
-          name + "*";
+      v.desc += "\n\n" + ag.desc + "\n\nThis is the free-form customization point of the agenda *" + name + "*";
     }
 
     v.desc += "\n\n.. note::\n    Output constraints must be followed\n\n";
   }
 }
 
-std::unordered_map<std::string, WorkspaceGroupRecord>
-internal_workspace_groups_creator() {
+std::unordered_map<std::string, WorkspaceGroupRecord> internal_workspace_groups_creator() {
   UniqueMap<std::string, WorkspaceGroupRecord> wsg_data;
 
   wsg_data["AbsorptionBands"] = {
@@ -115,8 +104,7 @@ does not change the global workspace while minimizing the number of variables th
 
   wsg_data["Any"] = {
       .file = "supergeneric.h",
-      .desc =
-          "Meta type for any workspace group (see :doc:`workspace.groups`)\n",
+      .desc = "Meta type for any workspace group (see :doc:`workspace.groups`)\n",
   };
 
   wsg_data["ArrayOfScatteringSpecies"] = {
@@ -241,19 +229,17 @@ Both the data and the grid may be named.  The grids are not sorted.
 )--",
   };
 
-  wsg_data["QuantumIdentifierVectorMap"] = {
-      .file = "lbl.h",
-      .desc =
-          R"--(A map from *QuantumIdentifier* to *Vector*.
+  wsg_data["QuantumIdentifierVectorMap"] = {.file = "lbl.h",
+                                            .desc =
+                                                R"--(A map from *QuantumIdentifier* to *Vector*.
 )--",
-      .map_type = true};
+                                            .map_type = true};
 
-  wsg_data["QuantumIdentifierGriddedField1Map"] = {
-      .file = "lbl.h",
-      .desc =
-          R"--(A map from *QuantumIdentifier* to *GriddedField1*.
+  wsg_data["QuantumIdentifierGriddedField1Map"] = {.file = "lbl.h",
+                                                   .desc =
+                                                       R"--(A map from *QuantumIdentifier* to *GriddedField1*.
 )--",
-      .map_type = true};
+                                                   .map_type = true};
 
   wsg_data["Index"] = {
       .file       = "matpack.h",
@@ -951,8 +937,7 @@ of this term multiplied by a negative distance.
 }
 }  // namespace
 
-const std::unordered_map<std::string, WorkspaceGroupRecord>&
-internal_workspace_groups() {
+const std::unordered_map<std::string, WorkspaceGroupRecord>& internal_workspace_groups() {
   static const auto wsg_data = internal_workspace_groups_creator();
   return wsg_data;
 }

@@ -21,13 +21,10 @@ struct src_location {
 };
 
 namespace arts {
-std::runtime_error catch_errors(std::logic_error& e,
-                                const std::string_view context);
-std::runtime_error catch_errors(std::exception& e,
-                                const std::string_view context);
+std::runtime_error catch_errors(std::logic_error& e, const std::string_view context);
+std::runtime_error catch_errors(std::exception& e, const std::string_view context);
 
-std::runtime_error user_error(const std::string_view msg,
-                              const std::string_view context);
+std::runtime_error user_error(const std::string_view msg, const std::string_view context);
 std::runtime_error user_error(const std::string_view msg,
                               const std::string_view condition,
                               const std::string_view context);
@@ -49,21 +46,19 @@ std::runtime_error user_error(const std::string_view msg,
 #endif /* NDEBUG */
 
 /*! An error has occurred, will throw the error */
-#define ARTS_USER_ERROR(fmt, ...)                                    \
-  {                                                                  \
-    throw arts::user_error(std::string_view{__VA_OPT__(std::format)( \
-                               fmt __VA_OPT__(, ) __VA_ARGS__)},     \
-                           src_location{}.get());                    \
+#define ARTS_USER_ERROR(fmt, ...)                                                                     \
+  {                                                                                                   \
+    throw arts::user_error(std::string_view{__VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__)}, \
+                           src_location{}.get());                                                     \
   }
 
 /*! Condition should be false to pass external check */
-#define ARTS_USER_ERROR_IF(condition, fmt, ...)                        \
-  {                                                                    \
-    if (condition)                                                     \
-      throw arts::user_error(std::string_view{__VA_OPT__(std::format)( \
-                                 fmt __VA_OPT__(, ) __VA_ARGS__)},     \
-                             #condition,                               \
-                             src_location{}.get());                    \
+#define ARTS_USER_ERROR_IF(condition, fmt, ...)                                                         \
+  {                                                                                                     \
+    if (condition)                                                                                      \
+      throw arts::user_error(std::string_view{__VA_OPT__(std::format)(fmt __VA_OPT__(, ) __VA_ARGS__)}, \
+                             #condition,                                                                \
+                             src_location{}.get());                                                     \
   }
 
 #endif /* debug_h */

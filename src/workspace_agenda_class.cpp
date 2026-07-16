@@ -28,12 +28,10 @@ void Agenda::add(const Method& method) {
 void Agenda::finalize(bool fix) try {
   const static auto& wsa = workspace_agendas();
 
-  auto ag_ptr                          = wsa.find(name);
-  const std::vector<std::string> empty = {};
-  const std::vector<std::string>& must_out =
-      ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
-  const std::vector<std::string>& must_in =
-      ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
+  auto                            ag_ptr   = wsa.find(name);
+  const std::vector<std::string>  empty    = {};
+  const std::vector<std::string>& must_out = ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
+  const std::vector<std::string>& must_in  = ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
 
   std::vector<std::string> ins_first;
   std::vector<std::string> outs_first;
@@ -43,28 +41,22 @@ void Agenda::finalize(bool fix) try {
     const auto& ins  = method.get_ins();
     const auto& outs = method.get_outs();
 
-    stdr::copy_if(
-        ins, std::back_inserter(ins_first), [&](const std::string& i) {
-          const auto cmp = Cmp::eq(i);
-          return not stdr::any_of(ins_first, cmp) and
-                 not stdr::any_of(outs_first, cmp) and
-                 not stdr::any_of(in_then_out, cmp);
-        });
+    stdr::copy_if(ins, std::back_inserter(ins_first), [&](const std::string& i) {
+      const auto cmp = Cmp::eq(i);
+      return not stdr::any_of(ins_first, cmp) and not stdr::any_of(outs_first, cmp) and
+             not stdr::any_of(in_then_out, cmp);
+    });
 
-    stdr::copy_if(
-        outs, std::back_inserter(in_then_out), [&](const std::string& i) {
-          const auto cmp = Cmp::eq(i);
-          return stdr::any_of(ins_first, cmp) and
-                 not stdr::any_of(in_then_out, cmp);
-        });
+    stdr::copy_if(outs, std::back_inserter(in_then_out), [&](const std::string& i) {
+      const auto cmp = Cmp::eq(i);
+      return stdr::any_of(ins_first, cmp) and not stdr::any_of(in_then_out, cmp);
+    });
 
-    stdr::copy_if(
-        outs, std::back_inserter(outs_first), [&](const std::string& i) {
-          const auto cmp = Cmp::eq(i);
-          return not stdr::any_of(outs_first, cmp) and
-                 not stdr::any_of(ins_first, cmp) and
-                 not stdr::any_of(in_then_out, cmp);
-        });
+    stdr::copy_if(outs, std::back_inserter(outs_first), [&](const std::string& i) {
+      const auto cmp = Cmp::eq(i);
+      return not stdr::any_of(outs_first, cmp) and not stdr::any_of(ins_first, cmp) and
+             not stdr::any_of(in_then_out, cmp);
+    });
   }
 
   auto sort_and_erase_copies = [](std::vector<std::string>& vec) {
@@ -78,27 +70,20 @@ void Agenda::finalize(bool fix) try {
 
   for (const std::string& i : must_in) {
     if (stdr::binary_search(outs_first, i)) {
-      throw std::runtime_error(std::format(
-          R"(Agenda "{}" first uses "{}" as an input but it is an output)",
-          name,
-          i));
+      throw std::runtime_error(std::format(R"(Agenda "{}" first uses "{}" as an input but it is an output)", name, i));
     }
 
     if (not stdr::binary_search(ins_first, i)) {
       if (fix) {
-        methods.emplace_back("Ignore",
-                             std::vector<std::string>{i},
-                             std::unordered_map<std::string, std::string>{});
+        methods.emplace_back("Ignore", std::vector<std::string>{i}, std::unordered_map<std::string, std::string>{});
       } else {
-        throw std::runtime_error(
-            std::format(R"(Agenda "{}" does not use "{}")", name, i));
+        throw std::runtime_error(std::format(R"(Agenda "{}" does not use "{}")", name, i));
       }
     }
   }
 
   for (const std::string& o : must_out) {
-    if (stdr::binary_search(ins_first, o) and
-        not stdr::binary_search(in_then_out, o)) {
+    if (stdr::binary_search(ins_first, o) and not stdr::binary_search(in_then_out, o)) {
       throw std::runtime_error(std::format(
           R"(Agenda "{}" uses "{}" only as an input but it is Agenda in-out
 
@@ -118,30 +103,21 @@ Agenda required output: {:B,}
           must_out));
     }
 
-    if (not stdr::binary_search(outs_first, o) and
-        not stdr::binary_search(in_then_out, o)) {
+    if (not stdr::binary_search(outs_first, o) and not stdr::binary_search(in_then_out, o)) {
       if (fix) {
-        methods.emplace_back("Touch",
-                             std::vector<std::string>{o},
-                             std::unordered_map<std::string, std::string>{});
+        methods.emplace_back("Touch", std::vector<std::string>{o}, std::unordered_map<std::string, std::string>{});
       } else {
-        throw std::runtime_error(
-            std::format(R"(Agenda "{}" does not set "{}")", name, o));
+        throw std::runtime_error(std::format(R"(Agenda "{}" does not set "{}")", name, o));
       }
     }
   }
 
-  std::erase_if(ins_first, [&must_in](const auto& str) {
-    return stdr::any_of(must_in, Cmp::eq(str));
-  });
+  std::erase_if(ins_first, [&must_in](const auto& str) { return stdr::any_of(must_in, Cmp::eq(str)); });
 
-  std::erase_if(ins_first, [&in_then_out](const auto& str) {
-    return stdr::binary_search(in_then_out, str);
-  });
+  std::erase_if(ins_first, [&in_then_out](const auto& str) { return stdr::binary_search(in_then_out, str); });
 
   std::erase_if(in_then_out, [&must_out, &must_in](const auto& str) {
-    return stdr::any_of(must_out, Cmp::eq(str)) and
-           stdr::any_of(must_in, Cmp::eq(str));
+    return stdr::any_of(must_out, Cmp::eq(str)) and stdr::any_of(must_in, Cmp::eq(str));
   });
 
   copy  = in_then_out;
@@ -185,9 +161,7 @@ Workspace contains:
 }
 
 namespace {
-void agenda_add_inner_logic(Workspace& out,
-                            const Workspace& in,
-                            WorkspaceAgendaBoolHandler handle) {
+void agenda_add_inner_logic(Workspace& out, const Workspace& in, WorkspaceAgendaBoolHandler handle) {
 startover:
   for (auto& var : out) {
     if (var.second.holds<Agenda>()) {
@@ -232,8 +206,7 @@ Workspace contains:
       e.what()));
 }
 
-void Agenda::copy_only_workspace(Workspace& out, const Workspace& in) const
-    try {
+void Agenda::copy_only_workspace(Workspace& out, const Workspace& in) const try {
   for (auto& str : copy) {
     if (out.contains(str)) {
       out.overwrite(str, out.copy(str));
@@ -269,8 +242,7 @@ std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {
   ARTS_TIME_REPORT
 
   auto filter = stdv::filter([](const std::string& s) {
-    return not s.starts_with(named_input_prefix) and
-           not s.starts_with(internal_prefix);
+    return not s.starts_with(named_input_prefix) and not s.starts_with(internal_prefix);
   });
   auto concat = stdv::join | filter;
 
@@ -279,12 +251,12 @@ std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {
 
   std::unordered_set<std::string> all_outputs{};
 
-  std::vector<Agenda> tasks{};
-  std::vector<Method> task_methods{};
-  std::string task_name{};
+  std::vector<Agenda>             tasks{};
+  std::vector<Method>             task_methods{};
+  std::string                     task_name{};
   std::unordered_set<std::string> task_output{};
   std::unordered_set<std::string> task_share{};
-  std::vector<Method> possible_task_methods{};
+  std::vector<Method>             possible_task_methods{};
 
   auto flush_batch = [&]() {
     if (task_methods.empty()) return;
@@ -327,18 +299,14 @@ std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {
     }
 
     if (stdr::any_of(method.get_ins() | filter,
-                     [&all_outputs](const std::string& s) {
-                       return all_outputs.contains(s);
-                     })) {
+                     [&all_outputs](const std::string& s) { return all_outputs.contains(s); })) {
       throw std::runtime_error(std::format(
           R"(Cannot execute in parallel: method "{}" has a dependency (input) on the output of a previously defined parallel task.)",
           method.get_name()));
     }
 
     if (stdr::any_of(method.get_outs() | filter,
-                     [&all_outputs](const std::string& s) {
-                       return all_outputs.contains(s);
-                     })) {
+                     [&all_outputs](const std::string& s) { return all_outputs.contains(s); })) {
       throw std::runtime_error(std::format(
           R"(Cannot execute in parallel: method "{}" has a dependency (output) on the output of a previously defined parallel task.)",
           method.get_name()));
@@ -346,13 +314,9 @@ std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {
 
     const bool overlap_current =
         stdr::any_of(method.get_ins() | filter,
-                     [&task_output](const std::string& s) {
-                       return task_output.contains(s);
-                     }) or
+                     [&task_output](const std::string& s) { return task_output.contains(s); }) or
         stdr::any_of(method.get_outs() | filter,
-                     [&task_output](const std::string& s) {
-                       return task_output.contains(s);
-                     });
+                     [&task_output](const std::string& s) { return task_output.contains(s); });
 
     if (not overlap_current) flush_batch();
 
@@ -361,8 +325,7 @@ std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {
     task_methods.push_back(method);
     insert_share(method);
     insert_out(method);
-    task_name += std::format(
-        "{}{}", task_name.empty() ? ""sv : "\n"sv, method.get_name());
+    task_name += std::format("{}{}", task_name.empty() ? ""sv : "\n"sv, method.get_name());
   }
   flush_batch();
 
@@ -420,27 +383,21 @@ bool Agenda::has_method(const std::string& method) const {
   return false;
 }
 
-Agenda::Agenda(std::string n,
-               const std::vector<Method>& m,
+Agenda::Agenda(std::string                     n,
+               const std::vector<Method>&      m,
                const std::vector<std::string>& s,
                const std::vector<std::string>& c,
-               bool check)
+               bool                            check)
     : name(std::move(n)), methods(m), share(s), copy(c), checked(check) {}
 
 std::string Agenda::sphinx_list(const std::string_view prep) const {
   std::string out{};
 
-  for (auto& item : share) {
-    out += std::format("{}Shares the global *{}*\n", prep, item);
-  }
+  for (auto& item : share) { out += std::format("{}Shares the global *{}*\n", prep, item); }
 
-  for (auto& item : copy) {
-    out += std::format("{}Copies the global *{}*\n", prep, item);
-  }
+  for (auto& item : copy) { out += std::format("{}Copies the global *{}*\n", prep, item); }
 
-  for (auto& method : methods) {
-    out += std::format("{}{}\n", prep, method.sphinx_list_item());
-  }
+  for (auto& method : methods) { out += std::format("{}{}\n", prep, method.sphinx_list_item()); }
 
   return out;
 }
@@ -450,21 +407,16 @@ void Agenda::change_default(const std::string_view name, Wsv value) {
 
   for (Method& method : methods) {
     const auto& method_name = method.get_name();
-    if (method_name.starts_with(internal_prefix) and
-        method_name.ends_with(name)) {
+    if (method_name.starts_with(internal_prefix) and method_name.ends_with(name)) {
       method.change_default(std::move(value));
       return;
     }
   }
 
-  ARTS_USER_ERROR(std::format(
-      R"(Agenda "{}" does not have a default input "{}")", this->name, name));
+  ARTS_USER_ERROR(std::format(R"(Agenda "{}" does not have a default input "{}")", this->name, name));
 }
 
-void xml_io_stream<Agenda>::write(std::ostream& os,
-                                  const Agenda& x,
-                                  bofstream* pbofs,
-                                  std::string_view name) {
+void xml_io_stream<Agenda>::write(std::ostream& os, const Agenda& x, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -477,18 +429,16 @@ void xml_io_stream<Agenda>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<Agenda>::read(std::istream& is,
-                                 Agenda& x,
-                                 bifstream* pbifs) {
+void xml_io_stream<Agenda>::read(std::istream& is, Agenda& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
 
-  std::string name{};
-  std::vector<Method> methods;
+  std::string              name{};
+  std::vector<Method>      methods;
   std::vector<std::string> share{};
   std::vector<std::string> copy{};
-  bool checked{false};
+  bool                     checked{false};
   xml_read_from_stream(is, name, pbifs);
   xml_read_from_stream(is, methods, pbifs);
   xml_read_from_stream(is, share, pbifs);

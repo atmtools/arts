@@ -14,11 +14,8 @@ struct SubsurfacePropertyTag {
 };
 
 namespace std {
-template <>
-struct hash<SubsurfacePropertyTag> {
-  static std::size_t operator()(const SubsurfacePropertyTag &pp) noexcept {
-    return std::hash<String>{}(pp.name);
-  }
+template <> struct hash<SubsurfacePropertyTag> {
+  static std::size_t operator()(const SubsurfacePropertyTag &pp) noexcept { return std::hash<String>{}(pp.name); }
 };
 }  // namespace std
 
@@ -27,8 +24,7 @@ template <typename T>
 concept isSubsurfaceKey = std::same_as<std::remove_cvref_t<T>, SubsurfaceKey>;
 
 template <typename T>
-concept isSubsurfacePropertyTag =
-    std::same_as<std::remove_cvref_t<T>, SubsurfacePropertyTag>;
+concept isSubsurfacePropertyTag = std::same_as<std::remove_cvref_t<T>, SubsurfacePropertyTag>;
 
 template <typename T>
 concept KeyType = isSubsurfaceKey<T> or isSubsurfacePropertyTag<T>;
@@ -47,26 +43,23 @@ struct Point {
   Point &operator=(const Point &);
   Point &operator=(Point &&) noexcept;
 
-  Numeric operator[](SubsurfaceKey x) const;
+  Numeric  operator[](SubsurfaceKey x) const;
   Numeric &operator[](SubsurfaceKey x);
 
-  Numeric operator[](const SubsurfacePropertyTag &x) const;
+  Numeric  operator[](const SubsurfacePropertyTag &x) const;
   Numeric &operator[](const SubsurfacePropertyTag &x);
 
-  Numeric operator[](const KeyVal &) const;
+  Numeric  operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
 
-  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
-  constexpr bool has(T &&key, Ts &&...keys) const {
+  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)> constexpr bool has(T &&key, Ts &&...keys) const {
     if constexpr (N > 0) {
       if constexpr (isSubsurfaceKey<T>) {
         return has(std::forward<Ts>(keys)...);
       } else if constexpr (isSubsurfacePropertyTag<T>) {
         return props.contains(key) and has(std::forward<Ts>(keys)...);
       } else {
-        static_assert(
-            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
-            "Unhandled type");
+        static_assert(isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>, "Unhandled type");
       }
     } else {
       if constexpr (isSubsurfaceKey<T>) {
@@ -74,9 +67,7 @@ struct Point {
       } else if constexpr (isSubsurfacePropertyTag<T>) {
         return props.contains(key);
       } else {
-        static_assert(
-            isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>,
-            "Unhandled type");
+        static_assert(isSubsurfacePropertyTag<T> and not isSubsurfacePropertyTag<T>, "Unhandled type");
       }
     }
   }
@@ -93,22 +84,19 @@ using FunctionalData = NumericTernaryOperator;
 using FieldData      = std::variant<GeodeticField3, Numeric, FunctionalData>;
 
 template <typename T>
-concept isGeodeticField3 =
-    std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
+concept isGeodeticField3 = std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
 
 template <typename T>
-concept isFunctionalDataType =
-    std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
+concept isFunctionalDataType = std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
 
 template <typename T>
-concept RawDataType =
-    isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
+concept RawDataType = isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 struct Data {
-  FieldData data{FunctionalData{}};
+  FieldData                  data{FunctionalData{}};
   InterpolationExtrapolation alt_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation alt_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
@@ -137,23 +125,19 @@ struct Data {
 
   [[nodiscard]] String data_type() const;
 
-  template <RawDataType T>
-  [[nodiscard]] const T &get() const {
+  template <RawDataType T> [[nodiscard]] const T &get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
     if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 
-  template <RawDataType T>
-  [[nodiscard]] T &get() {
+  template <RawDataType T> [[nodiscard]] T &get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
     if (out == nullptr) throw std::runtime_error(data_type());
     return *out;
   }
 
-  [[nodiscard]] Numeric at(const Numeric alt,
-                           const Numeric lat,
-                           const Numeric lon) const;
+  [[nodiscard]] Numeric at(const Numeric alt, const Numeric lat, const Numeric lon) const;
 
   [[nodiscard]] Numeric at(const Vector3 pos) const;
 
@@ -162,17 +146,17 @@ struct Data {
   [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions in an atmosphere
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
-      const Numeric alt, const Numeric lat, const Numeric lon) const;
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(const Numeric alt,
+                                                                     const Numeric lat,
+                                                                     const Numeric lon) const;
 
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(
-      const Vector3 pos) const;
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(const Vector3 pos) const;
 
   [[nodiscard]] bool ok() const;
 };
 
 struct Field final {
-  std::unordered_map<SubsurfaceKey, Data> other;
+  std::unordered_map<SubsurfaceKey, Data>         other;
   std::unordered_map<SubsurfacePropertyTag, Data> props;
 
   Numeric bottom_depth{std::numeric_limits<Numeric>::max()};
@@ -195,9 +179,7 @@ struct Field final {
   [[nodiscard]] bool contains(const KeyVal &key) const;
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(const Numeric alt,
-                         const Numeric lat,
-                         const Numeric lon) const;
+  [[nodiscard]] Point at(const Numeric alt, const Numeric lat, const Numeric lon) const;
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Vector3 pos) const;
@@ -215,40 +197,33 @@ using SubsurfaceData         = Subsurface::Data;
 using SubsurfaceKeyVal       = Subsurface::KeyVal;
 using ArrayOfSubsurfacePoint = Array<SubsurfacePoint>;
 
-template <>
-struct std::formatter<SubsurfacePropertyTag> {
+template <> struct std::formatter<SubsurfacePropertyTag> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SubsurfacePropertyTag &v,
-                              FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SubsurfacePropertyTag &v, FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
     return tags.format(ctx, quote, v.name, quote);
   }
 };
 
-template <>
-struct xml_io_stream_name<SubsurfaceKeyVal> {
+template <> struct xml_io_stream_name<SubsurfaceKeyVal> {
   static constexpr std::string_view name = "SubsurfaceKeyVal"sv;
 };
 
-template <>
-struct std::formatter<SubsurfacePoint> {
+template <> struct std::formatter<SubsurfacePoint> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
@@ -256,56 +231,39 @@ struct std::formatter<SubsurfacePoint> {
 
   [[nodiscard]] std::string to_string(const SubsurfacePoint &v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SubsurfacePoint &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SubsurfacePoint &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<SubsurfaceData> {
+template <> struct std::formatter<SubsurfaceData> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SubsurfaceData &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SubsurfaceData &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx, v.data, sep);
     tags.add_if_bracket(ctx, "["sv);
-    tags.format(ctx,
-                v.alt_upp,
-                sep,
-                v.alt_low,
-                sep,
-                v.lat_upp,
-                sep,
-                v.lat_low,
-                sep,
-                v.lon_upp,
-                sep,
-                v.lon_low);
+    tags.format(ctx, v.alt_upp, sep, v.alt_low, sep, v.lat_upp, sep, v.lat_low, sep, v.lon_upp, sep, v.lon_low);
     tags.add_if_bracket(ctx, "]]"sv);
     return ctx.out();
   }
 };
 
-template <>
-struct std::formatter<SubsurfaceField> {
+template <> struct std::formatter<SubsurfaceField> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
@@ -313,8 +271,7 @@ struct std::formatter<SubsurfaceField> {
 
   [[nodiscard]] std::string to_string(const SubsurfaceField &v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SubsurfaceField &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SubsurfaceField &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };

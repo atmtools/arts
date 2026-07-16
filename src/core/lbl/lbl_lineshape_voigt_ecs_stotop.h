@@ -19,9 +19,7 @@ namespace lbl::voigt::ecs::stotop {
  *                upper and lower)
  * @return The reduced dipole
  */
-Numeric reduced_dipole(const Rational Jf,
-                       const Rational Ji,
-                       const Rational K);
+Numeric reduced_dipole(const Rational Jf, const Rational Ji, const Rational K);
 
 /*! Compute the off-diagonal elements of the relaxation matrix
  *  for symmetric top molecules (NH3, PH3, etc.)
@@ -42,12 +40,12 @@ Numeric reduced_dipole(const Rational Jf,
  * @param[in]     dipr               Reduced dipole moments
  * @param[in]     atm                Atmospheric point
  */
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm);
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm);
 }  // namespace lbl::voigt::ecs::stotop

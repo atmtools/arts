@@ -29,15 +29,10 @@ void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
   los_mirrored.resize(2);
   los_mirrored[0] = 180 - los[0];
   los_mirrored[1] = los[1] + 180;
-  if (los_mirrored[1] > 180) {
-    los_mirrored[1] -= 360;
-  }
+  if (los_mirrored[1] > 180) { los_mirrored[1] -= 360; }
 }
 
-Numeric dotprod_with_los(const ConstVectorView& los,
-                         const Numeric& u,
-                         const Numeric& v,
-                         const Numeric& w) {
+Numeric dotprod_with_los(const ConstVectorView& los, const Numeric& u, const Numeric& v, const Numeric& w) {
   ARTS_TIME_REPORT
   // Strength of field
   const Numeric f = sqrt(u * u + v * v + w * w);
@@ -63,8 +58,7 @@ inline constexpr Numeric SPEED_OF_LIGHT      = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesSet(ArrayOfSpeciesTag& abs_species,
-                    const ArrayOfString& names) try {
+void abs_speciesSet(ArrayOfSpeciesTag& abs_species, const ArrayOfString& names) try {
   ARTS_TIME_REPORT
 
   abs_species.resize(names.size());
@@ -85,9 +79,7 @@ void abs_speciesDefineAll(  // WS Output:
   // We want to make lists of all species
   ArrayOfString specs(0);
   for (Size i = 0; i < enumsize::SpeciesEnumSize; ++i) {
-    if (SpeciesEnum(i) not_eq SpeciesEnum::Bath) {
-      specs.emplace_back(toString<1>(SpeciesEnum(i)));
-    }
+    if (SpeciesEnum(i) not_eq SpeciesEnum::Bath) { specs.emplace_back(toString<1>(SpeciesEnum(i))); }
   }
 
   // Set the values
@@ -106,7 +98,7 @@ void spectral_propmatInit(  //WS Output
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jac_targets,
-    const AscendingGrid& freq_grid) {
+    const AscendingGrid&   freq_grid) {
   ARTS_TIME_REPORT
 
   const Index nf = freq_grid.size();
@@ -132,19 +124,18 @@ void spectral_propmatInit(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
-                                PropmatMatrix& spectral_propmat_jac,
-                                const AscendingGrid& freq_grid,
-                                const SpeciesEnum& select_abs_species,
-                                const JacobianTargets& jac_targets,
-                                const AtmPoint& atm_point,
+void spectral_propmatAddFaraday(PropmatVector&              spectral_propmat,
+                                PropmatMatrix&              spectral_propmat_jac,
+                                const AscendingGrid&        freq_grid,
+                                const SpeciesEnum&          select_abs_species,
+                                const JacobianTargets&      jac_targets,
+                                const AtmPoint&             atm_point,
                                 const PropagationPathPoint& path_point) {
   ARTS_TIME_REPORT
 
   constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
 
-  if (select_abs_species != electrons_key or
-      select_abs_species == SpeciesEnum::Bath) {
+  if (select_abs_species != electrons_key or select_abs_species == SpeciesEnum::Bath) {
     // If the selected species is not free electrons, we do not add Faraday rotation.
     return;
   }
@@ -155,8 +146,7 @@ void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
   // (abs as e defined as negative)
   constexpr Numeric FRconst =
       nonstd::abs(ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE /
-                  (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY *
-                   ELECTRON_MASS * ELECTRON_MASS));
+                  (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS * ELECTRON_MASS));
 
   const auto end  = jac_targets.atm.end();
   const auto jacs = std::array{jac_targets.find(AtmKey::mag_u),
@@ -167,43 +157,25 @@ void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
                                jac_targets.find(AtmKey::wind_w),
                                jac_targets.find(electrons_key)};
 
-  const Numeric dmag = jacs[0] != end   ? jacs[0]->d
-                       : jacs[1] != end ? jacs[1]->d
-                       : jacs[2] != end ? jacs[2]->d
-                                        : 0.0;
+  const Numeric dmag = jacs[0] != end ? jacs[0]->d : jacs[1] != end ? jacs[1]->d : jacs[2] != end ? jacs[2]->d : 0.0;
 
   const Numeric ne = atm_point[electrons_key];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
-    const Numeric c1 =
-        2 * FRconst *
-        dotprod_with_los(
-            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
+    const Numeric c1 = 2 * FRconst * dotprod_with_los(rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
 
     std::array<Numeric, 3> dc1{0., 0., 0.};
     if (dmag != 0.0) {
-      dc1[0] = (2 * FRconst *
-                    dotprod_with_los(rtp_los,
-                                     atm_point.mag[0] + dmag,
-                                     atm_point.mag[1],
-                                     atm_point.mag[2]) -
-                c1) /
-               dmag;
-      dc1[1] = (2 * FRconst *
-                    dotprod_with_los(rtp_los,
-                                     atm_point.mag[0],
-                                     atm_point.mag[1] + dmag,
-                                     atm_point.mag[2]) -
-                c1) /
-               dmag;
-      dc1[2] = (2 * FRconst *
-                    dotprod_with_los(rtp_los,
-                                     atm_point.mag[0],
-                                     atm_point.mag[1],
-                                     atm_point.mag[2] + dmag) -
-                c1) /
-               dmag;
+      dc1[0] =
+          (2 * FRconst * dotprod_with_los(rtp_los, atm_point.mag[0] + dmag, atm_point.mag[1], atm_point.mag[2]) - c1) /
+          dmag;
+      dc1[1] =
+          (2 * FRconst * dotprod_with_los(rtp_los, atm_point.mag[0], atm_point.mag[1] + dmag, atm_point.mag[2]) - c1) /
+          dmag;
+      dc1[2] =
+          (2 * FRconst * dotprod_with_los(rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2] + dmag) - c1) /
+          dmag;
     }
 
     for (Size iv = 0; iv < freq_grid.size(); iv++) {
@@ -212,38 +184,31 @@ void spectral_propmatAddFaraday(PropmatVector& spectral_propmat,
       spectral_propmat[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
-        if (jacs[i] != end) {
-          spectral_propmat_jac[jacs[i]->target_pos, iv].U() += ne * dc1[i] / f2;
-        }
+        if (jacs[i] != end) { spectral_propmat_jac[jacs[i]->target_pos, iv].U() += ne * dc1[i] / f2; }
       }
 
       for (Size i = 3; i < 6; i++) {
-        if (jacs[i] != end) {
-          spectral_propmat_jac[jacs[i]->target_pos, iv].U() +=
-              -2.0 * ne * r / freq_grid[iv];
-        }
+        if (jacs[i] != end) { spectral_propmat_jac[jacs[i]->target_pos, iv].U() += -2.0 * ne * r / freq_grid[iv]; }
       }
 
-      if (jacs[6] != end) {
-        spectral_propmat_jac[jacs[6]->target_pos, iv].U() += r;
-      }
+      if (jacs[6] != end) { spectral_propmat_jac[jacs[6]->target_pos, iv].U() += r; }
     }
   }
 }
 
 void spectral_propmat_agendaAuto(const Workspace& ws,
-                                 Agenda& spectral_propmat_agenda,
-                                 const Index& use_abs_lookup_data,
-                                 const Numeric& T_extrapolfac,
-                                 const Index& ignore_errors,
-                                 const Index& no_negative_absorption,
-                                 const Numeric& force_p,
-                                 const Numeric& force_t,
-                                 const Index& p_interp_order,
-                                 const Index& t_interp_order,
-                                 const Index& water_interp_order,
-                                 const Index& f_interp_order,
-                                 const Numeric& extpolfac) {
+                                 Agenda&          spectral_propmat_agenda,
+                                 const Index&     use_abs_lookup_data,
+                                 const Numeric&   T_extrapolfac,
+                                 const Index&     ignore_errors,
+                                 const Index&     no_negative_absorption,
+                                 const Numeric&   force_p,
+                                 const Numeric&   force_t,
+                                 const Index&     p_interp_order,
+                                 const Index&     t_interp_order,
+                                 const Index&     water_interp_order,
+                                 const Index&     f_interp_order,
+                                 const Numeric&   extpolfac) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("spectral_propmat_agenda");
@@ -254,9 +219,8 @@ void spectral_propmat_agendaAuto(const Workspace& ws,
   const bool has_abs_xfit_data   = ws.contains("abs_xfit_data");
   const bool has_abs_predef_data = ws.contains("abs_predef_data");
 
-  const SpeciesTagTypeStatus any_species(
-      has_abs_species ? ws.get<ArrayOfSpeciesTag>("abs_species")
-                      : ArrayOfSpeciesTag{});
+  const SpeciesTagTypeStatus any_species(has_abs_species ? ws.get<ArrayOfSpeciesTag>("abs_species")
+                                                         : ArrayOfSpeciesTag{});
 
   // spectral_propmatInit
   agenda.add("spectral_propmatInit");
@@ -271,33 +235,25 @@ void spectral_propmat_agendaAuto(const Workspace& ws,
                SetWsv{"f_interp_order", f_interp_order},
                SetWsv{"extpolfac", extpolfac});
   } else if (has_abs_bands) {
-    agenda.add("spectral_propmatAddLines",
-               SetWsv{"no_negative_absorption", no_negative_absorption});
+    agenda.add("spectral_propmatAddLines", SetWsv{"no_negative_absorption", no_negative_absorption});
   }
 
   //spectral_propmatAddHitranXsec
   if (any_species.XsecFit or has_abs_xfit_data) {
-    agenda.add("spectral_propmatAddXsecFit",
-               SetWsv{"force_p", force_p},
-               SetWsv{"force_t", force_t});
+    agenda.add("spectral_propmatAddXsecFit", SetWsv{"force_p", force_p}, SetWsv{"force_t", force_t});
   }
 
   //spectral_propmatAddCIA
   if (any_species.Cia or has_abs_cia_data) {
-    agenda.add("spectral_propmatAddCIA",
-               SetWsv{"T_extrapolfac", T_extrapolfac},
-               SetWsv{"ignore_errors", ignore_errors});
+    agenda.add(
+        "spectral_propmatAddCIA", SetWsv{"T_extrapolfac", T_extrapolfac}, SetWsv{"ignore_errors", ignore_errors});
   }
 
   //spectral_propmatAddPredefined
-  if (any_species.Predefined or has_abs_predef_data) {
-    agenda.add("spectral_propmatAddPredefined");
-  }
+  if (any_species.Predefined or has_abs_predef_data) { agenda.add("spectral_propmatAddPredefined"); }
 
   //spectral_propmatAddFaraday
-  if (any_species.FreeElectrons) {
-    agenda.add("spectral_propmatAddFaraday");
-  }
+  if (any_species.FreeElectrons) { agenda.add("spectral_propmatAddFaraday"); }
 
   agenda.add("spectral_propmat_jacWindFix");
 

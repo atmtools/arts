@@ -124,10 +124,7 @@ Index last(const ArrayOfIndex& x) {
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void linspace(Vector& x,
-              const Numeric start,
-              const Numeric stop,
-              const Numeric step) {
+void linspace(Vector& x, const Numeric start, const Numeric stop, const Numeric step) {
   Index n = (Index)floor((stop - start) / step) + 1;
   if (n < 1) n = 1;
   x.resize(n);
@@ -157,10 +154,7 @@ Vector linspace(const Numeric start, const Numeric stop, const Numeric step) {
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void nlinspace(Vector& x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n) {
+void nlinspace(Vector& x, const Numeric start, const Numeric stop, const Index n) {
   x.resize(n);
   if (x.empty()) return;
 
@@ -168,10 +162,7 @@ void nlinspace(Vector& x,
   for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
   x[n - 1] = stop;
 }
-void nlinspace(VectorView x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n) {
+void nlinspace(VectorView x, const Numeric start, const Numeric stop, const Index n) {
   Numeric step = (stop - start) / ((double)n - 1);
   for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
   x[n - 1] = stop;
@@ -200,10 +191,7 @@ Vector nlinspace(const Numeric start, const Numeric stop, const Index step) {
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void nlogspace(Vector& x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n) {
+void nlogspace(Vector& x, const Numeric start, const Numeric stop, const Index n) {
   // Number of points must be greater than 1:
   assert(1 < n);
   // Only positive numbers are allowed for start and stop:
@@ -228,8 +216,8 @@ Vector binary_grid(const Numeric x0, const Numeric xn, const Numeric dx) {
   assert(dx > 0);
 
   Numeric dX = xn - x0;
-  Size N     = 2;
-  Size dN    = 1;
+  Size    N  = 2;
+  Size    dN = 1;
 
   while (dX > dx) {
     dX *= 0.5;
@@ -290,11 +278,9 @@ void cumsum(VectorView csum, ConstVectorView x) {
     
     \return The resulting integral
 */
-Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-                               ConstVectorView zen_grid,
-                               ConstVectorView azi_grid) {
-  Index n = zen_grid.size();
-  Index m = azi_grid.size();
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand, ConstVectorView zen_grid, ConstVectorView azi_grid) {
+  Index  n = zen_grid.size();
+  Index  m = azi_grid.size();
   Vector res1(n);
   assert((Integrand.shape() == std::array{n, m}));
 
@@ -302,15 +288,13 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
     res1[i] = 0.0;
 
     for (Index j = 0; j < m - 1; ++j) {
-      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) *
-                 (azi_grid[j + 1] - azi_grid[j]) *
+      res1[i] += 0.5 * DEG2RAD * (Integrand[i, j] + Integrand[i, j + 1]) * (azi_grid[j + 1] - azi_grid[j]) *
                  std::sin(zen_grid[i] * DEG2RAD);
     }
   }
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
-    res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) *
-           (zen_grid[i + 1] - zen_grid[i]);
+    res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * (zen_grid[i + 1] - zen_grid[i]);
   }
 
   return res;
@@ -341,29 +325,25 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView grid_stepsize) {
   Numeric res = 0;
   if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0)) {
-    Index n             = zen_grid.size();
-    Index m             = azi_grid.size();
+    Index   n           = zen_grid.size();
+    Index   m           = azi_grid.size();
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
-    Vector res1(n);
+    Vector  res1(n);
     assert((Integrand.shape() == std::array{n, m}));
 
     Numeric temp = 0.0;
 
     for (Index i = 0; i < n; ++i) {
       temp = Integrand[i, 0];
-      for (Index j = 1; j < m - 1; j++) {
-        temp += Integrand[i, j] * 2;
-      }
+      for (Index j = 1; j < m - 1; j++) { temp += Integrand[i, j] * 2; }
       temp    += Integrand[i, m - 1];
       temp    *= 0.5 * DEG2RAD * stepsize_aa * std::sin(zen_grid[i] * DEG2RAD);
       res1[i]  = temp;
     }
 
     res = res1[0];
-    for (Index i = 1; i < n - 1; i++) {
-      res += res1[i] * 2;
-    }
+    for (Index i = 1; i < n - 1; i++) { res += res1[i] * 2; }
     res += res1[n - 1];
     res *= 0.5 * DEG2RAD * stepsize_za;
   } else {
@@ -388,8 +368,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     
     \return The resulting integral
 */
-Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
-                               ConstVectorView zen_grid) {
+Numeric AngIntegrate_trapezoid(ConstVectorView Integrand, ConstVectorView zen_grid) {
   Index n = zen_grid.size();
   assert((Integrand.shape() == std::array{n}));
 
@@ -397,8 +376,7 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
   for (Index i = 0; i < n - 1; ++i) {
     // in this place 0.5 * 2 * PI is calculated:
     res += PI * DEG2RAD *
-           (Integrand[i] * std::sin(zen_grid[i] * DEG2RAD) +
-            Integrand[i + 1] * std::sin(zen_grid[i + 1] * DEG2RAD)) *
+           (Integrand[i] * std::sin(zen_grid[i] * DEG2RAD) + Integrand[i + 1] * std::sin(zen_grid[i + 1] * DEG2RAD)) *
            (zen_grid[i + 1] - zen_grid[i]);
   }
 
@@ -488,12 +466,7 @@ Index int_at_step(const Numeric gp, const Index step) {
   \date 2017-06-07
 
 */
-void mgd(VectorView psd,
-         const Vector& x,
-         const Numeric& n0,
-         const Numeric& mu,
-         const Numeric& la,
-         const Numeric& ga) {
+void mgd(VectorView psd, const Vector& x, const Numeric& n0, const Numeric& mu, const Numeric& la, const Numeric& ga) {
   const Size nx = x.size();
 
   assert(psd.size() == nx);
@@ -515,7 +488,7 @@ void mgd(VectorView psd,
         const Numeric eterm = std::exp(-la * x[ix]);
         const Numeric xterm = nonstd::pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
-        psd[ix] = n0 * nonstd::pow(x[ix], mu) * std::exp(-la * x[ix]);
+        psd[ix]             = n0 * nonstd::pow(x[ix], mu) * std::exp(-la * x[ix]);
       }
     }
   } else {
@@ -561,17 +534,17 @@ void mgd(VectorView psd,
   \date 2017-06-07
 
 */
-void mgd_with_derivatives(VectorView psd,
-                          MatrixView jac_data,
-                          const Vector& x,
+void mgd_with_derivatives(VectorView     psd,
+                          MatrixView     jac_data,
+                          const Vector&  x,
                           const Numeric& n0,
                           const Numeric& mu,
                           const Numeric& la,
                           const Numeric& ga,
-                          const bool& do_n0_jac,
-                          const bool& do_mu_jac,
-                          const bool& do_la_jac,
-                          const bool& do_ga_jac) {
+                          const bool&    do_n0_jac,
+                          const bool&    do_mu_jac,
+                          const bool&    do_la_jac,
+                          const bool&    do_ga_jac) {
   const Size nx = x.size();
 
   assert(psd.size() == nx);
@@ -584,12 +557,8 @@ void mgd_with_derivatives(VectorView psd,
       for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = std::exp(-la * x[ix]);
         psd[ix]             = n0 * eterm;
-        if (do_n0_jac) {
-          jac_data[0, ix] = eterm;
-        }
-        if (do_la_jac) {
-          jac_data[2, ix] = -x[ix] * psd[ix];
-        }
+        if (do_n0_jac) { jac_data[0, ix] = eterm; }
+        if (do_la_jac) { jac_data[2, ix] = -x[ix] * psd[ix]; }
       }
     } else {
       ARTS_USER_ERROR_IF(mu > 10,
@@ -601,15 +570,9 @@ void mgd_with_derivatives(VectorView psd,
         const Numeric eterm = std::exp(-la * x[ix]);
         const Numeric xterm = nonstd::pow(x[ix], mu);
         psd[ix]             = n0 * xterm * eterm;
-        if (do_n0_jac) {
-          jac_data[0, ix] = xterm * eterm;
-        }
-        if (do_mu_jac) {
-          jac_data[1, ix] = std::log(x[ix]) * psd[ix];
-        }
-        if (do_la_jac) {
-          jac_data[2, ix] = -x[ix] * psd[ix];
-        }
+        if (do_n0_jac) { jac_data[0, ix] = xterm * eterm; }
+        if (do_mu_jac) { jac_data[1, ix] = std::log(x[ix]) * psd[ix]; }
+        if (do_la_jac) { jac_data[2, ix] = -x[ix] * psd[ix]; }
         psd[ix] = n0 * nonstd::pow(x[ix], mu) * std::exp(-la * x[ix]);
       }
     }
@@ -628,27 +591,16 @@ void mgd_with_derivatives(VectorView psd,
       const Numeric eterm = std::exp(-la * pterm);
       const Numeric xterm = nonstd::pow(x[ix], mu);
       psd[ix]             = n0 * xterm * eterm;
-      if (do_n0_jac) {
-        jac_data[0, ix] = xterm * eterm;
-      }
-      if (do_mu_jac) {
-        jac_data[1, ix] = std::log(x[ix]) * psd[ix];
-      }
-      if (do_la_jac) {
-        jac_data[2, ix] = -pterm * psd[ix];
-      }
-      if (do_ga_jac) {
-        jac_data[3, ix] = -la * pterm * std::log(x[ix]) * psd[ix];
-      }
+      if (do_n0_jac) { jac_data[0, ix] = xterm * eterm; }
+      if (do_mu_jac) { jac_data[1, ix] = std::log(x[ix]) * psd[ix]; }
+      if (do_la_jac) { jac_data[2, ix] = -pterm * psd[ix]; }
+      if (do_ga_jac) { jac_data[3, ix] = -la * pterm * std::log(x[ix]) * psd[ix]; }
     }
   }
 }
 
-void delanoe_shape_with_derivative(VectorView psd,
-                                   MatrixView jac_data,
-                                   const Vector& x,
-                                   const Numeric& alpha,
-                                   const Numeric& beta) {
+void delanoe_shape_with_derivative(
+    VectorView psd, MatrixView jac_data, const Vector& x, const Numeric& alpha, const Numeric& beta) {
   Numeric f_c  = std::tgamma(4.0) / 256.0;
   f_c         *= nonstd::pow(std::tgamma((alpha + 5.0) / beta), 4 + alpha);
   f_c         /= nonstd::pow(std::tgamma((alpha + 4.0) / beta), 5 + alpha);
@@ -657,11 +609,9 @@ void delanoe_shape_with_derivative(VectorView psd,
   f_d         /= std::tgamma((alpha + 4.0) / beta);
 
   for (Size i = 0; i < x.size(); ++i) {
-    Numeric xi = x[i];
-    psd[i]     = beta * f_c * nonstd::pow(xi, alpha) *
-             std::exp(-nonstd::pow(f_d * xi, beta));
-    jac_data[0, i] =
-        psd[i] * (alpha / xi - beta * f_d * nonstd::pow(f_d * xi, beta - 1.0));
+    Numeric xi     = x[i];
+    psd[i]         = beta * f_c * nonstd::pow(xi, alpha) * std::exp(-nonstd::pow(f_d * xi, beta));
+    jac_data[0, i] = psd[i] * (alpha / xi - beta * f_d * nonstd::pow(f_d * xi, beta - 1.0));
   }
 }
 
@@ -679,8 +629,7 @@ void delanoe_shape_with_derivative(VectorView psd,
  \date   2015-01-19
  */
 
-Numeric mod_gamma_dist(
-    Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma) {
+Numeric mod_gamma_dist(Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma) {
   Numeric dN;
 
   if (x > 0. && N0 > 0. && Lambda > 0. && (mu + 1) / gamma > 0.) {
@@ -858,9 +807,7 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
   // calculate weights
   w[0] = (x[1] - x[0]) / 2.;
 
-  for (Index i = 1; i < nph * 2 - 1; i++) {
-    w[i] = (x[i + 1] - x[i - 1]) / 2.;
-  }
+  for (Index i = 1; i < nph * 2 - 1; i++) { w[i] = (x[i + 1] - x[i - 1]) / 2.; }
   w[x.size() - 1] = (x[x.size() - 1] - x[x.size() - 2]) / 2.;
 }
 
@@ -873,9 +820,7 @@ void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
 
   w[0] = (x[1] - x[0]) / 2;
   if (N > 2) {
-    for (Index i = 1; i < N - 1; i++) {
-      w[i] = (x[i + 1] - x[i - 1]) / 2;
-    }
+    for (Index i = 1; i < N - 1; i++) { w[i] = (x[i + 1] - x[i - 1]) / 2; }
   }
   w[N - 1] = (x[N - 1] - x[N - 2]) / 2;
 }

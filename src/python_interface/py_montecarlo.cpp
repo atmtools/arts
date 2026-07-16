@@ -6,27 +6,13 @@ void py_montecarlo(py::module_& m) try {
   py::class_<MCAntenna> mca(m, "MCAntenna");
 
   mca.def(py::init<>())
-      .def_rw("atype",
-              &MCAntenna::atype,
-              "The type of antenna pattern to use\n\n.. :class:`AntennaType`")
-      .def_rw("sigma_aa",
-              &MCAntenna::sigma_aa,
-              "The spread of azimith to use\n\n.. :class:`Numeric`")
-      .def_rw("sigma_za",
-              &MCAntenna::sigma_za,
-              "The spread of zenith to use\n\n.. :class:`Numeric`")
-      .def_rw("aa_grid",
-              &MCAntenna::aa_grid,
-              "The azimuth grid\n\n.. :class:`Vector`")
-      .def_rw("za_grid",
-              &MCAntenna::za_grid,
-              "The zenith grid\n\n.. :class:`Vector`")
-      .def_rw("G_lookup",
-              &MCAntenna::G_lookup,
-              "The lookup table for the antenna gain\n\n.. :class:`Matrix`")
-      .def("set_pencil_beam",
-           &MCAntenna::set_pencil_beam,
-           "Set the antenna pattern to a pencil beam")
+      .def_rw("atype", &MCAntenna::atype, "The type of antenna pattern to use\n\n.. :class:`AntennaType`")
+      .def_rw("sigma_aa", &MCAntenna::sigma_aa, "The spread of azimith to use\n\n.. :class:`Numeric`")
+      .def_rw("sigma_za", &MCAntenna::sigma_za, "The spread of zenith to use\n\n.. :class:`Numeric`")
+      .def_rw("aa_grid", &MCAntenna::aa_grid, "The azimuth grid\n\n.. :class:`Vector`")
+      .def_rw("za_grid", &MCAntenna::za_grid, "The zenith grid\n\n.. :class:`Vector`")
+      .def_rw("G_lookup", &MCAntenna::G_lookup, "The lookup table for the antenna gain\n\n.. :class:`Matrix`")
+      .def("set_pencil_beam", &MCAntenna::set_pencil_beam, "Set the antenna pattern to a pencil beam")
       .def("set_gaussian",
            &MCAntenna::set_gaussian,
            R"(Set the antenna pattern to a Gaussian
@@ -55,10 +41,7 @@ aa_fwhm : Numeric
            "aa_fwhm"_a)
       .def(
           "set_lookup",
-          [](MCAntenna& self,
-             const Vector& za,
-             const Vector& aa,
-             const Matrix& G) { self.set_lookup(za, aa, G); },
+          [](MCAntenna& self, const Vector& za, const Vector& aa, const Matrix& G) { self.set_lookup(za, aa, G); },
           R"(Set the antenna pattern from a lookup table
 
 Parameters
@@ -113,7 +96,6 @@ Returns
 
   mca.doc() = "Monte Carlo Antenna pattern class";
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize montecarlo\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize montecarlo\n{}", e.what()));
 }
 }  // namespace Python

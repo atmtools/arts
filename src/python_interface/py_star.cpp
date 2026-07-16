@@ -12,14 +12,11 @@ namespace Python {
 void py_star(py::module_& m) try {
   py::class_<Sun> suns(m, "Sun");
   generic_interface(suns);
-  suns.def_rw("description",
-              &Sun::description,
-              "Sun description\n\n.. :class:`~pyarts3.arts.String`")
+  suns.def_rw("description", &Sun::description, "Sun description\n\n.. :class:`~pyarts3.arts.String`")
       .def_prop_rw(
           "spectrum",
           [](Sun& self) -> Matrix& { return self.spectrum; },
-          [](Sun& self,
-             const std::variant<Matrix, Vector, StokvecVector>& value) {
+          [](Sun& self, const std::variant<Matrix, Vector, StokvecVector>& value) {
             if (std::holds_alternative<Matrix>(value)) {
               self.spectrum = std::get<Matrix>(value);
             } else if (std::holds_alternative<Vector>(value)) {
@@ -42,15 +39,12 @@ void py_star(py::module_& m) try {
       .def_rw("radius", &Sun::radius, "Sun radius\n\n.. :class:`float`")
       .def_rw("distance", &Sun::distance, "Sun distance\n\n.. :class:`float`")
       .def_rw("latitude", &Sun::latitude, "Sun latitude\n\n.. :class:`float`")
-      .def_rw(
-          "longitude", &Sun::longitude, "Sun longitude\n\n.. :class:`float`");
+      .def_rw("longitude", &Sun::longitude, "Sun longitude\n\n.. :class:`float`");
 
-  auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(
-      m, "ArrayOfSun");
+  auto a1 = py::bind_vector<ArrayOfSun, py::rv_policy::reference_internal>(m, "ArrayOfSun");
   generic_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize star\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize star\n{}", e.what()));
 }
 }  // namespace Python

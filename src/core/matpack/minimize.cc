@@ -47,9 +47,7 @@ struct Polynom {
     * @param[in] y The measured/simulated values
     * @param[in] order The max degree of the polynominal (e.g., 3 means x**3 is largest factor)
     */
-  Polynom(const StridedConstVectorView& x,
-          const StridedConstVectorView& y,
-          const Index order)
+  Polynom(const StridedConstVectorView& x, const StridedConstVectorView& y, const Index order)
       : m_inputs(int(order + 1)), m_values(int(x.size())), X(x), Y(y) {}
 
   /*!  Opeartor evaluating the function
@@ -91,9 +89,7 @@ struct Polynom {
   //! start values helper function, operator()(...) must be not too bad
   InputType x0() const {
     InputType out(m_inputs);
-    for (int j = 0; j < m_inputs; j++) {
-      out[j] = 1;
-    }
+    for (int j = 0; j < m_inputs; j++) { out[j] = 1; }
     return out;
   }
 };
@@ -138,10 +134,7 @@ struct T4 {
     * @param[in] t0 The model's reference temperature
     * @param[in] exp0 Some exponent to start the function at
     */
-  T4(const StridedConstVectorView& x,
-     const StridedConstVectorView& y,
-     const Numeric t0,
-     const Numeric exp0)
+  T4(const StridedConstVectorView& x, const StridedConstVectorView& y, const Numeric t0, const Numeric exp0)
       : m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
 
   /*!  Opeartor evaluating the function
@@ -179,7 +172,7 @@ struct T4 {
   //! start values helper function, operator()(...) must be not too bad
   InputType x0() const {
     const Numeric mean_y = mean(Y);
-    InputType out(m_inputs);
+    InputType     out(m_inputs);
     out << mean_y, -0.01 * mean_y, mean_y < 0 ? -EXP0 : EXP0;
     return out;
   }
@@ -225,10 +218,7 @@ struct DPL {
     * @param[in] t0 The model's reference temperature
     * @param[in] exp0 Some exponent to start the function at
     */
-  DPL(const StridedConstVectorView& x,
-      const StridedConstVectorView& y,
-      const Numeric t0,
-      const Numeric exp0)
+  DPL(const StridedConstVectorView& x, const StridedConstVectorView& y, const Numeric t0, const Numeric exp0)
       : m_values(int(x.size())), T(x), Y(y), T0(t0), EXP0(exp0) {}
 
   /*!  Opeartor evaluating the function
@@ -270,17 +260,14 @@ struct DPL {
   //! start values helper function, operator()(...) must be not too bad
   InputType x0() const {
     const Numeric mean_y = mean(Y);
-    InputType out(m_inputs);
-    out << mean_y, mean_y < 0 ? -EXP0 : EXP0, -0.01 * mean_y,
-        mean_y < 0 ? EXP0 : -EXP0;
+    InputType     out(m_inputs);
+    out << mean_y, mean_y < 0 ? -EXP0 : EXP0, -0.01 * mean_y, mean_y < 0 ? EXP0 : -EXP0;
     return out;
   }
 };
 
 namespace {
-bool goodStatus(int status) {
-  return status != Eigen::LevenbergMarquardtSpace::ImproperInputParameters;
-}
+bool goodStatus(int status) { return status != Eigen::LevenbergMarquardtSpace::ImproperInputParameters; }
 
 /*! Fit a curve to data values
  * 
@@ -316,19 +303,16 @@ bool goodStatus(int status) {
  * @param[in] fun A Functor fulfilling the above conditions
  * @return An optional Vector if successful, otherwise an empty optional
  */
-template <class Functor>
-std::optional<Vector> curve_fit(const Functor& fun) {
+template <class Functor> std::optional<Vector> curve_fit(const Functor& fun) {
   typename Functor::InputType p = fun.x0();
-  Eigen::LevenbergMarquardt lm(fun);
-  const auto status = lm.minimize(p);
+  Eigen::LevenbergMarquardt   lm(fun);
+  const auto                  status = lm.minimize(p);
   if (not goodStatus(status)) return std::nullopt;
   return Vector{p};
 }
 }  // namespace
 
-std::optional<Vector> polyfit(const StridedConstVectorView& X,
-                              const StridedConstVectorView& Y,
-                              const Index& order) {
+std::optional<Vector> polyfit(const StridedConstVectorView& X, const StridedConstVectorView& Y, const Index& order) {
   return curve_fit(Polynom(X, Y, order));
 }
 }  // namespace Minimize

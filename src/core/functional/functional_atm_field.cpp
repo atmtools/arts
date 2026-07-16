@@ -8,15 +8,10 @@
 #include "lagrange_interp.h"
 
 namespace Atm {
-Numeric MagnitudeField::operator()(Numeric alt,
-                                   Numeric lat,
-                                   Numeric lon) const {
-  const Numeric M = Atm::interp::get<lagrange_interp::value_identity>(
-      magnitude, alt, lat, lon);
-  const Numeric T =
-      Atm::interp::get<lagrange_interp::value_identity>(theta, alt, lat, lon);
-  const Numeric P =
-      Atm::interp::get<lagrange_interp::value_identity>(phi, alt, lat, lon);
+Numeric MagnitudeField::operator()(Numeric alt, Numeric lat, Numeric lon) const {
+  const Numeric M = Atm::interp::get<lagrange_interp::value_identity>(magnitude, alt, lat, lon);
+  const Numeric T = Atm::interp::get<lagrange_interp::value_identity>(theta, alt, lat, lon);
+  const Numeric P = Atm::interp::get<lagrange_interp::value_identity>(phi, alt, lat, lon);
 
   const Vector3 x = geocentric2ecef({M, T, P});
 
@@ -28,42 +23,28 @@ Numeric MagnitudeField::operator()(Numeric alt,
   std::unreachable();
 }
 
-ConstVectorView MagnitudeField::x() const {
-  return magnitude.data.view_as(magnitude.data.size());
-}
+ConstVectorView MagnitudeField::x() const { return magnitude.data.view_as(magnitude.data.size()); }
 
-VectorView MagnitudeField::x() {
-  return magnitude.data.view_as(magnitude.data.size());
-}
+VectorView MagnitudeField::x() { return magnitude.data.view_as(magnitude.data.size()); }
 
-std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt,
-                                                         Numeric lat,
-                                                         Numeric lon) const {
-  ARTS_USER_ERROR_IF(
-      magnitude.grids != theta.grids or magnitude.grids != phi.grids,
-      "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}",
-      magnitude.grids,
-      theta.grids,
-      phi.grids);
+std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt, Numeric lat, Numeric lon) const {
+  ARTS_USER_ERROR_IF(magnitude.grids != theta.grids or magnitude.grids != phi.grids,
+                     "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}",
+                     magnitude.grids,
+                     theta.grids,
+                     phi.grids);
 
-  std::vector<std::pair<Index, Numeric>> out =
-      interp::flat_weight(magnitude, alt, lat, lon);
+  std::vector<std::pair<Index, Numeric>> out = interp::flat_weight(magnitude, alt, lat, lon);
 
   switch (component) {
     case FieldComponent::u:
-      for (auto& [i, v] : out)
-        v *= geocentric2ecef(
-            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[0];
+      for (auto& [i, v] : out) v *= geocentric2ecef({1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[0];
       break;
     case FieldComponent::v:
-      for (auto& [i, v] : out)
-        v *= geocentric2ecef(
-            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[1];
+      for (auto& [i, v] : out) v *= geocentric2ecef({1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[1];
       break;
     case FieldComponent::w:
-      for (auto& [i, v] : out)
-        v *= geocentric2ecef(
-            {1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[2];
+      for (auto& [i, v] : out) v *= geocentric2ecef({1.0, theta.data.elem_at(i), phi.data.elem_at(i)})[2];
       break;
   }
 

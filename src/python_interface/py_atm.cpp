@@ -28,19 +28,16 @@ void py_atm(py::module_ &m) try {
       .def(py::init_implicit<GeodeticField3>())
       .def(
           "__init__",
-          [](Atm::Data *a, const GriddedField3 &v) {
-            new (a) Atm::Data(GeodeticField3(v));
-          },
+          [](Atm::Data *a, const GriddedField3 &v) { new (a) Atm::Data(GeodeticField3(v)); },
           "v"_a,
           "Initialize with a gridded field")
       .def(
           "__init__",
           [](Atm::Data *a, const SortedGriddedField3 &v) {
-            new (a) Atm::Data(GeodeticField3{
-                .data_name  = v.data_name,
-                .data       = v.data,
-                .grid_names = v.grid_names,
-                .grids = {v.grid<0>(), v.grid<1>().vec(), v.grid<2>().vec()}});
+            new (a) Atm::Data(GeodeticField3{.data_name  = v.data_name,
+                                             .data       = v.data,
+                                             .grid_names = v.grid_names,
+                                             .grids      = {v.grid<0>(), v.grid<1>().vec(), v.grid<2>().vec()}});
           },
           "v"_a,
           "Initialize with a gridded field")
@@ -48,30 +45,24 @@ void py_atm(py::module_ &m) try {
           "data",
           &Atm::Data::data,
           "The data.\n\n.. :class:`~pyarts3.arts.GeodeticField3`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericTernaryOperator`")
-      .def_rw(
-          "alt_upp",
-          &Atm::Data::alt_upp,
-          "Upper altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw(
-          "alt_low",
-          &Atm::Data::alt_low,
-          "Lower altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw(
-          "lat_upp",
-          &Atm::Data::lat_upp,
-          "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw(
-          "lat_low",
-          &Atm::Data::lat_low,
-          "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw(
-          "lon_upp",
-          &Atm::Data::lon_upp,
-          "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw(
-          "lon_low",
-          &Atm::Data::lon_low,
-          "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("alt_upp",
+              &Atm::Data::alt_upp,
+              "Upper altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("alt_low",
+              &Atm::Data::alt_low,
+              "Lower altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_upp",
+              &Atm::Data::lat_upp,
+              "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Atm::Data::lat_low,
+              "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Atm::Data::lon_upp,
+              "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Atm::Data::lon_low,
+              "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def_rw("log_interpolation",
               &Atm::Data::log_interpolation,
               "Whether to interpolate in log-space.\n\n.. :class:`bool`")
@@ -89,31 +80,25 @@ void py_atm(py::module_ &m) try {
           "Set the extrapolation for all dimensions")
       .def(
           "__call__",
-          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-            return d.at(alt, lat, lon);
-          },
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) { return d.at(alt, lat, lon); },
           "alt"_a,
           "lat"_a,
           "lon"_a,
           "Get a point of data at the position")
       .def(
           "ws",
-          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
-            return d.flat_weight(alt, lat, lon);
-          },
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) { return d.flat_weight(alt, lat, lon); },
           "alt"_a,
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a position")
-      .def_prop_ro("data_type",
-                   &Atm::Data::data_type,
-                   "The data type\n\n.. :class:`~pyarts3.arts.String`")
+      .def_prop_ro("data_type", &Atm::Data::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`")
       .def(
           "regrid",
-          [](AtmData &data,
-             const AscendingGrid &alt,
-             const LatGrid &lat,
-             const LonGrid &lon,
+          [](AtmData                          &data,
+             const AscendingGrid              &alt,
+             const LatGrid                    &lat,
+             const LonGrid                    &lon,
              const InterpolationExtrapolation &extrapolation) {
             data.regrid(alt, lat, lon);
             data.alt_upp = extrapolation;
@@ -148,9 +133,7 @@ extrapolation : InterpolationExtrapolation
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<SortedGriddedField3, Atm::Data>();
 
-  auto aad =
-      py::bind_vector<std::vector<Atm::Data>,
-                      py::rv_policy::reference_internal>(m, "ArrayOfAtmData");
+  auto aad = py::bind_vector<std::vector<Atm::Data>, py::rv_policy::reference_internal>(m, "ArrayOfAtmData");
   generic_interface(aad);
   aad.doc() = "A list of :class:`~pyarts3.arts.AtmData`";
   vector_interface(aad);
@@ -163,16 +146,16 @@ extrapolation : InterpolationExtrapolation
 
   fld.def(
       "regrid",
-      [](AtmField &atm,
-         const AscendingGrid &alt,
-         const LatGrid &lat,
-         const LonGrid &lon,
+      [](AtmField                        &atm,
+         const AscendingGrid             &alt,
+         const LatGrid                   &lat,
+         const LonGrid                   &lon,
          const InterpolationExtrapolation extrapolation,
-         bool do_atmkeys,
-         bool do_species,
-         bool do_isotopologues,
-         bool do_nlte,
-         bool do_scattering) {
+         bool                             do_atmkeys,
+         bool                             do_species,
+         bool                             do_isotopologues,
+         bool                             do_nlte,
+         bool                             do_scattering) {
         if (do_atmkeys) {
           for (auto &val : atm.other | stdv::values) {
             val.regrid(alt, lat, lon);
@@ -270,30 +253,19 @@ do_scattering : bool
     If true, regrid the scattering species properties.  Default is true.
 )");
 
-  pnt.def_rw("temperature",
-             &AtmPoint::temperature,
-             "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
-      .def_rw("pressure",
-              &AtmPoint::pressure,
-              "Pressure [Pa]\n\n.. :class:`~pyarts3.arts.Numeric`")
-      .def_rw("mag",
-              &AtmPoint::mag,
-              "Magnetic field [T]\n\n.. :class:`~pyarts3.arts.Vector3`")
-      .def_rw("wind",
-              &AtmPoint::wind,
-              "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
-      .def_rw(
-          "nlte",
-          &AtmPoint::nlte,
-          "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.Numeric]`")
-      .def_rw(
-          "specs",
-          &AtmPoint::specs,
-          "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.Numeric]`")
-      .def_rw(
-          "isots",
-          &AtmPoint::isots,
-          "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.Numeric]`")
+  pnt.def_rw("temperature", &AtmPoint::temperature, "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("mag", &AtmPoint::mag, "Magnetic field [T]\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw("wind", &AtmPoint::wind, "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw("nlte",
+              &AtmPoint::nlte,
+              "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.Numeric]`")
+      .def_rw("specs",
+              &AtmPoint::specs,
+              "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.Numeric]`")
+      .def_rw("isots",
+              &AtmPoint::isots,
+              "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.Numeric]`")
       .def_rw(
           "ssprops",
           &AtmPoint::ssprops,
@@ -301,9 +273,7 @@ do_scattering : bool
       .def(
           "number_density",
           [](AtmPoint &atm, std::variant<SpeciesEnum, SpeciesIsotope> key) {
-            return std::visit([&atm]<typename T>(
-                                  const T &s) { return atm.number_density(s); },
-                              key);
+            return std::visit([&atm]<typename T>(const T &s) { return atm.number_density(s); }, key);
           },
           "spec"_a,
           R"(Get the number density [1 / m :sup:`3`] of a species or of a species isotopologue.
@@ -333,14 +303,8 @@ nd : float
              if (self.contains(key)) return self[key];
              throw py::key_error(std::format("{}", key).c_str());
            })
-      .def("__setitem__",
-           [](AtmPoint &self, const AtmKeyVal &key, Numeric x) {
-             self[key] = x;
-           })
-      .def("__contains__",
-           [](const AtmPoint &self, const AtmKeyVal &x) {
-             return self.contains(x);
-           })
+      .def("__setitem__", [](AtmPoint &self, const AtmKeyVal &key, Numeric x) { self[key] = x; })
+      .def("__contains__", [](const AtmPoint &self, const AtmKeyVal &x) { return self.contains(x); })
       .def("keys",
            &AtmPoint::keys,
            "Available keys",
@@ -360,9 +324,7 @@ nd : float
           "flat_values",
           [](const AtmPoint &in) {
             Vector out;
-            for (auto &&key : in.keys()) {
-              out.push_back(in[key]);
-            }
+            for (auto &&key : in.keys()) { out.push_back(in[key]); }
             return out;
           },
           "Returns a flat list of values.");
@@ -377,27 +339,20 @@ nd : float
          "iso"_a = IsoRatioOption::Builtin)
       .def(
           "species_keys",
-          [](const AtmField &atm) {
-            return atm.specs | stdv::keys |
-                   stdr::to<std::vector<SpeciesEnum>>();
-          },
+          [](const AtmField &atm) { return atm.specs | stdv::keys | stdr::to<std::vector<SpeciesEnum>>(); },
           "Species keys")
       .def(
           "__call__",
-          [](const AtmField &atm,
-             const Numeric &h,
-             const Numeric &lat,
-             const Numeric &lon) { return atm.at(h, lat, lon); },
+          [](const AtmField &atm, const Numeric &h, const Numeric &lat, const Numeric &lon) {
+            return atm.at(h, lat, lon);
+          },
           "h"_a,
           "lat"_a,
           "lon"_a,
           "Get the data at a point")
       .def(
           "__call__",
-          [](const AtmField &atm,
-             const Vector &hv,
-             const Vector &latv,
-             const Vector &lonv) {
+          [](const AtmField &atm, const Vector &hv, const Vector &latv, const Vector &lonv) {
             const Size N = hv.size();
             if (latv.size() != lonv.size() or N != latv.size())
               throw std::logic_error(std::format(R"(Not same size:
@@ -413,8 +368,7 @@ nd : float
                                                  lonv.size()));
             ArrayOfAtmPoint out;
             out.reserve(N);
-            for (Size i = 0; i < N; i++)
-              out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
+            for (Size i = 0; i < N; i++) out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
             return out;
           },
           "h"_a,
@@ -427,9 +381,7 @@ nd : float
 
   m.def(
       "frequency_shift",
-      [](AscendingGrid freq_grid,
-         const AtmPoint &atm_point,
-         const PropagationPathPoint &ray_point) {
+      [](AscendingGrid freq_grid, const AtmPoint &atm_point, const PropagationPathPoint &ray_point) {
         Vector3 x;
         freq_gridWindShift(freq_grid, x, atm_point, ray_point);
         return freq_grid;
@@ -456,12 +408,7 @@ Return
 
   fld.def(
       "to_dict",
-      [](const AtmField &atm,
-         bool core,
-         bool specs,
-         bool isots,
-         bool nlte,
-         bool ssprops) {
+      [](const AtmField &atm, bool core, bool specs, bool isots, bool nlte, bool ssprops) {
         std::unordered_map<Atm::KeyVal, Atm::FieldData> out;
 
         const auto keys = atm.keys();
@@ -516,12 +463,7 @@ Return
 
   fld.def(
       "keys",
-      [](const AtmField &atm,
-         bool core,
-         bool specs,
-         bool isots,
-         bool nlte,
-         bool ssprops) {
+      [](const AtmField &atm, bool core, bool specs, bool isots, bool nlte, bool ssprops) {
         using std::back_inserter;
 
         std::vector<Atm::KeyVal> out;
@@ -565,31 +507,29 @@ Return
     A list of the keys in the atmospheric field.
 )");
 
-  const auto update_field =
-      [](AtmField &atm,
-         const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
-         const InterpolationExtrapolation &extrap) {
-        for (auto &[key, data] : dict) {
-          const bool existed = atm.contains(key);
-          atm[key].data      = data;
-          if (not existed) {
-            atm[key].alt_low = extrap;
-            atm[key].alt_upp = extrap;
-            atm[key].lat_low = extrap;
-            atm[key].lat_upp = extrap;
-            atm[key].lon_low = extrap;
-            atm[key].lon_upp = extrap;
-          }
-        }
-      };
+  const auto update_field = [](AtmField                                              &atm,
+                               const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
+                               const InterpolationExtrapolation                      &extrap) {
+    for (auto &[key, data] : dict) {
+      const bool existed = atm.contains(key);
+      atm[key].data      = data;
+      if (not existed) {
+        atm[key].alt_low = extrap;
+        atm[key].alt_upp = extrap;
+        atm[key].lat_low = extrap;
+        atm[key].lat_upp = extrap;
+        atm[key].lon_low = extrap;
+        atm[key].lon_upp = extrap;
+      }
+    }
+  };
 
   fld.def_static(
       "from_dict",
-      [&update_field](
-          const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
-          const Numeric &toa,
-          const IsoRatioOption &iso,
-          const InterpolationExtrapolation &extrap) {
+      [&update_field](const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
+                      const Numeric                                         &toa,
+                      const IsoRatioOption                                  &iso,
+                      const InterpolationExtrapolation                      &extrap) {
         AtmField out(iso);
         out.top_of_atmosphere = toa;
         update_field(out, dict, extrap);
@@ -638,13 +578,12 @@ Parameters
     The extrapolation method to use for the new keys.  Default is "Nearest".  Ignored by existing keys.
 )");
 
-  fld.def(
-      "as_gridded",
-      &AtmField::gridded,
-      "alt"_a,
-      "lat"_a,
-      "lon"_a,
-      R"(Convert all fields of the input atmospheric field to gridded fields.
+  fld.def("as_gridded",
+          &AtmField::gridded,
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          R"(Convert all fields of the input atmospheric field to gridded fields.
 
 Parameters
 ----------
@@ -682,7 +621,7 @@ gridded_atm : AtmField
         py::dict data;
         for (Size i = 0; i < xarray.keys.size(); i++) {
           const std::string key = std::format("{}", xarray.keys[i]);
-          const Tensor3 d{xarray.data[i]};
+          const Tensor3     d{xarray.data[i]};
           ARTS_USER_ERROR_IF(data.contains(key), "Duplicate key: {}", key)
           data[key.c_str()] = xa.attr("Variable")(dims, np.attr("array")(d));
         }
@@ -710,15 +649,13 @@ dataset : xarray.Dataset
 
   m.def(
       "stringify_keys",
-      [](const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict,
-         bool unique) {
+      [](const std::unordered_map<Atm::KeyVal, Atm::FieldData> &dict, bool unique) {
         std::unordered_map<std::string, Atm::FieldData> out;
 
         for (auto &[key, vec] : dict) {
           const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(
-                std::format("Key \"{}\" us not unique", strkey));
+            throw std::runtime_error(std::format("Key \"{}\" us not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -760,33 +697,22 @@ Return
             throw py::key_error(std::format("{}", key).c_str());
           },
           py::rv_policy::reference_internal)
-      .def("__setitem__",
-           [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) {
-             self[key] = x;
-           })
-      .def("__contains__", [](const AtmField &self, const AtmKeyVal &x) {
-        return self.contains(x);
-      });
+      .def("__setitem__", [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) { self[key] = x; })
+      .def("__contains__", [](const AtmField &self, const AtmKeyVal &x) { return self.contains(x); });
 
   fld.def_rw(
-      "nlte",
-      &AtmField::nlte,
-      "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.AtmData]`");
+      "nlte", &AtmField::nlte, "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.AtmData]`");
 
   fld.def_rw(
-      "specs",
-      &AtmField::specs,
-      "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.AtmData]`");
+      "specs", &AtmField::specs, "Species data\n\n.. :class:`dict[~pyarts3.arts.SpeciesEnum, ~pyarts3.arts.AtmData]`");
 
-  fld.def_rw(
-      "isots",
-      &AtmField::isots,
-      "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.AtmData]`");
+  fld.def_rw("isots",
+             &AtmField::isots,
+             "Isotopologue ratio data\n\n.. :class:`dict[~pyarts3.arts.SpeciesIsotope, ~pyarts3.arts.AtmData]`");
 
-  fld.def_rw(
-      "other",
-      &AtmField::other,
-      "Basic atmospheric data\n\n.. :class:`dict[~pyarts3.arts.AtmKey, ~pyarts3.arts.AtmData]`");
+  fld.def_rw("other",
+             &AtmField::other,
+             "Basic atmospheric data\n\n.. :class:`dict[~pyarts3.arts.AtmKey, ~pyarts3.arts.AtmData]`");
 
   fld.def_rw(
       "ssprops",
@@ -795,12 +721,7 @@ Return
 
   pnt.def(
       "to_dict",
-      [](const AtmPoint &atm,
-         bool core,
-         bool specs,
-         bool isots,
-         bool nlte,
-         bool ssprops) {
+      [](const AtmPoint &atm, bool core, bool specs, bool isots, bool nlte, bool ssprops) {
         std::unordered_map<Atm::KeyVal, Numeric> out;
 
         const auto keys = atm.keys();
@@ -853,17 +774,13 @@ Return
     A dictionary of atmospheric keys and corresponding data.
 )");
 
-  const auto update_point =
-      [](AtmPoint &atm, const std::unordered_map<Atm::KeyVal, Numeric> &dict) {
-        for (auto &[key, data] : dict) {
-          atm[key] = data;
-        }
-      };
+  const auto update_point = [](AtmPoint &atm, const std::unordered_map<Atm::KeyVal, Numeric> &dict) {
+    for (auto &[key, data] : dict) { atm[key] = data; }
+  };
 
   pnt.def_static(
       "from_dict",
-      [&update_point](const std::unordered_map<Atm::KeyVal, Numeric> &dict,
-                      const IsoRatioOption &iso) {
+      [&update_point](const std::unordered_map<Atm::KeyVal, Numeric> &dict, const IsoRatioOption &iso) {
         AtmPoint out(iso);
         update_point(out, dict);
         return out;
@@ -910,8 +827,7 @@ Parameters
         for (auto &[key, vec] : dict) {
           const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(
-                std::format("Key \"{}\" is not unique", strkey));
+            throw std::runtime_error(std::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -938,15 +854,11 @@ Return
     A dictionary of atmospheric keys and corresponding data.
 )");
 
-  auto aap =
-      py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(
-          m, "ArrayOfAtmPoint");
+  auto aap = py::bind_vector<ArrayOfAtmPoint, py::rv_policy::reference_internal>(m, "ArrayOfAtmPoint");
   generic_interface(aap);
   aap.def(
       "field1D",
-      [](const ArrayOfAtmPoint &atm,
-         const AscendingGrid &altitudes,
-         const InterpolationExtrapolation &extrap) {
+      [](const ArrayOfAtmPoint &atm, const AscendingGrid &altitudes, const InterpolationExtrapolation &extrap) {
         return Atm::atm_from_profile(atm, altitudes, extrap);
       },
       "altitudes"_a,
@@ -993,12 +905,7 @@ Parameters
 
   aap.def(
       "to_dict",
-      [](const ArrayOfAtmPoint &atm,
-         bool core,
-         bool specs,
-         bool isots,
-         bool nlte,
-         bool ssprops) {
+      [](const ArrayOfAtmPoint &atm, bool core, bool specs, bool isots, bool nlte, bool ssprops) {
         std::unordered_map<Atm::KeyVal, Vector> out;
 
         if (not atm.empty()) {
@@ -1026,8 +933,7 @@ Indexed item keys:    {:B,}
                 if (isots) out[key].push_back(point[key]);
               } else if (std::holds_alternative<QuantumLevelIdentifier>(key)) {
                 if (nlte) out[key].push_back(point[key]);
-              } else if (std::holds_alternative<ScatteringSpeciesProperty>(
-                             key)) {
+              } else if (std::holds_alternative<ScatteringSpeciesProperty>(key)) {
                 if (ssprops) out[key].push_back(point[key]);
               } else if (std::holds_alternative<AtmKey>(key)) {
                 if (core) out[key].push_back(point[key]);
@@ -1070,9 +976,7 @@ Return
     A dictionary of atmospheric keys and corresponding data.  The keys are the atmospheric point keys and the values are the corresponding data.
 )");
 
-  const auto update_pointlist = [](ArrayOfAtmPoint &atm,
-                                   const std::unordered_map<Atm::KeyVal, Vector>
-                                       &dict) {
+  const auto update_pointlist = [](ArrayOfAtmPoint &atm, const std::unordered_map<Atm::KeyVal, Vector> &dict) {
     if (dict.empty()) return;
 
     const Size n = atm.size();
@@ -1083,16 +987,13 @@ Return
     }
 
     for (auto &[key, vec] : dict) {
-      for (Size i = 0; i < n; i++) {
-        atm[i][key] = vec[i];
-      }
+      for (Size i = 0; i < n; i++) { atm[i][key] = vec[i]; }
     }
   };
 
   aap.def_static(
       "from_dict",
-      [&update_pointlist](const std::unordered_map<Atm::KeyVal, Vector> &dict,
-                          const IsoRatioOption &iso) {
+      [&update_pointlist](const std::unordered_map<Atm::KeyVal, Vector> &dict, const IsoRatioOption &iso) {
         ArrayOfAtmPoint out;
         if (dict.empty()) return out;
         out.resize(dict.begin()->second.size());
@@ -1142,8 +1043,7 @@ Parameters
         for (auto &[key, vec] : dict) {
           const std::string strkey = std::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(
-                std::format("Key \"{}\" is not unique", strkey));
+            throw std::runtime_error(std::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -1170,7 +1070,6 @@ Return
     A dictionary of atmospheric keys and corresponding data.  The keys are the atmospheric point keys and the values are the corresponding data.
 )");
 } catch (std::exception &e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize atm\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize atm\n{}", e.what()));
 }
 }  // namespace Python

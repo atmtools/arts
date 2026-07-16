@@ -7,13 +7,9 @@
 namespace stdr = std::ranges;
 
 /** Max function. */
-template <class base>
-constexpr base max(const Array<base>& x) {
-  return *stdr::max_element(x);
-}
+template <class base> constexpr base max(const Array<base>& x) { return *stdr::max_element(x); }
 
-template <class base, class ConvFunc>
-constexpr auto max(const Array<base>& x, ConvFunc&& f) {
+template <class base, class ConvFunc> constexpr auto max(const Array<base>& x, ConvFunc&& f) {
   using RetType = std::remove_cvref_t<decltype(f(base{}))>;
 
   if (x.empty()) return std::numeric_limits<RetType>::lowest();
@@ -27,13 +23,9 @@ constexpr auto max(const Array<base>& x, ConvFunc&& f) {
 }
 
 /** Min function. */
-template <class base>
-constexpr base min(const Array<base>& x) {
-  return *stdr::min_element(x);
-}
+template <class base> constexpr base min(const Array<base>& x) { return *stdr::min_element(x); }
 
-template <class base, class ConvFunc>
-constexpr auto min(const Array<base>& x, ConvFunc&& f) {
+template <class base, class ConvFunc> constexpr auto min(const Array<base>& x, ConvFunc&& f) {
   using RetType = std::remove_cvref_t<decltype(f(base{}))>;
 
   if (x.empty()) return std::numeric_limits<RetType>::max();
@@ -60,8 +52,7 @@ constexpr auto min(const Array<base>& x, ConvFunc&& f) {
   \author Stefan Buehler
   \date   2002-11-28
 */
-template <class base>
-Index find_first(const Array<base>& x, const base& w) {
+template <class base> Index find_first(const Array<base>& x, const base& w) {
   for (Size i = 0; i < x.size(); ++i)
     if (w == x[i]) return i;
 
@@ -69,12 +60,9 @@ Index find_first(const Array<base>& x, const base& w) {
 }
 
 //! Determine total number of elements in an ArrayOfArray
-template <class base>
-Index TotalNumberOfElements(const Array<Array<base>>& aa) {
+template <class base> Index TotalNumberOfElements(const Array<Array<base>>& aa) {
   Index N_aa = 0;
-  for (Size i = 0; i < aa.size(); i++) {
-    N_aa += aa[i].size();
-  }
+  for (Size i = 0; i < aa.size(); i++) { N_aa += aa[i].size(); }
 
   return N_aa;
 }
@@ -96,9 +84,7 @@ enum class CheckStatus : char { NotUnique, Unique, NotFound };
   @author Richard Larsson
   @date   2024-12-23
 */
-template <class T>
-constexpr std::pair<Index, CheckStatus> contains(const Array<T>& x,
-                                                 const T& what) {
+template <class T> constexpr std::pair<Index, CheckStatus> contains(const Array<T>& x, const T& what) {
   auto pos1 = stdr::find(x, what);
 
   if (pos1 == x.end()) return {-1, CheckStatus::NotFound};
@@ -114,19 +100,14 @@ template <typename T>
 concept sizeable = requires(T& x) { x.size(); };
 
 /** Check that all have the same size. */
-template <sizeable T, sizeable... Rest>
-constexpr bool same_size(const T& x, const Rest&... rest)
-  requires(sizeof...(rest) > 0)
-{
+template <sizeable T, sizeable... Rest> constexpr bool same_size(const T& x, const Rest&... rest)
+    requires(sizeof...(rest) > 0) {
   return ((x.size() == rest.size()) && ...);
 }
 
 /** Check that all have the same size. */
 template <sizeable T, sizeable... Rest>
-constexpr bool each_same_size(const std::vector<T>& x,
-                              const std::vector<Rest>&... rest)
-  requires(sizeof...(rest) > 0)
-{
+constexpr bool each_same_size(const std::vector<T>& x, const std::vector<Rest>&... rest) requires(sizeof...(rest) > 0) {
   if (not same_size(x, rest...)) return false;
 
   for (Size i = 0; i < x.size(); i++) {
@@ -156,40 +137,30 @@ template <typename T, typename U>
 concept resizeable = requires(T& x, U sz) { x.resize(sz); };
 
 //! Resize all the vectors/arrays using .resize(sz)
-template <typename SZ, resizeable<SZ> T, resizeable<SZ>... Rest>
-void resize(const SZ& sz, T& x, Rest&... rest) {
+template <typename SZ, resizeable<SZ> T, resizeable<SZ>... Rest> void resize(const SZ& sz, T& x, Rest&... rest) {
   x.resize(sz);
 
-  if constexpr (sizeof...(rest) > 0) {
-    resize(sz, rest...);
-  }
+  if constexpr (sizeof...(rest) > 0) { resize(sz, rest...); }
 }
 
 template <typename T, typename U>
 concept reserveable = requires(T& x, U sz) { x.reserve(sz); };
 
 //! Reserve all the vectors/arrays using .reserve(sz)
-template <typename SZ, reserveable<SZ> T, reserveable<SZ>... Rest>
-void reserve(const SZ& sz, T& x, Rest&... rest) {
+template <typename SZ, reserveable<SZ> T, reserveable<SZ>... Rest> void reserve(const SZ& sz, T& x, Rest&... rest) {
   x.reserve(sz);
 
-  if constexpr (sizeof...(rest) > 0) {
-    reserve(sz, rest...);
-  }
+  if constexpr (sizeof...(rest) > 0) { reserve(sz, rest...); }
 }
 
 template <typename T, typename U>
 concept elemwise_resizeable = requires(T& x, U sz) { (*x.begin()).resize(sz); };
 
 //! Resize all the sub-vectors/sub-arrays using .resize(sz)
-template <typename SZ,
-          elemwise_resizeable<SZ> T,
-          elemwise_resizeable<SZ>... Rest>
+template <typename SZ, elemwise_resizeable<SZ> T, elemwise_resizeable<SZ>... Rest>
 void elemwise_resize(const SZ& sz, T& x, Rest&... rest) {
   for (auto& v : x) v.resize(sz);
 
-  if constexpr (sizeof...(rest) > 0) {
-    elemwise_resize(sz, rest...);
-  }
+  if constexpr (sizeof...(rest) > 0) { elemwise_resize(sz, rest...); }
 }
 }  // namespace arr

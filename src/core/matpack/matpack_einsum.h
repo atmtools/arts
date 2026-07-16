@@ -16,8 +16,7 @@
 
 namespace matpack {
 namespace {
-template <char c, std::array cs>
-consteval Size position_first() {
+template <char c, std::array cs> consteval Size position_first() {
   constexpr Size N = cs.size();
 
   for (Size i = 0; i < N; ++i) {
@@ -26,12 +25,11 @@ consteval Size position_first() {
   return std::numeric_limits<Size>::max();
 }
 
-template <char c, std::array cs>
-consteval auto drop_first() {
+template <char c, std::array cs> consteval auto drop_first() {
   constexpr Size N = cs.size();
 
   std::array<char, N - 1> result{};
-  bool done = false;
+  bool                    done = false;
   for (Size i = 0; i < N; ++i) {
     if (cs[i] == c and not done) {
       done = true;
@@ -43,18 +41,14 @@ consteval auto drop_first() {
   return result;
 }
 
-template <char c, std::array cs>
-consteval Size count_char() {
+template <char c, std::array cs> consteval Size count_char() {
   constexpr Size N = cs.size();
-  Size n           = 0;
-  for (Size i = 0; i < N; ++i) {
-    n += cs[i] == c;
-  }
+  Size           n = 0;
+  for (Size i = 0; i < N; ++i) { n += cs[i] == c; }
   return n;
 }
 
-template <char c, std::array cs, typename T>
-constexpr decltype(auto) reduce_mdrank(T&& arr, Index i [[maybe_unused]]) {
+template <char c, std::array cs, typename T> constexpr decltype(auto) reduce_mdrank(T&& arr, Index i [[maybe_unused]]) {
   constexpr Size N = cs.size();
   constexpr Size n = count_char<c, cs>();
 
@@ -67,13 +61,11 @@ constexpr decltype(auto) reduce_mdrank(T&& arr, Index i [[maybe_unused]]) {
       return sub<position_first<c, cs>(), N>(arr, i);
     }
   } else {
-    return reduce_mdrank<c, drop_first<c, cs>()>(
-        sub<position_first<c, cs>(), N>(arr, i), i);
+    return reduce_mdrank<c, drop_first<c, cs>()>(sub<position_first<c, cs>(), N>(arr, i), i);
   }
 }
 
-template <char c, std::array cs>
-consteval auto reduce_charrank() {
+template <char c, std::array cs> consteval auto reduce_charrank() {
   if constexpr (count_char<c, cs>() == 0) {
     return cs;
   } else {
@@ -81,13 +73,9 @@ consteval auto reduce_charrank() {
   }
 }
 
-template <std::array cs>
-consteval bool empty() {
-  return cs.size() == 0;
-}
+template <std::array cs> consteval bool empty() { return cs.size() == 0; }
 
-template <std::array cf, std::array... cs>
-consteval char find_first_char() {
+template <std::array cf, std::array... cs> consteval char find_first_char() {
   constexpr Size N = cf.size();
   constexpr Size M = sizeof...(cs);
 
@@ -102,8 +90,7 @@ consteval char find_first_char() {
   }
 }
 
-template <char c, std::array cf, std::array... cs>
-constexpr Size mddimsize(const auto& xf, const auto&... xs) {
+template <char c, std::array cf, std::array... cs> constexpr Size mddimsize(const auto& xf, const auto&... xs) {
   constexpr Size N = cf.size();
 
   if constexpr (N > 0 and find_first_char<cf>() == c) {
@@ -123,38 +110,33 @@ constexpr Size mddimsize(const auto& xf, const auto&... xs) {
   }
 }
 
-template <std::array... cs>
-constexpr bool good_sizes(const auto&... xs) {
+template <std::array... cs> constexpr bool good_sizes(const auto&... xs) {
   constexpr char first_char = find_first_char<cs...>();
-  const Size n              = mddimsize<first_char, cs...>(xs...);
-  return ((mddimsize<first_char, cs>(xs) == std::numeric_limits<Size>::max() or
-           n == mddimsize<first_char, cs>(xs)) and
+  const Size     n          = mddimsize<first_char, cs...>(xs...);
+  return ((mddimsize<first_char, cs>(xs) == std::numeric_limits<Size>::max() or n == mddimsize<first_char, cs>(xs)) and
           ...);
 }
 }  // namespace
 
-template <typename T, std::array... cs>
-constexpr T einsum_reduce(const auto&... xs) {
+template <typename T, std::array... cs> constexpr T einsum_reduce(const auto&... xs) {
   assert((good_sizes<cs...>(xs...)));
 
   if constexpr ((empty<cs>() and ...)) {
     return (... * static_cast<T>(xs));
   } else {
     constexpr char first_char = find_first_char<cs...>();
-    const Size n              = mddimsize<first_char, cs...>(xs...);
+    const Size     n          = mddimsize<first_char, cs...>(xs...);
 
     T sum{};
     for (Size i = 0; i < n; ++i) {
-      sum += einsum_reduce<T, reduce_charrank<first_char, cs>()...>(
-          reduce_mdrank<first_char, cs>(xs, i)...);
+      sum += einsum_reduce<T, reduce_charrank<first_char, cs>()...>(reduce_mdrank<first_char, cs>(xs, i)...);
     }
     return sum;
   }
 }
 
 namespace {
-template <std::array cr, std::array cs>
-consteval bool copy_chars() {
+template <std::array cr, std::array cs> consteval bool copy_chars() {
   if constexpr (cr.size() != cs.size()) {
     return false;
   } else {
@@ -162,15 +144,9 @@ consteval bool copy_chars() {
   }
 }
 
-template <std::array... c>
-consteval bool copy_chars()
-  requires(sizeof...(c) != 2)
-{
-  return false;
-}
+template <std::array... c> consteval bool copy_chars() requires(sizeof...(c) != 2) { return false; }
 
-template <std::array A, std::array B, std::array C>
-consteval bool multiply_chars() {
+template <std::array A, std::array B, std::array C> consteval bool multiply_chars() {
   constexpr Size NA = A.size();
   constexpr Size NB = B.size();
   constexpr Size NC = C.size();
@@ -184,25 +160,15 @@ consteval bool multiply_chars() {
   }
 }
 
-template <std::array... c>
-consteval bool multiply_chars()
-  requires(sizeof...(c) != 3)
-{
-  return false;
-}
+template <std::array... c> consteval bool multiply_chars() requires(sizeof...(c) != 3) { return false; }
 
-template <typename T>
-constexpr void transform_reduce(T& xr,
-                                const any_md auto& x1,
-                                const any_md auto& x2) {
-  xr = std::transform_reduce(
-      x1.elem_begin(), x1.elem_end(), x2.elem_begin(), T{});
+template <typename T> constexpr void transform_reduce(T& xr, const any_md auto& x1, const any_md auto& x2) {
+  xr = std::transform_reduce(x1.elem_begin(), x1.elem_end(), x2.elem_begin(), T{});
 }
 
 constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 
-template <std::array cr, std::array... cs>
-constexpr void einsum_arr(auto&& xr, const auto&... xs) {
+template <std::array cr, std::array... cs> constexpr void einsum_arr(auto&& xr, const auto&... xs) {
   assert((good_sizes<cr, cs...>(xr, xs...)));
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
@@ -218,18 +184,15 @@ constexpr void einsum_arr(auto&& xr, const auto&... xs) {
 
   else {
     constexpr char first_char = find_first_char<cr>();
-    const Size n              = mddimsize<first_char, cr>(xr);
+    const Size     n          = mddimsize<first_char, cr>(xr);
     for (Size i = 0; i < n; i++) {
-      einsum_arr<reduce_charrank<first_char, cr>(),
-                 reduce_charrank<first_char, cs>()...>(
-          reduce_mdrank<first_char, cr>(xr, i),
-          reduce_mdrank<first_char, cs>(xs, i)...);
+      einsum_arr<reduce_charrank<first_char, cr>(), reduce_charrank<first_char, cs>()...>(
+          reduce_mdrank<first_char, cr>(xr, i), reduce_mdrank<first_char, cs>(xs, i)...);
     }
   }
 }
 
-template <std::array cr, std::array... cs>
-consteval bool einsum_arr_optpath() {
+template <std::array cr, std::array... cs> consteval bool einsum_arr_optpath() {
   if constexpr (empty<cr>()) {
     return false;
   }
@@ -244,13 +207,11 @@ consteval bool einsum_arr_optpath() {
 
   else {
     constexpr char first_char = find_first_char<cr>();
-    return einsum_arr_optpath<reduce_charrank<first_char, cr>(),
-                              reduce_charrank<first_char, cs>()...>();
+    return einsum_arr_optpath<reduce_charrank<first_char, cr>(), reduce_charrank<first_char, cs>()...>();
   }
 }
 
-template <Size N>
-struct string_literal {
+template <Size N> struct string_literal {
   consteval string_literal(const char (&in)[N]) { std::copy_n(in, N, str); }
   char str[N];
 
@@ -270,11 +231,9 @@ constexpr void eintra_arr(Transform&& transform, auto&& xr, const auto&... xs) {
 
   else {
     constexpr char first_char = find_first_char<cr>();
-    const Size n              = mddimsize<first_char, cr>(xr);
+    const Size     n          = mddimsize<first_char, cr>(xr);
     for (Size i = 0; i < n; i++) {
-      eintra_arr<Transform,
-                 reduce_charrank<first_char, cr>(),
-                 reduce_charrank<first_char, cs>()...>(
+      eintra_arr<Transform, reduce_charrank<first_char, cr>(), reduce_charrank<first_char, cs>()...>(
           std::forward<Transform>(transform),
           reduce_mdrank<first_char, cr>(xr, i),
           reduce_mdrank<first_char, cs>(xs, i)...);
@@ -282,8 +241,7 @@ constexpr void eintra_arr(Transform&& transform, auto&& xr, const auto&... xs) {
   }
 }
 
-template <char c, std::array cr, std::array... cs>
-Size any_dim(const auto& xr, const auto&... xs) {
+template <char c, std::array cr, std::array... cs> Size any_dim(const auto& xr, const auto&... xs) {
   for (Size i = 0; i < cr.size(); i++) {
     if (cr[i] == c) {
       if constexpr (requires { static_cast<Size>(mdshape(xr)[i]); }) {
@@ -303,20 +261,16 @@ Size any_dim(const auto& xr, const auto&... xs) {
   }
 }
 
-template <std::array cr, std::array... cs>
-constexpr void einsum_mdshape_impl(std::span<Index> v, const auto&... xs) {
+template <std::array cr, std::array... cs> constexpr void einsum_mdshape_impl(std::span<Index> v, const auto&... xs) {
   if constexpr (not empty<cr>()) {
     constexpr char first_char = find_first_char<cr>();
     v.front()                 = any_dim<first_char, cs...>(xs...);
-    einsum_mdshape_impl<reduce_charrank<first_char, cr>(), cs...>(v.subspan(1),
-                                                                  xs...);
+    einsum_mdshape_impl<reduce_charrank<first_char, cr>(), cs...>(v.subspan(1), xs...);
   }
 }
 
-template <std::array cr, std::array... cs>
-constexpr std::array<Index, cr.size()> einsum_mdshape(const auto&... xs)
-  requires(sizeof...(cs) > 1 and sizeof...(cs) == sizeof...(xs))
-{
+template <std::array cr, std::array... cs> constexpr std::array<Index, cr.size()> einsum_mdshape(const auto&... xs)
+    requires(sizeof...(cs) > 1 and sizeof...(cs) == sizeof...(xs)) {
   std::array<Index, cr.size()> v{};
   einsum_mdshape_impl<cr, cs...>(std::span<Index>{v}, xs...);
   return v;
@@ -324,18 +278,13 @@ constexpr std::array<Index, cr.size()> einsum_mdshape(const auto&... xs)
 
 }  // namespace
 
-template <string_literal sr, string_literal... si>
-constexpr void einsum(auto&& xr, const auto&... xi)
-  requires(sizeof...(si) == sizeof...(xi))
-{
-  einsum_arr<sr.to_array(), si.to_array()...>(std::forward<decltype(xr)>(xr),
-                                              xi...);
+template <string_literal sr, string_literal... si> constexpr void einsum(auto&& xr, const auto&... xi)
+    requires(sizeof...(si) == sizeof...(xi)) {
+  einsum_arr<sr.to_array(), si.to_array()...>(std::forward<decltype(xr)>(xr), xi...);
 }
 
-template <typename T, string_literal... s>
-constexpr T einsum(const auto&... xi)
-  requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
-{
+template <typename T, string_literal... s> constexpr T einsum(const auto&... xi)
+    requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s)) {
   constexpr Size N = std::get<0>(std::tuple{s...}).to_array().size();
 
   if constexpr (N == 0) {
@@ -350,19 +299,13 @@ constexpr T einsum(const auto&... xi)
 }
 
 template <string_literal sr, string_literal... si, class Transform>
-constexpr void eintra(Transform&& transform, auto&& xr, const auto&... xi)
-  requires(sizeof...(si) == sizeof...(xi))
-{
+constexpr void eintra(Transform&& transform, auto&& xr, const auto&... xi) requires(sizeof...(si) == sizeof...(xi)) {
   eintra_arr<Transform, sr.to_array(), si.to_array()...>(
-      std::forward<Transform>(transform),
-      std::forward<decltype(xr)>(xr),
-      xi...);
+      std::forward<Transform>(transform), std::forward<decltype(xr)>(xr), xi...);
 }
 
-template <typename T, string_literal... s, class Transform>
-constexpr T eintra(Transform&& transform, const auto&... xi)
-  requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
-{
+template <typename T, string_literal... s, class Transform> constexpr T eintra(Transform&& transform, const auto&... xi)
+    requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s)) {
   constexpr Size N = std::get<0>(std::tuple{s...}).to_array().size();
 
   if constexpr (N == 0) {
@@ -376,8 +319,5 @@ constexpr T eintra(Transform&& transform, const auto&... xi)
   }
 }
 
-template <string_literal... s>
-consteval bool einsum_optpath() {
-  return einsum_arr_optpath<s.to_array()...>();
-}
+template <string_literal... s> consteval bool einsum_optpath() { return einsum_arr_optpath<s.to_array()...>(); }
 }  // namespace matpack

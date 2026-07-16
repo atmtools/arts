@@ -25,29 +25,17 @@ Numeric last(ConstVectorView x);
 
 Index last(const ArrayOfIndex& x);
 
-void linspace(Vector& x,
-              const Numeric start,
-              const Numeric stop,
-              const Numeric step);
+void linspace(Vector& x, const Numeric start, const Numeric stop, const Numeric step);
 
 Vector linspace(const Numeric start, const Numeric stop, const Numeric step);
 
-void nlinspace(Vector& x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n);
+void nlinspace(Vector& x, const Numeric start, const Numeric stop, const Index n);
 
 Vector nlinspace(const Numeric start, const Numeric stop, const Index n);
 
-void nlinspace(VectorView x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n);
+void nlinspace(VectorView x, const Numeric start, const Numeric stop, const Index n);
 
-void nlogspace(Vector& x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n);
+void nlogspace(Vector& x, const Numeric start, const Numeric stop, const Index n);
 
 Vector nlogspace(const Numeric start, const Numeric stop, const Index n);
 
@@ -57,12 +45,9 @@ Numeric trapz(ConstVectorView x, ConstVectorView y);
 
 void cumsum(VectorView csum, ConstVectorView x);
 
-Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-                               ConstVectorView zen_grid,
-                               ConstVectorView azi_grid);
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand, ConstVectorView zen_grid, ConstVectorView azi_grid);
 
-Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
-                               ConstVectorView zen_grid);
+Numeric AngIntegrate_trapezoid(ConstVectorView Integrand, ConstVectorView zen_grid);
 
 Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView zen_grid,
@@ -70,7 +55,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView grid_stepsize);
 
 Numeric sign(const Numeric& x);
-Index sign(const Index& x);
+Index   sign(const Index& x);
 
 //! n_int_between
 /*! 
@@ -125,24 +110,19 @@ Index int_at_step(const Numeric x, const Index step);
 */
 Numeric min_geq(const Numeric n1, const Numeric n2, const Numeric limit);
 
-void mgd(VectorView psd,
-         const Vector& x,
-         const Numeric& n0,
-         const Numeric& mu,
-         const Numeric& la,
-         const Numeric& ga);
+void mgd(VectorView psd, const Vector& x, const Numeric& n0, const Numeric& mu, const Numeric& la, const Numeric& ga);
 
-void mgd_with_derivatives(VectorView psd,
-                          MatrixView jac_data,
-                          const Vector& x,
+void mgd_with_derivatives(VectorView     psd,
+                          MatrixView     jac_data,
+                          const Vector&  x,
                           const Numeric& n0,
                           const Numeric& mu,
                           const Numeric& la,
                           const Numeric& ga,
-                          const bool& do_n0_jac,
-                          const bool& do_mu_jac,
-                          const bool& do_la_jac,
-                          const bool& do_ga_jac);
+                          const bool&    do_n0_jac,
+                          const bool&    do_mu_jac,
+                          const bool&    do_la_jac,
+                          const bool&    do_ga_jac);
 
 /**! Shape functions for normalized PSD.
  *
@@ -159,14 +139,10 @@ void mgd_with_derivatives(VectorView psd,
  * @param[IN] alpha The alpha parameter of the shape function.
  * @param[IN] beta  The beta parameter of the shape function.
  */
-void delanoe_shape_with_derivative(VectorView psd,
-                                   MatrixView jac_data,
-                                   const Vector& x,
-                                   const Numeric& alpha,
-                                   const Numeric& beta);
+void delanoe_shape_with_derivative(
+    VectorView psd, MatrixView jac_data, const Vector& x, const Numeric& alpha, const Numeric& beta);
 
-Numeric mod_gamma_dist(
-    Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma);
+Numeric mod_gamma_dist(Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma);
 
 void unitl(Vector& x);
 

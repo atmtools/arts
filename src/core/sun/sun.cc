@@ -34,10 +34,8 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
   return os;
 }
 
-Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
-                           const Vector& f_grid,
-                           const Numeric& temperature) {
-  const Index nf            = f_grid.size();
+Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw, const Vector& f_grid, const Numeric& temperature) {
+  const Index   nf          = f_grid.size();
   const Vector& data_f_grid = sun_spectrum_raw.grid<0>();
   const Numeric data_fmin   = data_f_grid[0];
   const Numeric data_fmax   = data_f_grid[data_f_grid.size() - 1];
@@ -47,13 +45,9 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
 
   const Numeric* f_grid_begin = f_grid.data_handle();
   const Numeric* f_grid_end   = f_grid_begin + f_grid.size();
-  const Index i_fstart        = std::distance(
-      f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
-  const Index i_fstop =
-      std::distance(
-          f_grid_begin,
-          std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) -
-      1;
+  const Index    i_fstart     = std::distance(f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
+  const Index    i_fstop =
+      std::distance(f_grid_begin, std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) - 1;
 
   const Index f_extent = i_fstop - i_fstart + 1;
 
@@ -68,21 +62,16 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
 
   const Numeric* data_f_grid_begin = data_f_grid.data_handle();
   const Numeric* data_f_grid_end   = data_f_grid_begin + data_f_grid.size() - 1;
-  const Index i_data_fstart =
-      std::distance(
-          data_f_grid_begin,
-          std::upper_bound(data_f_grid_begin, data_f_grid_end, f_grid_fmin)) -
-      1;
+  const Index    i_data_fstart =
+      std::distance(data_f_grid_begin, std::upper_bound(data_f_grid_begin, data_f_grid_end, f_grid_fmin)) - 1;
   const Index i_data_fstop = std::distance(
-      data_f_grid_begin,
-      std::upper_bound(
-          data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
+      data_f_grid_begin, std::upper_bound(data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
 
   // Extent for active data frequency vector:
   const Index data_f_extent = i_data_fstop - i_data_fstart + 1;
 
   // For this range the interpolation will find place.
-  const Range active_range(i_data_fstart, data_f_extent);
+  const Range           active_range(i_data_fstart, data_f_extent);
   const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
   // Check if frequency is inside the range covered by the data:
@@ -98,10 +87,7 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
     interpweights(itw, f_gp);
 
     for (int i = 0; i < 4; i++) {
-      interp(int_data[Range(i_fstart, f_extent), i],
-             itw,
-             sun_spectrum_raw.data[active_range, i],
-             f_gp);
+      interp(int_data[Range(i_fstart, f_extent), i], itw, sun_spectrum_raw.data[active_range, i], f_gp);
     }
   }
 
@@ -116,12 +102,8 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
           "documentation for regrid_sun_spectrum")
     }
     if (temperature > 0) {
-      for (int i = 0; i < i_fstart; i++) {
-        int_data[i, 0] = planck(f_grid[i], temperature);
-      }
-      for (Index i = f_extent; i < nf; i++) {
-        int_data[i, 0] = planck(f_grid[i], temperature);
-      }
+      for (int i = 0; i < i_fstart; i++) { int_data[i, 0] = planck(f_grid[i], temperature); }
+      for (Index i = f_extent; i < nf; i++) { int_data[i, 0] = planck(f_grid[i], temperature); }
     }
   }
 
@@ -201,8 +183,7 @@ std::pair<Vector3, Vector3> poslos2cart(const Vector3 sph, const Vector2 los) {
   if (std::abs(lat) > 90 - 1e-8) {
     const Numeric s = lat > 0 ? 1 : -1;
 
-    return {{0, 0, s * r},
-            {sind(za) * cosd(aa), sind(za) * sind(aa), s * cosd(za)}};
+    return {{0, 0, s * r}, {sind(za) * cosd(aa), sind(za) * sind(aa), s * cosd(za)}};
   }
 
   const Numeric coslat = cosd(lat);
@@ -218,18 +199,14 @@ std::pair<Vector3, Vector3> poslos2cart(const Vector3 sph, const Vector2 los) {
   const Numeric dlat = sinza * cosaa;  // r-term cancel out below
   const Numeric dlon = sinza * sinaa / coslat;
 
-  return {
-      {r * coslat * coslon, r * coslat * sinlon, r * sinlat},
-      {coslat * coslon * dr - sinlat * coslon * dlat - coslat * sinlon * dlon,
-       coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon,
-       sinlat * dr + coslat * dlat}};
+  return {{r * coslat * coslon, r * coslat * sinlon, r * sinlat},
+          {coslat * coslon * dr - sinlat * coslon * dlat - coslat * sinlon * dlon,
+           coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon,
+           sinlat * dr + coslat * dlat}};
 }
 }  // namespace
 
-std::pair<Numeric, bool> hit_sun(const Sun& sun,
-                                 const Vector3 pos,
-                                 const Vector2 los,
-                                 const Vector2 ell) {
+std::pair<Numeric, bool> hit_sun(const Sun& sun, const Vector3 pos, const Vector2 los, const Vector2 ell) {
   //Calculate earth centric radial component of sun_pos and rtp_pos.
   const Numeric R_sun = sun.distance;
   const Numeric R_rte = refell2r(ell, pos[1]) + pos[0];
@@ -255,10 +232,7 @@ std::pair<Numeric, bool> hit_sun(const Sun& sun,
   //Calculate angle beta between line of sight and the line between ppath point and the sun
   //using scalar product
   const Numeric cos_beta =
-      std::clamp((r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) /
-                     (r_ps * r_glos),
-                 -1.0,
-                 1.0);
+      std::clamp((r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_glos), -1.0, 1.0);
   const Numeric beta = std::acos(cos_beta);
 
   // angular radius of sun
@@ -274,8 +248,8 @@ Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const try {
 
   // r_sun
   const Numeric R_rte = refell2r(ell, lat) + alt;
-  const auto r_sun    = sph2cart({distance, latitude, longitude});
-  const auto r_rte    = sph2cart({R_rte, lat, lon});
+  const auto    r_sun = sph2cart({distance, latitude, longitude});
+  const auto    r_rte = sph2cart({R_rte, lat, lon});
 
   const auto d = r_sun - r_rte;
 
@@ -287,28 +261,21 @@ Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const try {
 ARTS_METHOD_ERROR_CATCH
 
 //! Returns true if the sun was hit, false otherwise.  Sets the spectral radiance if the sun was hit.
-bool set_spectral_rad_if_sun_intersection(
-    StokvecVector& spectral_rad,
-    const Sun& sun,
-    const PropagationPathPoint& propagation_path_point,
-    const SurfaceField& surf_field) {
+bool set_spectral_rad_if_sun_intersection(StokvecVector&              spectral_rad,
+                                          const Sun&                  sun,
+                                          const PropagationPathPoint& propagation_path_point,
+                                          const SurfaceField&         surf_field) {
   const Index nf = spectral_rad.size();
   assert(nf == sun.spectrum.nrows());
   assert(4 == sun.spectrum.ncols());
 
   //Check if we see the sun.
   if (propagation_path_point.los_type == PathPositionType::space and
-      hit_sun(sun,
-              propagation_path_point.pos,
-              path::mirror(propagation_path_point.los),
-              surf_field.ellipsoid)
-          .second) {
+      hit_sun(sun, propagation_path_point.pos, path::mirror(propagation_path_point.los), surf_field.ellipsoid).second) {
     //Here we assume that the sun radiates isotropically.
 
     for (Index iv = 0; iv < nf; ++iv) {
-      for (Index is = 0; is < 4; ++is) {
-        spectral_rad[iv][is] = sun.spectrum[iv, is] / Constant::pi;
-      }
+      for (Index is = 0; is < 4; ++is) { spectral_rad[iv][is] = sun.spectrum[iv, is] / Constant::pi; }
     }
 
     return true;

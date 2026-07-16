@@ -5,10 +5,8 @@
 QuantumIdentifier get_quantum_identifier() {
   QuantumIdentifier qid{};
   qid.isot = "H2O-161"_isot;
-  qid.state.emplace(QuantumNumberType::J,
-                    Quantum::UpperLower{.upper = 1, .lower = 1});
-  qid.state.emplace(QuantumNumberType::K,
-                    Quantum::UpperLower{.upper = 0, .lower = 0});
+  qid.state.emplace(QuantumNumberType::J, Quantum::UpperLower{.upper = 1, .lower = 1});
+  qid.state.emplace(QuantumNumberType::K, Quantum::UpperLower{.upper = 0, .lower = 0});
   return qid;
 }
 
@@ -22,8 +20,7 @@ AbsorptionLine get_lbl_line() {
   line.e0 = 3.0;
   line.gu = 4.0;
   line.gl = 5.0;
-  line.qn.emplace(QuantumNumberType::J,
-                  Quantum::UpperLower{.upper = 1, .lower = 1});
+  line.qn.emplace(QuantumNumberType::J, Quantum::UpperLower{.upper = 1, .lower = 1});
 
   line.ls.T0   = 300.0;
   auto& mod    = line.ls.single_models["H2O"_spec];
@@ -44,9 +41,7 @@ AbsorptionBand get_lbl_band_data() {
   return b;
 }
 
-AbsorptionBands get_abs_bands() {
-  return {{get_quantum_identifier(), get_lbl_band_data()}};
-}
+AbsorptionBands get_abs_bands() { return {{get_quantum_identifier(), get_lbl_band_data()}}; }
 
 #define TEST_MACRO(x)                         \
   void test_##x() {                           \

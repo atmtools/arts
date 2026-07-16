@@ -40,19 +40,15 @@ void lte::adapt() try {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
-  if (bands->empty()) {
-    return;
-  }
+  if (bands->empty()) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::lte::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                 shapes_pos;
+  decltype(cutoff)                      cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
@@ -74,18 +70,12 @@ void lte::adapt() try {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -99,15 +89,13 @@ void lte_mirror::adapt() {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::lte_mirror::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                        shapes_pos;
+  decltype(cutoff)                             cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LTE_MIRROR) continue;
@@ -129,18 +117,12 @@ void lte_mirror::adapt() {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -153,15 +135,13 @@ void nlte::adapt() {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::nlte::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                  shapes_pos;
+  decltype(cutoff)                       cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LINE_NLTE) continue;
@@ -183,18 +163,12 @@ void nlte::adapt() {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -203,39 +177,33 @@ void nlte::adapt() {
 }
 
 std::pair<Complex, Complex> lte::operator()(const Numeric frequency) const {
-  const auto scl = [N = number_density(atm->pressure, atm->temperature),
-                    T = atm->temperature](auto f) {
+  const auto scl = [N = number_density(atm->pressure, atm->temperature), T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r     = (Constant::h * f) / (Constant::k * T);
+    const Numeric     r = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
-  return {scl * (lines(frequency) + cutoff_lines(cutoff, frequency)),
-          Complex{0.0, 0.0}};
+  return {scl * (lines(frequency) + cutoff_lines(cutoff, frequency)), Complex{0.0, 0.0}};
 }
 
-std::pair<Complex, Complex> lte_mirror::operator()(
-    const Numeric frequency) const {
-  const auto scl = [N = number_density(atm->pressure, atm->temperature),
-                    T = atm->temperature](auto f) {
+std::pair<Complex, Complex> lte_mirror::operator()(const Numeric frequency) const {
+  const auto scl = [N = number_density(atm->pressure, atm->temperature), T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r     = (Constant::h * f) / (Constant::k * T);
+    const Numeric     r = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
   assert(lines(frequency) == cutoff_lines(cutoff, frequency) and
          (cutoff_lines(cutoff, frequency) == Complex{0.0, 0.0}));
 
-  return {scl * (lines(frequency) + cutoff_lines(cutoff, frequency)),
-          Complex{0.0, 0.0}};
+  return {scl * (lines(frequency) + cutoff_lines(cutoff, frequency)), Complex{0.0, 0.0}};
 }
 
 std::pair<Complex, Complex> nlte::operator()(const Numeric frequency) const {
-  const auto scl =
-      [N = number_density(atm->pressure, atm->temperature)](auto f) {
-        constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-        return N * f * c;  // * std::expm1(-r); ??? It feels like LTE term...
-      }(frequency);
+  const auto scl = [N = number_density(atm->pressure, atm->temperature)](auto f) {
+    constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
+    return N * f * c;  // * std::expm1(-r); ??? It feels like LTE term...
+  }(frequency);
 
   auto [a, s]   = lines(frequency);
   auto [ac, sc] = cutoff_lines(cutoff, frequency);
@@ -289,27 +257,21 @@ void nlte::set_pol(ZeemanPolarization pol_) {
   adapt();
 }
 
-void lte::set(std::shared_ptr<AbsorptionBands> bands_,
-              std::shared_ptr<AtmPoint> atm_,
-              ZeemanPolarization pol_) {
+void lte::set(std::shared_ptr<AbsorptionBands> bands_, std::shared_ptr<AtmPoint> atm_, ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
   adapt();
 }
 
-void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
-                     std::shared_ptr<AtmPoint> atm_,
-                     ZeemanPolarization pol_) {
+void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_, std::shared_ptr<AtmPoint> atm_, ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
   adapt();
 }
 
-void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
-               std::shared_ptr<AtmPoint> atm_,
-               ZeemanPolarization pol_) {
+void nlte::set(std::shared_ptr<AbsorptionBands> bands_, std::shared_ptr<AtmPoint> atm_, ZeemanPolarization pol_) {
   bands = std::move(bands_);
   atm   = std::move(atm_);
   pol   = pol_;
@@ -317,45 +279,31 @@ void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
 }
 }  // namespace models
 
-line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
-                           std::shared_ptr<AbsorptionBands> bands_)
+line_storage::line_storage(std::shared_ptr<AtmPoint> atm_, std::shared_ptr<AbsorptionBands> bands_)
     : atm(std::move(atm_)), bands(std::move(bands_)) {
   for (auto& [qid, band] : *bands) {
-    ARTS_USER_ERROR_IF(
-        band.lineshape != LineByLineLineshape::VP_LTE and
-            band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
-            band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
-        "Lineshape not supported \"{}\" for band: {}",
-        band.lineshape,
-        qid)
+    ARTS_USER_ERROR_IF(band.lineshape != LineByLineLineshape::VP_LTE and
+                           band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
+                           band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
+                       "Lineshape not supported \"{}\" for band: {}",
+                       band.lineshape,
+                       qid)
   }
 
-  lte[static_cast<Size>(ZeemanPolarization::sm)].set(
-      bands, atm, ZeemanPolarization::sm);
-  lte[static_cast<Size>(ZeemanPolarization::pi)].set(
-      bands, atm, ZeemanPolarization::pi);
-  lte[static_cast<Size>(ZeemanPolarization::sp)].set(
-      bands, atm, ZeemanPolarization::sp);
-  lte[static_cast<Size>(ZeemanPolarization::no)].set(
-      bands, atm, ZeemanPolarization::no);
+  lte[static_cast<Size>(ZeemanPolarization::sm)].set(bands, atm, ZeemanPolarization::sm);
+  lte[static_cast<Size>(ZeemanPolarization::pi)].set(bands, atm, ZeemanPolarization::pi);
+  lte[static_cast<Size>(ZeemanPolarization::sp)].set(bands, atm, ZeemanPolarization::sp);
+  lte[static_cast<Size>(ZeemanPolarization::no)].set(bands, atm, ZeemanPolarization::no);
 
-  lte_mirror[static_cast<Size>(ZeemanPolarization::sm)].set(
-      bands, atm, ZeemanPolarization::sm);
-  lte_mirror[static_cast<Size>(ZeemanPolarization::pi)].set(
-      bands, atm, ZeemanPolarization::pi);
-  lte_mirror[static_cast<Size>(ZeemanPolarization::sp)].set(
-      bands, atm, ZeemanPolarization::sp);
-  lte_mirror[static_cast<Size>(ZeemanPolarization::no)].set(
-      bands, atm, ZeemanPolarization::no);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::sm)].set(bands, atm, ZeemanPolarization::sm);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::pi)].set(bands, atm, ZeemanPolarization::pi);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::sp)].set(bands, atm, ZeemanPolarization::sp);
+  lte_mirror[static_cast<Size>(ZeemanPolarization::no)].set(bands, atm, ZeemanPolarization::no);
 
-  nlte[static_cast<Size>(ZeemanPolarization::sm)].set(
-      bands, atm, ZeemanPolarization::sm);
-  nlte[static_cast<Size>(ZeemanPolarization::pi)].set(
-      bands, atm, ZeemanPolarization::pi);
-  nlte[static_cast<Size>(ZeemanPolarization::sp)].set(
-      bands, atm, ZeemanPolarization::sp);
-  nlte[static_cast<Size>(ZeemanPolarization::no)].set(
-      bands, atm, ZeemanPolarization::no);
+  nlte[static_cast<Size>(ZeemanPolarization::sm)].set(bands, atm, ZeemanPolarization::sm);
+  nlte[static_cast<Size>(ZeemanPolarization::pi)].set(bands, atm, ZeemanPolarization::pi);
+  nlte[static_cast<Size>(ZeemanPolarization::sp)].set(bands, atm, ZeemanPolarization::sp);
+  nlte[static_cast<Size>(ZeemanPolarization::no)].set(bands, atm, ZeemanPolarization::no);
 }
 
 void line_storage::set_model(std::shared_ptr<AbsorptionBands> bands_) {
@@ -372,17 +320,12 @@ void line_storage::set_atm(std::shared_ptr<AtmPoint> atm_) {
   atm = std::move(atm_);
 }
 
-std::pair<Complex, Complex> line_storage::operator()(
-    const Numeric f, const ZeemanPolarization pol) const {
-  std::array res{lte[static_cast<Size>(pol)](f),
-                 lte_mirror[static_cast<Size>(pol)](f),
-                 nlte[static_cast<Size>(pol)](f)};
+std::pair<Complex, Complex> line_storage::operator()(const Numeric f, const ZeemanPolarization pol) const {
+  std::array res{
+      lte[static_cast<Size>(pol)](f), lte_mirror[static_cast<Size>(pol)](f), nlte[static_cast<Size>(pol)](f)};
 
-  return std::reduce(res.begin(),
-                     res.end(),
-                     std::pair<Complex, Complex>{0.0, 0.0},
-                     [](const auto& a, const auto& b) {
-                       return std::pair{a.first + b.first, a.second + b.second};
-                     });
+  return std::reduce(res.begin(), res.end(), std::pair<Complex, Complex>{0.0, 0.0}, [](const auto& a, const auto& b) {
+    return std::pair{a.first + b.first, a.second + b.second};
+  });
 }
 }  // namespace lbl::fwd

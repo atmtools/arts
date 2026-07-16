@@ -16,16 +16,13 @@
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A);
 
 // LU backsubstitution
-void lubacksub(VectorView x,
-               ConstMatrixView LU,
-               ConstVectorView b,
-               const ArrayOfIndex& indx);
+void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx);
 
 // Solve linear system
 void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
 struct solve_workdata {
-  std::size_t N{};
+  std::size_t      N{};
   std::vector<int> ipiv{};
 
   constexpr solve_workdata()                                 = default;
@@ -55,8 +52,8 @@ void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo);
 void solve_inplace(VectorView X, MatrixView A);
 
 struct inv_workdata {
-  std::size_t N{};
-  std::vector<int> ipiv{};
+  std::size_t          N{};
+  std::vector<int>     ipiv{};
   std::vector<Numeric> work{};
 
   constexpr inv_workdata()                               = default;
@@ -86,15 +83,14 @@ void inv_inplace(MatrixView A, inv_workdata& wo);
 void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A);
 
 struct diagonalize_workdata {
-  std::size_t N{};
+  std::size_t          N{};
   std::vector<Numeric> w{};
 
-  constexpr diagonalize_workdata()                            = default;
-  constexpr diagonalize_workdata(const diagonalize_workdata&) = default;
-  constexpr diagonalize_workdata(diagonalize_workdata&&)      = default;
-  constexpr diagonalize_workdata& operator=(const diagonalize_workdata&) =
-      default;
-  constexpr diagonalize_workdata& operator=(diagonalize_workdata&&) = default;
+  constexpr diagonalize_workdata()                                       = default;
+  constexpr diagonalize_workdata(const diagonalize_workdata&)            = default;
+  constexpr diagonalize_workdata(diagonalize_workdata&&)                 = default;
+  constexpr diagonalize_workdata& operator=(const diagonalize_workdata&) = default;
+  constexpr diagonalize_workdata& operator=(diagonalize_workdata&&)      = default;
 
   constexpr diagonalize_workdata(std::size_t N_) : N(N_), w(4 * N + N * N) {}
   constexpr Numeric* work() { return w.data(); }
@@ -105,29 +101,16 @@ struct diagonalize_workdata {
 void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A);
 
 // Matrix diagonalization with lapack
-void diagonalize(MatrixView P,
-                 VectorView WR,
-                 VectorView WI,
-                 ConstMatrixView A,
-                 diagonalize_workdata& wo);
+void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A, diagonalize_workdata& wo);
 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
-void diagonalize_inplace(MatrixView P,
-                         VectorView WR,
-                         VectorView WI,
-                         MatrixView A);
+void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A);
 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
-void diagonalize_inplace(MatrixView P,
-                         VectorView WR,
-                         VectorView WI,
-                         MatrixView A,
-                         diagonalize_workdata& wo);
+void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A, diagonalize_workdata& wo);
 
 // Matrix diagonalization with lapack
-void diagonalize(ComplexMatrixView P,
-                 ComplexVectorView W,
-                 const ConstComplexMatrixView A);
+void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A);
 
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);
@@ -157,9 +140,6 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y);
  * @param[in]  residual (optional) Returns the residual if true
  * @return Squared residual or 0
  */
-Numeric lsf(VectorView x,
-            ConstMatrixView A,
-            ConstVectorView y,
-            bool residual = true) noexcept;
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual = true) noexcept;
 
 #endif  // linalg_h

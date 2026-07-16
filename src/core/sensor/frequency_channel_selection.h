@@ -25,8 +25,8 @@ struct Channel {
   SortedGriddedField1 channel;
 
   [[nodiscard]] const AscendingGrid& freq_grid() const;
-  [[nodiscard]] const Vector& weights() const;
-  [[nodiscard]] Size size() const { return channel.data.size(); }
+  [[nodiscard]] const Vector&        weights() const;
+  [[nodiscard]] Size                 size() const { return channel.data.size(); }
 };
 
 struct BoxChannel final : Channel {
@@ -87,62 +87,44 @@ struct Spectrometer {
 
 // Channel format tags and XML I/O
 
-template <>
-struct format_tag_aggregate<sensor::Channel> {
+template <> struct format_tag_aggregate<sensor::Channel> {
   constexpr static bool value = true;
 };
 
-template <>
-struct xml_io_stream_name<sensor::Channel> {
+template <> struct xml_io_stream_name<sensor::Channel> {
   static constexpr std::string_view name = "SensorChannel";
 };
 
-template <>
-struct xml_io_stream_aggregate<sensor::Channel> {
+template <> struct xml_io_stream_aggregate<sensor::Channel> {
   static constexpr bool value = true;
 };
 
 // BoxChannel format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::BoxChannel>
-    : format_tag_inherit<sensor::Channel, sensor::BoxChannel> {};
+template <> struct std::formatter<sensor::BoxChannel> : format_tag_inherit<sensor::Channel, sensor::BoxChannel> {};
 
-template <>
-struct xml_io_stream<sensor::BoxChannel>
-    : xml_io_stream_inherit<sensor::Channel, sensor::BoxChannel> {};
+template <> struct xml_io_stream<sensor::BoxChannel> : xml_io_stream_inherit<sensor::Channel, sensor::BoxChannel> {};
 
 // DiracChannel format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::DiracChannel>
-    : format_tag_inherit<sensor::Channel, sensor::DiracChannel> {};
+template <> struct std::formatter<sensor::DiracChannel> : format_tag_inherit<sensor::Channel, sensor::DiracChannel> {};
 
-template <>
-struct xml_io_stream<sensor::DiracChannel>
-    : xml_io_stream_inherit<sensor::Channel, sensor::DiracChannel> {};
+template <> struct xml_io_stream<sensor::DiracChannel> : xml_io_stream_inherit<sensor::Channel, sensor::DiracChannel> {
+};
 
 // GaussianChannel format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::GaussianChannel>
+template <> struct std::formatter<sensor::GaussianChannel>
     : format_tag_inherit<sensor::Channel, sensor::GaussianChannel> {};
 
-template <>
-struct xml_io_stream<sensor::GaussianChannel>
+template <> struct xml_io_stream<sensor::GaussianChannel>
     : xml_io_stream_inherit<sensor::Channel, sensor::GaussianChannel> {};
 
 // Spectrometer format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::Spectrometer>
-    : std::formatter<std::vector<sensor::Channel>> {};
+template <> struct std::formatter<sensor::Spectrometer> : std::formatter<std::vector<sensor::Channel>> {};
 
-template <>
-struct xml_io_stream<sensor::Spectrometer> {
-  static void write(std::ostream&,
-                    const sensor::Spectrometer&,
-                    bofstream*       = nullptr,
-                    std::string_view = ""sv);
+template <> struct xml_io_stream<sensor::Spectrometer> {
+  static void write(std::ostream&, const sensor::Spectrometer&, bofstream* = nullptr, std::string_view = ""sv);
   static void read(std::istream&, sensor::Spectrometer&, bifstream* = nullptr);
 };

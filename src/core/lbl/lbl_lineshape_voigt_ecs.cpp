@@ -29,16 +29,15 @@
 #undef WIGNER6
 
 namespace lbl::voigt::ecs {
-ComputeData::ComputeData(const ConstVectorView& f_grid,
-                         const AtmPoint& atm,
-                         const Vector2& los,
+ComputeData::ComputeData(const ConstVectorView&   f_grid,
+                         const AtmPoint&          atm,
+                         const Vector2&           los,
                          const ZeemanPolarization pol)
     : scl(f_grid.size()), shape(f_grid.size()) {
   std::transform(f_grid.begin(),
                  f_grid.end(),
                  scl.begin(),
-                 [N = number_density(atm.pressure, atm.temperature),
-                  T = atm.temperature](auto f) {
+                 [N = number_density(atm.pressure, atm.temperature), T = atm.temperature](auto f) {
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
                    return -N * f * std::expm1(-r);
                  });
@@ -46,9 +45,7 @@ ComputeData::ComputeData(const ConstVectorView& f_grid,
   update_zeeman(los, atm.mag, pol);
 }
 
-void ComputeData::update_zeeman(const Vector2& los,
-                                const Vector3& mag,
-                                const ZeemanPolarization pol) {
+void ComputeData::update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol) {
   npm = zeeman::norm_view(pol, mag, los);
 }
 
@@ -84,18 +81,14 @@ void ComputeData::core_calc_eqv() {
 
     // Do the matrix forward multiplication
     for (Size i = 0; i < n; i++) {
-      for (Size j = 0; j < n; j++) {
-        eqv_str[i] += dip[j] * V[j, i];
-      }
+      for (Size j = 0; j < n; j++) { eqv_str[i] += dip[j] * V[j, i]; }
     }
 
     // Do the matrix backward multiplication
     inv(V, V);
     for (Size i = 0; i < n; i++) {
       Complex z(0, 0);
-      for (Size j = 0; j < n; j++) {
-        z += pop[j] * dip[j] * V[i, j];
-      }
+      for (Size j = 0; j < n; j++) { z += pop[j] * dip[j] * V[i, j]; }
       eqv_str[i] *= z;
     }
   }
@@ -123,15 +116,12 @@ void ComputeData::core_calc(const ConstVectorView& f_grid) try {
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void get_vmrs(VectorView vmrs,
-              const line_shape::model::map_t& mod,
-              const AtmPoint& atm) {
+void get_vmrs(VectorView vmrs, const line_shape::model::map_t& mod, const AtmPoint& atm) {
   std::transform(mod.begin(), mod.end(), vmrs.begin(), [&atm](auto& m) {
     return m.first == SpeciesEnum::Bath ? 0.0 : atm[m.first];
   });
 
-  const Size bath_spec =
-      std::distance(mod.begin(), mod.find(SpeciesEnum::Bath));
+  const Size bath_spec = std::distance(mod.begin(), mod.find(SpeciesEnum::Bath));
 
   if (bath_spec != mod.size()) {
     vmrs[bath_spec] = 1 - sum(vmrs);
@@ -141,11 +131,11 @@ void get_vmrs(VectorView vmrs,
 }
 }  // namespace
 
-void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
-                              const band_data& bnd,
+void ComputeData::adapt_multi(const QuantumIdentifier&        bnd_qid,
+                              const band_data&                bnd,
                               const LinemixingSpeciesEcsData& rovib_data,
-                              const AtmPoint& atm,
-                              const bool presorted) try {
+                              const AtmPoint&                 atm,
+                              const bool                      presorted) try {
   const auto n = bnd.size();
   const auto m = bnd.front().ls.single_models.size();
 
@@ -168,8 +158,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   eqv_strs = 0;
   eqv_vals = 0;
 
-  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
-                     atm.temperature / bnd_qid.isot.mass);
+  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared * atm.temperature / bnd_qid.isot.mass);
 
   const Numeric T  = atm.temperature;
   const Numeric QT = PartitionFunctions::Q(T, bnd_qid.isot);
@@ -177,8 +166,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
     pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i] = 0.5 * Constant::c *
-             std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
+    dip[i]           = 0.5 * Constant::c * std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
@@ -186,10 +174,10 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
       dipr[i]  = makarov::reduced_dipole(J.upper, J.lower, N.upper);
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
-      dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]   = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
       auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
       auto& Kq  = bnd.lines[i].qn.at(QuantumNumberType::K);
@@ -205,18 +193,15 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   //! Must remember the sorting for the quantum numbers
   if (not presorted) {
     stdr::iota(sort, 0);
-    stdr::sort(
-        stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
-          const auto& [i, pop_i, dip_i, dipr_i] = v;
-          const auto a = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
-          return a;
-        });
+    stdr::sort(stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
+      const auto& [i, pop_i, dip_i, dipr_i] = v;
+      const auto a                          = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
+      return a;
+    });
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
-      for (Size i : sort) {
-        out[i] = vec[sort[i]];
-      }
+      for (Size i : sort) { out[i] = vec[sort[i]]; }
       return out;
     };
 
@@ -233,9 +218,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
                               true,
                               std::logical_or<>(),
 
-                              [](const auto& lsl, const auto& lsr) {
-                                return lsl.first == lsr.first;
-                              });
+                              [](const auto& lsl, const auto& lsr) { return lsl.first == lsr.first; });
 
     ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
   }
@@ -245,29 +228,24 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   Size i = 0;
   for (auto& spec : bnd.front().ls.single_models | stdv::keys) {
     const auto& rovib_data_it = rovib_data.find(spec);
-    ARTS_USER_ERROR_IF(
-        rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
+    ARTS_USER_ERROR_IF(rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).G0(
-          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
-      Ws[i][k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).D0(
-          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+      Wimag[k, k] =
+          bnd.lines[sort[k]].ls.single_models.at(spec).G0(bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+      Ws[i][k, k] =
+          bnd.lines[sort[k]].ls.single_models.at(spec).D0(bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      makarov::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      makarov::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      hartmann::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      hartmann::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
-      stotop::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      stotop::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
-      sphtop::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      sphtop::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
       ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)
     }
@@ -276,17 +254,15 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     i++;
   }
 
-  for (Size i = 0; i < n; i++) {
-    Ws[joker, i, i] += bnd.lines[sort[i]].f0;
-  }
+  for (Size i = 0; i < n; i++) { Ws[joker, i, i] += bnd.lines[sort[i]].f0; }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
-                               const band_data& bnd,
+void ComputeData::adapt_single(const QuantumIdentifier&        bnd_qid,
+                               const band_data&                bnd,
                                const LinemixingSpeciesEcsData& rovib_data,
-                               const AtmPoint& atm,
-                               const bool presorted) try {
+                               const AtmPoint&                 atm,
+                               const bool                      presorted) try {
   const auto n = bnd.size();
 
   pop.resize(n);
@@ -306,8 +282,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   eqv_strs = 0;
   eqv_vals = 0;
 
-  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
-                     atm.temperature / bnd_qid.isot.mass);
+  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared * atm.temperature / bnd_qid.isot.mass);
 
   const Numeric T  = atm.temperature;
   const Numeric QT = PartitionFunctions::Q(T, bnd_qid.isot);
@@ -315,8 +290,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
     pop[i]           = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
-    dip[i] = 0.5 * Constant::c *
-             std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
+    dip[i]           = 0.5 * Constant::c * std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
@@ -324,10 +298,10 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
       dipr[i]  = makarov::reduced_dipole(J.upper, J.lower, N.upper);
       dip[i]  *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      auto& J  = bnd.lines[i].qn.at(QuantumNumberType::J);
-      auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
-      dipr[i]  = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
-      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+      auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
+      auto& l2  = bnd_qid.state.at(QuantumNumberType::l2);
+      dipr[i]   = hartmann::reduced_dipole(J.upper, J.lower, l2.upper, l2.lower);
+      dip[i]   *= std::signbit(dipr[i]) ? -1 : 1;
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
       auto& J   = bnd.lines[i].qn.at(QuantumNumberType::J);
       auto& Kq  = bnd.lines[i].qn.at(QuantumNumberType::K);
@@ -343,18 +317,15 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   //! Must remember the sorting for the quantum numbers
   if (not presorted) {
     stdr::iota(sort, 0);
-    stdr::sort(
-        stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
-          const auto& [i, pop_i, dip_i, dipr_i] = v;
-          const auto a = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
-          return a;
-        });
+    stdr::sort(stdv::zip(sort, pop, dip, dipr), stdr::greater(), [&](const auto& v) {
+      const auto& [i, pop_i, dip_i, dipr_i] = v;
+      const auto a                          = bnd.lines[i].f0 * pop_i * dip_i * dip_i;
+      return a;
+    });
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
-      for (Size i : sort) {
-        out[i] = vec[sort[i]];
-      }
+      for (Size i : sort) { out[i] = vec[sort[i]]; }
       return out;
     };
 
@@ -371,9 +342,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
                               true,
                               std::logical_or<>(),
 
-                              [](const auto& lsl, const auto& lsr) {
-                                return lsl.first == lsr.first;
-                              });
+                              [](const auto& lsl, const auto& lsr) { return lsl.first == lsr.first; });
 
     ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
   }
@@ -384,70 +353,59 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   Size i = 0;
   for (auto& spec : bnd.front().ls.single_models | stdv::keys) {
     const auto& rovib_data_it = rovib_data.find(spec);
-    ARTS_USER_ERROR_IF(
-        rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
+    ARTS_USER_ERROR_IF(rovib_data_it == rovib_data.end(), "No rovib data for species {}", spec)
 
     const Numeric this_vmr = vmrs_v[i];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
-      Wimag[k, k] = bnd.lines[sort[k]].ls.single_models.at(spec).G0(
-          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+      Wimag[k, k] =
+          bnd.lines[sort[k]].ls.single_models.at(spec).G0(bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
     if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
-      makarov::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      makarov::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
-      hartmann::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      hartmann::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP) {
-      stotop::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      stotop::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP) {
-      sphtop::relaxation_matrix_offdiagonal(
-          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+      sphtop::relaxation_matrix_offdiagonal(Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
       ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE {}", bnd.lineshape)
     }
 
     for (Size ir = 0; ir < n; ir++) {
-      for (Size ic = 0; ic < n; ic++) {
-        imag_val(Ws[0][ir, ic]) += this_vmr * Wimag[ir, ic];
-      }
+      for (Size ic = 0; ic < n; ic++) { imag_val(Ws[0][ir, ic]) += this_vmr * Wimag[ir, ic]; }
     }
 
     i++;
   }
 
-  for (Size i = 0; i < n; i++) {
-    real_val(Ws[0][i, i]) =
-        bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm);
-  }
+  for (Size i = 0; i < n; i++) { real_val(Ws[0][i, i]) = bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm); }
 }
 ARTS_METHOD_ERROR_CATCH
 
 void calculate(PropmatVectorView pm_,
                PropmatMatrixView,
-               ComputeData& com_data,
-               const ConstVectorView f_grid_,
-               const Range& f_range,
-               const Jacobian::Targets& jac_targets,
-               const QuantumIdentifier& bnd_qid,
-               const band_data& bnd,
+               ComputeData&                    com_data,
+               const ConstVectorView           f_grid_,
+               const Range&                    f_range,
+               const Jacobian::Targets&        jac_targets,
+               const QuantumIdentifier&        bnd_qid,
+               const band_data&                bnd,
                const LinemixingSpeciesEcsData& rovib_data,
-               const AtmPoint& atm,
-               const ZeemanPolarization pol,
-               const bool no_negative_absorption) try {
+               const AtmPoint&                 atm,
+               const ZeemanPolarization        pol,
+               const bool                      no_negative_absorption) try {
   if (pol != ZeemanPolarization::no) {
-    ARTS_USER_ERROR_IF(
-        stdr::any_of(
-            bnd, [](auto& zee) { return zee.on; }, &line::z),
-        "Zeeman effect and ECS in combination is not yet possible.")
+    ARTS_USER_ERROR_IF(stdr::any_of(
+                           bnd, [](auto& zee) { return zee.on; }, &line::z),
+                       "Zeeman effect and ECS in combination is not yet possible.")
     return;
   }
 
-  PropmatVectorView pm         = pm_[f_range];
+  PropmatVectorView     pm     = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];
 
   ARTS_USER_ERROR_IF(jac_targets.target_count() > 0, "No Jacobian support.")
@@ -459,8 +417,7 @@ void calculate(PropmatVectorView pm_,
   com_data.core_calc(f_grid);
 
   for (Size i = 0; i < f_grid.size(); ++i) {
-    const auto F = Constant::sqrt_ln_2 / Constant::sqrt_pi *
-                   atm[bnd_qid.isot.spec] * atm[bnd_qid.isot] *
+    const auto F = Constant::sqrt_ln_2 / Constant::sqrt_pi * atm[bnd_qid.isot.spec] * atm[bnd_qid.isot] *
                    com_data.scl[i] * com_data.shape[i];
     if (no_negative_absorption and F.real() < 0) continue;
     pm[i] += zeeman::scale(com_data.npm, F);
@@ -468,23 +425,20 @@ void calculate(PropmatVectorView pm_,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void equivalent_values(ComplexTensor3View eqv_str,
-                       ComplexTensor3View eqv_val,
-                       ComputeData& com_data,
-                       const QuantumIdentifier& bnd_qid,
-                       const band_data& bnd,
+void equivalent_values(ComplexTensor3View              eqv_str,
+                       ComplexTensor3View              eqv_val,
+                       ComputeData&                    com_data,
+                       const QuantumIdentifier&        bnd_qid,
+                       const band_data&                bnd,
                        const LinemixingSpeciesEcsData& rovib_data,
-                       const AtmPoint& atm,
-                       const Vector& T) try {
+                       const AtmPoint&                 atm,
+                       const Vector&                   T) try {
   const auto k = eqv_str.npages();
   const auto m = eqv_str.ncols();
 
-  ARTS_USER_ERROR_IF(eqv_val.shape() != eqv_val.shape(),
-                     "eqv_str and eqv_val must have the same shape.")
-  ARTS_USER_ERROR_IF(T.size() != static_cast<Size>(k),
-                     "T must have the same size as eqv_str pages.")
-  ARTS_USER_ERROR_IF(bnd.size() != static_cast<Size>(m),
-                     "bnd must have the same size as eqv_str cols.")
+  ARTS_USER_ERROR_IF(eqv_val.shape() != eqv_val.shape(), "eqv_str and eqv_val must have the same shape.")
+  ARTS_USER_ERROR_IF(T.size() != static_cast<Size>(k), "T must have the same size as eqv_str pages.")
+  ARTS_USER_ERROR_IF(bnd.size() != static_cast<Size>(m), "bnd must have the same size as eqv_str cols.")
 
   if (bnd.size() == 0) return;
 

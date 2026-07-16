@@ -30,8 +30,7 @@ void py_time(py::module_& m) try {
             t->Seconds(x);
           },
           "From :class:`float` seconds from Unix time start")
-      .def(py::init<std::string>(),
-           "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
+      .def(py::init<std::string>(), "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
       .def_rw("time", &Time::time, "The time\n\n.. :class:`~datetime.datetime`")
       .def_prop_rw(
           "sec",
@@ -83,31 +82,25 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  auto a1 =
-      py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(
-          m, "ArrayOfTime")
-          .def_prop_ro(
-              "as_datetime",
-              [](const ArrayOfTime& in)
-                  -> std::vector<std::chrono::system_clock::time_point> {
-                const Index n = in.size();
-                std::vector<std::chrono::system_clock::time_point> out(n);
-                for (Index i = 0; i < n; i++) out[i] = in[i].time;
-                return out;
-              },
-              "Convert to time lists\n\n.. :class:`list[~datetime.datetime]`");
+  auto a1 = py::bind_vector<ArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfTime")
+                .def_prop_ro(
+                    "as_datetime",
+                    [](const ArrayOfTime& in) -> std::vector<std::chrono::system_clock::time_point> {
+                      const Index                                        n = in.size();
+                      std::vector<std::chrono::system_clock::time_point> out(n);
+                      for (Index i = 0; i < n; i++) out[i] = in[i].time;
+                      return out;
+                    },
+                    "Convert to time lists\n\n.. :class:`list[~datetime.datetime]`");
 
   generic_interface(a1);
 
   vector_interface(a1);
 
-  auto a2 =
-      py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfTime");
+  auto a2 = py::bind_vector<ArrayOfArrayOfTime, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfTime");
   generic_interface(a2);
   vector_interface(a2);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize time\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize time\n{}", e.what()));
 }
 }  // namespace Python

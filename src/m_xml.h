@@ -18,8 +18,7 @@
 #include <xml.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T>
-void ReadXML(  // WS Generic Output:
+template <WorkspaceGroup T> void ReadXML(  // WS Generic Output:
     T& v,
     // WS Generic Input:
     const String& f) {
@@ -34,14 +33,13 @@ void ReadXML(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T>
-void ReadXMLIndexed(  // WS Generic Output:
+template <WorkspaceGroup T> void ReadXMLIndexed(  // WS Generic Output:
     T& v,
     // WS Input:
     const Index& file_index,
     // WS Generic Input:
     const String& f,
-    const Index& digits) {
+    const Index&  digits) {
   ARTS_TIME_REPORT
 
   String filename = f;
@@ -53,13 +51,12 @@ void ReadXMLIndexed(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T>
-void WriteXML(  //WS Input:
+template <WorkspaceGroup T> void WriteXML(  //WS Input:
     const String& file_format,
     // WS Generic Input:
-    const T& v,
+    const T&      v,
     const String& f,
-    const Index& no_clobber)
+    const Index&  no_clobber)
 
 {
   ARTS_TIME_REPORT
@@ -68,14 +65,10 @@ void WriteXML(  //WS Input:
 #ifdef ENABLE_MPI
   int initialized;
   MPI_Initialized(&initialized);
-  if (!initialized) {
-    MPI_Init(nullptr, nullptr);
-  }
+  if (!initialized) { MPI_Init(nullptr, nullptr); }
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank != 0) {
-    return;
-  }
+  if (rank != 0) { return; }
 #endif  // ENABLE_MPI
 
   String filename = f;
@@ -91,23 +84,20 @@ void WriteXML(  //WS Input:
   {
     try {
       xml_write_to_file(filename, v, ftype, no_clobber);
-    } catch (const std::exception& e) {
-      errmsg = e.what();
-    }
+    } catch (const std::exception& e) { errmsg = e.what(); }
   }
 
   ARTS_USER_ERROR_IF(errmsg.length(), "{}", errmsg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T>
-void WriteXMLIndexed(  //WS Input:
+template <WorkspaceGroup T> void WriteXMLIndexed(  //WS Input:
     const String& file_format,
-    const Index& file_index,
+    const Index&  file_index,
     // WS Generic Input:
-    const T& v,
+    const T&      v,
     const String& f,
-    const Index& digits) {
+    const Index&  digits) {
   ARTS_TIME_REPORT
 
   String filename = f;

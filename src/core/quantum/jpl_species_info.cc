@@ -8,7 +8,7 @@
 #include "configtypes.h"
 #include "xml_io_base.h"
 
-void xml_io_stream<JplSpeciesInfo>::write(std::ostream& os,
+void xml_io_stream<JplSpeciesInfo>::write(std::ostream&         os,
                                           const JplSpeciesInfo& x,
                                           bofstream*,
                                           std::string_view name) try {
@@ -31,9 +31,7 @@ void xml_io_stream<JplSpeciesInfo>::write(std::ostream& os,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void xml_io_stream<JplSpeciesInfo>::read(std::istream& is,
-                                         JplSpeciesInfo& x,
-                                         bifstream*) try {
+void xml_io_stream<JplSpeciesInfo>::read(std::istream& is, JplSpeciesInfo& x, bifstream*) try {
   XMLTag tag, tag2;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -44,8 +42,7 @@ void xml_io_stream<JplSpeciesInfo>::read(std::istream& is,
   x.spec = SpeciesIsotope::from_name(v);
 
   tag.get_attribute_value("has_qn", v);
-  std::ranges::transform(
-      v, v.begin(), [](unsigned char c) { return std::tolower(c); });
+  std::ranges::transform(v, v.begin(), [](unsigned char c) { return std::tolower(c); });
   x.has_qn = v == "true";
 
   tag.get_attribute_value("QT0", x.QT0);

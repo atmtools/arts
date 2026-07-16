@@ -7,6 +7,4 @@
 using ArrayOfSpeciesEnum        = Array<SpeciesEnum>;
 using ArrayOfArrayOfSpeciesEnum = Array<ArrayOfSpeciesEnum>;
 
-consteval SpeciesEnum operator""_spec(const char* x, std::size_t) {
-  return to<SpeciesEnum>(x);
-}
+consteval SpeciesEnum operator""_spec(const char* x, std::size_t) { return to<SpeciesEnum>(x); }

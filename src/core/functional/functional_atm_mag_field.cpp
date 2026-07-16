@@ -42,13 +42,11 @@ Numeric SchmidthLegendre::operator()(Numeric a, Numeric la, Numeric lo) const {
   using Conversion::cosd, Conversion::sind;
 
   const Vector3 geoc = geodetic2geocentric({a, la, lo}, ell);
-  const Vector3 mag =
-      Legendre::schmidt_fieldcalc({N, gh[0]}, {N, gh[1]}, r0, geoc);
+  const Vector3 mag  = Legendre::schmidt_fieldcalc({N, gh[0]}, {N, gh[1]}, r0, geoc);
 
-  const Numeric ang =
-      sind(la) * sind(90.0 - geoc[1]) - cosd(la) * cosd(90.0 - geoc[1]);
-  const Numeric ca = std::cos(ang);
-  const Numeric sa = std::sin(ang);
+  const Numeric ang = sind(la) * sind(90.0 - geoc[1]) - cosd(la) * cosd(90.0 - geoc[1]);
+  const Numeric ca  = std::cos(ang);
+  const Numeric sa  = std::sin(ang);
 
   switch (component) {
     case FieldComponent::u: return mag[2];
@@ -63,20 +61,16 @@ ConstVectorView SchmidthLegendre::x() const { return gh.view_as(gh.size()); }
 
 VectorView SchmidthLegendre::x() { return gh.view_as(gh.size()); }
 
-std::vector<std::pair<Index, Numeric>> SchmidthLegendre::w(Numeric alt,
-                                                           Numeric lat,
-                                                           Numeric lon) const
-    try {
+std::vector<std::pair<Index, Numeric>> SchmidthLegendre::w(Numeric alt, Numeric lat, Numeric lon) const try {
   using Legendre::dschmidt_fieldcalc;
 
   using Conversion::cosd, Conversion::sind;
 
   const Vector3 geoc = geodetic2geocentric({alt, lat, lon}, ell);
 
-  const Numeric ang =
-      sind(lat) * sind(90.0 - geoc[1]) - cosd(lat) * cosd(90.0 - geoc[1]);
-  const Numeric ca = std::cos(ang);
-  const Numeric sa = std::sin(ang);
+  const Numeric ang = sind(lat) * sind(90.0 - geoc[1]) - cosd(lat) * cosd(90.0 - geoc[1]);
+  const Numeric ca  = std::cos(ang);
+  const Numeric sa  = std::sin(ang);
 
   const Size n = gh.ncols();
 

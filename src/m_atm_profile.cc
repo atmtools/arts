@@ -3,11 +3,11 @@
 
 #include <stdexcept>
 
-void atm_profileExtract(ArrayOfAtmPoint &atm_profile,
-                        const AtmField &atm_field,
+void atm_profileExtract(ArrayOfAtmPoint     &atm_profile,
+                        const AtmField      &atm_field,
                         const AscendingGrid &alt_grid,
-                        const Numeric &latitude,
-                        const Numeric &longitude) {
+                        const Numeric       &latitude,
+                        const Numeric       &longitude) {
   const Size N = alt_grid.size();
 
   atm_profile.clear();
@@ -28,11 +28,11 @@ void atm_profileExtract(ArrayOfAtmPoint &atm_profile,
 }
 
 void atm_profileFromGrid(ArrayOfAtmPoint &atm_profile,
-                         AscendingGrid &alt_grid,
-                         Numeric &latitude,
-                         Numeric &longitude,
-                         const AtmField &atm_field,
-                         const AtmKey &key) {
+                         AscendingGrid   &alt_grid,
+                         Numeric         &latitude,
+                         Numeric         &longitude,
+                         const AtmField  &atm_field,
+                         const AtmKey    &key) {
   const auto &gf3 = atm_field[key].get<GeodeticField3>();
   alt_grid        = gf3.grid<0>();
 
@@ -46,7 +46,4 @@ void atm_profileFromGrid(ArrayOfAtmPoint &atm_profile,
   atm_profileExtract(atm_profile, atm_field, alt_grid, latitude, longitude);
 }
 
-void atm_pathFromProfile(ArrayOfAtmPoint &atm_path,
-                         const ArrayOfAtmPoint &atm_profile) {
-  atm_path = atm_profile;
-}
+void atm_pathFromProfile(ArrayOfAtmPoint &atm_path, const ArrayOfAtmPoint &atm_profile) { atm_path = atm_profile; }

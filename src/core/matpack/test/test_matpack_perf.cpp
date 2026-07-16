@@ -18,28 +18,16 @@ Numeric dot_tensor(const ConstTensor7View& a, const ConstTensor7View& b) {
   return dot(a, b);
 }
 
-Numeric vector_matrix_mult(VectorView& x,
-                           const ConstMatrixView& A,
-                           const ConstVectorView& y) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("vector_matrix_mult; {:B,} from {:B,} x {:B,}",
-                  x.shape(),
-                  A.shape(),
-                  y.shape()));
+Numeric vector_matrix_mult(VectorView& x, const ConstMatrixView& A, const ConstVectorView& y) {
+  ARTS_NAMED_TIME_REPORT(std::format("vector_matrix_mult; {:B,} from {:B,} x {:B,}", x.shape(), A.shape(), y.shape()));
 
   mult(x, A, y);
 
   return x.front();
 }
 
-Numeric matrix_matrix_mult(MatrixView& C,
-                           const ConstMatrixView& A,
-                           const ConstMatrixView& B) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("matrix_matrix_mult; {:B,} from {:B,} x {:B,}",
-                  C.shape(),
-                  A.shape(),
-                  B.shape()));
+Numeric matrix_matrix_mult(MatrixView& C, const ConstMatrixView& A, const ConstMatrixView& B) {
+  ARTS_NAMED_TIME_REPORT(std::format("matrix_matrix_mult; {:B,} from {:B,} x {:B,}", C.shape(), A.shape(), B.shape()));
 
   mult(C, A, B);
 
@@ -129,10 +117,7 @@ Numeric sort_tensor(Tensor7View& a) {
 Numeric dot_sum(const ConstMatrixView& a) {
   ARTS_NAMED_TIME_REPORT(std::format("dot_sum; {:B,}", a.shape()));
 
-  return std::transform_reduce(
-      a.begin(), a.end(), Numeric{0}, std::plus<>{}, [](auto&& v) {
-        return dot(v, v);
-      });
+  return std::transform_reduce(a.begin(), a.end(), Numeric{0}, std::plus<>{}, [](auto&& v) { return dot(v, v); });
 }
 }  // namespace
 
@@ -141,8 +126,8 @@ int main() {
 
   {
     constexpr Size N = 100'000'000;
-    const Vector b   = random_numbers<1>({N});
-    Vector a         = random_numbers<1>({N});
+    const Vector   b = random_numbers<1>({N});
+    Vector         a = random_numbers<1>({N});
 
     buf += plus_vector(a, b);
     buf += sub_vector(a, b);
@@ -155,8 +140,8 @@ int main() {
 
   {
     constexpr Size N = 10;
-    const Tensor7 b  = random_numbers<7>({N, N, N, N, N, N, N * N});
-    Tensor7 a        = random_numbers<7>({N, N, N, N, N, N, N * N});
+    const Tensor7  b = random_numbers<7>({N, N, N, N, N, N, N * N});
+    Tensor7        a = random_numbers<7>({N, N, N, N, N, N, N * N});
 
     buf += plus_tensor(a, b);
     buf += sub_tensor(a, b);
@@ -171,9 +156,9 @@ int main() {
     constexpr Size N = 10'000;
     constexpr Size M = 100;
     constexpr Size P = 10'000;
-    const Matrix B   = random_numbers<2>({M, P});
-    const Matrix A   = random_numbers<2>({N, M});
-    Matrix C         = random_numbers<2>({N, P});
+    const Matrix   B = random_numbers<2>({M, P});
+    const Matrix   A = random_numbers<2>({N, M});
+    Matrix         C = random_numbers<2>({N, P});
 
     buf += matrix_matrix_mult(C, A, B);
   }
@@ -182,9 +167,9 @@ int main() {
     constexpr Size N = 10'000;
     constexpr Size M = 10'000;
     constexpr Size P = 100;
-    const Matrix B   = random_numbers<2>({M, P});
-    const Matrix A   = random_numbers<2>({N, M});
-    Matrix C         = random_numbers<2>({N, P});
+    const Matrix   B = random_numbers<2>({M, P});
+    const Matrix   A = random_numbers<2>({N, M});
+    Matrix         C = random_numbers<2>({N, P});
 
     buf += matrix_matrix_mult(C, A, B);
   }
@@ -193,9 +178,9 @@ int main() {
     constexpr Size N = 100;
     constexpr Size M = 10'000;
     constexpr Size P = 10'000;
-    const Matrix B   = random_numbers<2>({M, P});
-    const Matrix A   = random_numbers<2>({N, M});
-    Matrix C         = random_numbers<2>({N, P});
+    const Matrix   B = random_numbers<2>({M, P});
+    const Matrix   A = random_numbers<2>({N, M});
+    Matrix         C = random_numbers<2>({N, P});
 
     buf += matrix_matrix_mult(C, A, B);
   }
@@ -203,9 +188,9 @@ int main() {
   {
     constexpr Size N = 100'000;
     constexpr Size M = 1'000;
-    const Vector y   = random_numbers<1>({M});
-    const Matrix A   = random_numbers<2>({N, M});
-    Vector x         = random_numbers<1>({N});
+    const Vector   y = random_numbers<1>({M});
+    const Matrix   A = random_numbers<2>({N, M});
+    Vector         x = random_numbers<1>({N});
 
     buf += vector_matrix_mult(x, A, y);
   }
@@ -213,9 +198,9 @@ int main() {
   {
     constexpr Size N = 1'000;
     constexpr Size M = 100'000;
-    const Vector y   = random_numbers<1>({M});
-    const Matrix A   = random_numbers<2>({N, M});
-    Vector x         = random_numbers<1>({N});
+    const Vector   y = random_numbers<1>({M});
+    const Matrix   A = random_numbers<2>({N, M});
+    Vector         x = random_numbers<1>({N});
 
     buf += vector_matrix_mult(x, A, y);
   }
@@ -223,7 +208,7 @@ int main() {
   {
     constexpr Size N = 100'000;
     constexpr Size M = 1'000;
-    const Matrix A   = random_numbers<2>({N, M});
+    const Matrix   A = random_numbers<2>({N, M});
 
     buf += dot_sum(A);
   }
@@ -231,7 +216,7 @@ int main() {
   {
     constexpr Size M = 100'000;
     constexpr Size N = 1'000;
-    const Matrix A   = random_numbers<2>({N, M});
+    const Matrix   A = random_numbers<2>({N, M});
 
     buf += dot_sum(A);
   }

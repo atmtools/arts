@@ -2,9 +2,7 @@
 
 #include <enumsIsoRatioOption.h>
 
-void xml_io_stream<AtmPoint>::read(std::istream& is,
-                                   AtmPoint& v,
-                                   bifstream* pbifs) {
+void xml_io_stream<AtmPoint>::read(std::istream& is, AtmPoint& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -22,10 +20,7 @@ void xml_io_stream<AtmPoint>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<AtmPoint>::write(std::ostream& os,
-                                    const AtmPoint& v,
-                                    bofstream* pbofs,
-                                    std::string_view name) {
+void xml_io_stream<AtmPoint>::write(std::ostream& os, const AtmPoint& v, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -41,9 +36,7 @@ void xml_io_stream<AtmPoint>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<AtmData>::read(std::istream& is,
-                                  AtmData& v,
-                                  bifstream* pbifs) {
+void xml_io_stream<AtmData>::read(std::istream& is, AtmData& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -60,10 +53,7 @@ void xml_io_stream<AtmData>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<AtmData>::write(std::ostream& os,
-                                   const AtmData& v,
-                                   bofstream* pbofs,
-                                   std::string_view name) {
+void xml_io_stream<AtmData>::write(std::ostream& os, const AtmData& v, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -78,9 +68,7 @@ void xml_io_stream<AtmData>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<AtmField>::read(std::istream& is,
-                                   AtmField& v,
-                                   bifstream* pbifs) {
+void xml_io_stream<AtmField>::read(std::istream& is, AtmField& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -97,9 +85,7 @@ void xml_io_stream<AtmField>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<AtmField>::extend(std::istream& is,
-                                     AtmField& v,
-                                     bifstream* pbifs) {
+void xml_io_stream<AtmField>::extend(std::istream& is, AtmField& v, bifstream* pbifs) {
   AtmField temp{IsoRatioOption::None};
   xml_io_stream<AtmField>::read(is, temp, pbifs);
   v.other.insert_range(temp.other);
@@ -109,10 +95,7 @@ void xml_io_stream<AtmField>::extend(std::istream& is,
   v.ssprops.insert_range(temp.ssprops);
 }
 
-void xml_io_stream<AtmField>::write(std::ostream& os,
-                                    const AtmField& v,
-                                    bofstream* pbofs,
-                                    std::string_view name) {
+void xml_io_stream<AtmField>::write(std::ostream& os, const AtmField& v, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 

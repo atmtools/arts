@@ -44,27 +44,24 @@ namespace Absorption::PredefinedModel::Standard {
    \date 2001-11-05
  */
 //! New implementation
-void oxygen(PropmatVector& propmat_clearsky,
-            const Vector& f_grid,
-            const AtmPoint& atm_point) {
+void oxygen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric o2 = atm_point["O2"_spec];
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric o2   = atm_point["O2"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
   // Atmospheric Remote Sensing by Microwave Radiometry, John Wiley & Sons, Inc., 1993
   // ftp://mesa.mit.edu/phil/lbl_rt
-  constexpr Numeric C =
-      (1.108e-14 / pow2(3.0e2));  // [1/(Hz*Pa*m)] line strength
-  const Numeric G0 = 5600.000;    // line width [Hz/Pa]
-  const Numeric G0A = 1.000;      // line width [1]
-  const Numeric G0B = 1.100;      // line width [1]
-  const Numeric XG0d = 0.800;     // temperature dependence of line width [1]
-  const Numeric XG0w = 1.000;     // temperature dependence of line width [1]
+  constexpr Numeric C    = (1.108e-14 / pow2(3.0e2));  // [1/(Hz*Pa*m)] line strength
+  const Numeric     G0   = 5600.000;                   // line width [Hz/Pa]
+  const Numeric     G0A  = 1.000;                      // line width [1]
+  const Numeric     G0B  = 1.100;                      // line width [1]
+  const Numeric     XG0d = 0.800;                      // temperature dependence of line width [1]
+  const Numeric     XG0w = 1.000;                      // temperature dependence of line width [1]
 
   const Numeric TH = 3.0e2 / t;  // relative temperature  [1]
 
@@ -72,16 +69,13 @@ void oxygen(PropmatVector& propmat_clearsky,
   const Numeric pdry = p_pa - ph2o;  // dry air partial pressure     [Pa]
 
   // pseudo broadening term [Hz]
-  const Numeric gamma =
-      G0 * (G0A * pdry * pow(TH, XG0d) + G0B * ph2o * pow(TH, XG0w));
+  const Numeric gamma = G0 * (G0A * pdry * pow(TH, XG0d) + G0B * ph2o * pow(TH, XG0w));
 
   // Loop over frequency grid:
   for (Size s = 0; s < f_grid.size(); ++s) {
     // division by vmr of O2 is necessary because of the absorption calculation
     // abs = vmr * pxsec.
-    propmat_clearsky[s].A() +=
-        o2 * C * p_pa * pow2(TH) *
-        (gamma * pow2(f_grid[s]) / (pow2(f_grid[s]) + pow2(gamma)));
+    propmat_clearsky[s].A() += o2 * C * p_pa * pow2(TH) * (gamma * pow2(f_grid[s]) / (pow2(f_grid[s]) + pow2(gamma)));
   }
 }
 
@@ -117,35 +111,32 @@ void oxygen(PropmatVector& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void nitrogen(PropmatVector& propmat_clearsky,
-              const Vector& f_grid,
-              const AtmPoint& atm_point) {
+void nitrogen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using std::pow;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric n2 = atm_point["N2"_spec];
+  const Numeric n2   = atm_point["N2"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model, Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-  constexpr Numeric C = 1.05e-38;  // [1/(Pa²*Hz²*m)]
-  constexpr Numeric xf = 2.00;     // [1]
-  constexpr Numeric xt = 3.55;     // [1]
-  constexpr Numeric xp = 2.00;     // [1]
+  constexpr Numeric C  = 1.05e-38;  // [1/(Pa²*Hz²*m)]
+  constexpr Numeric xf = 2.00;      // [1]
+  constexpr Numeric xt = 3.55;      // [1]
+  constexpr Numeric xp = 2.00;      // [1]
   // ---------------------------------------------------------------------------------------
 
   // Loop over frequency grid:
   for (Size s = 0; s < f_grid.size(); ++s) {
     // The second N2-VMR will be multiplied at the stage of absorption
     // calculation: abs = vmr * pxsec.
-    propmat_clearsky[s].A() +=
-        n2 * C *               // strength [1/(m*Hz²Pa²)]
-        pow(300.00 / t, xt) *  // T dependence        [1]
-        pow(f_grid[s], xf) *   // f dependence    [Hz^xt]
-        pow(p_pa, xp) *        // p dependence    [Pa^xp]
-        pow(n2, xp - 1);       // last N2-VMR at the stage
-                               // of absorption calculation
+    propmat_clearsky[s].A() += n2 * C *               // strength [1/(m*Hz²Pa²)]
+                               pow(300.00 / t, xt) *  // T dependence        [1]
+                               pow(f_grid[s], xf) *   // f dependence    [Hz^xt]
+                               pow(p_pa, xp) *        // p dependence    [Pa^xp]
+                               pow(n2, xp - 1);       // last N2-VMR at the stage
+                                                      // of absorption calculation
   }
 }
 
@@ -176,14 +167,12 @@ void nitrogen(PropmatVector& propmat_clearsky,
    \date 2001-08-03
  */
 //! New implementation
-void water_foreign(PropmatVector& propmat_clearsky,
-                   const Vector& f_grid,
-                   const AtmPoint& atm_point) {
+void water_foreign(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -198,9 +187,7 @@ void water_foreign(PropmatVector& propmat_clearsky,
   const Numeric dummy = C * pow(300. / t, x + 3) * p_pa * pdry;
 
   // Loop frequency:
-  for (Size s = 0; s < f_grid.size(); ++s) {
-    propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]);
-  }
+  for (Size s = 0; s < f_grid.size(); ++s) { propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]); }
 }
 
 //! Ported from legacy continua.  Original documentation//! Standard_H2O_self_continuum
@@ -228,14 +215,12 @@ void water_foreign(PropmatVector& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void water_self(PropmatVector& propmat_clearsky,
-                const Vector& f_grid,
-                   const AtmPoint& atm_point) {
+void water_self(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):

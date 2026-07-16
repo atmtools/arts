@@ -27,120 +27,92 @@ using stdx::mdspan;
 #endif
 
 //! A standard type holding a strided multidimensional array
-template <class T, Size N>
-using mdstrided_t = mdspan<T, dextents<Index, N>, layout_stride>;
+template <class T, Size N> using mdstrided_t = mdspan<T, dextents<Index, N>, layout_stride>;
 
 //! A standard type holding a multidimensional array
-template <class T, Size N>
-using mdview_t = mdspan<T, dextents<Index, N>>;
+template <class T, Size N> using mdview_t = mdspan<T, dextents<Index, N>>;
 
 //! Our data holder
-template <typename T, Size N>
-class data_t;
+template <typename T, Size N> class data_t;
 
 //! Our view holder
-template <typename T, Size N>
-struct view_t;
+template <typename T, Size N> struct view_t;
 
 //! Our strided view holder
-template <typename T, Size N>
-struct strided_view_t;
+template <typename T, Size N> struct strided_view_t;
 
 //! Our constant-sized data holder
-template <typename T, Size... N>
-struct cdata_t;
+template <typename T, Size... N> struct cdata_t;
 
 //! Our constant-sized data holder
-template <class T>
-class grid_t;
+template <class T> class grid_t;
 
 template <typename T>
-concept has_value_type =
-    requires { typename std::remove_cvref_t<T>::value_type; };
+concept has_value_type = requires { typename std::remove_cvref_t<T>::value_type; };
 
-template <has_value_type T>
-using value_type = typename std::remove_cvref_t<T>::value_type;
+template <has_value_type T> using value_type = typename std::remove_cvref_t<T>::value_type;
 
 template <typename T>
 concept has_is_const = requires { std::remove_cvref_t<T>::is_const; };
 
-template <has_is_const T>
-constexpr bool mdmutable = not std::remove_cvref_t<T>::is_const;
+template <has_is_const T> constexpr bool mdmutable = not std::remove_cvref_t<T>::is_const;
 
 template <typename T>
-concept const_forwarded =
-    std::is_const_v<T> or std::is_const_v<std::remove_reference_t<T>>;
+concept const_forwarded = std::is_const_v<T> or std::is_const_v<std::remove_reference_t<T>>;
 
 template <typename T>
-concept has_element_type =
-    requires { typename std::remove_cvref_t<T>::element_type; };
+concept has_element_type = requires { typename std::remove_cvref_t<T>::element_type; };
 
-template <has_element_type T>
-using element_type = typename std::remove_cvref_t<T>::element_type;
+template <has_element_type T> using element_type = typename std::remove_cvref_t<T>::element_type;
 
 template <typename T>
-concept has_mapping_type =
-    requires { typename std::remove_cvref_t<T>::mapping_type; };
+concept has_mapping_type = requires { typename std::remove_cvref_t<T>::mapping_type; };
 
-template <has_element_type T>
-using mapping_type = typename std::remove_cvref_t<T>::mapping_type;
+template <has_element_type T> using mapping_type = typename std::remove_cvref_t<T>::mapping_type;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Any matpack core type - /////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T>
-struct any_data_t : std::false_type {};
+template <class T> struct any_data_t : std::false_type {};
 
-template <class T, Size N>
-struct any_data_t<data_t<T, N>> : std::true_type {};
+template <class T, Size N> struct any_data_t<data_t<T, N>> : std::true_type {};
 
 template <class T>
-concept any_data =
-    any_data_t<std::remove_cvref_t<T>>::value or
-    std::derived_from<std::remove_cvref_t<T>, data_t<value_type<T>, rank<T>()>>;
+concept any_data = any_data_t<std::remove_cvref_t<T>>::value or
+                   std::derived_from<std::remove_cvref_t<T>, data_t<value_type<T>, rank<T>()>>;
 
-template <class T>
-struct any_view_t : std::false_type {};
+template <class T> struct any_view_t : std::false_type {};
 
-template <class T, Size N>
-struct any_view_t<view_t<T, N>> : std::true_type {};
+template <class T, Size N> struct any_view_t<view_t<T, N>> : std::true_type {};
 
 template <class T>
 concept any_view = any_view_t<std::remove_cvref_t<T>>::value;
 
-template <class T>
-struct any_strided_view_t : std::false_type {};
+template <class T> struct any_strided_view_t : std::false_type {};
 
-template <class T, Size N>
-struct any_strided_view_t<strided_view_t<T, N>> : std::true_type {};
+template <class T, Size N> struct any_strided_view_t<strided_view_t<T, N>> : std::true_type {};
 
 template <class T>
 concept any_strided_view = any_strided_view_t<std::remove_cvref_t<T>>::value;
 
-template <class T>
-struct any_cdata_t : std::false_type {};
+template <class T> struct any_cdata_t : std::false_type {};
 
-template <class T, Size... dims>
-struct any_cdata_t<cdata_t<T, dims...>> : std::true_type {};
+template <class T, Size... dims> struct any_cdata_t<cdata_t<T, dims...>> : std::true_type {};
 
 template <class T>
 concept any_cdata = any_cdata_t<std::remove_cvref_t<T>>::value;
 
-template <class T>
-struct any_grid_t : std::false_type {};
+template <class T> struct any_grid_t : std::false_type {};
 
-template <class T>
-struct any_grid_t<grid_t<T>> : std::true_type {};
+template <class T> struct any_grid_t<grid_t<T>> : std::true_type {};
 
 template <class T>
 concept any_grid =
-    any_grid_t<std::remove_cvref_t<T>>::value or
-    std::derived_from<std::remove_cvref_t<T>, grid_t<value_type<T>>>;
+    any_grid_t<std::remove_cvref_t<T>>::value or std::derived_from<std::remove_cvref_t<T>, grid_t<value_type<T>>>;
 
 template <class T>
-concept any_md = any_data<T> or any_strided_view<T> or any_view<T> or
-                 any_cdata<T> or any_grid<T>;
+concept any_md = any_data<T> or any_strided_view<T> or any_view<T> or any_cdata<T> or any_grid<T>;
 
 template <class T>
 concept mut_any_md = any_md<T> and mdmutable<T>;
@@ -149,8 +121,7 @@ template <class T>
 concept const_any_md = any_md<T> and not mdmutable<T>;
 
 template <class T, class U>
-concept any_convertible_md =
-    any_md<T> and std::convertible_to<value_type<T>, U>;
+concept any_convertible_md = any_md<T> and std::convertible_to<value_type<T>, U>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Any matpack core type of rank N - ///////////////////////////////////////////
@@ -178,8 +149,7 @@ template <typename T, Size N>
 concept const_ranked_md = ranked_md<T, N> and not mdmutable<T>;
 
 template <typename T, typename U, Size N>
-concept ranked_convertible_md =
-    ranked_md<T, N> and std::convertible_to<value_type<T>, U>;
+concept ranked_convertible_md = ranked_md<T, N> and std::convertible_to<value_type<T>, U>;
 
 template <typename T, Size N>
 concept dyn_ranked_md = ranked_md<T, N> and not any_cdata<T>;
@@ -195,8 +165,7 @@ template <class T, class U>
 concept typed_view = any_view<T> and std::same_as<value_type<T>, U>;
 
 template <class T, class U>
-concept typed_strided_view =
-    any_strided_view<T> and std::same_as<value_type<T>, U>;
+concept typed_strided_view = any_strided_view<T> and std::same_as<value_type<T>, U>;
 
 template <class T, class U>
 concept typed_cdata = any_cdata<T> and std::same_as<value_type<T>, U>;
@@ -221,8 +190,7 @@ template <typename T, typename U, Size N>
 concept exact_view = ranked_view<T, N> and typed_view<T, U>;
 
 template <typename T, typename U, Size N>
-concept exact_strided_view =
-    ranked_strided_view<T, N> and typed_strided_view<T, U>;
+concept exact_strided_view = ranked_strided_view<T, N> and typed_strided_view<T, U>;
 
 template <typename T, typename U, Size N>
 concept exact_cdata = ranked_cdata<T, N> and typed_cdata<T, U>;

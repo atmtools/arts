@@ -25,8 +25,7 @@
 #include "lbl_zeeman.h"
 
 namespace lbl {
-Numeric einstein_a(
-    Numeric s, Numeric gu, Numeric e0, Numeric f0, Numeric T, Numeric Q);
+Numeric einstein_a(Numeric s, Numeric gu, Numeric e0, Numeric f0, Numeric T, Numeric Q);
 
 struct line {
   //! Einstein A coefficient
@@ -71,13 +70,9 @@ struct line {
     return (rl * gu / gl - ru) * a / Math::pow3(f0);
   }
 
-  [[nodiscard]] constexpr Numeric dnlte_k_drl() const {
-    return gu / gl * a / Math::pow3(f0);
-  }
+  [[nodiscard]] constexpr Numeric dnlte_k_drl() const { return gu / gl * a / Math::pow3(f0); }
 
-  [[nodiscard]] constexpr Numeric dnlte_k_dru() const {
-    return -a / Math::pow3(f0);
-  }
+  [[nodiscard]] constexpr Numeric dnlte_k_dru() const { return -a / Math::pow3(f0); }
 
   [[nodiscard]] constexpr Numeric nlte_e(Numeric ru) const { return ru * a; }
 
@@ -93,14 +88,11 @@ struct line {
   */
   [[nodiscard]]
   Numeric ds_de0(Numeric T, Numeric Q) const {
-    return -a * gu * std::exp(-e0 / (Constant::k * T)) /
-           (Math::pow3(f0) * Constant::k * T * Q);
+    return -a * gu * std::exp(-e0 / (Constant::k * T)) / (Math::pow3(f0) * Constant::k * T * Q);
   }
 
   //! The ratio of ds_de0 / s
-  [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const {
-    return -1 / (Constant::k * T);
-  }
+  [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const { return -1 / (Constant::k * T); }
 
   /*! Derivative of s(T, Q) wrt to this->f0
 
@@ -110,8 +102,7 @@ struct line {
   */
   [[nodiscard]]
   Numeric ds_df0(Numeric T, Numeric Q) const {
-    return -3 * a * gu * std::exp(-e0 / (Constant::k * T)) /
-           (Math::pow4(f0) * Q);
+    return -3 * a * gu * std::exp(-e0 / (Constant::k * T)) / (Math::pow4(f0) * Q);
   }
 
   //! The ratio of ds_df0 / s
@@ -136,8 +127,7 @@ struct line {
   @return Line strength in LTE divided by frequency [per m^2]
   */
   [[nodiscard]] Numeric ds_dT(Numeric T, Numeric Q, Numeric dQ_dT) const {
-    return a * gu * (e0 * Q - Constant::k * Math::pow2(T) * dQ_dT) *
-           std::exp(-e0 / (Constant::k * T)) /
+    return a * gu * (e0 * Q - Constant::k * Math::pow2(T) * dQ_dT) * std::exp(-e0 / (Constant::k * T)) /
            (Math::pow3(f0) * Constant::k * Math::pow2(T) * Math::pow2(Q));
   }
 
@@ -148,9 +138,7 @@ struct line {
    * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
    * @return Numeric Hitran equivalent Einstein Coefficient
    */
-  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s,
-                                 const SpeciesIsotope& isot,
-                                 const Numeric T0 = 296.0) const;
+  [[nodiscard]] Numeric hitran_a(const Numeric hitran_s, const SpeciesIsotope& isot, const Numeric T0 = 296.0) const;
 
   /** Compute the Einstein Coefficient for this line
    * 
@@ -159,9 +147,7 @@ struct line {
    * @param T0 The reference temperature.
    * @return Numeric equivalent Einstein Coefficient
    */
-  [[nodiscard]] Numeric compute_a(const Numeric s,
-                                  const SpeciesIsotope& isot,
-                                  const Numeric T0) const;
+  [[nodiscard]] Numeric compute_a(const Numeric s, const SpeciesIsotope& isot, const Numeric T0) const;
 
   /** The HITRAN equivalent line strength
    * 
@@ -169,8 +155,7 @@ struct line {
    * @param T0 The reference temperature.  Defaults to HITRAN 296.0.
    * @return Numeric The HITRAN equivalent line strength (including isotopoic ratio)
    */
-  [[nodiscard]] Numeric hitran_s(const SpeciesIsotope& isot,
-                                 const Numeric T0 = 296.0) const;
+  [[nodiscard]] Numeric hitran_s(const SpeciesIsotope& isot, const Numeric T0 = 296.0) const;
 
   friend std::istream& operator>>(std::istream& is, line& x);
 };
@@ -188,9 +173,7 @@ struct LineByLineCutoff {
     }
   }
 
-  constexpr bool operator!=(const LineByLineCutoff& other) const {
-    return not(*this == other);
-  }
+  constexpr bool operator!=(const LineByLineCutoff& other) const { return not(*this == other); }
 };
 
 struct band_data {
@@ -200,58 +183,39 @@ struct band_data {
 
   LineByLineCutoff cutoff{};
 
-  template <typename T>
-  [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
+  template <typename T> [[nodiscard]] auto& operator[](this T&& self, const std::integral auto& i) {
     return std::forward<T>(self).lines[i];
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) empty(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) empty(this T&& self) {
     return std::forward<T>(self).lines.empty();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) back(this T&& self) {
-    return std::forward<T>(self).lines.back();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) back(this T&& self) { return std::forward<T>(self).lines.back(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) front(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) front(this T&& self) {
     return std::forward<T>(self).lines.front();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) size(this T&& self) {
-    return std::forward<T>(self).lines.size();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) size(this T&& self) { return std::forward<T>(self).lines.size(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) begin(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) begin(this T&& self) {
     return std::forward<T>(self).lines.begin();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) end(this T&& self) {
-    return std::forward<T>(self).lines.end();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) end(this T&& self) { return std::forward<T>(self).lines.end(); }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) cbegin(this T&& self) {
+  template <typename T> [[nodiscard]] decltype(auto) cbegin(this T&& self) {
     return std::forward<T>(self).lines.cbegin();
   }
 
-  template <typename T>
-  [[nodiscard]] decltype(auto) cend(this T&& self) {
-    return std::forward<T>(self).lines.cend();
-  }
+  template <typename T> [[nodiscard]] decltype(auto) cend(this T&& self) { return std::forward<T>(self).lines.cend(); }
 
-  template <typename U, typename T>
-  void push_back(this U&& self, T&& l) {
+  template <typename U, typename T> void push_back(this U&& self, T&& l) {
     std::forward<U>(self).lines.push_back(std::forward<T>(l));
   }
 
-  template <typename U, typename... Ts>
-  decltype(auto) emplace_back(this U&& self, Ts&&... l) {
+  template <typename U, typename... Ts> decltype(auto) emplace_back(this U&& self, Ts&&... l) {
     return std::forward<U>(self).lines.emplace_back(std::forward<Ts>(l)...);
   }
 
@@ -267,8 +231,7 @@ struct band_data {
   void sort(LineByLineVariable v = LineByLineVariable::f0);
 
   //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
-  [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(
-      Numeric f0, Numeric f1) const;
+  [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(Numeric f0, Numeric f1) const;
 
   [[nodiscard]] Rational max(QuantumNumberType) const;
 
@@ -313,10 +276,8 @@ struct line_key {
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 
-  [[nodiscard]] Numeric& get_value(
-      std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
-  [[nodiscard]] const Numeric& get_value(
-      const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] Numeric&       get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] const Numeric& get_value(const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
 
 /** Returns all species in the band, including those that are broadening species
@@ -324,8 +285,7 @@ struct line_key {
  * @param bands The bands to search
  * @return std::unordered_set<SpeciesEnum> 
  */
-std::unordered_set<SpeciesEnum> species_in_bands(
-    const std::unordered_map<QuantumIdentifier, band_data>& bands);
+std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<QuantumIdentifier, band_data>& bands);
 
 /** Wraps keep_hitran_s for band_data per species, to remove all lines that are not in the keep map
  * 
@@ -334,8 +294,8 @@ std::unordered_set<SpeciesEnum> species_in_bands(
  * @param T0 The reference temperature.  Defaults to 296.0.
  */
 void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
-                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
-                   const Numeric T0 = 296);
+                   const std::unordered_map<SpeciesEnum, Numeric>&   keep,
+                   const Numeric                                     T0 = 296);
 
 /** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
  * 
@@ -348,8 +308,8 @@ void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
  */
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
-    const Numeric approx_percentile,
-    const Numeric T0 = 296);
+    const Numeric                                           approx_percentile,
+    const Numeric                                           T0 = 296);
 
 /** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
  * 
@@ -362,20 +322,18 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
  */
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
-    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
-    const Numeric T0 = 296);
+    const std::unordered_map<SpeciesEnum, Numeric>&         approx_percentile,
+    const Numeric                                           T0 = 296);
 
 Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 
-Size count_zeeman_lines(
-    const std::unordered_map<QuantumIdentifier, lbl::band_data>&,
-    ZeemanPolarization);
+Size count_zeeman_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&, ZeemanPolarization);
 
 //! Helper struct
 struct flat_band_data {
-  Size prev_size;
+  Size                     prev_size;
   const QuantumIdentifier& band_key;
-  const band_data& band;
+  const band_data&         band;
 };
 
 /*! Flatter view of bands for easy iteration
@@ -388,10 +346,9 @@ so only use this in the scope where bands will remain valid and unchanged.
   @return A vector of tuples of (offset, band key, band data)
 */
 template <class Filter>
-std::vector<flat_band_data> flatter_view(
-    const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands,
-    const ZeemanPolarization& pol,
-    Filter filter) {
+std::vector<flat_band_data> flatter_view(const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands,
+                                         const ZeemanPolarization&                                    pol,
+                                         Filter                                                       filter) {
   std::vector<flat_band_data> off{};
   off.reserve(bands.size());
 
@@ -411,8 +368,7 @@ std::vector<LineByLineCutoff> get_cutoff_types_and_values(
 }  // namespace lbl
 
 //! Support hashing of line keys
-template <>
-struct std::hash<lbl::line_key> {
+template <> struct std::hash<lbl::line_key> {
   static std::size_t operator()(const lbl::line_key& x) {
     std::size_t seed = 0;
 
@@ -433,91 +389,73 @@ using AbsorptionBand = lbl::band_data;
 //! A list of multiple bands
 using AbsorptionBands = std::unordered_map<QuantumIdentifier, AbsorptionBand>;
 
-template <>
-struct std::formatter<lbl::line> {
+template <> struct std::formatter<lbl::line> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   [[nodiscard]] std::string to_string(const lbl::line& v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::line& v, FmtContext& ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<lbl::band_data> {
+template <> struct std::formatter<lbl::band_data> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   [[nodiscard]] std::string to_string(const lbl::band_data& v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::band_data& v, FmtContext& ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<lbl::line_key> {
+template <> struct std::formatter<lbl::line_key> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::line_key& v, FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
     return tags.format(ctx, v.band, sep, v.line, sep, v.spec);
   }
 };
 
-template <>
-struct xml_io_stream<AbsorptionBand> {
+template <> struct xml_io_stream<AbsorptionBand> {
   static constexpr std::string_view type_name = "AbsorptionBand"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&         os,
                     const AbsorptionBand& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*            pbofs = nullptr,
+                    std::string_view      name  = ""sv);
 
-  static void read(std::istream& is,
-                   AbsorptionBand& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, AbsorptionBand& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<LblLineKey> {
+template <> struct xml_io_stream<LblLineKey> {
   static constexpr std::string_view type_name = "LblLineKey"sv;
 
-  static void write(std::ostream& os,
-                    const LblLineKey& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const LblLineKey& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, LblLineKey& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-std::optional<std::string> to_helper_string<AbsorptionBands>(
-    const AbsorptionBands&);
+template <> std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands&);

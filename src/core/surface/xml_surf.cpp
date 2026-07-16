@@ -1,9 +1,9 @@
 #include "xml_surf.h"
 
-void xml_io_stream<SurfaceField>::write(std::ostream& os,
+void xml_io_stream<SurfaceField>::write(std::ostream&       os,
                                         const SurfaceField& x,
-                                        bofstream* pbofs,
-                                        std::string_view name) {
+                                        bofstream*          pbofs,
+                                        std::string_view    name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -14,9 +14,7 @@ void xml_io_stream<SurfaceField>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SurfaceField>::read(std::istream& is,
-                                       SurfaceField& x,
-                                       bifstream* pbifs) {
+void xml_io_stream<SurfaceField>::read(std::istream& is, SurfaceField& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -29,10 +27,10 @@ void xml_io_stream<SurfaceField>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SurfaceData>::write(std::ostream& os,
+void xml_io_stream<SurfaceData>::write(std::ostream&      os,
                                        const SurfaceData& x,
-                                       bofstream* pbofs,
-                                       std::string_view name) {
+                                       bofstream*         pbofs,
+                                       std::string_view   name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -45,9 +43,7 @@ void xml_io_stream<SurfaceData>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SurfaceData>::read(std::istream& is,
-                                      SurfaceData& x,
-                                      bifstream* pbifs) {
+void xml_io_stream<SurfaceData>::read(std::istream& is, SurfaceData& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -62,10 +58,10 @@ void xml_io_stream<SurfaceData>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SurfacePoint>::write(std::ostream& os,
+void xml_io_stream<SurfacePoint>::write(std::ostream&       os,
                                         const SurfacePoint& x,
-                                        bofstream* pbofs,
-                                        std::string_view name) {
+                                        bofstream*          pbofs,
+                                        std::string_view    name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -77,9 +73,7 @@ void xml_io_stream<SurfacePoint>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SurfacePoint>::read(std::istream& is,
-                                       SurfacePoint& x,
-                                       bifstream* pbifs) {
+void xml_io_stream<SurfacePoint>::read(std::istream& is, SurfacePoint& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -93,10 +87,10 @@ void xml_io_stream<SurfacePoint>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SurfacePropertyTag>::write(std::ostream& os,
+void xml_io_stream<SurfacePropertyTag>::write(std::ostream&             os,
                                               const SurfacePropertyTag& x,
-                                              bofstream* pbofs,
-                                              std::string_view name) {
+                                              bofstream*                pbofs,
+                                              std::string_view          name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -105,9 +99,7 @@ void xml_io_stream<SurfacePropertyTag>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SurfacePropertyTag>::read(std::istream& is,
-                                             SurfacePropertyTag& x,
-                                             bifstream* pbifs) {
+void xml_io_stream<SurfacePropertyTag>::read(std::istream& is, SurfacePropertyTag& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

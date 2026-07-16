@@ -19,9 +19,7 @@ void py_basic(py::module_& m) try {
   py::class_<ValueHolder<String>> str(m, "String");
   value_holder_interface(str);
   generic_interface(str);
-  str.def("__init__", [](ValueHolder<String>* s, const py::bytes& b) {
-    new (s) ValueHolder<String>{b.c_str()};
-  });
+  str.def("__init__", [](ValueHolder<String>* s, const py::bytes& b) { new (s) ValueHolder<String>{b.c_str()}; });
   py::implicitly_convertible<py::bytes, ValueHolder<String>>();
 
   py::class_<ValueHolder<Numeric>> num(m, "Numeric");
@@ -30,21 +28,16 @@ void py_basic(py::module_& m) try {
   using nd_numeric = py::ndarray<py::numpy, Numeric, py::ndim<0>, py::c_contig>;
   num.def(
          "__array__",
-         [](ValueHolder<Numeric>& n,
-            py::object dtype,
-            py::object copy) -> std::variant<nd_numeric, py::object> {
+         [](ValueHolder<Numeric>& n, py::object dtype, py::object copy) -> std::variant<nd_numeric, py::object> {
            std::array<size_t, 0> shape{};
 
            auto np = py::module_::import_("numpy");
            auto x  = nd_numeric(n.val.get(), 0, shape.data(), py::cast(&n));
 
-           if (not dtype.is_none()) {
-             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-           }
+           if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy))
-                             ? py::rv_policy::automatic_reference
-                             : py::rv_policy::copy);
+           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                                 : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -61,21 +54,16 @@ void py_basic(py::module_& m) try {
   using nd_index = py::ndarray<py::numpy, Index, py::ndim<0>, py::c_contig>;
   ind.def(
          "__array__",
-         [](ValueHolder<Index>& n,
-            py::object dtype,
-            py::object copy) -> std::variant<nd_index, py::object> {
+         [](ValueHolder<Index>& n, py::object dtype, py::object copy) -> std::variant<nd_index, py::object> {
            std::array<size_t, 0> shape{};
 
            auto np = py::module_::import_("numpy");
            auto x  = nd_index(n.val.get(), 0, shape.data(), py::cast(&n));
 
-           if (not dtype.is_none()) {
-             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-           }
+           if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy))
-                             ? py::rv_policy::automatic_reference
-                             : py::rv_policy::copy);
+           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                                 : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),
@@ -91,26 +79,20 @@ void py_basic(py::module_& m) try {
   value_holder_vector_interface(aos);
   generic_interface(aos);
 
-  auto aoi = py::class_<ArrayOfIndex>(m, "ArrayOfIndex");
-  using nd_index_array =
-      py::ndarray<py::numpy, Index, py::ndim<1>, py::c_contig>;
+  auto aoi             = py::class_<ArrayOfIndex>(m, "ArrayOfIndex");
+  using nd_index_array = py::ndarray<py::numpy, Index, py::ndim<1>, py::c_contig>;
   aoi.def(
          "__array__",
-         [](ArrayOfIndex& v,
-            py::object dtype,
-            py::object copy) -> std::variant<nd_index_array, py::object> {
+         [](ArrayOfIndex& v, py::object dtype, py::object copy) -> std::variant<nd_index_array, py::object> {
            std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
            auto np = py::module_::import_("numpy");
            auto x  = nd_index_array(v.data(), 1, shape.data(), py::cast(&v));
 
-           if (not dtype.is_none()) {
-             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-           }
+           if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy))
-                             ? py::rv_policy::automatic_reference
-                             : py::rv_policy::copy);
+           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                                 : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -123,26 +105,20 @@ void py_basic(py::module_& m) try {
   value_holder_vector_interface(aoi);
   generic_interface(aoi);
 
-  auto aon = py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric");
-  using nd_numeric_array =
-      py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
+  auto aon               = py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric");
+  using nd_numeric_array = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
   aon.def(
          "__array__",
-         [](ArrayOfNumeric& v,
-            py::object dtype,
-            py::object copy) -> std::variant<nd_numeric_array, py::object> {
+         [](ArrayOfNumeric& v, py::object dtype, py::object copy) -> std::variant<nd_numeric_array, py::object> {
            std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
            auto np = py::module_::import_("numpy");
            auto x  = nd_numeric_array(v.data(), 1, shape.data(), py::cast(&v));
 
-           if (not dtype.is_none()) {
-             return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-           }
+           if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy))
-                             ? py::rv_policy::automatic_reference
-                             : py::rv_policy::copy);
+           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                                 : py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),
@@ -157,26 +133,18 @@ void py_basic(py::module_& m) try {
   value_holder_vector_interface(aon);
   generic_interface(aon);
 
-  auto a1 =
-      py::bind_vector<ArrayOfArrayOfIndex, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfIndex");
+  auto a1 = py::bind_vector<ArrayOfArrayOfIndex, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfIndex");
   vector_interface(a1);
   generic_interface(a1);
 
-  auto a2 =
-      py::bind_vector<ArrayOfArrayOfString, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfString");
+  auto a2 = py::bind_vector<ArrayOfArrayOfString, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfString");
   vector_interface(a2);
   generic_interface(a2);
 
   py::class_<Any> any(m, "Any");
   generic_interface(any);
-  any.def(
-      "__init__",
-      [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; },
-      "Anything is allowed.");
+  any.def("__init__", [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
 }
 }  // namespace Python

@@ -11,8 +11,7 @@ int main(int /* argc */, char* /* argv */[]) {
   for (Index i = 0; i < 4; i++)
     for (Index j = 0; j < 4; j++)
       for (Index k = 0; k < 4; k++)
-        for (Index l = 0; l < 4; l++)
-          v[i, j, k, l] = double(i * 4 * 4 * 4 + j * 4 * 4 + k * 4 + l);
+        for (Index l = 0; l < 4; l++) v[i, j, k, l] = double(i * 4 * 4 * 4 + j * 4 * 4 + k * 4 + l);
 
   xml_write_to_file("outfile.xml", v, FileType::binary, 0);
 

@@ -52,10 +52,7 @@ muelmat fresnel_reflectance(Complex Rv, Complex Rh);
  *  For a flat horizontal surface (n_surface = (0,0,1)) this reduces to
  *  fresnel_reflectance(Rv, Rh) with U and V sign flips.
  */
-muelmat fresnel_reflectance_specular(Complex Rv,
-                                     Complex Rh,
-                                     const Vector3& k_inc,
-                                     const Vector3& n_surface);
+muelmat fresnel_reflectance_specular(Complex Rv, Complex Rh, const Vector3& k_inc, const Vector3& n_surface);
 
 /** Fresnel reflection Mueller matrix for non-specular (e.g. Lambertian,
  *  BRDF, or tilted-facet) reflection where incident and outgoing directions
@@ -70,11 +67,8 @@ muelmat fresnel_reflectance_specular(Complex Rv,
  *  @param n_surface Outward unit surface normal
  *  @return          4x4 Mueller matrix mapping incident Stokes to outgoing Stokes
  */
-muelmat fresnel_reflectance_nonspecular(Complex Rv,
-                                        Complex Rh,
-                                        const Vector3& k_inc,
-                                        const Vector3& k_out,
-                                        const Vector3& n_surface);
+muelmat fresnel_reflectance_nonspecular(
+    Complex Rv, Complex Rh, const Vector3& k_inc, const Vector3& k_out, const Vector3& n_surface);
 
 /** Reflect and emit a Stokes vector
  * 
@@ -97,8 +91,7 @@ stokvec dreflection(stokvec I, const muelmat dR, const stokvec B);
      *  Both `k_inc` and `n_surface` are assumed to be unit vectors with
      *  `k_inc` pointing toward the surface and `n_surface` pointing outwards.
      */
-Vector3 specular_reflected_direction(const Vector3& k_inc,
-                                     const Vector3& n_surface);
+Vector3 specular_reflected_direction(const Vector3& k_inc, const Vector3& n_surface);
 
 /** Specular surface emission and reflection.
  *
@@ -115,12 +108,8 @@ Vector3 specular_reflected_direction(const Vector3& k_inc,
  *  @param n_surface Outward unit surface normal
  *  @return          Outgoing Stokes vector
  */
-stokvec specular_radiance(const stokvec& I_in,
-                          const stokvec& J,
-                          Complex Rv,
-                          Complex Rh,
-                          const Vector3& k_inc,
-                          const Vector3& n_surface);
+stokvec specular_radiance(
+    const stokvec& I_in, const stokvec& J, Complex Rv, Complex Rh, const Vector3& k_inc, const Vector3& n_surface);
 
 /** Non-specular surface emission and reflection for one incident direction.
  *
@@ -142,8 +131,8 @@ stokvec specular_radiance(const stokvec& I_in,
  */
 stokvec nonspecular_radiance(const stokvec& I_in,
                              const stokvec& J,
-                             Complex Rv,
-                             Complex Rh,
+                             Complex        Rv,
+                             Complex        Rh,
                              const Vector3& k_inc,
                              const Vector3& k_out,
                              const Vector3& n_surface);
@@ -171,15 +160,15 @@ stokvec nonspecular_radiance(const stokvec& I_in,
  *  @param hfield     Height field — provides grid spacing and patch heights
  *  @return           Outgoing Stokes vector toward the sensor
  */
-stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
+stokvec nonspecular_radiance_from_patches(std::span<const Vector2>  coords,
                                           stokvec_vector_const_view sources,
-                                          const stokvec& J,
-                                          Complex Rv,
-                                          Complex Rh,
-                                          Vector2 pos,
-                                          Numeric h_pos,
-                                          const Vector3& n_surface,
-                                          const Vector3& k_out,
-                                          Vector2 ellipsoid,
-                                          const GeodeticField2& hfield);
+                                          const stokvec&            J,
+                                          Complex                   Rv,
+                                          Complex                   Rh,
+                                          Vector2                   pos,
+                                          Numeric                   h_pos,
+                                          const Vector3&            n_surface,
+                                          const Vector3&            k_out,
+                                          Vector2                   ellipsoid,
+                                          const GeodeticField2&     hfield);
 }  // namespace rtepack

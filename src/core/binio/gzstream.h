@@ -31,11 +31,12 @@
 
 // standard C++ with new header file names and std:: namespace
 #include <zlib.h>
+
 #include <fstream>
 #include <ios>
-#include <streambuf>
 #include <istream>
 #include <ostream>
+#include <streambuf>
 
 #ifdef GZSTREAM_NAMESPACE
 namespace GZSTREAM_NAMESPACE {
@@ -50,10 +51,10 @@ class gzstreambuf : public std::streambuf {
   static const int bufferSize = 47 + 256;  // size of data buff
   // totals 512 bytes under g++ for igzstream at the end.
 
-  gzFile file;              // file handle for compressed file
-  char buffer[bufferSize];  // data buffer
-  char opened;              // open/close state of stream
-  int mode;                 // I/O mode
+  gzFile file;                // file handle for compressed file
+  char   buffer[bufferSize];  // data buffer
+  char   opened;              // open/close state of stream
+  int    mode;                // I/O mode
 
   int flush_buffer();
 
@@ -65,7 +66,7 @@ class gzstreambuf : public std::streambuf {
          buffer + 4);  // end position
     // ASSERT: both input & output capabilities will not be used together
   }
-  int is_open() { return opened; }
+  int          is_open() { return opened; }
   gzstreambuf* open(const char* name, int open_mode);
   gzstreambuf* close();
   ~gzstreambuf() { close(); }
@@ -83,8 +84,8 @@ class gzstreambase : virtual public std::ios {
   gzstreambase() { init(&buf); }
   gzstreambase(const char* name, int open_mode);
   ~gzstreambase();
-  void open(const char* name, int open_mode);
-  void close();
+  void         open(const char* name, int open_mode);
+  void         close();
   gzstreambuf* rdbuf() { return &buf; }
 };
 
@@ -97,23 +98,17 @@ class gzstreambase : virtual public std::ios {
 class igzstream : public gzstreambase, public std::istream {
  public:
   igzstream() : std::istream(&buf) {}
-  igzstream(const char* name, int gz_open_mode = std::ios::in)
-      : gzstreambase(name, gz_open_mode), std::istream(&buf) {}
+  igzstream(const char* name, int gz_open_mode = std::ios::in) : gzstreambase(name, gz_open_mode), std::istream(&buf) {}
   gzstreambuf* rdbuf() { return gzstreambase::rdbuf(); }
-  void open(const char* name, int gz_open_mode = std::ios::in) {
-    gzstreambase::open(name, gz_open_mode);
-  }
+  void         open(const char* name, int gz_open_mode = std::ios::in) { gzstreambase::open(name, gz_open_mode); }
 };
 
 class ogzstream : public gzstreambase, public std::ostream {
  public:
   ogzstream() : std::ostream(&buf) {}
-  ogzstream(const char* name, int mode = std::ios::out)
-      : gzstreambase(name, mode), std::ostream(&buf) {}
+  ogzstream(const char* name, int mode = std::ios::out) : gzstreambase(name, mode), std::ostream(&buf) {}
   gzstreambuf* rdbuf() { return gzstreambase::rdbuf(); }
-  void open(const char* name, int gz_open_mode = std::ios::out) {
-    gzstreambase::open(name, gz_open_mode);
-  }
+  void         open(const char* name, int gz_open_mode = std::ios::out) { gzstreambase::open(name, gz_open_mode); }
 };
 
 #ifdef GZSTREAM_NAMESPACE

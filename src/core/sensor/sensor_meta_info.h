@@ -13,8 +13,7 @@ namespace sensor {
 ///   grid<0> = AscendingGrid  (row angular offsets from boresight, degrees)
 ///   grid<1> = AscendingGrid  (column angular offsets from boresight, degrees)
 ///   grid<2> = Vector         (color / frequency values)
-using CameraGriddedField =
-    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, Vector>;
+using CameraGriddedField = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, Vector>;
 
 /// Metadata describing the mapping from a contiguous block of
 /// measurement_vec / measurement_sensor to a structured gridded field.
@@ -40,29 +39,25 @@ struct MetaInfo {
 
 }  // namespace sensor
 
-using SensorMetaInfo = sensor::MetaInfo;
+using SensorMetaInfo        = sensor::MetaInfo;
 using ArrayOfSensorMetaInfo = Array<SensorMetaInfo>;
 
 //
 // Formatter
 //
 
-template <>
-struct std::formatter<SensorMetaInfo> {
+template <> struct std::formatter<SensorMetaInfo> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SensorMetaInfo& x, FmtContext& ctx) const {
-    return std::visit(
-        [this, &ctx](const auto& gf) { return tags.format(ctx, gf); }, x.data);
+  template <class FmtContext> FmtContext::iterator format(const SensorMetaInfo& x, FmtContext& ctx) const {
+    return std::visit([this, &ctx](const auto& gf) { return tags.format(ctx, gf); }, x.data);
   }
 };
 
@@ -70,16 +65,13 @@ struct std::formatter<SensorMetaInfo> {
 // XML I/O
 //
 
-template <>
-struct xml_io_stream<SensorMetaInfo> {
+template <> struct xml_io_stream<SensorMetaInfo> {
   static constexpr std::string_view type_name = "SensorMetaInfo"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&         os,
                     const SensorMetaInfo& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*            pbofs = nullptr,
+                    std::string_view      name  = ""sv);
 
-  static void read(std::istream& is,
-                   SensorMetaInfo& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, SensorMetaInfo& x, bifstream* pbifs = nullptr);
 };

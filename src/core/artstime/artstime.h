@@ -26,43 +26,39 @@ struct Time {
 
   // Conversions
   [[nodiscard]] std::time_t toTimeT() const;
-  [[nodiscard]] std::tm toStruct() const;
-  [[nodiscard]] std::tm toGMTStruct() const;
+  [[nodiscard]] std::tm     toStruct() const;
+  [[nodiscard]] std::tm     toGMTStruct() const;
 
   [[nodiscard]] TimeStep seconds_into_day() const;
 
   [[nodiscard]] InternalTimeStep EpochTime() const;
 
   // Operations
-  InternalTimeStep operator-(const Time& t) const noexcept;
-  bool operator<(const Time& t) const noexcept;
-  bool operator==(const Time& t) const noexcept;
-  bool operator!=(const Time& t) const noexcept;
-  bool operator<=(const Time& t) const noexcept;
-  bool operator>(const Time& t) const noexcept;
-  bool operator>=(const Time& t) const noexcept;
-  template <typename T, typename R>
-  Time& operator+=(const std::chrono::duration<T, R>& dt) {
+  InternalTimeStep                        operator-(const Time& t) const noexcept;
+  bool                                    operator<(const Time& t) const noexcept;
+  bool                                    operator==(const Time& t) const noexcept;
+  bool                                    operator!=(const Time& t) const noexcept;
+  bool                                    operator<=(const Time& t) const noexcept;
+  bool                                    operator>(const Time& t) const noexcept;
+  bool                                    operator>=(const Time& t) const noexcept;
+  template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {
     time += std::chrono::duration_cast<InternalTimeStep>(dt);
     return *this;
   }
-  template <typename T, typename R>
-  Time& operator-=(const std::chrono::duration<T, R>& dt) {
+  template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {
     time -= std::chrono::duration_cast<InternalTimeStep>(dt);
     return *this;
   }
-  template <typename T, typename R>
-  Time operator+(const std::chrono::duration<T, R>& dt) const {
+  template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {
     return (Time(*this) += dt);
   }
-  template <typename T, typename R>
-  Time operator-(const std::chrono::duration<T, R>& dt) const {
+  template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {
     return (Time(*this) -= dt);
   }
 
   // helpers
   [[nodiscard]] Numeric Seconds() const;
-  void Seconds(Numeric x);
+  void                  Seconds(Numeric x);
   [[nodiscard]] Numeric PartOfSecond() const;
 
   // Conversion
@@ -153,42 +149,34 @@ TimeStep mean(const ArrayOfTimeStep&);
 
 //! Used to debug execution time, prints msg+time on destruction to std::cerr
 struct DebugTime {
-  Time start{};
+  Time             start{};
   std::string_view msg;
   DebugTime(const std::string_view s) : msg(s) {}
   DebugTime(const char* s = "Time") : msg(s) {}
-  DebugTime(std::string&&) =
-      delete;  // Class keeps string-view, cannot move from a string
+  DebugTime(std::string&&) = delete;  // Class keeps string-view, cannot move from a string
   ~DebugTime();
 };
 
-template <>
-struct std::formatter<Time> {
+template <> struct std::formatter<Time> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
     return tags.format(ctx, quote, v.time, quote);
   }
 };
 
-template <>
-struct xml_io_stream<Time> {
+template <> struct xml_io_stream<Time> {
   static constexpr std::string_view type_name = "Time"sv;
 
-  static void write(std::ostream& os,
-                    const Time& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const Time& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, Time& x, bifstream* pbifs = nullptr);
 };

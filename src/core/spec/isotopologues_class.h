@@ -33,21 +33,17 @@ struct Isotope {
 
   [[nodiscard]] constexpr bool is_joker() const { return isotname == Joker; }
 
-  [[nodiscard]] constexpr bool is_predefined() const {
-    return not(nonstd::isdigit(isotname[0]) or is_joker());
-  }
-  [[nodiscard]] constexpr bool is_normal() const {
-    return nonstd::isdigit(isotname[0]) and not is_joker();
-  }
+  [[nodiscard]] constexpr bool is_predefined() const { return not(nonstd::isdigit(isotname[0]) or is_joker()); }
+  [[nodiscard]] constexpr bool is_normal() const { return nonstd::isdigit(isotname[0]) and not is_joker(); }
 
   [[nodiscard]] constexpr bool OK() const { return good_enum(spec); }
-  [[nodiscard]] String FullName() const;
+  [[nodiscard]] String         FullName() const;
 
   friend std::ostream& operator<<(std::ostream& os, const Isotope& ir);
 
   std::strong_ordering operator<=>(const Isotope&) const;
-  bool operator==(const Isotope&) const;
-  bool operator!=(const Isotope&) const;
+  bool                 operator==(const Isotope&) const;
+  bool                 operator!=(const Isotope&) const;
 };
 }  // namespace Species
 
@@ -55,36 +51,29 @@ using SpeciesIsotope = Species::Isotope;
 
 using ArrayOfSpeciesIsotope = Array<SpeciesIsotope>;
 
-template <>
-struct std::formatter<SpeciesIsotope> {
+template <> struct std::formatter<SpeciesIsotope> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SpeciesIsotope& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SpeciesIsotope& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
     return tags.format(ctx, quote, v.FullName(), quote);
   }
 };
 
-template <>
-struct xml_io_stream<SpeciesIsotope> {
+template <> struct xml_io_stream<SpeciesIsotope> {
   static constexpr std::string_view type_name = "SpeciesIsotope"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&         os,
                     const SpeciesIsotope& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*            pbofs = nullptr,
+                    std::string_view      name  = ""sv);
 
-  static void read(std::istream& is,
-                   SpeciesIsotope& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, SpeciesIsotope& x, bifstream* pbifs = nullptr);
 };

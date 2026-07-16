@@ -82,10 +82,9 @@ Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) noexcept {
   @param[in] P (X1 - X) / (X1 - X0) if A is on X0, X1, X2, X3 and X is the target of the interpolation
   @param[in] A The value of the original function at four positions (at X0, X1, X2, X3)
 */
-constexpr Numeric XINT_FUN(const Numeric P,
-                           const std::array<Numeric, 4>& A) noexcept {
-  const Numeric C = (3 - 2 * P) * P * P;
-  const Numeric B = 0.5 * P * (1 - P);
+constexpr Numeric XINT_FUN(const Numeric P, const std::array<Numeric, 4>& A) noexcept {
+  const Numeric C  = (3 - 2 * P) * P * P;
+  const Numeric B  = 0.5 * P * (1 - P);
   const Numeric B1 = B * (1 - P);
   const Numeric B2 = B * P;
 
@@ -93,20 +92,20 @@ constexpr Numeric XINT_FUN(const Numeric P,
 }
 
 void check(const WaterData& data) {
-  bool c = data.self_absco_ref.size() == 0 or data.for_absco_ref.size() == 0 or
-           data.wavenumbers.size() == 0 or data.self_texp.size() == 0;
+  bool c = data.self_absco_ref.size() == 0 or data.for_absco_ref.size() == 0 or data.wavenumbers.size() == 0 or
+           data.self_texp.size() == 0;
   ARTS_USER_ERROR_IF(c, "No data")
 }
 }  // namespace
 
-void compute_foreign_h2o(PropmatVector& propmat_clearsky,
-                         const Vector& f_grid,
-                         const AtmPoint& atm_point,
+void compute_foreign_h2o(PropmatVector&   propmat_clearsky,
+                         const Vector&    f_grid,
+                         const AtmPoint&  atm_point,
                          const WaterData& data) {
   using Conversion::freq2kaycm;
 
-  const Numeric P = atm_point.pressure;
-  const Numeric T = atm_point.temperature;
+  const Numeric P      = atm_point.pressure;
+  const Numeric T      = atm_point.temperature;
   const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // Perform checks to ensure the calculation data is good
@@ -121,30 +120,28 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
 
   // Data constants
   const Numeric last_wavenumber = data.wavenumbers.back();
-  const Numeric dvc = data.wavenumbers[1] - data.wavenumbers[0];
-  const Numeric recdvc = 1 / dvc;
-  const auto data_size = Index(data.wavenumbers.size());
+  const Numeric dvc             = data.wavenumbers[1] - data.wavenumbers[0];
+  const Numeric recdvc          = 1 / dvc;
+  const auto    data_size       = Index(data.wavenumbers.size());
 
   // Level constants
-  const Numeric P0 = Conversion::bar2pa(1e-3 * data.ref_press);
-  const Numeric T0 = data.ref_temp;
-  const Numeric xkt = T / RADCN2;
-  const Numeric rho_rat = (P / P0) * (T0 / T);
+  const Numeric P0          = Conversion::bar2pa(1e-3 * data.ref_press);
+  const Numeric T0          = data.ref_temp;
+  const Numeric xkt         = T / RADCN2;
+  const Numeric rho_rat     = (P / P0) * (T0 / T);
   const Numeric num_den_cm2 = 1e-6 * vmrh2o * P / (Constant::k * T);
 
   // Scaling logic
   auto scl = [vmrh2o, rho_rat, xkt](auto& input_value, auto& input_wavenumber) {
-    return input_value * (1.0 - vmrh2o) * rho_rat *
-           RADFN_FUN(input_wavenumber, xkt);
+    return input_value * (1.0 - vmrh2o) * rho_rat * RADFN_FUN(input_wavenumber, xkt);
   };
 
   // Compute data
-  Index cur = std::distance(data.wavenumbers.begin(),
-                            std::lower_bound(data.wavenumbers.begin(),
-                                             data.wavenumbers.end(),
-                                             freq2kaycm(f_grid[0]) - 2 * dvc));
-  const Numeric* v = data.wavenumbers.data_handle() + cur;
-  const Numeric* y = data.for_absco_ref.data_handle() + cur;
+  Index cur = std::distance(
+      data.wavenumbers.begin(),
+      std::lower_bound(data.wavenumbers.begin(), data.wavenumbers.end(), freq2kaycm(f_grid[0]) - 2 * dvc));
+  const Numeric*         v = data.wavenumbers.data_handle() + cur;
+  const Numeric*         y = data.for_absco_ref.data_handle() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
 
   //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)
@@ -171,19 +168,19 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
       y++;
     }
 
-    auto out = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
+    auto out                 = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
     propmat_clearsky[s].A() += out >= 0 ? out : 0;
   }
 }
 
-void compute_self_h2o(PropmatVector& propmat_clearsky,
-                      const Vector& f_grid,
-                      const AtmPoint& atm_point,
+void compute_self_h2o(PropmatVector&   propmat_clearsky,
+                      const Vector&    f_grid,
+                      const AtmPoint&  atm_point,
                       const WaterData& data) {
   using Conversion::freq2kaycm;
 
-  const Numeric P = atm_point.pressure;
-  const Numeric T = atm_point.temperature;
+  const Numeric P      = atm_point.pressure;
+  const Numeric T      = atm_point.temperature;
   const Numeric vmrh2o = atm_point["H2O"_spec];
 
   // Perform checks to ensure the calculation data is good
@@ -198,33 +195,29 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
 
   // Data constants
   const Numeric last_wavenumber = data.wavenumbers.back();
-  const Numeric dvc = data.wavenumbers[1] - data.wavenumbers[0];
-  const Numeric recdvc = 1 / dvc;
-  const auto data_size = Index(data.wavenumbers.size());
+  const Numeric dvc             = data.wavenumbers[1] - data.wavenumbers[0];
+  const Numeric recdvc          = 1 / dvc;
+  const auto    data_size       = Index(data.wavenumbers.size());
 
   // Level constants
-  const Numeric P0 = Conversion::bar2pa(1e-3 * data.ref_press);
-  const Numeric T0 = data.ref_temp;
-  const Numeric xkt = T / RADCN2;
-  const Numeric rho_rat = (P / P0) * (T0 / T);
+  const Numeric P0          = Conversion::bar2pa(1e-3 * data.ref_press);
+  const Numeric T0          = data.ref_temp;
+  const Numeric xkt         = T / RADCN2;
+  const Numeric rho_rat     = (P / P0) * (T0 / T);
   const Numeric num_den_cm2 = 1e-6 * vmrh2o * P / (Constant::k * T);
 
   // Scaling logic
-  auto scl = [vmrh2o, rho_rat, xkt, r = T0 / T](auto& input_value,
-                                                auto& input_exponent,
-                                                auto& input_wavenumber) {
-    return input_value * vmrh2o * rho_rat * std::pow(r, input_exponent) *
-           RADFN_FUN(input_wavenumber, xkt);
+  auto scl = [vmrh2o, rho_rat, xkt, r = T0 / T](auto& input_value, auto& input_exponent, auto& input_wavenumber) {
+    return input_value * vmrh2o * rho_rat * std::pow(r, input_exponent) * RADFN_FUN(input_wavenumber, xkt);
   };
 
   // Compute data
-  Index cur = std::distance(data.wavenumbers.begin(),
-                            std::lower_bound(data.wavenumbers.begin(),
-                                             data.wavenumbers.end(),
-                                             freq2kaycm(f_grid[0]) - 2 * dvc));
-  const Numeric* v = data.wavenumbers.data_handle() + cur;
-  const Numeric* y = data.self_absco_ref.data_handle() + cur;
-  const Numeric* e = data.self_texp.data_handle() + cur;
+  Index cur = std::distance(
+      data.wavenumbers.begin(),
+      std::lower_bound(data.wavenumbers.begin(), data.wavenumbers.end(), freq2kaycm(f_grid[0]) - 2 * dvc));
+  const Numeric*         v = data.wavenumbers.data_handle() + cur;
+  const Numeric*         y = data.self_absco_ref.data_handle() + cur;
+  const Numeric*         e = data.self_texp.data_handle() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
 
   //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)
@@ -250,7 +243,7 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
       e++;
     }
 
-    auto out = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
+    auto out                 = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
     propmat_clearsky[s].A() += out >= 0 ? out : 0;
   }
 }

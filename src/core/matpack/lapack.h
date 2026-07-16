@@ -29,11 +29,9 @@ namespace lapack {
   \param[out] info Integer indicating if operation was successful: 0 if success,
   otherwise failure.
 */
-extern "C" void dgetrf_(
-    int *m, int *n, double *A, int *lda, int *ipiv, int *info);
+extern "C" void dgetrf_(int *m, int *n, double *A, int *lda, int *ipiv, int *info);
 
-extern "C" void zgetrf_(
-    int *m, int *n, std::complex<double> *A, int *lda, int *ipiv, int *info);
+extern "C" void zgetrf_(int *m, int *n, std::complex<double> *A, int *lda, int *ipiv, int *info);
 
 //! Solve linear system of equations.
 /*!
@@ -58,15 +56,7 @@ extern "C" void zgetrf_(
   \param[in] ldb The leading dimension of b.
   \param[out] info Integer indicating succes of the operation.
 */
-extern "C" void dgetrs_(char *trans,
-                        int *n,
-                        int *nrhs,
-                        double *A,
-                        int *lda,
-                        int *ipiv,
-                        double *b,
-                        int *ldb,
-                        int *info);
+extern "C" void dgetrs_(char *trans, int *n, int *nrhs, double *A, int *lda, int *ipiv, double *b, int *ldb, int *info);
 
 //
 //! Matrix inversion.
@@ -83,21 +73,10 @@ extern "C" void dgetrs_(char *trans,
   otherwise failure.
 
 */
-extern "C" void dgetri_(int *n,
-                        double *A,
-                        int *lda,
-                        int *ipiv,
-                        double *work,
-                        int *lwork,
-                        int *info);
+extern "C" void dgetri_(int *n, double *A, int *lda, int *ipiv, double *work, int *lwork, int *info);
 
-extern "C" void zgetri_(int *n,
-                        std::complex<double> *A,
-                        int *lda,
-                        int *ipiv,
-                        std::complex<double> *work,
-                        int *lwork,
-                        int *info);
+extern "C" void zgetri_(
+    int *n, std::complex<double> *A, int *lda, int *ipiv, std::complex<double> *work, int *lwork, int *info);
 
 //! Optimal parameters for computation.
 /*!
@@ -113,8 +92,7 @@ extern "C" void zgetri_(int *n,
   \param[in] n3 Problem dimension 3 of "Name".
   \param[in] n4 Problem dimension 4 of "Name".
 */
-extern "C" void ilaenv_(
-    int *ispec, char *name, char *opts, int *n1, int *n2, int *n3, int *n4);
+extern "C" void ilaenv_(int *ispec, char *name, char *opts, int *n1, int *n2, int *n3, int *n4);
 
 //! Solve linear system.
 /*!
@@ -154,28 +132,28 @@ extern "C" void ilaenv_(
   \param[out] IWORK
   \param[out] info
 */
-extern "C" void dgesvx_(char *fact,
-                        char *trans,
-                        int *n,
-                        int *nrhs,
+extern "C" void dgesvx_(char   *fact,
+                        char   *trans,
+                        int    *n,
+                        int    *nrhs,
                         double *A,
-                        int *lda,
+                        int    *lda,
                         double *AF,
-                        int *ldaf,
-                        int *ipiv,
-                        char *equed,
+                        int    *ldaf,
+                        int    *ipiv,
+                        char   *equed,
                         double *R,
                         double *C,
                         double *B,
-                        int *ldb,
+                        int    *ldb,
                         double *X,
-                        int *ldx,
+                        int    *ldx,
                         double *RCOND,
                         double *FERR,
                         double *BERR,
                         double *WORK,
-                        int *IWORK,
-                        int *info);
+                        int    *IWORK,
+                        int    *info);
 
 /* Computes eigenvalues and eigenvectors for the Complex n-by-n Matrix A
  * Use-case example diag(VR*A*inv(VR)) = W.
@@ -196,45 +174,38 @@ extern "C" void dgesvx_(char *fact,
     \param[out] info
  */
 
-extern "C" void dgeev_(char *jobvl,
-                       char *jobvr,
-                       int *n,
+extern "C" void dgeev_(char   *jobvl,
+                       char   *jobvr,
+                       int    *n,
                        double *A,
-                       int *lda,
+                       int    *lda,
                        double *WR,
                        double *WI,
                        double *VL,
-                       int *ldvl,
+                       int    *ldvl,
                        double *VR,
-                       int *ldvr,
+                       int    *ldvr,
                        double *work,
-                       int *lwork,
+                       int    *lwork,
                        double *rwork,
-                       int *info);
+                       int    *info);
 
-extern "C" void zgeev_(char *jobvl,
-                       char *jobvr,
-                       int *n,
+extern "C" void zgeev_(char                 *jobvl,
+                       char                 *jobvr,
+                       int                  *n,
                        std::complex<double> *A,
-                       int *lda,
+                       int                  *lda,
                        std::complex<double> *W,
                        std::complex<double> *VL,
-                       int *ldvl,
+                       int                  *ldvl,
                        std::complex<double> *VR,
-                       int *ldvr,
+                       int                  *ldvr,
                        std::complex<double> *work,
-                       int *lwork,
-                       double *rwork,
-                       int *info);
+                       int                  *lwork,
+                       double               *rwork,
+                       int                  *info);
 }  // namespace lapack
 
-extern "C" void dgesv_(int *n,
-                       int *nrhs,
-                       double *A,
-                       int *lda,
-                       int *ipiv,
-                       double *b,
-                       int *ldb,
-                       int *info);
+extern "C" void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *b, int *ldb, int *info);
 
 #endif  // LAPACK_H

@@ -8,13 +8,10 @@ namespace Python {
 void py_lookup(py::module_& m) try {
   py::class_<AbsorptionLookupTable> alt(m, "AbsorptionLookupTable");
   generic_interface(alt);
-  alt.def_rw("f_grid",
-             &AbsorptionLookupTable::f_grid,
-             "The frequency grid in Hz\n\n.. :class:`AscendingGrid`");
-  alt.def_rw(
-      "log_p_grid",
-      &AbsorptionLookupTable::log_p_grid,
-      "The pressure grid in log Pa [same dimension as atm]\n\n.. :class:`DescendingGrid`");
+  alt.def_rw("f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz\n\n.. :class:`AscendingGrid`");
+  alt.def_rw("log_p_grid",
+             &AbsorptionLookupTable::log_p_grid,
+             "The pressure grid in log Pa [same dimension as atm]\n\n.. :class:`DescendingGrid`");
   alt.def_rw(
       "t_pert",
       &AbsorptionLookupTable::t_pert,
@@ -23,38 +20,32 @@ void py_lookup(py::module_& m) try {
       "w_pert",
       &AbsorptionLookupTable::w_pert,
       "The humidity perturbation grid in fractional units [any number of elements or empty for nothing]\n\n.. :class:`AscendingGrid`");
-  alt.def_rw(
-      "water_atmref",
-      &AbsorptionLookupTable::water_atmref,
-      "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
-  alt.def_rw(
-      "t_atmref",
-      &AbsorptionLookupTable::t_atmref,
-      "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
-  alt.def_rw("xsec",
-             &AbsorptionLookupTable::xsec,
-             "The absorption cross section table\n\n.. :class:`Tensor4`");
+  alt.def_rw("water_atmref",
+             &AbsorptionLookupTable::water_atmref,
+             "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
+  alt.def_rw("t_atmref",
+             &AbsorptionLookupTable::t_atmref,
+             "Local grids so that pressure interpolation may work\n\n.. :class:`Vector`");
+  alt.def_rw("xsec", &AbsorptionLookupTable::xsec, "The absorption cross section table\n\n.. :class:`Tensor4`");
 
-  auto alts =
-      py::bind_map<AbsorptionLookupTables, py::rv_policy::reference_internal>(
-          m, "AbsorptionLookupTables");
+  auto alts = py::bind_map<AbsorptionLookupTables, py::rv_policy::reference_internal>(m, "AbsorptionLookupTables");
   generic_interface(alts);
 
   alts.def(
       "spectral_propmat",
       [](const AbsorptionLookupTables& self,
-         const AscendingGrid& f,
-         const AtmPoint& atm,
-         const SpeciesEnum& spec,
-         const Index& no_negative_absorption,
-         const Index& p_interp_order,
-         const Index& t_interp_order,
-         const Index& water_interp_order,
-         const Index& f_interp_order,
-         const Numeric& extpolfac,
+         const AscendingGrid&          f,
+         const AtmPoint&               atm,
+         const SpeciesEnum&            spec,
+         const Index&                  no_negative_absorption,
+         const Index&                  p_interp_order,
+         const Index&                  t_interp_order,
+         const Index&                  water_interp_order,
+         const Index&                  f_interp_order,
+         const Numeric&                extpolfac,
          const py::kwargs&) {
-        PropmatVector spectral_propmat(f.size());
-        PropmatMatrix spectral_propmat_jac(0, f.size());
+        PropmatVector   spectral_propmat(f.size());
+        PropmatMatrix   spectral_propmat_jac(0, f.size());
         JacobianTargets jac_targets{};
 
         spectral_propmatAddLookup(spectral_propmat,
@@ -113,7 +104,6 @@ spectral_propmat : PropmatVector
 
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize lookup\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize lookup\n{}", e.what()));
 }
 }  // namespace Python

@@ -5,8 +5,7 @@
 #include "workspace_agendas.h"
 
 namespace {
-void agendas(
-    UniqueMap<std::string, WorkspaceVariableInternalRecord>& wsv_data) {
+void agendas(UniqueMap<std::string, WorkspaceVariableInternalRecord>& wsv_data) {
   for (auto& [name, ag] : internal_workspace_agendas()) {
     if (ag.enum_default.empty()) {
       wsv_data[name] = {
@@ -23,8 +22,7 @@ void agendas(
   }
 }
 
-std::unordered_map<std::string, WorkspaceVariableInternalRecord>
-internal_workspace_variables_creator() {
+std::unordered_map<std::string, WorkspaceVariableInternalRecord> internal_workspace_variables_creator() {
   UniqueMap<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
   //! Absorption and scattering
@@ -572,14 +570,13 @@ The dimensions of the internal arrays are:
   };
 
   wsv_data["spectral_rad_transform_operator"] = {
-      .desc = R"(The spectral radiance transform operator
+      .desc          = R"(The spectral radiance transform operator
 
 This is responsible for things like converting the spectral radiance
 into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
 )",
-      .type = "SpectralRadianceTransformOperator",
-      .default_value =
-          "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
+      .type          = "SpectralRadianceTransformOperator",
+      .default_value = "SpectralRadianceTransformOperator(SpectralRadianceUnitType::unit)",
   };
 
   wsv_data["spectral_surf_refl"] = {
@@ -753,7 +750,7 @@ thus lead to runtime errors being thrown in places where unexpected sizes are en
   };
 
   wsv_data["jac_targets"] = {
-      .desc = R"--(A list of targets for the Jacobian Matrix calculations.
+      .desc          = R"--(A list of targets for the Jacobian Matrix calculations.
 
 See *JacobianTargetType* for more information.  The targets are
 sorted by their type.  A target must have information about its
@@ -763,7 +760,7 @@ things because it is able to map data between the *model_state_vec*
 and the actual model field, e.g., the *atm_field*, the *surf_field*,
 the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
-      .type = "JacobianTargets",
+      .type          = "JacobianTargets",
       .default_value = " ",
   };
 
@@ -1306,8 +1303,7 @@ std::string_view any_is_typename(const std::string& type) {
   return type;
 }
 
-const std::unordered_map<std::string, WorkspaceVariableInternalRecord>&
-internal_workspace_variables() {
+const std::unordered_map<std::string, WorkspaceVariableInternalRecord>& internal_workspace_variables() {
   static const auto wsv_data = internal_workspace_variables_creator();
   return wsv_data;
 }

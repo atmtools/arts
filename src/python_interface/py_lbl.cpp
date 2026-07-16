@@ -29,88 +29,56 @@ namespace Python {
 void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
-  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t,
-                            py::rv_policy::reference_internal>(
+  auto lssmm = py::bind_map<lbl::line_shape::species_model::map_t, py::rv_policy::reference_internal>(
       lbl, "LineShapeSpeciesModelMap");
   lssmm.doc() = "A map from model variable to line shape models";
   generic_interface(lssmm);
 
-  auto lsmm =
-      py::bind_map<lbl::line_shape::model::map_t,
-                   py::rv_policy::reference_internal>(lbl, "LineShapeModelMap");
+  auto lsmm  = py::bind_map<lbl::line_shape::model::map_t, py::rv_policy::reference_internal>(lbl, "LineShapeModelMap");
   lsmm.doc() = "A map from species to species line shape models";
   generic_interface(lsmm);
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
   generic_interface(line_key);
-  line_key.def_rw("band",
-                  &lbl::line_key::band,
-                  "The band\n\n.. :class:`QuantumIdentifier`");
+  line_key.def_rw("band", &lbl::line_key::band, "The band\n\n.. :class:`QuantumIdentifier`");
   line_key.def_rw("line", &lbl::line_key::line, "The line\n\n.. :class:`int`");
+  line_key.def_rw("spec", &lbl::line_key::spec, "The species\n\n.. :class:`int`");
+  line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable\n\n.. :class:`LineShapeModelVariable`");
   line_key.def_rw(
-      "spec", &lbl::line_key::spec, "The species\n\n.. :class:`int`");
-  line_key.def_rw(
-      "ls_var",
-      &lbl::line_key::ls_var,
-      "The line shape variable\n\n.. :class:`LineShapeModelVariable`");
-  line_key.def_rw(
-      "ls_coeff",
-      &lbl::line_key::ls_coeff,
-      "The line shape coefficient\n\n.. :class:`LineShapeModelCoefficient`");
-  line_key.def_rw("var",
-                  &lbl::line_key::var,
-                  "The variable\n\n.. :class:`LineByLineVariable`");
+      "ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient\n\n.. :class:`LineShapeModelCoefficient`");
+  line_key.def_rw("var", &lbl::line_key::var, "The variable\n\n.. :class:`LineByLineVariable`");
   line_key.doc() = "A key for a line";
 
   py::class_<lbl::temperature::data> tm(m, "TemperatureModel");
   generic_interface(tm);
-  tm.def(py::init<LineShapeModelType, Vector>(),
-         "type"_a,
-         "data"_a = Vector{0.0})
+  tm.def(py::init<LineShapeModelType, Vector>(), "type"_a, "data"_a = Vector{0.0})
       .def_prop_rw(
           "type",
           &lbl::temperature::data::Type,
-          [](lbl::temperature::data& self, LineShapeModelType x) {
-            self = lbl::temperature::data{x, self.X()};
-          },
+          [](lbl::temperature::data& self, LineShapeModelType x) { self = lbl::temperature::data{x, self.X()}; },
           "The type of the model\n\n.. :class:`~pyarts3.arts.TemperatureModelType`")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },
-          [](lbl::temperature::data& self, const Vector& x) {
-            self = lbl::temperature::data{self.Type(), x};
-          },
+          [](lbl::temperature::data& self, const Vector& x) { self = lbl::temperature::data{self.Type(), x}; },
           "The coefficients\n\n.. :class:`~pyarts3.arts.Vector`")
 
       .doc() = "Temperature model";
 
   py::class_<lbl::line_shape::species_model> lssm(m, "LineShapeSpeciesModel");
   generic_interface(lssm);
-  lssm.def_rw(
-          "data",
-          &lbl::line_shape::species_model::data,
-          "The data\n\n.. :class:`dict[tuple[LineShapeModelVariable, TemperatureModel]]`")
-      .def("__getitem__",
-           [](py::object& x, const py::object& key) {
-             return x.attr("data").attr("__getitem__")(key);
-           })
+  lssm.def_rw("data",
+              &lbl::line_shape::species_model::data,
+              "The data\n\n.. :class:`dict[tuple[LineShapeModelVariable, TemperatureModel]]`")
+      .def("__getitem__", [](py::object& x, const py::object& key) { return x.attr("data").attr("__getitem__")(key); })
       .def("__setitem__",
            [](py::object& x, const py::object& key, const py::object& val) {
              x.attr("data").attr("__setitem__")(key, val);
            })
       .def(
           "G0",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.G0(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.G0(t0, t, p); }, T0, T, P);
           },
           R"(Computes the G0 coefficient for the given conditions.
 
@@ -133,17 +101,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "G2",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.G2(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.G2(t0, t, p); }, T0, T, P);
           },
           R"(Computes the G2 coefficient for the given conditions.
 
@@ -166,17 +125,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "D0",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.D0(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.D0(t0, t, p); }, T0, T, P);
           },
           R"(Computes the D0 coefficient for the given conditions.
 
@@ -199,17 +149,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "D2",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.D2(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.D2(t0, t, p); }, T0, T, P);
           },
           R"(Computes the D2 coefficient for the given conditions.
 
@@ -232,17 +173,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "ETA",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.ETA(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.ETA(t0, t, p); }, T0, T, P);
           },
           R"(Computes the ETA coefficient for the given conditions.
 
@@ -265,17 +197,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "G",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.G(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.G(t0, t, p); }, T0, T, P);
           },
           R"(Computes the G coefficient for the given conditions.
 
@@ -298,17 +221,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "Y",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.Y(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.Y(t0, t, p); }, T0, T, P);
           },
           R"(Computes the Y coefficient for the given conditions.
 
@@ -331,17 +245,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "DV",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.DV(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.DV(t0, t, p); }, T0, T, P);
           },
           R"(Computes the DV coefficient for the given conditions.
 
@@ -364,17 +269,8 @@ Numeric or array-like
           "P"_a)
       .def(
           "FVC",
-          [](const lbl::line_shape::species_model& self,
-             py::object& T0,
-             py::object& T,
-             py::object& P) {
-            return vectorize(
-                [&self](Numeric t0, Numeric t, Numeric p) {
-                  return self.FVC(t0, t, p);
-                },
-                T0,
-                T,
-                P);
+          [](const lbl::line_shape::species_model& self, py::object& T0, py::object& T, py::object& P) {
+            return vectorize([&self](Numeric t0, Numeric t, Numeric p) { return self.FVC(t0, t, p); }, T0, T, P);
           },
           R"(Computes the FVC coefficient for the given conditions.
 
@@ -398,22 +294,17 @@ Numeric or array-like
       .doc() = "Line shape model for a species";
 
   using line_shape_model_list = std::vector<lbl::line_shape::species_model>;
-  auto lsml =
-      py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(
-          m, "LineShapeModelList");
+  auto lsml  = py::bind_vector<line_shape_model_list, py::rv_policy::reference_internal>(m, "LineShapeModelList");
   lsml.doc() = "A list of line shape models";
   vector_interface(lsml);
   generic_interface(lsml);
 
   py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
   generic_interface(lsm);
-  lsm.def_rw("T0",
-             &lbl::line_shape::model::T0,
-             "The reference temperature [K]\n\n.. :class:`Numeric`")
-      .def_rw(
-          "single_models",
-          &lbl::line_shape::model::single_models,
-          "The single models\n\n.. :class:`dict[SpeciesEnum, LineShapeSpeciesModel]`")
+  lsm.def_rw("T0", &lbl::line_shape::model::T0, "The reference temperature [K]\n\n.. :class:`Numeric`")
+      .def_rw("single_models",
+              &lbl::line_shape::model::single_models,
+              "The single models\n\n.. :class:`dict[SpeciesEnum, LineShapeSpeciesModel]`")
       .def("G0",
            &lbl::line_shape::model::G0,
            R"(Computes the G0 coefficient
@@ -573,9 +464,7 @@ x : LineShapeModelVariable
 
   py::class_<lbl::zeeman::model> zlm(m, "ZeemanLineModel");
   generic_interface(zlm);
-  zlm.def_rw("on",
-             &lbl::zeeman::model::on,
-             "If True, the Zeeman effect is included\n\n.. :class:`bool`")
+  zlm.def_rw("on", &lbl::zeeman::model::on, "If True, the Zeeman effect is included\n\n.. :class:`bool`")
       .def_prop_rw(
           "gl",
           [](lbl::zeeman::model& z) { return z.gl(); },
@@ -592,19 +481,13 @@ x : LineShapeModelVariable
             std::map<std::string, std::vector<double>> out;
 
             const Index Npi = mod.size(qn, ZeemanPolarization::pi);
-            for (Index i = 0; i < Npi; i++) {
-              out["pi"].push_back(mod.Strength(qn, ZeemanPolarization::pi, i));
-            }
+            for (Index i = 0; i < Npi; i++) { out["pi"].push_back(mod.Strength(qn, ZeemanPolarization::pi, i)); }
 
             const Index Nsp = mod.size(qn, ZeemanPolarization::sp);
-            for (Index i = 0; i < Nsp; i++) {
-              out["sp"].push_back(mod.Strength(qn, ZeemanPolarization::sp, i));
-            }
+            for (Index i = 0; i < Nsp; i++) { out["sp"].push_back(mod.Strength(qn, ZeemanPolarization::sp, i)); }
 
             const Index Nsm = mod.size(qn, ZeemanPolarization::sm);
-            for (Index i = 0; i < Nsm; i++) {
-              out["sm"].push_back(mod.Strength(qn, ZeemanPolarization::sm, i));
-            }
+            for (Index i = 0; i < Nsm; i++) { out["sm"].push_back(mod.Strength(qn, ZeemanPolarization::sm, i)); }
 
             return out;
           },
@@ -622,37 +505,18 @@ dict[str, list[float]]
 
   py::class_<lbl::line> al(m, "AbsorptionLine");
   generic_interface(al);
-  al.def_rw("a",
-            &lbl::line::a,
-            "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
-      .def_rw("f0",
-              &lbl::line::f0,
-              "The line center frequency [Hz]\n\n.. :class:`Numeric`")
-      .def_rw("e0",
-              &lbl::line::e0,
-              "The lower level energy [J]\n\n.. :class:`Numeric`")
-      .def_rw("gu",
-              &lbl::line::gu,
-              "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
-      .def_rw("gl",
-              &lbl::line::gl,
-              "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
-      .def_rw("z",
-              &lbl::line::z,
-              "The Zeeman model\n\n.. :class:`~pyarts3.arts.ZeemanLineModel`")
-      .def_rw(
-          "ls",
-          &lbl::line::ls,
-          "The line shape model\n\n.. :class:`~pyarts3.arts.LineShapeModel`")
-      .def_rw(
-          "qn",
-          &lbl::line::qn,
-          "The local quantum numbers of this line\n\n.. :class:`~pyarts3.arts.QuantumState`")
+  al.def_rw("a", &lbl::line::a, "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
+      .def_rw("f0", &lbl::line::f0, "The line center frequency [Hz]\n\n.. :class:`Numeric`")
+      .def_rw("e0", &lbl::line::e0, "The lower level energy [J]\n\n.. :class:`Numeric`")
+      .def_rw("gu", &lbl::line::gu, "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
+      .def_rw("gl", &lbl::line::gl, "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
+      .def_rw("z", &lbl::line::z, "The Zeeman model\n\n.. :class:`~pyarts3.arts.ZeemanLineModel`")
+      .def_rw("ls", &lbl::line::ls, "The line shape model\n\n.. :class:`~pyarts3.arts.LineShapeModel`")
+      .def_rw("qn", &lbl::line::qn, "The local quantum numbers of this line\n\n.. :class:`~pyarts3.arts.QuantumState`")
       .def(
           "s",
           [](const lbl::line& self, py::object& T, py::object& Q) {
-            return vectorize(
-                [&self](Numeric t, Numeric q) { return self.s(t, q); }, T, Q);
+            return vectorize([&self](Numeric t, Numeric q) { return self.s(t, q); }, T, Q);
           },
           "T"_a,
           "Q"_a,
@@ -671,9 +535,7 @@ Numeric or array-like
 )")
       .def(
           "hitran_s",
-          [](const lbl::line& self, const SpeciesIsotope& isot, Numeric T0) {
-            return self.hitran_s(isot, T0);
-          },
+          [](const lbl::line& self, const SpeciesIsotope& isot, Numeric T0) { return self.hitran_s(isot, T0); },
           "isot"_a,
           "T0"_a = 296.0,
           R"(The HITRAN-like line strength
@@ -691,9 +553,7 @@ Numeric
 )")
       .doc() = "A single absorption line";
 
-  auto ll = py::bind_vector<std::vector<lbl::line>,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfAbsorptionLine");
+  auto ll  = py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLine");
   ll.doc() = "A list of :class:`AbsorptionLine`";
   vector_interface(ll);
   generic_interface(ll);
@@ -702,30 +562,17 @@ Numeric
   generic_interface(ab);
   ab.def(
       "__getitem__",
-      [](const py::object& x, py::object& i) {
-        return x.attr("lines").attr("__getitem__")(i);
-      },
+      [](const py::object& x, py::object& i) { return x.attr("lines").attr("__getitem__")(i); },
       py::rv_policy::reference_internal);
   ab.def("__setitem__",
-         [](py::object& x, const py::object& i, const py::object& v) {
-           x.attr("lines").attr("__setitem__")(i, v);
-         });
-  ab.def(
-      "__len__",
-      [](const AbsorptionBand& x) { return x.lines.size(); },
-      "Return the number of lines in the band");
-  ab.def_rw("lines",
-            &AbsorptionBand::lines,
-            "The lines in the band\n\n.. :class:`ArrayOfAbsorptionLine`")
-      .def_rw("lineshape",
-              &AbsorptionBand::lineshape,
-              "The lineshape type\n\n.. :class:`LineByLineLineshape`")
+         [](py::object& x, const py::object& i, const py::object& v) { x.attr("lines").attr("__setitem__")(i, v); });
+  ab.def("__len__", [](const AbsorptionBand& x) { return x.lines.size(); }, "Return the number of lines in the band");
+  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band\n\n.. :class:`ArrayOfAbsorptionLine`")
+      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type\n\n.. :class:`LineByLineLineshape`")
       .def_prop_rw(
           "cutoff",
           [](const AbsorptionBand& band) { return band.cutoff.type; },
-          [](AbsorptionBand& band, LineByLineCutoffType x) {
-            band.cutoff.type = x;
-          },
+          [](AbsorptionBand& band, LineByLineCutoffType x) { band.cutoff.type = x; },
           "The cutoff type\n\n.. :class:`LineByLineCutoffType`")
       .def_prop_rw(
           "cutoff_value",
@@ -736,7 +583,7 @@ Numeric
           "keep_frequencies",
           [](AbsorptionBand& band, Vector2 freqs) {
             band.sort();
-            auto l = band.active_lines(freqs[0], freqs[1]).second;
+            auto                   l = band.active_lines(freqs[0], freqs[1]).second;
             std::vector<lbl::line> new_lines(l.begin(), l.end());
             band.lines = std::move(new_lines);
           },
@@ -744,35 +591,22 @@ Numeric
           "Keep only the lines within the given frequency range")
       .def(
           "keep_hitran_s",
-          [](AbsorptionBand& band,
-             Numeric min_s,
-             const SpeciesIsotope& isot,
-             Numeric T0) {
-            std::erase_if(band.lines, [&isot, &T0, &min_s](auto& line) {
-              return line.hitran_s(isot, T0) < min_s;
-            });
+          [](AbsorptionBand& band, Numeric min_s, const SpeciesIsotope& isot, Numeric T0) {
+            std::erase_if(band.lines, [&isot, &T0, &min_s](auto& line) { return line.hitran_s(isot, T0) < min_s; });
           },
           "min_s"_a,
           "isot"_a,
           "T0"_a = 296.0,
           "Keep only the lines with a stronger HITRAN-like line strength");
 
-  auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(
-      m, "AbsorptionBands");
+  auto aoab = py::bind_map<AbsorptionBands, py::rv_policy::reference_internal>(m, "AbsorptionBands");
   generic_interface(aoab);
   aoab.def("__getitem__",
-           [](const AbsorptionBands& x, const lbl::line_key& key) -> Numeric {
-             return key.get_value(x);
-           })
-      .def("__setitem__",
-           [](AbsorptionBands& x, const lbl::line_key& key, Numeric v) {
-             key.get_value(x) = v;
-           });
+           [](const AbsorptionBands& x, const lbl::line_key& key) -> Numeric { return key.get_value(x); })
+      .def("__setitem__", [](AbsorptionBands& x, const lbl::line_key& key, Numeric v) { key.get_value(x) = v; });
   aoab.def(
       "extract_species",
-      [](const AbsorptionBands& x,
-         const std::variant<SpeciesEnum, SpeciesIsotope>& vkey)
-          -> AbsorptionBands {
+      [](const AbsorptionBands& x, const std::variant<SpeciesEnum, SpeciesIsotope>& vkey) -> AbsorptionBands {
         AbsorptionBands out;
         std::visit(
             [&]<typename T>(const T& key) {
@@ -805,8 +639,7 @@ AbsorptionBands
 )");
   aoab.def(
       "merge",
-      [](AbsorptionBands& self,
-         const AbsorptionBands& other) -> std::pair<Size, Size> {
+      [](AbsorptionBands& self, const AbsorptionBands& other) -> std::pair<Size, Size> {
         Size added = 0, updated = 0;
 
         for (const auto& [key, band] : other) {
@@ -845,9 +678,7 @@ other : AbsorptionBands
         Size sum = 0;
         for (auto& band : self | stdv::values) {
           for (auto& line : band.lines) {
-            for (auto& lsm : line.ls.single_models | stdv::values) {
-              sum += lsm.remove_variables<Y, G, DV>();
-            }
+            for (auto& lsm : line.ls.single_models | stdv::values) { sum += lsm.remove_variables<Y, G, DV>(); }
           }
         }
 
@@ -877,10 +708,9 @@ int : The number of removed variables
       "spec"_a = SpeciesEnum::Bath,
       "Return the total number of lines");
 
-  aoab.def(
-      "remove_hitran_s",
-      &lbl::keep_hitran_s,
-      R"(Removes all lines with a weaker HITRAN-like line strength than those provided by the remove map.
+  aoab.def("remove_hitran_s",
+           &lbl::keep_hitran_s,
+           R"(Removes all lines with a weaker HITRAN-like line strength than those provided by the remove map.
 
 Parameters
 ----------
@@ -889,18 +719,15 @@ remove : dict
 T0 : float
     The reference temperature. Defaults to 296.0.
 )",
-      "remove"_a,
-      "T0"_a = 296.0);
+           "remove"_a,
+           "T0"_a = 296.0);
 
   aoab.def(
       "percentile_hitran_s",
-      [](const AbsorptionBands& self,
-         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
-             percentile,
-         const Numeric T0) {
-        return std::visit(
-            [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
-            percentile);
+      [](const AbsorptionBands&                                                 self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>& percentile,
+         const Numeric                                                          T0) {
+        return std::visit([&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); }, percentile);
       },
       R"(Map of HITRAN linestrengths at a given percentile
 
@@ -920,16 +747,11 @@ T0 : float
 
   aoab.def(
       "keep_hitran_s",
-      [](AbsorptionBands& self,
-         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>&
-             percentile,
-         const Numeric T0) {
+      [](AbsorptionBands&                                                       self,
+         const std::variant<Numeric, std::unordered_map<SpeciesEnum, Numeric>>& percentile,
+         const Numeric                                                          T0) {
         lbl::keep_hitran_s(
-            self,
-            std::visit(
-                [&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); },
-                percentile),
-            T0);
+            self, std::visit([&](auto& i) { return lbl::percentile_hitran_s(self, i, T0); }, percentile), T0);
       },
       R"(Wraps calling percentile_hitran_s followed by remove_hitran_s.
 
@@ -961,25 +783,15 @@ fmax : ~pyarts3.arts.Numeric
 
   py::class_<LinemixingSingleEcsData> ed(m, "LinemixingSingleEcsData");
   generic_interface(ed);
-  ed.def_rw("scaling",
-            &LinemixingSingleEcsData::scaling,
-            ".. :class:`~pyarts3.arts.TemperatureModel`");
-  ed.def_rw("beta",
-            &LinemixingSingleEcsData::beta,
-            ".. :class:`~pyarts3.arts.TemperatureModel`");
+  ed.def_rw("scaling", &LinemixingSingleEcsData::scaling, ".. :class:`~pyarts3.arts.TemperatureModel`");
+  ed.def_rw("beta", &LinemixingSingleEcsData::beta, ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("lambda_",  // Fix name, not python
             &LinemixingSingleEcsData::lambda,
             ".. :class:`~pyarts3.arts.TemperatureModel`");
   ed.def_rw("collisional_distance",
             &LinemixingSingleEcsData::collisional_distance,
             ".. :class:`~pyarts3.arts.TemperatureModel`");
-  ed.def("Q",
-         &LinemixingSingleEcsData::Q,
-         "J"_a,
-         "T"_a,
-         "T0"_a,
-         "energy"_a,
-         R"(The Q coefficient for the ECS model)");
+  ed.def("Q", &LinemixingSingleEcsData::Q, "J"_a, "T"_a, "T0"_a, "energy"_a, R"(The Q coefficient for the ECS model)");
   ed.def("Omega",
          &LinemixingSingleEcsData::Omega,
          "T"_a,
@@ -990,22 +802,19 @@ fmax : ~pyarts3.arts.Numeric
          "energy_xm2"_a,
          R"(The Omega coefficient for the ECS model)");
 
-  auto lsed =
-      py::bind_map<LinemixingSpeciesEcsData, py::rv_policy::reference_internal>(
-          m, "LinemixingSpeciesEcsData");
+  auto lsed = py::bind_map<LinemixingSpeciesEcsData, py::rv_policy::reference_internal>(m, "LinemixingSpeciesEcsData");
   generic_interface(lsed);
 
-  auto led = py::bind_map<LinemixingEcsData, py::rv_policy::reference_internal>(
-      m, "LinemixingEcsData");
+  auto led = py::bind_map<LinemixingEcsData, py::rv_policy::reference_internal>(m, "LinemixingEcsData");
   generic_interface(led);
 
   lbl.def(
       "equivalent_lines",
-      [](const AbsorptionBand& band,
+      [](const AbsorptionBand&    band,
          const QuantumIdentifier& qid,
          const LinemixingEcsData& abs_ecs_data,
-         const AtmPoint& atm,
-         const Vector& T) {
+         const AtmPoint&          atm,
+         const Vector&            T) {
         lbl::voigt::ecs::ComputeData com_data({}, atm);
 
         const auto K = band.front().ls.single_models.size();
@@ -1015,14 +824,7 @@ fmax : ~pyarts3.arts.Numeric
         auto eqv_str = ComplexTensor3(M, K, N);
         auto eqv_val = ComplexTensor3(M, K, N);
 
-        equivalent_values(eqv_str,
-                          eqv_val,
-                          com_data,
-                          qid,
-                          band,
-                          abs_ecs_data.at(qid.isot),
-                          atm,
-                          T);
+        equivalent_values(eqv_str, eqv_val, com_data, qid, band, abs_ecs_data.at(qid.isot), atm, T);
 
         return std::pair{eqv_str, eqv_val};
       },
@@ -1035,18 +837,18 @@ fmax : ~pyarts3.arts.Numeric
 
   aoab.def(
       "spectral_propmat",
-      [](const AbsorptionBands& self,
-         const AscendingGrid& f,
-         const AtmPoint& atm,
-         const SpeciesEnum& spec,
+      [](const AbsorptionBands&      self,
+         const AscendingGrid&        f,
+         const AtmPoint&             atm,
+         const SpeciesEnum&          spec,
          const PropagationPathPoint& path_point,
-         const LinemixingEcsData& abs_ecs_data,
-         const Index& no_negative_absorption,
+         const LinemixingEcsData&    abs_ecs_data,
+         const Index&                no_negative_absorption,
          const py::kwargs&) {
-        PropmatVector spectral_propmat(f.size());
-        StokvecVector nlte_vector(f.size());
-        PropmatMatrix spectral_propmat_jac(0, f.size());
-        StokvecMatrix nlte_matrix(0, f.size());
+        PropmatVector   spectral_propmat(f.size());
+        StokvecVector   nlte_vector(f.size());
+        PropmatMatrix   spectral_propmat_jac(0, f.size());
+        StokvecMatrix   nlte_matrix(0, f.size());
         JacobianTargets jac_targets{};
 
         spectral_propmatAddLines(spectral_propmat,
@@ -1099,18 +901,13 @@ spectral_propmat : PropmatVector
 )--");
 
   py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
-  partfun.def_rw("data",
-                 &PartitionFunctionsData::data,
-                 "The partition function data\n\n.. :class:`Matrix`");
-  partfun.def_rw(
-      "type",
-      &PartitionFunctionsData::type,
-      "The type of partition function data\n\n.. :class:`PartitionFunctionType`");
+  partfun.def_rw("data", &PartitionFunctionsData::data, "The partition function data\n\n.. :class:`Matrix`");
+  partfun.def_rw("type",
+                 &PartitionFunctionsData::type,
+                 "The type of partition function data\n\n.. :class:`PartitionFunctionType`");
   generic_interface(partfun);
-  partfun.doc() =
-      "Data for partition functions, used in the line-by-line model";
+  partfun.doc() = "Data for partition functions, used in the line-by-line model";
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize lbl\n{}", e.what()));
 }
 }  // namespace Python

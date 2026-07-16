@@ -19,9 +19,9 @@
 
 namespace {
 struct func_body {
-  std::string data{};
-  std::string main{};
-  std::string deriv{};
+  std::string              data{};
+  std::string              main{};
+  std::string              deriv{};
   std::vector<std::string> includes{};
 };
 
@@ -31,8 +31,7 @@ func_body make_cpp_string_interp(const Matrix& data) {
   const auto q  = data[joker, 1];
 
   for (Size i = 1; i < Tv.size(); i++) {
-    if (Tv[i] <= Tv[i - 1])
-      throw std::runtime_error("Temperature grid must be increasing");
+    if (Tv[i] <= Tv[i - 1]) throw std::runtime_error("Temperature grid must be increasing");
   }
 
   return {.data = std::format(
@@ -103,10 +102,7 @@ inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 func_body make_cpp_string_const(const Matrix& data) {
   assert(data.size() == 1);
 
-  return {.data     = "",
-          .main     = std::format(R"( return {0}; )", data[0, 0]),
-          .deriv    = R"( return 0.0; )",
-          .includes = {}};
+  return {.data = "", .main = std::format(R"( return {0}; )", data[0, 0]), .deriv = R"( return 0.0; )", .includes = {}};
 }
 
 func_body make_cpp_string_static_interp(const Matrix& data) {
@@ -116,8 +112,7 @@ func_body make_cpp_string_static_interp(const Matrix& data) {
 
   const Numeric r_dT = 1.0 / (Tv[1] - Tv[0]);
   for (Size i = 1; i < Tv.size(); i++) {
-    if (Tv[i] <= Tv[i - 1])
-      throw std::runtime_error("Temperature grid must be increasing");
+    if (Tv[i] <= Tv[i - 1]) throw std::runtime_error("Temperature grid must be increasing");
     if (not is_same_within_epsilon(r_dT, 1.0 / (Tv[i] - Tv[i - 1])))
       throw std::runtime_error("Temperature grid must be equidistant");
   }
@@ -217,13 +212,10 @@ head_data make_header_data(const std::string_view filename) {
 }
 
 //! take XY+-X.xml and return XYplusZ (drop '-' and extension, replace '+' with "plus")
-std::string make_cpp_string_impl(const std::string_view filename,
-                                 const func_body& body) {
+std::string make_cpp_string_impl(const std::string_view filename, const func_body& body) {
   std::string includes{"#include <configtypes.h>\n\n"};
 
-  for (const auto& include : body.includes) {
-    includes += std::format("#include {}\n", include);
-  }
+  for (const auto& include : body.includes) { includes += std::format("#include {}\n", include); }
 
   return std::format(R"(//! auto-generated file
 
@@ -244,27 +236,19 @@ Numeric d{0}(Numeric T [[maybe_unused]]) noexcept {{{3}}}
                      includes);
 }
 
-std::string make_cpp_string(const std::string_view filename,
-                            const PartitionFunctionsData& data) {
+std::string make_cpp_string(const std::string_view filename, const PartitionFunctionsData& data) {
   switch (data.type) {
     using enum PartitionFunctionsType;
-    case Interp:
-      return make_cpp_string_impl(filename, make_cpp_string_interp(data.data));
-    case Coeff:
-      return make_cpp_string_impl(filename, make_cpp_string_coeff(data.data));
-    case Constant:
-      return make_cpp_string_impl(filename, make_cpp_string_const(data.data));
-    case StaticInterp:
-      return make_cpp_string_impl(filename,
-                                  make_cpp_string_static_interp(data.data));
+    case Interp:       return make_cpp_string_impl(filename, make_cpp_string_interp(data.data));
+    case Coeff:        return make_cpp_string_impl(filename, make_cpp_string_coeff(data.data));
+    case Constant:     return make_cpp_string_impl(filename, make_cpp_string_const(data.data));
+    case StaticInterp: return make_cpp_string_impl(filename, make_cpp_string_static_interp(data.data));
   }
 
   return {};
 }
 
-std::string make_h_string(
-    std::map<SpeciesEnum, std::vector<std::pair<std::string, std::string>>>&
-        data) {
+std::string make_h_string(std::map<SpeciesEnum, std::vector<std::pair<std::string, std::string>>>& data) {
   std::string exists;
   std::string calls;
   std::string compute;
@@ -273,13 +257,10 @@ std::string make_h_string(
   compute.reserve(1025);
 
   for (auto& spec : enumtyps::SpeciesEnumTypes) {
-    const auto& v                  = data[spec];
+    const auto&            v       = data[spec];
     const std::string_view specstr = toString<0>(spec);
 
-    exists += std::format(
-        "inline constexpr std::array<std::string_view, {0}> has{1}{{",
-        v.size(),
-        specstr);
+    exists += std::format("inline constexpr std::array<std::string_view, {0}> has{1}{{", v.size(), specstr);
 
     compute += std::format(
         R"(template<Derivatives deriv>
@@ -357,8 +338,7 @@ void make_files(const std::vector<std::string>& full_filenames) {
   for (auto& full_filename : full_filenames) {
     auto filename = std::filesystem::path(full_filename).filename().string();
 
-    const std::string cpp = make_cpp_string(
-        filename, PartitionFunctions::data_read_file(full_filename));
+    const std::string cpp = make_cpp_string(filename, PartitionFunctions::data_read_file(full_filename));
 
     std::ofstream(make_cpp_filename(filename)) << cpp;
 
@@ -374,10 +354,8 @@ int main(int argn, char** argv) try {
   if (argn != 2) throw std::runtime_error("USAGE: PROG <file-with-xml-list>");
 
   std::vector<std::string> xmlfiles;
-  std::ifstream in{argv[1]};
-  if (!in)
-    throw std::runtime_error(
-        std::format("Failed to open list file: {}", argv[1]));
+  std::ifstream            in{argv[1]};
+  if (!in) throw std::runtime_error(std::format("Failed to open list file: {}", argv[1]));
 
   std::string line;
   while (std::getline(in, line)) {

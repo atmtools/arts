@@ -8,9 +8,7 @@
 #include <ranges>
 
 namespace matpack {
-template <std::random_access_iterator Iter,
-          class Compare = std::ranges::less,
-          class Proj    = std::identity>
+template <std::random_access_iterator Iter, class Compare = std::ranges::less, class Proj = std::identity>
 constexpr void sort(Iter first, Iter last, Compare comp = {}, Proj proj = {}) {
   if constexpr (std::sortable<Iter, Compare>) {
     std::ranges::sort(first, last, comp, proj);
@@ -41,7 +39,7 @@ constexpr void sort(Iter first, Iter last, Compare comp = {}, Proj proj = {}) {
     auto pivot_pos = first + dist / 2;
     iter_swap(pivot_pos, last - 1);
     const auto pivot_val = std::invoke(proj, *(last - 1));
-    auto store           = first;
+    auto       store     = first;
     for (auto it = first; it != last - 1; ++it) {
       if (comp(std::invoke(proj, *it), pivot_val)) {
         iter_swap(it, store);
@@ -54,9 +52,7 @@ constexpr void sort(Iter first, Iter last, Compare comp = {}, Proj proj = {}) {
   }
 }
 
-template <std::ranges::random_access_range R,
-          typename Compare = std::ranges::less,
-          typename Proj    = std::identity>
+template <std::ranges::random_access_range R, typename Compare = std::ranges::less, typename Proj = std::identity>
 constexpr void sort(R&& r, Compare comp = {}, Proj proj = {}) {
   sort(r.begin(), r.end(), comp, proj);
 }

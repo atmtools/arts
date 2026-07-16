@@ -12,9 +12,9 @@ Numeric HydrostaticPressure::step(Numeric p, Numeric h, Numeric d) const {
   return NAN;
 }
 
-HydrostaticPressure::HydrostaticPressure(Tensor3 in_grad_p,
-                                         const GeodeticField2& pre0,
-                                         AscendingGrid in_alt,
+HydrostaticPressure::HydrostaticPressure(Tensor3                   in_grad_p,
+                                         const GeodeticField2&     pre0,
+                                         AscendingGrid             in_alt,
                                          HydrostaticPressureOption option_)
     : grad_p{.data_name  = "Pressure Gradient",
              .data       = std::move(in_grad_p),
@@ -41,39 +41,32 @@ HydrostaticPressure::HydrostaticPressure(Tensor3 in_grad_p,
 
 std::pair<Size, Numeric> HydrostaticPressure::find_alt(Numeric al) const {
   auto& alt  = std::get<0>(grad_p.grids);
-  Size i     = std::distance(alt.begin(), stdr::upper_bound(alt, al));
+  Size  i    = std::distance(alt.begin(), stdr::upper_bound(alt, al));
   i         -= (i == alt.size());
   while (i > 0 and alt[i] > al) i--;
   return {i, al - alt[i]};
 }
 
-std::pair<Numeric, Numeric> HydrostaticPressure::level(Index alt_ind,
-                                                       Numeric la,
-                                                       Numeric lo) const {
-  const auto latlag = interp::latlag(pre.grid<1>(), la);
-  const auto lonlag = interp::lonlag(pre.grid<2>(), lo);
-  const auto iw     = interp::interpweights(latlag, lonlag);
-  const Numeric p   = interp::get<lagrange_interp::log_transform>(
-      pre, alt_ind, iw, latlag, lonlag);
-  const Numeric d = interp::get<lagrange_interp::value_identity>(
-      grad_p, alt_ind, iw, latlag, lonlag);
+std::pair<Numeric, Numeric> HydrostaticPressure::level(Index alt_ind, Numeric la, Numeric lo) const {
+  const auto    latlag = interp::latlag(pre.grid<1>(), la);
+  const auto    lonlag = interp::lonlag(pre.grid<2>(), lo);
+  const auto    iw     = interp::interpweights(latlag, lonlag);
+  const Numeric p      = interp::get<lagrange_interp::log_transform>(pre, alt_ind, iw, latlag, lonlag);
+  const Numeric d      = interp::get<lagrange_interp::value_identity>(grad_p, alt_ind, iw, latlag, lonlag);
   return {p, d};
 }
 
-Numeric HydrostaticPressure::operator()(Numeric al,
-                                        Numeric la,
-                                        Numeric lo) const {
+Numeric HydrostaticPressure::operator()(Numeric al, Numeric la, Numeric lo) const {
   const auto [i, h] = find_alt(al);
   const auto [p, d] = level(i, la, lo);
   return step(p, h, d);
 }
 }  // namespace Atm
 
-void xml_io_stream<Atm::HydrostaticPressure>::write(
-    std::ostream& os,
-    const Atm::HydrostaticPressure& a,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<Atm::HydrostaticPressure>::write(std::ostream&                   os,
+                                                    const Atm::HydrostaticPressure& a,
+                                                    bofstream*                      pbofs,
+                                                    std::string_view                name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -84,9 +77,7 @@ void xml_io_stream<Atm::HydrostaticPressure>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<Atm::HydrostaticPressure>::read(std::istream& is,
-                                                   Atm::HydrostaticPressure& a,
-                                                   bifstream* pbifs) {
+void xml_io_stream<Atm::HydrostaticPressure>::read(std::istream& is, Atm::HydrostaticPressure& a, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

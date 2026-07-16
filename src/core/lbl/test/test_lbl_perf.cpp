@@ -28,26 +28,24 @@ JacobianTargets create_jac_targets() {
 
 std::vector<lbl::line> create_lines(Index M) {
   constexpr Index n = 5;
-  const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+  const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
 
   std::vector<lbl::line> lines(M);
 
   for (Index i = 0; i < M; i++) {
     auto& line = lines[i];
 
-    line.a      = 4.479289583303983e-09 * (1 + nonstd::abs(x[i, 0]));
-    line.f0     = 118750348044.712 + nonstd::abs(x[i, 1]) * 1e9;
-    line.e0     = 1e-23 * (1 + nonstd::abs(x[i, 2]));
-    line.gu     = 3.0;
-    line.gl     = 1.0;
-    line.z.gu() = 1.0011;
-    line.z.gl() = 0.0;
-    line.ls.T0  = 296.0;
-    auto& ls    = line.ls.single_models[bnd_qid.isot.spec];
-    ls.data[LineShapeModelVariable::G0] = lbl::temperature::data(
-        LineShapeModelType::T1, Vector{x[i, Range(3, 2)]});
-    line.qn[QuantumNumberType::J] = {.upper = Rational(1),
-                                     .lower = Rational(0)};
+    line.a                              = 4.479289583303983e-09 * (1 + nonstd::abs(x[i, 0]));
+    line.f0                             = 118750348044.712 + nonstd::abs(x[i, 1]) * 1e9;
+    line.e0                             = 1e-23 * (1 + nonstd::abs(x[i, 2]));
+    line.gu                             = 3.0;
+    line.gl                             = 1.0;
+    line.z.gu()                         = 1.0011;
+    line.z.gl()                         = 0.0;
+    line.ls.T0                          = 296.0;
+    auto& ls                            = line.ls.single_models[bnd_qid.isot.spec];
+    ls.data[LineShapeModelVariable::G0] = lbl::temperature::data(LineShapeModelType::T1, Vector{x[i, Range(3, 2)]});
+    line.qn[QuantumNumberType::J]       = {.upper = Rational(1), .lower = Rational(0)};
   }
   return lines;
 }
@@ -92,8 +90,7 @@ Numeric lbl_temperature_t2(const Matrix& x) {
   const Index n = x.nrows();
 
   Numeric result = 0.0;
-  for (Index i = 0; i < n; ++i)
-    result += model::T2(x[i, 0], x[i, 1], x[i, 2], T0, T);
+  for (Index i = 0; i < n; ++i) result += model::T2(x[i, 0], x[i, 1], x[i, 2], T0, T);
 
   return result;
 }
@@ -122,8 +119,7 @@ Numeric lbl_temperature_t4(const Matrix& x) {
   const Index n = x.nrows();
 
   Numeric result = 0.0;
-  for (Index i = 0; i < n; ++i)
-    result += model::T4(x[i, 0], x[i, 1], x[i, 2], T0, T);
+  for (Index i = 0; i < n; ++i) result += model::T4(x[i, 0], x[i, 1], x[i, 2], T0, T);
   return result;
 }
 
@@ -151,8 +147,7 @@ Numeric lbl_temperature_dpl(const Matrix& x) {
   const Index n = x.nrows();
 
   Numeric result = 0.0;
-  for (Index i = 0; i < n; ++i)
-    result += model::DPL(x[i, 0], x[i, 1], x[i, 2], x[i, 3], T0, T);
+  for (Index i = 0; i < n; ++i) result += model::DPL(x[i, 0], x[i, 1], x[i, 2], x[i, 3], T0, T);
   return result;
 }
 
@@ -166,8 +161,7 @@ Numeric lbl_temperature_aer(const Matrix& x) {
   const Index n = x.nrows();
 
   Numeric result = 0.0;
-  for (Index i = 0; i < n; ++i)
-    result += model::AER(x[i, 0], x[i, 1], x[i, 2], x[i, 3], T);
+  for (Index i = 0; i < n; ++i) result += model::AER(x[i, 0], x[i, 1], x[i, 2], x[i, 3], T);
   return result;
 }
 
@@ -241,224 +235,151 @@ Numeric lbl_data_line_hitran_s(const std::vector<lbl::line>& lines) {
   const Index n = lines.size();
 
   Numeric result = 0.0;
-  for (Index i = 0; i < n; ++i)
-    result += lines[i].hitran_s(bnd_qid.isot, 296.0);
+  for (Index i = 0; i < n; ++i) result += lines[i].hitran_s(bnd_qid.isot, 296.0);
   return result;
 }
 
-Numeric lbl_voigt_lte_calculate(PropmatVector& pm,
-                                PropmatMatrix& dpm,
-                                const AbsorptionBand& bnd,
-                                const Vector& fs,
-                                const AtmPoint& atm) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_calculate; threads: {}",
-                                     arts_omp_get_max_threads()));
+Numeric lbl_voigt_lte_calculate(
+    PropmatVector& pm, PropmatMatrix& dpm, const AbsorptionBand& bnd, const Vector& fs, const AtmPoint& atm) {
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_calculate; threads: {}", arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  constexpr Vector2 los{};
-  const Jacobian::Targets jac_targets{};
+  constexpr Vector2        los{};
+  const Jacobian::Targets  jac_targets{};
 
   ComputeData com_data(fs, atm, los, pol);
 
   const Size n = arts_omp_get_max_threads();
   if (n == 1) {
-    calculate(pm,
-              dpm,
-              com_data,
-              fs,
-              Range{0, fs.size()},
-              jac_targets,
-              bnd_qid,
-              bnd,
-              atm,
-              pol,
-              false);
+    calculate(pm, dpm, com_data, fs, Range{0, fs.size()}, jac_targets, bnd_qid, bnd, atm, pol, false);
   } else {
     const auto f_ranges = matpack::omp_offset_count(fs.size(), n);
 #pragma omp parallel for firstprivate(com_data)
     for (Size i = 0; i < n; i++) {
-      calculate(pm,
-                dpm,
-                com_data,
-                fs,
-                f_ranges[i],
-                jac_targets,
-                bnd_qid,
-                bnd,
-                atm,
-                pol,
-                false);
+      calculate(pm, dpm, com_data, fs, f_ranges[i], jac_targets, bnd_qid, bnd, atm, pol, false);
     }
   }
 
   return pm[0].A();
 }
 
-Numeric lbl_voigt_lte_mirror_calculate(PropmatVector& pm,
-                                       PropmatMatrix& dpm,
-                                       const AbsorptionBand& bnd,
-                                       const Vector& fs,
-                                       const AtmPoint& atm) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_mirror_calculate; threads: {}",
-                  arts_omp_get_max_threads()));
+Numeric lbl_voigt_lte_mirror_calculate(
+    PropmatVector& pm, PropmatMatrix& dpm, const AbsorptionBand& bnd, const Vector& fs, const AtmPoint& atm) {
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_mirror_calculate; threads: {}", arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte_mirror;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  constexpr Vector2 los{};
-  const Jacobian::Targets jac_targets{};
+  constexpr Vector2        los{};
+  const Jacobian::Targets  jac_targets{};
 
   ComputeData com_data(fs, atm, los, pol);
 
   const Size n = arts_omp_get_max_threads();
   if (n == 1) {
-    calculate(pm,
-              dpm,
-              com_data,
-              fs,
-              Range{0, fs.size()},
-              jac_targets,
-              bnd_qid,
-              bnd,
-              atm,
-              pol,
-              false);
+    calculate(pm, dpm, com_data, fs, Range{0, fs.size()}, jac_targets, bnd_qid, bnd, atm, pol, false);
   } else {
     const auto f_ranges = matpack::omp_offset_count(fs.size(), n);
 #pragma omp parallel for firstprivate(com_data)
     for (Size i = 0; i < n; i++) {
-      calculate(pm,
-                dpm,
-                com_data,
-                fs,
-                f_ranges[i],
-                jac_targets,
-                bnd_qid,
-                bnd,
-                atm,
-                pol,
-                false);
+      calculate(pm, dpm, com_data, fs, f_ranges[i], jac_targets, bnd_qid, bnd, atm, pol, false);
     }
   }
 
   return pm[0].A();
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manylines(
-    Matrix& mat,
-    const std::vector<lbl::flat_band_data>& flat,
-    const AtmPoint& atm) {
+Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix&                                 mat,
+                                               const std::vector<lbl::flat_band_data>& flat,
+                                               const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}",
-                  arts_omp_get_max_threads()));
+      std::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(
-    Matrix& mat,
-    const std::vector<lbl::flat_band_data>& flat,
-    const AtmPoint& atm,
-    const JacobianTargets& jac_targets) {
+Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(Matrix&                                 mat,
+                                                   const std::vector<lbl::flat_band_data>& flat,
+                                                   const AtmPoint&                         atm,
+                                                   const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manylines_jac; threads: {}",
-                  arts_omp_get_max_threads()));
+      std::format("lbl_voigt_lte_matrix_prepare_manylines_jac; threads: {}", arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::prepare(
-      mat, atm, flat, jac_targets, ZeemanPolarization::no);
+  lbl::voigt::lte::matrix::prepare(mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manybands(
-    Matrix& mat,
-    const std::vector<lbl::flat_band_data>& flat,
-    const AtmPoint& atm) {
+Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix&                                 mat,
+                                               const std::vector<lbl::flat_band_data>& flat,
+                                               const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}",
-                  arts_omp_get_max_threads()));
+      std::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(
-    Matrix& mat,
-    const std::vector<lbl::flat_band_data>& flat,
-    const AtmPoint& atm,
-    const JacobianTargets& jac_targets) {
+Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(Matrix&                                 mat,
+                                                   const std::vector<lbl::flat_band_data>& flat,
+                                                   const AtmPoint&                         atm,
+                                                   const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manybands_jac; threads: {}",
-                  arts_omp_get_max_threads()));
+      std::format("lbl_voigt_lte_matrix_prepare_manybands_jac; threads: {}", arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::prepare(
-      mat, atm, flat, jac_targets, ZeemanPolarization::no);
+  lbl::voigt::lte::matrix::prepare(mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
   return mat[0, 0];
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_sort(Matrix& mat) {
-  ARTS_NAMED_TIME_REPORT(std::format(
-      "lbl_voigt_lte_matrix_prepare_sort; mat-shape: {:B,}", mat.shape()));
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_prepare_sort; mat-shape: {:B,}", mat.shape()));
 
   lbl::voigt::lte::matrix::sort(mat);
 
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_sumup(ComplexVectorView a,
-                                   const ConstMatrixView mat,
-                                   const ConstVectorView f) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup; threads: {}",
-                                     arts_omp_get_max_threads()));
+Numeric lbl_voigt_lte_matrix_sumup(ComplexVectorView a, const ConstMatrixView mat, const ConstVectorView f) {
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f);
 
   return a[0].real();
 }
 
-Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff(ComplexVectorView a,
-                                              const ConstMatrixView mat,
-                                              const ConstVectorView f) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff; threads: {}",
-                  arts_omp_get_max_threads()));
+Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff(ComplexVectorView a, const ConstMatrixView mat, const ConstVectorView f) {
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff; threads: {}", arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::sumup(
-      a, mat, f, std::numeric_limits<Numeric>::infinity());
+  lbl::voigt::lte::matrix::sumup(a, mat, f, std::numeric_limits<Numeric>::infinity());
 
   return a[0].real();
 }
 
-Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView a,
-                                       const ConstMatrixView mat,
-                                       const ConstVectorView f,
+Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView        a,
+                                       const ConstMatrixView    mat,
+                                       const ConstVectorView    f,
                                        const std::vector<bool>& df) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}",
-                  arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f, df);
 
   return a[0, 0].real();
 }
 
-Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView a,
-                                                  const ConstMatrixView mat,
-                                                  const ConstVectorView f,
+Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView        a,
+                                                  const ConstMatrixView    mat,
+                                                  const ConstVectorView    f,
                                                   const std::vector<bool>& df) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}",
-                  arts_omp_get_max_threads()));
+      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}", arts_omp_get_max_threads()));
 
-  lbl::voigt::lte::matrix::sumup(
-      a, mat, f, std::numeric_limits<Numeric>::infinity(), df);
+  lbl::voigt::lte::matrix::sumup(a, mat, f, std::numeric_limits<Numeric>::infinity(), df);
 
   return a[0, 0].real();
 }
@@ -469,7 +390,7 @@ int main() {
   {
     constexpr Index M = 10'000'000;
     constexpr Index n = 4;
-    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+    const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
 
     buf += lbl_temperature_t0(x);
     buf += lbl_temperature_t1(x);
@@ -483,7 +404,7 @@ int main() {
   }
 
   {
-    constexpr Index M                  = 10'000'000;
+    constexpr Index              M     = 10'000'000;
     const std::vector<lbl::line> lines = create_lines(M);
 
     buf += lbl_data_line_s(lines);
@@ -495,14 +416,14 @@ int main() {
   }
 
   {
-    AtmPoint atm;
-    constexpr Index M        = 10'000;
-    constexpr Index N        = 2'000;
+    AtmPoint             atm;
+    constexpr Index      M   = 10'000;
+    constexpr Index      N   = 2'000;
     const AbsorptionBand bnd = {.lines = create_lines(M)};
     atm.temperature          = 250.0;
     atm.pressure             = 182.0;
     atm[bnd_qid.isot.spec]   = 0.21;
-    const Vector f           = random_numbers<1>({N}, 0.0, 1.0);
+    const Vector  f          = random_numbers<1>({N}, 0.0, 1.0);
     PropmatVector pm(N);
     PropmatMatrix dpm(0, N);
 
@@ -526,12 +447,12 @@ int main() {
     atm.temperature        = 250.0;
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
-    Matrix mat(M, 5);
-    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
-        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
+    Matrix                                 mat(M, 5);
+    const std::vector<lbl::flat_band_data> flat =
+        lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     constexpr Index n = 5;
-    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+    const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
     lbl_voigt_lte_matrix_prepare_manylines(mat, flat, atm);
 
     const int cores = arts_omp_get_max_threads();
@@ -550,15 +471,15 @@ int main() {
     for (Index i = 0; i < N; ++i) {
       QuantumIdentifier key{bnd_qid};
       key.state[QuantumNumberType::v] = {.upper = i, .lower = i};
-      bands[key] = AbsorptionBand{.lines = create_lines(M)};
+      bands[key]                      = AbsorptionBand{.lines = create_lines(M)};
     }
     AtmPoint atm;
     atm.temperature        = 250.0;
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
-    Matrix mat(M, 5);
-    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
-        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
+    Matrix                                 mat(M, 5);
+    const std::vector<lbl::flat_band_data> flat =
+        lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     lbl_voigt_lte_matrix_prepare_manybands(mat, flat, atm);
 
@@ -570,11 +491,11 @@ int main() {
   }
 
   {
-    constexpr Index M = 10'000;
-    constexpr Index N = 2'000;
-    constexpr Index n = 5;
-    const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    constexpr Index M   = 10'000;
+    constexpr Index N   = 2'000;
+    constexpr Index n   = 5;
+    const Matrix    mat = random_numbers<2>({M, n}, 0.0, 1.0);
+    Vector          f   = random_numbers<1>({N}, 0.0, 1.0);
     stdr::sort(f);
     ComplexVector a(N);
 
@@ -594,13 +515,13 @@ int main() {
     AbsorptionBands bands{};
     bands[bnd_qid] = AbsorptionBand{.lines = create_lines(M)};
     AtmPoint atm;
-    atm.temperature                   = 250.0;
-    atm.pressure                      = 182.0;
-    atm[bnd_qid.isot.spec]            = 0.21;
-    const JacobianTargets jac_targets = create_jac_targets();
-    Matrix mat(M, 5 + 5 * jac_targets.target_count());
-    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
-        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
+    atm.temperature                                    = 250.0;
+    atm.pressure                                       = 182.0;
+    atm[bnd_qid.isot.spec]                             = 0.21;
+    const JacobianTargets                  jac_targets = create_jac_targets();
+    Matrix                                 mat(M, 5 + 5 * jac_targets.target_count());
+    const std::vector<lbl::flat_band_data> flat =
+        lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     lbl_voigt_lte_matrix_prepare_manylines_jac(mat, flat, atm, jac_targets);
 
@@ -620,16 +541,16 @@ int main() {
     for (Index i = 0; i < N; ++i) {
       QuantumIdentifier key           = bnd_qid;
       key.state[QuantumNumberType::v] = {.upper = i, .lower = i};
-      bands[key] = AbsorptionBand{.lines = create_lines(M)};
+      bands[key]                      = AbsorptionBand{.lines = create_lines(M)};
     }
     AtmPoint atm;
-    atm.temperature                   = 250.0;
-    atm.pressure                      = 182.0;
-    atm[bnd_qid.isot.spec]            = 0.21;
-    const JacobianTargets jac_targets = create_jac_targets();
-    Matrix mat(M, 5 + 5 * jac_targets.target_count());
-    const std::vector<lbl::flat_band_data> flat = lbl::flatter_view(
-        bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
+    atm.temperature                                    = 250.0;
+    atm.pressure                                       = 182.0;
+    atm[bnd_qid.isot.spec]                             = 0.21;
+    const JacobianTargets                  jac_targets = create_jac_targets();
+    Matrix                                 mat(M, 5 + 5 * jac_targets.target_count());
+    const std::vector<lbl::flat_band_data> flat =
+        lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     lbl_voigt_lte_matrix_prepare_manybands_jac(mat, flat, atm, jac_targets);
 
@@ -641,13 +562,13 @@ int main() {
   }
 
   {
-    constexpr Index M = 10'000;
-    constexpr Index N = 2'000;
-    constexpr Index n = 5 + 5 * 4;
-    const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    constexpr Index M   = 10'000;
+    constexpr Index N   = 2'000;
+    constexpr Index n   = 5 + 5 * 4;
+    const Matrix    mat = random_numbers<2>({M, n}, 0.0, 1.0);
+    Vector          f   = random_numbers<1>({N}, 0.0, 1.0);
     stdr::sort(f);
-    ComplexMatrix a(N, n / 5);
+    ComplexMatrix     a(N, n / 5);
     std::vector<bool> df(n / 5 - 1);
     stdr::fill(df, false);
 

@@ -5,9 +5,9 @@
 #include <workspace.h>
 
 namespace {
-auto spectral_propmat_profileFromAtm(const Workspace& ws,
-                                     const Agenda& spectral_propmat_agenda,
-                                     const AscendingGrid& freq_grid,
+auto spectral_propmat_profileFromAtm(const Workspace&       ws,
+                                     const Agenda&          spectral_propmat_agenda,
+                                     const AscendingGrid&   freq_grid,
                                      const ArrayOfAtmPoint& atm_profile) {
   struct spectral_propmat_pathFromPathOutput {
     ArrayOfPropmatVector k;
@@ -50,9 +50,7 @@ auto spectral_propmat_profileFromAtm(const Workspace& ws,
   return out;
 }
 
-StokvecVector interp(const StokvecConstMatrixView& data,
-                     const ZenGrid& zen_grid,
-                     const Numeric& zen) {
+StokvecVector interp(const StokvecConstMatrixView& data, const ZenGrid& zen_grid, const Numeric& zen) {
   const Size NF = data.shape().back();
 
   const auto za = zen_grid.lag<1, lagrange_interp::grid_identity>(zen);
@@ -65,43 +63,39 @@ StokvecVector interp(const StokvecConstMatrixView& data,
 }
 
 const Vector zenith_level_limb(const AscendingGrid& alt_grid,
-                               const Vector2& ellipsoid,
-                               const Numeric& lat,
-                               const Numeric& lon,
-                               const Numeric& azi) {
+                               const Vector2&       ellipsoid,
+                               const Numeric&       lat,
+                               const Numeric&       lon,
+                               const Numeric&       azi) {
   const Size NA = alt_grid.size();
-  Vector zenith_limb(NA, 90.0);
+  Vector     zenith_limb(NA, 90.0);
 
   for (Size i = 1; i < NA; i++) {
     const Numeric alt_low  = alt_grid[i - 1];
     const Numeric alt_this = alt_grid[i];
     const Vector3 pos{alt_this, lat, lon};
-    zenith_limb[i] =
-        path::geometric_tangent_zenith(pos, ellipsoid, alt_low, azi);
+    zenith_limb[i] = path::geometric_tangent_zenith(pos, ellipsoid, alt_low, azi);
   }
 
   return zenith_limb;
 }
 }  // namespace
 
-void zen_gridProfilePseudo2D(ZenGrid& zen_grid,
-                             const SurfaceField& surf_field,
+void zen_gridProfilePseudo2D(ZenGrid&             zen_grid,
+                             const SurfaceField&  surf_field,
                              const AscendingGrid& alt_grid,
-                             const Numeric& lat,
-                             const Numeric& lon,
-                             const Numeric& dzen,
-                             const Numeric& azi,
-                             const Index& consider_limb) {
+                             const Numeric&       lat,
+                             const Numeric&       lon,
+                             const Numeric&       dzen,
+                             const Numeric&       azi,
+                             const Index&         consider_limb) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
 
-  ARTS_USER_ERROR_IF(dzen <= 0.0 or dzen >= 180.0,
-                     "Delta zenith angle must be (0, 180). Given dzen: {}",
-                     dzen);
+  ARTS_USER_ERROR_IF(dzen <= 0.0 or dzen >= 180.0, "Delta zenith angle must be (0, 180). Given dzen: {}", dzen);
 
   LatGrid::assert_ranged(lat);
   LonGrid::assert_ranged(lon);
@@ -115,8 +109,7 @@ void zen_gridProfilePseudo2D(ZenGrid& zen_grid,
   };
 
   if (static_cast<bool>(consider_limb)) {
-    Vector zenith_limb =
-        zenith_level_limb(alt_grid, surf_field.ellipsoid, lat, lon, azi);
+    Vector zenith_limb = zenith_level_limb(alt_grid, surf_field.ellipsoid, lat, lon, azi);
     stdr::sort(zenith_limb);
     const auto [it, _] = stdr::unique(zenith_limb);
 
@@ -125,8 +118,7 @@ void zen_gridProfilePseudo2D(ZenGrid& zen_grid,
     out.push_back(std::nextafter(90., 180.0));
 
     Numeric past_za = zenith_limb.front();
-    for (Numeric za :
-         stdr::subrange(stdr::begin(zenith_limb), it) | stdv::drop(1)) {
+    for (Numeric za : stdr::subrange(stdr::begin(zenith_limb), it) | stdv::drop(1)) {
       const auto hit = std::nextafter(za, 0.0);
       const auto mis = std::nextafter(za, 180.0);
       append(binary_grid(past_za, hit, dzen) | stdv::drop(1));
@@ -142,40 +134,36 @@ void zen_gridProfilePseudo2D(ZenGrid& zen_grid,
 
   auto [it, _] = stdr::unique(out);
   auto s       = out | stdv::take(stdr::distance(out.begin(), it));
-  zen_grid =
-      Vector{AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{})};
+  zen_grid     = Vector{AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{})};
 }
 
-void spectral_rad_fieldProfilePseudo2D(
-    const Workspace& ws,
-    GriddedSpectralField6& spectral_rad_field,
-    const Agenda& spectral_propmat_agenda,
-    const ArrayOfAtmPoint& atm_profile,
-    const SurfaceField& surf_field,
-    const AscendingGrid& freq_grid,
-    const ZenGrid& zen_grid,
-    const AscendingGrid& alt_grid,
-    const Numeric& lat,
-    const Numeric& lon,
-    const Numeric& azi) try {
+void spectral_rad_fieldProfilePseudo2D(const Workspace&       ws,
+                                       GriddedSpectralField6& spectral_rad_field,
+                                       const Agenda&          spectral_propmat_agenda,
+                                       const ArrayOfAtmPoint& atm_profile,
+                                       const SurfaceField&    surf_field,
+                                       const AscendingGrid&   freq_grid,
+                                       const ZenGrid&         zen_grid,
+                                       const AscendingGrid&   alt_grid,
+                                       const Numeric&         lat,
+                                       const Numeric&         lon,
+                                       const Numeric&         azi) try {
   ARTS_TIME_REPORT
 
   constexpr Numeric minimal_r = 0.001;
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
 
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(alt_grid, atm_profile),
-      R"(Altitude grid and atmospheric point grid must have the same size
+  ARTS_USER_ERROR_IF(not arr::same_size(alt_grid, atm_profile),
+                     R"(Altitude grid and atmospheric point grid must have the same size
 
 Altitude grid size:          {}
 Atmospheric point grid size: {}
 )",
-      alt_grid.size(),
-      atm_profile.size())
+                     alt_grid.size(),
+                     atm_profile.size())
 
   ARTS_USER_ERROR_IF(zen_grid.empty(), "Need some zenith angles")
 
@@ -204,19 +192,16 @@ Atmospheric point grid size: {}
 
   if (NA == 0) return;
 
-  const auto propmat_data = spectral_propmat_profileFromAtm(
-      ws, spectral_propmat_agenda, freq_grid, atm_profile);
+  const auto propmat_data = spectral_propmat_profileFromAtm(ws, spectral_propmat_agenda, freq_grid, atm_profile);
 
   constexpr Numeric t_spac = Constant::cosmic_microwave_background_temperature;
-  const Numeric t_surf     = surf_field[SurfaceKey::t].at(lat, lon);
-  const Vector2 ell        = surf_field.ellipsoid;
+  const Numeric     t_surf = surf_field[SurfaceKey::t].at(lat, lon);
+  const Vector2     ell    = surf_field.ellipsoid;
 
   const Vector zenith_limb = zenith_level_limb(alt_grid, ell, lat, lon, azi);
 
-  ARTS_USER_ERROR_IF(
-      zen_grid.front() != 0.0 or zen_grid.back() != 180.0 or
-          not stdr::contains(zen_grid, 90.0),
-      "Zenith grid must contain 0, 90, 180, beyond this it is free-form")
+  ARTS_USER_ERROR_IF(zen_grid.front() != 0.0 or zen_grid.back() != 180.0 or not stdr::contains(zen_grid, 90.0),
+                     "Zenith grid must contain 0, 90, 180, beyond this it is free-form")
 
   auto srad = spectral_rad_field.data.view_as(NA, NZ, NF);
 
@@ -233,21 +218,15 @@ Atmospheric point grid size: {}
     const Vector3 pos_end{alt_end, lat, lon};
     const Vector2 los_end{zen_grid[iz], azi};
 
-    const auto [ecef, decef] =
-        geodetic_los2ecef(pos_end, path::mirror(los_end), ell);
+    const auto [ecef, decef] = geodetic_los2ecef(pos_end, path::mirror(los_end), ell);
 
-    const auto [r0, r1] =
-        path::line_ellipsoid_altitude_intersect(alt_beg, ecef, decef, ell);
+    const auto [r0, r1] = path::line_ellipsoid_altitude_intersect(alt_beg, ecef, decef, ell);
 
     // Fix for limb, where we don't want to hit self
     const Numeric r = (r0 < minimal_r) ? r1 : r0;
 
     // Again, fix for limb because it might be missed for std::nextafter(90., 0);
-    const Numeric za =
-        std::isnan(r)
-            ? 90.0
-            : path::mirror(
-                  ecef2geodetic_los(ecef + r * decef, decef, ell).second)[0];
+    const Numeric za = std::isnan(r) ? 90.0 : path::mirror(ecef2geodetic_los(ecef + r * decef, decef, ell).second)[0];
 
     StokvecVector I = interp(srad[beg], zen_grid, za);
 

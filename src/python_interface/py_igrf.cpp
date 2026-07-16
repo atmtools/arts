@@ -24,7 +24,6 @@ t : Time, optional
     A time stamp, default is the current time
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize IGRF\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize IGRF\n{}", e.what()));
 }
 }  // namespace Python

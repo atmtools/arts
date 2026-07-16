@@ -9,12 +9,10 @@
 #include "hpy_opaque.h"
 
 namespace Python {
-template <typename type>
-struct ValueHolder {
+template <typename type> struct ValueHolder {
   std::shared_ptr<type> val;
 
-  template <typename T>
-  using common_type = std::common_type_t<type, T>;
+  template <typename T> using common_type = std::common_type_t<type, T>;
 
   ValueHolder(std::shared_ptr<type> x) : val(std::move(x)) {}
   ValueHolder() : val(new type{}) {}
@@ -39,27 +37,21 @@ struct ValueHolder {
     return std::move(v);
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const ValueHolder& a) {
-    return os << *a.val;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const ValueHolder& a) { return os << *a.val; }
 };
 }  // namespace Python
 
-template <typename T>
-struct std::formatter<Python::ValueHolder<T>> {
+template <typename T> struct std::formatter<Python::ValueHolder<T>> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Python::ValueHolder<T>& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Python::ValueHolder<T>& v, FmtContext& ctx) const {
     std::formatter<T> fmt{};
 
     if constexpr (std::same_as<T, String>) {

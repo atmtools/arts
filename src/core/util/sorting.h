@@ -33,13 +33,10 @@
  * \author Oliver Lemke <olemke@core-dump.info>
  * \date   2003-08-20
  */
-template <typename T>
-void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
+template <typename T> void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
   sorted.resize(data.size());
   std::iota(sorted.begin(), sorted.end(), 0);
-  sort(sorted.begin(), sorted.end(), [&data](const Index a, const Index b) {
-    return data[a] < data[b];
-  });
+  sort(sorted.begin(), sorted.end(), [&data](const Index a, const Index b) { return data[a] < data[b]; });
 }
 
 #endif /* sorting_h */

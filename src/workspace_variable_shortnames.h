@@ -8,5 +8,4 @@ struct WsvShortForm {
   std::string title{"Normal Variables"};
 };
 
-const std::unordered_map<std::string, WsvShortForm>&
-workspace_variables_shortnames();
+const std::unordered_map<std::string, WsvShortForm>& workspace_variables_shortnames();

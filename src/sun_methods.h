@@ -29,13 +29,13 @@ struct Workspace;
  *            cross sectionand matrix.
  */
 void get_scattered_sunsource(const Workspace& ws,
-                             StokvecVector& scattered_sunlight,
-                             const Vector& f_grid,
-                             const AtmPoint& atm_point,
-                             const Matrix& transmitted_sunlight,
-                             const Vector& gas_scattering_los_in,
-                             const Vector& gas_scattering_los_out,
-                             const Agenda& gas_scattering_agenda);
+                             StokvecVector&   scattered_sunlight,
+                             const Vector&    f_grid,
+                             const AtmPoint&  atm_point,
+                             const Matrix&    transmitted_sunlight,
+                             const Vector&    gas_scattering_los_in,
+                             const Vector&    gas_scattering_los_out,
+                             const Agenda&    gas_scattering_agenda);
 
 /** Finds a path from the observer to the sun.
  *
@@ -62,23 +62,23 @@ void get_scattered_sunsource(const Workspace& ws,
  * @param[in] refinements Refinements of the resolution, see above.
  * @param[in] just_hit If true, exits the moment a sun is hit.
  */
-void find_sun_path(const Workspace& ws,
+void find_sun_path(const Workspace&             ws,
                    ArrayOfPropagationPathPoint& sun_path,
-                   const Sun& sun,
-                   const Agenda& ray_path_observer_agenda,
-                   const SurfaceField& surf_field,
-                   const Vector3 observer_pos,
-                   const Numeric angle_cut,
-                   const Index refinements,
-                   const bool just_hit);
+                   const Sun&                   sun,
+                   const Agenda&                ray_path_observer_agenda,
+                   const SurfaceField&          surf_field,
+                   const Vector3                observer_pos,
+                   const Numeric                angle_cut,
+                   const Index                  refinements,
+                   const bool                   just_hit);
 
-std::pair<Numeric, bool> beta_angle(const Workspace& ws,
+std::pair<Numeric, bool> beta_angle(const Workspace&             ws,
                                     ArrayOfPropagationPathPoint& sun_path,
-                                    const Sun& sun,
-                                    const Vector3& observer_pos,
-                                    const Vector2& observer_los,
-                                    const Agenda& ray_path_observer_agenda,
-                                    const SurfaceField& surf_field,
-                                    const Numeric& angle_cut);
+                                    const Sun&                   sun,
+                                    const Vector3&               observer_pos,
+                                    const Vector2&               observer_los,
+                                    const Agenda&                ray_path_observer_agenda,
+                                    const SurfaceField&          surf_field,
+                                    const Numeric&               angle_cut);
 
 Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell);

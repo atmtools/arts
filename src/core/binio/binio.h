@@ -53,18 +53,18 @@ class binio {
   using Flag = enum { BigEndian = 1 << 0, FloatIEEE = 1 << 1 };
 
   using ErrorCode = enum {
-    NoError = 0,
-    Fatal = 1 << 0,
+    NoError     = 0,
+    Fatal       = 1 << 0,
     Unsupported = 1 << 1,
-    NotOpen = 1 << 2,
-    Denied = 1 << 3,
-    NotFound = 1 << 4,
-    Eof = 1 << 5
+    NotOpen     = 1 << 2,
+    Denied      = 1 << 3,
+    NotFound    = 1 << 4,
+    Eof         = 1 << 5
   };
 
   using Offset = enum { Set, Add, End };
-  using FType = enum { Single, Double };
-  using Error = int;
+  using FType  = enum { Single, Double };
+  using Error  = int;
 
   binio();
 
@@ -72,21 +72,21 @@ class binio {
   bool getFlag(Flag f);
 
   Error error();
-  bool eof();
+  bool  eof();
 
-  virtual void seek(long, Offset = Set) = 0;
-  virtual std::streampos pos() = 0;
+  virtual void           seek(long, Offset = Set) = 0;
+  virtual std::streampos pos()                    = 0;
 
  protected:
-  using Int = std::int64_t;
+  using Int   = std::int64_t;
   using Float = double;
-  using Byte = unsigned char;  // has to be unsigned!
+  using Byte  = unsigned char;  // has to be unsigned!
 
   using Flags = int;
 
-  Flags my_flags{system_flags};
+  Flags              my_flags{system_flags};
   static const Flags system_flags;
-  Error err{NoError};
+  Error              err{NoError};
 
  private:
   static Flags detect_system_flags();
@@ -94,7 +94,7 @@ class binio {
 
 class binistream : virtual public binio {
  public:
-  Int readInt(unsigned int size);
+  Int   readInt(unsigned int size);
   Float readFloat(FType ft);
 
   void readDoubleArray(double *d, unsigned long size);
@@ -102,33 +102,32 @@ class binistream : virtual public binio {
   unsigned long readString(char *str, unsigned long amount);
   unsigned long readString(char *str, unsigned long maxlen, const char delim);
 
-
 #if BINIO_ENABLE_STRING
   std::string readString(const char delim = '\0');
 #endif
 
-  Int peekInt(unsigned int size);
+  Int   peekInt(unsigned int size);
   Float peekFloat(FType ft);
 
   bool ateof();
   void ignore(unsigned long amount = 1);
 
  protected:
-  virtual Byte getByte() = 0;
+  virtual Byte getByte()                          = 0;
   virtual void getRaw(char *c, std::streamsize n) = 0;
 };
 
 class binostream : virtual public binio {
  public:
-  void writeInt(Int val, unsigned int size);
-  void writeFloat(Float f, FType ft);
+  void          writeInt(Int val, unsigned int size);
+  void          writeFloat(Float f, FType ft);
   unsigned long writeString(const char *str, unsigned long amount = 0);
 #if BINIO_ENABLE_STRING
   unsigned long writeString(const std::string &str);
 #endif
 
  protected:
-  virtual void putByte(Byte) = 0;
+  virtual void putByte(Byte)                            = 0;
   virtual void putRaw(const char *c, std::streamsize n) = 0;
 };
 

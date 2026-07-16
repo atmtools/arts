@@ -12,9 +12,7 @@ namespace {
 std::unordered_map<std::string, Wsv> from_global_defaults() {
   std::unordered_map<std::string, Wsv> wsv{};
   for (const auto& [name, record] : workspace_variables()) {
-    if (record.default_value.has_value()) {
-      wsv[name] = Wsv{record.default_value.value()};
-    }
+    if (record.default_value.has_value()) { wsv[name] = Wsv{record.default_value.value()}; }
   }
   return wsv;
 }
@@ -25,39 +23,32 @@ const std::unordered_map<std::string, Wsv>& global_wsv_defaults() {
   return wsv;
 }
 
-const Wsv& Workspace::share(const std::string& name) const try {
-  return wsv.at(name);
-} catch (std::out_of_range&) {
-  throw std::runtime_error(
-      std::format("Cannot share workspace variable \"{}\" - is not set", name));
+const Wsv& Workspace::share(const std::string& name) const try { return wsv.at(name); } catch (std::out_of_range&) {
+  throw std::runtime_error(std::format("Cannot share workspace variable \"{}\" - is not set", name));
 }
 
-Wsv Workspace::copy(const std::string& name) const {
-  return share(name).copied();
-}
+Wsv Workspace::copy(const std::string& name) const { return share(name).copied(); }
 
 void Workspace::set(const std::string& name, const Wsv& data) {
   auto ptr = wsv.find(name);
 
   if (ptr == wsv.end()) {
     if (auto wsv_ptr = workspace_variables().find(name);
-        wsv_ptr != workspace_variables().end() and
-        wsv_ptr->second.type != data.type_name()) {
-      throw std::runtime_error(std::format(
-          R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
-          name,
-          wsv_ptr->second.type,
-          data.type_name()));
+        wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name()) {
+      throw std::runtime_error(
+          std::format(R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
+                      name,
+                      wsv_ptr->second.type,
+                      data.type_name()));
     }
 
     wsv[name] = data;
   } else {
     if (not ptr->second.holds_same(data)) {
-      throw std::runtime_error(std::format(
-          R"(Workspace variable "{}" is of type "{}". It cannot be set to be a "{}")",
-          name,
-          ptr->second.type_name(),
-          data.type_name()));
+      throw std::runtime_error(std::format(R"(Workspace variable "{}" is of type "{}". It cannot be set to be a "{}")",
+                                           name,
+                                           ptr->second.type_name(),
+                                           data.type_name()));
     }
 
     ptr->second = data;
@@ -66,28 +57,23 @@ void Workspace::set(const std::string& name, const Wsv& data) {
 
 void Workspace::overwrite(const std::string& name, const Wsv& data) try {
   if (auto wsv_ptr = workspace_variables().find(name);
-      wsv_ptr != workspace_variables().end() and
-      wsv_ptr->second.type != data.type_name())
+      wsv_ptr != workspace_variables().end() and wsv_ptr->second.type != data.type_name())
     throw wsv_ptr->second.type;
   wsv[name] = data;
 } catch (const std::string& type) {
-  throw std::runtime_error(std::format(
-      R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
-      name,
-      type,
-      data.type_name()));
+  throw std::runtime_error(
+      std::format(R"(Cannot set built-in workspace variable "{}" of workspace group "{}" to type "{}")",
+                  name,
+                  type,
+                  data.type_name()));
 }
 
-bool Workspace::contains(const std::string& name) const {
-  return wsv.contains(name);
-}
+bool Workspace::contains(const std::string& name) const { return wsv.contains(name); }
 
 bool Workspace::wsv_and_contains(const std::string& name) const {
-  ARTS_USER_ERROR_IF(
-      stdr::none_of(workspace_variables() | stdv::keys,
-                    [&name](const auto& n) { return n == name; }),
-      "Invalid workspace variable: \"{}\"",
-      name)
+  ARTS_USER_ERROR_IF(stdr::none_of(workspace_variables() | stdv::keys, [&name](const auto& n) { return n == name; }),
+                     "Invalid workspace variable: \"{}\"",
+                     name)
   return contains(name);
 }
 
@@ -96,13 +82,9 @@ Size Workspace::erase(const std::string& name) { return wsv.erase(name); }
 void Workspace::init(const std::string& name) try {
   set(name, Wsv::from_named_type(workspace_variables().at(name).type));
 } catch (std::out_of_range&) {
-  throw std::runtime_error(std::format(
-      "Cannot initialize workspace variable \"{}\" - it is not a workspace variable",
-      name));
-} catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("Error setting '{}'\n{}", name, e.what()));
-}
+      std::format("Cannot initialize workspace variable \"{}\" - it is not a workspace variable", name));
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error setting '{}'\n{}", name, e.what())); }
 
 void Workspace::init_if_new(const std::string& name) {
   if (not contains(name)) init(name);
@@ -110,16 +92,11 @@ void Workspace::init_if_new(const std::string& name) {
 
 Workspace Workspace::deepcopy() const {
   Workspace ws = *this;
-  for (auto& [_, value] : ws.wsv) {
-    value = value.copied();
-  }
+  for (auto& [_, value] : ws.wsv) { value = value.copied(); }
   return ws;
 }
 
-void xml_io_stream<Workspace>::write(std::ostream& os,
-                                     const Workspace& x,
-                                     bofstream* pbofs,
-                                     std::string_view name) {
+void xml_io_stream<Workspace>::write(std::ostream& os, const Workspace& x, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -128,9 +105,7 @@ void xml_io_stream<Workspace>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<Workspace>::read(std::istream& is,
-                                    Workspace& x,
-                                    bifstream* pbifs) {
+void xml_io_stream<Workspace>::read(std::istream& is, Workspace& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

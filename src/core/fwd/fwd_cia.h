@@ -9,10 +9,10 @@
 namespace fwd::cia {
 class full {
   struct single {
-    Numeric scl{};
-    Numeric T;
-    Numeric extrapol;
-    Index ignore_errors;
+    Numeric    scl{};
+    Numeric    T;
+    Numeric    extrapol;
+    Index      ignore_errors;
     CIARecord* ciarecords;
 
     single()                         = default;
@@ -21,21 +21,15 @@ class full {
     single& operator=(const single&) = default;
     single& operator=(single&&)      = default;
 
-    single(Numeric p,
-           Numeric t,
-           Numeric VMR1,
-           Numeric VMR2,
-           CIARecord* cia,
-           Numeric extrap,
-           Index robust);
+    single(Numeric p, Numeric t, Numeric VMR1, Numeric VMR2, CIARecord* cia, Numeric extrap, Index robust);
 
     [[nodiscard]] Complex at(const Numeric frequency) const;
   };
 
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>   atm{};
   std::shared_ptr<CIARecords> ciarecords{};
-  Numeric extrap{};
-  Index robust{};
+  Numeric                     extrap{};
+  Index                       robust{};
 
   std::vector<single> models{};
 
@@ -48,10 +42,7 @@ class full {
   full& operator=(const full&);
   full& operator=(full&&) noexcept;
 
-  full(std::shared_ptr<AtmPoint> atm,
-       std::shared_ptr<CIARecords> cia,
-       Numeric extrap = {},
-       Index robust   = {});
+  full(std::shared_ptr<AtmPoint> atm, std::shared_ptr<CIARecords> cia, Numeric extrap = {}, Index robust = {});
 
   [[nodiscard]] Complex operator()(const Numeric frequency) const;
 

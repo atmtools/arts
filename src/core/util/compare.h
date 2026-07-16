@@ -8,8 +8,7 @@ constexpr auto lt(auto v) {
   return [v](const auto& x) { return x < v; };
 }
 
-template <auto V>
-constexpr auto lt() {
+template <auto V> constexpr auto lt() {
   return [](const auto& x) static { return x < V; };
 }
 
@@ -18,8 +17,7 @@ constexpr auto le(auto v) {
   return [v](const auto& x) { return x <= v; };
 }
 
-template <auto V>
-constexpr auto le() {
+template <auto V> constexpr auto le() {
   return [](const auto& x) static { return x <= V; };
 }
 
@@ -28,8 +26,7 @@ constexpr auto gt(auto v) {
   return [v](const auto& x) { return x > v; };
 }
 
-template <auto V>
-constexpr auto gt() {
+template <auto V> constexpr auto gt() {
   return [](const auto& x) static { return x > V; };
 }
 
@@ -38,8 +35,7 @@ constexpr auto ge(auto v) {
   return [v](const auto& x) { return x >= v; };
 }
 
-template <auto V>
-constexpr auto ge() {
+template <auto V> constexpr auto ge() {
   return [](const auto& x) static { return x >= V; };
 }
 
@@ -48,8 +44,7 @@ constexpr auto ne(auto v) {
   return [v](const auto& x) { return x != v; };
 }
 
-template <auto V>
-constexpr auto ne() {
+template <auto V> constexpr auto ne() {
   return [](const auto& x) static { return x != V; };
 }
 
@@ -58,8 +53,7 @@ constexpr auto eq(auto v) {
   return [v](const auto& x) { return x == v; };
 }
 
-template <auto V>
-constexpr auto eq() {
+template <auto V> constexpr auto eq() {
   return [](const auto& x) static { return x == V; };
 }
 
@@ -68,29 +62,24 @@ constexpr auto contains(const auto& v) {
   return [&v](const auto& x) { return x.contains(v); };
 }
 
-template <auto V>
-constexpr auto contains() {
+template <auto V> constexpr auto contains() {
   return [](const auto& x) static { return x.contains(V); };
 }
 
 //! Returns a `this->in` lambda expression for use in, e.g., std::any_of
-template <std::ranges::forward_range R>
-constexpr auto in_sorted(const R& v) {
+template <std::ranges::forward_range R> constexpr auto in_sorted(const R& v) {
   return [&v](const auto& x) { return std::ranges::binary_search(v, x); };
 }
 
-template <std::ranges::forward_range R>
-constexpr auto in(const R& v) {
+template <std::ranges::forward_range R> constexpr auto in(const R& v) {
   return [&v](const auto& x) { return std::ranges::contains(v, x); };
 }
 
-template <std::ranges::forward_range R>
-constexpr auto not_in_sorted(const R& v) {
+template <std::ranges::forward_range R> constexpr auto not_in_sorted(const R& v) {
   return [test = in_sorted(v)](const auto& x) { return not test(x); };
 }
 
-template <std::ranges::forward_range R>
-constexpr auto not_in(const R& v) {
+template <std::ranges::forward_range R> constexpr auto not_in(const R& v) {
   return [test = in(v)](const auto& x) { return not test(x); };
 }
 }  // namespace Cmp

@@ -12,21 +12,17 @@ concept jacable = requires(T a) {
 } and requires(const T a) {
   { a.x() } -> std::same_as<ConstVectorView>;
 } and requires(const T a) {
-  {
-    a.w(Numeric{}, Numeric{}, Numeric{})
-  } -> std::same_as<std::vector<std::pair<Index, Numeric>>>;
+  { a.w(Numeric{}, Numeric{}, Numeric{}) } -> std::same_as<std::vector<std::pair<Index, Numeric>>>;
 };
 
 using var_t = xml_io_stream_functional<NumericTernary>::structs_t;
 
-template <Size I = 0>
-ConstVectorView get_x_tmpl(const NumericTernary& f) {
+template <Size I = 0> ConstVectorView get_x_tmpl(const NumericTernary& f) {
   if constexpr (I < std::variant_size_v<var_t>) {
     using T = std::variant_alternative_t<I, var_t>;
 
     if constexpr (jacable<T>) {
-      if (const T* ptr = f.template target<T>(); ptr != nullptr)
-        return ptr->x();
+      if (const T* ptr = f.template target<T>(); ptr != nullptr) return ptr->x();
     }
 
     return get_x_tmpl<I + 1>(f);
@@ -35,8 +31,7 @@ ConstVectorView get_x_tmpl(const NumericTernary& f) {
   }
 }
 
-template <Size I = 0>
-VectorView get_x_tmpl(NumericTernary& f) {
+template <Size I = 0> VectorView get_x_tmpl(NumericTernary& f) {
   if constexpr (I < std::variant_size_v<var_t>) {
     using T = std::variant_alternative_t<I, var_t>;
 
@@ -50,18 +45,15 @@ VectorView get_x_tmpl(NumericTernary& f) {
   }
 }
 
-template <Size I = 0>
-std::vector<std::pair<Index, Numeric>> get_w_tmpl(const NumericTernary& f,
-                                                  Numeric alt [[maybe_unused]],
-                                                  Numeric lat [[maybe_unused]],
-                                                  Numeric lon
-                                                  [[maybe_unused]]) {
+template <Size I = 0> std::vector<std::pair<Index, Numeric>> get_w_tmpl(const NumericTernary& f,
+                                                                        Numeric               alt [[maybe_unused]],
+                                                                        Numeric               lat [[maybe_unused]],
+                                                                        Numeric               lon [[maybe_unused]]) {
   if constexpr (I < std::variant_size_v<var_t>) {
     using T = std::variant_alternative_t<I, var_t>;
 
     if constexpr (jacable<T>) {
-      if (const T* ptr = f.template target<T>(); ptr != nullptr)
-        return ptr->w(alt, lat, lon);
+      if (const T* ptr = f.template target<T>(); ptr != nullptr) return ptr->w(alt, lat, lon);
     }
 
     return get_w_tmpl<I + 1>(f, alt, lat, lon);
@@ -79,18 +71,13 @@ ConstVectorView get_xc(const NumericTernary& f) { return get_x_tmpl(f); }
 
 VectorView get_xm(NumericTernary& f) { return get_x_tmpl(f); }
 
-std::vector<std::pair<Index, Numeric>> get_w(const NumericTernary& f,
-                                             Numeric alt,
-                                             Numeric lat,
-                                             Numeric lon) {
+std::vector<std::pair<Index, Numeric>> get_w(const NumericTernary& f, Numeric alt, Numeric lat, Numeric lon) {
   return get_w_tmpl(f, alt, lat, lon);
 }
 
 bool is_field_function(const NumericTernary& f) {
-  if (const auto& ptr = f.target<Atm::External>(); ptr != nullptr)
-    return ptr->is_field_function;
+  if (const auto& ptr = f.target<Atm::External>(); ptr != nullptr) return ptr->is_field_function;
 
-  return f.target<Atm::SchmidthLegendre>() != nullptr ||
-         f.target<Atm::MagnitudeField>() != nullptr;
+  return f.target<Atm::SchmidthLegendre>() != nullptr || f.target<Atm::MagnitudeField>() != nullptr;
 }
 }  // namespace ternary

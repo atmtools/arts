@@ -24,9 +24,9 @@
  */
 struct MCAntenna {
   AntennaType atype{};
-  Numeric sigma_aa{}, sigma_za{};
-  Vector aa_grid{}, za_grid{};
-  Matrix G_lookup{};
+  Numeric     sigma_aa{}, sigma_za{};
+  Vector      aa_grid{}, za_grid{};
+  Matrix      G_lookup{};
 
   /** set_pencil_beam
    *
@@ -72,9 +72,7 @@ struct MCAntenna {
    * @author     Cory Davis
    * @date       2005-12-02
    */
-  void set_lookup(ConstVectorView za_grid,
-                  ConstVectorView aa_grid,
-                  ConstMatrixView G_lookup);
+  void set_lookup(ConstVectorView za_grid, ConstVectorView aa_grid, ConstMatrixView G_lookup);
 
   /** return_los
    *
@@ -93,8 +91,7 @@ struct MCAntenna {
    * @author     Ian S. Adams.
    * @date       2015-09-09.
    */
-  [[nodiscard]] Numeric return_los(const Matrix33& R_return,
-                                   const Matrix33& R_enu2ant) const;
+  [[nodiscard]] Numeric return_los(const Matrix33& R_return, const Matrix33& R_enu2ant) const;
 
   /** draw_los.
    *
@@ -109,19 +106,16 @@ struct MCAntenna {
    * @author      Cory Davis
    * @date        2005-12-02
    */
-  [[nodiscard]] std::pair<Vector2, Matrix33> draw_los(
-      RandomNumberGenerator<>& rng,
-      const Matrix33& R_ant2enu,
-      const Vector2& bore_sight_los) const;
+  [[nodiscard]] std::pair<Vector2, Matrix33> draw_los(RandomNumberGenerator<>& rng,
+                                                      const Matrix33&          R_ant2enu,
+                                                      const Vector2&           bore_sight_los) const;
 };
 
-template <>
-struct xml_io_stream_name<MCAntenna> {
+template <> struct xml_io_stream_name<MCAntenna> {
   static constexpr std::string_view name = "MCAntenna";
 };
 
-template <>
-struct xml_io_stream_aggregate<MCAntenna> {
+template <> struct xml_io_stream_aggregate<MCAntenna> {
   static constexpr bool value = true;
 };
 
@@ -162,7 +156,4 @@ struct xml_io_stream_aggregate<MCAntenna> {
  * @author        Ian S. Adams
  * @date          2016-09-07
  */
-[[nodiscard]] Muelmat rotmat_stokes(Numeric f1_dir,
-                                    Numeric f2_dir,
-                                    const Matrix33& R_f1,
-                                    const Matrix33& R_f2);
+[[nodiscard]] Muelmat rotmat_stokes(Numeric f1_dir, Numeric f2_dir, const Matrix33& R_f1, const Matrix33& R_f2);

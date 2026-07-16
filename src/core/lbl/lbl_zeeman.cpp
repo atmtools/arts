@@ -35,32 +35,25 @@ constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
 
 constexpr Numeric get_lande_lambda_constant() noexcept { return 1.0; }
 
-lbl::zeeman::data SimpleG(const QuantumState& qns,
-                          const Numeric& GS,
-                          const Numeric& GL) noexcept {
-  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hunda) and
-      qns.contains(Omega) and qns.contains(J) and qns.contains(Lambda) and
-      qns.contains(S)) {
+lbl::zeeman::data SimpleG(const QuantumState& qns, const Numeric& GS, const Numeric& GL) noexcept {
+  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hunda) and qns.contains(Omega) and qns.contains(J) and
+      qns.contains(Lambda) and qns.contains(S)) {
     auto& o = qns.at(Omega);
     auto& j = qns.at(J);
     auto& l = qns.at(Lambda);
     auto& s = qns.at(S);
-    return {.gu = lbl::zeeman::SimpleGCaseA(
-                o.upper, j.upper, l.upper, s.upper, GS, GL),
-            .gl = lbl::zeeman::SimpleGCaseA(
-                o.lower, j.lower, l.lower, s.lower, GS, GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseA(o.upper, j.upper, l.upper, s.upper, GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseA(o.lower, j.lower, l.lower, s.lower, GS, GL)};
   }
 
-  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hundb) and qns.contains(N) and
-      qns.contains(J) and qns.contains(Lambda) and qns.contains(S)) {
+  if (Quantum::vamdcCheck(qns, Quantum::VAMDC::hundb) and qns.contains(N) and qns.contains(J) and
+      qns.contains(Lambda) and qns.contains(S)) {
     auto& n = qns.at(N);
     auto& j = qns.at(J);
     auto& l = qns.at(Lambda);
     auto& s = qns.at(S);
-    return {.gu = lbl::zeeman::SimpleGCaseB(
-                n.upper, j.upper, l.upper, s.upper, GS, GL),
-            .gl = lbl::zeeman::SimpleGCaseB(
-                n.lower, j.lower, l.lower, s.lower, GS, GL)};
+    return {.gu = lbl::zeeman::SimpleGCaseB(n.upper, j.upper, l.upper, s.upper, GS, GL),
+            .gl = lbl::zeeman::SimpleGCaseB(n.lower, j.lower, l.lower, s.lower, GS, GL)};
   }
 
   return {};
@@ -68,51 +61,41 @@ lbl::zeeman::data SimpleG(const QuantumState& qns,
 
 Numeric case_b_g_coefficient_o2(Rational J,
                                 Rational N,
-                                Numeric GS,
-                                Numeric GR,
-                                Numeric GLE,
-                                Numeric B,
-                                Numeric D,
-                                Numeric H,
-                                Numeric gB,
-                                Numeric gD,
-                                Numeric gH,
-                                Numeric lB,
-                                Numeric lD,
-                                Numeric lH) {
+                                Numeric  GS,
+                                Numeric  GR,
+                                Numeric  GLE,
+                                Numeric  B,
+                                Numeric  D,
+                                Numeric  H,
+                                Numeric  gB,
+                                Numeric  gD,
+                                Numeric  gH,
+                                Numeric  lB,
+                                Numeric  lD,
+                                Numeric  lH) {
   using Math::pow2, Math::pow3;
   using std::atan2, std::cos, std::sin;
 
   if (J == 0) return 0;
 
-  auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) *
-             (2 * sqrtr(J * J + J) / (2 * J + 1));
+  auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) * (2 * sqrtr(J * J + J) / (2 * J + 1));
 
-  auto denom =
-      B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +
-      (gB + gD * J * (J - 1) + gH * pow2(J * (J - 1))) * (J - 1) +
-      (lB + lD * J * (J - 1) + lH * pow2(J * (J - 1))) *
-          (2. / 3. - 2 * J / (2 * J + 1)) -
-      (B * (J + 2) * (J + 1) - D * pow2((J + 2) * (J + 1)) +
-       H * pow3((J + 2) * (J + 1)) -
-       (gB + gD * (J + 2) * (J + 1) + gH * pow2((J + 2) * (J + 1))) * (J + 2) +
-       (lB + lD * (J + 2) * (J + 1) + lH * pow2((J + 2) * (J + 1))) *
-           (2. / 3. - 2 * (J + 1) / (2 * J + 1)));
+  auto denom = B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +
+               (gB + gD * J * (J - 1) + gH * pow2(J * (J - 1))) * (J - 1) +
+               (lB + lD * J * (J - 1) + lH * pow2(J * (J - 1))) * (2. / 3. - 2 * J / (2 * J + 1)) -
+               (B * (J + 2) * (J + 1) - D * pow2((J + 2) * (J + 1)) + H * pow3((J + 2) * (J + 1)) -
+                (gB + gD * (J + 2) * (J + 1) + gH * pow2((J + 2) * (J + 1))) * (J + 2) +
+                (lB + lD * (J + 2) * (J + 1) + lH * pow2((J + 2) * (J + 1))) * (2. / 3. - 2 * (J + 1) / (2 * J + 1)));
 
   auto phi = atan2(2 * nom, denom) / 2;
 
   if (J == N) return (GS + GR) / (J * (J + 1)) - GR;
   if (J < N)
-    return (GS + GR) * (pow2(cos(phi)) / J - pow2(sin(phi)) / (J + 1)) +
-           2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
-  return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) -
-         2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
+    return (GS + GR) * (pow2(cos(phi)) / J - pow2(sin(phi)) / (J + 1)) + 2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
+  return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) - 2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
 }
 
-constexpr Numeric closed_shell_trilinear(Rational k,
-                                         Rational j,
-                                         Numeric gperp,
-                                         Numeric gpara) {
+constexpr Numeric closed_shell_trilinear(Rational k, Rational j, Numeric gperp, Numeric gpara) {
   using Math::pow2;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
@@ -127,10 +110,8 @@ data GetSimpleModel(const QuantumIdentifier& qid) {
 
 data GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.isot == "O2-66"_isot) {
-    if (qid.state.contains(J) and qid.state.contains(N) and
-        qid.state.contains(v)) {
-      if (qid.state.at(v).lower.get<Rational>() == 0 and
-          qid.state.at(v).upper.get<Rational>() == 0) {
+    if (qid.state.contains(J) and qid.state.contains(N) and qid.state.contains(v)) {
+      if (qid.state.at(v).lower.get<Rational>() == 0 and qid.state.at(v).upper.get<Rational>() == 0) {
         constexpr Numeric GS  = 2.002084;
         constexpr Numeric GLE = 2.77e-3;
         constexpr Numeric GR  = -1.16e-4;
@@ -144,25 +125,21 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         constexpr Numeric gD  = -243.42;
         constexpr Numeric gH  = -1.46e-3;
 
-        const auto& j     = qid.state.at(J);
-        const auto& n     = qid.state.at(N);
+        const auto&    j  = qid.state.at(J);
+        const auto&    n  = qid.state.at(N);
         const Rational JU = j.upper;
         const Rational NU = n.upper;
         const Rational JL = j.lower;
         const Rational NL = n.lower;
 
-        Numeric gu = ::case_b_g_coefficient_o2(
-            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        Numeric gl = ::case_b_g_coefficient_o2(
-            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gu = ::case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gl = ::case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {.gu = gu, .gl = gl};
       }
     }
   } else if (qid.isot == "O2-68"_isot) {
-    if (qid.state.contains(J) and qid.state.contains(N) and
-        qid.state.contains(v)) {
-      if (qid.state.at(v).lower.get<Rational>() == 0 and
-          qid.state.at(v).upper.get<Rational>() == 0) {
+    if (qid.state.contains(J) and qid.state.contains(N) and qid.state.contains(v)) {
+      if (qid.state.at(v).lower.get<Rational>() == 0 and qid.state.at(v).upper.get<Rational>() == 0) {
         constexpr Numeric GS  = 2.002025;
         constexpr Numeric GLE = 2.813e-3;
         constexpr Numeric GR  = -1.26e-4;
@@ -176,34 +153,30 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
         constexpr Numeric gD  = -217.77;
         constexpr Numeric gH  = -1.305e-3;
 
-        const auto& j     = qid.state.at(J);
-        const auto& n     = qid.state.at(N);
+        const auto&    j  = qid.state.at(J);
+        const auto&    n  = qid.state.at(N);
         const Rational JU = j.upper;
         const Rational NU = n.upper;
         const Rational JL = j.lower;
         const Rational NL = n.lower;
 
-        Numeric gu = ::case_b_g_coefficient_o2(
-            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        Numeric gl = ::case_b_g_coefficient_o2(
-            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gu = ::case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gl = ::case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return {.gu = gu, .gl = gl};
       }
     }
   } else if (qid.isot == "CO-26"_isot) {
     // Flygare and Benson 1971
-    constexpr Numeric gperp =
-        -0.2689 / Constant::mass_ratio_electrons_per_proton;
+    constexpr Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;
 
     return {.gu = gperp, .gl = gperp};
   } else if (qid.isot == "OCS-622"_isot) {
     // Flygare and Benson 1971
-    constexpr Numeric gperp =
-        -.02889 / Constant::mass_ratio_electrons_per_proton;
+    constexpr Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;
     constexpr Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;
     if (qid.state.contains(J) and qid.state.contains(Ka)) {
-      const auto& j     = qid.state.at(J);
-      const auto& Ka    = qid.state.at(K);
+      const auto&    j  = qid.state.at(J);
+      const auto&    Ka = qid.state.at(K);
       const Rational JU = j.upper;
       const Rational KU = Ka.upper;
       const Rational JL = j.lower;
@@ -214,13 +187,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
     }
   } else if (qid.isot == "OCS-624"_isot) {
     // Flygare and Benson 1971
-    constexpr Numeric gperp =
-        -.0285 / Constant::mass_ratio_electrons_per_proton;
+    constexpr Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;
     constexpr Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;
 
     if (qid.state.contains(J) and qid.state.contains(Ka)) {
-      const auto& j     = qid.state.at(J);
-      const auto& Ka    = qid.state.at(K);
+      const auto&    j  = qid.state.at(J);
+      const auto&    Ka = qid.state.at(K);
       const Rational JU = j.upper;
       const Rational KU = Ka.upper;
       const Rational JL = j.lower;
@@ -231,13 +203,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
     }
   } else if (qid.isot == "CO2-626"_isot) {
     // Flygare and Benson 1971
-    constexpr Numeric gperp =
-        -.05508 / Constant::mass_ratio_electrons_per_proton;
+    constexpr Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;
     constexpr Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;
 
     if (qid.state.contains(J) and qid.state.contains(Ka)) {
-      const auto& j     = qid.state.at(J);
-      const auto& Ka    = qid.state.at(K);
+      const auto&    j  = qid.state.at(J);
+      const auto&    Ka = qid.state.at(K);
       const Rational JU = j.upper;
       const Rational KU = Ka.upper;
       const Rational JL = j.lower;
@@ -258,10 +229,7 @@ model::model(const QuantumIdentifier& qid) noexcept {
   *this = m;
 }
 
-Numeric model::Strength(Rational Ju,
-                        Rational Jl,
-                        ZeemanPolarization type,
-                        Index n) const {
+Numeric model::Strength(Rational Ju, Rational Jl, ZeemanPolarization type, Index n) const {
   using Math::pow2;
 
   if (type == ZeemanPolarization::no) return 1.0;
@@ -271,14 +239,12 @@ Numeric model::Strength(Rational Ju,
 
   if (abs(ml) > Jl or abs(mu) > Ju) return 0.0;
 
-  auto dm         = Rational(dM(type));
-  const Numeric C = polarization_factor(type);
+  auto          dm = Rational(dM(type));
+  const Numeric C  = polarization_factor(type);
   return C * pow2(wigner3j(Jl, Rational(1), Ju, ml, dm, -mu));
 }
 
-Numeric model::Strength(const QuantumState& qn,
-                        ZeemanPolarization type,
-                        Index n) const {
+Numeric model::Strength(const QuantumState& qn, ZeemanPolarization type, Index n) const {
   if (type == ZeemanPolarization::no) return 1.0;
 
   const auto& j = qn.at(J);
@@ -286,17 +252,14 @@ Numeric model::Strength(const QuantumState& qn,
   return Strength(j.upper, j.lower, type, n);
 }
 
-Numeric model::Splitting(const QuantumState& qn,
-                         ZeemanPolarization type,
-                         Index n) const noexcept {
+Numeric model::Splitting(const QuantumState& qn, ZeemanPolarization type, Index n) const noexcept {
   if (type == ZeemanPolarization::no) return 0.0;
 
   const auto& j = qn.at(J);
   return Splitting(j.upper, j.lower, type, n);
 }
 
-Index model::size(const QuantumState& qn,
-                  ZeemanPolarization type) const noexcept {
+Index model::size(const QuantumState& qn, ZeemanPolarization type) const noexcept {
   if (on) {
     if (type == ZeemanPolarization::no) return 0;
 
@@ -314,8 +277,7 @@ std::istream& operator>>(std::istream& is, model& m) try {
   m.on = static_cast<bool>(i);
   return is;
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading Zeeman model data: {}", e.what()));
+  throw std::runtime_error(std::format("Error reading Zeeman model data: {}", e.what()));
 }
 
 magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)
@@ -357,9 +319,7 @@ magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)
     */
 }
 
-Numeric magnetic_angles::theta() const {
-  return H == 0 ? 0 : std::acos(uct / H);
-}
+Numeric magnetic_angles::theta() const { return H == 0 ? 0 : std::acos(uct / H); }
 
 Numeric magnetic_angles::dtheta_du() const {
   using Math::pow2;
@@ -388,26 +348,18 @@ Numeric magnetic_angles::dtheta_dw() const {
   return (H == 0.0 or rat == 1.0) ? 0 : nom / (sqrt(1.0 - rat) * pow3(H));
 }
 
-Numeric magnetic_angles::eta() const {
-  return -std::atan2(ca * u - sa * v, -duct);
-}
+Numeric magnetic_angles::eta() const { return -std::atan2(ca * u - sa * v, -duct); }
 
 Numeric magnetic_angles::deta_du() const {
-  return H == 0 ? 0
-                : (cz * v - ca * sz * w) /
-                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+  return H == 0 ? 0 : (cz * v - ca * sz * w) / (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
 Numeric magnetic_angles::deta_dv() const {
-  return H == 0 ? 0
-                : (sa * sz * w - cz * u) /
-                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+  return H == 0 ? 0 : (sa * sz * w - cz * u) / (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
 Numeric magnetic_angles::deta_dw() const {
-  return H == 0 ? 0
-                : sz * (ca * u - sa * v) /
-                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+  return H == 0 ? 0 : sz * (ca * u - sa * v) / (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
 }
 
 Propmat norm_view(ZeemanPolarization p, Vector3 mag, Vector2 los) {
@@ -437,12 +389,12 @@ Propmat norm_view(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   */
 
   const magnetic_angles ma(mag, los);
-  const Numeric theta = ma.theta();
-  const Numeric eta   = ma.eta();
-  const Numeric CT    = std::cos(theta);
-  const Numeric ST2   = Math::pow2(std::sin(theta));
-  const Numeric Q     = ST2 * std::cos(2 * eta);
-  const Numeric U     = ST2 * std::sin(2 * eta);
+  const Numeric         theta = ma.theta();
+  const Numeric         eta   = ma.eta();
+  const Numeric         CT    = std::cos(theta);
+  const Numeric         ST2   = Math::pow2(std::sin(theta));
+  const Numeric         Q     = ST2 * std::cos(2 * eta);
+  const Numeric         U     = ST2 * std::sin(2 * eta);
   switch (p) {
     using enum ZeemanPolarization;
     case pi: return {ST2, -Q, U, 0, 0, U, Q};
@@ -456,19 +408,19 @@ Propmat norm_view(ZeemanPolarization p, Vector3 mag, Vector2 los) {
 
 Propmat dnorm_view_du(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
-  const Numeric theta  = ma.theta();
-  const Numeric eta    = ma.eta();
-  const Numeric dtheta = ma.dtheta_du();
-  const Numeric deta   = ma.deta_du();
-  const Numeric CT     = std::cos(theta);
-  const Numeric ST     = std::sin(theta);
-  const Numeric CE     = std::cos(2 * eta);
-  const Numeric SE     = std::sin(2 * eta);
-  const Numeric ST2    = Math::pow2(ST);
-  const Numeric dST2   = 2 * dtheta * ST * CT;
-  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
-  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
-  const Numeric dCT    = -dtheta * ST;
+  const Numeric         theta  = ma.theta();
+  const Numeric         eta    = ma.eta();
+  const Numeric         dtheta = ma.dtheta_du();
+  const Numeric         deta   = ma.deta_du();
+  const Numeric         CT     = std::cos(theta);
+  const Numeric         ST     = std::sin(theta);
+  const Numeric         CE     = std::cos(2 * eta);
+  const Numeric         SE     = std::sin(2 * eta);
+  const Numeric         ST2    = Math::pow2(ST);
+  const Numeric         dST2   = 2 * dtheta * ST * CT;
+  const Numeric         dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric         dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric         dCT    = -dtheta * ST;
 
   switch (p) {
     using enum ZeemanPolarization;
@@ -483,19 +435,19 @@ Propmat dnorm_view_du(ZeemanPolarization p, Vector3 mag, Vector2 los) {
 
 Propmat dnorm_view_dv(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
-  const Numeric theta  = ma.theta();
-  const Numeric eta    = ma.eta();
-  const Numeric dtheta = ma.dtheta_dv();
-  const Numeric deta   = ma.deta_dv();
-  const Numeric CT     = std::cos(theta);
-  const Numeric ST     = std::sin(theta);
-  const Numeric CE     = std::cos(2 * eta);
-  const Numeric SE     = std::sin(2 * eta);
-  const Numeric ST2    = Math::pow2(ST);
-  const Numeric dST2   = 2 * dtheta * ST * CT;
-  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
-  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
-  const Numeric dCT    = -dtheta * ST;
+  const Numeric         theta  = ma.theta();
+  const Numeric         eta    = ma.eta();
+  const Numeric         dtheta = ma.dtheta_dv();
+  const Numeric         deta   = ma.deta_dv();
+  const Numeric         CT     = std::cos(theta);
+  const Numeric         ST     = std::sin(theta);
+  const Numeric         CE     = std::cos(2 * eta);
+  const Numeric         SE     = std::sin(2 * eta);
+  const Numeric         ST2    = Math::pow2(ST);
+  const Numeric         dST2   = 2 * dtheta * ST * CT;
+  const Numeric         dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric         dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric         dCT    = -dtheta * ST;
 
   switch (p) {
     using enum ZeemanPolarization;
@@ -510,19 +462,19 @@ Propmat dnorm_view_dv(ZeemanPolarization p, Vector3 mag, Vector2 los) {
 
 Propmat dnorm_view_dw(ZeemanPolarization p, Vector3 mag, Vector2 los) {
   const magnetic_angles ma(mag, los);
-  const Numeric theta  = ma.theta();
-  const Numeric eta    = ma.eta();
-  const Numeric dtheta = ma.dtheta_dw();
-  const Numeric deta   = ma.deta_dw();
-  const Numeric CT     = std::cos(theta);
-  const Numeric ST     = std::sin(theta);
-  const Numeric CE     = std::cos(2 * eta);
-  const Numeric SE     = std::sin(2 * eta);
-  const Numeric ST2    = Math::pow2(ST);
-  const Numeric dST2   = 2 * dtheta * ST * CT;
-  const Numeric dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
-  const Numeric dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
-  const Numeric dCT    = -dtheta * ST;
+  const Numeric         theta  = ma.theta();
+  const Numeric         eta    = ma.eta();
+  const Numeric         dtheta = ma.dtheta_dw();
+  const Numeric         deta   = ma.deta_dw();
+  const Numeric         CT     = std::cos(theta);
+  const Numeric         ST     = std::sin(theta);
+  const Numeric         CE     = std::cos(2 * eta);
+  const Numeric         SE     = std::sin(2 * eta);
+  const Numeric         ST2    = Math::pow2(ST);
+  const Numeric         dST2   = 2 * dtheta * ST * CT;
+  const Numeric         dQ     = 2 * dtheta * ST * CE * CT - 2 * deta * SE * ST2;
+  const Numeric         dU     = 2 * deta * ST2 * CE + 2 * dtheta * SE * ST * CT;
+  const Numeric         dCT    = -dtheta * ST;
 
   switch (p) {
     using enum ZeemanPolarization;

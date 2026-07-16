@@ -26,14 +26,8 @@ Numeric barometric_heightformula(const Numeric& p, const Numeric& dh);
 
 Numeric dinvplanckdI(const Numeric& i, const Numeric& f);
 
-void fresnel(Complex& Rv,
-             Complex& Rh,
-             const Complex& n1,
-             const Complex& n2,
-             const Numeric& theta);
-std::pair<Complex, Complex> fresnel(const Complex& n1,
-                                    const Complex& n2,
-                                    const Numeric& theta);
+void fresnel(Complex& Rv, Complex& Rh, const Complex& n1, const Complex& n2, const Numeric& theta);
+std::pair<Complex, Complex> fresnel(const Complex& n1, const Complex& n2, const Numeric& theta);
 
 Numeric invplanck(const Numeric& i, const Numeric& f);
 
@@ -51,9 +45,7 @@ Numeric invrayjean(const Numeric& i, const Numeric& f);
  * @author Patrick Eriksson
  * @date   2000-04-08
  */
-constexpr Numeric number_density(Numeric p, Numeric t) noexcept {
-  return p / (Constant::k * t);
-}
+constexpr Numeric number_density(Numeric p, Numeric t) noexcept { return p / (Constant::k * t); }
 
 /** dnumber_density_dT
  * 
@@ -67,9 +59,7 @@ constexpr Numeric number_density(Numeric p, Numeric t) noexcept {
  * @author Richard Larsson
  * @date   2015-09-22
  */
-constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {
-  return -p / (Constant::k * Math::pow2(t));
-}
+constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept { return -p / (Constant::k * Math::pow2(t)); }
 
 Numeric planck(const Numeric& f, const Numeric& t);
 

@@ -96,12 +96,10 @@ inline constexpr Numeric ln_2 = std::numbers::ln2;
 inline constexpr Numeric inv_ln_2 = std::numbers::log2e;
 
 /** Square root of natural logarithm of 2 */
-inline constexpr Numeric sqrt_ln_2 =
-    0.8325546111576977563531646448952010476305888522644407291668291172340794351973;
+inline constexpr Numeric sqrt_ln_2 = 0.8325546111576977563531646448952010476305888522644407291668291172340794351973;
 
 /** Inverse of the square root of the natural logarithm of 2 */
-inline constexpr Numeric inv_sqrt_ln_2 =
-    1.201122408786449794857803286095221722566764028068699423868879896733837175546;
+inline constexpr Numeric inv_sqrt_ln_2 = 1.201122408786449794857803286095221722566764028068699423868879896733837175546;
 
 /** Cesium-133 Unperturbed ground-state hyperfine transition frequency [Hz]
    From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
@@ -187,22 +185,19 @@ inline constexpr Numeric rydberg_constant = 10973731.568160;
 inline constexpr Numeric R_inf = rydberg_constant;
 
 /** Magnetic constant [H/m] **/
-inline constexpr Numeric magnetic_constant =
-    2 * h * alpha / (c * Math::pow2(e));
+inline constexpr Numeric magnetic_constant = 2 * h * alpha / (c * Math::pow2(e));
 
 /** Magnetic constant convenience name [H/m] **/
 inline constexpr Numeric mu_0 = magnetic_constant;
 
 /** Vacuum permittivity [F/m] **/
-inline constexpr Numeric vacuum_permittivity =
-    Math::pow2(e) / (2 * h * c * alpha);
+inline constexpr Numeric vacuum_permittivity = Math::pow2(e) / (2 * h * c * alpha);
 
 /** Vacuum permittivity convenience name [F/m] **/
 inline constexpr Numeric epsilon_0 = vacuum_permittivity;
 
 /** Mass of resting electron [kg] **/
-inline constexpr Numeric electron_mass =
-    2 * h * R_inf / (c * Math::pow2(alpha));
+inline constexpr Numeric electron_mass = 2 * h * R_inf / (c * Math::pow2(alpha));
 
 /** Mass of resting electron convenience name [kg] **/
 inline constexpr Numeric m_e = electron_mass;
@@ -225,8 +220,7 @@ inline constexpr Numeric m_u = unified_atomic_mass_unit;
 inline constexpr Numeric mass_ratio_electrons_per_proton = 1'836.152'673'43;
 
 /** Mass of a proton [kg] */
-inline constexpr Numeric proton_mass =
-    electron_mass * mass_ratio_electrons_per_proton;
+inline constexpr Numeric proton_mass = electron_mass * mass_ratio_electrons_per_proton;
 
 /** Mass ratio of electrons to protons [-]
     From: https://physics.nist.gov/cgi-bin/cuu/Value?mnsme
@@ -236,8 +230,7 @@ inline constexpr Numeric proton_mass =
 inline constexpr Numeric mass_ratio_electrons_per_neutron = 1'838.683'661'73;
 
 /** Mass of a neutron [kg] */
-inline constexpr Numeric neutron_mass =
-    electron_mass * mass_ratio_electrons_per_neutron;
+inline constexpr Numeric neutron_mass = electron_mass * mass_ratio_electrons_per_neutron;
 
 /** Bohr magneton [J/T] **/
 inline constexpr Numeric bohr_magneton = e * h_bar / (2 * m_e);
@@ -249,8 +242,7 @@ inline constexpr Numeric ideal_gas_constant = k * NA;
 inline constexpr Numeric R = ideal_gas_constant;
 
 /** Doppler broadening constant squared [kg/T]^2 **/
-inline constexpr Numeric doppler_broadening_const_squared =
-    2'000 * R / Math::pow2(c);
+inline constexpr Numeric doppler_broadening_const_squared = 2'000 * R / Math::pow2(c);
 
 /** One degree in radians */
 inline constexpr Numeric one_degree_in_radians = pi / 180;

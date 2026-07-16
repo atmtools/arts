@@ -49,10 +49,9 @@ gzstreambuf* gzstreambuf::open(const char* name, int open_mode) {
   if (is_open()) return (gzstreambuf*)0;
   mode = open_mode;
   // no append nor read/write mode
-  if ((mode & std::ios::ate) || (mode & std::ios::app) ||
-      ((mode & std::ios::in) && (mode & std::ios::out)))
+  if ((mode & std::ios::ate) || (mode & std::ios::app) || ((mode & std::ios::in) && (mode & std::ios::out)))
     return (gzstreambuf*)0;
-  char fmode[10];
+  char  fmode[10];
   char* fmodeptr = fmode;
   if (mode & std::ios::in)
     *fmodeptr++ = 'r';
@@ -76,8 +75,7 @@ gzstreambuf* gzstreambuf::close() {
 }
 
 int gzstreambuf::underflow() {  // used for input buffer only
-  if (gptr() && (gptr() < egptr()))
-    return *reinterpret_cast<unsigned char*>(gptr());
+  if (gptr() && (gptr() < egptr())) return *reinterpret_cast<unsigned char*>(gptr());
 
   if (!(mode & std::ios::in) || !opened) return EOF;
   // Josuttis' implementation of inbuf

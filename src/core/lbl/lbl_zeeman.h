@@ -40,9 +40,7 @@ constexpr Index dM(ZeemanPolarization type) noexcept {
  * 
  * @return The lowest Ml value
  */
-constexpr Rational Ml_begin(Rational,
-                            Rational Jl,
-                            ZeemanPolarization type) noexcept {
+constexpr Rational Ml_begin(Rational, Rational Jl, ZeemanPolarization type) noexcept {
   switch (type) {
     case ZeemanPolarization::sm:
     case ZeemanPolarization::pi:
@@ -66,9 +64,7 @@ constexpr Rational Ml_begin(Rational,
  * 
  * @return The largest Ml value
  */
-constexpr Rational Ml_end(Rational,
-                          Rational Jl,
-                          ZeemanPolarization type) noexcept {
+constexpr Rational Ml_end(Rational, Rational Jl, ZeemanPolarization type) noexcept {
   switch (type) {
     case ZeemanPolarization::sm:
     case ZeemanPolarization::pi:
@@ -88,9 +84,7 @@ constexpr Rational Ml_end(Rational,
  * 
  * @return The number of elements
  */
-constexpr Index size(Rational Ju,
-                     Rational Jl,
-                     ZeemanPolarization type) noexcept {
+constexpr Index size(Rational Ju, Rational Jl, ZeemanPolarization type) noexcept {
   return (Ml_end(Ju, Jl, type) - Ml_begin(Ju, Jl, type)).toIndex() + 1;
 }
 
@@ -107,10 +101,7 @@ constexpr Index size(Rational Ju,
  * 
  * @return The lower state M
  */
-constexpr Rational Ml(Rational Ju,
-                      Rational Jl,
-                      ZeemanPolarization type,
-                      Index n) noexcept {
+constexpr Rational Ml(Rational Ju, Rational Jl, ZeemanPolarization type, Index n) noexcept {
   return Ml_begin(Ju, Jl, type) + n;
 }
 
@@ -127,10 +118,7 @@ constexpr Rational Ml(Rational Ju,
  * 
  * @return The upper state M
  */
-constexpr Rational Mu(Rational Ju,
-                      Rational Jl,
-                      ZeemanPolarization type,
-                      Index n) noexcept {
+constexpr Rational Mu(Rational Ju, Rational Jl, ZeemanPolarization type, Index n) noexcept {
   return Ml(Ju, Jl, type, n) + dM(type);
 }
 
@@ -175,12 +163,7 @@ constexpr Numeric polarization_factor(ZeemanPolarization type) noexcept {
  * 
  * @return Zeeman splitting coefficient of the level
  */
-constexpr Numeric SimpleGCaseB(Rational N,
-                               Rational J,
-                               Rational Lambda,
-                               Rational S,
-                               Numeric GS,
-                               Numeric GL) noexcept {
+constexpr Numeric SimpleGCaseB(Rational N, Rational J, Rational Lambda, Rational S, Numeric GS, Numeric GL) noexcept {
   auto JJ = J * (J + 1);
   auto NN = N * (N + 1);
   auto SS = S * (S + 1);
@@ -210,12 +193,8 @@ constexpr Numeric SimpleGCaseB(Rational N,
  * 
  * @return Zeeman splitting coefficient of the level
  */
-constexpr Numeric SimpleGCaseA(Rational Omega,
-                               Rational J,
-                               Rational Lambda,
-                               Rational Sigma,
-                               Numeric GS,
-                               Numeric GL) noexcept {
+constexpr Numeric SimpleGCaseA(
+    Rational Omega, Rational J, Rational Lambda, Rational Sigma, Numeric GS, Numeric GL) noexcept {
   auto JJ = J * (J + 1);
 
   if (JJ == Rational(0)) return 0.0;
@@ -232,7 +211,7 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
  * them elsewhere
  */
 struct data {
-  Numeric gu{0}, gl{0};
+  Numeric        gu{0}, gl{0};
   constexpr auto operator<=>(const data &) const noexcept = default;
 };
 
@@ -248,12 +227,12 @@ struct model {
   bool on{false};
 
   /** Default init */
-  constexpr model() noexcept                               = default;
-  constexpr model(model &&) noexcept                       = default;
-  constexpr model(const model &) noexcept                  = default;
-  constexpr model &operator=(model &&) noexcept            = default;
-  constexpr model &operator=(const model &) noexcept       = default;
-  constexpr auto operator<=>(const model &) const noexcept = default;
+  constexpr model() noexcept                                 = default;
+  constexpr model(model &&) noexcept                         = default;
+  constexpr model(const model &) noexcept                    = default;
+  constexpr model &operator=(model &&) noexcept              = default;
+  constexpr model &operator=(const model &) noexcept         = default;
+  constexpr auto   operator<=>(const model &) const noexcept = default;
   constexpr model(data d) noexcept : mdata(d), on(not empty()) {};
 
   /** Attempts to compute Zeeman input if available
@@ -269,9 +248,7 @@ struct model {
   explicit model(const QuantumIdentifier &qid) noexcept;
 
   /** Returns true if the Model represents no Zeeman effect */
-  [[nodiscard]] constexpr bool empty() const noexcept {
-    return 0.0 == mdata.gu and mdata.gl == 0.0;
-  }
+  [[nodiscard]] constexpr bool empty() const noexcept { return 0.0 == mdata.gu and mdata.gl == 0.0; }
 
   /** Returns the upper state g */
   constexpr Numeric &gu() noexcept { return mdata.gu; }
@@ -304,10 +281,7 @@ struct model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(Rational Ju,
-                                 Rational Jl,
-                                 ZeemanPolarization type,
-                                 Index n) const;
+  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, ZeemanPolarization type, Index n) const;
 
   /** Gives the strength of one subline of a given polarization
    * 
@@ -322,9 +296,7 @@ struct model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(const QuantumState &qn,
-                                 ZeemanPolarization type,
-                                 Index n) const;
+  [[nodiscard]] Numeric Strength(const QuantumState &qn, ZeemanPolarization type, Index n) const;
 
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -339,10 +311,7 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] constexpr Numeric Splitting(Rational Ju,
-                                            Rational Jl,
-                                            ZeemanPolarization type,
-                                            Index n) const noexcept {
+  [[nodiscard]] constexpr Numeric Splitting(Rational Ju, Rational Jl, ZeemanPolarization type, Index n) const noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
@@ -364,9 +333,7 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] Numeric Splitting(const QuantumState &qn,
-                                  ZeemanPolarization type,
-                                  Index n) const noexcept;
+  [[nodiscard]] Numeric Splitting(const QuantumState &qn, ZeemanPolarization type, Index n) const noexcept;
 
   /** Gives the number of lines for a given polarization type
    * 
@@ -375,8 +342,7 @@ struct model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  [[nodiscard]] Index size(const QuantumState &qn,
-                           ZeemanPolarization type) const noexcept;
+  [[nodiscard]] Index size(const QuantumState &qn, ZeemanPolarization type) const noexcept;
 
   /** Input operator for Zeeman::Model */
   friend std::istream &operator>>(std::istream &is, model &m);
@@ -439,10 +405,7 @@ constexpr Propmat scale(const Propmat &a, const Complex F) noexcept {
           a.W() * F.imag()};
 }
 
-constexpr Propmat scale(const Propmat &a,
-                        const Propmat &da,
-                        const Complex F,
-                        const Complex dF) noexcept {
+constexpr Propmat scale(const Propmat &a, const Propmat &da, const Complex F, const Complex dF) noexcept {
   return {da.A() * F.real() + a.A() * dF.real(),
           da.B() * F.real() + a.B() * dF.real(),
           da.C() * F.real() + a.C() * dF.real(),
@@ -453,25 +416,20 @@ constexpr Propmat scale(const Propmat &a,
 }
 };  // namespace lbl::zeeman
 
-template <>
-struct std::formatter<lbl::zeeman::model> {
+template <> struct std::formatter<lbl::zeeman::model> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const lbl::zeeman::model &v,
-                              FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const lbl::zeeman::model &v, FmtContext &ctx) const {
     if (tags.help) {
       if (v.on) {
-        tags.format(
-            ctx, "<on>; Upper state: "sv, v.gu(), "; Lower state: "sv, v.gl());
+        tags.format(ctx, "<on>; Upper state: "sv, v.gu(), "; Lower state: "sv, v.gl());
       } else {
         tags.format(ctx, "<off>"sv);
       }

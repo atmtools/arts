@@ -52,9 +52,7 @@ void implementation(std::ostream& os) {
 )--");
 
   for (auto& [name, wsa] : internal_workspace_agendas()) {
-    if (not wsa.enum_default.empty()) {
-      std::println(os, "Agenda get_{}(const std::string_view);", name);
-    }
+    if (not wsa.enum_default.empty()) { std::println(os, "Agenda get_{}(const std::string_view);", name); }
   }
 
   std::print(os,
@@ -80,9 +78,7 @@ std::unordered_map<std::string, WorkspaceVariableRecord> workspace_variables_cre
         name,
         record.desc,
         record.type,
-        record.default_value.empty()
-            ? "std::nullopt"
-            : std::format("{}{{ {} }}", record.type, record.default_value));
+        record.default_value.empty() ? "std::nullopt" : std::format("{}{{ {} }}", record.type, record.default_value));
   }
 
   os << R"--(
@@ -104,7 +100,6 @@ int main() try {
   header(head);
   implementation(impl);
 } catch (std::exception& e) {
-  std::cerr << "Cannot create the automatic variables with error:\n\n"
-            << e.what() << '\n';
+  std::cerr << "Cannot create the automatic variables with error:\n\n" << e.what() << '\n';
   return 1;
 }

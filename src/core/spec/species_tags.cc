@@ -13,13 +13,9 @@
 namespace Species {
 Tag::Tag(const SpeciesIsotope& isot) noexcept
     : spec_ind(find_species_index(isot)),
-      type(isot.is_predefined()
-               ? SpeciesTagType::Predefined
-               : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
+      type(isot.is_predefined() ? SpeciesTagType::Predefined : SpeciesTagType::Plain) { /* Nothing to be done here. */ }
 
-SpeciesIsotope Tag::Isotopologue() const noexcept {
-  return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
-}
+SpeciesIsotope Tag::Isotopologue() const noexcept { return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind]; }
 
 void Tag::Isotopologue(const SpeciesIsotope& ir) {
   Index ind = find_species_index(ir);
@@ -45,22 +41,18 @@ constexpr void trim(std::string_view& text) {
 }
 
 constexpr std::string_view next(std::string_view& text) {
-  std::string_view next = text.substr(
-      0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
+  std::string_view next = text.substr(0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
   text.remove_prefix(std::min(text.size(), next.size() + 1));
   trim(next);
   trim(text);
   return next;
 }
 
-constexpr SpeciesEnum spec(std::string_view part,
-                           std::string_view orig [[maybe_unused]]) {
+constexpr SpeciesEnum spec(std::string_view part, std::string_view orig [[maybe_unused]]) {
   return to<SpeciesEnum>(part);
 }
 
-constexpr Index isot(SpeciesEnum species,
-                     std::string_view isot,
-                     std::string_view orig [[maybe_unused]]) {
+constexpr Index isot(SpeciesEnum species, std::string_view isot, std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
   ARTS_USER_ERROR_IF(spec_ind < 0,
                      "Bad isotopologue: \"{}"
@@ -73,37 +65,34 @@ constexpr Index isot(SpeciesEnum species,
 }
 
 constexpr void check(std::string_view text, std::string_view orig) {
-  ARTS_USER_ERROR_IF(
-      text.size(),
-      "Parsing error.  The text \"{}\""
-      "\" remains to be parsed at end of a complete species tag\n"
-      "The original tag reads \"{}\"",
-      text,
-      orig)
+  ARTS_USER_ERROR_IF(text.size(),
+                     "Parsing error.  The text \"{}\""
+                     "\" remains to be parsed at end of a complete species tag\n"
+                     "The original tag reads \"{}\"",
+                     text,
+                     orig)
 }
 }  // namespace
 
-String SpeciesTag::FullName() const noexcept {
-  return Isotopologue().FullName();
-}
+String SpeciesTag::FullName() const noexcept { return Isotopologue().FullName(); }
 
 namespace {
 SpeciesTag parse_tag(std::string_view text) {
   trim(text);
 
   const std::string_view orig = text;
-  SpeciesTag tag;
+  SpeciesTag             tag;
 
   // The first part is a species --- we do not know what to do with it yet
   SpeciesEnum species = SpeciesEnum::Bath;  // Default value
   try {
     species = spec(next(text), orig);
   } catch (std::exception& e) {
-    throw std::runtime_error(std::format(
-        "Error parsing species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
-        orig,
-        enumtyps::SpeciesEnumTypes,
-        e.what()));
+    throw std::runtime_error(
+        std::format("Error parsing species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
+                    orig,
+                    enumtyps::SpeciesEnumTypes,
+                    e.what()));
   }
 
   // If there is no text remaining after the previous next(), then we are a
@@ -141,15 +130,11 @@ SpeciesTag parse_tag(std::string_view text) {
             isotopologues(species),
             e.what()));
       }
-      tag.type = Isotopologues[tag.spec_ind].is_predefined()
-                     ? SpeciesTagType::Predefined
-                     : SpeciesTagType::Plain;
+      tag.type = Isotopologues[tag.spec_ind].is_predefined() ? SpeciesTagType::Predefined : SpeciesTagType::Plain;
     }
   }
 
-  if (text.size()) {
-    check(text, orig);
-  }
+  if (text.size()) { check(text, orig); }
 
   return tag;
 }
@@ -164,8 +149,7 @@ Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 String Tag::Name() const { return std::format("{}", *this); }
 }  // namespace Species
 
-SpeciesTagTypeStatus::SpeciesTagTypeStatus(
-    const ArrayOfSpeciesTag& abs_species) {
+SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfSpeciesTag& abs_species) {
   for (auto& tag : abs_species) {
     switch (tag.type) {
       case SpeciesTagType::Plain:
@@ -179,10 +163,7 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
   }
 }
 
-void xml_io_stream<SpeciesTag>::write(std::ostream& os,
-                                      const SpeciesTag& x,
-                                      bofstream* pbofs,
-                                      std::string_view name) {
+void xml_io_stream<SpeciesTag>::write(std::ostream& os, const SpeciesTag& x, bofstream* pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -193,9 +174,7 @@ void xml_io_stream<SpeciesTag>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SpeciesTag>::read(std::istream& is,
-                                     SpeciesTag& x,
-                                     bifstream* pbifs) {
+void xml_io_stream<SpeciesTag>::read(std::istream& is, SpeciesTag& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

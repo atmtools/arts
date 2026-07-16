@@ -13,28 +13,26 @@ propmat::propmat(propmat&&) noexcept            = default;
 propmat& propmat::operator=(const propmat&)     = default;
 propmat& propmat::operator=(propmat&&) noexcept = default;
 
-propmat::propmat(std::shared_ptr<AtmPoint> atm_,
-                 std::shared_ptr<AbsorptionBands> lines_,
-                 std::shared_ptr<CIARecords> cia_,
-                 std::shared_ptr<XsecRecords> xsec_,
+propmat::propmat(std::shared_ptr<AtmPoint>            atm_,
+                 std::shared_ptr<AbsorptionBands>     lines_,
+                 std::shared_ptr<CIARecords>          cia_,
+                 std::shared_ptr<XsecRecords>         xsec_,
                  std::shared_ptr<PredefinedModelData> predef_,
-                 Numeric ciaextrap,
-                 Index ciarobust)
+                 Numeric                              ciaextrap,
+                 Index                                ciarobust)
     : atm(std::move(atm_)),
       lines(atm, std::move(lines_)),
       cia(atm, std::move(cia_), ciaextrap, ciarobust),
       predef(atm, std::move(predef_)),
       xsec(atm, std::move(xsec_)) {}
 
-std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f,
-                                                const Vector2 los) const {
+std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f, const Vector2 los) const {
   using namespace lbl::zeeman;
 
   const auto [ano, sno] = lines(f, ZeemanPolarization::no);
 
-  const std::array zres{lines(f, ZeemanPolarization::sm),
-                        lines(f, ZeemanPolarization::pi),
-                        lines(f, ZeemanPolarization::sp)};
+  const std::array zres{
+      lines(f, ZeemanPolarization::sm), lines(f, ZeemanPolarization::pi), lines(f, ZeemanPolarization::sp)};
 
   const std::array zpol{
       norm_view(ZeemanPolarization::sm, atm->mag, los),
@@ -42,25 +40,20 @@ std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f,
       norm_view(ZeemanPolarization::sp, atm->mag, los),
   };
 
-  return {std::transform_reduce(
-              zpol.begin(),
-              zpol.end(),
-              zres.begin(),
-              Propmat{cia(f).real() + predef(f).real() + xsec(f).real() +
-                      ano.real()},
-              std::plus<>(),
-              [](const Propmat& a, const std::pair<Complex, Complex>& b) {
-                return scale(a, b.first);
-              }),
-          std::transform_reduce(
-              zpol.begin(),
-              zpol.end(),
-              zres.begin(),
-              Stokvec{sno.real()},
-              std::plus<>(),
-              [](const Propmat& a, const std::pair<Complex, Complex>& b) {
-                return absvec(scale(a, b.second));
-              })};
+  return {
+      std::transform_reduce(zpol.begin(),
+                            zpol.end(),
+                            zres.begin(),
+                            Propmat{cia(f).real() + predef(f).real() + xsec(f).real() + ano.real()},
+                            std::plus<>(),
+                            [](const Propmat& a, const std::pair<Complex, Complex>& b) { return scale(a, b.first); }),
+      std::transform_reduce(
+          zpol.begin(),
+          zpol.end(),
+          zres.begin(),
+          Stokvec{sno.real()},
+          std::plus<>(),
+          [](const Propmat& a, const std::pair<Complex, Complex>& b) { return absvec(scale(a, b.second)); })};
 }
 
 void propmat::set_atm(std::shared_ptr<AtmPoint> atm_) {
@@ -75,32 +68,19 @@ void propmat::set_ciaextrap(Numeric extrap) { cia.set_extrap(extrap); }
 
 void propmat::set_ciarobust(Index robust) { cia.set_robust(robust); }
 
-void propmat::set_bands(std::shared_ptr<AbsorptionBands> lines_) {
-  lines.set_model(std::move(lines_));
-}
+void propmat::set_bands(std::shared_ptr<AbsorptionBands> lines_) { lines.set_model(std::move(lines_)); }
 
-void propmat::set_cia(std::shared_ptr<CIARecords> cia_) {
-  cia.set_model(std::move(cia_));
-}
+void propmat::set_cia(std::shared_ptr<CIARecords> cia_) { cia.set_model(std::move(cia_)); }
 
-void propmat::set_predef(std::shared_ptr<PredefinedModelData> predef_) {
-  predef.set_model(std::move(predef_));
-}
+void propmat::set_predef(std::shared_ptr<PredefinedModelData> predef_) { predef.set_model(std::move(predef_)); }
 
-void propmat::set_model(std::shared_ptr<XsecRecords> xsec_) {
-  xsec.set_model(std::move(xsec_));
-}
+void propmat::set_model(std::shared_ptr<XsecRecords> xsec_) { xsec.set_model(std::move(xsec_)); }
 }  // namespace fwd
 
-void xml_io_stream<fwd::propmat>::write(std::ostream&,
-                                        const fwd::propmat&,
-                                        bofstream*,
-                                        std::string_view) {
+void xml_io_stream<fwd::propmat>::write(std::ostream&, const fwd::propmat&, bofstream*, std::string_view) {
   throw std::runtime_error("Not implemented");
 }
 
-void xml_io_stream<fwd::propmat>::read(std::istream&,
-                                       fwd::propmat&,
-                                       bifstream*) {
+void xml_io_stream<fwd::propmat>::read(std::istream&, fwd::propmat&, bifstream*) {
   throw std::runtime_error("Not implemented");
 }

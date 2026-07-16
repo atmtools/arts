@@ -50,9 +50,7 @@ inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldEarth(SurfaceField &surf_field,
-                     const String &model,
-                     const Numeric &surf_elevation) {
+void surf_fieldEarth(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -72,9 +70,7 @@ void surf_fieldEarth(SurfaceField &surf_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldJupiter(SurfaceField &surf_field,
-                       const String &model,
-                       const Numeric &surf_elevation) {
+void surf_fieldJupiter(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -93,9 +89,7 @@ void surf_fieldJupiter(SurfaceField &surf_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldMars(SurfaceField &surf_field,
-                    const String &model,
-                    const Numeric &surf_elevation) {
+void surf_fieldMars(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -114,9 +108,7 @@ void surf_fieldMars(SurfaceField &surf_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldMoon(SurfaceField &surf_field,
-                    const String &model,
-                    const Numeric &surf_elevation) {
+void surf_fieldMoon(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -136,9 +128,7 @@ void surf_fieldMoon(SurfaceField &surf_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldIo(SurfaceField &surf_field,
-                  const String &model,
-                  const Numeric &surf_elevation) {
+void surf_fieldIo(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -146,17 +136,14 @@ void surf_fieldIo(SurfaceField &surf_field,
 
   switch (to<IoEllipsoid>(model)) {
     case IoEllipsoid::Sphere:
-      surf_field.ellipsoid[0] =
-          1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surf_field.ellipsoid[0] = 1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
       surf_field.ellipsoid[1] = surf_field.ellipsoid[0];
       break;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldEuropa(SurfaceField &surf_field,
-                      const String &model,
-                      const Numeric &surf_elevation) {
+void surf_fieldEuropa(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -164,17 +151,14 @@ void surf_fieldEuropa(SurfaceField &surf_field,
 
   switch (to<EuropaEllipsoid>(model)) {
     case EuropaEllipsoid::Sphere:
-      surf_field.ellipsoid[0] =
-          1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surf_field.ellipsoid[0] = 1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
       surf_field.ellipsoid[1] = surf_field.ellipsoid[0];
       break;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldGanymede(SurfaceField &surf_field,
-                        const String &model,
-                        const Numeric &surf_elevation) {
+void surf_fieldGanymede(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -182,17 +166,14 @@ void surf_fieldGanymede(SurfaceField &surf_field,
 
   switch (to<GanymedeEllipsoid>(model)) {
     case GanymedeEllipsoid::Sphere:
-      surf_field.ellipsoid[0] =
-          2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surf_field.ellipsoid[0] = 2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
       surf_field.ellipsoid[1] = surf_field.ellipsoid[0];
       break;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldVenus(SurfaceField &surf_field,
-                     const String &model,
-                     const Numeric &surf_elevation) {
+void surf_fieldVenus(SurfaceField &surf_field, const String &model, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   surf_field                = {};
@@ -207,7 +188,7 @@ void surf_fieldVenus(SurfaceField &surf_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldInit(SurfaceField &surf_field,
+void surf_fieldInit(SurfaceField  &surf_field,
                     const Numeric &r_equatorial,
                     const Numeric &r_polar,
                     const Numeric &surf_elevation) {
@@ -240,33 +221,27 @@ A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surf_fieldPlanet(SurfaceField &surf_field,
-                      const String &option,
-                      const Numeric &surf_elevation) {
+void surf_fieldPlanet(SurfaceField &surf_field, const String &option, const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
   using enum PlanetOrMoonType;
   switch (to<PlanetOrMoonType>(option)) {
-    case Earth: return surf_fieldEarth(surf_field, "WGS84", surf_elevation);
-    case Io:    return surf_fieldIo(surf_field, "Sphere", surf_elevation);
-    case Jupiter:
-      return surf_fieldJupiter(surf_field, "Ellipsoid", surf_elevation);
-    case Mars:  return surf_fieldMars(surf_field, "Sphere", surf_elevation);
-    case Venus: return surf_fieldVenus(surf_field, "Sphere", surf_elevation);
-    case Moon:  return surf_fieldMoon(surf_field, "Ellipsoid", surf_elevation);
+    case Earth:   return surf_fieldEarth(surf_field, "WGS84", surf_elevation);
+    case Io:      return surf_fieldIo(surf_field, "Sphere", surf_elevation);
+    case Jupiter: return surf_fieldJupiter(surf_field, "Ellipsoid", surf_elevation);
+    case Mars:    return surf_fieldMars(surf_field, "Sphere", surf_elevation);
+    case Venus:   return surf_fieldVenus(surf_field, "Sphere", surf_elevation);
+    case Moon:    return surf_fieldMoon(surf_field, "Ellipsoid", surf_elevation);
   }
 }
 
 void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
-                                 const SurfaceField &surf_field,
-                                 const Numeric &mass) {
+                                 const SurfaceField     &surf_field,
+                                 const Numeric          &mass) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.ellipsoid[0] <= 0,
-                     "Ellipsoid has bad semi-major axis {:B,}",
-                     surf_field.ellipsoid)
-  ARTS_USER_ERROR_IF(surf_field.ellipsoid[1] <= 0 or
-                         surf_field.ellipsoid[1] > surf_field.ellipsoid[0],
+  ARTS_USER_ERROR_IF(surf_field.ellipsoid[0] <= 0, "Ellipsoid has bad semi-major axis {:B,}", surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.ellipsoid[1] <= 0 or surf_field.ellipsoid[1] > surf_field.ellipsoid[0],
                      "Ellipsoid has bad semi-minor axis {:B,}",
                      surf_field.ellipsoid)
 

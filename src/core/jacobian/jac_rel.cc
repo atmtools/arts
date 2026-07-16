@@ -22,17 +22,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector relfwd::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector relfwd::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector relfwd::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector relfwd::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector relfwd::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector relfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector relinv::operator()(ConstVectorView xx) const {
   ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
@@ -51,22 +45,16 @@ The incoming data has {} elements
   return matpack::einsum<Vector, "i", "i", "i">(xx, orig);
 }
 
-Vector relinv::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector relinv::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector relinv::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector relinv::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector relinv::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector relinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix relinv::operator()(ConstMatrixView dyy) const {
   ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
   const Vector& orig = *sorig;
-  const Size N       = orig.size();
+  const Size    N    = orig.size();
 
   ARTS_USER_ERROR_IF(N != static_cast<Size>(dyy.ncols()),
                      R"(Mismatch size.
@@ -91,26 +79,18 @@ The incoming jacobian has {} elements
   return matpack::einsum<Matrix, "ij", "ij", "j">(dyy, orig);
 }
 
-Matrix relinv::operator()(ConstMatrixView dy,
-                          ConstVectorView,
-                          const AtmField&) const {
+Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const AtmField&) const { return this->operator()(dy); }
+
+Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const SurfaceField&) const {
   return this->operator()(dy);
 }
 
-Matrix relinv::operator()(ConstMatrixView dy,
-                          ConstVectorView,
-                          const SurfaceField&) const {
-  return this->operator()(dy);
-}
-
-Matrix relinv::operator()(ConstMatrixView dy,
-                          ConstVectorView,
-                          const SubsurfaceField&) const {
+Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const SubsurfaceField&) const {
   return this->operator()(dy);
 }
 
 void make_relfit(Jacobian::AtmTarget& x, const AtmField& atm) {
-  auto sorig = std::make_shared<Vector>(atm[x.type].flat_view());
+  auto         sorig = std::make_shared<Vector>(atm[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
   const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
@@ -119,7 +99,7 @@ void make_relfit(Jacobian::AtmTarget& x, const AtmField& atm) {
 }
 
 void make_relfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
-  auto sorig = std::make_shared<Vector>(surf[x.type].flat_view());
+  auto         sorig = std::make_shared<Vector>(surf[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
   const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
@@ -127,9 +107,8 @@ void make_relfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
   x.transform_state  = rfwd;
 }
 
-void make_relfit(Jacobian::SubsurfaceTarget& x,
-                 const SubsurfaceField& subsurf) {
-  auto sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
+void make_relfit(Jacobian::SubsurfaceTarget& x, const SubsurfaceField& subsurf) {
+  auto         sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
   const relfwd rfwd{.sorig = sorig};
   const relinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;

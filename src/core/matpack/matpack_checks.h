@@ -24,17 +24,11 @@
 
   @return True if the two numbers are the same.
  */
-template <typename T>
-constexpr bool is_same_within_epsilon(T a,
-                                      T b,
-                                      T e = std::numeric_limits<T>::epsilon()) {
+template <typename T> constexpr bool is_same_within_epsilon(T a, T b, T e = std::numeric_limits<T>::epsilon()) {
   return std::abs(a - b) <= e * std::max(std::abs(a), std::abs(b));
 }
 
-template <typename T>
-constexpr bool in_range(T x, T x_low, T x_high) {
-  return (x >= x_low) and (x <= x_high);
-}
+template <typename T> constexpr bool in_range(T x, T x_low, T x_high) { return (x >= x_low) and (x <= x_high); }
 
 /*! Checks if an ArrayOfIndex is unique, i.e., has no duplicate values
   
@@ -48,8 +42,7 @@ constexpr bool in_range(T x, T x_low, T x_high) {
   \date   2008-08-24
 
 */
-template <typename T>
-constexpr bool is_unique(const std::vector<T>& x) {
+template <typename T> constexpr bool is_unique(const std::vector<T>& x) {
   // We simply compare the second element to the first,
   // the third to the first and second, and so on.
 

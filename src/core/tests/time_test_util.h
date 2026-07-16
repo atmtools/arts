@@ -15,15 +15,12 @@ struct test_timer_t {
   using time_point = std::chrono::time_point<Clock>;
 
   std::string name;
-  time_point start;
-  test_timer_t(std::string n)
-      : name(std::move(n)), start(std::chrono::high_resolution_clock::now()) {}
+  time_point  start;
+  test_timer_t(std::string n) : name(std::move(n)), start(std::chrono::high_resolution_clock::now()) {}
 
   ~test_timer_t() {
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-            .count();
+    auto end      = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     time_points[name].push_back(duration);
   }
 };
