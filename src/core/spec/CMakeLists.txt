@@ -35,6 +35,6 @@ target_include_directories(species_enum_info_gen PUBLIC ${CMAKE_CURRENT_SOURCE_D
 
 add_custom_command(
   OUTPUT auto_isotopologues.h
-  COMMAND make_species ${ARTS_CAT_DATA_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/predef-models/
+  COMMAND make_species ${ARTS_CAT_DATA_DIR}
   DEPENDS make_species
 )
