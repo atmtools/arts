@@ -38,19 +38,25 @@ def test_iso(fn: str):
         f"[Unmaintainable isotopologues data]: {fn} has species {data.species} and code {data.code}, but expected {spec} and {code} from filename"
     )
 
-    assert data.mass > 0, (
-        f"[Unmaintainable isotopologues data]: {fn} has bad mass {data.mass}.  Set to round atomic weights if you do not know."
-    )
+    try:
+        # Predefined models do not have a valid int/float code
+        float(data.code)
 
-    assert data.default_ratio >= 0, (
-        f"[Unmaintainable isotopologues data]: {fn} has bad default_ratio {data.default_ratio}.  Set to zero to ignore by default."
-    )
+        assert data.mass > 0, (
+            f"[Unmaintainable isotopologues data]: {fn} has bad mass {data.mass}.  Set to round atomic weights if you do not know."
+        )
 
-    assert data.degeneracy > 0 or data.degeneracy == -1, (
-        f"[Unmaintainable isotopologues data]: {fn} has invalid degeneracy {data.degeneracy}.  Set to -1 if unknown."
-    )
+        assert data.default_ratio >= 0, (
+            f"[Unmaintainable isotopologues data]: {fn} has bad default_ratio {data.default_ratio}.  Set to zero to ignore by default."
+        )
 
-    return iso, data
+        assert data.degeneracy > 0 or data.degeneracy == -1, (
+            f"[Unmaintainable isotopologues data]: {fn} has invalid degeneracy {data.degeneracy}.  Set to -1 if unknown."
+        )
+    except ValueError:
+        return False, iso, data
+
+    return True, iso, data
 
 
 def test_hitran(fn: str):
@@ -163,8 +169,9 @@ def all_isotopologues():
         if not file.endswith(".xml"):
             continue
 
-        key, ext = test_iso(os.path.join(isot_path, file))
-        out[key] = ext
+        test, key, ext = test_iso(os.path.join(isot_path, file))
+        if test:
+            out[key] = ext
 
     return out
 

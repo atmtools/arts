@@ -9,8 +9,7 @@
 #include "species_info.h"
 
 namespace {
-std::set<SpeciesIsotopologueInfo> read_split_species(
-    const std::filesystem::path& path) {
+std::set<SpeciesIsotopologueInfo> read_split_species(const std::filesystem::path& path) {
   std::set<SpeciesIsotopologueInfo> species_set{};
 
   for (const auto& entry : std::filesystem::directory_iterator(path)) {
@@ -19,8 +18,7 @@ std::set<SpeciesIsotopologueInfo> read_split_species(
       xml_read_from_file(entry.path().string(), info);
 
       if (species_set.count(info) > 0) {
-        throw std::runtime_error(std::format(
-            "Duplicate species isotopologue info found: {}", info.name()));
+        throw std::runtime_error(std::format("Duplicate species isotopologue info found: {}", info.name()));
       }
 
       species_set.insert(info);
@@ -30,8 +28,7 @@ std::set<SpeciesIsotopologueInfo> read_split_species(
   return species_set;
 }
 
-void write_header(std::ostream& os,
-                  const std::set<SpeciesIsotopologueInfo>& data) {
+void write_header(std::ostream& os, const std::set<SpeciesIsotopologueInfo>& data) {
   std::print(os,
              R"(#pragma once
 
@@ -57,19 +54,15 @@ inline constexpr std::array Isotopologues{{)");
     }
 
     if (nonstd::isdigit(info.code.front())) {
-      std::println(
-          os,
-          R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv, .mass={}, .builtin_ratio={}, .gi={}}},)",
-          info.species,
-          info.code,
-          info.mass,
-          info.default_ratio,
-          info.degeneracy);
-    } else {
       std::println(os,
-                   R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv}},)",
+                   R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv, .mass={}, .builtin_ratio={}, .gi={}}},)",
                    info.species,
-                   info.code);
+                   info.code,
+                   info.mass,
+                   info.default_ratio,
+                   info.degeneracy);
+    } else {
+      std::println(os, R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv}},)", info.species, info.code);
     }
   }
 
@@ -92,19 +85,15 @@ inline constexpr std::array Isotopologues{{)");
 
 int main(int argc, char** argv) try {
   if (argc != 2) {
-    std::println(
-        stderr, "Usage: {} <arts-cat-data>", argv[0]);
+    std::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
     return EXIT_FAILURE;
   }
 
-  const std::filesystem::path path = argv[1];
-  auto species = read_split_species(path / "isotopologues/");
+  const std::filesystem::path path    = argv[1];
+  auto                        species = read_split_species(path / "isotopologues/");
 
   if (species.empty()) {
-    std::println(stderr,
-                 "No species isotopologue info found in {}/{}",
-                 argv[1],
-                 "isotopologues/");
+    std::println(stderr, "No species isotopologue info found in {}/{}", argv[1], "isotopologues/");
     return EXIT_FAILURE;
   }
 
