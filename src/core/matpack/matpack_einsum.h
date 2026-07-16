@@ -5,6 +5,7 @@
 
 #include <array>
 #include <limits>
+#include <numeric>
 #include <ranges>
 #include <tuple>
 #include <type_traits>

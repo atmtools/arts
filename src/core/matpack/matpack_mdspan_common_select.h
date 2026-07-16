@@ -6,18 +6,31 @@
 #include <array>
 #include <concepts>
 #include <cstdlib>
-#include <experimental/mdspan>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <version>
+
+#if __cpp_lib_submdspan >= 202603L
+#include <mdspan>
+#else
+#include <experimental/mdspan>
+#endif
 
 #include "matpack_mdspan_common_sizes.h"
 #include "matpack_mdspan_common_types.h"
 
 namespace matpack {
+#if __cpp_lib_submdspan >= 202603L
+using Joker                  = std::full_extent_t;
+constexpr inline Joker joker = std::full_extent;
+using std::submdspan;
+#else
 namespace stdx               = std::experimental;
 using Joker                  = stdx::full_extent_t;
 constexpr inline Joker joker = stdx::full_extent;
+using stdx::submdspan;
+#endif
 
 struct [[nodiscard]] StridedRange {
   Index offset{0};
@@ -36,8 +49,13 @@ struct [[nodiscard]] StridedRange {
         nelem(static_cast<Index>(n)),
         stride(static_cast<Index>(d)) {}
 
-  [[nodiscard]] constexpr stdx::strided_slice<Index, Index, Index>
-  to_strided_slice() const {
+  [[nodiscard]] constexpr
+#if __cpp_lib_submdspan >= 202603L
+      std::extent_slice<Index, Index, Index> to_extent_slice()
+#else
+      stdx::strided_slice<Index, Index, Index> to_strided_slice()
+#endif
+          const {
     return {
         .offset = offset, .extent = 1 + (nelem - 1) * stride, .stride = stride};
   }
@@ -57,9 +75,15 @@ struct [[nodiscard]] Range {
   constexpr Range(Offset i0, Nelem n)
       : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
-  [[nodiscard]] constexpr stdx::
-      strided_slice<Index, Index, std::integral_constant<Index, 1>>
-      to_strided_slice() const {
+  [[nodiscard]] constexpr
+#if __cpp_lib_submdspan >= 202603L
+      std::extent_slice<Index, Index, std::integral_constant<Index, 1>>
+      to_extent_slice()
+#else
+      stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>
+      to_strided_slice()
+#endif
+          const {
     return {.offset = offset, .extent = nelem, .stride = {}};
   }
 };
@@ -141,7 +165,11 @@ template <typename Acc>
 constexpr decltype(auto) to_base(Acc&& i) {
   if constexpr (std::is_same_v<std::remove_cvref_t<Acc>, StridedRange> or
                 std::is_same_v<std::remove_cvref_t<Acc>, Range>) {
+#if __cpp_lib_submdspan >= 202603L
+    return std::forward<Acc>(i).to_extent_slice();
+#else
     return std::forward<Acc>(i).to_strided_slice();
+#endif
   } else {
     return std::forward<Acc>(i);
   }
@@ -164,28 +192,26 @@ constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   if constexpr (any_md<Self>) {
     constexpr Size M = sizeof...(Acc);
     if constexpr (N == M) {
-      return stdx::submdspan(s.base_md(), to_base(std::forward<Acc>(i))...);
+      return submdspan(s.base_md(), to_base(std::forward<Acc>(i))...);
     } else if constexpr (N == (M + 1)) {
-      return stdx::submdspan(
-          s.base_md(), to_base(std::forward<Acc>(i))..., joker);
+      return submdspan(s.base_md(), to_base(std::forward<Acc>(i))..., joker);
     } else if constexpr (N == (M + 2)) {
-      return stdx::submdspan(
+      return submdspan(
           s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker);
     } else if constexpr (N == (M + 3)) {
-      return stdx::submdspan(
+      return submdspan(
           s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker, joker);
     } else {
       return std::apply(
           [&s]<access_operator... AccT>(AccT&&... x) {
-            return stdx::submdspan(s.base_md(),
-                                   to_base(std::forward<AccT>(x))...);
+            return submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
           },
           acc<N>(std::forward<Acc>(i)...));
     }
   } else {
     return std::apply(
         [&s]<access_operator... AccT>(AccT&&... x) {
-          return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
+          return submdspan(s, to_base(std::forward<AccT>(x))...);
         },
         acc<N>(std::forward<Acc>(i)...));
   }
@@ -229,10 +255,9 @@ constexpr decltype(auto) sub(Self&& s, Acc&& i)
     return std::apply(
         [&s]<access_operator... AccT>(AccT&&... x) {
           if constexpr (any_md<Self>) {
-            return stdx::submdspan(s.base_md(),
-                                   to_base(std::forward<AccT>(x))...);
+            return submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
           } else {
-            return stdx::submdspan(s, to_base(std::forward<AccT>(x))...);
+            return submdspan(s, to_base(std::forward<AccT>(x))...);
           }
         },
         tup<M, N>(i));

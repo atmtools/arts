@@ -19,7 +19,7 @@ add_library(matpack STATIC
 )
 
 find_package (Eigen3 REQUIRED NO_MODULE)
-message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
+message(STATUS "Found Eigen3 version ${Eigen3_VERSION}")
 
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
 target_link_libraries(matpack PUBLIC coretypes util binio arts_enum_options time_report Eigen3::Eigen xml_io)

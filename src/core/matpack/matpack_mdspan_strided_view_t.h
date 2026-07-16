@@ -63,10 +63,10 @@ struct strided_view_t final : public mdstrided_t<T, N> {
             class OtherExtents,
             class OtherLayoutPolicy,
             class OtherAccessor>
-  explicit constexpr strided_view_t(const stdx::mdspan<OtherElementType,
-                                                       OtherExtents,
-                                                       OtherLayoutPolicy,
-                                                       OtherAccessor>& other)
+  explicit constexpr strided_view_t(const mdspan<OtherElementType,
+                                                 OtherExtents,
+                                                 OtherLayoutPolicy,
+                                                 OtherAccessor>& other)
       : base(other) {}
 
   // From potentially non-const data holders
@@ -368,14 +368,13 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     return std::forward<Self>(self).elem_at(self.size() - 1);
   }
 
-  //! Sizes
-  [[nodiscard]] constexpr auto ncols() const { return extent(N - 1); }
-  [[nodiscard]] constexpr auto nrows() const { return extent(N - 2); }
-  [[nodiscard]] constexpr auto npages() const { return extent(N - 3); }
-  [[nodiscard]] constexpr auto nbooks() const { return extent(N - 4); }
-  [[nodiscard]] constexpr auto nshelves() const { return extent(N - 5); }
-  [[nodiscard]] constexpr auto nvitrines() const { return extent(N - 6); }
-  [[nodiscard]] constexpr auto nlibraries() const { return extent(N - 7); }
+  [[nodiscard]] constexpr auto ncols() const requires(N >= 1) { return extent(N - 1); }
+  [[nodiscard]] constexpr auto nrows() const requires(N >= 2) { return extent(N - 2); }
+  [[nodiscard]] constexpr auto npages() const requires(N >= 3) { return extent(N - 3); }
+  [[nodiscard]] constexpr auto nbooks() const requires(N >= 4) { return extent(N - 4); }
+  [[nodiscard]] constexpr auto nshelves() const requires(N >= 5) { return extent(N - 5); }
+  [[nodiscard]] constexpr auto nvitrines() const requires(N >= 6) { return extent(N - 6); }
+  [[nodiscard]] constexpr auto nlibraries() const requires(N >= 7) { return extent(N - 7); }
 
   //! Convert to view_t
   constexpr auto to_exhaustive_view() const {

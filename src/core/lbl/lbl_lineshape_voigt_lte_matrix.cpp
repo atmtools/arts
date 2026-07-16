@@ -764,8 +764,6 @@ void str_scale(ComplexVectorView a,
 
   const Size n = static_cast<Size>(a.ncols());
 
-  assert(static_cast<Size>(a.nrows()) == n);
-
   const Numeric T = atm.temperature;
   const Numeric P = atm.pressure;
   const Numeric N = number_density(P, T);

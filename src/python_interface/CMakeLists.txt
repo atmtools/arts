@@ -206,6 +206,17 @@ set_target_properties(
     pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${ARTS_BINARY_DIR}/python/src/pyarts3/")
 
+if (APPLE
+    AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_STANDARD GREATER_EQUAL 26
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
+  message(STATUS "WARNING: Linking pyarts_cpp on GCC16 on macOS requires -static-libstdc++ and -static-libgcc to avoid runtime errors. Adding these flags to the link command.  Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+  target_link_options(pyarts_cpp PRIVATE
+      -static-libstdc++ -static-libgcc)
+  target_link_options(pyarts_cpp PRIVATE
+      -Wl,-reexport_library,/usr/lib/libiconv.2.dylib)
+endif()
+
 include (ArtsNanobindStubs)
 arts_add_cpp_stubs(
   constants

@@ -3,22 +3,36 @@
 #include <configtypes.h>
 
 #include <concepts>
-#include <experimental/mdspan>
 #include <type_traits>
+#include <version>
+
+#if __cpp_lib_submdspan >= 202603L
+#include <mdspan>
+#else
+#include <experimental/mdspan>
+#endif
 
 #include "matpack_mdspan_common_sizes.h"
 
-namespace stdx = std::experimental;
-
 namespace matpack {
+#if __cpp_lib_submdspan >= 202603L
+using std::dextents;
+using std::layout_stride;
+using std::mdspan;
+#else
+namespace stdx = std::experimental;
+using stdx::dextents;
+using stdx::layout_stride;
+using stdx::mdspan;
+#endif
+
 //! A standard type holding a strided multidimensional array
 template <class T, Size N>
-using mdstrided_t =
-    stdx::mdspan<T, stdx::dextents<Index, N>, stdx::layout_stride>;
+using mdstrided_t = mdspan<T, dextents<Index, N>, layout_stride>;
 
 //! A standard type holding a multidimensional array
 template <class T, Size N>
-using mdview_t = stdx::mdspan<T, stdx::dextents<Index, N>>;
+using mdview_t = mdspan<T, dextents<Index, N>>;
 
 //! Our data holder
 template <typename T, Size N>
