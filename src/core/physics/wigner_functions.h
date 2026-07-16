@@ -27,8 +27,8 @@ void arts_wigner_thread_init(int max_two_j);
 void arts_wigner_thread_free();
 
 struct WignerInformation {
-  static int largest;
-  static int fastest;
+  static int  largest;
+  static int  fastest;
   static bool threej;
   static bool sixj;
   static bool init;
@@ -39,17 +39,13 @@ struct WignerInformation {
 
   WignerInformation() = default;
 
-  WignerInformation(int largest_symbol,
-                    int fastest_symbol,
-                    bool three,
-                    bool six);
+  WignerInformation(int largest_symbol, int fastest_symbol, bool three, bool six);
 
   static void assert_valid_wigner3(const Rational J);
 
   static void assert_valid_wigner6(const Rational J);
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const WignerInformation& wi);
+  friend std::ostream& operator<<(std::ostream& os, const WignerInformation& wi);
 };
 
 Rational wigner3_reverse_size(const int j);
@@ -61,8 +57,7 @@ Rational wigner6_reverse_size(const int j);
  * @param[in] a Another limit
  * @return [low, high] for valid ranges of numbers or two undefined rationals
  */
-std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
-                                            std::pair<Rational, Rational> b);
+std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std::pair<Rational, Rational> b);
 
 /*! Return the limits where a wigner3j symbol can be non-zero
  * 
@@ -109,31 +104,27 @@ std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
  * @return A valid range where both start and end are valid, or invalid numbers
  */
 template <Index pos>
-constexpr std::pair<Rational, Rational> wigner3j_limits(
-    [[maybe_unused]] const Rational a = Rational{0},
-    [[maybe_unused]] const Rational b = Rational{0},
-    [[maybe_unused]] const Rational c = Rational{0},
-    [[maybe_unused]] const Rational d = Rational{0},
-    [[maybe_unused]] const Rational e = Rational{0})
-  requires(pos < 7 and pos > 0)
-{
+constexpr std::pair<Rational, Rational> wigner3j_limits([[maybe_unused]] const Rational a = Rational{0},
+                                                        [[maybe_unused]] const Rational b = Rational{0},
+                                                        [[maybe_unused]] const Rational c = Rational{0},
+                                                        [[maybe_unused]] const Rational d = Rational{0},
+                                                        [[maybe_unused]] const Rational e = Rational{0})
+    requires(pos < 7 and pos > 0) {
   using std::swap;
 
   if constexpr (pos == 1 or pos == 2) {
-    const Rational maxX = b - a;
+    const Rational                maxX = b - a;
     std::pair<Rational, Rational> out{-maxX, a + b};
     if (out.first > out.second) swap(out.first, out.second);
     if (out.second > maxX) out.second = maxX;
     if (out.first > maxX)
-      out = {Rational{std::numeric_limits<Index>::max()},
-             Rational{std::numeric_limits<Index>::lowest()}};
+      out = {Rational{std::numeric_limits<Index>::max()}, Rational{std::numeric_limits<Index>::lowest()}};
     return out;
   } else if constexpr (pos == 3) {
     const Rational maxX = a + b;
     const Rational minX = abs(a - b);
     if (maxX >= minX) return {minX, maxX};
-    return {Rational{std::numeric_limits<Index>::max()},
-            Rational{std::numeric_limits<Index>::lowest()}};
+    return {Rational{std::numeric_limits<Index>::max()}, Rational{std::numeric_limits<Index>::lowest()}};
   } else {
     const Rational lim = pos == 4   ? abs(a)
                          : pos == 5 ? abs(b)
@@ -141,8 +132,7 @@ constexpr std::pair<Rational, Rational> wigner3j_limits(
                                     /*pos == 6*/ abs(c);
     const Rational val = -e - d;
     if (-lim <= val and val <= lim) return {val, val};
-    return {Rational{std::numeric_limits<Index>::max()},
-            Rational{std::numeric_limits<Index>::lowest()}};
+    return {Rational{std::numeric_limits<Index>::max()}, Rational{std::numeric_limits<Index>::lowest()}};
   }
 }
 
@@ -166,12 +156,8 @@ constexpr std::pair<Rational, Rational> wigner3j_limits(
   * @param[in] m3 as above
   * @return Numeric Symbol value
   */
-Numeric wigner3j(const Rational j1,
-                 const Rational j2,
-                 const Rational j3,
-                 const Rational m1,
-                 const Rational m2,
-                 const Rational m3);
+Numeric wigner3j(
+    const Rational j1, const Rational j2, const Rational j3, const Rational m1, const Rational m2, const Rational m3);
 
 /** Wigner 6J symbol
   * 
@@ -193,12 +179,8 @@ Numeric wigner3j(const Rational j1,
   * @param[in] l3 as above
   * @return Numeric Symbol value
   */
-Numeric wigner6j(const Rational j1,
-                 const Rational j2,
-                 const Rational j3,
-                 const Rational l1,
-                 const Rational l2,
-                 const Rational l3);
+Numeric wigner6j(
+    const Rational j1, const Rational j2, const Rational j3, const Rational l1, const Rational l2, const Rational l3);
 
 /** Ready Wigner
  * 

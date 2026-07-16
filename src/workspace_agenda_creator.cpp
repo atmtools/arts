@@ -8,14 +8,11 @@
 #include <unordered_map>
 
 SetWsv::SetWsv(std::string n) : name(std::move(n)) {
-  if (auto ind = name.find('='); ind not_eq name.npos) {
-    *this = SetWsv(name.substr(0, ind), name.substr(ind + 1));
-  }
+  if (auto ind = name.find('='); ind not_eq name.npos) { *this = SetWsv(name.substr(0, ind), name.substr(ind + 1)); }
 }
 
-AgendaCreator& AgendaCreator::add(const std::string& name,
-                                  std::vector<SetWsv>&& v) {
-  std::vector<std::string> args{};
+AgendaCreator& AgendaCreator::add(const std::string& name, std::vector<SetWsv>&& v) {
+  std::vector<std::string>                     args{};
   std::unordered_map<std::string, std::string> kwargs{};
 
   for (auto& wsv : v) {
@@ -51,16 +48,13 @@ Agenda get_spectral_propmat_scat_agenda(const std::string_view option) {
 
   using enum spectral_propmat_scat_agendaPredefined;
   switch (to<spectral_propmat_scat_agendaPredefined>(option)) {
-    case AirSimple:
-      agenda.add("spectral_propmat_scatInit");
-      agenda.add("spectral_propmat_scatAirSimple");
+    case AirSimple: agenda.add("spectral_propmat_scatInit"); agenda.add("spectral_propmat_scatAirSimple");
   }
 
   return std::move(agenda).finalize(false);
 }
 
-Agenda get_spectral_propmat_scat_spectral_agenda(
-    const std::string_view option) {
+Agenda get_spectral_propmat_scat_spectral_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_propmat_scat_spectral_agenda");
 
   using enum spectral_propmat_scat_spectral_agendaPredefined;
@@ -139,11 +133,9 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
 
   using enum spectral_rad_surface_agendaPredefined;
   switch (to<spectral_rad_surface_agendaPredefined>(option)) {
-    case Blackbody:    agenda.add("spectral_radSurfaceBlackbody"); break;
-    case Transmission: agenda.add("spectral_radDefaultTransmission"); break;
-    case SurfaceReflectance:
-      agenda.add("spectral_radSurfaceReflectance");
-      break;
+    case Blackbody:          agenda.add("spectral_radSurfaceBlackbody"); break;
+    case Transmission:       agenda.add("spectral_radDefaultTransmission"); break;
+    case SurfaceReflectance: agenda.add("spectral_radSurfaceReflectance"); break;
   }
 
   return std::move(agenda).finalize(true);
@@ -190,8 +182,7 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
     case HighPerformance:
       agenda.add("measurement_vec_errorFromModelState");
       agenda.add("jac_targetsConditionalClear");
-      agenda.add("measurement_vecFromSensor",
-                 SetWsv("kernel", "High Performance"s));
+      agenda.add("measurement_vecFromSensor", SetWsv("kernel", "High Performance"s));
       agenda.add("measurement_jacTransformations");
       agenda.add("measurement_vecConditionalAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
@@ -206,17 +197,14 @@ Agenda get_spectral_surf_refl_agenda(const std::string_view option) {
 
   using enum spectral_surf_refl_agendaPredefined;
   switch (to<spectral_surf_refl_agendaPredefined>(option)) {
-    case FlatScalar: agenda.add("spectral_surf_reflFlatScalar"); break;
-    case FlatRealFresnel:
-      agenda.add("spectral_surf_reflFlatRealFresnel");
-      break;
+    case FlatScalar:      agenda.add("spectral_surf_reflFlatScalar"); break;
+    case FlatRealFresnel: agenda.add("spectral_surf_reflFlatRealFresnel"); break;
   }
 
   return std::move(agenda).finalize(true);
 }
 
-Agenda get_disort_settings_downwelling_wrapper_agenda(
-    const std::string_view option) {
+Agenda get_disort_settings_downwelling_wrapper_agenda(const std::string_view option) {
   AgendaCreator agenda("disort_settings_downwelling_wrapper_agenda");
 
   using enum disort_settings_downwelling_wrapper_agendaPredefined;
@@ -304,10 +292,7 @@ Agenda get_ray_path_observer_agenda(const std::string_view option) {
   using enum ray_path_observer_agendaPredefined;
   switch (to<ray_path_observer_agendaPredefined>(option)) {
     case GeometricProfile:
-      agenda.add("ray_pathInit",
-                 SetWsv{"pos", "obs_pos"},
-                 SetWsv{"los", "obs_los"},
-                 SetWsv("as_sensor", Index{1}));
+      agenda.add("ray_pathInit", SetWsv{"pos", "obs_pos"}, SetWsv{"los", "obs_los"}, SetWsv("as_sensor", Index{1}));
       agenda.add("ray_pathSetGeometricExtremes",
                  SetWsv("surf_search_accuracy", Numeric{0.1}),
                  SetWsv("surf_safe_search", Index{1}));
@@ -315,9 +300,7 @@ Agenda get_ray_path_observer_agenda(const std::string_view option) {
       break;
     case GeometricDefault: {
       Agenda out;
-      auto& wsm_def = internal_workspace_methods()
-                          .at("ray_path_observer_agendaSetGeometric")
-                          .gin_value;
+      auto&  wsm_def = internal_workspace_methods().at("ray_path_observer_agendaSetGeometric").gin_value;
       ray_path_observer_agendaSetGeometric(out,
                                            wsm_def[0]->get<String>(),
                                            wsm_def[1]->get<Numeric>(),

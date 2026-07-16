@@ -22,12 +22,11 @@ bool can_compute(const SpeciesIsotope& model);
  * @param[in] jac_targets As WSV
  * @param[in] predefined_model_data As WSV
  */
-void compute(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    const SpeciesIsotope& tag,
-    const Vector& f_grid,
-    const AtmPoint& atm_point,
-    const JacobianTargets& jac_targets,
-    const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
+void compute(PropmatVector&                                   propmat_clearsky,
+             PropmatMatrix&                                   dpropmat_clearsky_dx,
+             const SpeciesIsotope&                            tag,
+             const Vector&                                    f_grid,
+             const AtmPoint&                                  atm_point,
+             const JacobianTargets&                           jac_targets,
+             const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
 }  // namespace Absorption::PredefinedModel

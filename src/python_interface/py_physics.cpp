@@ -14,8 +14,7 @@ void py_physics(py::module_& m) try {
   physics.def(
       "number_density",
       [](py::object p, py::object t) {
-        return vectorize(
-            [](Numeric a, Numeric b) { return number_density(a, b); }, p, t);
+        return vectorize([](Numeric a, Numeric b) { return number_density(a, b); }, p, t);
       },
       "P"_a,
       "T"_a,
@@ -38,9 +37,7 @@ Returns
   physics.def(
       "planck",
       [](py::object frequency, py::object temperature) {
-        return vectorize([](Numeric f, Numeric t) { return planck(f, t); },
-                         frequency,
-                         temperature);
+        return vectorize([](Numeric f, Numeric t) { return planck(f, t); }, frequency, temperature);
       },
       "frequency"_a,
       "temperature"_a,
@@ -65,7 +62,6 @@ B : Numeric or numpy.ndarray
     Planck function [W/(m² Hz sr)]
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize physics\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize physics\n{}", e.what()));
 }
 }  // namespace Python

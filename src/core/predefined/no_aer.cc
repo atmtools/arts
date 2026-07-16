@@ -11,24 +11,12 @@ when AER is disabled
 
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {
-void compute_foreign_h2o(PropmatVector &,
-                         const Vector &,
-                         const AtmPoint &,
-                         const WaterData &) NOPE;
-void compute_self_h2o(PropmatVector &,
-                      const Vector &,
-                      const AtmPoint &,
-                      const WaterData &) NOPE;
+void compute_foreign_h2o(PropmatVector &, const Vector &, const AtmPoint &, const WaterData &) NOPE;
+void compute_self_h2o(PropmatVector &, const Vector &, const AtmPoint &, const WaterData &) NOPE;
 }  // namespace MT_CKD400
 namespace MT_CKD430 {
-void compute_foreign_h2o(PropmatVector &,
-                         const Vector &,
-                         const AtmPoint &,
-                         const WaterData &) NOPE;
-void compute_self_h2o(PropmatVector &,
-                      const Vector &,
-                      const AtmPoint &,
-                      const WaterData &) NOPE;
+void compute_foreign_h2o(PropmatVector &, const Vector &, const AtmPoint &, const WaterData &) NOPE;
+void compute_self_h2o(PropmatVector &, const Vector &, const AtmPoint &, const WaterData &) NOPE;
 }  // namespace MT_CKD430
 
 namespace MT_CKD100 {
@@ -47,16 +35,12 @@ void nitrogen_rot(PropmatVector &, const Vector &, const AtmPoint &) NOPE;
 namespace CKDMT350 {
 void compute_self_h2o(PropmatVector &, const Vector &, const AtmPoint &) NOPE;
 
-void compute_foreign_h2o(PropmatVector &,
-                         const Vector &,
-                         const AtmPoint &) NOPE;
+void compute_foreign_h2o(PropmatVector &, const Vector &, const AtmPoint &) NOPE;
 }  // namespace CKDMT350
 
 namespace CKDMT320 {
 void compute_self_h2o(PropmatVector &, const Vector &, const AtmPoint &) NOPE;
 
-void compute_foreign_h2o(PropmatVector &,
-                         const Vector &,
-                         const AtmPoint &) NOPE;
+void compute_foreign_h2o(PropmatVector &, const Vector &, const AtmPoint &) NOPE;
 }  // namespace CKDMT320
 }  // namespace Absorption::PredefinedModel

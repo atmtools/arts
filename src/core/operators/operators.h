@@ -15,8 +15,7 @@
 #endif
 #endif
 
-template <typename R, typename... Args>
-struct CustomOperator {
+template <typename R, typename... Args> struct CustomOperator {
   using func_t = std::function<R(Args...)>;
   func_t f;
 
@@ -33,39 +32,33 @@ struct CustomOperator {
 #endif
 #endif
 
-using NumericUnaryOperator  = CustomOperator<Numeric, Numeric>;
-using NumericBinaryOperator = CustomOperator<Numeric, Numeric, Numeric>;
-using NumericTernaryOperator =
-    CustomOperator<Numeric, Numeric, Numeric, Numeric>;
+using NumericUnaryOperator   = CustomOperator<Numeric, Numeric>;
+using NumericBinaryOperator  = CustomOperator<Numeric, Numeric, Numeric>;
+using NumericTernaryOperator = CustomOperator<Numeric, Numeric, Numeric, Numeric>;
 
-template <typename... WTs>
-struct std::formatter<CustomOperator<WTs...>> {
+template <typename... WTs> struct std::formatter<CustomOperator<WTs...>> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const CustomOperator<WTs...> &,
-                              FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const CustomOperator<WTs...> &, FmtContext &ctx) const {
     return tags.format(ctx, tags.quote(), "functional-data"sv, tags.quote());
   }
 };
 
-template <typename R, typename... Args>
-  requires(arts_xml_ioable<std::function<R(Args...)>>)
+template <typename R, typename... Args> requires(arts_xml_ioable<std::function<R(Args...)>>)
 struct xml_io_stream<CustomOperator<R, Args...>> {
   static constexpr std::string_view type_name = "CustomOperator"sv;
 
-  static void write(std::ostream &os,
+  static void write(std::ostream                     &os,
                     const CustomOperator<R, Args...> &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv) {
+                    bofstream                        *pbofs = nullptr,
+                    std::string_view                  name  = ""sv) {
     XMLTag tag(type_name, "name", name);
     tag.write_to_stream(os);
 
@@ -74,9 +67,7 @@ struct xml_io_stream<CustomOperator<R, Args...>> {
     tag.write_to_end_stream(os);
   }
 
-  static void read(std::istream &is,
-                   CustomOperator<R, Args...> &x,
-                   bifstream *pbifs = nullptr) {
+  static void read(std::istream &is, CustomOperator<R, Args...> &x, bifstream *pbifs = nullptr) {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);

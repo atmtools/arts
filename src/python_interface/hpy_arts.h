@@ -17,18 +17,11 @@ namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
 
-template <typename T, typename U = T, class... E>
-void xml_interface(py::class_<T, E...>& c) {
+template <typename T, typename U = T, class... E> void xml_interface(py::class_<T, E...>& c) {
   c.def(
       "savexml",
-      [](const T& x,
-         const char* const file,
-         const char* const type,
-         bool clobber) {
-        return xml_write_to_file(file,
-                                 static_cast<const U&>(x),
-                                 to<FileType>(type),
-                                 clobber ? 0 : 1);
+      [](const T& x, const char* const file, const char* const type, bool clobber) {
+        return xml_write_to_file(file, static_cast<const U&>(x), to<FileType>(type), clobber ? 0 : 1);
       },
       "file"_a.none(false),
       "type"_a.none(false) = "ascii",
@@ -57,9 +50,7 @@ file : str
 
   c.def(
       "readxml",
-      [](T& x, const char* const file) {
-        return xml_read_from_file(file, static_cast<U&>(x));
-      },
+      [](T& x, const char* const file) { return xml_read_from_file(file, static_cast<U&>(x)); },
       "file"_a.none(false),
       R"(Read variable from file.
 
@@ -82,9 +73,7 @@ file : str
   if constexpr (arts_xml_extendable<U>) {
     c.def(
         "extendxml",
-        [](T& x, const char* const file) {
-          return xml_extend_from_file(file, static_cast<U&>(x));
-        },
+        [](T& x, const char* const file) { return xml_extend_from_file(file, static_cast<U&>(x)); },
         "file"_a.none(false),
         R"(Extend variable from file.
 
@@ -110,9 +99,7 @@ file : str
   if constexpr (arts_xml_appendable<U>) {
     c.def(
         "appendxml",
-        [](T& x, const char* const file) {
-          return xml_append_from_file(file, static_cast<U&>(x));
-        },
+        [](T& x, const char* const file) { return xml_append_from_file(file, static_cast<U&>(x)); },
         "file"_a.none(false),
         R"(Append variable from file.
 
@@ -163,19 +150,15 @@ artstype : T
 }
 
 static constexpr std::array binops{
-    "__add__",      "__radd__",      "__sub__",     "__rsub__",
-    "__mul__",      "__rmul__",      "__div__",     "__rdiv__",
-    "__matmul__",   "__rmatmul__",   "__truediv__", "__rtruediv__",
-    "__floordiv__", "__rfloordiv__", "__divmod__",  "__rdivmod__",
-    "__mod__",      "__rmod__",      "__pow__",     "__rpow__",
-    "__lshift__",   "__rlshift__",   "__rshift__",  "__rrshift__",
-    "__and__",      "__rand__",      "__xor__",     "__rxor__",
-    "__or__",       "__ror__",       "__lt__",      "__le__",
-    "__eq__",       "__ne__",        "__gt__",      "__ge__",
+    "__add__",      "__radd__",      "__sub__",    "__rsub__",    "__mul__",     "__rmul__",
+    "__div__",      "__rdiv__",      "__matmul__", "__rmatmul__", "__truediv__", "__rtruediv__",
+    "__floordiv__", "__rfloordiv__", "__divmod__", "__rdivmod__", "__mod__",     "__rmod__",
+    "__pow__",      "__rpow__",      "__lshift__", "__rlshift__", "__rshift__",  "__rrshift__",
+    "__and__",      "__rand__",      "__xor__",    "__rxor__",    "__or__",      "__ror__",
+    "__lt__",       "__le__",        "__eq__",     "__ne__",      "__gt__",      "__ge__",
 };
 
-template <typename T>
-constexpr auto copycast(const ValueHolder<T>& x) {
+template <typename T> constexpr auto copycast(const ValueHolder<T>& x) {
   if constexpr (std::same_as<Numeric, T>) {
     return py::float_(*x.val);
   } else if constexpr (std::same_as<String, T>) {
@@ -186,82 +169,52 @@ constexpr auto copycast(const ValueHolder<T>& x) {
     return py::object(*x.val);
 };
 
-template <typename T>
-void value_holder_interface(py::class_<ValueHolder<T>>& c) {
+template <typename T> void value_holder_interface(py::class_<ValueHolder<T>>& c) {
   for (auto& op : binops) {
     c.def(
         op,
-        [op](const ValueHolder<T>& a, const ValueHolder<T>& b) {
-          return copycast(a).attr(op)(copycast(b));
-        },
+        [op](const ValueHolder<T>& a, const ValueHolder<T>& b) { return copycast(a).attr(op)(copycast(b)); },
         py::is_operator());
 
     c.def(
-        op,
-        [op](const ValueHolder<T>& a, const py::object& b) {
-          return copycast(a).attr(op)(b);
-        },
-        py::is_operator());
+        op, [op](const ValueHolder<T>& a, const py::object& b) { return copycast(a).attr(op)(b); }, py::is_operator());
   }
 
   if constexpr (std::same_as<String, T>) {
-    c.def(
-        "__int__",
-        [](const ValueHolder<T>& a) { return py::int_(std::stoi(*a.val)); },
-        "Allows conversion to int");
+    c.def("__int__", [](const ValueHolder<T>& a) { return py::int_(std::stoi(*a.val)); }, "Allows conversion to int");
     c.def(
         "__float__",
         [](const ValueHolder<T>& a) { return py::float_(std::stod(*a.val)); },
         "Allows conversion to float");
-    c.def(
-        "__bool__",
-        [](const ValueHolder<T>& a) { return a.val->size() > 0; },
-        "Allows conversion to bool");
+    c.def("__bool__", [](const ValueHolder<T>& a) { return a.val->size() > 0; }, "Allows conversion to bool");
   } else {
     c.def(
         "__int__",
-        [](const ValueHolder<T>& a) {
-          return py::int_(static_cast<Index>(*a.val));
-        },
+        [](const ValueHolder<T>& a) { return py::int_(static_cast<Index>(*a.val)); },
         "Allows conversion to int");
     c.def(
         "__float__",
-        [](const ValueHolder<T>& a) {
-          return py::float_(static_cast<Numeric>(*a.val));
-        },
+        [](const ValueHolder<T>& a) { return py::float_(static_cast<Numeric>(*a.val)); },
         "Allows conversion to float");
-    c.def("__complex__", [](const ValueHolder<T>& a) {
-      return static_cast<Complex>(static_cast<Numeric>(*a.val));
-    });
+    c.def("__complex__", [](const ValueHolder<T>& a) { return static_cast<Complex>(static_cast<Numeric>(*a.val)); });
     c.def(
         "__bool__",
-        [](const ValueHolder<T>& a) {
-          return static_cast<bool>(*a.val) and (*a.val == *a.val);
-        },
+        [](const ValueHolder<T>& a) { return static_cast<bool>(*a.val) and (*a.val == *a.val); },
         "Allows conversion to bool");
   }
 
-  c.def(
-      "__hash__",
-      [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); },
-      "Allows hashing");
+  c.def("__hash__", [](const ValueHolder<T>& a) { return std::hash<T>{}(*a.val); }, "Allows hashing");
 
   if constexpr (std::same_as<String, T>) {
-    c.def(
-        "__len__",
-        [](const ValueHolder<T>& a) { return a.val->size(); },
-        "Length of the string");
+    c.def("__len__", [](const ValueHolder<T>& a) { return a.val->size(); }, "Length of the string");
     c.def(
         "__getitem__",
-        [](const ValueHolder<T>& a, const py::object& i) {
-          return py::str(String{a}.c_str()).attr("__getitem__")(i);
-        },
+        [](const ValueHolder<T>& a, const py::object& i) { return py::str(String{a}.c_str()).attr("__getitem__")(i); },
         "Get item from string");
   }
 }
 
-template <typename T, class... E>
-void str_interface(py::class_<T, E...>& c) {
+template <typename T, class... E> void str_interface(py::class_<T, E...>& c) {
   c.def("__format__", [](const T& x, std::string fmt) {
     if constexpr (std::formattable<T, char>) {
       fmt = std::format("{}{}{}", "{:"sv, fmt, "}"sv);
@@ -289,8 +242,7 @@ void str_interface(py::class_<T, E...>& c) {
   });
 }
 
-template <typename T, class... E>
-void boolean_compare(py::class_<T, E...>& c [[maybe_unused]]) {
+template <typename T, class... E> void boolean_compare(py::class_<T, E...>& c [[maybe_unused]]) {
   if constexpr (std::three_way_comparable<T>) {
     c.def(py::self == py::self);
     c.def(py::self != py::self);
@@ -301,8 +253,7 @@ void boolean_compare(py::class_<T, E...>& c [[maybe_unused]]) {
   }
 }
 
-template <WorkspaceGroup T, class... E>
-void generic_interface(py::class_<ValueHolder<T>, E...>& c) {
+template <WorkspaceGroup T, class... E> void generic_interface(py::class_<ValueHolder<T>, E...>& c) {
   using U = ValueHolder<T>;
 
   c.def(py::init<>());
@@ -318,8 +269,7 @@ void generic_interface(py::class_<ValueHolder<T>, E...>& c) {
   c.doc() = std::string{PythonWorkspaceGroupInfo<T>::desc()};
 }
 
-template <typename T, class... E>
-void generic_interface(py::class_<T, E...>& c) {
+template <typename T, class... E> void generic_interface(py::class_<T, E...>& c) {
   if constexpr (std::is_default_constructible_v<T>) c.def(py::init<>());
 
   if constexpr (std::is_copy_constructible_v<T>) {

@@ -7,8 +7,7 @@
 using namespace std::literals;
 
 namespace {
-std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
-internal_workspace_agendas_creator() {
+std::unordered_map<std::string, WorkspaceAgendaInternalRecord> internal_workspace_agendas_creator() {
   UniqueMap<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
   wsa_data["spectral_propmat_agenda"] = {
@@ -22,16 +21,8 @@ calculations that are happening deep in your ARTS method calls.
     Use *spectral_propmat_agendaAuto* after having defined
     your absorption data to create this agenda.  It covers most use-cases.
 )--",
-      .output       = {"spectral_propmat",
-                       "spectral_nlte_srcvec",
-                       "spectral_propmat_jac",
-                       "spectral_nlte_srcvec_jac"},
-      .input        = {"freq_grid",
-                       "freq_wind_shift_jac",
-                       "jac_targets",
-                       "select_species",
-                       "ray_point",
-                       "atm_point"},
+      .output       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .input        = {"freq_grid", "freq_wind_shift_jac", "jac_targets", "select_species", "ray_point", "atm_point"},
       .enum_options = {"Empty"},
       .output_constraints =
           {
@@ -63,16 +54,15 @@ calculations that are happening deep in your ARTS method calls.
 The main use of this agenda is to allow adapting the path points
 based on spectral parameters.
 )--",
-      .output = {"spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "spectral_propmat_jac_path",
-                 "spectral_nlte_srcvec_jac_path",
-                 "freq_grid_path",
-                 "freq_wind_shift_jac_path",
-                 "atm_path",
-                 "ray_path"},
-      .input =
-          {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
+      .output       = {"spectral_propmat_path",
+                       "spectral_nlte_srcvec_path",
+                       "spectral_propmat_jac_path",
+                       "spectral_nlte_srcvec_jac_path",
+                       "freq_grid_path",
+                       "freq_wind_shift_jac_path",
+                       "atm_path",
+                       "ray_path"},
+      .input        = {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
       .enum_options = {"Default", "AdaptiveHalfPath", "Profile2Path"},
       .enum_default = "Default",
       .output_constraints =
@@ -107,21 +97,14 @@ If you do not need single-frequency-point calculations, consider using
                  "single_propmat_jac",
                  "single_nlte_srcvec_jac",
                  "single_dispersion_jac"},
-      .input  = {"freq",
-                 "freq_wind_shift_jac",
-                 "jac_targets",
-                 "select_species",
-                 "ray_point",
-                 "atm_point"},
+      .input  = {"freq", "freq_wind_shift_jac", "jac_targets", "select_species", "ray_point", "atm_point"},
   };
 
   wsa_data["spectral_propmat_scat_spectral_agenda"] = {
       .desc =
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
-      .output       = {"spectral_propmat_scat",
-                       "spectral_absvec_scat",
-                       "spectral_phamat_spectral"},
+      .output       = {"spectral_propmat_scat", "spectral_absvec_scat", "spectral_phamat_spectral"},
       .input        = {"freq_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
@@ -192,10 +175,7 @@ The end of the path is reached when the last point in *ray_path* is
 at *PathPositionType* ``space`` or ``surface``.
 )--",
       .output       = {"ray_point"},
-      .input        = {"ray_path",
-                       "single_dispersion",
-                       "single_propmat",
-                       "max_stepsize"},
+      .input        = {"ray_path", "single_dispersion", "single_propmat", "max_stepsize"},
       .enum_options = {"GeometricStepwise", "RefractiveStepwise"},
       .enum_default = "GeometricStepwise",
   };
@@ -212,16 +192,8 @@ This is useful in-case a call to the destructive *spectral_radApplyUnitFromSpect
 is warranted.
 )--",
       .output       = {"spectral_rad", "spectral_rad_jac", "ray_path"},
-      .input        = {"freq_grid",
-                       "jac_targets",
-                       "obs_pos",
-                       "obs_los",
-                       "atm_field",
-                       "surf_field",
-                       "subsurf_field"},
-      .enum_options = {"Emission",
-                       "EmissionAdaptiveHalfsteps",
-                       "EmissionNoSensor"},
+      .input        = {"freq_grid", "jac_targets", "obs_pos", "obs_los", "atm_field", "surf_field", "subsurf_field"},
+      .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "EmissionNoSensor"},
       .enum_default = "Emission",
       .output_constraints =
           {
@@ -259,9 +231,7 @@ The input path point should be as if it is looking at space.
 )--",
       .output             = {"spectral_rad", "spectral_rad_jac"},
       .input              = {"freq_grid", "jac_targets", "ray_point"},
-      .enum_options       = {"UniformCosmicBackground",
-                             "SunOrCosmicBackground",
-                             "Transmission"},
+      .enum_options       = {"UniformCosmicBackground", "SunOrCosmicBackground", "Transmission"},
       .enum_default       = "UniformCosmicBackground",
       .output_constraints = {
           {"spectral_rad.size() == freq_grid.size()",
@@ -288,11 +258,7 @@ but might require setting *spectral_rad_closed_surface_agenda*
 as well.
 )--",
       .output       = {"spectral_rad", "spectral_rad_jac"},
-      .input        = {"freq_grid",
-                       "jac_targets",
-                       "ray_point",
-                       "surf_field",
-                       "subsurf_field"},
+      .input        = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
       .output_constraints =
@@ -310,7 +276,7 @@ as well.
       .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
 
   wsa_data["spectral_rad_closed_surface_agenda"] = {
-      .desc         = R"--(A closed surface agenda.
+      .desc               = R"--(A closed surface agenda.
 
 It behave exactly like *spectral_rad_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
@@ -324,14 +290,12 @@ and calls the *spectral_rad_observer_agenda* to compute the downwelling radiatio
 It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
 that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
-      .output       = wsa_data.at("spectral_rad_surface_agenda").output,
-      .input        = wsa_data.at("spectral_rad_surface_agenda").input,
-      .enum_options = {"Blackbody"},
-      .enum_default = "Blackbody",
-      .output_constraints =
-          wsa_data.at("spectral_rad_surface_agenda").output_constraints,
-      .named_operator =
-          wsa_data.at("spectral_rad_surface_agenda").named_operator};
+      .output             = wsa_data.at("spectral_rad_surface_agenda").output,
+      .input              = wsa_data.at("spectral_rad_surface_agenda").input,
+      .enum_options       = {"Blackbody"},
+      .enum_default       = "Blackbody",
+      .output_constraints = wsa_data.at("spectral_rad_surface_agenda").output_constraints,
+      .named_operator     = wsa_data.at("spectral_rad_surface_agenda").named_operator};
 
   wsa_data["single_rad_surface_agenda"] = {
       .desc =
@@ -339,9 +303,8 @@ that is being emitted.  That's the type of use case this agenda is made for and 
 
 Otherwise same as *spectral_rad_surface_agenda*.
 )--",
-      .output = {"single_rad", "single_rad_jac"},
-      .input =
-          {"freq", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
+      .output       = {"single_rad", "single_rad_jac"},
+      .input        = {"freq", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"WrapGrid"},
       .enum_default = "WrapGrid",
   };
@@ -417,37 +380,35 @@ it does a lot of unnecessary checks and operations that are not always needed.
   };
 
   wsa_data["spectral_surf_refl_agenda"] = {
-      .desc         = R"--(An agenda to compute the surface reflectance.
+      .desc               = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .input        = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
-      .enum_options = {"FlatScalar", "FlatRealFresnel"},
-      .output_constraints = {
-          {"spectral_surf_refl.size() == freq_grid.size()",
-           "*spectral_surf_refl* match *freq_grid* size",
-           "spectral_surf_refl.size()",
-           "freq_grid.size()"},
-          {"same_shape({jac_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
-           "*spectral_surf_refl_jac* match *jac_targets* target count and *freq_grid* size",
-           "jac_targets.target_count()",
-           "freq_grid.size()",
-           "spectral_surf_refl_jac.shape()"}}};
+      .output             = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input              = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
+      .enum_options       = {"FlatScalar", "FlatRealFresnel"},
+      .output_constraints = {{"spectral_surf_refl.size() == freq_grid.size()",
+                              "*spectral_surf_refl* match *freq_grid* size",
+                              "spectral_surf_refl.size()",
+                              "freq_grid.size()"},
+                             {"same_shape({jac_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
+                              "*spectral_surf_refl_jac* match *jac_targets* target count and *freq_grid* size",
+                              "jac_targets.target_count()",
+                              "freq_grid.size()",
+                              "spectral_surf_refl_jac.shape()"}}};
 
-  wsa_data["disort_settings_agenda"] = {
-      .desc           = R"--(An agenda for setting up Disort.
+  wsa_data["disort_settings_agenda"] = {.desc           = R"--(An agenda for setting up Disort.
 
 See *disort_settings_agendaSetup* for prepared agenda settings.
 
 The only intent of this Agenda is to simplify the setup of Disort for different
 scenarios.  The output of this Agenda is just that setting.
 )--",
-      .output         = {"disort_settings"},
-      .input          = {"freq_grid",
-                         "ray_path",
-                         "disort_quadrature_dimension",
-                         "disort_fourier_mode_dimension",
-                         "disort_legendre_polynomial_dimension"},
-      .named_operator = "DisortSettingsAgendaOperator"};
+                                        .output         = {"disort_settings"},
+                                        .input          = {"freq_grid",
+                                                           "ray_path",
+                                                           "disort_quadrature_dimension",
+                                                           "disort_fourier_mode_dimension",
+                                                           "disort_legendre_polynomial_dimension"},
+                                        .named_operator = "DisortSettingsAgendaOperator"};
 
   wsa_data["atm_disort_settings_agenda"] = {
       .desc =
@@ -456,11 +417,10 @@ scenarios.  The output of this Agenda is just that setting.
 .. seealso::
     *subsurf_disort_settings_agenda* for a similar agenda for subsurface calculations..
 )--",
-      .output = wsa_data.at("disort_settings_agenda").output,
-      .input  = wsa_data.at("disort_settings_agenda").input,
-      .output_constraints =
-          wsa_data.at("disort_settings_agenda").output_constraints,
-      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
+      .output             = wsa_data.at("disort_settings_agenda").output,
+      .input              = wsa_data.at("disort_settings_agenda").input,
+      .output_constraints = wsa_data.at("disort_settings_agenda").output_constraints,
+      .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["subsurf_disort_settings_agenda"] = {
       .desc =
@@ -469,14 +429,13 @@ scenarios.  The output of this Agenda is just that setting.
 .. seealso::
     *atm_disort_settings_agenda* for a similar agenda for atmospheric calculations.
 )--",
-      .output = wsa_data.at("disort_settings_agenda").output,
-      .input  = wsa_data.at("disort_settings_agenda").input,
-      .output_constraints =
-          wsa_data.at("disort_settings_agenda").output_constraints,
-      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
+      .output             = wsa_data.at("disort_settings_agenda").output,
+      .input              = wsa_data.at("disort_settings_agenda").input,
+      .output_constraints = wsa_data.at("disort_settings_agenda").output_constraints,
+      .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["disort_settings_downwelling_wrapper_agenda"] = {
-      .desc   = R"--(An wrapper agenda for calling *disort_settings_agenda*.
+      .desc         = R"--(An wrapper agenda for calling *disort_settings_agenda*.
 
 This agenda wraps the *disort_settings_agenda* to provide a simpler interface
 for the common case of calculating downwelling radiation.  The idea is that a
@@ -487,16 +446,16 @@ of the tau-range covered by the ray path.
 One use-case is to use this agenda to give downwelling atmospheric radiation
 as a boundary condition to subsurface radiance calculation.
 )--",
-      .output = {"disort_settings"},
-      .input  = {"freq_grid",
-                 "ray_path",
-                 "atm_field",
-                 "surf_field",
-                 "subsurf_field",
-                 "disort_quadrature_dimension",
-                 "disort_fourier_mode_dimension",
-                 "disort_legendre_polynomial_dimension",
-                 "disort_settings_agenda"},
+      .output       = {"disort_settings"},
+      .input        = {"freq_grid",
+                       "ray_path",
+                       "atm_field",
+                       "surf_field",
+                       "subsurf_field",
+                       "disort_quadrature_dimension",
+                       "disort_fourier_mode_dimension",
+                       "disort_legendre_polynomial_dimension",
+                       "disort_settings_agenda"},
       .enum_options = {"Standard" /*, "Disort"*/},
       .enum_default = "Standard"};
 
@@ -508,13 +467,10 @@ as a boundary condition to subsurface radiance calculation.
 )");
 
     if (not record.enum_options.empty()) {
-      record.desc += std::format(
-          "See *{}Set* for builtin options that selects execution options.\n",
-          name);
+      record.desc += std::format("See *{}Set* for builtin options that selects execution options.\n", name);
     }
 
-    record.desc +=
-        std::format(R"(
+    record.desc += std::format(R"(
 You can execute *{0}* directly from the workspace by calling *{0}Execute*.
 
 As all agendas in ARTS, it is also customizable via its operator helper class: *{1}*.
@@ -522,19 +478,15 @@ See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
 
 Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully define an agenda in python.
 )",
-                    name,
-                    record.named_operator.empty() ? name + "Operator"
-                                                  : record.named_operator);
+                               name,
+                               record.named_operator.empty() ? name + "Operator" : record.named_operator);
     if (not record.output_constraints.empty()) {
-      record.desc +=
-          std::format(R"(
+      record.desc += std::format(R"(
 .. rubric:: Constraint{0}
 
 )",
-                      record.output_constraints.size() > 1 ? "s"sv : ""sv);
-      for (auto& c : record.output_constraints) {
-        record.desc += std::format("#. {}\n", c.constraint);
-      }
+                                 record.output_constraints.size() > 1 ? "s"sv : ""sv);
+      for (auto& c : record.output_constraints) { record.desc += std::format("#. {}\n", c.constraint); }
     }
     record.desc += "\n";
   }
@@ -543,8 +495,7 @@ Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully d
 }
 }  // namespace
 
-const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>&
-internal_workspace_agendas() {
+const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>& internal_workspace_agendas() {
   static const auto out = internal_workspace_agendas_creator();
   return out;
 }

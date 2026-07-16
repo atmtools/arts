@@ -53,8 +53,7 @@ inline constexpr Numeric LOS_ZENITH_POLE_THRESHOLD = 1e-4;
     Latitudes with an absolute value > POLELAT are considered to be on
     the south or north pole. This is needed for definition of azimuth.
 */
-inline constexpr Numeric POLELATZZZ =
-    90 - 1e-8;  // Rename to POLELAT when other one removed
+inline constexpr Numeric POLELATZZZ = 90 - 1e-8;  // Rename to POLELAT when other one removed
 
 /*===========================================================================
   === The functions, in alphabetical order
@@ -69,7 +68,7 @@ Vector3 ecef2geocentric(Vector3 ecef) {
 }
 
 Vector3 geocentric2ecef(Vector3 pos) {
-  Vector3 ecef;
+  Vector3       ecef;
   const Numeric latrad = DEG2RAD * pos[1];
   const Numeric lonrad = DEG2RAD * pos[2];
   ecef[0]              = pos[0] * cos(latrad);  // Common term for x and z
@@ -89,13 +88,10 @@ std::pair<Vector3, Vector2> ecef2geocentric_los(Vector3 ecef, Vector3 decef) {
   const Numeric coslon = cos(lonrad);
   const Numeric sinlon = sin(lonrad);
 
-  const Numeric dr   = coslat * coslon * decef[0] + sinlat * decef[2] +
-                       coslat * sinlon * decef[1];
-  const Numeric dlat = -sinlat * coslon / pos[0] * decef[0] +
-                       coslat / pos[0] * decef[2] -
-                       sinlat * sinlon / pos[0] * decef[1];
-  const Numeric dlon = -sinlon / coslat / pos[0] * decef[0] +
-                       coslon / coslat / pos[0] * decef[1];
+  const Numeric dr = coslat * coslon * decef[0] + sinlat * decef[2] + coslat * sinlon * decef[1];
+  const Numeric dlat =
+      -sinlat * coslon / pos[0] * decef[0] + coslat / pos[0] * decef[2] - sinlat * sinlon / pos[0] * decef[1];
+  const Numeric dlon = -sinlon / coslat / pos[0] * decef[0] + coslon / coslat / pos[0] * decef[1];
 
   Vector2 los;
   los[0] = acos(dr);  // Conersion to deg below
@@ -137,8 +133,7 @@ Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
   const Numeric st    = sin(theta);
   const Numeric ct    = cos(theta);
 
-  const Numeric latrad =
-      atan2(z + ep2 * b * st * st * st, p - e2 * a * ct * ct * ct);
+  const Numeric latrad = atan2(z + ep2 * b * st * st * st, p - e2 * a * ct * ct * ct);
   const Numeric sinlat = sin(latrad);
   const Numeric coslat = cos(latrad);
 
@@ -152,9 +147,7 @@ Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
   return pos;
 }
 
-std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
-                                              Vector3 decef,
-                                              Vector2 refellipsoid) {
+std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef, Vector3 decef, Vector2 refellipsoid) {
   Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
   const Numeric latrad = DEG2RAD * pos[1];
@@ -168,17 +161,14 @@ std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
   // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
   Vector3 enu;
   enu[0] = -sinlon * decef[0] + coslon * decef[1];
-  enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] +
-           coslat * decef[2];
-  enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] +
-           sinlat * decef[2];
+  enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] + coslat * decef[2];
+  enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] + sinlat * decef[2];
 
   Vector2 los = enu2los(enu);
 
   const Numeric zenith = los[0] * DEG2RAD;
 
-  if (std::abs(zenith - PI) < LOS_ZENITH_POLE_THRESHOLD ||
-      std::abs(zenith) < LOS_ZENITH_POLE_THRESHOLD) {
+  if (std::abs(zenith - PI) < LOS_ZENITH_POLE_THRESHOLD || std::abs(zenith) < LOS_ZENITH_POLE_THRESHOLD) {
     los[1] = 0.0;
   } else if (fabs(pos[1]) > POLELATZZZ) {
     // Azimuth at poles needs special treatment
@@ -267,19 +257,15 @@ std::pair<Vector3, Vector3> geocentric_los2ecef(Vector3 pos, Vector2 los) {
     const Numeric dlat = sinza * cosaa;  // r-term cancel out below
     const Numeric dlon = sinza * sinaa / coslat;
 
-    decef[0] =
-        coslat * coslon * dr - sinlat * coslon * dlat - coslat * sinlon * dlon;
+    decef[0] = coslat * coslon * dr - sinlat * coslon * dlat - coslat * sinlon * dlon;
     decef[2] = sinlat * dr + coslat * dlat;
-    decef[1] =
-        coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon;
+    decef[1] = coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon;
   }
 
   return {ecef, decef};
 }
 
-Vector3 approx_geometrical_tangent_point(Vector3 ecef,
-                                         Vector3 decef,
-                                         Vector2 refellipsoid) {
+Vector3 approx_geometrical_tangent_point(Vector3 ecef, Vector3 decef, Vector2 refellipsoid) {
   Vector3 ecef_tan;
 
   // Spherical case (length simply obtained by dot product)
@@ -304,16 +290,13 @@ Vector3 approx_geometrical_tangent_point(Vector3 ecef,
 
     const Numeric yr = dot(ecef, yunit);
     const Numeric xr = dot(ecef, decef);
-    const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 +
-                              (decef[2] * yunit[2]) / b2);
-    Numeric xx;
+    const Numeric B  = 2.0 * ((decef[0] * yunit[0] + decef[1] * yunit[1]) / a2 + (decef[2] * yunit[2]) / b2);
+    Numeric       xx;
     if (B == 0.0) {
       xx = 0.0;
     } else {
-      const Numeric A      = (decef[0] * decef[0] + decef[1] * decef[1]) / a2 +
-                             decef[2] * decef[2] / b2;
-      const Numeric C      = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 +
-                             yunit[2] * yunit[2] / b2;
+      const Numeric A      = (decef[0] * decef[0] + decef[1] * decef[1]) / a2 + decef[2] * decef[2] / b2;
+      const Numeric C      = (yunit[0] * yunit[0] + yunit[1] * yunit[1]) / a2 + yunit[2] * yunit[2] / b2;
       const Numeric K      = -2.0 * A / B;
       const Numeric factor = 1.0 / (A + (B + C * K) * K);
       xx                   = sqrt(factor);
@@ -348,19 +331,17 @@ Vector3 geodetic2ecef(Vector3 pos, Vector2 refellipsoid) {
     const Numeric coslat = cos(latrad);
     const Numeric a2     = refellipsoid[0] * refellipsoid[0];
     const Numeric b2     = refellipsoid[1] * refellipsoid[1];
-    const Numeric N = a2 / sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
-    const Numeric nhcos = (N + pos[0]) * coslat;
-    ecef[0]             = nhcos * cos(lonrad);
-    ecef[1]             = nhcos * sin(lonrad);
-    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
+    const Numeric N      = a2 / sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
+    const Numeric nhcos  = (N + pos[0]) * coslat;
+    ecef[0]              = nhcos * cos(lonrad);
+    ecef[1]              = nhcos * sin(lonrad);
+    ecef[2]              = ((b2 / a2) * N + pos[0]) * sinlat;
   }
 
   return ecef;
 }
 
-std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
-                                              Vector2 los,
-                                              Vector2 refellipsoid) {
+std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos, Vector2 los, Vector2 refellipsoid) {
   Vector3 ecef, decef;
 
   // lat = +-90
@@ -394,21 +375,15 @@ std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
 
     // See
     // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-    decef[0] =
-        -sinlon * enu[0] - sinlat * coslon * enu[1] + coslat * coslon * enu[2];
-    decef[1] =
-        coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2];
+    decef[0] = -sinlon * enu[0] - sinlat * coslon * enu[1] + coslat * coslon * enu[2];
+    decef[1] = coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2];
     decef[2] = coslat * enu[1] + sinlat * enu[2];
   }
 
   return {ecef, decef};
 }
 
-Numeric intersection_altitude(Vector3 ecef,
-                              Vector3 decef,
-                              Vector2 refellipsoid,
-                              Numeric altitude,
-                              Numeric l_min) {
+Numeric intersection_altitude(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric altitude, Numeric l_min) {
   Numeric l;
   Vector2 ellipsoid{refellipsoid};
   ellipsoid += altitude;
@@ -417,11 +392,9 @@ Numeric intersection_altitude(Vector3 ecef,
 
   // Spherical case
   if (is_ellipsoid_spherical(ellipsoid)) {
-    const Numeric p =
-        ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
+    const Numeric p  = ecef[0] * decef[0] + ecef[1] * decef[1] + ecef[2] * decef[2];
     const Numeric pp = p * p;
-    const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] +
-                       ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
+    const Numeric q  = ecef[0] * ecef[0] + ecef[1] * ecef[1] + ecef[2] * ecef[2] - ellipsoid[0] * ellipsoid[0];
     if (q > pp)
       l = l_min - 1.0;
     else {
@@ -447,18 +420,13 @@ Numeric intersection_altitude(Vector3 ecef,
     const Numeric dy2 = decef[1] * decef[1];
     const Numeric dz2 = decef[2] * decef[2];
     const Numeric rad = a2 * b2 * dz2 + a2 * c2 * dy2 - a2 * dy2 * z2 +
-                        2 * a2 * decef[1] * decef[2] * ecef[1] * ecef[2] -
-                        a2 * dz2 * y2 + b2 * c2 * dx2 - b2 * dx2 * z2 +
-                        2 * b2 * decef[0] * decef[2] * ecef[0] * ecef[2] -
-                        b2 * dz2 * x2 - c2 * dx2 * y2 +
-                        2 * c2 * decef[0] * decef[1] * ecef[0] * ecef[1] -
-                        c2 * dy2 * x2;
+                        2 * a2 * decef[1] * decef[2] * ecef[1] * ecef[2] - a2 * dz2 * y2 + b2 * c2 * dx2 -
+                        b2 * dx2 * z2 + 2 * b2 * decef[0] * decef[2] * ecef[0] * ecef[2] - b2 * dz2 * x2 -
+                        c2 * dx2 * y2 + 2 * c2 * decef[0] * decef[1] * ecef[0] * ecef[1] - c2 * dy2 * x2;
     if (rad < 0)
       l = -1.0;
     else {
-      const Numeric val = -a2 * b2 * decef[2] * ecef[2] -
-                          a2 * c2 * decef[1] * ecef[1] -
-                          b2 * c2 * decef[0] * ecef[0];
+      const Numeric val = -a2 * b2 * decef[2] * ecef[2] - a2 * c2 * decef[1] * ecef[1] - b2 * c2 * decef[0] * ecef[0];
       const Numeric mag = a2 * b2 * dz2 + a2 * c2 * dy2 + b2 * c2 * dx2;
       const Numeric abc = a * b * c * sqrt(rad);
       l                 = min_geq((val - abc) / mag, (val + abc) / mag, l_min);
@@ -467,12 +435,8 @@ Numeric intersection_altitude(Vector3 ecef,
   return l;
 }
 
-Numeric intersection_latitude(Vector3 ecef,
-                              Vector3 decef,
-                              Vector3 pos,
-                              Vector2 los,
-                              Vector2 refellipsoid,
-                              Numeric lat) {
+Numeric intersection_latitude(
+    Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Vector2 refellipsoid, Numeric lat) {
   // If already at lat, l=0
   if (pos[1] == lat) return 0;
   // No solution if outside of latitude cone and looking away or
@@ -550,8 +514,8 @@ Numeric intersection_latitude(Vector3 ecef,
 
   const Numeric sqrtd = sqrt(d);
   const Numeric aa    = 2 * a;
-  Numeric l1          = (-b - sqrtd) / aa;
-  Numeric l2          = (-b + sqrtd) / aa;
+  Numeric       l1    = (-b - sqrtd) / aa;
+  Numeric       l2    = (-b + sqrtd) / aa;
   // Check that crossing is not with -lat
   if (l1 > 0) {
     Vector3 P  = ecef_at_distance(ecef, decef, l1);
@@ -571,14 +535,12 @@ Numeric intersection_latitude(Vector3 ecef,
   return l1 < l2 ? l2 : l1;  // max of l1 and l2 is returned
 }
 
-Numeric intersection_longitude(
-    Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon) {
+Numeric intersection_longitude(Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon) {
   // If already at lon or on a pole, l=0
   if ((pos[2] == lon) || fabs(pos[1]) > POLELATZZZ) return 0;
   // No solution if looking straight N or S, or azimuth in wrong direction
 
-  if ((los[1] == 0) || (fabs(los[1]) == 180) || (pos[2] > lon && los[1] > 0) ||
-      (pos[2] < lon && los[1] < 0)) {
+  if ((los[1] == 0) || (fabs(los[1]) == 180) || (pos[2] > lon && los[1] > 0) || (pos[2] < lon && los[1] < 0)) {
     return -1;
   }
 
@@ -597,26 +559,19 @@ Vector3 los2enu(Vector2 los) {
   return {st * sin(aarad), st * cos(aarad), cos(zarad)};
 }
 
-std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef,
-                                               Vector3 decef,
-                                               Vector2 refellipsoid,
-                                               Numeric l) {
+std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric l) {
   Vector3 ecef_new = ecef_at_distance(ecef, decef, l);
   return ecef2geodetic_los(ecef_new, decef, refellipsoid);
 }
 
-Vector3 pos_at_distance(Vector3 ecef,
-                        Vector3 decef,
-                        Vector2 refellipsoid,
-                        Numeric l) {
+Vector3 pos_at_distance(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric l) {
   Vector3 ecef_new = ecef_at_distance(ecef, decef, l);
   return ecef2geodetic(ecef_new, refellipsoid);
 }
 
 Numeric prime_vertical_radius(Vector2 refellipsoid, Numeric lat) {
-  return refellipsoid[0] *
-         (refellipsoid[0] / sqrt(pow2(refellipsoid[0] * cos(DEG2RAD * lat)) +
-                                 pow2(refellipsoid[1] * sin(DEG2RAD * lat))));
+  return refellipsoid[0] * (refellipsoid[0] / sqrt(pow2(refellipsoid[0] * cos(DEG2RAD * lat)) +
+                                                   pow2(refellipsoid[1] * sin(DEG2RAD * lat))));
 }
 
 Vector2 reverse_los(Vector2 los) {
@@ -629,28 +584,26 @@ Vector2 reverse_los(Vector2 los) {
   return los_new;
 }
 
-Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell) {
-  return ecef2geocentric(geodetic2ecef(pos, ell));
-}
+Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell) { return ecef2geocentric(geodetic2ecef(pos, ell)); }
 
 namespace {
 /** Walk grid cells along the chord from observer to candidate, checking whether
  *  any intermediate terrain cell rises above the linearly-interpolated chord
  *  height.  Returns true if the line of sight is occluded.
  */
-bool terrain_occludes(Numeric obs_lat,
-                      Numeric obs_lon,
-                      Numeric h_obs,
-                      Numeric cand_lat,
-                      Numeric cand_lon,
-                      Numeric h_cand,
-                      const Vector& lats,
-                      const Vector& lons,
+bool terrain_occludes(Numeric               obs_lat,
+                      Numeric               obs_lon,
+                      Numeric               h_obs,
+                      Numeric               cand_lat,
+                      Numeric               cand_lon,
+                      Numeric               h_cand,
+                      const Vector&         lats,
+                      const Vector&         lons,
                       const GeodeticField2& hfield) {
   const Numeric dlat = lats[1] - lats[0];
   const Numeric dlon = lons[1] - lons[0];
-  const Index nlat   = static_cast<Index>(lats.size());
-  const Index nlon   = static_cast<Index>(lons.size());
+  const Index   nlat = static_cast<Index>(lats.size());
+  const Index   nlon = static_cast<Index>(lons.size());
 
   // Fractional grid indices
   const Numeric fi0 = (obs_lat - lats[0]) / dlat;
@@ -669,11 +622,9 @@ bool terrain_occludes(Numeric obs_lat,
   // candidate cell itself.
   const Index nsteps = static_cast<Index>(std::ceil(len - 1e-9));
   for (Index k = 1; k < nsteps; ++k) {
-    const Numeric t = static_cast<Numeric>(k) / len;
-    const Index ii  = std::clamp(
-        static_cast<Index>(std::lround(fi0 + t * dfi)), Index(0), nlat - 1);
-    const Index jj = std::clamp(
-        static_cast<Index>(std::lround(fj0 + t * dfj)), Index(0), nlon - 1);
+    const Numeric t  = static_cast<Numeric>(k) / len;
+    const Index   ii = std::clamp(static_cast<Index>(std::lround(fi0 + t * dfi)), Index(0), nlat - 1);
+    const Index   jj = std::clamp(static_cast<Index>(std::lround(fj0 + t * dfj)), Index(0), nlon - 1);
 
     if (hfield.data[ii, jj] > h_obs + t * (h_cand - h_obs)) return true;
   }
@@ -681,15 +632,13 @@ bool terrain_occludes(Numeric obs_lat,
 }
 }  // anonymous namespace
 
-std::vector<Vector2> visible_coordinates(Vector2 pos,
-                                         Vector2,
-                                         const GeodeticField2& hfield) {
+std::vector<Vector2> visible_coordinates(Vector2 pos, Vector2, const GeodeticField2& hfield) {
   if (not hfield.ok()) return {};
 
   const Vector& lats = hfield.grid<0>();
   const Vector& lons = hfield.grid<1>();
-  const Index nlat   = lats.size();
-  const Index nlon   = lons.size();
+  const Index   nlat = lats.size();
+  const Index   nlon = lons.size();
   if (nlat < 2 or nlon < 2) return {};
 
   const Numeric dlat = lats[1] - lats[0];
@@ -698,22 +647,15 @@ std::vector<Vector2> visible_coordinates(Vector2 pos,
   const Numeric lon  = pos[1];
 
   // Observer grid index (nearest) and elevation
-  const Index obs_ilat =
-      std::clamp(static_cast<Index>(std::lround((lat - lats[0]) / dlat)),
-                 Index(0),
-                 nlat - 1);
-  const Index obs_ilon =
-      std::clamp(static_cast<Index>(std::lround((lon - lons[0]) / dlon)),
-                 Index(0),
-                 nlon - 1);
-  const Numeric h0 = hfield.data[obs_ilat, obs_ilon];
+  const Index   obs_ilat = std::clamp(static_cast<Index>(std::lround((lat - lats[0]) / dlat)), Index(0), nlat - 1);
+  const Index   obs_ilon = std::clamp(static_cast<Index>(std::lround((lon - lons[0]) / dlon)), Index(0), nlon - 1);
+  const Numeric h0       = hfield.data[obs_ilat, obs_ilon];
 
   // Outward ellipsoid normal at observer
   const Numeric obs_latrad = DEG2RAD * lat;
   const Numeric obs_lonrad = DEG2RAD * lon;
-  const Vector3 obs_normal{std::cos(obs_latrad) * std::cos(obs_lonrad),
-                           std::cos(obs_latrad) * std::sin(obs_lonrad),
-                           std::sin(obs_latrad)};
+  const Vector3 obs_normal{
+      std::cos(obs_latrad) * std::cos(obs_lonrad), std::cos(obs_latrad) * std::sin(obs_lonrad), std::sin(obs_latrad)};
 
   std::vector<Vector2> out;
   out.reserve(static_cast<std::size_t>(nlat * nlon));
@@ -721,8 +663,7 @@ std::vector<Vector2> visible_coordinates(Vector2 pos,
   for (Index ilat = 0; ilat < nlat; ++ilat) {
     for (Index ilon = 0; ilon < nlon; ++ilon) {
       // Skip the 3×3 neighbourhood (avoids dot-product issues for tiny chords)
-      if (std::abs(ilat - obs_ilat) <= 1 and std::abs(ilon - obs_ilon) <= 1)
-        continue;
+      if (std::abs(ilat - obs_ilat) <= 1 and std::abs(ilon - obs_ilon) <= 1) continue;
 
       const Numeric flat = lats[ilat];
       const Numeric flon = lons[ilon];
@@ -740,8 +681,7 @@ std::vector<Vector2> visible_coordinates(Vector2 pos,
       if (dot(cand_normal, obs_normal) <= 0.0) continue;
 
       // DDA terrain occlusion test
-      if (terrain_occludes(lat, lon, h0, flat, flon, h_j, lats, lons, hfield))
-        continue;
+      if (terrain_occludes(lat, lon, h0, flat, flon, h_j, lats, lons, hfield)) continue;
 
       out.push_back({flat, flon});
     }

@@ -32,20 +32,16 @@ void py_sparse(py::module_& m) try {
           "__getitem__",
           [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
             const auto [r, c] = ind;
-            if (r < 0 or r >= x.nrows())
-              throw std::out_of_range(std::format("row {}", r));
-            if (c < 0 or c >= x.ncols())
-              throw std::out_of_range(std::format("col {}", c));
+            if (r < 0 or r >= x.nrows()) throw std::out_of_range(std::format("row {}", r));
+            if (c < 0 or c >= x.ncols()) throw std::out_of_range(std::format("col {}", c));
             return x.rw(r, c);
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
            [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
              const auto [r, c] = ind;
-             if (r < 0 or r >= x.nrows())
-               throw std::out_of_range(std::format("row {}", r));
-             if (c < 0 or c >= x.ncols())
-               throw std::out_of_range(std::format("col {}", c));
+             if (r < 0 or r >= x.nrows()) throw std::out_of_range(std::format("row {}", r));
+             if (c < 0 or c >= x.ncols()) throw std::out_of_range(std::format("col {}", c));
              x.rw(r, c) = y;
            })
       .def(
@@ -58,8 +54,7 @@ Returns
 arr : :class:`scipy.sparse.csr_matrix`
     A sparse array
 )");
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
-                             Sparse>();
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
 
   sp.def(
       "arcsin",
@@ -103,9 +98,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "check_format",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("check_format")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("check_format")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "conj",
@@ -121,9 +114,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "count_nonzero",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("count_nonzero")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("count_nonzero")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "data",
@@ -147,9 +138,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "eliminate_zeros",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("eliminate_zeros")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("eliminate_zeros")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "expm1",
@@ -181,9 +170,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getmaxprint",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("getmaxprint")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("getmaxprint")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "getnnz",
@@ -195,15 +182,11 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "has_canonical_format",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("has_canonical_format")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("has_canonical_format")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "has_sorted_indices",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("has_sorted_indices")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("has_sorted_indices")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "imag",
@@ -327,15 +310,11 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sort_indices",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sort_indices")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sort_indices")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sorted_indices",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sorted_indices")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sorted_indices")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sqrt",
@@ -347,9 +326,7 @@ arr : :class:`scipy.sparse.csr_matrix`
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "sum_duplicates",
-      [](py::object& self) {
-        return self.attr("tocsr")().attr("sum_duplicates")();
-      },
+      [](py::object& self) { return self.attr("tocsr")().attr("sum_duplicates")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
   sp.def(
       "tan",
@@ -400,18 +377,14 @@ arr : :class:`scipy.sparse.csr_matrix`
       [](py::object& self) { return self.attr("tocsr")().attr("trunc")(); },
       "See :class:`scipy.sparse.csr_matrix`, but for no input arguments.");
 
-  auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(
-      m, "ArrayOfSparse");
+  auto a1 = py::bind_vector<ArrayOfSparse, py::rv_policy::reference_internal>(m, "ArrayOfSparse");
   generic_interface(a1);
   vector_interface(a1);
 
   py::class_<Block> block(m, "Block");
   generic_interface(block);
-  block
-      .def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(),
-           "By value, dense")
-      .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(),
-           "By value, sparse")
+  block.def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(), "By value, dense")
+      .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(), "By value, sparse")
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {
@@ -420,20 +393,16 @@ arr : :class:`scipy.sparse.csr_matrix`
           },
           [](Block& x, std::variant<Matrix*, Sparse*> y) {
             if (std::holds_alternative<Matrix*>(y)) {
-              x.set_matrix(
-                  std::make_shared<Matrix>(**std::get_if<Matrix*>(&y)));
+              x.set_matrix(std::make_shared<Matrix>(**std::get_if<Matrix*>(&y)));
             } else {
-              x.set_matrix(
-                  std::make_shared<Sparse>(**std::get_if<Sparse*>(&y)));
+              x.set_matrix(std::make_shared<Sparse>(**std::get_if<Sparse*>(&y)));
             }
           },
           "The matrix held inside the instance\n\n.. :class:`~pyarts3.arts.Matrix`\n\n.. :class:`~pyarts3.arts.Sparse`")
 
       .doc() = "A single block matrix";
 
-  auto aob =
-      py::bind_vector<std::vector<Block>, py::rv_policy::reference_internal>(
-          m, "ArrayOfBlock");
+  auto aob  = py::bind_vector<std::vector<Block>, py::rv_policy::reference_internal>(m, "ArrayOfBlock");
   aob.doc() = "A list of blocks";
   vector_interface(aob);
   generic_interface(aob);
@@ -448,31 +417,23 @@ arr : :class:`scipy.sparse.csr_matrix`
         *s = py::cast<Sparse>(py::type<Sparse>()(es));
       },
       "From :class:`scipy.sparse.csr_matrix`");
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
-                             BlockMatrix>();
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, BlockMatrix>();
   bm.def(
       "__init__",
-      [](BlockMatrix* v,
-         const py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>& a) {
+      [](BlockMatrix* v, const py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>& a) {
         new (v) BlockMatrix{};
         *v = py::cast<Matrix>(py::type<Matrix>()(a));
       },
       "a"_a);
   bm.def(
       "__init__",
-      [](BlockMatrix* v,
-         const py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>&
-             a) {
+      [](BlockMatrix* v, const py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>& a) {
         new (v) BlockMatrix{};
         *v = py::cast<Matrix>(py::type<Matrix>()(a));
       },
       "a"_a);
-  py::implicitly_convertible<
-      py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>,
-      BlockMatrix>();
-  py::implicitly_convertible<
-      py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>,
-      BlockMatrix>();
+  py::implicitly_convertible<py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>, BlockMatrix>();
+  py::implicitly_convertible<py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>, BlockMatrix>();
   bm.def_prop_rw(
       "matrix",
       [](BlockMatrix& bm) -> std::variant<Matrix, Sparse> {
@@ -483,24 +444,18 @@ arr : :class:`scipy.sparse.csr_matrix`
 
         return Matrix{};
       },
-      [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) {
-        std::visit([&bm](auto& m) { bm = m; }, mat);
-      },
+      [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) { std::visit([&bm](auto& m) { bm = m; }, mat); },
       "The matrix of the block\n\n.. :class:`~pyarts3.arts.Matrix`\n\n.. :class:`~pyarts3.arts.Sparse`");
   bm.def(
       "__array__",
-      [](py::object& v, py::object dtype, py::object copy) {
-        return v.attr("matrix").attr("__array__")(dtype, copy);
-      },
+      [](py::object& v, py::object dtype, py::object copy) { return v.attr("matrix").attr("__array__")(dtype, copy); },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
       "Returns a :class:`~numpy.ndarray` of the object.");
   bm.def_prop_rw(
       "value",
       [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
-      [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) {
-        std::visit([&a](auto& c) { a = c; }, b);
-      },
+      [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) { std::visit([&a](auto& c) { a = c; }, b); },
       "A python friendly version of the object.\n\n.. :class:`~numpy.ndarray`\n\n.. :class:`scipy.sparse.csr_matrix`");
   common_ndarray(bm);
   generic_interface(bm);
@@ -510,12 +465,9 @@ arr : :class:`scipy.sparse.csr_matrix`
   covm.def_prop_rw(
       "blocks",
       [](CovarianceMatrix& x) { return x.get_blocks(); },
-      [](CovarianceMatrix& x, std::vector<Block> y) {
-        x.get_blocks() = std::move(y);
-      },
+      [](CovarianceMatrix& x, std::vector<Block> y) { x.get_blocks() = std::move(y); },
       "The blocks\n\n.. :class:`list[~pyarts3.arts.Block]`");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
 }
 }  // namespace Python

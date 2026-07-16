@@ -21,37 +21,27 @@ Complex full::single::at(const Numeric frequency) const {
 void full::adapt() try {
   models.resize(0);
 
-  if (not xsecrec) {
-    return;
-  }
+  if (not xsecrec) { return; }
 
-  if (xsecrec->empty()) {
-    return;
-  }
+  if (xsecrec->empty()) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   models.reserve(xsecrec->size());
   for (auto& [species, model] : *xsecrec) {
-    models.emplace_back(
-        atm->pressure, atm->temperature, atm->operator[](species), &model);
+    models.emplace_back(atm->pressure, atm->temperature, atm->operator[](species), &model);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-full::full(std::shared_ptr<AtmPoint> atm_,
-           std::shared_ptr<XsecRecords> xsecrec_)
+full::full(std::shared_ptr<AtmPoint> atm_, std::shared_ptr<XsecRecords> xsecrec_)
     : atm(std::move(atm_)), xsecrec(std::move(xsecrec_)) {
   adapt();
 }
 
 Complex full::operator()(const Numeric frequency) const {
   return std::transform_reduce(
-      models.begin(),
-      models.end(),
-      Complex{},
-      std::plus<>{},
-      [f = frequency](auto& mod) { return mod.at(f); });
+      models.begin(), models.end(), Complex{}, std::plus<>{}, [f = frequency](auto& mod) { return mod.at(f); });
 }
 
 void full::set_atm(std::shared_ptr<AtmPoint> atm_) {

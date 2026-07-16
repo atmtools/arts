@@ -10,20 +10,20 @@ struct Workspace;
 class Wsv;
 
 class Agenda {
-  std::string name{};
-  std::vector<Method> methods;
+  std::string              name{};
+  std::vector<Method>      methods;
   std::vector<std::string> share{};
   std::vector<std::string> copy{};
-  bool checked{false};
+  bool                     checked{false};
 
  public:
   Agenda(std::string name = "not-a-name");
 
-  Agenda(std::string name,
-         const std::vector<Method>& methods,
+  Agenda(std::string                     name,
+         const std::vector<Method>&      methods,
          const std::vector<std::string>& share,
          const std::vector<std::string>& copy,
-         bool checked);
+         bool                            checked);
 
   void add(const Method& method);
 
@@ -52,34 +52,23 @@ class Agenda {
 
   [[nodiscard]] const std::string& get_name() const { return name; }
 
-  void set_name(const std::string& v, bool finalize_fix=false);
+  void set_name(const std::string& v, bool finalize_fix = false);
 
   [[nodiscard]] bool has_method(const std::string& method) const;
 
-  [[nodiscard]] const std::vector<Method>& get_methods() const {
-    return methods;
-  }
-  [[nodiscard]] const std::vector<std::string>& get_share() const {
-    return share;
-  }
-  [[nodiscard]] const std::vector<std::string>& get_copy() const {
-    return copy;
-  }
+  [[nodiscard]] const std::vector<Method>&      get_methods() const { return methods; }
+  [[nodiscard]] const std::vector<std::string>& get_share() const { return share; }
+  [[nodiscard]] const std::vector<std::string>& get_copy() const { return copy; }
 
-  [[nodiscard]] std::string sphinx_list(
-      const std::string_view prep = "- ") const;
+  [[nodiscard]] std::string sphinx_list(const std::string_view prep = "- ") const;
 
   void change_default(const std::string_view name, Wsv value);
 };
 
-template <>
-struct xml_io_stream<Agenda> {
+template <> struct xml_io_stream<Agenda> {
   static constexpr std::string_view type_name = "Agenda"sv;
 
-  static void write(std::ostream& os,
-                    const Agenda& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const Agenda& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, Agenda& x, bifstream* pbifs = nullptr);
 };

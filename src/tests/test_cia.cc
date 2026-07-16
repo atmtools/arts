@@ -6,9 +6,10 @@
   \brief  Test Collission Induced Absorption (CIA) functions.
 */
 
+#include <iostream>
+
 #include "cia.h"
 #include "matpack.h"
-#include <iostream>
 
 void test01() {
   std::cout << "Testing CIA Interpolation.\n";
@@ -18,14 +19,14 @@ void test01() {
   A[2, 1] = 1;
   //    cout << "A:" << A << '\n';
 
-  cia_data.data = A;
+  cia_data.data      = A;
   cia_data.grid<0>() = {1, 2, 3, 4, 5};
   cia_data.grid<1>() = {100, 200, 300};
 
   std::cout << "cia_data:" << std::format("{}", cia_data) << '\n';
 
   // Output frequencies and temperature:
-  Vector f_out=matpack::uniform_grid(1, 9, 0.5);
+  Vector f_out = matpack::uniform_grid(1, 9, 0.5);
   std::cout << "f_out:" << std::format("{}", f_out) << '\n';
   Numeric T_out = 150;
   std::cout << "T_out:" << std::format("{}", T_out) << '\n';

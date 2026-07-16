@@ -20,9 +20,7 @@ spectral_rad::spectral_rad(spectral_rad&&) noexcept            = default;
 spectral_rad& spectral_rad::operator=(const spectral_rad&)     = default;
 spectral_rad& spectral_rad::operator=(spectral_rad&&) noexcept = default;
 
-Stokvec spectral_rad::B(
-    const Numeric f,
-    const std::array<spectral_rad::weighted_position, 8>& pos) const {
+Stokvec spectral_rad::B(const Numeric f, const std::array<spectral_rad::weighted_position, 8>& pos) const {
   Numeric out = 0.0;
 
   for (const auto& p : pos) {
@@ -33,10 +31,9 @@ Stokvec spectral_rad::B(
   return {out, 0.0, 0.0, 0.0};
 }
 
-Stokvec spectral_rad::Iback(
-    const Numeric f,
-    const std::array<spectral_rad::weighted_position, 8>& pos,
-    const path& pp) const {
+Stokvec spectral_rad::Iback(const Numeric                                         f,
+                            const std::array<spectral_rad::weighted_position, 8>& pos,
+                            const path&                                           pp) const {
   Stokvec out{0.0, 0.0, 0.0, 0.0};
 
   if (pp.point.los_type == PathPositionType::space) {
@@ -54,12 +51,10 @@ Stokvec spectral_rad::Iback(
   return out;
 }
 
-std::pair<Propmat, Stokvec> spectral_rad::PM(
-    const Numeric f,
-    const std::array<spectral_rad::weighted_position, 8>& pos,
-    const path& pp) const {
-  std::pair<Propmat, Stokvec> out{Propmat{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                                  Stokvec{0.0, 0.0, 0.0, 0.0}};
+std::pair<Propmat, Stokvec> spectral_rad::PM(const Numeric                                         f,
+                                             const std::array<spectral_rad::weighted_position, 8>& pos,
+                                             const path&                                           pp) const {
+  std::pair<Propmat, Stokvec> out{Propmat{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, Stokvec{0.0, 0.0, 0.0, 0.0}};
 
   for (const auto& p : pos) {
     if (p.w == 0.0) continue;
@@ -71,18 +66,16 @@ std::pair<Propmat, Stokvec> spectral_rad::PM(
   return out;
 }
 
-std::array<spectral_rad::weighted_position, 8> spectral_rad::pos_weights(
-    const path& pp) const {
+std::array<spectral_rad::weighted_position, 8> spectral_rad::pos_weights(const path& pp) const {
   std::array<weighted_position, 8> out;
-  auto&& ptr = out.begin();
+  auto&&                           ptr = out.begin();
   for (Size i : {0, 1}) {
     for (Size j : {0, 1}) {
       for (Size k : {0, 1}) {
         ptr->i = pp.alt_index + i;
         ptr->j = pp.lat_index + j;
         ptr->k = pp.lon_index + k;
-        ptr->w = (i == 0 ? pp.alt_weight : 1.0 - pp.alt_weight) *
-                 (j == 0 ? pp.lat_weight : 1.0 - pp.lat_weight) *
+        ptr->w = (i == 0 ? pp.alt_weight : 1.0 - pp.alt_weight) * (j == 0 ? pp.lat_weight : 1.0 - pp.lat_weight) *
                  (k == 0 ? pp.lon_weight : 1.0 - pp.lon_weight);
         ptr++;
       }
@@ -91,17 +84,17 @@ std::array<spectral_rad::weighted_position, 8> spectral_rad::pos_weights(
   return out;
 }
 
-spectral_rad::spectral_rad(AscendingGrid alt_,
-                           LatGrid lat_,
-                           LonGrid lon_,
-                           const AtmField& atm_,
-                           const SurfaceField& surf,
-                           const std::shared_ptr<AbsorptionBands>& lines,
-                           const std::shared_ptr<CIARecords>& cia,
-                           const std::shared_ptr<XsecRecords>& xsec,
+spectral_rad::spectral_rad(AscendingGrid                               alt_,
+                           LatGrid                                     lat_,
+                           LonGrid                                     lon_,
+                           const AtmField&                             atm_,
+                           const SurfaceField&                         surf,
+                           const std::shared_ptr<AbsorptionBands>&     lines,
+                           const std::shared_ptr<CIARecords>&          cia,
+                           const std::shared_ptr<XsecRecords>&         xsec,
                            const std::shared_ptr<PredefinedModelData>& predef,
-                           Numeric ciaextrap,
-                           Index ciarobust)
+                           Numeric                                     ciaextrap,
+                           Index                                       ciarobust)
     : alt(std::move(alt_)),
       lat(std::move(lat_)),
       lon(std::move(lon_)),
@@ -110,17 +103,14 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
       spectral_rad_surface(lat.size(), lon.size()),
       spectral_rad_space(
           spectral_rad_surface.shape(),
-          [](Numeric f, Vector2) -> Stokvec {
-            return planck(f, Constant::cosmic_microwave_background_temperature);
-          }),
+          [](Numeric f, Vector2) -> Stokvec { return planck(f, Constant::cosmic_microwave_background_temperature); }),
       ellipsoid(surf.ellipsoid) {
   ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
 
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Size j = 0; j < lat.size(); j++) {
       for (Size k = 0; k < lon.size(); k++) {
-        spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
-                                         Numeric f, Vector2) -> Stokvec {
+        spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](Numeric f, Vector2) -> Stokvec {
           return planck(f, surf.temperature);
         };
       }
@@ -129,10 +119,8 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
     for (Size i = 0; i < alt.size(); i++) {
       for (Size j = 0; j < lat.size(); j++) {
         for (Size k = 0; k < lon.size(); k++) {
-          atm[i, j, k] =
-              std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
-          pm[i, j, k] = propmat(
-              atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
+          atm[i, j, k] = std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
+          pm[i, j, k]  = propmat(atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
         }
       }
     }
@@ -143,8 +131,7 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
     for (Size j = 0; j < lat.size(); j++) {
       for (Size k = 0; k < lon.size(); k++) {
         try {
-          spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](
-                                           Numeric f, Vector2) -> Stokvec {
+          spectral_rad_surface[j, j] = [surf = surf.at(lat[j], lon[k])](Numeric f, Vector2) -> Stokvec {
             return planck(f, surf.temperature);
           };
         } catch (const std::exception& e) {
@@ -159,10 +146,8 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
       for (Size j = 0; j < lat.size(); j++) {
         for (Size k = 0; k < lon.size(); k++) {
           try {
-            atm[i, j, k] =
-                std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
-            pm[i, j, k] = propmat(
-                atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
+            atm[i, j, k] = std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
+            pm[i, j, k]  = propmat(atm[i, j, k], lines, cia, xsec, predef, ciaextrap, ciarobust);
           } catch (const std::exception& e) {
 #pragma omp critical
             errors += e.what();
@@ -175,9 +160,9 @@ spectral_rad::spectral_rad(AscendingGrid alt_,
   }
 }
 
-Stokvec spectral_rad::operator()(const Numeric f,
+Stokvec spectral_rad::operator()(const Numeric            f,
                                  const std::vector<path>& path_points,
-                                 const Numeric cutoff_transmission) const {
+                                 const Numeric            cutoff_transmission) const {
   using stdv::drop;
 
   assert(path_points.size() > 0);
@@ -185,9 +170,7 @@ Stokvec spectral_rad::operator()(const Numeric f,
 
   auto pos = pos_weights(path_points.front());
 
-  if (path_points.size() == 1) {
-    return Iback(f, pos, path_points.front());
-  }
+  if (path_points.size() == 1) { return Iback(f, pos, path_points.front()); }
 
   auto [K, N] = PM(f, pos, path_points.front());
   Stokvec J   = inv(K) * N + B(f, pos);
@@ -197,17 +180,13 @@ Stokvec spectral_rad::operator()(const Numeric f,
   for (auto& pp : path_points | drop(1)) {
     pos = pos_weights(pp);
 
-    if (pp.point.los_type != PathPositionType::atm) {
-      return I += T * Iback(f, pos, pp);
-    }
+    if (pp.point.los_type != PathPositionType::atm) { return I += T * Iback(f, pos, pp); }
 
     auto [Ki, Ni]    = PM(f, pos, pp);
     const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
     const Muelmat Ti = T * exp(avg(Ki, K), pp.distance);
 
-    if (Ti[0, 0] < cutoff_transmission) {
-      return I += Ti * avg(Ji, J);
-    }
+    if (Ti[0, 0] < cutoff_transmission) { return I += Ti * avg(Ji, J); }
 
     I += (T - Ti) * avg(Ji, J);
 
@@ -219,7 +198,7 @@ Stokvec spectral_rad::operator()(const Numeric f,
   return I;
 }
 
-StokvecVector spectral_rad::operator()(const Numeric f,
+StokvecVector spectral_rad::operator()(const Numeric            f,
                                        const std::vector<path>& path_points,
                                        spectral_rad::as_vector) const {
   using stdr::reverse_view;
@@ -256,30 +235,23 @@ StokvecVector spectral_rad::operator()(const Numeric f,
   return StokvecVector{std::move(out)};
 }
 
-std::vector<path> spectral_rad::geometric_planar(const Vector3 pos,
-                                                 const Vector2 los) const {
+std::vector<path> spectral_rad::geometric_planar(const Vector3 pos, const Vector2 los) const {
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 
-void spectral_rad::from_path(
-    std::vector<path>& out,
-    const ArrayOfPropagationPathPoint& propagation_path) const {
-  return fwd::path_from_propagation_path(
-      out, propagation_path, alt, lat, lon, ellipsoid);
+void spectral_rad::from_path(std::vector<path>& out, const ArrayOfPropagationPathPoint& propagation_path) const {
+  return fwd::path_from_propagation_path(out, propagation_path, alt, lat, lon, ellipsoid);
 }
 
-std::vector<path> spectral_rad::from_path(
-    const ArrayOfPropagationPathPoint& propagation_path) const {
-  return fwd::path_from_propagation_path(
-      propagation_path, alt, lat, lon, ellipsoid);
+std::vector<path> spectral_rad::from_path(const ArrayOfPropagationPathPoint& propagation_path) const {
+  return fwd::path_from_propagation_path(propagation_path, alt, lat, lon, ellipsoid);
 }
 }  // namespace fwd
 
-void xml_io_stream<SpectralRadianceOperator>::write(
-    std::ostream& os,
-    const SpectralRadianceOperator& x,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<SpectralRadianceOperator>::write(std::ostream&                   os,
+                                                    const SpectralRadianceOperator& x,
+                                                    bofstream*                      pbofs,
+                                                    std::string_view                name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -295,9 +267,7 @@ void xml_io_stream<SpectralRadianceOperator>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SpectralRadianceOperator>::read(std::istream& is,
-                                                   SpectralRadianceOperator& x,
-                                                   bifstream* pbifs) {
+void xml_io_stream<SpectralRadianceOperator>::read(std::istream& is, SpectralRadianceOperator& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

@@ -43,38 +43,29 @@ std::string WorkspaceMethodInternalRecord::docstring() const try {
   if (pass_workspace) doc += "  @param[in] ws Workspace reference\n";
 
   for (auto& str : out) {
-    if (std::any_of(
-            in.begin(), in.end(), [&str](auto& var) { return str == var; }))
+    if (std::any_of(in.begin(), in.end(), [&str](auto& var) { return str == var; }))
       doc += std::format("  @param[inout] {} As WSV\n", str);
     else
       doc += std::format("  @param[out] {} As WSV\n", str);
   }
 
-  for (std::size_t i = 0; i < gout.size(); i++) {
-    doc += std::format("  @param[out] {} {}\n", gout[i], gout_desc[i]);
-  }
+  for (std::size_t i = 0; i < gout.size(); i++) { doc += std::format("  @param[out] {} {}\n", gout[i], gout_desc[i]); }
 
   for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
+    if (std::any_of(out.begin(), out.end(), [&str](auto& var) { return str == var; })) continue;
     doc += std::format("  @param[in] {} As WSV\n", str);
   }
 
-  for (std::size_t i = 0; i < gin.size(); i++) {
-    doc += std::format("  @param[in] {} {}\n", gin[i], gin_desc[i]);
-  }
+  for (std::size_t i = 0; i < gin.size(); i++) { doc += std::format("  @param[in] {} {}\n", gin[i], gin_desc[i]); }
 
   doc += " */";
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function docstring():\n\n" +
-                           std::string(e.what()));
+  throw std::runtime_error("Error in meta-function docstring():\n\n" + std::string(e.what()));
 }
 
-std::vector<std::vector<std::string>>
-WorkspaceMethodInternalRecord::generic_overloads() const {
+std::vector<std::vector<std::string>> WorkspaceMethodInternalRecord::generic_overloads() const {
   const auto cmp = Cmp::eq<','>();
 
   std::vector<std::vector<std::string>> genvar;
@@ -94,34 +85,28 @@ WorkspaceMethodInternalRecord::generic_overloads() const {
   }
 
   for (auto& v : genvar) {
-    for (auto& s : v) {
-      trim(s);
-    }
+    for (auto& s : v) { trim(s); }
   }
 
   return genvar;
 }
 
-std::string WorkspaceMethodInternalRecord::header(const std::string& name,
-                                                  int overload) const try {
+std::string WorkspaceMethodInternalRecord::header(const std::string& name, int overload) const try {
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
 
   const std::string spaces(name.size() + return_type.size() + 2, ' ');
 
   const auto overloads = generic_overloads();
-  int GVAR             = 0;
+  int        GVAR      = 0;
 
   std::string doc{};
 
-  if (name.size() > 7 and wsa.contains(name.substr(0, name.size() - 7)) and
-      name.substr(name.size() - 7) == "Execute") {
+  if (name.size() > 7 and wsa.contains(name.substr(0, name.size() - 7)) and name.substr(name.size() - 7) == "Execute") {
     return doc;
   }
 
-  if (has_any()) {
-    doc += "template <WorkspaceGroup T>\n";
-  }
+  if (has_any()) { doc += "template <WorkspaceGroup T>\n"; }
 
   doc += std::format("{} {}(", return_type, name);
 
@@ -134,8 +119,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
   for (auto& str : out) {
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      doc += std::format(
-          "{}{}& {}", comma(first, spaces), wsv_ptr->second.type, str);
+      doc += std::format("{}{}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
@@ -152,21 +136,17 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     doc += std::format(
         "{}{}& {}",
         comma(first, spaces),
-        any_is_typename(overloads[GVAR][std::min<int>(
-            overload, static_cast<int>(overloads[GVAR].size() - 1))]),
+        any_is_typename(overloads[GVAR][std::min<int>(overload, static_cast<int>(overloads[GVAR].size() - 1))]),
         i);
     GVAR++;
   }
 
   for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
+    if (std::any_of(out.begin(), out.end(), [&str](auto& var) { return str == var; })) continue;
 
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      doc += std::format(
-          "{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
+      doc += std::format("{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
@@ -177,8 +157,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
     doc += std::format(
         "{}const {}& {}",
         comma(first, spaces),
-        any_is_typename(overloads[GVAR][std::min<int>(
-            overload, static_cast<int>(overloads[GVAR].size() - 1))]),
+        any_is_typename(overloads[GVAR][std::min<int>(overload, static_cast<int>(overloads[GVAR].size() - 1))]),
         i);
     GVAR++;
   }
@@ -187,34 +166,30 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name,
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format(R"(Error in meta-function header("{}", {}):
+  throw std::runtime_error(std::format(R"(Error in meta-function header("{}", {}):
 
 {}
 )",
-                  name,
-                  overload,
-                  std::string_view(e.what())));
+                                       name,
+                                       overload,
+                                       std::string_view(e.what())));
 }
 
 int WorkspaceMethodInternalRecord::count_overloads() const try {
   const auto overloads = generic_overloads();
-  int g                = 1;
+  int        g         = 1;
   for (auto& x : overloads) {
     int ng = static_cast<int>(x.size());
     if (ng == 1) continue;
-    if (g != ng and g != 1)
-      throw std::runtime_error("Inconsistent number of overloads");
+    if (g != ng and g != 1) throw std::runtime_error("Inconsistent number of overloads");
     g = ng;
   }
   return g;
 } catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function count_overloads():\n\n" +
-                           std::string(e.what()));
+  throw std::runtime_error("Error in meta-function count_overloads():\n\n" + std::string(e.what()));
 }
 
-std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
-    try {
+std::string WorkspaceMethodInternalRecord::call(const std::string& name) const try {
   const std::string spaces(return_type.size() + 2, ' ');
 
   std::string doc = std::format("  {}(\n      ", name);
@@ -225,44 +200,30 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
     first  = false;
   }
 
-  for (auto& str : out) {
-    doc += std::format("{}{}", comma(first, spaces), str);
-  }
+  for (auto& str : out) { doc += std::format("{}{}", comma(first, spaces), str); }
 
-  for (const auto& i : gout) {
-    doc += std::format("{}{}", comma(first, spaces), i);
-  }
+  for (const auto& i : gout) { doc += std::format("{}{}", comma(first, spaces), i); }
 
   for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
+    if (std::any_of(out.begin(), out.end(), [&str](auto& var) { return str == var; })) continue;
 
     doc += std::format("{}{}", comma(first, spaces), str);
   }
 
-  for (const auto& i : gin) {
-    doc += std::format("{}{}", comma(first, spaces), i);
-  }
+  for (const auto& i : gin) { doc += std::format("{}{}", comma(first, spaces), i); }
 
   doc += ");";
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("Cannot create call of method \"{}\":\n\n{}",
-                  name,
-                  std::string_view(e.what())));
+  throw std::runtime_error(std::format("Cannot create call of method \"{}\":\n\n{}", name, std::string_view(e.what())));
 }
 
 namespace {
-void add_agenda_methods(
-    UniqueMap<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
+void add_agenda_methods(UniqueMap<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [agname, ag] : internal_workspace_agendas()) {
-    if (wsm_data.contains(agname + "Execute") or
-        wsm_data.contains(agname + "Set") or
-        wsm_data.contains(agname + "ExecuteOperator") or
-        wsm_data.contains(agname + "SetOperator"))
+    if (wsm_data.contains(agname + "Execute") or wsm_data.contains(agname + "Set") or
+        wsm_data.contains(agname + "ExecuteOperator") or wsm_data.contains(agname + "SetOperator"))
       throw std::runtime_error(std::format(R"(
 
 The following methods are predefined.  Do not manually define these:
@@ -276,8 +237,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 )",
                                            agname));
 
-    const std::string op =
-        ag.named_operator.empty() ? (agname + "Operator") : ag.named_operator;
+    const std::string op = ag.named_operator.empty() ? (agname + "Operator") : ag.named_operator;
 
     std::vector<std::string> input = ag.input;
     input.push_back(agname);
@@ -285,20 +245,18 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     input_op.push_back(agname + "_operator");
 
     wsm_data[agname + "Execute"] = {
-        .desc        = "Executes *" + agname + "*, see it for more details\n",
-        .author      = {"``Automatically Generated``"},
-        .return_type = "Workspace",
-        .return_desc = "The internal workspace, cleaned from all input/output.",
-        .out         = ag.output,
-        .in          = input,
+        .desc           = "Executes *" + agname + "*, see it for more details\n",
+        .author         = {"``Automatically Generated``"},
+        .return_type    = "Workspace",
+        .return_desc    = "The internal workspace, cleaned from all input/output.",
+        .out            = ag.output,
+        .in             = input,
         .pass_workspace = true,
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
-        .desc = std::format(
-            "Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n",
-            agname,
-            op),
+        .desc =
+            std::format("Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n", agname, op),
         .author    = {"``Automatically Generated``"},
         .out       = ag.output,
         .in        = ag.input,
@@ -310,9 +268,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
     wsm_data[agname + "SetOperator"] = {
         .desc = std::format(
-            "Set *{0}* to exclusively use provided external operator.  See *{1}* for more details.\n",
-            agname,
-            op),
+            "Set *{0}* to exclusively use provided external operator.  See *{1}* for more details.\n", agname, op),
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
         .gin       = {"f"},
@@ -329,23 +285,19 @@ Remove the manual definition of these methods from workspace_methods.cpp.
         .out       = {agname},
         .gin       = {"option"},
         .gin_type  = {"String"},
-        .gin_value = {ag.enum_default.empty()
-                          ? std::nullopt
-                          : std::optional<String>(ag.enum_default)},
+        .gin_value = {ag.enum_default.empty() ? std::nullopt : std::optional<String>(ag.enum_default)},
         .gin_desc  = {"Choice of generated agenda"},
     };
   }
 }
 
-void fix(
-    std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
+void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& wsmr : wsm_data | stdv::values) {
     if (wsmr.desc.back() != '\n') wsmr.desc += '\n';
   }
 }
 
-std::unordered_map<std::string, WorkspaceMethodInternalRecord>
-internal_workspace_methods_create() try {
+std::unordered_map<std::string, WorkspaceMethodInternalRecord> internal_workspace_methods_create() try {
   UniqueMap<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
   wsm_data["Ignore"] = {
@@ -458,15 +410,12 @@ allows mimicking the initialization of that library.
     you are done with all Wigner calculations.  This will free the memory.
 )--",
       .author    = {"Richard Larsson"},
-      .gin       = {"fast_wigner_stored_symbols",
-                    "largest_wigner_symbol_parameter",
-                    "symbol_type"},
+      .gin       = {"fast_wigner_stored_symbols", "largest_wigner_symbol_parameter", "symbol_type"},
       .gin_type  = {"Index", "Index", "Index"},
       .gin_value = {Index{20000000}, Index{250}, Index{6}},
-      .gin_desc =
-          {R"--(Number of stored symbols possible before replacements)--",
-           R"--(Largest symbol used for initializing factorials (e.g., largest J or L))--",
-           "Type of symbol (3 or 6)"},
+      .gin_desc  = {R"--(Number of stored symbols possible before replacements)--",
+                    R"--(Largest symbol used for initializing factorials (e.g., largest J or L))--",
+                    "Type of symbol (3 or 6)"},
   };
 
   wsm_data["WignerUnload"] = {
@@ -489,11 +438,7 @@ See *FileType* for valid ``output_file_format``.
       .author    = {"Richard Larsson"},
       .gin       = {"output_file_format", "dir", "Tlow", "Tupp", "N"},
       .gin_type  = {"String", "String", "Numeric", "Numeric", "Index"},
-      .gin_value = {String{"ascii"},
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
+      .gin_value = {String{"ascii"}, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
       .gin_desc  = {"The format of the output",
                     R"--(The directory to write the data towards)--",
                     R"--(The lowest temperature)--",
@@ -523,15 +468,14 @@ See *FileType* for valid ``output_file_format``.
       .gin       = {"output_file_format", "input", "filename", "no_clobber"},
       .gin_type  = {"String", "Any", "String", "Index"},
       .gin_value = {String("ascii"), std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {"The format of the output",
-           R"--(Variable to be saved.)--",
-           R"--(Name of the XML file.)--",
-           R"--(0: Overwrite existing files, 1: Use unique filenames)--"},
+      .gin_desc  = {"The format of the output",
+                    R"--(Variable to be saved.)--",
+                    R"--(Name of the XML file.)--",
+                    R"--(0: Overwrite existing files, 1: Use unique filenames)--"},
   };
 
   wsm_data["WriteXMLIndexed"] = {
-      .desc   = R"--(As *WriteXML*, but creates indexed file names.
+      .desc      = R"--(As *WriteXML*, but creates indexed file names.
 
 The variable is written to a file with name::
 
@@ -552,12 +496,10 @@ See *FileType* for valid ``output_file_format``.
     of using this workspace method.  It exists mainly for
     completeness and for use in agendas.
 )--",
-      .author = {"Patrick Eriksson, Oliver Lemke"},
-      .gin =
-          {"output_file_format", "file_index", "input", "filename", "digits"},
-      .gin_type = {"String", "Index", "Any", "String", "Index"},
-      .gin_value =
-          {String("ascii"), std::nullopt, std::nullopt, std::nullopt, Index{0}},
+      .author    = {"Patrick Eriksson, Oliver Lemke"},
+      .gin       = {"output_file_format", "file_index", "input", "filename", "digits"},
+      .gin_type  = {"String", "Index", "Any", "String", "Index"},
+      .gin_value = {String("ascii"), std::nullopt, std::nullopt, std::nullopt, Index{0}},
       .gin_desc =
           {"The format of the output",
            R"--(Index number for files.)--",
@@ -588,8 +530,7 @@ in *abs_species*.
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc  = {R"--(Basepath to the files)--",
-                    R"--(Ignore missing files (0: no, 1: yes))--"},
+      .gin_desc  = {R"--(Basepath to the files)--", R"--(Ignore missing files (0: no, 1: yes))--"},
   };
 
   wsm_data["abs_cia_dataReadFromCIA"] = {
@@ -656,9 +597,8 @@ involved in the CIA.
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The path to the split catalog files)--",
-           R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
+      .gin_desc  = {R"--(The path to the split catalog files)--",
+                    R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
   };
 
   wsm_data["abs_predef_dataReadSpeciesSplitCatalog"] = {
@@ -693,10 +633,9 @@ common form of a predefined model.
       .gin       = {"basename", "name_missing", "ignore_missing"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{1}, Index{0}},
-      .gin_desc =
-          {R"--(The path to the split catalog files)--",
-           R"--(Flag to name models that are missing)--",
-           R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
+      .gin_desc  = {R"--(The path to the split catalog files)--",
+                    R"--(Flag to name models that are missing)--",
+                    R"--(Flag to otherwise (if not name_missing is true) ignore missing models)--"},
   };
 
   wsm_data["abs_speciesDefineAll"] = {
@@ -790,7 +729,7 @@ The IGRF model is available via :cite:t:`Alken2021`.
   };
 
   wsm_data["atm_fieldAbsoluteMagneticField"] = {
-      .desc = R"--(Set the magnetic field to use the magnitude field functional.
+      .desc   = R"--(Set the magnetic field to use the magnitude field functional.
 
 The input field must be a *GeodeticField3* for all three parameters
 to call this method.
@@ -891,7 +830,7 @@ returned as well.
       .gin       = {"key"},
       .gin_type  = {"AtmKey"},
       .gin_value = {AtmKey::t},
-      .gin_desc = {"Key to find the *GeodeticField3* in the atmospheric field"},
+      .gin_desc  = {"Key to find the *GeodeticField3* in the atmospheric field"},
   };
 
   wsm_data["atm_profileFitNonLTE"] = {
@@ -932,49 +871,36 @@ is breached.
 
 The method used here is based on :cite:t:`Yamada2018`
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atm_profile"},
-      .in        = {"atm_profile",
-                    "abs_bands",
-                    "spectral_propmat_agenda",
-                    "surf_field",
-                    "freq_grid",
-                    "alt_grid",
-                    "lat",
-                    "lon"},
-      .gin       = {"collision_data",
-                    "levels",
-                    "pol",
-                    "azi",
-                    "dzen",
-                    "convergence_limit",
-                    "iteration_limit",
-                    "consider_limb"},
-      .gin_type  = {"QuantumIdentifierGriddedField1Map",
-                    "ArrayOfQuantumLevelIdentifier",
-                    "Stokvec",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Index",
-                    "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    Stokvec{1.0, 0.0, 0.0, 0.0},
-                    Numeric{0.0},
-                    Numeric{5.0},
-                    Numeric{1e-6},
-                    Index{100},
-                    Index{1}},
-      .gin_desc =
-          {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
-           "The order of the energy levels",
-           "The polarization selection vector (use the default unless you know what you are doing)",
-           "The azimuth of the radiation",
-           "The zenith angle limit for the internal call to *zen_gridProfilePseudo2D*",
-           "Convergence criterion for the energy level distribution",
-           "Maximum number of iterations",
-           "Whether to add extra limb points in *zen_gridProfilePseudo2D*"},
+      .author = {"Richard Larsson"},
+      .out    = {"atm_profile"},
+      .in =
+          {"atm_profile", "abs_bands", "spectral_propmat_agenda", "surf_field", "freq_grid", "alt_grid", "lat", "lon"},
+      .gin =
+          {"collision_data", "levels", "pol", "azi", "dzen", "convergence_limit", "iteration_limit", "consider_limb"},
+      .gin_type       = {"QuantumIdentifierGriddedField1Map",
+                         "ArrayOfQuantumLevelIdentifier",
+                         "Stokvec",
+                         "Numeric",
+                         "Numeric",
+                         "Numeric",
+                         "Index",
+                         "Index"},
+      .gin_value      = {std::nullopt,
+                         std::nullopt,
+                         Stokvec{1.0, 0.0, 0.0, 0.0},
+                         Numeric{0.0},
+                         Numeric{5.0},
+                         Numeric{1e-6},
+                         Index{100},
+                         Index{1}},
+      .gin_desc       = {"Collision data for the transitions - for :math:`C_{ij}` and :math:`C_{ji}`",
+                         "The order of the energy levels",
+                         "The polarization selection vector (use the default unless you know what you are doing)",
+                         "The azimuth of the radiation",
+                         "The zenith angle limit for the internal call to *zen_gridProfilePseudo2D*",
+                         "Convergence criterion for the energy level distribution",
+                         "Maximum number of iterations",
+                         "Whether to add extra limb points in *zen_gridProfilePseudo2D*"},
       .pass_workspace = true,
   };
 
@@ -989,8 +915,7 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin       = {"toa", "default_isotopologue"},
       .gin_type  = {"Numeric", "String"},
       .gin_value = {std::nullopt, String{"Builtin"}},
-      .gin_desc  = {R"--(Top of atmosphere altitude [m].)--",
-                    "Default option for the isotopologue ratios"},
+      .gin_desc  = {R"--(Top of atmosphere altitude [m].)--", "Default option for the isotopologue ratios"},
   };
 
   wsm_data["atm_pointInit"] = {
@@ -1186,35 +1111,34 @@ albeit at least 3 points are added if any point is added.
 
 Note that the input 
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
-                    "freq_grid_path",
-                    "freq_wind_shift_jac_path",
-                    "ray_path",
-                    "atm_path"},
-      .in        = {"spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
-                    "freq_grid_path",
-                    "freq_wind_shift_jac_path",
-                    "ray_path",
-                    "atm_path",
-                    "spectral_propmat_agenda",
-                    "jac_targets",
-                    "freq_grid",
-                    "atm_field",
-                    "surf_field",
-                    "max_stepsize"},
-      .gin       = {"max_tau", "cutoff_tau"},
-      .gin_type  = {"Numeric", "Numeric"},
-      .gin_value = {Numeric{0.1}, Numeric{3.0}},
-      .gin_desc =
-          {R"--(Maximum allowed optical thickness per step)--",
-           R"--(Cutoff optical thickness for stopping the adaptive stepping)--"},
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_propmat_path",
+                         "spectral_nlte_srcvec_path",
+                         "spectral_propmat_jac_path",
+                         "spectral_nlte_srcvec_jac_path",
+                         "freq_grid_path",
+                         "freq_wind_shift_jac_path",
+                         "ray_path",
+                         "atm_path"},
+      .in             = {"spectral_propmat_path",
+                         "spectral_nlte_srcvec_path",
+                         "spectral_propmat_jac_path",
+                         "spectral_nlte_srcvec_jac_path",
+                         "freq_grid_path",
+                         "freq_wind_shift_jac_path",
+                         "ray_path",
+                         "atm_path",
+                         "spectral_propmat_agenda",
+                         "jac_targets",
+                         "freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "max_stepsize"},
+      .gin            = {"max_tau", "cutoff_tau"},
+      .gin_type       = {"Numeric", "Numeric"},
+      .gin_value      = {Numeric{0.1}, Numeric{3.0}},
+      .gin_desc       = {R"--(Maximum allowed optical thickness per step)--",
+                         R"--(Cutoff optical thickness for stopping the adaptive stepping)--"},
       .pass_workspace = true,
   };
 
@@ -1225,13 +1149,10 @@ Note that the input
       .author = {"Richard Larsson"},
       .out    = {"spectral_propmat_and_atm_path_agenda"},
       // Reuse parameters of the pathFromPath method
-      .gin = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin,
-      .gin_type =
-          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_type,
-      .gin_value =
-          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_value,
-      .gin_desc =
-          wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_desc,
+      .gin       = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin,
+      .gin_type  = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_type,
+      .gin_value = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_value,
+      .gin_desc  = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_desc,
   };
 
   wsm_data["freq_grid_pathFromPath"] = {
@@ -1254,20 +1175,19 @@ See *spectral_propmat_jacWindFix* for use of the wind shift data.
 The outer dimension of the output arrays are the size of the species selection list.  The inner dimensions
 are as per *spectral_propmat_pathFromPath*.
 )--",
-      .author    = {"Richard Larsson"},
-      .gout      = {"spectral_propmat_path_species_split",
-                    "spectral_nlte_srcvec_path_species_split",
-                    "spectral_propmat_jac_path_species_split",
-                    "spectral_nlte_srcvec_jac_path_species_split"},
-      .gout_type = {"ArrayOfArrayOfPropmatVector",
-                    "ArrayOfArrayOfStokvecVector",
-                    "ArrayOfArrayOfPropmatMatrix",
-                    "ArrayOfArrayOfStokvecMatrix"},
-      .gout_desc =
-          {R"--(Propagation matrix for selected species)--",
-           R"--(Non-LTE source vector for selected species)--",
-           R"--(Jacobian of propagation matrix for selected species)--",
-           R"--(Jacobian of non-LTE source vector for selected species)--"},
+      .author         = {"Richard Larsson"},
+      .gout           = {"spectral_propmat_path_species_split",
+                         "spectral_nlte_srcvec_path_species_split",
+                         "spectral_propmat_jac_path_species_split",
+                         "spectral_nlte_srcvec_jac_path_species_split"},
+      .gout_type      = {"ArrayOfArrayOfPropmatVector",
+                         "ArrayOfArrayOfStokvecVector",
+                         "ArrayOfArrayOfPropmatMatrix",
+                         "ArrayOfArrayOfStokvecMatrix"},
+      .gout_desc      = {R"--(Propagation matrix for selected species)--",
+                         R"--(Non-LTE source vector for selected species)--",
+                         R"--(Jacobian of propagation matrix for selected species)--",
+                         R"--(Jacobian of non-LTE source vector for selected species)--"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1284,9 +1204,9 @@ are as per *spectral_propmat_pathFromPath*.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_scat_path"},
-      .in     = {"spectral_propmat_scat_agenda", "freq_grid_path", "atm_path"},
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_propmat_scat_path"},
+      .in             = {"spectral_propmat_scat_agenda", "freq_grid_path", "atm_path"},
       .pass_workspace = true,
   };
 
@@ -1309,9 +1229,7 @@ The calculations are in parallel if the program is not in parallel already.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_srcvec_path"},
-      .in     = {"spectral_rad_srcvec_path",
-                 "spectral_rad_scat_path",
-                 "spectral_propmat_path"},
+      .in     = {"spectral_rad_srcvec_path", "spectral_rad_scat_path", "spectral_propmat_path"},
   };
 
   wsm_data["spectral_rad_srcvec_pathFromPropmat"] = {
@@ -1393,7 +1311,7 @@ The output dimensions are:
   };
 
   wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
-      .desc      = R"--(Sets the data for MT CKD 4.0 Water model
+      .desc   = R"--(Sets the data for MT CKD 4.0 Water model
 
 Note that the vectors must have the same length, and that wavenumbers must be growing
 at a constant rate.  The minimum length is 4.
@@ -1408,30 +1326,12 @@ This is based on the works cited here: https://hitran.org/mtckd/
     data after version 4.0 is supported by this method - all that changes
     are the values of the vectors. 
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"abs_predef_data"},
-      .in        = {"abs_predef_data"},
-      .gin       = {"ref_temp",
-                    "ref_press",
-                    "ref_h2o_vmr",
-                    "self_absco_ref",
-                    "for_absco_ref",
-                    "wavenumbers",
-                    "self_texp"},
-      .gin_type  = {"Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Vector",
-                    "Vector",
-                    "Vector",
-                    "Vector"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
+      .author = {"Richard Larsson"},
+      .out    = {"abs_predef_data"},
+      .in     = {"abs_predef_data"},
+      .gin    = {"ref_temp", "ref_press", "ref_h2o_vmr", "self_absco_ref", "for_absco_ref", "wavenumbers", "self_texp"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Vector", "Vector", "Vector", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
       .gin_desc  = {R"--(Reference temperature)--",
                     R"--(Reference pressure)--",
                     R"--(Reference volume mixing ratio of water)--",
@@ -1467,28 +1367,15 @@ This is based on the works cited here: https://hitran.org/mtckd/
                     "for_closure_absco_ref",
                     "wavenumbers",
                     "self_texp"},
-      .gin_type  = {"Numeric",
-                    "Numeric",
-                    "Vector",
-                    "Vector",
-                    "Vector",
-                    "Vector",
-                    "Vector"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
-      .gin_desc =
-          {R"--(Reference temperature)--",
-           R"--(Reference pressure)--",
-           R"--(Self absorption [1/(cm-1 molecules/cm^2])--",
-           R"--(Foreign absorption [1/(cm-1 molecules/cm^2)])--",
-           R"--(Foreign closure absorption [1/(cm-1 molecules/cm^2)])--",
-           R"--(Wavenumbers [cm-1])--",
-           R"--(Self temperature exponent [-])--"},
+      .gin_type  = {"Numeric", "Numeric", "Vector", "Vector", "Vector", "Vector", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc  = {R"--(Reference temperature)--",
+                    R"--(Reference pressure)--",
+                    R"--(Self absorption [1/(cm-1 molecules/cm^2])--",
+                    R"--(Foreign absorption [1/(cm-1 molecules/cm^2)])--",
+                    R"--(Foreign closure absorption [1/(cm-1 molecules/cm^2)])--",
+                    R"--(Wavenumbers [cm-1])--",
+                    R"--(Self temperature exponent [-])--"},
   };
 
   wsm_data["abs_predef_dataInit"] = {
@@ -1808,9 +1695,7 @@ interpolates it onto the current *freq_grid*.
 This method must be used inside *spectral_propmat_scat_spectral_agenda* and then be called first.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_scat",
-                 "spectral_absvec_scat",
-                 "spectral_phamat_spectral"},
+      .out    = {"spectral_propmat_scat", "spectral_absvec_scat", "spectral_phamat_spectral"},
       .in     = {"freq_grid", "legendre_degree"},
   };
 
@@ -1831,9 +1716,7 @@ Method is purely for convenience and composition.
 *spectral_propmat_scat* and co.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_scat",
-                 "spectral_absvec_scat",
-                 "spectral_phamat_spectral"},
+      .out    = {"spectral_propmat_scat", "spectral_absvec_scat", "spectral_phamat_spectral"},
       .in     = {"spectral_propmat_scat",
                  "spectral_absvec_scat",
                  "spectral_phamat_spectral",
@@ -1847,13 +1730,8 @@ Method is purely for convenience and composition.
           R"--(Compute *spectral_propmat_scat_path* and co for a path.
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_scat_path",
-                         "spectral_absvec_scat_path",
-                         "spectral_phamat_spectral_path"},
-      .in             = {"freq_grid_path",
-                         "atm_path",
-                         "legendre_degree",
-                         "spectral_propmat_scat_spectral_agenda"},
+      .out            = {"spectral_propmat_scat_path", "spectral_absvec_scat_path", "spectral_phamat_spectral_path"},
+      .in             = {"freq_grid_path", "atm_path", "legendre_degree", "spectral_propmat_scat_spectral_agenda"},
       .pass_workspace = true,
   };
 
@@ -1884,10 +1762,7 @@ This method must be used inside *spectral_propmat_scat_agenda* and then be calle
 This method must be used inside *spectral_propmat_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
-      .out    = {"spectral_propmat",
-                 "spectral_nlte_srcvec",
-                 "spectral_propmat_jac",
-                 "spectral_nlte_srcvec_jac"},
+      .out    = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
       .in     = {"jac_targets", "freq_grid"},
   };
 
@@ -1902,8 +1777,7 @@ See *PlanetOrMoonType* for valid ``option``.
       .gin       = {"option", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.0}},
-      .gin_desc  = {R"--(Choice of planet or moon)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Choice of planet or moon)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldEarth"] = {
@@ -1918,8 +1792,7 @@ See *EarthEllipsoid* for valid ``model``
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldEuropa"] = {
@@ -1934,8 +1807,7 @@ See *EuropaEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldGanymede"] = {
@@ -1948,8 +1820,7 @@ See *GanymedeEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldInit"] = {
@@ -1981,8 +1852,7 @@ See *IoEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldJupiter"] = {
@@ -1997,8 +1867,7 @@ See *JupiterEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldMars"] = {
@@ -2013,8 +1882,7 @@ See *MarsEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldMoon"] = {
@@ -2029,8 +1897,7 @@ See *MoonEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["surf_fieldVenus"] = {
@@ -2045,8 +1912,7 @@ See *VenusEllipsoid* for valid ``model``.
       .gin       = {"model", "surf_elevation"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {String("Sphere"), Numeric{0.0}},
-      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--",
-                    "Surface elevation over the full field"},
+      .gin_desc  = {R"--(Model ellipsoid to use. Options listed above.)--", "Surface elevation over the full field"},
   };
 
   wsm_data["water_equivalent_pressure_operatorMK05"] = {
@@ -2069,8 +1935,7 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
       .gin       = {"only_liquid"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
-      .gin_desc =
-          {"Set to 1 to use liquid saturation pressure at all temperatures"},
+      .gin_desc  = {"Set to 1 to use liquid saturation pressure at all temperatures"},
   };
 
   wsm_data["atm_fieldHydrostaticPressure"] = {
@@ -2100,20 +1965,13 @@ outside of this range simply uses the formalism of  the select ``hydrostatic_opt
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "gravity_operator", "alt_grid"},
-      .gin       = {"p0",
-                    "fixed_specific_gas_constant",
-                    "fixed_atmospheric_temperature",
-                    "hydrostatic_option"},
+      .gin       = {"p0", "fixed_specific_gas_constant", "fixed_atmospheric_temperature", "hydrostatic_option"},
       .gin_type  = {"GeodeticField2,Numeric", "Numeric", "Numeric", "String"},
-      .gin_value = {std::nullopt,
-                    Numeric{-1},
-                    Numeric{-1},
-                    String{"HydrostaticEquation"}},
-      .gin_desc =
-          {"Lowest altitude pressure field.  :math:`P_0` above.",
-           "Specific gas constant if larger than 0",
-           "Constant atmospheric temperature if larger than 0",
-           "Computational option for levels.  See *HydrostaticPressureOption* for valid options."},
+      .gin_value = {std::nullopt, Numeric{-1}, Numeric{-1}, String{"HydrostaticEquation"}},
+      .gin_desc  = {"Lowest altitude pressure field.  :math:`P_0` above.",
+                    "Specific gas constant if larger than 0",
+                    "Constant atmospheric temperature if larger than 0",
+                    "Computational option for levels.  See *HydrostaticPressureOption* for valid options."},
   };
 
   wsm_data["gravity_operatorCentralMass"] = {
@@ -2128,8 +1986,7 @@ Gets the ellispoid from *surf_field*
       .gin       = {"mass"},
       .gin_type  = {"Numeric"},
       .gin_value = {std::nullopt},
-      .gin_desc =
-          {"Gravitation constant so that the gravity at radius :math:`r` is :math:`GM / r^2`"},
+      .gin_desc  = {"Gravitation constant so that the gravity at radius :math:`r` is :math:`GM / r^2`"},
   };
 
   wsm_data["spectral_flux_profileFromPathField"] = {
@@ -2179,7 +2036,7 @@ Gets the ellispoid from *surf_field*
 )--",
       .author = {"Richard Larsson"},
       .out    = {"nlte_line_flux_profile"},
-      .in = {"spectral_flux_profile", "abs_bands", "atm_profile", "freq_grid"},
+      .in     = {"spectral_flux_profile", "abs_bands", "atm_profile", "freq_grid"},
   };
 
   wsm_data["single_radClearskyEmissionPropagation"] = {
@@ -2190,27 +2047,23 @@ The path is built based on current optical properties and the radiative transfer
 equation is solved along the path.  This means that the path is not precomputed
 but built on-the-fly, allowing per-frequency refraction.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"single_rad", "single_rad_jac", "ray_path"},
-      .in     = {"atm_field",
-                 "freq",
-                 "jac_targets",
-                 "single_rad_space_agenda",
-                 "single_rad_surface_agenda",
-                 "single_propmat_agenda",
-                 "ray_point_back_propagation_agenda",
-                 "subsurf_field",
-                 "surf_field",
-                 "obs_pos",
-                 "obs_los",
-                 "max_stepsize"},
-      .gin = {"polarization", "max_tau", "cutoff_tau", "hse_derivative", "N"},
+      .author    = {"Richard Larsson"},
+      .out       = {"single_rad", "single_rad_jac", "ray_path"},
+      .in        = {"atm_field",
+                    "freq",
+                    "jac_targets",
+                    "single_rad_space_agenda",
+                    "single_rad_surface_agenda",
+                    "single_propmat_agenda",
+                    "ray_point_back_propagation_agenda",
+                    "subsurf_field",
+                    "surf_field",
+                    "obs_pos",
+                    "obs_los",
+                    "max_stepsize"},
+      .gin       = {"polarization", "max_tau", "cutoff_tau", "hse_derivative", "N"},
       .gin_type  = {"Propmat", "Numeric", "Numeric", "Index", "Index"},
-      .gin_value = {Propmat{0, 0, 0, 0, 0, 0, 0},
-                    Numeric{0.01},
-                    Numeric{14.0},
-                    Index{0},
-                    Index{1}},
+      .gin_value = {Propmat{0, 0, 0, 0, 0, 0, 0}, Numeric{0.01}, Numeric{14.0}, Index{0}, Index{1}},
       .gin_desc =
           {"Delta of the dispersion in polarizized form.  "
            "The dot-product of this and the propagation matrix is added to the internal *single_dispersion* variable.",
@@ -2454,16 +2307,11 @@ Size : (*jac_targets*, *freq_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_jac"},
-      .in     = {"spectral_rad_jac",
-                 "spectral_rad_jac_path",
-                 "jac_targets",
-                 "atm_field",
-                 "ray_path"},
+      .in     = {"spectral_rad_jac", "spectral_rad_jac_path", "jac_targets", "atm_field", "ray_path"},
   };
 
   wsm_data["spectral_rad_transform_operatorSet"] = {
-      .desc =
-          "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
+      .desc      = "Creates a *SpectralRadianceTransformOperator* from a *SpectralRadianceUnitType*.\n",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_rad_transform_operator"},
       .gin       = {"option"},
@@ -2583,11 +2431,7 @@ matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
-      .in     = {"spectral_propmat_jac",
-                 "spectral_nlte_srcvec_jac",
-                 "freq_grid",
-                 "jac_targets",
-                 "freq_wind_shift_jac"},
+      .in     = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac", "freq_grid", "jac_targets", "freq_wind_shift_jac"},
   };
 
   wsm_data["spectral_propmatAddLines"] = {
@@ -2596,10 +2440,7 @@ matrix to be calculated will work.
 See :doc:`concept.absorption.lbl` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat",
-                    "spectral_nlte_srcvec",
-                    "spectral_propmat_jac",
-                    "spectral_nlte_srcvec_jac"},
+      .out       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
       .in        = {"spectral_propmat",
                     "spectral_nlte_srcvec",
                     "spectral_propmat_jac",
@@ -2614,8 +2455,7 @@ See :doc:`concept.absorption.lbl` for details.
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption"},
+      .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
   wsm_data["spectral_propmatAddVoigtLTE"] = {
@@ -2629,9 +2469,8 @@ This is only for LTE lines in Voigt.
       .out       = {"spectral_propmat", "spectral_propmat_jac"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc =
-          {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
-           "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
+      .gout_desc = {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
+                    "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
       .in        = {"spectral_propmat",
                     "spectral_propmat_jac",
                     "freq_grid",
@@ -2643,8 +2482,7 @@ This is only for LTE lines in Voigt.
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption"},
+      .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
   wsm_data["spectral_propmatMemoryIntensiveAddVoigtLTE"] = {
@@ -2658,9 +2496,8 @@ This is only for LTE lines in Voigt.
       .out       = {"spectral_propmat", "spectral_propmat_jac"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc =
-          {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
-           "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
+      .gout_desc = {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
+                    "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
       .in        = {"spectral_propmat",
                     "spectral_propmat_jac",
                     "freq_grid",
@@ -2672,21 +2509,19 @@ This is only for LTE lines in Voigt.
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption"},
+      .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
-  wsm_data["single_propmatInit"] = {
-      .desc   = R"--(Initialize single-point propagation matrix fields.
+  wsm_data["single_propmatInit"] = {.desc   = R"--(Initialize single-point propagation matrix fields.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"single_propmat",
-                 "single_propmat_jac",
-                 "single_nlte_srcvec",
-                 "single_nlte_srcvec_jac",
-                 "single_dispersion",
-                 "single_dispersion_jac"},
-      .in     = {"jac_targets"}};
+                                    .author = {"Richard Larsson"},
+                                    .out    = {"single_propmat",
+                                               "single_propmat_jac",
+                                               "single_nlte_srcvec",
+                                               "single_nlte_srcvec_jac",
+                                               "single_dispersion",
+                                               "single_dispersion_jac"},
+                                    .in     = {"jac_targets"}};
 
   wsm_data["single_propmatAddVoigtLTE"] = {
       .desc      = R"--(Add line-by-line absorption to the propagation matrix.
@@ -2696,10 +2531,7 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"single_propmat",
-                    "single_propmat_jac",
-                    "single_dispersion",
-                    "single_dispersion_jac"},
+      .out       = {"single_propmat", "single_propmat_jac", "single_dispersion", "single_dispersion_jac"},
       .in        = {"single_propmat",
                     "single_propmat_jac",
                     "single_dispersion",
@@ -2713,100 +2545,92 @@ This is only for LTE lines in Voigt.
       .gin       = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption"},
+      .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
   };
 
   wsm_data["spectral_propmatAddLookup"] = {
-      .desc     = R"--(Add line-by-line absorption to the propagation matrix.
+      .desc      = R"--(Add line-by-line absorption to the propagation matrix.
 
 See :doc:`concept.absorption.lookup` for details.
 )--",
-      .author   = {"Richard Larsson"},
-      .out      = {"spectral_propmat", "spectral_propmat_jac"},
-      .in       = {"spectral_propmat",
-                   "spectral_propmat_jac",
-                   "freq_grid",
-                   "jac_targets",
-                   "select_species",
-                   "abs_lookup_data",
-                   "atm_point"},
-      .gin      = {"no_negative_absorption",
-                   "p_interp_order",
-                   "t_interp_order",
-                   "water_interp_order",
-                   "f_interp_order",
-                   "extpolfac"},
-      .gin_type = {"Index", "Index", "Index", "Index", "Index", "Numeric"},
-      .gin_value =
-          {Index{1}, Index{7}, Index{7}, Index{7}, Index{7}, Numeric{0.5}},
-      .gin_desc =
-          {"Turn off to allow individual absorbers to have negative absorption",
-           "Interpolation order for pressure",
-           "Interpolation order for temperature",
-           "Interpolation order for water vapor",
-           "Interpolation order for frequency",
-           "Extrapolation factor"},
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .in        = {"spectral_propmat",
+                    "spectral_propmat_jac",
+                    "freq_grid",
+                    "jac_targets",
+                    "select_species",
+                    "abs_lookup_data",
+                    "atm_point"},
+      .gin       = {"no_negative_absorption",
+                    "p_interp_order",
+                    "t_interp_order",
+                    "water_interp_order",
+                    "f_interp_order",
+                    "extpolfac"},
+      .gin_type  = {"Index", "Index", "Index", "Index", "Index", "Numeric"},
+      .gin_value = {Index{1}, Index{7}, Index{7}, Index{7}, Index{7}, Numeric{0.5}},
+      .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption",
+                    "Interpolation order for pressure",
+                    "Interpolation order for temperature",
+                    "Interpolation order for water vapor",
+                    "Interpolation order for frequency",
+                    "Extrapolation factor"},
   };
 
   wsm_data["jac_targetsToggleRelativeHumidityAtmTarget"] = {
-      .desc   = R"--(Toggles relative humidity or absolute retrievals.
+      .desc      = R"--(Toggles relative humidity or absolute retrievals.
 
 If the target is in relative humidity mode, it becomes absolute.
 If the target is not in relative humidity mode, it becomes relative humidity.
 
 Overwrites all other functional toggles.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jac_targets"},
-      .in  = {"jac_targets", "atm_field", "water_equivalent_pressure_operator"},
-      .gin = {"key", "nonnegative"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty",
-           "Index"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "atm_field", "water_equivalent_pressure_operator"},
+      .gin       = {"key", "nonnegative"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty", "Index"},
       .gin_value = {std::nullopt, Index{1}},
-      .gin_desc  = {"Key to toggle",
-                    "Whether or not to zero-out negative values"},
+      .gin_desc  = {"Key to toggle", "Whether or not to zero-out negative values"},
   };
 
   wsm_data["jac_targetsToggleRelativeAtmTarget"] = {
-      .desc   = R"--(Toggles relative or absolute retrievals.
+      .desc      = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
 If the target is not in relative mode, it becomes relative.
 
 Overwrites all other functional toggles.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field"},
-      .gin    = {"key"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "atm_field"},
+      .gin       = {"key"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
   wsm_data["jac_targetsToggleLogarithmicAtmTarget"] = {
-      .desc   = R"--(Toggles logarithmic or absolute retrievals.
+      .desc      = R"--(Toggles logarithmic or absolute retrievals.
 
 If the target is in logarithmic mode, it becomes absolute.
 If the target is not in logarithmic mode, it becomes logarithmic.
 
 Overwrites all other functional toggles.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field"},
-      .gin    = {"key"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "atm_field"},
+      .gin       = {"key"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
 
   wsm_data["jac_targetsToggleLogRelAtmTarget"] = {
-      .desc   = R"--(Toggles logarithmic/relative or absolute retrievals.
+      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
 
 This means to take the logarithm of the relative value.
 
@@ -2815,12 +2639,11 @@ If the target is not in logarithmic/relative mode, it becomes logarithmic/relati
 
 Overwrites all other functional toggles.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field"},
-      .gin    = {"key"},
-      .gin_type =
-          {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets", "atm_field"},
+      .gin       = {"key"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
       .gin_value = {std::nullopt},
       .gin_desc  = {"Key to toggle"},
   };
@@ -2962,12 +2785,7 @@ building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
-      .in     = {"jac_targets",
-                 "atm_field",
-                 "surf_field",
-                 "subsurf_field",
-                 "abs_bands",
-                 "measurement_sensor"},
+      .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
   };
 
   const auto jac2ret = [&wsm_data](const std::string& name) {
@@ -2989,8 +2807,7 @@ represented by the *jac_targets*.  The covariance matrix inverse
     v.gin_value.insert(v.gin_value.end(), std::nullopt);
     v.gin_value.insert(v.gin_value.end(), BlockMatrix{});
     v.gin_desc.insert(v.gin_desc.end(), "The covariance diagonal block matrix");
-    v.gin_desc.insert(v.gin_desc.end(),
-                      "The inverse covariance diagonal block matrix");
+    v.gin_desc.insert(v.gin_desc.end(), "The inverse covariance diagonal block matrix");
     return v;
   };
 
@@ -3028,10 +2845,9 @@ those with regards to a, b, etc..
       .gin       = {"t", "sensor_elem", "polyorder"},
       .gin_type  = {"Vector", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {"The grid of :math:`y`.  As :math:`t` above.",
-           "The sensor element whose frequency grid to use",
-           "The order of the polynomial fit.  Maximum :math:`n` above."},
+      .gin_desc  = {"The grid of :math:`y`.  As :math:`t` above.",
+                    "The sensor element whose frequency grid to use",
+                    "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
   wsm_data["RetrievalAddErrorPolyFit"] = jac2ret("jac_targetsAddErrorPolyFit");
 
@@ -3061,13 +2877,11 @@ those with regards to a, b, etc..
       .gin       = {"d", "sensor_elem", "polyorder"},
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
-      .gin_desc =
-          {"The perturbation used in methods that cannot compute derivatives analytically",
-           "The sensor element whose frequency grid to use",
-           "The order of the polynomial fit"},
+      .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically",
+                    "The sensor element whose frequency grid to use",
+                    "The order of the polynomial fit"},
   };
-  wsm_data["RetrievalAddSensorFrequencyPolyOffset"] =
-      jac2ret("jac_targetsAddSensorFrequencyPolyOffset");
+  wsm_data["RetrievalAddSensorFrequencyPolyOffset"] = jac2ret("jac_targetsAddSensorFrequencyPolyOffset");
 
   wsm_data["jac_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative.
@@ -3078,8 +2892,7 @@ those with regards to a, b, etc..
       .gin       = {"d"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.1}},
-      .gin_desc =
-          {"The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddTemperature"] = jac2ret("jac_targetsAddTemperature");
 
@@ -3092,8 +2905,7 @@ those with regards to a, b, etc..
       .gin       = {"d"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.1}},
-      .gin_desc =
-          {"The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddPressure"] = jac2ret("jac_targetsAddPressure");
 
@@ -3108,12 +2920,10 @@ See *FieldComponent* for valid ``component``.
       .gin       = {"component", "d"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The component to use [u, v, w]",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The component to use [u, v, w]",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddMagneticField"] =
-      jac2ret("jac_targetsAddMagneticField");
+  wsm_data["RetrievalAddMagneticField"] = jac2ret("jac_targetsAddMagneticField");
 
   wsm_data["jac_targetsAddOverlappingMagneticField"] = {
       .desc   = R"--(Set magnetic field derivative for overlapping fields.
@@ -3132,8 +2942,7 @@ derivative, and then you call this method to add the second and third component.
       .out    = {"jac_targets"},
       .in     = {"jac_targets"},
   };
-  wsm_data["RetrievalAddOverlappingMagneticField"] =
-      jac2ret("jac_targetsAddOverlappingMagneticField");
+  wsm_data["RetrievalAddOverlappingMagneticField"] = jac2ret("jac_targetsAddOverlappingMagneticField");
 
   wsm_data["jac_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative.
@@ -3149,9 +2958,8 @@ See *FieldComponent* for valid ``component``
       .gin       = {"component", "d"},
       .gin_type  = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The component to use [u, v, w]",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The component to use [u, v, w]",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddWindField"] = jac2ret("jac_targetsAddWindField");
 
@@ -3172,8 +2980,7 @@ derivative, and then you call this method to add the second and third component.
       .out    = {"jac_targets"},
       .in     = {"jac_targets"},
   };
-  wsm_data["RetrievalAddOverlappingWindField"] =
-      jac2ret("jac_targetsAddOverlappingWindField");
+  wsm_data["RetrievalAddOverlappingWindField"] = jac2ret("jac_targetsAddOverlappingWindField");
 
   wsm_data["jac_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative.
@@ -3186,9 +2993,8 @@ See *SpeciesEnum* for valid ``species``
       .gin       = {"species", "d"},
       .gin_type  = {"SpeciesEnum", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The species of interest",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The species of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jac_targetsAddSpeciesVMR");
 
@@ -3199,12 +3005,10 @@ See *SpeciesEnum* for valid ``species``
       .out       = {"jac_targets"},
       .in        = {"jac_targets"},
       .gin       = {"target", "d"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier",
-                    "Numeric"},
+      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The target of interest",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddAtmosphere"] = jac2ret("jac_targetsAddAtmosphere");
 
@@ -3217,9 +3021,8 @@ See *SpeciesEnum* for valid ``species``
       .gin       = {"target", "d"},
       .gin_type  = {"SurfaceKey,SurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The target of interest",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddSurface"] = jac2ret("jac_targetsAddSurface");
 
@@ -3232,9 +3035,8 @@ See *SpeciesEnum* for valid ``species``
       .gin       = {"target", "d"},
       .gin_type  = {"SubsurfaceKey,SubsurfacePropertyTag", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The target of interest",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddSubsurface"] = jac2ret("jac_targetsAddSubsurface");
 
@@ -3249,12 +3051,10 @@ See *SpeciesIsotope* for valid ``species``
       .gin       = {"species", "d"},
       .gin_type  = {"SpeciesIsotope", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc =
-          {"The species isotopologue of interest",
-           "The perturbation used in methods that cannot compute derivatives analytically"},
+      .gin_desc  = {"The species isotopologue of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] =
-      jac2ret("jac_targetsAddSpeciesIsotopologueRatio");
+  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] = jac2ret("jac_targetsAddSpeciesIsotopologueRatio");
 
   wsm_data["abs_bandsReadHITRAN"] = {
       .desc =
@@ -3290,15 +3090,10 @@ be computed from the line strength, or simply read from the Hitran data.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {},
-      .gin       = {"file",
-                    "frequency_range",
-                    "file_formatter",
-                    "line_strength_option",
-                    "compute_zeeman_parameters"},
+      .gin       = {"file", "frequency_range", "file_formatter", "line_strength_option", "compute_zeeman_parameters"},
       .gin_type  = {"String", "Vector2", "ArrayOfString", "String", "Index"},
       .gin_value = {std::nullopt,
-                    Vector2{-std::numeric_limits<Numeric>::infinity(),
-                            std::numeric_limits<Numeric>::infinity()},
+                    Vector2{-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
                     ArrayOfString{"par"},
                     String{"S"},
                     Index{1}},
@@ -3351,17 +3146,13 @@ The computations of line mixing are done on the grid of temperatures provided.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {"abs_bands", "abs_ecs_data", "atm_point"},
-      .gin       = {"temperatures",
-                    "band_key",
-                    "rosenkranz_fit_order",
-                    "polynomial_fit_degree"},
+      .gin       = {"temperatures", "band_key", "rosenkranz_fit_order", "polynomial_fit_degree"},
       .gin_type  = {"AscendingGrid", "QuantumIdentifier", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{1}, Index{3}},
-      .gin_desc =
-          {"The temperatures to use for the internal fitting",
-           "The band to adapt",
-           "The degree of Rosenkranz coefficients (1 for just fitting y, 2 for fitting also g and dv)",
-           "The highest order of the polynomial fit (2 means square, 3 means cubic, etc)"},
+      .gin_desc  = {"The temperatures to use for the internal fitting",
+                    "The band to adapt",
+                    "The degree of Rosenkranz coefficients (1 for just fitting y, 2 for fitting also g and dv)",
+                    "The highest order of the polynomial fit (2 means square, 3 means cubic, etc)"},
   };
 
   wsm_data["abs_bandsSelectFrequencyByLine"] = {
@@ -3375,8 +3166,7 @@ Also remove bands whose lines are all removed.
       .in        = {"abs_bands"},
       .gin       = {"fmin", "fmax"},
       .gin_type  = {"Numeric", "Numeric"},
-      .gin_value = {-std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity()},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
       .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
@@ -3389,8 +3179,7 @@ Also remove bands whose lines are all removed.
       .in        = {"abs_bands"},
       .gin       = {"fmin", "fmax"},
       .gin_type  = {"Numeric", "Numeric"},
-      .gin_value = {-std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity()},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
       .gin_desc  = {"Minimum frequency to keep", "Maximum frequency to keep"},
   };
 
@@ -3422,18 +3211,12 @@ If ``line`` is positive, also keep only the line of this index
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"abs_lookup_data",
-                    "atm_profile",
-                    "freq_grid",
-                    "abs_bands",
-                    "abs_ecs_data",
-                    "select_species"},
+      .in        = {"abs_lookup_data", "atm_profile", "freq_grid", "abs_bands", "abs_ecs_data", "select_species"},
       .gin       = {"temperature_perturbation", "water_perturbation"},
       .gin_type  = {"AscendingGrid", "AscendingGrid"},
       .gin_value = {AscendingGrid{}, AscendingGrid{}},
-      .gin_desc =
-          {"Temperature perturbation to use for the lookup table",
-           "Water vapor perturbation to use for the lookup table (makes the species nonlinear)"},
+      .gin_desc  = {"Temperature perturbation to use for the lookup table",
+                    "Water vapor perturbation to use for the lookup table (makes the species nonlinear)"},
   };
 
   wsm_data["abs_lookup_dataPrecomputeAll"] = {
@@ -3445,20 +3228,13 @@ for those species that are ``water_affected_species``.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_lookup_data"},
-      .in        = {"abs_lookup_data",
-                    "atm_profile",
-                    "freq_grid",
-                    "abs_bands",
-                    "abs_ecs_data"},
-      .gin       = {"temperature_perturbation",
-                    "water_perturbation",
-                    "water_affected_species"},
+      .in        = {"abs_lookup_data", "atm_profile", "freq_grid", "abs_bands", "abs_ecs_data"},
+      .gin       = {"temperature_perturbation", "water_perturbation", "water_affected_species"},
       .gin_type  = {"AscendingGrid", "AscendingGrid", "ArrayOfSpeciesEnum"},
       .gin_value = {AscendingGrid{}, AscendingGrid{}, ArrayOfSpeciesEnum{}},
-      .gin_desc =
-          {"Temperature perturbation to use for the lookup table",
-           "Water vapor perturbation to use for the lookup table",
-           "A list of absorption species that are affected by water vapor perturbations nonlinearly"},
+      .gin_desc  = {"Temperature perturbation to use for the lookup table",
+                    "Water vapor perturbation to use for the lookup table",
+                    "A list of absorption species that are affected by water vapor perturbations nonlinearly"},
   };
 
   wsm_data["abs_lookup_dataFromProfiles"] = {
@@ -3495,14 +3271,13 @@ Unlike *abs_lookup_dataPrecomputeAll*, this method will initialize
                     AscendingGrid{},
                     ArrayOfSpeciesEnum{},
                     String{"Builtin"}},
-      .gin_desc =
-          {"Pressure profile [Pa]",
-           "Temperature profile [K]",
-           "Volume mixing ratio profiles {SpeciesEnum: [VMR]}",
-           "Temperature perturbation to use for the lookup table",
-           "Water vapor perturbation to use for the lookup table",
-           "A list of absorption species that are affected by water vapor perturbations nonlinearly",
-           "Default isotopologue ratio option to initialize the *AtmPoint* with"},
+      .gin_desc  = {"Pressure profile [Pa]",
+                    "Temperature profile [K]",
+                    "Volume mixing ratio profiles {SpeciesEnum: [VMR]}",
+                    "Temperature perturbation to use for the lookup table",
+                    "Water vapor perturbation to use for the lookup table",
+                    "A list of absorption species that are affected by water vapor perturbations nonlinearly",
+                    "Default isotopologue ratio option to initialize the *AtmPoint* with"},
   };
 
   wsm_data["abs_lookup_dataSimpleWide"] = {
@@ -3514,27 +3289,20 @@ and pass them into *abs_lookup_dataFromProfiles*.
 
 The pressure range is set up logarithmically and all other ranges are set linearly.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"abs_lookup_data"},
-      .in        = {"freq_grid", "abs_bands", "abs_ecs_data"},
-      .gin       = {"water_affected_species",
-                    "pressure_range",
-                    "temperature_range",
-                    "water_vmr_range",
-                    "isoratio_option",
-                    "vmr_value",
-                    "atmospheric_steps",
-                    "temperature_perturbation_steps",
-                    "water_vmr_perturbation_steps"},
-      .gin_type  = {"ArrayOfSpeciesEnum",
-                    "Vector2",
-                    "Vector2",
-                    "Vector2",
-                    "String",
-                    "Numeric",
-                    "Index",
-                    "Index",
-                    "Index"},
+      .author = {"Richard Larsson"},
+      .out    = {"abs_lookup_data"},
+      .in     = {"freq_grid", "abs_bands", "abs_ecs_data"},
+      .gin    = {"water_affected_species",
+                 "pressure_range",
+                 "temperature_range",
+                 "water_vmr_range",
+                 "isoratio_option",
+                 "vmr_value",
+                 "atmospheric_steps",
+                 "temperature_perturbation_steps",
+                 "water_vmr_perturbation_steps"},
+      .gin_type =
+          {"ArrayOfSpeciesEnum", "Vector2", "Vector2", "Vector2", "String", "Numeric", "Index", "Index", "Index"},
       .gin_value = {ArrayOfSpeciesEnum{},
                     Vector2{1e-2, 1100e2},
                     Vector2{150, 350},
@@ -3544,16 +3312,15 @@ The pressure range is set up logarithmically and all other ranges are set linear
                     Index{80},
                     Index{15},
                     Index{15}},
-      .gin_desc =
-          {"A list of absorption species that are affected by water vapor perturbations nonlinearly",
-           "Pressure range to consider - in increasing order [Pa]",
-           "Temperature range to consider - in increasing order [K]",
-           "Water VMR range to consider - in increasing order [vmr]",
-           "Default isotopologue ratio option to initialize the *AtmPoint* with",
-           "The VMR to use for the self-value broadening",
-           "Number of steps in the atmospheric profile",
-           "Number of steps in the temperature perturbation",
-           "Number of steps in the water vapor perturbation"},
+      .gin_desc  = {"A list of absorption species that are affected by water vapor perturbations nonlinearly",
+                    "Pressure range to consider - in increasing order [Pa]",
+                    "Temperature range to consider - in increasing order [K]",
+                    "Water VMR range to consider - in increasing order [vmr]",
+                    "Default isotopologue ratio option to initialize the *AtmPoint* with",
+                    "The VMR to use for the self-value broadening",
+                    "Number of steps in the atmospheric profile",
+                    "Number of steps in the temperature perturbation",
+                    "Number of steps in the water vapor perturbation"},
   };
 
   wsm_data["abs_bandsReadSpeciesSplitCatalog"] = {
@@ -3575,8 +3342,7 @@ will throw an error if any file is missing.
       .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc  = {"Absolute or relative path to the directory",
-                    "Ignore missing files instead of throwing an error"},
+      .gin_desc  = {"Absolute or relative path to the directory", "Ignore missing files instead of throwing an error"},
   };
 
   wsm_data["abs_bandsReadSpeciesSplitARTSCAT"] = {
@@ -3598,10 +3364,9 @@ minor changes, like removing absorption lines outside of some frequency span.
       .gin       = {"basename", "ignore_missing", "pure_species"},
       .gin_type  = {"String", "Index", "Index"},
       .gin_value = {std::nullopt, Index{0}, Index{1}},
-      .gin_desc =
-          {"Absolute or relative path to the directory",
-           "Flag to ignore missing files instead of throwing an error.",
-           "Flag that when true uses *SpeciesEnum* instead of *SpeciesIsotope* for file names."},
+      .gin_desc  = {"Absolute or relative path to the directory",
+                    "Flag to ignore missing files instead of throwing an error.",
+                    "Flag that when true uses *SpeciesEnum* instead of *SpeciesIsotope* for file names."},
   };
 
   wsm_data["abs_bandsReadSplit"] = {
@@ -3652,8 +3417,7 @@ Points are added where the ray path crosses any of the three grids in pure geome
       .gin       = {"atm_key"},
       .gin_type  = {"AtmKey"},
       .gin_value = {AtmKey::t},
-      .gin_desc =
-          {"The atmospheric field key for which the grid is expected if adding grid crossings is desired"},
+      .gin_desc  = {"The atmospheric field key for which the grid is expected if adding grid crossings is desired"},
   };
 
   wsm_data["ray_pathAddGeometricAltitudeGridCrossings"] = {
@@ -3736,10 +3500,9 @@ These only matter for polarized radiative transfer.
       .gin       = {"pos", "los", "as_sensor"},
       .gin_type  = {"Vector3", "Vector2", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{1}},
-      .gin_desc =
-          {"The start position",
-           "The start line-of-sight",
-           "Whether or not the position is the sensor position or the observer position"},
+      .gin_desc  = {"The start position",
+                    "The start line-of-sight",
+                    "Whether or not the position is the sensor position or the observer position"},
   };
 
   wsm_data["ray_pathRemoveNearby"] = {
@@ -3752,8 +3515,7 @@ These only matter for polarized radiative transfer.
       .gin       = {"min_distance", "first"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc  = {"The minimum distance between points",
-                    "Whether to remove the first or second point"},
+      .gin_desc  = {"The minimum distance between points", "Whether to remove the first or second point"},
   };
 
   wsm_data["ray_pathRemoveNonGeometricGridCrossings"] = {
@@ -3782,9 +3544,8 @@ grids are kept.
       .gin       = {"surf_search_accuracy", "surf_safe_search"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.1}, Index{1}},
-      .gin_desc =
-          {"The accuracy within which the surface intersection is counted as a hit",
-           "Whether or not to search for the surface intersection in a safer but slower manner"},
+      .gin_desc  = {"The accuracy within which the surface intersection is counted as a hit",
+                    "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
   wsm_data["ray_path_observer_agendaSetGeometric"] = {
@@ -3807,30 +3568,21 @@ Options:
 - ``add_limb``: Add the limb point.
 - ``remove_non_atm``: Remove points in space or in the subsurface.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"ray_path_observer_agenda"},
-      .gin       = {"max_step_option",
-                    "surf_search_accuracy",
-                    "remove_nearby",
-                    "atm_key",
-                    "surf_safe_search",
-                    "remove_nearby_first",
-                    "add_crossings",
-                    "remove_non_crossings",
-                    "fix_updown_azi",
-                    "add_limb",
-                    "remove_non_atm"},
-      .gin_type  = {"String",
-                    "Numeric",
-                    "Numeric",
-                    "AtmKey",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index"},
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path_observer_agenda"},
+      .gin    = {"max_step_option",
+                 "surf_search_accuracy",
+                 "remove_nearby",
+                 "atm_key",
+                 "surf_safe_search",
+                 "remove_nearby_first",
+                 "add_crossings",
+                 "remove_non_crossings",
+                 "fix_updown_azi",
+                 "add_limb",
+                 "remove_non_atm"},
+      .gin_type =
+          {"String", "Numeric", "Numeric", "AtmKey", "Index", "Index", "Index", "Index", "Index", "Index", "Index"},
       .gin_value = {String{"step"},
                     Numeric{0.1},
                     Numeric{0.0},
@@ -3842,18 +3594,17 @@ Options:
                     Index{1},
                     Index{0},
                     Index{1}},
-      .gin_desc =
-          {"Option for max stepping.  See *ray_path_observer_agendaSetGeometricMaxStep*",
-           "The accuracy to search for surface intersections",
-           "The minimum distance between points, ignored if 0 or less",
-           "The atmospheric field key for which the grid is expected if adding grid crossings is desired",
-           "Whether or not to search for the surface intersection in a safer but slower manner",
-           "Which point (first or second) to remove if they are too close",
-           "Add all grid crossings",
-           "Remove non-crossings",
-           "Fix the azimuth angle when looking at 0 or 180 degrees",
-           "Add the limb point",
-           "Remove non-atmospheric points"},
+      .gin_desc  = {"Option for max stepping.  See *ray_path_observer_agendaSetGeometricMaxStep*",
+                    "The accuracy to search for surface intersections",
+                    "The minimum distance between points, ignored if 0 or less",
+                    "The atmospheric field key for which the grid is expected if adding grid crossings is desired",
+                    "Whether or not to search for the surface intersection in a safer but slower manner",
+                    "Which point (first or second) to remove if they are too close",
+                    "Add all grid crossings",
+                    "Remove non-crossings",
+                    "Fix the azimuth angle when looking at 0 or 180 degrees",
+                    "Add the limb point",
+                    "Remove non-atmospheric points"},
   };
 
   wsm_data["ray_pathGeometricUplooking"] = {
@@ -3917,31 +3668,16 @@ bad angles if this is turned off.
                     "remove_non_atm",
                     "fix_updown_azi",
                     "surf_safe_search"},
-      .gin_type  = {"Vector3",
-                    "Vector2",
-                    "Numeric",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index",
-                    "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    Numeric{0.1},
-                    Index{1},
-                    Index{0},
-                    Index{1},
-                    Index{1},
-                    Index{1}},
-      .gin_desc =
-          {"The origo of the radiation path",
-           "The line of sight of the radiation path",
-           "The accuracy within which the surface intersection is counted as a hit",
-           "Whether or not the path is as seen by the sensor or by the radiation (see text)",
-           "Whether or not to add the limb point",
-           "Whether or not to keep only atmospheric points",
-           "Whether or not to attempt fix a potential issue with the path azimuthal angle",
-           "Whether or not to search for the surface intersection in a safer but slower manner"},
+      .gin_type  = {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index", "Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{0.1}, Index{1}, Index{0}, Index{1}, Index{1}, Index{1}},
+      .gin_desc  = {"The origo of the radiation path",
+                    "The line of sight of the radiation path",
+                    "The accuracy within which the surface intersection is counted as a hit",
+                    "Whether or not the path is as seen by the sensor or by the radiation (see text)",
+                    "Whether or not to add the limb point",
+                    "Whether or not to keep only atmospheric points",
+                    "Whether or not to attempt fix a potential issue with the path azimuthal angle",
+                    "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
   wsm_data["ray_pathFromPointAndDepth"] = {
@@ -3972,8 +3708,7 @@ called).
       .gin            = {"cia_extrapolation", "cia_robust"},
       .gin_type       = {"Numeric", "Index"},
       .gin_value      = {Numeric{0.0}, Index{0}},
-      .gin_desc       = {"The extrapolation distance for cia",
-                         "The robustness of the cia extrapolation"},
+      .gin_desc       = {"The extrapolation distance for cia", "The robustness of the cia extrapolation"},
       .pass_workspace = true,
   };
 
@@ -3987,16 +3722,9 @@ blackbody emissision from the surface.
 Limb paths are only considered when the zenith angle misses the next lower level using the
 same mechanism as in *zen_gridProfilePseudo2D*.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_rad_field"},
-      .in             = {"spectral_propmat_agenda",
-                         "atm_profile",
-                         "surf_field",
-                         "freq_grid",
-                         "zen_grid",
-                         "alt_grid",
-                         "lat",
-                         "lon"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_rad_field"},
+      .in = {"spectral_propmat_agenda", "atm_profile", "surf_field", "freq_grid", "zen_grid", "alt_grid", "lat", "lon"},
       .gin            = {"azi"},
       .gin_type       = {"Numeric"},
       .gin_value      = {Numeric{0}},
@@ -4014,9 +3742,7 @@ same mechanism as in *zen_gridProfilePseudo2D*.
       .gin       = {"dzen", "azi", "consider_limb"},
       .gin_type  = {"Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1}, Numeric{0}, Index{1}},
-      .gin_desc  = {"The zenith grid max step size",
-                    "The azimuth",
-                    "Whether or not special care is given to the limb"},
+      .gin_desc  = {"The zenith grid max step size", "The azimuth", "Whether or not special care is given to the limb"},
   };
 
   wsm_data["spectral_rad_fieldFromOperatorPlanarGeometric"] = {
@@ -4053,10 +3779,7 @@ the first 5 dimensions are computed in parallel.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"spectral_rad_field"},
-      .in             = {"spectral_rad_operator",
-                         "ray_path_observer_agenda",
-                         "freq_grid",
-                         "zen_grid"},
+      .in             = {"spectral_rad_operator", "ray_path_observer_agenda", "freq_grid", "zen_grid"},
       .gin            = {"azi_grid"},
       .gin_type       = {"AziGrid"},
       .gin_value      = {std::nullopt},
@@ -4089,7 +3812,7 @@ where
   };
 
   wsm_data["atm_fieldAppendBaseData"] = {
-      .desc   = R"--(Append base data to the atmospheric field
+      .desc     = R"--(Append base data to the atmospheric field
 
 This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form
@@ -4115,18 +3838,17 @@ exists in the atmospheric field.
 The ``allow_missing_pressure`` and ``allow_missing_temperature`` are used to determine
 if the method should throw if the pressure or temperature is missing.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"atm_field"},
-      .in     = {"atm_field"},
-      .gin    = {"basename",
-                 "extrapolation",
-                 "deal_with_field_component",
-                 "replace_existing",
-                 "allow_missing_pressure",
-                 "allow_missing_temperature",
-                 "pressure_log_interp"},
-      .gin_type =
-          {"String", "String", "String", "Index", "Index", "Index", "Index"},
+      .author   = {"Richard Larsson"},
+      .out      = {"atm_field"},
+      .in       = {"atm_field"},
+      .gin      = {"basename",
+                   "extrapolation",
+                   "deal_with_field_component",
+                   "replace_existing",
+                   "allow_missing_pressure",
+                   "allow_missing_temperature",
+                   "pressure_log_interp"},
+      .gin_type = {"String", "String", "String", "Index", "Index", "Index", "Index"},
       .gin_value =
           {
               std::nullopt,
@@ -4164,10 +3886,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_bands"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4194,10 +3913,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_bands"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4225,10 +3941,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_bands"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4255,10 +3968,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_species"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4285,10 +3995,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_cia_data"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4315,10 +4022,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_xfit_data"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4345,10 +4049,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_lookup_data"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4375,10 +4076,7 @@ exists in the atmospheric field.
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
       .in        = {"atm_field", "abs_predef_data"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing"},
+      .gin       = {"basename", "extrapolation", "missing_is_zero", "replace_existing"},
       .gin_type  = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
       .gin_desc  = {"The base name of the files",
@@ -4411,28 +4109,18 @@ Wraps:
 
 See these individually for more details.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"atm_field"},
-      .in        = {"atm_field"},
-      .gin       = {"basename",
-                    "extrapolation",
-                    "missing_is_zero",
-                    "replace_existing",
-                    "load_isot",
-                    "load_nlte"},
-      .gin_type  = {"String", "String", "Index", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt,
-                    String{"Linear"},
-                    Index{0},
-                    Index{0},
-                    Index{0},
-                    Index{0}},
-      .gin_desc  = {"The base name of the files",
-                    "The extrapolation to use.",
-                    "Whether or not to zero-out missing data",
-                    "Whether or not to replace existing data",
-                    "Whether or not to load isotopologue data",
-                    "Whether or not to load NLTE data"},
+      .author         = {"Richard Larsson"},
+      .out            = {"atm_field"},
+      .in             = {"atm_field"},
+      .gin            = {"basename", "extrapolation", "missing_is_zero", "replace_existing", "load_isot", "load_nlte"},
+      .gin_type       = {"String", "String", "Index", "Index", "Index", "Index"},
+      .gin_value      = {std::nullopt, String{"Linear"}, Index{0}, Index{0}, Index{0}, Index{0}},
+      .gin_desc       = {"The base name of the files",
+                         "The extrapolation to use.",
+                         "Whether or not to zero-out missing data",
+                         "Whether or not to replace existing data",
+                         "Whether or not to load isotopologue data",
+                         "Whether or not to load NLTE data"},
       .pass_workspace = true,
   };
 
@@ -4447,18 +4135,17 @@ Wraps:
 - *abs_xfit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
 - *abs_predef_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_predef_data", "abs_xfit_data", "abs_cia_data", "abs_bands"},
-      .in  = {"abs_species"},
-      .gin = {"basename", "ignore_missing"},
+      .author    = {"Richard Larsson"},
+      .out       = {"abs_predef_data", "abs_xfit_data", "abs_cia_data", "abs_bands"},
+      .in        = {"abs_species"},
+      .gin       = {"basename", "ignore_missing"},
       .gin_type  = {"String", "Index"},
       .gin_value = {String{}, Index{0}},
-      .gin_desc  = {"Absolute or relative path to the data",
-                    "Ignore missing files instead of throwing an error"},
+      .gin_desc  = {"Absolute or relative path to the data", "Ignore missing files instead of throwing an error"},
   };
 
   wsm_data["abs_bandsSetZeeman"] = {
-      .desc = R"--(Set the Zeeman splitting for lines within the frequency range
+      .desc      = R"--(Set the Zeeman splitting for lines within the frequency range
 
 See *SpeciesIsotope* for valid ``species``
 )--",
@@ -4484,9 +4171,8 @@ See *SpeciesIsotope* for valid ``species``
       .gin       = {"surf_search_accuracy", "surf_safe_search"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.1}, Index{1}},
-      .gin_desc =
-          {"The accuracy within which the surface intersection is counted as a hit",
-           "Whether or not to search for the surface intersection in a safer but slower manner"},
+      .gin_desc  = {"The accuracy within which the surface intersection is counted as a hit",
+                    "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
   {
@@ -4549,9 +4235,7 @@ The core calculations happens inside the *spectral_rad_operator*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vec"},
-      .in             = {"measurement_sensor",
-                         "spectral_rad_operator",
-                         "ray_path_observer_agenda"},
+      .in             = {"measurement_sensor", "spectral_rad_operator", "ray_path_observer_agenda"},
       .pass_workspace = true,
   };
 
@@ -4581,8 +4265,7 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .gin       = {"kernel"},
       .gin_type  = {"String"},
       .gin_value = {String{"Low Memory"}},
-      .gin_desc =
-          {"The kernel to use for the spectral radiance calculations.  See type information for options."},
+      .gin_desc  = {"The kernel to use for the spectral radiance calculations.  See type information for options."},
       .pass_workspace = true,
   };
 
@@ -4590,42 +4273,35 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .desc   = "Applies transformations to the atmospheric state Jacobian\n",
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
-      .in = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
+      .in     = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
   };
 
   wsm_data["measurement_jacSurfaceTransformation"] = {
       .desc   = "Applies transformations to the surface state Jacobian\n",
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
-      .in = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
+      .in     = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
   };
 
   wsm_data["measurement_jacSubsurfaceTransformation"] = {
       .desc   = "Applies transformations to the subsurface state Jacobian\n",
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
-      .in     = {"measurement_jac",
-                 "model_state_vec",
-                 "subsurf_field",
-                 "jac_targets"},
+      .in     = {"measurement_jac", "model_state_vec", "subsurf_field", "jac_targets"},
   };
 
   wsm_data["measurement_jacBandTransformation"] = {
       .desc   = "Applies transformations to the line-by-line state Jacobian\n",
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
-      .in = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
+      .in     = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
   };
 
   wsm_data["measurement_jacSensorTransformation"] = {
-      .desc =
-          "Applies transformations to the measurement sensor state Jacobian\n",
+      .desc   = "Applies transformations to the measurement sensor state Jacobian\n",
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
-      .in     = {"measurement_jac",
-                 "model_state_vec",
-                 "measurement_sensor",
-                 "jac_targets"},
+      .in     = {"measurement_jac", "model_state_vec", "measurement_sensor", "jac_targets"},
   };
 
   wsm_data["measurement_sensorFromModelState"] = {
@@ -4651,40 +4327,32 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 
 All elements share position, line-of-sight, and frequency grid.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin    = {"pos", "los", "pol"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor", "measurement_sensor_meta"},
+      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
+      .gin       = {"pos", "los", "pol"},
       .gin_type  = {"Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc =
-          {"A position [alt, lat, lon]",
-           "A line of sight [zenith, azimuth]",
-           "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc  = {"A position [alt, lat, lon]",
+                    "A line of sight [zenith, azimuth]",
+                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
   };
 
   wsm_data["measurement_sensorAddGaussianZenith"] = {
       .desc =
           R"--(Add a sensor to *measurement_sensor* that has a Gaussian zenith response.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin    = {"pos", "los", "pol", "dzen_grid", "std_zen"},
-      .gin_type = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    rtepack::to_stokvec(PolarizationChoice::I),
-                    std::nullopt,
-                    std::nullopt},
-      .gin_desc =
-          {"A position [alt, lat, lon]",
-           "A line of sight [zenith, azimuth]",
-           "The polarization whose dot-product with the spectral radiance becomes the measurement",
-           "The delta zenith grid for the Gaussian response",
-           "The standard deviation for the Gaussian response"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor", "measurement_sensor_meta"},
+      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "dzen_grid", "std_zen"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), std::nullopt, std::nullopt},
+      .gin_desc  = {"A position [alt, lat, lon]",
+                    "A line of sight [zenith, azimuth]",
+                    "The polarization whose dot-product with the spectral radiance becomes the measurement",
+                    "The delta zenith grid for the Gaussian response",
+                    "The standard deviation for the Gaussian response"},
   };
 
   wsm_data["measurement_sensorAddSimpleGaussian"] = {
@@ -4698,20 +4366,16 @@ Note that this means you only get "half" a Gaussian channel for the outermost ch
 The I component's distribution is normalized to 1 or 0 by itself, while
 the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin    = {"std", "pos", "los", "pol"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor", "measurement_sensor_meta"},
+      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
+      .gin       = {"std", "pos", "los", "pol"},
       .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc =
-          {"The standard deviations of the channels",
-           "A position [alt, lat, lon]",
-           "A line of sight [zenith, azimuth]",
-           "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc  = {"The standard deviations of the channels",
+                    "A position [alt, lat, lon]",
+                    "A line of sight [zenith, azimuth]",
+                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
   };
 
   {
@@ -4746,24 +4410,22 @@ The quoted strings must be used as the grid names of the gridded field.
     the missing dimensions will not affect the output.  What does matter
     is that the order of the dimensions do not change from the one above.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin    = {"pos", "los", "raw_sensor_perturbation", "normalize"},
-      .gin_type =
-          {"Vector3",
-           "Vector2",
-           "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
-           "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6,"
-           "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
-           "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6",
-           "Index"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor", "measurement_sensor_meta"},
+      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
+      .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize"},
+      .gin_type  = {"Vector3",
+                    "Vector2",
+                    "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
+                    "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6,"
+                    "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
+                    "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6",
+                    "Index"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {"A position [alt, lat, lon]",
-           "A line of sight [zenith, azimuth]",
-           "The sensor perturbation grid",
-           "Whether or not to normalize the perturbation to 1.0 for each element"},
+      .gin_desc  = {"A position [alt, lat, lon]",
+                    "A line of sight [zenith, azimuth]",
+                    "The sensor perturbation grid",
+                    "Whether or not to normalize the perturbation to 1.0 for each element"},
   };
 
   wsm_data["measurement_sensorAddCamera"] = {
@@ -4801,26 +4463,10 @@ the same frequency grid and the same PosLos grid (one entry per pixel).
       .author = {"Richard Larsson"},
       .out    = {"measurement_sensor", "measurement_sensor_meta"},
       .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin    = {"pos",
-                 "los",
-                 "pol",
-                 "n_h",
-                 "n_w",
-                 "ccd_h",
-                 "ccd_w",
-                 "focal_length",
-                 "aperture_diameter",
-                 "focus_distance"},
-      .gin_type  = {"Vector3",
-                    "Vector2",
-                    "Stokvec",
-                    "Index",
-                    "Index",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric",
-                    "Numeric"},
+      .gin =
+          {"pos", "los", "pol", "n_h", "n_w", "ccd_h", "ccd_w", "focal_length", "aperture_diameter", "focus_distance"},
+      .gin_type =
+          {"Vector3", "Vector2", "Stokvec", "Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I),
@@ -4831,17 +4477,16 @@ the same frequency grid and the same PosLos grid (one entry per pixel).
                     std::nullopt,
                     std::nullopt,
                     std::nullopt},
-      .gin_desc =
-          {"Observer position [alt, lat, lon]",
-           "Central pixel line of sight [zenith, azimuth]",
-           "Polarization Stokes weight per pixel",
-           "Number of pixels along the CCD height (rows)",
-           "Number of pixels along the CCD width (columns)",
-           "Physical height of the CCD in meters",
-           "Physical width of the CCD in meters",
-           "Focal length of the lens in meters",
-           "Diameter of the lens aperture in meters",
-           "Distance to the in-focus plane in meters (must be > focal_length)"},
+      .gin_desc  = {"Observer position [alt, lat, lon]",
+                    "Central pixel line of sight [zenith, azimuth]",
+                    "Polarization Stokes weight per pixel",
+                    "Number of pixels along the CCD height (rows)",
+                    "Number of pixels along the CCD width (columns)",
+                    "Physical height of the CCD in meters",
+                    "Physical width of the CCD in meters",
+                    "Focal length of the lens in meters",
+                    "Diameter of the lens aperture in meters",
+                    "Distance to the in-focus plane in meters (must be > focal_length)"},
   };
 
   wsm_data["measurement_sensor_metaFromMeasurementVec"] = {
@@ -4879,17 +4524,16 @@ The two control parameters are the ``angle_cut`` and ``just_hit``.  The ``angle_
 in degrees to which the algorithm should search for a better solution.  The ``just_hit`` is a flag
 that just returns the first time a path hits the sun.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"sun_path"},
-      .in        = {"surf_field", "ray_path_observer_agenda", "sun"},
-      .gin       = {"pos", "angle_cut", "refinement", "just_hit"},
-      .gin_type  = {"Vector3", "Numeric", "Index", "Index"},
-      .gin_value = {std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
-      .gin_desc =
-          {"An observer position [alt, lat, lon]",
-           "The angle delta-cutoff in the iterative solver [0.0, ...]",
-           "The refinement of the search algorithm (twice the power of this is the resolution)",
-           "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
+      .author         = {"Richard Larsson"},
+      .out            = {"sun_path"},
+      .in             = {"surf_field", "ray_path_observer_agenda", "sun"},
+      .gin            = {"pos", "angle_cut", "refinement", "just_hit"},
+      .gin_type       = {"Vector3", "Numeric", "Index", "Index"},
+      .gin_value      = {std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
+      .gin_desc       = {"An observer position [alt, lat, lon]",
+                         "The angle delta-cutoff in the iterative solver [0.0, ...]",
+                         "The refinement of the search algorithm (twice the power of this is the resolution)",
+                         "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
       .pass_workspace = true,
   };
 
@@ -4897,16 +4541,15 @@ that just returns the first time a path hits the sun.
       .desc =
           R"--(Wraps *sun_pathFromObserverAgenda* for all paths to all suns.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_suns_path"},
-      .in     = {"surf_field", "ray_path_observer_agenda", "ray_path", "suns"},
-      .gin    = {"angle_cut", "refinement", "just_hit"},
-      .gin_type  = {"Numeric", "Index", "Index"},
-      .gin_value = {Numeric{0.0}, Index{1}, Index{0}},
-      .gin_desc =
-          {"The angle delta-cutoff in the iterative solver [0.0, ...]",
-           "The refinement of the search algorithm (twice the power of this is the resolution)",
-           "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_suns_path"},
+      .in             = {"surf_field", "ray_path_observer_agenda", "ray_path", "suns"},
+      .gin            = {"angle_cut", "refinement", "just_hit"},
+      .gin_type       = {"Numeric", "Index", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{1}, Index{0}},
+      .gin_desc       = {"The angle delta-cutoff in the iterative solver [0.0, ...]",
+                         "The refinement of the search algorithm (twice the power of this is the resolution)",
+                         "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
       .pass_workspace = true,
   };
 
@@ -4949,13 +4592,12 @@ that just returns the first time a path hits the sun.
       .gin       = {"radius", "distance", "temperature"},
       .gin_type  = {"Numeric", "Numeric", "Numeric"},
       .gin_value = {6.963242e8, 1.495978707e11, 5772.0},
-      .gin_desc =
-          {"The radius of the sun in meter. "
-           "Default is the radius of our sun. ",
-           "The average distance between the sun and the planet in meter. "
-           "Default value is set to 1 a.u. ",
-           "The effective temperature of the suns photosphere in Kelvin. "
-           "Default is the temperature of our sun - 5772 Kelvin "},
+      .gin_desc  = {"The radius of the sun in meter. "
+                    "Default is the radius of our sun. ",
+                    "The average distance between the sun and the planet in meter. "
+                    "Default value is set to 1 a.u. ",
+                    "The effective temperature of the suns photosphere in Kelvin. "
+                    "Default is the temperature of our sun - 5772 Kelvin "},
   };
 
   wsm_data["sunFromGrid"] = {
@@ -4981,17 +4623,12 @@ The point of *freq_grid* that are outside the data frequency grid
 are initialized according to planck's law of the temperature variable.
 Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 )",
-      .author   = {"Jon Petersen", "Richard Larsson"},
-      .out      = {"sun"},
-      .in       = {"freq_grid", "lat", "lon"},
-      .gin      = {"sun_spectrum_raw",
-                   "radius",
-                   "distance",
-                   "temperature",
-                   "description"},
-      .gin_type = {"GriddedField2", "Numeric", "Numeric", "Numeric", "String"},
-      .gin_value =
-          {std::nullopt, 6.963242e8, 1.495978707e11, 5772.0, String{"A sun"}},
+      .author    = {"Jon Petersen", "Richard Larsson"},
+      .out       = {"sun"},
+      .in        = {"freq_grid", "lat", "lon"},
+      .gin       = {"sun_spectrum_raw", "radius", "distance", "temperature", "description"},
+      .gin_type  = {"GriddedField2", "Numeric", "Numeric", "Numeric", "String"},
+      .gin_value = {std::nullopt, 6.963242e8, 1.495978707e11, 5772.0, String{"A sun"}},
       .gin_desc =
           {"A raw spectrum",
            "The radius of the sun in meter. Default is the radius of our sun. ",
@@ -5018,8 +4655,7 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
       .gin       = {"depolarization_factor", "hse_derivative"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.0}, Index{0}},
-      .gin_desc  = {R"--(The depolarization factor to use.)--",
-                    "Flag to compute the hypsometric distance derivatives"},
+      .gin_desc  = {R"--(The depolarization factor to use.)--", "Flag to compute the hypsometric distance derivatives"},
       .pass_workspace = true,
   };
 
@@ -5147,9 +4783,7 @@ This uses a step-by-step solver to propagate background radiation along the path
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
-      .in     = {"spectral_tramat_path",
-                 "spectral_rad_srcvec_path",
-                 "spectral_rad_bkg"},
+      .in     = {"spectral_tramat_path", "spectral_rad_srcvec_path", "spectral_rad_bkg"},
   };
 
   wsm_data["spectral_radCumulativeTransmission"] = {
@@ -5164,7 +4798,7 @@ path parameters.
   };
 
   wsm_data["OEM"] = {
-      .desc   = R"(Inversion by the so called optimal estimation method (OEM).
+      .desc           = R"(Inversion by the so called optimal estimation method (OEM).
 
 Work in progress ...
 
@@ -5286,69 +4920,60 @@ Description of the special input arguments:
 
       Controls if there is any screen output. The overall report level is ignored by this WSM.
 )",
-      .author = {"Patrick Eriksson"},
-      .out    = {"model_state_vec",
-                 "measurement_vec_fit",
-                 "measurement_jac",
-                 "atm_field",
-                 "abs_bands",
-                 "measurement_sensor",
-                 "surf_field",
-                 "subsurf_field",
-                 "measurement_gain_mat"},
-      .gout   = {"oem_diagnostics", "lm_ga_history", "errors"},
-      .gout_type = {"Vector", "Vector", "ArrayOfString"},
-      .gout_desc =
-          {"Basic diagnostics of an OEM type inversion",
-           "The series of gamma values for a Marquardt-levenberg inversion",
-           "Errors encountered during OEM execution"},
-      .in        = {"model_state_vec",
-                    "measurement_vec_fit",
-                    "measurement_jac",
-                    "atm_field",
-                    "abs_bands",
-                    "measurement_sensor",
-                    "surf_field",
-                    "subsurf_field",
-                    "jac_targets",
-                    "model_state_vec_apriori",
-                    "model_state_covmat",
-                    "measurement_vec",
-                    "measurement_vec_error_covmat",
-                    "inversion_iterate_agenda"},
-      .gin       = {"method",
-                    "max_start_cost",
-                    "model_state_covmat_normalization",
-                    "max_iter",
-                    "stop_dx",
-                    "lm_ga_settings",
-                    "clear_matrices",
-                    "display_progress"},
-      .gin_type  = {"String",
-                    "Numeric",
-                    "Vector",
-                    "Index",
-                    "Numeric",
-                    "Vector",
-                    "Index",
-                    "Index"},
-      .gin_value = {std::nullopt,
-                    Numeric{std::numeric_limits<Numeric>::infinity()},
-                    Vector{},
-                    Index{10},
-                    Numeric{0.01},
-                    Vector{},
-                    Index{0},
-                    Index{0}},
-      .gin_desc =
-          {"Iteration method. For this and all options below, see further above",
-           "Maximum allowed value of cost function at start",
-           "Normalization of Sx",
-           "Maximum number of iterations",
-           "Stop criterion for iterative inversions",
-           "Settings associated with the ga factor of the LM method",
-           "An option to save memory",
-           "Flag to control if inversion diagnostics shall be printed on the screen"},
+      .author         = {"Patrick Eriksson"},
+      .out            = {"model_state_vec",
+                         "measurement_vec_fit",
+                         "measurement_jac",
+                         "atm_field",
+                         "abs_bands",
+                         "measurement_sensor",
+                         "surf_field",
+                         "subsurf_field",
+                         "measurement_gain_mat"},
+      .gout           = {"oem_diagnostics", "lm_ga_history", "errors"},
+      .gout_type      = {"Vector", "Vector", "ArrayOfString"},
+      .gout_desc      = {"Basic diagnostics of an OEM type inversion",
+                         "The series of gamma values for a Marquardt-levenberg inversion",
+                         "Errors encountered during OEM execution"},
+      .in             = {"model_state_vec",
+                         "measurement_vec_fit",
+                         "measurement_jac",
+                         "atm_field",
+                         "abs_bands",
+                         "measurement_sensor",
+                         "surf_field",
+                         "subsurf_field",
+                         "jac_targets",
+                         "model_state_vec_apriori",
+                         "model_state_covmat",
+                         "measurement_vec",
+                         "measurement_vec_error_covmat",
+                         "inversion_iterate_agenda"},
+      .gin            = {"method",
+                         "max_start_cost",
+                         "model_state_covmat_normalization",
+                         "max_iter",
+                         "stop_dx",
+                         "lm_ga_settings",
+                         "clear_matrices",
+                         "display_progress"},
+      .gin_type       = {"String", "Numeric", "Vector", "Index", "Numeric", "Vector", "Index", "Index"},
+      .gin_value      = {std::nullopt,
+                         Numeric{std::numeric_limits<Numeric>::infinity()},
+                         Vector{},
+                         Index{10},
+                         Numeric{0.01},
+                         Vector{},
+                         Index{0},
+                         Index{0}},
+      .gin_desc       = {"Iteration method. For this and all options below, see further above",
+                         "Maximum allowed value of cost function at start",
+                         "Normalization of Sx",
+                         "Maximum number of iterations",
+                         "Stop criterion for iterative inversions",
+                         "Settings associated with the ga factor of the LM method",
+                         "An option to save memory",
+                         "Flag to control if inversion diagnostics shall be printed on the screen"},
       .pass_workspace = true,
   };
 
@@ -5368,9 +4993,8 @@ computation where also the gain matrix has been computed.
       .author    = {"Simon Pfreundschuh"},
       .gout      = {"measurement_vec_error_covmat_observation_system"},
       .gout_type = {"Matrix"},
-      .gout_desc =
-          {"Covariance matrix describing the retrieval error due to uncertainties of the observation system."},
-      .in = {"measurement_gain_mat", "measurement_vec_error_covmat"},
+      .gout_desc = {"Covariance matrix describing the retrieval error due to uncertainties of the observation system."},
+      .in        = {"measurement_gain_mat", "measurement_vec_error_covmat"},
   };
 
   wsm_data["model_state_covmat_smoothing_errorCalc"] = {
@@ -5384,9 +5008,8 @@ to be computed after a successful OEM calculation.
       .author    = {"Simon Pfreundschuh"},
       .gout      = {"model_state_covmat_smoothing_error"},
       .gout_type = {"Matrix"},
-      .gout_desc =
-          {"Covariance matrix describing the retrieval error due to smoothing."},
-      .in = {"measurement_averaging_kernel", "model_state_covmat"},
+      .gout_desc = {"Covariance matrix describing the retrieval error due to smoothing."},
+      .in        = {"measurement_averaging_kernel", "model_state_covmat"},
   };
 
   wsm_data["measurement_averaging_kernelCalc"] = {
@@ -5459,11 +5082,7 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
 )",
       .author = {"Richard Larsson"},
       .out    = {"measurement_vec", "measurement_jac"},
-      .in     = {"measurement_vec",
-                 "measurement_jac",
-                 "measurement_vec_error",
-                 "measurement_jac_error",
-                 "do_jac"},
+      .in     = {"measurement_vec", "measurement_jac", "measurement_vec_error", "measurement_jac_error", "do_jac"},
   };
 
   wsm_data["measurement_vec_error_covmatConstant"] = {
@@ -5490,25 +5109,24 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
       .desc =
           R"(Set the downwelling boundary condition using the observer agenda.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings",
-                    "freq_grid",
-                    "ray_path",
-                    "atm_field",
-                    "surf_field",
-                    "subsurf_field",
-                    "spectral_rad_observer_agenda"},
-      .gin       = {"pol"},
-      .gin_type  = {"Stokvec"},
-      .gin_value = {Stokvec{1.0, 0.0, 0.0, 0.0}},
-      .gin_desc =
-          {"The polarization state to select.  The dot-product of this and *spectral_rad* is used."},
+      .author         = {"Richard Larsson"},
+      .out            = {"disort_settings"},
+      .in             = {"disort_settings",
+                         "freq_grid",
+                         "ray_path",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "spectral_rad_observer_agenda"},
+      .gin            = {"pol"},
+      .gin_type       = {"Stokvec"},
+      .gin_value      = {Stokvec{1.0, 0.0, 0.0, 0.0}},
+      .gin_desc       = {"The polarization state to select.  The dot-product of this and *spectral_rad* is used."},
       .pass_workspace = true,
   };
 
   {
-    const auto& other = wsm_data.at("ray_pathFromPointAndDepth");
+    const auto& other                                            = wsm_data.at("ray_pathFromPointAndDepth");
     wsm_data["spectral_radSubsurfaceDisortEmissionWithJacobian"] = {
         .desc           = R"--(Gets the spectral radiance from the path.
 
@@ -5560,7 +5178,7 @@ The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
   }
 
   {
-    const auto& other = wsm_data.at("disort_settingsOpticalThicknessFromPath");
+    const auto& other                       = wsm_data.at("disort_settingsOpticalThicknessFromPath");
     wsm_data["disort_settings_agendaSetup"] = {
         .desc =
             R"--(Setup for Disort standard calculations.
@@ -5577,13 +5195,7 @@ A description of the options is given below.
                       "surf_setting",
                       "surf_lambertian_value",
                       other.gin[0]},
-        .gin_type  = {"String",
-                      "String",
-                      "String",
-                      "String",
-                      "String",
-                      "Vector",
-                      other.gin_type[0]},
+        .gin_type  = {"String", "String", "String", "String", "String", "Vector", other.gin_type[0]},
         .gin_value = {String{"LinearInTau"},
                       String{"None"},
                       String{"CosmicMicrowaveBackgroundRadiation"},
@@ -5603,8 +5215,7 @@ A description of the options is given below.
   }
 
   {
-    const auto& other =
-        wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");
+    const auto& other                                 = wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");
     wsm_data["disort_settings_agendaSubsurfaceSetup"] = {
         .desc =
             R"--(Setup for Disort subsurface calculations.
@@ -5634,10 +5245,7 @@ A description of the options is given below.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "spectral_propmat_path",
-                 "spectral_propmat_scat_path",
-                 "spectral_absvec_scat_path"},
+      .in     = {"disort_settings", "spectral_propmat_path", "spectral_propmat_scat_path", "spectral_absvec_scat_path"},
   };
 
   wsm_data["disort_settingsNoSun"] = {
@@ -5654,7 +5262,7 @@ A description of the options is given below.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in = {"disort_settings", "freq_grid", "surf_field", "sun", "ray_point"},
+      .in     = {"disort_settings", "freq_grid", "surf_field", "sun", "ray_point"},
   };
 
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
@@ -5695,11 +5303,7 @@ This is WIP and should not be used.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings",
-                 "atm_path",
-                 "spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "freq_grid"},
+      .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "spectral_nlte_srcvec_path", "freq_grid"},
   };
 
   wsm_data["disort_settingsNoSpaceEmission"] = {
@@ -5732,7 +5336,7 @@ Sets both upper and lower bounds.
   };
 
   wsm_data["disort_settingsNoSurfaceEmission"] = {
-      .desc = R"(Turns off surface boundary condition for Disort calculations.
+      .desc   = R"(Turns off surface boundary condition for Disort calculations.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
@@ -5797,8 +5401,7 @@ Sets both upper and lower bounds.
       .gin       = {"value"},
       .gin_type  = {"Numeric,Vector"},
       .gin_value = {std::nullopt},
-      .gin_desc =
-          {"The value of the BDRF in all directions (Numeric for constant, Vector for spectral)"},
+      .gin_desc  = {"The value of the BDRF in all directions (Numeric for constant, Vector for spectral)"},
   };
 
   wsm_data["disort_settingsInit"] = {
@@ -5818,9 +5421,7 @@ Sets both upper and lower bounds.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_spectral_rad_field"},
-      .in     = {"disort_spectral_rad_field",
-                 "ray_point",
-                 "spectral_rad_transform_operator"},
+      .in     = {"disort_spectral_rad_field", "ray_point", "spectral_rad_transform_operator"},
   };
 
   wsm_data["disort_spectral_rad_fieldCalc"] = {
@@ -5865,11 +5466,7 @@ CDisort is only included for testing and comparisons with our own disort impleme
 )",
       .author    = {"Oliver Lemke"},
       .out       = {"disort_spectral_rad_field", "disort_quadrature"},
-      .in        = {"disort_settings",
-                    "atm_path",
-                    "freq_grid_path",
-                    "ray_path",
-                    "surf_field"},
+      .in        = {"disort_settings", "atm_path", "freq_grid_path", "ray_path", "surf_field"},
       .gin       = {"azi_grid"},
       .gin_type  = {"AziGrid"},
       .gin_value = {AziGrid{{0.0}}},
@@ -5989,17 +5586,16 @@ the smallest possible numerical offset from that angle in the signed direction.
 
     :func:`pyarts3.plots.ArrayOfPropagationPathPoint.plot` for a visualization of the geometry.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"ray_path_observers"},
-      .in =
-          {"atm_field", "surf_field", "ray_path_observer_agenda", "lat", "lon"},
-      .gin       = {"azi", "nup", "nlimb", "ndown"},
-      .gin_type  = {"Numeric", "Index", "Index", "Index"},
-      .gin_value = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc  = {"Azimuth angle for the observer",
-                    "Number of upward looking observers (min 2)",
-                    "Number of limb looking observers (min 2)",
-                    "Number of downward looking observers (min 2)"},
+      .author         = {"Richard Larsson"},
+      .out            = {"ray_path_observers"},
+      .in             = {"atm_field", "surf_field", "ray_path_observer_agenda", "lat", "lon"},
+      .gin            = {"azi", "nup", "nlimb", "ndown"},
+      .gin_type       = {"Numeric", "Index", "Index", "Index"},
+      .gin_value      = {Numeric{0.0}, std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc       = {"Azimuth angle for the observer",
+                         "Number of upward looking observers (min 2)",
+                         "Number of limb looking observers (min 2)",
+                         "Number of downward looking observers (min 2)"},
       .pass_workspace = true,
   };
 
@@ -6023,8 +5619,7 @@ of the sensor element at ``idx`` at the chosen ``pol`` polarization.
       .gin       = {"idx", "pol"},
       .gin_type  = {"Index", "Stokvec"},
       .gin_value = {Index{0}, Stokvec{1.0, 0.0, 0.0, 0.0}},
-      .gin_desc  = {"The index of the sensor element to extract",
-                    "The polarization to extract"},
+      .gin_desc  = {"The index of the sensor element to extract", "The polarization to extract"},
   };
 
   wsm_data["ray_path_observersFluxProfile"] = {
@@ -6039,10 +5634,9 @@ The number :math:`n` must be uneven and larger than 2.
       .gin       = {"azi", "n", "atm_key"},
       .gin_type  = {"Numeric", "Index", "AtmKey"},
       .gin_value = {Numeric{0.0}, std::nullopt, AtmKey::t},
-      .gin_desc =
-          {"Azimuth angle for the observer",
-           "Number of limb looking observers (min 2).  :math:`n` above.",
-           "The altitude profile key in the atmosphere"},
+      .gin_desc  = {"Azimuth angle for the observer",
+                    "Number of limb looking observers (min 2).  :math:`n` above.",
+                    "The altitude profile key in the atmosphere"},
   };
 
   wsm_data["ray_path_fieldFluxProfile"] = {
@@ -6150,13 +5744,7 @@ Neither polarization nor wind calculations are possible with this method.
                          "spectral_propmat_jac_profile",
                          "spectral_nlte_srcvec_profile",
                          "spectral_nlte_srcvec_jac_profile"},
-      .in             = {"spectral_propmat_agenda",
-                         "jac_targets",
-                         "alt_grid",
-                         "atm_field",
-                         "freq_grid",
-                         "lat",
-                         "lon"},
+      .in             = {"spectral_propmat_agenda", "jac_targets", "alt_grid", "atm_field", "freq_grid", "lat", "lon"},
       .pass_workspace = true,
   };
 
@@ -6169,9 +5757,8 @@ Neither polarization nor wind calculations are possible with this method.
   {  // spectral_propmat_agendaAuto
     const std::string meta = "spectral_propmat_agendaAuto";
     if (wsm_data.contains(meta)) {
-      throw std::runtime_error(std::format(
-          "Method name collision: \"{}\" already exists in the workspace methods",
-          meta));
+      throw std::runtime_error(
+          std::format("Method name collision: \"{}\" already exists in the workspace methods", meta));
     }
 
     std::vector<std::string> gin{"use_abs_lookup_data"};
@@ -6244,9 +5831,8 @@ for more information.
   */
   for (auto& m : internal_meta_methods()) {
     if (wsm_data.contains(m.name)) {
-      throw std::runtime_error(std::format(
-          "Method name collision: \"{}\" already exists in the workspace methods",
-          m.name));
+      throw std::runtime_error(
+          std::format("Method name collision: \"{}\" already exists in the workspace methods", m.name));
     }
     wsm_data[m.name] = m.create(wsm_data);
   }
@@ -6254,13 +5840,11 @@ for more information.
   fix(wsm_data);
   return wsm_data;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}",
-                                       std::string_view(e.what())));
+  throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
 }
 }  // namespace
 
-const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&
-internal_workspace_methods() {
+const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& internal_workspace_methods() {
   static const auto wsm_data = internal_workspace_methods_create();
   return wsm_data;
 }

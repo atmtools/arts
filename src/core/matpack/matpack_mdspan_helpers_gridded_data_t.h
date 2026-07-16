@@ -11,31 +11,25 @@
 #include "matpack_mdspan_helpers_ranged_grid_t.h"
 
 namespace matpack {
-template <typename T, typename Grid0, typename... Grids>
-struct gridded_data_t {
+template <typename T, typename Grid0, typename... Grids> struct gridded_data_t {
   static constexpr Size dim       = 1 + sizeof...(Grids);
   static constexpr bool same_grid = (std::same_as<Grid0, Grids> and ...);
 
   using data_t = matpack::data_t<T, dim>;
 
-  using grids_t = std::conditional_t<same_grid,
-                                     std::array<Grid0, dim>,
-                                     std::tuple<Grid0, Grids...>>;
+  using grids_t = std::conditional_t<same_grid, std::array<Grid0, dim>, std::tuple<Grid0, Grids...>>;
 
-  template <Size Grid>
-  using grid_t = std::tuple_element_t<Grid, grids_t>;
+  template <Size Grid> using grid_t = std::tuple_element_t<Grid, grids_t>;
 
-  template <Size Grid>
-  using grid_value_t = typename grid_t<Grid>::value_type;
+  template <Size Grid> using grid_value_t = typename grid_t<Grid>::value_type;
 
-  String data_name{};
-  data_t data;
+  String                  data_name{};
+  data_t                  data;
   std::array<String, dim> grid_names{};
-  grids_t grids;
+  grids_t                 grids;
 
  private:
-  template <Size... sz>
-  void grid_copy(auto& out, std::index_sequence<sz...>) const {
+  template <Size... sz> void grid_copy(auto& out, std::index_sequence<sz...>) const {
     ((out.template grid<sz>() = grid<sz>()), ...);
   }
 
@@ -44,11 +38,8 @@ struct gridded_data_t {
   // number of grids, but possibly different types.  E.g., sorted to unsorted or vice versa.
   template <typename OtherT, typename OtherGrid0, typename... OtherGrids>
   operator gridded_data_t<OtherT, OtherGrid0, OtherGrids...>() const
-    requires(std::is_convertible_v<T, OtherT> and
-             std::is_convertible_v<Grid0, OtherGrid0> and
-             (std::is_convertible_v<Grids, OtherGrids> and ...) and
-             sizeof...(OtherGrids) == dim - 1)
-  {
+      requires(std::is_convertible_v<T, OtherT> and std::is_convertible_v<Grid0, OtherGrid0> and
+               (std::is_convertible_v<Grids, OtherGrids> and ...) and sizeof...(OtherGrids) == dim - 1) {
     gridded_data_t<OtherT, OtherGrid0, OtherGrids...> out;
     out.data_name  = data_name;
     out.data       = data;
@@ -59,47 +50,30 @@ struct gridded_data_t {
     return out;
   }
 
-  template <Size Grid>
-  [[nodiscard]] constexpr grid_t<Grid>& grid()
-    requires(Grid < dim)
-  {
+  template <Size Grid> [[nodiscard]] constexpr grid_t<Grid>& grid() requires(Grid < dim) {
     return std::get<Grid>(grids);
   }
 
-  template <Size Grid>
-  [[nodiscard]] constexpr const grid_t<Grid>& grid() const
-    requires(Grid < dim)
-  {
+  template <Size Grid> [[nodiscard]] constexpr const grid_t<Grid>& grid() const requires(Grid < dim) {
     return std::get<Grid>(grids);
   }
 
-  template <Size Grid>
-  [[nodiscard]] constexpr String& gridname()
-    requires(Grid < dim)
-  {
+  template <Size Grid> [[nodiscard]] constexpr String& gridname() requires(Grid < dim) {
     return std::get<Grid>(grid_names);
   }
 
-  template <Size Grid>
-  [[nodiscard]] constexpr const String& gridname() const
-    requires(Grid < dim)
-  {
+  template <Size Grid> [[nodiscard]] constexpr const String& gridname() const requires(Grid < dim) {
     return std::get<Grid>(grid_names);
   }
 
  private:
-  template <Size... Ints>
-  [[nodiscard]] constexpr std::array<Size, dim> shape(
-      std::index_sequence<Ints...>) const
-    requires(sizeof...(Ints) == dim)
-  {
+  template <Size... Ints> [[nodiscard]] constexpr std::array<Size, dim> shape(std::index_sequence<Ints...>) const
+      requires(sizeof...(Ints) == dim) {
     return {static_cast<Size>(grid<Ints>().size())...};
   }
 
  public:
-  [[nodiscard]] constexpr std::array<Size, dim> shape() const {
-    return shape(std::make_index_sequence<dim>());
-  }
+  [[nodiscard]] constexpr std::array<Size, dim> shape() const { return shape(std::make_index_sequence<dim>()); }
 
   [[nodiscard]] constexpr bool ok() const {
     const auto a = shape();
@@ -108,15 +82,11 @@ struct gridded_data_t {
   }
 
   template <typename Self, access_operator... Access>
-  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
-                                                    Access&&... access) {
+  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self, Access&&... access) {
     return std::forward<Self>(self).data[std::forward<Access>(access)...];
   }
 
-  template <typename... sz>
-  constexpr void resize(sz&&... access) {
-    data.resize(std::forward<sz>(access)...);
-  }
+  template <typename... sz> constexpr void resize(sz&&... access) { data.resize(std::forward<sz>(access)...); }
 
   constexpr auto operator<=>(const gridded_data_t&) const = default;
 };
@@ -125,50 +95,29 @@ struct gridded_data_t {
 using GriddedField1 = matpack::gridded_data_t<Numeric, Vector>;
 using GriddedField2 = matpack::gridded_data_t<Numeric, Vector, Vector>;
 using GriddedField3 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector>;
-using GriddedField4 =
-    matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector>;
-using GriddedField5 =
-    matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector>;
-using GriddedField6 = matpack::
-    gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
+using GriddedField4 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector>;
+using GriddedField5 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector>;
+using GriddedField6 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
 
 using ZenGriddedField1    = matpack::gridded_data_t<Numeric, ZenGrid>;
 using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
-using SortedGriddedField2 =
-    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
+using SortedGriddedField2 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
 using GeodeticField2      = matpack::gridded_data_t<Numeric, LatGrid, LonGrid>;
-using SortedGriddedField3 = matpack::
-    gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
-using GeodeticField3 =
-    matpack::gridded_data_t<Numeric, AscendingGrid, LatGrid, LonGrid>;
-using SortedGriddedField4 = matpack::gridded_data_t<Numeric,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid>;
-using SortedGriddedField5 = matpack::gridded_data_t<Numeric,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid>;
-using SortedGriddedField6 = matpack::gridded_data_t<Numeric,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid,
-                                                    AscendingGrid>;
+using SortedGriddedField3 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
+using GeodeticField3      = matpack::gridded_data_t<Numeric, AscendingGrid, LatGrid, LonGrid>;
+using SortedGriddedField4 =
+    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
+using SortedGriddedField5 =
+    matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
+using SortedGriddedField6 = matpack::
+    gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
 
 using ComplexGriddedField2 = matpack::gridded_data_t<Complex, Vector, Vector>;
 
-using NamedGriddedField2 =
-    matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector>;
-using NamedGriddedField3 =
-    matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector, Vector>;
+using NamedGriddedField2 = matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector>;
+using NamedGriddedField3 = matpack::gridded_data_t<Numeric, Array<String>, Vector, Vector, Vector>;
 
-using GriddedField1Named =
-    matpack::gridded_data_t<Numeric, Vector, Array<String>>;
+using GriddedField1Named = matpack::gridded_data_t<Numeric, Vector, Array<String>>;
 
 using ArrayOfGriddedField1 = Array<GriddedField1>;
 using ArrayOfGriddedField2 = Array<GriddedField2>;
@@ -205,8 +154,7 @@ GeodeticField3 make_geodetic(const GriddedField3& gf);
 GeodeticField2 make_geodetic(const GriddedField2& gf);
 }  // namespace matpack
 
-template <typename T, typename... Grids>
-struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
+template <typename T, typename... Grids> struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
   static constexpr Size n = sizeof...(Grids);
 
   format_tags tags;
@@ -216,19 +164,16 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
 
   using fmt_t = matpack::gridded_data_t<T, Grids...>;
 
-  template <Size N>
-  using grid_t = typename fmt_t::template grid_t<N>;
+  template <Size N> using grid_t = typename fmt_t::template grid_t<N>;
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
  private:
-  template <Size N, class FmtContext>
-  void grid(const fmt_t& v, FmtContext& ctx) const {
+  template <Size N, class FmtContext> void grid(const fmt_t& v, FmtContext& ctx) const {
     if (tags.names) {
       const std::string_view quote = tags.quote();
       tags.format(ctx, quote, v.grid_names[N], quote, ": "sv);
@@ -238,8 +183,7 @@ struct std::formatter<matpack::gridded_data_t<T, Grids...>> {
   }
 
  public:
-  template <class FmtContext>
-  FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const fmt_t& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, "{\n"sv);
 
     if constexpr (constexpr Size N = 0; n > N) grid<N>(v, ctx);

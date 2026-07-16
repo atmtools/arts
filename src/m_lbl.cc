@@ -27,9 +27,7 @@
 #include <ranges>
 #include <unordered_map>
 
-void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
-                                    const Numeric& fmin,
-                                    const Numeric& fmax) try {
+void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands, const Numeric& fmin, const Numeric& fmax) try {
   ARTS_TIME_REPORT
 
   std::vector<QuantumIdentifier> to_remove;
@@ -39,12 +37,10 @@ void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
 
     auto& lines = band.lines;
 
-    lines.erase(std::remove_if(lines.begin(),
-                               lines.end(),
-                               [fmin, fmax](const lbl::line& l) {
-                                 return l.f0 < fmin or l.f0 > fmax;
-                               }),
-                lines.end());
+    lines.erase(
+        std::remove_if(
+            lines.begin(), lines.end(), [fmin, fmax](const lbl::line& l) { return l.f0 < fmin or l.f0 > fmax; }),
+        lines.end());
 
     if (lines.empty()) to_remove.push_back(key);
   }
@@ -53,9 +49,7 @@ void abs_bandsSelectFrequencyByLine(AbsorptionBands& abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands,
-                                    const Numeric& fmin,
-                                    const Numeric& fmax) try {
+void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands, const Numeric& fmin, const Numeric& fmax) try {
   ARTS_TIME_REPORT
 
   std::vector<QuantumIdentifier> to_remove;
@@ -63,8 +57,7 @@ void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands,
   for (auto& [key, band] : abs_bands) {
     band.sort();
 
-    const bool criteria = band.lines.empty() or band.lines.front().f0 > fmax or
-                          band.lines.back().f0 < fmin;
+    const bool criteria = band.lines.empty() or band.lines.front().f0 > fmax or band.lines.back().f0 < fmin;
 
     if (criteria) to_remove.push_back(key);
   }
@@ -73,24 +66,20 @@ void abs_bandsSelectFrequencyByBand(AbsorptionBands& abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsKeepID(AbsorptionBands& abs_bands,
-                     const QuantumIdentifier& id,
-                     const Index& line) try {
+void abs_bandsKeepID(AbsorptionBands& abs_bands, const QuantumIdentifier& id, const Index& line) try {
   ARTS_TIME_REPORT
 
   if (auto ptr = abs_bands.find(id); ptr != abs_bands.end()) {
     const auto& [key, band] = *ptr;
 
     QuantumIdentifier newk = key;
-    AbsorptionBand newb    = band;
+    AbsorptionBand    newb = band;
     abs_bands              = {};
     AbsorptionBand& data   = abs_bands[newk];
     data                   = std::move(newb);
 
     if (line >= 0) {
-      ARTS_USER_ERROR_IF(static_cast<Size>(line) >= band.lines.size(),
-                         "Line index out of range: {}",
-                         line)
+      ARTS_USER_ERROR_IF(static_cast<Size>(line) >= band.lines.size(), "Line index out of range: {}", line)
       data.lines = {data.lines[line]};
     }
   } else {
@@ -99,11 +88,10 @@ void abs_bandsKeepID(AbsorptionBands& abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsReadSpeciesSplitCatalog(
-    AbsorptionBands& abs_bands,
-    const ArrayOfSpeciesTag& absorbtion_species,
-    const String& basename,
-    const Index& ignore_missing_) try {
+void abs_bandsReadSpeciesSplitCatalog(AbsorptionBands&         abs_bands,
+                                      const ArrayOfSpeciesTag& absorbtion_species,
+                                      const String&            basename,
+                                      const Index&             ignore_missing_) try {
   ARTS_TIME_REPORT
 
   abs_bands.clear();
@@ -127,20 +115,19 @@ void abs_bandsReadSpeciesSplitCatalog(
     }
   }
 
-  std::vector<std::string> read_errors;
-  std::vector<std::string> file_errors;
+  std::vector<std::string>    read_errors;
+  std::vector<std::string>    file_errors;
   std::vector<SpeciesIsotope> visot(isotopologues.begin(), isotopologues.end());
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
   for (std::size_t iisot = 0; iisot < isotopologues.size(); iisot++) {
     try {
       const auto& isot{visot[iisot]};
-      String filename{my_base + isot.FullName() + ".xml"};
+      String      filename{my_base + isot.FullName() + ".xml"};
       if (find_xml_file_existence(filename)) {
         AbsorptionBands other;
         xml_read_from_file(filename, other);
 #pragma omp critical(abs_bandsReadSpeciesSplitCatalogInsert)
-        abs_bands.insert(std::make_move_iterator(other.begin()),
-                         std::make_move_iterator(other.end()));
+        abs_bands.insert(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
       } else if (not ignore_missing) {
 #pragma omp critical(abs_bandsReadSpeciesSplitCatalogFileError)
         file_errors.push_back(filename);
@@ -151,8 +138,7 @@ void abs_bandsReadSpeciesSplitCatalog(
     }
   }
   if (file_errors.size() and read_errors.size())
-    ARTS_USER_ERROR(
-        "Files not found:\n{}\n\nReading errors:\n{}", file_errors, read_errors)
+    ARTS_USER_ERROR("Files not found:\n{}\n\nReading errors:\n{}", file_errors, read_errors)
 
   if (file_errors.size()) ARTS_USER_ERROR("Files not found:\n{}", file_errors)
   if (read_errors.size()) ARTS_USER_ERROR("{}", read_errors);
@@ -167,10 +153,7 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands, const String& dir) try {
   std::vector<std::filesystem::path> paths;
   stdr::copy_if(std::filesystem::directory_iterator(std::filesystem::path(dir)),
                 std::back_inserter(paths),
-                [](auto& entry) {
-                  return entry.is_regular_file() and
-                         entry.path().extension() == ".xml";
-                });
+                [](auto& entry) { return entry.is_regular_file() and entry.path().extension() == ".xml"; });
   stdr::sort(paths);
 
   std::string error{};
@@ -181,8 +164,7 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands, const String& dir) try {
       AbsorptionBands bands;
       xml_read_from_file(paths[i].string(), bands);
 #pragma omp critical
-      abs_bands.insert(std::make_move_iterator(bands.begin()),
-                       std::make_move_iterator(bands.end()));
+      abs_bands.insert(std::make_move_iterator(bands.begin()), std::make_move_iterator(bands.end()));
     } catch (std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -193,36 +175,30 @@ void abs_bandsReadSplit(AbsorptionBands& abs_bands, const String& dir) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsSaveSplit(const AbsorptionBands& abs_bands,
-                        const String& dir) try {
+void abs_bandsSaveSplit(const AbsorptionBands& abs_bands, const String& dir) try {
   ARTS_TIME_REPORT
 
   auto create_if_not = [](const std::filesystem::path& path) {
-    if (not std::filesystem::exists(path)) {
-      std::filesystem::create_directories(path);
-    }
+    if (not std::filesystem::exists(path)) { std::filesystem::create_directories(path); }
     return path;
   };
 
   const auto p = create_if_not(dir);
 
   std::unordered_map<SpeciesIsotope, AbsorptionBands> isotopologues_data;
-  for (auto& [key, band] : abs_bands) {
-    isotopologues_data[key.isot][key] = band;
-  }
+  for (auto& [key, band] : abs_bands) { isotopologues_data[key.isot][key] = band; }
 
   for (const auto& [isot, bands] : isotopologues_data) {
-    xml_write_to_file(
-        (p / std::format("{}.xml", isot)).string(), bands, FileType::ascii, 0);
+    xml_write_to_file((p / std::format("{}.xml", isot)).string(), bands, FileType::ascii, 0);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsSetZeeman(AbsorptionBands& abs_bands,
+void abs_bandsSetZeeman(AbsorptionBands&      abs_bands,
                         const SpeciesIsotope& species,
-                        const Numeric& fmin,
-                        const Numeric& fmax,
-                        const Index& _on) try {
+                        const Numeric&        fmin,
+                        const Numeric&        fmax,
+                        const Index&          _on) try {
   ARTS_TIME_REPORT
 
   const bool on = static_cast<bool>(_on);
@@ -231,31 +207,28 @@ void abs_bandsSetZeeman(AbsorptionBands& abs_bands,
     if (key.isot != species) continue;
 
     for (auto& line : band.lines) {
-      if (line.f0 >= fmin and line.f0 <= fmax) {
-        line.z.on = on;
-      }
+      if (line.f0 >= fmin and line.f0 <= fmax) { line.z.on = on; }
     }
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmatAddLines(PropmatVector& pm,
-                              StokvecVector& sv,
-                              PropmatMatrix& dpm,
-                              StokvecMatrix& dsv,
-                              const AscendingGrid& f_grid,
-                              const JacobianTargets& jac_targets,
-                              const SpeciesEnum& species,
-                              const AbsorptionBands& abs_bands,
-                              const LinemixingEcsData& abs_ecs_data,
-                              const AtmPoint& atm_point,
+void spectral_propmatAddLines(PropmatVector&              pm,
+                              StokvecVector&              sv,
+                              PropmatMatrix&              dpm,
+                              StokvecMatrix&              dsv,
+                              const AscendingGrid&        f_grid,
+                              const JacobianTargets&      jac_targets,
+                              const SpeciesEnum&          species,
+                              const AbsorptionBands&      abs_bands,
+                              const LinemixingEcsData&    abs_ecs_data,
+                              const AtmPoint&             atm_point,
                               const PropagationPathPoint& path_point,
-                              const Index& no_negative_absorption) try {
+                              const Index&                no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   const Size n = arts_omp_get_max_threads();
-  if (n == 1 or static_cast<Size>(arts_omp_in_parallel()) or
-      n > f_grid.size()) {
+  if (n == 1 or static_cast<Size>(arts_omp_in_parallel()) or n > f_grid.size()) {
     lbl::calculate(pm,
                    sv,
                    dpm,
@@ -270,7 +243,7 @@ void spectral_propmatAddLines(PropmatVector& pm,
                    path_point.los,
                    no_negative_absorption);
   } else {
-    const auto f_ranges = matpack::omp_offset_count(f_grid.size(), n);
+    const auto  f_ranges = matpack::omp_offset_count(f_grid.size(), n);
     std::string error;
 #pragma omp parallel for
     for (Size i = 0; i < n; i++) {
@@ -299,12 +272,12 @@ void spectral_propmatAddLines(PropmatVector& pm,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsReadHITRAN(AbsorptionBands& abs_bands,
-                         const String& filename,
-                         const Vector2& frequency_range,
+void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
+                         const String&        filename,
+                         const Vector2&       frequency_range,
                          const ArrayOfString& file_formatter,
-                         const String& line_strength_option,
-                         const Index& compute_zeeman_parameters) try {
+                         const String&        line_strength_option,
+                         const Index&         compute_zeeman_parameters) try {
   ARTS_TIME_REPORT
 
   using namespace Quantum;
@@ -315,24 +288,20 @@ void abs_bandsReadHITRAN(AbsorptionBands& abs_bands,
       .cutoff    = {},
   };
 
-  const std::vector<HitranFileFormatType> format_order{
-      std::from_range,
-      file_formatter | stdv::transform(to<HitranFileFormatType>)};
+  const std::vector<HitranFileFormatType> format_order{std::from_range,
+                                                       file_formatter | stdv::transform(to<HitranFileFormatType>)};
 
   const auto selection = to<HitranLineStrengthOption>(line_strength_option);
 
   const bool do_zeeman = static_cast<bool>(compute_zeeman_parameters);
 
-  const auto data = lbl::read_hitran_par(
-      open_input_file(filename), format_order, frequency_range);
+  const auto data = lbl::read_hitran_par(open_input_file(filename), format_order, frequency_range);
 
   abs_bands = {};
   for (auto& line : data) {
-    auto [mapped_band, _] = abs_bands.try_emplace(
-        global_state(global_types, line.qid), default_band);
+    auto [mapped_band, _] = abs_bands.try_emplace(global_state(global_types, line.qid), default_band);
 
-    mapped_band->second.lines.emplace_back(
-        line.from(selection, local_state(local_types, line.qid), do_zeeman));
+    mapped_band->second.lines.emplace_back(line.from(selection, local_state(local_types, line.qid), do_zeeman));
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -343,9 +312,7 @@ void abs_bandsReadJPL(AbsorptionBands& abs_bands, const String& filename) try {
   const auto data = lbl::read_jpl_lines(open_input_file(filename));
 
   abs_bands = {};
-  for (auto& line : data) {
-    abs_bands[line.jpl_id.qid].lines.emplace_back(line.from());
-  }
+  for (auto& line : data) { abs_bands[line.jpl_id.qid].lines.emplace_back(line.from()); }
 
   for (auto& [_, band] : abs_bands) {
     band.cutoff    = {};
@@ -355,39 +322,34 @@ void abs_bandsReadJPL(AbsorptionBands& abs_bands, const String& filename) try {
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-template <class Key, class T>
-const T& get_value(const Key& k, const std::unordered_map<Key, T>& m) {
+template <class Key, class T> const T& get_value(const Key& k, const std::unordered_map<Key, T>& m) {
   auto it = m.find(k);
   ARTS_USER_ERROR_IF(it == m.end(), "Key not found: {}", k)
   return it->second;
 }
 
-template <class Key, class T>
-T& get_value(const Key& k, std::unordered_map<Key, T>& m) {
+template <class Key, class T> T& get_value(const Key& k, std::unordered_map<Key, T>& m) {
   auto it = m.find(k);
   ARTS_USER_ERROR_IF(it == m.end(), "Key not found: {}", k)
   return it->second;
 }
 }  // namespace
 
-void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
+void abs_bandsLineMixingAdaptation(AbsorptionBands&         abs_bands,
                                    const LinemixingEcsData& abs_ecs_data,
-                                   const AtmPoint& atm_point,
-                                   const AscendingGrid& temperatures,
+                                   const AtmPoint&          atm_point,
+                                   const AscendingGrid&     temperatures,
                                    const QuantumIdentifier& band_key,
-                                   const Index& rosenkranz_fit_order,
-                                   const Index& polynomial_fit_degree) try {
+                                   const Index&             rosenkranz_fit_order,
+                                   const Index&             polynomial_fit_degree) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(temperatures.empty() or temperatures.front() <= 0.0,
-                     "Need a positive temperature grid")
+  ARTS_USER_ERROR_IF(temperatures.empty() or temperatures.front() <= 0.0, "Need a positive temperature grid")
 
   ARTS_USER_ERROR_IF(rosenkranz_fit_order != 1 and rosenkranz_fit_order != 2,
                      "Only 1 or 2 is supported for the ordered fit")
-  ARTS_USER_ERROR_IF(
-      polynomial_fit_degree < 1 or
-          polynomial_fit_degree > static_cast<Index>(temperatures.size()) - 1,
-      "Polynomial degree must be between 1 and the number of temperatures - 1")
+  ARTS_USER_ERROR_IF(polynomial_fit_degree < 1 or polynomial_fit_degree > static_cast<Index>(temperatures.size()) - 1,
+                     "Polynomial degree must be between 1 and the number of temperatures - 1")
 
   auto& band = get_value(band_key, abs_bands);
 
@@ -396,8 +358,7 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
   for (auto& line : band.lines | stdv::drop(1)) {
     ARTS_USER_ERROR_IF(
         stdr::any_of(line.ls.single_models | stdv::keys,
-                     [&other = band.lines.front().ls.single_models](
-                         SpeciesEnum x) { return not other.contains(x); }),
+                     [&other = band.lines.front().ls.single_models](SpeciesEnum x) { return not other.contains(x); }),
         "Inconsistent line shape models, all lines must have the same broadening species")
   }
 
@@ -406,16 +367,10 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
   const Size N = band.lines.size();
 
   lbl::voigt::ecs::ComputeData com_data({}, atm_point);
-  ComplexTensor3 eqv_str(M, K, N), eqv_val(M, K, N);
+  ComplexTensor3               eqv_str(M, K, N), eqv_val(M, K, N);
 
-  lbl::voigt::ecs::equivalent_values(eqv_str,
-                                     eqv_val,
-                                     com_data,
-                                     band_key,
-                                     band,
-                                     abs_ecs_data.at(band_key.isot),
-                                     atm_point,
-                                     temperatures);
+  lbl::voigt::ecs::equivalent_values(
+      eqv_str, eqv_val, com_data, band_key, band, abs_ecs_data.at(band_key.isot), atm_point, temperatures);
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
   using Constant::c, Constant::pi;
@@ -432,33 +387,26 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
   }
 
   for (auto& line : band.lines) {
-    for (auto& lsm : line.ls.single_models | stdv::values) {
-      lsm.remove_variables<Y, G, DV>();
-    }
+    for (auto& lsm : line.ls.single_models | stdv::values) { lsm.remove_variables<Y, G, DV>(); }
   }
 
-  const ArrayOfSpeciesEnum specs{
-      std::from_range, band.lines.front().ls.single_models | stdv::keys};
+  const ArrayOfSpeciesEnum specs{std::from_range, band.lines.front().ls.single_models | stdv::keys};
 
   ComplexTensor3 lbl_val(M, K, N);
   for (Size i = 0; i < M; i++) {
     for (Size j = 0; j < K; j++) {
       for (Size k = 0; k < N; k++) {
-        auto& line       = band.lines[k];
-        lbl_val[i, j, k] = Complex{
-            line.f0 + line.ls.single_models.at(specs[j]).D0(
-                          line.ls.T0, temperatures[i], atm_point.pressure),
-            line.ls.single_models.at(specs[j]).G0(
-                line.ls.T0, temperatures[i], atm_point.pressure)};
+        auto& line = band.lines[k];
+        lbl_val[i, j, k] =
+            Complex{line.f0 + line.ls.single_models.at(specs[j]).D0(line.ls.T0, temperatures[i], atm_point.pressure),
+                    line.ls.single_models.at(specs[j]).G0(line.ls.T0, temperatures[i], atm_point.pressure)};
       }
     }
   }
 
   for (Size i = 0; i < M; i++) {
     for (Size j = 0; j < K; j++) {
-      stdr::sort(stdv::zip(eqv_val[i, j], eqv_str[i, j]),
-                 {},
-                 [](const auto& x) { return std::get<0>(x).real(); });
+      stdr::sort(stdv::zip(eqv_val[i, j], eqv_str[i, j]), {}, [](const auto& x) { return std::get<0>(x).real(); });
     }
   }
 
@@ -479,24 +427,18 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
       auto& spec = band.lines[k].ls.single_models.at(specs[j]);
 
       if (rosenkranz_fit_order >= 1) {
-        auto yfit = polyfit(
-            temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(
-            not yfit, "Cannot fit y for line {} of band {}", k, band_key)
+        auto yfit = polyfit(temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
+        ARTS_USER_ERROR_IF(not yfit, "Cannot fit y for line {} of band {}", k, band_key)
         spec.data[Y] = {POLY, *yfit};
       }
 
       if (rosenkranz_fit_order >= 2) {
-        auto gfit = polyfit(
-            temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(
-            not gfit, "Cannot fit g for line {} of band {}", k, band_key)
+        auto gfit = polyfit(temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
+        ARTS_USER_ERROR_IF(not gfit, "Cannot fit g for line {} of band {}", k, band_key)
         spec.data[G] = {POLY, *gfit};
 
-        auto dfit = polyfit(
-            temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(
-            not dfit, "Cannot fit dv for line {} of band {}", k, band_key)
+        auto dfit = polyfit(temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
+        ARTS_USER_ERROR_IF(not dfit, "Cannot fit dv for line {} of band {}", k, band_key)
         spec.data[DV] = {POLY, *dfit};
       }
     }
@@ -504,12 +446,11 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands& abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsReadSpeciesSplitARTSCAT(
-    AbsorptionBands& abs_bands,
-    const ArrayOfSpeciesTag& absorbtion_species,
-    const String& basename,
-    const Index& ignore_missing_,
-    const Index& pure_species_) try {
+void abs_bandsReadSpeciesSplitARTSCAT(AbsorptionBands&         abs_bands,
+                                      const ArrayOfSpeciesTag& absorbtion_species,
+                                      const String&            basename,
+                                      const Index&             ignore_missing_,
+                                      const Index&             pure_species_) try {
   ARTS_TIME_REPORT
 
   Array<ArrayOfArtscatMeta> meta;
@@ -526,15 +467,13 @@ void abs_bandsReadSpeciesSplitARTSCAT(
   if (pure_species) {
     std::set<SpeciesEnum> specieses;
     for (auto& spec : absorbtion_species) {
-      if (spec.type == SpeciesTagType::Plain) {
-        specieses.insert(spec.Spec());
-      }
+      if (spec.type == SpeciesTagType::Plain) { specieses.insert(spec.Spec()); }
     }
 
     std::vector<SpeciesEnum> vspecieses(specieses.begin(), specieses.end());
     for (std::size_t ispec = 0; ispec < specieses.size(); ispec++) {
       const auto& spec{vspecieses[ispec]};
-      String filename{my_base + String{toString(spec)} + ".xml"};
+      String      filename{my_base + String{toString(spec)} + ".xml"};
       if (find_xml_file_existence(filename)) {
         xml_read_from_file(filename, meta.emplace_back());
       } else if (not ignore_missing) {
@@ -557,11 +496,10 @@ void abs_bandsReadSpeciesSplitARTSCAT(
       }
     }
 
-    std::vector<SpeciesIsotope> visot(isotopologues.begin(),
-                                      isotopologues.end());
+    std::vector<SpeciesIsotope> visot(isotopologues.begin(), isotopologues.end());
     for (std::size_t iisot = 0; iisot < isotopologues.size(); iisot++) {
       const auto& isot{visot[iisot]};
-      String filename{my_base + isot.FullName() + ".xml"};
+      String      filename{my_base + isot.FullName() + ".xml"};
       if (find_xml_file_existence(filename)) {
         xml_read_from_file(filename, meta.emplace_back());
       } else if (not ignore_missing) {
@@ -570,46 +508,36 @@ void abs_bandsReadSpeciesSplitARTSCAT(
     }
   }
 
-  ARTS_USER_ERROR_IF(
-      not file_errors.empty(), "Files not found:\n{:B,}", file_errors)
+  ARTS_USER_ERROR_IF(not file_errors.empty(), "Files not found:\n{:B,}", file_errors)
 
   for (auto& am : meta) {
-    for (auto& m : am) {
-      abs_bands[std::move(m.quantumidentity)].emplace_back(std::move(m.data));
-    }
+    for (auto& m : am) { abs_bands[std::move(m.quantumidentity)].emplace_back(std::move(m.data)); }
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void sumup_zeeman(PropmatVectorView spectral_propmat,
-                  PropmatMatrixView spectral_propmat_jac,
-                  VectorView dispersion,
-                  MatrixView dispersion_jac,
-                  ComplexVectorView pm,
-                  ComplexMatrixView dpm,
-                  const AbsorptionBands& abs_bands,
-                  const ConstVectorView& freq_grid,
-                  const JacobianTargets& jac_targets,
-                  const AtmPoint& atm_point,
-                  const SpeciesEnum& species,
-                  const Index& no_negative_absorption,
-                  const Vector3& mag,
-                  const Vector2& los,
+void sumup_zeeman(PropmatVectorView        spectral_propmat,
+                  PropmatMatrixView        spectral_propmat_jac,
+                  VectorView               dispersion,
+                  MatrixView               dispersion_jac,
+                  ComplexVectorView        pm,
+                  ComplexMatrixView        dpm,
+                  const AbsorptionBands&   abs_bands,
+                  const ConstVectorView&   freq_grid,
+                  const JacobianTargets&   jac_targets,
+                  const AtmPoint&          atm_point,
+                  const SpeciesEnum&       species,
+                  const Index&             no_negative_absorption,
+                  const Vector3&           mag,
+                  const Vector2&           los,
                   const ZeemanPolarization pol) {
   using namespace lbl::zeeman;
 
   pm  = 0;
   dpm = 0;
-  lbl::voigt::lte::calculate(pm,
-                             dpm,
-                             abs_bands,
-                             freq_grid,
-                             jac_targets,
-                             atm_point,
-                             pol,
-                             species,
-                             no_negative_absorption);
+  lbl::voigt::lte::calculate(
+      pm, dpm, abs_bands, freq_grid, jac_targets, atm_point, pol, species, no_negative_absorption);
   const Propmat npm     = norm_view(pol, mag, los);
   const Propmat dnpm_du = dnorm_view_du(pol, mag, los);
   const Propmat dnpm_dv = dnorm_view_dv(pol, mag, los);
@@ -623,9 +551,7 @@ void sumup_zeeman(PropmatVectorView spectral_propmat,
       const Size j = atm_target.target_pos;
 
       std::visit(
-          [&,
-           &x = spectral_propmat_jac[j, i],
-           &y = dispersion_jac[j, i]]<typename T>(const T& type) {
+          [&, &x = spectral_propmat_jac[j, i], &y = dispersion_jac[j, i]]<typename T>(const T& type) {
             if constexpr (std::same_as<T, AtmKey>) {
               if (type == AtmKey::mag_u) {
                 x += scale(npm, dnpm_du, pm[i], dpm[j, i]);
@@ -649,17 +575,17 @@ void sumup_zeeman(PropmatVectorView spectral_propmat,
 }
 }  // namespace
 
-void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
-                                 PropmatMatrix& spectral_propmat_jac,
-                                 Vector& dispersion,
-                                 Matrix& dispersion_jac,
-                                 const AscendingGrid& freq_grid,
-                                 const JacobianTargets& jac_targets,
-                                 const SpeciesEnum& species,
-                                 const AbsorptionBands& abs_bands,
-                                 const AtmPoint& atm_point,
+void spectral_propmatAddVoigtLTE(PropmatVector&              spectral_propmat,
+                                 PropmatMatrix&              spectral_propmat_jac,
+                                 Vector&                     dispersion,
+                                 Matrix&                     dispersion_jac,
+                                 const AscendingGrid&        freq_grid,
+                                 const JacobianTargets&      jac_targets,
+                                 const SpeciesEnum&          species,
+                                 const AbsorptionBands&      abs_bands,
+                                 const AtmPoint&             atm_point,
                                  const PropagationPathPoint& path_point,
-                                 const Index& no_negative_absorption) try {
+                                 const Index&                no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   using enum ZeemanPolarization;
@@ -670,8 +596,7 @@ void spectral_propmatAddVoigtLTE(PropmatVector& spectral_propmat,
   dispersion     = 0;
   dispersion_jac = 0;
 
-  ARTS_USER_ERROR_IF(spectral_propmat.shape() != dispersion.shape() or
-                         spectral_propmat.shape() != freq_grid.shape() or
+  ARTS_USER_ERROR_IF(spectral_propmat.shape() != dispersion.shape() or spectral_propmat.shape() != freq_grid.shape() or
                          spectral_propmat_jac.shape() != dispersion_jac.shape(),
                      R"(Inconsistent shapes:
 
@@ -694,15 +619,8 @@ dispersion_jac:       {:B,}
   ComplexVector pm(nf, 0.0);
   ComplexMatrix dpm(nt, nf, 0.0);
 
-  bool has_zeeman = lbl::voigt::lte::calculate(pm,
-                                               dpm,
-                                               abs_bands,
-                                               freq_grid,
-                                               jac_targets,
-                                               atm_point,
-                                               no,
-                                               species,
-                                               no_negative_absorption);
+  bool has_zeeman = lbl::voigt::lte::calculate(
+      pm, dpm, abs_bands, freq_grid, jac_targets, atm_point, no, species, no_negative_absorption);
 
   spectral_propmat     += pm.real();
   spectral_propmat_jac += dpm.real();
@@ -733,12 +651,12 @@ dispersion_jac:       {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void single_propmatInit(Propmat& single_propmat,
-                        PropmatVector& single_propmat_jac,
-                        Stokvec& single_nlte_srcvec,
-                        StokvecVector& single_nlte_srcvec_jac,
-                        Numeric& single_dispersion,
-                        Vector& single_dispersion_jac,
+void single_propmatInit(Propmat&               single_propmat,
+                        PropmatVector&         single_propmat_jac,
+                        Stokvec&               single_nlte_srcvec,
+                        StokvecVector&         single_nlte_srcvec_jac,
+                        Numeric&               single_dispersion,
+                        Vector&                single_dispersion_jac,
                         const JacobianTargets& jac_targets) try {
   ARTS_TIME_REPORT
 
@@ -758,17 +676,17 @@ void single_propmatInit(Propmat& single_propmat,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void single_propmatAddVoigtLTE(Propmat& single_propmat,
-                               PropmatVector& single_propmat_jac,
-                               Numeric& single_dispersion,
-                               Vector& single_dispersion_jac,
-                               const Numeric& frequency,
-                               const JacobianTargets& jac_targets,
-                               const SpeciesEnum& species,
-                               const AbsorptionBands& abs_bands,
-                               const AtmPoint& atm_point,
+void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
+                               PropmatVector&              single_propmat_jac,
+                               Numeric&                    single_dispersion,
+                               Vector&                     single_dispersion_jac,
+                               const Numeric&              frequency,
+                               const JacobianTargets&      jac_targets,
+                               const SpeciesEnum&          species,
+                               const AbsorptionBands&      abs_bands,
+                               const AtmPoint&             atm_point,
                                const PropagationPathPoint& path_point,
-                               const Index& no_negative_absorption) try {
+                               const Index&                no_negative_absorption) try {
   ARTS_TIME_REPORT
 
   using enum ZeemanPolarization;
@@ -780,36 +698,28 @@ void single_propmatAddVoigtLTE(Propmat& single_propmat,
   single_dispersion_jac.resize(nt);
   single_dispersion_jac = 0;
 
-  ARTS_USER_ERROR_IF(
-      single_propmat_jac.shape() != single_dispersion_jac.shape(),
-      R"(Inconsistent shapes:
+  ARTS_USER_ERROR_IF(single_propmat_jac.shape() != single_dispersion_jac.shape(),
+                     R"(Inconsistent shapes:
 
 single_propmat_jac:    {:B,}
 single_dispersion_jac: {:B,}
 )",
-      single_propmat_jac.shape(),
-      single_dispersion_jac.shape());
+                     single_propmat_jac.shape(),
+                     single_dispersion_jac.shape());
 
-  Complex pm_(0.0);
+  Complex       pm_(0.0);
   ComplexVector dpm_(nt, 0.0);
 
-  ComplexVectorView pm(pm_);
-  ComplexMatrixView dpm = dpm_.view_as(nt, 1);
+  ComplexVectorView     pm(pm_);
+  ComplexMatrixView     dpm = dpm_.view_as(nt, 1);
   const ConstVectorView freq_grid(frequency);
-  PropmatVectorView spectral_propmat{single_propmat};
-  PropmatMatrixView spectral_propmat_jac{single_propmat_jac.view_as(nt, 1)};
-  VectorView dispersion{single_dispersion};
-  MatrixView dispersion_jac{single_dispersion_jac.view_as(nt, 1)};
+  PropmatVectorView     spectral_propmat{single_propmat};
+  PropmatMatrixView     spectral_propmat_jac{single_propmat_jac.view_as(nt, 1)};
+  VectorView            dispersion{single_dispersion};
+  MatrixView            dispersion_jac{single_dispersion_jac.view_as(nt, 1)};
 
-  bool has_zeeman = lbl::voigt::lte::calculate(pm,
-                                               dpm,
-                                               abs_bands,
-                                               freq_grid,
-                                               jac_targets,
-                                               atm_point,
-                                               no,
-                                               species,
-                                               no_negative_absorption);
+  bool has_zeeman = lbl::voigt::lte::calculate(
+      pm, dpm, abs_bands, freq_grid, jac_targets, atm_point, no, species, no_negative_absorption);
 
   spectral_propmat     += pm.real();
   spectral_propmat_jac += dpm.real();
@@ -840,35 +750,32 @@ single_dispersion_jac: {:B,}
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmatMemoryIntensiveAddVoigtLTE(
-    PropmatVector& spectral_propmat,
-    PropmatMatrix& spectral_propmat_jac,
-    Vector& spectral_dispersion,
-    Matrix& spectral_dispersion_jac,
-    const AscendingGrid& f_grid,
-    const JacobianTargets& jac_targets,
-    const SpeciesEnum& species,
-    const AbsorptionBands& abs_bands,
-    const AtmPoint& atm_point,
-    const PropagationPathPoint& path_point,
-    const Index& no_negative_absorption_) try {
+void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spectral_propmat,
+                                                PropmatMatrix&              spectral_propmat_jac,
+                                                Vector&                     spectral_dispersion,
+                                                Matrix&                     spectral_dispersion_jac,
+                                                const AscendingGrid&        f_grid,
+                                                const JacobianTargets&      jac_targets,
+                                                const SpeciesEnum&          species,
+                                                const AbsorptionBands&      abs_bands,
+                                                const AtmPoint&             atm_point,
+                                                const PropagationPathPoint& path_point,
+                                                const Index&                no_negative_absorption_) try {
   ARTS_TIME_REPORT
 
   using namespace lbl::voigt::lte;
 
-  const bool no_negative_absorption =
-      static_cast<bool>(no_negative_absorption_);
-  const Size m = jac_targets.target_count();
-  const Size n = f_grid.size();
+  const bool no_negative_absorption = static_cast<bool>(no_negative_absorption_);
+  const Size m                      = jac_targets.target_count();
+  const Size n                      = f_grid.size();
 
   //! FIXME: these should be part of workspace once things work?
   spectral_dispersion.resize(n);
   spectral_dispersion_jac.resize(m, n);
 
-  ARTS_USER_ERROR_IF(
-      not same_shape(f_grid, spectral_propmat, spectral_dispersion) or
-          not same_shape({m, n}, spectral_propmat_jac, spectral_dispersion_jac),
-      R"(Inconsistent shapes:
+  ARTS_USER_ERROR_IF(not same_shape(f_grid, spectral_propmat, spectral_dispersion) or
+                         not same_shape({m, n}, spectral_propmat_jac, spectral_dispersion_jac),
+                     R"(Inconsistent shapes:
 
 spectral_propmat:        {:B,}
 spectral_dispersion:     {:B,}
@@ -876,15 +783,15 @@ f_grid:                  {:B,}
 spectral_propmat_jac:    {:B,}
 spectral_dispersion_jac: {:B,}
 )",
-      spectral_propmat.shape(),
-      spectral_dispersion.shape(),
-      f_grid.shape(),
-      spectral_propmat_jac.shape(),
-      spectral_dispersion_jac.shape());
+                     spectral_propmat.shape(),
+                     spectral_dispersion.shape(),
+                     f_grid.shape(),
+                     spectral_propmat_jac.shape(),
+                     spectral_dispersion_jac.shape());
 
   const auto [df, it] = [m, &jac_targets]() {
     std::vector<bool> v(m, false);
-    Size it = 0;
+    Size              it = 0;
 
     for (Size i = 0; i < jac_targets.atm.size(); i++) {
       v[i] = Atm::is_wind(jac_targets.atm[i].type);
@@ -896,19 +803,15 @@ spectral_dispersion_jac: {:B,}
 
   const auto types = lbl::get_cutoff_types_and_values(abs_bands);
 
-  Matrix data{};
+  Matrix        data{};
   ComplexMatrix res(n, m + 1);
-  bool first = true;
+  bool          first = true;
   for (ZeemanPolarization pol : enumtyps::ZeemanPolarizationTypes) {
     for (auto& type : types) {
-      const auto flat = lbl::flatter_view(
-          abs_bands,
-          pol,
-          [species, type](const QuantumIdentifier& key,
-                          const AbsorptionBand& band) {
+      const auto flat =
+          lbl::flatter_view(abs_bands, pol, [species, type](const QuantumIdentifier& key, const AbsorptionBand& band) {
             return band.lineshape == LineByLineLineshape::VP_LTE and
-                   (species == "AIR"_spec or key.isot.spec == species) and
-                   band.cutoff == type;
+                   (species == "AIR"_spec or key.isot.spec == species) and band.cutoff == type;
           });
 
       matrix::prepare(data, atm_point, flat, jac_targets, pol);
@@ -927,8 +830,7 @@ spectral_dispersion_jac: {:B,}
 
       matrix::str_scale(res, atm_point, f_grid, df, it);
 
-      const Propmat npm =
-          lbl::zeeman::norm_view(pol, atm_point.mag, path_point.los);
+      const Propmat npm = lbl::zeeman::norm_view(pol, atm_point.mag, path_point.los);
 
       if (no_negative_absorption) {
         for (Size i = 0; i < n; i++) {
@@ -947,37 +849,31 @@ spectral_dispersion_jac: {:B,}
             [&, j = atm_target.target_pos]<typename T>(const T& type) {
               if constexpr (std::same_as<T, AtmKey>) {
                 if (type == AtmKey::mag_u) {
-                  const Propmat dnpm_du = lbl::zeeman::dnorm_view_du(
-                      pol, atm_point.mag, path_point.los);
+                  const Propmat dnpm_du = lbl::zeeman::dnorm_view_du(pol, atm_point.mag, path_point.los);
                   for (Size i = 0; i < n; i++) {
-                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                        npm, dnpm_du, res[i, 0], res[i, j + 1]);
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, dnpm_du, res[i, 0], res[i, j + 1]);
                   }
                   return;
                 }
                 if (type == AtmKey::mag_v) {
-                  const Propmat dnpm_dv = lbl::zeeman::dnorm_view_dv(
-                      pol, atm_point.mag, path_point.los);
+                  const Propmat dnpm_dv = lbl::zeeman::dnorm_view_dv(pol, atm_point.mag, path_point.los);
                   for (Size i = 0; i < n; i++) {
-                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                        npm, dnpm_dv, res[i, 0], res[i, j + 1]);
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, dnpm_dv, res[i, 0], res[i, j + 1]);
                   }
                   return;
                 }
                 if (type == AtmKey::mag_w) {
-                  const Propmat dnpm_dw = lbl::zeeman::dnorm_view_dw(
-                      pol, atm_point.mag, path_point.los);
+                  const Propmat dnpm_dw = lbl::zeeman::dnorm_view_dw(pol, atm_point.mag, path_point.los);
                   for (Size i = 0; i < n; i++) {
-                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(
-                        npm, dnpm_dw, res[i, 0], res[i, j + 1]);
+                    spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, dnpm_dw, res[i, 0], res[i, j + 1]);
                   }
                   return;
                 }
               }
 
               for (Size i = 0; i < n; i++) {
-                auto v                      = res[i];
-                spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, v[j + 1]);
+                auto v                         = res[i];
+                spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
                 spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
               }
             },

@@ -33,13 +33,10 @@ inline bool is_good(const auto& a, const auto& b) {
       });
 }
 
-inline Tensor3 compute_u(const disort::main_data& dis,
-                         const Vector& taus,
-                         const Vector& phis,
-                         const bool nt_corr) {
-  Tensor3 u(phis.size(), taus.size(), dis.mu().size());
-  disort::u_data u_data;
-  Vector ims;
+inline Tensor3 compute_u(const disort::main_data& dis, const Vector& taus, const Vector& phis, const bool nt_corr) {
+  Tensor3          u(phis.size(), taus.size(), dis.mu().size());
+  disort::u_data   u_data;
+  Vector           ims;
   disort::tms_data tms_data;
 
   for (Size j = 0; j < taus.size(); j++) {
@@ -56,7 +53,7 @@ inline Tensor3 compute_u(const disort::main_data& dis,
 }
 
 inline Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
-  Matrix u0(taus.size(), dis.mu().size());
+  Matrix          u0(taus.size(), dis.mu().size());
   disort::u0_data u0_data;
 
   for (Size j = 0; j < taus.size(); j++) {
@@ -66,10 +63,8 @@ inline Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
   return u0;
 }
 
-inline std::tuple<Vector, Vector, Vector> compute_flux(
-    const disort::main_data& dis, const Vector& taus) {
-  Vector flux_up(taus.size()), flux_down_diffuse(taus.size()),
-      flux_down_direct(taus.size());
+inline std::tuple<Vector, Vector, Vector> compute_flux(const disort::main_data& dis, const Vector& taus) {
+  Vector            flux_up(taus.size()), flux_down_diffuse(taus.size()), flux_down_direct(taus.size());
   disort::flux_data flux_data;
 
   for (Size j = 0; j < taus.size(); j++) {
@@ -81,20 +76,19 @@ inline std::tuple<Vector, Vector, Vector> compute_flux(
   return {flux_up, flux_down_diffuse, flux_down_direct};
 }
 
-inline void compare(const std::string_view name,
+inline void compare(const std::string_view   name,
                     const disort::main_data& dis,
-                    const Vector& taus,
-                    const Vector& phis,
-                    const Tensor3& u,
-                    const Matrix& u0,
-                    const Vector& flux_down_diffuse,
-                    const Vector& flux_down_direct,
-                    const Vector& flux_up,
-                    const bool nt_corr) {
-  const auto u_arts  = compute_u(dis, taus, phis, nt_corr);
-  const auto u0_arts = compute_u0(dis, taus);
-  const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts] =
-      compute_flux(dis, taus);
+                    const Vector&            taus,
+                    const Vector&            phis,
+                    const Tensor3&           u,
+                    const Matrix&            u0,
+                    const Vector&            flux_down_diffuse,
+                    const Vector&            flux_down_direct,
+                    const Vector&            flux_up,
+                    const bool               nt_corr) {
+  const auto u_arts                                                        = compute_u(dis, taus, phis, nt_corr);
+  const auto u0_arts                                                       = compute_u0(dis, taus);
+  const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts] = compute_flux(dis, taus);
 
   std::print(std::cout,
              R"(
@@ -131,14 +125,10 @@ flux_down_direct_arts:
 
   ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test {}", name);
   ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test {}", name);
+  ARTS_USER_ERROR_IF(not is_good(flux_up_arts, flux_up), "Failed flux_up in test {}", name);
   ARTS_USER_ERROR_IF(
-      not is_good(flux_up_arts, flux_up), "Failed flux_up in test {}", name);
-  ARTS_USER_ERROR_IF(not is_good(flux_down_diffuse_arts, flux_down_diffuse),
-                     "Failed flux_down_diffuse in test {}",
-                     name);
-  ARTS_USER_ERROR_IF(not is_good(flux_down_direct_arts, flux_down_direct),
-                     "Failed flux_down_direct in test {}",
-                     name);
+      not is_good(flux_down_diffuse_arts, flux_down_diffuse), "Failed flux_down_diffuse in test {}", name);
+  ARTS_USER_ERROR_IF(not is_good(flux_down_direct_arts, flux_down_direct), "Failed flux_down_direct in test {}", name);
 };
 
 inline void flat_print(const auto& a, const auto& b) {
@@ -147,7 +137,6 @@ inline void flat_print(const auto& a, const auto& b) {
   const auto bv = b.flat_view();
 
   for (Index i = 0; i < a.size(); i++) {
-    std::cout << std::format(
-        "{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
+    std::cout << std::format("{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
   }
 }

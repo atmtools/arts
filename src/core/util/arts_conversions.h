@@ -54,14 +54,10 @@ constexpr auto kaycm2freq(auto x) noexcept { return x * (100 * c); }
 constexpr auto freq2kaycm(auto x) noexcept { return x / (100 * c); }
 
 /** Conversion from Angular wavenumber to Hz */
-constexpr auto angcm2freq(auto x) noexcept {
-  return x * kaycm2freq(inv_two_pi);
-}
+constexpr auto angcm2freq(auto x) noexcept { return x * kaycm2freq(inv_two_pi); }
 
 /** Conversion from Hz to Angular wavenumber */
-constexpr auto freq2angcm(auto x) noexcept {
-  return x / kaycm2freq(inv_two_pi);
-}
+constexpr auto freq2angcm(auto x) noexcept { return x / kaycm2freq(inv_two_pi); }
 
 /** Conversion from Angular Hz to Hz */
 constexpr auto angfreq2freq(auto x) noexcept { return x * inv_two_pi; }
@@ -112,9 +108,7 @@ constexpr auto torr2pa(auto x) noexcept { return x * atm2pa(1.0 / 760.0); }
 constexpr auto pa2torr(auto x) noexcept { return x / atm2pa(1.0 / 760.0); }
 
 /** Conversion from MHz/Torr to Hz/Pa */
-constexpr auto mhz_per_torr2hz_per_pa(auto x) noexcept {
-  return x * pa2torr(1e6);
-}
+constexpr auto mhz_per_torr2hz_per_pa(auto x) noexcept { return x * pa2torr(1e6); }
 
 /** Conversion from C to K */
 constexpr auto celsius2kelvin(auto x) noexcept { return x + 273.15; }
@@ -123,24 +117,16 @@ constexpr auto celsius2kelvin(auto x) noexcept { return x + 273.15; }
 constexpr auto kelvin2celsius(auto x) noexcept { return x - 273.15; }
 
 /** Conversion from cm-1 per molecule per cm^2 to Hz per molecule per m^2 **/
-constexpr auto kaycm_per_cmsquared2hz_per_msquared(auto x) noexcept {
-  return x * kaycm2freq(1e-4);
-}
+constexpr auto kaycm_per_cmsquared2hz_per_msquared(auto x) noexcept { return x * kaycm2freq(1e-4); }
 
 /** Conversion from Hz per molecule per m^2 to cm-1 per molecule per cm^2 **/
-constexpr auto hz_per_msquared2kaycm_per_cmsquared(auto x) noexcept {
-  return x * freq2kaycm(1e4);
-}
+constexpr auto hz_per_msquared2kaycm_per_cmsquared(auto x) noexcept { return x * freq2kaycm(1e4); }
 
 /** Conversion from cm-1 per atmosphere to Hz per Pascal **/
-constexpr auto kaycm_per_atm2hz_per_pa(auto x) noexcept {
-  return x * kaycm2freq(pa2atm(1));
-}
+constexpr auto kaycm_per_atm2hz_per_pa(auto x) noexcept { return x * kaycm2freq(pa2atm(1)); }
 
 /** Conversion from Hz per Pascal to cm-1 per atmosphere **/
-constexpr auto hz_per_pa2kaycm_per_atm(auto x) noexcept {
-  return x * freq2kaycm(atm2pa(1));
-}
+constexpr auto hz_per_pa2kaycm_per_atm(auto x) noexcept { return x * freq2kaycm(atm2pa(1)); }
 
 /** Conversion from cm-1 to Joule **/
 constexpr auto kaycm2joule(auto x) noexcept { return x * kaycm2freq(h); }
@@ -167,17 +153,13 @@ constexpr auto angstrom2meter(auto x) noexcept { return x * 1e-10; }
 constexpr auto meter2angstrom(auto x) noexcept { return x * 1e10; }
 
 /** Conversion from HWHM to STD */
-constexpr auto hwhm2std(auto x) noexcept {
-  return x / (Constant::sqrt_ln_2 * Constant::sqrt_2);
-}
+constexpr auto hwhm2std(auto x) noexcept { return x / (Constant::sqrt_ln_2 * Constant::sqrt_2); }
 
 /** Conversion from FWHM to STD */
 constexpr auto fwhm2std(auto x) noexcept { return 0.5 * hwhm2std(x); }
 
 /** Conversion from HWHM to STD */
-constexpr auto std2hwhm(auto x) noexcept {
-  return x * (Constant::sqrt_ln_2 * Constant::sqrt_2);
-}
+constexpr auto std2hwhm(auto x) noexcept { return x * (Constant::sqrt_ln_2 * Constant::sqrt_2); }
 
 /** Conversion from FWHM to STD */
 constexpr auto std2fwhm(auto x) noexcept { return 2 * std2hwhm(x); }

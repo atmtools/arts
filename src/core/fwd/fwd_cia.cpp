@@ -15,13 +15,7 @@ full::full(full&&) noexcept            = default;
 full& full::operator=(const full&)     = default;
 full& full::operator=(full&&) noexcept = default;
 
-full::single::single(Numeric p,
-                     Numeric t,
-                     Numeric VMR1,
-                     Numeric VMR2,
-                     CIARecord* cia,
-                     Numeric extrap,
-                     Index robust)
+full::single::single(Numeric p, Numeric t, Numeric VMR1, Numeric VMR2, CIARecord* cia, Numeric extrap, Index robust)
     : scl(VMR1 * VMR2 * Math::pow2(number_density(p, t))),
       T(t),
       extrapol(extrap),
@@ -35,13 +29,9 @@ Complex full::single::at(const Numeric frequency) const {
 void full::adapt() try {
   models.resize(0);
 
-  if (not ciarecords) {
-    return;
-  }
+  if (not ciarecords) { return; }
 
-  if (ciarecords->empty()) {
-    return;
-  }
+  if (ciarecords->empty()) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
@@ -50,30 +40,19 @@ void full::adapt() try {
     const Numeric VMR1 = atm->operator[](species_pair.spec1);
     const Numeric VMR2 = atm->operator[](species_pair.spec2);
 
-    models.emplace_back(
-        atm->pressure, atm->temperature, VMR1, VMR2, &data, extrap, robust);
+    models.emplace_back(atm->pressure, atm->temperature, VMR1, VMR2, &data, extrap, robust);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-full::full(std::shared_ptr<AtmPoint> atm_,
-           std::shared_ptr<CIARecords> cia,
-           Numeric extrap_,
-           Index robust_)
-    : atm(std::move(atm_)),
-      ciarecords(std::move(cia)),
-      extrap(extrap_),
-      robust(robust_) {
+full::full(std::shared_ptr<AtmPoint> atm_, std::shared_ptr<CIARecords> cia, Numeric extrap_, Index robust_)
+    : atm(std::move(atm_)), ciarecords(std::move(cia)), extrap(extrap_), robust(robust_) {
   adapt();
 }
 
 Complex full::operator()(const Numeric frequency) const {
   return std::transform_reduce(
-      models.begin(),
-      models.end(),
-      Complex{},
-      std::plus<>{},
-      [f = frequency](auto& mod) { return mod.at(f); });
+      models.begin(), models.end(), Complex{}, std::plus<>{}, [f = frequency](auto& mod) { return mod.at(f); });
 }
 
 void full::set_extrap(Numeric extrap_) {

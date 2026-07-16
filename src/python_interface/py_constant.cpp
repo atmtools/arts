@@ -10,8 +10,7 @@ struct ConstantDummy {};
 #define PythonInterfaceConstant(name) constants.attr(#name) = Constant::name;
 
 void py_constants(py::module_& m) try {
-  auto constants = m.def_submodule(
-      "constants", R"--(Contain copies of constants of Arts internals
+  auto constants = m.def_submodule("constants", R"--(Contain copies of constants of Arts internals
 )--");
 
   PythonInterfaceConstant(pi);
@@ -21,7 +20,6 @@ void py_constants(py::module_& m) try {
   PythonInterfaceConstant(k);
   PythonInterfaceConstant(doppler_broadening_const_squared);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize constant\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize constant\n{}", e.what()));
 }
 }  // namespace Python

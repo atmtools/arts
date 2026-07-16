@@ -19,11 +19,10 @@
 #endif
 
 namespace matpack::eigen {
-#define EIGEN_STRIDED_MAT(U, T)                                          \
-  Eigen::Map<                                                            \
-      Eigen::Matrix<U, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, \
-      Eigen::Unaligned,                                                  \
-      Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>                     \
+#define EIGEN_STRIDED_MAT(U, T)                                                 \
+  Eigen::Map<Eigen::Matrix<U, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, \
+             Eigen::Unaligned,                                                  \
+             Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>                     \
       mat(T);
 EIGEN_STRIDED_MAT(Numeric, StridedMatrixView &)
 EIGEN_STRIDED_MAT(Numeric, StridedConstMatrixView &)
@@ -35,10 +34,7 @@ EIGEN_STRIDED_MAT(Complex, const StridedComplexMatrixView &)
 EIGEN_STRIDED_MAT(Complex, const StridedConstComplexMatrixView &)
 #undef EIGEN_STRIDED_MAT
 
-#define EIGEN_MAT(U, T)                                                  \
-  Eigen::Map<                                                            \
-      Eigen::Matrix<U, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> \
-      mat(T);
+#define EIGEN_MAT(U, T) Eigen::Map<Eigen::Matrix<U, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> mat(T);
 EIGEN_MAT(Numeric, Matrix &)
 EIGEN_MAT(Numeric, MatrixView &)
 EIGEN_MAT(Numeric, ConstMatrixView &)
@@ -53,14 +49,10 @@ EIGEN_MAT(Complex, const ComplexMatrixView &)
 EIGEN_MAT(Complex, const ConstComplexMatrixView &)
 #undef EIGEN_MAT
 
-#define EIGEN_STRIDED_VEC(U, T)                             \
-  Eigen::Map<Eigen::Matrix<U, 1, Eigen::Dynamic>,           \
-             Eigen::Unaligned,                              \
-             Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> \
-      col_vec(T);                                           \
-  Eigen::Map<Eigen::Matrix<U, Eigen::Dynamic, 1>,           \
-             Eigen::Unaligned,                              \
-             Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> \
+#define EIGEN_STRIDED_VEC(U, T)                                                                                    \
+  Eigen::Map<Eigen::Matrix<U, 1, Eigen::Dynamic>, Eigen::Unaligned, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> \
+      col_vec(T);                                                                                                  \
+  Eigen::Map<Eigen::Matrix<U, Eigen::Dynamic, 1>, Eigen::Unaligned, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> \
       row_vec(T);
 EIGEN_STRIDED_VEC(Numeric, StridedVectorView &)
 EIGEN_STRIDED_VEC(Numeric, StridedConstVectorView &)
@@ -89,15 +81,9 @@ EIGEN_VEC(Complex, const ComplexVectorView &)
 EIGEN_VEC(Complex, const ConstComplexVectorView &)
 #undef EIGEN_VEC
 
-template <dyn_ranked_md<2> T>
-constexpr auto as_eigen(T &&x) {
-  return mat(std::forward<T>(x));
-}
+template <dyn_ranked_md<2> T> constexpr auto as_eigen(T &&x) { return mat(std::forward<T>(x)); }
 
-template <dyn_ranked_md<1> T>
-constexpr auto as_eigen(T &&x) {
-  return row_vec(std::forward<T>(x));
-}
+template <dyn_ranked_md<1> T> constexpr auto as_eigen(T &&x) { return row_vec(std::forward<T>(x)); }
 
 template <typename T>
 concept eigenable = dyn_ranked_md<T, 2> or dyn_ranked_md<T, 1>;
@@ -105,86 +91,72 @@ concept eigenable = dyn_ranked_md<T, 2> or dyn_ranked_md<T, 1>;
 
 namespace matpack {
 //! Perform the math and return a lazy object; A * x
-template <dyn_ranked_md<2> MAT, dyn_ranked_md<1> VEC>
-constexpr auto operator*(const MAT &A, const VEC &x) {
+template <dyn_ranked_md<2> MAT, dyn_ranked_md<1> VEC> constexpr auto operator*(const MAT &A, const VEC &x) {
   return eigen::as_eigen(A) * eigen::as_eigen(x);
 }
 
 //! Perform the math and return a lazy object; A * B
-template <dyn_ranked_md<2> MATONE, dyn_ranked_md<2> MATTWO>
-constexpr auto operator*(const MATONE &A, const MATTWO &B) {
+template <dyn_ranked_md<2> MATONE, dyn_ranked_md<2> MATTWO> constexpr auto operator*(const MATONE &A, const MATTWO &B) {
   return eigen::as_eigen(A) * eigen::as_eigen(B);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, dyn_ranked_md<2> MAT>
-constexpr auto operator*(const std::complex<CONST> &a, const MAT &b) {
+template <arithmetic CONST, dyn_ranked_md<2> MAT> constexpr auto operator*(const std::complex<CONST> &a, const MAT &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, dyn_ranked_md<1> VEC>
-constexpr auto operator*(const std::complex<CONST> &a, const VEC &b) {
+template <arithmetic CONST, dyn_ranked_md<1> VEC> constexpr auto operator*(const std::complex<CONST> &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, dyn_ranked_md<2> MAT>
-constexpr auto operator*(const MAT &b, const std::complex<CONST> &a) {
+template <arithmetic CONST, dyn_ranked_md<2> MAT> constexpr auto operator*(const MAT &b, const std::complex<CONST> &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, dyn_ranked_md<1> VEC>
-constexpr auto operator*(const VEC &b, const std::complex<CONST> &a) {
+template <arithmetic CONST, dyn_ranked_md<1> VEC> constexpr auto operator*(const VEC &b, const std::complex<CONST> &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, dyn_ranked_md<2> MAT>
-constexpr auto operator*(const CONST &a, const MAT &b) {
+template <arithmetic CONST, dyn_ranked_md<2> MAT> constexpr auto operator*(const CONST &a, const MAT &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, dyn_ranked_md<1> VEC>
-constexpr auto operator*(const CONST &a, const VEC &b) {
+template <arithmetic CONST, dyn_ranked_md<1> VEC> constexpr auto operator*(const CONST &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, dyn_ranked_md<2> MAT>
-constexpr auto operator*(const MAT &b, const CONST &a) {
+template <arithmetic CONST, dyn_ranked_md<2> MAT> constexpr auto operator*(const MAT &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, dyn_ranked_md<1> VEC>
-constexpr auto operator*(const VEC &b, const CONST &a) {
+template <arithmetic CONST, dyn_ranked_md<1> VEC> constexpr auto operator*(const VEC &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; x + y
-template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO>
-constexpr auto operator+(const ONE &x, const TWO &y) {
+template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO> constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO>
-constexpr auto operator+(const ONE &x, const TWO &y) {
+template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO> constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x = y
-template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO>
-constexpr auto operator-(const ONE &x, const TWO &y) {
+template <dyn_ranked_md<2> ONE, dyn_ranked_md<2> TWO> constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO>
-constexpr auto operator-(const ONE &x, const TWO &y) {
+template <dyn_ranked_md<1> ONE, dyn_ranked_md<1> TWO> constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 

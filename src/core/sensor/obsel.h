@@ -20,28 +20,23 @@ struct PosLos {
 
   friend std::ostream& operator<<(std::ostream& os, const PosLos& poslos);
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) alt(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) alt(this Self&& self) {
     return std::forward<Self>(self).pos[0];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) lat(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) lat(this Self&& self) {
     return std::forward<Self>(self).pos[1];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) lon(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) lon(this Self&& self) {
     return std::forward<Self>(self).pos[2];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) zen(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) zen(this Self&& self) {
     return std::forward<Self>(self).los[0];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) azi(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) azi(this Self&& self) {
     return std::forward<Self>(self).los[1];
   }
 };
@@ -49,8 +44,8 @@ struct PosLos {
 using PosLosVector = matpack::data_t<PosLos, 1>;
 
 struct SparseStokvec {
-  Size irow;
-  Size icol;
+  Size    irow;
+  Size    icol;
   Stokvec data{0, 0, 0, 0};
 
   bool operator==(const SparseStokvec& other) const;
@@ -80,20 +75,20 @@ class SparseStokvecMatrix {
   [[nodiscard]] bool operator==(const SparseStokvecMatrix& other) const;
   [[nodiscard]] bool operator!=(const SparseStokvecMatrix& other) const;
 
-  [[nodiscard]] Index nrows() const;
-  [[nodiscard]] Index ncols() const;
-  [[nodiscard]] Size size() const;
-  [[nodiscard]] bool empty() const;
+  [[nodiscard]] Index                nrows() const;
+  [[nodiscard]] Index                ncols() const;
+  [[nodiscard]] Size                 size() const;
+  [[nodiscard]] bool                 empty() const;
   [[nodiscard]] std::array<Index, 2> shape() const;
-  const std::vector<SparseStokvec>& vector() const;
+  const std::vector<SparseStokvec>&  vector() const;
 
   void resize(Size rows, Size cols, Size size);
 
   Stokvec& operator[](Size i, Size j);
-  Stokvec operator[](Size i, Size j) const;
+  Stokvec  operator[](Size i, Size j) const;
 
-  [[nodiscard]] std::vector<SparseStokvec>::iterator begin();
-  [[nodiscard]] std::vector<SparseStokvec>::iterator end();
+  [[nodiscard]] std::vector<SparseStokvec>::iterator       begin();
+  [[nodiscard]] std::vector<SparseStokvec>::iterator       end();
   [[nodiscard]] std::vector<SparseStokvec>::const_iterator begin() const;
   [[nodiscard]] std::vector<SparseStokvec>::const_iterator end() const;
 
@@ -102,12 +97,10 @@ class SparseStokvecMatrix {
 
 class Obsel {
   //! Frequency grid, must be ascending
-  std::shared_ptr<const AscendingGrid> f{
-      std::shared_ptr<const AscendingGrid>(new AscendingGrid{})};
+  std::shared_ptr<const AscendingGrid> f{std::shared_ptr<const AscendingGrid>(new AscendingGrid{})};
 
   //! Position and line of sight grid of the sensor
-  std::shared_ptr<const PosLosVector> poslos{
-      std::shared_ptr<const PosLosVector>(new PosLosVector{})};
+  std::shared_ptr<const PosLosVector> poslos{std::shared_ptr<const PosLosVector>(new PosLosVector{})};
 
   //! poslos x frequency sparse matrix of Stokvec weights
   SparseStokvecMatrix w{};
@@ -119,12 +112,8 @@ class Obsel {
   Obsel& operator=(const Obsel&);
   Obsel& operator=(Obsel&&) noexcept;
 
-  Obsel(std::shared_ptr<const AscendingGrid> fs,
-        std::shared_ptr<const PosLosVector> pl,
-        SparseStokvecMatrix ws);
-  Obsel(const AscendingGrid& fs,
-        const PosLosVector& pl,
-        SparseStokvecMatrix ws);
+  Obsel(std::shared_ptr<const AscendingGrid> fs, std::shared_ptr<const PosLosVector> pl, SparseStokvecMatrix ws);
+  Obsel(const AscendingGrid& fs, const PosLosVector& pl, SparseStokvecMatrix ws);
 
   void check() const;
 
@@ -132,21 +121,19 @@ class Obsel {
 
   [[nodiscard]] bool same_freqs(const AscendingGrid& other) const;
 
-  [[nodiscard]] bool same_freqs(
-      const std::shared_ptr<const AscendingGrid>& other) const;
+  [[nodiscard]] bool same_freqs(const std::shared_ptr<const AscendingGrid>& other) const;
 
   [[nodiscard]] bool same_poslos(const Obsel& other) const;
 
-  [[nodiscard]] bool same_poslos(
-      const std::shared_ptr<const PosLosVector>& other) const;
+  [[nodiscard]] bool same_poslos(const std::shared_ptr<const PosLosVector>& other) const;
 
   [[nodiscard]] bool same_poslos(const PosLosVector& other) const;
 
   [[nodiscard]] const auto& f_grid_ptr() const { return f; }
   [[nodiscard]] const auto& poslos_grid_ptr() const { return poslos; }
 
-  [[nodiscard]] const AscendingGrid& f_grid() const { return *f; }
-  [[nodiscard]] const PosLosVector& poslos_grid() const { return *poslos; }
+  [[nodiscard]] const AscendingGrid&       f_grid() const { return *f; }
+  [[nodiscard]] const PosLosVector&        poslos_grid() const { return *poslos; }
   [[nodiscard]] const SparseStokvecMatrix& weight_matrix() const { return w; }
 
   void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n);
@@ -171,10 +158,10 @@ class Obsel {
 
   [[nodiscard]] Numeric sumup(const Stokvec& i, Index ip) const;
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
-  void sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
+  void                  sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
 
-  [[nodiscard]] Size flat_size(const SensorKeyType& key) const;
-  void flat(VectorView x, const SensorKeyType& key) const;
+  [[nodiscard]] Size   flat_size(const SensorKeyType& key) const;
+  void                 flat(VectorView x, const SensorKeyType& key) const;
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;
 
   [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
@@ -194,8 +181,7 @@ struct SensorKey {
   bool operator==(const SensorKey& other) const;
 };
 
-template <>
-struct std::hash<SensorKey> {
+template <> struct std::hash<SensorKey> {
   static std::size_t operator()(const SensorKey& g) {
     std::size_t seed = 0;
     boost::hash_combine(seed, std::hash<SensorKeyType>{}(g.type));
@@ -205,22 +191,18 @@ struct std::hash<SensorKey> {
   }
 };
 
-template <>
-struct std::formatter<SensorKey> {
+template <> struct std::formatter<SensorKey> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(
-        ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem);
+  template <class FmtContext> FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
+    return tags.format(ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem);
   }
 };
 
@@ -230,17 +212,14 @@ using SensorObsel        = sensor::Obsel;
 using ArrayOfSensorObsel = Array<SensorObsel>;
 
 struct SensorSimulationsCache {
-  const AscendingGrid& freq_grid;
+  const AscendingGrid&      freq_grid;
   const SensorPosLosVector& poslos_grid;
-  const Size iposlos;
+  const Size                iposlos;
 };
 
 using SensorSimulations = std::vector<SensorSimulationsCache>;
 
-void unflatten(ArrayOfSensorObsel& sensor,
-               const ConstVectorView& x,
-               const SensorObsel& v,
-               const SensorKeyType& key);
+void unflatten(ArrayOfSensorObsel& sensor, const ConstVectorView& x, const SensorObsel& v, const SensorKeyType& key);
 
 /** Make the sensor obsels exhaustive.
  * 
@@ -266,48 +245,38 @@ void make_exclusive(std::span<SensorObsel> obsels);
 
 void collect_frequency_grids(std::span<SensorObsel> obsels);
 
-std::vector<const AscendingGrid*> unique_frequency_grids(
-    const std::span<const SensorObsel>& obsels);
+std::vector<const AscendingGrid*> unique_frequency_grids(const std::span<const SensorObsel>& obsels);
 
-std::vector<const SensorPosLosVector*> unique_poslos_grids(
-    const std::span<const SensorObsel>& obsels);
+std::vector<const SensorPosLosVector*> unique_poslos_grids(const std::span<const SensorObsel>& obsels);
 
-SensorSimulations collect_simulations(
-    const std::span<const SensorObsel>& obsels);
+SensorSimulations collect_simulations(const std::span<const SensorObsel>& obsels);
 
-template <>
-struct std::formatter<SensorPosLos> {
+template <> struct std::formatter<SensorPosLos> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SensorPosLos& v, FmtContext& ctx) const {
     return tags.format(ctx, v.pos, tags.sep(), v.los);
   }
 };
 
-template <>
-struct std::formatter<sensor::SparseStokvec> {
+template <> struct std::formatter<sensor::SparseStokvec> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::SparseStokvec& w,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const sensor::SparseStokvec& w, FmtContext& ctx) const {
     const auto sep = tags.sep();
 
     tags.add_if_bracket(ctx, "["sv);
@@ -318,23 +287,19 @@ struct std::formatter<sensor::SparseStokvec> {
   }
 };
 
-template <>
-struct std::formatter<sensor::SparseStokvecMatrix> {
+template <> struct std::formatter<sensor::SparseStokvecMatrix> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::SparseStokvecMatrix& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const sensor::SparseStokvecMatrix& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
 
     tags.add_if_bracket(ctx, "["sv);
@@ -344,20 +309,17 @@ struct std::formatter<sensor::SparseStokvecMatrix> {
   }
 };
 
-template <>
-struct std::formatter<SensorObsel> {
+template <> struct std::formatter<SensorObsel> {
   format_tags tags{};
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
     return tags.format(ctx,
                        "Obsel:\n  frequency grid:           "sv,
                        v.f_grid(),
@@ -368,90 +330,67 @@ struct std::formatter<SensorObsel> {
   }
 };
 
-template <>
-struct xml_io_stream<SensorPosLos> {
+template <> struct xml_io_stream<SensorPosLos> {
   static constexpr std::string_view type_name = "SensorPosLos"sv;
 
-  static void write(std::ostream& os,
-                    const SensorPosLos& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const SensorPosLos& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   SensorPosLos& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, SensorPosLos& x, bifstream* pbifs = nullptr);
 
   static void put(std::span<const SensorPosLos> x, bofstream*);
   static void get(std::span<SensorPosLos> x, bifstream*);
   static void parse(std::span<SensorPosLos> x, std::istream&);
 };
 
-template <>
-struct xml_io_stream_name<SensorKey> {
+template <> struct xml_io_stream_name<SensorKey> {
   static constexpr std::string_view name = "SensorKey"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<SensorKey> {
+template <> struct xml_io_stream_aggregate<SensorKey> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream<sensor::SparseStokvec> {
+template <> struct xml_io_stream<sensor::SparseStokvec> {
   static constexpr std::string_view type_name = "SparseStokvec"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                os,
                     const sensor::SparseStokvec& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                   pbofs = nullptr,
+                    std::string_view             name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::SparseStokvec& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::SparseStokvec& x, bifstream* pbifs = nullptr);
 
   static void put(std::span<const sensor::SparseStokvec> x, bofstream*);
   static void get(std::span<sensor::SparseStokvec> x, bifstream*);
   static void parse(std::span<sensor::SparseStokvec> x, std::istream&);
 };
 
-template <>
-struct xml_io_stream<sensor::SparseStokvecMatrix> {
+template <> struct xml_io_stream<sensor::SparseStokvecMatrix> {
   static constexpr std::string_view type_name = "SparseStokvecMatrix"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                      os,
                     const sensor::SparseStokvecMatrix& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                         pbofs = nullptr,
+                    std::string_view                   name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::SparseStokvecMatrix& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::SparseStokvecMatrix& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<SensorObsel> {
+template <> struct xml_io_stream<SensorObsel> {
   static constexpr std::string_view type_name = "SensorObsel"sv;
 
-  static void write(std::ostream& os,
-                    const SensorObsel& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const SensorObsel& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   SensorObsel& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, SensorObsel& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<ArrayOfSensorObsel> {
+template <> struct xml_io_stream<ArrayOfSensorObsel> {
   static constexpr std::string_view type_name = "ArrayOfSensorObsel"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&             os,
                     const ArrayOfSensorObsel& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                pbofs = nullptr,
+                    std::string_view          name  = ""sv);
 
-  static void read(std::istream& is,
-                   ArrayOfSensorObsel& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, ArrayOfSensorObsel& x, bifstream* pbifs = nullptr);
 };

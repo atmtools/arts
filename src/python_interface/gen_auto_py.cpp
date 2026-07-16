@@ -5,8 +5,7 @@
 
 int main(int argc, char** argv) {
   if (argc != 3) {
-    std::cerr << "Usage: " << argv[0]
-              << "<NUM VARIABLE FILES> <NUM METHOD FILES>\n";
+    std::cerr << "Usage: " << argv[0] << "<NUM VARIABLE FILES> <NUM METHOD FILES>\n";
     return EXIT_FAILURE;
   }
 
@@ -17,22 +16,14 @@ int main(int argc, char** argv) {
   os << "#include <python_interface.h>\n\n";
   os << "namespace Python {\n";
 
-  for (int i = 0; i < num_variables; i++) {
-    os << "void py_auto_wsv_" << i << "(py::class_<Workspace>& ws);\n";
-  }
+  for (int i = 0; i < num_variables; i++) { os << "void py_auto_wsv_" << i << "(py::class_<Workspace>& ws);\n"; }
   os << "void py_auto_wsv(py::class_<Workspace>& ws) {\n";
-  for (int i = 0; i < num_variables; i++) {
-    os << "  py_auto_wsv_" << i << "(ws);\n";
-  }
+  for (int i = 0; i < num_variables; i++) { os << "  py_auto_wsv_" << i << "(ws);\n"; }
   os << "}\n\n";
 
-  for (int i = 0; i < num_methods; i++) {
-    os << "void py_auto_wsm_" << i << "(py::class_<Workspace>& ws);\n";
-  }
+  for (int i = 0; i < num_methods; i++) { os << "void py_auto_wsm_" << i << "(py::class_<Workspace>& ws);\n"; }
   os << "void py_auto_wsm(py::class_<Workspace>& ws) {\n";
-  for (int i = 0; i < num_methods; i++) {
-    os << "  py_auto_wsm_" << i << "(ws);\n";
-  }
+  for (int i = 0; i < num_methods; i++) { os << "  py_auto_wsm_" << i << "(ws);\n"; }
   os << "}\n}  // namespace Python\n";
 
   return EXIT_SUCCESS;

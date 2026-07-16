@@ -4,17 +4,16 @@
 
 namespace {
 Numeric surf_tangent_zenithFromAgenda(const Workspace& ws,
-                                      const Vector3& pos,
-                                      const Agenda& ray_path_observer_agenda,
-                                      const Numeric azimuth) {
+                                      const Vector3&   pos,
+                                      const Agenda&    ray_path_observer_agenda,
+                                      const Numeric    azimuth) {
   ARTS_TIME_REPORT
 
   ArrayOfPropagationPathPoint ray_path;
-  Numeric za0 = 180.0, za1 = 90.0;
+  Numeric                     za0 = 180.0, za1 = 90.0;
   while (std::nextafter(za0, za1) != za1) {
     const Numeric za = std::midpoint(za0, za1);
-    ray_path_observer_agendaExecute(
-        ws, ray_path, pos, {za, azimuth}, ray_path_observer_agenda);
+    ray_path_observer_agendaExecute(ws, ray_path, pos, {za, azimuth}, ray_path_observer_agenda);
 
     // za0 points at surface, za1 points at space
     ((ray_path.back().los_type == PathPositionType::surface) ? za0 : za1) = za;
@@ -24,73 +23,62 @@ Numeric surf_tangent_zenithFromAgenda(const Workspace& ws,
 }
 }  // namespace
 
-void ray_path_observersFieldProfilePseudo2D(
-    const Workspace& ws,
-    ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atm_field,
-    const SurfaceField& surf_field,
-    const Agenda& ray_path_observer_agenda,
-    const Numeric& lat,
-    const Numeric& lon,
-    const Numeric& azi,
-    const Index& nup,
-    const Index& nlimb,
-    const Index& ndown) {
+void ray_path_observersFieldProfilePseudo2D(const Workspace&             ws,
+                                            ArrayOfPropagationPathPoint& ray_path_observers,
+                                            const AtmField&              atm_field,
+                                            const SurfaceField&          surf_field,
+                                            const Agenda&                ray_path_observer_agenda,
+                                            const Numeric&               lat,
+                                            const Numeric&               lon,
+                                            const Numeric&               azi,
+                                            const Index&                 nup,
+                                            const Index&                 nlimb,
+                                            const Index&                 ndown) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
 
-  ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2,
-                     "Must have at least 2 observers per meta-direction.")
+  ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2, "Must have at least 2 observers per meta-direction.")
 
   const Vector3 top_pos = {atm_field.top_of_atmosphere, lat, lon};
   const Vector3 bot_pos = {surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
 
-  const Numeric za_surf_limb =
-      surf_tangent_zenithFromAgenda(ws, top_pos, ray_path_observer_agenda, azi);
+  const Numeric za_surf_limb = surf_tangent_zenithFromAgenda(ws, top_pos, ray_path_observer_agenda, azi);
 
   const Index N = nlimb + nup + ndown;
   arr::resize(0, ray_path_observers);
   arr::reserve(N, ray_path_observers);
 
-  const Numeric miss_surf = std::nextafter(za_surf_limb, 0.0);
-  const Numeric hit_surf  = std::nextafter(za_surf_limb, 180.0);
-  const AscendingGrid upp = nlinspace(0.0, 90.0, nup);
-  const AscendingGrid lmb = nlinspace(90.0, miss_surf, nlimb + 1);
-  const AscendingGrid dwn = nlinspace(hit_surf, 180.0, ndown);
+  const Numeric       miss_surf = std::nextafter(za_surf_limb, 0.0);
+  const Numeric       hit_surf  = std::nextafter(za_surf_limb, 180.0);
+  const AscendingGrid upp       = nlinspace(0.0, 90.0, nup);
+  const AscendingGrid lmb       = nlinspace(90.0, miss_surf, nlimb + 1);
+  const AscendingGrid dwn       = nlinspace(hit_surf, 180.0, ndown);
 
   for (auto za : upp) {
-    ray_path_observers.push_back({.pos_type = PathPositionType::surface,
-                                  .los_type = PathPositionType::atm,
-                                  .pos      = bot_pos,
-                                  .los      = {za, azi}});
+    ray_path_observers.push_back(
+        {.pos_type = PathPositionType::surface, .los_type = PathPositionType::atm, .pos = bot_pos, .los = {za, azi}});
   }
 
   // Skip 90.0
   for (auto za : lmb | stdv::drop(1)) {
-    ray_path_observers.push_back({.pos_type = PathPositionType::atm,
-                                  .los_type = PathPositionType::atm,
-                                  .pos      = top_pos,
-                                  .los      = {za, azi}});
+    ray_path_observers.push_back(
+        {.pos_type = PathPositionType::atm, .los_type = PathPositionType::atm, .pos = top_pos, .los = {za, azi}});
   }
 
   for (auto za : dwn) {
-    ray_path_observers.push_back({.pos_type = PathPositionType::atm,
-                                  .los_type = PathPositionType::atm,
-                                  .pos      = top_pos,
-                                  .los      = {za, azi}});
+    ray_path_observers.push_back(
+        {.pos_type = PathPositionType::atm, .los_type = PathPositionType::atm, .pos = top_pos, .los = {za, azi}});
   }
 }
 
-void ray_path_observersFromSensor(
-    ArrayOfPropagationPathPoint& ray_path_observers,
-    Vector& ray_path_observers_weights,
-    const ArrayOfSensorObsel& measurment_sensor,
-    const Index& idx,
-    const Stokvec& pol) {
+void ray_path_observersFromSensor(ArrayOfPropagationPathPoint& ray_path_observers,
+                                  Vector&                      ray_path_observers_weights,
+                                  const ArrayOfSensorObsel&    measurment_sensor,
+                                  const Index&                 idx,
+                                  const Stokvec&               pol) {
   ARTS_USER_ERROR_IF(static_cast<Size>(idx) >= measurment_sensor.size(),
                      "Sensor index out of bounds: {} not in [0, {})",
                      idx,
@@ -98,7 +86,7 @@ void ray_path_observersFromSensor(
 
   const auto& obsel  = measurment_sensor[idx];
   const auto& poslos = obsel.poslos_grid();
-  const Size n       = poslos.size();
+  const Size  n      = poslos.size();
 
   ray_path_observers.clear();
   ray_path_observers_weights.clear();
@@ -115,38 +103,32 @@ void ray_path_observersFromSensor(
   ray_path_observers_weights /= sum(ray_path_observers_weights);
 }
 
-void ray_path_observersFluxProfile(
-    ArrayOfPropagationPathPoint& ray_path_observers,
-    const AtmField& atm_field,
-    const Numeric& azimuth,
-    const Index& n,
-    const AtmKey& atm_key) {
+void ray_path_observersFluxProfile(ArrayOfPropagationPathPoint& ray_path_observers,
+                                   const AtmField&              atm_field,
+                                   const Numeric&               azimuth,
+                                   const Index&                 n,
+                                   const AtmKey&                atm_key) {
   ray_path_observers.clear();
 
-  ARTS_USER_ERROR_IF(
-      n < 3 or (n % 2) == 0,
-      "Must have at least 3 observers, and an uneven number of them.")
+  ARTS_USER_ERROR_IF(n < 3 or (n % 2) == 0, "Must have at least 3 observers, and an uneven number of them.")
 
   const auto& data = atm_field[atm_key].get<GeodeticField3>();
 
-  const auto& alt_g  = data.grid<0>();
-  const auto& lat    = data.grid<1>()[0];
-  const auto& lon    = data.grid<2>()[0];
+  const auto&  alt_g = data.grid<0>();
+  const auto&  lat   = data.grid<1>()[0];
+  const auto&  lon   = data.grid<2>()[0];
   const Vector zas_g = nlinspace(0.0, 180.0, n + 2);
 
-  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
-                     "Data size does not match altitude grid size")
+  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(), "Data size does not match altitude grid size")
 
   ray_path_observers.reserve(n * alt_g.size() + 2);
   for (Index i = 0; i < n; i++) {
-    for (PropagationPathPoint p :
-         alt_g | stdv::transform([za = zas_g[i + 1], lat, lon, azimuth](
-                                     Numeric alt) {
-           return PropagationPathPoint{.pos_type = PathPositionType::atm,
-                                       .los_type = PathPositionType::atm,
-                                       .pos      = {alt, lat, lon},
-                                       .los      = {za, azimuth}};
-         })) {
+    for (PropagationPathPoint p : alt_g | stdv::transform([za = zas_g[i + 1], lat, lon, azimuth](Numeric alt) {
+                                    return PropagationPathPoint{.pos_type = PathPositionType::atm,
+                                                                .los_type = PathPositionType::atm,
+                                                                .pos      = {alt, lat, lon},
+                                                                .los      = {za, azimuth}};
+                                  })) {
       ray_path_observers.push_back(p);
     }
   }
@@ -180,27 +162,25 @@ Vector half_grid(const Numeric x0, const Numeric x1, const Numeric dx) {
 }
 }  // namespace
 
-void ray_path_fieldFluxProfile(
-    const Workspace& ws,
-    ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const AtmField& atm_field,
-    const Agenda& ray_path_observer_agenda,
-    const Numeric& azimuth,
-    const Numeric& dzen,
-    const AtmKey& atm_key) try {
+void ray_path_fieldFluxProfile(const Workspace&                    ws,
+                               ArrayOfArrayOfPropagationPathPoint& ray_path_field,
+                               const AtmField&                     atm_field,
+                               const Agenda&                       ray_path_observer_agenda,
+                               const Numeric&                      azimuth,
+                               const Numeric&                      dzen,
+                               const AtmKey&                       atm_key) try {
   ARTS_USER_ERROR_IF(dzen <= 0.0, "Zenith angle step must be positive")
 
   ray_path_field.clear();
 
   const auto& data  = atm_field[atm_key].get<GeodeticField3>();
   const auto& alt_g = data.grid<0>();
-  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(),
-                     "Data size does not match altitude grid size")
+  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(), "Data size does not match altitude grid size")
   const auto& lat = data.grid<1>()[0];
   const auto& lon = data.grid<2>()[0];
 
-  const Numeric za_limb = surf_tangent_zenithFromAgenda(
-      ws, {alt_g.back(), lat, lon}, ray_path_observer_agenda, azimuth);
+  const Numeric za_limb =
+      surf_tangent_zenithFromAgenda(ws, {alt_g.back(), lat, lon}, ray_path_observer_agenda, azimuth);
   const Numeric za_limb_miss = std::nextafter(za_limb, 0.0);
   const Numeric za_limb_hit  = std::nextafter(za_limb, 180.0);
 
@@ -210,21 +190,15 @@ void ray_path_fieldFluxProfile(
   // 4 extra points already added by
   ray_path_field.resize(looking_down.size() + looking_up.size());
 
-  ray_path_observer_agendaExecute(ws,
-                                  ray_path_field.front(),
-                                  {alt_g.front(), lat, lon},
-                                  {0, azimuth},
-                                  ray_path_observer_agenda);
+  ray_path_observer_agendaExecute(
+      ws, ray_path_field.front(), {alt_g.front(), lat, lon}, {0, azimuth}, ray_path_observer_agenda);
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 1; i < looking_up.size() - 1; i++) {
     try {
-      ray_path_observer_agendaExecute(ws,
-                                      ray_path_field[i],
-                                      {alt_g.front(), lat, lon},
-                                      {looking_up[i], azimuth},
-                                      ray_path_observer_agenda);
+      ray_path_observer_agendaExecute(
+          ws, ray_path_field[i], {alt_g.front(), lat, lon}, {looking_up[i], azimuth}, ray_path_observer_agenda);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -259,21 +233,17 @@ void ray_path_fieldFluxProfile(
   }
   if (not error.empty()) throw std::runtime_error(error);
 
-  ray_path_observer_agendaExecute(ws,
-                                  ray_path_field.back(),
-                                  {alt_g.back(), lat, lon},
-                                  {180, azimuth},
-                                  ray_path_observer_agenda);
+  ray_path_observer_agendaExecute(
+      ws, ray_path_field.back(), {alt_g.back(), lat, lon}, {180, azimuth}, ray_path_observer_agenda);
 
   std::erase_if(ray_path_field, [](const auto& x) { return x.size() < 2; });
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ray_path_fieldFromObserverAgenda(
-    const Workspace& ws,
-    ArrayOfArrayOfPropagationPathPoint& ray_path_field,
-    const ArrayOfPropagationPathPoint& ray_path_observers,
-    const Agenda& ray_path_observer_agenda) {
+void ray_path_fieldFromObserverAgenda(const Workspace&                    ws,
+                                      ArrayOfArrayOfPropagationPathPoint& ray_path_field,
+                                      const ArrayOfPropagationPathPoint&  ray_path_observers,
+                                      const Agenda&                       ray_path_observer_agenda) {
   ARTS_TIME_REPORT
 
   const Size N = ray_path_observers.size();
@@ -285,11 +255,8 @@ void ray_path_fieldFromObserverAgenda(
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < N; i++) {
     try {
-      ray_path_observer_agendaExecute(ws,
-                                      ray_path_field[i],
-                                      ray_path_observers[i].pos,
-                                      ray_path_observers[i].los,
-                                      ray_path_observer_agenda);
+      ray_path_observer_agendaExecute(
+          ws, ray_path_field[i], ray_path_observers[i].pos, ray_path_observers[i].los, ray_path_observer_agenda);
     } catch (const std::exception& e) {
 #pragma omp critical
       error = e.what();

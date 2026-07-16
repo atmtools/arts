@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-void xml_io_stream<HitranSpeciesInfo>::write(std::ostream& os,
+void xml_io_stream<HitranSpeciesInfo>::write(std::ostream&            os,
                                              const HitranSpeciesInfo& x,
                                              bofstream*,
                                              std::string_view name) try {
@@ -15,9 +15,7 @@ void xml_io_stream<HitranSpeciesInfo>::write(std::ostream& os,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void xml_io_stream<HitranSpeciesInfo>::read(std::istream& is,
-                                            HitranSpeciesInfo& x,
-                                            bifstream*) try {
+void xml_io_stream<HitranSpeciesInfo>::read(std::istream& is, HitranSpeciesInfo& x, bifstream*) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

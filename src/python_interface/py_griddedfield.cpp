@@ -15,8 +15,7 @@ static_assert(std::is_nothrow_move_constructible_v<GriddedField3>,
 
 namespace Python {
 namespace {
-template <typename FromType, typename ToType>
-void implicit_convert_gf(py::class_<ToType>& cls) {
+template <typename FromType, typename ToType> void implicit_convert_gf(py::class_<ToType>& cls) {
   cls.def("__init__", [](ToType* x, const FromType& v) {
     ToType t1(v);
     new (x) ToType(std::move(t1));
@@ -119,18 +118,14 @@ void py_griddedfield(py::module_& m) try {
   generic_interface(geo3);
   implicit_convert_gf<GriddedField3>(geo3);
   gf3.def(
-      "make_geodetic",
-      [](const GriddedField3& gf) { return matpack::make_geodetic(gf); },
-      "Make the field geodetic");
+      "make_geodetic", [](const GriddedField3& gf) { return matpack::make_geodetic(gf); }, "Make the field geodetic");
 
   py::class_<GeodeticField2> geo2(m, "GeodeticField2");
   gridded_data_interface(geo2);
   generic_interface(geo2);
   implicit_convert_gf<GriddedField2>(geo2);
   gf2.def(
-      "make_geodetic",
-      [](const GriddedField2& gf) { return matpack::make_geodetic(gf); },
-      "Make the field geodetic");
+      "make_geodetic", [](const GriddedField2& gf) { return matpack::make_geodetic(gf); }, "Make the field geodetic");
 
   py::class_<SortedGriddedField4> sgf4num(m, "SortedGriddedField4");
   gridded_data_interface(sgf4num);
@@ -152,60 +147,45 @@ void py_griddedfield(py::module_& m) try {
   generic_interface(gsf6);
   implicit_convert_gf<GriddedField6>(gsf6);
 
-  auto a1 =
-      py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(
-          m, "ArrayOfGriddedField1");
+  auto a1 = py::bind_vector<ArrayOfGriddedField1, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField1");
   generic_interface(a1);
   vector_interface(a1);
-  auto a2 =
-      py::bind_vector<ArrayOfGriddedField2, py::rv_policy::reference_internal>(
-          m, "ArrayOfGriddedField2");
+  auto a2 = py::bind_vector<ArrayOfGriddedField2, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField2");
   generic_interface(a2);
   vector_interface(a2);
-  auto a3 =
-      py::bind_vector<ArrayOfGriddedField3, py::rv_policy::reference_internal>(
-          m, "ArrayOfGriddedField3");
+  auto a3 = py::bind_vector<ArrayOfGriddedField3, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField3");
   generic_interface(a3);
   vector_interface(a3);
-  auto a4 =
-      py::bind_vector<ArrayOfGriddedField4, py::rv_policy::reference_internal>(
-          m, "ArrayOfGriddedField4");
+  auto a4 = py::bind_vector<ArrayOfGriddedField4, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField4");
   generic_interface(a4);
   vector_interface(a4);
-  auto b1 = py::bind_vector<ArrayOfArrayOfGriddedField1,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfArrayOfGriddedField1");
+  auto b1 =
+      py::bind_vector<ArrayOfArrayOfGriddedField1, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfGriddedField1");
   generic_interface(b1);
   vector_interface(b1);
-  auto b2 = py::bind_vector<ArrayOfArrayOfGriddedField2,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfArrayOfGriddedField2");
+  auto b2 =
+      py::bind_vector<ArrayOfArrayOfGriddedField2, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfGriddedField2");
   generic_interface(b2);
   vector_interface(b2);
-  auto b3 = py::bind_vector<ArrayOfArrayOfGriddedField3,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfArrayOfGriddedField3");
+  auto b3 =
+      py::bind_vector<ArrayOfArrayOfGriddedField3, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfGriddedField3");
   generic_interface(b3);
   vector_interface(b3);
-  auto c1 = py::bind_vector<ArrayOfGriddedField1Named,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfGriddedField1Named");
+  auto c1 =
+      py::bind_vector<ArrayOfGriddedField1Named, py::rv_policy::reference_internal>(m, "ArrayOfGriddedField1Named");
   generic_interface(c1);
   vector_interface(c1);
-  auto d2 = py::bind_vector<ArrayOfNamedGriddedField2,
-                            py::rv_policy::reference_internal>(
-      m, "ArrayOfNamedGriddedField2");
+  auto d2 =
+      py::bind_vector<ArrayOfNamedGriddedField2, py::rv_policy::reference_internal>(m, "ArrayOfNamedGriddedField2");
   generic_interface(d2);
   vector_interface(d2);
 
-  auto vsgf1num = py::bind_vector<Array<SortedGriddedField1>,
-                                  py::rv_policy::reference_internal>(
-      m, "ArrayOfSortedGriddedField1");
+  auto vsgf1num =
+      py::bind_vector<Array<SortedGriddedField1>, py::rv_policy::reference_internal>(m, "ArrayOfSortedGriddedField1");
   vsgf1num.doc() = "A list of :class:`~pyarts3.arts.SortedGriddedField1`";
   generic_interface(vsgf1num);
   vector_interface(vsgf1num);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize gridded field\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize gridded field\n{}", e.what()));
 }
 }  // namespace Python

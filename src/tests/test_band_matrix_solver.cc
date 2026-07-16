@@ -16,9 +16,9 @@ int main() {
   }();
 
   matpack::band_matrix bd(ex);
-  const Vector b{4.42, 27.13, -6.14, 10.50};
-  Vector sparse_b{b};
-  Vector dense_y{b};
+  const Vector         b{4.42, 27.13, -6.14, 10.50};
+  Vector               sparse_b{b};
+  Vector               dense_y{b};
 
   //! Solves inline
   bd.solve(sparse_b);
@@ -31,12 +31,11 @@ int main() {
 
   //! Ensure that the difference is within the machine epsilon
   for (auto& x : dense_y) {
-    ARTS_USER_ERROR_IF(
-        std::abs(x) > 1000 * std::numeric_limits<Numeric>::epsilon(),
-        "Error in band matrix solver!\nOutput supposed to be: {}"
-        "\nBut diff between dense and banded matrix solutions are: {}",
-        sparse_b,
-        dense_y)
+    ARTS_USER_ERROR_IF(std::abs(x) > 1000 * std::numeric_limits<Numeric>::epsilon(),
+                       "Error in band matrix solver!\nOutput supposed to be: {}"
+                       "\nBut diff between dense and banded matrix solutions are: {}",
+                       sparse_b,
+                       dense_y)
   }
 
   return 0;

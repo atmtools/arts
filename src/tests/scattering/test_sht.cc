@@ -21,24 +21,14 @@ bool test_initialize_sht() try {
   auto sht   = sht::SHT(5, 5, 32, 32);
   auto sht_p = *sht::provider.get_instance({5, 5, 32, 32});
 
-  if (sht.get_n_spectral_coeffs() != sht_p.get_n_spectral_coeffs()) {
-    return false;
-  }
-  if (sht.get_n_zenith_angles() != sht_p.get_n_zenith_angles()) {
-    return false;
-  }
-  if (sht.get_n_azimuth_angles() != sht_p.get_n_azimuth_angles()) {
-    return false;
-  }
+  if (sht.get_n_spectral_coeffs() != sht_p.get_n_spectral_coeffs()) { return false; }
+  if (sht.get_n_zenith_angles() != sht_p.get_n_zenith_angles()) { return false; }
+  if (sht.get_n_azimuth_angles() != sht_p.get_n_azimuth_angles()) { return false; }
 
-  sht = *sht::provider.get_instance(32, 32);
-  auto sht_lm     = *sht::provider.get_instance_lm(15, 15);
-  if (sht.get_n_zenith_angles() != sht_lm.get_n_zenith_angles()) {
-    return false;
-  }
-  if (sht.get_n_azimuth_angles() != sht_lm.get_n_azimuth_angles()) {
-    return false;
-  }
+  sht         = *sht::provider.get_instance(32, 32);
+  auto sht_lm = *sht::provider.get_instance_lm(15, 15);
+  if (sht.get_n_zenith_angles() != sht_lm.get_n_zenith_angles()) { return false; }
+  if (sht.get_n_azimuth_angles() != sht_lm.get_n_azimuth_angles()) { return false; }
 
   return true;
 } catch (std::exception& e) {
@@ -51,12 +41,11 @@ bool test_initialize_sht() try {
  * at the coefficients that correspond to the given SH function.
  */
 bool test_transform_harmonics() try {
-  auto sht              = *sht::provider.get_instance({5, 5, 32, 32});
-  Vector a_angs{sht.get_azimuth_angle_grid(true)};
-  Vector z_angs{grid_vector(sht.get_zenith_angle_grid(true))};
-  Matrix spatial_coeffs = static_cast<Matrix>(sht.get_spatial_coeffs());
-  ComplexVector spectral_coeffs =
-      static_cast<ComplexVector>(sht.get_spectral_coeffs());
+  auto          sht = *sht::provider.get_instance({5, 5, 32, 32});
+  Vector        a_angs{sht.get_azimuth_angle_grid(true)};
+  Vector        z_angs{grid_vector(sht.get_zenith_angle_grid(true))};
+  Matrix        spatial_coeffs  = static_cast<Matrix>(sht.get_spatial_coeffs());
+  ComplexVector spectral_coeffs = static_cast<ComplexVector>(sht.get_spectral_coeffs());
 
   for (int l = 0; l < 3; ++l) {
     for (int m = -l; m <= l; ++m) {
@@ -74,9 +63,7 @@ bool test_transform_harmonics() try {
         } else {
           diff = std::abs(spectral_coeffs[i]);
         }
-        if (std::abs(diff) > 1e-6) {
-          return false;
-        }
+        if (std::abs(diff) > 1e-6) { return false; }
       }
     }
   }
@@ -93,14 +80,12 @@ bool test_transform_harmonics() try {
  */
 bool test_symmetry(int n_trials) try {
   for (int i = 0; i < n_trials; ++i) {
-    auto sht_v          = *sht::provider.get_instance({16, 16, 34, 34});
-    ComplexVector v     = random_spectral_coeffs(16, 16);
-    auto v_spat         = sht_v.synthesize(v);
-    ComplexVector v_ref = sht_v.transform(v_spat);
-    auto diff           = max_error(v, v_ref);
-    if (std::abs(diff) > 1e-6) {
-      return false;
-    }
+    auto          sht_v  = *sht::provider.get_instance({16, 16, 34, 34});
+    ComplexVector v      = random_spectral_coeffs(16, 16);
+    auto          v_spat = sht_v.synthesize(v);
+    ComplexVector v_ref  = sht_v.transform(v_spat);
+    auto          diff   = max_error(v, v_ref);
+    if (std::abs(diff) > 1e-6) { return false; }
   }
   return true;
 } catch (std::exception& e) {
@@ -129,9 +114,7 @@ bool test_add_coefficients(int n_trials) try {
     ComplexVector vw_ref = sht_v.transform(vw_spat);
 
     auto diff = max_error(vw_ref, vw);
-    if (std::abs(diff) > 1e-6) {
-      return false;
-    }
+    if (std::abs(diff) > 1e-6) { return false; }
   }
   return true;
 } catch (std::exception& e) {
@@ -142,37 +125,25 @@ bool test_add_coefficients(int n_trials) try {
 bool test_grids() try {
   auto sht = sht::provider.get_instance(64, 64);
 
-  auto lat_grid     = sht->get_zenith_angle_grid();
+  auto    lat_grid  = sht->get_zenith_angle_grid();
   Numeric max_angle = max<Vector>(lat_grid.angles);
-  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
   lat_grid  = sht->get_zenith_angle_grid(true);
   max_angle = max<Vector>(lat_grid.angles);
-  if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
 
   auto lon_grid = sht->get_azimuth_angle_grid();
   max_angle     = max<Vector>(lon_grid);
-  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
   lon_grid  = sht->get_azimuth_angle_grid(true);
   max_angle = max<Vector>(lon_grid);
-  if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
 
   max_angle = max(grid_vector(*sht->get_za_grid_ptr()));
-  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
 
   max_angle = max<Vector>(*sht->get_aa_grid_ptr());
-  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) {
-    return false;
-  }
+  if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
 
   return true;
 } catch (std::exception& e) {

@@ -27,13 +27,10 @@ struct ErrorKey {
 
   Size y_size;
 
-  constexpr bool operator==(const ErrorKey& other) const {
-    return other.y_start == y_start and other.y_size == y_size;
-  }
+  constexpr bool operator==(const ErrorKey& other) const { return other.y_start == y_start and other.y_size == y_size; }
 };
 
-template <>
-struct std::hash<ErrorKey> {
+template <> struct std::hash<ErrorKey> {
   static std::size_t operator()(const ErrorKey& g) {
     std::size_t seed = 0;
     boost::hash_combine(seed, g.y_start);
@@ -71,7 +68,7 @@ struct AtmTarget {
   atm_mat inverse_jacobian{};
   atm_vec inverse_state{};
 
-  bool overlap{false};
+  bool      overlap{false};
   AtmKeyVal overlap_key{};
 
   void update_model(AtmField& y, cv x) const;
@@ -110,7 +107,7 @@ struct SurfaceTarget {
   surf_mat inverse_jacobian{};
   surf_vec inverse_state{};
 
-  bool overlap{false};
+  bool          overlap{false};
   SurfaceKeyVal overlap_key{};
 
   void update_model(SurfaceField& y, cv x) const;
@@ -146,7 +143,7 @@ struct SubsurfaceTarget {
   subsurf_mat inverse_jacobian{};
   subsurf_vec inverse_state{};
 
-  bool overlap{false};
+  bool             overlap{false};
   SubsurfaceKeyVal overlap_key{};
 
   void update_model(SubsurfaceField& y, cv x) const;
@@ -182,7 +179,7 @@ struct LineTarget {
   line_mat inverse_jacobian{};
   line_vec inverse_state{};
 
-  bool overlap{false};
+  bool       overlap{false};
   LblLineKey overlap_key{};
 
   void update_model(AbsorptionBands& y, cv x) const;
@@ -221,7 +218,7 @@ struct SensorTarget {
   sensor_mat inverse_jacobian{};
   sensor_vec inverse_state{};
 
-  bool overlap{false};
+  bool      overlap{false};
   SensorKey overlap_key{};
 
   void update_model(ArrayOfSensorObsel& y, cv x) const;
@@ -256,7 +253,7 @@ struct ErrorTarget {
   error_mat inverse_jacobian{};
   error_vec inverse_state{};
 
-  bool overlap{false};
+  bool     overlap{false};
   ErrorKey overlap_key{};
 
   void update_model(VectorView y, cv x) const;
@@ -282,12 +279,12 @@ template <typename U, typename... T>
 concept valid_target = (std::same_as<U, T> or ...);
 
 struct Targets final {
-  std::vector<AtmTarget> atm;
-  std::vector<SurfaceTarget> surf;
+  std::vector<AtmTarget>        atm;
+  std::vector<SurfaceTarget>    surf;
   std::vector<SubsurfaceTarget> subsurf;
-  std::vector<LineTarget> line;
-  std::vector<SensorTarget> sensor;
-  std::vector<ErrorTarget> error;
+  std::vector<LineTarget>       line;
+  std::vector<SensorTarget>     sensor;
+  std::vector<ErrorTarget>      error;
 
   bool finalized{false};
 
@@ -298,37 +295,31 @@ struct Targets final {
   void throwing_check(Size xsize) const;
 
   //! Sets the sizes and x-positions of the targets.
-  void finalize(const AtmField& atm_field,
-                const SurfaceField& surf_field,
-                const SubsurfaceField& subsurf_field,
-                const AbsorptionBands& abs_bands,
+  void finalize(const AtmField&           atm_field,
+                const SurfaceField&       surf_field,
+                const SubsurfaceField&    subsurf_field,
+                const AbsorptionBands&    abs_bands,
                 const ArrayOfSensorObsel& measurement_sensor);
 
-  AtmTarget& emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
-  AtmTarget& emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
-  LineTarget& emplace_back(LblLineKey&& t, Numeric d = 0.0);
-  LineTarget& emplace_back(const LblLineKey& t, Numeric d = 0.0);
-  SensorTarget& emplace_back(SensorKey&& t, Numeric d = 0.0);
-  SensorTarget& emplace_back(const SensorKey& t, Numeric d = 0.0);
-  SurfaceTarget& emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
-  SurfaceTarget& emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
+  AtmTarget&        emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
+  AtmTarget&        emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
+  LineTarget&       emplace_back(LblLineKey&& t, Numeric d = 0.0);
+  LineTarget&       emplace_back(const LblLineKey& t, Numeric d = 0.0);
+  SensorTarget&     emplace_back(SensorKey&& t, Numeric d = 0.0);
+  SensorTarget&     emplace_back(const SensorKey& t, Numeric d = 0.0);
+  SurfaceTarget&    emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
+  SurfaceTarget&    emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
   SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
   SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
-  ErrorTarget& emplace_back(ErrorKey&& t, Numeric d = 0.0);
-  ErrorTarget& emplace_back(const ErrorKey& t, Numeric d = 0.0);
+  ErrorTarget&      emplace_back(ErrorKey&& t, Numeric d = 0.0);
+  ErrorTarget&      emplace_back(const ErrorKey& t, Numeric d = 0.0);
 
-  [[nodiscard]] std::vector<AtmTarget>::const_iterator find(
-      const AtmKeyVal& t) const;
-  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator find(
-      const SurfaceKeyVal& t) const;
-  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(
-      const SubsurfaceKeyVal& t) const;
-  [[nodiscard]] std::vector<LineTarget>::const_iterator find(
-      const LblLineKey& t) const;
-  [[nodiscard]] std::vector<SensorTarget>::const_iterator find(
-      const SensorKey& t) const;
-  [[nodiscard]] std::vector<ErrorTarget>::const_iterator find(
-      const ErrorKey& t) const;
+  [[nodiscard]] std::vector<AtmTarget>::const_iterator        find(const AtmKeyVal& t) const;
+  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator    find(const SurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<LineTarget>::const_iterator       find(const LblLineKey& t) const;
+  [[nodiscard]] std::vector<SensorTarget>::const_iterator     find(const SensorKey& t) const;
+  [[nodiscard]] std::vector<ErrorTarget>::const_iterator      find(const ErrorKey& t) const;
 
   [[nodiscard]] Index target_position(const AtmKeyVal& t) const;
   [[nodiscard]] Index target_position(const SurfaceKeyVal& t) const;
@@ -337,17 +328,12 @@ struct Targets final {
   [[nodiscard]] Index target_position(const SensorKey& t) const;
   [[nodiscard]] Index target_position(const ErrorKey& t) const;
 
-  void clear();
+  void               clear();
   [[nodiscard]] bool empty() const;
 };
 
 struct TargetType {
-  using variant_t = std::variant<AtmKeyVal,
-                                 SurfaceKeyVal,
-                                 SubsurfaceKeyVal,
-                                 LblLineKey,
-                                 SensorKey,
-                                 ErrorKey>;
+  using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, SubsurfaceKeyVal, LblLineKey, SensorKey, ErrorKey>;
   variant_t target;
 
   template <class AtmKeyValFunc,
@@ -356,12 +342,12 @@ struct TargetType {
             class LblLineKeyFunc,
             class SensorKeyFunc,
             class ErrorKeyFunc>
-  [[nodiscard]] constexpr auto apply(const AtmKeyValFunc& ifatm,
-                                     const SurfaceKeyValFunc& ifsurf,
+  [[nodiscard]] constexpr auto apply(const AtmKeyValFunc&        ifatm,
+                                     const SurfaceKeyValFunc&    ifsurf,
                                      const SubsurfaceKeyValFunc& ifsubsurf,
-                                     const LblLineKeyFunc& ifline,
-                                     const SensorKeyFunc& ifsensor,
-                                     const ErrorKeyFunc& iferror) const {
+                                     const LblLineKeyFunc&       ifline,
+                                     const SensorKeyFunc&        ifsensor,
+                                     const ErrorKeyFunc&         iferror) const {
     return std::visit(
         [&](const auto& t) {
           using T = std::decay_t<decltype(t)>;
@@ -382,7 +368,7 @@ struct TargetType {
         target);
   }
 
-  [[nodiscard]] bool operator==(const TargetType&) const;
+  [[nodiscard]] bool        operator==(const TargetType&) const;
   [[nodiscard]] std::string type() const;
 };
 }  // namespace Jacobian
@@ -390,85 +376,60 @@ struct TargetType {
 using JacobianTargets    = Jacobian::Targets;
 using JacobianTargetType = Jacobian::TargetType;
 
-template <>
-struct std::formatter<ErrorKey> {
+template <> struct std::formatter<ErrorKey> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const ErrorKey& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const ErrorKey& v, FmtContext& ctx) const {
     return tags.format(ctx, "["sv, v.y_start, ", "sv, v.y_start + v.y_size, ")"sv);
   }
 };
 
-template <>
-struct std::hash<JacobianTargetType> {
+template <> struct std::hash<JacobianTargetType> {
   static std::size_t operator()(const JacobianTargetType& g) {
     return std::hash<JacobianTargetType::variant_t>{}(g.target);
   }
 };
 
-template <>
-struct std::formatter<JacobianTargetType> {
+template <> struct std::formatter<JacobianTargetType> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const JacobianTargetType& jtt,
-                              FmtContext& ctx) const {
-    jtt.apply(
-        [this, &ctx](const AtmKeyVal& key) {
-          tags.format(ctx, "AtmKeyVal::"sv, key);
-        },
-        [this, &ctx](const SurfaceKeyVal& key) {
-          tags.format(ctx, "SurfaceKeyVal::"sv, key);
-        },
-        [this, &ctx](const SubsurfaceKeyVal& key) {
-          tags.format(ctx, "SubsurfaceKeyVal::"sv, key);
-        },
-        [this, &ctx](const LblLineKey& key) {
-          tags.format(ctx, "LblLineKey::"sv, key);
-        },
-        [this, &ctx](const SensorKey& key) {
-          tags.format(ctx, "SensorKey::"sv, key);
-        },
-        [this, &ctx](const ErrorKey& key) {
-          tags.format(ctx, "ErrorKey::"sv, key);
-        });
+  template <class FmtContext> FmtContext::iterator format(const JacobianTargetType& jtt, FmtContext& ctx) const {
+    jtt.apply([this, &ctx](const AtmKeyVal& key) { tags.format(ctx, "AtmKeyVal::"sv, key); },
+              [this, &ctx](const SurfaceKeyVal& key) { tags.format(ctx, "SurfaceKeyVal::"sv, key); },
+              [this, &ctx](const SubsurfaceKeyVal& key) { tags.format(ctx, "SubsurfaceKeyVal::"sv, key); },
+              [this, &ctx](const LblLineKey& key) { tags.format(ctx, "LblLineKey::"sv, key); },
+              [this, &ctx](const SensorKey& key) { tags.format(ctx, "SensorKey::"sv, key); },
+              [this, &ctx](const ErrorKey& key) { tags.format(ctx, "ErrorKey::"sv, key); });
 
     return ctx.out();
   }
 };
 
-template <>
-struct std::formatter<Jacobian::AtmTarget> {
+template <> struct std::formatter<Jacobian::AtmTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::AtmTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::AtmTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -488,21 +449,17 @@ struct std::formatter<Jacobian::AtmTarget> {
   }
 };
 
-template <>
-struct std::formatter<Jacobian::SurfaceTarget> {
+template <> struct std::formatter<Jacobian::SurfaceTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::SurfaceTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::SurfaceTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -522,21 +479,17 @@ struct std::formatter<Jacobian::SurfaceTarget> {
   }
 };
 
-template <>
-struct std::formatter<Jacobian::SubsurfaceTarget> {
+template <> struct std::formatter<Jacobian::SubsurfaceTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::SubsurfaceTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::SubsurfaceTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -556,21 +509,17 @@ struct std::formatter<Jacobian::SubsurfaceTarget> {
   }
 };
 
-template <>
-struct std::formatter<Jacobian::LineTarget> {
+template <> struct std::formatter<Jacobian::LineTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::LineTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::LineTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -590,21 +539,17 @@ struct std::formatter<Jacobian::LineTarget> {
   }
 };
 
-template <>
-struct std::formatter<Jacobian::SensorTarget> {
+template <> struct std::formatter<Jacobian::SensorTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::SensorTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::SensorTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -624,192 +569,145 @@ struct std::formatter<Jacobian::SensorTarget> {
   }
 };
 
-template <>
-struct std::formatter<Jacobian::ErrorTarget> {
+template <> struct std::formatter<Jacobian::ErrorTarget> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Jacobian::ErrorTarget& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Jacobian::ErrorTarget& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
-    return tags.format(ctx,
-                       v.type,
-                       ": target_pos: "sv,
-                       v.target_pos,
-                       sep,
-                       "x_start: "sv,
-                       v.x_start,
-                       sep,
-                       "x_size: "sv,
-                       v.x_size);
+    return tags.format(
+        ctx, v.type, ": target_pos: "sv, v.target_pos, sep, "x_start: "sv, v.x_start, sep, "x_size: "sv, v.x_size);
   }
 };
 
-template <>
-struct std::formatter<JacobianTargets> {
+template <> struct std::formatter<JacobianTargets> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const JacobianTargets& v, FmtContext& ctx) const {
     tags.add_if_bracket(ctx, "{"sv);
 
     const std::string_view sep = tags.sep();
 
-    if (not v.atm.empty()) {
-      tags.format(ctx, R"("atm": )"sv, v.atm, sep);
-    }
+    if (not v.atm.empty()) { tags.format(ctx, R"("atm": )"sv, v.atm, sep); }
 
-    if (not v.surf.empty()) {
-      tags.format(ctx, R"("surf": )"sv, v.surf, sep);
-    }
+    if (not v.surf.empty()) { tags.format(ctx, R"("surf": )"sv, v.surf, sep); }
 
-    if (not v.subsurf.empty()) {
-      tags.format(ctx, R"("subsurf": )"sv, v.subsurf, sep);
-    }
+    if (not v.subsurf.empty()) { tags.format(ctx, R"("subsurf": )"sv, v.subsurf, sep); }
 
     if (not v.line.empty()) tags.format(ctx, R"("line": )"sv, v.line, sep);
 
-    if (not v.sensor.empty()) {
-      tags.format(ctx, R"("sensor": )"sv, v.sensor, sep);
-    }
+    if (not v.sensor.empty()) { tags.format(ctx, R"("sensor": )"sv, v.sensor, sep); }
 
-    if (not v.error.empty()) {
-      tags.format(ctx, R"("error": )"sv, v.error);
-    }
+    if (not v.error.empty()) { tags.format(ctx, R"("error": )"sv, v.error); }
 
     tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };
 
-template <>
-struct xml_io_stream<JacobianTargetType> {
+template <> struct xml_io_stream<JacobianTargetType> {
   static constexpr std::string_view type_name = "JacobianTargetType"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&             os,
                     const JacobianTargetType& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                pbofs = nullptr,
+                    std::string_view          name  = ""sv);
 
-  static void read(std::istream& is,
-                   JacobianTargetType& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, JacobianTargetType& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::AtmTarget> {
+template <> struct xml_io_stream_name<Jacobian::AtmTarget> {
   static constexpr std::string_view name = "AtmTarget"sv;
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::LineTarget> {
+template <> struct xml_io_stream_name<Jacobian::LineTarget> {
   static constexpr std::string_view name = "LineTarget"sv;
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::SurfaceTarget> {
+template <> struct xml_io_stream_name<Jacobian::SurfaceTarget> {
   static constexpr std::string_view name = "SurfaceTarget"sv;
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::SubsurfaceTarget> {
+template <> struct xml_io_stream_name<Jacobian::SubsurfaceTarget> {
   static constexpr std::string_view name = "SubsurfaceTarget"sv;
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::SensorTarget> {
+template <> struct xml_io_stream_name<Jacobian::SensorTarget> {
   static constexpr std::string_view name = "SensorTarget"sv;
 };
 
-template <>
-struct xml_io_stream_name<ErrorKey> {
+template <> struct xml_io_stream_name<ErrorKey> {
   static constexpr std::string_view name = "ErrorKey"sv;
 };
 
-template <>
-struct xml_io_stream_name<Jacobian::ErrorTarget> {
+template <> struct xml_io_stream_name<Jacobian::ErrorTarget> {
   static constexpr std::string_view name = "ErrorTarget"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::AtmTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::AtmTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::LineTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::LineTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::SurfaceTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::SurfaceTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::SubsurfaceTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::SubsurfaceTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::SensorTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::SensorTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<ErrorKey> {
+template <> struct xml_io_stream_aggregate<ErrorKey> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream_aggregate<Jacobian::ErrorTarget> {
+template <> struct xml_io_stream_aggregate<Jacobian::ErrorTarget> {
   static constexpr bool value = true;
 };
 
-template <>
-struct xml_io_stream<JacobianTargets> {
+template <> struct xml_io_stream<JacobianTargets> {
   static constexpr std::string_view type_name = "JacobianTargets"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&          os,
                     const JacobianTargets& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*             pbofs = nullptr,
+                    std::string_view       name  = ""sv);
 
-  static void read(std::istream& is,
-                   JacobianTargets& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, JacobianTargets& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream_functional<Jacobian::atm_vec> {
+template <> struct xml_io_stream_functional<Jacobian::atm_vec> {
   using func_t    = Vector (*)(ConstVectorView, const AtmField&);
   using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
 
-template <>
-struct xml_io_stream_functional<Jacobian::atm_mat> {
-  using func_t = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
+template <> struct xml_io_stream_functional<Jacobian::atm_mat> {
+  using func_t    = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
   using structs_t = std::variant<relinv, loginv, logrelinv>;
   static constexpr std::array<func_t*, 0> funcs{};
 };

@@ -8,32 +8,27 @@
 void abs_bandsSetNonLTE(AbsorptionBands& abs_bands) {
   ARTS_TIME_REPORT
 
-  for (auto& [_, band] : abs_bands) {
-    band.lineshape = LineByLineLineshape::VP_LINE_NLTE;
-  }
+  for (auto& [_, band] : abs_bands) { band.lineshape = LineByLineLineshape::VP_LINE_NLTE; }
 }
 
-void atm_fieldInitializeNonLTE(AtmField& atm_field,
+void atm_fieldInitializeNonLTE(AtmField&              atm_field,
                                const AbsorptionBands& abs_bands,
-                               const Numeric& normalizing_factor) try {
+                               const Numeric&         normalizing_factor) try {
   ARTS_TIME_REPORT
 
-  atm_field.nlte =
-      lbl::nlte::from_lte(atm_field, abs_bands, normalizing_factor);
+  atm_field.nlte = lbl::nlte::from_lte(atm_field, abs_bands, normalizing_factor);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void freq_gridFitNonLTE(AscendingGrid& freq_grid,
+void freq_gridFitNonLTE(AscendingGrid&         freq_grid,
                         const AbsorptionBands& abs_bands,
-                        const Numeric& df,
-                        const Index& nf) try {
+                        const Numeric&         df,
+                        const Index&           nf) try {
   ARTS_TIME_REPORT
 
   Vector freq;
   freq.reserve(count_lines(abs_bands) * nf);
-  for (auto f0 : abs_bands | stdv::values |
-                     stdv::transform([](auto& x) { return x.lines; }) |
-                     stdv::join |
+  for (auto f0 : abs_bands | stdv::values | stdv::transform([](auto& x) { return x.lines; }) | stdv::join |
                      stdv::transform([](auto& x) { return x.f0; })) {
     const Size n = freq.size();
     freq.resize(n + nf);
@@ -46,31 +41,29 @@ void freq_gridFitNonLTE(AscendingGrid& freq_grid,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atm_profileFitNonLTE(
-    const Workspace& ws,
-    ArrayOfAtmPoint& atm_profile,
-    const AbsorptionBands& abs_bands,
-    const Agenda& spectral_propmat_agenda,
-    const SurfaceField& surf_field,
-    const AscendingGrid& freq_grid,
-    const AscendingGrid& alt_grid,
-    const Numeric& lat,
-    const Numeric& lon,
-    const QuantumIdentifierGriddedField1Map& collision_data,
-    const ArrayOfQuantumLevelIdentifier& levels,
-    const Stokvec& pol,
-    const Numeric& azi,
-    const Numeric& dzen,
-    const Numeric& convergence_limit,
-    const Index& iteration_limit,
-    const Index& consider_limb) try {
+void atm_profileFitNonLTE(const Workspace&                         ws,
+                          ArrayOfAtmPoint&                         atm_profile,
+                          const AbsorptionBands&                   abs_bands,
+                          const Agenda&                            spectral_propmat_agenda,
+                          const SurfaceField&                      surf_field,
+                          const AscendingGrid&                     freq_grid,
+                          const AscendingGrid&                     alt_grid,
+                          const Numeric&                           lat,
+                          const Numeric&                           lon,
+                          const QuantumIdentifierGriddedField1Map& collision_data,
+                          const ArrayOfQuantumLevelIdentifier&     levels,
+                          const Stokvec&                           pol,
+                          const Numeric&                           azi,
+                          const Numeric&                           dzen,
+                          const Numeric&                           convergence_limit,
+                          const Index&                             iteration_limit,
+                          const Index&                             consider_limb) try {
   ARTS_TIME_REPORT
 
   using namespace lbl::nlte;
 
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(alt_grid, atm_profile),
-      "Altitude grid and atmospheric point grid must have the same size")
+  ARTS_USER_ERROR_IF(not arr::same_size(alt_grid, atm_profile),
+                     "Altitude grid and atmospheric point grid must have the same size")
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
   ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
@@ -81,17 +74,17 @@ void atm_profileFitNonLTE(
   const auto Cij = createCij(abs_bands, collision_data, atm_profile);
   const auto Cji = createCji(Cij, abs_bands, atm_profile);
 
-  const auto band_level_map = band_level_mapFromLevelKeys(abs_bands, levels);
-  const Size nlevels        = level_count(band_level_map);
-  const Vector r_sum        = nlte_ratio_sum(atm_profile, levels);
-  const Size unique_level   = band_level_mapUniquestIndex(band_level_map);
+  const auto   band_level_map = band_level_mapFromLevelKeys(abs_bands, levels);
+  const Size   nlevels        = level_count(band_level_map);
+  const Vector r_sum          = nlte_ratio_sum(atm_profile, levels);
+  const Size   unique_level   = band_level_mapUniquestIndex(band_level_map);
 
-  Matrix A;
-  Matrix spectral_flux_profile;
+  Matrix                     A;
+  Matrix                     spectral_flux_profile;
   QuantumIdentifierVectorMap nlte_line_flux_profile;
-  Vector r(nlevels, 0.0), x(nlevels, 0.0);
+  Vector                     r(nlevels, 0.0), x(nlevels, 0.0);
 
-  int i              = 0;
+  int     i          = 0;
   Numeric max_change = 1e99;
   while (max_change > convergence_limit and i < iteration_limit) {
     i++;
@@ -111,22 +104,11 @@ void atm_profileFitNonLTE(
                                   consider_limb,
                                   azi);
 
-    nlte_line_flux_profileIntegrate(nlte_line_flux_profile,
-                                    spectral_flux_profile,
-                                    abs_bands,
-                                    atm_profile,
-                                    freq_grid);
+    nlte_line_flux_profileIntegrate(nlte_line_flux_profile, spectral_flux_profile, abs_bands, atm_profile, freq_grid);
 
     for (Size atmi = 0; atmi < alt_grid.size(); ++atmi) {
-      A = statistical_equilibrium_equation(Aij,
-                                           Bij,
-                                           Bji,
-                                           Cij,
-                                           Cji,
-                                           nlte_line_flux_profile,
-                                           band_level_map,
-                                           atmi,
-                                           nlevels);
+      A = statistical_equilibrium_equation(
+          Aij, Bij, Bji, Cij, Cji, nlte_line_flux_profile, band_level_map, atmi, nlevels);
 
       A[unique_level] = 1.0;
       r[unique_level] = r_sum[atmi];

@@ -7,7 +7,7 @@
 
 namespace fwd::predef {
 class full {
-  std::shared_ptr<AtmPoint> atm;
+  std::shared_ptr<AtmPoint>            atm;
   std::shared_ptr<PredefinedModelData> data;
 
   void adapt();
@@ -19,8 +19,7 @@ class full {
   full& operator=(const full&);
   full& operator=(full&&) noexcept;
 
-  full(std::shared_ptr<AtmPoint> atm,
-       std::shared_ptr<PredefinedModelData> data);
+  full(std::shared_ptr<AtmPoint> atm, std::shared_ptr<PredefinedModelData> data);
 
   [[nodiscard]] Complex operator()(const Numeric frequency) const;
 

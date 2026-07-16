@@ -20,14 +20,12 @@
     time at construction is used to seed the generator.
 
 */
-template <class rand_type>
-class Rand {
+template <class rand_type> class Rand {
  public:
   Rand(rand_type lo, rand_type hi) : low(lo), range(hi - lo) { srand(rand()); }
 
   rand_type operator()() const {
-    rand_type r =
-        (rand_type)(((Numeric)rand()) / ((Numeric)RAND_MAX) * (Numeric)range);
+    rand_type r = (rand_type)(((Numeric)rand()) / ((Numeric)RAND_MAX) * (Numeric)range);
     return low + r;
   }
 
@@ -40,8 +38,7 @@ class Rand {
   rand_type low, range;
 };
 
-template <>
-class Rand<Index> {
+template <> class Rand<Index> {
  public:
   Rand(Index lo, Index hi) : low(lo), range(hi - lo) {
     // Avoid negative ranges.
@@ -70,17 +67,13 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive);
 
 // Fill matrix with random values symmetrically.
 void random_fill_matrix_symmetric(StridedMatrixView A, Numeric range, bool positive);
-void random_fill_matrix_symmetric(StridedComplexMatrixView A,
-                                  Numeric range,
-                                  bool positive);
+void random_fill_matrix_symmetric(StridedComplexMatrixView A, Numeric range, bool positive);
 
 // Generate random, positive semi-definite matrix.
 void random_fill_matrix_pos_def(StridedMatrixView A, Numeric range, bool positive);
 
 // Generate random, positive semi-definite matrix.
-void random_fill_matrix_pos_semi_def(StridedMatrixView A,
-                                     Numeric range,
-                                     bool positive);
+void random_fill_matrix_pos_semi_def(StridedMatrixView A, Numeric range, bool positive);
 
 // Fill vector with random values.
 void random_fill_vector(VectorView A, Numeric range, bool positive);
@@ -92,17 +85,11 @@ StridedMatrixView random_submatrix(StridedMatrixView A, Index m, Index n);
 Range random_range(Index n);
 
 // Maximum element-wise error of two matrices.
-Numeric get_maximum_error(StridedConstMatrixView A1,
-                          StridedConstMatrixView A2,
-                          bool relative);
+Numeric get_maximum_error(StridedConstMatrixView A1, StridedConstMatrixView A2, bool relative);
 
-Numeric get_maximum_error(StridedConstComplexMatrixView A1,
-                          StridedConstComplexMatrixView A2,
-                          bool relative);
+Numeric get_maximum_error(StridedConstComplexMatrixView A1, StridedConstComplexMatrixView A2, bool relative);
 
 // Maximum element-wise error of two matrices.
-Numeric get_maximum_error(ConstVectorView v1,
-                          ConstVectorView v2,
-                          bool relative);
+Numeric get_maximum_error(ConstVectorView v1, ConstVectorView v2, bool relative);
 
 #endif  // test_utils_h

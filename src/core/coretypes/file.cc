@@ -42,9 +42,7 @@
    \date   2000-11-01
 */
 void filename_ascii(String& filename, const String& varname) {
-  if ("" == filename) {
-    filename = varname + ".aa";
-  }
+  if ("" == filename) { filename = varname + ".aa"; }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -79,9 +77,8 @@ void open_output_file(std::ofstream& file, const std::string_view name) {
     // get here if there really was a problem, because of the exception
     // thrown by open().)
   } catch (const std::exception& e) {
-    ARTS_USER_ERROR(
-        "Cannot open output file: {}\nMaybe you don't have write access to the directory or the file?",
-        ename);
+    ARTS_USER_ERROR("Cannot open output file: {}\nMaybe you don't have write access to the directory or the file?",
+                    ename);
   }
 }
 
@@ -112,9 +109,8 @@ void open_input_file(std::ifstream& file, const std::string_view name) {
 
   // Command line parameters which give us the include search path.
   extern Parameters parameters;
-  ArrayOfString allpaths = parameters.includepath;
-  allpaths.insert(
-      allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
+  ArrayOfString     allpaths = parameters.includepath;
+  allpaths.insert(allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
 
   ArrayOfString matching_files;
   find_file(matching_files, ename, allpaths);
@@ -156,7 +152,7 @@ std::ifstream open_input_file(const std::string_view name) {
    @author Stefan Buehler */
 ArrayOfString read_text_from_stream(std::istream& is) {
   ArrayOfString text;
-  String linebuffer;
+  String        linebuffer;
 
   // Read as long as `is' is good.
   // Contary to what I understood from the book, the explicit check
@@ -202,9 +198,7 @@ ArrayOfString read_text_from_file(const std::string_view name) {
   // filename.
   try {
     text = read_text_from_stream(ifs);
-  } catch (const std::runtime_error& x) {
-    ARTS_USER_ERROR("Error reading file: {}\n{}", name, x.what());
-  }
+  } catch (const std::runtime_error& x) { ARTS_USER_ERROR("Error reading file: {}\n{}", name, x.what()); }
 
   return text;
 }
@@ -217,9 +211,7 @@ ArrayOfString read_text_from_file(const std::string_view name) {
     @param with The replacement.
 
     @author Stefan Buehler */
-void replace_all(String& s,
-                 const std::string_view what,
-                 const std::string_view with) {
+void replace_all(String& s, const std::string_view what, const std::string_view with) {
   Size j = s.find(what);
   while (j != s.npos) {
     s.replace(j, 1, with);
@@ -238,8 +230,8 @@ void replace_all(String& s,
   @author Oliver Lemke
 */
 int check_newline(const std::string_view s) {
-  String d   = String{s};
-  int result = 0;
+  String d      = String{s};
+  int    result = 0;
 
   // Remove all whitespaces except \n
   replace_all(d, " ", "");
@@ -253,8 +245,7 @@ int check_newline(const std::string_view s) {
 
   if (!result && d[d.length() - 1] != '\n')
     result = 2;
-  else if (!result && d.length() > 2 && d[d.length() - 1] == '\n' &&
-           d[d.length() - 2] == '\n')
+  else if (!result && d.length() > 2 && d[d.length() - 1] == '\n' && d[d.length() - 2] == '\n')
     result = 3;
 
   return result;
@@ -270,8 +261,7 @@ int check_newline(const std::string_view s) {
   @author Oliver Lemke
 */
 bool file_exists(const std::string_view filename) {
-  return std::filesystem::exists(filename) &&
-         !std::filesystem::is_directory(filename);
+  return std::filesystem::exists(filename) && !std::filesystem::is_directory(filename);
 }
 
 /**
@@ -288,11 +278,11 @@ bool file_exists(const std::string_view filename) {
 
   @author Oliver Lemke
 */
-bool find_file(ArrayOfString& matches,
+bool find_file(ArrayOfString&         matches,
                const std::string_view filename,
-               const ArrayOfString& paths,
-               const ArrayOfString& extensions) {
-  bool exists = false;
+               const ArrayOfString&   paths,
+               const ArrayOfString&   extensions) {
+  bool        exists = false;
   std::string efilename{expand_path(String{filename})};
 
   // filename contains full path
@@ -301,9 +291,7 @@ bool find_file(ArrayOfString& matches,
       const String fullpath{efilename + ext};
 
       if (file_exists(fullpath)) {
-        if (std::find(matches.begin(), matches.end(), fullpath) ==
-            matches.end())
-          matches.push_back(fullpath);
+        if (std::find(matches.begin(), matches.end(), fullpath) == matches.end()) matches.push_back(fullpath);
         exists = true;
       }
     }
@@ -312,13 +300,10 @@ bool find_file(ArrayOfString& matches,
   else {
     for (const auto& path : paths) {
       for (const auto& ext : extensions) {
-        const String fullpath{
-            std::format("{}/{}{}", expand_path(path), efilename, ext)};
+        const String fullpath{std::format("{}/{}{}", expand_path(path), efilename, ext)};
 
         if (file_exists(fullpath)) {
-          if (std::find(matches.begin(), matches.end(), fullpath) ==
-              matches.end())
-            matches.push_back(fullpath);
+          if (std::find(matches.begin(), matches.end(), fullpath) == matches.end()) matches.push_back(fullpath);
           exists = true;
         }
       }
@@ -328,10 +313,8 @@ bool find_file(ArrayOfString& matches,
   return exists;
 }
 
-bool find_file2(ArrayOfString& matches,
-                const std::string_view filename,
-                const ArrayOfString& paths) {
-  bool exists = false;
+bool find_file2(ArrayOfString& matches, const std::string_view filename, const ArrayOfString& paths) {
+  bool        exists = false;
   std::string efilename{expand_path(String{filename})};
 
   // filename contains full path
@@ -339,8 +322,7 @@ bool find_file2(ArrayOfString& matches,
     const String& fullpath{efilename};
 
     if (file_exists(fullpath)) {
-      if (std::find(matches.begin(), matches.end(), fullpath) == matches.end())
-        matches.push_back(fullpath);
+      if (std::find(matches.begin(), matches.end(), fullpath) == matches.end()) matches.push_back(fullpath);
       exists = true;
     }
   }
@@ -350,9 +332,7 @@ bool find_file2(ArrayOfString& matches,
       const String fullpath{expand_path(path) + "/" + efilename};
 
       if (file_exists(fullpath)) {
-        if (std::find(matches.begin(), matches.end(), fullpath) ==
-            matches.end())
-          matches.push_back(fullpath);
+        if (std::find(matches.begin(), matches.end(), fullpath) == matches.end()) matches.push_back(fullpath);
         exists = true;
       }
     }
@@ -378,17 +358,13 @@ bool find_file2(ArrayOfString& matches,
 void find_xml_file(String& filename) {
   // Command line parameters which give us the include search path.
   extern Parameters parameters;
-  ArrayOfString allpaths = parameters.includepath;
-  allpaths.insert(
-      allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
+  ArrayOfString     allpaths = parameters.includepath;
+  allpaths.insert(allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
 
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
 
-  ARTS_USER_ERROR_IF(!matching_files.size(),
-                     "Cannot find input file: {}\nSearch path: {:B,}",
-                     filename,
-                     allpaths);
+  ARTS_USER_ERROR_IF(!matching_files.size(), "Cannot find input file: {}\nSearch path: {:B,}", filename, allpaths);
 
   filename = matching_files[0];
 }
@@ -407,9 +383,8 @@ void find_xml_file(String& filename) {
 bool find_xml_file_existence(String& filename) {
   // Command line parameters which give us the include search path.
   extern Parameters parameters;
-  ArrayOfString allpaths = parameters.includepath;
-  allpaths.insert(
-      allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
+  ArrayOfString     allpaths = parameters.includepath;
+  allpaths.insert(allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
 
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
@@ -433,8 +408,7 @@ bool find_xml_file_existence(String& filename) {
  \date   2010-04-30
  */
 String expand_path(String path) {
-  if ((path.length() == 1 && path[0] == '~') ||
-      (path.length() > 1 && path[0] == '~' && path[1] == '/')) {
+  if ((path.length() == 1 && path[0] == '~') || (path.length() > 1 && path[0] == '~' && path[1] == '/')) {
     path = String(std::getenv("HOME")) + String(path, 1);
   }
 
@@ -453,7 +427,7 @@ String expand_path(String path) {
  */
 String add_basedir(const std::string_view path) {
   extern Parameters parameters;
-  String expanded_path{expand_path(String{path})};
+  String            expanded_path{expand_path(String{path})};
 
   return expanded_path;
 }
@@ -493,9 +467,7 @@ String get_dirname(const std::string_view path) {
  \author Oliver Lemke
  */
 ArrayOfString list_directory(const std::string_view dirname) {
-  ARTS_USER_ERROR_IF(!std::filesystem::is_directory(dirname),
-                     "Error accessing directory: {}",
-                     dirname)
+  ARTS_USER_ERROR_IF(!std::filesystem::is_directory(dirname), "Error accessing directory: {}", dirname)
 
   ArrayOfString files{};
   for (const auto& filename : std::filesystem::directory_iterator{dirname}) {
@@ -517,8 +489,7 @@ ArrayOfString list_directory(const std::string_view dirname) {
  \author Oliver Lemke
  */
 
-String make_filename_unique(const std::string_view filename,
-                            const String& extension) {
+String make_filename_unique(const std::string_view filename, const String& extension) {
   String basename = String{filename};
   String extensionname;
 
@@ -526,17 +497,16 @@ String make_filename_unique(const std::string_view filename,
   if (extension.length()) {
     size_t pos = filename.rfind(extension);
     if (pos == filename.length() - extension.length()) {
-      basename = filename.substr(0, filename.length() - extension.length());
+      basename      = filename.substr(0, filename.length() - extension.length());
       extensionname = extension;
     }
   }
 
-  Index filenumber = 0;
+  Index              filenumber = 0;
   std::ostringstream newfilename;
   newfilename << basename << extensionname;
 
-  while (file_exists(newfilename.str()) ||
-         file_exists(newfilename.str() + ".gz")) {
+  while (file_exists(newfilename.str()) || file_exists(newfilename.str() + ".gz")) {
     filenumber++;
     newfilename.str("");
     newfilename << basename << "." << filenumber << extensionname;

@@ -14,6 +14,7 @@
 */
 
 #include "arts_omp.h"
+
 #include <limits>
 
 //! Wrapper for omp_get_max_threads.
@@ -61,7 +62,6 @@ int arts_omp_get_thread_num() {
 
   return thread_num;
 }
-
 
 void arts_omp_set_num_threads(int i [[maybe_unused]]) {
 #ifdef _OPENMP
@@ -122,13 +122,10 @@ void arts_omp_set_dynamic(int i [[maybe_unused]]) {
   \return Returns true if not already in a parallel region, if n is larger than
           the maximum number of threads, and additional_condition is true.
 */
-bool arts_omp_parallel(unsigned long long n [[maybe_unused]],
-                       bool additional_condition [[maybe_unused]]) {
+bool arts_omp_parallel(unsigned long long n [[maybe_unused]], bool additional_condition [[maybe_unused]]) {
 #ifdef _OPENMP
-  return additional_condition and not arts_omp_in_parallel() and
-         arts_omp_get_max_threads() > 1 and
-         (n == std::numeric_limits<unsigned long long>::max() or
-          arts_omp_get_max_threads() < static_cast<int>(n));
+  return additional_condition and not arts_omp_in_parallel() and arts_omp_get_max_threads() > 1 and
+         (n == std::numeric_limits<unsigned long long>::max() or arts_omp_get_max_threads() < static_cast<int>(n));
 #else
   return false;
 #endif

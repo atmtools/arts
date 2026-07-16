@@ -38,7 +38,7 @@ enum EndianType : char { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
   Handles reading, writing and constructing of XML tags.
 */
 struct XMLTag {
-  String name;                                /*!< Tag name */
+  String                             name;    /*!< Tag name */
   std::unordered_map<String, String> attribs; /*!< List of attributes */
 
   XMLTag() = default;
@@ -46,35 +46,26 @@ struct XMLTag {
   void check_name(const std::string_view& expected_name);
   void check_end_name(const std::string_view& expected_name);
 
-  void add_attribute(const std::string_view& aname,
-                     const std::string_view& value);
+  void add_attribute(const std::string_view& aname, const std::string_view& value);
   void add_attribute(const std::string_view& aname, const Index& value);
   void add_attribute(const std::string_view& aname, const Size& value);
   void add_attribute(const std::string_view& aname, const Numeric& value);
 
-  template <typename... Args>
-  void add_attribute(const std::string_view& name,
-                     const auto& value,
-                     const Args&... args)
-    requires(sizeof...(Args) >= 2 and (sizeof...(Args) % 2 == 0))
-  {
+  template <typename... Args> void add_attribute(const std::string_view& name, const auto& value, const Args&... args)
+      requires(sizeof...(Args) >= 2 and (sizeof...(Args) % 2 == 0)) {
     add_attribute(name, value);
     add_attribute(args...);
   }
 
-  template <typename... Args>
-  XMLTag(std::string_view n, const Args&... args) : name(n), attribs{} {
+  template <typename... Args> XMLTag(std::string_view n, const Args&... args) : name(n), attribs{} {
     if (sizeof...(Args) != 0) add_attribute(args...);
   }
 
-  void check_attribute(const std::string_view& aname,
-                       const std::string_view& value);
+  void check_attribute(const std::string_view& aname, const std::string_view& value);
   void check_attribute(const std::string_view& aname, const Index& value);
   void check_attribute(const std::string_view& aname, const Size& value);
 
-  void get_attribute_value(const std::string_view& aname,
-                           String& value,
-                           std::string_view def = "");
+  void get_attribute_value(const std::string_view& aname, String& value, std::string_view def = "");
   void get_attribute_value(const std::string_view& aname, Index& value);
   void get_attribute_value(const std::string_view& aname, Size& value);
 
@@ -130,10 +121,7 @@ void xml_parse_from_stream(std::istream&, ArrayOfString&, bifstream*, XMLTag&);
   \param ntype  Numeric type
   \param etype  Endian type
 */
-void xml_read_header_from_stream(std::istream& is,
-                                 FileType& ftype,
-                                 NumericType& ntype,
-                                 EndianType& etype);
+void xml_read_header_from_stream(std::istream& is, FileType& ftype, NumericType& ntype, EndianType& etype);
 
 //! Reads closing root tag
 /*!
@@ -217,18 +205,15 @@ std::stringstream xml_read_from_file_base_buffer(const String& filename);
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_ioable T>
-void xml_read_from_file_base(const String& filename, T& type) try {
-  ARTS_NAMED_TIME_REPORT("XmlRead of " +
-                         std::string{xml_io_stream<T>::type_name})
+template <arts_xml_ioable T> void xml_read_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlRead of " + std::string{xml_io_stream<T>::type_name})
 
   std::stringstream buffer = xml_read_from_file_base_buffer(filename);
-  XMLStreamHandler xsh{filename, buffer};
+  XMLStreamHandler  xsh{filename, buffer};
   xml_io_stream<T>::read(buffer, type, xsh);
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
-  throw std::runtime_error(std::format(
-      "Cannot read file with full filename: \"{}\":\n{}", filename, e.what()));
+  throw std::runtime_error(std::format("Cannot read file with full filename: \"{}\":\n{}", filename, e.what()));
 }
 
 //! Extends data from XML file
@@ -239,18 +224,15 @@ void xml_read_from_file_base(const String& filename, T& type) try {
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_extendable T>
-void xml_extend_from_file_base(const String& filename, T& type) try {
-  ARTS_NAMED_TIME_REPORT("XmlExtend of " +
-                         std::string{xml_io_stream<T>::type_name})
+template <arts_xml_extendable T> void xml_extend_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlExtend of " + std::string{xml_io_stream<T>::type_name})
 
   std::stringstream buffer = xml_read_from_file_base_buffer(filename);
-  XMLStreamHandler xsh{filename, buffer};
+  XMLStreamHandler  xsh{filename, buffer};
   xml_io_stream<T>::extend(buffer, type, xsh);
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
-  throw std::runtime_error(std::format(
-      "Cannot extend file with full filename: \"{}\":\n{}", filename, e.what()));
+  throw std::runtime_error(std::format("Cannot extend file with full filename: \"{}\":\n{}", filename, e.what()));
 }
 
 //! Appends data from XML file
@@ -261,18 +243,15 @@ void xml_extend_from_file_base(const String& filename, T& type) try {
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_appendable T>
-void xml_append_from_file_base(const String& filename, T& type) try {
-  ARTS_NAMED_TIME_REPORT("XmlAppend of " +
-                         std::string{xml_io_stream<T>::type_name})
+template <arts_xml_appendable T> void xml_append_from_file_base(const String& filename, T& type) try {
+  ARTS_NAMED_TIME_REPORT("XmlAppend of " + std::string{xml_io_stream<T>::type_name})
 
   std::stringstream buffer = xml_read_from_file_base_buffer(filename);
-  XMLStreamHandler xsh{filename, buffer};
+  XMLStreamHandler  xsh{filename, buffer};
   xml_io_stream<T>::append(buffer, type, xsh);
   xml_read_footer_from_stream(buffer);
 } catch (const std::runtime_error& e) {
-  throw std::runtime_error(std::format(
-      "Cannot append file with full filename: \"{}\":\n{}", filename, e.what()));
+  throw std::runtime_error(std::format("Cannot append file with full filename: \"{}\":\n{}", filename, e.what()));
 }
 
 //! Write data to XML file
@@ -285,10 +264,7 @@ void xml_append_from_file_base(const String& filename, T& type) try {
   \param no_clobber 0: Overwrite, 1: Use unique filename
   \param ftype      File type
 */
-template <arts_xml_ioable T>
-void xml_write_to_file_base(const String& filename,
-                            const T& type,
-                            const FileType ftype) {
+template <arts_xml_ioable T> void xml_write_to_file_base(const String& filename, const T& type, const FileType ftype) {
   std::unique_ptr<std::ostream> ofs;
 
   if (ftype == FileType::zascii)
@@ -314,30 +290,24 @@ void xml_write_to_file_base(const String& filename,
     if (ftype == FileType::ascii or ftype == FileType::zascii) {
       xml_io_stream<T>::write(*ofs, type, static_cast<bofstream*>(nullptr), "");
     } else {
-      String bfilename = filename + ".bin";
+      String    bfilename = filename + ".bin";
       bofstream bofs(bfilename.c_str());
       xml_io_stream<T>::write(*ofs, type, &bofs, "");
     }
 
     xml_write_footer_to_stream(*ofs);
   } catch (const std::runtime_error& e) {
-    throw std::runtime_error(std::format(
-        "Cannot write file with full filename: \"{}\":\n{}", filename, e.what()));
+    throw std::runtime_error(std::format("Cannot write file with full filename: \"{}\":\n{}", filename, e.what()));
   }
 }
 
-template <arts_xml_ioable T>
-void xml_read_from_stream(std::istream& i, T& v, bifstream* b = nullptr) try {
+template <arts_xml_ioable T> void xml_read_from_stream(std::istream& i, T& v, bifstream* b = nullptr) try {
   xml_io_stream<T>::read(i, v, b);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format(
-      "Cannot stream {}:\n{}", xml_io_stream<T>::type_name, e.what()));
+  throw std::runtime_error(std::format("Cannot stream {}:\n{}", xml_io_stream<T>::type_name, e.what()));
 }
 
 template <arts_xml_ioable T>
-void xml_write_to_stream(std::ostream& o,
-                         const T& v,
-                         bofstream* b       = nullptr,
-                         std::string_view n = ""sv) {
+void xml_write_to_stream(std::ostream& o, const T& v, bofstream* b = nullptr, std::string_view n = ""sv) {
   xml_io_stream<T>::write(o, v, b, n);
 }

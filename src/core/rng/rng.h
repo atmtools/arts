@@ -18,8 +18,7 @@
  * 
  * @tparam Generator A C++ standards uniform random bit generator (defaults to mt19937_64)
  */
-template <std::uniform_random_bit_generator Generator = std::mt19937_64>
-class RandomNumberGenerator {
+template <std::uniform_random_bit_generator Generator = std::mt19937_64> class RandomNumberGenerator {
   using int_t = typename Generator::result_type;
 
   static constexpr int_t min_v = std::numeric_limits<int_t>::lowest();
@@ -97,14 +96,9 @@ class RandomNumberGenerator {
    * @param x The parameters to construct the random_distribution
    * @return auto A callable generator of random numbers
    */
-  template <template <typename> class random_distribution =
-                std::uniform_real_distribution,
-            typename... Ts>
+  template <template <typename> class random_distribution = std::uniform_real_distribution, typename... Ts>
   auto get(Ts &&...x) const {
-    return [nv   = new_generator(),
-            draw = random_distribution(std::forward<Ts>(x)...)]() mutable {
-      return draw(nv);
-    };
+    return [nv = new_generator(), draw = random_distribution(std::forward<Ts>(x)...)]() mutable { return draw(nv); };
   }
 
   /** Seeds the random number engine with a new and unique seed
@@ -122,23 +116,21 @@ class RandomNumberGenerator {
    * @return true if the seed was used as is, otherwise false
    */
   bool seed(int_t n) {
-    static std::mutex seed_mtx;
+    static std::mutex         seed_mtx;
     static std::vector<int_t> seeds{};
 
     std::lock_guard class_lock{g};
     std::lock_guard method_lock{seed_mtx};
-    bool seed_as_is = true;
+    bool            seed_as_is = true;
 
-    constexpr auto add_one = [](int_t i) {
-      return (i >= max_v - 1) ? min_v : i + 1;
-    };
+    constexpr auto add_one = [](int_t i) { return (i >= max_v - 1) ? min_v : i + 1; };
 
     if (std::find(seeds.begin(), seeds.end(), n) != seeds.end()) {
       seed_as_is = false;
 
-      auto minmax = std::minmax_element(seeds.begin(), seeds.end());
-      int_t min   = *minmax.first;
-      int_t max   = *minmax.second;
+      auto  minmax = std::minmax_element(seeds.begin(), seeds.end());
+      int_t min    = *minmax.first;
+      int_t max    = *minmax.second;
 
       if (min not_eq min_v) {
         n = add_one(max);
@@ -146,9 +138,7 @@ class RandomNumberGenerator {
         n = add_one(max);
         if (n == min) seeds.clear();
       } else {
-        do {
-          n = add_one(n);
-        } while (std::find(seeds.begin(), seeds.end(), n) != seeds.end());
+        do { n = add_one(n); } while (std::find(seeds.begin(), seeds.end(), n) != seeds.end());
       }
     }
     seeds.push_back(n);
@@ -166,9 +156,7 @@ class RandomNumberGenerator {
    * @param t The time, defaults to current time
    * @return See main seed
    */
-  bool seed(const Time &t = {}) {
-    return seed(static_cast<int_t>(t.EpochTime().count() % max_v));
-  }
+  bool seed(const Time &t = {}) { return seed(static_cast<int_t>(t.EpochTime().count() % max_v)); }
 
   /** Force the seed to some integer, determining the randomness of the
    * distributions
@@ -183,10 +171,7 @@ class RandomNumberGenerator {
   }
 
   /** output the current seed */
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const RandomNumberGenerator &rng) {
-    return os << rng.current_seed;
-  }
+  friend std::ostream &operator<<(std::ostream &os, const RandomNumberGenerator &rng) { return os << rng.current_seed; }
 };
 
 /** Wraps the generation of a random number generator for a matpack type
@@ -196,20 +181,16 @@ class RandomNumberGenerator {
  * @param x The parameters passed to get_par<>(x...)
  * @return data_t A new object of random numbers of size sz
  */
-template <template <typename> class random_distribution =
-              std::uniform_real_distribution,
-          std::uniform_random_bit_generator Generator = std::mt19937_64,
+template <template <typename> class random_distribution = std::uniform_real_distribution,
+          std::uniform_random_bit_generator Generator   = std::mt19937_64,
           typename... param_types>
 void random_numbers(matpack::mut_any_md auto &&out, param_types &&...x) {
   using T = decltype(random_distribution(param_types{}...))::result_type;
-  static_assert(std::same_as<T, matpack::value_type<decltype(out)>>,
-                "Type mismatch in random_numbers");
+  static_assert(std::same_as<T, matpack::value_type<decltype(out)>>, "Type mismatch in random_numbers");
 
-  std::generate(
-      out.elem_begin(),
-      out.elem_end(),
-      RandomNumberGenerator<Generator>{}.template get<random_distribution>(
-          std::forward<param_types>(x)...));
+  std::generate(out.elem_begin(),
+                out.elem_end(),
+                RandomNumberGenerator<Generator>{}.template get<random_distribution>(std::forward<param_types>(x)...));
 }
 
 /** Wraps the creation of a random number a matpack type creation
@@ -221,15 +202,13 @@ void random_numbers(matpack::mut_any_md auto &&out, param_types &&...x) {
  * @return data_t A new object of random numbers of size sz
  */
 template <std::size_t N,
-          template <typename> class random_distribution =
-              std::uniform_real_distribution,
-          std::uniform_random_bit_generator Generator = std::mt19937_64,
+          template <typename> class random_distribution = std::uniform_real_distribution,
+          std::uniform_random_bit_generator Generator   = std::mt19937_64,
           typename... param_types>
 auto random_numbers(const matpack::integer_helper<N> &sz, param_types &&...x) {
   using T = decltype(random_distribution(param_types{}...))::result_type;
 
   matpack::data_t<T, N> out(sz.shape);
-  random_numbers<random_distribution, Generator>(
-      out, std::forward<param_types>(x)...);
+  random_numbers<random_distribution, Generator>(out, std::forward<param_types>(x)...);
   return out;
 }

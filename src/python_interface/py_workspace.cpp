@@ -26,15 +26,12 @@
 extern Parameters parameters;
 namespace Python {
 py::tuple pickle_method(const Method& m) {
-  return py::make_tuple(
-      m.get_name(), m.get_ins(), m.get_outs(), m.get_setval(), m.overwrite());
+  return py::make_tuple(m.get_name(), m.get_ins(), m.get_outs(), m.get_setval(), m.overwrite());
 }
 
-Method unpickle_method(const std::tuple<std::string,
-                                        std::vector<std::string>,
-                                        std::vector<std::string>,
-                                        std::optional<Wsv>,
-                                        bool>& state) {
+Method unpickle_method(
+    const std::tuple<std::string, std::vector<std::string>, std::vector<std::string>, std::optional<Wsv>, bool>&
+        state) {
   auto name   = std::get<0>(state);
   auto ins    = std::get<1>(state);
   auto outs   = std::get<2>(state);
@@ -44,24 +41,14 @@ Method unpickle_method(const std::tuple<std::string,
   return Method{name, ins, outs, setval, ow};
 }
 
-std::tuple<std::string,
-           std::vector<Method>,
-           std::vector<std::string>,
-           std::vector<std::string>,
-           bool>
-pickle_agenda(const Agenda& ag) {
-  return std::make_tuple(ag.get_name(),
-                         ag.get_methods(),
-                         ag.get_share(),
-                         ag.get_copy(),
-                         ag.is_checked());
+std::tuple<std::string, std::vector<Method>, std::vector<std::string>, std::vector<std::string>, bool> pickle_agenda(
+    const Agenda& ag) {
+  return std::make_tuple(ag.get_name(), ag.get_methods(), ag.get_share(), ag.get_copy(), ag.is_checked());
 }
 
-Agenda unpickle_agenda(const std::tuple<std::string,
-                                        std::vector<Method>,
-                                        std::vector<std::string>,
-                                        std::vector<std::string>,
-                                        bool>& state) {
+Agenda unpickle_agenda(
+    const std::tuple<std::string, std::vector<Method>, std::vector<std::string>, std::vector<std::string>, bool>&
+        state) {
   auto n  = std::get<0>(state);
   auto m  = std::get<1>(state);
   auto s  = std::get<2>(state);
@@ -71,16 +58,14 @@ Agenda unpickle_agenda(const std::tuple<std::string,
   return Agenda{n, m, s, c, ch};
 }
 
-std::filesystem::path correct_include_path(
-    const std::filesystem::path& path_copy);
+std::filesystem::path correct_include_path(const std::filesystem::path& path_copy);
 
 void py_auto_wsv(py::class_<Workspace>& ws);
 void py_auto_wsm(py::class_<Workspace>& ws);
 
 void py_workspace(py::class_<Workspace>& ws) try {
   generic_interface(ws);
-  ws.def_rw(
-      "wsv", &Workspace::wsv, "The workspace variables\n\n.. :class:`~pyarts3.arts.WsvMap`");
+  ws.def_rw("wsv", &Workspace::wsv, "The workspace variables\n\n.. :class:`~pyarts3.arts.WsvMap`");
   ws.def(
         "__init__",
         [](Workspace* w, bool with_defaults) {
@@ -102,15 +87,12 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "init",
           [](Workspace& w, const std::string& n, const std::string& t) {
-            if (w.contains(n))
-              throw std::domain_error(
-                  std::format(R"(Workspace variable "{}" already exists.)", n));
+            if (w.contains(n)) throw std::domain_error(std::format(R"(Workspace variable "{}" already exists.)", n));
 
             try {
               w.set(n, Wsv::from_named_type(t));
             } catch (std::exception& e) {
-              throw std::runtime_error(
-                  std::format("Error setting '{}'\n{}", n, e.what()));
+              throw std::runtime_error(std::format("Error setting '{}'\n{}", n, e.what()));
             }
           },
           "name"_a,
@@ -119,18 +101,15 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "set",
           [](Workspace& w, const std::string& n, const py::object* const x) {
-            if (not w.contains(n))
-              throw std::domain_error(
-                  std::format("Workspace variable \"{}\" does not exist", n));
+            if (not w.contains(n)) throw std::domain_error(std::format("Workspace variable \"{}\" does not exist", n));
 
             Wsv wsv = from(x);
 
             if (not wsv.holds_same(w.share(n)))
-              throw std::domain_error(std::format(
-                  R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
-                  n,
-                  w.share(n).type_name(),
-                  wsv.type_name()));
+              throw std::domain_error(std::format(R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
+                                                  n,
+                                                  w.share(n).type_name(),
+                                                  wsv.type_name()));
 
             w.overwrite(n, wsv);
 
@@ -163,8 +142,7 @@ void py_workspace(py::class_<Workspace>& ws) try {
   ws.def(
       "__iter__",
       [](const Workspace& w) {
-        return py::make_iterator(
-            py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
+        return py::make_iterator(py::type<Workspace>(), "workspace-iterator", w.begin(), w.end());
       },
       py::rv_policy::reference_internal,
       "Allows `iter(self)`");
@@ -174,7 +152,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
   py_auto_wsv(ws);
   py_auto_wsm(ws);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize workspace\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize workspace\n{}", e.what()));
 }
 }  // namespace Python

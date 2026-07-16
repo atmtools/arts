@@ -22,8 +22,7 @@ class double_imanip {
 
   std::istream& operator>>(const double_imanip&) const;
 
-  friend const double_imanip& operator>>(std::istream& in,
-                                         const double_imanip& dm);
+  friend const double_imanip& operator>>(std::istream& in, const double_imanip& dm);
 
  private:
   mutable std::istream* in;

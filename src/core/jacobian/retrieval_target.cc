@@ -1,9 +1,9 @@
 #include "retrieval_target.h"
 
-void xml_io_stream<PairOfBlockMatrix>::write(std::ostream &os,
+void xml_io_stream<PairOfBlockMatrix>::write(std::ostream            &os,
                                              const PairOfBlockMatrix &x,
-                                             bofstream *pbofs,
-                                             std::string_view name) {
+                                             bofstream               *pbofs,
+                                             std::string_view         name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -13,9 +13,7 @@ void xml_io_stream<PairOfBlockMatrix>::write(std::ostream &os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<PairOfBlockMatrix>::read(std::istream &is,
-                                            PairOfBlockMatrix &x,
-                                            bifstream *pbifs) {
+void xml_io_stream<PairOfBlockMatrix>::read(std::istream &is, PairOfBlockMatrix &x, bifstream *pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

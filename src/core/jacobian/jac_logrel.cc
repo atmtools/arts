@@ -23,17 +23,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector logrelfwd::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector logrelfwd::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector logrelfwd::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logrelfwd::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector logrelfwd::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logrelfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector logrelinv::operator()(ConstVectorView xx) const {
   ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
@@ -56,17 +50,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector logrelinv::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector logrelinv::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector logrelinv::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logrelinv::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector logrelinv::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logrelinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix logrelinv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
   ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
@@ -92,26 +80,20 @@ The incoming x        has {} elements
   return dy;
 }
 
-Matrix logrelinv::operator()(ConstMatrixView dy,
-                             ConstVectorView x,
-                             const AtmField&) const {
+Matrix logrelinv::operator()(ConstMatrixView dy, ConstVectorView x, const AtmField&) const {
   return this->operator()(dy, x);
 }
 
-Matrix logrelinv::operator()(ConstMatrixView dy,
-                             ConstVectorView x,
-                             const SurfaceField&) const {
+Matrix logrelinv::operator()(ConstMatrixView dy, ConstVectorView x, const SurfaceField&) const {
   return this->operator()(dy, x);
 }
 
-Matrix logrelinv::operator()(ConstMatrixView dy,
-                             ConstVectorView x,
-                             const SubsurfaceField&) const {
+Matrix logrelinv::operator()(ConstMatrixView dy, ConstVectorView x, const SubsurfaceField&) const {
   return this->operator()(dy, x);
 }
 
 void make_logrelfit(Jacobian::AtmTarget& x, const AtmField& atm) {
-  auto sorig = std::make_shared<Vector>(atm[x.type].flat_view());
+  auto            sorig = std::make_shared<Vector>(atm[x.type].flat_view());
   const logrelfwd rfwd{.sorig = sorig};
   const logrelinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
@@ -120,7 +102,7 @@ void make_logrelfit(Jacobian::AtmTarget& x, const AtmField& atm) {
 }
 
 void make_logrelfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
-  auto sorig = std::make_shared<Vector>(surf[x.type].flat_view());
+  auto            sorig = std::make_shared<Vector>(surf[x.type].flat_view());
   const logrelfwd rfwd{.sorig = sorig};
   const logrelinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;
@@ -128,9 +110,8 @@ void make_logrelfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
   x.transform_state  = rfwd;
 }
 
-void make_logrelfit(Jacobian::SubsurfaceTarget& x,
-                    const SubsurfaceField& subsurf) {
-  auto sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
+void make_logrelfit(Jacobian::SubsurfaceTarget& x, const SubsurfaceField& subsurf) {
+  auto            sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
   const logrelfwd rfwd{.sorig = sorig};
   const logrelinv rinv{.sorig = sorig};
   x.inverse_state    = rinv;

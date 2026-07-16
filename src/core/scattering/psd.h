@@ -2,6 +2,7 @@
 #define ARTS_CORE_SCATTERING_PSD_H_
 
 #include <matpack.h>
+
 #include <optional>
 
 #include "atm.h"
@@ -11,7 +12,6 @@
 
 namespace scattering {
 
-
 /*** Single-moment modified gamma distribution
  *
  * Implements a modified gamma distribution with a single free moment.
@@ -19,34 +19,28 @@ namespace scattering {
  */
 struct MGDSingleMoment {
   ScatteringSpeciesProperty moment;
-  Numeric n_alpha;
-  Numeric n_b;
-  Numeric mu;
-  Numeric gamma;
-  Numeric t_min;
-  Numeric t_max;
-  bool picky;
+  Numeric                   n_alpha;
+  Numeric                   n_b;
+  Numeric                   mu;
+  Numeric                   gamma;
+  Numeric                   t_min;
+  Numeric                   t_max;
+  bool                      picky;
 
   MGDSingleMoment() = default;
 
   MGDSingleMoment(ScatteringSpeciesProperty moment_,
-                  Numeric n_alpha_,
-                  Numeric n_b_,
-                  Numeric mu_,
-                  Numeric gamma_,
-                  Numeric t_min_,
-                  Numeric t_max_,
-                  bool picky_);
+                  Numeric                   n_alpha_,
+                  Numeric                   n_b_,
+                  Numeric                   mu_,
+                  Numeric                   gamma_,
+                  Numeric                   t_min_,
+                  Numeric                   t_max_,
+                  bool                      picky_);
 
-  MGDSingleMoment(ScatteringSpeciesProperty moment_,
-                  std::string name,
-                  Numeric t_min_,
-                  Numeric t_max_,
-                  bool picky_);
+  MGDSingleMoment(ScatteringSpeciesProperty moment_, std::string name, Numeric t_min_, Numeric t_max_, bool picky_);
 
-  static constexpr SizeParameter get_size_parameter() {
-    return SizeParameter::DVeq;
-  }
+  static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
 
   /** Evaluate PSD at given atmospheric point.
    *
@@ -60,12 +54,10 @@ struct MGDSingleMoment {
    *
    */
   Vector evaluate(const AtmPoint& point,
-                  const Vector& particle_sizes,
-                  const Numeric& scat_species_a,
-                  const Numeric& scat_species_b) const;
-
+                  const Vector&   particle_sizes,
+                  const Numeric&  scat_species_a,
+                  const Numeric&  scat_species_b) const;
 };
-
 
 /*** Binned PSD
  *
@@ -74,30 +66,23 @@ struct MGDSingleMoment {
  * to zero.
  */
 struct BinnedPSD {
-
   SizeParameter size_parameter = SizeParameter::DVeq;
-  Vector bins;
-  Vector counts;
-  Numeric t_min = 0.0;
-  Numeric t_max = 350.0;
+  Vector        bins;
+  Vector        counts;
+  Numeric       t_min = 0.0;
+  Numeric       t_max = 350.0;
 
   BinnedPSD() = default;
 
-  BinnedPSD(SizeParameter size_parameter_,
-            Vector bins_,
-            Vector counts_,
-            Numeric t_min_ = 0.0,
-            Numeric t_max_ = 350.0);
+  BinnedPSD(SizeParameter size_parameter_, Vector bins_, Vector counts_, Numeric t_min_ = 0.0, Numeric t_max_ = 350.0);
 
-  static constexpr SizeParameter get_size_parameter() {
-    return SizeParameter::Mass;
-  }
+  static constexpr SizeParameter get_size_parameter() { return SizeParameter::Mass; }
 
   Vector evaluate(const AtmPoint& point,
-                  const Vector& particle_sizes,
+                  const Vector&   particle_sizes,
                   const Numeric& /*scat_species_a*/,
                   const Numeric& /*scat_species_b*/) const;
 };
 
-}
+}  // namespace scattering
 #endif  // ARTS_CORE_PSD_H_

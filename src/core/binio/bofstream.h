@@ -27,11 +27,10 @@ class bofstream : public binostream, public std::ofstream {
  public:
   bofstream() : std::ofstream() {}
 
-  explicit bofstream(const char* name,
-                     std::ios::openmode mode = std::ios::out | std::ios::trunc | std::ios::binary)
+  explicit bofstream(const char* name, std::ios::openmode mode = std::ios::out | std::ios::trunc | std::ios::binary)
       : std::ofstream(name, mode) {}
 
-  void seek(long spos, Offset offs) final;
+  void           seek(long spos, Offset offs) final;
   std::streampos pos() final;
 
   void putByte(bofstream::Byte b) final;

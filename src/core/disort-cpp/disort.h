@@ -12,16 +12,13 @@
 
 namespace disort {
 struct radiances {
-  AscendingGrid freq_grid;  // nf
-  DescendingGrid alt_grid;  // level; nl
-  AziGrid azi_grid;         // naa
-  ZenGrid zen_grid;         // nza
-  Tensor4 data;             // nf, nl - 1, naa, nza
+  AscendingGrid  freq_grid;  // nf
+  DescendingGrid alt_grid;   // level; nl
+  AziGrid        azi_grid;   // naa
+  ZenGrid        zen_grid;   // nza
+  Tensor4        data;       // nf, nl - 1, naa, nza
 
-  void resize(AscendingGrid freq_grid,
-              DescendingGrid alt_grid,
-              AziGrid azi_grid,
-              ZenGrid zen_grid);
+  void resize(AscendingGrid freq_grid, DescendingGrid alt_grid, AziGrid azi_grid, ZenGrid zen_grid);
 
   [[nodiscard]] radiances combine(const radiances& other) const;
 
@@ -29,11 +26,11 @@ struct radiances {
 };
 
 struct fluxes {
-  AscendingGrid freq_grid;  // nf
-  DescendingGrid alt_grid;  // level; nl
-  Matrix up;                // nf, nl - 1
-  Matrix down_diffuse;      // nf, nl - 1
-  Matrix down_direct;       // nf, nl - 1
+  AscendingGrid  freq_grid;     // nf
+  DescendingGrid alt_grid;      // level; nl
+  Matrix         up;            // nf, nl - 1
+  Matrix         down_diffuse;  // nf, nl - 1
+  Matrix         down_direct;   // nf, nl - 1
 
   void resize(AscendingGrid freq_grid, DescendingGrid alt_grid);
 
@@ -41,25 +38,20 @@ struct fluxes {
 };
 
 struct BDRF {
-  using func_t = CustomOperator<void,
-                                MatrixView,
-                                const ConstVectorView&,
-                                const ConstVectorView&>;
+  using func_t = CustomOperator<void, MatrixView, const ConstVectorView&, const ConstVectorView&>;
   func_t f;
 
-  void operator()(MatrixView x,
-                  const ConstVectorView& a,
-                  const ConstVectorView& b) const;
+  void operator()(MatrixView x, const ConstVectorView& a, const ConstVectorView& b) const;
 
   Matrix operator()(const Vector& a, const Vector& b) const;
 };
 
 struct mathscr_v_data {
-  Matrix src;
-  Matrix G;
+  Matrix         src;
+  Matrix         G;
   solve_workdata solve_work;
-  Vector k1, k2;
-  Vector cvec;
+  Vector         k1, k2;
+  Vector         cvec;
 
   mathscr_v_data(const Index Nk = 0, const Index Nc = 0)
       : src(Nk, Nc), G(Nk, Nk), solve_work(Nk), k1(Nk), k2(Nk), cvec(Nc) {}
@@ -79,16 +71,16 @@ struct mathscr_v_data {
 };
 
 struct u_data {
-  Matrix exponent;
-  Matrix um;
+  Matrix         exponent;
+  Matrix         um;
   mathscr_v_data src;
-  Vector intensities;
+  Vector         intensities;
 };
 
 struct u0_data {
   mathscr_v_data src;
-  Vector exponent;
-  Vector u0;
+  Vector         exponent;
+  Vector         u0;
 };
 
 struct tms_data {
@@ -100,16 +92,16 @@ struct tms_data {
 };
 
 struct flux_data {
-  Vector exponent;
+  Vector         exponent;
   mathscr_v_data src;
-  Vector u0_pos;
-  Vector u0_neg;
+  Vector         u0_pos;
+  Vector         u0_neg;
 };
 
 struct coupling_result {
-  Index iterations{0};
+  Index   iterations{0};
   Numeric max_relative_change{0.0};
-  bool converged{false};
+  bool    converged{false};
 };
 
 /** The main data structure for the DISORT algorithm
@@ -131,46 +123,46 @@ class main_data {
   Index Nscoeffs{0};
   Index NLeg_all{0};
   Index NBDRF{0};
-  bool has_source_poly{false};
-  bool has_beam_source{false};
+  bool  has_source_poly{false};
+  bool  has_beam_source{false};
 
   //! User inputs
-  AscendingGrid tau_arr{};                 // [NLayers]
-  Vector omega_arr{};                      // [NLayers]
-  Vector f_arr{};                          // [NLayers]
-  Matrix source_poly_coeffs{};             // [NLayers, Nscoeffs]
-  Matrix Leg_coeffs_all{};                 // [NLayers, NLeg_all]
-  Matrix boundary_up{};                    // [NFourier, N]
-  Matrix boundary_down{};                  // [NFourier, N]
+  AscendingGrid     tau_arr{};             // [NLayers]
+  Vector            omega_arr{};           // [NLayers]
+  Vector            f_arr{};               // [NLayers]
+  Matrix            source_poly_coeffs{};  // [NLayers, Nscoeffs]
+  Matrix            Leg_coeffs_all{};      // [NLayers, NLeg_all]
+  Matrix            boundary_up{};         // [NFourier, N]
+  Matrix            boundary_down{};       // [NFourier, N]
   std::vector<BDRF> brdf_fourier_modes{};  // [NBDRF]
-  Numeric mu0{};
-  Numeric I0{};
-  Numeric phi0{};
+  Numeric           mu0{};
+  Numeric           I0{};
+  Numeric           phi0{};
 
   //! Derived values
-  Vector scale_tau{};                   // [NLayers]
-  Vector scaled_omega_arr{};            // [NLayers]
-  Vector scaled_tau_arr_with_0{};       // [NLayers + 1]
-  Vector mu_arr{};                      // [NQuad]
-  Vector inv_mu_arr{};                  // [NQuad]
-  Vector W{};                           // [N]
-  Vector Leg_coeffs_residue_avg{};      // [NLeg_all]
-  Matrix weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
-  Matrix weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
-  Tensor4 GC_collect{};                 // [NFourier, NLayers, NQuad, NQuad]
-  Tensor4 G_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
-  Tensor3 K_collect{};                  // [NFourier, NLayers, NQuad]
-  Tensor3 expK_collect{};               // [NFourier, NLayers, NQuad]
-  Tensor3 exponent{};                   // [NLayers, NFourier, NQuad]
-  Tensor3 um{};                         // [NLayers, NFourier, NQuad]
-  Tensor3 B_collect{};                  // [NFourier, NLayers, NQuad]
+  Vector  scale_tau{};                   // [NLayers]
+  Vector  scaled_omega_arr{};            // [NLayers]
+  Vector  scaled_tau_arr_with_0{};       // [NLayers + 1]
+  Vector  mu_arr{};                      // [NQuad]
+  Vector  inv_mu_arr{};                  // [NQuad]
+  Vector  W{};                           // [N]
+  Vector  Leg_coeffs_residue_avg{};      // [NLeg_all]
+  Matrix  weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
+  Matrix  weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
+  Tensor4 GC_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
+  Tensor4 G_collect{};                   // [NFourier, NLayers, NQuad, NQuad]
+  Tensor3 K_collect{};                   // [NFourier, NLayers, NQuad]
+  Tensor3 expK_collect{};                // [NFourier, NLayers, NQuad]
+  Tensor3 exponent{};                    // [NLayers, NFourier, NQuad]
+  Tensor3 um{};                          // [NLayers, NFourier, NQuad]
+  Tensor3 B_collect{};                   // [NFourier, NLayers, NQuad]
   Numeric I0_orig{};
   Numeric f_avg{};
   Numeric omega_avg{};
   Numeric scaled_mu0{};
 
   //! Internal compute data
-  Index n{};                            // NQuad * NLayers;
+  Index  n{};                           // NQuad * NLayers;
   Vector RHS{};                         // [n]
   Vector jvec{};                        // [NQuad]
   Vector fac{};                         // [NLeg]
@@ -227,20 +219,20 @@ class main_data {
             const Index NLeg_all,
             const Index NBDRF);
 
-  main_data(const Index NQuad,
-            const Index NLeg,
-            const Index NFourier,
-            AscendingGrid tau_arr,
-            Vector omega_arr,
-            Matrix Leg_coeffs_all,
-            Matrix boundary_up,
-            Matrix boundary_down,
-            Vector f_arr,
-            Matrix source_poly_coeffs,
+  main_data(const Index       NQuad,
+            const Index       NLeg,
+            const Index       NFourier,
+            AscendingGrid     tau_arr,
+            Vector            omega_arr,
+            Matrix            Leg_coeffs_all,
+            Matrix            boundary_up,
+            Matrix            boundary_down,
+            Vector            f_arr,
+            Matrix            source_poly_coeffs,
             std::vector<BDRF> brdf_fourier_modes,
-            Numeric mu0,
-            Numeric I0,
-            Numeric phi0);
+            Numeric           mu0,
+            Numeric           I0,
+            Numeric           phi0);
 
   /** Get the index of the tau value closest to the given tau
     *
@@ -316,15 +308,8 @@ class main_data {
     * @param tau The point-wise optical thickness 
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
-  void u_corr(u_data& u_data,
-              Vector& ims,
-              tms_data& tms_data,
-              const Numeric tau,
-              const Numeric phi) const;
-  void gridded_u_corr(Tensor3View u_data,
-                      Tensor3View tms,
-                      Tensor3View ims,
-                      const Vector& phi) const;
+  void u_corr(u_data& u_data, Vector& ims, tms_data& tms_data, const Numeric tau, const Numeric phi) const;
+  void gridded_u_corr(Tensor3View u_data, Tensor3View tms, Tensor3View ims, const Vector& phi) const;
 
   /** Compute the upward flux at a given tau
     *
@@ -336,18 +321,11 @@ class main_data {
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
   [[nodiscard]] ConstMatrixView layer_um(Size l) const;
-  void gridded_u(Tensor3View, const Vector& phi) const;
-  void gridded_flux(VectorView up,
-                    VectorView down,
-                    VectorView down_direct) const;
+  void                          gridded_u(Tensor3View, const Vector& phi) const;
+  void                          gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
 
-  void ungridded_u(Tensor3View out,
-                   const AscendingGrid& tau,
-                   const Vector& phi) const;
-  void ungridded_flux(VectorView flux_up,
-                      VectorView flux_do,
-                      VectorView flux_dd,
-                      const AscendingGrid& tau) const;
+  void ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vector& phi) const;
+  void ungridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd, const AscendingGrid& tau) const;
 
   /** Compute the downward flux at a given tau
     *
@@ -356,8 +334,7 @@ class main_data {
     * @param tau The point-wise optical thickness 
     * @return std::pair<Numeric, Numeric> Diffuse and direct downward flux, respectively
     */
-  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&,
-                                                      const Numeric tau) const;
+  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, const Numeric tau) const;
 
   /** Computes the IMS correction factors
     *
@@ -608,10 +585,8 @@ class main_data {
   [[nodiscard]] auto&& beam_azimuth() const { return phi0; }
 
   //! Set the optical thicknesses grid - NLayers
-  template <matpack::exact_md<Numeric, 1> T>
-  void tau(T&& x) {
-    ARTS_USER_ERROR_IF(
-        x.size() != tau_arr.size(), "Invalid size for tau: {}", x.size());
+  template <matpack::exact_md<Numeric, 1> T> void tau(T&& x) {
+    ARTS_USER_ERROR_IF(x.size() != tau_arr.size(), "Invalid size for tau: {}", x.size());
     tau_arr = std::forward<T>(x);
   }
 
@@ -625,9 +600,7 @@ class main_data {
   [[nodiscard]] auto source_poly() { return MatrixView{source_poly_coeffs}; }
 
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
-  [[nodiscard]] auto all_legendre_coeffs() {
-    return MatrixView{Leg_coeffs_all};
-  }
+  [[nodiscard]] auto all_legendre_coeffs() { return MatrixView{Leg_coeffs_all}; }
 
   //! Positive Fourier coefficients of the beam source - NFourier x N
   [[nodiscard]] auto upward_boundary() { return MatrixView{boundary_up}; }
@@ -666,9 +639,9 @@ class main_data {
   */
 [[nodiscard]] coupling_result couple(main_data& atmosphere,
                                      main_data& subsurface,
-                                     Numeric tolerance    = 1e-6,
-                                     Index max_iterations = 16,
-                                     Numeric relaxation   = 1.0);
+                                     Numeric    tolerance      = 1e-6,
+                                     Index      max_iterations = 16,
+                                     Numeric    relaxation     = 1.0);
 }  // namespace disort
 
 using DisortBDRF         = disort::BDRF;
@@ -680,7 +653,7 @@ struct DisortSettings {
   Index fourier_mode_dimension{0};
 
   // Grids
-  AscendingGrid freq_grid{};
+  AscendingGrid  freq_grid{};
   DescendingGrid alt_grid{};  // levels not layers
 
   // freq_grid.size()
@@ -718,57 +691,50 @@ struct DisortSettings {
 
   DisortSettings() = default;
 
-  void resize(Index quadrature_dimension,
-              Index legendre_polynomial_dimension,
-              Index fourier_mode_dimension,
-              AscendingGrid freq_grid,
+  void resize(Index          quadrature_dimension,
+              Index          legendre_polynomial_dimension,
+              Index          fourier_mode_dimension,
+              AscendingGrid  freq_grid,
               DescendingGrid alt_grid_);
 
   [[nodiscard]] Index frequency_count() const { return freq_grid.size(); }
   [[nodiscard]] Index layer_count() const { return alt_grid.size() - 1; }
 
   [[nodiscard]] disort::main_data init() const;
-  disort::main_data& set(disort::main_data&, Index iv) const;
+  disort::main_data&              set(disort::main_data&, Index iv) const;
 #ifdef ENABLE_CDISORT
   disort::main_data& set_cdisort(disort::main_data&, Index iv) const;
 #endif
   void check() const;
 };
 
-template <>
-struct std::formatter<DisortBDRF> {
+template <> struct std::formatter<DisortBDRF> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
-  template <class FmtContext>
-  FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
     return tags.format(ctx, "BDRF"sv);
   }
 };
 
-template <>
-struct std::formatter<disort::main_data> {
+template <> struct std::formatter<disort::main_data> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const disort::main_data& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const disort::main_data& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     return tags.format(ctx,
                        "NLayers: "sv,
@@ -951,20 +917,17 @@ struct std::formatter<disort::main_data> {
   }
 };
 
-template <>
-struct std::formatter<DisortSettings> {
+template <> struct std::formatter<DisortSettings> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const DisortSettings& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const DisortSettings& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(
           ctx,
@@ -1024,130 +987,117 @@ downward_boundary_condition.shape():                      )-x-"sv,
           v.downward_boundary_condition.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x (quadrature_dimension / 2).)-x-"sv);
     }
-    return tags.format(
-        ctx,
-        R"-x-(quadrature_dimension:          )-x-"sv,
-        v.quadrature_dimension,
-        R"-x-(
+    return tags.format(ctx,
+                       R"-x-(quadrature_dimension:          )-x-"sv,
+                       v.quadrature_dimension,
+                       R"-x-(
 legendre_polynomial_dimension: )-x-"sv,
-        v.legendre_polynomial_dimension,
-        R"-x-(
+                       v.legendre_polynomial_dimension,
+                       R"-x-(
 fourier_mode_dimension:        )-x-"sv,
-        v.fourier_mode_dimension,
-        R"-x-(
+                       v.fourier_mode_dimension,
+                       R"-x-(
 freq_grid:                     )-x-"sv,
-        v.freq_grid,
-        R"-x-(
+                       v.freq_grid,
+                       R"-x-(
 alt_grid:                      )-x-"sv,
-        v.alt_grid,
-        R"-x-(
+                       v.alt_grid,
+                       R"-x-(
 nsrc:                          )-x-"sv,
-        v.source_polynomial.ncols(),
-        R"-x-(
+                       v.source_polynomial.ncols(),
+                       R"-x-(
 nbrdf:                         )-x-"sv,
-        v.bidirectional_reflectance_distribution_functions.ncols(),
-        R"-x-(
+                       v.bidirectional_reflectance_distribution_functions.ncols(),
+                       R"-x-(
 
 solar_source:
 )-x-"sv,
-        v.solar_source,
-        R"-x-(
+                       v.solar_source,
+                       R"-x-(
 solar_zenith_angle:
 )-x-"sv,
-        v.solar_zenith_angle,
-        R"-x-(
+                       v.solar_zenith_angle,
+                       R"-x-(
 solar_azimuth_angle:
 )-x-"sv,
-        v.solar_azimuth_angle,
-        R"-x-(
+                       v.solar_azimuth_angle,
+                       R"-x-(
 bidirectional_reflectance_distribution_functions:
 )-x-"sv,
-        v.bidirectional_reflectance_distribution_functions,
-        R"-x-(
+                       v.bidirectional_reflectance_distribution_functions,
+                       R"-x-(
 optical_thicknesses:
 )-x-"sv,
-        v.optical_thicknesses,
-        R"-x-(
+                       v.optical_thicknesses,
+                       R"-x-(
 single_scattering_albedo:
 )-x-"sv,
-        v.single_scattering_albedo,
-        R"-x-(
+                       v.single_scattering_albedo,
+                       R"-x-(
 fractional_scattering:
 )-x-"sv,
-        v.fractional_scattering,
-        R"-x-(
+                       v.fractional_scattering,
+                       R"-x-(
 source_polynomial:
 )-x-"sv,
-        v.source_polynomial,
-        R"-x-(
+                       v.source_polynomial,
+                       R"-x-(
 legendre_coefficients:
 )-x-"sv,
-        v.legendre_coefficients,
-        R"-x-(
+                       v.legendre_coefficients,
+                       R"-x-(
 upward_boundary_condition:
 )-x-"sv,
-        v.upward_boundary_condition,
-        R"-x-(
+                       v.upward_boundary_condition,
+                       R"-x-(
 downward_boundary_condition:
 )-x-"sv,
-        v.downward_boundary_condition);
+                       v.downward_boundary_condition);
   }
 };
 
-template <>
-struct xml_io_stream<DisortBDRF> {
+template <> struct xml_io_stream<DisortBDRF> {
   static constexpr std::string_view type_name = "DisortBDRF"sv;
 
-  static void write(std::ostream& os,
-                    const DisortBDRF& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const DisortBDRF& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, DisortBDRF& x, bifstream* pbifs = nullptr);
 };
 
-template <>
-struct xml_io_stream<DisortSettings> {
+template <> struct xml_io_stream<DisortSettings> {
   static constexpr std::string_view type_name = "DisortSettings"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&         os,
                     const DisortSettings& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*            pbofs = nullptr,
+                    std::string_view      name  = ""sv);
 
-  static void read(std::istream& is,
-                   DisortSettings& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, DisortSettings& x, bifstream* pbifs = nullptr);
 };
 
 using DisortFlux = disort::fluxes;
 
-template <>
-struct xml_io_stream_name<DisortFlux> {
+template <> struct xml_io_stream_name<DisortFlux> {
   constexpr static std::string_view name = "DisortFlux"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<DisortFlux> {
+template <> struct xml_io_stream_aggregate<DisortFlux> {
   constexpr static bool value = true;
 };
 
-template <>
-struct std::formatter<DisortFlux> {
+template <> struct std::formatter<DisortFlux> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(ctx,
                          "freq_grid.shape:    "sv,
@@ -1167,47 +1117,33 @@ struct std::formatter<DisortFlux> {
     }
 
     auto sep = tags.sep();
-    return tags.format(ctx,
-                       v.freq_grid,
-                       sep,
-                       v.alt_grid,
-                       sep,
-                       v.up,
-                       sep,
-                       v.down_diffuse,
-                       sep,
-                       v.down_direct);
+    return tags.format(ctx, v.freq_grid, sep, v.alt_grid, sep, v.up, sep, v.down_diffuse, sep, v.down_direct);
   }
 };
 
 using DisortRadiance = disort::radiances;
 
-template <>
-struct xml_io_stream_name<DisortRadiance> {
+template <> struct xml_io_stream_name<DisortRadiance> {
   constexpr static std::string_view name = "DisortRadiance"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<DisortRadiance> {
+template <> struct xml_io_stream_aggregate<DisortRadiance> {
   constexpr static bool value = true;
 };
 
-template <>
-struct std::formatter<DisortRadiance> {
+template <> struct std::formatter<DisortRadiance> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(ctx,
                          "freq_grid.shape: "sv,
@@ -1227,15 +1163,6 @@ struct std::formatter<DisortRadiance> {
     }
 
     auto sep = tags.sep();
-    return tags.format(ctx,
-                       v.freq_grid,
-                       sep,
-                       v.alt_grid,
-                       sep,
-                       v.azi_grid,
-                       sep,
-                       v.zen_grid,
-                       sep,
-                       v.data);
+    return tags.format(ctx, v.freq_grid, sep, v.alt_grid, sep, v.azi_grid, sep, v.zen_grid, sep, v.data);
   }
 };

@@ -7,28 +7,44 @@
 
 // Test calculation of TRO gridded scattering properties.
 bool test_calculate_bulk_properties_tro_gridded() {
-
-  Vector t_grid{280.0, 290.0, 300.0};
-  Vector f_grid{10e9, 89e9, 183e9};
-  Vector diameters{50e-6, 500e-6, 1e-3};
-  scattering::IrregularZenithAngleGrid za_scat_grid = Vector{0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0,
-                                            90.0, 100., 110.0, 120.0, 130.0, 140.0, 150.0, 160., 170.0, 180.0};
+  Vector                               t_grid{280.0, 290.0, 300.0};
+  Vector                               f_grid{10e9, 89e9, 183e9};
+  Vector                               diameters{50e-6, 500e-6, 1e-3};
+  scattering::IrregularZenithAngleGrid za_scat_grid = Vector{0.0,
+                                                             10.0,
+                                                             20.0,
+                                                             30.0,
+                                                             40.0,
+                                                             50.0,
+                                                             60.0,
+                                                             70.0,
+                                                             80.0,
+                                                             90.0,
+                                                             100.,
+                                                             110.0,
+                                                             120.0,
+                                                             130.0,
+                                                             140.0,
+                                                             150.0,
+                                                             160.,
+                                                             170.0,
+                                                             180.0};
   auto particle_habit = scattering::ParticleHabit::liquid_sphere(t_grid, f_grid, diameters, za_scat_grid);
-  auto sizes = particle_habit.get_sizes(SizeParameter::DVeq);
-  particle_habit = particle_habit.to_tro_gridded(t_grid, f_grid, za_scat_grid);
+  auto sizes          = particle_habit.get_sizes(SizeParameter::DVeq);
+  particle_habit      = particle_habit.to_tro_gridded(t_grid, f_grid, za_scat_grid);
   Vector size_bins{1e-6, 100e-6, 800e-6, 1500e-6};
   Vector counts{1.0, 0.0, 0.0};
-  auto psd = scattering::BinnedPSD(SizeParameter::DVeq, size_bins, counts);
-  auto scattering_habit = scattering::ScatteringHabit(particle_habit, psd);
+  auto   psd              = scattering::BinnedPSD(SizeParameter::DVeq, size_bins, counts);
+  auto   scattering_habit = scattering::ScatteringHabit(particle_habit, psd);
 
   ///
   /// Test temperature interpolation.
   ///
-  auto point = AtmPoint{1e4, 290.0};
+  auto point      = AtmPoint{1e4, 290.0};
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, f_grid);
 
-  auto pm = bulk_props.phase_matrix.value();
-  using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  auto pm     = bulk_props.phase_matrix.value();
+  using SSD   = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
   //pm_ref += 0.5 * std::get<SSD>(particle_habit[0]).phase_matrix.value()[2];
   auto em_ref = std::get<SSD>(particle_habit[0]).extinction_matrix;
@@ -50,7 +66,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
     }
 
     for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-      Numeric ref = em_ref[1, f_ind, stokes_ind];
+      Numeric ref      = em_ref[1, f_ind, stokes_ind];
       Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind, stokes_ind, stokes_ind] - ref) / ref);
       if (rel_diff > 1e-3) return false;
     }
@@ -64,7 +80,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, new_f_grid);
+  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, new_f_grid);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
@@ -74,7 +90,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   }
 
   for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-    Numeric ref = em_ref[1, f_ind, stokes_ind];
+    Numeric ref      = em_ref[1, f_ind, stokes_ind];
     Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind, stokes_ind, stokes_ind] - ref) / ref);
     if (rel_diff > 1e-3) return false;
   }
@@ -86,28 +102,44 @@ bool test_calculate_bulk_properties_tro_gridded() {
 
 // Test calculation of TRO gridded scattering properties.
 bool test_calculate_bulk_properties_tro_spectral() {
-
-  Vector t_grid{280.0, 290.0, 300.0};
-  Vector f_grid{10e9, 89e9, 183e9};
-  Vector diameters{50e-6, 500e-6, 1e-3};
-  scattering::IrregularZenithAngleGrid za_scat_grid = Vector{0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0,
-                                            90.0, 100., 110.0, 120.0, 130.0, 140.0, 150.0, 160., 170.0, 180.0};
-  auto particle_habit = scattering::ParticleHabit::liquid_sphere(t_grid, f_grid, diameters, za_scat_grid);
-  auto sizes = particle_habit.get_sizes(SizeParameter::DVeq);
-  Index l = 7;
-  particle_habit = particle_habit.to_tro_spectral(t_grid, f_grid, l);
+  Vector                               t_grid{280.0, 290.0, 300.0};
+  Vector                               f_grid{10e9, 89e9, 183e9};
+  Vector                               diameters{50e-6, 500e-6, 1e-3};
+  scattering::IrregularZenithAngleGrid za_scat_grid = Vector{0.0,
+                                                             10.0,
+                                                             20.0,
+                                                             30.0,
+                                                             40.0,
+                                                             50.0,
+                                                             60.0,
+                                                             70.0,
+                                                             80.0,
+                                                             90.0,
+                                                             100.,
+                                                             110.0,
+                                                             120.0,
+                                                             130.0,
+                                                             140.0,
+                                                             150.0,
+                                                             160.,
+                                                             170.0,
+                                                             180.0};
+  auto  particle_habit = scattering::ParticleHabit::liquid_sphere(t_grid, f_grid, diameters, za_scat_grid);
+  auto  sizes          = particle_habit.get_sizes(SizeParameter::DVeq);
+  Index l              = 7;
+  particle_habit       = particle_habit.to_tro_spectral(t_grid, f_grid, l);
   Vector size_bins{1e-6, 100e-6, 800e-6, 1500e-6};
   Vector counts{1.0, 0.0, 0.0};
-  auto psd = scattering::BinnedPSD(SizeParameter::DVeq, size_bins, counts);
-  auto scattering_habit = scattering::ScatteringHabit(particle_habit, psd);
+  auto   psd              = scattering::BinnedPSD(SizeParameter::DVeq, size_bins, counts);
+  auto   scattering_habit = scattering::ScatteringHabit(particle_habit, psd);
 
   ///
   /// Test temperature interpolation.
   ///
-  auto point = AtmPoint{1e4, 290.0};
+  auto point      = AtmPoint{1e4, 290.0};
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, -1);
 
-  auto pm = bulk_props.phase_matrix.value();
+  auto pm   = bulk_props.phase_matrix.value();
   using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
 
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
@@ -129,7 +161,8 @@ bool test_calculate_bulk_properties_tro_spectral() {
     }
 
     for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-      Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]);
+      Numeric rel_diff =
+          std::abs((bulk_props.extinction_matrix[f_ind].A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]);
       if (rel_diff > 1e-3) return false;
       rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].B() - em_ref[1, f_ind, 1]) / em_ref[1, f_ind, 1]);
       if (rel_diff > 1e-3) return false;
@@ -148,7 +181,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, -1);
+  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, -1);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
@@ -157,11 +190,9 @@ bool test_calculate_bulk_properties_tro_spectral() {
     if (err > 1e-3) return false;
   }
 
-
   Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
   if (err > 1e-3) return false;
   return true;
-
 }
 
 int main() {

@@ -5,7 +5,6 @@
 namespace Python {
 void py_ssdb(py::module_& m) try {
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(
-      "DEV ERROR:\nCannot initialize scattering species:\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize scattering species:\n{}", e.what()));
 };
 }  // namespace Python

@@ -14,64 +14,47 @@ struct Workspace;
 
 struct CallbackOperator {
   using func_t = CustomOperator<void, Workspace&>;
-  func_t callback{};
+  func_t                   callback{};
   std::vector<std::string> inputs{};
   std::vector<std::string> outputs{};
 
   void operator()(Workspace& ws) const;
 };
 
-template <>
-struct std::formatter<CallbackOperator> {
+template <> struct std::formatter<CallbackOperator> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const CallbackOperator& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const CallbackOperator& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
 
     tags.add_if_bracket(ctx, "{"sv);
 
-    tags.format(ctx,
-                quote,
-                "input"sv,
-                quote,
-                ": "sv,
-                v.inputs,
-                tags.sep(),
-                quote,
-                "output"sv,
-                quote,
-                ": "sv,
-                v.outputs);
+    tags.format(
+        ctx, quote, "input"sv, quote, ": "sv, v.inputs, tags.sep(), quote, "output"sv, quote, ": "sv, v.outputs);
 
     tags.add_if_bracket(ctx, "}"sv);
     return ctx.out();
   }
 };
 
-template <>
-struct xml_io_stream<CallbackOperator> {
+template <> struct xml_io_stream<CallbackOperator> {
   static constexpr std::string_view type_name = "CallbackOperator"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&           os,
                     const CallbackOperator& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*              pbofs = nullptr,
+                    std::string_view        name  = ""sv);
 
-  static void read(std::istream& is,
-                   CallbackOperator& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, CallbackOperator& x, bifstream* pbifs = nullptr);
 };
 
 #endif

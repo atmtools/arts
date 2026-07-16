@@ -23,12 +23,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 namespace {
-void setup_cdisort(disort_state& ds,
-                   const Vector& phis,
-                   const DisortSettings& disort_settings,
+void setup_cdisort(disort_state&            ds,
+                   const Vector&            phis,
+                   const DisortSettings&    disort_settings,
                    const disort::main_data& dis,
-                   const Numeric surf_temperature,
-                   const bool intensity_correction = false) {
+                   const Numeric            surf_temperature,
+                   const bool               intensity_correction = false) {
   // solar dependent properties if no sun is present
   // Number of azimuth angles
   Index nphi = 1;
@@ -42,9 +42,7 @@ void setup_cdisort(disort_state& ds,
     nphi = phis.size();
     umu0 = Conversion::cosd(dis.solar_zenith());
     phi0 = dis.beam_azimuth();
-    if (phi0 < 0) {
-      phi0 = phi0 + 360.;
-    }
+    if (phi0 < 0) { phi0 = phi0 + 360.; }
   }
 
   ds.accur        = 0.005;
@@ -60,8 +58,7 @@ void setup_cdisort(disort_state& ds,
   ds.flag.general_source = FALSE;
   ds.flag.output_uum     = FALSE;
 
-  ds.nlyr =
-      static_cast<int>(disort_settings.layer_count());  // pressure.nelem() - 1
+  ds.nlyr = static_cast<int>(disort_settings.layer_count());  // pressure.nelem() - 1
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -87,8 +84,7 @@ void setup_cdisort(disort_state& ds,
   ds.nphase = ds.nstr;
   ds.nmom   = static_cast<int>(dis.all_legendre_coeffs().ncols());
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
-  ds.numu = static_cast<int>(
-      disort_settings.quadrature_dimension);  // za_grid.nelem();
+  ds.numu = static_cast<int>(disort_settings.quadrature_dimension);  // za_grid.nelem();
   ds.nphi = static_cast<int>(nphi);
 
   // Looking direction of solar beam
@@ -104,11 +100,11 @@ void setup_cdisort(disort_state& ds,
   ds.bc.temis = 1.;
 }
 
-void setup_cdisort_for_frequency(disort_state& ds,
+void setup_cdisort_for_frequency(disort_state&            ds,
                                  const disort::main_data& dis,
-                                 const AziGrid& phis,
-                                 const ArrayOfAtmPoint& atm_path,
-                                 const Numeric& frequency) {
+                                 const AziGrid&           phis,
+                                 const ArrayOfAtmPoint&   atm_path,
+                                 const Numeric&           frequency) {
   // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = phis[i];
 
@@ -126,7 +122,7 @@ void setup_cdisort_for_frequency(disort_state& ds,
   ds.bc.fisot = 0;
 
   std::vector<Numeric> dtauc(ds.nlyr);
-  const auto& tau = dis.tau();
+  const auto&          tau = dis.tau();
   std::adjacent_difference(tau.begin(), tau.end(), dtauc.begin());
 
   std::memcpy(ds.dtauc, dtauc.data(), sizeof(Numeric) * ds.nlyr);
@@ -147,17 +143,14 @@ void setup_cdisort_for_frequency(disort_state& ds,
 
   for (Index layer = 0; layer < ds.nlyr; layer++)
     for (Index coeff = 0; coeff < dis.all_legendre_coeffs().ncols(); coeff++)
-      ds.pmom[coeff + layer * (ds.nmom_nstr + 1)] =
-          dis.all_legendre_coeffs()[layer, coeff];
+      ds.pmom[coeff + layer * (ds.nmom_nstr + 1)] = dis.all_legendre_coeffs()[layer, coeff];
 }
 
-void run_cdisort(Tensor3View disort_spectral_rad_field,
-                 disort_state& ds,
-                 disort_output& out) {
+void run_cdisort(Tensor3View disort_spectral_rad_field, disort_state& ds, disort_output& out) {
   Numeric umu0 = 0.;
   enum class Status : char { FIRST_TRY, RETRY, SUCCESS };
-  Status tries      = Status::FIRST_TRY;
-  const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
+  Status        tries = Status::FIRST_TRY;
+  const Numeric eps   = 2e-4;  //two times the value defined in cdisort.c:3653
   do {
     try {
       c_disort(&ds, &out);
@@ -172,12 +165,9 @@ void run_cdisort(Tensor3View disort_spectral_rad_field,
           umu0 -= eps;
         }
 
-        const Numeric shift =
-            std::abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
-        std::cerr
-            << "Solar zenith angle coincided with one of the quadrature angles\n"
-            << "We needed to shift the solar sun angle by " << shift
-            << "deg.\n";
+        const Numeric shift = std::abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+        std::cerr << "Solar zenith angle coincided with one of the quadrature angles\n"
+                  << "We needed to shift the solar sun angle by " << shift << "deg.\n";
 
         ds.bc.umu0 = umu0;
         tries      = Status::RETRY;
@@ -190,11 +180,9 @@ void run_cdisort(Tensor3View disort_spectral_rad_field,
     for (Index i = 0; i < ds.nphi; i++) {
       for (Index j = 0; j < ds.numu / 2; j++) {
         disort_spectral_rad_field[k - 1, i, ds.numu - j - 1] =
-            out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] /
-            (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
+            out.uu[j + (k + i * (ds.nlyr + 1)) * ds.numu] / (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
         disort_spectral_rad_field[k - 1, i, j] =
-            out.uu[j + ds.numu / 2 + (k + i * (ds.nlyr + 1)) * ds.numu] /
-            (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
+            out.uu[j + ds.numu / 2 + (k + i * (ds.nlyr + 1)) * ds.numu] / (ds.wvnmhi - ds.wvnmlo) / (100 * Constant::c);
       }
     }
   }
@@ -202,19 +190,17 @@ void run_cdisort(Tensor3View disort_spectral_rad_field,
 
 }  // namespace
 
-void disort_spectral_rad_fieldCalcCdisort(
-    DisortRadiance& disort_spectral_rad_field,
-    ZenGriddedField1& disort_quadrature,
-    const DisortSettings& disort_settings,
-    const ArrayOfAtmPoint& atm_path,
-    const ArrayOfAscendingGrid& freq_grid_path,
-    const ArrayOfPropagationPathPoint& ray_path,
-    const SurfaceField& surf_field,
-    const AziGrid& phis) {
+void disort_spectral_rad_fieldCalcCdisort(DisortRadiance&                    disort_spectral_rad_field,
+                                          ZenGriddedField1&                  disort_quadrature,
+                                          const DisortSettings&              disort_settings,
+                                          const ArrayOfAtmPoint&             atm_path,
+                                          const ArrayOfAscendingGrid&        freq_grid_path,
+                                          const ArrayOfPropagationPathPoint& ray_path,
+                                          const SurfaceField&                surf_field,
+                                          const AziGrid&                     phis) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.empty(),
-                     "disort_spectral_rad_fieldCalcCdisort: ray_path is empty");
+  ARTS_USER_ERROR_IF(ray_path.empty(), "disort_spectral_rad_fieldCalcCdisort: ray_path is empty");
 
   const Index nv = disort_settings.frequency_count();
 
@@ -222,13 +208,11 @@ void disort_spectral_rad_fieldCalcCdisort(
 
   disort_quadrature = dis.gridded_weights();
 
-  const Numeric surf_temperature = surf_field.single_value(
-      SurfaceKey::t, ray_path.back().latitude(), ray_path.back().longitude());
+  const Numeric surf_temperature =
+      surf_field.single_value(SurfaceKey::t, ray_path.back().latitude(), ray_path.back().longitude());
 
-  disort_spectral_rad_field.resize(disort_settings.freq_grid,
-                                   disort_settings.alt_grid,
-                                   phis,
-                                   disort_quadrature.grid<0>());
+  disort_spectral_rad_field.resize(
+      disort_settings.freq_grid, disort_settings.alt_grid, phis, disort_quadrature.grid<0>());
 
   disort_state ds;
   setup_cdisort(ds, phis, disort_settings, dis, surf_temperature);
@@ -244,8 +228,7 @@ void disort_spectral_rad_fieldCalcCdisort(
 
       disort_settings.set_cdisort(dis, iv);
 
-      setup_cdisort_for_frequency(
-          ds, dis, phis, atm_path, freq_grid_path[0][iv]);
+      setup_cdisort_for_frequency(ds, dis, phis, atm_path, freq_grid_path[0][iv]);
 
       run_cdisort(disort_spectral_rad_field.data[iv], ds, out);
 
@@ -261,8 +244,7 @@ void disort_spectral_rad_fieldCalcCdisort(
   //! FIXME: It would be nice to remove this if the internal angles can be solved
   disort_spectral_rad_field.sort(dis.mu());
 
-  ARTS_USER_ERROR_IF(
-      error.size(), "Error occurred in disort-spectral:\n{}", error);
+  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
 }
 
 #endif  // ENABLE_CDISORT

@@ -31,9 +31,7 @@ namespace {
    \author Thomas Kuhn
    \date 2001-11-05
  */
-constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
-                                       const Numeric fl,
-                                       const Numeric f) noexcept {
+constexpr Numeric MPMLineShapeFunction(const Numeric gamma, const Numeric fl, const Numeric f) noexcept {
   /*
     this routine calculates the line shape function of Van Vleck and Weisskopf
     with the factor (f/f_o)¹. for the MPM pseudo continuum line.
@@ -92,15 +90,13 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
    \date 2001-11-05
  */
 //! New implementation
-void water(PropmatVector& propmat_clearsky,
-           const Vector& f_grid,
-           const AtmPoint& atm_point) {
+void water(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow3;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric vmr = atm_point["H2O"_spec];
+  const Numeric vmr  = atm_point["H2O"_spec];
 
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
@@ -149,33 +145,24 @@ void water(PropmatVector& propmat_clearsky,
   // dry air partial pressure [kPa]
   const Numeric pda = pwv_dummy - pwv;
   // H2O continuum absorption [dB/km/GHz^2] like in the original MPM89
-  const Numeric Nppc = pwv_dummy * pow3(theta) * 1.000e-5 *
-                       ((0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)));
+  const Numeric Nppc = pwv_dummy * pow3(theta) * 1.000e-5 * ((0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)));
 
   // Loop over input frequency
   for (Size s = 0; s < f_grid.size(); ++s) {
     // input frequency in [GHz]
     const Numeric ff = f_grid[s] * 1e-9;
     // H2O line contribution at position f
-    const Numeric Nppl = std::transform_reduce(
-        mpm89.begin(),
-        mpm89.end(),
-        0.0,
-        std::plus{},
-        [pwv_dummy, theta, pwv, pda, ff](auto& l) {
-          const Numeric strength =
-              pwv_dummy * l[1] * pow(theta, 3.5) * exp(l[2] * (1.000 - theta));
+    const Numeric Nppl =
+        std::transform_reduce(mpm89.begin(), mpm89.end(), 0.0, std::plus{}, [pwv_dummy, theta, pwv, pda, ff](auto& l) {
+          const Numeric strength = pwv_dummy * l[1] * pow(theta, 3.5) * exp(l[2] * (1.000 - theta));
           // line broadening parameter [GHz]
-          const Numeric gam =
-              l[3] * 0.001 *
-              (l[5] * pwv * pow(theta, l[6]) + pda * pow(theta, l[4]));
+          const Numeric gam = l[3] * 0.001 * (l[5] * pwv * pow(theta, l[6]) + pda * pow(theta, l[4]));
           return strength * MPMLineShapeFunction(gam, l[0], ff);
         });
 
     //
     // H2O line absorption [1/m]
-    propmat_clearsky[s].A() +=
-        vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
+    propmat_clearsky[s].A() += vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
   }
 }
 
@@ -267,18 +254,16 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
    \date 2002-04-05
  */
 //! New implementation
-void oxygen(PropmatVector& propmat_clearsky,
-            const Vector& f_grid,
-            const AtmPoint& atm_point) {
+void oxygen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
   constexpr Numeric VMRCalcLimit = 1.000e-25;
   constexpr Numeric dB_km_to_1_m = (1e-3 / (10.0 * Constant::log10_euler));
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric vmr = atm_point["O2"_spec];
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric vmr  = atm_point["O2"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -334,8 +319,8 @@ void oxygen(PropmatVector& propmat_clearsky,
 
   // O2 continuum parameters of MPM92:
   const Numeric S0 = 6.140e-4;  // line strength                        [ppm]
-  const Numeric G0 = 5.60e-3;  // line width                           [GHz/kPa]
-  const Numeric X0 = 0.800;    // temperature dependence of line width [1]
+  const Numeric G0 = 5.60e-3;   // line width                           [GHz/kPa]
+  const Numeric X0 = 0.800;     // temperature dependence of line width [1]
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we
@@ -344,18 +329,16 @@ void oxygen(PropmatVector& propmat_clearsky,
   const Numeric VMRISO = 0.2085;
 
   // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
-  if (vmr == 0.) {
-    return;
-  }
+  if (vmr == 0.) { return; }
 
   // check if O2-VMR will cause an underflow due to division by zero:
-  ARTS_USER_ERROR_IF(
-      vmr < VMRCalcLimit,
-      "ERROR: MPM89 O2 full absorption model has detected a O2 volume mixing ratio of {}"
-      " which is below the threshold of {}"      ".\n"
-      "Therefore no calculation is performed.\n",
-      vmr,
-      VMRCalcLimit)
+  ARTS_USER_ERROR_IF(vmr < VMRCalcLimit,
+                     "ERROR: MPM89 O2 full absorption model has detected a O2 volume mixing ratio of {}"
+                     " which is below the threshold of {}"
+                     ".\n"
+                     "Therefore no calculation is performed.\n",
+                     vmr,
+                     VMRCalcLimit)
 
   // relative inverse temperature [1]
   const Numeric theta = (300.0 / t);
@@ -378,35 +361,24 @@ void oxygen(PropmatVector& propmat_clearsky,
     // O2 continuum absorption [1/m]
     // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    const Numeric Nppc =
-        strength_cont * ff * gam_cont / (pow2(ff) + pow2(gam_cont));
+    const Numeric Nppc = strength_cont * ff * gam_cont / (pow2(ff) + pow2(gam_cont));
 
     // Loop over MPM89 O2 spectral lines:
-    const Numeric Nppl = std::transform_reduce(
-        mpm89.begin(),
-        mpm89.end(),
-        0.0,
-        std::plus{},
-        [pda_dummy, theta, pda, pwv, ff](auto& l) {
+    const Numeric Nppl =
+        std::transform_reduce(mpm89.begin(), mpm89.end(), 0.0, std::plus{}, [pda_dummy, theta, pda, pwv, ff](auto& l) {
           // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-          const Numeric strength = l[1] * 1.000e-6 * pda_dummy * pow3(theta) *
-                                   exp(l[2] * (1.000 - theta)) / l[0];
+          const Numeric strength = l[1] * 1.000e-6 * pda_dummy * pow3(theta) * exp(l[2] * (1.000 - theta)) / l[0];
           // line broadening parameter [GHz]
-          const Numeric gam = (l[3] * 1.000e-3 *
-                               ((pda * pow(theta, ((Numeric)0.80 - l[4]))) +
-                                (1.10 * pwv * theta)));
+          const Numeric gam = (l[3] * 1.000e-3 * ((pda * pow(theta, ((Numeric)0.80 - l[4]))) + (1.10 * pwv * theta)));
           // line mixing parameter [1]
-          const Numeric delta = ((l[5] + l[6] * theta) * 1.000e-3 * pda *
-                                 pow(theta, (Numeric)0.8));
+          const Numeric delta = ((l[5] + l[6] * theta) * 1.000e-3 * pda * pow(theta, (Numeric)0.8));
           // absorption [dB/km] like in the original MPM92
           return strength * MPMLineShapeO2Function(gam, l[0], ff, delta);
         });
 
     //
     // O2 line absorption [1/m]
-    propmat_clearsky[s].A() += vmr * dB_km_to_1_m * 0.1820 * ff *
-                                 (((Nppl < 0.000) ? 0.0 : Nppl) + Nppc) /
-                                 VMRISO;
+    propmat_clearsky[s].A() += vmr * dB_km_to_1_m * 0.1820 * ff * (((Nppl < 0.000) ? 0.0 : Nppl) + Nppc) / VMRISO;
   }
 }
 }  // namespace Absorption::PredefinedModel::MPM89

@@ -23,8 +23,7 @@ namespace oem {
 /** MPI-distributed matrix type based on ARTS built-in dense matrices. */
 using MPIMatrix = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsMatrix>>>;
 /** MPI-distributed covariance matrix type. */
-using MPICovarianceMatrix = invlib::Matrix<
-    invlib::MPIMatrix<invlib::Timer<ArtsCovarianceMatrixWrapper>>>;
+using MPICovarianceMatrix = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsCovarianceMatrixWrapper>>>;
 /** MPI-distributed vector type. */
 using MPIVector = invlib::Vector<invlib::MPIVector<invlib::Timer<ArtsVector>>>;
 
@@ -34,13 +33,8 @@ using MPIVector = invlib::Vector<invlib::MPIVector<invlib::Timer<ArtsVector>>>;
  *
  * @tparam The type defining the forward model interface.
  */
-template <typename ForwardModel>
-using OEM_STANDARD_MPI = invlib::MAP<ForwardModel,
-                                  OEMMatrix,
-                                  MPICovarianceMatrix,
-                                  MPICovarianceMatrix,
-                                  OEMVector,
-                                  Formulation::STANDARD>;
+template <typename ForwardModel> using OEM_STANDARD_MPI =
+    invlib::MAP<ForwardModel, OEMMatrix, MPICovarianceMatrix, MPICovarianceMatrix, OEMVector, Formulation::STANDARD>;
 
 /** Distributed Levenberg-Marquardt optimization */
 using LM_MPI = invlib::LevenbergMarquardt<Numeric, MPISparse, CG>;
@@ -54,14 +48,10 @@ using LM_MPI = invlib::LevenbergMarquardt<Numeric, MPISparse, CG>;
   * the results after the computation.
   */
 class AgendaWrapperMPI {
-
  public:
   const unsigned int m, n;
 
-  AgendaWrapperMPI(Workspace *ws_,
-                   const Agenda *inversion_iterate_agenda,
-                   Index m_,
-                   Index n_)
+  AgendaWrapperMPI(Workspace *ws_, const Agenda *inversion_iterate_agenda, Index m_, Index n_)
       : ws_(ws),
         local_jacobian_(),
         inversion_iterate_agenda_(inversion_iterate_agenda),
@@ -76,8 +66,7 @@ class AgendaWrapperMPI {
    */
   MPIMatrix Jacobian(const OEMVector &xi, OEMVector &yi) {
     yi.resize(m);
-    inversion_iterate_agendaExecute(
-        *ws_, yi, local_jacobian_, xi, 1, *inversion_iterate_agenda_);
+    inversion_iterate_agendaExecute(*ws_, yi, local_jacobian_, xi, 1, *inversion_iterate_agenda_);
     // Create MPI vector from local results, use conversion to vector
     // to broadcast local results.
     MPIVector yi_mpi(yi);
@@ -96,16 +85,15 @@ class AgendaWrapperMPI {
    * @return The corresponding full observation vector.
    */
   OEMVector evaluate(const OEMVector &xi) {
-    Matrix dummy = local_jacobian_;
+    Matrix    dummy = local_jacobian_;
     OEMVector yi;
     yi.resize(m);
-    inversion_iterate_agendaExecute(
-        *ws_, yi, dummy, xi, 0, *inversion_iterate_agenda_);
+    inversion_iterate_agendaExecute(*ws_, yi, dummy, xi, 0, *inversion_iterate_agenda_);
 
     // Create MPI vector from local results, use conversion to vector
     // to broadcast local results.
     MPIVector yi_mpi = yi;
-    yi = yi_mpi;
+    yi               = yi_mpi;
     return yi;
   }
 
@@ -117,5 +105,5 @@ class AgendaWrapperMPI {
   /** Pointer to the inversion_iterate_agenda defining the foward model. */
   const Agenda *inversion_iterate_agenda_;
 };
-}       // namespace oem
+}  // namespace oem
 #endif  // _ARTS_OEM_MPI_H_

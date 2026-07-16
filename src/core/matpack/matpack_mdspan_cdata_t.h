@@ -8,8 +8,7 @@
 #include "matpack_mdspan_data_t.h"
 
 namespace matpack {
-template <typename T, Size... dims>
-struct [[nodiscard]] cdata_t {
+template <typename T, Size... dims> struct [[nodiscard]] cdata_t {
   constexpr static Size N     = sizeof...(dims);
   constexpr static Size ndata = (dims * ...);
 
@@ -32,60 +31,43 @@ struct [[nodiscard]] cdata_t {
 
   std::array<T, ndata> data{};
 
-  static constexpr std::array<Index, N> shape_ = {dims...};
+  static constexpr std::array<Index, N>        shape_ = {dims...};
   static constexpr const std::array<Index, N>& shape() { return shape_; }
 
 #if __cpp_lib_submdspan >= 202603L
   constexpr std::mdspan<const T, std::extents<Size, dims...>> cview() const {
-    return std::mdspan<const T, std::extents<Size, dims...>>{
-        const_cast<T*>(data.data())};
+    return std::mdspan<const T, std::extents<Size, dims...>>{const_cast<T*>(data.data())};
   }
 
   constexpr std::mdspan<T, std::extents<Size, dims...>> cview() {
-    return std::mdspan<T, std::extents<Size, dims...>>{
-        const_cast<T*>(data.data())};
+    return std::mdspan<T, std::extents<Size, dims...>>{const_cast<T*>(data.data())};
   }
 #else
   constexpr stdx::mdspan<const T, stdx::extents<Size, dims...>> cview() const {
-    return stdx::mdspan<const T, stdx::extents<Size, dims...>>{
-        const_cast<T*>(data.data())};
+    return stdx::mdspan<const T, stdx::extents<Size, dims...>>{const_cast<T*>(data.data())};
   }
 
   constexpr stdx::mdspan<T, stdx::extents<Size, dims...>> cview() {
-    return stdx::mdspan<T, stdx::extents<Size, dims...>>{
-        const_cast<T*>(data.data())};
+    return stdx::mdspan<T, stdx::extents<Size, dims...>>{const_cast<T*>(data.data())};
   }
 #endif
 
   constexpr view_t<const T, N> view() const {
-    return view_t<const T, N>{
-        mdview_t<T, N>{const_cast<T*>(data.data()), shape_}};
+    return view_t<const T, N>{mdview_t<T, N>{const_cast<T*>(data.data()), shape_}};
   }
 
-  constexpr view_t<T, N> view() {
-    return view_t<T, N>{mdview_t<T, N>{const_cast<T*>(data.data()), shape_}};
-  }
+  constexpr view_t<T, N> view() { return view_t<T, N>{mdview_t<T, N>{const_cast<T*>(data.data()), shape_}}; }
 
   constexpr auto base_md() const { return cview(); }
   constexpr auto base_md() { return cview(); }
 
-  constexpr operator view_t<T, N>() { return view(); }
-  constexpr operator view_t<const T, N>() const { return view(); }
-  constexpr operator strided_view_t<T, N>() { return view(); }
-  constexpr operator strided_view_t<const T, N>() const { return view(); }
-  explicit constexpr operator data_t<T, N>() const {
-    return data_t<T, N>{view()};
-  }
-  constexpr operator std::span<T, ndata>()
-    requires(N == 1)
-  {
-    return data;
-  }
-  constexpr operator std::span<const T, ndata>() const
-    requires(N == 1)
-  {
-    return data;
-  }
+  constexpr          operator view_t<T, N>() { return view(); }
+  constexpr          operator view_t<const T, N>() const { return view(); }
+  constexpr          operator strided_view_t<T, N>() { return view(); }
+  constexpr          operator strided_view_t<const T, N>() const { return view(); }
+  explicit constexpr operator data_t<T, N>() const { return data_t<T, N>{view()}; }
+  constexpr          operator std::span<T, ndata>() requires(N == 1) { return data; }
+  constexpr          operator std::span<const T, ndata>() const requires(N == 1) { return data; }
 
   /*
 
@@ -103,9 +85,7 @@ struct [[nodiscard]] cdata_t {
 
   static constexpr auto rank() { return view_t<T, N>::rank(); }
   static constexpr auto rank_dynamic() { return view_t<T, N>::rank_dynamic(); }
-  static constexpr auto static_extent() {
-    return view_t<T, N>::static_extent();
-  }
+  static constexpr auto static_extent() { return view_t<T, N>::static_extent(); }
 
   static constexpr bool is_const      = false;
   static constexpr bool is_exhaustive = view_t<T, N>::is_always_exhaustive();
@@ -121,20 +101,16 @@ struct [[nodiscard]] cdata_t {
   [[nodiscard]] constexpr auto nvitrines() const { return extent(N - 6); }
   [[nodiscard]] constexpr auto nlibraries() const { return extent(N - 7); }
 
-  template <typename Self, Index M>
-  constexpr auto view_as(this Self&& self, const std::array<Index, M>& exts) {
+  template <typename Self, Index M> constexpr auto view_as(this Self&& self, const std::array<Index, M>& exts) {
     return std::forward<Self>(self).view().view_as(exts);
   }
 
-  template <typename Self, integral... inds>
-  constexpr auto view_as(this Self&& self, inds... exts) {
+  template <typename Self, integral... inds> constexpr auto view_as(this Self&& self, inds... exts) {
     return std::forward<Self>(self).view().view_as(std::forward<inds>(exts)...);
   }
 
-  template <access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i)
-    requires(sizeof...(Acc) <= N)
-  {
+  template <access_operator... Acc> [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i)
+      requires(sizeof...(Acc) <= N) {
     if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
       return cview()[std::forward<Acc>(i)...];
     } else {
@@ -142,10 +118,8 @@ struct [[nodiscard]] cdata_t {
     }
   }
 
-  template <access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) const
-    requires(sizeof...(Acc) <= N)
-  {
+  template <access_operator... Acc> [[nodiscard]] constexpr decltype(auto) operator[](Acc&&... i) const
+      requires(sizeof...(Acc) <= N) {
     if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
       return cview()[std::forward<Acc>(i)...];
     } else {
@@ -153,130 +127,82 @@ struct [[nodiscard]] cdata_t {
     }
   }
 
-  template <typename U>
-  constexpr cdata_t& operator+=(U&& x) {
+  template <typename U> constexpr cdata_t& operator+=(U&& x) {
     view() += std::forward<U>(x);
     return *this;
   }
 
-  template <typename U>
-  constexpr cdata_t& operator-=(U&& x) {
+  template <typename U> constexpr cdata_t& operator-=(U&& x) {
     view() -= std::forward<U>(x);
     return *this;
   }
 
-  template <typename U>
-  constexpr cdata_t& operator*=(U&& x) {
+  template <typename U> constexpr cdata_t& operator*=(U&& x) {
     view() *= std::forward<U>(x);
     return *this;
   }
 
-  template <typename U>
-  constexpr cdata_t& operator/=(U&& x) {
+  template <typename U> constexpr cdata_t& operator/=(U&& x) {
     view() /= std::forward<U>(x);
     return *this;
   }
 
-  template <typename Self>
-  constexpr decltype(auto) elem_at(this Self&& self, Index i) {
+  template <typename Self> constexpr decltype(auto) elem_at(this Self&& self, Index i) {
     return std::forward<Self>(self).data[i];
   }
 
-  template <typename Self>
-  constexpr auto elem_begin(this Self&& self) {
-    return std::forward<Self>(self).data.begin();
-  }
+  template <typename Self> constexpr auto elem_begin(this Self&& self) { return std::forward<Self>(self).data.begin(); }
 
-  template <typename Self>
-  constexpr auto elem_end(this Self&& self) {
-    return std::forward<Self>(self).data.end();
-  }
+  template <typename Self> constexpr auto elem_end(this Self&& self) { return std::forward<Self>(self).data.end(); }
 
-  template <typename Self>
-  constexpr auto begin(this Self&& self) {
-    return std::forward<Self>(self).view().begin();
-  }
+  template <typename Self> constexpr auto begin(this Self&& self) { return std::forward<Self>(self).view().begin(); }
 
-  template <typename Self>
-  constexpr auto end(this Self&& self) {
-    return std::forward<Self>(self).view().end();
-  }
+  template <typename Self> constexpr auto end(this Self&& self) { return std::forward<Self>(self).view().end(); }
 
-  template <typename Self>
-  constexpr auto imag(this Self&& self) {
-    return std::forward<Self>(self).view().imag();
-  }
+  template <typename Self> constexpr auto imag(this Self&& self) { return std::forward<Self>(self).view().imag(); }
 
-  template <typename Self>
-  constexpr auto real(this Self&& self) {
-    return std::forward<Self>(self).view().real();
-  }
+  template <typename Self> constexpr auto real(this Self&& self) { return std::forward<Self>(self).view().real(); }
 
-  template <typename Self>
-  constexpr auto accessor(this Self&& self) {
+  template <typename Self> constexpr auto accessor(this Self&& self) {
     return std::forward<Self>(self).view().accessor();
   }
 
-  template <typename Self>
-  constexpr auto data_handle(this Self&& self) {
-    return std::forward<Self>(self).data.data();
-  }
+  template <typename Self> constexpr auto data_handle(this Self&& self) { return std::forward<Self>(self).data.data(); }
 
-  template <typename Self>
-  constexpr auto empty(this Self&& self) {
-    return std::forward<Self>(self).view().empty();
-  }
+  template <typename Self> constexpr auto empty(this Self&& self) { return std::forward<Self>(self).view().empty(); }
 
-  template <typename Self>
-  constexpr decltype(auto) front(this Self&& self) {
+  template <typename Self> constexpr decltype(auto) front(this Self&& self) {
     return std::forward<Self>(self).data.front();
   }
 
-  template <typename Self>
-  constexpr decltype(auto) back(this Self&& self) {
+  template <typename Self> constexpr decltype(auto) back(this Self&& self) {
     return std::forward<Self>(self).data.back();
   }
 
-  template <typename Self>
-  constexpr auto extent(this Self&& self, Index i) {
+  template <typename Self> constexpr auto extent(this Self&& self, Index i) {
     return std::forward<Self>(self).view().extent(i);
   }
 
-  template <typename Self>
-  constexpr auto extents(this Self&& self) {
+  template <typename Self> constexpr auto extents(this Self&& self) {
     return std::forward<Self>(self).view().extents();
   }
 
-  template <typename Self>
-  constexpr auto mapping(this Self&& self) {
+  template <typename Self> constexpr auto mapping(this Self&& self) {
     return std::forward<Self>(self).view().mapping();
   }
 
-  template <typename Self>
-  constexpr auto size(this Self&& self) {
-    return std::forward<Self>(self).view().size();
-  }
+  template <typename Self> constexpr auto size(this Self&& self) { return std::forward<Self>(self).view().size(); }
 
-  template <typename Self>
-  constexpr auto stride(this Self&& self, integral auto i) {
+  template <typename Self> constexpr auto stride(this Self&& self, integral auto i) {
     return std::forward<Self>(self).view().stride(i);
   }
 
   //! Tuple interface:
-  template <Index i>
-  constexpr T& get() & {
-    return std::get<i>(data);
-  }
+  template <Index i> constexpr T& get() & { return std::get<i>(data); }
 
-  template <Index i>
-  constexpr const T& get() const& {
-    return std::get<i>(data);
-  }
+  template <Index i> constexpr const T& get() const& { return std::get<i>(data); }
 
-  template <Index i>
-  constexpr T&& get() && {
-    return std::get<i>(data);
-  }
+  template <Index i> constexpr T&& get() && { return std::get<i>(data); }
 
   friend std::istream& operator>>(std::istream& is, cdata_t& x) {
     if constexpr (std::same_as<Numeric, T>)
@@ -287,8 +213,7 @@ struct [[nodiscard]] cdata_t {
   }
 };
 
-template <any_cdata out, exact_md<value_type<out>, rank<out>()> in>
-constexpr out to(const in& x) {
+template <any_cdata out, exact_md<value_type<out>, rank<out>()> in> constexpr out to(const in& x) {
   out o{};
 
   assert(x.shape() == o.shape());
@@ -298,71 +223,58 @@ constexpr out to(const in& x) {
   return o;
 }
 
-template <any_cdata T>
-constexpr T operator+(const T& x, const T& y) {
+template <any_cdata T> constexpr T operator+(const T& x, const T& y) {
   T z  = x;
   z   += y;
   return z;
 }
 
-template <any_cdata T>
-constexpr T operator-(const T& x, const T& y) {
+template <any_cdata T> constexpr T operator-(const T& x, const T& y) {
   T z  = x;
   z   -= y;
   return z;
 }
 
-template <any_cdata T>
-constexpr T operator*(T x, const std::convertible_to<value_type<T>> auto& y) {
+template <any_cdata T> constexpr T operator*(T x, const std::convertible_to<value_type<T>> auto& y) {
   x *= static_cast<value_type<T>>(y);
   return x;
 }
 
-template <any_cdata T>
-constexpr T operator*(const std::convertible_to<value_type<T>> auto& y, T x) {
+template <any_cdata T> constexpr T operator*(const std::convertible_to<value_type<T>> auto& y, T x) {
   x *= static_cast<value_type<T>>(y);
   return x;
 }
 
-template <any_cdata T>
-constexpr T operator/(T x, const std::convertible_to<value_type<T>> auto& y) {
+template <any_cdata T> constexpr T operator/(T x, const std::convertible_to<value_type<T>> auto& y) {
   x /= static_cast<value_type<T>>(y);
   return x;
 }
 
-template <any_cdata T>
-constexpr T normalized(T x) {
+template <any_cdata T> constexpr T normalized(T x) {
   x /= hypot(x);
   return x;
 }
 }  // namespace matpack
 
-template <typename T, Size... dims>
-struct std::formatter<matpack::cdata_t<T, dims...>> {
+template <typename T, Size... dims> struct std::formatter<matpack::cdata_t<T, dims...>> {
   std::formatter<matpack::view_t<const T, sizeof...(dims)>> fmt;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
-  }
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) { return fmt.parse(ctx); }
 
   template <class FmtContext>
-  FmtContext::iterator format(const matpack::cdata_t<T, dims...>& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const matpack::cdata_t<T, dims...>& v, FmtContext& ctx) const {
     return fmt.format(v, ctx);
   }
 };
 
 //! Make the constant data structured, so "[a,b,c] = Vector3{1,2,3};" works
 namespace std {
-template <matpack::any_cdata T>
-struct tuple_size<T> : std::integral_constant<Size, T::ndata> {};
+template <matpack::any_cdata T> struct tuple_size<T> : std::integral_constant<Size, T::ndata> {};
 
-template <std::size_t I, matpack::any_cdata T>
-struct tuple_element<I, T> {
+template <std::size_t I, matpack::any_cdata T> struct tuple_element<I, T> {
   using type = matpack::value_type<T>;
 };
 }  // namespace std

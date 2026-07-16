@@ -10,8 +10,7 @@
 #define TEST_DATA_PATH "@CMAKE_BINARY_DIR@/tests/testdata/"
 
 // Helper function to calculate factorial.
-template <typename Scalar>
-Scalar fac(Index n) {
+template <typename Scalar> Scalar fac(Index n) {
   if (n <= 0) {
     return 1;
   } else if (n == 1) {
@@ -31,24 +30,20 @@ Scalar fac(Index n) {
  * function with the latitudes oriented along columns and the
  * longitudes along rows.
  */
-inline Matrix evaluate_spherical_harmonic(Index l,
-                                          Index m,
-                                          const ConstVectorView& lons,
-                                          const ConstVectorView& lats) {
+inline Matrix evaluate_spherical_harmonic(Index l, Index m, const ConstVectorView& lons, const ConstVectorView& lats) {
   auto n_lon = lons.size();
   auto n_lat = lats.size();
 
-  double norm =
-      sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
-  norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
+  double norm  = sqrt((2 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi));
+  norm        *= sqrt(fac<double>(l - m) / fac<double>(l + m));
 
   Matrix results{n_lon, n_lat};
   for (Size i = 0; i < n_lon; ++i) {
     for (Size j = 0; j < n_lat; ++j) {
       auto clon = cos(static_cast<Numeric>(m) * lons[i]);
 
-      auto clat = cos(lats[j]);
-      double p  = 0.0;
+      auto   clat = cos(lats[j]);
+      double p    = 0.0;
       if (l == 0) {
         p = 1.0;
       } else if (l == 1) {
@@ -74,9 +69,7 @@ inline Matrix evaluate_spherical_harmonic(Index l,
           p = 6 * (1 - clat * clat);
         }
       }
-      if (l > 2) {
-        throw std::runtime_error("l must be less than or equal to 1.");
-      }
+      if (l > 2) { throw std::runtime_error("l must be less than or equal to 1."); }
       results[i, j] = norm * p * clon;
     }
   }
@@ -93,17 +86,13 @@ inline Matrix evaluate_spherical_harmonic(Index l,
  * sampled from the Gaussian distribution with the given mean
  * and std. dev.
  */
-inline Vector random_vector(Index size,
-                            Numeric mean  = 0.0,
-                            Numeric sigma = 3.0) {
-  std::random_device rd{};
-  std::mt19937 gen{rd()};
+inline Vector random_vector(Index size, Numeric mean = 0.0, Numeric sigma = 3.0) {
+  std::random_device         rd{};
+  std::mt19937               gen{rd()};
   std::normal_distribution<> d{mean, sigma};
 
   Vector result(size);
-  for (auto& x : result) {
-    x = d(gen);
-  }
+  for (auto& x : result) { x = d(gen); }
   return result;
 }
 
@@ -117,17 +106,13 @@ inline Vector random_vector(Index size,
  * real and imaginary components sampled from the Gaussian distribution
  * with the given mean and std. dev.
  */
-inline ComplexVector random_complex_vector(Index size,
-                                           Numeric mean  = 3.0,
-                                           Numeric sigma = 3.0) {
-  std::random_device rd{};
-  std::mt19937 gen{rd()};
+inline ComplexVector random_complex_vector(Index size, Numeric mean = 3.0, Numeric sigma = 3.0) {
+  std::random_device         rd{};
+  std::mt19937               gen{rd()};
   std::normal_distribution<> d{mean, sigma};
 
   ComplexVector result(size);
-  for (auto& x : result) {
-    x = std::complex<Numeric>(d(gen), d(gen));
-  }
+  for (auto& x : result) { x = std::complex<Numeric>(d(gen), d(gen)); }
   return result;
 }
 
@@ -142,12 +127,10 @@ inline ComplexVector random_complex_vector(Index size,
  * @return A complex vector containing SHT coefficients.
  */
 inline ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
-  auto n_coeffs = scattering::sht::SHT::calc_n_spectral_coeffs(l_max, m_max);
-  ComplexVector coeffs = random_complex_vector(n_coeffs);
+  auto          n_coeffs = scattering::sht::SHT::calc_n_spectral_coeffs(l_max, m_max);
+  ComplexVector coeffs   = random_complex_vector(n_coeffs);
   // Imaginary part of coeffs with m == 0 must be 0.
-  for (Index i = 0; i < l_max + 1; ++i) {
-    coeffs[i] = coeffs[i].real();
-  }
+  for (Index i = 0; i < l_max + 1; ++i) { coeffs[i] = coeffs[i].real(); }
   return coeffs;
 }
 
@@ -162,17 +145,14 @@ inline ComplexVector random_spectral_coeffs(Index l_max, Index m_max) {
  * @return The maximum absolute value of the element-wise difference
  * of A and B.
  */
-template <typename A, typename B>
-Numeric max_error(const A& a, const B& b) {
-  Numeric max = 0.0;
-  auto a_it   = a.elem_begin();
-  auto b_it   = b.elem_begin();
-  auto a_end  = a.elem_end();
+template <typename A, typename B> Numeric max_error(const A& a, const B& b) {
+  Numeric max   = 0.0;
+  auto    a_it  = a.elem_begin();
+  auto    b_it  = b.elem_begin();
+  auto    a_end = a.elem_end();
   while (a_it != a_end) {
     Numeric delta = std::abs(*a_it - *b_it);
-    if (delta > max) {
-      max = delta;
-    }
+    if (delta > max) { max = delta; }
     ++a_it;
     ++b_it;
   }
@@ -190,17 +170,14 @@ Numeric max_error(const A& a, const B& b) {
  * @return The maximum absolute value of the element-wise difference
  * of A and B.
  */
-template <typename A, typename B>
-Numeric max_rel_error(const A& a, const B& b) {
-  Numeric max = 0.0;
-  auto a_it   = a.elem_begin();
-  auto b_it   = b.elem_begin();
-  auto a_end  = a.elem_end();
+template <typename A, typename B> Numeric max_rel_error(const A& a, const B& b) {
+  Numeric max   = 0.0;
+  auto    a_it  = a.elem_begin();
+  auto    b_it  = b.elem_begin();
+  auto    a_end = a.elem_end();
   while (a_it != a_end) {
     Numeric delta = std::abs((*a_it - *b_it) / *b_it);
-    if (delta > max) {
-      max = delta;
-    }
+    if (delta > max) { max = delta; }
     ++a_it;
     ++b_it;
   }
@@ -217,9 +194,8 @@ Numeric max_rel_error(const A& a, const B& b) {
  * @tparam tensor The tensor to fill.
  * @tparam fun The function to use to fill the tensor.
  */
-template <matpack::any_md Tensor, typename Fun>
-void generate(Tensor& tensor, Fun fun) {
-  constexpr Index rank = Tensor::rank();
+template <matpack::any_md Tensor, typename Fun> void generate(Tensor& tensor, Fun fun) {
+  constexpr Index         rank = Tensor::rank();
   std::array<Index, rank> coords;
   coords.fill(0);
   std::array<Index, rank> shape = tensor.shape();
@@ -245,11 +221,8 @@ void generate(Tensor& tensor, Fun fun) {
  * @tparam Tensor The tensor type of the tensor to fill.
  * @param t The tensor to fill.
  */
-template <Index axis, matpack::any_md Tensor>
-void fill_along_axis(Tensor& t) {
-  auto get_coord = [](auto... params) {
-    return std::get<axis>(std::make_tuple(params...));
-  };
+template <Index axis, matpack::any_md Tensor> void fill_along_axis(Tensor& t) {
+  auto get_coord = [](auto... params) { return std::get<axis>(std::make_tuple(params...)); };
   generate(t, get_coord);
 }
 
@@ -262,20 +235,17 @@ void fill_along_axis(Tensor& t) {
  * @tparam Tensor The tensor type of the tensor to fill.
  * @param t The tensor to fill.
  */
-template <matpack::any_md Tensor>
-Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
-  Tensor tensor(shape);
-  std::random_device rd{};
-  std::mt19937 gen{rd()};
+template <matpack::any_md Tensor> Tensor random_tensor(const std::array<Index, Tensor::rank()>& shape) {
+  Tensor                     tensor(shape);
+  std::random_device         rd{};
+  std::mt19937               gen{rd()};
   std::normal_distribution<> dist{0.0, 1.0};
-  auto fill_fun = [&dist, &gen](Numeric) { return dist(gen); };
-  std::transform(
-      tensor.elem_begin(), tensor.elem_end(), tensor.elem_begin(), fill_fun);
+  auto                       fill_fun = [&dist, &gen](Numeric) { return dist(gen); };
+  std::transform(tensor.elem_begin(), tensor.elem_end(), tensor.elem_begin(), fill_fun);
   return tensor;
 }
 
-template<typename Scalar >
-bool is_close(const Scalar &a, const Scalar &b, const Scalar & rtol=1e-6) {
+template <typename Scalar> bool is_close(const Scalar& a, const Scalar& b, const Scalar& rtol = 1e-6) {
   return std::abs((a - b) / b) < rtol;
 }
 

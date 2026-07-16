@@ -10,15 +10,16 @@
 
 #include <stdlib.h>
 #include <time.h>
+
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <random>
+
 #include "array.h"
 #include "lin_alg.h"
-#include "test_utils.h"
-
 #include "minimize.h"
+#include "test_utils.h"
 
 // #include "gui/plot.h"
 
@@ -32,10 +33,10 @@ using std::setw;
   system. It uses the functions 'ludcmp' and  'lubacksub'.
 */
 void test_lusolve1D(void) {
-  Matrix a(1, 1);
+  Matrix       a(1, 1);
   ArrayOfIndex indx(1);
-  Matrix orig(1, 1);
-  Matrix b(1, 1);
+  Matrix       orig(1, 1);
+  Matrix       b(1, 1);
 
   /* Assign test-matrix element. */
   a[0, 0] = 3;
@@ -89,10 +90,10 @@ void test_lusolve1D(void) {
   system. It uses the functions 'ludcmp' and  'lubacksub'.
 */
 void test_lusolve4D(void) {
-  Matrix a(4, 4);
+  Matrix       a(4, 4);
   ArrayOfIndex indx(4);
-  Matrix orig(4, 4);
-  Matrix b(4, 4);
+  Matrix       orig(4, 4);
+  Matrix       b(4, 4);
 
   /* Assign test-matrix elements. */
 
@@ -144,7 +145,7 @@ void test_lusolve4D(void) {
   Matrix lu(4, 4, 0.0);
 
   for (Index i = 0; i < 4; i++) l[i, i] = 1.0;
-  l[1, 0] = b[1, 0];
+  l[1, 0]           = b[1, 0];
   l[2, Range(0, 2)] = b[2, Range(0, 2)];
   l[3, Range(0, 3)] = b[3, Range(0, 3)];
 
@@ -235,11 +236,11 @@ void test_lusolve4D(void) {
   \return void
 */
 void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
-  Matrix A(dim, dim);
-  Matrix LU(dim, dim);
-  Vector x0(dim);
-  Vector x(dim);
-  Vector b(dim);
+  Matrix       A(dim, dim);
+  Matrix       LU(dim, dim);
+  Vector       x0(dim);
+  Vector       x(dim);
+  Vector       b(dim);
   ArrayOfIndex indx(dim);
 
   // initialize random seed
@@ -262,7 +263,7 @@ void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
     lubacksub(x, LU, b, indx);
 
     Numeric err = 0.0;
-    err = get_maximum_error(x, x0, true);
+    err         = get_maximum_error(x, x0, true);
 
     cout << setw(10) << i << setw(20) << err;
 
@@ -313,8 +314,7 @@ void test_inv(Index ntests, Index dim, bool verbose = false) {
 
   cout << '\n' << '\n' << "Testing matrix inversion: n = " << dim;
   cout << ", ntests = " << ntests << '\n' << '\n';
-  cout << setw(10) << "Test no." << setw(20) << "Max. rel. error" << '\n'
-       << '\n';
+  cout << setw(10) << "Test no." << setw(20) << "Max. rel. error" << '\n' << '\n';
 
   for (Index i = 0; i < ntests; i++) {
     // Generate random matrix, make sure the determinant
@@ -427,8 +427,7 @@ void test_matrix_exp3D(void) {
 }
 
 void test_real_diagonalize(Index ntests, Index dim) {
-  Matrix A(dim, dim), F1(dim, dim), F2(dim, dim), tmp1(dim, dim),
-      tmp2(dim, dim), P(dim, dim);
+  Matrix A(dim, dim), F1(dim, dim), F2(dim, dim), tmp1(dim, dim), tmp2(dim, dim), P(dim, dim);
   Vector Wr(dim), Wi(dim);
 
   const Matrix ZEROES(dim, dim, 0);
@@ -461,9 +460,7 @@ void test_real_diagonalize(Index ntests, Index dim) {
     mult(tmp1, tmp2, P);
 
     // Minus W as diagonal matrix
-    for (Index j = 0; j < dim; j++) {
-      tmp1[j, j] -= Wr[j];
-    }
+    for (Index j = 0; j < dim; j++) { tmp1[j, j] -= Wr[j]; }
 
     err2 = get_maximum_error(ZEROES, tmp1, false);
 
@@ -500,9 +497,7 @@ void test_complex_diagonalize(Index ntests, Index dim) {
     mult(tmp1, tmp2, P);
 
     // Minus W as diagonal matrix
-    for (Index j = 0; j < dim; j++) {
-      tmp1[j, j] -= W[j];
-    }
+    for (Index j = 0; j < dim; j++) { tmp1[j, j] -= W[j]; }
 
     err = get_maximum_error(ZEROES, tmp1, false);
 
@@ -516,6 +511,6 @@ int main() {
   // test_solve_linear_system( 20, 1000, false );
   // test_matrix_exp1D();
   //  test_real_diagonalize(20,100);
-  test_complex_diagonalize(20,100);
+  test_complex_diagonalize(20, 100);
   return (0);
 }

@@ -18,9 +18,7 @@ std::vector<std::string> errors;
     errors.emplace_back(e.what()); \
   }
 
-std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
-  return ofs[i % ofs.size()];
-}
+std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) { return ofs[i % ofs.size()]; }
 
 std::string using_pygroup() {
   std::ostringstream os;
@@ -51,9 +49,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   const auto generics = wsm.generic_overloads();
 
   os << "    Workspace& _ws [[maybe_unused]]";
-  for (auto& v : wsm.out) {
-    os << ",\n    py" << wsvs.at(v).type << "* const _" << v;
-  }
+  for (auto& v : wsm.out) { os << ",\n    py" << wsvs.at(v).type << "* const _" << v; }
 
   // NB: This is untested code because we do not have any methods with generic outputs at time of writing
   for (Size i = 0; i < wsm.gout.size(); i++) {
@@ -63,27 +59,19 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
       const auto& g = wsm.gout_type.at(i);
       os << ",\n    py" << g << "* const _" << v;
     } else {
-      const auto& v          = wsm.gin.at(i);
+      const auto&      v     = wsm.gin.at(i);
       std::string_view comma = "";
       os << ",\n    Python::Supergeneric<";
-      for (auto& arg : generics[i]) {
-        os << std::exchange(comma, ", ") << "py" << arg;
-      }
+      for (auto& arg : generics[i]) { os << std::exchange(comma, ", ") << "py" << arg; }
       os << "> * const _" << v;
     }
   }
 
-  const auto not_out = [&wsm](const auto& v) {
-    return stdr::none_of(wsm.out, Cmp::eq(v));
-  };
+  const auto not_out = [&wsm](const auto& v) { return stdr::none_of(wsm.out, Cmp::eq(v)); };
 
-  for (auto& v : wsm.in | stdv::filter(not_out)) {
-    os << ",\n    const py" << wsvs.at(v).type << "* const _" << v;
-  }
+  for (auto& v : wsm.in | stdv::filter(not_out)) { os << ",\n    const py" << wsvs.at(v).type << "* const _" << v; }
 
-  const auto is_gout = [&wsm](const auto& v) {
-    return stdr::any_of(wsm.gout, Cmp::eq(v));
-  };
+  const auto is_gout = [&wsm](const auto& v) { return stdr::any_of(wsm.gout, Cmp::eq(v)); };
 
   // NB: This is partly untested code because we do not have any methods with generic input+output at time of writing
   Size index = wsm.gout.size();
@@ -96,12 +84,10 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
       const auto& g = wsm.gin_type.at(i);
       os << ",\n    const py" << g << "* const _" << v;
     } else {
-      const auto& v          = wsm.gin.at(i);
+      const auto&      v     = wsm.gin.at(i);
       std::string_view comma = "";
       os << ",\n    const Python::Supergeneric<";
-      for (auto& arg : generics[index]) {
-        os << std::exchange(comma, ", ") << "py" << arg;
-      }
+      for (auto& arg : generics[index]) { os << std::exchange(comma, ", ") << "py" << arg; }
       os << "> * const _" << v;
     }
 
@@ -116,11 +102,8 @@ bool uses_variadic(const std::string& v) {
 }
 
 bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
-  return stdr::any_of(
-             wsm.gout_type,
-             [](const std::string& s) { return s.find(',') != s.npos; }) or
-         stdr::any_of(wsm.gin_type,
-                      [](const std::string& s) { return uses_variadic(s); });
+  return stdr::any_of(wsm.gout_type, [](const std::string& s) { return s.find(',') != s.npos; }) or
+         stdr::any_of(wsm.gin_type, [](const std::string& s) { return uses_variadic(s); });
 }
 
 std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
@@ -129,24 +112,16 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
     if (wsm.gout_type[i] == "Any") {
     } else if (uses_variadic(wsm.gout_type[i])) {
-      std::println(
-          os,
-          R"-x-(        auto& {0} = select_gout(_{0}, _ws, "{0}");)-x-",
-          wsm.gout[i],
-          wsm.gout_type[i]);
+      std::println(os, R"-x-(        auto& {0} = select_gout(_{0}, _ws, "{0}");)-x-", wsm.gout[i], wsm.gout_type[i]);
     } else {
-      std::println(os,
-                   R"(        {1}& {0} = select_gout<{1}>(_{0}, _ws, "{0}");)",
-                   wsm.gout[i],
-                   wsm.gout_type[i]);
+      std::println(os, R"(        {1}& {0} = select_gout<{1}>(_{0}, _ws, "{0}");)", wsm.gout[i], wsm.gout_type[i]);
     }
   }
 
   return os.str();
 }
 
-std::string method_gin_selection(const std::string& name,
-                                 const WorkspaceMethodInternalRecord& wsm) {
+std::string method_gin_selection(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
@@ -154,10 +129,7 @@ std::string method_gin_selection(const std::string& name,
 
     if (wsm.gin_type[i] == "Any") {
     } else if (uses_variadic(wsm.gin_type[i])) {
-      std::println(
-          os,
-          R"-x-(        const auto& {0} = select_gin(_{0}, "{0}");)-x-",
-          wsm.gin[i]);
+      std::println(os, R"-x-(        const auto& {0} = select_gin(_{0}, "{0}");)-x-", wsm.gin[i]);
     } else {
       if (has_default) {
         std::println(os,
@@ -174,11 +146,7 @@ Failed to initialize "{1}" default value "_{0}")");
                      name,
                      wsm.gin_type[i]);
       } else {
-        std::println(
-            os,
-            R"x(        const {1}& {0} = select_gin<{1}>(_{0}, "{0}");)x",
-            wsm.gin[i],
-            wsm.gin_type[i]);
+        std::println(os, R"x(        const {1}& {0} = select_gin<{1}>(_{0}, "{0}");)x", wsm.gin[i], wsm.gin_type[i]);
       }
     }
   }
@@ -186,30 +154,24 @@ Failed to initialize "{1}" default value "_{0}")");
   return os.str();
 }
 
-std::string method_argument_selection(
-    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+std::string method_argument_selection(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   const auto& wsvs = workspace_variables();
 
   std::ostringstream os;
 
   for (auto& t : wsm.out) {
-    std::println(
-        os,
-        R"x(        {2}& {0} = select_{1}out<{2}>(_{0}, _ws, "{0}");)x",
-        t,
-        stdr::any_of(wsm.in, Cmp::eq(t)) ? "in"sv : ""sv,
-        wsvs.at(t).type);
+    std::println(os,
+                 R"x(        {2}& {0} = select_{1}out<{2}>(_{0}, _ws, "{0}");)x",
+                 t,
+                 stdr::any_of(wsm.in, Cmp::eq(t)) ? "in"sv : ""sv,
+                 wsvs.at(t).type);
   }
 
   os << method_gout_selection(wsm);
 
   for (auto& t : wsm.in) {
     if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
-    std::println(
-        os,
-        R"x(        const {1}& {0} = select_in<{1}>(_{0}, _ws, "{0}");)x",
-        t,
-        wsvs.at(t).type);
+    std::println(os, R"x(        const {1}& {0} = select_in<{1}>(_{0}, _ws, "{0}");)x", t, wsvs.at(t).type);
   }
 
   os << method_gin_selection(name, wsm);
@@ -217,33 +179,27 @@ std::string method_argument_selection(
   return os.str();
 }
 
-std::string method_resolution_any(const std::string& name,
-                                  const WorkspaceMethodInternalRecord& wsm) {
+std::string method_resolution_any(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   std::size_t i_any = 0;
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
-    if (wsm.gout_type[i] == "Any") {
-      std::println(os, "        auto& _any{} = *_{};", ++i_any, wsm.gout[i]);
-    }
+    if (wsm.gout_type[i] == "Any") { std::println(os, "        auto& _any{} = *_{};", ++i_any, wsm.gout[i]); }
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
-    if (wsm.gin_type[i] == "Any") {
-      std::println(os, "        auto& _any{} = *_{};", ++i_any, wsm.gin[i]);
-    }
+    if (wsm.gin_type[i] == "Any") { std::println(os, "        auto& _any{} = *_{};", ++i_any, wsm.gin[i]); }
   }
 
   std::println(os, "        switch(_any1.value_index()) {{");
   for (auto& group : internal_workspace_groups() | stdv::keys) {
     i_any = 1;
 
-    std::print(
-        os,
-        R"(          case WorkspaceGroupInfo<{0}>::index: return {1}<{0}>({2})",
-        group,
-        name,
-        wsm.pass_workspace ? "_ws"sv : ""sv);
+    std::print(os,
+               R"(          case WorkspaceGroupInfo<{0}>::index: return {1}<{0}>({2})",
+               group,
+               name,
+               wsm.pass_workspace ? "_ws"sv : ""sv);
 
     bool any = wsm.pass_workspace;
 
@@ -255,12 +211,7 @@ std::string method_resolution_any(const std::string& name,
     for (std::size_t i = 0; i < wsm.gout.size(); i++) {
       auto& t = wsm.gout[i];
       if (wsm.gout_type[i] == "Any") {
-        std::print(os,
-                   "{3}_any{0}.get{1}<{2}>()",
-                   i_any,
-                   i_any == 1 ? "_unsafe"sv : ""sv,
-                   group,
-                   any ? ", "sv : ""sv);
+        std::print(os, "{3}_any{0}.get{1}<{2}>()", i_any, i_any == 1 ? "_unsafe"sv : ""sv, group, any ? ", "sv : ""sv);
         i_any++;
       } else {
         std::print(os, "{0}{1}", any ? ", "sv : ""sv, t);
@@ -277,12 +228,7 @@ std::string method_resolution_any(const std::string& name,
     for (std::size_t i = 0; i < wsm.gin.size(); i++) {
       auto& t = wsm.gin[i];
       if (wsm.gin_type[i] == "Any") {
-        std::print(os,
-                   "{3}_any{0}.get{1}<{2}>()",
-                   i_any,
-                   i_any == 1 ? "_unsafe"sv : ""sv,
-                   group,
-                   any ? ", "sv : ""sv);
+        std::print(os, "{3}_any{0}.get{1}<{2}>()", i_any, i_any == 1 ? "_unsafe"sv : ""sv, group, any ? ", "sv : ""sv);
         i_any++;
       } else {
         std::print(os, "{0}{1}", any ? ", "sv : ""sv, t);
@@ -292,17 +238,15 @@ std::string method_resolution_any(const std::string& name,
 
     std::println(os, ");");
   }
-  std::println(
-      os,
-      "        }}\n        throw std::runtime_error(\"Cannot understand input\");");
+  std::println(os, "        }}\n        throw std::runtime_error(\"Cannot understand input\");");
 
   return os.str();
 }
 
 std::vector<std::string> supergeneric_type(const std::string& t) {
   std::vector<std::string> types;
-  std::string type = t;
-  auto ptr         = type.find(',');
+  std::string              type = t;
+  auto                     ptr  = type.find(',');
   while (ptr != type.npos) {
     types.push_back(type.substr(0, ptr));
     type = type.substr(ptr + 1);
@@ -330,16 +274,13 @@ bool is_unique_variadic(const WorkspaceMethodInternalRecord& wsm) {
     auto supergenerics = supergeneric_type(t);
     auto unique        = unique_sorted(supergenerics);
     if (unique.size() != supergenerics.size()) return false;
-    if (not std::is_permutation(
-            unique.begin(), unique.end(), supergenerics.begin()))
-      return false;
+    if (not std::is_permutation(unique.begin(), unique.end(), supergenerics.begin())) return false;
   }
 
   return true;
 }
 
-std::vector<std::vector<std::string>> supergeneric_types(
-    const WorkspaceMethodInternalRecord& wsm) {
+std::vector<std::vector<std::string>> supergeneric_types(const WorkspaceMethodInternalRecord& wsm) {
   std::vector<std::vector<std::string>> out;
 
   for (auto& t : wsm.gout_type) {
@@ -347,12 +288,8 @@ std::vector<std::vector<std::string>> supergeneric_types(
 
     const auto types = supergeneric_type(t);
 
-    if (not out.size()) {
-      out.resize(types.size());
-    }
-    for (std::size_t i = 0; i < types.size(); i++) {
-      out[i].push_back(types[i]);
-    }
+    if (not out.size()) { out.resize(types.size()); }
+    for (std::size_t i = 0; i < types.size(); i++) { out[i].push_back(types[i]); }
   }
 
   for (auto& t : wsm.gin_type) {
@@ -360,64 +297,44 @@ std::vector<std::vector<std::string>> supergeneric_types(
 
     const auto types = supergeneric_type(t);
 
-    if (not out.size()) {
-      out.resize(types.size());
-    }
-    for (std::size_t i = 0; i < types.size(); i++) {
-      out[i].push_back(types[i]);
-    }
+    if (not out.size()) { out.resize(types.size()); }
+    for (std::size_t i = 0; i < types.size(); i++) { out[i].push_back(types[i]); }
   }
   return out;
 }
 
-std::string method_resolution_variadic(
-    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+std::string method_resolution_variadic(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
-  const std::vector<std::vector<std::string>> supergenerics =
-      supergeneric_types(wsm);
+  const std::vector<std::vector<std::string>> supergenerics = supergeneric_types(wsm);
   if (is_unique_variadic(wsm)) {
     std::string var = "";
     for (auto& generics : supergenerics) {
       const auto& ungen = generics;
 
-      std::string test{"true"};
+      std::string              test{"true"};
       std::vector<std::string> vars{};
 
       for (std::size_t i = 0; i < wsm.gout.size(); i++) {
         auto& t = wsm.gout_type[i];
         if (uses_variadic(t)) {
-          const auto& mytype  = ungen[vars.size()];
-          test               += std::format(
-              " and std::holds_alternative<{0}>(std::shared_ptr<py{1}>)",
-              mytype,
-              wsm.gout[i]);
-          vars.emplace_back(
-              std::format("**std::get_if<py{0}>({1})", mytype, wsm.gout[i]));
+          const auto& mytype = ungen[vars.size()];
+          test += std::format(" and std::holds_alternative<{0}>(std::shared_ptr<py{1}>)", mytype, wsm.gout[i]);
+          vars.emplace_back(std::format("**std::get_if<py{0}>({1})", mytype, wsm.gout[i]));
         }
       }
 
       for (std::size_t i = 0; i < wsm.gin.size(); i++) {
         auto& t = wsm.gin_type[i];
         if (uses_variadic(t)) {
-          const auto& mytype  = ungen[vars.size()];
-          test               += std::format(
-              " and std::holds_alternative<std::shared_ptr<py{0}>>({1})",
-              mytype,
-              wsm.gin[i]);
-          vars.emplace_back(
-              std::format("**std::get_if<std::shared_ptr<py{0}>>(&{1})",
-                          mytype,
-                          wsm.gin[i]));
+          const auto& mytype = ungen[vars.size()];
+          test += std::format(" and std::holds_alternative<std::shared_ptr<py{0}>>({1})", mytype, wsm.gin[i]);
+          vars.emplace_back(std::format("**std::get_if<std::shared_ptr<py{0}>>(&{1})", mytype, wsm.gin[i]));
         }
       }
 
       stdr::reverse(vars);
-      std::print(os,
-                 "        if ({0})\n          return {1}({2}",
-                 test,
-                 name,
-                 wsm.pass_workspace ? "_ws"sv : ""sv);
+      std::print(os, "        if ({0})\n          return {1}({2}", test, name, wsm.pass_workspace ? "_ws"sv : ""sv);
 
       bool any = wsm.pass_workspace;
 
@@ -463,8 +380,7 @@ std::string method_resolution_variadic(
   return os.str();
 }
 
-std::string method_resolution_simple(const std::string& name,
-                                     const WorkspaceMethodInternalRecord& wsm) {
+std::string method_resolution_simple(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   os << "        return " << name << "(";
@@ -507,8 +423,7 @@ std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
   return stdr::count(wsm.gout_type, "Any"sv) + stdr::count(wsm.gin_type, "Any"sv);
 }
 
-std::string method_resolution(const std::string& name,
-                              const WorkspaceMethodInternalRecord& wsm) {
+std::string method_resolution(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   if (count_any(wsm) > 0) {
@@ -532,8 +447,7 @@ Size max_varlen(const WorkspaceMethodInternalRecord& wsm) {
   return n;
 }
 
-std::string method_error(const std::string& name,
-                         const WorkspaceMethodInternalRecord& wsm) {
+std::string method_error(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
   os << std::format(R"(        throw std::runtime_error(
           std::format(R"-WSM-(Cannot execute method:
@@ -541,19 +455,16 @@ std::string method_error(const std::string& name,
   {}()",
                     name);
 
-  const auto spaces      = std::string(name.size() + 1 + 2, ' ');
-  const Size largest_var = max_varlen(wsm);
+  const auto               spaces      = std::string(name.size() + 1 + 2, ' ');
+  const Size               largest_var = max_varlen(wsm);
   std::vector<std::string> arg;
 
   bool first = true;
   for (auto& t : wsm.out) {
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(
-        os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
-    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)",
-                              t,
-                              workspace_variables().at(t).type));
+    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
   }
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
@@ -561,19 +472,16 @@ std::string method_error(const std::string& name,
     auto& tt = wsm.gout_type[i];
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(
-        os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
     if (tt == "Any") {
-      arg.push_back(std::format(
-          R"(_{0} ? std::format("User-provided {{}}", _{0} -> type_name()) : std::string("None"))",
-          t));
+      arg.push_back(
+          std::format(R"(_{0} ? std::format("User-provided {{}}", _{0} -> type_name()) : std::string("None"))", t));
     } else if (uses_variadic(tt)) {
       arg.push_back(std::format(
           R"(_{0} and has_selected_value(*_{0}) ? std::format("User-provided {{}}", type(_{0})) : std::string("None"))",
           t));
     } else {
-      arg.push_back(
-          std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, tt));
+      arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, tt));
     }
   }
 
@@ -581,11 +489,8 @@ std::string method_error(const std::string& name,
     if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(
-        os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
-    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)",
-                              t,
-                              workspace_variables().at(t).type));
+    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
@@ -594,8 +499,7 @@ std::string method_error(const std::string& name,
     auto& tt = wsm.gin_type[i];
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(
-        os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
 
     if (tt == "Any") {
       arg.push_back(std::format(
@@ -608,23 +512,20 @@ std::string method_error(const std::string& name,
           t,
           v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
     } else {
-      arg.push_back(std::format(
-          R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
-          t,
-          v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
+      arg.push_back(
+          std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+                      t,
+                      v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
     }
   }
 
   os << ")\n\nMethod reports the following error(s):\n{})-WSM-\", ";
-  for (auto& a : arg) {
-    os << std::format("{},\n           ", a);
-  }
+  for (auto& a : arg) { os << std::format("{},\n           ", a); }
   os << "std::string_view(e.what())));\n";
   return os.str();
 }
 
-std::string method_argument_documentation(
-    const WorkspaceMethodInternalRecord& wsm) {
+std::string method_argument_documentation(const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   bool first = true;
@@ -636,14 +537,11 @@ std::string method_argument_documentation(
   }
 
   for (Size i = 0; i < wsm.gout.size(); i++) {
-    auto& t   = wsm.gout[i];
+    auto&  t  = wsm.gout[i];
     auto&& tt = wsm.gout_type[i];
     if (not first) os << ",\n    ";
     first = false;
-    std::print(os,
-               R"(" {} "_a{}.none() = py::none())",
-               t,
-               tt == "Any" ? ""sv : ".noconvert()"sv);
+    std::print(os, R"(" {} "_a{}.none() = py::none())", t, tt == "Any" ? ""sv : ".noconvert()"sv);
   }
 
   for (const auto& t : wsm.in) {
@@ -667,8 +565,7 @@ std::string method_argument_documentation(
   return "";
 }
 
-std::string method(const std::string& name,
-                   const WorkspaceMethodInternalRecord& wsm) {
+std::string method(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   return std::format(
       R"-x-(  ws.def("{0}",[]({1}) -> {7} {{
     try {{
@@ -695,9 +592,7 @@ void methods(int nfiles) {
   const auto& wsms = internal_workspace_methods();
 
   std::vector<std::ofstream> ofs(nfiles);
-  for (int i = 0; i < nfiles; i++) {
-    ofs[i].open(std::format("py_auto_wsm_{}.cpp", i));
-  }
+  for (int i = 0; i < nfiles; i++) { ofs[i].open(std::format("py_auto_wsm_{}.cpp", i)); }
 
   for (int i = 0; i < nfiles; i++) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>
@@ -722,9 +617,7 @@ void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
     ERRORAPPEND;
   }
 
-  for (int i = 0; i < nfiles; i++) {
-    select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
-  }
+  for (int i = 0; i < nfiles; i++) { select_ofstream(ofs, i) << "}\n}  // namespace Python\n"; }
 }
 }  // namespace
 
@@ -740,9 +633,7 @@ int main(int argc, char** argv) {
 
   if (errors.size()) {
     std::cerr << "Errors (" << errors.size() << "):\n";
-    for (auto& e : errors) {
-      std::cerr << e << '\n';
-    }
+    for (auto& e : errors) { std::cerr << e << '\n'; }
     return EXIT_FAILURE;
   }
 

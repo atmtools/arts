@@ -17,48 +17,36 @@
 #include <utility>
 #include <vector>
 
-BlockMatrix::BlockMatrix()                                       = default;
-BlockMatrix::BlockMatrix(const BlockMatrix &)                    = default;
-BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept                = default;
-BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)         = default;
-BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept     = default;
-Block::Block()                                                   = default;
-Block::Block(const Block &)                                      = default;
-Block::Block(Block &&) noexcept                                  = default;
-Block &Block::operator=(const Block &)                           = default;
-Block &Block::operator=(Block &&) noexcept                       = default;
-Block::~Block()                                                  = default;
-CovarianceMatrix::CovarianceMatrix()                             = default;
-CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &)     = default;
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept = default;
-CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &) =
-    default;
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept =
-    default;
-CovarianceMatrix::~CovarianceMatrix() = default;
+BlockMatrix::BlockMatrix()                                                  = default;
+BlockMatrix::BlockMatrix(const BlockMatrix &)                               = default;
+BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept                           = default;
+BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)                    = default;
+BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept                = default;
+Block::Block()                                                              = default;
+Block::Block(const Block &)                                                 = default;
+Block::Block(Block &&) noexcept                                             = default;
+Block &Block::operator=(const Block &)                                      = default;
+Block &Block::operator=(Block &&) noexcept                                  = default;
+Block::~Block()                                                             = default;
+CovarianceMatrix::CovarianceMatrix()                                        = default;
+CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &)                = default;
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept            = default;
+CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &)     = default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept = default;
+CovarianceMatrix::~CovarianceMatrix()                                       = default;
 
-Block::Block(Range row_range,
-             Range column_range,
-             IndexPair indices,
-             BlockMatrix matrix)
-    : row_range_(row_range),
-      column_range_(column_range),
-      indices_(std::move(indices)),
-      matrix_(std::move(matrix)) {
+Block::Block(Range row_range, Range column_range, IndexPair indices, BlockMatrix matrix)
+    : row_range_(row_range), column_range_(column_range), indices_(std::move(indices)), matrix_(std::move(matrix)) {
   // Nothing to do here.
 }
 
-BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense)
-    : data(std::move(dense)) {}
+BlockMatrix::BlockMatrix(std::shared_ptr<Matrix> dense) : data(std::move(dense)) {}
 
-BlockMatrix::BlockMatrix(std::shared_ptr<Sparse> sparse)
-    : data(std::move(sparse)) {}
+BlockMatrix::BlockMatrix(std::shared_ptr<Sparse> sparse) : data(std::move(sparse)) {}
 
-BlockMatrix::BlockMatrix(const Matrix &dense)
-    : data(std::make_shared<Matrix>(dense)) {}
+BlockMatrix::BlockMatrix(const Matrix &dense) : data(std::make_shared<Matrix>(dense)) {}
 
-BlockMatrix::BlockMatrix(const Sparse &sparse)
-    : data(std::make_shared<Sparse>(sparse)) {}
+BlockMatrix::BlockMatrix(const Sparse &sparse) : data(std::make_shared<Sparse>(sparse)) {}
 
 BlockMatrix &BlockMatrix::operator=(std::shared_ptr<Matrix> dense) {
   data = std::move(dense);
@@ -85,9 +73,7 @@ bool BlockMatrix::not_null() const {
   return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
 }
 
-bool BlockMatrix::is_dense() const {
-  return std::holds_alternative<std::shared_ptr<Matrix>>(data);
-}
+bool BlockMatrix::is_dense() const { return std::holds_alternative<std::shared_ptr<Matrix>>(data); }
 
 bool BlockMatrix::is_sparse() const { return not is_dense(); }
 
@@ -112,8 +98,7 @@ const Sparse &BlockMatrix::sparse() const {
 }
 
 Vector BlockMatrix::diagonal() const {
-  if (is_dense())
-    return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
+  if (is_dense()) return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
   return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
 }
 
@@ -127,17 +112,11 @@ Index BlockMatrix::nrows() const {
   return sparse().nrows();
 }
 
-void Block::set_matrix(std::shared_ptr<Sparse> sparse) {
-  matrix_ = std::move(sparse);
-}
-void Block::set_matrix(std::shared_ptr<Matrix> dense) {
-  matrix_ = std::move(dense);
-}
+void Block::set_matrix(std::shared_ptr<Sparse> sparse) { matrix_ = std::move(sparse); }
+void Block::set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
 
 std::array<Index, 2> BlockMatrix::shape() const {
-  if (is_dense()) {
-    return dense().shape();
-  }
+  if (is_dense()) { return dense().shape(); }
   return {sparse().nrows(), sparse().ncols()};
 }
 
@@ -147,8 +126,8 @@ std::array<Index, 2> BlockMatrix::shape() const {
 void mult(StridedMatrixView C, StridedConstMatrixView A, const Block &B) {
   assert(B.not_null());
 
-  StridedMatrixView CView(C[joker, B.get_column_range()]);
-  StridedMatrixView CTView(C[joker, B.get_row_range()]);
+  StridedMatrixView      CView(C[joker, B.get_column_range()]);
+  StridedMatrixView      CTView(C[joker, B.get_row_range()]);
   StridedConstMatrixView AView(A[joker, B.get_row_range()]);
   StridedConstMatrixView ATView(A[joker, B.get_column_range()]);
 
@@ -177,8 +156,8 @@ void mult(StridedMatrixView C, StridedConstMatrixView A, const Block &B) {
 void mult(StridedMatrixView C, const Block &A, StridedConstMatrixView B) {
   assert(A.not_null());
 
-  StridedMatrixView CView(C[A.get_row_range(), joker]);
-  StridedMatrixView CTView(C[A.get_column_range(), joker]);
+  StridedMatrixView      CView(C[A.get_row_range(), joker]);
+  StridedMatrixView      CTView(C[A.get_column_range(), joker]);
   StridedConstMatrixView BView(B[A.get_column_range(), joker]);
   StridedConstMatrixView BTView(B[A.get_row_range(), joker]);
 
@@ -205,10 +184,8 @@ void mult(StridedMatrixView C, const Block &A, StridedConstMatrixView B) {
 }
 
 void mult(StridedVectorView w, const Block &A, StridedConstVectorView v) {
-  StridedVectorView wview(w[A.get_row_range()]),
-      wtview(w[A.get_column_range()]);
-  StridedConstVectorView vview(v[A.get_column_range()]),
-      vtview(v[A.get_row_range()]);
+  StridedVectorView      wview(w[A.get_row_range()]), wtview(w[A.get_column_range()]);
+  StridedConstVectorView vview(v[A.get_column_range()]), vtview(v[A.get_row_range()]);
 
   if (A.is_dense()) {
     mult(wview, A.get_dense(), vview);
@@ -254,7 +231,7 @@ StridedMatrixView operator+=(StridedMatrixView A, const Block &B) {
 // Covariance Matrix
 //------------------------------------------------------------------------------
 CovarianceMatrix::operator Matrix() const {
-  Index n = nrows();
+  Index  n = nrows();
   Matrix A(n, n);
   A = 0.0;
 
@@ -281,7 +258,7 @@ CovarianceMatrix::operator Matrix() const {
 }
 
 Matrix CovarianceMatrix::get_inverse() const {
-  Index n = nrows();
+  Index  n = nrows();
   Matrix A(n, n);
   A = 0.0;
 
@@ -313,18 +290,14 @@ Index CovarianceMatrix::nrows() const {
   for (const Block &c : correlations_) {
     Index i, j;
     std::tie(i, j) = c.get_indices();
-    if (i == j) {
-      m1 += c.nrows();
-    }
+    if (i == j) { m1 += c.nrows(); }
   }
 
   Index m2 = 0;
   for (const Block &c : inverses_) {
     Index i, j;
     std::tie(i, j) = c.get_indices();
-    if (i == j) {
-      m2 += c.nrows();
-    }
+    if (i == j) { m2 += c.nrows(); }
   }
 
   return std::max(m1, m2);
@@ -338,9 +311,7 @@ Index CovarianceMatrix::ndiagblocks() const {
   for (const Block &c : correlations_) {
     Index i, j;
     std::tie(i, j) = c.get_indices();
-    if (i == j) {
-      ++m;
-    }
+    if (i == j) { ++m; }
   }
   return m;
 }
@@ -351,9 +322,7 @@ Index CovarianceMatrix::ninvdiagblocks() const {
   for (const Block &c : inverses_) {
     Index i, j;
     std::tie(i, j) = c.get_indices();
-    if (i == j) {
-      ++m;
-    }
+    if (i == j) { ++m; }
   }
   return m;
 }
@@ -361,45 +330,31 @@ Index CovarianceMatrix::ninvdiagblocks() const {
 Index CovarianceMatrix::nblocks() const { return correlations_.size(); }
 
 bool CovarianceMatrix::has_block(Index i, Index j) {
-  if (i > j) {
-    std::swap(i, j);
-  }
+  if (i > j) { std::swap(i, j); }
 
   bool result = false;
-  for (const Block &b : correlations_) {
-    result |= b.get_indices() == std::make_pair(i, j);
-  }
+  for (const Block &b : correlations_) { result |= b.get_indices() == std::make_pair(i, j); }
 
   return result;
 }
 
 const Block *CovarianceMatrix::get_block(Index i, Index j) {
-  if (i > j) {
-    std::swap(i, j);
-  }
+  if (i > j) { std::swap(i, j); }
   Index bi, bj;
   for (const Block &b : correlations_) {
     std::tie(bi, bj) = b.get_indices();
-    if (((i == bi) && (j == bj)) || ((i == -1) && (j == bj)) ||
-        ((i == -1) && (j == -1))) {
-      return &b;
-    }
+    if (((i == bi) && (j == bj)) || ((i == -1) && (j == bj)) || ((i == -1) && (j == -1))) { return &b; }
   }
   return nullptr;
 }
 
-bool CovarianceMatrix::has_diagonal_blocks(
-    const ArrayOfArrayOfIndex &jis) const {
+bool CovarianceMatrix::has_diagonal_blocks(const ArrayOfArrayOfIndex &jis) const {
   for (Index i = 0; i < static_cast<Index>(jis.size()); ++i) {
     Index n_blocks = 0;
     for (const Block &b : correlations_) {
-      if (b.get_indices() == std::make_pair(i, i)) {
-        ++n_blocks;
-      }
+      if (b.get_indices() == std::make_pair(i, i)) { ++n_blocks; }
     }
-    if (n_blocks != 1) {
-      return false;
-    }
+    if (n_blocks != 1) { return false; }
   }
   return true;
 }
@@ -412,26 +367,17 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     Index row_start  = jis[i][0];
     Index row_extent = jis[i][1] - jis[i][0] + 1;
     Range row_range  = b.get_row_range();
-    if ((row_range.offset != row_start) || (row_range.nelem != row_extent)) {
-      return false;
-    }
+    if ((row_range.offset != row_start) || (row_range.nelem != row_extent)) { return false; }
 
     Index column_start  = jis[j][0];
     Index column_extent = jis[j][1] - jis[j][0] + 1;
     Range column_range  = b.get_column_range();
-    if ((column_range.offset != column_start) ||
-        (column_range.nelem != column_extent)) {
-      return false;
-    }
+    if ((column_range.offset != column_start) || (column_range.nelem != column_extent)) { return false; }
     return true;
   };
 
-  if (!std::all_of(correlations_.begin(), correlations_.end(), pred)) {
-    return false;
-  }
-  if (!std::all_of(inverses_.begin(), inverses_.end(), pred)) {
-    return false;
-  }
+  if (!std::all_of(correlations_.begin(), correlations_.end(), pred)) { return false; }
+  if (!std::all_of(inverses_.begin(), inverses_.end(), pred)) { return false; }
   return true;
 }
 
@@ -443,32 +389,23 @@ bool CovarianceMatrix::is_consistent(const Block &b) const {
     Index ii, jj;
     std::tie(ii, jj) = c.get_indices();
 
-    if ((ii == i) && (c.nrows() != b.nrows())) {
-      return false;
-    }
+    if ((ii == i) && (c.nrows() != b.nrows())) { return false; }
 
-    if ((jj == j) && (c.ncols() != b.ncols())) {
-      return false;
-    }
+    if ((jj == j) && (c.ncols() != b.ncols())) { return false; }
 
-    if ((ii == i) && (jj == j)) {
-      return false;
-    }
+    if ((ii == i) && (jj == j)) { return false; }
   }
   return true;
 }
 
 bool CovarianceMatrix::has_inverse(IndexPair indices) const {
   for (const Block &b : inverses_) {
-    if (indices == b.get_indices()) {
-      return true;
-    }
+    if (indices == b.get_indices()) { return true; }
   }
   return false;
 }
 
-void CovarianceMatrix::generate_blocks(
-    std::vector<std::vector<const Block *>> &corr_blocks) const {
+void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &corr_blocks) const {
   for (size_t i = 0; i < correlations_.size(); i++) {
     Index ci, cj;
     std::tie(ci, cj) = correlations_[i].get_indices();
@@ -481,9 +418,7 @@ void CovarianceMatrix::generate_blocks(
       Index ci, cj;
       std::tie(ci, cj) = correlations_[i].get_indices();
       rq_queue.push(ci);
-      if (ci != cj) {
-        rq_queue.push(cj);
-      }
+      if (ci != cj) { rq_queue.push(cj); }
       has_blocks[i] = true;
       corr_blocks.push_back(std::vector<const Block *>{&correlations_[i]});
 
@@ -495,12 +430,8 @@ void CovarianceMatrix::generate_blocks(
           if (!has_blocks[j]) {
             std::tie(ci, cj) = correlations_[j].get_indices();
             if ((ci == rq_index) || (cj == rq_index)) {
-              if (ci != rq_index) {
-                rq_queue.push(ci);
-              }
-              if (cj != rq_index) {
-                rq_queue.push(cj);
-              }
+              if (ci != rq_index) { rq_queue.push(ci); }
+              if (cj != rq_index) { rq_queue.push(cj); }
               corr_blocks.back().push_back(&correlations_[j]);
               has_blocks[j] = true;
             }
@@ -514,13 +445,11 @@ void CovarianceMatrix::generate_blocks(
 void CovarianceMatrix::compute_inverse() const {
   std::vector<std::vector<const Block *>> correlation_blocks{};
   generate_blocks(correlation_blocks);
-  for (std::vector<const Block *> &cb : correlation_blocks) {
-    invert_correlation_block(inverses_, cb);
-  }
+  for (std::vector<const Block *> &cb : correlation_blocks) { invert_correlation_block(inverses_, cb); }
 }
 
-void CovarianceMatrix::invert_correlation_block(
-    std::vector<Block> &inverses, std::vector<const Block *> &blocks) const {
+void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inverses,
+                                                std::vector<const Block *> &blocks) const {
   // Can't compute inverse of empty block.
   assert(blocks.size() > 0);
 
@@ -534,9 +463,7 @@ void CovarianceMatrix::invert_correlation_block(
 
   std::sort(blocks.begin(), blocks.end(), comp);
 
-  auto block_has_inverse = [this](const Block *a) {
-    return has_inverse(a->get_indices());
-  };
+  auto block_has_inverse = [this](const Block *a) { return has_inverse(a->get_indices()); };
   if (std::all_of(blocks.begin(), blocks.end(), block_has_inverse)) return;
 
   // Otherwise go on to precompute the inverse of a block consisting
@@ -548,12 +475,12 @@ void CovarianceMatrix::invert_correlation_block(
   // mapping the coordinates of each block to a start row and extent in the continuous
   // matrix A. We also record which retrieval quantity indices belong to this
   // set of retrieval quantities.
-  Index n = 0;
+  Index                  n = 0;
   std::map<Index, Index> block_start{};
   std::map<Index, Index> block_extent{};
   std::map<Index, Index> block_start_cont{};
   std::map<Index, Index> block_extent_cont{};
-  std::vector<Index> block_indices{};
+  std::vector<Index>     block_indices{};
 
   for (size_t i = 0; i < blocks.size(); ++i) {
     Index ci, cj;
@@ -577,8 +504,8 @@ void CovarianceMatrix::invert_correlation_block(
   for (size_t i = 0; i < blocks.size(); ++i) {
     Index ci, cj;
     std::tie(ci, cj) = blocks[i]->get_indices();
-    Range row_range(block_start_cont[ci], block_extent_cont[ci]);
-    Range column_range(block_start_cont[cj], block_extent_cont[cj]);
+    Range             row_range(block_start_cont[ci], block_extent_cont[ci]);
+    Range             column_range(block_start_cont[cj], block_extent_cont[cj]);
     StridedMatrixView A_view = A[row_range, column_range];
 
     if (blocks[i]->is_dense()) {
@@ -589,9 +516,7 @@ void CovarianceMatrix::invert_correlation_block(
   }
 
   for (Index i = 0; i < n; ++i) {
-    for (Index j = i + 1; j < n; ++j) {
-      A[j, i] = A[i, j];
-    }
+    for (Index j = i + 1; j < n; ++j) { A[j, i] = A[i, j]; }
   }
   inv(A, A);
 
@@ -614,27 +539,20 @@ void CovarianceMatrix::invert_correlation_block(
   for (Index bi : block_indices) {
     for (Index bj : block_indices) {
       if (bi <= bj) {
-        Range row_range_A(block_start_cont[bi], block_extent_cont[bi]);
-        Range column_range_A(block_start_cont[bj], block_extent_cont[bj]);
-        Range row_range(block_start[bi], block_extent[bi]);
-        Range column_range(block_start[bj], block_extent[bj]);
+        Range             row_range_A(block_start_cont[bi], block_extent_cont[bi]);
+        Range             column_range_A(block_start_cont[bj], block_extent_cont[bj]);
+        Range             row_range(block_start[bi], block_extent[bi]);
+        Range             column_range(block_start[bj], block_extent[bj]);
         StridedMatrixView A_view = A[row_range_A, column_range_A];
-        inverses.push_back(Block(row_range,
-                                 column_range,
-                                 std::make_pair(bi, bj),
-                                 std::make_shared<Matrix>(A_view)));
+        inverses.push_back(Block(row_range, column_range, std::make_pair(bi, bj), std::make_shared<Matrix>(A_view)));
       }
     }
   }
 }
 
-void CovarianceMatrix::add_correlation(Block c) {
-  correlations_.push_back(std::move(c));
-}
+void CovarianceMatrix::add_correlation(Block c) { correlations_.push_back(std::move(c)); }
 
-void CovarianceMatrix::add_correlation_inverse(Block c) {
-  inverses_.push_back(std::move(c));
-}
+void CovarianceMatrix::add_correlation_inverse(Block c) { inverses_.push_back(std::move(c)); }
 
 Vector CovarianceMatrix::diagonal() const {
   Vector diag(nrows());
@@ -642,9 +560,7 @@ Vector CovarianceMatrix::diagonal() const {
     Index i, j;
     std::tie(i, j) = b.get_indices();
 
-    if (i == j) {
-      diag[b.get_row_range()] = b.diagonal();
-    }
+    if (i == j) { diag[b.get_row_range()] = b.diagonal(); }
   }
   return diag;
 }
@@ -657,16 +573,12 @@ Vector CovarianceMatrix::inverse_diagonal() const {
     Index i, j;
     std::tie(i, j) = b.get_indices();
 
-    if (i == j) {
-      diag[b.get_row_range()] = b.diagonal();
-    }
+    if (i == j) { diag[b.get_row_range()] = b.diagonal(); }
   }
   return diag;
 }
 
-void mult(StridedMatrixView C,
-          StridedConstMatrixView A,
-          const CovarianceMatrix &B) {
+void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.correlations_) {
@@ -676,9 +588,7 @@ void mult(StridedMatrixView C,
   }
 }
 
-void mult(StridedMatrixView C,
-          const CovarianceMatrix &A,
-          StridedConstMatrixView B) {
+void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.correlations_) {
@@ -688,9 +598,7 @@ void mult(StridedMatrixView C,
   }
 }
 
-void mult(StridedVectorView w,
-          const CovarianceMatrix &A,
-          StridedConstVectorView v) {
+void mult(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.correlations_) {
@@ -700,9 +608,7 @@ void mult(StridedVectorView w,
   }
 }
 
-void mult_inv(StridedMatrixView C,
-              StridedConstMatrixView A,
-              const CovarianceMatrix &B) {
+void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.inverses_) {
@@ -712,9 +618,7 @@ void mult_inv(StridedMatrixView C,
   }
 }
 
-void mult_inv(StridedMatrixView C,
-              const CovarianceMatrix &A,
-              StridedConstMatrixView B) {
+void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.inverses_) {
@@ -724,9 +628,7 @@ void mult_inv(StridedMatrixView C,
   }
 }
 
-void solve(StridedVectorView w,
-           const CovarianceMatrix &A,
-           StridedConstVectorView v) {
+void solve(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.inverses_) {
@@ -737,39 +639,30 @@ void solve(StridedVectorView w,
 }
 
 StridedMatrixView operator+=(StridedMatrixView A, const CovarianceMatrix &B) {
-  for (const Block &c : B.correlations_) {
-    A += c;
-  }
+  for (const Block &c : B.correlations_) { A += c; }
   return A;
 }
 
 void add_inv(StridedMatrixView A, const CovarianceMatrix &B) {
-  for (const Block &c : B.inverses_) {
-    A += c;
-  }
+  for (const Block &c : B.inverses_) { A += c; }
 }
 
 std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
   os << "Covariance Matrix, ";
-  os << "\tDimensions: [" << covmat.nrows() << " x " << covmat.ncols() << "]"
-     << '\n';
+  os << "\tDimensions: [" << covmat.nrows() << " x " << covmat.ncols() << "]" << '\n';
   os << "Blocks:" << '\n';
   for (const Block &b : covmat.correlations_) {
     Index i, j;
     std::tie(i, j) = b.get_indices();
     os << "\ti = " << i << ", j = " << j << ": " << b.get_row_range().nelem;
     os << " x " << b.get_column_range().nelem;
-    os << ", has inverse: "
-       << (covmat.has_inverse(std::make_pair(i, j)) ? "yes" : "no");
+    os << ", has inverse: " << (covmat.has_inverse(std::make_pair(i, j)) ? "yes" : "no");
     os << '\n';
   }
   return os;
 }
 
-void xml_io_stream<Block>::write(std::ostream &os,
-                                 const Block &x,
-                                 bofstream *pbofs,
-                                 std::string_view name) {
+void xml_io_stream<Block>::write(std::ostream &os, const Block &x, bofstream *pbofs, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -795,10 +688,10 @@ void xml_io_stream<Block>::read(std::istream &is, Block &x, bifstream *pbifs) {
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<BlockMatrix>::write(std::ostream &os,
+void xml_io_stream<BlockMatrix>::write(std::ostream      &os,
                                        const BlockMatrix &x,
-                                       bofstream *pbofs,
-                                       std::string_view name) {
+                                       bofstream         *pbofs,
+                                       std::string_view   name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -807,9 +700,7 @@ void xml_io_stream<BlockMatrix>::write(std::ostream &os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<BlockMatrix>::read(std::istream &is,
-                                      BlockMatrix &x,
-                                      bifstream *pbifs) {
+void xml_io_stream<BlockMatrix>::read(std::istream &is, BlockMatrix &x, bifstream *pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -820,10 +711,10 @@ void xml_io_stream<BlockMatrix>::read(std::istream &is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<CovarianceMatrix>::write(std::ostream &os,
+void xml_io_stream<CovarianceMatrix>::write(std::ostream           &os,
                                             const CovarianceMatrix &x,
-                                            bofstream *pbofs,
-                                            std::string_view name) {
+                                            bofstream              *pbofs,
+                                            std::string_view        name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -833,9 +724,7 @@ void xml_io_stream<CovarianceMatrix>::write(std::ostream &os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<CovarianceMatrix>::read(std::istream &is,
-                                           CovarianceMatrix &x,
-                                           bifstream *pbifs) {
+void xml_io_stream<CovarianceMatrix>::read(std::istream &is, CovarianceMatrix &x, bifstream *pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

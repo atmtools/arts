@@ -20,10 +20,7 @@ namespace Python {
 void py_cia(py::module_& m) try {
   py::class_<SpeciesEnumPair> sep(m, "SpeciesEnumPair");
   generic_interface(sep);
-  sep.def(py::init<SpeciesEnum, SpeciesEnum>(),
-          "spec1"_a,
-          "spec2"_a,
-          "Create a species pair from two species")
+  sep.def(py::init<SpeciesEnum, SpeciesEnum>(), "spec1"_a, "spec2"_a, "Create a species pair from two species")
       .def(
           "__init__",
           [](SpeciesEnumPair* self, const std::string& s) {
@@ -42,17 +39,11 @@ void py_cia(py::module_& m) try {
           },
           "s"_a,
           "Create a species pair from string 'SpeciesA-SpeciesB'")
-      .def_rw("spec1",
-              &SpeciesEnumPair::spec1,
-              "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
-      .def_rw("spec2",
-              &SpeciesEnumPair::spec2,
-              "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec1", &SpeciesEnumPair::spec1, "First species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
+      .def_rw("spec2", &SpeciesEnumPair::spec2, "Second species\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def(py::self == py::self)
       .def(py::self != py::self)
-      .def("__hash__", [](const SpeciesEnumPair& self) {
-        return std::hash<SpeciesEnumPair>{}(self);
-      });
+      .def("__hash__", [](const SpeciesEnumPair& self) { return std::hash<SpeciesEnumPair>{}(self); });
 
   // Make SpeciesEnumPair implicitly convertible from string
   py::implicitly_convertible<std::string, SpeciesEnumPair>();
@@ -63,31 +54,25 @@ void py_cia(py::module_& m) try {
       .def_prop_rw(
           "data",
           [](const CIARecord& c) { return c.Data(); },
-          [](CIARecord& c, const ArrayOfGriddedField2& data) {
-            c.Data() = data;
-          },
+          [](CIARecord& c, const ArrayOfGriddedField2& data) { c.Data() = data; },
           "Data by bands\n\n.. :class:`~pyarts3.arts.ArrayOfGriddedField2`")
       .def(
           "spectral_propmat",
-          [](const CIARecord& self,
+          [](const CIARecord&     self,
              const AscendingGrid& f,
-             const AtmPoint& atm,
-             const SpeciesEnum spec1,
-             const SpeciesEnum spec2,
-             const Numeric T_extrapolfac,
-             const Index robust) {
+             const AtmPoint&      atm,
+             const SpeciesEnum    spec1,
+             const SpeciesEnum    spec2,
+             const Numeric        T_extrapolfac,
+             const Index          robust) {
             PropmatVector out(f.size());
 
-            const Numeric scl =
-                atm.number_density(spec1) * atm.number_density(spec2);
+            const Numeric scl = atm.number_density(spec1) * atm.number_density(spec2);
             for (auto& cia_data : self.Data()) {
               Vector result(f.size(), 0);
-              cia_interpolation(
-                  result, f, atm.temperature, cia_data, T_extrapolfac, robust);
+              cia_interpolation(result, f, atm.temperature, cia_data, T_extrapolfac, robust);
 
-              for (Size i = 0; i < f.size(); i++) {
-                out[i].A() += scl * result[i];
-              }
+              for (Size i = 0; i < f.size(); i++) { out[i].A() += scl * result[i]; }
             }
 
             return out;
@@ -123,14 +108,14 @@ Returns
 )--")
       .def(
           "compute_abs",
-          [](CIARecord& cia_,
-             Numeric T,
-             Numeric P,
-             Numeric X0,
-             Numeric X1,
+          [](CIARecord&    cia_,
+             Numeric       T,
+             Numeric       P,
+             Numeric       X0,
+             Numeric       X1,
              const Vector& f,
-             Numeric T_extrapolfac,
-             Index robust) {
+             Numeric       T_extrapolfac,
+             Index         robust) {
             Vector out(f.size(), 0);
 
             for (auto& cia_data : cia_.Data()) {
@@ -176,32 +161,24 @@ Returns
 )--");
 
   // Bind CIARecords as map
-  auto acr = py::bind_map<CIARecords, py::rv_policy::reference_internal>(
-      m, "CIARecords");
+  auto acr = py::bind_map<CIARecords, py::rv_policy::reference_internal>(m, "CIARecords");
   generic_interface(acr);
 
   acr.def(
       "spectral_propmat",
-      [](const CIARecords& self,
+      [](const CIARecords&    self,
          const AscendingGrid& f,
-         const AtmPoint& atm,
-         const SpeciesEnum& spec,
-         const Numeric T_extrapolfac,
-         const Index ignore_errors,
+         const AtmPoint&      atm,
+         const SpeciesEnum&   spec,
+         const Numeric        T_extrapolfac,
+         const Index          ignore_errors,
          const py::kwargs&) {
-        PropmatVector spectral_propmat(f.size());
-        PropmatMatrix spectral_propmat_jac(0, f.size());
+        PropmatVector   spectral_propmat(f.size());
+        PropmatMatrix   spectral_propmat_jac(0, f.size());
         JacobianTargets jac_targets{};
 
-        spectral_propmatAddCIA(spectral_propmat,
-                               spectral_propmat_jac,
-                               spec,
-                               jac_targets,
-                               f,
-                               atm,
-                               self,
-                               T_extrapolfac,
-                               ignore_errors);
+        spectral_propmatAddCIA(
+            spectral_propmat, spectral_propmat_jac, spec, jac_targets, f, atm, self, T_extrapolfac, ignore_errors);
 
         return spectral_propmat;
       },
@@ -233,7 +210,6 @@ spectral_propmat : PropmatVector
 
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
 }
 }  // namespace Python

@@ -41,12 +41,9 @@ Matrix33 rotmat_enu(const Vector2& prop_los) {
   return R_ant2enu;
 }
 
-Muelmat rotmat_stokes(Numeric f1_dir,
-                      Numeric f2_dir,
-                      const Matrix33& R_f1,
-                      const Matrix33& R_f2) {
+Muelmat rotmat_stokes(Numeric f1_dir, Numeric f2_dir, const Matrix33& R_f1, const Matrix33& R_f2) {
   const Numeric flip = f1_dir * f2_dir;
-  Numeric cos_pra1, sin_pra1, cos_pra2, sin_pra2;
+  Numeric       cos_pra1, sin_pra1, cos_pra2, sin_pra2;
 
   cos_pra1 = dot(R_f1[joker, 0], R_f2[joker, 0]);
   sin_pra1 = f2_dir * dot(R_f1[joker, 0], R_f2[joker, 1]);
@@ -73,24 +70,20 @@ void MCAntenna::set_gaussian(const Numeric& za_sigma, const Numeric& aa_sigma) {
   sigma_aa = aa_sigma;
 }
 
-void MCAntenna::set_gaussian_fwhm(const Numeric& za_fwhm,
-                                  const Numeric& aa_fwhm) {
+void MCAntenna::set_gaussian_fwhm(const Numeric& za_fwhm, const Numeric& aa_fwhm) {
   atype    = AntennaType::Gaussian;
   sigma_za = za_fwhm / 2.3548;
   sigma_aa = aa_fwhm / 2.3548;
 }
 
-void MCAntenna::set_lookup(ConstVectorView za_grid_,
-                           ConstVectorView aa_grid_,
-                           ConstMatrixView G_lookup_) {
+void MCAntenna::set_lookup(ConstVectorView za_grid_, ConstVectorView aa_grid_, ConstMatrixView G_lookup_) {
   atype    = AntennaType::Lookup;
   za_grid  = za_grid_;
   aa_grid  = aa_grid_;
   G_lookup = G_lookup_;
 }
 
-Numeric MCAntenna::return_los(const Matrix33& R_return,
-                              const Matrix33& R_enu2ant) const {
+Numeric MCAntenna::return_los(const Matrix33& R_return, const Matrix33& R_enu2ant) const {
   using Conversion::atan2d;
 
   Numeric z, term_el, term_az;
@@ -120,10 +113,9 @@ Numeric MCAntenna::return_los(const Matrix33& R_return,
   }
 }
 
-std::pair<Vector2, Matrix33> MCAntenna::draw_los(
-    RandomNumberGenerator<>& rng,
-    const Matrix33& R_ant2enu,
-    const Vector2& bore_sight_los) const {
+std::pair<Vector2, Matrix33> MCAntenna::draw_los(RandomNumberGenerator<>& rng,
+                                                 const Matrix33&          R_ant2enu,
+                                                 const Vector2&           bore_sight_los) const {
   using Conversion::tand, Conversion::atan2d, Conversion::acosd;
 
   Numeric ant_el, ant_az, ant_r;
@@ -148,13 +140,9 @@ std::pair<Vector2, Matrix33> MCAntenna::draw_los(
       // Same assumption is made for radar return samples (return_los)
       {
         auto za_sample = rng.get<std::normal_distribution>(0.0, sigma_za);
-        while (ant_el >= 90) {
-          ant_el = za_sample();
-        }
+        while (ant_el >= 90) { ant_el = za_sample(); }
         auto aa_sample = rng.get<std::normal_distribution>(0.0, sigma_aa);
-        while (ant_az >= 90) {
-          ant_az = aa_sample();
-        }
+        while (ant_az >= 90) { ant_az = aa_sample(); }
       }
 
       // Propagation direction
@@ -177,12 +165,11 @@ std::pair<Vector2, Matrix33> MCAntenna::draw_los(
       } else {
         const Vector3 uhat{0.0, 0.0, 1.0};
         sampled_rte_los[1] = atan2d(R_los[0, 2], R_los[1, 2]);
-        R_los[joker, 1] = normalized(cross(to<Vector3>(R_los[joker, 2]), uhat));
+        R_los[joker, 1]    = normalized(cross(to<Vector3>(R_los[joker, 2]), uhat));
       }
 
       // Vertical polarization basis
-      R_los[joker, 0] =
-          cross(to<Vector3>(R_los[joker, 1]), to<Vector3>(R_los[joker, 2]));
+      R_los[joker, 0] = cross(to<Vector3>(R_los[joker, 1]), to<Vector3>(R_los[joker, 2]));
 
       break;
 

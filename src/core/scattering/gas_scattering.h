@@ -13,7 +13,6 @@
   \brief  Header file for functions related to gas scattering.
 */
 
-
 #ifndef gas_scattering_h
 #define gas_scattering_h
 

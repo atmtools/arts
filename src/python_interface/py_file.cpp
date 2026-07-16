@@ -26,33 +26,22 @@ void enum_FileType(py::module_& m) {
   py::class_<FileType> _gFileType(m, "FileType");
   _gFileType.doc() = PythonWorkspaceGroupInfo<FileType>::desc();
   xml_interface(_gFileType);
-  _gFileType.def("__str__",
-                 [](const FileType& x) { return std::format("{}", x); });
-  _gFileType.def("__repr__",
-                 [](const FileType& x) { return std::format("\"{}\"", x); });
+  _gFileType.def("__str__", [](const FileType& x) { return std::format("{}", x); });
+  _gFileType.def("__repr__", [](const FileType& x) { return std::format("\"{}\"", x); });
   _gFileType.def(py::init<>());
   _gFileType.def(py::init<FileType>());
-  _gFileType.def("__init__", [](FileType* y, const std::string& x) {
-    new (y) FileType{to<FileType>(x)};
-  });
+  _gFileType.def("__init__", [](FileType* y, const std::string& x) { new (y) FileType{to<FileType>(x)}; });
   py::implicitly_convertible<std::string, FileType>();
-  _gFileType.def(
-      "__hash__",
-      [](const FileType& x) { return std::hash<FileType>{}(x); },
-      "Allows hashing");
+  _gFileType.def("__hash__", [](const FileType& x) { return std::hash<FileType>{}(x); }, "Allows hashing");
   _gFileType.def("__copy__", [](FileType t) -> FileType { return t; });
-  _gFileType.def("__deepcopy__",
-                 [](FileType t, py::dict&) -> FileType { return t; });
+  _gFileType.def("__deepcopy__", [](FileType t, py::dict&) -> FileType { return t; });
   _gFileType.def(py::self == py::self, "`self == other`");
   _gFileType.def(py::self != py::self, "`self != other`");
   _gFileType.def(py::self <= py::self, "`self <= other`");
   _gFileType.def(py::self >= py::self, "`self >= other`");
   _gFileType.def(py::self < py::self, "`self < other`");
   _gFileType.def(py::self > py::self, "`self > other`");
-  _gFileType.def_static(
-      "get_options",
-      [] { return enumtyps::FileTypeTypes; },
-      "Get a list of all options");
+  _gFileType.def_static("get_options", [] { return enumtyps::FileTypeTypes; }, "Get a list of all options");
   _gFileType.def_static(
       "get_options_as_strings",
       [](Size i) {
@@ -129,9 +118,8 @@ void enum_FileType(py::module_& m) {
 void py_file(py::module_& m) try {
   enum_FileType(m);
 
-  auto file = m.def_submodule(
-      "file",
-      R"--(Contain methods to handle files available to ARTS via its path environment.)--");
+  auto file =
+      m.def_submodule("file", R"--(Contain methods to handle files available to ARTS via its path environment.)--");
 
   file.def(
       "find",
@@ -158,8 +146,7 @@ str or None
       "find_xml",
       [](const String& filename) -> std::optional<String> {
         ArrayOfString files;
-        if (find_file(files, filename, parameters.datapath, {".xml"}))
-          return files[0];
+        if (find_file(files, filename, parameters.datapath, {".xml"})) return files[0];
         return std::nullopt;
       },
       R"(Find xml-file in paths available to ARTS.
@@ -176,7 +163,6 @@ str or None
 )",
       "filename"_a);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize files\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize files\n{}", e.what()));
 }
 }  // namespace Python

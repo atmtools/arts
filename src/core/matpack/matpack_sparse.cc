@@ -36,9 +36,7 @@
 // ----------------
 
 //! Returns true if variable size is zero.
-bool Sparse::empty() const {
-  return (matrix.rows() == 0 || matrix.cols() == 0);
-}
+bool Sparse::empty() const { return (matrix.rows() == 0 || matrix.cols() == 0); }
 
 //! Returns the number of rows.
 Index Sparse::nrows() const { return matrix.rows(); }
@@ -86,9 +84,7 @@ Numeric& Sparse::rw(Index r, Index c) {
   \return The data element with these indices.
 
 */
-Numeric Sparse::operator[](Index r, Index c) const {
-  return matrix.coeff((int)r, (int)c);
-}
+Numeric Sparse::operator[](Index r, Index c) const { return matrix.coeff((int)r, (int)c); }
 
 //! Read only index operator.
 /*!
@@ -142,23 +138,19 @@ Sparse::Sparse(Index r, Index c) : matrix((int)r, (int)c) {
 }
 
 Sparse Sparse::diagonal(StridedConstVectorView v) {
-  Index n = v.size();
+  Index        n = v.size();
   ArrayOfIndex indices(n);
-  for (Index i = 0; i < n; ++i) {
-    indices[i] = i;
-  }
+  for (Index i = 0; i < n; ++i) { indices[i] = i; }
   Sparse m(n, n);
   m.insert_elements(n, indices, indices, v);
   return m;
 }
 
 Vector Sparse::diagonal() const {
-  Index m = std::min(nrows(), ncols());
+  Index  m = std::min(nrows(), ncols());
   Vector diag(m);
 
-  for (int i = 0; i < m; i++) {
-    diag[i] = matrix.coeff(i, i);
-  }
+  for (int i = 0; i < m; i++) { diag[i] = matrix.coeff(i, i); }
   return diag;
 }
 
@@ -178,9 +170,7 @@ Sparse::operator Matrix() const {
 
   for (int i = 0; i < m; i++) {
     Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(matrix, i);
-    for (; it; ++it) {
-      A[it.row(), it.col()] = it.value();
-    }
+    for (; it; ++it) { A[it.row(), it.col()] = it.value(); }
   }
   return A;
 }
@@ -250,9 +240,7 @@ Sparse& Sparse::operator/=(Numeric x) {
   \param row_indices The row indices corresponding to the values.
   \param column_indices The column indices corresponding to the values.
 */
-void Sparse::list_elements(Vector& values,
-                           ArrayOfIndex& row_indices,
-                           ArrayOfIndex& column_indices) const {
+void Sparse::list_elements(Vector& values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const {
   Index m, n;
   m = nrows();
   n = ncols();
@@ -276,8 +264,8 @@ void Sparse::list_elements(Vector& values,
 }
 
 Numeric* Sparse::get_element_pointer() { return matrix.valuePtr(); }
-int* Sparse::get_column_index_pointer() { return matrix.innerIndexPtr(); }
-int* Sparse::get_row_start_pointer() { return matrix.outerIndexPtr(); }
+int*     Sparse::get_column_index_pointer() { return matrix.innerIndexPtr(); }
+int*     Sparse::get_row_start_pointer() { return matrix.outerIndexPtr(); }
 
 //! Reduce matrix to the row range [offset, offset + nrows]
 void Sparse::split(Index offset, Index nrows_block) {
@@ -321,16 +309,14 @@ void Sparse::insert_row(Index r, Vector v) {
   \param colind A vector containing the column indices.
   \param data The vector containing the elements.
 */
-void Sparse::insert_elements(Index nelems,
-                             const ArrayOfIndex& rowind,
-                             const ArrayOfIndex& colind,
+void Sparse::insert_elements(Index                  nelems,
+                             const ArrayOfIndex&    rowind,
+                             const ArrayOfIndex&    colind,
                              StridedConstVectorView data) {
   typedef Eigen::Triplet<Numeric> T;
-  std::vector<T> tripletList(nelems);
+  std::vector<T>                  tripletList(nelems);
 
-  for (Index i = 0; i < nelems; i++) {
-    tripletList[i] = T((int)rowind[i], (int)colind[i], data[i]);
-  }
+  for (Index i = 0; i < nelems; i++) { tripletList[i] = T((int)rowind[i], (int)colind[i], data[i]); }
 
   matrix.setFromTriplets(tripletList.begin(), tripletList.end());
 }
@@ -407,10 +393,9 @@ void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   assert(static_cast<Size>(M.ncols()) == x.size());
 
   // Typedefs for Eigen interface
-  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
-      EigenColumnVector;
-  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
+  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor> EigenColumnVector;
+  typedef Eigen::Stride<1, Eigen::Dynamic>                           Stride;
+  typedef Eigen::Map<EigenColumnVector, 0, Stride>                   ColumnMap;
 
   Numeric* data;
   data = const_cast<Numeric*>(x.data_handle());
@@ -436,18 +421,15 @@ void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   \param M Matrix for multiplication (sparse).
   \param x Vector for multiplication.
 */
-void transpose_mult(StridedVectorView y,
-                    const Sparse& M,
-                    StridedConstVectorView x) {
+void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   // Check dimensions:
   assert(y.size() == static_cast<Size>(M.ncols()));
   assert(static_cast<Size>(M.nrows()) == x.size());
 
   // Typedefs for Eigen interface
-  typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
-      EigenColumnVector;
-  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
+  typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor> EigenColumnVector;
+  typedef Eigen::Stride<1, Eigen::Dynamic>                           Stride;
+  typedef Eigen::Map<EigenColumnVector, 0, Stride>                   ColumnMap;
 
   Numeric* data;
   data = const_cast<Numeric*>(x.data_handle());
@@ -476,20 +458,16 @@ void transpose_mult(StridedVectorView y,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(StridedMatrixView A,
-          const Sparse& B,
-          const StridedConstMatrixView& C) {
+void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C) {
   // Check dimensions:
   assert(A.nrows() == B.nrows());
   assert(A.ncols() == C.ncols());
   assert(B.ncols() == C.nrows());
 
   // Typedefs for Eigen interface
-  typedef Eigen::
-      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-          EigenMatrix;
-  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
+  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> EigenMatrix;
+  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>                           Stride;
+  typedef Eigen::Map<EigenMatrix, 0, Stride>                                      MatrixMap;
 
   Index row_stride, column_stride;
   row_stride    = C.stride(0);
@@ -497,13 +475,13 @@ void mult(StridedMatrixView A,
 
   Numeric* data;
   data = const_cast<Numeric*>(C.data_handle());
-  Stride c_stride(row_stride, column_stride);
+  Stride    c_stride(row_stride, column_stride);
   MatrixMap C_map(data, C.nrows(), C.ncols(), c_stride);
 
   row_stride    = A.stride(0);
   column_stride = A.stride(1);
   data          = A.data_handle();
-  Stride a_stride(row_stride, column_stride);
+  Stride    a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
   A_map = B.matrix * C_map;
@@ -527,20 +505,16 @@ void mult(StridedMatrixView A,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-void mult(StridedMatrixView A,
-          const StridedConstMatrixView& B,
-          const Sparse& C) {
+void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C) {
   // Check dimensions:
   assert(A.nrows() == B.nrows());
   assert(A.ncols() == C.ncols());
   assert(B.ncols() == C.nrows());
 
   // Typedefs for Eigen interface.
-  typedef Eigen::
-      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-          EigenMatrix;
-  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
+  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> EigenMatrix;
+  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>                           Stride;
+  typedef Eigen::Map<EigenMatrix, 0, Stride>                                      MatrixMap;
 
   Index row_stride, column_stride;
   row_stride    = B.stride(0);
@@ -548,13 +522,13 @@ void mult(StridedMatrixView A,
 
   Numeric* data;
   data = const_cast<Numeric*>(B.data_handle());
-  Stride b_stride(row_stride, column_stride);
+  Stride    b_stride(row_stride, column_stride);
   MatrixMap B_map(data, B.nrows(), B.ncols(), b_stride);
 
   row_stride    = A.stride(0);
   column_stride = A.stride(1);
   data          = A.data_handle();
-  Stride a_stride(row_stride, column_stride);
+  Stride    a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
   A_map = B_map * C.matrix;
@@ -667,8 +641,7 @@ void sub(Sparse& A, const Sparse& B, const Sparse& C) {
   A.matrix = B.matrix - C.matrix;
 }
 
-Range get_rowindex_for_mblock(const Sparse& sensor_response,
-                              const Index& mblock_index) {
+Range get_rowindex_for_mblock(const Sparse& sensor_response, const Index& mblock_index) {
   const Index n1y = sensor_response.nrows();
   return Range(n1y * mblock_index, n1y);
 }
@@ -678,10 +651,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a) {
   return os;
 }
 
-void xml_io_stream<Sparse>::write(std::ostream& os_xml,
-                                  const Sparse& sparse,
-                                  bofstream* pbofs,
-                                  std::string_view name) {
+void xml_io_stream<Sparse>::write(std::ostream& os_xml, const Sparse& sparse, bofstream* pbofs, std::string_view name) {
   XMLTag sparse_tag;
   XMLTag row_tag;
   XMLTag col_tag;
@@ -707,7 +677,7 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
   std::println(os_xml);
 
   ArrayOfIndex rowind(sparse.nnz()), colind(sparse.nnz());
-  Vector data(sparse.nnz());
+  Vector       data(sparse.nnz());
   sparse.list_elements(data, rowind, colind);
 
   // Write row indices.
@@ -764,11 +734,9 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml,
   std::println(os_xml);
 }
 
-void xml_io_stream<Sparse>::read(std::istream& is_xml,
-                                 Sparse& sparse,
-                                 bifstream* pbifs) {
+void xml_io_stream<Sparse>::read(std::istream& is_xml, Sparse& sparse, bifstream* pbifs) {
   XMLTag tag;
-  Index nrows, ncols, nnz;
+  Index  nrows, ncols, nnz;
 
   tag.read_from_stream(is_xml);
   tag.check_name("Sparse");
@@ -782,7 +750,7 @@ void xml_io_stream<Sparse>::read(std::istream& is_xml,
   tag.get_attribute_value("nelem", nnz);
 
   ArrayOfIndex rowind(nnz), colind(nnz);
-  Vector data(nnz);
+  Vector       data(nnz);
 
   for (Index i = 0; i < nnz; i++) {
     if (pbifs) {

@@ -69,31 +69,20 @@ concept grid_transformer = std::same_as<decltype(T::op(Numeric{})), Numeric>;
  * are expected to be generic or the type if they are not.
  */
 template <typename T>
-concept value_transformer = requires(
-    T a,
-    std::conditional_t<std::same_as<Any, typename T::value_type>,
-                       Numeric,
-                       typename T::value_type> v) {
-  {
-    T::forward(v)
-  }
-  -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>,
-                                     Numeric,
-                                     typename T::value_type>>;
-  {
-    T::inverse(v)
-  }
-  -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>,
-                                     Numeric,
-                                     typename T::value_type>>;
-};
+concept value_transformer =
+    requires(T a, std::conditional_t<std::same_as<Any, typename T::value_type>, Numeric, typename T::value_type> v) {
+      {
+        T::forward(v)
+      } -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>, Numeric, typename T::value_type>>;
+      {
+        T::inverse(v)
+      } -> std::same_as<std::conditional_t<std::same_as<Any, typename T::value_type>, Numeric, typename T::value_type>>;
+    };
 
 template <typename T>
 concept cyclic =
-    grid_transformer<T> and
-    std::same_as<decltype(T::cycle(Numeric{})), Numeric> and
-    std::same_as<decltype(T::cycle()), Numeric> and T::cycle() > 0.0 and
-    std::same_as<decltype(T::midpoint()), Numeric>;
+    grid_transformer<T> and std::same_as<decltype(T::cycle(Numeric{})), Numeric> and
+    std::same_as<decltype(T::cycle()), Numeric> and T::cycle() > 0.0 and std::same_as<decltype(T::midpoint()), Numeric>;
 
 template <typename T>
 concept lagrange_type = requires(T a) {
@@ -106,34 +95,26 @@ template <typename T>
 concept constant_lagrange_type = lagrange_type<T> and not T::runtime;
 
 template <typename T>
-concept runtime_lagrange_type =
-    lagrange_type<T> and not constant_lagrange_type<T>;
+concept runtime_lagrange_type = lagrange_type<T> and not constant_lagrange_type<T>;
 
 template <typename T>
-concept lagrange_type_list =
-    lagrange_type<typename T::value_type> and requires(T a) { a.size(); };
+concept lagrange_type_list = lagrange_type<typename T::value_type> and requires(T a) { a.size(); };
+
+template <typename T> struct is_std_array : std::false_type {};
+
+template <typename T, std::size_t N> struct is_std_array<std::array<T, N>> : std::true_type {};
+
+template <typename T> inline constexpr bool is_std_array_v = is_std_array<T>::value;
 
 template <typename T>
-struct is_std_array : std::false_type {};
-
-template <typename T, std::size_t N>
-struct is_std_array<std::array<T, N>> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_std_array_v = is_std_array<T>::value;
-
-template <typename T>
-concept constant_lagrange_type_list =
-    lagrange_type_list<T> and is_std_array_v<T>;
+concept constant_lagrange_type_list = lagrange_type_list<T> and is_std_array_v<T>;
 
 template <typename T>
 concept fully_constant_lagrange_type_list =
-    constant_lagrange_type<typename T::value_type> and
-    constant_lagrange_type_list<T>;
+    constant_lagrange_type<typename T::value_type> and constant_lagrange_type_list<T>;
 
 template <typename T>
-concept runtime_lagrange_type_list =
-    lagrange_type_list<T> and not constant_lagrange_type_list<T>;
+concept runtime_lagrange_type_list = lagrange_type_list<T> and not constant_lagrange_type_list<T>;
 }  // namespace
 
 //!  A grid_transformer that does not transform the value of the grid
@@ -145,15 +126,9 @@ struct grid_identity {
 struct value_identity {
   using value_type = Any;
 
-  template <typename T>
-  static constexpr auto forward(T&& x) noexcept {
-    return std::forward<T>(x);
-  }
+  template <typename T> static constexpr auto forward(T&& x) noexcept { return std::forward<T>(x); }
 
-  template <typename T>
-  static constexpr auto inverse(T&& x) noexcept {
-    return std::forward<T>(x);
-  }
+  template <typename T> static constexpr auto inverse(T&& x) noexcept { return std::forward<T>(x); }
 };
 
 /*! A grid_transformer that cycles the value to the range [lower, upper)
@@ -163,18 +138,12 @@ struct value_identity {
  * you need a greater range, please implement another grid_transformer
  * and keep this fast.
  */
-template <Numeric lower, Numeric upper>
-  requires(lower < upper)
-struct cycler final : grid_identity {
-  static consteval Numeric midpoint() noexcept {
-    return std::midpoint(upper, lower);
-  }
+template <Numeric lower, Numeric upper> requires(lower < upper) struct cycler final : grid_identity {
+  static consteval Numeric midpoint() noexcept { return std::midpoint(upper, lower); }
 
   static consteval Numeric cycle() noexcept { return upper - lower; }
 
-  static constexpr Numeric cycle(Numeric x) noexcept {
-    return x + ((x < lower) - (x >= upper)) * cycle();
-  }
+  static constexpr Numeric cycle(Numeric x) noexcept { return x + ((x < lower) - (x >= upper)) * cycle(); }
 };
 
 //!  A value_transformer that interpolates the logarithm of the value, useful for exponential curves
@@ -202,13 +171,9 @@ namespace {
 using order_t = std::variant<ascending_grid_t, descending_grid_t>;
 
 template <typename T>
-concept grid_order =
-    std::same_as<T, ascending_grid_t> or std::same_as<T, descending_grid_t>;
+concept grid_order = std::same_as<T, ascending_grid_t> or std::same_as<T, descending_grid_t>;
 
-template <grid_order T>
-consteval bool ascending() {
-  return std::same_as<T, ascending_grid_t>;
-}
+template <grid_order T> consteval bool ascending() { return std::same_as<T, ascending_grid_t>; }
 
 /******************************************************************
  * Update the position in the input array so that the closest value
@@ -230,9 +195,7 @@ consteval bool ascending() {
  ******************************************************************/
 
 template <grid_transformer transform, Size X, grid_order grid>
-constexpr void update_pos(std::span<Index, X> indx,
-                          std::span<const Numeric> xi,
-                          Numeric x) {
+constexpr void update_pos(std::span<Index, X> indx, std::span<const Numeric> xi, Numeric x) {
   const Size n = xi.size();
   const Size P = X == std::dynamic_extent ? indx.size() : X;
 
@@ -240,9 +203,9 @@ constexpr void update_pos(std::span<Index, X> indx,
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
 
-  const Size N                                = P - 1;
-  const Size Of                               = N / 2;
-  std::span<const Numeric>::iterator xp       = xi.begin() + indx[Of];
+  const Size                               N  = P - 1;
+  const Size                               Of = N / 2;
+  std::span<const Numeric>::iterator       xp = xi.begin() + indx[Of];
   const std::span<const Numeric>::iterator xf = xi.begin() + Of;
   const std::span<const Numeric>::iterator xe = xi.end() - P / 2 - 1;
 
@@ -290,8 +253,7 @@ constexpr void update_pos(std::span<Index, X> indx,
       xp            = (nonstd::abs(x - *xn) < nonstd::abs(x - *xp)) ? xn : xp;
     } else {
       const auto xn = xp + 1;
-      xp = (xn == xi.end() or nonstd::abs(x - *xn) > nonstd::abs(x - *xp)) ? xp
-                                                                           : xn;
+      xp            = (xn == xi.end() or nonstd::abs(x - *xn) > nonstd::abs(x - *xp)) ? xp : xn;
     }
   }
 
@@ -309,9 +271,7 @@ constexpr void update_pos(std::span<Index, X> indx,
  ******************************************************************/
 
 template <grid_transformer transform, Size X, grid_order grid>
-constexpr void find_pos(std::span<Index, X> indx,
-                        std::span<const Numeric> xi,
-                        Numeric x) {
+constexpr void find_pos(std::span<Index, X> indx, std::span<const Numeric> xi, Numeric x) {
   const Size n = xi.size();
   const Size P = X == std::dynamic_extent ? indx.size() : X;
 
@@ -325,15 +285,13 @@ constexpr void find_pos(std::span<Index, X> indx,
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
 
-  constexpr auto fractional_index =
-      [](Numeric x, Numeric x0, Numeric x1, Index n) static {
-        const Numeric frac = (x - x0) / (x1 - x0);
-        const Index p0     = static_cast<Index>(frac * (Numeric)(n));
-        return std::clamp<Index>(p0, 0, n);
-      };
+  constexpr auto fractional_index = [](Numeric x, Numeric x0, Numeric x1, Index n) static {
+    const Numeric frac = (x - x0) / (x1 - x0);
+    const Index   p0   = static_cast<Index>(frac * (Numeric)(n));
+    return std::clamp<Index>(p0, 0, n);
+  };
 
-  const Index p0 = fractional_index(
-      x, xi.front(), xi.back(), n - (cyclic<transform> ? 0 : P));
+  const Index p0 = fractional_index(x, xi.front(), xi.back(), n - (cyclic<transform> ? 0 : P));
 
   std::iota(indx.begin(), indx.end(), p0);
 
@@ -347,11 +305,8 @@ constexpr void find_pos(std::span<Index, X> indx,
  * The Lagrange interpolation weights
  ******************************************************************/
 
-template <grid_transformer transform, Size M, grid_order grid>
-constexpr void set_weights(std::span<Numeric, M> data,
-                           std::span<const Index, M> indx,
-                           std::span<const Numeric> xi,
-                           Numeric x) {
+template <grid_transformer transform, Size M, grid_order grid> constexpr void set_weights(
+    std::span<Numeric, M> data, std::span<const Index, M> indx, std::span<const Numeric> xi, Numeric x) {
   const Size N = (M == std::dynamic_extent) ? (indx.size() - 1) : (M - 1);
 
   if constexpr (cyclic<transform>) x = transform::cycle(x);
@@ -371,7 +326,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m     = indx[k + (k >= j)];  // i != j
+            Size    m  = indx[k + (k >= j)];  // i != j
             Numeric xm = transform::op(xi[m]);
             if (xm > transform::midpoint()) xm -= transform::cycle();
 
@@ -390,7 +345,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m     = indx[k + (k >= j)];  // i != j
+            Size    m  = indx[k + (k >= j)];  // i != j
             Numeric xm = transform::op(xi[m]);
             if (xm < transform::midpoint()) xm += transform::cycle();
             numer *= x - xm;
@@ -406,7 +361,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m      = indx[k + (k >= j)];  // i != j
+            Size    m   = indx[k + (k >= j)];  // i != j
             Numeric xm  = transform::op(xi[m]);
             numer      *= x - xm;
             denom      *= xj - xm;
@@ -425,7 +380,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m     = indx[k + (k >= j)];  // i != j
+            Size    m  = indx[k + (k >= j)];  // i != j
             Numeric xm = transform::op(xi[m]);
             if (xm > transform::midpoint()) xm -= transform::cycle();
 
@@ -444,7 +399,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m     = indx[k + (k >= j)];  // i != j
+            Size    m  = indx[k + (k >= j)];  // i != j
             Numeric xm = transform::op(xi[m]);
             if (xm < transform::midpoint()) xm += transform::cycle();
             numer *= x - xm;
@@ -460,7 +415,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
           Numeric denom = 1.0;
 
           for (Size k = 0; k < N; ++k) {
-            Size m      = indx[k + (k >= j)];  // i != j
+            Size    m   = indx[k + (k >= j)];  // i != j
             Numeric xm  = transform::op(xi[m]);
             numer      *= x - xm;
             denom      *= xj - xm;
@@ -478,7 +433,7 @@ constexpr void set_weights(std::span<Numeric, M> data,
       Numeric denom = 1.0;
 
       for (Size k = 0; k < N; ++k) {
-        Size m      = indx[k + (k >= j)];  // i != j
+        Size    m   = indx[k + (k >= j)];  // i != j
         Numeric xm  = transform::op(xi[m]);
         numer      *= x - xm;
         denom      *= xj - xm;
@@ -501,22 +456,17 @@ constexpr void set_weights(std::span<Numeric, M> data,
  * to N + 1, where N is the polynomial order.
  ******************************************************************/
 
-template <Index N, grid_transformer transform = grid_identity>
-struct lag_t {
-  static constexpr bool cyclic     = lagrange_interp::cyclic<transform>;
-  static constexpr bool runtime    = N == -1;
+template <Index N, grid_transformer transform = grid_identity> struct lag_t {
+  static constexpr bool  cyclic    = lagrange_interp::cyclic<transform>;
+  static constexpr bool  runtime   = N == -1;
   static constexpr Index PolyOrder = N;
   using transform_t                = transform;
 
-  static_assert(
-      N >= -1,
-      "N must be -1 or greater, -1 is only accepted for runtime polynomials");
+  static_assert(N >= -1, "N must be -1 or greater, -1 is only accepted for runtime polynomials");
 
-  using data_t = std::
-      conditional_t<runtime, std::vector<Numeric>, std::array<Numeric, N + 1>>;
+  using data_t = std::conditional_t<runtime, std::vector<Numeric>, std::array<Numeric, N + 1>>;
 
-  using indx_t =
-      std::conditional_t<runtime, std::vector<Index>, std::array<Index, N + 1>>;
+  using indx_t = std::conditional_t<runtime, std::vector<Index>, std::array<Index, N + 1>>;
 
   data_t data{};
   indx_t indx{};
@@ -527,40 +477,26 @@ struct lag_t {
   constexpr lag_t& operator=(const lag_t&)     = default;
   constexpr lag_t& operator=(lag_t&&) noexcept = default;
 
-  template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric> xi, Numeric x, grid)
-    requires(not runtime)
-  {
+  template <grid_order grid> constexpr lag_t(std::span<const Numeric> xi, Numeric x, grid) requires(not runtime) {
     find_pos<transform, N + 1, grid>(indx, xi, x);
     set_weights<transform, N + 1, grid>(data, indx, xi, x);
   }
 
-  template <grid_order grid>
-  constexpr lag_t(std::span<const Numeric> xi, Numeric x, Index M, grid)
-    requires(runtime)
+  template <grid_order grid> constexpr lag_t(std::span<const Numeric> xi, Numeric x, Index M, grid) requires(runtime)
       : data(M + 1), indx(M + 1) {
     find_pos<transform, std::dynamic_extent, grid>(indx, xi, x);
     set_weights<transform, std::dynamic_extent, grid>(data, indx, xi, x);
   }
 
-  template <grid_order grid>
-  constexpr lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
+  template <grid_order grid> constexpr lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
       : indx(std::move(pos)) {
     if constexpr (runtime) data.resize(indx.size());
     set_weights<transform, N + 1, grid>(data, indx, xi, x);
   }
 
-  [[nodiscard]] constexpr Index size() const
-    requires(runtime)
-  {
-    return data.size();
-  }
+  [[nodiscard]] constexpr Index size() const requires(runtime) { return data.size(); }
 
-  [[nodiscard]] static constexpr Index size()
-    requires(not runtime)
-  {
-    return N + 1;
-  }
+  [[nodiscard]] static constexpr Index size() requires(not runtime) { return N + 1; }
 };
 
 /******************************************************************
@@ -586,12 +522,8 @@ T variant_lag_helper(std::span<const Numeric> xi, Numeric x) {
 }
 
 template <grid_transformer transform, Size... poly>
-auto variant_lag_helper(std::span<const Numeric> xi,
-                        Numeric x,
-                        std::index_sequence<poly...>) {
-  return variant_lag_helper<transform,
-                            std::variant<lag_t<poly, transform>...>,
-                            sizeof...(poly) - 1 - poly...>(xi, x);
+auto variant_lag_helper(std::span<const Numeric> xi, Numeric x, std::index_sequence<poly...>) {
+  return variant_lag_helper<transform, std::variant<lag_t<poly, transform>...>, sizeof...(poly) - 1 - poly...>(xi, x);
 }
 }  // namespace
 
@@ -604,8 +536,7 @@ auto variant_lag_helper(std::span<const Numeric> xi,
 template <grid_transformer transform = grid_identity, Size N = 1>
 auto variant_lag(std::span<const Numeric> xi, Numeric x) {
   assert(xi.size() > 0);
-  return variant_lag_helper<transform>(
-      xi, x, std::make_index_sequence<N + 1>{});
+  return variant_lag_helper<transform>(xi, x, std::make_index_sequence<N + 1>{});
 }
 
 /******************************************************************
@@ -613,22 +544,18 @@ auto variant_lag(std::span<const Numeric> xi, Numeric x) {
  ******************************************************************/
 
 template <grid_transformer transform, Size Extent>
-constexpr order_t check_limit(const std::span<const Numeric>& xi,
+constexpr order_t check_limit(const std::span<const Numeric>&         xi,
                               const std::span<const Numeric, Extent>& xn,
-                              Numeric extrapolation_limit,
-                              const Index polyorder,
-                              const char* info) try {
-  const Index n        = xi.size();
-  const bool ascending = n <= 1 or xi[0] < xi[1];
-  auto retval =
-      ascending ? order_t{ascending_grid_t{}} : order_t{descending_grid_t{}};
+                              Numeric                                 extrapolation_limit,
+                              const Index                             polyorder,
+                              const char*                             info) try {
+  const Index n         = xi.size();
+  const bool  ascending = n <= 1 or xi[0] < xi[1];
+  auto        retval    = ascending ? order_t{ascending_grid_t{}} : order_t{descending_grid_t{}};
 
   if (n == 0) return retval;
 
-  if (polyorder >= n) {
-    throw std::runtime_error(
-        "Too few grid points for the given polynomial order");
-  }
+  if (polyorder >= n) { throw std::runtime_error("Too few grid points for the given polynomial order"); }
 
   if constexpr (not cyclic<transform>) {
     if (polyorder == 0 or extrapolation_limit <= 0.0) return retval;
@@ -637,13 +564,11 @@ constexpr order_t check_limit(const std::span<const Numeric>& xi,
     const Numeric xmin          = *minptr;
     const Numeric xmax          = *maxptr;
 
-    const Numeric xmax_lim =
-        ascending ? xi.back() + extrapolation_limit * (xi.back() - xi[n - 2])
-                  : xi.front() + extrapolation_limit * (xi.front() - xi[1]);
+    const Numeric xmax_lim = ascending ? xi.back() + extrapolation_limit * (xi.back() - xi[n - 2])
+                                       : xi.front() + extrapolation_limit * (xi.front() - xi[1]);
 
-    const Numeric xmin_lim =
-        ascending ? xi.front() - extrapolation_limit * (xi[1] - xi.front())
-                  : xi.back() - extrapolation_limit * (xi[n - 2] - xi.back());
+    const Numeric xmin_lim = ascending ? xi.front() - extrapolation_limit * (xi[1] - xi.front())
+                                       : xi.back() - extrapolation_limit * (xi[n - 2] - xi.back());
 
     if (xmax_lim < xmax or xmin_lim > xmin) {
       throw std::runtime_error(std::format(
@@ -672,49 +597,39 @@ The actual minimum value is {8}
           xi.back()));
     }
   } else {
-    if (transform::cycle(xi.front()) != xi.front() or
-        transform::cycle(xi.back()) != xi.back()) {
-      throw std::runtime_error(std::format(
-          "The grid cycles.  This is not allowed.\n\n"
-          "The grid covers [{}, {}] but the limits cycle to {} and {}, respectively.",
-          xi.front(),
-          xi.back(),
-          transform::cycle(xi.front()),
-          transform::cycle(xi.back())));
+    if (transform::cycle(xi.front()) != xi.front() or transform::cycle(xi.back()) != xi.back()) {
+      throw std::runtime_error(
+          std::format("The grid cycles.  This is not allowed.\n\n"
+                      "The grid covers [{}, {}] but the limits cycle to {} and {}, respectively.",
+                      xi.front(),
+                      xi.back(),
+                      transform::cycle(xi.front()),
+                      transform::cycle(xi.back())));
     }
   }
 
   return retval;
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error in check_limit for {}:\n{}", info, e.what()));
+  throw std::runtime_error(std::format("Error in check_limit for {}:\n{}", info, e.what()));
 }
 
-template <grid_transformer transform,
-          matpack::ranked_md<1> Orig,
-          matpack::ranked_md<1> New>
-constexpr order_t check_limit(const Orig& xi,
-                              const New& xn,
-                              Numeric extrapolation_limit,
-                              const Index polyorder,
-                              const char* info) {
+template <grid_transformer transform, matpack::ranked_md<1> Orig, matpack::ranked_md<1> New>
+constexpr order_t check_limit(
+    const Orig& xi, const New& xn, Numeric extrapolation_limit, const Index polyorder, const char* info) {
   if constexpr (matpack::any_cdata<New>) {
-    return check_limit<transform, New::ndata>(
-        xi, xn, extrapolation_limit, polyorder, info);
+    return check_limit<transform, New::ndata>(xi, xn, extrapolation_limit, polyorder, info);
   } else {
-    return check_limit<transform, std::dynamic_extent>(
-        xi, xn, extrapolation_limit, polyorder, info);
+    return check_limit<transform, std::dynamic_extent>(xi, xn, extrapolation_limit, polyorder, info);
   }
 }
 
 template <grid_transformer transform, matpack::ranked_md<1> Orig, Size N>
-constexpr order_t check_limit(const Orig& xi,
+constexpr order_t check_limit(const Orig&                   xi,
                               const std::array<Numeric, N>& xn,
-                              Numeric extrapolation_limit,
-                              const Index polyorder,
-                              const char* info) {
-  return check_limit<transform, N>(
-      xi, xn, extrapolation_limit, polyorder, info);
+                              Numeric                       extrapolation_limit,
+                              const Index                   polyorder,
+                              const char*                   info) {
+  return check_limit<transform, N>(xi, xn, extrapolation_limit, polyorder, info);
 }
 
 /******************************************************************
@@ -722,18 +637,14 @@ constexpr order_t check_limit(const Orig& xi,
  ******************************************************************/
 
 //! Fixed version of make_lags
-template <Size N,
-          grid_transformer transform,
-          Size Extent,
-          class FlagT = lag_t<N, transform>>
-constexpr auto make_lags(std::span<const Numeric> xi,
+template <Size N, grid_transformer transform, Size Extent, class FlagT = lag_t<N, transform>>
+constexpr auto make_lags(std::span<const Numeric>         xi,
                          std::span<const Numeric, Extent> xn,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         Numeric                          extrapolation_limit = 0.5,
+                         const char*                      info                = "UNNAMED") {
   constexpr bool has_dynamic_extent = Extent == std::dynamic_extent;
 
-  const order_t order =
-      check_limit<transform, Extent>(xi, xn, extrapolation_limit, N, info);
+  const order_t order = check_limit<transform, Extent>(xi, xn, extrapolation_limit, N, info);
 
   if constexpr (has_dynamic_extent) {
     std::vector<FlagT> lags;
@@ -745,7 +656,7 @@ constexpr auto make_lags(std::span<const Numeric> xi,
 
           for (Size i = 1; i < xn.size(); ++i) {
             const Numeric x = xn[i];
-            auto& f         = lags.emplace_back(lags[i - 1]);
+            auto&         f = lags.emplace_back(lags[i - 1]);
 
             update_pos<transform, N + 1, grid>(f.indx, xi, x);
             set_weights<transform, N + 1, grid>(f.data, f.indx, xi, x);
@@ -764,7 +675,7 @@ constexpr auto make_lags(std::span<const Numeric> xi,
 
             for (Size i = 1; i < xn.size(); ++i) {
               const Numeric x = xn[i];
-              auto& f         = lags[i];
+              auto&         f = lags[i];
               f.indx          = lags[i - 1].indx;
 
               update_pos<transform, N + 1, grid>(f.indx, xi, x);
@@ -778,49 +689,40 @@ constexpr auto make_lags(std::span<const Numeric> xi,
   }
 }
 
-template <Size N,
-          grid_transformer transform,
+template <Size                  N,
+          grid_transformer      transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<N, transform>>
 constexpr auto make_lags(const Orig& xi,
-                         const New& xn,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         const New&  xn,
+                         Numeric     extrapolation_limit = 0.5,
+                         const char* info                = "UNNAMED") {
   if constexpr (matpack::any_cdata<New>) {
-    return make_lags<N, transform, New::ndata>(
-        xi, xn, extrapolation_limit, info);
+    return make_lags<N, transform, New::ndata>(xi, xn, extrapolation_limit, info);
   } else {
-    return make_lags<N, transform, std::dynamic_extent>(
-        xi, xn, extrapolation_limit, info);
+    return make_lags<N, transform, std::dynamic_extent>(xi, xn, extrapolation_limit, info);
   }
 }
 
-template <Size N,
-          grid_transformer transform,
-          matpack::ranked_md<1> Orig,
-          Size M,
-          class FlagT = lag_t<N, transform>>
-constexpr auto make_lags(const Orig& xi,
+template <Size N, grid_transformer transform, matpack::ranked_md<1> Orig, Size M, class FlagT = lag_t<N, transform>>
+constexpr auto make_lags(const Orig&                   xi,
                          const std::array<Numeric, M>& xn,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         Numeric                       extrapolation_limit = 0.5,
+                         const char*                   info                = "UNNAMED") {
   return make_lags<N, transform, M>(xi, xn, extrapolation_limit, info);
 }
 
 //! Dynamic version of make_lags
-template <grid_transformer transform,
-          Size Extent,
-          class FlagT = lag_t<-1, transform>>
-constexpr auto make_lags(std::span<const Numeric> xi,
+template <grid_transformer transform, Size Extent, class FlagT = lag_t<-1, transform>>
+constexpr auto make_lags(std::span<const Numeric>         xi,
                          std::span<const Numeric, Extent> xn,
-                         const Index polyorder       = 1,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         const Index                      polyorder           = 1,
+                         Numeric                          extrapolation_limit = 0.5,
+                         const char*                      info                = "UNNAMED") {
   constexpr bool dynamic_extent = Extent == std::dynamic_extent;
 
-  const order_t order = check_limit<transform, Extent>(
-      xi, xn, extrapolation_limit, polyorder, info);
+  const order_t order = check_limit<transform, Extent>(xi, xn, extrapolation_limit, polyorder, info);
 
   if constexpr (dynamic_extent) {
     std::vector<FlagT> lags;
@@ -832,11 +734,10 @@ constexpr auto make_lags(std::span<const Numeric> xi,
 
           for (Size i = 1; i < xn.size(); ++i) {
             const Numeric x = xn[i];
-            auto& f         = lags.emplace_back(lags[i - 1]);
+            auto&         f = lags.emplace_back(lags[i - 1]);
 
             update_pos<transform, std::dynamic_extent, grid>(f.indx, xi, x);
-            set_weights<transform, std::dynamic_extent, grid>(
-                f.data, f.indx, xi, x);
+            set_weights<transform, std::dynamic_extent, grid>(f.data, f.indx, xi, x);
           }
         },
         order);
@@ -852,12 +753,11 @@ constexpr auto make_lags(std::span<const Numeric> xi,
 
             for (Size i = 1; i < xn.size(); ++i) {
               const Numeric x = xn[i];
-              auto& f         = lags[i];
+              auto&         f = lags[i];
               f.indx          = lags[i - 1].indx;
 
               update_pos<transform, std::dynamic_extent, grid>(f.indx, xi, x);
-              set_weights<transform, std::dynamic_extent, grid>(
-                  f.data, f.indx, xi, x);
+              set_weights<transform, std::dynamic_extent, grid>(f.data, f.indx, xi, x);
             }
           },
           order);
@@ -867,33 +767,28 @@ constexpr auto make_lags(std::span<const Numeric> xi,
   }
 }
 
-template <grid_transformer transform,
+template <grid_transformer      transform,
           matpack::ranked_md<1> Orig,
           matpack::ranked_md<1> New,
           class FlagT = lag_t<-1, transform>>
 constexpr auto make_lags(const Orig& xi,
-                         const New& xn,
-                         const Index polyorder       = 1,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         const New&  xn,
+                         const Index polyorder           = 1,
+                         Numeric     extrapolation_limit = 0.5,
+                         const char* info                = "UNNAMED") {
   if constexpr (matpack::any_cdata<New>) {
-    return make_lags<transform, New::ndata>(
-        xi, xn, polyorder, extrapolation_limit, info);
+    return make_lags<transform, New::ndata>(xi, xn, polyorder, extrapolation_limit, info);
   } else {
-    return make_lags<transform, std::dynamic_extent>(
-        xi, xn, polyorder, extrapolation_limit, info);
+    return make_lags<transform, std::dynamic_extent>(xi, xn, polyorder, extrapolation_limit, info);
   }
 }
 
-template <grid_transformer transform,
-          matpack::ranked_md<1> Orig,
-          Size M,
-          class FlagT = lag_t<-1, transform>>
-constexpr auto make_lags(const Orig& xi,
+template <grid_transformer transform, matpack::ranked_md<1> Orig, Size M, class FlagT = lag_t<-1, transform>>
+constexpr auto make_lags(const Orig&                   xi,
                          const std::array<Numeric, M>& xn,
-                         const Index polyorder       = 1,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") {
+                         const Index                   polyorder           = 1,
+                         Numeric                       extrapolation_limit = 0.5,
+                         const char*                   info                = "UNNAMED") {
   return make_lags<transform, M>(xi, xn, polyorder, extrapolation_limit, info);
 }
 
@@ -903,8 +798,7 @@ constexpr auto make_lags(const Orig& xi,
 
 namespace {
 //! Does not support 0-size.  Return early if size is 0.
-template <typename Indx, Size N>
-constexpr void inc(std::array<Indx, N>& s, const std::array<Indx, N>& n) {
+template <typename Indx, Size N> constexpr void inc(std::array<Indx, N>& s, const std::array<Indx, N>& n) {
   s.back()++;
   for (Size i = s.size() - 1; i > 0; --i) {
     if (s[i] == n[i]) {
@@ -916,20 +810,11 @@ constexpr void inc(std::array<Indx, N>& s, const std::array<Indx, N>& n) {
   }
 }
 
-template <lagrange_type f0, typename... Ts>
-constexpr Size size(const f0& f, const Ts&...) {
-  return f.size();
-}
+template <lagrange_type f0, typename... Ts> constexpr Size size(const f0& f, const Ts&...) { return f.size(); }
 
-template <lagrange_type_list f0, typename... Ts>
-constexpr Size size(const f0& f, const Ts&...) {
-  return f.size();
-}
+template <lagrange_type_list f0, typename... Ts> constexpr Size size(const f0& f, const Ts&...) { return f.size(); }
 
-template <fully_constant_lagrange_type_list T>
-consteval Size inner_size() {
-  return T::value_type::size();
-}
+template <fully_constant_lagrange_type_list T> consteval Size inner_size() { return T::value_type::size(); }
 }  // namespace
 
 /******************************************************************
@@ -945,9 +830,7 @@ consteval Size inner_size() {
  ******************************************************************/
 
 //! Reuse interpolation weights.
-template <value_transformer transform = value_identity,
-          lagrange_type... FlagTs,
-          Size N = sizeof...(FlagTs)>
+template <value_transformer transform = value_identity, lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
 constexpr auto interp(const matpack::ranked_md<N> auto& field,
                       const matpack::ranked_md<N> auto& itw,
                       const FlagTs&... lags) {
@@ -958,22 +841,15 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
   const std::array<Index, N> n{itw.shape()};
 
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    out += std::apply(
-        [&](auto&&... i) {
-          return transform::forward(field[lags.indx[i]...]) * itw[i...];
-        },
-        s);
+    out += std::apply([&](auto&&... i) { return transform::forward(field[lags.indx[i]...]) * itw[i...]; }, s);
   }
 
   return transform::inverse(out);
 }
 
 //! Direct interpolation.
-template <value_transformer transform = value_identity,
-          lagrange_type... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr auto interp(const matpack::ranked_md<N> auto& field,
-                      const FlagTs&... lags) {
+template <value_transformer transform = value_identity, lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr auto interp(const matpack::ranked_md<N> auto& field, const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
 
   T out{};
@@ -981,12 +857,8 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
   const std::array<Index, N> n{lags.size()...};
 
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    out += std::apply(
-        [&](auto&&... i) {
-          return (transform::forward(field[lags.indx[i]...]) * ... *
-                  lags.data[i]);
-        },
-        s);
+    out +=
+        std::apply([&](auto&&... i) { return (transform::forward(field[lags.indx[i]...]) * ... * lags.data[i]); }, s);
   }
 
   return transform::inverse(out);
@@ -1009,11 +881,9 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
  ******************************************************************/
 
 //! Reuse output and interpolation weights.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
-                        const matpack::ranked_md<N> auto& field,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr void reinterp(matpack::mut_ranked_md<N> auto&&      out,
+                        const matpack::ranked_md<N> auto&     field,
                         const matpack::ranked_md<2 * N> auto& itw,
                         const FlagTs&... lags) {
   if (out.empty()) return;
@@ -1021,36 +891,26 @@ constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
   const std::array<Index, N> n{out.shape()};
 
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply(
-        [&](auto&&... i) {
-          out[i...] = interp<transform>(field, itw[i...], lags[i]...);
-        },
-        s);
+    std::apply([&](auto&&... i) { out[i...] = interp<transform>(field, itw[i...], lags[i]...); }, s);
   }
 }
 
 //! Reuse output.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr void reinterp(matpack::mut_ranked_md<N> auto&& out,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr void reinterp(matpack::mut_ranked_md<N> auto&&  out,
                         const matpack::ranked_md<N> auto& field,
                         const FlagTs&... lags) {
   if (out.empty()) return;
 
   const std::array<Index, N> n{out.shape()};
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply(
-        [&](auto&&... i) { out[i...] = interp<transform>(field, lags[i]...); },
-        s);
+    std::apply([&](auto&&... i) { out[i...] = interp<transform>(field, lags[i]...); }, s);
   }
 }
 
 //! Reuse interpolation weights.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr auto reinterp(const matpack::ranked_md<N> auto&     field,
                         const matpack::ranked_md<2 * N> auto& itw,
                         const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
@@ -1067,11 +927,8 @@ constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
 }
 
 //! Direct reinterpolation.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
-                        const FlagTs&... lags) {
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr auto reinterp(const matpack::ranked_md<N> auto& field, const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
@@ -1100,23 +957,18 @@ constexpr auto reinterp(const matpack::ranked_md<N> auto& field,
  ******************************************************************/
 
 //! Reuse output and interpolation weights.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr void flat_interp(matpack::mut_ranked_md<1> auto&& out,
-                           const matpack::ranked_md<N> auto& field,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr void flat_interp(matpack::mut_ranked_md<1> auto&&      out,
+                           const matpack::ranked_md<N> auto&     field,
                            const matpack::ranked_md<N + 1> auto& itw,
                            const FlagTs&... lags) {
   const Size n = out.size();
-  for (Size i = 0; i < n; ++i)
-    out[i] = interp<transform>(field, itw[i], lags[i]...);
+  for (Size i = 0; i < n; ++i) out[i] = interp<transform>(field, itw[i], lags[i]...);
 }
 
 //! Reuse output.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr void flat_interp(matpack::mut_ranked_md<1> auto&& out,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr void flat_interp(matpack::mut_ranked_md<1> auto&&  out,
                            const matpack::ranked_md<N> auto& field,
                            const FlagTs&... lags) {
   const Size n = out.size();
@@ -1124,10 +976,8 @@ constexpr void flat_interp(matpack::mut_ranked_md<1> auto&& out,
 }
 
 //! Reuse interpolation weights.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr auto flat_interp(const matpack::ranked_md<N> auto&     field,
                            const matpack::ranked_md<N + 1> auto& itw,
                            const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
@@ -1144,11 +994,8 @@ constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
 }
 
 //! Direct interpolation.
-template <value_transformer transform = value_identity,
-          lagrange_type_list... FlagTs,
-          Size N = sizeof...(FlagTs)>
-constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
-                           const FlagTs&... lags) {
+template <value_transformer transform = value_identity, lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
+constexpr auto flat_interp(const matpack::ranked_md<N> auto& field, const FlagTs&... lags) {
   using T = std::remove_cvref_t<decltype(*field.elem_begin())>;
 
   if constexpr ((constant_lagrange_type_list<FlagTs> and ...)) {
@@ -1182,8 +1029,7 @@ constexpr auto flat_interp(const matpack::ranked_md<N> auto& field,
 
 //! Reuse memory for interp.
 template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
-constexpr void interpweights(matpack::mut_ranked_md<N> auto&& itw,
-                             const FlagTs&... lags) {
+constexpr void interpweights(matpack::mut_ranked_md<N> auto&& itw, const FlagTs&... lags) {
   const std::array<Index, N> n{itw.shape()};
   for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
     std::apply([&](auto&&... i) { itw[i...] = (... * lags.data[i]); }, s);
@@ -1192,16 +1038,14 @@ constexpr void interpweights(matpack::mut_ranked_md<N> auto&& itw,
 
 //! Reuse memory for flat_interp.
 template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
-constexpr void flat_interpweights(matpack::mut_ranked_md<1 + N> auto&& itw,
-                                  const FlagTs&... lags) {
+constexpr void flat_interpweights(matpack::mut_ranked_md<1 + N> auto&& itw, const FlagTs&... lags) {
   const Size n = itw.extent(0);
   for (Size i = 0; i < n; ++i) interpweights(itw[i], lags[i]...);
 }
 
 //! Reuse memory for reinterp.
 template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
-constexpr void reinterpweights(matpack::mut_ranked_md<2 * N> auto&& itw,
-                               const FlagTs&... lags) {
+constexpr void reinterpweights(matpack::mut_ranked_md<2 * N> auto&& itw, const FlagTs&... lags) {
   if (itw.empty()) return;
 
   const std::array<Size, N> n{lags.size()...};
@@ -1211,8 +1055,7 @@ constexpr void reinterpweights(matpack::mut_ranked_md<2 * N> auto&& itw,
 }
 
 //! Direct for interp.
-template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
-constexpr auto interpweights(const FlagTs&... lags) {
+template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)> constexpr auto interpweights(const FlagTs&... lags) {
   if constexpr ((constant_lagrange_type<FlagTs> and ...)) {
     matpack::cdata_t<Numeric, FlagTs::size()...> out{};
     interpweights(out, lags...);
@@ -1232,8 +1075,7 @@ constexpr auto flat_interpweights(const FlagTs&... lags) {
     flat_interpweights(out, lags...);
     return out;
   } else {
-    matpack::data_t<Numeric, 1 + N> out(
-        size(lags...), (lags.size() ? lags.front().size() : 0)...);
+    matpack::data_t<Numeric, 1 + N> out(size(lags...), (lags.size() ? lags.front().size() : 0)...);
     flat_interpweights(out, lags...);
     return out;
   }
@@ -1247,8 +1089,7 @@ constexpr auto reinterpweights(const FlagTs&... lags) {
     reinterpweights(out, lags...);
     return out;
   } else {
-    matpack::data_t<Numeric, 2 * N> out(
-        lags.size()..., (lags.size() ? lags.front().size() : 0)...);
+    matpack::data_t<Numeric, 2 * N> out(lags.size()..., (lags.size() ? lags.front().size() : 0)...);
     reinterpweights(out, lags...);
     return out;
   }
@@ -1262,14 +1103,12 @@ struct std::formatter<lagrange_interp::lag_t<N, transform>> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lagrange_interp::lag_t<N, transform>& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const lagrange_interp::lag_t<N, transform>& v, FmtContext& ctx) const {
     return tags.format(ctx, v.data, tags.sep(), v.indx);
   }
 };
@@ -1281,13 +1120,12 @@ struct xml_io_stream_name<lagrange_interp::lag_t<N, transform>> {
 
 template <Index N, lagrange_interp::grid_transformer transform>
 struct xml_io_stream<lagrange_interp::lag_t<N, transform>> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<lagrange_interp::lag_t<N, transform>>;
+  static constexpr std::string_view type_name = xml_io_stream_name_v<lagrange_interp::lag_t<N, transform>>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                               os,
                     const lagrange_interp::lag_t<N, transform>& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) {
+                    bofstream*                                  pbofs = nullptr,
+                    std::string_view                            name  = ""sv) {
     XMLTag tag(type_name, "name"sv, name, "N"sv, N);
     tag.write_to_stream(os);
 
@@ -1297,9 +1135,7 @@ struct xml_io_stream<lagrange_interp::lag_t<N, transform>> {
     tag.write_to_end_stream(os);
   }
 
-  static void read(std::istream& is,
-                   lagrange_interp::lag_t<N, transform>& x,
-                   bifstream* pbifs = nullptr) {
+  static void read(std::istream& is, lagrange_interp::lag_t<N, transform>& x, bifstream* pbifs = nullptr) {
     XMLTag tag;
     tag.read_from_stream(is);
 

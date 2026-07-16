@@ -8,11 +8,11 @@
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult(StridedMatrixView A,
+void mult(StridedMatrixView             A,
           const StridedConstMatrixView &B,
           const StridedConstMatrixView &C,
-          Numeric alpha = 1.0,
-          Numeric beta  = 0.0);
+          Numeric                       alpha = 1.0,
+          Numeric                       beta  = 0.0);
 
 /** Makes A = B * C
  * 
@@ -20,11 +20,11 @@ void mult(StridedMatrixView A,
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult(StridedComplexMatrixView A,
+void mult(StridedComplexMatrixView             A,
           const StridedConstComplexMatrixView &B,
           const StridedConstComplexMatrixView &C,
-          Complex alpha = Complex{1.0},
-          Complex beta  = Complex{0.0});
+          Complex                              alpha = Complex{1.0},
+          Complex                              beta  = Complex{0.0});
 
 /** Makes y = alpha * M * x + beta * y
  * 
@@ -32,11 +32,11 @@ void mult(StridedComplexMatrixView A,
  * @param M Any matrix
  * @param x Any vector
  */
-void mult(StridedVectorView y,
+void mult(StridedVectorView             y,
           const StridedConstMatrixView &M,
           const StridedConstVectorView &x,
-          Numeric alpha = 1.0,
-          Numeric beta  = 0.0);
+          Numeric                       alpha = 1.0,
+          Numeric                       beta  = 0.0);
 
 /** Makes y = M * x
  * 
@@ -44,8 +44,8 @@ void mult(StridedVectorView y,
  * @param M Any matrix
  * @param x Any vector
  */
-void mult(StridedComplexVectorView y,
+void mult(StridedComplexVectorView             y,
           const StridedConstComplexMatrixView &M,
           const StridedConstComplexVectorView &x,
-          Complex alpha = Complex{1.0},
-          Complex beta  = Complex{0.0});
+          Complex                              alpha = Complex{1.0},
+          Complex                              beta  = Complex{0.0});

@@ -12,8 +12,7 @@
 #include "matpack_mdspan_left_mditer.h"
 
 namespace matpack {
-template <class T, Size N>
-struct strided_view_t final : public mdstrided_t<T, N> {
+template <class T, Size N> struct strided_view_t final : public mdstrided_t<T, N> {
   using base = mdstrided_t<T, N>;
 
   constexpr mdstrided_t<T, N> base_md() const { return *this; }
@@ -59,14 +58,9 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t(strided_view_t&& x) noexcept : base(std::move(x)) {};
 
   //! Create from ANY mdspan - it is your responsibility to ensure that this is runtime valid
-  template <class OtherElementType,
-            class OtherExtents,
-            class OtherLayoutPolicy,
-            class OtherAccessor>
-  explicit constexpr strided_view_t(const mdspan<OtherElementType,
-                                                 OtherExtents,
-                                                 OtherLayoutPolicy,
-                                                 OtherAccessor>& other)
+  template <class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
+  explicit constexpr strided_view_t(
+      const mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other)
       : base(other) {}
 
   // From potentially non-const data holders
@@ -74,15 +68,9 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   constexpr strided_view_t(const view_t<T, N>& x) : base(x.base_md()) {}
 
   // From other const data
-  constexpr strided_view_t(const data_t<value_type, N>& x)
-    requires(is_const)
-      : base(x.base_md()) {}
-  constexpr strided_view_t(const view_t<value_type, N>& x)
-    requires(is_const)
-      : base(x.base_md()) {}
-  constexpr strided_view_t(const strided_view_t<value_type, N>& x)
-    requires(is_const)
-      : base(x.base_md()) {}
+  constexpr strided_view_t(const data_t<value_type, N>& x) requires(is_const) : base(x.base_md()) {}
+  constexpr strided_view_t(const view_t<value_type, N>& x) requires(is_const) : base(x.base_md()) {}
+  constexpr strided_view_t(const strided_view_t<value_type, N>& x) requires(is_const) : base(x.base_md()) {}
 
   explicit constexpr strided_view_t(T& v) : base(&v, std::array<Index, 1>{1}) {}
 
@@ -99,19 +87,14 @@ struct strided_view_t final : public mdstrided_t<T, N> {
   }
 
   template <typename Self, access_operator... Acc>
-  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self,
-                                                    Acc&&... i)
-    requires(sizeof...(Acc) <= N)
-  {
+  [[nodiscard]] constexpr decltype(auto) operator[](this Self&& self, Acc&&... i) requires(sizeof...(Acc) <= N) {
     using U = decltype(std::forward<Self>(self));
 
     if constexpr (sizeof...(Acc) == N and (integral<Acc> and ...)) {
       if constexpr (const_forwarded<U>)
-        return std::as_const(
-            std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...));
+        return std::as_const(std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...));
       else
-        return std::forward<Self>(self).base::operator[](
-            std::forward<Acc>(i)...);
+        return std::forward<Self>(self).base::operator[](std::forward<Acc>(i)...);
     } else {
       if constexpr (const_forwarded<U>)
         return left_mdsel_t<std::add_const_t<T>, N, is_exhaustive, Acc...>(
@@ -122,43 +105,31 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     }
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr auto begin(this Self&& self) {
-    return left_mditer(self);
-  }
+  template <typename Self> [[nodiscard]] constexpr auto begin(this Self&& self) { return left_mditer(self); }
 
-  template <typename Self>
-  [[nodiscard]] constexpr auto end(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr auto end(this Self&& self) {
     const auto n = self.extent(0);
     return std::forward<Self>(self).begin() + n;
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr auto elem_begin(this Self&& self) {
-    return elemwise_mditer(self);
-  }
+  template <typename Self> [[nodiscard]] constexpr auto elem_begin(this Self&& self) { return elemwise_mditer(self); }
 
-  template <typename Self>
-  [[nodiscard]] constexpr auto elem_end(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr auto elem_end(this Self&& self) {
     const auto n = self.size();
     return std::forward<Self>(self).elem_begin() + n;
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) elem_at(this Self&& self, Index i) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) elem_at(this Self&& self, Index i) {
     assert(static_cast<Index>(self.size()) > i);
 
     if constexpr (N > 1) {
-      return std::forward<Self>(self).base::operator[](
-          mdpos<N>(self.shape(), i));
+      return std::forward<Self>(self).base::operator[](mdpos<N>(self.shape(), i));
     } else {
       return std::forward<Self>(self)[i];
     }
   }
 
-  constexpr strided_view_t& operator=(const strided_view_t& r)
-    requires(not is_const)
-  {
+  constexpr strided_view_t& operator=(const strided_view_t& r) requires(not is_const) {
     assert(shape() == r.shape());
 
     if (this != &r) stdr::copy(r | by_elem, elem_begin());
@@ -166,204 +137,133 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     return *this;
   }
 
-  constexpr strided_view_t& operator=(const value_type& x)
-    requires(not is_const)
-  {
+  constexpr strided_view_t& operator=(const value_type& x) requires(not is_const) {
     std::fill(elem_begin(), elem_end(), x);
     return *this;
   }
 
-  template <ranked_convertible_md<T, N> R>
-  constexpr strided_view_t& operator=(const R& r)
-    requires(not(is_const or std::same_as<strided_view_t, R> or
-                 std::same_as<value_type, R>))
-  {
+  template <ranked_convertible_md<T, N> R> constexpr strided_view_t& operator=(const R& r)
+      requires(not(is_const or std::same_as<strided_view_t, R> or std::same_as<value_type, R>)) {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
       stdr::copy(r | by_elem, elem_begin());
     } else {
-      stdr::transform(
-          r | by_elem, elem_begin(), [](const auto& a) -> T { return a; });
+      stdr::transform(r | by_elem, elem_begin(), [](const auto& a) -> T { return a; });
     }
 
     return *this;
   }
 
-  template <mdvalue_type_compatible<T> U>
-  constexpr strided_view_t& operator=(const U& x)
-    requires(not(is_const or std::same_as<strided_view_t, U> or
-                 std::same_as<value_type, U> or ranked_convertible_md<U, T, N>))
-  {
+  template <mdvalue_type_compatible<T> U> constexpr strided_view_t& operator=(const U& x)
+      requires(not(is_const or std::same_as<strided_view_t, U> or std::same_as<value_type, U> or
+                   ranked_convertible_md<U, T, N>)) {
     const auto sh = shape();
 
     assert(sh == mdshape(x));
 
-    for (Size i = 0; i < size(); i++)
-      elem_at(i) = static_cast<T>(mdvalue(x, sh, i));
+    for (Size i = 0; i < size(); i++) elem_at(i) = static_cast<T>(mdvalue(x, sh, i));
 
     return *this;
   }
 
-  template <ranked_convertible_md<T, N> R>
-  constexpr strided_view_t& operator+=(const R& r)
-    requires(not is_const)
-  {
+  template <ranked_convertible_md<T, N> R> constexpr strided_view_t& operator+=(const R& r) requires(not is_const) {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(*this | by_elem,
-                      r | by_elem,
-                      elem_begin(),
-                      [](auto&& a, auto&& b) -> T { return a + b; });
+      stdr::transform(*this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a + b; });
     } else {
       stdr::transform(
-          *this | by_elem,
-          r | by_elem,
-          elem_begin(),
-          [](auto&& a, auto&& b) -> T { return a + static_cast<T>(b); });
+          *this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a + static_cast<T>(b); });
     }
 
     return *this;
   }
 
-  template <ranked_convertible_md<T, N> R>
-  constexpr strided_view_t& operator-=(const R& r)
-    requires(not is_const)
-  {
+  template <ranked_convertible_md<T, N> R> constexpr strided_view_t& operator-=(const R& r) requires(not is_const) {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(*this | by_elem,
-                      r | by_elem,
-                      elem_begin(),
-                      [](auto&& a, auto&& b) -> T { return a - b; });
+      stdr::transform(*this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a - b; });
     } else {
       stdr::transform(
-          *this | by_elem,
-          r | by_elem,
-          elem_begin(),
-          [](auto&& a, auto&& b) -> T { return a - static_cast<T>(b); });
+          *this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a - static_cast<T>(b); });
     }
 
     return *this;
   }
 
-  template <ranked_convertible_md<T, N> R>
-  constexpr strided_view_t& operator*=(const R& r)
-    requires(not is_const)
-  {
+  template <ranked_convertible_md<T, N> R> constexpr strided_view_t& operator*=(const R& r) requires(not is_const) {
     assert(shape() == r.shape());
 
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(*this | by_elem,
-                      r | by_elem,
-                      elem_begin(),
-                      [](auto&& a, auto&& b) -> T { return a * b; });
+      stdr::transform(*this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a * b; });
     } else {
       stdr::transform(
-          *this | by_elem,
-          r | by_elem,
-          elem_begin(),
-          [](auto&& a, auto&& b) -> T { return a * static_cast<T>(b); });
+          *this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a * static_cast<T>(b); });
     }
 
     return *this;
   }
 
-  template <ranked_convertible_md<T, N> R>
-  constexpr strided_view_t& operator/=(const R& r)
-    requires(not is_const)
-  {
+  template <ranked_convertible_md<T, N> R> constexpr strided_view_t& operator/=(const R& r) requires(not is_const) {
     assert(shape() == r.shape());
     if constexpr (std::same_as<T, matpack::value_type<R>>) {
-      stdr::transform(*this | by_elem,
-                      r | by_elem,
-                      elem_begin(),
-                      [](auto&& a, auto&& b) -> T { return a / b; });
+      stdr::transform(*this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a / b; });
     } else {
       stdr::transform(
-          *this | by_elem,
-          r | by_elem,
-          elem_begin(),
-          [](auto&& a, auto&& b) -> T { return a / static_cast<T>(b); });
+          *this | by_elem, r | by_elem, elem_begin(), [](auto&& a, auto&& b) -> T { return a / static_cast<T>(b); });
     }
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator+=(U&& r)
-    requires(not is_const)
-  {
-    stdr::for_each(*this | by_elem,
-                   [v = std::forward_like<T>(r)](T& x) { return x += v; });
+  template <std::convertible_to<T> U> constexpr strided_view_t& operator+=(U&& r) requires(not is_const) {
+    stdr::for_each(*this | by_elem, [v = std::forward_like<T>(r)](T& x) { return x += v; });
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator-=(U&& r)
-    requires(not is_const)
-  {
-    stdr::for_each(*this | by_elem,
-                   [v = std::forward_like<T>(r)](T& x) { return x -= v; });
+  template <std::convertible_to<T> U> constexpr strided_view_t& operator-=(U&& r) requires(not is_const) {
+    stdr::for_each(*this | by_elem, [v = std::forward_like<T>(r)](T& x) { return x -= v; });
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator*=(U&& r)
-    requires(not is_const)
-  {
-    stdr::for_each(*this | by_elem,
-                   [v = std::forward_like<T>(r)](T& x) { return x *= v; });
+  template <std::convertible_to<T> U> constexpr strided_view_t& operator*=(U&& r) requires(not is_const) {
+    stdr::for_each(*this | by_elem, [v = std::forward_like<T>(r)](T& x) { return x *= v; });
     return *this;
   }
 
-  template <std::convertible_to<T> U>
-  constexpr strided_view_t& operator/=(U&& r)
-    requires(not is_const)
-  {
-    stdr::for_each(*this | by_elem,
-                   [v = std::forward_like<T>(r)](T& x) { return x /= v; });
+  template <std::convertible_to<T> U> constexpr strided_view_t& operator/=(U&& r) requires(not is_const) {
+    stdr::for_each(*this | by_elem, [v = std::forward_like<T>(r)](T& x) { return x /= v; });
     return *this;
   }
 
-  template <typename Self>
-  constexpr auto real(this Self&& self)
-    requires(complex_type<T>)
-  {
+  template <typename Self> constexpr auto real(this Self&& self) requires(complex_type<T>) {
     using U = complex_subtype_t<T>;
 
     value_type* x = const_cast<value_type*>(self.data_handle());
 
-    mdstrided_t<U, N> y{&reinterpret_cast<ComplexLayout<U>*>(x)->real,
-                        {self.shape(), self.strides(2)}};
+    mdstrided_t<U, N> y{&reinterpret_cast<ComplexLayout<U>*>(x)->real, {self.shape(), self.strides(2)}};
 
     return strided_view_t<std::conditional_t<is_const, const U, U>, N>{y};
   }
 
-  template <typename Self>
-  constexpr auto imag(this Self&& self)
-    requires(complex_type<T>)
-  {
+  template <typename Self> constexpr auto imag(this Self&& self) requires(complex_type<T>) {
     using U = complex_subtype_t<T>;
 
     value_type* x = const_cast<value_type*>(self.data_handle());
 
-    mdstrided_t<U, N> y{&reinterpret_cast<ComplexLayout<U>*>(x)->imag,
-                        {self.shape(), self.strides(2)}};
+    mdstrided_t<U, N> y{&reinterpret_cast<ComplexLayout<U>*>(x)->imag, {self.shape(), self.strides(2)}};
 
     return strided_view_t<std::conditional_t<is_const, const U, U>, N>{y};
   }
 
   //! std::vector-like
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) front(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) front(this Self&& self) {
     assert(not self.empty());
     return std::forward<Self>(self).elem_at(0);
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) back(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) back(this Self&& self) {
     assert(not self.empty());
     return std::forward<Self>(self).elem_at(self.size() - 1);
   }
@@ -382,30 +282,25 @@ struct strided_view_t final : public mdstrided_t<T, N> {
     return view_t<std::conditional_t<is_const, const T, T>, N>{*this};
   }
 
-  constexpr void swap(strided_view_t& other) noexcept
-    requires(not is_const)
-  {
+  constexpr void swap(strided_view_t& other) noexcept requires(not is_const) {
     std::swap(static_cast<base&>(*this), static_cast<base&>(other));
   }
 };
 }  // namespace matpack
 
-template <typename T, Size N>
-struct std::formatter<matpack::strided_view_t<T, N>> {
+template <typename T, Size N> struct std::formatter<matpack::strided_view_t<T, N>> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     tags.depth = N;
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const matpack::strided_view_t<T, N>& md,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const matpack::strided_view_t<T, N>& md, FmtContext& ctx) const {
     auto nl = md.shape();
     for (Size i = N - 2; i < N; i--) nl[i] *= nl[i + 1];
 
@@ -419,7 +314,7 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
       return nl.size();
     };
 
-    Size i          = 0;
+    Size       i    = 0;
     const auto view = md | by_elem;
     const Size sz   = md.size();
     const auto sep  = tags.sep();
@@ -471,9 +366,8 @@ struct std::formatter<matpack::strided_view_t<T, N>> {
   }
 };
 
-template <class T, Size N>
-inline constexpr bool
-    std::ranges::enable_borrowed_range<matpack::strided_view_t<T, N>> = true;
+template <class T, Size N> inline constexpr bool std::ranges::enable_borrowed_range<matpack::strided_view_t<T, N>> =
+    true;
 
 using StridedVectorView  = matpack::strided_view_t<Numeric, 1>;
 using StridedMatrixView  = matpack::strided_view_t<Numeric, 2>;
@@ -499,15 +393,10 @@ using StridedConstTensor5View = matpack::strided_view_t<const Numeric, 5>;
 using StridedConstTensor6View = matpack::strided_view_t<const Numeric, 6>;
 using StridedConstTensor7View = matpack::strided_view_t<const Numeric, 7>;
 
-using StridedConstComplexVectorView = matpack::strided_view_t<const Complex, 1>;
-using StridedConstComplexMatrixView = matpack::strided_view_t<const Complex, 2>;
-using StridedConstComplexTensor3View =
-    matpack::strided_view_t<const Complex, 3>;
-using StridedConstComplexTensor4View =
-    matpack::strided_view_t<const Complex, 4>;
-using StridedConstComplexTensor5View =
-    matpack::strided_view_t<const Complex, 5>;
-using StridedConstComplexTensor6View =
-    matpack::strided_view_t<const Complex, 6>;
-using StridedConstComplexTensor7View =
-    matpack::strided_view_t<const Complex, 7>;
+using StridedConstComplexVectorView  = matpack::strided_view_t<const Complex, 1>;
+using StridedConstComplexMatrixView  = matpack::strided_view_t<const Complex, 2>;
+using StridedConstComplexTensor3View = matpack::strided_view_t<const Complex, 3>;
+using StridedConstComplexTensor4View = matpack::strided_view_t<const Complex, 4>;
+using StridedConstComplexTensor5View = matpack::strided_view_t<const Complex, 5>;
+using StridedConstComplexTensor6View = matpack::strided_view_t<const Complex, 6>;
+using StridedConstComplexTensor7View = matpack::strided_view_t<const Complex, 7>;

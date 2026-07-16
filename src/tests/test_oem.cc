@@ -8,11 +8,13 @@
 
 #include <stdlib.h>
 #include <time.h>
+
 #include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
+
 #include "engine.h"
 #include "lin_alg.h"
 #include "matpack_sparse.h"
@@ -59,8 +61,7 @@ class LinearModel {
         \param[in] J_ The Jacobian of the forward model.
         \param[in] y0_ The constant offset of the forward model.
     */
-  LinearModel(ConstMatrixView J_, ConstVectorView y0_)
-      : m(J_.nrows()), n(J_.ncols()), J(J_), y0(y0_) {}
+  LinearModel(ConstMatrixView J_, ConstVectorView y0_) : m(J_.nrows()), n(J_.ncols()), J(J_), y0(y0_) {}
 
   /** See ForwardModel class. */
   const OEMMatrix& Jacobian(const ConstVectorView& xi) { return J; }
@@ -103,7 +104,7 @@ class QuadraticModel {
   QuadraticModel(Index m_, Index n_) : m(m_), n(n_) {
     char fname[40];
 
-    J = Matrix(m, n, 0);
+    J        = Matrix(m, n, 0);
     Hessians = new OEMMatrix[m];
     random_fill_matrix(J, 1.0, false);
     sprintf(fname, "J_t.txt");
@@ -126,9 +127,7 @@ class QuadraticModel {
     OEMMatrix Ki{};
     Ki.resize(m, n);
 
-    for (Index i = 0; i < m; i++) {
-      mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi);
-    }
+    for (Index i = 0; i < m; i++) { mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi); }
 
     Ki *= 0.5;
     Ki += J;
@@ -142,9 +141,7 @@ class QuadraticModel {
     OEMMatrix Ki{};
     Ki.resize(m, n);
 
-    for (Index i = 0; i < n; i++) {
-      mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi);
-    }
+    for (Index i = 0; i < n; i++) { mult(static_cast<MatrixView>(Ki)(i, Joker()), Hessians[i], xi); }
 
     Ki *= 0.5;
     Ki += J;
@@ -155,7 +152,7 @@ class QuadraticModel {
   const unsigned int m, n;
 
  private:
-  OEMMatrix J;
+  OEMMatrix  J;
   OEMMatrix* Hessians;
 };
 
@@ -174,9 +171,7 @@ void write_matrix(ConstMatrixView A, const char* filename) {
   ofstream ofs(filename, ofstream::out);
 
   for (Index i = 0; i < m; i++) {
-    for (Index j = 0; j < (n - 1); j++) {
-      ofs << std::setprecision(40) << A(i, j) << " ";
-    }
+    for (Index j = 0; j < (n - 1); j++) { ofs << std::setprecision(40) << A(i, j) << " "; }
     ofs << A(i, n - 1);
     ofs << '\n';
   }
@@ -194,9 +189,7 @@ void write_vector(ConstVectorView v, const char* filename) {
 
   ofstream ofs(filename, ofstream::out);
 
-  for (Index i = 0; i < n; i++) {
-    ofs << std::setprecision(20) << v[i] << '\n';
-  }
+  for (Index i = 0; i < n; i++) { ofs << std::setprecision(20) << v[i] << '\n'; }
   ofs.close();
 }
 
@@ -217,10 +210,7 @@ void write_vector(ConstVectorView v, const char* filename) {
   \param Sa The covariance matrix for a priori uncertainties. Filled with random
             values in the range [-1, 1] (Scaled down from the range [-10, 10]).
 */
-void generate_test_data(VectorView y,
-                        VectorView xa,
-                        MatrixView Se,
-                        MatrixView Sx) {
+void generate_test_data(VectorView y, VectorView xa, MatrixView Se, MatrixView Sx) {
   random_fill_vector(y, 10, false);
   random_fill_vector(xa, 10, false);
 
@@ -257,14 +247,14 @@ void generate_linear_model(MatrixView K) { random_fill_matrix(K, 10, false); }
 */
 Index run_test_matlab(Engine* eng, string filename) {
   mxArray* t;
-  Index time;
+  Index    time;
 
   // Run test.
   string cmd = "run('" + filename + "');";
   engEvalString(eng, cmd.c_str());
 
   // Get execution time from matlab.
-  t = engGetVariable(eng, "t");
+  t    = engGetVariable(eng, "t");
   time = (Index)((Numeric*)mxGetData(t))[0];
   return time;
 }
@@ -283,9 +273,9 @@ Index run_test_matlab(Engine* eng, string filename) {
   \return Execution time of oem in matlab in ms.
 */
 Index run_oem_matlab(VectorView x, MatrixView G, Engine* eng, string filename) {
-  Index n = G.nrows();
-  Index m = G.ncols();
-  Index time;
+  Index    n = G.nrows();
+  Index    m = G.ncols();
+  Index    time;
   mxArray *x_m, *G_m, *t;
 
   // Run test.
@@ -299,13 +289,11 @@ Index run_oem_matlab(VectorView x, MatrixView G, Engine* eng, string filename) {
   for (Index i = 0; i < n; i++) {
     x[i] = ((Numeric*)mxGetData(x_m))[i];
 
-    for (Index j = 0; j < m; j++) {
-      G(i, j) = ((Numeric*)mxGetData(G_m))[j * n + i];
-    }
+    for (Index j = 0; j < m; j++) { G(i, j) = ((Numeric*)mxGetData(G_m))[j * n + i]; }
   }
 
   // Get execution time from matlab.
-  t = engGetVariable(eng, "t");
+  t    = engGetVariable(eng, "t");
   time = (Index)((Numeric*)mxGetData(t))[0];
   return time;
 }
@@ -321,7 +309,7 @@ Index run_oem_matlab(VectorView x, MatrixView G, Engine* eng, string filename) {
 void setup_test_environment(Engine*& eng) {
   // swith to test folder
   string cmd;
-  cmd = source_dir + "/test_oem_files";
+  cmd     = source_dir + "/test_oem_files";
   int out = chdir(cmd.c_str());
   (void)out;
 
@@ -380,7 +368,7 @@ void tidy_up_test_environment(Engine* eng) {
 */
 void benchmark_inv(Engine* eng, Index n0, Index n1, Index ntests) {
   Index step = (n1 - n0) / (ntests - 1);
-  Index n = n0;
+  Index n    = n0;
 
   ofstream ofs("times_inv.txt", ofstream::out);
   ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
@@ -401,12 +389,12 @@ void benchmark_inv(Engine* eng, Index n0, Index n1, Index ntests) {
     t1 = clock();
     inv(B, A);
     t2 = clock();
-    t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+    t  = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
     t1_blas = clock();
     inv(B, A);
     t2_blas = clock();
-    t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+    t_blas  = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
 
     t_m = run_test_matlab(eng, "test_inv.m");
 
@@ -440,7 +428,7 @@ void benchmark_inv(Engine* eng, Index n0, Index n1, Index ntests) {
 */
 void benchmark_mult(Engine* eng, Index n0, Index n1, Index ntests) {
   Index step = (n1 - n0) / (ntests - 1);
-  Index n = n0;
+  Index n    = n0;
 
   ofstream ofs("times_mult.txt", ofstream::out);
   ofs << "#" << setw(4) << "n" << setw(10) << "BLAS";
@@ -461,12 +449,12 @@ void benchmark_mult(Engine* eng, Index n0, Index n1, Index ntests) {
     t1 = clock();
     mult_general(B, A, A);
     t2 = clock();
-    t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+    t  = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
     t1_blas = clock();
     mult(B, A, A);
     t2_blas = clock();
-    t_blas = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
+    t_blas  = (t2_blas - t1_blas) * 1000 / CLOCKS_PER_SEC;
 
     t_m = run_test_matlab(eng, "test_mult.m");
 
@@ -498,7 +486,7 @@ void benchmark_mult(Engine* eng, Index n0, Index n1, Index ntests) {
 */
 void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
   Index step = (n1 - n0) / (ntests - 1);
-  Index n = n0;
+  Index n    = n0;
 
   ofstream ofs("times_linear.txt", ofstream::out);
 
@@ -511,10 +499,8 @@ void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
 
   // Run tests.
   for (Index i = 0; i < ntests; i++) {
-    Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n), x_norm(n),
-        zero(n);
-    Matrix J(n, n), Se(n, n), Sa(n, n), SeInv(n, n), SxInv(n, n), G_nform(n, n),
-        G_mform(n, n), G_m(n, n);
+    Vector x_nform(n), x_mform(n), x_m(n), y(n), yf(n), xa(n), x_norm(n), zero(n);
+    Matrix J(n, n), Se(n, n), Sa(n, n), SeInv(n, n), SxInv(n, n), G_nform(n, n), G_mform(n, n), G_m(n, n);
 
     zero = 0.0;
 
@@ -539,7 +525,7 @@ void benchmark_oem_linear(Engine* eng, Index n0, Index n1, Index ntests) {
     // oem_linear_nform( x_nform, G_nform, J, yf, cost_x, cost_y, K,
     //                   xa, x_norm, y, SeInv, SxInv, cost_x, false );
     t2 = clock();
-    t = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
+    t  = (t2 - t1) * 1000 / CLOCKS_PER_SEC;
 
     // m-form
     mult(yf, J, xa);
@@ -577,8 +563,7 @@ void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
   cout << n << ", ntests = " << ntests << '\n' << '\n';
 
   cout << "Test No. " << setw(15) << "Gauss-Newton";
-  cout << setw(20) << "Levenberg-Marquardt" << setw(15) << "Gain Matrix"
-       << '\n';
+  cout << setw(20) << "Levenberg-Marquardt" << setw(15) << "Gain Matrix" << '\n';
 
   // Run tests.
   for (Index i = 0; i < ntests; i++) {
@@ -597,23 +582,21 @@ void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
     zero = 0.0;
     LinearModel K(J, zero);
 
-    Pre pre(Sa);
-    Std std{};
-    LM_D lm(Sa);
-    GN gn(1e-12, 100);
+    Pre      pre(Sa);
+    Std      std{};
+    LM_D     lm(Sa);
+    GN       gn(1e-12, 100);
     LM_Pre_D lm_pre(Sa, Std_Pre(std, pre));
-    GN_Pre gn_pre(1e-12, 100, Std_Pre(std, pre));
+    GN_Pre   gn_pre(1e-12, 100, Std_Pre(std, pre));
 
-    OEM_D_D<LinearModel> oem_std(K, xa, Sa, Se);
+    OEM_D_D<LinearModel>       oem_std(K, xa, Sa, Se);
     OEM_NFORM_D_D<LinearModel> oem_nform(K, xa, Sa, Se);
     OEM_MFORM_D_D<LinearModel> oem_mform(K, xa, Sa, Se);
 
     // Write data for Matlab.
 
     Vector x_norm(n);
-    for (Index j = 0; j < n; j++) {
-      x_norm[j] = sqrt(Sa(j, j));
-    }
+    for (Index j = 0; j < n; j++) { x_norm[j] = sqrt(Sa(j, j)); }
 
     write_vector(xa, "xa_t.txt");
     write_vector(y, "y_t.txt");
@@ -641,7 +624,7 @@ void test_oem_linear(Engine* eng, Index m, Index n, Index ntests) {
     oem_std.compute(x_std_norm_lm, y, lm_pre);
 
     OEMMatrix G_std, G_nform, G_mform, G_norm;
-    G_std = oem_std.gain_matrix(x_std);
+    G_std   = oem_std.gain_matrix(x_std);
     G_nform = oem_nform.gain_matrix(x_std);
     G_mform = oem_mform.gain_matrix(x_std);
 
@@ -714,23 +697,21 @@ void test_oem_gauss_newton(Engine* eng, Index m, Index n, Index ntests) {
     // Solvers.
     Pre pre(Sa);
     Std std{};
-    CG cg(1e-12);
+    CG  cg(1e-12);
 
     // Optimization Methods.
-    GN gn(std);
-    GN_Pre gn_pre(Std_Pre(std, pre));
-    GN_CG gn_cg(cg);
+    GN        gn(std);
+    GN_Pre    gn_pre(Std_Pre(std, pre));
+    GN_CG     gn_cg(cg);
     GN_CG_Pre gn_cg_pre(CG_Pre(cg, pre));
 
-    PrecisionMatrix Pe(SeInv), Pa(SaInv);
+    PrecisionMatrix         Pe(SeInv), Pa(SaInv);
     OEM_D_D<QuadraticModel> map(K, xa, Sa, Se);
     OEM_D_D<QuadraticModel> map_prec(K, xa, Pa, Pe);
 
     // Write data to disk.
     Vector x_norm(n);
-    for (Index j = 0; j < n; j++) {
-      x_norm[j] = sqrt(abs(Sa(j, j)));
-    }
+    for (Index j = 0; j < n; j++) { x_norm[j] = sqrt(abs(Sa(j, j))); }
 
     write_vector(xa, "xa_t.txt");
     write_vector(y0, "y_t.txt");
@@ -818,23 +799,21 @@ void test_oem_levenberg_marquardt(Engine* eng, Index m, Index n, Index ntests) {
     // Solvers.
     Pre pre(Sa);
     Std std{};
-    CG cg(1e-12);
+    CG  cg(1e-12);
 
     // Optimization Methods.
-    LM_D lm(SaInv, std);
-    LM_Pre_D lm_pre(SaInv, Std_Pre(std, pre));
-    LM_CG_D lm_cg(SaInv, cg);
+    LM_D        lm(SaInv, std);
+    LM_Pre_D    lm_pre(SaInv, Std_Pre(std, pre));
+    LM_CG_D     lm_cg(SaInv, cg);
     LM_CG_Pre_D lm_cg_pre(SaInv, CG_Pre(cg, pre));
 
-    PrecisionMatrix Pe(SeInv), Pa(SaInv);
-    OEM_D_D<QuadraticModel> map(K, xa, Sa, Se);
+    PrecisionMatrix           Pe(SeInv), Pa(SaInv);
+    OEM_D_D<QuadraticModel>   map(K, xa, Sa, Se);
     OEM_PD_PD<QuadraticModel> map_prec(K, xa, Pa, Pe);
 
     // Write data to disk.
     Vector x_norm(n);
-    for (Index j = 0; j < n; j++) {
-      x_norm[j] = sqrt(abs(Sa(j, j)));
-    }
+    for (Index j = 0; j < n; j++) { x_norm[j] = sqrt(abs(Sa(j, j))); }
 
     write_vector(xa, "xa_t.txt");
     write_vector(y0, "y_t.txt");
@@ -920,27 +899,27 @@ void test_oem_gauss_newton_sparse(Index m, Index n, Index ntests) {
     //random_fill_matrix( Se_sparse, 1.0, false );
     id_mat(Sa_sparse);
     //random_fill_matrix( Sa_sparse, 1.0, false );
-    OEMMatrix Se = (Matrix)Se_sparse;
-    OEMMatrix Sa = (Matrix)Sa_sparse;
+    OEMMatrix  Se = (Matrix)Se_sparse;
+    OEMMatrix  Sa = (Matrix)Sa_sparse;
     ArtsSparse Se_arts(Se_sparse);
     ArtsSparse Sa_arts(Sa_sparse);
-    OEMSparse Se_map(Se_arts), Sa_map(Sa_arts);
+    OEMSparse  Se_map(Se_arts), Sa_map(Sa_arts);
 
     // Solvers.
     Pre pre(Sa);
     Std std{};
-    CG cg(1e-12);
+    CG  cg(1e-12);
 
     // Optimization Methods.
-    GN gn(std);
-    GN_Pre gn_pre(Std_Pre(std, pre));
-    GN_CG gn_cg(cg);
+    GN        gn(std);
+    GN_Pre    gn_pre(Std_Pre(std, pre));
+    GN_CG     gn_cg(cg);
     GN_CG_Pre gn_cg_pre(CG_Pre(cg, pre));
 
-    PrecisionMatrix Pe(Se);
-    PrecisionMatrix Pa(Sa);
-    PrecisionSparse Pe_sparse(Se_map);
-    PrecisionSparse Pa_sparse(Sa_map);
+    PrecisionMatrix           Pe(Se);
+    PrecisionMatrix           Pa(Sa);
+    PrecisionSparse           Pe_sparse(Se_map);
+    PrecisionSparse           Pa_sparse(Sa_map);
     OEM_PD_PD<QuadraticModel> map(K, xa, Pa, Pe);
     OEM_PS_PS<QuadraticModel> map_sparse(K, xa, Pa_sparse, Pe_sparse);
 

@@ -16,8 +16,7 @@ namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
 
-template <typename mtype>
-void matpack_common_interface(py::class_<mtype>& c) {
+template <typename mtype> void matpack_common_interface(py::class_<mtype>& c) {
   c.def(py::init<>());
 
   c.def(
@@ -42,20 +41,16 @@ void matpack_common_interface(py::class_<mtype>& c) {
   py::implicitly_convertible<py::list, mtype>();
 }
 
-template <typename T, Size ndim>
-void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
-  using mtype = matpack::data_t<T, ndim>;
-  using nd    = py::ndarray<py::numpy, T, py::ndim<ndim>, py::c_contig>;
-  using const_nd =
-      py::ndarray<py::numpy, const T, py::ndim<ndim>, py::c_contig>;
+template <typename T, Size ndim> void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
+  using mtype    = matpack::data_t<T, ndim>;
+  using nd       = py::ndarray<py::numpy, T, py::ndim<ndim>, py::c_contig>;
+  using const_nd = py::ndarray<py::numpy, const T, py::ndim<ndim>, py::c_contig>;
 
   c.def(
       "__init__",
       [](mtype* v, const const_nd& a) {
         std::array<Index, ndim> shape;
-        for (Size i = 0; i < ndim; i++) {
-          shape[i] = static_cast<Index>(a.shape(i));
-        }
+        for (Size i = 0; i < ndim; i++) { shape[i] = static_cast<Index>(a.shape(i)); }
 
         new (v) mtype(shape);
         std::copy(a.data(), a.data() + a.size(), v->elem_begin());
@@ -66,9 +61,7 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
       "__init__",
       [](mtype* v, const nd& a) {
         std::array<Index, ndim> shape;
-        for (Size i = 0; i < ndim; i++) {
-          shape[i] = static_cast<Index>(a.shape(i));
-        }
+        for (Size i = 0; i < ndim; i++) { shape[i] = static_cast<Index>(a.shape(i)); }
 
         new (v) mtype(shape);
         std::copy(a.data(), a.data() + a.size(), v->elem_begin());
@@ -77,22 +70,17 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
 
   c.def(
       "__array__",
-      [](mtype& v,
-         py::object dtype,
-         py::object copy) -> std::variant<nd, py::object> {
+      [](mtype& v, py::object dtype, py::object copy) -> std::variant<nd, py::object> {
         std::array<size_t, ndim> shape;
         stdr::copy(v.shape(), shape.begin());
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.data_handle(), ndim, shape.data(), py::cast(&v));
 
-        if (not dtype.is_none()) {
-          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-        }
+        if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy))
-                          ? py::rv_policy::automatic_reference
-                          : py::rv_policy::copy);
+        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                              : py::rv_policy::copy);
       },
       "dtype"_a = py::none(),
       "copy"_a  = py::none(),
@@ -104,12 +92,10 @@ void matpack_interface(py::class_<matpack::data_t<T, ndim>>& c) {
   matpack_common_interface(c);
 }
 
-template <typename T, Size... ndim>
-void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
-  using mtype = matpack::cdata_t<T, ndim...>;
-  using nd    = py::ndarray<py::numpy, T, py::shape<ndim...>, py::c_contig>;
-  using const_nd =
-      py::ndarray<py::numpy, const T, py::shape<ndim...>, py::c_contig>;
+template <typename T, Size... ndim> void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
+  using mtype    = matpack::cdata_t<T, ndim...>;
+  using nd       = py::ndarray<py::numpy, T, py::shape<ndim...>, py::c_contig>;
+  using const_nd = py::ndarray<py::numpy, const T, py::shape<ndim...>, py::c_contig>;
 
   c.def(
       "__init__",
@@ -129,29 +115,20 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
 
   c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 
-  c.def(
-      "norm",
-      [](const mtype& v) { return v / hypot(v); },
-      "Return normalized version of self");
+  c.def("norm", [](const mtype& v) { return v / hypot(v); }, "Return normalized version of self");
 
   c.def(
       "__array__",
-      [](mtype& v,
-         py::object dtype,
-         py::object copy) -> std::variant<nd, py::object> {
-        constexpr std::array<size_t, sizeof...(ndim)> shape{
-            static_cast<size_t>(ndim)...};
+      [](mtype& v, py::object dtype, py::object copy) -> std::variant<nd, py::object> {
+        constexpr std::array<size_t, sizeof...(ndim)> shape{static_cast<size_t>(ndim)...};
 
         auto np = py::module_::import_("numpy");
-        auto x = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(&v));
+        auto x  = nd(v.data.data(), sizeof...(ndim), shape.data(), py::cast(&v));
 
-        if (not dtype.is_none()) {
-          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-        }
+        if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy))
-                          ? py::rv_policy::automatic_reference
-                          : py::rv_policy::copy);
+        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                              : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -163,10 +140,9 @@ void matpack_constant_interface(py::class_<matpack::cdata_t<T, ndim...>>& c) {
   matpack_common_interface(c);
 }
 
-template <class Compare>
-void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
-  using mtype = Vector;
-  using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
+template <class Compare> void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
+  using mtype  = Vector;
+  using nd     = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
   using mut_nd = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
 
   c.def(
@@ -185,30 +161,20 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
       },
       "a"_a);
 
-  c.def(
-      "__init__",
-      [](matpack::grid_t<Compare>* v, const mtype& a) {
-        new (v) matpack::grid_t<Compare>(a);
-      },
-      "vec"_a);
+  c.def("__init__", [](matpack::grid_t<Compare>* v, const mtype& a) { new (v) matpack::grid_t<Compare>(a); }, "vec"_a);
 
   c.def(
       "__array__",
-      [](matpack::grid_t<Compare>& v,
-         py::object dtype,
-         const py::object& copy) -> std::variant<nd, py::object> {
+      [](matpack::grid_t<Compare>& v, py::object dtype, const py::object& copy) -> std::variant<nd, py::object> {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(&v));
 
-        if (not dtype.is_none()) {
-          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-        }
+        if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy))
-                          ? py::rv_policy::automatic_reference
-                          : py::rv_policy::copy);
+        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                              : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -222,10 +188,9 @@ void matpack_grid_interface(py::class_<matpack::grid_t<Compare>>& c) {
 }
 
 template <Index l, Index u, matpack::lim il, matpack::lim iu>
-void matpack_grid_interface(
-    py::class_<matpack::ranged_grid_t<l, u, il, iu>>& c) {
-  using mtype = Vector;
-  using nd = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
+void matpack_grid_interface(py::class_<matpack::ranged_grid_t<l, u, il, iu>>& c) {
+  using mtype  = Vector;
+  using nd     = py::ndarray<py::numpy, const Numeric, py::ndim<1>, py::c_contig>;
   using mut_nd = py::ndarray<py::numpy, Numeric, py::ndim<1>, py::c_contig>;
   using T      = matpack::ranged_grid_t<l, u, il, iu>;
 
@@ -249,21 +214,16 @@ void matpack_grid_interface(
 
   c.def(
       "__array__",
-      [](T& v,
-         py::object dtype,
-         const py::object& copy) -> std::variant<nd, py::object> {
+      [](T& v, py::object dtype, const py::object& copy) -> std::variant<nd, py::object> {
         std::array<size_t, 1> shape{static_cast<size_t>(v.size())};
 
         auto np = py::module_::import_("numpy");
         auto x  = nd(v.vec().data_handle(), 1, shape.data(), py::cast(&v));
 
-        if (not dtype.is_none()) {
-          return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy);
-        }
+        if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy))
-                          ? py::rv_policy::automatic_reference
-                          : py::rv_policy::copy);
+        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
+                                                              : py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -277,48 +237,36 @@ void matpack_grid_interface(
 }
 
 template <typename T, typename... Grids>
-void gridded_data_interface(
-    py::class_<matpack::gridded_data_t<T, Grids...>>& c) {
+void gridded_data_interface(py::class_<matpack::gridded_data_t<T, Grids...>>& c) {
   constexpr Size dim = sizeof...(Grids);
   using mtype        = matpack::gridded_data_t<T, Grids...>;
   using dtype        = matpack::data_t<T, dim>;
 
   c.def(py::init<>());
 
-  c.def(py::init<String,
-                 dtype,
-                 std::array<String, dim>,
-                 typename mtype::grids_t>(),
+  c.def(py::init<String, dtype, std::array<String, dim>, typename mtype::grids_t>(),
         "name"_a = String{},
         "data"_a,
         "grid_names"_a = std::array<String, dim>{},
         "grids"_a);
 
-  c.def_rw(
-      "dataname", &mtype::data_name, "Name of the data\n\n.. :class:`String`");
+  c.def_rw("dataname", &mtype::data_name, "Name of the data\n\n.. :class:`String`");
 
   c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 
-  c.def_rw("gridnames",
-           &mtype::grid_names,
-           "The grid names\n\n.. :class:`list[str]`");
+  c.def_rw("gridnames", &mtype::grid_names, "The grid names\n\n.. :class:`list[str]`");
 
-  c.def_rw("grids",
-           &mtype::grids,
-           "The grid of the data\n\n.. :class:`list[object]`");
+  c.def_rw("grids", &mtype::grids, "The grid of the data\n\n.. :class:`list[object]`");
 
   c.def_prop_ro_static(
-      "dim",
-      [](const py::object&) { return mtype::dim; },
-      "Dimension of the field\n\n.. :class:`int`");
+      "dim", [](const py::object&) { return mtype::dim; }, "Dimension of the field\n\n.. :class:`int`");
 
   c.def("ok", &mtype::ok, "Check the field");
 
   c.def(
       "__array__",
       [](py::object& gd, py::object dtype_, py::object copy) {
-        return gd.attr("data").attr("__array__")("dtype"_a = dtype_,
-                                                 "copy"_a  = copy);
+        return gd.attr("data").attr("__array__")("dtype"_a = dtype_, "copy"_a = copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -342,8 +290,7 @@ void gridded_data_interface(
           auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
           auto grid     = gd.attr("grids").attr("__getitem__")(i);
 
-          const auto n =
-              gridname ? gridname : py::str(std::format("dim{}", i).c_str());
+          const auto n = gridname ? gridname : py::str(std::format("dim{}", i).c_str());
           out["dims"].attr("append")(n);
           out["coords"][n]         = py::dict{};
           out["coords"][n]["data"] = grid;
@@ -368,17 +315,11 @@ void gridded_data_interface(
   c.def_static(
       "from_dict",
       [](const py::dict& d) {
-        if (not d.contains("coords"))
-          throw std::invalid_argument(
-              "cannot convert dict without the key 'coords''");
+        if (not d.contains("coords")) throw std::invalid_argument("cannot convert dict without the key 'coords''");
 
-        if (not d.contains("dims"))
-          throw std::invalid_argument(
-              "cannot convert dict without the key 'dims''");
+        if (not d.contains("dims")) throw std::invalid_argument("cannot convert dict without the key 'dims''");
 
-        if (not d.contains("data"))
-          throw std::invalid_argument(
-              "cannot convert dict without the key 'data''");
+        if (not d.contains("data")) throw std::invalid_argument("cannot convert dict without the key 'data''");
 
         auto gd = mtype{};
 
@@ -386,13 +327,10 @@ void gridded_data_interface(
 
         if (d.contains("name")) py::try_cast(d["name"], gd.data_name);
 
-        gd.grid_names =
-            py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
+        gd.grid_names = py::cast<std::array<std::string, mtype::dim>>(d["dims"]);
 
         py::list coords{};
-        for (auto& n : gd.grid_names) {
-          coords.append(d["coords"][py::str(n.c_str())]["data"]);
-        }
+        for (auto& n : gd.grid_names) { coords.append(d["coords"][py::str(n.c_str())]["data"]); }
 
         gd.grids = py::cast<typename mtype::grids_t>(coords);
 
@@ -402,9 +340,7 @@ void gridded_data_interface(
 
   c.def_static(
       "from_xarray",
-      [](const py::object& xarray) {
-        return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")());
-      },
+      [](const py::object& xarray) { return py::type<mtype>().attr("from_dict")(xarray.attr("to_dict")()); },
       "Create object from :class:`xarray.DataArray`.");
 
   c.def(

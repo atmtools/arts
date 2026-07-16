@@ -183,8 +183,7 @@ The python mapping allows treating this as a same rank :class:`~numpy.ndarray` i
 )",
   };
 
-  wsg_data["Tensor7"] = {.file = "matpack.h",
-                         .desc = R"(A 7 dimensional array of *Numeric*.
+  wsg_data["Tensor7"] = {.file = "matpack.h", .desc = R"(A 7 dimensional array of *Numeric*.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
 )"};
@@ -668,9 +667,7 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
 
   for (auto& g : internal_options()) {
     if (wsg_data.find(g.name) != wsg_data.end())
-      throw std::runtime_error(
-          "Duplicate workspace group name (name is reserved as options-group): " +
-          g.name);
+      throw std::runtime_error("Duplicate workspace group name (name is reserved as options-group): " + g.name);
 
     wsg_data[g.name] = {
         .file = "enums.h",
@@ -678,15 +675,12 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
     };
   }
 
-  for (const auto& [name, g] : internal_workspace_groups()) {
-    wsg_data.erase(name);
-  }
+  for (const auto& [name, g] : internal_workspace_groups()) { wsg_data.erase(name); }
   return wsg_data;
 }
 }  // namespace
 
-const std::unordered_map<std::string, WorkspaceGroupRecord>&
-workspace_group_friends() {
+const std::unordered_map<std::string, WorkspaceGroupRecord>& workspace_group_friends() {
   static const auto friends = group_friends_internal();
   return friends;
 }

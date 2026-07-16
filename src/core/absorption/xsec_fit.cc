@@ -19,19 +19,13 @@ const Vector& XsecRecord::FitMinPressures() const { return mfitminpressures; };
 const Vector& XsecRecord::FitMaxPressures() const { return mfitmaxpressures; };
 
 /** Get mininum temperatures from fit */
-const Vector& XsecRecord::FitMinTemperatures() const {
-  return mfitmintemperatures;
-};
+const Vector& XsecRecord::FitMinTemperatures() const { return mfitmintemperatures; };
 
 /** Get maximum temperatures */
-const Vector& XsecRecord::FitMaxTemperatures() const {
-  return mfitmaxtemperatures;
-};
+const Vector& XsecRecord::FitMaxTemperatures() const { return mfitmaxtemperatures; };
 
 /** Get coefficients */
-const ArrayOfGriddedField1Named& XsecRecord::FitCoeffs() const {
-  return mfitcoeffs;
-};
+const ArrayOfGriddedField1Named& XsecRecord::FitCoeffs() const { return mfitcoeffs; };
 
 Vector& XsecRecord::FitMinPressures() { return mfitminpressures; };
 
@@ -57,22 +51,18 @@ void RemoveNegativeXsec(Vector& xsec) {
     sum_xsec_non_negative += x;
   }
 
-  if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) {
-    xsec *= sum_xsec / sum_xsec_non_negative;
-  }
+  if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) { xsec *= sum_xsec / sum_xsec_non_negative; }
 }
 }  // namespace
 
 void XsecRecord::SetVersion(const Index version) {
   constexpr std::array<Index, 2> supported_versions = {2, mversion};
   if (stdr::none_of(supported_versions, Cmp::eq(version))) {
-    ARTS_USER_ERROR("Invalid version {}, only versions {:B,} supported",
-                    version,
-                    supported_versions)
+    ARTS_USER_ERROR("Invalid version {}, only versions {:B,} supported", version, supported_versions)
   }
 }
 
-void XsecRecord::Extract(VectorView result,
+void XsecRecord::Extract(VectorView    result,
                          const Vector& f_grid,
                          const Numeric pressure,
                          const Numeric temperature) const {
@@ -94,13 +84,9 @@ void XsecRecord::Extract(VectorView result,
     // data_f_grid.
     const Numeric* f_grid_begin = f_grid.data_handle();
     const Numeric* f_grid_end   = f_grid_begin + f_grid.size();
-    const Index i_fstart        = std::distance(
-        f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
-    const Index i_fstop =
-        std::distance(
-            f_grid_begin,
-            std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) -
-        1;
+    const Index    i_fstart     = std::distance(f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
+    const Index    i_fstop =
+        std::distance(f_grid_begin, std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) - 1;
 
     // Ignore band if all frequencies are below or above data_f_grid:
     if (static_cast<Size>(i_fstart) == nf || i_fstop == -1) continue;
@@ -122,16 +108,11 @@ void XsecRecord::Extract(VectorView result,
     const Numeric f_grid_fmax = f_grid[i_fstop];
 
     const Numeric* data_f_grid_begin = data_f_grid.data_handle();
-    const Numeric* data_f_grid_end = data_f_grid_begin + data_f_grid.size() - 1;
-    const Index i_data_fstart =
-        std::distance(
-            data_f_grid_begin,
-            std::upper_bound(data_f_grid_begin, data_f_grid_end, f_grid_fmin)) -
-        1;
+    const Numeric* data_f_grid_end   = data_f_grid_begin + data_f_grid.size() - 1;
+    const Index    i_data_fstart =
+        std::distance(data_f_grid_begin, std::upper_bound(data_f_grid_begin, data_f_grid_end, f_grid_fmin)) - 1;
     const Index i_data_fstop = std::distance(
-        data_f_grid_begin,
-        std::upper_bound(
-            data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
+        data_f_grid_begin, std::upper_bound(data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
 
     assert(i_data_fstart >= 0);
     assert(f_grid[i_fstart] >= data_f_grid[i_data_fstart]);
@@ -144,24 +125,23 @@ void XsecRecord::Extract(VectorView result,
 
     // This is the part of the xsec dataset for which we have to do the
     // interpolation.
-    const Range active_range(i_data_fstart, data_f_extent);
+    const Range           active_range(i_data_fstart, data_f_extent);
     const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
-    Vector fit_result(data_f_grid.size());
+    Vector     fit_result(data_f_grid.size());
     VectorView fit_result_active = fit_result[active_range];
 
     // We have to create a matching view on the result vector:
     VectorView result_active = result[Range(i_fstart, f_extent)];
-    Vector xsec_interp(f_extent);
+    Vector     xsec_interp(f_extent);
 
     CalcXsec(fit_result, this_dataset_i, pressure, temperature);
 
     RemoveNegativeXsec(fit_result);
 
     {
-      const auto f_gp =
-          lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
-              data_f_grid_active, f_grid_active, 0.5, "Frequency");
+      const auto f_gp = lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
+          data_f_grid_active, f_grid_active, 0.5, "Frequency");
       const auto f_itw = reinterpweights(f_gp);
 
       // Find frequency grid positions:
@@ -172,23 +152,22 @@ void XsecRecord::Extract(VectorView result,
   }
 }
 
-void XsecRecord::CalcXsec(VectorView xsec,
-                          const Index dataset,
+void XsecRecord::CalcXsec(VectorView    xsec,
+                          const Index   dataset,
                           const Numeric pressure,
                           const Numeric temperature) const {
   for (Size i = 0; i < xsec.size(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data[i, joker];
-    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
-              coeffs[P20] * temperature * temperature;
+    xsec[i] =
+        coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure + coeffs[P20] * temperature * temperature;
   }
 }
 
-void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
+void xml_io_stream<XsecRecord>::write(std::ostream&     os_xml,
                                       const XsecRecord& xd,
-                                      bofstream* pbofs,
-                                      std::string_view name) {
-  static_assert(XsecRecord::mversion == 3,
-                "Update XML write function for new version");
+                                      bofstream*        pbofs,
+                                      std::string_view  name) {
+  static_assert(XsecRecord::mversion == 3, "Update XML write function for new version");
 
   XMLTag open_tag;
   XMLTag close_tag;
@@ -199,27 +178,20 @@ void xml_io_stream<XsecRecord>::write(std::ostream& os_xml,
 
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(
-      os_xml, xd.FitMinPressures(), pbofs, "Mininum pressures from fit");
-  xml_write_to_stream(
-      os_xml, xd.FitMaxPressures(), pbofs, "Maximum pressures from fit");
-  xml_write_to_stream(
-      os_xml, xd.FitMinTemperatures(), pbofs, "Mininum temperatures from fit");
-  xml_write_to_stream(
-      os_xml, xd.FitMaxTemperatures(), pbofs, "Maximum temperatures from fit");
+  xml_write_to_stream(os_xml, xd.FitMinPressures(), pbofs, "Mininum pressures from fit");
+  xml_write_to_stream(os_xml, xd.FitMaxPressures(), pbofs, "Maximum pressures from fit");
+  xml_write_to_stream(os_xml, xd.FitMinTemperatures(), pbofs, "Mininum temperatures from fit");
+  xml_write_to_stream(os_xml, xd.FitMaxTemperatures(), pbofs, "Maximum temperatures from fit");
   xml_write_to_stream(os_xml, xd.FitCoeffs(), pbofs, "Fit coefficients");
 
   close_tag.name = ("/XsecRecord");
   close_tag.write_to_stream(os_xml);
 }
 
-void xml_io_stream<XsecRecord>::read(std::istream& is_xml,
-                                     XsecRecord& xd,
-                                     bifstream* pbifs) {
-  static_assert(XsecRecord::mversion == 3,
-                "Update XML read function for new version");
+void xml_io_stream<XsecRecord>::read(std::istream& is_xml, XsecRecord& xd, bifstream* pbifs) {
+  static_assert(XsecRecord::mversion == 3, "Update XML read function for new version");
   XMLTag tag;
-  Index version;
+  Index  version;
 
   tag.read_from_stream(is_xml);
   tag.check_name("XsecRecord");
@@ -239,9 +211,7 @@ void xml_io_stream<XsecRecord>::read(std::istream& is_xml,
 
   for (const auto& fitcoeffs : xd.FitCoeffs()) {
     const Index ncoeff = fitcoeffs.data.ncols();
-    ARTS_USER_ERROR_IF(ncoeff != 4,
-                       "Wrong number of coefficients, expected 4, found {}",
-                       ncoeff)
+    ARTS_USER_ERROR_IF(ncoeff != 4, "Wrong number of coefficients, expected 4, found {}", ncoeff)
   }
 
   tag.read_from_stream(is_xml);

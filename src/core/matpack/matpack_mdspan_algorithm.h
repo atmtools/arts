@@ -10,43 +10,35 @@
 
 namespace matpack {
 template <ranked_md<1> T>
-Range sorted_range(const T& container,
-                   const value_type<T>& lower_bound,
-                   const value_type<T>& upper_bound) {
+Range sorted_range(const T& container, const value_type<T>& lower_bound, const value_type<T>& upper_bound) {
   auto low = stdr::lower_bound(container, lower_bound);
   auto upp = stdr::upper_bound(low, container.end(), upper_bound);
-  return {static_cast<Index>(std::distance(container.begin(), low)),
-          static_cast<Index>(std::distance(low, upp))};
+  return {static_cast<Index>(std::distance(container.begin(), low)), static_cast<Index>(std::distance(low, upp))};
 }
 
 //! Divide N elements into n ranges for OpenMP parallelization, returning the
 //! ranges
 std::vector<Range> omp_offset_count(const Index N, const Index n);
 
-template <any_md T>
-data_t<value_type<T>, 1 + rank<T>()> create(const std::vector<T>& vec) {
+template <any_md T> data_t<value_type<T>, 1 + rank<T>()> create(const std::vector<T>& vec) {
   assert(not vec.empty());
-  assert(stdr::none_of(vec | stdv::transform([](auto& v) { return v.shape(); }),
-                       Cmp::ne(vec[0].shape())));
+  assert(stdr::none_of(vec | stdv::transform([](auto& v) { return v.shape(); }), Cmp::ne(vec[0].shape())));
 
   constexpr Size new_rank = 1 + rank<T>();
 
   std::array<Index, new_rank> new_sizes;
   new_sizes[0] = static_cast<Index>(vec.size());
-  for (Size i = 0; i < rank<T>(); i++) {
-    new_sizes[i + 1] = static_cast<Index>(vec[0].extent(i));
-  }
+  for (Size i = 0; i < rank<T>(); i++) { new_sizes[i + 1] = static_cast<Index>(vec[0].extent(i)); }
 
   data_t<value_type<T>, new_rank> out(new_sizes);
   for (Size i = 0; i < vec.size(); i++) out[i] = vec[i];
   return out;
 }
 
-template <mut_any_md T>
-value_type<T> clamp(T& a, const value_type<T>& min, const value_type<T>& max) {
+template <mut_any_md T> value_type<T> clamp(T& a, const value_type<T>& min, const value_type<T>& max) {
   value_type<T> out{};
 
-  auto a_ptr       = a.elem_begin();
+  auto       a_ptr = a.elem_begin();
   const auto a_end = a.elem_end();
 
   while (a_ptr < a_end) {
@@ -57,17 +49,16 @@ value_type<T> clamp(T& a, const value_type<T>& min, const value_type<T>& max) {
   return out;
 }
 
-template <mut_any_md T, exact_md<value_type<T>, rank<T>()> U>
-value_type<T> copy_maxreliff(const U& b, T& a) {
+template <mut_any_md T, exact_md<value_type<T>, rank<T>()> U> value_type<T> copy_maxreliff(const U& b, T& a) {
   value_type<T> out{};
 
-  auto a_ptr       = a.elem_begin();
-  auto b_ptr       = b.elem_begin();
+  auto       a_ptr = a.elem_begin();
+  auto       b_ptr = b.elem_begin();
   const auto a_end = a.elem_end();
 
   while (a_ptr < a_end) {
-    auto& x             = *a_ptr++;
-    auto& y             = *b_ptr++;
+    auto&         x     = *a_ptr++;
+    auto&         y     = *b_ptr++;
     const Numeric num   = std::abs(x - y);
     const Numeric denom = std::max(std::abs(x), std::abs(y));
     const Numeric rel   = denom > 0 ? num / denom : 0.0;

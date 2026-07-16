@@ -5,8 +5,7 @@
 
 namespace {
 struct aggregate_init {
-  template <typename T>
-  constexpr operator T() const noexcept;
+  template <typename T> constexpr operator T() const noexcept;
 };
 
 template <typename T>
@@ -16,36 +15,23 @@ template <typename T>
 concept aggregate_1 = aggregate_0<T> and requires { T{aggregate_init{}}; };
 
 template <typename T>
-concept aggregate_2 =
-    aggregate_1<T> and requires { T{aggregate_init{}, aggregate_init{}}; };
+concept aggregate_2 = aggregate_1<T> and requires { T{aggregate_init{}, aggregate_init{}}; };
 
 template <typename T>
-concept aggregate_3 = aggregate_2<T> and requires {
-  T{aggregate_init{}, aggregate_init{}, aggregate_init{}};
-};
+concept aggregate_3 = aggregate_2<T> and requires { T{aggregate_init{}, aggregate_init{}, aggregate_init{}}; };
 
 template <typename T>
-concept aggregate_4 = aggregate_3<T> and requires {
-  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
-};
+concept aggregate_4 =
+    aggregate_3<T> and requires { T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}}; };
 
 template <typename T>
 concept aggregate_5 = aggregate_4<T> and requires {
-  T{aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{}};
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
 };
 
 template <typename T>
 concept aggregate_6 = aggregate_5<T> and requires {
-  T{aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{},
-    aggregate_init{}};
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
 };
 
 template <typename T>
@@ -271,11 +257,10 @@ concept aggregate_19 = aggregate_18<T> and requires {
 
 template <typename T>
 concept aggregate_20 = aggregate_19<T> and requires {
-  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
-    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
-    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
-    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
-    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
+  T{aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{},
+    aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}, aggregate_init{}};
 };
 
 template <typename T>

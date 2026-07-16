@@ -27,20 +27,17 @@ class bifstream final : public binistream, public std::ifstream {
  public:
   bifstream() : std::ifstream() {}
 
-  explicit bifstream(const char* name,
-                     std::ios::openmode mode = std::ios::in | std::ios::binary);
+  explicit bifstream(const char* name, std::ios::openmode mode = std::ios::in | std::ios::binary);
 
   ~bifstream() final {
-    if (mfilep) {
-      fclose(mfilep);
-    }
+    if (mfilep) { fclose(mfilep); }
   }
 
-  void seek(long spos, Offset offs) final;
+  void           seek(long spos, Offset offs) final;
   std::streampos pos() final;
 
   bifstream::Byte getByte() final;
-  void getRaw(char* c, std::streamsize n) final;
+  void            getRaw(char* c, std::streamsize n) final;
 
  private:
   FILE* mfilep{nullptr};

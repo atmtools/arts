@@ -8,8 +8,7 @@
 #include "python_interface.h"
 
 namespace Python {
-template <typename Type, typename T>
-void common_math_interface(py::class_<T>& cls_) {
+template <typename Type, typename T> void common_math_interface(py::class_<T>& cls_) {
   cls_.def(py::self + Type())
       .def(py::self - Type())
       .def(py::self * Type())
@@ -36,8 +35,7 @@ void common_math_interface(py::class_<T>& cls_) {
       .def(Type() > py::self);
 }
 
-template <typename T>
-void common_self_math_interface(py::class_<T>& cls_) {
+template <typename T> void common_self_math_interface(py::class_<T>& cls_) {
   cls_.def(+py::self)
       .def(-py::self)
       .def(py::self + py::self)
@@ -57,12 +55,12 @@ void common_self_math_interface(py::class_<T>& cls_) {
 }
 
 void py_matpack(py::module_& m) try {
-  py::class_<Vector2> cv2(m, "Vector2");
-  py::class_<Vector3> cv3(m, "Vector3");
-  py::class_<Vector4> cv4(m, "Vector4");
-  py::class_<Vector7> cv7(m, "Vector7");
-  py::class_<Matrix33> cm33(m, "Matrix33");
-  py::class_<Matrix44> cm44(m, "Matrix44");
+  py::class_<Vector2>         cv2(m, "Vector2");
+  py::class_<Vector3>         cv3(m, "Vector3");
+  py::class_<Vector4>         cv4(m, "Vector4");
+  py::class_<Vector7>         cv7(m, "Vector7");
+  py::class_<Matrix33>        cm33(m, "Matrix33");
+  py::class_<Matrix44>        cm44(m, "Matrix44");
   py::class_<ComplexMatrix44> ccm44(m, "ComplexMatrix44");
   cv2.doc()   = "Fixed size vector of shape [2]";
   cv3.doc()   = "Fixed size vector of shape [3]";
@@ -87,19 +85,12 @@ void py_matpack(py::module_& m) try {
   generic_interface(ccm44);
 
   py::class_<StridedRange>(m, "StridedRange")
-      .def(py::init<Index, Index, Index>(),
-           "offset"_a,
-           "extent"_a,
-           "stride"_a = 1,
-           "Valued initialization")
+      .def(py::init<Index, Index, Index>(), "offset"_a, "extent"_a, "stride"_a = 1, "Valued initialization")
 
       .doc() = "A strided range, used to select parts of a matpack type";
 
   py::class_<Range>(m, "Range")
-      .def(py::init<Index, Index>(),
-           "offset"_a,
-           "extent"_a,
-           "Valued initialization")
+      .def(py::init<Index, Index>(), "offset"_a, "extent"_a, "Valued initialization")
 
       .doc() = "A range, used to select parts of a matpack type";
 
@@ -108,8 +99,8 @@ void py_matpack(py::module_& m) try {
   matpack_interface(iv1);
   generic_interface(iv1);
 
-  py::class_<Vector> v1(m, "Vector");
-  py::class_<Matrix> v2(m, "Matrix");
+  py::class_<Vector>  v1(m, "Vector");
+  py::class_<Matrix>  v2(m, "Matrix");
   py::class_<Tensor3> v3(m, "Tensor3");
   py::class_<Tensor4> v4(m, "Tensor4");
   py::class_<Tensor5> v5(m, "Tensor5");
@@ -131,60 +122,43 @@ void py_matpack(py::module_& m) try {
   generic_interface(v6);
   generic_interface(v7);
 
-  auto a1 = py::bind_vector<ArrayOfVector, py::rv_policy::reference_internal>(
-      m, "ArrayOfVector");
+  auto a1 = py::bind_vector<ArrayOfVector, py::rv_policy::reference_internal>(m, "ArrayOfVector");
   generic_interface(a1);
   vector_interface(a1);
-  auto a2 =
-      py::bind_vector<ArrayOfArrayOfVector, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfVector");
+  auto a2 = py::bind_vector<ArrayOfArrayOfVector, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfVector");
   generic_interface(a2);
   vector_interface(a2);
-  auto a3 = py::bind_vector<ArrayOfMatrix, py::rv_policy::reference_internal>(
-      m, "ArrayOfMatrix");
+  auto a3 = py::bind_vector<ArrayOfMatrix, py::rv_policy::reference_internal>(m, "ArrayOfMatrix");
   generic_interface(a3);
   vector_interface(a3);
-  auto a4 =
-      py::bind_vector<ArrayOfArrayOfMatrix, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfMatrix");
+  auto a4 = py::bind_vector<ArrayOfArrayOfMatrix, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfMatrix");
   generic_interface(a4);
   vector_interface(a4);
-  auto a5 = py::bind_vector<ArrayOfTensor3, py::rv_policy::reference_internal>(
-      m, "ArrayOfTensor3");
+  auto a5 = py::bind_vector<ArrayOfTensor3, py::rv_policy::reference_internal>(m, "ArrayOfTensor3");
   generic_interface(a5);
   vector_interface(a5);
-  auto a6 =
-      py::bind_vector<ArrayOfArrayOfTensor3, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfTensor3");
+  auto a6 = py::bind_vector<ArrayOfArrayOfTensor3, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfTensor3");
   generic_interface(a6);
   vector_interface(a6);
-  auto a7 = py::bind_vector<ArrayOfTensor4, py::rv_policy::reference_internal>(
-      m, "ArrayOfTensor4");
+  auto a7 = py::bind_vector<ArrayOfTensor4, py::rv_policy::reference_internal>(m, "ArrayOfTensor4");
   generic_interface(a7);
   vector_interface(a7);
-  auto a8 = py::bind_vector<ArrayOfTensor5, py::rv_policy::reference_internal>(
-      m, "ArrayOfTensor5");
+  auto a8 = py::bind_vector<ArrayOfTensor5, py::rv_policy::reference_internal>(m, "ArrayOfTensor5");
   generic_interface(a8);
   vector_interface(a8);
-  auto a9 = py::bind_vector<ArrayOfTensor6, py::rv_policy::reference_internal>(
-      m, "ArrayOfTensor6");
+  auto a9 = py::bind_vector<ArrayOfTensor6, py::rv_policy::reference_internal>(m, "ArrayOfTensor6");
   generic_interface(a9);
   vector_interface(a9);
-  auto a10 =
-      py::bind_vector<ArrayOfArrayOfTensor6, py::rv_policy::reference_internal>(
-          m, "ArrayOfArrayOfTensor6");
+  auto a10 = py::bind_vector<ArrayOfArrayOfTensor6, py::rv_policy::reference_internal>(m, "ArrayOfArrayOfTensor6");
   generic_interface(a10);
   vector_interface(a10);
-  auto a11 = py::bind_vector<ArrayOfTensor7, py::rv_policy::reference_internal>(
-      m, "ArrayOfTensor7");
+  auto a11 = py::bind_vector<ArrayOfTensor7, py::rv_policy::reference_internal>(m, "ArrayOfTensor7");
   generic_interface(a11);
   vector_interface(a11);
-  auto a12 = py::bind_vector<ArrayOfVector2, py::rv_policy::reference_internal>(
-      m, "ArrayOfVector2");
+  auto a12 = py::bind_vector<ArrayOfVector2, py::rv_policy::reference_internal>(m, "ArrayOfVector2");
   generic_interface(a12);
   vector_interface(a12);
-  auto a13 = py::bind_vector<ArrayOfVector3, py::rv_policy::reference_internal>(
-      m, "ArrayOfVector3");
+  auto a13 = py::bind_vector<ArrayOfVector3, py::rv_policy::reference_internal>(m, "ArrayOfVector3");
   generic_interface(a13);
   vector_interface(a13);
 
@@ -200,8 +174,8 @@ void py_matpack(py::module_& m) try {
   generic_interface(rat);
   py::implicitly_convertible<Index, Rational>();
 
-  py::class_<ComplexVector> comv1(m, "ComplexVector");
-  py::class_<ComplexMatrix> comv2(m, "ComplexMatrix");
+  py::class_<ComplexVector>  comv1(m, "ComplexVector");
+  py::class_<ComplexMatrix>  comv2(m, "ComplexMatrix");
   py::class_<ComplexTensor3> comv3(m, "ComplexTensor3");
   py::class_<ComplexTensor4> comv4(m, "ComplexTensor4");
   comv1.doc() = "A complex vector";
@@ -229,9 +203,7 @@ void py_matpack(py::module_& m) try {
   g2.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<DescendingGrid>());
 
-  auto b1 =
-      py::bind_vector<ArrayOfAscendingGrid, py::rv_policy::reference_internal>(
-          m, "ArrayOfAscendingGrid");
+  auto b1 = py::bind_vector<ArrayOfAscendingGrid, py::rv_policy::reference_internal>(m, "ArrayOfAscendingGrid");
   generic_interface(b1);
   vector_interface(b1);
 
@@ -259,7 +231,6 @@ void py_matpack(py::module_& m) try {
   gr4.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<AziGrid>());
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
 }
 }  // namespace Python

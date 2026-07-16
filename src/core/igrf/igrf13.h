@@ -30,6 +30,5 @@ Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time& time = Time{});
  *
  * @note The time is assumed to be in UTC.
  */
-std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> igrf_coefficients(
-    const Time& time);
+std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> igrf_coefficients(const Time& time);
 }  // namespace IGRF

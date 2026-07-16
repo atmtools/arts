@@ -41,20 +41,13 @@ static inline std::string quotation_mark_original{"\""};
   \param expected_name Expected tag name
 */
 void XMLTag::check_name(const std::string_view& expected_name) {
-  if (name != expected_name)
-    xml_parse_error(
-        std::format("Tag <{}> expected but <{}> found.", expected_name, name));
+  if (name != expected_name) xml_parse_error(std::format("Tag <{}> expected but <{}> found.", expected_name, name));
 }
 void XMLTag::check_end_name(const std::string_view& expected_name) {
-  if (name.empty()) {
-    xml_parse_error(std::format(
-        "Tag </{}> expected but nothing found.", expected_name, name));
-  }
+  if (name.empty()) { xml_parse_error(std::format("Tag </{}> expected but nothing found.", expected_name, name)); }
 
-  if (name.front() != '/' or
-      std::string_view{name.begin() + 1, name.end()} != expected_name)
-    xml_parse_error(
-        std::format("Tag </{}> expected but <{}> found.", expected_name, name));
+  if (name.front() != '/' or std::string_view{name.begin() + 1, name.end()} != expected_name)
+    xml_parse_error(std::format("Tag </{}> expected but <{}> found.", expected_name, name));
 }
 
 /*! Adds a String attribute to tag
@@ -64,16 +57,14 @@ All " are replaced by ” to work in the XML tag
   \param aname Attribute name
   \param value Attribute value
 */
-void XMLTag::add_attribute(const std::string_view& aname,
-                           const std::string_view& value_) {
+void XMLTag::add_attribute(const std::string_view& aname, const std::string_view& value_) {
   String value{value_};
 
   String name{aname};
 
   auto pos = value.find(quotation_mark_original);
   while (pos not_eq std::string::npos) {
-    value.replace(
-        pos, quotation_mark_original.length(), quotation_mark_replacement);
+    value.replace(pos, quotation_mark_original.length(), quotation_mark_replacement);
     pos = value.find(quotation_mark_original);
   }
 
@@ -94,8 +85,7 @@ void XMLTag::add_attribute(const std::string_view& aname, const Size& value) {
   add_attribute(aname, std::format("{}", value));
 }
 
-void XMLTag::add_attribute(const std::string_view& aname,
-                           const Numeric& value) {
+void XMLTag::add_attribute(const std::string_view& aname, const Numeric& value) {
   add_attribute(aname, std::format("{}", value));
 }
 
@@ -108,8 +98,7 @@ void XMLTag::add_attribute(const std::string_view& aname,
   \param aname Attribute name
   \param value Expected value
 */
-void XMLTag::check_attribute(const std::string_view& aname,
-                             const std::string_view& value) {
+void XMLTag::check_attribute(const std::string_view& aname, const std::string_view& value) {
   String actual_value;
 
   get_attribute_value(aname, actual_value);
@@ -117,11 +106,7 @@ void XMLTag::check_attribute(const std::string_view& aname,
   if (actual_value == "*not found*") {
     xml_parse_error(std::format("Required attribute {} does not exist", aname));
   } else if (actual_value != value) {
-    xml_parse_error(
-        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
-                    aname,
-                    actual_value,
-                    value));
+    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
@@ -131,32 +116,21 @@ void XMLTag::check_attribute(const std::string_view& aname, const Size& value) {
   get_attribute_value(aname, actual_value);
 
   if (actual_value != value) {
-    xml_parse_error(
-        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
-                    aname,
-                    actual_value,
-                    value));
+    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
-void XMLTag::check_attribute(const std::string_view& aname,
-                             const Index& value) {
+void XMLTag::check_attribute(const std::string_view& aname, const Index& value) {
   Index actual_value;
 
   get_attribute_value(aname, actual_value);
 
   if (actual_value != value) {
-    xml_parse_error(
-        std::format(R"(Attribute {} has value "{}" but "{}" was expected.)",
-                    aname,
-                    actual_value,
-                    value));
+    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
-bool XMLTag::has_attribute(const std::string_view& aname) const {
-  return attribs.contains(String{aname});
-}
+bool XMLTag::has_attribute(const std::string_view& aname) const { return attribs.contains(String{aname}); }
 
 /*! Returns value of attribute as String
 
@@ -169,15 +143,12 @@ bool XMLTag::has_attribute(const std::string_view& aname) const {
   \param aname Attribute name
   \param value Return value
 */
-void XMLTag::get_attribute_value(const std::string_view& aname,
-                                 String& value,
-                                 std::string_view def) try {
+void XMLTag::get_attribute_value(const std::string_view& aname, String& value, std::string_view def) try {
   value = attribs.at(String{aname});
 
   auto pos = value.find(quotation_mark_replacement);
   while (pos not_eq std::string::npos) {
-    value.replace(
-        pos, quotation_mark_replacement.length(), quotation_mark_original);
+    value.replace(pos, quotation_mark_replacement.length(), quotation_mark_original);
     pos = value.find(quotation_mark_replacement);
   }
 } catch (const std::out_of_range&) {
@@ -199,43 +170,33 @@ void XMLTag::get_attribute_value(const std::string_view& aname,
   \param value Return value
 */
 void XMLTag::get_attribute_value(const std::string_view& aname, Index& value) {
-  String attribute_value;
+  String             attribute_value;
   std::istringstream strstr("");
 
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> value;
-  if (strstr.fail()) {
-    xml_parse_error(std::format(
-        "Cannot parse value of {0} from <{1}>", aname, name));
-  }
+  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
 void XMLTag::get_attribute_value(const std::string_view& aname, Size& value) {
-  String attribute_value;
+  String             attribute_value;
   std::istringstream strstr("");
 
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> value;
-  if (strstr.fail()) {
-    xml_parse_error(std::format(
-        "Cannot parse value of {0} from <{1}>", aname, name));
-  }
+  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
-void XMLTag::get_attribute_value(const std::string_view& aname,
-                                 Numeric& value) {
-  String attribute_value;
+void XMLTag::get_attribute_value(const std::string_view& aname, Numeric& value) {
+  String             attribute_value;
   std::istringstream strstr("");
 
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> double_imanip() >> value;
-  if (strstr.fail()) {
-    xml_parse_error(std::format(
-        "Cannot parse value of {0} from <{1}>", aname, name));
-  }
+  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
 //! Reads next XML tag
@@ -245,17 +206,15 @@ void XMLTag::get_attribute_value(const std::string_view& aname,
   \param is Input stream
 */
 void XMLTag::read_from_stream(std::istream& is) {
-  String token, attr_name, attr_value;
-  std::stringbuf tag;
+  String             token, attr_name, attr_value;
+  std::stringbuf     tag;
   std::istringstream sstr("");
 
   char ch = 0;
 
   attribs.clear();
 
-  while (is.good() && isspace(is.peek())) {
-    is.get();
-  }
+  while (is.good() && isspace(is.peek())) { is.get(); }
 
   if (not is.good()) xml_parse_error("Unknown error while reading from stream");
 
@@ -272,13 +231,9 @@ void XMLTag::read_from_stream(std::istream& is) {
   is.get(tag, '>');
 
   // Hit EOF while looking for '>'
-  if (is.bad() || is.eof()) {
-    xml_parse_error("Unexpected end of file while looking for '>'");
-  }
+  if (is.bad() || is.eof()) { xml_parse_error("Unexpected end of file while looking for '>'"); }
 
-  if (is.get() != '>') {
-    xml_parse_error("Closing > not found in tag: " + tag.str());
-  }
+  if (is.get() != '>') { xml_parse_error("Closing > not found in tag: " + tag.str()); }
 
   sstr.str(tag.str() + '>');
 
@@ -299,28 +254,21 @@ void XMLTag::read_from_stream(std::istream& is) {
     String::size_type pos;
 
     pos = token.find('=', 0);
-    if (pos == String::npos) {
-      xml_parse_error("Syntax error in tag: " + tag.str());
-    }
+    if (pos == String::npos) { xml_parse_error("Syntax error in tag: " + tag.str()); }
 
     attr_name = token.substr(0, pos);
     token.erase(0, pos + 1);
 
-    if (token[0] != '\"') {
-      xml_parse_error("Missing \" in tag: " + tag.str());
-    }
+    if (token[0] != '\"') { xml_parse_error("Missing \" in tag: " + tag.str()); }
 
-    while ((pos = token.find('\"', 1)) == (String::size_type)String::npos &&
-           token != ">") {
+    while ((pos = token.find('\"', 1)) == (String::size_type)String::npos && token != ">") {
       String ntoken;
       sstr >> ntoken;
       if (!ntoken.length()) break;
       token += " " + ntoken;
     }
 
-    if (pos == (String::size_type)String::npos) {
-      xml_parse_error("Missing \" in tag: " + sstr.str());
-    }
+    if (pos == (String::size_type)String::npos) { xml_parse_error("Missing \" in tag: " + sstr.str()); }
 
     if (pos == 1)
       attr_value = "";
@@ -370,9 +318,7 @@ void XMLTag::write_to_stream(std::ostream& os) {
   std::println(os, ">");
 }
 
-void XMLTag::write_to_end_stream(std::ostream& os) {
-  std::println(os, "</{}>", name);
-}
+void XMLTag::write_to_end_stream(std::ostream& os) { std::println(os, "</{}>", name); }
 
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
@@ -438,9 +384,7 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   // c_str explicitly converts to c String.
   String nname = name;
 
-  if (nname.size() < 3 || nname.substr(nname.length() - 3, 3) != ".gz") {
-    nname += ".gz";
-  }
+  if (nname.size() < 3 || nname.substr(nname.length() - 3, 3) != ".gz") { nname += ".gz"; }
 
   try {
     file.open(nname.c_str());
@@ -487,8 +431,7 @@ void xml_open_input_file(std::ifstream& ifs, const String& name) {
     ifs.open(name.c_str());
   } catch (const std::ios::failure&) {
     std::ostringstream os;
-    os << "Cannot open input file: " << name << '\n'
-       << "Maybe the file does not exist?";
+    os << "Cannot open input file: " << name << '\n' << "Maybe the file does not exist?";
     throw std::runtime_error(os.str());
   }
 
@@ -497,8 +440,7 @@ void xml_open_input_file(std::ifstream& ifs, const String& name) {
   // g++ stream exceptions work properly.
   if (!ifs) {
     std::ostringstream os;
-    os << "Cannot open input file: " << name << '\n'
-       << "Maybe the file does not exist?";
+    os << "Cannot open input file: " << name << '\n' << "Maybe the file does not exist?";
     throw std::runtime_error(os.str());
   }
 }
@@ -524,8 +466,7 @@ void xml_open_input_file(igzstream& ifs, const String& name) {
     ifs.open(name.c_str());
   } catch (const std::ios::failure&) {
     std::ostringstream os;
-    os << "Cannot open input file: " << name << '\n'
-       << "Maybe the file does not exist?";
+    os << "Cannot open input file: " << name << '\n' << "Maybe the file does not exist?";
     throw std::runtime_error(os.str());
   }
 
@@ -534,8 +475,7 @@ void xml_open_input_file(igzstream& ifs, const String& name) {
   // g++ stream exceptions work properly.
   if (!ifs) {
     std::ostringstream os;
-    os << "Cannot open input file: " << name << '\n'
-       << "Maybe the file does not exist?";
+    os << "Cannot open input file: " << name << '\n' << "Maybe the file does not exist?";
     throw std::runtime_error(os.str());
   }
 }
@@ -555,8 +495,7 @@ void xml_open_input_file(igzstream& ifs, const String& name) {
 */
 void xml_parse_error(const String& str_error) {
   std::ostringstream os;
-  os << "XML parse error: " << str_error << '\n'
-     << "Check syntax of XML file\n";
+  os << "XML parse error: " << str_error << '\n' << "Check syntax of XML file\n";
   throw std::runtime_error(os.str());
 }
 
@@ -588,14 +527,11 @@ void xml_data_parse_error(XMLTag& tag, const String& str_error) {
   \param ntype  Numeric type
   \param etype  Endian type
 */
-void xml_read_header_from_stream(std::istream& is,
-                                 FileType& ftype,
-                                 NumericType& ntype,
-                                 EndianType& etype) {
-  char str[6];
+void xml_read_header_from_stream(std::istream& is, FileType& ftype, NumericType& ntype, EndianType& etype) {
+  char           str[6];
   std::stringbuf strbuf;
-  XMLTag tag;
-  String strtype;
+  XMLTag         tag;
+  String         strtype;
 
   while (!is.fail() && isspace(is.peek())) is.get();
 
@@ -610,9 +546,7 @@ void xml_read_header_from_stream(std::istream& is,
   is.get(strbuf, '>');
   is.get();
 
-  if (is.fail()) {
-    xml_parse_error("Input file is not a valid xml file");
-  }
+  if (is.fail()) { xml_parse_error("Input file is not a valid xml file"); }
 
   tag.read_from_stream(is);
   tag.check_name("arts"sv);
@@ -620,10 +554,8 @@ void xml_read_header_from_stream(std::istream& is,
   Index version{};
   tag.get_attribute_value("version", version);
   if (version > ARTS_XML_VERSION) {
-    throw std::runtime_error(std::format(
-        R"(Bad version in "arts"-tag.  Compiled version number: {}, got {})",
-        ARTS_XML_VERSION,
-        version));
+    throw std::runtime_error(
+        std::format(R"(Bad version in "arts"-tag.  Compiled version number: {}, got {})", ARTS_XML_VERSION, version));
   }
 
   // Check file format
@@ -642,8 +574,7 @@ void xml_read_header_from_stream(std::istream& is,
     etype = ENDIAN_TYPE_BIG;
   } else {
     std::ostringstream os;
-    os << "  Error: Unknown endian type \"" << strtype
-       << "\" specified in XML file.\n";
+    os << "  Error: Unknown endian type \"" << strtype << "\" specified in XML file.\n";
     throw std::runtime_error(os.str());
   }
 
@@ -655,8 +586,7 @@ void xml_read_header_from_stream(std::istream& is,
     ntype = NUMERIC_TYPE_DOUBLE;
   } else {
     std::ostringstream os;
-    os << "  Error: Unknown numeric type \"" << strtype
-       << "\" specified in XML file.\n";
+    os << "  Error: Unknown numeric type \"" << strtype << "\" specified in XML file.\n";
     throw std::runtime_error(os.str());
   }
 }
@@ -707,9 +637,7 @@ void xml_write_footer_to_stream(std::ostream& os) {
   tag.write_to_stream(os);
 }
 
-void xml_set_stream_precision(std::ostream& os) {
-  os << std::setprecision(std::numeric_limits<Numeric>::max_digits10);
-}
+void xml_set_stream_precision(std::ostream& os) { os << std::setprecision(std::numeric_limits<Numeric>::max_digits10); }
 
 //! Get the content of an xml tag as a string
 void parse_xml_tag_content_as_string(std::istream& is_xml, String& content) {
@@ -755,11 +683,10 @@ std::stringstream xml_read_from_file_base_buffer(const String& filename) {
   return buffer;
 }
 
-XMLStreamHandler::XMLStreamHandler(const String& filename,
-                                   std::istream& buffer) {
-  FileType ftype;
+XMLStreamHandler::XMLStreamHandler(const String& filename, std::istream& buffer) {
+  FileType    ftype;
   NumericType ntype;
-  EndianType etype;
+  EndianType  etype;
 
   xml_read_header_from_stream(buffer, ftype, ntype, etype);
 

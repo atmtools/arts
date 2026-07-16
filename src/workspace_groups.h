@@ -15,10 +15,8 @@ struct WorkspaceGroupRecord {
   bool map_type{false};
 };
 
-const std::unordered_map<std::string, WorkspaceGroupRecord>&
-internal_workspace_groups();
+const std::unordered_map<std::string, WorkspaceGroupRecord>& internal_workspace_groups();
 
-void add_arrays_of(
-    std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
-    const std::vector<std::string>& types,
-    std::vector<std::string> extra_headers);
+void add_arrays_of(std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_data,
+                   const std::vector<std::string>&                        types,
+                   std::vector<std::string>                               extra_headers);

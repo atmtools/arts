@@ -21,32 +21,25 @@ AtmKey to_mag(const String &);
 
 namespace Atm {
 template <typename T>
-concept isScatteringSpeciesProperty =
-    std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
+concept isScatteringSpeciesProperty = std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
 
 template <typename T>
 concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
 
 template <typename T>
-concept isSpeciesIsotope =
-    std::is_same_v<std::remove_cvref_t<T>, SpeciesIsotope>;
+concept isSpeciesIsotope = std::is_same_v<std::remove_cvref_t<T>, SpeciesIsotope>;
 
 template <typename T>
-concept isQuantumLevelIdentifier =
-    std::is_same_v<std::remove_cvref_t<T>, QuantumLevelIdentifier>;
+concept isQuantumLevelIdentifier = std::is_same_v<std::remove_cvref_t<T>, QuantumLevelIdentifier>;
 
 template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
-                  isQuantumLevelIdentifier<T> or isScatteringSpeciesProperty<T>;
+concept KeyType =
+    isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or isQuantumLevelIdentifier<T> or isScatteringSpeciesProperty<T>;
 
-using KeyVal = std::variant<AtmKey,
-                            SpeciesEnum,
-                            SpeciesIsotope,
-                            QuantumLevelIdentifier,
-                            ScatteringSpeciesProperty>;
+using KeyVal = std::variant<AtmKey, SpeciesEnum, SpeciesIsotope, QuantumLevelIdentifier, ScatteringSpeciesProperty>;
 
 //! returns whether the key is a wind key
 bool is_wind(const KeyVal &);
@@ -67,15 +60,14 @@ concept ListOfNumeric = requires(T a) {
 };
 
 struct Point {
-  using SpeciesMap        = std::unordered_map<SpeciesEnum, Numeric>;
-  using SpeciesIsotopeMap = std::unordered_map<SpeciesIsotope, Numeric>;
-  using NlteMap           = std::unordered_map<QuantumLevelIdentifier, Numeric>;
-  using ScatteringSpeciesMap =
-      std::unordered_map<ScatteringSpeciesProperty, Numeric>;
+  using SpeciesMap           = std::unordered_map<SpeciesEnum, Numeric>;
+  using SpeciesIsotopeMap    = std::unordered_map<SpeciesIsotope, Numeric>;
+  using NlteMap              = std::unordered_map<QuantumLevelIdentifier, Numeric>;
+  using ScatteringSpeciesMap = std::unordered_map<ScatteringSpeciesProperty, Numeric>;
 
-  SpeciesMap specs{};
-  SpeciesIsotopeMap isots{};
-  NlteMap nlte{};
+  SpeciesMap           specs{};
+  SpeciesIsotopeMap    isots{};
+  NlteMap              nlte{};
   ScatteringSpeciesMap ssprops{};
 
   Numeric pressure{0};
@@ -103,15 +95,14 @@ struct Point {
   Numeric &operator[](const ScatteringSpeciesProperty &x);
   Numeric &operator[](AtmKey x);
 
-  Numeric operator[](const KeyVal &) const;
+  Numeric  operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
 
   [[nodiscard]] Numeric number_density() const;
   [[nodiscard]] Numeric number_density(const SpeciesEnum &spec) const;
   [[nodiscard]] Numeric number_density(const SpeciesIsotope &spec) const;
 
-  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
-  constexpr bool has(T &&key, Ts &&...keys) const {
+  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)> constexpr bool has(T &&key, Ts &&...keys) const {
     const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
       if constexpr (isSpecies<T>)
         return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
@@ -126,8 +117,7 @@ struct Point {
     };
 
     if constexpr (N > 0)
-      return has_(*this, std::forward<T>(key)) and
-             has(std::forward<Ts>(keys)...);
+      return has_(*this, std::forward<T>(key)) and has(std::forward<Ts>(keys)...);
     else
       return has_(*this, std::forward<T>(key));
   }
@@ -143,14 +133,12 @@ struct Point {
                                          bool keep_nlte    = true,
                                          bool keep_ssprops = true) const;
 
-  [[nodiscard]] Index size() const;
-  [[nodiscard]] Index nspec() const;
-  [[nodiscard]] Index nisot() const;
-  [[nodiscard]] Index npart() const;
-  [[nodiscard]] Index nnlte() const;
-  [[nodiscard]] static constexpr Index nother() {
-    return static_cast<Index>(enumsize::AtmKeySize);
-  }
+  [[nodiscard]] Index                  size() const;
+  [[nodiscard]] Index                  nspec() const;
+  [[nodiscard]] Index                  nisot() const;
+  [[nodiscard]] Index                  npart() const;
+  [[nodiscard]] Index                  nnlte() const;
+  [[nodiscard]] static constexpr Index nother() { return static_cast<Index>(enumsize::AtmKeySize); }
 
   [[nodiscard]] bool zero_wind() const noexcept;
 
@@ -158,8 +146,7 @@ struct Point {
 
   [[nodiscard]] bool is_lte() const noexcept;
 
-  [[nodiscard]] std::pair<Numeric, Numeric> levels(
-      const QuantumIdentifier &band) const;
+  [[nodiscard]] std::pair<Numeric, Numeric> levels(const QuantumIdentifier &band) const;
 
   void check();
 };
@@ -170,19 +157,16 @@ using FunctionalData = NumericTernaryOperator;
 using FieldData      = std::variant<GeodeticField3, Numeric, FunctionalData>;
 
 template <typename T>
-concept isGeodeticField3 =
-    std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
+concept isGeodeticField3 = std::is_same_v<std::remove_cvref_t<T>, GeodeticField3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
 
 template <typename T>
-concept isFunctionalDataType =
-    std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
+concept isFunctionalDataType = std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
 
 template <typename T>
-concept RawDataType =
-    isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
+concept RawDataType = isGeodeticField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -194,7 +178,7 @@ struct Data {
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
-  bool log_interpolation{false};
+  bool                       log_interpolation{false};
 
   // Standard
   Data();
@@ -217,27 +201,21 @@ struct Data {
 
   [[nodiscard]] String data_type() const;
 
-  template <RawDataType T>
-  [[nodiscard]] decltype(auto) get_if(this auto &&self) {
+  template <RawDataType T> [[nodiscard]] decltype(auto) get_if(this auto &&self) {
     return std::get_if<std::remove_cvref_t<T>>(&self.data);
   }
 
-  template <RawDataType T>
-  [[nodiscard]] const T &get(this auto &&self) {
+  template <RawDataType T> [[nodiscard]] const T &get(this auto &&self) {
     auto *out = self.template get_if<T>();
 
     if (out == nullptr) {
-      throw std::invalid_argument(
-          std::format("Expected type {} not in data.  Instead type {} found.",
-                      Data{T{}}.data_type(),
-                      self.data_type()));
+      throw std::invalid_argument(std::format(
+          "Expected type {} not in data.  Instead type {} found.", Data{T{}}.data_type(), self.data_type()));
     }
     return *out;
   }
 
-  [[nodiscard]] Numeric at(const Numeric alt,
-                           const Numeric lat,
-                           const Numeric lon) const;
+  [[nodiscard]] Numeric at(const Numeric alt, const Numeric lat, const Numeric lon) const;
 
   [[nodiscard]] Numeric at(const Vector3 pos) const;
 
@@ -246,11 +224,11 @@ struct Data {
   [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions in an atmosphere
-  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
-      const Numeric alt, const Numeric lat, const Numeric lon) const;
+  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(const Numeric alt,
+                                                                   const Numeric lat,
+                                                                   const Numeric lon) const;
 
-  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(
-      const Vector3 pos) const;
+  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weight(const Vector3 pos) const;
 
   [[nodiscard]] bool ok() const;
 
@@ -265,16 +243,12 @@ concept DataType = RawDataType<T> or isData<T>;
 
 struct Field final {
   //! NOTE: Order matters for this variant
-  using KeyVal = std::variant<AtmKey,
-                              SpeciesEnum,
-                              SpeciesIsotope,
-                              QuantumLevelIdentifier,
-                              ScatteringSpeciesProperty>;
+  using KeyVal = std::variant<AtmKey, SpeciesEnum, SpeciesIsotope, QuantumLevelIdentifier, ScatteringSpeciesProperty>;
 
-  std::unordered_map<AtmKey, Data> other;
-  std::unordered_map<SpeciesEnum, Data> specs;
-  std::unordered_map<SpeciesIsotope, Data> isots;
-  std::unordered_map<QuantumLevelIdentifier, Data> nlte;
+  std::unordered_map<AtmKey, Data>                    other;
+  std::unordered_map<SpeciesEnum, Data>               specs;
+  std::unordered_map<SpeciesIsotope, Data>            isots;
+  std::unordered_map<QuantumLevelIdentifier, Data>    nlte;
   std::unordered_map<ScatteringSpeciesProperty, Data> ssprops;
 
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
@@ -310,9 +284,7 @@ struct Field final {
   [[nodiscard]] bool contains(const KeyVal &key) const;
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(const Numeric alt,
-                         const Numeric lat,
-                         const Numeric lon) const;
+  [[nodiscard]] Point at(const Numeric alt, const Numeric lat, const Numeric lon) const;
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(const Vector3 pos) const;
@@ -326,18 +298,16 @@ struct Field final {
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
-  [[nodiscard]] Field gridded(const AscendingGrid &alt,
-                              const LatGrid &lat,
-                              const LonGrid &lon) const;
+  [[nodiscard]] Field gridded(const AscendingGrid &alt, const LatGrid &lat, const LonGrid &lon) const;
 };
 
 struct Xarr {
-  Numeric toa{};
+  Numeric                    toa{};
   std::vector<Field::KeyVal> keys{};
-  AscendingGrid altitudes{};
-  LatGrid latitudes{};
-  LonGrid longitudes{};
-  Tensor4 data{};
+  AscendingGrid              altitudes{};
+  LatGrid                    latitudes{};
+  LonGrid                    longitudes{};
+  Tensor4                    data{};
 
   Xarr(const Field &, std::vector<Field::KeyVal> keys = {});
 };
@@ -366,10 +336,10 @@ bool pressure_is_increasing(const std::span<const Point> &atm);
  * @param top_of_atmosphere The top of the atmosphere altitude
  * @return Field 
  */
-Field atm_from_profile(const std::span<const Point> &atm,
-                       const AscendingGrid &altitudes,
+Field atm_from_profile(const std::span<const Point>     &atm,
+                       const AscendingGrid              &altitudes,
                        const InterpolationExtrapolation &altitude_extrapolation,
-                       const Numeric &top_of_atmosphere = NAN);
+                       const Numeric                    &top_of_atmosphere = NAN);
 
 /** Extends the atmosphere by adding a new point at the given pressure
  * 
@@ -381,11 +351,10 @@ Field atm_from_profile(const std::span<const Point> &atm,
  * @param new_pressure The new pressure to add
  * @param logarithmic If true, the pressure is treated as a logarithmic coordinate, otherwise it is treated as a linear coordinate
  */
-void extend_in_pressure(std::vector<Point> &atm,
-                        const Numeric &new_pressure,
-                        const InterpolationExtrapolation extrapolation_type =
-                            InterpolationExtrapolation::Nearest,
-                        const bool logarithmic = true);
+void extend_in_pressure(std::vector<Point>              &atm,
+                        const Numeric                   &new_pressure,
+                        const InterpolationExtrapolation extrapolation_type = InterpolationExtrapolation::Nearest,
+                        const bool                       logarithmic        = true);
 }  // namespace Atm
 
 using AtmKeyVal         = Atm::KeyVal;
@@ -395,8 +364,7 @@ using ArrayOfAtmPoint   = Array<AtmPoint>;
 using AtmFunctionalData = Atm::FunctionalData;
 using AtmData           = Atm::Data;
 
-template <>
-struct xml_io_stream_name<AtmKeyVal> {
+template <> struct xml_io_stream_name<AtmKeyVal> {
   static constexpr std::string_view name = "AtmKeyVal"sv;
 };
 
@@ -408,36 +376,31 @@ bool operator==(const AtmKeyVal &, const QuantumLevelIdentifier &);
 bool operator==(const QuantumLevelIdentifier &, const AtmKeyVal &);
 bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
-template <>
-struct std::formatter<AtmKeyVal> {
+template <> struct std::formatter<AtmKeyVal> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
 
   [[nodiscard]] constexpr const auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   [[nodiscard]] std::string to_string(const AtmKeyVal &v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const AtmKeyVal &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const AtmKeyVal &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<AtmPoint> {
+template <> struct std::formatter<AtmPoint> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
@@ -445,26 +408,22 @@ struct std::formatter<AtmPoint> {
 
   [[nodiscard]] std::string to_string(const AtmPoint &v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const AtmPoint &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };
 
-template <>
-struct std::formatter<Atm::Data> {
+template <> struct std::formatter<Atm::Data> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Atm::Data &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Atm::Data &v, FmtContext &ctx) const {
     if (tags.short_str) return tags.format(ctx, v.data);
 
     const std::string_view sep = tags.sep();
@@ -474,18 +433,7 @@ struct std::formatter<Atm::Data> {
     if (tags.help) {
       tags.format(ctx, sep);
       tags.add_if_bracket(ctx, "["sv);
-      tags.format(ctx,
-                  v.alt_upp,
-                  sep,
-                  v.alt_low,
-                  sep,
-                  v.lat_upp,
-                  sep,
-                  v.lat_low,
-                  sep,
-                  v.lon_upp,
-                  sep,
-                  v.lon_low);
+      tags.format(ctx, v.alt_upp, sep, v.alt_low, sep, v.lat_upp, sep, v.lat_low, sep, v.lon_upp, sep, v.lon_low);
       tags.add_if_bracket(ctx, "]]"sv);
     }
 
@@ -493,15 +441,13 @@ struct std::formatter<Atm::Data> {
   }
 };
 
-template <>
-struct std::formatter<AtmField> {
+template <> struct std::formatter<AtmField> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
@@ -509,8 +455,7 @@ struct std::formatter<AtmField> {
 
   [[nodiscard]] std::string to_string(const AtmField &v) const;
 
-  template <class FmtContext>
-  FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const AtmField &v, FmtContext &ctx) const {
     return tags.format(ctx, to_string(v));
   }
 };

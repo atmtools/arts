@@ -257,15 +257,14 @@ ecef : ~pyarts3.arts.Vector3
   Tangent position (x,y,z)
 )");
 
-  geo.def(
-      "intersection_altitude",
-      &intersection_altitude,
-      "ecef"_a,
-      "decef"_a,
-      "ell"_a,
-      "alt"_a,
-      "min_l"_a = 0.0,
-      R"(Finds the distance to the intersection between an ECEF line and an ellipsoid
+  geo.def("intersection_altitude",
+          &intersection_altitude,
+          "ecef"_a,
+          "decef"_a,
+          "ell"_a,
+          "alt"_a,
+          "min_l"_a = 0.0,
+          R"(Finds the distance to the intersection between an ECEF line and an ellipsoid
 
 A negative distance is returned if there is no intersection. 
 
@@ -293,16 +292,15 @@ l : ~pyarts3.arts.Numeric
   The intersection distance
 )");
 
-  geo.def(
-      "intersection_latitude",
-      &intersection_latitude,
-      "ecef"_a,
-      "decef"_a,
-      "pos"_a,
-      "los"_a,
-      "ell"_a,
-      "lat"_a,
-      R"(Finds the distance to the intersection between an ECEF line and a latitude
+  geo.def("intersection_latitude",
+          &intersection_latitude,
+          "ecef"_a,
+          "decef"_a,
+          "pos"_a,
+          "los"_a,
+          "ell"_a,
+          "lat"_a,
+          R"(Finds the distance to the intersection between an ECEF line and a latitude
 
 A negative distance is returned if there is no intersection.
 
@@ -327,15 +325,14 @@ l : ~pyarts3.arts.Numeric
   The intersection distance
 )");
 
-  geo.def(
-      "intersection_longitude",
-      &intersection_longitude,
-      "ecef"_a,
-      "decef"_a,
-      "pos"_a,
-      "los"_a,
-      "lon"_a,
-      R"(Finds the distance to the intersection between an ECEF line and a longitude
+  geo.def("intersection_longitude",
+          &intersection_longitude,
+          "ecef"_a,
+          "decef"_a,
+          "pos"_a,
+          "los"_a,
+          "lon"_a,
+          R"(Finds the distance to the intersection between an ECEF line and a longitude
 
 Looks only for local solutions. The azimuth angle in *los* must be in the
 direction of the target longitude. Otherwise it is considered that there is

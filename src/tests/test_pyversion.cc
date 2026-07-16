@@ -9,6 +9,4 @@ void check_pyversion() {
   std::cout << "Py_GetVersion()[4]: " << Py_GetVersion()[4] << "\n";
 }
 
-NB_MODULE(test_pyversion, m) {
-  m.def("check_pyversion", &check_pyversion, "Output detected Python version");
-}
+NB_MODULE(test_pyversion, m) { m.def("check_pyversion", &check_pyversion, "Output detected Python version"); }

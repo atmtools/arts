@@ -22,20 +22,17 @@ class Any {
   friend std::ostream& operator<<(std::ostream& os, const Any&) { return os; }
 };
 
-template <>
-struct std::formatter<Any> {
+template <> struct std::formatter<Any> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Any&, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Any&, FmtContext& ctx) const {
     return tags.format(ctx, tags.quote(), "Any"sv, tags.quote());
   }
 };

@@ -1,9 +1,9 @@
 #include "xml_subsurf.h"
 
-void xml_io_stream<SubsurfaceField>::write(std::ostream& os,
+void xml_io_stream<SubsurfaceField>::write(std::ostream&          os,
                                            const SubsurfaceField& x,
-                                           bofstream* pbofs,
-                                           std::string_view name) {
+                                           bofstream*             pbofs,
+                                           std::string_view       name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -13,9 +13,7 @@ void xml_io_stream<SubsurfaceField>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SubsurfaceField>::read(std::istream& is,
-                                          SubsurfaceField& x,
-                                          bifstream* pbifs) {
+void xml_io_stream<SubsurfaceField>::read(std::istream& is, SubsurfaceField& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -27,9 +25,7 @@ void xml_io_stream<SubsurfaceField>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SubsurfaceData>::read(std::istream& is,
-                                         SubsurfaceData& v,
-                                         bifstream* pbifs) {
+void xml_io_stream<SubsurfaceData>::read(std::istream& is, SubsurfaceData& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -46,10 +42,10 @@ void xml_io_stream<SubsurfaceData>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SubsurfaceData>::write(std::ostream& os,
+void xml_io_stream<SubsurfaceData>::write(std::ostream&         os,
                                           const SubsurfaceData& v,
-                                          bofstream* pbofs,
-                                          std::string_view name) {
+                                          bofstream*            pbofs,
+                                          std::string_view      name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -64,9 +60,7 @@ void xml_io_stream<SubsurfaceData>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SubsurfacePoint>::read(std::istream& is,
-                                          SubsurfacePoint& v,
-                                          bifstream* pbifs) {
+void xml_io_stream<SubsurfacePoint>::read(std::istream& is, SubsurfacePoint& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -78,10 +72,10 @@ void xml_io_stream<SubsurfacePoint>::read(std::istream& is,
   tag.check_end_name(type_name);
 }
 
-void xml_io_stream<SubsurfacePoint>::write(std::ostream& os,
+void xml_io_stream<SubsurfacePoint>::write(std::ostream&          os,
                                            const SubsurfacePoint& v,
-                                           bofstream* pbofs,
-                                           std::string_view name) {
+                                           bofstream*             pbofs,
+                                           std::string_view       name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -91,10 +85,10 @@ void xml_io_stream<SubsurfacePoint>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SubsurfacePropertyTag>::write(std::ostream& os,
+void xml_io_stream<SubsurfacePropertyTag>::write(std::ostream&                os,
                                                  const SubsurfacePropertyTag& x,
-                                                 bofstream* pbofs,
-                                                 std::string_view name) {
+                                                 bofstream*                   pbofs,
+                                                 std::string_view             name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -103,9 +97,7 @@ void xml_io_stream<SubsurfacePropertyTag>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<SubsurfacePropertyTag>::read(std::istream& is,
-                                                SubsurfacePropertyTag& x,
-                                                bifstream* pbifs) {
+void xml_io_stream<SubsurfacePropertyTag>::read(std::istream& is, SubsurfacePropertyTag& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

@@ -172,8 +172,7 @@ void test40() {
   std::cout << "b:\n" << std::format("{}", b) << "\n";
 
   mult(c, A, b);
-  std::cout << "c = A*b (should be [11,44,99]):\n"
-            << std::format("{}", c) << "\n";
+  std::cout << "c = A*b (should be [11,44,99]):\n" << std::format("{}", c) << "\n";
 
   Matrix D(3, 2);
   D[joker, 0]  = b;
@@ -183,16 +182,15 @@ void test40() {
 
   Matrix E(3, 2);
   mult(E, A, D);
-  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n"
-            << std::format("{}", E) << "\n";
+  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << std::format("{}", E) << "\n";
 }
 
 void test41() {
   std::cout << "Testing transpose for the new simplified sparse matrices:\n";
 
   Sparse B(4, 5);
-  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
-  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  Index  r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index  c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
   std::cout << "B:\n" << B << "\n";
@@ -206,9 +204,7 @@ void test41() {
   std::cout << "Testing with a fully occupied matrix:\n";
 
   for (Index ri = 0; ri < 4; ri++)
-    for (Index ci = 0; ci < 5; ci++) {
-      B.rw(ri, ci) = (Numeric)(ri * 10 + ci);
-    }
+    for (Index ci = 0; ci < 5; ci++) { B.rw(ri, ci) = (Numeric)(ri * 10 + ci); }
 
   std::cout << "B:\n" << B << "\n";
   transpose(A, B);
@@ -219,8 +215,8 @@ void test42() {
   std::cout << "Testing sparse-sparse matrix multiplication:\n";
 
   Sparse B(4, 5);
-  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
-  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  Index  r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index  c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
   Sparse A(4, 4), Bt(5, 4);
@@ -234,8 +230,8 @@ void test43() {
   std::cout << "Testing sparse copying:\n";
 
   Sparse B(4, 5);
-  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
-  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  Index  r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index  c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
   std::cout << "B:\n" << B << "\n";
@@ -260,8 +256,8 @@ void test44() {
   Vector v(5, 10);
 
   Sparse B(4, 5);
-  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
-  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  Index  r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index  c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
   std::cout << "B[" << B.nrows() << "," << B.ncols() << "]:\n" << B << "\n";
@@ -286,9 +282,7 @@ void test45() {
     std::cout << "done.\n  Reading " << b << "...";
     xml_read_from_file(b, B);
     std::cout << "done.\n";
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << '\n';
-  }
+  } catch (const std::runtime_error &e) { std::cerr << e.what() << '\n'; }
 
   Sparse C(B.nrows(), A.ncols());
   std::cout << "  Performing multiplication...";
@@ -300,9 +294,7 @@ void test45() {
     std::cout << "  Writing product to file: test45.xml...";
     xml_write_to_file("test45.xml", C, FileType::ascii, 0);
     std::cout << "done.\n";
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << '\n';
-  }
+  } catch (const std::runtime_error &e) { std::cerr << e.what() << '\n'; }
 }
 
 void test46() {
@@ -315,9 +307,7 @@ void test46() {
     std::cout << "  Reading " << a << "...";
     xml_read_from_file(a, A);
     std::cout << "done.\n";
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << '\n';
-  }
+  } catch (const std::runtime_error &e) { std::cerr << e.what() << '\n'; }
 
   //std::cout << "A:\n" << A << '\n';
 
@@ -327,9 +317,7 @@ void test46() {
   try {
     std::cout << "  Writing transpose(A) to file test46.xml" << '\n';
     xml_write_to_file("test46.xml", B, FileType::ascii, 0);
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << '\n';
-  }
+  } catch (const std::runtime_error &e) { std::cerr << e.what() << '\n'; }
 
   //std::cout << "transpose(A):\n" << B << '\n';
 }
@@ -349,8 +337,8 @@ void test48() {
   std::cout << "Test absolute values of sparse matrix:\n";
 
   Sparse B(4, 5);
-  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
-  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  Index  r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index  c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = -(Numeric)i * 0.5;
   std::cout << "B:\n" << B << '\n';
 
@@ -364,13 +352,13 @@ void test49() {
   std::cout << "Testing sparse adding:\n";
 
   Sparse B(4, 5);
-  Index rb[] = {1, 3};
-  Index cb[] = {1, 3};
+  Index  rb[] = {1, 3};
+  Index  cb[] = {1, 3};
   for (Index i = 0; i < 2; i++) B.rw(rb[i], cb[i]) = (Numeric)(i + 1);
 
   Sparse C(4, 5);
-  Index rc[] = {0, 1, 2};
-  Index cc[] = {0, 1, 2};
+  Index  rc[] = {0, 1, 2};
+  Index  cc[] = {0, 1, 2};
   for (Index i = 0; i < 3; i++) {
     C.rw(rc[i], cc[i]) = (Numeric)(i + 1);
     std::cout << C.rw(rc[i], cc[i]) << '\n';
@@ -405,8 +393,7 @@ Numeric test_xml_io(Index ntests, bool verbose) {
     xml_read_from_file(a, B);
     xml_write_to_file("B.xml", B, FileType::ascii, 0);
 
-    Numeric err =
-        get_maximum_error(static_cast<Matrix>(B), static_cast<Matrix>(A), true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(B), static_cast<Matrix>(A), true);
     if (err > err_max) err_max = err;
 
     if (verbose)
@@ -522,9 +509,7 @@ Numeric test_identity(Index ntests, bool verbose) {
     Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << "\t Maximum relative error: " << err << '\n';
-    }
+    if (verbose) { std::cout << "\t Maximum relative error: " << err << '\n'; }
   }
 
   return err_max;
@@ -589,10 +574,7 @@ Numeric test_sparse_construction(Index m, Index n, Index ntests, bool verbose) {
   \return The maximum relative error between the sparse matrix and the
   dense counterpart taken over all tests.
 */
-Numeric test_sparse_unary_operations(Index m,
-                                     Index n,
-                                     Index ntests,
-                                     bool verbose) {
+Numeric test_sparse_unary_operations(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
@@ -620,9 +602,7 @@ Numeric test_sparse_unary_operations(Index m,
     // abs
 
     for (Index j = 0; j < m; j++) {
-      for (Index k = 0; k < n; k++) {
-        B[j, k] = abs(A[j, k]);
-      }
+      for (Index k = 0; k < n; k++) { B[j, k] = abs(A[j, k]); }
     }
 
     abs(B_sparse, A_sparse);
@@ -661,21 +641,15 @@ Numeric test_sparse_unary_operations(Index m,
   \return Returns the maximum relative error between the sparse and the dense
   operation taken over all tests.
 */
-Numeric test_dense_sparse_multiplication(Index m,
-                                         Index n,
-                                         Index ntests,
-                                         bool verbose) {
+Numeric test_dense_sparse_multiplication(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
-    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5)
-              << "m2";
-    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1"
-              << std::setw(5) << "n2";
-    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15)
-              << "A = B x C";
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
     std::cout << std::setw(18) << "A^T = C^T x B^T" << '\n';
     std::cout << std::string(80, '-') << '\n';
   }
@@ -705,19 +679,16 @@ Numeric test_dense_sparse_multiplication(Index m,
     dm       = dm / r_stride;
 
     if (verbose) {
-      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5)
-                << dm;
-      std::cout << std::setw(10) << r_stride << std::setw(5) << n1
-                << std::setw(5) << dn;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
+      std::cout << std::setw(10) << r_stride << std::setw(5) << n1 << std::setw(5) << dn;
       std::cout << std::setw(10) << c_stride;
     }
 
     StridedMatrixView A_view     = A[StridedRange(m1, dm, r_stride), joker];
     StridedMatrixView A_ref_view = A_ref[StridedRange(m1, dm, r_stride), joker];
-    Matrix C(dn, n);
-    StridedMatrixView B_mul =
-        B[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
-    Sparse C_sparse(dn, n), C_sparse_transpose(dn, n);
+    Matrix            C(dn, n);
+    StridedMatrixView B_mul = B[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
+    Sparse            C_sparse(dn, n), C_sparse_transpose(dn, n);
 
     //
     // Test standard dense-sparse multiplication.
@@ -733,9 +704,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     Numeric err = get_maximum_error(A_view, A_ref_view, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err;
-    }
+    if (verbose) { std::cout << std::setw(15) << err; }
 
     //
     // Test transposed dense-sparse multiplication.
@@ -743,9 +712,8 @@ Numeric test_dense_sparse_multiplication(Index m,
 
     A.resize(n, m);
     A_ref.resize(n, m);
-    StridedMatrixView A_view_transp = A[joker, StridedRange(m1, dm, r_stride)];
-    StridedMatrixView A_ref_view_transp =
-        A_ref[joker, StridedRange(m1, dm, r_stride)];
+    StridedMatrixView A_view_transp     = A[joker, StridedRange(m1, dm, r_stride)];
+    StridedMatrixView A_ref_view_transp = A_ref[joker, StridedRange(m1, dm, r_stride)];
 
     C_sparse.resize(n, dn);
     C.resize(n, dn);
@@ -753,8 +721,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     transpose(C_sparse_transpose, C_sparse);
     C = static_cast<Matrix>(C_sparse);
 
-    StridedMatrixView B_mul_transp =
-        B[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
+    StridedMatrixView B_mul_transp = B[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
 
     mult(transpose(A_ref_view_transp), transpose(B_mul_transp), transpose(C));
     mult(transpose(A_view_transp), transpose(B_mul_transp), C_sparse_transpose);
@@ -764,9 +731,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     err = get_maximum_error(A_view, A_ref_view, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err << '\n';
-    }
+    if (verbose) { std::cout << std::setw(15) << err << '\n'; }
   }
   return err_max;
 }
@@ -788,21 +753,15 @@ Numeric test_dense_sparse_multiplication(Index m,
   \return Returns the maximum relative error between the sparse and the dense
   operation taken over all tests.
 */
-Numeric test_sparse_dense_multiplication(Index m,
-                                         Index n,
-                                         Index ntests,
-                                         bool verbose) {
+Numeric test_sparse_dense_multiplication(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
-    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5)
-              << "m2";
-    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1"
-              << std::setw(5) << "n2";
-    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15)
-              << "A = B x C";
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
     std::cout << std::setw(18) << "A^T = C^T x B^T" << '\n';
     std::cout << std::string(80, '-') << '\n';
   }
@@ -827,10 +786,8 @@ Numeric test_sparse_dense_multiplication(Index m,
     r_stride = (rand() % 10) + 1;
 
     if (verbose) {
-      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5)
-                << dm;
-      std::cout << std::setw(10) << c_stride << std::setw(5) << n1
-                << std::setw(5) << dn;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
+      std::cout << std::setw(10) << c_stride << std::setw(5) << n1 << std::setw(5) << dn;
       std::cout << std::setw(10) << r_stride;
     }
 
@@ -839,12 +796,11 @@ Numeric test_sparse_dense_multiplication(Index m,
     dn       = dn / c_stride;
     dm       = dm / r_stride;
 
-    Matrix B(m, dm);
+    Matrix            B(m, dm);
     StridedMatrixView A_view     = A[joker, StridedRange(n1, dn, c_stride)];
     StridedMatrixView A_ref_view = A_ref[joker, StridedRange(n1, dn, c_stride)];
-    StridedMatrixView C_mul =
-        C[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
-    Sparse B_sparse(m, dm), B_sparse_transpose(m, dm);
+    StridedMatrixView C_mul      = C[StridedRange(m1, dm, r_stride), StridedRange(n1, dn, c_stride)];
+    Sparse            B_sparse(m, dm), B_sparse_transpose(m, dm);
 
     //
     // Test standard multiplication.
@@ -862,9 +818,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     Numeric err = get_maximum_error(A_view, A_ref_view, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err;
-    }
+    if (verbose) { std::cout << std::setw(15) << err; }
 
     //
     // Test transposed matrix views.
@@ -872,9 +826,8 @@ Numeric test_sparse_dense_multiplication(Index m,
 
     A.resize(n, m);
     A_ref.resize(n, m);
-    StridedMatrixView A_view_transp = A[StridedRange(n1, dn, c_stride), joker];
-    StridedMatrixView A_ref_view_transp =
-        A_ref[StridedRange(n1, dn, c_stride), joker];
+    StridedMatrixView A_view_transp     = A[StridedRange(n1, dn, c_stride), joker];
+    StridedMatrixView A_ref_view_transp = A_ref[StridedRange(n1, dn, c_stride), joker];
 
     B_sparse.resize(dm, m);
     B.resize(dm, m);
@@ -882,8 +835,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     transpose(B_sparse_transpose, B_sparse);
     B = static_cast<Matrix>(B_sparse);
 
-    StridedMatrixView C_mul2 =
-        C[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
+    StridedMatrixView C_mul2 = C[StridedRange(n1, dn, c_stride), StridedRange(m1, dm, r_stride)];
 
     // Transposed sparse-dense multiplication
     mult(transpose(A_ref_view_transp), transpose(B), transpose(C_mul2));
@@ -893,9 +845,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     err = get_maximum_error(A_view, A_ref_view, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err << '\n';
-    }
+    if (verbose) { std::cout << std::setw(15) << err << '\n'; }
   }
   return err_max;
 }
@@ -924,18 +874,14 @@ Numeric test_sparse_dense_multiplication(Index m,
   \return The maximum relative error taken over all operations and number
   of tests performed.
 */
-Numeric test_sparse_multiplication(Index m,
-                                   Index n,
-                                   Index ntests,
-                                   bool verbose) {
+Numeric test_sparse_multiplication(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse multiplication:" << '\n' << '\n';
     std::cout << std::setw(5) << "Test " << std::setw(15) << "sparse-sparse";
-    std::cout << std::setw(15) << "sparse-dense" << std::setw(15)
-              << "matrix-vector";
+    std::cout << std::setw(15) << "sparse-dense" << std::setw(15) << "matrix-vector";
     std::cout << "transposed matrix-vector";
     std::cout << '\n' << std::string(80, '-') << '\n';
   }
@@ -963,9 +909,7 @@ Numeric test_sparse_multiplication(Index m,
     Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(5) << i << std::setw(15) << err;
-    }
+    if (verbose) { std::cout << std::setw(5) << i << std::setw(15) << err; }
 
     // Sparse-dense
     mult(A, B, C);
@@ -974,9 +918,7 @@ Numeric test_sparse_multiplication(Index m,
     err = get_maximum_error(A2, A, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err;
-    }
+    if (verbose) { std::cout << std::setw(15) << err; }
 
     // Matrix-vector
     mult(y, B, x);
@@ -985,9 +927,7 @@ Numeric test_sparse_multiplication(Index m,
     err = get_maximum_error(y2, y, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err;
-    }
+    if (verbose) { std::cout << std::setw(15) << err; }
 
     // transposed Matrix-vector
     mult(yt, transpose(B), xt);
@@ -996,9 +936,7 @@ Numeric test_sparse_multiplication(Index m,
     err = get_maximum_error(yt2, yt, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) {
-      std::cout << std::setw(15) << err << '\n';
-    }
+    if (verbose) { std::cout << std::setw(15) << err << '\n'; }
   }
   return err_max;
 }
@@ -1028,8 +966,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     std::cout << '\n';
     std::cout << "Testing sparse arithmetic:" << '\n' << '\n';
     std::cout << std::setw(5) << "Test " << std::setw(15) << "Addition";
-    std::cout << std::setw(15) << "Multiplication" << std::setw(15)
-              << "Subtraction";
+    std::cout << std::setw(15) << "Multiplication" << std::setw(15) << "Subtraction";
     std::cout << std::setw(15) << "Scaling" << '\n';
     std::cout << std::string(70, '-') << '\n';
   }

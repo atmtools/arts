@@ -5,8 +5,7 @@
 #include "configtypes.h"
 
 /** An array. */
-template <typename base>
-using Array = std::vector<base>;
+template <typename base> using Array = std::vector<base>;
 
 /** An array of Index. */
 using ArrayOfIndex = Array<Index>;

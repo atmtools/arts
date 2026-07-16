@@ -1,25 +1,19 @@
 #include <workspace.h>
 
-void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data,
-                            const Vector& vmrs,
-                            const ArrayOfSpeciesEnum& specs) {
+void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data, const Vector& vmrs, const ArrayOfSpeciesEnum& specs) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(),
-                     "Mismatch dimension of vmrs and specs")
-  ARTS_USER_ERROR_IF(
-      std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs)
+  ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(), "Mismatch dimension of vmrs and specs")
+  ARTS_USER_ERROR_IF(std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs)
 
   auto set = [](const lbl::temperature::data& data1,
                 const lbl::temperature::data& data2,
-                const Numeric vmr,
-                bool first) -> lbl::temperature::data {
+                const Numeric                 vmr,
+                bool                          first) -> lbl::temperature::data {
     auto v  = data1.X();
     v      *= vmr;
 
-    if (first) {
-      return {data1.Type(), v};
-    }
+    if (first) { return {data1.Type(), v}; }
 
     v += data2.X();
     ARTS_USER_ERROR_IF(data1.Type() != data2.Type(),
@@ -38,18 +32,14 @@ void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data,
       const auto vmr  = vmrs[i];
 
       try {
-        auto& specdata  = data.at(spec);
-        airdata.scaling = set(specdata.scaling, airdata.scaling, vmr, first);
-        airdata.beta    = set(specdata.beta, airdata.beta, vmr, first);
-        airdata.lambda  = set(specdata.lambda, airdata.lambda, vmr, first);
-        airdata.collisional_distance = set(specdata.collisional_distance,
-                                           airdata.collisional_distance,
-                                           vmr,
-                                           first);
+        auto& specdata               = data.at(spec);
+        airdata.scaling              = set(specdata.scaling, airdata.scaling, vmr, first);
+        airdata.beta                 = set(specdata.beta, airdata.beta, vmr, first);
+        airdata.lambda               = set(specdata.lambda, airdata.lambda, vmr, first);
+        airdata.collisional_distance = set(specdata.collisional_distance, airdata.collisional_distance, vmr, first);
         first                        = false;
       } catch (std::out_of_range&) {
-        ARTS_USER_ERROR(
-            "Missing species {} in abs_ecs_data of isotopologue {}", spec, isot)
+        ARTS_USER_ERROR("Missing species {} in abs_ecs_data of isotopologue {}", spec, isot)
       } catch (std::exception& e) {
         ARTS_USER_ERROR(
             "Error for species {}"
@@ -98,19 +88,15 @@ void abs_ecs_dataAddRodrigues1997(LinemixingEcsData& abs_ecs_data) {
   for (const auto isot : {"CO2-626"_isot, "CO2-628"_isot, "CO2-636"_isot}) {
     auto& ecs = abs_ecs_data[isot];
 
-    ecs[SpeciesEnum::Nitrogen].scaling =
-        data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85});
-    ecs[SpeciesEnum::Nitrogen].lambda = data(T1, {.81, 0.0152});
-    ecs[SpeciesEnum::Nitrogen].beta   = data(T0, {.008});
-    ecs[SpeciesEnum::Nitrogen].collisional_distance =
-        data(T0, {Conversion::angstrom2meter(2.2)});
+    ecs[SpeciesEnum::Nitrogen].scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85});
+    ecs[SpeciesEnum::Nitrogen].lambda               = data(T1, {.81, 0.0152});
+    ecs[SpeciesEnum::Nitrogen].beta                 = data(T0, {.008});
+    ecs[SpeciesEnum::Nitrogen].collisional_distance = data(T0, {Conversion::angstrom2meter(2.2)});
 
-    ecs[SpeciesEnum::Oxygen].scaling =
-        data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0168), 0.5});
-    ecs[SpeciesEnum::Oxygen].lambda = data(T1, {.82, -0.091});
-    ecs[SpeciesEnum::Oxygen].beta   = data(T0, {.007});
-    ecs[SpeciesEnum::Oxygen].collisional_distance =
-        data(T0, {Conversion::angstrom2meter(2.4)});
+    ecs[SpeciesEnum::Oxygen].scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0168), 0.5});
+    ecs[SpeciesEnum::Oxygen].lambda               = data(T1, {.82, -0.091});
+    ecs[SpeciesEnum::Oxygen].beta                 = data(T0, {.007});
+    ecs[SpeciesEnum::Oxygen].collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
   }
 }
 
@@ -123,12 +109,10 @@ void abs_ecs_dataAddTran2011(LinemixingEcsData& abs_ecs_data) {
   for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = abs_ecs_data[SpeciesIsotope::from_name(key)];
 
-    ecs[SpeciesEnum::CarbonDioxide].scaling =
-        data(T0, {Conversion::kaycm_per_atm2hz_per_pa(0.019)});
-    ecs[SpeciesEnum::CarbonDioxide].lambda = data(T0, {0.61});
-    ecs[SpeciesEnum::CarbonDioxide].beta   = data(T0, {0.052});
-    ecs[SpeciesEnum::CarbonDioxide].collisional_distance =
-        data(T0, {Conversion::angstrom2meter(5.5)});
+    ecs[SpeciesEnum::CarbonDioxide].scaling              = data(T0, {Conversion::kaycm_per_atm2hz_per_pa(0.019)});
+    ecs[SpeciesEnum::CarbonDioxide].lambda               = data(T0, {0.61});
+    ecs[SpeciesEnum::CarbonDioxide].beta                 = data(T0, {0.052});
+    ecs[SpeciesEnum::CarbonDioxide].collisional_distance = data(T0, {Conversion::angstrom2meter(5.5)});
   }
 }
 

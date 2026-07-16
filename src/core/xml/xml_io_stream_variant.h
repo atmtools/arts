@@ -9,51 +9,37 @@
 
 //! Try overloading these if it ever gets too slow.
 namespace {
-template <typename... Ts>
-constexpr static std::array type_names{xml_io_stream<Ts>::type_name...};
+template <typename... Ts> constexpr static std::array type_names{xml_io_stream<Ts>::type_name...};
 
-template <Size N>
-consteval bool unique_names(std::array<std::string_view, N> x) {
+template <Size N> consteval bool unique_names(std::array<std::string_view, N> x) {
   stdr::sort(x);
   return std::adjacent_find(x.begin(), x.end()) == x.end();
 }
 
-template <typename... Ts>
-constexpr std::string_view variant_unique_name(const std::variant<Ts...>& x) {
+template <typename... Ts> constexpr std::string_view variant_unique_name(const std::variant<Ts...>& x) {
   return type_names<Ts...>[x.index()];
 }
 
-template <Size I = 0, typename... Ts>
-std::variant<Ts...> variant_type_init(const std::string_view& x) {
-  if (type_names<Ts...>[I] == x) {
-    return std::variant_alternative_t<I, std::variant<Ts...>>{};
-  }
+template <Size I = 0, typename... Ts> std::variant<Ts...> variant_type_init(const std::string_view& x) {
+  if (type_names<Ts...>[I] == x) { return std::variant_alternative_t<I, std::variant<Ts...>>{}; }
 
   if constexpr (I + 1 < sizeof...(Ts)) {
     return variant_type_init<I + 1, Ts...>(x);
   } else {
-    throw std::runtime_error(
-        std::format(R"(Cannot understand the variant type: "{}")", x));
+    throw std::runtime_error(std::format(R"(Cannot understand the variant type: "{}")", x));
   }
 }
 
-template <typename... Ts>
-bool variant_write(std::ostream& os,
-                   const std::variant<Ts...>& n,
-                   bofstream* pbofs) {
-  const auto call = []<typename T>(std::ostream& os,
-                                   const T* const e,
-                                   bofstream* pbofs) -> bool {
+template <typename... Ts> bool variant_write(std::ostream& os, const std::variant<Ts...>& n, bofstream* pbofs) {
+  const auto call = []<typename T>(std::ostream& os, const T* const e, bofstream* pbofs) -> bool {
     if (e) xml_io_stream<T>::write(os, *e, pbofs);
     return e;
   };
   return (call(os, std::get_if<Ts>(&n), pbofs) or ...);
 }
 
-template <typename... Ts>
-bool variant_read(std::istream& is, std::variant<Ts...>& n, bifstream* pbifs) {
-  const auto call = []<typename T>(
-                        std::istream& is, T* e, bifstream* pbifs) -> bool {
+template <typename... Ts> bool variant_read(std::istream& is, std::variant<Ts...>& n, bifstream* pbifs) {
+  const auto call = []<typename T>(std::istream& is, T* e, bifstream* pbifs) -> bool {
     if (e) xml_io_stream<T>::read(is, *e, pbifs);
     return e;
   };
@@ -65,35 +51,27 @@ concept uniquely_variant = unique_names(type_names<Ts...>);
 }  // namespace
 
 //! overloadable name
-template <typename... Ts>
-struct xml_io_stream_name<std::variant<Ts...>> {
+template <typename... Ts> struct xml_io_stream_name<std::variant<Ts...>> {
   static constexpr std::string_view name = "Variant"sv;
 };
 
-template <arts_xml_ioable... Ts>
-  requires(uniquely_variant<Ts...> and
-           (std::is_default_constructible_v<Ts> and ...))
+template <arts_xml_ioable... Ts> requires(uniquely_variant<Ts...> and (std::is_default_constructible_v<Ts> and ...))
 struct xml_io_stream<std::variant<Ts...>> {
-  constexpr static std::string_view type_name =
-      xml_io_stream_name_v<std::variant<Ts...>>;
+  constexpr static std::string_view type_name = xml_io_stream_name_v<std::variant<Ts...>>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&              os,
                     const std::variant<Ts...>& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) {
+                    bofstream*                 pbofs = nullptr,
+                    std::string_view           name  = ""sv) {
     XMLTag tag{type_name, "name", name, "type", variant_unique_name(n)};
     tag.write_to_stream(os);
 
-    if (not variant_write(os, n, pbofs)) {
-      throw std::runtime_error("Failed to write, got nullptr");
-    }
+    if (not variant_write(os, n, pbofs)) { throw std::runtime_error("Failed to write, got nullptr"); }
 
     tag.write_to_end_stream(os);
   }
 
-  static void read(std::istream& is,
-                   std::variant<Ts...>& n,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, std::variant<Ts...>& n, bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);
@@ -109,9 +87,6 @@ struct xml_io_stream<std::variant<Ts...>> {
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot read {}<{:,}>:\n{}",
-                    type_name,
-                    std::array{xml_io_stream<Ts>::type_name...},
-                    e.what()));
+        std::format("Cannot read {}<{:,}>:\n{}", type_name, std::array{xml_io_stream<Ts>::type_name...}, e.what()));
   }
 };

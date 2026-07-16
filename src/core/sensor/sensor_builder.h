@@ -21,26 +21,23 @@ template <typename T>
 concept BuilderSelection = std::derived_from<T, Builder>;
 
 struct Builder {
-  std::vector<Channel> channels;
+  std::vector<Channel>                  channels;
   std::shared_ptr<const AntennaPattern> antenna;
-  bool preserve_common_frequency_grid{false};
+  bool                                  preserve_common_frequency_grid{false};
 
   Builder();
-  Builder(std::vector<Channel> channels,
-          std::shared_ptr<const AntennaPattern> antenna);
-  Builder(const Spectrometer& spectrometer,
-          std::shared_ptr<const AntennaPattern> antenna);
-  Builder(const Spectrometer& spectrometer,
-          const FrequencyRange& backend,
+  Builder(std::vector<Channel> channels, std::shared_ptr<const AntennaPattern> antenna);
+  Builder(const Spectrometer& spectrometer, std::shared_ptr<const AntennaPattern> antenna);
+  Builder(const Spectrometer&                   spectrometer,
+          const FrequencyRange&                 backend,
           std::shared_ptr<const AntennaPattern> antenna);
   Builder(const Builder& other) = default;
   Builder(Builder&&) noexcept   = default;
   Builder& operator=(const Builder& other);
   Builder& operator=(Builder&&) noexcept = default;
 
-  [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(
-      std::span<const Vector3> pos,
-      std::span<const Vector2> los,
-      const Vector2& ell) const;
+  [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(std::span<const Vector3> pos,
+                                                                                std::span<const Vector2> los,
+                                                                                const Vector2&           ell) const;
 };
 }  // namespace sensor

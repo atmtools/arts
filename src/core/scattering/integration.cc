@@ -10,24 +10,18 @@ Index grid_size(const ZenithAngleGrid &grid) {
 }
 
 StridedVectorView grid_vector(ZenithAngleGrid &grid) {
-  return std::visit(
-      [](auto &grd) { return static_cast<StridedVectorView>(grd.angles); },
-      grid);
+  return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd.angles); }, grid);
 }
 
 StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
-  return std::visit(
-      [](const auto &grd) {
-        return static_cast<StridedConstVectorView>(grd.angles);
-      },
-      grid);
+  return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd.angles); }, grid);
 }
 
 void GaussLegendreQuadrature::calculate_nodes_and_weights() {
   const Index n            = degree_;
   const Index n_half_nodes = (n + 1) / 2;
   const Index n_max_iter   = 10;
-  Numeric x, x_old, p_l, p_l_1, p_l_2, dp_dx, n_f;
+  Numeric     x, x_old, p_l, p_l_1, p_l_2, dp_dx, n_f;
   n_f = static_cast<Numeric>(n);
 
   for (int i = 1; i <= n_half_nodes; ++i) {
@@ -36,8 +30,7 @@ void GaussLegendreQuadrature::calculate_nodes_and_weights() {
     //
     // Initial guess.
     //
-    x = -(1.0 - (n_f - 1.0) / (p_l_1 * p_l_1 * p_l_1)) *
-        cos((p_l * (4.0 * i - 1.0)) / (4.0 * n_f + 2.0));
+    x = -(1.0 - (n_f - 1.0) / (p_l_1 * p_l_1 * p_l_1)) * cos((p_l * (4.0 * i - 1.0)) / (4.0 * n_f + 2.0));
 
     //
     // Evaluate Legendre Polynomial and its derivative at node.
@@ -59,9 +52,7 @@ void GaussLegendreQuadrature::calculate_nodes_and_weights() {
       //
       x       -= p_l * dp_dx;
       auto dx  = x - x_old;
-      if (detail::small(std::abs(dx * (x + x_old)), 1e-10)) {
-        break;
-      }
+      if (detail::small(std::abs(dx * (x + x_old)), 1e-10)) { break; }
     }
     nodes_[i - 1]   = x;
     weights_[i - 1] = 2.0 * dp_dx * dp_dx / ((1.0 - x) * (1.0 + x));
@@ -70,8 +61,7 @@ void GaussLegendreQuadrature::calculate_nodes_and_weights() {
   }
 }
 
-DoubleGaussQuadrature::DoubleGaussQuadrature(Index degree)
-    : degree_(degree), nodes_(degree), weights_(degree) {
+DoubleGaussQuadrature::DoubleGaussQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) {
   assert(degree % 2 == 0);
   auto gq      = GaussLegendreQuadrature(degree / 2);
   auto nodes   = gq.get_nodes();
@@ -89,11 +79,11 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
   const Index n            = degree_;
   const Index n_half_nodes = (n + 1) / 2;
   const Index n_max_iter   = 10;
-  Numeric x, x_old, p_l, p_l_1, p_l_2, dp_dx, d2p_dx;
+  Numeric     x, x_old, p_l, p_l_1, p_l_2, dp_dx, d2p_dx;
 
   const Index left  = (n + 1) / 2 - 1;
   const Index right = n / 2;
-  Numeric n_f       = static_cast<Numeric>(n);
+  Numeric     n_f   = static_cast<Numeric>(n);
 
   for (int i = 0; i < n_half_nodes - 1; ++i) {
     //
@@ -124,9 +114,7 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
       //
       x       -= dp_dx / d2p_dx;
       auto dx  = x - x_old;
-      if (detail::small(std::abs(dx * (x + x_old)), 1e-10)) {
-        break;
-      }
+      if (detail::small(std::abs(dx * (x + x_old)), 1e-10)) { break; }
     }
     nodes_[right + i]   = x;
     weights_[right + i] = 2.0 / (n_f * (n_f - 1.0) * p_l * p_l);
@@ -139,16 +127,14 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
   weights_[n - 1] = weights_[0];
 }
 
-IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector& zenith_angles)
+IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector &zenith_angles)
     : angles(zenith_angles),
       weights_(zenith_angles.size()),
       cos_theta_(zenith_angles),
       type_(QuadratureType::Trapezoidal) {
-  std::transform(
-      cos_theta_.begin(),
-      cos_theta_.end(),
-      cos_theta_.begin(),
-      [](Numeric lat) { return -1.0 * cos(Conversion::deg2rad(lat)); });
+  std::transform(cos_theta_.begin(), cos_theta_.end(), cos_theta_.begin(), [](Numeric lat) {
+    return -1.0 * cos(Conversion::deg2rad(lat));
+  });
   weights_ = 0.0;
   Index n  = static_cast<Index>(angles.size());
   for (Index i = 0; i < n - 1; ++i) {
@@ -164,36 +150,25 @@ void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with FFTW support.");
 #else
-  Index n = degree_ - 1;
-  fftw_plan ifft;
-  double* weights =
-      reinterpret_cast<double*>(fftw_malloc(2 * (n / 2 + 1) * sizeof(double)));
-  std::complex<double>* coeffs =
-      reinterpret_cast<std::complex<double>*>(weights);
-  Numeric n_f = static_cast<Numeric>(n);
+  Index                 n = degree_ - 1;
+  fftw_plan             ifft;
+  double*               weights = reinterpret_cast<double*>(fftw_malloc(2 * (n / 2 + 1) * sizeof(double)));
+  std::complex<double>* coeffs  = reinterpret_cast<std::complex<double>*>(weights);
+  Numeric               n_f     = static_cast<Numeric>(n);
 
-  ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n),
-                              reinterpret_cast<double(*)[2]>(coeffs),
-                              weights,
-                              FFTW_ESTIMATE);
+  ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n), reinterpret_cast<double (*)[2]>(coeffs), weights, FFTW_ESTIMATE);
   // Calculate DFT input.
-  for (int i = 0; i < n / 2 + 1; ++i) {
-    coeffs[i] = 2.0 / (1.0 - 4.0 * i * i);
-  }
-  fftw_execute_dft_c2r(ifft, reinterpret_cast<double(*)[2]>(coeffs), weights);
+  for (int i = 0; i < n / 2 + 1; ++i) { coeffs[i] = 2.0 / (1.0 - 4.0 * i * i); }
+  fftw_execute_dft_c2r(ifft, reinterpret_cast<double (*)[2]>(coeffs), weights);
 
   weights[0] *= 0.5;
-  for (Index i = 0; i < n; ++i) {
-    weights_[i] = weights[i] / n_f;
-  }
+  for (Index i = 0; i < n; ++i) { weights_[i] = weights[i] / n_f; }
   weights_[n] = weights[0];
   fftw_destroy_plan(ifft);
   fftw_free(weights);
 
   // Calculate nodes.
-  for (Index i = 0; i <= n; i++) {
-    nodes_[i] = -cos(pi_v<Numeric> * static_cast<Numeric>(i) / n_f);
-  }
+  for (Index i = 0; i <= n; i++) { nodes_[i] = -cos(pi_v<Numeric> * static_cast<Numeric>(i) / n_f); }
 #endif
 }
 
@@ -201,35 +176,27 @@ void FejerQuadrature::calculate_nodes_and_weights() {
 #ifdef ARTS_NO_SHTNS
   ARTS_USER_ERROR("Not compiled with FFTW support.");
 #else
-  const Index n = degree_;
-  fftw_plan ifft;
-  double* weights =
-      reinterpret_cast<double*>(fftw_malloc(2 * (n + 1) * sizeof(double)));
-  std::complex<double>* coeffs =
-      reinterpret_cast<std::complex<double>*>(weights);
+  const Index           n = degree_;
+  fftw_plan             ifft;
+  double*               weights = reinterpret_cast<double*>(fftw_malloc(2 * (n + 1) * sizeof(double)));
+  std::complex<double>* coeffs  = reinterpret_cast<std::complex<double>*>(weights);
 
-  ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n),
-                              reinterpret_cast<double(*)[2]>(coeffs),
-                              weights,
-                              FFTW_ESTIMATE);
+  ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n), reinterpret_cast<double (*)[2]>(coeffs), weights, FFTW_ESTIMATE);
   // Calculate DFT input.
   for (int i = 0; i < n / 2 + 1; ++i) {
     Numeric x  = (pi_v<Numeric> * i) / static_cast<Numeric>(n);
     coeffs[i]  = std::complex<double>(cos(x), sin(x));
     coeffs[i] *= 2.0 / (1.0 - 4.0 * i * i);
   }
-  fftw_execute_dft_c2r(ifft, reinterpret_cast<double(*)[2]>(coeffs), weights);
-  for (Index i = 0; i < n; ++i) {
-    weights_[n - i - 1] = weights[i] / static_cast<Numeric>(n);
-  }
+  fftw_execute_dft_c2r(ifft, reinterpret_cast<double (*)[2]>(coeffs), weights);
+  for (Index i = 0; i < n; ++i) { weights_[n - i - 1] = weights[i] / static_cast<Numeric>(n); }
 
   fftw_destroy_plan(ifft);
   fftw_free(weights);
 
   // Calculate nodes.
   for (Index i = 0; i < n; i++) {
-    nodes_[i] = -cos(pi_v<Numeric> * (static_cast<double>(i) + 0.5) /
-                     static_cast<double>(n));
+    nodes_[i] = -cos(pi_v<Numeric> * (static_cast<double>(i) + 0.5) / static_cast<double>(n));
   }
 #endif
 }

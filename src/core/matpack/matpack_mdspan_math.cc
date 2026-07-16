@@ -3,11 +3,11 @@
 #include "blas.h"
 #include "matpack_mdspan_helpers_eigen.h"
 
-void mult(StridedMatrixView A,
+void mult(StridedMatrixView             A,
           const StridedConstMatrixView &B,
           const StridedConstMatrixView &C,
-          Numeric alpha,
-          Numeric beta) {
+          Numeric                       alpha,
+          Numeric                       beta) {
   // Check dimensions:
   assert(A.nrows() == B.nrows());
   assert(A.ncols() == C.ncols());
@@ -18,8 +18,7 @@ void mult(StridedMatrixView A,
 
   // Matrices B and C must be continuous in at least on dimension,  C
   // must be continuous along the second dimension.
-  if (((B.stride(0) == 1) || (B.stride(1) == 1)) &&
-      ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
+  if (((B.stride(0) == 1) || (B.stride(1) == 1)) && ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
     // BLAS uses column-major order while arts uses row-major order.
     // Hence instead of C = A * B we compute C^T = A^T * B^T!
 
@@ -77,9 +76,7 @@ void mult(StridedMatrixView A,
 
     ldc = (int)A.stride(0);
     // The same holds for A (arts).
-    if ((A.stride(1) == 1) && (A.stride(0) == 1)) {
-      ldc = m;
-    }
+    if ((A.stride(1) == 1) && (A.stride(0) == 1)) { ldc = m; }
 
     dgemm_(&transa,
            &transb,
@@ -105,11 +102,11 @@ void mult(StridedMatrixView A,
   }
 }
 
-void mult(StridedComplexMatrixView A,
+void mult(StridedComplexMatrixView             A,
           const StridedConstComplexMatrixView &B,
           const StridedConstComplexMatrixView &C,
-          Complex alpha,
-          Complex beta) {
+          Complex                              alpha,
+          Complex                              beta) {
   // Check dimensions:
   assert(A.nrows() == B.nrows());
   assert(A.ncols() == C.ncols());
@@ -120,8 +117,7 @@ void mult(StridedComplexMatrixView A,
 
   // Matrices B and C must be continuous in at least on dimension,  C
   // must be continuous along the second dimension.
-  if (((B.stride(0) == 1) || (B.stride(1) == 1)) &&
-      ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
+  if (((B.stride(0) == 1) || (B.stride(1) == 1)) && ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
     // BLAS uses column-major order while arts uses row-major order.
     // Hence instead of C = A * B we compute C^T = A^T * B^T!
 
@@ -179,9 +175,7 @@ void mult(StridedComplexMatrixView A,
 
     ldc = (int)A.stride(0);
     // The same holds for A (arts).
-    if ((A.stride(1) == 1) && (A.stride(0) == 1)) {
-      ldc = m;
-    }
+    if ((A.stride(1) == 1) && (A.stride(0) == 1)) { ldc = m; }
 
     zgemm_(&transa,
            &transb,
@@ -207,19 +201,19 @@ void mult(StridedComplexMatrixView A,
   }
 }
 
-void mult(StridedVectorView y,
+void mult(StridedVectorView             y,
           const StridedConstMatrixView &M,
           const StridedConstVectorView &x,
-          Numeric alpha,
-          Numeric beta) {
+          Numeric                       alpha,
+          Numeric                       beta) {
   assert(y.size() == static_cast<Size>(M.nrows()));
   assert(static_cast<Size>(M.ncols()) == x.size());
   assert(not M.empty());
 
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
     char trans;
-    int m, n;
-    int LDA, incx, incy;
+    int  m, n;
+    int  LDA, incx, incy;
 
     if (M.stride(1) != 1) {
       trans = 'n';
@@ -241,17 +235,7 @@ void mult(StridedVectorView y,
     double *ystart = y.data_handle();
     double *xstart = const_cast<Numeric *>(x.data_handle());
 
-    dgemv_(&trans,
-           &m,
-           &n,
-           &alpha,
-           mstart,
-           &LDA,
-           xstart,
-           &incx,
-           &beta,
-           ystart,
-           &incy);
+    dgemv_(&trans, &m, &n, &alpha, mstart, &LDA, xstart, &incx, &beta, ystart, &incy);
   } else {
     if (beta == 0.0) {
       matpack::eigen::as_eigen(y).noalias() = alpha * M * x;
@@ -262,19 +246,19 @@ void mult(StridedVectorView y,
   }
 }
 
-void mult(StridedComplexVectorView y,
+void mult(StridedComplexVectorView             y,
           const StridedConstComplexMatrixView &M,
           const StridedConstComplexVectorView &x,
-          Complex alpha,
-          Complex beta) {
+          Complex                              alpha,
+          Complex                              beta) {
   assert(y.size() == static_cast<Size>(M.nrows()));
   assert(static_cast<Size>(M.ncols()) == x.size());
   assert(not M.empty());
 
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
     char trans;
-    int m, n;
-    int LDA, incx, incy;
+    int  m, n;
+    int  LDA, incx, incy;
 
     if (M.stride(1) != 1) {
       trans = 'n';
@@ -296,17 +280,7 @@ void mult(StridedComplexVectorView y,
     auto *ystart = y.data_handle();
     auto *xstart = const_cast<Complex *>(x.data_handle());
 
-    zgemv_(&trans,
-           &m,
-           &n,
-           &alpha,
-           mstart,
-           &LDA,
-           xstart,
-           &incx,
-           &beta,
-           ystart,
-           &incy);
+    zgemv_(&trans, &m, &n, &alpha, mstart, &LDA, xstart, &incx, &beta, ystart, &incy);
   } else {
     if (beta == 0.0) {
       matpack::eigen::as_eigen(y).noalias() = alpha * M * x;

@@ -75,21 +75,17 @@ int test1() {
 
   cout << "\nM =\n" << std::format("{}", M) << "\n";
 
-  cout << "\nM(Range(2,4),Range(2,4)) =\n"
-       << std::format("{}", M[Range(2, 4), Range(2, 4)]) << "\n";
+  cout << "\nM(Range(2,4),Range(2,4)) =\n" << std::format("{}", M[Range(2, 4), Range(2, 4)]) << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
-       << std::format("{}",
-                      M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)])
-       << "\n";
+       << std::format("{}", M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)]) << "\n";
 
   cout << "\nM(1,joker) =\n" << std::format("{}", M[1, joker]) << "\n";
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
   fill_with_junk(M[1, Range(1, 2)]);
 
-  cout << "\nM(Range(0,4),Range(0,4)) =\n"
-       << std::format("{}", M[Range(0, 4), Range(0, 4)]) << "\n";
+  cout << "\nM(Range(0,4),Range(0,4)) =\n" << std::format("{}", M[Range(0, 4), Range(0, 4)]) << "\n";
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
 
@@ -101,13 +97,10 @@ int test1() {
   const Matrix C = M;
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
-       << std::format("{}", C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)])
-       << "\n";
+       << std::format("{}", C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]) << "\n";
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
-       << std::format(
-              "{}", transpose(C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]))
-       << "\n";
+       << std::format("{}", transpose(C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)])) << "\n";
 
   return 0;
 }
@@ -139,15 +132,13 @@ void test5() {
   mult(a, M, b);  // a = M*b
   cout << "\na = M*b = \n" << std::format("{}", a) << "\n";
 
-  mult(transpose(b.view_as(1, b.size())),
-       transpose(a.view_as(1, a.size())),
+  mult(transpose(b.view_as(1, b.size())), transpose(a.view_as(1, a.size())),
        M);  // b^t = a^t * M
-  cout << "\nb^t = a^t * M = \n"
-       << std::format("{}", transpose(b.view_as(1, b.size()))) << "\n";
+  cout << "\nb^t = a^t * M = \n" << std::format("{}", transpose(b.view_as(1, b.size()))) << "\n";
 }
 
 void test6() {
-  Index n  = 5000;
+  Index  n = 5000;
   Vector x = matpack::uniform_grid(1, n, 1), y(n);
   Matrix M(n, n);
   M = 1;
@@ -228,10 +219,9 @@ void test12() {
 
 void test13() {
   // Mix vector and one-column matrix in += operator.
-  const Vector v =
-      matpack::uniform_grid(1, 8, 1);  // The const is necessary here to
-                                       // avoid compiler warnings about
-                                       // different conversion paths.
+  const Vector v = matpack::uniform_grid(1, 8, 1);  // The const is necessary here to
+                                                    // avoid compiler warnings about
+                                                    // different conversion paths.
   Matrix M(v.view_as(1, v.size()));
   M += v.view_as(1, v.size());
   cout << "M = \n" << std::format("{}", M) << "\n";
@@ -239,8 +229,8 @@ void test13() {
 
 void test14() {
   // Test explicit Array constructors.
-  Array<String> a{"Test"};
-  Array<Index> b{1, 2};
+  Array<String>  a{"Test"};
+  Array<Index>   b{1, 2};
   Array<Numeric> c{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
   cout << "a = \n" << std::format("{}", a) << "\n";
   cout << "b = \n" << std::format("{}", b) << "\n";
@@ -272,8 +262,7 @@ void test15() {
 void test17() {
   // Test Sum.
   Vector a = matpack::uniform_grid(1, 10, 1);
-  cout << "a.sum() = " << sum(a)
-       << "\n";  // FIXME: sum() is no longer a member function
+  cout << "a.sum() = " << sum(a) << "\n";  // FIXME: sum() is no longer a member function
 }
 
 void test18() {
@@ -374,7 +363,7 @@ void test28() {
 void test29() {
   cout << "Test Arrays of Matrix:\n";
   ArrayOfMatrix a;
-  Matrix b;
+  Matrix        b;
 
   b.resize(2, 2);
   b[0, 0] = 1;
@@ -430,37 +419,28 @@ void test31() {
 
   cout << "a =\n" << std::format("{}", a) << "\n";
 
-  cout << "Taking out first row of first page:\n"
-       << std::format("{}", a[0, 0, joker]) << "\n";
+  cout << "Taking out first row of first page:\n" << std::format("{}", a[0, 0, joker]) << "\n";
 
-  cout << "Taking out last column of second page:\n"
-       << std::format("{}", a[1, joker, a.ncols() - 1]) << "\n";
+  cout << "Taking out last column of second page:\n" << std::format("{}", a[1, joker, a.ncols() - 1]) << "\n";
 
-  cout << "Taking out the first letter on every page:\n"
-       << std::format("{}", a[joker, 0, 0]) << "\n";
+  cout << "Taking out the first letter on every page:\n" << std::format("{}", a[joker, 0, 0]) << "\n";
 
-  cout << "Taking out first page:\n"
-       << std::format("{}", a[0, joker, joker]) << "\n";
+  cout << "Taking out first page:\n" << std::format("{}", a[0, joker, joker]) << "\n";
 
-  cout << "Taking out last row of all pages:\n"
-       << std::format("{}", a[joker, a.nrows() - 1, joker]) << "\n";
+  cout << "Taking out last row of all pages:\n" << std::format("{}", a[joker, a.nrows() - 1, joker]) << "\n";
 
-  cout << "Taking out second column of all pages:\n"
-       << std::format("{}", a[joker, joker, 1]) << "\n";
+  cout << "Taking out second column of all pages:\n" << std::format("{}", a[joker, joker, 1]) << "\n";
 
   a *= 2;
 
-  cout << "After element-vise multiplication with 2:\n"
-       << std::format("{}", a) << "\n";
+  cout << "After element-vise multiplication with 2:\n" << std::format("{}", a) << "\n";
 
-  stdr::transform(
-      a | by_elem, a.elem_begin(), [](auto z) { return std::sqrt(z); });
+  stdr::transform(a | by_elem, a.elem_begin(), [](auto z) { return std::sqrt(z); });
 
   cout << "After taking the square-root:\n" << std::format("{}", a) << "\n";
 
   Index s = 200;
-  cout << "Let's allocate a large tensor, "
-       << (Numeric)(s * s * s * 8) / 1024. / 1024. << " MB...\n";
+  cout << "Let's allocate a large tensor, " << (Numeric)(s * s * s * 8) / 1024. / 1024. << " MB...\n";
 
   a.resize(s, s, s);
 
@@ -509,7 +489,7 @@ void test33() {
 
   {
     cout << "1. Make a scalar look like a vector:\n";
-    Numeric a = 3.1415;  // Just any number here.
+    Numeric    a = 3.1415;  // Just any number here.
     VectorView av(a);
     cout << "a, viewed as a vector: " << std::format("{}", av) << "\n";
     cout << "Describe a: " << "DEPR"
@@ -520,10 +500,9 @@ void test33() {
   }
 
   {
-    cout
-        << "\n2. Make a vector look like a matrix:\n"
-        << "This is an exception, because the new dimension is added at the end.\n";
-    Vector a{1, 2, 3, 4, 5};
+    cout << "\n2. Make a vector look like a matrix:\n"
+         << "This is an exception, because the new dimension is added at the end.\n";
+    Vector     a{1, 2, 3, 4, 5};
     MatrixView am{a.view_as(1, a.size())};
     cout << "a, viewed as a matrix:\n" << std::format("{}", am) << "\n";
     cout << "Trasnpose view:\n" << std::format("{}", transpose(am)) << "\n";
@@ -532,32 +511,19 @@ void test33() {
     Tensor3View at3 = Tensor3View{am.view_as(am.nrows(), am.ncols(), 1)};
     cout << "at3 = \n" << std::format("{}", at3) << "\n";
     at3[0, 2, 0] += 1;
-    cout << "a after Increasing element at3(0,2,0) by 1: \n"
-         << std::format("{}", a) << "\n\n";
+    cout << "a after Increasing element at3(0,2,0) by 1: \n" << std::format("{}", a) << "\n\n";
 
-    Tensor4View at4 =
-        Tensor4View{at3.view_as(at3.npages(), at3.nrows(), at3.ncols(), 1)};
+    Tensor4View at4 = Tensor4View{at3.view_as(at3.npages(), at3.nrows(), at3.ncols(), 1)};
     cout << "at4 = \n" << std::format("{}", at4) << "\n";
 
-    Tensor5View at5 = Tensor5View{
-        at4.view_as(at4.nbooks(), at4.npages(), at4.nrows(), at4.ncols(), 1)};
+    Tensor5View at5 = Tensor5View{at4.view_as(at4.nbooks(), at4.npages(), at4.nrows(), at4.ncols(), 1)};
     cout << "at5 = \n" << std::format("{}", at5) << "\n";
 
-    Tensor6View at6 = Tensor6View{at5.view_as(at5.nshelves(),
-                                              at5.nbooks(),
-                                              at5.npages(),
-                                              at5.nrows(),
-                                              at5.ncols(),
-                                              1)};
+    Tensor6View at6 = Tensor6View{at5.view_as(at5.nshelves(), at5.nbooks(), at5.npages(), at5.nrows(), at5.ncols(), 1)};
     cout << "at6 = \n" << std::format("{}", at6) << "\n";
 
-    Tensor7View at7 = Tensor7View{at6.view_as(at6.nvitrines(),
-                                              at6.nshelves(),
-                                              at6.nbooks(),
-                                              at6.npages(),
-                                              at6.nrows(),
-                                              at6.ncols(),
-                                              1)};
+    Tensor7View at7 = Tensor7View{
+        at6.view_as(at6.nvitrines(), at6.nshelves(), at6.nbooks(), at6.npages(), at6.nrows(), at6.ncols(), 1)};
     cout << "at7 = \n" << std::format("{}", at7) << "\n";
 
     at7[0, 0, 0, 0, 0, 2, 0] -= 1;
@@ -566,7 +532,7 @@ void test33() {
          << "a = " << std::format("{}", a) << "\n";
 
     cout << "\nAll in one go:\n";
-    Numeric b       = 3.1415;  // Just any number here.
+    Numeric     b   = 3.1415;  // Just any number here.
     Tensor7View bt7 = Tensor7View{VectorView{b}.view_as(1, 1, 1, 1, 1, 1, 1)};
     cout << "bt7:\n" << std::format("{}", bt7) << "\n";
   }
@@ -580,20 +546,20 @@ void test35() {
   b = a;
   cout << "b = " << std::format("{}", b) << "\n";
 
-  Vector aa         = matpack::uniform_grid(1, 5, 1);
-  ConstVectorView c = aa;
-  b                 = c;
+  Vector          aa = matpack::uniform_grid(1, 5, 1);
+  ConstVectorView c  = aa;
+  b                  = c;
   cout << "b = " << std::format("{}", b) << "\n";
 
-  Vector aaa   = matpack::uniform_grid(1, 6, 1);
-  VectorView d = aaa;
-  b            = d;
+  Vector     aaa = matpack::uniform_grid(1, 6, 1);
+  VectorView d   = aaa;
+  b              = d;
   cout << "b = " << std::format("{}", b) << "\n";
 }
 
 void test36() {
   cout << "Test using naked joker on Vector.\n";
-  Vector a     = matpack::uniform_grid(1, 4, 1);
+  Vector     a = matpack::uniform_grid(1, 4, 1);
   VectorView b = a[joker];
   cout << "a = " << std::format("{}", a) << "\n";
   cout << "b = " << std::format("{}", b) << "\n";
@@ -615,7 +581,7 @@ void test37(const Index& i) {
 }
 
 void test38() {
-  Vector v(5, 0.);
+  Vector         v(5, 0.);
   Numeric* const a = v.data_handle();
 
   a[4] = 5.;
@@ -623,7 +589,7 @@ void test38() {
   cout << std::format("{}", v) << '\n';
   cout << '\n' << "========================" << '\n' << '\n';
 
-  Matrix m(5, 5, 0.);
+  Matrix         m(5, 5, 0.);
   Numeric* const b = m.data_handle();
 
   b[4] = 5.;
@@ -631,7 +597,7 @@ void test38() {
   cout << std::format("{}", m) << '\n';
   cout << '\n' << "========================" << '\n' << '\n';
 
-  Tensor3 t3(5, 6, 7, 0.);
+  Tensor3        t3(5, 6, 7, 0.);
   Numeric* const c = t3.data_handle();
 
   c[6] = 5.;
@@ -693,8 +659,8 @@ void test42() {
 void test46() {
   Vector v(5, 0.);
   nlinspace(v, 1, 10, 10);
-  VectorView v1     = v;
-  auto compare_func = [](Numeric n) { return n != 0; };
+  VectorView v1           = v;
+  auto       compare_func = [](Numeric n) { return n != 0; };
   cout << std::any_of(v1.begin(), v1.end(), compare_func) << '\n';
   v1 = 0.;
   cout << std::any_of(v1.begin(), v1.end(), compare_func) << '\n';
@@ -720,10 +686,9 @@ void test46() {
 
   \return The maximum element-wise, relative error that occurred in the tests.
 */
-Numeric matrix_mult(
-    Index k, Index m, Index n, Index ntests, Index nsubtests, bool verbose) {
+Numeric matrix_mult(Index k, Index m, Index n, Index ntests, Index nsubtests, bool verbose) {
   Numeric max_err = 0;
-  Matrix A(m, k), B(k, n), C(m, n), C_ref(m, n);
+  Matrix  A(m, k), B(k, n), C(m, n), C_ref(m, n);
 
   for (Index i = 0; i < ntests; i++) {
     random_fill_matrix(A, 1000, false);
@@ -824,9 +789,7 @@ Numeric matrix_mult(
     }
   }
 
-  if (verbose) {
-    cout << '\n';
-  }
+  if (verbose) { cout << '\n'; }
 
   return max_err;
 }
@@ -1009,38 +972,23 @@ void test47() {
 
 void test_wigner_error() {
   try {
-    wigner3j(Rational{1},
-             Rational{0},
-             Rational{1},
-             Rational{0},
-             Rational{0},
-             Rational{0});
-  } catch (std::exception& e) {
-    std::cerr << e.what() << '\n';
-  }
+    wigner3j(Rational{1}, Rational{0}, Rational{1}, Rational{0}, Rational{0}, Rational{0});
+  } catch (std::exception& e) { std::cerr << e.what() << '\n'; }
 
   make_wigner_ready(250, 20000000, 3);
-  wigner3j(Rational{1},
-           Rational{0},
-           Rational{1},
-           Rational{0},
-           Rational{0},
-           Rational{0});
+  wigner3j(Rational{1}, Rational{0}, Rational{1}, Rational{0}, Rational{0}, Rational{0});
 }
 
 void test_pow_negative_one() {
   std::vector<Index> x(30);
   std::iota(x.begin(), x.end(), -15);
-  for (auto& i : x)
-    std::cout << "-1^" << i << '=' << pow_negative_one(i) << '\n';
+  for (auto& i : x) std::cout << "-1^" << i << '=' << pow_negative_one(i) << '\n';
 }
 
 Matrix build_test_matrix(Index rows, Index cols) {
   Matrix a(rows, cols);
   for (Index i = 0; i < rows; i++) {
-    for (Index j = 0; j < cols; j++) {
-      a[i, j] = static_cast<Numeric>(10 * i + j + 1);
-    }
+    for (Index j = 0; j < cols; j++) { a[i, j] = static_cast<Numeric>(10 * i + j + 1); }
   }
   return a;
 }

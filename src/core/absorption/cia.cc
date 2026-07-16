@@ -26,8 +26,8 @@ inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 Numeric CIARecord::Extract(const Numeric& frequency,
                            const Numeric& temperature,
                            const Numeric& T_extrapolfac,
-                           const Index& robust) const {
-  Vector result(1);
+                           const Index&   robust) const {
+  Vector       result(1);
   const Vector freqvec(1, frequency);
 
   Extract(result, freqvec, temperature, T_extrapolfac, robust);
@@ -73,12 +73,12 @@ const GriddedField2& CIARecord::Dataset(Size dataset) const {
  \param[in] cia_data    The CIA dataset to interpolate.
  \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
  */
-void cia_interpolation(VectorView result,
+void cia_interpolation(VectorView             result,
                        const ConstVectorView& f_grid,
-                       const Numeric& temperature,
-                       const GriddedField2& cia_data,
-                       const Numeric& T_extrapolfac,
-                       const Index& robust) try {
+                       const Numeric&         temperature,
+                       const GriddedField2&   cia_data,
+                       const Numeric&         T_extrapolfac,
+                       const Index&           robust) try {
   const Index nf = f_grid.size();
 
   // Assert that result vector has right size:
@@ -149,8 +149,7 @@ void cia_interpolation(VectorView result,
   using id = lagrange_interp::grid_identity;
 
   // Find frequency grid positions:
-  const auto f_lag = lagrange_interp::make_lags<f_order, id>(
-      data_f_grid, f_grid_active, 0.5, "Frequency");
+  const auto f_lag = lagrange_interp::make_lags<f_order, id>(data_f_grid, f_grid_active, 0.5, "Frequency");
 
   // Do the rest of the interpolation.
   if (T_order == 0) {
@@ -160,20 +159,16 @@ void cia_interpolation(VectorView result,
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::cdata_t<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = lagrange_interp::make_lags<1, id>(
-          data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
+      const auto T_lag = lagrange_interp::make_lags<1, id>(data_T_grid, Tnew, T_extrapolfac, "Temperature");
+      result_active    = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 2) {
-      const auto T_lag = lagrange_interp::make_lags<2, id>(
-          data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
+      const auto T_lag = lagrange_interp::make_lags<2, id>(data_T_grid, Tnew, T_extrapolfac, "Temperature");
+      result_active    = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else if (T_order == 3) {
-      const auto T_lag = lagrange_interp::make_lags<3, id>(
-          data_T_grid, Tnew, T_extrapolfac, "Temperature");
-      result_active = reinterp(cia_data.data, f_lag, T_lag).flatten();
+      const auto T_lag = lagrange_interp::make_lags<3, id>(data_T_grid, Tnew, T_extrapolfac, "Temperature");
+      result_active    = reinterp(cia_data.data, f_lag, T_lag).flatten();
     } else {
-      throw std::runtime_error(
-          "Cannot have this T_order, you must update the code...");
+      throw std::runtime_error("Cannot have this T_order, you must update the code...");
     }
   }
 
@@ -201,27 +196,24 @@ void cia_interpolation(VectorView result,
 
  \returns Correct CIA record or nullptr if not found.
  */
-CIARecord* cia_get_data(const std::shared_ptr<CIARecords>& cia_data,
-                        const SpeciesEnum sp1,
-                        const SpeciesEnum sp2) {
+CIARecord* cia_get_data(const std::shared_ptr<CIARecords>& cia_data, const SpeciesEnum sp1, const SpeciesEnum sp2) {
   SpeciesEnumPair key{.spec1 = sp1, .spec2 = sp2};
-  auto it = cia_data->find(key);
+  auto            it = cia_data->find(key);
   if (it != cia_data->end()) return &it->second;
   return nullptr;
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView res,
+void CIARecord::Extract(VectorView             res,
                         const ConstVectorView& f_grid,
-                        const Numeric& temperature,
-                        const Numeric& T_extrapolfac,
-                        const Index& robust) const {
+                        const Numeric&         temperature,
+                        const Numeric&         T_extrapolfac,
+                        const Index&           robust) const {
   res = 0;
 
   Vector result(res.size());
   for (auto& this_cia : mdata) {
-    cia_interpolation(
-        result, f_grid, temperature, this_cia, T_extrapolfac, robust);
+    cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac, robust);
     res += result;
   }
 }
@@ -252,9 +244,9 @@ void CIARecord::ReadFromCIA(const String& filename) {
   Index nset = -1;
 
   // Frequency, temp and cia values for current dataset
-  Vector freq;
+  Vector               freq;
   std::vector<Numeric> temp;
-  ArrayOfVector cia;
+  ArrayOfVector        cia;
 
   // Keep track of current line in file
   Index nline = 0;
@@ -273,8 +265,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
     if (line.size() < 100) {
       std::ostringstream os;
-      os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << '\n'
+      os << "Error in line " << nline << " reading CIA catalog file " << filename << '\n'
          << "Header line unexpectedly short: " << '\n'
          << line;
 
@@ -283,8 +274,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
     if (is.bad()) {
       std::ostringstream os;
-      os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << '\n';
+      os << "Error in line " << nline << " reading CIA catalog file " << filename << '\n';
 
       throw std::runtime_error(os.str());
     }
@@ -292,7 +282,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
     line.erase(0, 20);
 
     // Data for current set
-    Index set_npoints;
+    Index   set_npoints;
     Numeric set_temp     = NAN;
     Numeric set_wave_min = NAN;
     Numeric set_wave_max = NAN;
@@ -303,11 +293,9 @@ void CIARecord::ReadFromCIA(const String& filename) {
     istr >> set_npoints;
     istr >> double_imanip() >> set_temp;
 
-    if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) ||
-        std::isnan(set_wave_max)) {
+    if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) || std::isnan(set_wave_max)) {
       std::ostringstream os;
-      os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << '\n';
+      os << "Error in line " << nline << " reading CIA catalog file " << filename << '\n';
 
       throw std::runtime_error(os.str());
     }
@@ -328,10 +316,8 @@ void CIARecord::ReadFromCIA(const String& filename) {
     }
     if (npoints != set_npoints) {
       std::ostringstream os;
-      os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << '\n'
-         << "Inconsistent number of data points. Expected " << npoints
-         << ", got " << set_npoints;
+      os << "Error in line " << nline << " reading CIA catalog file " << filename << '\n'
+         << "Inconsistent number of data points. Expected " << npoints << ", got " << set_npoints;
 
       throw std::runtime_error(os.str());
     }
@@ -354,9 +340,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
       if (std::isnan(w) || std::isnan(c) || is.bad() || istr.bad()) {
         std::ostringstream os;
-        os << "Error in line " << nline << " reading CIA catalog file "
-           << filename << ":" << '\n'
-           << line;
+        os << "Error in line " << nline << " reading CIA catalog file " << filename << ":" << '\n' << line;
 
         throw std::runtime_error(os.str());
       }
@@ -374,8 +358,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
   if (is.bad()) {
     std::ostringstream os;
-    os << "Error in line " << nline << " reading CIA catalog file " << filename
-       << '\n';
+    os << "Error in line " << nline << " reading CIA catalog file " << filename << '\n';
 
     throw std::runtime_error(os.str());
   }
@@ -392,9 +375,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
 }
 
 /** Append data dataset to mdata. */
-void CIARecord::AppendDataset(const Vector& freq,
-                              const Vector& temp,
-                              const ArrayOfVector& cia) {
+void CIARecord::AppendDataset(const Vector& freq, const Vector& temp, const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.size(), temp.size());
   dataset.grid<0>()     = freq;
@@ -411,15 +392,10 @@ void CIARecord::AppendDataset(const Vector& freq,
 
 /** Append other CIARecord to this. */
 void CIARecord::AppendDataset(const CIARecord& c2) {
-  for (Index ii = 0; ii < c2.DatasetCount(); ii++) {
-    mdata.push_back(c2.Dataset(ii));
-  }
+  for (Index ii = 0; ii < c2.DatasetCount(); ii++) { mdata.push_back(c2.Dataset(ii)); }
 }
 
-void xml_io_stream<CIARecord>::write(std::ostream& os,
-                                     const CIARecord& x,
-                                     bofstream* pbofs,
-                                     std::string_view name) {
+void xml_io_stream<CIARecord>::write(std::ostream& os, const CIARecord& x, bofstream* pbofs, std::string_view name) {
   static_assert(CIARecord::version == 2, "CIARecord version mismatch");
 
   XMLTag tag(type_name, "name", name, "version", CIARecord::version);
@@ -430,9 +406,7 @@ void xml_io_stream<CIARecord>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<CIARecord>::read(std::istream& is,
-                                    CIARecord& x,
-                                    bifstream* pbifs) try {
+void xml_io_stream<CIARecord>::read(std::istream& is, CIARecord& x, bifstream* pbifs) try {
   static_assert(CIARecord::version == 2, "CIARecord version mismatch");
 
   XMLTag tag;
@@ -440,9 +414,7 @@ void xml_io_stream<CIARecord>::read(std::istream& is,
   tag.check_name(type_name);
 
   Index version = 1;
-  if (tag.has_attribute("version")) {
-    tag.get_attribute_value("version", version);
-  }
+  if (tag.has_attribute("version")) { tag.get_attribute_value("version", version); }
 
   if (version < 2) {
     SpeciesEnum spec_;
@@ -455,6 +427,5 @@ void xml_io_stream<CIARecord>::read(std::istream& is,
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }

@@ -70,8 +70,7 @@ void py_montecarlo(py::module_& m);
 NB_MODULE(arts, m) try {
   ARTS_TIME_REPORT
 
-  m.doc() =
-      "Interface directly to the C++ types, functions and modules via python";
+  m.doc() = "Interface directly to the C++ types, functions and modules via python";
   py::class_<Workspace> ws(m, "CxxWorkspace");
 
   static bool init = true;
@@ -146,7 +145,6 @@ NB_MODULE(arts, m) try {
   py::set_leak_warnings(false);
   py::set_implicit_cast_warnings(false);
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize module\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize module\n{}", e.what()));
 }
 }  // namespace Python

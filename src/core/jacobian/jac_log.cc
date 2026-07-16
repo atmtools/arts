@@ -26,17 +26,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector logfwd::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector logfwd::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector logfwd::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logfwd::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector logfwd::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector logfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector loginv::operator()(ConstVectorView xx) const {
   ARTS_USER_ERROR_IF(N != xx.size(),
@@ -59,17 +53,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector loginv::operator()(ConstVectorView x, const AtmField&) const {
-  return this->operator()(x);
-}
+Vector loginv::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
 
-Vector loginv::operator()(ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(x);
-}
+Vector loginv::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
 
-Vector loginv::operator()(ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(x);
-}
+Vector loginv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix loginv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
   ARTS_USER_ERROR_IF(N != static_cast<Size>(dyy.ncols()),
@@ -92,21 +80,15 @@ The incoming jacobian has {} elements
   return dy;
 }
 
-Matrix loginv::operator()(ConstMatrixView dy,
-                          ConstVectorView x,
-                          const AtmField&) const {
+Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const AtmField&) const {
   return this->operator()(dy, x);
 }
 
-Matrix loginv::operator()(ConstMatrixView dy,
-                          ConstVectorView x,
-                          const SurfaceField&) const {
+Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const SurfaceField&) const {
   return this->operator()(dy, x);
 }
 
-Matrix loginv::operator()(ConstMatrixView dy,
-                          ConstVectorView x,
-                          const SubsurfaceField&) const {
+Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const SubsurfaceField&) const {
   return this->operator()(dy, x);
 }
 
@@ -126,8 +108,7 @@ void make_logfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
   x.transform_state  = rfwd;
 }
 
-void make_logfit(Jacobian::SubsurfaceTarget& x,
-                 const SubsurfaceField& subsurf) {
+void make_logfit(Jacobian::SubsurfaceTarget& x, const SubsurfaceField& subsurf) {
   const logfwd rfwd{.N = subsurf[x.type].flat_view().size()};
   const loginv rinv{.N = subsurf[x.type].flat_view().size()};
   x.inverse_state    = rinv;

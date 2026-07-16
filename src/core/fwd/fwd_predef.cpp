@@ -14,40 +14,27 @@ full& full::operator=(full&&) noexcept = default;
 void full::adapt() try {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
-  if (not data) {
-    return;
-  }
+  if (not data) { return; }
 
-  if (data->empty()) {
-    return;
-  }
+  if (data->empty()) { return; }
 }
 ARTS_METHOD_ERROR_CATCH
 
-full::full(std::shared_ptr<AtmPoint> atm_,
-           std::shared_ptr<PredefinedModelData> data_)
+full::full(std::shared_ptr<AtmPoint> atm_, std::shared_ptr<PredefinedModelData> data_)
     : atm(std::move(atm_)), data(std::move(data_)) {
   adapt();
 }
 
 Complex full::operator()(const Numeric frequency) const {
-  if (not data) {
-    return {};
-  }
+  if (not data) { return {}; }
 
-  PropmatVector propmat_clearsky(1);
-  PropmatMatrix dpropmat_clearsky_dx;
+  PropmatVector   propmat_clearsky(1);
+  PropmatMatrix   dpropmat_clearsky_dx;
   JacobianTargets jac_targets;
-  Vector f_grid{frequency};
+  Vector          f_grid{frequency};
 
   for (auto& [tag, mod] : *data) {
-    Absorption::PredefinedModel::compute(propmat_clearsky,
-                                         dpropmat_clearsky_dx,
-                                         tag,
-                                         f_grid,
-                                         *atm,
-                                         jac_targets,
-                                         mod);
+    Absorption::PredefinedModel::compute(propmat_clearsky, dpropmat_clearsky_dx, tag, f_grid, *atm, jac_targets, mod);
   }
 
   return propmat_clearsky[0].A();

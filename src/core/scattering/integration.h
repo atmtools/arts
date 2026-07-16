@@ -31,34 +31,25 @@
 #ifndef ARTS_CORE_SCATTERING_INTEGRATION_H_
 #define ARTS_CORE_SCATTERING_INTEGRATION_H_
 
+#include <matpack.h>
+
 #include <map>
 #include <memory>
 #include <numbers>
 
 #include "arts_conversions.h"
 #include "debug.h"
-#include <matpack.h>
 
 namespace scattering {
 
 using std::numbers::pi_v;
 
 namespace detail {
-template <std::floating_point Scalar>
-bool small(Scalar a, Scalar epsilon = 1e-6) {
-  return std::abs(a) < epsilon;
-}
+template <std::floating_point Scalar> bool small(Scalar a, Scalar epsilon = 1e-6) { return std::abs(a) < epsilon; }
 }  // namespace detail
 
 /// Enum class to represent different quadrature classes.
-enum class QuadratureType {
-  Trapezoidal,
-  GaussLegendre,
-  DoubleGauss,
-  Lobatto,
-  ClenshawCurtis,
-  Fejer
-};
+enum class QuadratureType { Trapezoidal, GaussLegendre, DoubleGauss, Lobatto, ClenshawCurtis, Fejer };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Gauss-Legendre Quadrature
@@ -81,18 +72,17 @@ class GaussLegendreQuadrature {
 
  public:
   GaussLegendreQuadrature() = default;
-  GaussLegendreQuadrature(Index degree)
-      : degree_(degree), nodes_(degree), weights_(degree) {
+  GaussLegendreQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) {
     calculate_nodes_and_weights();
   }
 
   static constexpr QuadratureType type = QuadratureType::GaussLegendre;
 
-  Index get_degree() const { return degree_; }
+  Index         get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
-  Index degree_;
+  Index  degree_;
   Vector nodes_;
   Vector weights_;
 };
@@ -119,11 +109,11 @@ class DoubleGaussQuadrature {
 
   static constexpr QuadratureType type = QuadratureType::DoubleGauss;
 
-  Index get_degree() const { return degree_; }
+  Index         get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
-  Index degree_;
+  Index  degree_;
   Vector nodes_;
   Vector weights_;
 };
@@ -144,18 +134,15 @@ class LobattoQuadrature {
 
  public:
   LobattoQuadrature() {}
-  LobattoQuadrature(Index degree)
-      : degree_(degree), nodes_(degree), weights_(degree) {
-    calculate_nodes_and_weights();
-  }
+  LobattoQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) { calculate_nodes_and_weights(); }
 
   static constexpr QuadratureType type = QuadratureType::Lobatto;
 
-  Index get_degree() const { return degree_; }
+  Index         get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
-  Index degree_;
+  Index  degree_;
   Vector nodes_;
   Vector weights_;
 };
@@ -177,18 +164,17 @@ class ClenshawCurtisQuadrature {
 
  public:
   ClenshawCurtisQuadrature() = default;
-  ClenshawCurtisQuadrature(Index degree)
-      : degree_(degree), nodes_(degree), weights_(degree) {
+  ClenshawCurtisQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) {
     calculate_nodes_and_weights();
   }
 
   static constexpr QuadratureType type = QuadratureType::ClenshawCurtis;
 
-  Index get_degree() const { return degree_; }
+  Index         get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
-  Index degree_;
+  Index  degree_;
   Vector nodes_;
   Vector weights_;
 };
@@ -212,22 +198,18 @@ class FejerQuadrature {
   static constexpr QuadratureType type = QuadratureType::Fejer;
 
   FejerQuadrature() = default;
-  FejerQuadrature(Index degree)
-      : degree_(degree), nodes_(degree), weights_(degree) {
-    calculate_nodes_and_weights();
-  }
+  FejerQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) { calculate_nodes_and_weights(); }
 
-  Index get_degree() const { return degree_; }
+  Index         get_degree() const { return degree_; }
   const Vector& get_nodes() const { return nodes_; }
   const Vector& get_weights() const { return weights_; }
 
-  Index degree_;
+  Index  degree_;
   Vector nodes_;
   Vector weights_;
 };
 
-template <typename Quadrature>
-class QuadratureProvider {
+template <typename Quadrature> class QuadratureProvider {
  public:
   QuadratureProvider() {}
 
@@ -244,7 +226,6 @@ class QuadratureProvider {
  private:
   std::map<Index, Quadrature> quadratures_;
 };
-
 
 class IrregularZenithAngleGrid {
  public:
@@ -269,13 +250,12 @@ class IrregularZenithAngleGrid {
   QuadratureType get_type() { return QuadratureType::Trapezoidal; }
 
  protected:
-  Vector weights_;
-  Vector cos_theta_;
+  Vector         weights_;
+  Vector         cos_theta_;
   QuadratureType type_;
 };
 
-template <typename Quadrature>
-class QuadratureZenithAngleGrid {
+template <typename Quadrature> class QuadratureZenithAngleGrid {
  public:
   Vector angles{};
 
@@ -288,23 +268,19 @@ class QuadratureZenithAngleGrid {
   * weights of the quadrature.
   * @param degree The number of points of the quadrature.
   */
-  QuadratureZenithAngleGrid()                                 = default;
-  QuadratureZenithAngleGrid(const QuadratureZenithAngleGrid&) = default;
-  QuadratureZenithAngleGrid(QuadratureZenithAngleGrid&&)      = default;
-  QuadratureZenithAngleGrid& operator=(const QuadratureZenithAngleGrid&) =
-      default;
-  QuadratureZenithAngleGrid& operator=(QuadratureZenithAngleGrid&&) = default;
+  QuadratureZenithAngleGrid()                                            = default;
+  QuadratureZenithAngleGrid(const QuadratureZenithAngleGrid&)            = default;
+  QuadratureZenithAngleGrid(QuadratureZenithAngleGrid&&)                 = default;
+  QuadratureZenithAngleGrid& operator=(const QuadratureZenithAngleGrid&) = default;
+  QuadratureZenithAngleGrid& operator=(QuadratureZenithAngleGrid&&)      = default;
 
-  QuadratureZenithAngleGrid(Index n_points)
-      : angles(n_points), quadrature_(n_points) {
+  QuadratureZenithAngleGrid(Index n_points) : angles(n_points), quadrature_(n_points) {
     auto nodes = quadrature_.get_nodes();
-    std::transform(nodes.begin(), nodes.end(), angles.begin(), [](Numeric x) {
-      return Conversion::rad2deg(acos(-1.0 * x));
-    });
+    std::transform(
+        nodes.begin(), nodes.end(), angles.begin(), [](Numeric x) { return Conversion::rad2deg(acos(-1.0 * x)); });
   }
 
-  QuadratureZenithAngleGrid(Index n_points, Index /*unused*/)
-      : QuadratureZenithAngleGrid(n_points) {}
+  QuadratureZenithAngleGrid(Index n_points, Index /*unused*/) : QuadratureZenithAngleGrid(n_points) {}
 
   Index get_degree() const { return quadrature_.get_degree(); }
 
@@ -322,24 +298,18 @@ class QuadratureZenithAngleGrid {
 };
 
 using GaussLegendreGrid = QuadratureZenithAngleGrid<GaussLegendreQuadrature>;
-using DoubleGaussGrid = QuadratureZenithAngleGrid<DoubleGaussQuadrature>;
-using LobattoGrid = QuadratureZenithAngleGrid<LobattoQuadrature>;
-using FejerGrid = QuadratureZenithAngleGrid<FejerQuadrature>;
+using DoubleGaussGrid   = QuadratureZenithAngleGrid<DoubleGaussQuadrature>;
+using LobattoGrid       = QuadratureZenithAngleGrid<LobattoQuadrature>;
+using FejerGrid         = QuadratureZenithAngleGrid<FejerQuadrature>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Integration functions
 ////////////////////////////////////////////////////////////////////////////////
 
-static QuadratureProvider<FejerQuadrature> quadratures =
-    QuadratureProvider<FejerQuadrature>();
+static QuadratureProvider<FejerQuadrature> quadratures = QuadratureProvider<FejerQuadrature>();
 
-using ZenithAngleGrid = std::variant<
-  IrregularZenithAngleGrid,
-  DoubleGaussGrid,
-  GaussLegendreGrid,
-  LobattoGrid,
-  FejerGrid
-  >;
+using ZenithAngleGrid =
+    std::variant<IrregularZenithAngleGrid, DoubleGaussGrid, GaussLegendreGrid, LobattoGrid, FejerGrid>;
 
 Index grid_size(const ZenithAngleGrid& grid);
 
@@ -347,16 +317,13 @@ StridedVectorView grid_vector(ZenithAngleGrid& grid);
 
 StridedConstVectorView grid_vector(const ZenithAngleGrid& grid);
 
-template <typename VectorType>
-auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {
-  typename std::remove_reference<decltype(vec[0])>::type result = vec[0];
-  result *= 0.0;
-  auto vec_it = vec.elem_begin();
-  auto vec_end = vec.elem_end();
-  auto weights_it = std::visit([](const auto &grd) {return grd.get_weights().begin();}, grid );
-  for (; vec_it != vec_end; ++vec_it, ++weights_it) {
-    result += *weights_it * *vec_it;
-  }
+template <typename VectorType> auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {
+  typename std::remove_reference<decltype(vec[0])>::type result  = vec[0];
+  result                                                        *= 0.0;
+  auto vec_it                                                    = vec.elem_begin();
+  auto vec_end                                                   = vec.elem_end();
+  auto weights_it = std::visit([](const auto& grd) { return grd.get_weights().begin(); }, grid);
+  for (; vec_it != vec_end; ++vec_it, ++weights_it) { result += *weights_it * *vec_it; }
   return result;
 }
 
@@ -369,28 +336,25 @@ auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {
  *
  * @return The integral value.
  */
-template <typename MatrixType>
-Numeric integrate_sphere(MatrixType&& data,
-                         const Vector& azimuth_angle_grid,
-                         const ZenithAngleGrid& zenith_angle_grid) {
+template <typename MatrixType> Numeric integrate_sphere(MatrixType&&           data,
+                                                        const Vector&          azimuth_angle_grid,
+                                                        const ZenithAngleGrid& zenith_angle_grid) {
   Numeric result = 0.0;
-  Index n = azimuth_angle_grid.size();
+  Index   n      = azimuth_angle_grid.size();
 
-  Numeric zenith_angle_integral_first =
-      integrate_zenith_angles(data.row(0), zenith_angle_grid);
-  Numeric zenith_angle_integral_left = zenith_angle_integral_first;
+  Numeric zenith_angle_integral_first = integrate_zenith_angles(data.row(0), zenith_angle_grid);
+  Numeric zenith_angle_integral_left  = zenith_angle_integral_first;
   Numeric zenith_angle_integral_right = zenith_angle_integral_first;
 
   for (Index i = 0; i < n - 1; ++i) {
-    zenith_angle_integral_right =
-        integrate_zenith_angles<Numeric>(data.row(i + 1), zenith_angle_grid);
-    Numeric dl = azimuth_angle_grid[i + 1] - azimuth_angle_grid[i];
-    result += 0.5 * (zenith_angle_integral_left + zenith_angle_integral_right) * dl;
-    zenith_angle_integral_left = zenith_angle_integral_right;
+    zenith_angle_integral_right  = integrate_zenith_angles<Numeric>(data.row(i + 1), zenith_angle_grid);
+    Numeric dl                   = azimuth_angle_grid[i + 1] - azimuth_angle_grid[i];
+    result                      += 0.5 * (zenith_angle_integral_left + zenith_angle_integral_right) * dl;
+    zenith_angle_integral_left   = zenith_angle_integral_right;
   }
 
-  Numeric dl = 2.0 * pi_v<Numeric> + azimuth_angle_grid[0] - azimuth_angle_grid[n - 1];
-  result += 0.5 * (zenith_angle_integral_first + zenith_angle_integral_right) * dl;
+  Numeric dl  = 2.0 * pi_v<Numeric> + azimuth_angle_grid[0] - azimuth_angle_grid[n - 1];
+  result     += 0.5 * (zenith_angle_integral_first + zenith_angle_integral_right) * dl;
 
   return result;
 }
@@ -401,28 +365,25 @@ Numeric integrate_sphere(MatrixType&& data,
  * @param new_grid: The new, low-resolution grid.
  */
 template <std::floating_point Scalar>
-Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid,
-                                     const StridedVectorView& new_grid) {
-  using WeightMatrix = matpack::data_t<Scalar, 2>;
-  Index n_old = old_grid.size();
-  Index n_new = new_grid.size();
+Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid, const StridedVectorView& new_grid) {
+  using WeightMatrix               = matpack::data_t<Scalar, 2>;
+  Index                      n_old = old_grid.size();
+  Index                      n_new = new_grid.size();
   matpack::data_t<Scalar, 1> limits(n_new + 1);
-  for (Index i = 1; i < n_new; ++i) {
-    limits[i] = 0.5 * (new_grid[i - 1] + new_grid[i]);
-  }
+  for (Index i = 1; i < n_new; ++i) { limits[i] = 0.5 * (new_grid[i - 1] + new_grid[i]); }
   limits[n_new] = std::max(new_grid[n_new - 1], old_grid[n_old - 1]);
-  limits[0] = std::min(new_grid[0], old_grid[0]);
+  limits[0]     = std::min(new_grid[0], old_grid[0]);
 
   WeightMatrix weights(n_new, n_old);
 
   if (n_old == 1) {
     ArrayOfIndex row_inds(n_new);
     ArrayOfIndex col_inds(n_new);
-    Vector comps(n_new);
+    Vector       comps(n_new);
     for (Index i_new = 0; i_new < n_new; ++i_new) {
       row_inds[i_new] = i_new;
       col_inds[i_new] = 0;
-      comps[i_new] = 1.0;
+      comps[i_new]    = 1.0;
     }
     Sparse result(n_new, n_old);
     result.insert_elements(n_new, row_inds, col_inds, comps);
@@ -430,16 +391,15 @@ Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid,
   }
 
   for (Index i_new = 0; i_new < n_new; ++i_new) {
-    Scalar left_new = limits[i_new];
+    Scalar left_new  = limits[i_new];
     Scalar right_new = limits[i_new + 1];
     for (Index i_old = 0; i_old < n_old - 1; ++i_old) {
-      Scalar left_old = old_grid[i_old];
+      Scalar left_old  = old_grid[i_old];
       Scalar right_old = old_grid[i_old < n_old - 1 ? i_old + 1 : n_old - 1];
 
-      Scalar overlap =
-          std::min(right_new, right_old) - std::max(left_new, left_old);
+      Scalar overlap = std::min(right_new, right_old) - std::max(left_new, left_old);
       if (overlap > 0.0) {
-        weights[i_new, i_old] += 0.5 * overlap;
+        weights[i_new, i_old]     += 0.5 * overlap;
         weights[i_new, i_old + 1] += 0.5 * overlap;
         ;
       }
@@ -453,15 +413,15 @@ Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid,
     if (x > 0.0) ++nnz;
   });
   ArrayOfIndex row_inds(nnz), col_inds(nnz);
-  Vector comps(nnz);
-  Index comp_index = 0;
+  Vector       comps(nnz);
+  Index        comp_index = 0;
   for (Index i_r = 0; i_r < weights.nrows(); ++i_r) {
     for (Index i_c = 0; i_c < weights.ncols(); ++i_c) {
       Numeric elem = weights[i_r, i_c];
       if (elem > 0.0) {
         row_inds[comp_index] = i_r;
         col_inds[comp_index] = i_c;
-        comps[comp_index] = elem;
+        comps[comp_index]    = elem;
         ++comp_index;
       }
     }
@@ -470,7 +430,6 @@ Sparse calculate_downsampling_matrix(const StridedVectorView& old_grid,
   result.insert_elements(nnz, row_inds, col_inds, comps);
   return result;
 }
-
 
 }  // namespace scattering
 

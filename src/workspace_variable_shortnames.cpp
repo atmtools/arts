@@ -1,8 +1,7 @@
 #include "workspace_variable_shortnames.h"
 
 namespace {
-std::unordered_map<std::string, WsvShortForm>
-workspace_variables_shortnames_impl() {
+std::unordered_map<std::string, WsvShortForm> workspace_variables_shortnames_impl() {
   std::unordered_map<std::string, WsvShortForm> shortnames;
 
   shortnames["atm"]     = {.desc = "The atmosphere"};
@@ -62,8 +61,7 @@ workspace_variables_shortnames_impl() {
   };
 
   shortnames["field"] = {
-      .desc =
-          "Contiguous values defined along one or more dimensions.  May be ungridded.",
+      .desc  = "Contiguous values defined along one or more dimensions.  May be ungridded.",
       .title = "Gridded",
   };
 
@@ -73,8 +71,7 @@ workspace_variables_shortnames_impl() {
   };
 
   shortnames["profile"] = {
-      .desc =
-          "Profiles are cuts through a field along a single dimension, e.g., the altitude.",
+      .desc  = "Profiles are cuts through a field along a single dimension, e.g., the altitude.",
       .title = "Gridded",
   };
 
@@ -108,8 +105,7 @@ workspace_variables_shortnames_impl() {
 }
 }  // namespace
 
-const std::unordered_map<std::string, WsvShortForm>&
-workspace_variables_shortnames() {
+const std::unordered_map<std::string, WsvShortForm>& workspace_variables_shortnames() {
   static const auto shortnames = workspace_variables_shortnames_impl();
   return shortnames;
 }

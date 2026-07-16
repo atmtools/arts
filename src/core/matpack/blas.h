@@ -42,33 +42,33 @@
   \param[in,out] C Pointer to the double array containing the matrix C.
   \param[in] ldc Pointer to an int variable containing the number rows of C.
  */
-extern "C" void dgemm_(char *transa,
-                       char *transb,
-                       int *m,
-                       int *n,
-                       int *k,
+extern "C" void dgemm_(char   *transa,
+                       char   *transb,
+                       int    *m,
+                       int    *n,
+                       int    *k,
                        double *alpha,
                        double *A,
-                       int *lda,
+                       int    *lda,
                        double *B,
-                       int *ldb,
+                       int    *ldb,
                        double *beta,
                        double *C,
-                       int *ldc);
+                       int    *ldc);
 
-extern "C" void zgemm_(char *transa,
-                       char *transb,
-                       int *m,
-                       int *n,
-                       int *k,
+extern "C" void zgemm_(char                 *transa,
+                       char                 *transb,
+                       int                  *m,
+                       int                  *n,
+                       int                  *k,
                        std::complex<double> *alpha,
                        std::complex<double> *A,
-                       int *lda,
+                       int                  *lda,
                        std::complex<double> *B,
-                       int *ldb,
+                       int                  *ldb,
                        std::complex<double> *beta,
                        std::complex<double> *C,
-                       int *ldc);
+                       int                  *ldc);
 
 //! Matrix-Vector Multiplication
 /*!
@@ -94,26 +94,26 @@ extern "C" void zgemm_(char *transa,
   \param y Pointer to the vector y.
   \param incy The stride of the vector y.
 */
-extern "C" void dgemv_(char *trans,
-                       int *m,
-                       int *n,
+extern "C" void dgemv_(char   *trans,
+                       int    *m,
+                       int    *n,
                        double *alpha,
                        double *A,
-                       int *LDA,
+                       int    *LDA,
                        double *x,
-                       int *incx,
+                       int    *incx,
                        double *beta,
                        double *y,
-                       int *incy);
+                       int    *incy);
 
-extern "C" void zgemv_(char *trans,
-                       int *m,
-                       int *n,
+extern "C" void zgemv_(char                 *trans,
+                       int                  *m,
+                       int                  *n,
                        std::complex<double> *alpha,
                        std::complex<double> *A,
-                       int *LDA,
+                       int                  *LDA,
                        std::complex<double> *x,
-                       int *incx,
+                       int                  *incx,
                        std::complex<double> *beta,
                        std::complex<double> *y,
-                       int *incy);
+                       int                  *incy);

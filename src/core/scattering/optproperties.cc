@@ -8,10 +8,7 @@ std::string_view PTypeToString(const PType ptype) {
     case PTYPE_GENERAL:     return "general"sv; break;
     case PTYPE_TOTAL_RND:   return "totally_random"sv; break;
     case PTYPE_AZIMUTH_RND: return "azimuthally_random"sv; break;
-    default:
-      ARTS_USER_ERROR(
-          "Internal error: Cannot map PType enum value {} to String.", ptype)
-      break;
+    default:                ARTS_USER_ERROR("Internal error: Cannot map PType enum value {} to String.", ptype) break;
   }
 
   return "unknown PType"sv;
@@ -56,8 +53,7 @@ PType PTypeFromString(const std::string_view ptype_string) {
   return ptype;
 }
 
-std::string std::formatter<SingleScatteringData>::to_string(
-    const SingleScatteringData& v) const {
+std::string std::formatter<SingleScatteringData>::to_string(const SingleScatteringData& v) const {
   const std::string_view sep   = tags.sep();
   const std::string_view quote = tags.quote();
 
@@ -85,8 +81,7 @@ std::string std::formatter<SingleScatteringData>::to_string(
 }
 
 void chk_scat_data(const SingleScatteringData& scat_data_single) {
-  assert(scat_data_single.ptype == PTYPE_GENERAL ||
-         scat_data_single.ptype == PTYPE_TOTAL_RND ||
+  assert(scat_data_single.ptype == PTYPE_GENERAL || scat_data_single.ptype == PTYPE_TOTAL_RND ||
          scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
   ARTS_USER_ERROR_IF(scat_data_single.za_grid[0] != 0.,
@@ -97,21 +92,18 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                      "The last value of the zenith angle grid in the single"
                      " scattering properties data must be 180.")
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_GENERAL &&
-                         scat_data_single.aa_grid[0] != -180.,
+  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_GENERAL && scat_data_single.aa_grid[0] != -180.,
                      "For ptype = \"general\" the first value"
                      " of the azimuth angle grid in the single scattering"
                      " properties data must be -180.")
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
-                         scat_data_single.aa_grid[0] != 0.,
+  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_AZIMUTH_RND && scat_data_single.aa_grid[0] != 0.,
                      "For ptype = \"azimuthally_random\""
                      " the first value"
                      " of the azimuth angle grid in the single scattering"
                      " properties data must be 0.")
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype != PTYPE_TOTAL_RND &&
-                         last(scat_data_single.aa_grid) != 180.,
+  ARTS_USER_ERROR_IF(scat_data_single.ptype != PTYPE_TOTAL_RND && last(scat_data_single.aa_grid) != 180.,
                      "For ptypes = \"azimuthally_random\" and \"general\""
                      " the last value of the azimuth angle grid in the single"
                      " scattering properties data must be 180.")
@@ -214,11 +206,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          6,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         1,
-                                         1,
-                                         1},
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
                                         scat_data_single.ext_mat_data),
                          R"(The shape of the ext_mat_data is wrong: {}
       
@@ -233,11 +221,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          1,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         1,
-                                         1,
-                                         1},
+      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
                                         scat_data_single.abs_vec_data),
                          R"(The shape of the abs_vec_data is wrong: {}
       
@@ -279,43 +263,39 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          16,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         1,
-                                         3},
-                                        scat_data_single.ext_mat_data),
-                         R"(The shape of the ext_mat_data data is wrong: {}
+      ARTS_USER_ERROR_IF(
+          not same_shape(
+              {scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), scat_data_single.za_grid.size(), 1, 3},
+              scat_data_single.ext_mat_data),
+          R"(The shape of the ext_mat_data data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
 )",
-                         os_ext_mat.str(),
-                         scat_data_single.f_grid.size(),
-                         scat_data_single.T_grid.size(),
-                         scat_data_single.za_grid.size(),
-                         1,
-                         3,
-                         scat_data_single.ext_mat_data.shape());
+          os_ext_mat.str(),
+          scat_data_single.f_grid.size(),
+          scat_data_single.T_grid.size(),
+          scat_data_single.za_grid.size(),
+          1,
+          3,
+          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         1,
-                                         2},
-                                        scat_data_single.abs_vec_data),
-                         R"(The shape of the abs_vec_data is wrong: {}
+      ARTS_USER_ERROR_IF(
+          not same_shape(
+              {scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), scat_data_single.za_grid.size(), 1, 2},
+              scat_data_single.abs_vec_data),
+          R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
 )",
-                         os_abs_vec.str(),
-                         scat_data_single.f_grid.size(),
-                         scat_data_single.T_grid.size(),
-                         scat_data_single.za_grid.size(),
-                         1,
-                         2,
-                         scat_data_single.abs_vec_data.shape());
+          os_abs_vec.str(),
+          scat_data_single.f_grid.size(),
+          scat_data_single.T_grid.size(),
+          scat_data_single.za_grid.size(),
+          1,
+          2,
+          scat_data_single.abs_vec_data.shape());
 
       break;
   }
@@ -326,11 +306,10 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
   // is non-zero for the corresponding temperature. This check is done in the
   // functions where the multiplication with the particle number density is
   // done.
-  ARTS_USER_ERROR_IF(
-      scat_data_single.T_grid[0] < 0. || last(scat_data_single.T_grid) > 1001.,
-      "The temperature values in the single scattering data"
-      " are negative or very large. Check whether you use the "
-      "right unit [Kelvin].")
+  ARTS_USER_ERROR_IF(scat_data_single.T_grid[0] < 0. || last(scat_data_single.T_grid) > 1001.,
+                     "The temperature values in the single scattering data"
+                     " are negative or very large. Check whether you use the "
+                     "right unit [Kelvin].")
 }
 
 void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
@@ -338,19 +317,14 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // 1) Is za_grid symmetric and includes 90deg?
   Index nza = ssd.za_grid.size();
   for (Index i = 0; i < nza / 2; i++) {
-    ARTS_USER_ERROR_IF(
-        !is_same_within_epsilon(180. - ssd.za_grid[nza - 1 - i],
-                                ssd.za_grid[i],
-                                2 * std::numeric_limits<double>::epsilon()),
-        "Zenith grid of azimuthally_random single scattering data\n"
-        "is not symmetric with respect to 90degree.")
+    ARTS_USER_ERROR_IF(!is_same_within_epsilon(
+                           180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * std::numeric_limits<double>::epsilon()),
+                       "Zenith grid of azimuthally_random single scattering data\n"
+                       "is not symmetric with respect to 90degree.")
   }
-  ARTS_USER_ERROR_IF(
-      !is_same_within_epsilon(ssd.za_grid[nza / 2],
-                              90.,
-                              2 * std::numeric_limits<double>::epsilon()),
-      "Zenith grid of azimuthally_random single scattering data\n"
-      "does not contain 90 degree grid point.")
+  ARTS_USER_ERROR_IF(!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * std::numeric_limits<double>::epsilon()),
+                     "Zenith grid of azimuthally_random single scattering data\n"
+                     "does not contain 90 degree grid point.")
 
   // 2) Are data sizes correct?
   std::ostringstream os_pha_mat;
@@ -360,33 +334,27 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
 
-  ARTS_USER_ERROR_IF(
-      not same_shape({ssd.f_grid.size(),
-                      ssd.T_grid.size(),
-                      ssd.za_grid.size(),
-                      ssd.aa_grid.size(),
-                      ssd.za_grid.size() / 2 + 1,
-                      1,
-                      16},
-                     ssd.pha_mat_data),
-      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
-      os_pha_mat.str(),
-      ssd.f_grid.size(),
-      ssd.T_grid.size(),
-      ssd.za_grid.size(),
-      ssd.aa_grid.size(),
-      ssd.za_grid.size() / 2 + 1,
-      1,
-      16,
-      ssd.pha_mat_data.shape());
+  ARTS_USER_ERROR_IF(not same_shape({ssd.f_grid.size(),
+                                     ssd.T_grid.size(),
+                                     ssd.za_grid.size(),
+                                     ssd.aa_grid.size(),
+                                     ssd.za_grid.size() / 2 + 1,
+                                     1,
+                                     16},
+                                    ssd.pha_mat_data),
+                     "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
+                     os_pha_mat.str(),
+                     ssd.f_grid.size(),
+                     ssd.T_grid.size(),
+                     ssd.za_grid.size(),
+                     ssd.aa_grid.size(),
+                     ssd.za_grid.size() / 2 + 1,
+                     1,
+                     16,
+                     ssd.pha_mat_data.shape());
 
   ARTS_USER_ERROR_IF(
-      not same_shape({ssd.f_grid.size(),
-                      ssd.T_grid.size(),
-                      ssd.za_grid.size() / 2 + 1,
-                      1,
-                      3},
-                     ssd.ext_mat_data),
+      not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 3}, ssd.ext_mat_data),
       "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
       os_ext_mat.str(),
       ssd.f_grid.size(),
@@ -397,12 +365,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
       ssd.ext_mat_data.shape());
 
   ARTS_USER_ERROR_IF(
-      not same_shape({ssd.f_grid.size(),
-                      ssd.T_grid.size(),
-                      ssd.za_grid.size() / 2 + 1,
-                      1,
-                      2},
-                     ssd.abs_vec_data),
+      not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 2}, ssd.abs_vec_data),
       "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
       os_abs_vec.str(),
       ssd.f_grid.size(),
@@ -415,27 +378,17 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // Now that we are sure that za_grid is properly symmetric, we just need to
   // copy over the data (ie no interpolation).
   Tensor5 tmpT5 = ssd.abs_vec_data;
-  ssd.abs_vec_data.resize(tmpT5.nshelves(),
-                          tmpT5.nbooks(),
-                          ssd.za_grid.size(),
-                          tmpT5.nrows(),
-                          tmpT5.ncols());
+  ssd.abs_vec_data.resize(tmpT5.nshelves(), tmpT5.nbooks(), ssd.za_grid.size(), tmpT5.nrows(), tmpT5.ncols());
   ssd.abs_vec_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
   for (Index i = 0; i < nza / 2; i++) {
-    ssd.abs_vec_data[joker, joker, nza - 1 - i, joker, joker] =
-        tmpT5[joker, joker, i, joker, joker];
+    ssd.abs_vec_data[joker, joker, nza - 1 - i, joker, joker] = tmpT5[joker, joker, i, joker, joker];
   }
 
   tmpT5 = ssd.ext_mat_data;
-  ssd.ext_mat_data.resize(tmpT5.nshelves(),
-                          tmpT5.nbooks(),
-                          ssd.za_grid.size(),
-                          tmpT5.nrows(),
-                          tmpT5.ncols());
+  ssd.ext_mat_data.resize(tmpT5.nshelves(), tmpT5.nbooks(), ssd.za_grid.size(), tmpT5.nrows(), tmpT5.ncols());
   ssd.ext_mat_data[joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT5;
   for (Index i = 0; i < nza / 2; i++) {
-    ssd.ext_mat_data[joker, joker, nza - 1 - i, joker, joker] =
-        tmpT5[joker, joker, i, joker, joker];
+    ssd.ext_mat_data[joker, joker, nza - 1 - i, joker, joker] = tmpT5[joker, joker, i, joker, joker];
   }
 
   Tensor7 tmpT7 = ssd.pha_mat_data;
@@ -446,8 +399,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           ssd.za_grid.size(),
                           tmpT7.nrows(),
                           tmpT7.ncols());
-  ssd.pha_mat_data
-      [joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
+  ssd.pha_mat_data[joker, joker, joker, joker, Range(0, nza / 2 + 1), joker, joker] = tmpT7;
 
   // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
   // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
@@ -459,16 +411,14 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // original data in both incident and scattered polar angle around 90deg "planes".
   for (Index i = 0; i < nza / 2; i++)
     for (Index j = 0; j < nza; j++)
-      ssd.pha_mat_data
-          [joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
+      ssd.pha_mat_data[joker, joker, nza - 1 - j, joker, nza - 1 - i, joker, joker] =
           tmpT7[joker, joker, j, joker, i, joker, joker];
 }
 
-void xml_io_stream<SingleScatteringData>::write(
-    std::ostream& os_xml,
-    const SingleScatteringData& ssdata,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<SingleScatteringData>::write(std::ostream&               os_xml,
+                                                const SingleScatteringData& ssdata,
+                                                bofstream*                  pbofs,
+                                                std::string_view            name) {
   XMLTag open_tag;
   XMLTag close_tag;
 
@@ -491,9 +441,9 @@ void xml_io_stream<SingleScatteringData>::write(
   close_tag.write_to_stream(os_xml);
 }
 
-void xml_io_stream<SingleScatteringData>::read(std::istream& is_xml,
+void xml_io_stream<SingleScatteringData>::read(std::istream&         is_xml,
                                                SingleScatteringData& ssdata,
-                                               bifstream* pbifs) try {
+                                               bifstream*            pbifs) try {
   XMLTag tag;
   String version;
 
@@ -512,14 +462,12 @@ void xml_io_stream<SingleScatteringData>::read(std::istream& is_xml,
   } else {
     Index ptype;
     xml_read_from_stream(is_xml, ptype, pbifs);
-    if (ptype != PTYPE_GENERAL && ptype != PTYPE_TOTAL_RND &&
-        ptype != PTYPE_AZIMUTH_RND) {
+    if (ptype != PTYPE_GENERAL && ptype != PTYPE_TOTAL_RND && ptype != PTYPE_AZIMUTH_RND) {
       std::ostringstream os;
       os << "Ptype value (" << ptype << ") is wrong."
          << "It must be \n"
          << PTYPE_TOTAL_RND << " - totally randomly oriented particles,\n"
-         << PTYPE_AZIMUTH_RND
-         << " - azimuthally randomly oriented particles, or\n"
+         << PTYPE_AZIMUTH_RND << " - azimuthally randomly oriented particles, or\n"
          << PTYPE_GENERAL << " - arbitrary oriented particles.\n";
       throw std::runtime_error(os.str());
     }
@@ -530,19 +478,16 @@ void xml_io_stream<SingleScatteringData>::read(std::istream& is_xml,
   xml_read_from_stream(is_xml, ssdata.T_grid, pbifs);
   xml_read_from_stream(is_xml, ssdata.za_grid, pbifs);
   /* Verify that we have a good coverage for the za grid */
-  if ((ssdata.za_grid[0] > 1) ||
-      ssdata.za_grid[ssdata.za_grid.size() - 1] < 179) {
+  if ((ssdata.za_grid[0] > 1) || ssdata.za_grid[ssdata.za_grid.size() - 1] < 179) {
     std::ostringstream os;
     os << "Missing data in xml-stream. Expected za_grid: [0, 180]. "
-       << "Found za_grid: [" << ssdata.za_grid[0] << ", "
-       << ssdata.za_grid[ssdata.za_grid.size() - 1] << "]";
+       << "Found za_grid: [" << ssdata.za_grid[0] << ", " << ssdata.za_grid[ssdata.za_grid.size() - 1] << "]";
     throw std::runtime_error(os.str());
   }
   xml_read_from_stream(is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream(is_xml, ssdata.pha_mat_data, pbifs);
-  if (static_cast<Size>(ssdata.pha_mat_data.nlibraries()) !=
-      ssdata.f_grid.size()) {
+  if (static_cast<Size>(ssdata.pha_mat_data.nlibraries()) != ssdata.f_grid.size()) {
     throw std::runtime_error(
         "Number of frequencies in f_grid and pha_mat_data "
         "not matching!!!");
@@ -554,20 +499,17 @@ void xml_io_stream<SingleScatteringData>::read(std::istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/SingleScatteringData");
 
-  if (version != "3" && ssdata.ptype == PTYPE_AZIMUTH_RND) {
-    ConvertAzimuthallyRandomSingleScatteringData(ssdata);
-  }
+  if (version != "3" && ssdata.ptype == PTYPE_AZIMUTH_RND) { ConvertAzimuthallyRandomSingleScatteringData(ssdata); }
 
   chk_scat_data(ssdata);
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }
 
-void xml_io_stream<ScatteringMetaData>::write(std::ostream& os,
+void xml_io_stream<ScatteringMetaData>::write(std::ostream&             os,
                                               const ScatteringMetaData& x,
-                                              bofstream* pbofs,
-                                              std::string_view name) {
+                                              bofstream*                pbofs,
+                                              std::string_view          name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -582,9 +524,7 @@ void xml_io_stream<ScatteringMetaData>::write(std::ostream& os,
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<ScatteringMetaData>::read(std::istream& is,
-                                             ScatteringMetaData& x,
-                                             bifstream* pbifs) try {
+void xml_io_stream<ScatteringMetaData>::read(std::istream& is, ScatteringMetaData& x, bifstream* pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -600,6 +540,5 @@ void xml_io_stream<ScatteringMetaData>::read(std::istream& is,
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }

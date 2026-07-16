@@ -43,11 +43,8 @@ struct [[nodiscard]] StridedRange {
   constexpr StridedRange& operator=(const StridedRange&)     = default;
   constexpr StridedRange& operator=(StridedRange&&) noexcept = default;
 
-  template <integral Offset, integral Nelem, integral Stride>
-  constexpr StridedRange(Offset i0, Nelem n, Stride d)
-      : offset(static_cast<Index>(i0)),
-        nelem(static_cast<Index>(n)),
-        stride(static_cast<Index>(d)) {}
+  template <integral Offset, integral Nelem, integral Stride> constexpr StridedRange(Offset i0, Nelem n, Stride d)
+      : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)), stride(static_cast<Index>(d)) {}
 
   [[nodiscard]] constexpr
 #if __cpp_lib_submdspan >= 202603L
@@ -56,8 +53,7 @@ struct [[nodiscard]] StridedRange {
       stdx::strided_slice<Index, Index, Index> to_strided_slice()
 #endif
           const {
-    return {
-        .offset = offset, .extent = 1 + (nelem - 1) * stride, .stride = stride};
+    return {.offset = offset, .extent = 1 + (nelem - 1) * stride, .stride = stride};
   }
 };
 
@@ -71,17 +67,14 @@ struct [[nodiscard]] Range {
   constexpr Range& operator=(const Range&)     = default;
   constexpr Range& operator=(Range&&) noexcept = default;
 
-  template <integral Offset, integral Nelem>
-  constexpr Range(Offset i0, Nelem n)
+  template <integral Offset, integral Nelem> constexpr Range(Offset i0, Nelem n)
       : offset(static_cast<Index>(i0)), nelem(static_cast<Index>(n)) {}
 
   [[nodiscard]] constexpr
 #if __cpp_lib_submdspan >= 202603L
-      std::extent_slice<Index, Index, std::integral_constant<Index, 1>>
-      to_extent_slice()
+      std::extent_slice<Index, Index, std::integral_constant<Index, 1>> to_extent_slice()
 #else
-      stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>
-      to_strided_slice()
+      stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>> to_strided_slice()
 #endif
           const {
     return {.offset = offset, .extent = nelem, .stride = {}};
@@ -91,16 +84,11 @@ struct [[nodiscard]] Range {
 struct PartialRange {
   Index n;
 
-  template <integral Offset>
-  constexpr PartialRange(Offset i) : n(static_cast<Index>(i)) {}
+  template <integral Offset> constexpr PartialRange(Offset i) : n(static_cast<Index>(i)) {}
 
-  friend constexpr Range operator|(const PartialRange& pr, Index n) {
-    return Range{pr.n, n};
-  }
+  friend constexpr Range operator|(const PartialRange& pr, Index n) { return Range{pr.n, n}; }
 
-  friend constexpr Range operator|(Index n, const PartialRange& pr) {
-    return Range{n, pr.n};
-  }
+  friend constexpr Range operator|(Index n, const PartialRange& pr) { return Range{n, pr.n}; }
 };
 
 namespace literals {
@@ -109,35 +97,27 @@ constexpr PartialRange operator""_i0(unsigned long long int i) { return i; }
 
 template <typename T>
 concept exhaustive_access_operator =
-    integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or
-    std::is_same_v<std::remove_cvref_t<T>, Range>;
+    integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or std::is_same_v<std::remove_cvref_t<T>, Range>;
 
 template <typename T>
-concept strided_access_operator =
-    std::is_same_v<std::remove_cvref_t<T>, StridedRange>;
+concept strided_access_operator = std::is_same_v<std::remove_cvref_t<T>, StridedRange>;
 
 template <typename T>
-concept access_operator =
-    exhaustive_access_operator<T> or strided_access_operator<T>;
+concept access_operator = exhaustive_access_operator<T> or strided_access_operator<T>;
 
-template <access_operator L, access_operator... Acc>
-consteval bool left_exhaustive() {
+template <access_operator L, access_operator... Acc> consteval bool left_exhaustive() {
   if constexpr (strided_access_operator<L>) {
     return false;
-  } else if constexpr (exhaustive_access_operator<L> and
-                       (std::same_as<std::remove_cvref_t<Acc>, Joker> and
-                        ...)) {
+  } else if constexpr (exhaustive_access_operator<L> and (std::same_as<std::remove_cvref_t<Acc>, Joker> and ...)) {
     return true;
   } else {
     return integral<L> and left_exhaustive<Acc...>();
   }
 }
 
-template <class T, Size N, bool is_exhaustive, access_operator... Acc>
-  requires(not std::is_reference_v<T>)
+template <class T, Size N, bool is_exhaustive, access_operator... Acc> requires(not std::is_reference_v<T>)
 struct left_mdsel {
-  static constexpr bool access_exhaustive =
-      is_exhaustive and left_exhaustive<Acc...>();
+  static constexpr bool access_exhaustive = is_exhaustive and left_exhaustive<Acc...>();
 
   static constexpr Size reduces_rank = (integral<Acc> + ...);
 
@@ -146,23 +126,19 @@ struct left_mdsel {
   using type = std::conditional_t<
       N - reduces_rank == 0,
       T&,
-      std::conditional_t<access_exhaustive,
-                         view_t<T, N - reduces_rank>,
-                         strided_view_t<T, N - reduces_rank>>>;
+      std::conditional_t<access_exhaustive, view_t<T, N - reduces_rank>, strided_view_t<T, N - reduces_rank>>>;
 };
 
-template <class T, Size N, bool is_exhaustive, access_operator... Acc>
-using left_mdsel_t = typename left_mdsel<T, N, is_exhaustive, Acc...>::type;
+template <class T, Size N, bool is_exhaustive, access_operator... Acc> using left_mdsel_t =
+    typename left_mdsel<T, N, is_exhaustive, Acc...>::type;
 
-template <Size N>
-consteval std::array<Joker, N> jokers() {
+template <Size N> consteval std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
   out.fill(joker);
   return out;
 }
 
-template <typename Acc>
-constexpr decltype(auto) to_base(Acc&& i) {
+template <typename Acc> constexpr decltype(auto) to_base(Acc&& i) {
   if constexpr (std::is_same_v<std::remove_cvref_t<Acc>, StridedRange> or
                 std::is_same_v<std::remove_cvref_t<Acc>, Range>) {
 #if __cpp_lib_submdspan >= 202603L
@@ -175,20 +151,15 @@ constexpr decltype(auto) to_base(Acc&& i) {
   }
 }
 
-template <Size N, access_operator... Acc>
-constexpr decltype(auto) acc(Acc&&... i)
-  requires(sizeof...(Acc) <= N)
-{
+template <Size N, access_operator... Acc> constexpr decltype(auto) acc(Acc&&... i) requires(sizeof...(Acc) <= N) {
   if constexpr (N == sizeof...(Acc)) {
     return std::forward_as_tuple(std::forward<Acc>(i)...);
   } else {
-    return std::tuple_cat(std::forward_as_tuple(std::forward<Acc>(i)...),
-                          jokers<N - sizeof...(Acc)>());
+    return std::tuple_cat(std::forward_as_tuple(std::forward<Acc>(i)...), jokers<N - sizeof...(Acc)>());
   }
 }
 
-template <Size N, typename Self, access_operator... Acc>
-constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
+template <Size N, typename Self, access_operator... Acc> constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
   if constexpr (any_md<Self>) {
     constexpr Size M = sizeof...(Acc);
     if constexpr (N == M) {
@@ -196,32 +167,23 @@ constexpr decltype(auto) left_sub(Self&& s, Acc&&... i) {
     } else if constexpr (N == (M + 1)) {
       return submdspan(s.base_md(), to_base(std::forward<Acc>(i))..., joker);
     } else if constexpr (N == (M + 2)) {
-      return submdspan(
-          s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker);
+      return submdspan(s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker);
     } else if constexpr (N == (M + 3)) {
-      return submdspan(
-          s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker, joker);
+      return submdspan(s.base_md(), to_base(std::forward<Acc>(i))..., joker, joker, joker);
     } else {
-      return std::apply(
-          [&s]<access_operator... AccT>(AccT&&... x) {
-            return submdspan(s.base_md(), to_base(std::forward<AccT>(x))...);
-          },
-          acc<N>(std::forward<Acc>(i)...));
+      return std::apply([&s]<access_operator... AccT>(
+                            AccT&&... x) { return submdspan(s.base_md(), to_base(std::forward<AccT>(x))...); },
+                        acc<N>(std::forward<Acc>(i)...));
     }
   } else {
     return std::apply(
-        [&s]<access_operator... AccT>(AccT&&... x) {
-          return submdspan(s, to_base(std::forward<AccT>(x))...);
-        },
+        [&s]<access_operator... AccT>(AccT&&... x) { return submdspan(s, to_base(std::forward<AccT>(x))...); },
         acc<N>(std::forward<Acc>(i)...));
   }
 }
 
 //! Create a tuple to access an index surrounded by jokers
-template <Size M, Size N, typename T>
-[[nodiscard]] constexpr auto tup(T&& i)
-  requires(M < N)
-{
+template <Size M, Size N, typename T> [[nodiscard]] constexpr auto tup(T&& i) requires(M < N) {
   constexpr Size l = M;
   constexpr Size r = N - M - 1;
   static_assert(l < N, "Left must be less than N");
@@ -230,14 +192,11 @@ template <Size M, Size N, typename T>
   constexpr bool has_right = r > 0;
 
   if constexpr (has_left and has_right) {
-    return std::tuple_cat(
-        jokers<l>(), std::forward_as_tuple(std::forward<T>(i)), jokers<r>());
+    return std::tuple_cat(jokers<l>(), std::forward_as_tuple(std::forward<T>(i)), jokers<r>());
   } else if constexpr (has_left) {
-    return std::tuple_cat(jokers<l>(),
-                          std::forward_as_tuple(std::forward<T>(i)));
+    return std::tuple_cat(jokers<l>(), std::forward_as_tuple(std::forward<T>(i)));
   } else if constexpr (has_right) {
-    return std::tuple_cat(std::forward_as_tuple(to_base(std::forward<T>(i))),
-                          jokers<r>());
+    return std::tuple_cat(std::forward_as_tuple(to_base(std::forward<T>(i))), jokers<r>());
   } else {
     static_assert(M == 0, "M must be 0");
     static_assert(N == 1, "N must be 1");
@@ -245,10 +204,8 @@ template <Size M, Size N, typename T>
   }
 }
 
-template <Size M, Size N, typename Self, access_operator Acc>
-constexpr decltype(auto) sub(Self&& s, Acc&& i)
-  requires(M < N)
-{
+template <Size M, Size N, typename Self, access_operator Acc> constexpr decltype(auto) sub(Self&& s, Acc&& i)
+    requires(M < N) {
   if constexpr (std::same_as<std::remove_cvref_t<Acc>, Joker>) {
     return std::forward<Self>(s);
   } else {
@@ -265,8 +222,7 @@ constexpr decltype(auto) sub(Self&& s, Acc&& i)
 }
 
 //! Get a positional value
-template <rankable T>
-constexpr auto mdvalue(const T& v, const std::array<Index, rank<T>()>& pos) {
+template <rankable T> constexpr auto mdvalue(const T& v, const std::array<Index, rank<T>()>& pos) {
   if constexpr (any_md<T>) {
     return v.base_md()[pos];
   } else if constexpr (ranked<T, 1>) {
@@ -294,16 +250,13 @@ concept mdvalue_type_compatible = requires(U a) {
   { mdvalue(a, mdshape(a)) } -> std::convertible_to<T>;
 };
 
-template <Size N>
-constexpr Size mdsize(const std::array<Index, N>& shape) {
+template <Size N> constexpr Size mdsize(const std::array<Index, N>& shape) {
   Size size = 1;
   for (Size i = 0; i < N; i++) size *= shape[i];
   return size;
 }
 
-template <Size N>
-constexpr std::array<Index, N> mdpos(const std::array<Index, N>& shape,
-                                     Index i) {
+template <Size N> constexpr std::array<Index, N> mdpos(const std::array<Index, N>& shape, Index i) {
   std::array<Index, N> pos{};
 
   Index n = mdsize<N>(shape);
@@ -317,10 +270,7 @@ constexpr std::array<Index, N> mdpos(const std::array<Index, N>& shape,
   return pos;
 }
 
-template <rankable T>
-constexpr auto mdvalue(const T& v,
-                       const std::array<Index, rank<T>()>& shape,
-                       const Index i) {
+template <rankable T> constexpr auto mdvalue(const T& v, const std::array<Index, rank<T>()>& shape, const Index i) {
   return mdvalue(v, mdpos(shape, i));
 }
 }  // namespace matpack
@@ -330,57 +280,47 @@ using Range                  = matpack::Range;
 using Joker                  = matpack::Joker;
 inline constexpr Joker joker = matpack::joker;
 
-template <>
-struct std::formatter<StridedRange> {
+template <> struct std::formatter<StridedRange> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const StridedRange& v, FmtContext& ctx) const {
-    return tags.format(
-        ctx, "sr["sv, v.offset, tags.sep(), v.nelem, tags.sep(), v.stride, "]"sv);
+  template <class FmtContext> FmtContext::iterator format(const StridedRange& v, FmtContext& ctx) const {
+    return tags.format(ctx, "sr["sv, v.offset, tags.sep(), v.nelem, tags.sep(), v.stride, "]"sv);
   }
 };
 
-template <>
-struct std::formatter<Range> {
+template <> struct std::formatter<Range> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Range& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Range& v, FmtContext& ctx) const {
     return tags.format(ctx, "r["sv, v.offset, tags.sep(), v.nelem, "]"sv);
   }
 };
 
-template <>
-struct std::formatter<Joker> {
+template <> struct std::formatter<Joker> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Joker&, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Joker&, FmtContext& ctx) const {
     return tags.format(ctx, "joker"sv);
   }
 };

@@ -22,12 +22,10 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      Vector y(n);
+      Vector       y(n);
       for (Index v = 0; v < n; v++) {
         y[v] = 0;
-        for (Index j = 0; j < m; j++) {
-          y[v] += A[v, j] * x[j];
-        }
+        for (Index j = 0; j < m; j++) { y[v] += A[v, j] * x[j]; }
       }
       some_results.push_back(y[0]);
     });
@@ -36,10 +34,8 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      Vector y(n);
-      for (Index v = 0; v < n; v++) {
-        y[v] = einsum<Numeric, "", "m", "m">(A[v], x);
-      }
+      Vector       y(n);
+      for (Index v = 0; v < n; v++) { y[v] = einsum<Numeric, "", "m", "m">(A[v], x); }
       some_results.push_back(y[0]);
     });
 
@@ -47,10 +43,8 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      Vector y(n);
-      for (Index v = 0; v < n; v++) {
-        y[v] = dot(A[v], x);
-      }
+      Vector       y(n);
+      for (Index v = 0; v < n; v++) { y[v] = dot(A[v], x); }
       some_results.push_back(y[0]);
     });
 
@@ -58,7 +52,7 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      Vector y(n);
+      Vector       y(n);
       mult(y, A, x);
       some_results.push_back(y[0]);
     });
@@ -67,7 +61,7 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      Vector y(n, 1);
+      Vector       y(n, 1);
       einsum<"n", "nm", "m">(y, A, x);
       some_results.push_back(y[0]);
     });
@@ -76,14 +70,14 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
-      const auto y = einsum<Vector, "n", "nm", "m">(A, x);
+      const auto   y = einsum<Vector, "n", "nm", "m">(A, x);
       some_results.push_back(y[0]);
     });
 
     ts.emplace_back("matvec-einsum-view-reverse");
     ts.back()([&] {
       const Matrix A(n, m, 1);
-      Vector x(m, 1);
+      Vector       x(m, 1);
       const Vector y(n, 1);
       einsum<"m", "nm", "n">(x, A, y);
       some_results.push_back(x[0]);
@@ -93,7 +87,7 @@ void matvec(int N) {
     ts.back()([&] {
       const Matrix A(n, m, 1);
       const Vector y(n, 1);
-      const auto x = einsum<Vector, "m", "nm", "n">(A, y);
+      const auto   x = einsum<Vector, "m", "nm", "n">(A, y);
       some_results.push_back(x[0]);
     });
   }
@@ -119,13 +113,11 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
           C[x, j] = 0;
-          for (Index k = 0; k < n; k++) {
-            C[x, j] += A[x, k] * B[k, j];
-          }
+          for (Index k = 0; k < n; k++) { C[x, j] += A[x, k] * B[k, j]; }
         }
       }
       some_results.push_back(C[0, 0]);
@@ -135,10 +127,8 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
-      for (Index x = 0; x < m; x++) {
-        einsum<"p", "n", "np">(C[x], A[x], B);
-      }
+      Matrix       C(m, p);
+      for (Index x = 0; x < m; x++) { einsum<"p", "n", "np">(C[x], A[x], B); }
       some_results.push_back(C[0, 0]);
     });
 
@@ -146,11 +136,9 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       for (Index x = 0; x < m; x++) {
-        for (Index j = 0; j < p; j++) {
-          C[x, j] = dot(A[x], B[joker, j]);
-        }
+        for (Index j = 0; j < p; j++) { C[x, j] = dot(A[x], B[joker, j]); }
       }
       some_results.push_back(C[0, 0]);
     });
@@ -159,13 +147,11 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       C = 0;
       for (Index x = 0; x < m; x++) {
         for (Index k = 0; k < n; k++) {
-          for (Index j = 0; j < p; j++) {
-            C[x, j] += A[x, k] * B[k, j];
-          }
+          for (Index j = 0; j < p; j++) { C[x, j] += A[x, k] * B[k, j]; }
         }
       }
       some_results.push_back(C[0, 0]);
@@ -175,11 +161,9 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       C = 0;
-      for (Index x = 0; x < p; x++) {
-        einsum<"m", "mn", "n">(C[joker, x], A, B[joker, x]);
-      }
+      for (Index x = 0; x < p; x++) { einsum<"m", "mn", "n">(C[joker, x], A, B[joker, x]); }
       some_results.push_back(C[0, 0]);
     });
 
@@ -187,11 +171,9 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       C = 0;
-      for (Index x = 0; x < p; x++) {
-        mult(C[joker, x], A, B[joker, x]);
-      }
+      for (Index x = 0; x < p; x++) { mult(C[joker, x], A, B[joker, x]); }
       some_results.push_back(C[0, 0]);
     });
 
@@ -199,7 +181,7 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       mult(C, A, B);
       some_results.push_back(C[0, 0]);
     });
@@ -208,7 +190,7 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      Matrix C(m, p);
+      Matrix       C(m, p);
       einsum<"mp", "mn", "np">(C, A, B);
       some_results.push_back(C[0, 0]);
     });
@@ -217,7 +199,7 @@ void matmat(int N) {
     ts.back()([&] {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
-      const auto C = einsum<Matrix, "mp", "mn", "np">(A, B);
+      const auto   C = einsum<Matrix, "mp", "mn", "np">(A, B);
       some_results.push_back(C[0, 0]);
     });
   }
@@ -244,7 +226,7 @@ void pathing(int N) {
     ts.back()([&] {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
-      Matrix C(k, l, .3);
+      Matrix       C(k, l, .3);
       C[0, 0] = 2;
       Matrix D(i, l);
       einsum<"il", "ij", "jk", "kl">(D, A, B, C);
@@ -255,7 +237,7 @@ void pathing(int N) {
     ts.back()([&] {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
-      Matrix C(k, l, .3);
+      Matrix       C(k, l, .3);
       C[0, 0] = 2;
       Matrix CB(j, l);
       Matrix D(i, l);
@@ -267,7 +249,7 @@ void pathing(int N) {
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-direct-einsum");
     ts.back()([&]() {
       const Tensor4 I(i, i, i, i, 1);
-      Matrix C(i, i, 1);
+      Matrix        C(i, i, 1);
       C[0, 0] = 2;
       Tensor4 D(i, i, i, i);
       einsum<"efgh", "ea", "fb", "abcd", "gc", "hd">(D, C, C, I, C, C);
@@ -277,7 +259,7 @@ void pathing(int N) {
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-np.einsum_path-einsum");
     ts.back()([&]() {
       const Tensor4 I(i, i, i, i, 1);
-      Matrix C(i, i, 1);
+      Matrix        C(i, i, 1);
       C[0, 0] = 2;
       Tensor4 B(i, i, i, i);
       Tensor4 D(i, i, i, i);

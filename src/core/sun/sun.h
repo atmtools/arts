@@ -70,9 +70,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
  * @author Jon Petersen
  * @date   2022-01-19
  */
-Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
-                           const Vector& f_grid,
-                           const Numeric& temperature);
+Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw, const Vector& f_grid, const Numeric& temperature);
 
 Vector3 sph2cart(const Vector3 sph);
 
@@ -84,11 +82,10 @@ Vector3 sph2cart(const Vector3 sph);
  * @param[in] surf_field The surface for the ellipsoid.
  * @return True if sun is in line of sight and spectral_rad is set.
   */
-bool set_spectral_rad_if_sun_intersection(
-    StokvecVector& spectral_rad,
-    const Sun& sun,
-    const PropagationPathPoint& propagation_path_point,
-    const SurfaceField& surf_field);
+bool set_spectral_rad_if_sun_intersection(StokvecVector&              spectral_rad,
+                                          const Sun&                  sun,
+                                          const PropagationPathPoint& propagation_path_point,
+                                          const SurfaceField&         surf_field);
 
 /** Checks if the sun is within the line of sight.
  * 
@@ -101,25 +98,19 @@ bool set_spectral_rad_if_sun_intersection(
  * @param ell [a, b]
  * @return Angle and whether or not the sun is hit
  */
-std::pair<Numeric, bool> hit_sun(const Sun& sun,
-                                 const Vector3 pos,
-                                 const Vector2 los,
-                                 const Vector2 ell);
+std::pair<Numeric, bool> hit_sun(const Sun& sun, const Vector3 pos, const Vector2 los, const Vector2 ell);
 
-template <>
-struct std::formatter<Sun> {
+template <> struct std::formatter<Sun> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Sun& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Sun& v, FmtContext& ctx) const {
     const std::string_view sep   = tags.sep();
     const std::string_view quote = tags.quote();
 
@@ -143,13 +134,11 @@ struct std::formatter<Sun> {
   }
 };
 
-template <>
-struct xml_io_stream_name<Sun> {
+template <> struct xml_io_stream_name<Sun> {
   static constexpr std::string_view name = "Sun";
 };
 
-template <>
-struct xml_io_stream_aggregate<Sun> {
+template <> struct xml_io_stream_aggregate<Sun> {
   static constexpr bool value = true;
 };
 

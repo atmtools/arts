@@ -11,15 +11,13 @@
 
 #include <stdexcept>
 
-void ray_path_zeeman_magnetic_fieldFromPath(
-    ArrayOfVector3 &ray_path_zeeman_magnetic_field,
-    const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint &atm_path) try {
+void ray_path_zeeman_magnetic_fieldFromPath(ArrayOfVector3                    &ray_path_zeeman_magnetic_field,
+                                            const ArrayOfPropagationPathPoint &ray_path,
+                                            const ArrayOfAtmPoint             &atm_path) try {
   ARTS_TIME_REPORT
 
   const Size np = atm_path.size();
-  ARTS_USER_ERROR_IF(np != ray_path.size(),
-                     "ray_path and atm_path must have the same size")
+  ARTS_USER_ERROR_IF(np != ray_path.size(), "ray_path and atm_path must have the same size")
 
   ray_path_zeeman_magnetic_field.resize(np);
 
@@ -35,9 +33,9 @@ void ray_path_zeeman_magnetic_fieldFromPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atm_pathFromPath(ArrayOfAtmPoint &atm_path,
+void atm_pathFromPath(ArrayOfAtmPoint                   &atm_path,
                       const ArrayOfPropagationPathPoint &ray_path,
-                      const AtmField &atm_field) try {
+                      const AtmField                    &atm_field) try {
   ARTS_TIME_REPORT
 
   forward_atm_path(atm_path_resize(atm_path, ray_path), ray_path, atm_field);
@@ -46,11 +44,11 @@ void atm_pathFromPath(ArrayOfAtmPoint &atm_path,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
-                            ArrayOfVector3 &freq_wind_shift_jac_path,
-                            const AscendingGrid &freq_grid,
+void freq_grid_pathFromPath(ArrayOfAscendingGrid              &freq_grid_path,
+                            ArrayOfVector3                    &freq_wind_shift_jac_path,
+                            const AscendingGrid               &freq_grid,
                             const ArrayOfPropagationPathPoint &ray_path,
-                            const ArrayOfAtmPoint &atm_path) try {
+                            const ArrayOfAtmPoint             &atm_path) try {
   ARTS_TIME_REPORT
 
   std::string error;
@@ -61,10 +59,7 @@ void freq_grid_pathFromPath(ArrayOfAscendingGrid &freq_grid_path,
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < ray_path.size(); ip++) {
     try {
-      freq_gridWindShift(freq_grid_path[ip] = freq_grid,
-                         freq_wind_shift_jac_path[ip],
-                         atm_path[ip],
-                         ray_path[ip]);
+      freq_gridWindShift(freq_grid_path[ip] = freq_grid, freq_wind_shift_jac_path[ip], atm_path[ip], ray_path[ip]);
     } catch (std::exception &e) {
 #pragma omp critical
       error = e.what();

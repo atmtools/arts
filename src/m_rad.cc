@@ -13,8 +13,8 @@
 #include <exception>
 #include <unordered_map>
 
-void spectral_rad_jacEmpty(StokvecMatrix &spectral_rad_jac,
-                           const AscendingGrid &freq_grid,
+void spectral_rad_jacEmpty(StokvecMatrix         &spectral_rad_jac,
+                           const AscendingGrid   &freq_grid,
                            const JacobianTargets &jac_targets) try {
   ARTS_TIME_REPORT
 
@@ -23,10 +23,9 @@ void spectral_rad_jacEmpty(StokvecMatrix &spectral_rad_jac,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_jacFromBackground(
-    StokvecMatrix &spectral_rad_jac,
-    const StokvecMatrix &spectral_rad_bkg_jac,
-    const TransmittanceMatrix &spectral_tramat) try {
+void spectral_rad_jacFromBackground(StokvecMatrix             &spectral_rad_jac,
+                                    const StokvecMatrix       &spectral_rad_bkg_jac,
+                                    const TransmittanceMatrix &spectral_tramat) try {
   ARTS_TIME_REPORT
 
   const auto [nf, np, nq] = spectral_tramat.shape();
@@ -47,22 +46,18 @@ void spectral_rad_jacFromBackground(
   //! Set the background radiance derivative as that which is seen after "this" swath
   for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
     const auto b = spectral_rad_bkg_jac[i];
-    auto s       = spectral_rad_jac[i];
-    std::transform(background_transmittance.begin(),
-                   background_transmittance.end(),
-                   b.begin(),
-                   s.begin(),
-                   std::multiplies<>());
+    auto       s = spectral_rad_jac[i];
+    std::transform(
+        background_transmittance.begin(), background_transmittance.end(), b.begin(), s.begin(), std::multiplies<>());
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_jacAddPathPropagation(
-    StokvecMatrix &spectral_rad_jac,
-    const StokvecTensor3 &spectral_rad_jac_path,
-    const JacobianTargets &jac_targets,
-    const AtmField &atm_field,
-    const ArrayOfPropagationPathPoint &ray_path) try {
+void spectral_rad_jacAddPathPropagation(StokvecMatrix                     &spectral_rad_jac,
+                                        const StokvecTensor3              &spectral_rad_jac_path,
+                                        const JacobianTargets             &jac_targets,
+                                        const AtmField                    &atm_field,
+                                        const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
 
   const Size nf = spectral_rad_jac_path.npages();
@@ -72,8 +67,7 @@ void spectral_rad_jacAddPathPropagation(
 
   jac_targets.throwing_check(nx);
 
-  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac) or
-                         ray_path.size() != np or
+  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac) or ray_path.size() != np or
                          not same_shape({nf, np, nt}, spectral_rad_jac_path),
                      R"(Mismatched input sizes:
 
@@ -98,27 +92,22 @@ ray_path.size()               : [{}] [np]
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jac_targets.atm) {
-    ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type),
-                       "No {} in atm_field but in jac_targets",
-                       atm_block.type)
+    ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type), "No {} in atm_field but in jac_targets", atm_block.type)
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto local = spectral_rad_jac_path[joker, ip, atm_block.target_pos];
+      const auto local   = spectral_rad_jac_path[joker, ip, atm_block.target_pos];
 
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
           assert(i < static_cast<Size>(nx));
           auto sr = spectral_rad_jac[i];
-          std::transform(
-              local.begin(),
-              local.end(),
-              sr.begin(),
-              sr.begin(),
-              [x = w.second](const Stokvec &a, const Stokvec &b) -> Stokvec {
-                return fma(x, a, b);
-              });
+          std::transform(local.begin(),
+                         local.end(),
+                         sr.begin(),
+                         sr.begin(),
+                         [x = w.second](const Stokvec &a, const Stokvec &b) -> Stokvec { return fma(x, a, b); });
         }
       }
     }
@@ -126,57 +115,51 @@ ray_path.size()               : [{}] [np]
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_transform_operatorSet(
-    SpectralRadianceTransformOperator &spectral_rad_transform_operator,
-    const SpectralRadianceUnitType &x) try {
+void spectral_rad_transform_operatorSet(SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+                                        const SpectralRadianceUnitType    &x) try {
   ARTS_TIME_REPORT
 
   spectral_rad_transform_operator = SpectralRadianceTransformOperator(x);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radApplyUnit(StokvecVector &spectral_rad,
-                           StokvecMatrix &spectral_rad_jac,
-                           const AscendingGrid &freq_grid,
-                           const PropagationPathPoint &ray_point,
-                           const SpectralRadianceTransformOperator
-                               &spectral_rad_transform_operator) try {
+void spectral_radApplyUnit(StokvecVector                           &spectral_rad,
+                           StokvecMatrix                           &spectral_rad_jac,
+                           const AscendingGrid                     &freq_grid,
+                           const PropagationPathPoint              &ray_point,
+                           const SpectralRadianceTransformOperator &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
   if (spectral_rad_jac.empty()) spectral_rad_jac.resize(0, freq_grid.size());
 
-  spectral_rad_transform_operator(
-      spectral_rad, spectral_rad_jac, freq_grid, ray_point);
+  spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radApplyForwardUnit(StokvecVector &spectral_rad,
-                                  const AscendingGrid &freq_grid,
-                                  const PropagationPathPoint &ray_point,
-                                  const SpectralRadianceTransformOperator
-                                      &spectral_rad_transform_operator) try {
+void spectral_radApplyForwardUnit(StokvecVector                           &spectral_rad,
+                                  const AscendingGrid                     &freq_grid,
+                                  const PropagationPathPoint              &ray_point,
+                                  const SpectralRadianceTransformOperator &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
   StokvecMatrix spectral_rad_jac(0, freq_grid.size());
 
-  spectral_rad_transform_operator(
-      spectral_rad, spectral_rad_jac, freq_grid, ray_point);
+  spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_jacAddSensorJacobianPerturbations(
-    const Workspace &ws,
-    StokvecMatrix &spectral_rad_jac,
-    const StokvecVector &spectral_rad,
-    const ArrayOfSensorObsel &measurement_sensor,
-    const AscendingGrid &freq_grid,
-    const JacobianTargets &jac_targets,
-    const Vector3 &pos,
-    const Vector2 &los,
-    const AtmField &atm_field,
-    const SurfaceField &surf_field,
-    const SubsurfaceField &subsurf_field,
-    const Agenda &spectral_rad_observer_agenda) try {
+void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws,
+                                                    StokvecMatrix            &spectral_rad_jac,
+                                                    const StokvecVector      &spectral_rad,
+                                                    const ArrayOfSensorObsel &measurement_sensor,
+                                                    const AscendingGrid      &freq_grid,
+                                                    const JacobianTargets    &jac_targets,
+                                                    const Vector3            &pos,
+                                                    const Vector2            &los,
+                                                    const AtmField           &atm_field,
+                                                    const SurfaceField       &surf_field,
+                                                    const SubsurfaceField    &subsurf_field,
+                                                    const Agenda             &spectral_rad_observer_agenda) try {
   ARTS_TIME_REPORT
 
   /*
@@ -195,18 +178,16 @@ void spectral_rad_jacAddSensorJacobianPerturbations(
   */
   if (jac_targets.sensor.empty()) return;
 
-  ARTS_USER_ERROR_IF(
-      spectral_rad.size() != freq_grid.size(),
-      R"(spectral_rad must have same size as element frequency grid
+  ARTS_USER_ERROR_IF(spectral_rad.size() != freq_grid.size(),
+                     R"(spectral_rad must have same size as element frequency grid
 
 spectral_rad.size() = {},
 freq_grid.size()    = {}
 )",
-      spectral_rad.size(),
-      freq_grid.size())
+                     spectral_rad.size(),
+                     freq_grid.size())
 
-  ARTS_USER_ERROR_IF(not same_shape({jac_targets.x_size(), freq_grid.size()},
-                                    spectral_rad_jac),
+  ARTS_USER_ERROR_IF(not same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac),
                      R"(spectral_rad_jac must be x-grid times frequency grid
 
 spectral_rad_jac.shape() = {:B,},
@@ -217,15 +198,12 @@ freq_grid.size()         = {}
                      jac_targets.x_size(),
                      freq_grid.size())
 
-  const JacobianTargets jac_targets_empty{};
-  StokvecMatrix spectral_rad_jac_empty{};
+  const JacobianTargets       jac_targets_empty{};
+  StokvecMatrix               spectral_rad_jac_empty{};
   ArrayOfPropagationPathPoint ray_path{};
 
   StokvecVector dsrad;
-  auto call = [&](const AscendingGrid &freq_grid_2,
-                  const Vector3 &pos2,
-                  const Vector2 &los2,
-                  const Numeric d) {
+  auto call = [&](const AscendingGrid &freq_grid_2, const Vector3 &pos2, const Vector2 &los2, const Numeric d) {
     spectral_rad_observer_agendaExecute(ws,
                                         dsrad,
                                         spectral_rad_jac_empty,
@@ -250,13 +228,12 @@ freq_grid.size()         = {}
 
   bool find_any = false;
   for (auto &target : jac_targets.sensor) {
-    ARTS_USER_ERROR_IF(measurement_sensor.size() <=
-                           static_cast<Size>(target.type.measurement_elem),
+    ARTS_USER_ERROR_IF(measurement_sensor.size() <= static_cast<Size>(target.type.measurement_elem),
                        "Sensor element out of bounds");
 
-    auto &elem      = measurement_sensor[target.type.measurement_elem];
-    auto m          = spectral_rad_jac[target.target_pos];
-    const Numeric d = target.d;
+    auto         &elem = measurement_sensor[target.type.measurement_elem];
+    auto          m    = spectral_rad_jac[target.target_pos];
+    const Numeric d    = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
     const Index iposlos = elem.find(pos, los);
@@ -267,14 +244,12 @@ freq_grid.size()         = {}
 
     using enum SensorKeyType;
     switch (target.type.type) {
-      case freq:
-        call({b, e, [d](auto x) { return x + d; }}, pos, los, d);
-        break;
-      case zen: call(x, pos, {los[0] + d, los[1]}, d); break;
-      case azi: call(x, pos, {los[0], los[1] + d}, d); break;
-      case alt: call(x, {pos[0] + d, pos[1], pos[2]}, los, d); break;
-      case lat: call(x, {pos[0], pos[1] + d, pos[2]}, los, d); break;
-      case lon: call(x, {pos[0], pos[1], pos[2] + d}, los, d); break;
+      case freq: call({b, e, [d](auto x) { return x + d; }}, pos, los, d); break;
+      case zen:  call(x, pos, {los[0] + d, los[1]}, d); break;
+      case azi:  call(x, pos, {los[0], los[1] + d}, d); break;
+      case alt:  call(x, {pos[0] + d, pos[1], pos[2]}, los, d); break;
+      case lat:  call(x, {pos[0], pos[1] + d, pos[2]}, los, d); break;
+      case lon:  call(x, {pos[0], pos[1], pos[2] + d}, los, d); break;
     }
 
     m += dsrad;
@@ -299,18 +274,17 @@ location and the sensor element will not be found.
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-void low_memory(
-    const Workspace &ws,
-    Vector &measurement_vec,
-    Matrix &measurement_jac,
-    const ArrayOfSensorObsel &measurement_sensor,
-    const JacobianTargets &jac_targets,
-    const AtmField &atm_field,
-    const SurfaceField &surf_field,
-    const SubsurfaceField &subsurf_field,
-    const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
-    const Agenda &spectral_rad_observer_agenda,
-    const SensorSimulations &simulations) {
+void low_memory(const Workspace                         &ws,
+                Vector                                  &measurement_vec,
+                Matrix                                  &measurement_jac,
+                const ArrayOfSensorObsel                &measurement_sensor,
+                const JacobianTargets                   &jac_targets,
+                const AtmField                          &atm_field,
+                const SurfaceField                      &surf_field,
+                const SubsurfaceField                   &subsurf_field,
+                const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+                const Agenda                            &spectral_rad_observer_agenda,
+                const SensorSimulations                 &simulations) {
   ARTS_TIME_REPORT
 
   const Size N = simulations.size();
@@ -321,12 +295,12 @@ void low_memory(
 #pragma omp parallel for schedule(dynamic) if (arts_omp_parallel(-1, N > 1))
   for (Size i = 0; i < N; i++) {
     try {
-      const Size ip         = simulations[i].iposlos;
+      const Size  ip        = simulations[i].iposlos;
       const auto &freq_grid = simulations[i].freq_grid;
       const auto &poslos    = simulations[i].poslos_grid[ip];
 
-      StokvecVector spectral_rad;
-      StokvecMatrix spectral_rad_jac;
+      StokvecVector               spectral_rad;
+      StokvecMatrix               spectral_rad_jac;
       ArrayOfPropagationPathPoint ray_path;
 
       spectral_rad_observer_agendaExecute(ws,
@@ -343,8 +317,7 @@ void low_memory(
                                           spectral_rad_observer_agenda);
 
       ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
-      spectral_rad_transform_operator(
-          spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
+      spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
 
 #pragma omp critical
       for (Size iv = 0; iv < measurement_sensor.size(); ++iv) {
@@ -357,28 +330,24 @@ void low_memory(
       }
     } catch (const std::exception &e) {
 #pragma omp critical
-      if (error.empty()) {
-        error = std::format(
-            "Error in unflattening data for index {}: {}\n", i, e.what());
-      }
+      if (error.empty()) { error = std::format("Error in unflattening data for index {}: {}\n", i, e.what()); }
     }
   }
 
   ARTS_USER_ERROR_IF(not error.empty(), "Errors occurred:\n{:}", error);
 }
 
-void high_performance(
-    const Workspace &ws,
-    Vector &measurement_vec,
-    Matrix &measurement_jac,
-    const ArrayOfSensorObsel &measurement_sensor,
-    const JacobianTargets &jac_targets,
-    const AtmField &atm_field,
-    const SurfaceField &surf_field,
-    const SubsurfaceField &subsurf_field,
-    const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
-    const Agenda &spectral_rad_observer_agenda,
-    const SensorSimulations &simulations) {
+void high_performance(const Workspace                         &ws,
+                      Vector                                  &measurement_vec,
+                      Matrix                                  &measurement_jac,
+                      const ArrayOfSensorObsel                &measurement_sensor,
+                      const JacobianTargets                   &jac_targets,
+                      const AtmField                          &atm_field,
+                      const SurfaceField                      &surf_field,
+                      const SubsurfaceField                   &subsurf_field,
+                      const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+                      const Agenda                            &spectral_rad_observer_agenda,
+                      const SensorSimulations                 &simulations) {
   ARTS_TIME_REPORT
 
   const Size N = simulations.size();
@@ -387,16 +356,14 @@ void high_performance(
 
   std::unordered_map<
       const AscendingGrid *,
-      std::unordered_map<const SensorPosLosVector *,
-                         std::vector<std::pair<StokvecVector, StokvecMatrix>>>>
+      std::unordered_map<const SensorPosLosVector *, std::vector<std::pair<StokvecVector, StokvecMatrix>>>>
       cache;
 
   for (Size i = 0; i < N; i++) {
     const Size ip = simulations[i].iposlos;
 
     if (ip == 0) {
-      cache[&simulations[i].freq_grid][&simulations[i].poslos_grid].resize(
-          simulations[i].poslos_grid.size());
+      cache[&simulations[i].freq_grid][&simulations[i].poslos_grid].resize(simulations[i].poslos_grid.size());
     }
   }
 
@@ -406,13 +373,12 @@ void high_performance(
 #pragma omp parallel for schedule(dynamic) if (arts_omp_parallel(-1, N > 1))
   for (Size i = 0; i < N; i++) {
     try {
-      const Size ip          = simulations[i].iposlos;
+      const Size  ip         = simulations[i].iposlos;
       const auto &freq_grid  = simulations[i].freq_grid;
       const auto &poslos_vec = simulations[i].poslos_grid;
 
       ArrayOfPropagationPathPoint ray_path;
-      auto &[spectral_rad, spectral_rad_jac] =
-          cache.at(&freq_grid).at(&poslos_vec).at(ip);
+      auto &[spectral_rad, spectral_rad_jac] = cache.at(&freq_grid).at(&poslos_vec).at(ip);
 
       spectral_rad_observer_agendaExecute(ws,
                                           spectral_rad,
@@ -428,14 +394,10 @@ void high_performance(
                                           spectral_rad_observer_agenda);
 
       ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
-      spectral_rad_transform_operator(
-          spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
+      spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
     } catch (const std::exception &e) {
 #pragma omp critical
-      if (error.empty()) {
-        error = std::format(
-            "Error in unflattening data for index {}: {}\n", i, e.what());
-      }
+      if (error.empty()) { error = std::format("Error in unflattening data for index {}: {}\n", i, e.what()); }
     }
   }
 
@@ -445,8 +407,7 @@ void high_performance(
   for (Size iv = 0; iv < M; ++iv) {
     const SensorObsel &obsel = measurement_sensor[iv];
 
-    auto &data =
-        cache.at(obsel.f_grid_ptr().get()).at(obsel.poslos_grid_ptr().get());
+    auto &data = cache.at(obsel.f_grid_ptr().get()).at(obsel.poslos_grid_ptr().get());
 
     for (auto &sparse_weights : obsel.weight_matrix()) {
       const Size ip    = sparse_weights.irow;
@@ -458,26 +419,23 @@ void high_performance(
 
       auto jac   = measurement_jac[iv];
       auto srjac = spectral_rad_jac[joker, ifreq];
-      for (Size ij = 0; ij < J; ij++) {
-        jac[ij] += dot(sparse_weights.data, srjac[ij]);
-      }
+      for (Size ij = 0; ij < J; ij++) { jac[ij] += dot(sparse_weights.data, srjac[ij]); }
     }
   }
 }
 }  // namespace
 
-void measurement_vecFromSensor(
-    const Workspace &ws,
-    Vector &measurement_vec,
-    Matrix &measurement_jac,
-    const ArrayOfSensorObsel &measurement_sensor,
-    const JacobianTargets &jac_targets,
-    const AtmField &atm_field,
-    const SurfaceField &surf_field,
-    const SubsurfaceField &subsurf_field,
-    const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
-    const Agenda &spectral_rad_observer_agenda,
-    const String &kernel) try {
+void measurement_vecFromSensor(const Workspace                         &ws,
+                               Vector                                  &measurement_vec,
+                               Matrix                                  &measurement_jac,
+                               const ArrayOfSensorObsel                &measurement_sensor,
+                               const JacobianTargets                   &jac_targets,
+                               const AtmField                          &atm_field,
+                               const SurfaceField                      &surf_field,
+                               const SubsurfaceField                   &subsurf_field,
+                               const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+                               const Agenda                            &spectral_rad_observer_agenda,
+                               const String                            &kernel) try {
   ARTS_TIME_REPORT
 
   measurement_vec.resize(measurement_sensor.size());

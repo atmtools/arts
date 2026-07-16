@@ -75,16 +75,13 @@ struct Sparse {
 
   // Insert functions
   void insert_row(Index r, Vector v);
-  void insert_elements(Index nnz,
-                       const ArrayOfIndex& rowind,
-                       const ArrayOfIndex& colind,
-                       StridedConstVectorView data);
+  void insert_elements(Index nnz, const ArrayOfIndex& rowind, const ArrayOfIndex& colind, StridedConstVectorView data);
 
   // Resize function:
   void resize(Index r, Index c);
 
   // Member functions:
-  [[nodiscard]] bool empty() const;
+  [[nodiscard]] bool  empty() const;
   [[nodiscard]] Index nrows() const;
   [[nodiscard]] Index ncols() const;
   [[nodiscard]] Index nnz() const;
@@ -108,8 +105,8 @@ struct Sparse {
 
   // Index Operators:
   [[nodiscard]] Numeric& rw(Index r, Index c);
-  [[nodiscard]] Numeric ro(Index r, Index c) const;
-  [[nodiscard]] Numeric operator[](Index r, Index c) const;
+  [[nodiscard]] Numeric  ro(Index r, Index c) const;
+  [[nodiscard]] Numeric  operator[](Index r, Index c) const;
 
   // Arithmetic operators:
   Sparse& operator+=(const Sparse& x);
@@ -123,13 +120,11 @@ struct Sparse {
   explicit operator Matrix() const;
 
   // Matrix data access
-  void list_elements(Vector& values,
-                     ArrayOfIndex& row_indices,
-                     ArrayOfIndex& column_indices) const;
+  void list_elements(Vector& values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const;
 
   Numeric* get_element_pointer();
-  int* get_column_index_pointer();
-  int* get_row_start_pointer();
+  int*     get_column_index_pointer();
+  int*     get_row_start_pointer();
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
@@ -143,17 +138,11 @@ void abs(Sparse& A, const Sparse& B);
 
 void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
 
-void transpose_mult(StridedVectorView y,
-                    const Sparse& M,
-                    StridedConstVectorView x);
+void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x);
 
-void mult(StridedMatrixView A,
-          const Sparse& B,
-          const StridedConstMatrixView& C);
+void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C);
 
-void mult(StridedMatrixView A,
-          const StridedConstMatrixView& B,
-          const Sparse& C);
+void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C);
 
 void mult(Sparse& A, const Sparse& B, const Sparse& C);
 
@@ -175,28 +164,24 @@ void id_mat(Sparse& A);
     @author Patrick Eriksson 
     @date   2009-10-16
  */
-Range get_rowindex_for_mblock(const Sparse& sensor_response,
-                              const Index& imblock);
+Range get_rowindex_for_mblock(const Sparse& sensor_response, const Index& imblock);
 
 /** An array of sparse matrices. */
 using ArrayOfSparse = Array<Sparse>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a);
 
-template <>
-struct std::formatter<Sparse> {
+template <> struct std::formatter<Sparse> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const Sparse& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const Sparse& v, FmtContext& ctx) const {
     using Iter = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
 
     std::string_view first = tags.sep();
@@ -218,14 +203,10 @@ struct std::formatter<Sparse> {
   }
 };
 
-template <>
-struct xml_io_stream<Sparse> {
+template <> struct xml_io_stream<Sparse> {
   static constexpr std::string_view type_name = "Sparse"sv;
 
-  static void write(std::ostream& os,
-                    const Sparse& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const Sparse& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, Sparse& x, bifstream* pbifs = nullptr);
 };

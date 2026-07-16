@@ -11,6 +11,7 @@
 */
 
 #include "bofstream.h"
+
 #include <debug.h>
 
 void bofstream::seek(long spos, Offset offs) {
@@ -20,15 +21,9 @@ void bofstream::seek(long spos, Offset offs) {
   }
 
   switch (offs) {
-    case Set:
-      this->seekp(spos, std::ios::beg);
-      break;
-    case Add:
-      this->seekp(spos, std::ios::cur);
-      break;
-    case End:
-      this->seekp(spos, std::ios::end);
-      break;
+    case Set: this->seekp(spos, std::ios::beg); break;
+    case Add: this->seekp(spos, std::ios::cur); break;
+    case End: this->seekp(spos, std::ios::end); break;
   }
 }
 
@@ -43,14 +38,14 @@ std::streampos bofstream::pos() {
 void bofstream::putByte(bofstream::Byte b) {
   if (!this->good()) {
     err |= NotOpen;
-    ARTS_USER_ERROR ("Cannot open binary file for writing");
+    ARTS_USER_ERROR("Cannot open binary file for writing");
     return;
   }
 
   this->put(b);
   if (this->bad()) {
     err |= Fatal;
-    ARTS_USER_ERROR ("Writing to binary file failed");
+    ARTS_USER_ERROR("Writing to binary file failed");
   }
 }
 

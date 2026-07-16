@@ -12,20 +12,18 @@
 namespace matpack {
 struct ascending_t {
   consteval static std::string_view name() { return "ascending"sv; }
-  constexpr static bool operator()(Numeric a, Numeric b) { return a <= b; }
+  constexpr static bool             operator()(Numeric a, Numeric b) { return a <= b; }
 };
 
 struct descending_t {
   consteval static std::string_view name() { return "descending"sv; }
-  constexpr static bool operator()(Numeric a, Numeric b) { return a >= b; }
+  constexpr static bool             operator()(Numeric a, Numeric b) { return a >= b; }
 };
 
 template <typename T>
-concept sorting_t =
-    std::same_as<T, ascending_t> or std::same_as<T, descending_t>;
+concept sorting_t = std::same_as<T, ascending_t> or std::same_as<T, descending_t>;
 
-template <class Compare>
-class grid_t {
+template <class Compare> class grid_t {
   static_assert(sorting_t<Compare>, "Must be a sorting type");
 
   Vector x;
@@ -35,31 +33,24 @@ class grid_t {
  public:
   using value_type = Numeric;
 
-  template <stdr::forward_range T>
-  static constexpr bool is_sorted(const T& x)
-    requires std::
-        invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>>
-  {
+  template <stdr::forward_range T> static constexpr bool is_sorted(const T& x)
+      requires std::invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>> {
     return stdr::is_sorted(x, Compare::operator());
   }
 
-  template <stdr::forward_range T>
-  static constexpr void assert_sorted(const T& x)
-    requires std::
-        invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>>
-  {
+  template <stdr::forward_range T> static constexpr void assert_sorted(const T& x)
+      requires std::invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>> {
     if (not is_sorted(x)) {
-      throw std::runtime_error(std::format(
-          "Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
+      throw std::runtime_error(std::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
     }
   }
 
   grid_t(Index N) : x(N) {
-    constexpr Numeric mi        = std::numeric_limits<Numeric>::lowest();
-    constexpr Numeric ma        = std::numeric_limits<Numeric>::max();
-    constexpr bool is_ascending = Compare{}(mi, ma);
-    constexpr Numeric val0      = is_ascending ? mi : ma;
-    constexpr Numeric val1      = is_ascending ? ma : mi;
+    constexpr Numeric mi           = std::numeric_limits<Numeric>::lowest();
+    constexpr Numeric ma           = std::numeric_limits<Numeric>::max();
+    constexpr bool    is_ascending = Compare{}(mi, ma);
+    constexpr Numeric val0         = is_ascending ? mi : ma;
+    constexpr Numeric val1         = is_ascending ? ma : mi;
 
     Numeric val{val0};
     for (Index i = 0; i < N; i++) {
@@ -73,15 +64,12 @@ class grid_t {
 
   grid_t(std::initializer_list<Numeric> il) : x(il) { assert_sorted(x); }
 
-  template <typename... Ts>
-  explicit constexpr grid_t(Ts&&... ts)
-    requires std::constructible_from<Vector, Ts...>
+  template <typename... Ts> explicit constexpr grid_t(Ts&&... ts) requires std::constructible_from<Vector, Ts...>
       : x(Vector{std::forward<Ts>(ts)...}) {
     assert_sorted(x);
   }
 
-  template <class Iterator, class Func>
-  constexpr grid_t(const Iterator& begin, const Iterator& end, Func fun)
+  template <class Iterator, class Func> constexpr grid_t(const Iterator& begin, const Iterator& end, Func fun)
       : x(std::distance(begin, end)) {
     std::transform(begin, end, x.begin(), fun);
     assert_sorted(x);
@@ -95,8 +83,7 @@ class grid_t {
     return *this;
   }
 
-  template <typename T>
-  constexpr grid_t& operator=(const T& in) {
+  template <typename T> constexpr grid_t& operator=(const T& in) {
     assert_sorted(in);
     x = in;
     return *this;
@@ -109,89 +96,69 @@ class grid_t {
   constexpr grid_t& operator=(const grid_t&) = default;
 
   [[nodiscard]] constexpr const Vector& vec() const { return x; }
-  [[nodiscard]] constexpr Vector&& rvec() && { return std::move(x); }
-  constexpr operator Vector() && { return std::move(*this).rvec(); }
-  constexpr operator const Vector&() const { return vec(); }
-  constexpr operator ConstVectorView() const { return vec(); }
-  constexpr operator StridedConstVectorView() const { return vec(); }
-  constexpr operator std::span<const Numeric>() const { return vec(); }
+  [[nodiscard]] constexpr Vector&&      rvec() && { return std::move(x); }
+  constexpr                             operator Vector() && { return std::move(*this).rvec(); }
+  constexpr                             operator const Vector&() const { return vec(); }
+  constexpr                             operator ConstVectorView() const { return vec(); }
+  constexpr                             operator StridedConstVectorView() const { return vec(); }
+  constexpr                             operator std::span<const Numeric>() const { return vec(); }
 
-  template <access_operator Op>
-  [[nodiscard]] constexpr const Numeric& operator[](const Op& op) const {
-    return x[op];
-  }
+  template <access_operator Op> [[nodiscard]] constexpr const Numeric& operator[](const Op& op) const { return x[op]; }
 
-  template <typename Self>
-  [[nodiscard]] constexpr auto base_md(this Self&& self) {
+  template <typename Self> [[nodiscard]] constexpr auto base_md(this Self&& self) {
     return ConstVectorView{std::forward<Self>(self).x}.base_md();
   }
 
-  [[nodiscard]] constexpr auto size() const { return x.size(); }
-  [[nodiscard]] constexpr auto begin() const { return x.begin(); }
-  [[nodiscard]] constexpr auto end() const { return x.end(); }
-  [[nodiscard]] constexpr auto empty() const { return x.empty(); }
+  [[nodiscard]] constexpr auto    size() const { return x.size(); }
+  [[nodiscard]] constexpr auto    begin() const { return x.begin(); }
+  [[nodiscard]] constexpr auto    end() const { return x.end(); }
+  [[nodiscard]] constexpr auto    empty() const { return x.empty(); }
   [[nodiscard]] constexpr Numeric front() const { return x.front(); }
   [[nodiscard]] constexpr Numeric back() const { return x.back(); }
-  [[nodiscard]] constexpr auto elem_begin() const { return x.elem_begin(); }
-  [[nodiscard]] constexpr auto elem_end() const { return x.elem_end(); }
+  [[nodiscard]] constexpr auto    elem_begin() const { return x.elem_begin(); }
+  [[nodiscard]] constexpr auto    elem_end() const { return x.elem_end(); }
 
-  [[nodiscard]] constexpr std::array<Index, 1> shape() const {
-    return x.shape();
-  }
+  [[nodiscard]] constexpr std::array<Index, 1> shape() const { return x.shape(); }
 
-  using lagsorter = std::conditional_t<ascends,
-                                       lagrange_interp::ascending_grid_t,
-                                       lagrange_interp::descending_grid_t>;
+  using lagsorter = std::conditional_t<ascends, lagrange_interp::ascending_grid_t, lagrange_interp::descending_grid_t>;
 
-  template <Size N, lagrange_interp::grid_transformer transform>
-  [[nodiscard]] auto lag(Numeric xi) const {
+  template <Size N, lagrange_interp::grid_transformer transform> [[nodiscard]] auto lag(Numeric xi) const {
     return lagrange_interp::lag_t<N, transform>{x, xi, lagsorter{}};
   }
 
-  template <lagrange_interp::grid_transformer transform>
-  [[nodiscard]] auto lag(Numeric xi, Size N) const {
+  template <lagrange_interp::grid_transformer transform> [[nodiscard]] auto lag(Numeric xi, Size N) const {
     return lagrange_interp::lag_t<-1, transform>{x, xi, N, lagsorter{}};
   }
 
   template <Size N, lagrange_interp::grid_transformer transform>
   [[nodiscard]] auto lag(std::span<const Numeric> xi,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") const {
-    return lagrange_interp::make_lags<N, transform>(
-        x, xi, extrapolation_limit, info);
+                         Numeric                  extrapolation_limit = 0.5,
+                         const char*              info                = "UNNAMED") const {
+    return lagrange_interp::make_lags<N, transform>(x, xi, extrapolation_limit, info);
   }
 
-  template <lagrange_interp::grid_transformer transform>
-  [[nodiscard]] auto lag(std::span<const Numeric> xi,
-                         Size N,
-                         Numeric extrapolation_limit = 0.5,
-                         const char* info            = "UNNAMED") const {
-    return lagrange_interp::make_lags<transform>(
-        x, xi, N, extrapolation_limit, info);
+  template <lagrange_interp::grid_transformer transform> [[nodiscard]] auto lag(std::span<const Numeric> xi,
+                                                                                Size                     N,
+                                                                                Numeric     extrapolation_limit = 0.5,
+                                                                                const char* info = "UNNAMED") const {
+    return lagrange_interp::make_lags<transform>(x, xi, N, extrapolation_limit, info);
   }
 
   void clear() { x.clear(); }
 
-  template <stdr::forward_range T>
-  void extend(T&& other)
-    requires std::invocable<Compare, stdr::range_value_t<T>, Numeric> and
-             std::convertible_to<stdr::range_value_t<T>, Numeric>
-  {
+  template <stdr::forward_range T> void extend(T&& other)
+      requires std::invocable<Compare, stdr::range_value_t<T>, Numeric> and
+               std::convertible_to<stdr::range_value_t<T>, Numeric> {
     if (stdr::empty(other)) return;
 
     if (not is_sorted(other)) {
       throw std::runtime_error(
-          std::format("Expected {} sort.  Input list:\n{:B,}",
-                      Compare::name(),
-                      Vector{std::from_range, other}));
+          std::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), Vector{std::from_range, other}));
     }
 
     if (not is_sorted(std::array{back(), *stdr::begin(other)})) {
-      throw std::runtime_error(
-          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}",
-                      Compare::name(),
-                      x,
-                      Vector{std::from_range, other}));
+      throw std::runtime_error(std::format(
+          "Expected {} sort.  Input list:\n{:B,}\nNew value: {}", Compare::name(), x, Vector{std::from_range, other}));
     }
 
     x.append_range(std::forward<T>(other));
@@ -200,24 +167,19 @@ class grid_t {
   void push_back(Numeric value) {
     if (not is_sorted(std::array{back(), value})) {
       throw std::runtime_error(
-          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}",
-                      Compare::name(),
-                      x,
-                      value));
+          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}", Compare::name(), x, value));
     }
     x.push_back(value);
   }
 };
 
 template <sorting_t C1, sorting_t C2>
-[[nodiscard]] constexpr bool operator==(const grid_t<C1>& x,
-                                        const grid_t<C2>& y) {
+[[nodiscard]] constexpr bool operator==(const grid_t<C1>& x, const grid_t<C2>& y) {
   return x.vec() == y.vec();
 }
 
 template <sorting_t C1, sorting_t C2>
-[[nodiscard]] constexpr bool operator!=(const grid_t<C1>& x,
-                                        const grid_t<C2>& y) {
+[[nodiscard]] constexpr bool operator!=(const grid_t<C1>& x, const grid_t<C2>& y) {
   return x.vec() != y.vec();
 }
 
@@ -246,21 +208,15 @@ using AscendingGrid        = matpack::grid_t<matpack::ascending_t>;
 using DescendingGrid       = matpack::grid_t<matpack::descending_t>;
 using ArrayOfAscendingGrid = std::vector<AscendingGrid>;
 
-template <matpack::sorting_t Compare>
-struct std::formatter<matpack::grid_t<Compare>> {
+template <matpack::sorting_t Compare> struct std::formatter<matpack::grid_t<Compare>> {
   std::formatter<matpack::strided_view_t<const Numeric, 1>> fmt;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return fmt.inner_fmt(); }
   [[nodiscard]] constexpr auto& inner_fmt() const { return fmt.inner_fmt(); }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
-    return fmt.parse(ctx);
-  }
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) { return fmt.parse(ctx); }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const matpack::grid_t<Compare>& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const matpack::grid_t<Compare>& v, FmtContext& ctx) const {
     return fmt.format(v, ctx);
   }
 };

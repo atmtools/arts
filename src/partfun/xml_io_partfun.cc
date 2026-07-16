@@ -8,9 +8,7 @@
   \param data    PartitionFunctions::Data return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_io_stream<PartitionFunctionsData>::read(std::istream& is_xml,
-                                                 PartitionFunctionsData& data,
-                                                 bifstream* pbifs) {
+void xml_io_stream<PartitionFunctionsData>::read(std::istream& is_xml, PartitionFunctionsData& data, bifstream* pbifs) {
   XMLTag tag;
 
   tag.read_from_stream(is_xml);
@@ -33,13 +31,12 @@ void xml_io_stream<PartitionFunctionsData>::read(std::istream& is_xml,
  * \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  * \param name    Optional name attribute
  */
-void xml_io_stream<PartitionFunctionsData>::write(
-    std::ostream& os_xml,
-    const PartitionFunctionsData& data,
-    bofstream* pbofs,
-    std::string_view name) {
-  XMLTag open_tag;
-  XMLTag close_tag;
+void xml_io_stream<PartitionFunctionsData>::write(std::ostream&                 os_xml,
+                                                  const PartitionFunctionsData& data,
+                                                  bofstream*                    pbofs,
+                                                  std::string_view              name) {
+  XMLTag             open_tag;
+  XMLTag             close_tag;
   std::ostringstream v;
 
   open_tag.name = type_name;

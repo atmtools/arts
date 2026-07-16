@@ -63,7 +63,7 @@ using AntennaPatternField = matpack::gridded_data_t<Numeric, ZenGrid, AziGrid>;
 
 struct GriddedAntennaPattern : AntennaPattern {
   AntennaPatternField data;  // center at [0, 0]
-  Stokvec weight{1.0, 0.0, 0.0, 0.0};
+  Stokvec             weight{1.0, 0.0, 0.0, 0.0};
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
                                  const Vector3& pos,
@@ -80,10 +80,7 @@ struct GaussianAntenna final : GriddedAntennaPattern {
   GaussianAntenna(GaussianAntenna&&)                 = default;
   GaussianAntenna& operator=(GaussianAntenna&&)      = default;
 
-  GaussianAntenna(ZenGrid grid,
-                  Numeric std,
-                  Size azi_grid_size = 2,
-                  Stokvec weight     = {1.0, 0.0, 0.0, 0.0});
+  GaussianAntenna(ZenGrid grid, Numeric std, Size azi_grid_size = 2, Stokvec weight = {1.0, 0.0, 0.0, 0.0});
 
   [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
 };
@@ -102,8 +99,8 @@ struct GaussianAiryAntenna final : AntennaPattern {
 
   GaussianAiryAntenna(ZenGrid zen_grid,
                       Numeric aperture_diameter,
-                      Size azi_grid_size = 2,
-                      Stokvec weight     = {1.0, 0.0, 0.0, 0.0});
+                      Size    azi_grid_size = 2,
+                      Stokvec weight        = {1.0, 0.0, 0.0, 0.0});
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
                                  const Vector3& pos,
@@ -111,205 +108,155 @@ struct GaussianAiryAntenna final : AntennaPattern {
                                  const Vector2& ell) const override;
 
   [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
-  [[nodiscard]] Numeric std(Numeric frequency) const;
+  [[nodiscard]] Numeric                               std(Numeric frequency) const;
 };
 
 //! Concept for types that can build a sensor obsel from channel geometry.
 template <typename T>
-concept AntennaPatternSelection = requires(const T& antenna,
-                                           const Channel& channel,
-                                           const Vector3& pos,
-                                           const Vector2& bore_los,
-                                           const Vector2& ell) {
+concept AntennaPatternSelection = requires(
+    const T& antenna, const Channel& channel, const Vector3& pos, const Vector2& bore_los, const Vector2& ell) {
   { antenna(channel, pos, bore_los, ell) } -> std::same_as<Obsel>;
 };
 }  // namespace sensor
 
 // AntennaPattern format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::AntennaPattern> {
+template <> struct std::formatter<sensor::AntennaPattern> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::AntennaPattern&,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const sensor::AntennaPattern&, FmtContext& ctx) const {
     return tags.format(ctx, "SensorAntennaPattern"sv);
   }
 };
 
-template <>
-struct xml_io_stream_name<sensor::AntennaPattern> {
+template <> struct xml_io_stream_name<sensor::AntennaPattern> {
   static constexpr std::string_view name = "SensorAntennaPattern";
 };
 
-template <>
-struct xml_io_stream<sensor::AntennaPattern> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<sensor::AntennaPattern>;
+template <> struct xml_io_stream<sensor::AntennaPattern> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::AntennaPattern>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                 os,
                     const sensor::AntennaPattern& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                    pbofs = nullptr,
+                    std::string_view              name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::AntennaPattern& n,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::AntennaPattern& n, bifstream* pbifs = nullptr);
 };
 
 // GriddedAntennaPattern format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::GriddedAntennaPattern> {
+template <> struct std::formatter<sensor::GriddedAntennaPattern> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const sensor::GriddedAntennaPattern& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const sensor::GriddedAntennaPattern& v, FmtContext& ctx) const {
     return tags.format(ctx, v.data);
   }
 };
 
-template <>
-struct xml_io_stream_name<sensor::GriddedAntennaPattern> {
+template <> struct xml_io_stream_name<sensor::GriddedAntennaPattern> {
   static constexpr std::string_view name = "SensorGriddedAntennaPattern";
 };
 
-template <>
-struct xml_io_stream<sensor::GriddedAntennaPattern> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<sensor::GriddedAntennaPattern>;
+template <> struct xml_io_stream<sensor::GriddedAntennaPattern> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::GriddedAntennaPattern>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                        os,
                     const sensor::GriddedAntennaPattern& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                           pbofs = nullptr,
+                    std::string_view                     name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::GriddedAntennaPattern& n,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::GriddedAntennaPattern& n, bifstream* pbifs = nullptr);
 };
 
 // PencilBeamAntenna format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::PencilBeamAntenna> {
+template <> struct std::formatter<sensor::PencilBeamAntenna> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::PencilBeamAntenna& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const sensor::PencilBeamAntenna& v, FmtContext& ctx) const {
     return tags.format(ctx, v.weight);
   }
 };
 
-template <>
-struct xml_io_stream_name<sensor::PencilBeamAntenna> {
+template <> struct xml_io_stream_name<sensor::PencilBeamAntenna> {
   static constexpr std::string_view name = "SensorPencilBeamAntenna";
 };
 
-template <>
-struct xml_io_stream<sensor::PencilBeamAntenna> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<sensor::PencilBeamAntenna>;
+template <> struct xml_io_stream<sensor::PencilBeamAntenna> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::PencilBeamAntenna>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                    os,
                     const sensor::PencilBeamAntenna& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                       pbofs = nullptr,
+                    std::string_view                 name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::PencilBeamAntenna& n,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::PencilBeamAntenna& n, bifstream* pbifs = nullptr);
 };
 
 // GaussianAntenna format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::GaussianAntenna>
-    : format_tag_inherit<sensor::GriddedAntennaPattern,
-                         sensor::GaussianAntenna> {};
+template <> struct std::formatter<sensor::GaussianAntenna>
+    : format_tag_inherit<sensor::GriddedAntennaPattern, sensor::GaussianAntenna> {};
 
-template <>
-struct xml_io_stream_name<sensor::GaussianAntenna> {
+template <> struct xml_io_stream_name<sensor::GaussianAntenna> {
   static constexpr std::string_view name = "SensorGaussianAntenna";
 };
 
-template <>
-struct xml_io_stream<sensor::GaussianAntenna>
-    : xml_io_stream_inherit<sensor::GriddedAntennaPattern,
-                            sensor::GaussianAntenna> {};
+template <> struct xml_io_stream<sensor::GaussianAntenna>
+    : xml_io_stream_inherit<sensor::GriddedAntennaPattern, sensor::GaussianAntenna> {};
 
 // GaussianAiryAntenna format tags and XML I/O
 
-template <>
-struct std::formatter<sensor::GaussianAiryAntenna> {
+template <> struct std::formatter<sensor::GaussianAiryAntenna> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const sensor::GaussianAiryAntenna& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const sensor::GaussianAiryAntenna& v, FmtContext& ctx) const {
     auto sep = tags.sep();
-    return tags.format(ctx,
-                       v.zen_grid,
-                       sep,
-                       v.azi_grid,
-                       sep,
-                       v.aperture_diameter,
-                       sep,
-                       v.weight);
+    return tags.format(ctx, v.zen_grid, sep, v.azi_grid, sep, v.aperture_diameter, sep, v.weight);
   }
 };
 
-template <>
-struct xml_io_stream_name<sensor::GaussianAiryAntenna> {
+template <> struct xml_io_stream_name<sensor::GaussianAiryAntenna> {
   static constexpr std::string_view name = "SensorGaussianAiryAntenna";
 };
 
-template <>
-struct xml_io_stream<sensor::GaussianAiryAntenna> {
-  static constexpr std::string_view type_name =
-      xml_io_stream_name_v<sensor::GaussianAiryAntenna>;
+template <> struct xml_io_stream<sensor::GaussianAiryAntenna> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::GaussianAiryAntenna>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                      os,
                     const sensor::GaussianAiryAntenna& n,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                         pbofs = nullptr,
+                    std::string_view                   name  = ""sv);
 
-  static void read(std::istream& is,
-                   sensor::GaussianAiryAntenna& n,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, sensor::GaussianAiryAntenna& n, bifstream* pbifs = nullptr);
 };

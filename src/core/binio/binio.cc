@@ -17,12 +17,12 @@
  * Copyright (C) 2002, 2003 Simon Peter <dn.tlp@gmx.net>
  */
 
-#include <cstring>
-#include <stdexcept>
-
 #include "binio.h"
 
 #include <debug.h>
+
+#include <cstring>
+#include <stdexcept>
 
 /***** Defines *****/
 
@@ -40,7 +40,7 @@ binio::Flags binio::detect_system_flags() {
 
   // Endian test
   union {
-    int word;
+    int  word;
     Byte byte;
   } endian_test;
 
@@ -48,16 +48,14 @@ binio::Flags binio::detect_system_flags() {
   if (endian_test.byte != 1) f |= BigEndian;
 
   // IEEE-754 floating-point test
-  float fl = 6.5f;
+  float fl  = 6.5f;
   Byte *dat = (Byte *)&fl;
 
   if (sizeof(float) == 4 && sizeof(double) == 8) {
     if (f & BigEndian) {
-      if (dat[0] == 0x40 && dat[1] == 0xD0 && !dat[2] && !dat[3])
-        f |= FloatIEEE;
+      if (dat[0] == 0x40 && dat[1] == 0xD0 && !dat[2] && !dat[3]) f |= FloatIEEE;
     } else {
-      if (dat[3] == 0x40 && dat[2] == 0xD0 && !dat[1] && !dat[0])
-        f |= FloatIEEE;
+      if (dat[3] == 0x40 && dat[2] == 0xD0 && !dat[1] && !dat[0]) f |= FloatIEEE;
     }
   }
 
@@ -97,13 +95,12 @@ bool binio::eof() { return (err & Eof ? true : false); }
 /***** binistream *****/
 binistream::Int binistream::readInt(unsigned int size) {
   unsigned int i;
-  Int val = 0, in;
+  Int          val = 0, in;
 
   // Check if 'size' doesn't exceed our system's biggest type.
   if (size > sizeof(Int)) {
     err |= Unsupported;
-    throw std::runtime_error(
-        "The size of the integer to be read exceeds our system's biggest type");
+    throw std::runtime_error("The size of the integer to be read exceeds our system's biggest type");
     return 0;
   }
 
@@ -120,19 +117,15 @@ binistream::Int binistream::readInt(unsigned int size) {
 }
 
 binistream::Float binistream::readFloat(FType ft) {
-  unsigned int i = 0;
+  unsigned int i    = 0;
   unsigned int size = 0;
-  Byte in[8];
-  bool swap;
+  Byte         in[8];
+  bool         swap;
 
   // Determine appropriate size for given type.
   switch (ft) {
-    case Single:
-      size = 4;
-      break;  // 32 bits
-    case Double:
-      size = 8;
-      break;  // 64 bits
+    case Single: size = 4; break;  // 32 bits
+    case Double: size = 8; break;  // 64 bits
   }
 
   // Determine byte ordering, depending on what we do next
@@ -159,10 +152,8 @@ binistream::Float binistream::readFloat(FType ft) {
 
   // Compatible system, let the hardware do the conversion
   switch (ft) {
-    case Single:
-      return *(float *)in;
-    case Double:
-      return *(double *)in;
+    case Single: return *(float *)in;
+    case Double: return *(double *)in;
   }
 
   // User tried to read a (yet) unsupported floating-point type. Bail out.
@@ -173,14 +164,10 @@ namespace {
 void swap_endian(double *d) {
   auto *val = reinterpret_cast<uint64_t *>(d);
   // Using this is much faster than swapping bytes manually
-  *val = ((((*val) >> 56) & 0x00000000000000FF) |
-          (((*val) >> 40) & 0x000000000000FF00) |
-          (((*val) >> 24) & 0x0000000000FF0000) |
-          (((*val) >> 8) & 0x00000000FF000000) |
-          (((*val) << 8) & 0x000000FF00000000) |
-          (((*val) << 24) & 0x0000FF0000000000) |
-          (((*val) << 40) & 0x00FF000000000000) |
-          (((*val) << 56) & 0xFF00000000000000));
+  *val = ((((*val) >> 56) & 0x00000000000000FF) | (((*val) >> 40) & 0x000000000000FF00) |
+          (((*val) >> 24) & 0x0000000000FF0000) | (((*val) >> 8) & 0x00000000FF000000) |
+          (((*val) << 8) & 0x000000FF00000000) | (((*val) << 24) & 0x0000FF0000000000) |
+          (((*val) << 40) & 0x00FF000000000000) | (((*val) << 56) & 0xFF00000000000000));
 }
 }  // namespace
 
@@ -206,9 +193,7 @@ unsigned long binistream::readString(char *str, unsigned long maxlen) {
   return maxlen;
 }
 
-unsigned long binistream::readString(char *str,
-                                     unsigned long maxlen,
-                                     const char delim) {
+unsigned long binistream::readString(char *str, unsigned long maxlen, const char delim) {
   unsigned long i;
 
   for (i = 0; i < maxlen; i++) {
@@ -225,8 +210,8 @@ unsigned long binistream::readString(char *str,
 
 #if BINIO_ENABLE_STRING
 std::string binistream::readString(const char delim) {
-  char buf[STRINGBUFSIZE + 1];
-  std::string tempstr;
+  char          buf[STRINGBUFSIZE + 1];
+  std::string   tempstr;
   unsigned long read;
 
   do {
@@ -248,12 +233,8 @@ binistream::Float binistream::peekFloat(FType ft) {
   Float val = readFloat(ft);
 
   if (!err) switch (ft) {
-      case Single:
-        seek(-4, Add);
-        break;
-      case Double:
-        seek(-8, Add);
-        break;
+      case Single: seek(-4, Add); break;
+      case Double: seek(-8, Add); break;
     }
 
   return val;
@@ -261,11 +242,11 @@ binistream::Float binistream::peekFloat(FType ft) {
 
 bool binistream::ateof() {
   Error olderr = err;  // Save current error state
-  bool eof_then;
+  bool  eof_then;
 
   peekInt(1);
-  eof_then = eof();  // Get error state of next byte
-  err = olderr;      // Restore original error state
+  eof_then = eof();   // Get error state of next byte
+  err      = olderr;  // Restore original error state
   return eof_then;
 }
 
@@ -283,8 +264,7 @@ void binostream::writeInt(Int val, unsigned int size) {
   // Check if 'size' doesn't exceed our system's biggest type.
   if (size > sizeof(Int)) {
     err |= Unsupported;
-    throw std::runtime_error(
-        "The size of the integer to be stored exceeds our system's biggest type");
+    throw std::runtime_error("The size of the integer to be stored exceeds our system's biggest type");
     return;
   }
 
@@ -299,10 +279,10 @@ void binostream::writeInt(Int val, unsigned int size) {
 }
 
 void binostream::writeFloat(Float f, FType ft) {
-  unsigned int i = 0;
+  unsigned int i    = 0;
   unsigned int size = 0;
-  Byte *out = nullptr;
-  bool swap;
+  Byte        *out  = nullptr;
+  bool         swap;
 
   auto outf = (float)f;
   auto outd = (double)f;
@@ -311,12 +291,8 @@ void binostream::writeFloat(Float f, FType ft) {
   swap = getFlag(BigEndian) ^ (system_flags & BigEndian);
 
   switch (ft) {
-    case Single:
-      size = 4;
-      break;  // 32 bits
-    case Double:
-      size = 8;
-      break;  // 64 bits
+    case Single: size = 4; break;  // 32 bits
+    case Double: size = 8; break;  // 64 bits
   }
 
   if (!swap && ((size == sizeof(float)) || (size == sizeof(double)))) {
@@ -330,12 +306,8 @@ void binostream::writeFloat(Float f, FType ft) {
   }
   // Determine appropriate size for given type and convert by hardware
   switch (ft) {
-    case Single:
-      out = (Byte *)&outf;
-      break;  // 32 bits
-    case Double:
-      out = (Byte *)&outd;
-      break;  // 64 bits
+    case Single: out = (Byte *)&outf; break;  // 32 bits
+    case Double: out = (Byte *)&outd; break;  // 64 bits
   }
 
   // Write the float byte by byte, converting endianess
@@ -365,7 +337,5 @@ unsigned long binostream::writeString(const char *str, unsigned long amount) {
 }
 
 #if BINIO_ENABLE_STRING
-unsigned long binostream::writeString(const std::string &str) {
-  return writeString(str.c_str());
-}
+unsigned long binostream::writeString(const std::string &str) { return writeString(str.c_str()); }
 #endif

@@ -15,10 +15,10 @@
 #include <xsec_fit.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords& abs_xfit_data,
+void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords&             abs_xfit_data,
                                           const ArrayOfSpeciesTag& abs_species,
-                                          const String& basename,
-                                          const Index& ignore_missing_) try {
+                                          const String&            basename,
+                                          const Index&             ignore_missing_) try {
   ARTS_TIME_REPORT
 
   abs_xfit_data.clear();
@@ -28,21 +28,17 @@ void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords& abs_xfit_data,
   // Build a set of species indices. Duplicates are ignored.
   std::set<SpeciesEnum> unique_species;
   for (auto& sp : abs_species) {
-    if (sp.Type() == SpeciesTagType::XsecFit) {
-      unique_species.insert(sp.Spec());
-    }
+    if (sp.Type() == SpeciesTagType::XsecFit) { unique_species.insert(sp.Spec()); }
   }
 
   String tmpbasename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/') {
-    tmpbasename += '.';
-  }
+  if (basename.length() && basename[basename.length() - 1] != '/') { tmpbasename += '.'; }
 
   // Read xsec data for all active species and collect them in abs_xfit_data
   abs_xfit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    String filename{std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
+    String     filename{std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
 
     if (not find_xml_file_existence(filename)) {
       if (ignore_missing) continue;
@@ -60,26 +56,23 @@ void spectral_propmatAddXsecFit(  // WS Output:
     PropmatVector& spectral_propmat,
     PropmatMatrix& spectral_propmat_jac,
     // WS Input:
-    const SpeciesEnum& select_species,
+    const SpeciesEnum&     select_species,
     const JacobianTargets& jac_targets,
-    const AscendingGrid& f_grid,
-    const AtmPoint& atm_point,
-    const XsecRecords& abs_xfit_data,
-    const Numeric& force_p,
-    const Numeric& force_t) {
+    const AscendingGrid&   f_grid,
+    const AtmPoint&        atm_point,
+    const XsecRecords&     abs_xfit_data,
+    const Numeric&         force_p,
+    const Numeric&         force_t) {
   ARTS_TIME_REPORT
 
   // Forward simulations and their error handling
-  ARTS_USER_ERROR_IF(
-      spectral_propmat.size() not_eq f_grid.size(),
-      "Mismatch dimensions on internal matrices of xsec and frequency");
+  ARTS_USER_ERROR_IF(spectral_propmat.size() not_eq f_grid.size(),
+                     "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_propmat_jac.nrows()) not_eq
-              jac_targets.target_count() or
-          static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
-      "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
+  ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.nrows()) not_eq jac_targets.target_count() or
+                         static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
+                     "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
   // Jacobian vectors START
@@ -87,28 +80,24 @@ void spectral_propmatAddXsecFit(  // WS Output:
   Vector dxsec_temp_dF;
   Vector dfreq;
   // Jacobian vectors END
-  const auto end      = jac_targets.atm.end();
-  const auto freq_jac = std::array{jac_targets.find(AtmKey::wind_u),
-                                   jac_targets.find(AtmKey::wind_v),
-                                   jac_targets.find(AtmKey::wind_w)};
-  const auto temp_jac = jac_targets.find(AtmKey::t);
-  const bool do_freq_jac =
-      stdr::any_of(freq_jac, [end](auto& x) { return x != end; });
-  const bool do_temp_jac = temp_jac != end;
-  const Numeric df       = freq_jac[0] != end   ? freq_jac[0]->d
-                           : freq_jac[1] != end ? freq_jac[1]->d
-                           : freq_jac[2] != end ? freq_jac[2]->d
-                                                : 0.0;
-  const Numeric dt       = temp_jac != end ? temp_jac->d : 0.0;
+  const auto end = jac_targets.atm.end();
+  const auto freq_jac =
+      std::array{jac_targets.find(AtmKey::wind_u), jac_targets.find(AtmKey::wind_v), jac_targets.find(AtmKey::wind_w)};
+  const auto    temp_jac    = jac_targets.find(AtmKey::t);
+  const bool    do_freq_jac = stdr::any_of(freq_jac, [end](auto& x) { return x != end; });
+  const bool    do_temp_jac = temp_jac != end;
+  const Numeric df          = freq_jac[0] != end   ? freq_jac[0]->d
+                              : freq_jac[1] != end ? freq_jac[1]->d
+                              : freq_jac[2] != end ? freq_jac[2]->d
+                                                   : 0.0;
+  const Numeric dt          = temp_jac != end ? temp_jac->d : 0.0;
   if (do_freq_jac) {
     dfreq.resize(f_grid.size());
     dfreq  = f_grid;
     dfreq += df;
     dxsec_temp_dF.resize(f_grid.size());
   }
-  if (do_temp_jac) {
-    dxsec_temp_dT.resize(f_grid.size());
-  }
+  if (do_temp_jac) { dxsec_temp_dT.resize(f_grid.size()); }
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
@@ -120,7 +109,7 @@ void spectral_propmatAddXsecFit(  // WS Output:
   Vector xsec_temp(f_grid.size(), 0.);
 
   ArrayOfString fail_msg;
-  bool do_abort = false;
+  bool          do_abort = false;
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
@@ -134,34 +123,25 @@ void spectral_propmatAddXsecFit(  // WS Output:
 
     // Get the absorption cross sections from the HITRAN data:
     this_xdata.Extract(xsec_temp, f_grid, current_p, current_t);
-    if (do_freq_jac) {
-      this_xdata.Extract(dxsec_temp_dF, dfreq, current_p, current_t);
-    }
-    if (do_temp_jac) {
-      this_xdata.Extract(dxsec_temp_dT, f_grid, current_p, current_t + dt);
-    }
+    if (do_freq_jac) { this_xdata.Extract(dxsec_temp_dF, dfreq, current_p, current_t); }
+    if (do_temp_jac) { this_xdata.Extract(dxsec_temp_dT, f_grid, current_p, current_t + dt); }
 
     // Add to result variable:
     Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
 
-    Numeric dnd_dt =
-        dnumber_density_dt(atm_point.pressure, atm_point.temperature);
+    Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
     for (Size f = 0; f < f_grid.size(); f++) {
       spectral_propmat[f].A() += xsec_temp[f] * nd * vmr;
 
       if (temp_jac != end) {
-        const auto iq = temp_jac->target_pos;
-        spectral_propmat_jac[iq, f].A() +=
-            ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
-             xsec_temp[f] * dnd_dt) *
-            vmr;
+        const auto iq                    = temp_jac->target_pos;
+        spectral_propmat_jac[iq, f].A() += ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd + xsec_temp[f] * dnd_dt) * vmr;
       }
 
       for (auto& j : freq_jac) {
         if (j != end) {
-          const auto iq = j->target_pos;
-          spectral_propmat_jac[iq, f].A() +=
-              (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
+          const auto iq                    = j->target_pos;
+          spectral_propmat_jac[iq, f].A() += (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
         }
       }
 

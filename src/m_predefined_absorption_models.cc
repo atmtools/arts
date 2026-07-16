@@ -20,12 +20,11 @@
 
 #include <algorithm>
 
-void abs_predef_dataReadSpeciesSplitCatalog(
-    PredefinedModelData& abs_predef_data,
-    const ArrayOfSpeciesTag& abs_species,
-    const String& basename,
-    const Index& name_missing_,
-    const Index& ignore_missing_) try {
+void abs_predef_dataReadSpeciesSplitCatalog(PredefinedModelData&     abs_predef_data,
+                                            const ArrayOfSpeciesTag& abs_species,
+                                            const String&            basename,
+                                            const Index&             name_missing_,
+                                            const Index&             ignore_missing_) try {
   ARTS_TIME_REPORT
 
   abs_predef_data.clear();
@@ -36,9 +35,7 @@ void abs_predef_dataReadSpeciesSplitCatalog(
   abs_predef_data.clear();
 
   String tmpbasename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/') {
-    tmpbasename += '.';
-  }
+  if (basename.length() && basename[basename.length() - 1] != '/') { tmpbasename += '.'; }
 
   for (auto& spec : abs_species) {
     if (not spec.Isotopologue().is_predefined()) continue;
@@ -51,8 +48,7 @@ void abs_predef_dataReadSpeciesSplitCatalog(
       abs_predef_data.insert(other.begin(), other.end());
     } else {
       if (name_missing) {
-        abs_predef_data[spec.Isotopologue()].data =
-            Absorption::PredefinedModel::ModelName{};
+        abs_predef_data[spec.Isotopologue()].data = Absorption::PredefinedModel::ModelName{};
       } else {
         ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
       }
@@ -68,21 +64,19 @@ void abs_predef_dataInit(PredefinedModelData& abs_predef_data) {
 }
 
 void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
-                                     const Numeric& ref_temp,
-                                     const Numeric& ref_press,
-                                     const Numeric& ref_h2o_vmr,
-                                     const Vector& self_absco_ref,
-                                     const Vector& for_absco_ref,
-                                     const Vector& wavenumbers,
-                                     const Vector& self_texp) {
+                                     const Numeric&       ref_temp,
+                                     const Numeric&       ref_press,
+                                     const Numeric&       ref_h2o_vmr,
+                                     const Vector&        self_absco_ref,
+                                     const Vector&        for_absco_ref,
+                                     const Vector&        wavenumbers,
+                                     const Vector&        self_texp) {
   ARTS_TIME_REPORT
 
   const auto sz = self_absco_ref.size();
 
-  ARTS_USER_ERROR_IF(
-      sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
-          sz not_eq self_texp.size(),
-      "Mismatching size, all vector inputs must be the same length")
+  ARTS_USER_ERROR_IF(sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size(),
+                     "Mismatching size, all vector inputs must be the same length")
   ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
   ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
                      "The wavenumbers must be increasing in a regular manner")
@@ -97,10 +91,8 @@ void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
   x.wavenumbers.resize(sz);
   x.self_texp.resize(sz);
 
-  std::copy(
-      self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
-  std::copy(
-      for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
+  std::copy(self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
+  std::copy(for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
@@ -109,42 +101,37 @@ void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
 }
 
 void abs_predef_dataAddWaterMTCKD430(PredefinedModelData& abs_predef_data,
-                                     const Numeric& ref_temp,
-                                     const Numeric& ref_press,
-                                     const Vector& self_absco_ref,
-                                     const Vector& for_absco_ref,
-                                     const Vector& for_closure_absco_ref,
-                                     const Vector& wavenumbers,
-                                     const Vector& self_texp) {
+                                     const Numeric&       ref_temp,
+                                     const Numeric&       ref_press,
+                                     const Vector&        self_absco_ref,
+                                     const Vector&        for_absco_ref,
+                                     const Vector&        for_closure_absco_ref,
+                                     const Vector&        wavenumbers,
+                                     const Vector&        self_texp) {
   ARTS_TIME_REPORT
 
   const auto sz = self_absco_ref.size();
 
-  ARTS_USER_ERROR_IF(
-      sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
-          sz not_eq self_texp.size() or sz not_eq for_closure_absco_ref.size(),
-      "Mismatching size, all vector inputs must be the same length")
+  ARTS_USER_ERROR_IF(sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size() or
+                         sz not_eq for_closure_absco_ref.size(),
+                     "Mismatching size, all vector inputs must be the same length")
   ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
   ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
                      "The wavenumbers must be increasing in a regular manner")
 
   using Model = Absorption::PredefinedModel::MT_CKD430::WaterData;
   Model x;
-  x.ref_temp    = ref_temp;
-  x.ref_press   = ref_press;
+  x.ref_temp  = ref_temp;
+  x.ref_press = ref_press;
   x.self_absco_ref.resize(sz);
   x.for_absco_ref.resize(sz);
   x.for_closure_absco_ref.resize(sz);
   x.wavenumbers.resize(sz);
   x.self_texp.resize(sz);
 
-  std::copy(
-      self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
-  std::copy(
-      for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
-  std::copy(for_closure_absco_ref.begin(),
-            for_closure_absco_ref.end(),
-            x.for_closure_absco_ref.begin());
+  std::copy(self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
+  std::copy(for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
+  std::copy(for_closure_absco_ref.begin(), for_closure_absco_ref.end(), x.for_closure_absco_ref.begin());
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
@@ -153,39 +140,29 @@ void abs_predef_dataAddWaterMTCKD430(PredefinedModelData& abs_predef_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_propmatAddPredefined(PropmatVector& spectral_propmat,
-                                   PropmatMatrix& spectral_propmat_jac,
+void spectral_propmatAddPredefined(PropmatVector&             spectral_propmat,
+                                   PropmatMatrix&             spectral_propmat_jac,
                                    const PredefinedModelData& abs_predef_data,
-                                   const SpeciesEnum& select_species,
-                                   const JacobianTargets& jac_targets,
-                                   const AscendingGrid& f_grid,
-                                   const AtmPoint& atm_point) {
+                                   const SpeciesEnum&         select_species,
+                                   const JacobianTargets&     jac_targets,
+                                   const AscendingGrid&       f_grid,
+                                   const AtmPoint&            atm_point) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      spectral_propmat.size() not_eq f_grid.size(),
-      "Mismatch dimensions on internal matrices of xsec and frequency");
+  ARTS_USER_ERROR_IF(spectral_propmat.size() not_eq f_grid.size(),
+                     "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   if (spectral_propmat_jac.nrows()) {
-    ARTS_USER_ERROR_IF(
-        static_cast<Size>(spectral_propmat_jac.nrows()) not_eq
-            jac_targets.target_count(),
-        "Mismatch dimensions on xsec derivatives and Jacobian grids");
-    ARTS_USER_ERROR_IF(
-        static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
-        "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
+    ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.nrows()) not_eq jac_targets.target_count(),
+                       "Mismatch dimensions on xsec derivatives and Jacobian grids");
+    ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
+                       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
   for (auto& [isot, data] : abs_predef_data) {
-    if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
-      continue;
-    Absorption::PredefinedModel::compute(spectral_propmat,
-                                         spectral_propmat_jac,
-                                         isot,
-                                         f_grid,
-                                         atm_point,
-                                         jac_targets,
-                                         data);
+    if (select_species != SpeciesEnum::Bath and isot.spec != select_species) continue;
+    Absorption::PredefinedModel::compute(
+        spectral_propmat, spectral_propmat_jac, isot, f_grid, atm_point, jac_targets, data);
   }
 }

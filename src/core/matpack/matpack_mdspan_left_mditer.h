@@ -9,9 +9,8 @@
 #include "matpack_mdspan_common_types.h"
 
 namespace matpack {
-template <class T>
-struct left_mditer {
-  T* data{nullptr};
+template <class T> struct left_mditer {
+  T*    data{nullptr};
   Index pos{0};
 
   using iterator_concept  = std::random_access_iterator_tag;
@@ -60,48 +59,27 @@ struct left_mditer {
     return *this;
   }
 
-  [[nodiscard]] constexpr left_mditer operator+(Index i) const noexcept {
-    return {data, pos + i};
-  }
+  [[nodiscard]] constexpr left_mditer operator+(Index i) const noexcept { return {data, pos + i}; }
 
-  [[nodiscard]] constexpr left_mditer operator-(Index i) const noexcept {
-    return {data, pos - i};
-  }
+  [[nodiscard]] constexpr left_mditer operator-(Index i) const noexcept { return {data, pos - i}; }
 
-  [[nodiscard]] constexpr friend left_mditer operator+(
-      Index i, const left_mditer& m) noexcept {
+  [[nodiscard]] constexpr friend left_mditer operator+(Index i, const left_mditer& m) noexcept {
     return {m.data, m.pos + i};
   }
 
-  [[nodiscard]] constexpr difference_type operator-(
-      const left_mditer& other) const noexcept {
-    return pos - other.pos;
-  }
+  [[nodiscard]] constexpr difference_type operator-(const left_mditer& other) const noexcept { return pos - other.pos; }
 
-  [[nodiscard]] constexpr difference_type operator+(
-      const left_mditer& other) const noexcept {
-    return pos + other.pos;
-  }
+  [[nodiscard]] constexpr difference_type operator+(const left_mditer& other) const noexcept { return pos + other.pos; }
 
-  [[nodiscard]] constexpr auto operator<=>(
-      const left_mditer& m) const noexcept {
-    return pos <=> m.pos;
-  }
+  [[nodiscard]] constexpr auto operator<=>(const left_mditer& m) const noexcept { return pos <=> m.pos; }
 
-  [[nodiscard]] constexpr bool operator==(const left_mditer& m) const noexcept {
-    return pos == m.pos;
-  }
+  [[nodiscard]] constexpr bool operator==(const left_mditer& m) const noexcept { return pos == m.pos; }
 
-  [[nodiscard]] constexpr decltype(auto) operator*() const {
-    return data->operator[](pos);
-  }
+  [[nodiscard]] constexpr decltype(auto) operator*() const { return data->operator[](pos); }
 
-  [[nodiscard]] constexpr decltype(auto) operator[](Index i) const {
-    return data->operator[](pos + i);
-  }
+  [[nodiscard]] constexpr decltype(auto) operator[](Index i) const { return data->operator[](pos + i); }
 
-  friend constexpr void iter_swap(const left_mditer& a,
-                                  const left_mditer& b) noexcept {
+  friend constexpr void iter_swap(const left_mditer& a, const left_mditer& b) noexcept {
     auto ap = *a;
     auto bp = *b;
 

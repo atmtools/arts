@@ -27,4 +27,4 @@ constexpr auto pow3(auto x) noexcept { return pow2(x) * x; }
 constexpr auto pow4(auto x) noexcept { return pow2(pow2(x)); }
 }  // namespace Math
 
-#endif 
+#endif

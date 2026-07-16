@@ -10,7 +10,7 @@
 namespace Python {
 String group_generics_inout(const String& group) try {
   const auto& wsms = internal_workspace_methods();
-  const auto pred  = Cmp::eq(group);
+  const auto  pred = Cmp::eq(group);
 
   std::pair<std::vector<String>, std::vector<String>> outdocs;
   for (auto& [name, wsm] : wsms) {
@@ -32,8 +32,7 @@ String group_generics_inout(const String& group) try {
 )",
                        group,
                        hlist_num_cols(outdocs.first));
-    for (auto& m : outdocs.first)
-      out += std::format("\n    *  :func:`~pyarts3.workspace.Workspace.{}`", m);
+    for (auto& m : outdocs.first) out += std::format("\n    *  :func:`~pyarts3.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
@@ -46,15 +45,13 @@ String group_generics_inout(const String& group) try {
 )",
                        group,
                        hlist_num_cols(outdocs.second));
-    for (auto& m : outdocs.second)
-      out += std::format("\n    *  :func:`~pyarts3.workspace.Workspace.{}`", m);
+    for (auto& m : outdocs.second) out += std::format("\n    *  :func:`~pyarts3.workspace.Workspace.{}`", m);
   }
   out += '\n';
 
   return out;
 } catch (const std::exception& e) {
-  return std::format("Error in group_generics_inout: {}",
-                     std::string_view(e.what()));
+  return std::format("Error in group_generics_inout: {}", std::string_view(e.what()));
 }
 
 String group_workspace_types(const String& group) try {
@@ -77,13 +74,11 @@ String group_workspace_types(const String& group) try {
 )",
                        group,
                        hlist_num_cols(vars));
-    for (auto& m : vars)
-      out += std::format("\n    *  :attr:`~pyarts3.workspace.Workspace.{}`", m);
+    for (auto& m : vars) out += std::format("\n    *  :attr:`~pyarts3.workspace.Workspace.{}`", m);
   }
 
   return out + "\n";
 } catch (const std::exception& e) {
-  return std::format("Error in group_workspace_types: {}",
-                     std::string_view(e.what()));
+  return std::format("Error in group_workspace_types: {}", std::string_view(e.what()));
 }
 }  // namespace Python

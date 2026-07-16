@@ -15,7 +15,6 @@
 #include "particle_habit.h"
 #include "properties.h"
 #include "psd.h"
-#include "general_tro_spectral.h"
 #include "scattering_habit.h"
 
 namespace scattering {
@@ -28,8 +27,7 @@ using Species = std::variant<HenyeyGreensteinScatterer, ScatteringGeneralSpectra
 
 using ScatteringSpecies = scattering::Species;
 
-template <scattering::Format format, scattering::Representation repr>
-using BulkScatteringProperties =
+template <scattering::Format format, scattering::Representation repr> using BulkScatteringProperties =
     scattering::BulkScatteringProperties<format, repr>;
 
 /** Array of scattering species
@@ -44,51 +42,38 @@ struct ArrayOfScatteringSpecies {
   void add(const scattering::Species& species);
   void prepare_scattering_data(scattering::ScatteringDataSpec);
 
-  [[nodiscard]] BulkScatteringProperties<scattering::Format::TRO,
-                                         scattering::Representation::Gridded>
-  get_bulk_scattering_properties_tro_gridded(
-      const AtmPoint& atm_point,
-      const Vector& f_grid,
-      std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>
+  get_bulk_scattering_properties_tro_gridded(const AtmPoint&                              atm_point,
+                                             const Vector&                                f_grid,
+                                             std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] ScatteringTroSpectralVector
-  get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
-                                              const Vector& f_grid,
-                                              Index degree) const;
+  [[nodiscard]] ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
+                                                                                        const Vector&   f_grid,
+                                                                                        Index           degree) const;
 
-  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO,
-                                         scattering::Representation::Gridded>
-  get_bulk_scattering_properties_aro_gridded(
-      const AtmPoint& atm_point,
-      const Vector& f_grid,
-      const Vector& za_inc_grid,
-      const Vector& delta_aa_grid,
-      std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>
+  get_bulk_scattering_properties_aro_gridded(const AtmPoint&                              atm_point,
+                                             const Vector&                                f_grid,
+                                             const Vector&                                za_inc_grid,
+                                             const Vector&                                delta_aa_grid,
+                                             std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO,
-                                         scattering::Representation::Spectral>
-  get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
-                                              const Vector& f_grid,
-                                              const Vector& za_inc_grid,
-                                              Index degree,
-                                              Index order) const;
+  [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
+  get_bulk_scattering_properties_aro_spectral(
+      const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const;
 };
 
-template <>
-struct std::formatter<ArrayOfScatteringSpecies> {
+template <> struct std::formatter<ArrayOfScatteringSpecies> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const ArrayOfScatteringSpecies&,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const ArrayOfScatteringSpecies&, FmtContext& ctx) const {
     return ctx.out();
   }
 };
@@ -98,24 +83,19 @@ using ParticleHabit             = scattering::ParticleHabit;
 using ScatteringHabit           = scattering::ScatteringHabit;
 using PSD                       = scattering::PSD;
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::variant<HenyeyGreensteinScatterer,
-                       scattering::ScatteringHabit>& /*species*/);
+std::ostream& operator<<(std::ostream& os,
+                         const std::variant<HenyeyGreensteinScatterer, scattering::ScatteringHabit>& /*species*/);
 
 //! Naming the variant
-template <>
-struct xml_io_stream_name<ScatteringSpecies> {
+template <> struct xml_io_stream_name<ScatteringSpecies> {
   static constexpr std::string_view name = "ScatteringSpecies"sv;
 };
 
 //! Required overload since it inherits
-template <>
-struct xml_io_stream_name<ArrayOfScatteringSpecies> {
+template <> struct xml_io_stream_name<ArrayOfScatteringSpecies> {
   static constexpr std::string_view name = "ArrayOfScatteringSpecies"sv;
 };
 
-template <>
-struct xml_io_stream_aggregate<ArrayOfScatteringSpecies> {
+template <> struct xml_io_stream_aggregate<ArrayOfScatteringSpecies> {
   static constexpr bool value = true;
 };

@@ -4,9 +4,9 @@
 
 namespace Jpl {
 struct LineDataMod {
-   QuantumIdentifier qid;
-   Numeric T0;
-   Numeric QT0;
+  QuantumIdentifier qid;
+  Numeric           T0;
+  Numeric           QT0;
 };
 
 /** Finds the ID of the ARTS species from JPL */

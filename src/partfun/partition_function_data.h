@@ -6,7 +6,7 @@
 namespace PartitionFunctions {
 struct Data {
   PartitionFunctionsType type;
-  Matrix data;
+  Matrix                 data;
 };
 }  // namespace PartitionFunctions
 

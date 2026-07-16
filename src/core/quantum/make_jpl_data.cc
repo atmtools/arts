@@ -16,10 +16,7 @@ std::vector<JplSpeciesInfo> read(const std::filesystem::path& path) {
 
   std::ranges::sort(out, {}, &JplSpeciesInfo::id);
   auto it = std::ranges::adjacent_find(out, {}, &JplSpeciesInfo::id);
-  if (it != out.end()) {
-    throw std::runtime_error(
-        std::format("Duplicate ID found in JPL data: {}", it->id));
-  }
+  if (it != out.end()) { throw std::runtime_error(std::format("Duplicate ID found in JPL data: {}", it->id)); }
 
   return out;
 }
@@ -37,14 +34,13 @@ inline constexpr std::array<JplSpeciesInfo, {}> jpl_data{{)",
                data.size());
 
   for (const auto& [id, spec, has_qn, QT0, T0] : data) {
-    std::println(
-        os,
-        R"(   JplSpeciesInfo{{ .id={0}, .spec="{1}"_isot, .has_qn={2}, .QT0={3}, .T0={4} }}, )",
-        id,
-        spec,
-        has_qn,
-        QT0,
-        T0);
+    std::println(os,
+                 R"(   JplSpeciesInfo{{ .id={0}, .spec="{1}"_isot, .has_qn={2}, .QT0={3}, .T0={4} }}, )",
+                 id,
+                 spec,
+                 has_qn,
+                 QT0,
+                 T0);
   }
 
   std::println(os, R"(}};
@@ -59,7 +55,7 @@ int main(int argc, char** argv) try {
   }
 
   const std::filesystem::path path = argv[1];
-  auto data                        = read(path / "jpl/");
+  auto                        data = read(path / "jpl/");
 
   std::ofstream h("auto_jpl_species_map.h", std::ios::out);
 

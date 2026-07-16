@@ -18,9 +18,9 @@ struct propmat {
 
   lbl::fwd::line_storage lines{};
 
-  cia::full cia{};
+  cia::full    cia{};
   predef::full predef{};
-  hxsec::full xsec{};
+  hxsec::full  xsec{};
 
   propmat();
   propmat(const propmat&);
@@ -28,16 +28,15 @@ struct propmat {
   propmat& operator=(const propmat&);
   propmat& operator=(propmat&&) noexcept;
 
-  propmat(std::shared_ptr<AtmPoint> atm,
-          std::shared_ptr<AbsorptionBands> lines,
-          std::shared_ptr<CIARecords> cia,
-          std::shared_ptr<XsecRecords> xsec,
+  propmat(std::shared_ptr<AtmPoint>            atm,
+          std::shared_ptr<AbsorptionBands>     lines,
+          std::shared_ptr<CIARecords>          cia,
+          std::shared_ptr<XsecRecords>         xsec,
           std::shared_ptr<PredefinedModelData> predef,
-          Numeric ciaextrap = {},
-          Index ciarobust   = {});
+          Numeric                              ciaextrap = {},
+          Index                                ciarobust = {});
 
-  std::pair<Propmat, Stokvec> operator()(const Numeric frequency,
-                                         const Vector2 los) const;
+  std::pair<Propmat, Stokvec> operator()(const Numeric frequency, const Vector2 los) const;
 
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_ciaextrap(Numeric extrap);
@@ -49,16 +48,10 @@ struct propmat {
 };  // struct propmat
 }  // namespace fwd
 
-template <>
-struct xml_io_stream<fwd::propmat> {
+template <> struct xml_io_stream<fwd::propmat> {
   static constexpr std::string_view type_name = "ForwardPropmat"sv;
 
-  static void write(std::ostream& os,
-                    const fwd::propmat& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+  static void write(std::ostream& os, const fwd::propmat& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   fwd::propmat& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, fwd::propmat& x, bifstream* pbifs = nullptr);
 };

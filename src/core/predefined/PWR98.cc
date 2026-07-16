@@ -37,15 +37,13 @@ namespace Absorption::PredefinedModel::PWR98 {
    \date 2001-11-05
  */
 //! New implementation
-void water(PropmatVector& propmat_clearsky,
-           const Vector& f_grid,
-           const AtmPoint& atm_point) {
+void water(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric vmr = atm_point["H2O"_spec];
+  const Numeric vmr  = atm_point["H2O"_spec];
 
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
@@ -98,21 +96,8 @@ void water(PropmatVector& propmat_clearsky,
                                     4.227e-11};
 
   // T coeff. of intensities [1]
-  static constexpr std::array PWRb2{2.144,
-                                    0.668,
-                                    6.179,
-                                    1.541,
-                                    1.048,
-                                    3.595,
-                                    5.048,
-                                    1.405,
-                                    3.597,
-                                    2.379,
-                                    2.852,
-                                    0.159,
-                                    2.391,
-                                    0.396,
-                                    1.441};
+  static constexpr std::array PWRb2{
+      2.144, 0.668, 6.179, 1.541, 1.048, 3.595, 5.048, 1.405, 3.597, 2.379, 2.852, 0.159, 2.391, 0.396, 1.441};
 
   // air-broadened width parameters at 300K [GHz/hPa]
   static constexpr std::array PWRw3{0.00281,
@@ -132,21 +117,8 @@ void water(PropmatVector& propmat_clearsky,
                                     0.00267};
 
   // T-exponent of air-broadening [1]
-  static constexpr std::array PWRx{0.69,
-                                   0.64,
-                                   0.67,
-                                   0.68,
-                                   0.54,
-                                   0.63,
-                                   0.60,
-                                   0.66,
-                                   0.66,
-                                   0.65,
-                                   0.69,
-                                   0.69,
-                                   0.71,
-                                   0.68,
-                                   0.70};
+  static constexpr std::array PWRx{
+      0.69, 0.64, 0.67, 0.68, 0.54, 0.63, 0.60, 0.66, 0.66, 0.65, 0.69, 0.69, 0.71, 0.68, 0.70};
 
   // self-broadened width parameters at 300K [GHz/hPa]
   static constexpr std::array PWRws{0.01349,
@@ -166,21 +138,8 @@ void water(PropmatVector& propmat_clearsky,
                                     0.01275};
 
   // T-exponent of self-broadening [1]
-  static constexpr std::array PWRxs{0.61,
-                                    0.85,
-                                    0.54,
-                                    0.74,
-                                    0.89,
-                                    0.52,
-                                    0.50,
-                                    0.67,
-                                    0.65,
-                                    0.64,
-                                    0.72,
-                                    1.00,
-                                    0.68,
-                                    0.84,
-                                    0.78};
+  static constexpr std::array PWRxs{
+      0.61, 0.85, 0.54, 0.74, 0.89, 0.52, 0.50, 0.67, 0.65, 0.64, 0.72, 1.00, 0.68, 0.84, 0.78};
 
   // Loop pressure/temperature:
   // here the total pressure is not multiplied by the H2O vmr for the
@@ -198,12 +157,11 @@ void water(PropmatVector& propmat_clearsky,
   // FIXME Numeric den        = 3.335e16 * (2.1667 * abs_p[i] * vmr[i] / abs_t[i]);
   const Numeric den_dummy = 3.335e16 * (2.1667 * p_pa / t);
   // inverse relative temperature [1]
-  const Numeric ti = (300.0 / t);
+  const Numeric ti  = (300.0 / t);
   const Numeric ti2 = pow(ti, (Numeric)2.5);
 
   // continuum term [Np/km/GHz2]
-  const Numeric con = pvap_dummy * pow3(ti) * 1.000e-9 *
-                      ((0.543 * pda) + (17.96 * pvap * pow(ti, (Numeric)4.5)));
+  const Numeric con = pvap_dummy * pow3(ti) * 1.000e-9 * ((0.543 * pda) + (17.96 * pvap * pow(ti, (Numeric)4.5)));
 
   // Loop over input frequency
   for (Size s = 0; s < f_grid.size(); ++s) {
@@ -215,11 +173,10 @@ void water(PropmatVector& propmat_clearsky,
     // Loop over spectral lines
 
     for (Size l = 0; l < 15; l++) {
-      const Numeric width = (PWRw3[l] * pda * pow(ti, PWRx[l])) +
-                            (PWRws[l] * pvap * pow(ti, PWRxs[l]));
+      const Numeric width = (PWRw3[l] * pda * pow(ti, PWRx[l])) + (PWRws[l] * pvap * pow(ti, PWRxs[l]));
       //        Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) +
       //          PWRws[l] * pvap * pow(ti, PWRxs[l]) );
-      const Numeric wsq = width * width;
+      const Numeric wsq      = width * width;
       const Numeric strength = PWRs1[l] * ti2 * exp(PWRb2[l] * (1.0 - ti));
       // frequency differences
       const Numeric df0 = ff - PWRfl[l];
@@ -294,97 +251,83 @@ void water(PropmatVector& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void oxygen(PropmatVector& propmat_clearsky,
-            const Vector& f_grid,
-            const AtmPoint& atm_point) {
+void oxygen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoint& atm_point) {
   using Math::pow2;
   using Math::pow3;
   constexpr Numeric VMRCalcLimit = 1.000e-25;
 
-  const Numeric t = atm_point.temperature;
+  const Numeric t    = atm_point.temperature;
   const Numeric p_pa = atm_point.pressure;
-  const Numeric vmr = atm_point["O2"_spec];
-  const Numeric h2o = atm_point["H2O"_spec];
+  const Numeric vmr  = atm_point["O2"_spec];
+  const Numeric h2o  = atm_point["H2O"_spec];
 
   // widths in MHz/mbar for the O2 continuum
   constexpr Numeric WB300 = 0.56;  // [MHz/mbar]=[MHz/hPa]
-  constexpr Numeric X = 0.80;      // [1]
+  constexpr Numeric X     = 0.80;  // [1]
 
   // intensities in the submm range are updated according to HITRAN96
-  static constexpr std::array F{
-      118.7503, 56.2648,  62.4863,  58.4466,  60.3061, 59.5910, 59.1642,
-      60.4348,  58.3239,  61.1506,  57.6125,  61.8002, 56.9682, 62.4112,
-      56.3634,  62.9980,  55.7838,  63.5685,  55.2214, 64.1278, 54.6712,
-      64.6789,  54.1300,  65.2241,  53.5957,  65.7648, 53.0669, 66.3021,
-      52.5424,  66.8368,  52.0214,  67.3696,  51.5034, 67.9009, 368.4984,
-      424.7632, 487.2494, 715.3931, 773.8397, 834.1458};
+  static constexpr std::array F{118.7503, 56.2648, 62.4863,  58.4466,  60.3061,  59.5910,  59.1642,  60.4348,
+                                58.3239,  61.1506, 57.6125,  61.8002,  56.9682,  62.4112,  56.3634,  62.9980,
+                                55.7838,  63.5685, 55.2214,  64.1278,  54.6712,  64.6789,  54.1300,  65.2241,
+                                53.5957,  65.7648, 53.0669,  66.3021,  52.5424,  66.8368,  52.0214,  67.3696,
+                                51.5034,  67.9009, 368.4984, 424.7632, 487.2494, 715.3931, 773.8397, 834.1458};
 
   // intensities in the submm range are updated according to HITRAN96
-  static constexpr std::array S300{
-      0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14, 0.3351E-14, 0.3292E-14,
-      0.3721E-14, 0.3891E-14, 0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
-      0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14, 0.1391E-14, 0.1808E-14,
-      0.9124E-15, 0.1230E-14, 0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
-      0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15, 0.4264E-16, 0.6899E-16,
-      0.1924E-16, 0.3229E-16, 0.8191E-17, 0.1423E-16, 0.6494E-15, 0.7083E-14,
-      0.3025E-14, 0.1835E-14, 0.1158E-13, 0.3993E-14};
+  static constexpr std::array S300{0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14, 0.3351E-14, 0.3292E-14, 0.3721E-14,
+                                   0.3891E-14, 0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14, 0.2627E-14, 0.3156E-14,
+                                   0.1982E-14, 0.2477E-14, 0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14, 0.5603E-15,
+                                   0.7842E-15, 0.3228E-15, 0.4689E-15, 0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
+                                   0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16, 0.8191E-17, 0.1423E-16, 0.6494E-15,
+                                   0.7083E-14, 0.3025E-14, 0.1835E-14, 0.1158E-13, 0.3993E-14};
 
   // y parameter for the calculation of Y [1/bar]
-  static constexpr std::array Y300{
-      -0.0233, 0.2408,  -0.3486, 0.5227,  -0.5430, 0.5877,  -0.3970, 0.3237,
-      -0.1348, 0.0311,  0.0725,  -0.1663, 0.2832,  -0.3629, 0.3970,  -0.4599,
-      0.4695,  -0.5199, 0.5187,  -0.5597, 0.5903,  -0.6246, 0.6656,  -0.6942,
-      0.7086,  -0.7325, 0.7348,  -0.7546, 0.7702,  -0.7864, 0.8083,  -0.8210,
-      0.8439,  -0.8529, 0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000};
+  static constexpr std::array Y300{-0.0233, 0.2408,  -0.3486, 0.5227,  -0.5430, 0.5877,  -0.3970, 0.3237,
+                                   -0.1348, 0.0311,  0.0725,  -0.1663, 0.2832,  -0.3629, 0.3970,  -0.4599,
+                                   0.4695,  -0.5199, 0.5187,  -0.5597, 0.5903,  -0.6246, 0.6656,  -0.6942,
+                                   0.7086,  -0.7325, 0.7348,  -0.7546, 0.7702,  -0.7864, 0.8083,  -0.8210,
+                                   0.8439,  -0.8529, 0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000};
 
   // line width parameter [GHz/bar]
-  static constexpr std::array W300{
-      1.630, 1.646, 1.468, 1.449, 1.382, 1.360, 1.319, 1.297, 1.266, 1.248,
-      1.221, 1.207, 1.181, 1.171, 1.144, 1.139, 1.110, 1.108, 1.079, 1.078,
-      1.050, 1.050, 1.020, 1.020, 1.000, 1.000, 0.970, 0.970, 0.940, 0.940,
-      0.920, 0.920, 0.890, 0.890, 1.920, 1.920, 1.920, 1.810, 1.810, 1.810};
+  static constexpr std::array W300{1.630, 1.646, 1.468, 1.449, 1.382, 1.360, 1.319, 1.297, 1.266, 1.248,
+                                   1.221, 1.207, 1.181, 1.171, 1.144, 1.139, 1.110, 1.108, 1.079, 1.078,
+                                   1.050, 1.050, 1.020, 1.020, 1.000, 1.000, 0.970, 0.970, 0.940, 0.940,
+                                   0.920, 0.920, 0.890, 0.890, 1.920, 1.920, 1.920, 1.810, 1.810, 1.810};
 
   // temperature exponent of the line strength in [1]
-  static constexpr std::array BE{
-      0.009, 0.015, 0.083, 0.084, 0.212, 0.212, 0.391, 0.391, 0.626, 0.626,
-      0.915, 0.915, 1.260, 1.260, 1.660, 1.665, 2.119, 2.115, 2.624, 2.625,
-      3.194, 3.194, 3.814, 3.814, 4.484, 4.484, 5.224, 5.224, 6.004, 6.004,
-      6.844, 6.844, 7.744, 7.744, 0.048, 0.044, 0.049, 0.145, 0.141, 0.145};
+  static constexpr std::array BE{0.009, 0.015, 0.083, 0.084, 0.212, 0.212, 0.391, 0.391, 0.626, 0.626,
+                                 0.915, 0.915, 1.260, 1.260, 1.660, 1.665, 2.119, 2.115, 2.624, 2.625,
+                                 3.194, 3.194, 3.814, 3.814, 4.484, 4.484, 5.224, 5.224, 6.004, 6.004,
+                                 6.844, 6.844, 7.744, 7.744, 0.048, 0.044, 0.049, 0.145, 0.141, 0.145};
 
   // v parameter for the calculation of Y [1/bar]
-  static constexpr std::array V{
-      0.0079, -0.0978, 0.0844, -0.1273, 0.0699, -0.0776, 0.2309, -0.2825,
-      0.0436, -0.0584, 0.6056, -0.6619, 0.6451, -0.6759, 0.6547, -0.6675,
-      0.6135, -0.6139, 0.2952, -0.2895, 0.2654, -0.2590, 0.3750, -0.3680,
-      0.5085, -0.5002, 0.6206, -0.6091, 0.6526, -0.6393, 0.6640, -0.6475,
-      0.6729, -0.6545, 0.0000, 0.0000,  0.0000, 0.0000,  0.0000, 0.0000};
+  static constexpr std::array V{0.0079, -0.0978, 0.0844, -0.1273, 0.0699, -0.0776, 0.2309, -0.2825, 0.0436, -0.0584,
+                                0.6056, -0.6619, 0.6451, -0.6759, 0.6547, -0.6675, 0.6135, -0.6139, 0.2952, -0.2895,
+                                0.2654, -0.2590, 0.3750, -0.3680, 0.5085, -0.5002, 0.6206, -0.6091, 0.6526, -0.6393,
+                                0.6640, -0.6475, 0.6729, -0.6545, 0.0000, 0.0000,  0.0000, 0.0000,  0.0000, 0.0000};
 
   // Loop pressure/temperature:
   // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
-  if (vmr == 0.) {
-    return;
-  }
+  if (vmr == 0.) { return; }
 
   // check if O2-VMR will cause an underflow due to division by zero:
-  ARTS_USER_ERROR_IF(
-      vmr < VMRCalcLimit,
-      "ERROR: PWR98 O2 full absorption model has detected a O2 volume mixing ratio of {}"
-      " which is below the threshold of {}"
-      ".\n"
-      "Therefore no calculation is performed.\n",
-      vmr,
-      VMRCalcLimit)
+  ARTS_USER_ERROR_IF(vmr < VMRCalcLimit,
+                     "ERROR: PWR98 O2 full absorption model has detected a O2 volume mixing ratio of {}"
+                     " which is below the threshold of {}"
+                     ".\n"
+                     "Therefore no calculation is performed.\n",
+                     vmr,
+                     VMRCalcLimit)
 
   // relative inverse temperature [1]
-  const Numeric TH = 3.0000e2 / t;
+  const Numeric TH  = 3.0000e2 / t;
   const Numeric TH1 = (TH - 1.000e0);
-  const Numeric B = pow(TH, X);
+  const Numeric B   = pow(TH, X);
   // partial pressure of H2O and dry air [hPa]
   const Numeric PRESWV = 1e-2 * (p_pa * h2o);
   const Numeric PRESDA = 1e-2 * (p_pa * (1.000e0 - h2o));
-  const Numeric DEN = 0.001 * (PRESDA * B + 1.1 * PRESWV * TH);  // [hPa]
-  const Numeric DENS = 0.001 * (PRESDA + 1.1 * PRESWV) * TH;     // [hPa]
-  const Numeric DFNR = WB300 * DEN;                              // [GHz]
+  const Numeric DEN    = 0.001 * (PRESDA * B + 1.1 * PRESWV * TH);  // [hPa]
+  const Numeric DENS   = 0.001 * (PRESDA + 1.1 * PRESWV) * TH;      // [hPa]
+  const Numeric DFNR   = WB300 * DEN;                               // [GHz]
 
   // continuum absorption [1/m/GHz]
   const Numeric CCONT = 1.23e-10 * pow2(TH) * p_pa;
@@ -403,17 +346,14 @@ void oxygen(PropmatVector& propmat_clearsky,
     // Loop over Rosnekranz '93 spectral line frequency:
     Numeric SUM = 0.000e0;
     for (Size l = 0; l < W300.size(); ++l) {
-      const Numeric DF =
-          W300[l] * ((fabs((F[l] - 118.75)) < 0.10) ? DENS : DEN);  // [hPa]
+      const Numeric DF = W300[l] * ((fabs((F[l] - 118.75)) < 0.10) ? DENS : DEN);  // [hPa]
       // 118 line update according to M. J. Schwartz, MIT, 1997
 
-      const Numeric Y = 0.001 * 0.01 * p_pa * B * (Y300[l] + V[l] * TH1);
-      const Numeric STR = S300[l] * exp(-BE[l] * TH1);
-      const Numeric SF1 =
-          (DF + (ff - F[l]) * Y) / ((ff - F[l]) * (ff - F[l]) + DF * DF);
-      const Numeric SF2 =
-          (DF - (ff + F[l]) * Y) / ((ff + F[l]) * (ff + F[l]) + DF * DF);
-      SUM += STR * (SF1 + SF2) * (ff / F[l]) * (ff / F[l]);
+      const Numeric Y    = 0.001 * 0.01 * p_pa * B * (Y300[l] + V[l] * TH1);
+      const Numeric STR  = S300[l] * exp(-BE[l] * TH1);
+      const Numeric SF1  = (DF + (ff - F[l]) * Y) / ((ff - F[l]) * (ff - F[l]) + DF * DF);
+      const Numeric SF2  = (DF - (ff + F[l]) * Y) / ((ff + F[l]) * (ff + F[l]) + DF * DF);
+      SUM               += STR * (SF1 + SF2) * (ff / F[l]) * (ff / F[l]);
     }
 
     // O2 absorption [Neper/km]
@@ -428,8 +368,7 @@ void oxygen(PropmatVector& propmat_clearsky,
     // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3
     // therefore 2.414322e10 --> 2.414322e7
     // pxsec [1/m]
-    propmat_clearsky[s].A() +=
-        vmr * (CONT + (2.414322e7 * SUM * p_pa * pow3(TH) / Constant::pi));
+    propmat_clearsky[s].A() += vmr * (CONT + (2.414322e7 * SUM * p_pa * pow3(TH) / Constant::pi));
   }
 }
 }  // namespace Absorption::PredefinedModel::PWR98

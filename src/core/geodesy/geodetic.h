@@ -65,9 +65,7 @@ Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid);
     @author  Patrick Eriksson
     @date    2021-07-29
 */
-std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef,
-                                              Vector3 decef,
-                                              Vector2 refellipsoid);
+std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef, Vector3 decef, Vector2 refellipsoid);
 
 /** ECEF position at a given distance 
 
@@ -167,9 +165,7 @@ Vector3 geodetic2ecef(Vector3 pos, Vector2 refellipsoid);
     @author  Patrick Eriksson
     @date    2020-09-17
 */
-std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
-                                              Vector2 los,
-                                              Vector2 refellipsoid);
+std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos, Vector2 los, Vector2 refellipsoid);
 
 /** Calculates the geometrical tangent point, approximately
 
@@ -192,9 +188,7 @@ std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos,
     @author  Patrick Eriksson
     @date    2021-08-02
 */
-Vector3 approx_geometrical_tangent_point(Vector3 ecef,
-                                         Vector3 decef,
-                                         Vector2 refellipsoid);
+Vector3 approx_geometrical_tangent_point(Vector3 ecef, Vector3 decef, Vector2 refellipsoid);
 
 /** Finds the distance to the intersection between an ECEF line and an ellipsoid
 
@@ -216,11 +210,7 @@ Vector3 approx_geometrical_tangent_point(Vector3 ecef,
     @author  Patrick Eriksson
     @date    2021-07-28
 */
-Numeric intersection_altitude(Vector3 ecef,
-                              Vector3 decef,
-                              Vector2 refellipsoid,
-                              Numeric altitude,
-                              Numeric l_min = 0);
+Numeric intersection_altitude(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric altitude, Numeric l_min = 0);
 
 /** Finds the distance to the intersection between an ECEF line and a latitude
 
@@ -238,12 +228,7 @@ Numeric intersection_altitude(Vector3 ecef,
     @author  Patrick Eriksson
     @date    2021-08-10
 */
-Numeric intersection_latitude(Vector3 ecef,
-                              Vector3 decef,
-                              Vector3 pos,
-                              Vector2 los,
-                              Vector2 refellipsoid,
-                              Numeric lat);
+Numeric intersection_latitude(Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Vector2 refellipsoid, Numeric lat);
 
 /** Finds the distance to the intersection between an ECEF line and a longitude
 
@@ -264,8 +249,7 @@ Numeric intersection_latitude(Vector3 ecef,
     @author  Patrick Eriksson
     @date    2021-07-30
 */
-Numeric intersection_longitude(
-    Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon);
+Numeric intersection_longitude(Vector3 ecef, Vector3 decef, Vector3 pos, Vector2 los, Numeric lon);
 
 /** Determines if an ellipsoid can be treated as a sphere
 
@@ -316,10 +300,7 @@ Vector2 reverse_los(Vector2 los);
     @author  Patrick Eriksson
     @date    2021-08-12
 */
-std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef,
-                                               Vector3 decef,
-                                               Vector2 refellipsoid,
-                                               Numeric l);
+std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric l);
 
 /** Geodetic position at a given distance
 
@@ -332,10 +313,7 @@ std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef,
     @author  Patrick Eriksson
     @date    2021-08-12
 */
-Vector3 pos_at_distance(Vector3 ecef,
-                        Vector3 decef,
-                        Vector2 refellipsoid,
-                        Numeric l);
+Vector3 pos_at_distance(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric l);
 
 /** The prime vertical radius
 
@@ -381,9 +359,7 @@ Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell);
  *  @param[in]  hfield     Height field (elevation in metres on lat/lon grid)
  *  @return     List of visible (lat, lon) coordinates
  */
-std::vector<Vector2> visible_coordinates(Vector2 pos,
-                                         Vector2 ellipsoid,
-                                         const GeodeticField2& hfield);
+std::vector<Vector2> visible_coordinates(Vector2 pos, Vector2 ellipsoid, const GeodeticField2& hfield);
 
 /*!
     Reference ellipsoid radius, directly from *refellipsoid*.

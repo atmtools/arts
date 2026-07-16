@@ -1,23 +1,18 @@
 #include "xml_io_stream_matpack_mdspan_helpers.h"
 
 namespace {
-template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
-void xml_read_from_stream_recursive_old(
-    std::istream& is_xml,
-    matpack::gridded_data_t<T, Grids...>& gfield,
-    bifstream* pbifs,
-    XMLTag& tag) {
+template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)> void xml_read_from_stream_recursive_old(
+    std::istream& is_xml, matpack::gridded_data_t<T, Grids...>& gfield, bifstream* pbifs, XMLTag& tag) {
   if constexpr (M > N) {
     xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
     xml_read_from_stream_recursive_old<N + 1>(is_xml, gfield, pbifs, tag);
   }
 }
 
-template <typename T, typename... Grids>
-void xml_read_from_stream_gf_old(std::istream& is_xml,
-                                 matpack::gridded_data_t<T, Grids...>& gfield,
-                                 bifstream* pbifs,
-                                 Index version) {
+template <typename T, typename... Grids> void xml_read_from_stream_gf_old(std::istream&                         is_xml,
+                                                                          matpack::gridded_data_t<T, Grids...>& gfield,
+                                                                          bifstream*                            pbifs,
+                                                                          Index version) {
   using GF = matpack::gridded_data_t<T, Grids...>;
 
   XMLTag tag;
@@ -29,18 +24,15 @@ void xml_read_from_stream_gf_old(std::istream& is_xml,
       tag.get_attribute_value("name", name);
 
       if constexpr (std::same_as<U, Vector>) {
-        ARTS_USER_ERROR_IF(
-            tag.name != "Vector", "Must be Vector, is {}", tag.name);
+        ARTS_USER_ERROR_IF(tag.name != "Vector", "Must be Vector, is {}", tag.name);
         old_xml_io_parse(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Vector"sv);
       } else if constexpr (std::same_as<U, ArrayOfString>) {
-        ARTS_USER_ERROR_IF(
-            tag.name != "Array", "Must be Array, is {}", tag.name);
+        ARTS_USER_ERROR_IF(tag.name != "Array", "Must be Array, is {}", tag.name);
         String s;
         tag.get_attribute_value("type", s);
-        ARTS_USER_ERROR_IF(
-            s != "String", "Must be Array<String>, is Array<{}>", s);
+        ARTS_USER_ERROR_IF(s != "String", "Must be Array<String>, is Array<{}>", s);
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Array"sv);
@@ -99,14 +91,11 @@ void xml_read_from_stream_gf_old(std::istream& is_xml,
       reader(gfield.template grid<N>(), gfield.template gridname<N>());
     }
 
-    xml_io_stream<matpack::data_t<T, sizeof...(Grids)>>::read(
-        is_xml, gfield.data, pbifs);
+    xml_io_stream<matpack::data_t<T, sizeof...(Grids)>>::read(is_xml, gfield.data, pbifs);
   } else if (version == 1) {
     ArrayOfString gridnames;
     xml_read_from_stream(is_xml, gridnames, pbifs);
-    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
-                       "Bad number of grid names:\n{}",
-                       gridnames);
+    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(), "Bad number of grid names:\n{}", gridnames);
     stdr::move(gridnames, gfield.grid_names.begin());
 
     xml_read_from_stream_recursive_old<0>(is_xml, gfield, pbifs, tag);
@@ -117,11 +106,10 @@ void xml_read_from_stream_gf_old(std::istream& is_xml,
   }
 }
 
-template <typename T, typename... Grids>
-void xml_read_from_stream_tmpl(std::istream& is_xml,
-                               matpack::gridded_data_t<T, Grids...>& gfield,
-                               bifstream* pbifs,
-                               const char* old_name) {
+template <typename T, typename... Grids> void xml_read_from_stream_tmpl(std::istream&                         is_xml,
+                                                                        matpack::gridded_data_t<T, Grids...>& gfield,
+                                                                        bifstream*                            pbifs,
+                                                                        const char* old_name) {
   XMLTag tag;
   tag.read_from_stream(is_xml);
 
@@ -145,12 +133,10 @@ void xml_read_from_stream_tmpl(std::istream& is_xml,
 }
 }  // namespace
 
-#define GF_IO(GF)                                               \
-  template <>                                                   \
-  void xml_io_stream<GF>::read(                                 \
-      std::istream& is_xml, GF& gfield, bifstream* pbifs) try { \
-    xml_read_from_stream_tmpl(is_xml, gfield, pbifs, #GF);      \
-  }                                                             \
+#define GF_IO(GF)                                                                                    \
+  template <> void xml_io_stream<GF>::read(std::istream& is_xml, GF& gfield, bifstream* pbifs) try { \
+    xml_read_from_stream_tmpl(is_xml, gfield, pbifs, #GF);                                           \
+  }                                                                                                  \
   ARTS_METHOD_ERROR_CATCH
 
 GF_IO(GriddedField1)

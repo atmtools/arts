@@ -54,38 +54,31 @@ void enum_{0}(py::module_& m) {{
                wso.preferred_print,
                wso.values_and_desc.front().size() - 1);
 
-  constexpr std::array pykeywords{
-      "None"sv, "any"sv, "all"sv, "print"sv, "lambda"sv};
-  constexpr std::string_view ignore_str =
-      "-+={§±!@#$%^&*()-+=]}[{\\|'\";:?/.>,<`~}] ";
-  auto contains_invalid_chars =
-      [ignore = std::set<char>(ignore_str.begin(), ignore_str.end())](
-          const std::string& str) {
-        for (auto ch : str)
-          if (stdr::binary_search(ignore, ch)) return true;
-        return false;
-      };
+  constexpr std::array       pykeywords{"None"sv, "any"sv, "all"sv, "print"sv, "lambda"sv};
+  constexpr std::string_view ignore_str = "-+={§±!@#$%^&*()-+=]}[{\\|'\";:?/.>,<`~}] ";
+  auto contains_invalid_chars = [ignore =
+                                     std::set<char>(ignore_str.begin(), ignore_str.end())](const std::string& str) {
+    for (auto ch : str)
+      if (stdr::binary_search(ignore, ch)) return true;
+    return false;
+  };
   for (auto& value : wso.values_and_desc) {
     // Skip last element in value which contains the description
     for (Size i = 0; i < value.size() - 1; i++) {
       auto& x = value[i];
-      if (nonstd::isdigit(x.front()) or contains_invalid_chars(x) or
-          stdr::any_of(value | stdv::take(i), Cmp::eq(x)))
+      if (nonstd::isdigit(x.front()) or contains_invalid_chars(x) or stdr::any_of(value | stdv::take(i), Cmp::eq(x)))
         continue;
 
       os << "  _g" << wso.name << ".def_prop_ro_static(\"" << x;
 
-      if (stdr::any_of(pykeywords, Cmp::eq(x))) {
-        os << '_';
-      }
+      if (stdr::any_of(pykeywords, Cmp::eq(x))) { os << '_'; }
 
-      std::print(
-          os,
-          R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
+      std::print(os,
+                 R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
 )-x-",
-          wso.name,
-          value.front(),
-          unwrap_stars(value.back()));
+                 wso.name,
+                 value.front(),
+                 unwrap_stars(value.back()));
     }
   }
 
@@ -116,19 +109,13 @@ void enum_options(const std::string& fname) try {
   hh << "#pragma once\n\n"
         "#include <enums.h>\n"
         "#include <nanobind/nanobind.h>\n\n";
-  for (auto& wso : wsos) {
-    hh << "NB_MAKE_OPAQUE(" << wso.name << ");\n";
-  }
+  for (auto& wso : wsos) { hh << "NB_MAKE_OPAQUE(" << wso.name << ");\n"; }
 
   cc << "namespace Python {\n";
 
-  for (auto& opt : wsos) {
-    enum_option(cc, opt);
-  }
+  for (auto& opt : wsos) { enum_option(cc, opt); }
   cc << "void py_auto_options(py::module_& m) try {\n";
-  for (auto& opt : wsos) {
-    cc << "  enum_" << opt.name << "(m);\n";
-  }
+  for (auto& opt : wsos) { cc << "  enum_" << opt.name << "(m);\n"; }
   cc << R"-x-(} catch (std::exception& e) {
   throw std::runtime_error(
       std::format("DEV ERROR:\nCannot initialize automatic options\n{}", std::string_view(e.what())));
@@ -141,9 +128,7 @@ void enum_options(const std::string& fname) try {
 }
 }  // namespace
 
-int main() try {
-  enum_options("py_auto_options");
-} catch (const std::exception& e) {
+int main() try { enum_options("py_auto_options"); } catch (const std::exception& e) {
   std::println(stderr, "Error in main: {}", e.what());
   return 1;
 }

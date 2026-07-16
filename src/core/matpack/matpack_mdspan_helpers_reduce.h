@@ -16,27 +16,17 @@ namespace matpack {
  * @param self The range to sum
  * @return The sum of all elements in the range
  */
-template <any_md Self>
-constexpr auto sum(const Self& self) {
-  return std::reduce(self.elem_begin(), self.elem_end());
-}
+template <any_md Self> constexpr auto sum(const Self& self) { return std::reduce(self.elem_begin(), self.elem_end()); }
 
 /** Sum the absolute of all elements in the range
  * 
  * @param self The range to sum
  * @return The absolute sum of all elements in the range
  */
-template <any_md Self>
-constexpr auto abssum(const Self& self) {
-  const auto sum_abs = [](auto& a) -> value_type<Self> {
-    return nonstd::abs(a);
-  };
+template <any_md Self> constexpr auto abssum(const Self& self) {
+  const auto sum_abs = [](auto& a) -> value_type<Self> { return nonstd::abs(a); };
 
-  return std::transform_reduce(self.elem_begin(),
-                               self.elem_end(),
-                               value_type<Self>{},
-                               std::plus<>{},
-                               sum_abs);
+  return std::transform_reduce(self.elem_begin(), self.elem_end(), value_type<Self>{}, std::plus<>{}, sum_abs);
 }
 
 /** The mean of all elements in the range using it's reduce operation after scaling the value by the size of the range
@@ -49,16 +39,9 @@ constexpr auto abssum(const Self& self) {
  * @param self The range to sum
  * @return The sum of all elements in the range
  */
-template <any_md Self>
-constexpr auto mean(const Self& self) {
-  const auto scale = [n = static_cast<Numeric>(self.size())](auto& a) {
-    return a / n;
-  };
-  return std::transform_reduce(self.elem_begin(),
-                               self.elem_end(),
-                               value_type<Self>{},
-                               std::plus<>{},
-                               scale);
+template <any_md Self> constexpr auto mean(const Self& self) {
+  const auto scale = [n = static_cast<Numeric>(self.size())](auto& a) { return a / n; };
+  return std::transform_reduce(self.elem_begin(), self.elem_end(), value_type<Self>{}, std::plus<>{}, scale);
 }
 
 /** The mean of all elements in the range using it's reduce operation after scaling the value by the size of the range
@@ -71,8 +54,7 @@ constexpr auto mean(const Self& self) {
  * @param self The range to sum
  * @return The sum of all elements in the range
  */
-template <any_md Self>
-constexpr auto fastmean(const Self& self) {
+template <any_md Self> constexpr auto fastmean(const Self& self) {
   const auto len = static_cast<Numeric>(self.size());
   return sum(self) / len;
 }
@@ -82,28 +64,21 @@ constexpr auto fastmean(const Self& self) {
  * @param self The range to find the minimum value in
  * @return The smallest value in the range or the maximum value of the type if the range is empty
  */
-template <any_md Self>
-constexpr auto min(const Self& self) {
-  return stdr::min(self | by_elem);
-}
+template <any_md Self> constexpr auto min(const Self& self) { return stdr::min(self | by_elem); }
 
 /** Get the maximum value in the range
  * 
  * @param self The range to find the maximum value in
  * @return The largest value in the range or the minimum value of the type if the range is empty
  */
-template <any_md Self>
-constexpr auto max(const Self& self) {
-  return stdr::max(self | by_elem);
-}
+template <any_md Self> constexpr auto max(const Self& self) { return stdr::max(self | by_elem); }
 
 /** Get the maximum value in the range
  * 
  * @param self The range to find the maximum value in
  * @return The largest value in the range or the minimum value of the type if the range is empty
  */
-template <any_md Self>
-constexpr auto minmax(const Self& self) {
+template <any_md Self> constexpr auto minmax(const Self& self) {
   auto e      = self | by_elem;
   auto [a, b] = stdr::minmax_element(e);
   assert(a != stdr::end(e));
@@ -116,8 +91,7 @@ constexpr auto minmax(const Self& self) {
  * @param self The range to count the number of non-NaN elements in
  * @return The number of elements that are not NaN
  */
-template <any_md Self>
-constexpr Size nansize(const Self& self) {
+template <any_md Self> constexpr Size nansize(const Self& self) {
   Size out = 0;
 
   for (auto& v : self | by_elem) {
@@ -132,18 +106,13 @@ constexpr Size nansize(const Self& self) {
  * @param self The range to sum
  * @return The sum of all elements in the range that are not NaN
  */
-template <any_md Self>
-constexpr auto nansum(const Self& self) {
+template <any_md Self> constexpr auto nansum(const Self& self) {
   const auto sum_nonnan = [](auto& a) -> value_type<Self> {
     if (nonstd::isnan(a)) return {};
     return a;
   };
 
-  return std::transform_reduce(self.elem_begin(),
-                               self.elem_end(),
-                               value_type<Self>{},
-                               std::plus<>{},
-                               sum_nonnan);
+  return std::transform_reduce(self.elem_begin(), self.elem_end(), value_type<Self>{}, std::plus<>{}, sum_nonnan);
 }
 
 /** Find the mean of all elements in the range that are not NaN
@@ -155,19 +124,13 @@ constexpr auto nansum(const Self& self) {
  * @param self The range to find the mean of
  * @return The mean of all elements in the range that are not NaN
  */
-template <any_md Self>
-constexpr auto nanmean(const Self& self) {
-  const auto scale_nonnan =
-      [n = static_cast<Numeric>(nansize(self))](auto& a) -> value_type<Self> {
+template <any_md Self> constexpr auto nanmean(const Self& self) {
+  const auto scale_nonnan = [n = static_cast<Numeric>(nansize(self))](auto& a) -> value_type<Self> {
     if (nonstd::isnan(a)) return {};
     return a / n;
   };
 
-  return std::transform_reduce(self.elem_begin(),
-                               self.elem_end(),
-                               value_type<Self>{},
-                               std::plus<>{},
-                               scale_nonnan);
+  return std::transform_reduce(self.elem_begin(), self.elem_end(), value_type<Self>{}, std::plus<>{}, scale_nonnan);
 }
 
 /** Find the mean of all elements in the range that are not NaN
@@ -179,8 +142,7 @@ constexpr auto nanmean(const Self& self) {
  * @param self The range to find the mean of
  * @return The mean of all elements in the range that are not NaN
  */
-template <any_md Self>
-constexpr auto nanfastmean(const Self& self) {
+template <any_md Self> constexpr auto nanfastmean(const Self& self) {
   auto n = static_cast<Numeric>(nansize(self));
   return nansum(self) / n;
 }
@@ -190,8 +152,7 @@ constexpr auto nanfastmean(const Self& self) {
  * @param self The range to find the minimum value in
  * @return The smallest value in the range filtering out nan
  */
-template <any_md Self>
-constexpr auto nanmin(const Self& self) {
+template <any_md Self> constexpr auto nanmin(const Self& self) {
   const auto not_isnan = [](auto& a) { return not nonstd::isnan(a); };
   return stdr::min(self | by_elem | stdv::filter(not_isnan));
 }
@@ -201,8 +162,7 @@ constexpr auto nanmin(const Self& self) {
  * @param self The range to find the maximum value in
  * @return The largest value in the range filtering out nan
  */
-template <any_md Self>
-constexpr auto nanmax(const Self& self) {
+template <any_md Self> constexpr auto nanmax(const Self& self) {
   const auto not_isnan = [](auto& a) { return not nonstd::isnan(a); };
   return stdr::max(self | by_elem | stdv::filter(not_isnan));
 }
@@ -218,8 +178,7 @@ constexpr auto nanmax(const Self& self) {
  */
 template <any_md Self, any_md Other, class T = value_type<Self>>
 constexpr T dot(const Self& self, const Other& other, T init = {}) {
-  return std::transform_reduce(
-      self.elem_begin(), self.elem_end(), other.elem_begin(), init);
+  return std::transform_reduce(self.elem_begin(), self.elem_end(), other.elem_begin(), init);
 }
 
 /** Get the sum of the elementwise product of two ranges
@@ -230,8 +189,7 @@ constexpr T dot(const Self& self, const Other& other, T init = {}) {
  * @param other The other range
  * @return The hypothenuse of the range
  */
-template <any_md Self>
-constexpr auto hypot(const Self& self) {
+template <any_md Self> constexpr auto hypot(const Self& self) {
   if constexpr (any_cdata<Self> and ranked<Self, 1>) {
     if constexpr (Self::ndata == 3) {
       return std::hypot(self[0], self[1], self[2]);
@@ -245,39 +203,33 @@ constexpr auto hypot(const Self& self) {
   }
 }
 
-template <any_md Self, any_md Other>
-constexpr bool operator==(const Self& self, const Other& other) {
+template <any_md Self, any_md Other> constexpr bool operator==(const Self& self, const Other& other) {
   return stdr::equal(self | by_elem, other | by_elem);
 }
 
-template <any_md Self, any_md Other>
-constexpr bool operator!=(const Self& self, const Other& other) {
+template <any_md Self, any_md Other> constexpr bool operator!=(const Self& self, const Other& other) {
   return not stdr::equal(self | by_elem, other | by_elem);
 }
 
-template <any_md Self>
-constexpr bool operator==(const Self& self, const value_type<Self>& other) {
+template <any_md Self> constexpr bool operator==(const Self& self, const value_type<Self>& other) {
   for (auto& v : self | by_elem) {
     if (v != other) return false;
   }
   return true;
 }
 
-template <any_md Self>
-constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
+template <any_md Self> constexpr bool operator!=(const Self& self, const value_type<Self>& other) {
   for (auto& v : self | by_elem) {
     if (v == other) return false;
   }
   return true;
 }
 
-template <any_md Self>
-constexpr bool any_negative(const Self& self) {
+template <any_md Self> constexpr bool any_negative(const Self& self) {
   return stdr::any_of(self | by_elem, Cmp::lt<value_type<Self>{}>());
 }
 
-template <any_md Self>
-constexpr bool any_nan(const Self& self) {
+template <any_md Self> constexpr bool any_nan(const Self& self) {
   const auto isnan = [](auto& a) { return nonstd::isnan(a); };
   return stdr::any_of(self | by_elem, isnan);
 }

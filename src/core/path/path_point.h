@@ -34,41 +34,32 @@ struct PropagationPathPoint {
   //! The group index of refraction
   Numeric ngroup{1};
 
-  [[nodiscard]] constexpr bool has(PathPositionType x) const noexcept {
-    return pos_type == x or los_type == x;
-  }
+  [[nodiscard]] constexpr bool has(PathPositionType x) const noexcept { return pos_type == x or los_type == x; }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) altitude(this Self&& p) noexcept {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) altitude(this Self&& p) noexcept {
     return std::forward<Self>(p).pos[0];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) latitude(this Self&& p) noexcept {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) latitude(this Self&& p) noexcept {
     return std::forward<Self>(p).pos[1];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) longitude(this Self&& p) noexcept {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) longitude(this Self&& p) noexcept {
     return std::forward<Self>(p).pos[2];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) zenith(this Self&& p) noexcept {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) zenith(this Self&& p) noexcept {
     return std::forward<Self>(p).los[0];
   }
 
-  template <typename Self>
-  [[nodiscard]] constexpr decltype(auto) azimuth(this Self&& p) noexcept {
+  template <typename Self> [[nodiscard]] constexpr decltype(auto) azimuth(this Self&& p) noexcept {
     return std::forward<Self>(p).los[1];
   }
 };
 
-using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
-using ArrayOfArrayOfPropagationPathPoint =
-    std::vector<ArrayOfPropagationPathPoint>;
-using ArrayOfArrayOfArrayOfPropagationPathPoint =
-    std::vector<ArrayOfArrayOfPropagationPathPoint>;
+using ArrayOfPropagationPathPoint               = std::vector<PropagationPathPoint>;
+using ArrayOfArrayOfPropagationPathPoint        = std::vector<ArrayOfPropagationPathPoint>;
+using ArrayOfArrayOfArrayOfPropagationPathPoint = std::vector<ArrayOfArrayOfPropagationPathPoint>;
 
 /** Mirror the line-of-sight
  * 
@@ -90,11 +81,11 @@ Vector2 mirror(const Vector2 los);
  * @param as_sensor Treat as sensor flag
  * @return A path point that may initialize a path
  */
-PropagationPathPoint init(const Vector3& pos,
-                          const Vector2& los,
-                          const AtmField& atm_field,
+PropagationPathPoint init(const Vector3&      pos,
+                          const Vector2&      los,
+                          const AtmField&     atm_field,
                           const SurfaceField& surf_field,
-                          bool as_sensor = true);
+                          bool                as_sensor = true);
 
 /** Initializes a propagation path point to a valid state.
  *
@@ -108,11 +99,8 @@ PropagationPathPoint init(const Vector3& pos,
  * @param as_sensor Treat as sensor flag
  * @return A path point that may initialize a path
  */
-PropagationPathPoint init_with_lostype(const Vector3& pos,
-                                       const Vector2& los,
-                                       const AtmField& atm_field,
-                                       const SurfaceField& surf_field,
-                                       bool as_sensor);
+PropagationPathPoint init_with_lostype(
+    const Vector3& pos, const Vector2& los, const AtmField& atm_field, const SurfaceField& surf_field, bool as_sensor);
 
 /** Set the geometric extremes object
  * 
@@ -125,12 +113,11 @@ PropagationPathPoint init_with_lostype(const Vector3& pos,
  * @param search_safe Flag to search the surface safely or fast
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& set_geometric_extremes(
-    ArrayOfPropagationPathPoint& path,
-    const AtmField& atm_field,
-    const SurfaceField& surf_field,
-    const Numeric surf_search_accuracy = 0.1,
-    const bool surf_search_safe        = false);
+ArrayOfPropagationPathPoint& set_geometric_extremes(ArrayOfPropagationPathPoint& path,
+                                                    const AtmField&              atm_field,
+                                                    const SurfaceField&          surf_field,
+                                                    const Numeric                surf_search_accuracy = 0.1,
+                                                    const bool                   surf_search_safe     = false);
 
 /** Fills a propagation path with geometrically spaced points
  *
@@ -146,10 +133,9 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
  * @param max_step The maximum step size in meters in path after this method completes
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_stepwise(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Numeric max_step);
+ArrayOfPropagationPathPoint& fill_geometric_stepwise(ArrayOfPropagationPathPoint& path,
+                                                     const SurfaceField&          surf_field,
+                                                     const Numeric                max_step);
 
 /** Fills a propagation path with geometrically spaced points
  *
@@ -164,10 +150,9 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
  * @param max_step The maximum step size in meters in path after this method completes
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Numeric max_step);
+ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(ArrayOfPropagationPathPoint& path,
+                                                          const SurfaceField&          surf_field,
+                                                          const Numeric                max_step);
 
 /** Adds all altitude grid crossings to a propagation path
  * 
@@ -176,10 +161,9 @@ ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(
  * @param alt_grid The altitude grid
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Vector& alt_grid);
+ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(ArrayOfPropagationPathPoint& path,
+                                                               const SurfaceField&          surf_field,
+                                                               const Vector&                alt_grid);
 
 /** Adds all latitude grid crossings to a propagation path
  * 
@@ -188,10 +172,9 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
  * @param lat_grid The latitude grid
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Vector& lat_grid);
+ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(ArrayOfPropagationPathPoint& path,
+                                                               const SurfaceField&          surf_field,
+                                                               const Vector&                lat_grid);
 
 /** Adds all longitude grid crossings to a propagation path
  * 
@@ -200,10 +183,9 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
  * @param lon_grid The longitude grid
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Vector& lon_grid);
+ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(ArrayOfPropagationPathPoint& path,
+                                                                const SurfaceField&          surf_field,
+                                                                const Vector&                lon_grid);
 
 /** Adds all grid crossings to a propagation path
  * 
@@ -214,12 +196,11 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
  * @param lon_grid The longitude grid
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_crossings(
-    ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surf_field,
-    const Vector& alt_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid);
+ArrayOfPropagationPathPoint& fill_geometric_crossings(ArrayOfPropagationPathPoint& path,
+                                                      const SurfaceField&          surf_field,
+                                                      const Vector&                alt_grid,
+                                                      const Vector&                lat_grid,
+                                                      const Vector&                lon_grid);
 
 /** Finds the geometric limb of a propagation path
  * 
@@ -227,8 +208,7 @@ ArrayOfPropagationPathPoint& fill_geometric_crossings(
  * @param surf_field The surface field (as the WSV)
  * @return The geometric limb as a path point 
  */
-PropagationPathPoint find_geometric_limb(
-    const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
+PropagationPathPoint find_geometric_limb(const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
 
 /** Find the two intersections of a line with an ellipsoid at a given altitude
  * 
@@ -238,11 +218,10 @@ PropagationPathPoint find_geometric_limb(
  * @param ell The ellipsoid of the body [a, b]
  * @return std::pair<Numeric, Numeric> The two intersection points' distances
  */
-std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
-    const Numeric alt,
-    const Vector3 ecef,
-    const Vector3 decef,
-    const Vector2 ell);
+std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(const Numeric alt,
+                                                              const Vector3 ecef,
+                                                              const Vector3 decef,
+                                                              const Vector2 ell);
 
 /** Fills the geometric limb of a propagation path
  *
@@ -253,8 +232,7 @@ std::pair<Numeric, Numeric> line_ellipsoid_altitude_intersect(
  * @param surf_field The surface field (as the WSV)
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fill_geometric_limb(
-    ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
+ArrayOfPropagationPathPoint& fill_geometric_limb(ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
 
 /** Erases all points that are closer than min_dist to the surface
  *
@@ -265,9 +243,9 @@ ArrayOfPropagationPathPoint& fill_geometric_limb(
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
-                                           const SurfaceField& surf_field,
-                                           const Numeric min_dist,
-                                           const bool first = true);
+                                           const SurfaceField&          surf_field,
+                                           const Numeric                min_dist,
+                                           const bool                   first = true);
 
 /** Sums up the geometric path length of a propagation path
  *
@@ -278,8 +256,7 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
  * @param surf_field The surface field (as the WSV)
  * @return Numeric Distance in meters
  */
-Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
-                                    const SurfaceField& surf_field);
+Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
 
 /** Distance between two positions in in meters
  *
@@ -290,9 +267,7 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
  * @param ellipsoid The ellipsoid of the body
  * @return Numeric Distance in meters
  */
-Numeric distance(const Vector3 pos1,
-                 const Vector3 pos2,
-                 const Vector2 ellipsoid);
+Numeric distance(const Vector3 pos1, const Vector3 pos2, const Vector2 ellipsoid);
 
 /** Return distance between neighboring points in a path
  * 
@@ -300,8 +275,7 @@ Numeric distance(const Vector3 pos1,
  * @param ellipsoid The ellipsoid of the body
  * @return Vector 
  */
-Vector distance(const ArrayOfPropagationPathPoint& path,
-                const Vector2 ellipsoid);
+Vector distance(const ArrayOfPropagationPathPoint& path, const Vector2 ellipsoid);
 
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by
  * a sensor at a given position
@@ -317,10 +291,7 @@ Vector distance(const ArrayOfPropagationPathPoint& path,
  * @param[in] azimuth The azimuth of the sensor
  * @return The zenith angle
  */
-Numeric geometric_tangent_zenith(const Vector3 pos,
-                                 const Vector2& ell,
-                                 const Numeric alt,
-                                 const Numeric azimuth = 0);
+Numeric geometric_tangent_zenith(const Vector3 pos, const Vector2& ell, const Numeric alt, const Numeric azimuth = 0);
 
 /*! Remove all propagation path points that are not looking at or are in the atmosphere
  *
@@ -353,8 +324,7 @@ ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path);
  * @param[in] path The propagation path
  * @return The input for piping
  */
-ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
-    ArrayOfPropagationPathPoint& path);
+ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(ArrayOfPropagationPathPoint& path);
 
 bool is_valid_old_pos(const Vector3& pos);
 bool is_valid_old_pos(const StridedConstVectorView& pos);
@@ -370,53 +340,36 @@ bool is_valid_old_pos(const StridedConstVectorView& pos);
  * @return The next geometric path point
  */
 PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
-                                    const AtmField& atm_field,
-                                    const SurfaceField& surf_field,
-                                    const Numeric max_step,
-                                    const Numeric safe_search_accuracy,
-                                    const bool search_safe);
+                                    const AtmField&             atm_field,
+                                    const SurfaceField&         surf_field,
+                                    const Numeric               max_step,
+                                    const Numeric               safe_search_accuracy,
+                                    const bool                  search_safe);
 }  // namespace path
 
-using PropagationPathPoint        = path::PropagationPathPoint;
-using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;
-using ArrayOfArrayOfPropagationPathPoint =
-    path::ArrayOfArrayOfPropagationPathPoint;
-using ArrayOfArrayOfArrayOfPropagationPathPoint =
-    path::ArrayOfArrayOfArrayOfPropagationPathPoint;
+using PropagationPathPoint                      = path::PropagationPathPoint;
+using ArrayOfPropagationPathPoint               = path::ArrayOfPropagationPathPoint;
+using ArrayOfArrayOfPropagationPathPoint        = path::ArrayOfArrayOfPropagationPathPoint;
+using ArrayOfArrayOfArrayOfPropagationPathPoint = path::ArrayOfArrayOfArrayOfPropagationPathPoint;
 
-template <>
-struct std::formatter<PropagationPathPoint> {
+template <> struct std::formatter<PropagationPathPoint> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const PropagationPathPoint& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const PropagationPathPoint& v, FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
 
     tags.add_if_bracket(ctx, "["sv);
     if (tags.io) {
       tags.format(ctx, v.pos, sep, v.los, sep, v.nreal, sep, v.ngroup);
     } else {
-      tags.format(ctx,
-                  v.pos_type,
-                  sep,
-                  v.los_type,
-                  sep,
-                  v.pos,
-                  sep,
-                  v.los,
-                  sep,
-                  v.nreal,
-                  sep,
-                  v.ngroup);
+      tags.format(ctx, v.pos_type, sep, v.los_type, sep, v.pos, sep, v.los, sep, v.nreal, sep, v.ngroup);
     }
     tags.add_if_bracket(ctx, "]"sv);
 
@@ -424,16 +377,13 @@ struct std::formatter<PropagationPathPoint> {
   }
 };
 
-template <>
-struct xml_io_stream<PropagationPathPoint> {
+template <> struct xml_io_stream<PropagationPathPoint> {
   static constexpr std::string_view type_name = "PropagationPathPoint"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&               os,
                     const PropagationPathPoint& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                  pbofs = nullptr,
+                    std::string_view            name  = ""sv);
 
-  static void read(std::istream& is,
-                   PropagationPathPoint& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, PropagationPathPoint& x, bifstream* pbifs = nullptr);
 };

@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
+void xml_io_stream<SpeciesIsotope>::write(std::ostream&         os,
                                           const SpeciesIsotope& x,
                                           bofstream*,
                                           std::string_view name) try {
@@ -15,9 +15,7 @@ void xml_io_stream<SpeciesIsotope>::write(std::ostream& os,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void xml_io_stream<SpeciesIsotope>::read(std::istream& is,
-                                         SpeciesIsotope& x,
-                                         bifstream*) try {
+void xml_io_stream<SpeciesIsotope>::read(std::istream& is, SpeciesIsotope& x, bifstream*) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

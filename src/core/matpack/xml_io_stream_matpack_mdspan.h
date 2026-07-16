@@ -15,43 +15,36 @@ void old_xml_io_read(XMLTag&, std::istream&, Tensor5&, bifstream*);
 void old_xml_io_read(XMLTag&, std::istream&, Tensor6&, bifstream*);
 void old_xml_io_read(XMLTag&, std::istream&, Tensor7&, bifstream*);
 
-template <typename T, Size N>
-struct xml_io_stream_name<matpack::data_t<T, N>> {
+template <typename T, Size N> struct xml_io_stream_name<matpack::data_t<T, N>> {
   static constexpr std::string_view name = "Matpack"sv;
 };
 
-template <>
-struct xml_io_stream_name<Vector> {
+template <> struct xml_io_stream_name<Vector> {
   static constexpr std::string_view name = "Vector"sv;
 };
 
-template <>
-struct xml_io_stream_name<std::shared_ptr<Matrix>> {
+template <> struct xml_io_stream_name<std::shared_ptr<Matrix>> {
   static constexpr std::string_view name = "SharedMatrix"sv;
 };
 
-template <>
-struct xml_io_stream_name<Matrix> {
+template <> struct xml_io_stream_name<Matrix> {
   static constexpr std::string_view name = "Matrix"sv;
 };
 
-template <>
-struct xml_io_stream_name<Tensor3> {
+template <> struct xml_io_stream_name<Tensor3> {
   static constexpr std::string_view name = "Tensor3"sv;
 };
 
-template <arts_xml_ioable T, Size N>
-struct xml_io_stream<matpack::data_t<T, N>> {
-  constexpr static std::string_view type_name =
-      xml_io_stream_name_v<matpack::data_t<T, N>>;
-  static constexpr Size codeversion = 2;
+template <arts_xml_ioable T, Size N> struct xml_io_stream<matpack::data_t<T, N>> {
+  constexpr static std::string_view type_name   = xml_io_stream_name_v<matpack::data_t<T, N>>;
+  static constexpr Size             codeversion = 2;
 
   using inner = xml_io_stream<T>;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                os,
                     const matpack::data_t<T, N>& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) try {
+                    bofstream*                   pbofs = nullptr,
+                    std::string_view             name  = ""sv) try {
     XMLTag tag{type_name,
                "name",
                name,
@@ -81,18 +74,14 @@ struct xml_io_stream<matpack::data_t<T, N>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void read(std::istream& is,
-                   matpack::data_t<T, N>& x,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, matpack::data_t<T, N>& x, bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
 
     Size fileversion = 1;  // Orig gets version number 1
-    if (tag.has_attribute("version"))
-      tag.get_attribute_value("version", fileversion);
+    if (tag.has_attribute("version")) tag.get_attribute_value("version", fileversion);
 
-    if (fileversion > codeversion or fileversion == 0)
-      throw std::runtime_error("Unknown version");
+    if (fileversion > codeversion or fileversion == 0) throw std::runtime_error("Unknown version");
 
     if (fileversion == codeversion) {
       tag.check_name(type_name);
@@ -103,7 +92,7 @@ struct xml_io_stream<matpack::data_t<T, N>> {
       tag.check_attribute("type", inner::type_name);
       tag.check_attribute("rank", N);
 
-      std::istringstream iss(str_shape);
+      std::istringstream   iss(str_shape);
       std::array<Index, N> shape{};
       for (Size i = 0; i < N; ++i) iss >> shape[i];
 
@@ -134,55 +123,33 @@ struct xml_io_stream<matpack::data_t<T, N>> {
   ARTS_METHOD_ERROR_CATCH
 };
 
-template <typename T, Size... N>
-struct xml_io_stream_name<matpack::cdata_t<T, N...>> {
-  static constexpr std::string_view name =
-      xml_io_stream_name_v<matpack::data_t<T, sizeof...(N)>>;
+template <typename T, Size... N> struct xml_io_stream_name<matpack::cdata_t<T, N...>> {
+  static constexpr std::string_view name = xml_io_stream_name_v<matpack::data_t<T, sizeof...(N)>>;
 };
 
-template <arts_xml_ioable T, Size... N>
-struct xml_io_stream<matpack::cdata_t<T, N...>> {
-  constexpr static std::string_view type_name =
-      xml_io_stream_name_v<matpack::cdata_t<T, N...>>;
+template <arts_xml_ioable T, Size... N> struct xml_io_stream<matpack::cdata_t<T, N...>> {
+  constexpr static std::string_view type_name = xml_io_stream_name_v<matpack::cdata_t<T, N...>>;
 
   using inner = xml_io_stream<T>;
 
-  static void parse(std::span<matpack::cdata_t<T, N...>> v, std::istream& is)
-    requires(xml_io_parseable<T>)
-  {
-    inner::parse(
-        std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)}, is);
+  static void parse(std::span<matpack::cdata_t<T, N...>> v, std::istream& is) requires(xml_io_parseable<T>) {
+    inner::parse(std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)}, is);
   }
 
-  static void get(std::span<matpack::cdata_t<T, N...>> v, bifstream* pbifs)
-    requires(xml_io_binary<T>)
-  {
-    inner::get(std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)},
-               pbifs);
+  static void get(std::span<matpack::cdata_t<T, N...>> v, bifstream* pbifs) requires(xml_io_binary<T>) {
+    inner::get(std::span{reinterpret_cast<T*>(v.data()), (v.size() * ... * N)}, pbifs);
   }
 
-  static void put(std::span<const matpack::cdata_t<T, N...>> v,
-                  bofstream* pbofs)
-    requires(xml_io_binary<T>)
-  {
-    inner::put(
-        std::span{reinterpret_cast<const T*>(v.data()), (v.size() * ... * N)},
-        pbofs);
+  static void put(std::span<const matpack::cdata_t<T, N...>> v, bofstream* pbofs) requires(xml_io_binary<T>) {
+    inner::put(std::span{reinterpret_cast<const T*>(v.data()), (v.size() * ... * N)}, pbofs);
   }
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                    os,
                     const matpack::cdata_t<T, N...>& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv) try {
-    XMLTag tag{type_name,
-               "name",
-               name,
-               "rank",
-               sizeof...(N),
-               "type",
-               inner::type_name,
-               "shape",
-               std::format("{}", x.shape())};
+                    bofstream*                       pbofs = nullptr,
+                    std::string_view                 name  = ""sv) try {
+    XMLTag tag{
+        type_name, "name", name, "rank", sizeof...(N), "type", inner::type_name, "shape", std::format("{}", x.shape())};
     tag.write_to_stream(os);
 
     if (pbofs) {
@@ -201,9 +168,7 @@ struct xml_io_stream<matpack::cdata_t<T, N...>> {
   }
   ARTS_METHOD_ERROR_CATCH
 
-  static void read(std::istream& is,
-                   matpack::cdata_t<T, N...>& x,
-                   bifstream* pbifs = nullptr) try {
+  static void read(std::istream& is, matpack::cdata_t<T, N...>& x, bifstream* pbifs = nullptr) try {
     XMLTag tag;
     tag.read_from_stream(is);
     tag.check_name(type_name);

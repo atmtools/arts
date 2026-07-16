@@ -17,8 +17,7 @@ namespace Python {
 namespace py = nanobind;
 using namespace py::literals;
 
-template <typename T, typename... Ts>
-void vector_interface(py::class_<Array<T>, Ts...> &c) {
+template <typename T, typename... Ts> void vector_interface(py::class_<Array<T>, Ts...> &c) {
   using Vec = Array<T>;
 
   if constexpr (arts_xml_ioable<T>) {
@@ -26,8 +25,7 @@ void vector_interface(py::class_<Array<T>, Ts...> &c) {
         "fromxmls",
         [](const std::vector<std::string> &files) {
           Vec out(files.size());
-          for (size_t i = 0; i < files.size(); ++i)
-            xml_read_from_file<T>(files[i], out[i]);
+          for (size_t i = 0; i < files.size(); ++i) xml_read_from_file<T>(files[i], out[i]);
           return out;
         },
         "files"_a,
@@ -59,45 +57,32 @@ artstype : T
 // IF THIS FAILS, WE MUST PROBABLY REVERT TO THE ORIGINAL FUNCTION
 // OR REWRITE THIS ENTIRERLY.
 // IT ALSO WRAPS vector_interface FOR SIMPLICITY
-template <typename Value>
-void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
+template <typename Value> void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
   using namespace nanobind;
   using ValueRef = Value &;
 
   cl.def(init<>(), "Default constructor")
 
       .def(
-          "__len__",
-          [](const Array<Value> &v) { return v.size(); },
-          "Return the number of items in the list.")
+          "__len__", [](const Array<Value> &v) { return v.size(); }, "Return the number of items in the list.")
 
       .def(
-          "__bool__",
-          [](const Array<Value> &v) { return !v.empty(); },
-          "Check whether the vector is nonempty")
+          "__bool__", [](const Array<Value> &v) { return !v.empty(); }, "Check whether the vector is nonempty")
 
       .def(
           "__iter__",
-          [](Array<Value> &v) {
-            return make_iterator(
-                type<Array<Value>>(), "Iterator", v.begin(), v.end());
-          },
+          [](Array<Value> &v) { return make_iterator(type<Array<Value>>(), "Iterator", v.begin(), v.end()); },
           keep_alive<0, 1>(),
           "Allows `iter(self)`")
 
       .def(
           "__getitem__",
-          [](Array<Value> &v, Py_ssize_t i) -> ValueRef {
-            return v[detail::wrap(i, v.size())];
-          },
+          [](Array<Value> &v, Py_ssize_t i) -> ValueRef { return v[detail::wrap(i, v.size())]; },
           rv_policy::automatic_reference,
           "i"_a,
           "Return the i-th item.")
 
-      .def(
-          "clear",
-          [](Array<Value> &v) { v.clear(); },
-          "Remove all items from list.");
+      .def("clear", [](Array<Value> &v) { v.clear(); }, "Remove all items from list.");
 
   if constexpr (detail::is_copy_constructible_v<Value>) {
     cl.def(init<const Array<Value> &>(), "Copy constructor");
@@ -131,8 +116,8 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
         .def(
             "pop",
             [](Array<Value> &v, Py_ssize_t i) {
-              size_t index = detail::wrap(i, v.size());
-              Value result = std::move(v[index]);
+              size_t index  = detail::wrap(i, v.size());
+              Value  result = std::move(v[index]);
               v.erase(v.begin() + index);
               return result;
             },
@@ -141,25 +126,19 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
         .def(
             "extend",
-            [](Array<Value> &v, const Array<Value> &src) {
-              v.insert(v.end(), src.begin(), src.end());
-            },
+            [](Array<Value> &v, const Array<Value> &src) { v.insert(v.end(), src.begin(), src.end()); },
             "Extend `self` by appending elements from `arg`.")
 
         .def(
             "__setitem__",
-            [](Array<Value> &v, Py_ssize_t i, const Value &value) {
-              v[detail::wrap(i, v.size())] = value;
-            },
+            [](Array<Value> &v, Py_ssize_t i, const Value &value) { v[detail::wrap(i, v.size())] = value; },
             "i"_a,
             "value"_a,
             "Set the i-th item to `value`.")
 
         .def(
             "__delitem__",
-            [](Array<Value> &v, Py_ssize_t i) {
-              v.erase(v.begin() + detail::wrap(i, v.size()));
-            },
+            [](Array<Value> &v, Py_ssize_t i) { v.erase(v.begin() + detail::wrap(i, v.size())); },
             "i"_a,
             "Remove the i-th item from the list.")
 
@@ -230,9 +209,7 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
     cl.def(
           "__contains__",
-          [](const Array<Value> &v, const Value &x) {
-            return std::find(v.begin(), v.end(), x) != v.end();
-          },
+          [](const Array<Value> &v, const Value &x) { return std::find(v.begin(), v.end(), x) != v.end(); },
           "Return true if `arg` is in the list.")
 
         .def(
@@ -242,23 +219,16 @@ void value_holder_vector_interface(py::class_<Array<Value>> &cl) {
 
         .def(
             "count",
-            [](const Array<Value> &v, const Value &x) {
-              return std::count(v.begin(), v.end(), x);
-            },
+            [](const Array<Value> &v, const Value &x) { return std::count(v.begin(), v.end(), x); },
             "Return number of occurrences of `arg`.")
 
         .def(
             "index",
-            [](const Array<Value> &v,
-               const Value &value,
-               Size start,
-               Size end) {
+            [](const Array<Value> &v, const Value &value, Size start, Size end) {
               auto s = v.begin() + std::min(start, v.size());
               auto e = v.begin() + std::min(end, v.size());
               auto p = std::find(s, e, value);
-              if (p == e)
-                throw std::invalid_argument(
-                    std::format("{} is not in list", value));
+              if (p == e) throw std::invalid_argument(std::format("{} is not in list", value));
               return Index{std::distance(v.begin(), p)};
             },
             "value"_a,

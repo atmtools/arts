@@ -31,8 +31,7 @@
  * \param[out] ifs Pointer to input file stream
  * \param[in]  filename Input filename
  */
-void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
-                                  const String& filename);
+void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs, const String& filename);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -40,9 +39,7 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
 
 void filename_xml(const String& filename);
 
-void filename_xml_with_index(String& filename,
-                             const Index& file_index,
-                             const Index& digits = 0);
+void filename_xml_with_index(String& filename, const Index& file_index, const Index& digits = 0);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -56,10 +53,8 @@ void filename_xml_with_index(String& filename,
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_ioable T>
-String xml_read_from_file(const String& filename, T& type)
-  requires(std::same_as<T, std::remove_const_t<T>>)
-try {
+template <arts_xml_ioable T> String xml_read_from_file(const String& filename, T& type)
+    requires(std::same_as<T, std::remove_const_t<T>>) try {
   ARTS_TIME_REPORT
 
   String xml_file = filename;
@@ -67,8 +62,7 @@ try {
   xml_read_from_file_base(xml_file, type);
   return xml_file;
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Cannot read file: \"{}\":\n{}", filename, e.what()));
+  throw std::runtime_error(std::format("Cannot read file: \"{}\":\n{}", filename, e.what()));
 }
 
 //! Extends data from XML file
@@ -79,10 +73,8 @@ try {
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_extendable T>
-String xml_extend_from_file(const String& filename, T& type)
-  requires(std::same_as<T, std::remove_const_t<T>>)
-try {
+template <arts_xml_extendable T> String xml_extend_from_file(const String& filename, T& type)
+    requires(std::same_as<T, std::remove_const_t<T>>) try {
   ARTS_TIME_REPORT
 
   String xml_file = filename;
@@ -102,10 +94,8 @@ try {
   \param filename XML filename
   \param type Generic return value
 */
-template <arts_xml_appendable T>
-String xml_append_from_file(const String& filename, T& type)
-  requires(std::same_as<T, std::remove_const_t<T>>)
-try {
+template <arts_xml_appendable T> String xml_append_from_file(const String& filename, T& type)
+    requires(std::same_as<T, std::remove_const_t<T>>) try {
   ARTS_TIME_REPORT
 
   String xml_file = filename;
@@ -114,10 +104,7 @@ try {
   return xml_file;
 } catch (const std::exception& e) {
   throw std::runtime_error(
-      std::format("Cannot append file: \"{}\" containing {}:\n{}",
-                  filename,
-                  xml_io_stream_name_v<T>,
-                  e.what()));
+      std::format("Cannot append file: \"{}\" containing {}:\n{}", filename, xml_io_stream_name_v<T>, e.what()));
 }
 
 //! Write data to XML file
@@ -131,10 +118,7 @@ try {
   \param ftype      File type
 */
 template <arts_xml_ioable T>
-String xml_write_to_file(const String& filename,
-                         const T& type,
-                         const FileType ftype,
-                         const Index no_clobber) try {
+String xml_write_to_file(const String& filename, const T& type, const FileType ftype, const Index no_clobber) try {
   ARTS_TIME_REPORT
 
   String efilename{add_basedir(filename)};

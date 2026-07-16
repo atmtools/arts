@@ -19,22 +19,19 @@
  *
  * */
 struct ScatteringSpeciesProperty {
-  std::string species_name;
+  std::string         species_name;
   ParticulateProperty pproperty;
 
-  constexpr auto operator<=>(const ScatteringSpeciesProperty& other) const =
-      default;
+  constexpr auto operator<=>(const ScatteringSpeciesProperty& other) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const ScatteringSpeciesProperty& ssp);
+  friend std::ostream& operator<<(std::ostream& os, const ScatteringSpeciesProperty& ssp);
 
   // inverse of formatting
   static ScatteringSpeciesProperty from_string(const std::string_view);
 };
 
 namespace std {
-template <>
-struct hash<ScatteringSpeciesProperty> {
+template <> struct hash<ScatteringSpeciesProperty> {
   static std::size_t operator()(const ScatteringSpeciesProperty& ssp) {
     std::size_t seed = 0;
     boost::hash_combine(seed, ssp.species_name);
@@ -44,38 +41,31 @@ struct hash<ScatteringSpeciesProperty> {
 };
 }  // namespace std
 
-template <>
-struct std::formatter<ScatteringSpeciesProperty> {
+template <> struct std::formatter<ScatteringSpeciesProperty> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const ScatteringSpeciesProperty& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const ScatteringSpeciesProperty& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
     return tags.format(ctx, quote, v.species_name, "_"sv, v.pproperty, quote);
   }
 };
 
-template <>
-struct xml_io_stream<ScatteringSpeciesProperty> {
+template <> struct xml_io_stream<ScatteringSpeciesProperty> {
   static constexpr std::string_view type_name = "ScatteringSpeciesProperty"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                    os,
                     const ScatteringSpeciesProperty& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                       pbofs = nullptr,
+                    std::string_view                 name  = ""sv);
 
-  static void read(std::istream& is,
-                   ScatteringSpeciesProperty& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, ScatteringSpeciesProperty& x, bifstream* pbifs = nullptr);
 };
 
 #endif

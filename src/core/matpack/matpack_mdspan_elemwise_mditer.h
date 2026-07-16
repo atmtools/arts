@@ -8,9 +8,8 @@
 #include "matpack_mdspan_common_types.h"
 
 namespace matpack {
-template <class T>
-struct elemwise_mditer {
-  T* data{nullptr};
+template <class T> struct elemwise_mditer {
+  T*    data{nullptr};
   Index pos{0};
 
   using iterator_concept  = std::random_access_iterator_tag;
@@ -56,71 +55,45 @@ struct elemwise_mditer {
     return *this;
   }
 
-  [[nodiscard]] constexpr elemwise_mditer operator+(Index i) const noexcept {
-    return {data, pos + i};
-  }
+  [[nodiscard]] constexpr elemwise_mditer operator+(Index i) const noexcept { return {data, pos + i}; }
 
-  [[nodiscard]] constexpr elemwise_mditer operator-(Index i) const noexcept {
-    return {data, pos - i};
-  }
+  [[nodiscard]] constexpr elemwise_mditer operator-(Index i) const noexcept { return {data, pos - i}; }
 
-  [[nodiscard]] constexpr friend elemwise_mditer operator+(
-      Index i, const elemwise_mditer& m) noexcept {
+  [[nodiscard]] constexpr friend elemwise_mditer operator+(Index i, const elemwise_mditer& m) noexcept {
     return {m.data, m.pos + i};
   }
 
-  [[nodiscard]] constexpr difference_type operator-(
-      const elemwise_mditer& other) const noexcept {
+  [[nodiscard]] constexpr difference_type operator-(const elemwise_mditer& other) const noexcept {
     return pos - other.pos;
   }
 
-  [[nodiscard]] constexpr difference_type operator+(
-      const elemwise_mditer& other) const noexcept {
+  [[nodiscard]] constexpr difference_type operator+(const elemwise_mditer& other) const noexcept {
     return pos + other.pos;
   }
 
-  [[nodiscard]] constexpr auto operator<=>(
-      const elemwise_mditer& m) const noexcept {
-    return pos <=> m.pos;
-  }
+  [[nodiscard]] constexpr auto operator<=>(const elemwise_mditer& m) const noexcept { return pos <=> m.pos; }
 
-  [[nodiscard]] constexpr bool operator==(
-      const elemwise_mditer& m) const noexcept {
-    return pos == m.pos;
-  }
+  [[nodiscard]] constexpr bool operator==(const elemwise_mditer& m) const noexcept { return pos == m.pos; }
 
-  [[nodiscard]] constexpr decltype(auto) operator*() const {
-    return data->elem_at(pos);
-  }
+  [[nodiscard]] constexpr decltype(auto) operator*() const { return data->elem_at(pos); }
 
-  [[nodiscard]] constexpr decltype(auto) operator[](Index i) const {
-    return data->elem_at(pos + i);
-  }
+  [[nodiscard]] constexpr decltype(auto) operator[](Index i) const { return data->elem_at(pos + i); }
 
-  friend constexpr void iter_swap(const elemwise_mditer& a,
-                                  const elemwise_mditer& b) noexcept {
+  friend constexpr void iter_swap(const elemwise_mditer& a, const elemwise_mditer& b) noexcept {
     using std::swap;
     swap(*a, *b);
   }
 };
 
-template <any_md T>
-constexpr auto elemwise_range(T&& x) {
-  if constexpr (requires {
-                  std::span{x.view_as(
-                      std::array<Index, 1>{static_cast<Index>(x.size())})};
-                })
-    return std::span{
-        x.view_as(std::array<Index, 1>{static_cast<Index>(x.size())})};
+template <any_md T> constexpr auto elemwise_range(T&& x) {
+  if constexpr (requires { std::span{x.view_as(std::array<Index, 1>{static_cast<Index>(x.size())})}; })
+    return std::span{x.view_as(std::array<Index, 1>{static_cast<Index>(x.size())})};
   else
     return stdr::subrange{x.elem_begin(), x.elem_end()};
 };
 
 // Catch for non-matpack types (might not work, be careful)
-template <ranked<1> T>
-constexpr auto elemwise_range(T&& x)
-  requires(not any_md<T>)
-{
+template <ranked<1> T> constexpr auto elemwise_range(T&& x) requires(not any_md<T>) {
   if constexpr (requires { std::span{x}; })
     return std::span{x};
   else
@@ -128,8 +101,7 @@ constexpr auto elemwise_range(T&& x)
 };
 
 struct elemwise_r {
-  template <matpack::any_md T>
-  friend constexpr auto operator|(T&& x, elemwise_r) {
+  template <matpack::any_md T> friend constexpr auto operator|(T&& x, elemwise_r) {
     return elemwise_range(std::forward<T>(x));
   }
 };
