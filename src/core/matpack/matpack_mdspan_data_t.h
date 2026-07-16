@@ -345,14 +345,13 @@ class [[nodiscard]] data_t {
   static constexpr bool is_strided    = view_t<T, N>::is_always_strided();
   static constexpr bool is_unique     = view_t<T, N>::is_always_unique();
 
-  //! Sizes
-  [[nodiscard]] constexpr auto ncols() const { return extent(N - 1); }
-  [[nodiscard]] constexpr auto nrows() const { return extent(N - 2); }
-  [[nodiscard]] constexpr auto npages() const { return extent(N - 3); }
-  [[nodiscard]] constexpr auto nbooks() const { return extent(N - 4); }
-  [[nodiscard]] constexpr auto nshelves() const { return extent(N - 5); }
-  [[nodiscard]] constexpr auto nvitrines() const { return extent(N - 6); }
-  [[nodiscard]] constexpr auto nlibraries() const { return extent(N - 7); }
+  [[nodiscard]] constexpr auto ncols() const requires(N >= 1) { return extent(N - 1); }
+  [[nodiscard]] constexpr auto nrows() const requires(N >= 2) { return extent(N - 2); }
+  [[nodiscard]] constexpr auto npages() const requires(N >= 3) { return extent(N - 3); }
+  [[nodiscard]] constexpr auto nbooks() const requires(N >= 4) { return extent(N - 4); }
+  [[nodiscard]] constexpr auto nshelves() const requires(N >= 5) { return extent(N - 5); }
+  [[nodiscard]] constexpr auto nvitrines() const requires(N >= 6) { return extent(N - 6); }
+  [[nodiscard]] constexpr auto nlibraries() const requires(N >= 7) { return extent(N - 7); }
 
   template <typename Self, Size M>
   constexpr auto view_as(this Self&& self, const std::array<Index, M>& exts) {

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include "matpack_mdspan_common_types.h"
 #include "matpack_mdspan_elemwise_mditer.h"

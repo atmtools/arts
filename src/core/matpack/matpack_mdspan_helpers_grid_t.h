@@ -117,7 +117,7 @@ class grid_t {
   constexpr operator std::span<const Numeric>() const { return vec(); }
 
   template <access_operator Op>
-  [[nodiscard]] constexpr auto operator[](const Op& op) const {
+  [[nodiscard]] constexpr const Numeric& operator[](const Op& op) const {
     return x[op];
   }
 

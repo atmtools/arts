@@ -126,7 +126,7 @@ void SourceVector::init(const std::span<const propmat> &K,
     return;
   }
 
-  const Size nq = dK.front().nrows();
+  const Size nq = dK.front().ncols();
 
   dJ.resize(nf, np, nq);
   auto &&dJ_ = dJ[0];

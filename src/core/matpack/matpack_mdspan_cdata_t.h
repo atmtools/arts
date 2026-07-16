@@ -35,6 +35,17 @@ struct [[nodiscard]] cdata_t {
   static constexpr std::array<Index, N> shape_ = {dims...};
   static constexpr const std::array<Index, N>& shape() { return shape_; }
 
+#if __cpp_lib_submdspan >= 202603L
+  constexpr std::mdspan<const T, std::extents<Size, dims...>> cview() const {
+    return std::mdspan<const T, std::extents<Size, dims...>>{
+        const_cast<T*>(data.data())};
+  }
+
+  constexpr std::mdspan<T, std::extents<Size, dims...>> cview() {
+    return std::mdspan<T, std::extents<Size, dims...>>{
+        const_cast<T*>(data.data())};
+  }
+#else
   constexpr stdx::mdspan<const T, stdx::extents<Size, dims...>> cview() const {
     return stdx::mdspan<const T, stdx::extents<Size, dims...>>{
         const_cast<T*>(data.data())};
@@ -44,6 +55,7 @@ struct [[nodiscard]] cdata_t {
     return stdx::mdspan<T, stdx::extents<Size, dims...>>{
         const_cast<T*>(data.data())};
   }
+#endif
 
   constexpr view_t<const T, N> view() const {
     return view_t<const T, N>{
