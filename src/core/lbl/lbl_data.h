@@ -295,7 +295,7 @@ struct line_key {
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 
-  [[nodiscard]] Numeric& get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
+  [[nodiscard]] Numeric&       get_value(std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
   [[nodiscard]] const Numeric& get_value(const std::unordered_map<QuantumIdentifier, lbl::band_data>&) const;
 };
 
@@ -313,8 +313,8 @@ std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<Quantu
  * @param T0 The reference temperature.  Defaults to 296.0.
  */
 void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
-                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
-                   const Numeric T0 = 296);
+                   const std::unordered_map<SpeciesEnum, Numeric>&   keep,
+                   const Numeric                                     T0 = 296);
 
 /** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
  * 
@@ -327,8 +327,8 @@ void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
  */
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
-    const Numeric approx_percentile,
-    const Numeric T0 = 296);
+    const Numeric                                           approx_percentile,
+    const Numeric                                           T0 = 296);
 
 /** Compute what lines should be kept.  Meant to be used in conjunction with keep_hitran_s.
  * 
@@ -341,8 +341,8 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
  */
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
-    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
-    const Numeric T0 = 296);
+    const std::unordered_map<SpeciesEnum, Numeric>&         approx_percentile,
+    const Numeric                                           T0 = 296);
 
 Size count_lines(const std::unordered_map<QuantumIdentifier, lbl::band_data>&);
 
@@ -350,9 +350,9 @@ Size count_zeeman_lines(const std::unordered_map<QuantumIdentifier, lbl::band_da
 
 //! Helper struct
 struct flat_band_data {
-  Size prev_size;
+  Size                     prev_size;
   const QuantumIdentifier& band_key;
-  const band_data& band;
+  const band_data&         band;
 };
 
 /*! Flatter view of bands for easy iteration
@@ -366,8 +366,8 @@ so only use this in the scope where bands will remain valid and unchanged.
 */
 template <class Filter>
 std::vector<flat_band_data> flatter_view(const std::unordered_map<QuantumIdentifier, lbl::band_data>& bands,
-                                         const ZeemanPolarization& pol,
-                                         Filter filter) {
+                                         const ZeemanPolarization&                                    pol,
+                                         Filter                                                       filter) {
   std::vector<flat_band_data> off{};
   off.reserve(bands.size());
 
@@ -469,10 +469,10 @@ template <>
 struct xml_io_stream<AbsorptionBand> {
   static constexpr std::string_view type_name = "AbsorptionBand"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&         os,
                     const AbsorptionBand& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*            pbofs = nullptr,
+                    std::string_view      name  = ""sv);
 
   static void read(std::istream& is, AbsorptionBand& x, bifstream* pbifs = nullptr);
 };

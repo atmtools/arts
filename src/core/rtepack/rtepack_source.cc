@@ -10,15 +10,15 @@
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
-void level_nlte(stokvec_vector_view J,
-                stokvec_matrix_view dJ,
+void level_nlte(stokvec_vector_view              J,
+                stokvec_matrix_view              dJ,
                 const propmat_vector_const_view &K,
                 const stokvec_vector_const_view &S,
                 const propmat_matrix_const_view &dK,
                 const stokvec_matrix_const_view &dS,
-                const ConstVectorView &f,
-                const Numeric &t,
-                const Index &it) {
+                const ConstVectorView           &f,
+                const Numeric                   &t,
+                const Index                     &it) {
   const Size N = J.size();
   assert(N == static_cast<Size>(dJ.ncols()));
   assert(N == K.size());
@@ -53,9 +53,9 @@ void SourceVector::init(const std::span<const propmat_vector> &K,
                         const std::span<const propmat_matrix> &dK,
                         const std::span<const stokvec_vector> &nlte,
                         const std::span<const stokvec_matrix> &dnlte,
-                        const std::span<const AscendingGrid> &freq_grid,
-                        const std::span<const Numeric> &ts,
-                        const Size &it) {
+                        const std::span<const AscendingGrid>  &freq_grid,
+                        const std::span<const Numeric>        &ts,
+                        const Size                            &it) {
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK, nlte, dnlte, freq_grid, ts), "All input must have the same size.");
 
   const Size np = dK.size();
@@ -99,17 +99,17 @@ void SourceVector::init(const std::span<const propmat_vector> &K,
   }
 }
 
-void SourceVector::init(const std::span<const propmat> &K,
+void SourceVector::init(const std::span<const propmat>        &K,
                         const std::span<const propmat_vector> &dK,
-                        const std::span<const stokvec> &nlte,
+                        const std::span<const stokvec>        &nlte,
                         const std::span<const stokvec_vector> &dnlte,
-                        const std::span<const Numeric> &freq,
-                        const std::span<const Numeric> &ts,
-                        const Size &it) {
+                        const std::span<const Numeric>        &freq,
+                        const std::span<const Numeric>        &ts,
+                        const Size                            &it) {
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK, nlte, dnlte, freq, ts), "All input must have the same size.");
 
   constexpr Size nf = 1;
-  const Size np     = dK.size();
+  const Size     np = dK.size();
 
   J.resize(nf, np);
   auto &&J_ = J[0];

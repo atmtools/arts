@@ -11,14 +11,14 @@
 #include "rtepack_transmission.h"
 
 namespace rtepack {
-void two_level_linear_emission_step_by_step_full(stokvec_vector &I,
-                                                 std::vector<stokvec_matrix> &dI,
-                                                 const std::vector<muelmat_vector> &Ts,
-                                                 const std::vector<muelmat_vector> &Pi,
+void two_level_linear_emission_step_by_step_full(stokvec_vector                     &I,
+                                                 std::vector<stokvec_matrix>        &dI,
+                                                 const std::vector<muelmat_vector>  &Ts,
+                                                 const std::vector<muelmat_vector>  &Pi,
                                                  const std::vector<muelmat_tensor3> &dTs,
-                                                 const std::vector<stokvec_vector> &Js,
-                                                 const std::vector<stokvec_matrix> &dJs,
-                                                 const stokvec_vector &I0) {
+                                                 const std::vector<stokvec_vector>  &Js,
+                                                 const std::vector<stokvec_matrix>  &dJs,
+                                                 const stokvec_vector               &I0) {
   const Size nv = I0.size();
   const Size N  = Ts.size();
 
@@ -67,19 +67,19 @@ void two_level_linear_emission_step_by_step_full(stokvec_vector &I,
   for (Size iv = 0; iv < nv; iv++) {
     stokvec &Iv = I[iv];
     for (Size i = N - 2; i < N; i--) {
-      const muelmat &T = Ts[i + 1][iv];
-      const stokvec Jv = avg(Js[i][iv], Js[i + 1][iv]);
+      const muelmat &T  = Ts[i + 1][iv];
+      const stokvec  Jv = avg(Js[i][iv], Js[i + 1][iv]);
 
       Iv -= Jv;
 
       if (nq) {
-        auto dI0       = dI[i][joker, iv];
-        auto dI1       = dI[i + 1][joker, iv];
-        const auto dT0 = dTs[i][0, joker, iv];
-        const auto dJ0 = dJs[i][joker, iv];
-        const auto dT1 = dTs[i + 1][1, joker, iv];
-        const auto dJ1 = dJs[i + 1][joker, iv];
-        const auto &P  = Pi[i][iv];
+        auto        dI0 = dI[i][joker, iv];
+        auto        dI1 = dI[i + 1][joker, iv];
+        const auto  dT0 = dTs[i][0, joker, iv];
+        const auto  dJ0 = dJs[i][joker, iv];
+        const auto  dT1 = dTs[i + 1][1, joker, iv];
+        const auto  dJ1 = dJs[i + 1][joker, iv];
+        const auto &P   = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] += P * (dT0[iq] * Iv + avg(dJ0[iq], -(T * dJ0[iq])));
@@ -92,16 +92,16 @@ void two_level_linear_emission_step_by_step_full(stokvec_vector &I,
   }
 }
 
-void two_level_linear_evolution_step_by_step_full(stokvec_vector &I,
-                                                  std::vector<stokvec_matrix> &dI,
-                                                  const std::vector<muelmat_vector> &Ts,
-                                                  const std::vector<muelmat_vector> &Ls,
-                                                  const std::vector<muelmat_vector> &Pi,
+void two_level_linear_evolution_step_by_step_full(stokvec_vector                     &I,
+                                                  std::vector<stokvec_matrix>        &dI,
+                                                  const std::vector<muelmat_vector>  &Ts,
+                                                  const std::vector<muelmat_vector>  &Ls,
+                                                  const std::vector<muelmat_vector>  &Pi,
                                                   const std::vector<muelmat_tensor3> &dTs,
                                                   const std::vector<muelmat_tensor3> &dLs,
-                                                  const std::vector<stokvec_vector> &Js,
-                                                  const std::vector<stokvec_matrix> &dJs,
-                                                  const stokvec_vector &I0) {
+                                                  const std::vector<stokvec_vector>  &Js,
+                                                  const std::vector<stokvec_matrix>  &dJs,
+                                                  const stokvec_vector               &I0) {
   const Size nv = I0.size();
   const Size N  = Ts.size();
 
@@ -164,15 +164,15 @@ void two_level_linear_evolution_step_by_step_full(stokvec_vector &I,
       const stokvec J0mJ1 = J0 - J1;
 
       if (nq) {
-        auto dI0       = dI[i][joker, iv];
-        auto dI1       = dI[i + 1][joker, iv];
-        const auto dT0 = dTs[i][0, joker, iv];
-        const auto dL0 = dLs[i][0, joker, iv];
-        const auto dJ0 = dJs[i][joker, iv];
-        const auto dT1 = dTs[i + 1][1, joker, iv];
-        const auto dL1 = dLs[i + 1][1, joker, iv];
-        const auto dJ1 = dJs[i + 1][joker, iv];
-        const auto &P  = Pi[i][iv];
+        auto        dI0 = dI[i][joker, iv];
+        auto        dI1 = dI[i + 1][joker, iv];
+        const auto  dT0 = dTs[i][0, joker, iv];
+        const auto  dL0 = dLs[i][0, joker, iv];
+        const auto  dJ0 = dJs[i][joker, iv];
+        const auto  dT1 = dTs[i + 1][1, joker, iv];
+        const auto  dL1 = dLs[i + 1][1, joker, iv];
+        const auto  dJ1 = dJs[i + 1][joker, iv];
+        const auto &P   = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] += P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
@@ -185,7 +185,7 @@ void two_level_linear_evolution_step_by_step_full(stokvec_vector &I,
   }
 }
 
-void two_level_linear_emission_step_by_step_full(std::vector<stokvec_vector> &Is,
+void two_level_linear_emission_step_by_step_full(std::vector<stokvec_vector>       &Is,
                                                  const std::vector<muelmat_vector> &Ts,
                                                  const std::vector<stokvec_vector> &Js) {
   const Size N = Ts.size();
@@ -209,8 +209,8 @@ Js.size() = {}
                      "Not all elements have the same number of frequency elements")
 
   for (Size i = N - 2; i < N; i--) {
-    stokvec_vector &I0       = Is[i + 1];
-    stokvec_vector &I1       = Is[i];
+    stokvec_vector       &I0 = Is[i + 1];
+    stokvec_vector       &I1 = Is[i];
     const stokvec_vector &J0 = Js[i + 1];
     const stokvec_vector &J1 = Js[i];
     const muelmat_vector &T  = Ts[i + 1];
@@ -223,15 +223,15 @@ Js.size() = {}
   }
 }
 
-void nlte_step(stokvec_vector_view I,
-               const Vector &f,
+void nlte_step(stokvec_vector_view              I,
+               const Vector                    &f,
                const propmat_vector_const_view &K0,
                const propmat_vector_const_view &K1,
                const stokvec_vector_const_view &J0,
                const stokvec_vector_const_view &J1,
-               const Numeric &T0,
-               const Numeric &T1,
-               const Numeric &r) {
+               const Numeric                   &T0,
+               const Numeric                   &T1,
+               const Numeric                   &r) {
   const Size NV = I.size();
   assert(arr::same_size(I, f, K0, K1, J0, J1));
 
@@ -245,13 +245,13 @@ void nlte_step(stokvec_vector_view I,
 }
 
 namespace {
-void constant(stokvec_vector_view &Is,
-              stokvec_tensor3_view &dIs,
-              const muelmat_matrix_const_view &Ts,
-              const muelmat_matrix_const_view &Pi,
+void constant(stokvec_vector_view              &Is,
+              stokvec_tensor3_view             &dIs,
+              const muelmat_matrix_const_view  &Ts,
+              const muelmat_matrix_const_view  &Pi,
               const muelmat_tensor3_const_view &dTs0,
               const muelmat_tensor3_const_view &dTs1,
-              const stokvec_matrix_const_view &Js,
+              const stokvec_matrix_const_view  &Js,
               const stokvec_tensor3_const_view &dJs) {
   const Size nv = dIs.npages();
   const Size np = dIs.nrows();
@@ -259,8 +259,8 @@ void constant(stokvec_vector_view &Is,
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    stokvec &Iv                          = Is[iv];
-    stokvec_matrix_view dIv              = dIs[iv];
+    stokvec                        &Iv   = Is[iv];
+    stokvec_matrix_view             dIv  = dIs[iv];
     const muelmat_vector_const_view Tv   = Ts[iv];
     const muelmat_matrix_const_view dT0v = dTs0[iv];
     const muelmat_matrix_const_view dT1v = dTs1[iv];
@@ -269,18 +269,18 @@ void constant(stokvec_vector_view &Is,
 
     for (Size i = np - 2; i < np; i--) {
       const muelmat &T = Tv[i + 1];
-      const stokvec J  = avg(Jv[i], Jv[i + 1]);
+      const stokvec  J = avg(Jv[i], Jv[i + 1]);
 
       Iv -= J;
 
       if (nq) {
-        auto &&dI0       = dIv[i];
-        auto &&dI1       = dIv[i + 1];
+        auto       &&dI0 = dIv[i];
+        auto       &&dI1 = dIv[i + 1];
         const auto &&dT0 = dT0v[i];
         const auto &&dT1 = dT1v[i + 1];
         const auto &&dJ0 = dJv[i];
         const auto &&dJ1 = dJv[i + 1];
-        const auto &P    = Pi[iv, i];
+        const auto  &P   = Pi[iv, i];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] += P * (dT0[iq] * Iv + avg(dJ0[iq], -(T * dJ0[iq])));
@@ -293,16 +293,16 @@ void constant(stokvec_vector_view &Is,
   }
 }
 
-void linevo(stokvec_vector_view &Is,
-            stokvec_tensor3_view &dIs,
-            const muelmat_matrix_const_view &Ts,
-            const muelmat_matrix_const_view &Ls,
-            const muelmat_matrix_const_view &Pi,
+void linevo(stokvec_vector_view              &Is,
+            stokvec_tensor3_view             &dIs,
+            const muelmat_matrix_const_view  &Ts,
+            const muelmat_matrix_const_view  &Ls,
+            const muelmat_matrix_const_view  &Pi,
             const muelmat_tensor3_const_view &dTs0,
             const muelmat_tensor3_const_view &dTs1,
             const muelmat_tensor3_const_view &dLs0,
             const muelmat_tensor3_const_view &dLs1,
-            const stokvec_matrix_const_view &Js,
+            const stokvec_matrix_const_view  &Js,
             const stokvec_tensor3_const_view &dJs) {
   const Size nv = dIs.npages();
   const Size np = dIs.nrows();
@@ -310,8 +310,8 @@ void linevo(stokvec_vector_view &Is,
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
-    stokvec &Iv                          = Is[iv];
-    stokvec_matrix_view dIv              = dIs[iv];
+    stokvec                        &Iv   = Is[iv];
+    stokvec_matrix_view             dIv  = dIs[iv];
     const muelmat_vector_const_view Tv   = Ts[iv];
     const muelmat_vector_const_view Lv   = Ls[iv];
     const muelmat_matrix_const_view dT0v = dTs0[iv];
@@ -322,23 +322,23 @@ void linevo(stokvec_vector_view &Is,
     const stokvec_matrix_const_view dJv  = dJs[iv];
 
     for (Size i = np - 2; i < np; i--) {
-      const muelmat &T    = Tv[i + 1];
-      const muelmat &L    = Lv[i + 1];
-      const stokvec &J0   = Jv[i + 1];
-      const stokvec &J1   = Jv[i];
-      const stokvec ImJ0  = Iv - J0;
-      const stokvec J0mJ1 = J0 - J1;
+      const muelmat &T     = Tv[i + 1];
+      const muelmat &L     = Lv[i + 1];
+      const stokvec &J0    = Jv[i + 1];
+      const stokvec &J1    = Jv[i];
+      const stokvec  ImJ0  = Iv - J0;
+      const stokvec  J0mJ1 = J0 - J1;
 
       if (nq) {
-        auto &&dI0       = dIv[i];
-        auto &&dI1       = dIv[i + 1];
+        auto       &&dI0 = dIv[i];
+        auto       &&dI1 = dIv[i + 1];
         const auto &&dT0 = dT0v[i];
         const auto &&dT1 = dT1v[i + 1];
         const auto &&dL0 = dL0v[i];
         const auto &&dL1 = dL1v[i + 1];
         const auto &&dJ0 = dJv[i];
         const auto &&dJ1 = dJv[i + 1];
-        const auto &P    = Pi[iv, i];
+        const auto  &P   = Pi[iv, i];
 
         for (Size iq = 0; iq < nq; iq++) {
           dI0[iq] += P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
@@ -352,10 +352,10 @@ void linevo(stokvec_vector_view &Is,
 }
 }  // namespace
 
-void rte_emission(stokvec_vector_view I,
-                  stokvec_tensor3_view dI,
+void rte_emission(stokvec_vector_view        I,
+                  stokvec_tensor3_view       dI,
                   const TransmittanceMatrix &tramat,
-                  const SourceVector &srcvec) {
+                  const SourceVector        &srcvec) {
   switch (tramat.option) {
     case TransmittanceOption::constant:
       constant(I, dI, tramat.T, tramat.P, tramat.dT[0], tramat.dT[1], srcvec.J, srcvec.dJ);
@@ -386,13 +386,13 @@ void constant(stokvec_matrix_view Is, const muelmat_matrix_const_view &Ts, const
   for (Size iv = 0; iv < nv; iv++) {
     for (Size i = np - 2; i < np; i--) {
       const muelmat &T = Ts[iv, i + 1];
-      const stokvec J  = avg(Js[iv, i], Js[iv, i + 1]);
+      const stokvec  J = avg(Js[iv, i], Js[iv, i + 1]);
       Is[iv, i]        = T * (Is[iv, i + 1] - J) + J;
     }
   }
 }
 
-void linevo(stokvec_matrix_view Is,
+void linevo(stokvec_matrix_view              Is,
             const muelmat_matrix_const_view &Ts,
             const muelmat_matrix_const_view &Ls,
             const stokvec_matrix_const_view &Js) {
@@ -423,12 +423,12 @@ void rte_emission_path(stokvec_matrix_view Is, const TransmittanceMatrix &Ts, co
 }
 
 namespace {
-void all(stokvec_vector_view I,
-         stokvec_tensor3_view dI,
-         const muelmat_matrix_const_view &Ts,
-         const muelmat_matrix_const_view &Pi,
+void all(stokvec_vector_view               I,
+         stokvec_tensor3_view              dI,
+         const muelmat_matrix_const_view  &Ts,
+         const muelmat_matrix_const_view  &Pi,
          const muelmat_tensor4_const_view &dTs,
-         const stokvec_vector_const_view &I0) {
+         const stokvec_vector_const_view  &I0) {
   const Size nv = I.size();
   const Size N  = Ts.ncols();
   const Size nq = dTs.ncols();
@@ -465,9 +465,9 @@ void all(stokvec_vector_view I,
 }
 }  // namespace
 
-void rte_transmission(stokvec_vector_view I,
-                      stokvec_tensor3_view dI,
-                      const TransmittanceMatrix &tramat,
+void rte_transmission(stokvec_vector_view              I,
+                      stokvec_tensor3_view             dI,
+                      const TransmittanceMatrix       &tramat,
                       const stokvec_vector_const_view &I0) {
   all(I, dI, tramat.T, tramat.P, tramat.dT, I0);
 }

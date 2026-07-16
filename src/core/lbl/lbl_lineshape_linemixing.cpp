@@ -34,10 +34,10 @@ Numeric species_data::Omega(const Numeric T,
 }
 }  // namespace lbl::linemixing
 
-void xml_io_stream<LinemixingSingleEcsData>::write(std::ostream &os,
+void xml_io_stream<LinemixingSingleEcsData>::write(std::ostream                  &os,
                                                    const LinemixingSingleEcsData &x,
-                                                   bofstream *pbofs,
-                                                   std::string_view name) {
+                                                   bofstream                     *pbofs,
+                                                   std::string_view               name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 

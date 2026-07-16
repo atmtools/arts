@@ -211,7 +211,7 @@ constexpr Numeric SimpleGCaseA(
  * them elsewhere
  */
 struct data {
-  Numeric gu{0}, gl{0};
+  Numeric        gu{0}, gl{0};
   constexpr auto operator<=>(const data &) const noexcept = default;
 };
 
@@ -227,12 +227,12 @@ struct model {
   bool on{false};
 
   /** Default init */
-  constexpr model() noexcept                               = default;
-  constexpr model(model &&) noexcept                       = default;
-  constexpr model(const model &) noexcept                  = default;
-  constexpr model &operator=(model &&) noexcept            = default;
-  constexpr model &operator=(const model &) noexcept       = default;
-  constexpr auto operator<=>(const model &) const noexcept = default;
+  constexpr model() noexcept                                 = default;
+  constexpr model(model &&) noexcept                         = default;
+  constexpr model(const model &) noexcept                    = default;
+  constexpr model &operator=(model &&) noexcept              = default;
+  constexpr model &operator=(const model &) noexcept         = default;
+  constexpr auto   operator<=>(const model &) const noexcept = default;
   constexpr model(data d) noexcept : mdata(d), on(not empty()) {};
 
   /** Attempts to compute Zeeman input if available

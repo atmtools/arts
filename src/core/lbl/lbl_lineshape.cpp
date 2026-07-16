@@ -18,8 +18,8 @@ namespace lbl {
 namespace {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(const ConstVectorView& f_grid,
                                                              const AbsorptionBands& bnds,
-                                                             const AtmPoint& atm,
-                                                             const Vector2 los) {
+                                                             const AtmPoint&        atm,
+                                                             const Vector2          los) {
   if (stdr::any_of(bnds | stdv::values, [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE; }))
     return std::make_unique<voigt::lte::ComputeData>(f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
@@ -27,8 +27,8 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(const ConstVectorVi
 
 std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(const ConstVectorView& f_grid,
                                                                              const AbsorptionBands& bnds,
-                                                                             const AtmPoint& atm,
-                                                                             const Vector2 los) {
+                                                                             const AtmPoint&        atm,
+                                                                             const Vector2          los) {
   if (stdr::any_of(bnds | stdv::values, [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR; }))
     return std::make_unique<voigt::lte_mirror::ComputeData>(f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
@@ -36,8 +36,8 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(con
 
 std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(const ConstVectorView& f_grid,
                                                                     const AbsorptionBands& bnds,
-                                                                    const AtmPoint& atm,
-                                                                    const Vector2 los) {
+                                                                    const AtmPoint&        atm,
+                                                                    const Vector2          los) {
   if (stdr::any_of(bnds | stdv::values, [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE; }))
     return std::make_unique<voigt::nlte::ComputeData>(f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
@@ -45,8 +45,8 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(const ConstV
 
 std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(const ConstVectorView& f_grid,
                                                                  const AbsorptionBands& bnds,
-                                                                 const AtmPoint& atm,
-                                                                 const Vector2 los) {
+                                                                 const AtmPoint&        atm,
+                                                                 const Vector2          los) {
   if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV or
                bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN or
@@ -58,19 +58,19 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(const ConstVect
 }
 }  // namespace
 
-void calculate(PropmatVectorView pm,
-               StokvecVectorView sv,
-               PropmatMatrixView dpm,
-               StokvecMatrixView dsv,
-               const ConstVectorView f_grid,
-               const Range& f_range,
+void calculate(PropmatVectorView        pm,
+               StokvecVectorView        sv,
+               PropmatMatrixView        dpm,
+               StokvecMatrixView        dsv,
+               const ConstVectorView    f_grid,
+               const Range&             f_range,
                const Jacobian::Targets& jac_targets,
-               const SpeciesEnum species,
-               const AbsorptionBands& bnds,
+               const SpeciesEnum        species,
+               const AbsorptionBands&   bnds,
                const LinemixingEcsData& abs_ecs_data,
-               const AtmPoint& atm,
-               const Vector2 los,
-               const bool no_negative_absorption) {
+               const AtmPoint&          atm,
+               const Vector2            los,
+               const bool               no_negative_absorption) {
   auto voigt_lte_data        = init_voigt_lte_data(f_grid[f_range], bnds, atm, los);
   auto voigt_lte_mirror_data = init_voigt_lte_mirrored_data(f_grid[f_range], bnds, atm, los);
   auto voigt_line_nlte_data  = init_voigt_line_nlte_data(f_grid[f_range], bnds, atm, los);
@@ -83,7 +83,7 @@ void calculate(PropmatVectorView pm,
       };
 
   const auto calc_voigt_lte_mirrored = [&](const QuantumIdentifier& bnd_key,
-                                           const band_data& bnd,
+                                           const band_data&         bnd,
                                            const ZeemanPolarization pol) {
     voigt::lte_mirror::calculate(
         pm, dpm, *voigt_lte_mirror_data, f_grid, f_range, jac_targets, bnd_key, bnd, atm, pol, no_negative_absorption);
@@ -109,9 +109,7 @@ void calculate(PropmatVectorView pm,
   const auto calc_voigt_ecs_linemixing =
       [&](const QuantumIdentifier& bnd_key, const band_data& bnd, const ZeemanPolarization pol) {
         auto it = abs_ecs_data.find(bnd_key.isot);
-        if (it == abs_ecs_data.end()) {
-          ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.isot);
-        }
+        if (it == abs_ecs_data.end()) { ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.isot); }
 
         voigt::ecs::calculate(pm,
                               dpm,
@@ -151,9 +149,7 @@ void calculate(PropmatVectorView pm,
     if (voigt_line_nlte_data) voigt_line_nlte_data->update_zeeman(los, atm.mag, pol);
 
     for (auto& [bnd_key, bnd] : bnds) {
-      if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) {
-        calc_switch(bnd_key, bnd, pol);
-      }
+      if (species == bnd_key.isot.spec or species == SpeciesEnum::Bath) { calc_switch(bnd_key, bnd, pol); }
     }
   }
 }

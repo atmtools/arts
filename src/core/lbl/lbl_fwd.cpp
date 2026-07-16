@@ -40,19 +40,15 @@ void lte::adapt() try {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
-  if (bands->empty()) {
-    return;
-  }
+  if (bands->empty()) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::lte::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                 shapes_pos;
+  decltype(cutoff)                      cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
@@ -74,18 +70,12 @@ void lte::adapt() try {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -99,15 +89,13 @@ void lte_mirror::adapt() {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::lte_mirror::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                        shapes_pos;
+  decltype(cutoff)                             cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LTE_MIRROR) continue;
@@ -129,18 +117,12 @@ void lte_mirror::adapt() {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -153,15 +135,13 @@ void nlte::adapt() {
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
 
-  if (not bands) {
-    return;
-  }
+  if (not bands) { return; }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<voigt::nlte::single_shape> shapes;
-  std::vector<line_pos> shapes_pos;
-  decltype(cutoff) cutoff_this;
+  std::vector<line_pos>                  shapes_pos;
+  decltype(cutoff)                       cutoff_this;
 
   for (auto& [qid, band] : *bands) {
     if (band.lineshape != LineByLineLineshape::VP_LINE_NLTE) continue;
@@ -183,18 +163,12 @@ void nlte::adapt() {
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
-        for (auto& line : b.lines) {
-          cutoff_lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { cutoff_lines.lines.push_back(line); }
 
-        for (auto& c : cutoff_this) {
-          cutoff.push_back(c);
-        }
+        for (auto& c : cutoff_this) { cutoff.push_back(c); }
         break;
       case LineByLineCutoffType::None:
-        for (auto& line : b.lines) {
-          lines.lines.push_back(line);
-        }
+        for (auto& line : b.lines) { lines.lines.push_back(line); }
         break;
     }
 
@@ -205,7 +179,7 @@ void nlte::adapt() {
 std::pair<Complex, Complex> lte::operator()(const Numeric frequency) const {
   const auto scl = [N = number_density(atm->pressure, atm->temperature), T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r     = (Constant::h * f) / (Constant::k * T);
+    const Numeric     r = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 
@@ -215,7 +189,7 @@ std::pair<Complex, Complex> lte::operator()(const Numeric frequency) const {
 std::pair<Complex, Complex> lte_mirror::operator()(const Numeric frequency) const {
   const auto scl = [N = number_density(atm->pressure, atm->temperature), T = atm->temperature](auto f) {
     constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
-    const Numeric r     = (Constant::h * f) / (Constant::k * T);
+    const Numeric     r = (Constant::h * f) / (Constant::k * T);
     return -N * f * std::expm1(-r) * c;
   }(frequency);
 

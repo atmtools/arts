@@ -28,9 +28,7 @@ std::istream& operator>>(std::istream& is, temperature::data& x) try {
   x.t = to<LineShapeModelType>(name);
 
   Size n = model_size(x.t);
-  if (n == std::numeric_limits<Size>::max()) {
-    is >> n;
-  }
+  if (n == std::numeric_limits<Size>::max()) { is >> n; }
   x.x.resize(n);
 
   for (auto& v : x.x) is >> double_imanip() >> v;
@@ -76,10 +74,10 @@ bool data::is_zero() const {
 }
 }  // namespace lbl::temperature
 
-void xml_io_stream<lbl::temperature::data>::write(std::ostream& os,
+void xml_io_stream<lbl::temperature::data>::write(std::ostream&                 os,
                                                   const lbl::temperature::data& x,
-                                                  bofstream* pbofs,
-                                                  std::string_view name) {
+                                                  bofstream*                    pbofs,
+                                                  std::string_view              name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -95,7 +93,7 @@ void xml_io_stream<lbl::temperature::data>::read(std::istream& is, lbl::temperat
   tag.check_name(type_name);
 
   LineShapeModelType t;
-  Vector v;
+  Vector             v;
 
   xml_read_from_stream(is, t, pbifs);
   xml_read_from_stream(is, v, pbifs);
@@ -246,9 +244,9 @@ std::string to_educational_string(const lbl::temperature::data& data, std::optio
                          metric_unit_x0(data.X(X2), type),
                          metric_unit_x1(data.X(X3), data.Type(), type));
     case POLY: {
-      std::string s{};
-      Size i{};
-      std::string res{""};
+      std::string      s{};
+      Size             i{};
+      std::string      res{""};
       std::string_view x = ""sv;
       for (auto& v : data.X()) {
         res += std::format("{}{}{}{}",

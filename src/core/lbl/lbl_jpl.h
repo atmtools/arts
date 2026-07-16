@@ -13,13 +13,13 @@ struct jpl_record {
   Jpl::LineDataMod jpl_id;  // ID of the species
 
   // JPL format in order [F13.4,2F8.4,I2,F10.4,I3,I7,I4,12I2]
-  Numeric f0;   // Central frequency
-  Numeric df;   // Error central frequency
-  Numeric s;    // Line intensity
-  Index dr;     // Degree of freedom
-  Numeric E;    // Energy of lower state
-  Index g_upp;  // Upper state degeneracy
-  Index qnfmt;  // Quantum number format
+  Numeric f0;     // Central frequency
+  Numeric df;     // Error central frequency
+  Numeric s;      // Line intensity
+  Index   dr;     // Degree of freedom
+  Numeric E;      // Energy of lower state
+  Index   g_upp;  // Upper state degeneracy
+  Index   qnfmt;  // Quantum number format
 
   // Create a line with fixed pressure broadening and no local quantum state.
   [[nodiscard]] line from() const;

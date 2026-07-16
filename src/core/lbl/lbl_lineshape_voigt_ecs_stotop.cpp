@@ -65,14 +65,14 @@ Numeric reduced_dipole(const Rational Jf, const Rational Ji, const Rational K) {
   return +sqrtr(2 * Jf + 1) * wigner3j(Jf, Rational{1}, Ji, K, Rational{0}, -K);
 }
 
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm) {
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm) {
   using Conversion::kelvin2joule;
 
   const Size n = bnd.size();
@@ -82,16 +82,14 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   // Lines with different K are not coupled (ΔK=0 collisions only).
   // Read K for each line and find the maximum K for Wigner init.
   std::vector<Rational> Kvec(n);
-  for (Size i = 0; i < n; i++) {
-    Kvec[i] = bnd.lines[sorting[i]].qn.at(QuantumNumberType::K).lower;
-  }
+  for (Size i = 0; i < n; i++) { Kvec[i] = bnd.lines[sorting[i]].qn.at(QuantumNumberType::K).lower; }
 
   const Numeric T = atm.temperature;
 
   const auto erot = erot_selection(bnd_qid.isot);
 
   const std::array rats{bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::K)};
-  const int maxL = wigner_init_size(rats);
+  const int        maxL = wigner_init_size(rats);
 
   const auto Om = [&]() {
     Vector out(maxL);
@@ -125,7 +123,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J           = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    auto&          J  = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
     const Rational Ji = J.upper;
     const Rational Jf = J.lower;
     const Rational Ki = Kvec[i];
@@ -136,7 +134,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
       // Only couple lines within the same K sub-band
       if (Kvec[j] != Ki) continue;
 
-      auto& J_p           = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      auto&          J_p  = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
       const Rational Ji_p = J_p.upper;
       const Rational Jf_p = J_p.lower;
 
@@ -169,9 +167,9 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   // Sum rule correction (same as Hartmann, but within K sub-bands)
   for (Size i = 0; i < n; i++) {
-    Numeric sumlw     = 0.0;
-    Numeric sumup     = 0.0;
-    const Rational Ki = Kvec[i];
+    Numeric        sumlw = 0.0;
+    Numeric        sumup = 0.0;
+    const Rational Ki    = Kvec[i];
 
     for (Size j = 0; j < n; j++) {
       if (Kvec[j] != Ki) continue;  // Only within same K sub-band

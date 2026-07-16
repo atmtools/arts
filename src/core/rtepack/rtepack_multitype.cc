@@ -117,7 +117,7 @@ specmat frechet_sqrt(const propmat &X, const propmat &E) {
 
   // For small matrices, use eigen-decomposition
   Eigen::Matrix4cd a_mat;
-  Eigen::Matrix4d e_mat;
+  Eigen::Matrix4d  e_mat;
 
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
@@ -127,8 +127,8 @@ specmat frechet_sqrt(const propmat &X, const propmat &E) {
   }
 
   Eigen::ComplexEigenSolver<Eigen::Matrix4cd> es(a_mat);
-  const Eigen::Matrix4cd &V = es.eigenvectors();
-  Eigen::Matrix4cd D        = es.eigenvalues().asDiagonal();
+  const Eigen::Matrix4cd                     &V = es.eigenvectors();
+  Eigen::Matrix4cd                            D = es.eigenvalues().asDiagonal();
 
   // Transform E into eigenbasis
   const auto E_tilde = V.inverse() * e_mat * V;

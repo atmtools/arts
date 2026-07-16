@@ -30,9 +30,9 @@ GeodeticField3 level_density(const GeodeticField3& T, Numeric g, Numeric E, cons
 }  // namespace
 
 namespace lbl::nlte {
-std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField& atm_field,
+std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField&        atm_field,
                                                              const AbsorptionBands& abs_bands,
-                                                             const Numeric& normalizing_factor) {
+                                                             const Numeric&         normalizing_factor) {
   std::unordered_map<QuantumLevelIdentifier, AtmData> out;
 
   ARTS_USER_ERROR_IF(not atm_field.contains(AtmKey::t), "Atmospheric field does not contain temperature data");
@@ -46,7 +46,7 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField& atm
     const auto low = key.lower();
 
     const auto& line = band.lines.front();
-    const auto spec  = key.isot;
+    const auto  spec = key.isot;
 
     if (not out.contains(upp)) {
       const Numeric g = line.gu;
@@ -176,14 +176,14 @@ QuantumIdentifierNumericMap createBji(const QuantumIdentifierNumericMap& Bij, co
 }
 ARTS_METHOD_ERROR_CATCH
 
-QuantumIdentifierVectorMap createCij(const AbsorptionBands& abs_bands,
+QuantumIdentifierVectorMap createCij(const AbsorptionBands&                   abs_bands,
                                      const QuantumIdentifierGriddedField1Map& collision_data,
-                                     const ArrayOfAtmPoint& atm_path) try {
+                                     const ArrayOfAtmPoint&                   atm_path) try {
   QuantumIdentifierVectorMap Cij(abs_bands.size());
   for (const auto& [key, data] : abs_bands) {
     assert(data.size() == 1);
     const auto& coll = collision_data.at(key);
-    Vector& x        = Cij[key];
+    Vector&     x    = Cij[key];
 
     for (auto& atm_point : atm_path) {
       const auto numden = atm_point.number_density(key.isot);
@@ -198,8 +198,8 @@ QuantumIdentifierVectorMap createCij(const AbsorptionBands& abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 QuantumIdentifierVectorMap createCji(const QuantumIdentifierVectorMap& Cij,
-                                     const AbsorptionBands& abs_bands,
-                                     const ArrayOfAtmPoint& atm_path) try {
+                                     const AbsorptionBands&            abs_bands,
+                                     const ArrayOfAtmPoint&            atm_path) try {
   using Constant::h, Constant::k;
 
   QuantumIdentifierVectorMap Cji(Cij);
@@ -264,23 +264,21 @@ ARTS_METHOD_ERROR_CATCH
 Size level_count(const std::unordered_map<QuantumIdentifier, UppLow>& band_level_map) try {
   Size nlevels = 0;
 
-  for (auto [i, j] : band_level_map | stdv::values) {
-    nlevels = std::max({nlevels, i, j});
-  }
+  for (auto [i, j] : band_level_map | stdv::values) { nlevels = std::max({nlevels, i, j}); }
 
   return nlevels + 1;
 }
 ARTS_METHOD_ERROR_CATCH
 
-Matrix statistical_equilibrium_equation(const QuantumIdentifierNumericMap& Aij,
-                                        const QuantumIdentifierNumericMap& Bij,
-                                        const QuantumIdentifierNumericMap& Bji,
-                                        const QuantumIdentifierVectorMap& Cij,
-                                        const QuantumIdentifierVectorMap& Cji,
-                                        const QuantumIdentifierVectorMap& Jij,
+Matrix statistical_equilibrium_equation(const QuantumIdentifierNumericMap&                   Aij,
+                                        const QuantumIdentifierNumericMap&                   Bij,
+                                        const QuantumIdentifierNumericMap&                   Bji,
+                                        const QuantumIdentifierVectorMap&                    Cij,
+                                        const QuantumIdentifierVectorMap&                    Cji,
+                                        const QuantumIdentifierVectorMap&                    Jij,
                                         const std::unordered_map<QuantumIdentifier, UppLow>& level_map,
-                                        const Size atmi,
-                                        const Size nlevels) try {
+                                        const Size                                           atmi,
+                                        const Size                                           nlevels) try {
   assert(arr::same_size(Aij, Bij, Bji, Cij, Jij, level_map));
 
   Matrix A(nlevels, nlevels, 0.0);
@@ -295,7 +293,7 @@ Matrix statistical_equilibrium_equation(const QuantumIdentifierNumericMap& Aij,
     const auto& bji = Bji.at(key);
     const auto& cij = Cij.at(key)[atmi];
     const auto& cji = Cji.at(key)[atmi];
-    const auto jij  = Jij.at(key)[atmi] * Constant::inv_two_pi;
+    const auto  jij = Jij.at(key)[atmi] * Constant::inv_two_pi;
 
     A[j, j] -= bji * jij + cji;
     A[i, i] -= aij + bij * jij + cij;

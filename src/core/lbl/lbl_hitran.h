@@ -9,27 +9,27 @@
 namespace lbl {
 struct hitran_record {
   QuantumIdentifier qid;
-  Numeric f0;
-  Numeric S;
-  Numeric A;
-  Numeric gamma_air;
-  Numeric gamma_self;
-  Numeric E;
-  Numeric n;
-  Numeric delta;
-  Numeric g_upp;
-  Numeric g_low;
+  Numeric           f0;
+  Numeric           S;
+  Numeric           A;
+  Numeric           gamma_air;
+  Numeric           gamma_self;
+  Numeric           E;
+  Numeric           n;
+  Numeric           delta;
+  Numeric           g_upp;
+  Numeric           g_low;
 
   [[nodiscard]] line from(HitranLineStrengthOption ls, QuantumState&& local, bool do_zeeman) const;
 };
 using hitran_data = std::vector<hitran_record>;
 
-hitran_data read_hitran_par(std::istream& file,
+hitran_data read_hitran_par(std::istream&                            file,
                             const std::vector<HitranFileFormatType>& format_order,
-                            const Vector2& frequency_range);
-hitran_data read_hitran_par(std::istream&& file,
+                            const Vector2&                           frequency_range);
+hitran_data read_hitran_par(std::istream&&                           file,
                             const std::vector<HitranFileFormatType>& format_order,
-                            const Vector2& frequency_range);
+                            const Vector2&                           frequency_range);
 }  // namespace lbl
 
 template <>

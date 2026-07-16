@@ -241,13 +241,13 @@ constexpr Numeric dAER_dT(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeri
 
 class data {
   LineShapeModelType t{LineShapeModelType::T0};
-  Vector x{};
+  Vector             x{};
 
  public:
   [[nodiscard]] LineShapeModelType Type() const;
-  [[nodiscard]] const Vector& X() const;
-  [[nodiscard]] Numeric& X(LineShapeModelCoefficient);
-  [[nodiscard]] const Numeric& X(LineShapeModelCoefficient) const;
+  [[nodiscard]] const Vector&      X() const;
+  [[nodiscard]] Numeric&           X(LineShapeModelCoefficient);
+  [[nodiscard]] const Numeric&     X(LineShapeModelCoefficient) const;
 
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
@@ -338,10 +338,10 @@ template <>
 struct xml_io_stream<lbl::temperature::data> {
   static constexpr std::string_view type_name = "TemperatureData"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                 os,
                     const lbl::temperature::data& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                    pbofs = nullptr,
+                    std::string_view              name  = ""sv);
 
   static void read(std::istream& is, lbl::temperature::data& x, bifstream* pbifs = nullptr);
 };

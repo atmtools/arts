@@ -217,9 +217,7 @@ struct std::formatter<lbl::line_shape::model> {
       return tags.format(ctx, "Reference temperature: "sv, v.T0, " K; Single models: "sv, v.single_models);
     }
 
-    if (tags.io) {
-      return tags.format(ctx, v.T0, " "sv, v.single_models.size(), " "sv, v.single_models);
-    }
+    if (tags.io) { return tags.format(ctx, v.T0, " "sv, v.single_models.size(), " "sv, v.single_models); }
 
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
@@ -237,10 +235,10 @@ template <>
 struct xml_io_stream<lbl::line_shape::model> {
   static constexpr std::string_view type_name = "LineShapeModel"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                 os,
                     const lbl::line_shape::model& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                    pbofs = nullptr,
+                    std::string_view              name  = ""sv);
 
   static void read(std::istream& is, lbl::line_shape::model& x, bifstream* pbifs = nullptr);
 };
@@ -249,10 +247,10 @@ template <>
 struct xml_io_stream<lbl::line_shape::species_model> {
   static constexpr std::string_view type_name = "LineShapeSpeciesModel"sv;
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                         os,
                     const lbl::line_shape::species_model& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                            pbofs = nullptr,
+                    std::string_view                      name  = ""sv);
 
   static void read(std::istream& is, lbl::line_shape::species_model& x, bifstream* pbifs = nullptr);
 };

@@ -63,7 +63,7 @@ muelmat stokes_rotation_refl(Numeric cos2psi, Numeric sin2psi) {
  */
 static std::pair<Vector3, Vector3> pol_basis(const Vector3& k) {
   const Vector3 z{0.0, 0.0, 1.0};
-  Vector3 h            = cross(k, z);
+  Vector3       h      = cross(k, z);
   const Numeric norm_h = hypot(h);
 
   if (norm_h < 1e-12) {
@@ -94,7 +94,7 @@ static std::pair<Vector3, Vector3> pol_basis(const Vector3& k) {
 muelmat fresnel_reflectance_specular(Complex Rv, Complex Rh, const Vector3& k_inc, const Vector3& n_surface) {
   const muelmat M_fresnel = fresnel_reflectance(Rv, Rh);
 
-  Vector3 m            = cross(k_inc, n_surface);
+  Vector3       m      = cross(k_inc, n_surface);
   const Numeric norm_m = hypot(m);
 
   if (norm_m < 1e-12) {
@@ -138,7 +138,7 @@ muelmat fresnel_reflectance_nonspecular(
   const muelmat M_fresnel = fresnel_reflectance(Rv, Rh);
 
   // Plane-of-incidence normal: m = k_inc x n / |k_inc x n|
-  Vector3 m            = cross(k_inc, n_surface);
+  Vector3       m      = cross(k_inc, n_surface);
   const Numeric norm_m = hypot(m);
 
   if (norm_m < 1e-12) {
@@ -188,8 +188,8 @@ stokvec specular_radiance(
 
 stokvec nonspecular_radiance(const stokvec& I_in,
                              const stokvec& J,
-                             Complex Rv,
-                             Complex Rh,
+                             Complex        Rv,
+                             Complex        Rh,
                              const Vector3& k_inc,
                              const Vector3& k_out,
                              const Vector3& n_surface) {
@@ -197,17 +197,17 @@ stokvec nonspecular_radiance(const stokvec& I_in,
   return J + R * (I_in - J);
 }
 
-stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
+stokvec nonspecular_radiance_from_patches(std::span<const Vector2>  coords,
                                           stokvec_vector_const_view sources,
-                                          const stokvec& J,
-                                          Complex Rv,
-                                          Complex Rh,
-                                          Vector2 pos,
-                                          Numeric h_pos,
-                                          const Vector3& n_surface,
-                                          const Vector3& k_out,
-                                          Vector2 ellipsoid,
-                                          const GeodeticField2& hfield) {
+                                          const stokvec&            J,
+                                          Complex                   Rv,
+                                          Complex                   Rh,
+                                          Vector2                   pos,
+                                          Numeric                   h_pos,
+                                          const Vector3&            n_surface,
+                                          const Vector3&            k_out,
+                                          Vector2                   ellipsoid,
+                                          const GeodeticField2&     hfield) {
   constexpr Numeric pi = Constant::pi;
   using Conversion::deg2rad;
 
@@ -219,8 +219,8 @@ stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
   const Numeric dlon_rad = deg2rad(lons[1] - lons[0]);
   const Numeric dlat     = lats[1] - lats[0];
   const Numeric dlon     = lons[1] - lons[0];
-  const Index nlat       = static_cast<Index>(lats.size());
-  const Index nlon       = static_cast<Index>(lons.size());
+  const Index   nlat     = static_cast<Index>(lats.size());
+  const Index   nlon     = static_cast<Index>(lons.size());
   const Numeric a        = ellipsoid[0];  // semi-major axis as effective radius
 
   // ECEF position of the scatter point
@@ -233,9 +233,9 @@ stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
     const Numeric lon_j = coords[idx][1];
 
     // Height at this patch (nearest-grid lookup — coords come from the grid)
-    const Index ilat_j = std::clamp(static_cast<Index>(std::lround((lat_j - lats[0]) / dlat)), Index(0), nlat - 1);
-    const Index ilon_j = std::clamp(static_cast<Index>(std::lround((lon_j - lons[0]) / dlon)), Index(0), nlon - 1);
-    const Numeric h_j  = hfield.data[ilat_j, ilon_j];
+    const Index   ilat_j = std::clamp(static_cast<Index>(std::lround((lat_j - lats[0]) / dlat)), Index(0), nlat - 1);
+    const Index   ilon_j = std::clamp(static_cast<Index>(std::lround((lon_j - lons[0]) / dlon)), Index(0), nlon - 1);
+    const Numeric h_j    = hfield.data[ilat_j, ilon_j];
 
     // ECEF position of patch j and vector toward scatter point
     const Vector3 pos_j = geodetic2ecef({h_j, lat_j, lon_j}, ellipsoid);

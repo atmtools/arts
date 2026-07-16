@@ -71,7 +71,7 @@ Array<muelmat_matrix> bulk_backscatter_derivative(const ConstTensor5View &Pe, co
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
   const Index ne = Pe.nshelves();
-  const Size nq  = dpnd_dx.size();
+  const Size  nq = dpnd_dx.size();
 
   Array<muelmat_matrix> aoaotm(np, muelmat_matrix(nq, nv));
 
@@ -105,7 +105,7 @@ Array<muelmat_matrix> bulk_backscatter_derivative(const ConstTensor5View &Pe, co
 }
 
 namespace {
-void setBackscatterTransmission(stokvec_vector &out,
+void setBackscatterTransmission(stokvec_vector       &out,
                                 const stokvec_vector &I0,
                                 const muelmat_vector &Tr,
                                 const muelmat_vector &Tf,
@@ -113,7 +113,7 @@ void setBackscatterTransmission(stokvec_vector &out,
   for (Size i = 0; i < out.size(); i++) out[i] = Tr[i] * Z[i] * Tf[i] * I0[i];
 }
 
-void setBackscatterTransmissionDerivative(stokvec_matrix &out,
+void setBackscatterTransmissionDerivative(stokvec_matrix       &out,
                                           const stokvec_vector &I0,
                                           const muelmat_vector &Tr,
                                           const muelmat_vector &Tf,
@@ -123,17 +123,17 @@ void setBackscatterTransmissionDerivative(stokvec_matrix &out,
 }
 }  // namespace
 
-void bulk_backscatter_commutative_transmission_rte(Array<stokvec_vector> &I,
+void bulk_backscatter_commutative_transmission_rte(Array<stokvec_vector>        &I,
                                                    Array<Array<stokvec_matrix>> &dI,
-                                                   const stokvec_vector &I_incoming,
-                                                   const Array<muelmat_vector> &T,
-                                                   const Array<muelmat_vector> &PiTf,
-                                                   const Array<muelmat_vector> &PiTr,
-                                                   const Array<muelmat_vector> &Z,
-                                                   const Array<muelmat_matrix> &dT1,
-                                                   const Array<muelmat_matrix> &dT2,
-                                                   const Array<muelmat_matrix> &dZ) {
-  const Size np  = dT1.size();
+                                                   const stokvec_vector         &I_incoming,
+                                                   const Array<muelmat_vector>  &T,
+                                                   const Array<muelmat_vector>  &PiTf,
+                                                   const Array<muelmat_vector>  &PiTr,
+                                                   const Array<muelmat_vector>  &Z,
+                                                   const Array<muelmat_matrix>  &dT1,
+                                                   const Array<muelmat_matrix>  &dT2,
+                                                   const Array<muelmat_matrix>  &dZ) {
+  const Size  np = dT1.size();
   const Index nv = np ? dT1.front().ncols() : 0;
   const Index nq = np ? dT1.front().nrows() : 0;
 

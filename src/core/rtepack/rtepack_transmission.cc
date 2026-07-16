@@ -459,9 +459,9 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
                                    const propmat &k2,
                                    const propmat &dk_in,
                                    const muelmat &dt,
-                                   const Numeric r,
-                                   const Numeric dr,
-                                   bool k1_deriv) const {
+                                   const Numeric  r,
+                                   const Numeric  dr,
+                                   bool           k1_deriv) const {
   using Faddeeva::Dawson;
 
   const propmat alpha2 = (k2 - k1) / (2.0 * r);
@@ -516,7 +516,7 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
     const propmat k1p = k1 + dk_in * eps;
     const Numeric rp  = r + dr * eps;
 
-    const tran tran_p{k1p, k2, rp};
+    const tran    tran_p{k1p, k2, rp};
     const muelmat tp      = tran_p();
     const muelmat lambdap = tran_p.linsrc_linprop(tp, k1p, k2, rp);
 
@@ -526,7 +526,7 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
   const propmat k2p = k2 + dk_in * eps;
   const Numeric rp  = r + dr * eps;
 
-  const tran tran_p{k1, k2p, rp};
+  const tran    tran_p{k1, k2p, rp};
   const muelmat tp      = tran_p();
   const muelmat lambdap = tran_p.linsrc_linprop(tp, k1, k2p, rp);
 
@@ -537,8 +537,8 @@ muelmat tran::deriv(const muelmat &t,
                     const propmat &k1,
                     const propmat &k2,
                     const propmat &dk,
-                    const Numeric r,
-                    const Numeric dr) const {
+                    const Numeric  r,
+                    const Numeric  dr) const {
   const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A()));
   if (not polarized) return {da * exp_a};
 
@@ -732,21 +732,21 @@ propmat logK(const muelmat &m) {
   const Numeric y = std::acos(v);
 
   // From here, we simply compute the coefficients C0, C1, C2, C3 as in tran::tran
-  const Numeric x2       = x * x;
-  const Numeric y2       = y * y;
-  const bool x_zero      = x < too_small;
-  const bool y_zero      = y < too_small;
-  const bool both_zero   = x_zero && y_zero;
-  const bool either_zero = x_zero || y_zero;
-  const Numeric cy       = v;
-  const Numeric sy       = std::sin(y);
-  const Numeric cx       = u;
-  const Numeric sx       = std::sinh(x);
-  const Numeric ix       = x_zero ? 0.0 : 1.0 / x;
-  const Numeric iy       = y_zero ? 0.0 : 1.0 / y;
-  const Numeric inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);
-  const Numeric C0       = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
-  const Numeric C1       = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+  const Numeric x2          = x * x;
+  const Numeric y2          = y * y;
+  const bool    x_zero      = x < too_small;
+  const bool    y_zero      = y < too_small;
+  const bool    both_zero   = x_zero && y_zero;
+  const bool    either_zero = x_zero || y_zero;
+  const Numeric cy          = v;
+  const Numeric sy          = std::sin(y);
+  const Numeric cx          = u;
+  const Numeric sx          = std::sinh(x);
+  const Numeric ix          = x_zero ? 0.0 : 1.0 / x;
+  const Numeric iy          = y_zero ? 0.0 : 1.0 / y;
+  const Numeric inv_x2y2    = both_zero ? 1.0 : 1.0 / (x2 + y2);
+  const Numeric C0          = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
+  const Numeric C1          = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
   // Skipping C2 and C3
 
   /**
@@ -948,10 +948,10 @@ specmat sqrt(const propmat &pm) {
   return K;
 }
 
-void TransmittanceMatrix::constant(const std::span<const propmat> &K,
+void TransmittanceMatrix::constant(const std::span<const propmat>        &K,
                                    const std::span<const propmat_vector> &dK,
-                                   const ConstVectorView &r,
-                                   const ConstTensor3View &dr) {
+                                   const ConstVectorView                 &r,
+                                   const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -972,10 +972,10 @@ void TransmittanceMatrix::constant(const std::span<const propmat> &K,
   }
 }
 
-void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
+void TransmittanceMatrix::linsrc(const std::span<const propmat>        &K,
                                  const std::span<const propmat_vector> &dK,
-                                 const ConstVectorView &r,
-                                 const ConstTensor3View &dr) {
+                                 const ConstVectorView                 &r,
+                                 const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -990,8 +990,8 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    auto &k1 = K[i - 1];
-    auto &k2 = K[i];
+    auto      &k1 = K[i - 1];
+    auto      &k2 = K[i];
     const tran tr{k1, k2, r[i - 1]};
     T_[i] = tr();
     L_[i] = tr.linsrc();
@@ -1005,10 +1005,10 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat> &K,
   }
 }
 
-void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
+void TransmittanceMatrix::linprop(const std::span<const propmat>        &K,
                                   const std::span<const propmat_vector> &dK,
-                                  const ConstVectorView &r,
-                                  const ConstTensor3View &dr) {
+                                  const ConstVectorView                 &r,
+                                  const ConstTensor3View                &dr) {
   const Size N  = K.size();
   const Size nq = dr.npages();
 
@@ -1023,8 +1023,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size i = 1; i < N; i++) {
-    auto &k1 = K[i - 1];
-    auto &k2 = K[i];
+    auto      &k1 = K[i - 1];
+    auto      &k2 = K[i];
     const tran tr{k1, k2, r[i - 1]};
     T_[i] = tr();
     L_[i] = tr.linsrc_linprop(T_[i], k1, k2, r[i - 1]);
@@ -1042,8 +1042,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat> &K,
 
 void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
                                    const std::span<const propmat_matrix> &dK,
-                                   const ConstVectorView &r,
-                                   const ConstTensor3View &dr) {
+                                   const ConstVectorView                 &r,
+                                   const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1070,8 +1070,8 @@ void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
                                  const std::span<const propmat_matrix> &dK,
-                                 const ConstVectorView &r,
-                                 const ConstTensor3View &dr) {
+                                 const ConstVectorView                 &r,
+                                 const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1103,8 +1103,8 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
                                   const std::span<const propmat_matrix> &dK,
-                                  const ConstVectorView &r,
-                                  const ConstTensor3View &dr) {
+                                  const ConstVectorView                 &r,
+                                  const ConstTensor3View                &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -1145,9 +1145,9 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
 
 void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                                const std::span<const propmat_matrix> &dK,
-                               const ConstVectorView &r,
-                               const ConstTensor3View &dr,
-                               const TransmittanceOption opt) {
+                               const ConstVectorView                 &r,
+                               const ConstTensor3View                &dr,
+                               const TransmittanceOption              opt) {
   option = opt;
 
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
@@ -1157,7 +1157,7 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                      r.size());
 
   constexpr Size nt = 2;
-  const Size np     = K.size();
+  const Size     np = K.size();
 
   if (np == 0) {
     T.resize(T.nrows(), 0);
@@ -1214,17 +1214,17 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   }
 }
 
-void TransmittanceMatrix::init(const std::span<const propmat> &K,
+void TransmittanceMatrix::init(const std::span<const propmat>        &K,
                                const std::span<const propmat_vector> &dK,
-                               const ConstVectorView &r,
-                               const ConstTensor3View &dr,
-                               const TransmittanceOption opt) {
+                               const ConstVectorView                 &r,
+                               const ConstTensor3View                &dr,
+                               const TransmittanceOption              opt) {
   option = opt;
 
   constexpr Size nt = 2;
   constexpr Size nf = 1;
-  const Size np     = K.size();
-  const Size nq     = dr.npages();
+  const Size     np = K.size();
+  const Size     nq = dr.npages();
 
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
                      "K and dK must have the same size: K: {}, dK: {}, r: {}",

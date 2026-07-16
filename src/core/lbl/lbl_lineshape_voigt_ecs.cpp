@@ -29,9 +29,9 @@
 #undef WIGNER6
 
 namespace lbl::voigt::ecs {
-ComputeData::ComputeData(const ConstVectorView& f_grid,
-                         const AtmPoint& atm,
-                         const Vector2& los,
+ComputeData::ComputeData(const ConstVectorView&   f_grid,
+                         const AtmPoint&          atm,
+                         const Vector2&           los,
                          const ZeemanPolarization pol)
     : scl(f_grid.size()), shape(f_grid.size()) {
   std::transform(f_grid.begin(),
@@ -81,18 +81,14 @@ void ComputeData::core_calc_eqv() {
 
     // Do the matrix forward multiplication
     for (Size i = 0; i < n; i++) {
-      for (Size j = 0; j < n; j++) {
-        eqv_str[i] += dip[j] * V[j, i];
-      }
+      for (Size j = 0; j < n; j++) { eqv_str[i] += dip[j] * V[j, i]; }
     }
 
     // Do the matrix backward multiplication
     inv(V, V);
     for (Size i = 0; i < n; i++) {
       Complex z(0, 0);
-      for (Size j = 0; j < n; j++) {
-        z += pop[j] * dip[j] * V[i, j];
-      }
+      for (Size j = 0; j < n; j++) { z += pop[j] * dip[j] * V[i, j]; }
       eqv_str[i] *= z;
     }
   }
@@ -135,11 +131,11 @@ void get_vmrs(VectorView vmrs, const line_shape::model::map_t& mod, const AtmPoi
 }
 }  // namespace
 
-void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
-                              const band_data& bnd,
+void ComputeData::adapt_multi(const QuantumIdentifier&        bnd_qid,
+                              const band_data&                bnd,
                               const LinemixingSpeciesEcsData& rovib_data,
-                              const AtmPoint& atm,
-                              const bool presorted) try {
+                              const AtmPoint&                 atm,
+                              const bool                      presorted) try {
   const auto n = bnd.size();
   const auto m = bnd.front().ls.single_models.size();
 
@@ -205,9 +201,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
-      for (Size i : sort) {
-        out[i] = vec[sort[i]];
-      }
+      for (Size i : sort) { out[i] = vec[sort[i]]; }
       return out;
     };
 
@@ -260,17 +254,15 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     i++;
   }
 
-  for (Size i = 0; i < n; i++) {
-    Ws[joker, i, i] += bnd.lines[sort[i]].f0;
-  }
+  for (Size i = 0; i < n; i++) { Ws[joker, i, i] += bnd.lines[sort[i]].f0; }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
-                               const band_data& bnd,
+void ComputeData::adapt_single(const QuantumIdentifier&        bnd_qid,
+                               const band_data&                bnd,
                                const LinemixingSpeciesEcsData& rovib_data,
-                               const AtmPoint& atm,
-                               const bool presorted) try {
+                               const AtmPoint&                 atm,
+                               const bool                      presorted) try {
   const auto n = bnd.size();
 
   pop.resize(n);
@@ -333,9 +325,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
   } else {
     const auto presorter = [this](const auto& vec) {
       auto out = vec;
-      for (Size i : sort) {
-        out[i] = vec[sort[i]];
-      }
+      for (Size i : sort) { out[i] = vec[sort[i]]; }
       return out;
     };
 
@@ -386,32 +376,28 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     }
 
     for (Size ir = 0; ir < n; ir++) {
-      for (Size ic = 0; ic < n; ic++) {
-        imag_val(Ws[0][ir, ic]) += this_vmr * Wimag[ir, ic];
-      }
+      for (Size ic = 0; ic < n; ic++) { imag_val(Ws[0][ir, ic]) += this_vmr * Wimag[ir, ic]; }
     }
 
     i++;
   }
 
-  for (Size i = 0; i < n; i++) {
-    real_val(Ws[0][i, i]) = bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm);
-  }
+  for (Size i = 0; i < n; i++) { real_val(Ws[0][i, i]) = bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm); }
 }
 ARTS_METHOD_ERROR_CATCH
 
 void calculate(PropmatVectorView pm_,
                PropmatMatrixView,
-               ComputeData& com_data,
-               const ConstVectorView f_grid_,
-               const Range& f_range,
-               const Jacobian::Targets& jac_targets,
-               const QuantumIdentifier& bnd_qid,
-               const band_data& bnd,
+               ComputeData&                    com_data,
+               const ConstVectorView           f_grid_,
+               const Range&                    f_range,
+               const Jacobian::Targets&        jac_targets,
+               const QuantumIdentifier&        bnd_qid,
+               const band_data&                bnd,
                const LinemixingSpeciesEcsData& rovib_data,
-               const AtmPoint& atm,
-               const ZeemanPolarization pol,
-               const bool no_negative_absorption) try {
+               const AtmPoint&                 atm,
+               const ZeemanPolarization        pol,
+               const bool                      no_negative_absorption) try {
   if (pol != ZeemanPolarization::no) {
     ARTS_USER_ERROR_IF(stdr::any_of(
                            bnd, [](auto& zee) { return zee.on; }, &line::z),
@@ -419,7 +405,7 @@ void calculate(PropmatVectorView pm_,
     return;
   }
 
-  PropmatVectorView pm         = pm_[f_range];
+  PropmatVectorView     pm     = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];
 
   ARTS_USER_ERROR_IF(jac_targets.target_count() > 0, "No Jacobian support.")
@@ -439,14 +425,14 @@ void calculate(PropmatVectorView pm_,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void equivalent_values(ComplexTensor3View eqv_str,
-                       ComplexTensor3View eqv_val,
-                       ComputeData& com_data,
-                       const QuantumIdentifier& bnd_qid,
-                       const band_data& bnd,
+void equivalent_values(ComplexTensor3View              eqv_str,
+                       ComplexTensor3View              eqv_val,
+                       ComputeData&                    com_data,
+                       const QuantumIdentifier&        bnd_qid,
+                       const band_data&                bnd,
                        const LinemixingSpeciesEcsData& rovib_data,
-                       const AtmPoint& atm,
-                       const Vector& T) try {
+                       const AtmPoint&                 atm,
+                       const Vector&                   T) try {
   const auto k = eqv_str.npages();
   const auto m = eqv_str.ncols();
 

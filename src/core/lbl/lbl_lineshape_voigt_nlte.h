@@ -78,7 +78,7 @@ struct single_shape {
 struct band_shape {
   //! Line absorption shapes (lacking the f * (1 - exp(-hf/kt)) factor)
   std::vector<single_shape> lines{};
-  Numeric cutoff{-1};
+  Numeric                   cutoff{-1};
 
   [[nodiscard]] Size size() const { return lines.size(); }
 
@@ -92,11 +92,11 @@ struct band_shape {
 
   [[nodiscard]] std::pair<Complex, Complex> dH(const ConstComplexVectorView& dz_dH, const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dT(const ConstVectorView& dk_dT,
-                                               const ConstVectorView& de_ratio_dT,
+  [[nodiscard]] std::pair<Complex, Complex> dT(const ConstVectorView&        dk_dT,
+                                               const ConstVectorView&        de_ratio_dT,
                                                const ConstComplexVectorView& dz_dT,
-                                               const ConstVectorView& dz_dT_fac,
-                                               const Numeric f) const;
+                                               const ConstVectorView&        dz_dT_fac,
+                                               const Numeric                 f) const;
 
   using CutView      = matpack::view_t<std::pair<Complex, Complex>, 1>;
   using CutViewConst = matpack::view_t<const std::pair<Complex, Complex>, 1>;
@@ -109,50 +109,50 @@ struct band_shape {
 
   void df(CutView cut) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dH(const CutViewConst& cut,
+  [[nodiscard]] std::pair<Complex, Complex> dH(const CutViewConst&           cut,
                                                const ConstComplexVectorView& dz_dH,
-                                               const Numeric f) const;
+                                               const Numeric                 f) const;
 
   void dH(CutView cut, const ConstComplexVectorView& df0_dH) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dT(const CutViewConst& cut,
-                                               const ConstVectorView& dk_dT,
-                                               const ConstVectorView& de_ratio_dT,
+  [[nodiscard]] std::pair<Complex, Complex> dT(const CutViewConst&           cut,
+                                               const ConstVectorView&        dk_dT,
+                                               const ConstVectorView&        de_ratio_dT,
                                                const ConstComplexVectorView& dz_dT,
-                                               const ConstVectorView& dz_dT_fac,
-                                               const Numeric f) const;
+                                               const ConstVectorView&        dz_dT_fac,
+                                               const Numeric                 f) const;
 
-  void dT(CutView cut,
-          const ConstVectorView& dk_dT,
-          const ConstVectorView& de_ratio_dT,
+  void dT(CutView                       cut,
+          const ConstVectorView&        dk_dT,
+          const ConstVectorView&        de_ratio_dT,
           const ConstComplexVectorView& dz_dT,
-          const ConstVectorView& dz_dT_fac) const;
+          const ConstVectorView&        dz_dT_fac) const;
 };
 
 void band_shape_helper(std::vector<single_shape>& lines,
-                       std::vector<line_pos>& pos,
-                       const QuantumIdentifier& qid,
-                       const band_data& bnd,
-                       const AtmPoint& atm,
-                       const Numeric fmin,
-                       const Numeric fmax,
-                       const ZeemanPolarization pol);
+                       std::vector<line_pos>&     pos,
+                       const QuantumIdentifier&   qid,
+                       const band_data&           bnd,
+                       const AtmPoint&            atm,
+                       const Numeric              fmin,
+                       const Numeric              fmax,
+                       const ZeemanPolarization   pol);
 
 struct ComputeData {
   std::vector<single_shape> lines{};  //! Line shapes; save for reuse, assume moved from
-  std::vector<line_pos> pos{};        //! Save for reuse, size of line shapes
+  std::vector<line_pos>     pos{};    //! Save for reuse, size of line shapes
 
   using PairDataC = matpack::data_t<std::pair<Complex, Complex>, 1>;
 
-  PairDataC cut{};     //! Size of line shapes
-  ComplexVector dz{};  //! Size of line shapes
-  Vector dz_fac{};     //! Size of line shapes
-  Vector dk{};         //! Size of line shapes
-  Vector de_ratio{};   //! Size of line shapes
-  PairDataC dcut{};    //! Size of line shapes
+  PairDataC     cut{};       //! Size of line shapes
+  ComplexVector dz{};        //! Size of line shapes
+  Vector        dz_fac{};    //! Size of line shapes
+  Vector        dk{};        //! Size of line shapes
+  Vector        de_ratio{};  //! Size of line shapes
+  PairDataC     dcut{};      //! Size of line shapes
 
-  Vector scl{};        //! Size of frequency
-  Vector dscl{};       //! Size of frequency
+  Vector    scl{};     //! Size of frequency
+  Vector    dscl{};    //! Size of frequency
   PairDataC shape{};   //! Size of frequency
   PairDataC dshape{};  //! Size of frequency
 
@@ -162,9 +162,9 @@ struct ComputeData {
   Propmat dnpm_dw{};  //! The orientation of the polarization
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const ConstVectorView& f_grid,
-              const AtmPoint& atm,
-              const Vector2& los           = {},
+  ComputeData(const ConstVectorView&   f_grid,
+              const AtmPoint&          atm,
+              const Vector2&           los = {},
               const ZeemanPolarization pol = ZeemanPolarization::no);
 
   void update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol);
@@ -174,48 +174,48 @@ struct ComputeData {
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const QuantumIdentifier& qid,
-                    const band_shape& shp,
-                    const band_data& bnd,
-                    const ConstVectorView& f_grid,
-                    const AtmPoint& atm,
+                    const band_shape&        shp,
+                    const band_data&         bnd,
+                    const ConstVectorView&   f_grid,
+                    const AtmPoint&          atm,
                     const ZeemanPolarization pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid, const AtmPoint& atm);
 
   //! Sets dshape and dz
-  void dmag_u_core_calc(const band_shape& shp,
-                        const band_data& bnd,
-                        const ConstVectorView& f_grid,
-                        const AtmPoint& atm,
+  void dmag_u_core_calc(const band_shape&        shp,
+                        const band_data&         bnd,
+                        const ConstVectorView&   f_grid,
+                        const AtmPoint&          atm,
                         const ZeemanPolarization pol);
 
   //! Sets dshape and dz
-  void dmag_v_core_calc(const band_shape& shp,
-                        const band_data& bnd,
-                        const ConstVectorView& f_grid,
-                        const AtmPoint& atm,
+  void dmag_v_core_calc(const band_shape&        shp,
+                        const band_data&         bnd,
+                        const ConstVectorView&   f_grid,
+                        const AtmPoint&          atm,
                         const ZeemanPolarization pol);
 
   //! Sets dshape and dz
-  void dmag_w_core_calc(const band_shape& shp,
-                        const band_data& bnd,
-                        const ConstVectorView& f_grid,
-                        const AtmPoint& atm,
+  void dmag_w_core_calc(const band_shape&        shp,
+                        const band_data&         bnd,
+                        const ConstVectorView&   f_grid,
+                        const AtmPoint&          atm,
                         const ZeemanPolarization pol);
 };
 
-void calculate(PropmatVectorView pm,
-               StokvecVectorView sv,
-               PropmatMatrixView dpm,
-               StokvecMatrixView dsv,
-               ComputeData& com_data,
-               const ConstVectorView f_grid,
-               const Range& f_range,
+void calculate(PropmatVectorView        pm,
+               StokvecVectorView        sv,
+               PropmatMatrixView        dpm,
+               StokvecMatrixView        dsv,
+               ComputeData&             com_data,
+               const ConstVectorView    f_grid,
+               const Range&             f_range,
                const Jacobian::Targets& jac_targets,
                const QuantumIdentifier& bnd_qid,
-               const band_data& bnd,
-               const AtmPoint& atm,
+               const band_data&         bnd,
+               const AtmPoint&          atm,
                const ZeemanPolarization pol,
-               const bool no_negative_absorption);
+               const bool               no_negative_absorption);
 }  // namespace lbl::voigt::nlte

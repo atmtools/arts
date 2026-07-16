@@ -40,12 +40,12 @@ Numeric reduced_dipole(const Rational Jf, const Rational Ji, const Rational K);
  * @param[in]     dipr               Reduced dipole moments
  * @param[in]     atm                Atmospheric point
  */
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm);
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm);
 }  // namespace lbl::voigt::ecs::stotop

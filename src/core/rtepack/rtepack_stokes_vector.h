@@ -123,8 +123,8 @@ constexpr stokvec avg(const stokvec &a, const stokvec &b) {
   * @param type Spectral Radiance Unit Type
  * @return A function that takes a stokes vector and a frequency and returns a converted stokes vector
  */
-std::function<stokvec(const stokvec, const Numeric)> unit_converter(const SpectralRadianceUnitType type,
-                                                                    const Numeric n = 1.0);
+std::function<stokvec(const stokvec, const Numeric)>                unit_converter(const SpectralRadianceUnitType type,
+                                                                                   const Numeric                  n = 1.0);
 std::function<stokvec(const stokvec, const stokvec, const Numeric)> dunit_converter(const SpectralRadianceUnitType type,
                                                                                     const Numeric n = 1.0);
 

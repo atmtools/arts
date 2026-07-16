@@ -296,10 +296,10 @@ std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_
   return out;
 }
 
-void xml_io_stream<lbl::line_shape::model>::write(std::ostream& os,
+void xml_io_stream<lbl::line_shape::model>::write(std::ostream&                 os,
                                                   const lbl::line_shape::model& x,
-                                                  bofstream* pbofs,
-                                                  std::string_view name) {
+                                                  bofstream*                    pbofs,
+                                                  std::string_view              name) {
   XMLTag tag(type_name, "name", name, "T0", x.T0);
   tag.write_to_stream(os);
 
@@ -322,21 +322,19 @@ void xml_io_stream<lbl::line_shape::model>::read(std::istream& is, lbl::line_sha
   throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
-void xml_io_stream<lbl::line_shape::species_model>::write(std::ostream& os,
+void xml_io_stream<lbl::line_shape::species_model>::write(std::ostream&                         os,
                                                           const lbl::line_shape::species_model& x,
                                                           bofstream*,
                                                           std::string_view name) {
   XMLTag tag(type_name, "name", name, "nelem", x.data.size());
   tag.write_to_stream(os);
 
-  for (auto& [key, elem] : x.data) {
-    std::println(os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X());
-  }
+  for (auto& [key, elem] : x.data) { std::println(os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X()); }
 
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<lbl::line_shape::species_model>::read(std::istream& is,
+void xml_io_stream<lbl::line_shape::species_model>::read(std::istream&                   is,
                                                          lbl::line_shape::species_model& x,
                                                          bifstream*) try {
   XMLTag tag;
@@ -347,15 +345,13 @@ void xml_io_stream<lbl::line_shape::species_model>::read(std::istream& is,
   tag.get_attribute_value("nelem", n);
 
   for (Index i = 0; i < n; ++i) {
-    Index m{};
+    Index                  m{};
     LineShapeModelVariable var;
-    LineShapeModelType temptype;
-    Vector v{};
+    LineShapeModelType     temptype;
+    Vector                 v{};
     is >> var >> temptype >> m;
     v.resize(m);
-    for (Index j = 0; j < m; ++j) {
-      is >> double_imanip() >> v[j];
-    }
+    for (Index j = 0; j < m; ++j) { is >> double_imanip() >> v[j]; }
     x.data[var] = lbl::temperature::data{temptype, std::move(v)};
   }
 

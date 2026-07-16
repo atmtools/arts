@@ -18,27 +18,27 @@ void sumup(ComplexVectorView a, const ConstMatrixView& mat, const ConstVectorVie
 
 void sumup(ComplexVectorView a, const ConstMatrixView& mat, const ConstVectorView& f, const Numeric cutoff);
 
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
+void prepare(Matrix&                                mat,
+             const AtmPoint&                        atm,
              const std::span<const flat_band_data>& bands,
-             const ZeemanPolarization& pol);
+             const ZeemanPolarization&              pol);
 
 void str_scale(
     ComplexMatrixView a, const AtmPoint& atm, const ConstVectorView& fs, const std::vector<bool>& df, const Size it);
 
 void sumup(ComplexMatrixView a, const ConstMatrixView& mat, const ConstVectorView& f, const std::vector<bool>& df);
 
-void sumup(ComplexMatrixView res,
-           const ConstMatrixView& mat,
-           const ConstVectorView& fs,
-           const Numeric cutoff,
+void sumup(ComplexMatrixView        res,
+           const ConstMatrixView&   mat,
+           const ConstVectorView&   fs,
+           const Numeric            cutoff,
            const std::vector<bool>& df);
 
-void prepare(Matrix& mat,
-             const AtmPoint& atm,
+void prepare(Matrix&                                mat,
+             const AtmPoint&                        atm,
              const std::span<const flat_band_data>& bands,
-             const Jacobian::Targets& jac_targets,
-             const ZeemanPolarization& pol);
+             const Jacobian::Targets&               jac_targets,
+             const ZeemanPolarization&              pol);
 
 void sort(MatrixView mat);
 }  // namespace lbl::voigt::lte::matrix

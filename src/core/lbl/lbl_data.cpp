@@ -56,9 +56,9 @@ std::istream& operator>>(std::istream& is, line& x) try {
 
 //! Gets all the lines between (f0-cutoff, f1+cutoff) and the offset from the front
 std::pair<Size, std::span<const line>> band_data::active_lines(Numeric f0, Numeric f1) const {
-  const Numeric c = get_cutoff_frequency();
-  auto low        = stdr::lower_bound(*this, f0 - c, {}, &line::f0);
-  auto upp        = stdr::upper_bound(low, end(), f1 + c, {}, &line::f0);
+  const Numeric c   = get_cutoff_frequency();
+  auto          low = stdr::lower_bound(*this, f0 - c, {}, &line::f0);
+  auto          upp = stdr::upper_bound(low, end(), f1 + c, {}, &line::f0);
 
   return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
 }
@@ -74,9 +74,7 @@ Rational band_data::max(QuantumNumberType x) const try {
   return out;
 } catch (std::out_of_range&) {
   throw std::runtime_error(std::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
-} catch (std::exception&) {
-  throw;
-}
+} catch (std::exception&) { throw; }
 
 namespace {
 template <typename T>
@@ -98,8 +96,8 @@ auto local_get_value(T& abs_bands, const line_key& type)
   auto& line = band.lines[type.line];
 
   if (type.ls_var == LineShapeModelVariable::unused) {
-    auto& line_ls_data = line.ls.single_models;
-    const auto ptr     = line_ls_data.find(type.spec);
+    auto&      line_ls_data = line.ls.single_models;
+    const auto ptr          = line_ls_data.find(type.spec);
     ARTS_USER_ERROR_IF(ptr == line_ls_data.end(),
                        R"(Missing data.
 Species: {}
@@ -111,7 +109,7 @@ Band:    {}
                        type.band);
 
     auto& ls_data = ptr->second.data;
-    auto ls_ptr   = ls_data.find(type.ls_var);
+    auto  ls_ptr  = ls_data.find(type.ls_var);
     ARTS_USER_ERROR_IF(ls_ptr == ls_data.end(),
                        R"(Missing data.
 Line Shape Model Variable: {}
@@ -176,16 +174,14 @@ std::unordered_set<SpeciesEnum> species_in_bands(const std::unordered_map<Quantu
   for (auto& [key, data] : bands) {
     out.insert(key.isot.spec);
 
-    for (auto& line : data.lines) {
-      out.insert_range(line.ls.single_models | stdv::keys);
-    }
+    for (auto& line : data.lines) { out.insert_range(line.ls.single_models | stdv::keys); }
   }
   return out;
 }
 
 void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
-                   const std::unordered_map<SpeciesEnum, Numeric>& keep,
-                   const Numeric T0) {
+                   const std::unordered_map<SpeciesEnum, Numeric>&   keep,
+                   const Numeric                                     T0) {
   for (auto& [key, data] : bands) {
     const auto ptr = keep.find(key.isot.spec);
     if (ptr != keep.end()) {
@@ -202,9 +198,7 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
-    for (auto& line : data.lines) {
-      compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0));
-    }
+    for (auto& line : data.lines) { compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0)); }
   }
 
   std::unordered_map<SpeciesEnum, Numeric> out;
@@ -221,17 +215,15 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
 
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
-    const std::unordered_map<SpeciesEnum, Numeric>& approx_percentile,
-    const Numeric T0) {
+    const std::unordered_map<SpeciesEnum, Numeric>&         approx_percentile,
+    const Numeric                                           T0) {
   ARTS_USER_ERROR_IF(stdr::any_of(approx_percentile | stdv::values, [](auto i) { return i < 0 or i > 100; }),
                      "Approximate percentile must be between 0 and 100");
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
     if (approx_percentile.contains(key.isot.spec)) {
-      for (auto& line : data.lines) {
-        compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0));
-      }
+      for (auto& line : data.lines) { compute[key.isot.spec].push_back(line.hitran_s(key.isot, T0)); }
     }
   }
 
@@ -322,7 +314,7 @@ std::string std::formatter<lbl::line>::to_string(const lbl::line& v) const {
   }
 
   const std::string_view sep = tags.sep();
-  std::string out            = tags.vformat(v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
+  std::string            out = tags.vformat(v.f0, sep, v.a, sep, v.e0, sep, v.gu, sep, v.gl);
   if (not tags.short_str) out += tags.vformat(sep, v.z, sep, v.ls, sep, v.qn);
 
   return tags.bracket ? ("[" + out + "]") : out;
@@ -354,10 +346,10 @@ std::string std::formatter<lbl::band_data>::to_string(const lbl::band_data& v) c
   return out;
 }
 
-void xml_io_stream<AbsorptionBand>::write(std::ostream& os,
+void xml_io_stream<AbsorptionBand>::write(std::ostream&         os,
                                           const AbsorptionBand& data,
-                                          bofstream* pbofs,
-                                          std::string_view name) {
+                                          bofstream*            pbofs,
+                                          std::string_view      name) {
   ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
 
   XMLTag tag(type_name,
@@ -382,7 +374,7 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is, AbsorptionBand& data,
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
 
   String tag;
-  Index nelem;
+  Index  nelem;
 
   XMLTag open_tag;
   open_tag.read_from_stream(is);
@@ -400,9 +392,7 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is, AbsorptionBand& data,
   data.lines.resize(0);
   data.lines.reserve(nelem);
 
-  for (Index j = 0; j < nelem; j++) {
-    is >> data.lines.emplace_back();
-  }
+  for (Index j = 0; j < nelem; j++) { is >> data.lines.emplace_back(); }
 
   XMLTag close_tag;
   close_tag.read_from_stream(is);
@@ -439,18 +429,14 @@ void xml_io_stream<LblLineKey>::read(std::istream& is, LblLineKey& x, bifstream*
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading LblLineKey:\n{}", e.what()));
-}
+} catch (const std::exception& e) { throw std::runtime_error(std::format("Error reading LblLineKey:\n{}", e.what())); }
 
 template <>
 std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands& bands) {
   std::string out{};
 
   std::string_view x = ""sv;
-  for (auto& [qid, data] : bands) {
-    out += std::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data);
-  }
+  for (auto& [qid, data] : bands) { out += std::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data); }
 
   return out;
 }

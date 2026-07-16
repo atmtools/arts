@@ -12,14 +12,14 @@
 namespace lbl::fwd {
 namespace models {
 class lte {
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>        atm{};
   std::shared_ptr<AbsorptionBands> bands{};
-  ZeemanPolarization pol{};
+  ZeemanPolarization               pol{};
 
   voigt::lte::band_shape lines{};
 
   voigt::lte::band_shape cutoff_lines{};
-  ComplexVector cutoff;
+  ComplexVector          cutoff;
 
   void adapt();
 
@@ -39,14 +39,14 @@ class lte {
 };
 
 class lte_mirror {
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>        atm{};
   std::shared_ptr<AbsorptionBands> bands{};
-  ZeemanPolarization pol{};
+  ZeemanPolarization               pol{};
 
   voigt::lte_mirror::band_shape lines{};
 
   voigt::lte_mirror::band_shape cutoff_lines{};
-  ComplexVector cutoff;
+  ComplexVector                 cutoff;
 
   void adapt();
 
@@ -66,13 +66,13 @@ class lte_mirror {
 };
 
 class nlte {
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>        atm{};
   std::shared_ptr<AbsorptionBands> bands{};
-  ZeemanPolarization pol{};
+  ZeemanPolarization               pol{};
 
   voigt::nlte::band_shape lines{};
 
-  voigt::nlte::band_shape cutoff_lines{};
+  voigt::nlte::band_shape                         cutoff_lines{};
   matpack::data_t<std::pair<Complex, Complex>, 1> cutoff;
 
   void adapt();
@@ -94,12 +94,12 @@ class nlte {
 }  // namespace models
 
 class line_storage {
-  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<AtmPoint>        atm{};
   std::shared_ptr<AbsorptionBands> bands{};
 
-  std::array<models::lte, 4> lte{};
+  std::array<models::lte, 4>        lte{};
   std::array<models::lte_mirror, 4> lte_mirror{};
-  std::array<models::nlte, 4> nlte{};
+  std::array<models::nlte, 4>       nlte{};
 
  public:
   line_storage();

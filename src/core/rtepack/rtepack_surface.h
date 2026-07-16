@@ -131,8 +131,8 @@ stokvec specular_radiance(
  */
 stokvec nonspecular_radiance(const stokvec& I_in,
                              const stokvec& J,
-                             Complex Rv,
-                             Complex Rh,
+                             Complex        Rv,
+                             Complex        Rh,
                              const Vector3& k_inc,
                              const Vector3& k_out,
                              const Vector3& n_surface);
@@ -160,15 +160,15 @@ stokvec nonspecular_radiance(const stokvec& I_in,
  *  @param hfield     Height field — provides grid spacing and patch heights
  *  @return           Outgoing Stokes vector toward the sensor
  */
-stokvec nonspecular_radiance_from_patches(std::span<const Vector2> coords,
+stokvec nonspecular_radiance_from_patches(std::span<const Vector2>  coords,
                                           stokvec_vector_const_view sources,
-                                          const stokvec& J,
-                                          Complex Rv,
-                                          Complex Rh,
-                                          Vector2 pos,
-                                          Numeric h_pos,
-                                          const Vector3& n_surface,
-                                          const Vector3& k_out,
-                                          Vector2 ellipsoid,
-                                          const GeodeticField2& hfield);
+                                          const stokvec&            J,
+                                          Complex                   Rv,
+                                          Complex                   Rh,
+                                          Vector2                   pos,
+                                          Numeric                   h_pos,
+                                          const Vector3&            n_surface,
+                                          const Vector3&            k_out,
+                                          Vector2                   ellipsoid,
+                                          const GeodeticField2&     hfield);
 }  // namespace rtepack

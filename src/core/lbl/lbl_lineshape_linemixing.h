@@ -57,10 +57,10 @@ template <>
 struct xml_io_stream<LinemixingSingleEcsData> {
   static constexpr std::string_view type_name = "LinemixingSingleEcsData"sv;
 
-  static void write(std::ostream &os,
+  static void write(std::ostream                  &os,
                     const LinemixingSingleEcsData &x,
-                    bofstream *pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream                     *pbofs = nullptr,
+                    std::string_view               name  = ""sv);
 
   static void read(std::istream &is, LinemixingSingleEcsData &x, bifstream *pbifs = nullptr);
 };

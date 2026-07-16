@@ -39,21 +39,21 @@ Numeric reduced_dipole(const Rational Jf, const Rational Ji, const Rational lf, 
   return +sqrtr(2 * Jf + 1) * wigner3j(Jf, k, Ji, lf, li - lf, -li);
 }
 
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm) {
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm) {
   using Conversion::kelvin2joule;
 
   const Size n = bnd.size();
   if (not n) return;
 
   // These are constant for a band
-  auto& l2    = bnd_qid.state.at(QuantumNumberType::l2);
+  auto&    l2 = bnd_qid.state.at(QuantumNumberType::l2);
   Rational li = l2.upper;
   Rational lf = l2.lower;
 
@@ -67,7 +67,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
   const auto erot = erot_selection(bnd_qid.isot);
 
   const std::array rats{bnd.max(QuantumNumberType::J), li, lf};
-  const int maxL = wigner_init_size(rats);
+  const int        maxL = wigner_init_size(rats);
 
   const auto Om = [&]() {
     Vector out(maxL);
@@ -91,14 +91,14 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
-    auto& J     = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
+    auto&    J  = bnd.lines[sorting[i]].qn.at(QuantumNumberType::J);
     Rational Ji = J.upper;
     Rational Jf = J.lower;
     if (swap_order) swap(Ji, Jf);
 
     for (Size j = 0; j < n; j++) {
       if (i == j) continue;
-      auto& J_p     = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
+      auto&    J_p  = bnd.lines[sorting[j]].qn.at(QuantumNumberType::J);
       Rational Ji_p = J_p.upper;
       Rational Jf_p = J_p.lower;
       if (swap_order) swap(Ji_p, Jf_p);

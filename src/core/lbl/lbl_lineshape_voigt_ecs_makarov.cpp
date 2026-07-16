@@ -81,14 +81,14 @@ constexpr Numeric erot(const Rational N, const Rational j = Rational{-1}) try {
 ARTS_METHOD_ERROR_CATCH
 }  // namespace
 
-void relaxation_matrix_offdiagonal(MatrixView& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesEnum broadening_species,
+void relaxation_matrix_offdiagonal(MatrixView&                     W,
+                                   const QuantumIdentifier&        bnd_qid,
+                                   const band_data&                bnd,
+                                   const ArrayOfIndex&             sorting,
+                                   const SpeciesEnum               broadening_species,
                                    const linemixing::species_data& rovib_data,
-                                   const Vector& dipr,
-                                   const AtmPoint& atm) try {
+                                   const Vector&                   dipr,
+                                   const AtmPoint&                 atm) try {
   using Conversion::kelvin2joule;
 
   ARTS_USER_ERROR_IF(bnd_qid.isot != "O2-66"_isot, "Bad isotopologue: {}", bnd_qid.isot)
@@ -99,12 +99,12 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S           = bnd_qid.state.at(QuantumNumberType::S);
+  auto&          S  = bnd_qid.state.at(QuantumNumberType::S);
   const Rational Si = S.upper;
   const Rational Sf = S.lower;
 
   const std::array rats{bnd.max(QuantumNumberType::J), bnd.max(QuantumNumberType::N), Si, Sf};
-  const int maxL = wigner_init_size(rats);
+  const int        maxL = wigner_init_size(rats);
 
   const auto Om = [&, maxL]() {
     Vector out(maxL);
@@ -151,7 +151,7 @@ void relaxation_matrix_offdiagonal(MatrixView& W,
 
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum       = 0;
+      Numeric       sum = 0;
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) *
                           bk(Ji) * bk(Ji_p);
       const auto [L0, L1] =

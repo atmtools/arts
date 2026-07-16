@@ -54,7 +54,7 @@ struct reader {
     it += n;
   }
 
-  [[nodiscard]] constexpr bool end_of_string() const { return it == end; }
+  [[nodiscard]] constexpr bool             end_of_string() const { return it == end; }
   [[nodiscard]] constexpr std::string_view remaining_string() const { return {it, end}; }
 };
 
@@ -87,11 +87,9 @@ jpl_data read_jpl_lines(std::istream& file) {
   jpl_data out;
 
   std::string linedata;
-  bool last_ok = true;
+  bool        last_ok = true;
 
-  while (std::getline(file, linedata)) {
-    last_ok = read_jpl_line(last_ok ? out.emplace_back() : out.back(), linedata);
-  }
+  while (std::getline(file, linedata)) { last_ok = read_jpl_line(last_ok ? out.emplace_back() : out.back(), linedata); }
 
   if (not last_ok) out.pop_back();
 

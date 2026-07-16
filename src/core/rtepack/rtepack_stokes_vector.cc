@@ -6,7 +6,7 @@
 
 namespace rtepack {
 std::function<stokvec(const stokvec, const Numeric)> unit_converter(const SpectralRadianceUnitType type,
-                                                                    const Numeric n) {
+                                                                    const Numeric                  n) {
   using enum SpectralRadianceUnitType;
   switch (type) {
     case unit: return [n2 = n * n](const stokvec v, const Numeric) { return n2 * v; };
@@ -28,7 +28,7 @@ std::function<stokvec(const stokvec, const Numeric)> unit_converter(const Spectr
 }
 
 std::function<stokvec(const stokvec, const stokvec, const Numeric)> dunit_converter(const SpectralRadianceUnitType type,
-                                                                                    const Numeric n) {
+                                                                                    const Numeric                  n) {
   using enum SpectralRadianceUnitType;
   switch (type) {
     case unit: return [n2 = n * n](const stokvec dv, const stokvec, const Numeric) { return n2 * dv; };

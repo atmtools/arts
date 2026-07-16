@@ -28,7 +28,7 @@ JacobianTargets create_jac_targets() {
 
 std::vector<lbl::line> create_lines(Index M) {
   constexpr Index n = 5;
-  const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+  const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
 
   std::vector<lbl::line> lines(M);
 
@@ -246,8 +246,8 @@ Numeric lbl_voigt_lte_calculate(
   using namespace lbl::voigt::lte;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  constexpr Vector2 los{};
-  const Jacobian::Targets jac_targets{};
+  constexpr Vector2        los{};
+  const Jacobian::Targets  jac_targets{};
 
   ComputeData com_data(fs, atm, los, pol);
 
@@ -272,8 +272,8 @@ Numeric lbl_voigt_lte_mirror_calculate(
   using namespace lbl::voigt::lte_mirror;
 
   const ZeemanPolarization pol = ZeemanPolarization::no;
-  constexpr Vector2 los{};
-  const Jacobian::Targets jac_targets{};
+  constexpr Vector2        los{};
+  const Jacobian::Targets  jac_targets{};
 
   ComputeData com_data(fs, atm, los, pol);
 
@@ -291,9 +291,9 @@ Numeric lbl_voigt_lte_mirror_calculate(
   return pm[0].A();
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix& mat,
+Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix&                                 mat,
                                                const std::vector<lbl::flat_band_data>& flat,
-                                               const AtmPoint& atm) {
+                                               const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}", arts_omp_get_max_threads()));
 
@@ -302,10 +302,10 @@ Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix& mat,
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(Matrix& mat,
+Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(Matrix&                                 mat,
                                                    const std::vector<lbl::flat_band_data>& flat,
-                                                   const AtmPoint& atm,
-                                                   const JacobianTargets& jac_targets) {
+                                                   const AtmPoint&                         atm,
+                                                   const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manylines_jac; threads: {}", arts_omp_get_max_threads()));
 
@@ -314,9 +314,9 @@ Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(Matrix& mat,
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix& mat,
+Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix&                                 mat,
                                                const std::vector<lbl::flat_band_data>& flat,
-                                               const AtmPoint& atm) {
+                                               const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}", arts_omp_get_max_threads()));
 
@@ -325,10 +325,10 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix& mat,
   return mat[0, 0];
 }
 
-Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(Matrix& mat,
+Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(Matrix&                                 mat,
                                                    const std::vector<lbl::flat_band_data>& flat,
-                                                   const AtmPoint& atm,
-                                                   const JacobianTargets& jac_targets) {
+                                                   const AtmPoint&                         atm,
+                                                   const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_prepare_manybands_jac; threads: {}", arts_omp_get_max_threads()));
 
@@ -361,9 +361,9 @@ Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff(ComplexVectorView a, const ConstMa
   return a[0].real();
 }
 
-Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView a,
-                                       const ConstMatrixView mat,
-                                       const ConstVectorView f,
+Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView        a,
+                                       const ConstMatrixView    mat,
+                                       const ConstVectorView    f,
                                        const std::vector<bool>& df) {
   ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}", arts_omp_get_max_threads()));
 
@@ -372,9 +372,9 @@ Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView a,
   return a[0, 0].real();
 }
 
-Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView a,
-                                                  const ConstMatrixView mat,
-                                                  const ConstVectorView f,
+Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView        a,
+                                                  const ConstMatrixView    mat,
+                                                  const ConstVectorView    f,
                                                   const std::vector<bool>& df) {
   ARTS_NAMED_TIME_REPORT(
       std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}", arts_omp_get_max_threads()));
@@ -390,7 +390,7 @@ int main() {
   {
     constexpr Index M = 10'000'000;
     constexpr Index n = 4;
-    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+    const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
 
     buf += lbl_temperature_t0(x);
     buf += lbl_temperature_t1(x);
@@ -404,7 +404,7 @@ int main() {
   }
 
   {
-    constexpr Index M                  = 10'000'000;
+    constexpr Index              M     = 10'000'000;
     const std::vector<lbl::line> lines = create_lines(M);
 
     buf += lbl_data_line_s(lines);
@@ -416,14 +416,14 @@ int main() {
   }
 
   {
-    AtmPoint atm;
-    constexpr Index M        = 10'000;
-    constexpr Index N        = 2'000;
+    AtmPoint             atm;
+    constexpr Index      M   = 10'000;
+    constexpr Index      N   = 2'000;
     const AbsorptionBand bnd = {.lines = create_lines(M)};
     atm.temperature          = 250.0;
     atm.pressure             = 182.0;
     atm[bnd_qid.isot.spec]   = 0.21;
-    const Vector f           = random_numbers<1>({N}, 0.0, 1.0);
+    const Vector  f          = random_numbers<1>({N}, 0.0, 1.0);
     PropmatVector pm(N);
     PropmatMatrix dpm(0, N);
 
@@ -447,12 +447,12 @@ int main() {
     atm.temperature        = 250.0;
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
-    Matrix mat(M, 5);
+    Matrix                                 mat(M, 5);
     const std::vector<lbl::flat_band_data> flat =
         lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
     constexpr Index n = 5;
-    const Matrix x    = random_numbers<2>({M, n}, 0.0, 1.0);
+    const Matrix    x = random_numbers<2>({M, n}, 0.0, 1.0);
     lbl_voigt_lte_matrix_prepare_manylines(mat, flat, atm);
 
     const int cores = arts_omp_get_max_threads();
@@ -477,7 +477,7 @@ int main() {
     atm.temperature        = 250.0;
     atm.pressure           = 182.0;
     atm[bnd_qid.isot.spec] = 0.21;
-    Matrix mat(M, 5);
+    Matrix                                 mat(M, 5);
     const std::vector<lbl::flat_band_data> flat =
         lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
@@ -491,11 +491,11 @@ int main() {
   }
 
   {
-    constexpr Index M = 10'000;
-    constexpr Index N = 2'000;
-    constexpr Index n = 5;
-    const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    constexpr Index M   = 10'000;
+    constexpr Index N   = 2'000;
+    constexpr Index n   = 5;
+    const Matrix    mat = random_numbers<2>({M, n}, 0.0, 1.0);
+    Vector          f   = random_numbers<1>({N}, 0.0, 1.0);
     stdr::sort(f);
     ComplexVector a(N);
 
@@ -515,11 +515,11 @@ int main() {
     AbsorptionBands bands{};
     bands[bnd_qid] = AbsorptionBand{.lines = create_lines(M)};
     AtmPoint atm;
-    atm.temperature                   = 250.0;
-    atm.pressure                      = 182.0;
-    atm[bnd_qid.isot.spec]            = 0.21;
-    const JacobianTargets jac_targets = create_jac_targets();
-    Matrix mat(M, 5 + 5 * jac_targets.target_count());
+    atm.temperature                                    = 250.0;
+    atm.pressure                                       = 182.0;
+    atm[bnd_qid.isot.spec]                             = 0.21;
+    const JacobianTargets                  jac_targets = create_jac_targets();
+    Matrix                                 mat(M, 5 + 5 * jac_targets.target_count());
     const std::vector<lbl::flat_band_data> flat =
         lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
@@ -544,11 +544,11 @@ int main() {
       bands[key]                      = AbsorptionBand{.lines = create_lines(M)};
     }
     AtmPoint atm;
-    atm.temperature                   = 250.0;
-    atm.pressure                      = 182.0;
-    atm[bnd_qid.isot.spec]            = 0.21;
-    const JacobianTargets jac_targets = create_jac_targets();
-    Matrix mat(M, 5 + 5 * jac_targets.target_count());
+    atm.temperature                                    = 250.0;
+    atm.pressure                                       = 182.0;
+    atm[bnd_qid.isot.spec]                             = 0.21;
+    const JacobianTargets                  jac_targets = create_jac_targets();
+    Matrix                                 mat(M, 5 + 5 * jac_targets.target_count());
     const std::vector<lbl::flat_band_data> flat =
         lbl::flatter_view(bands, ZeemanPolarization::no, [](auto&, auto&) { return true; });
 
@@ -562,13 +562,13 @@ int main() {
   }
 
   {
-    constexpr Index M = 10'000;
-    constexpr Index N = 2'000;
-    constexpr Index n = 5 + 5 * 4;
-    const Matrix mat  = random_numbers<2>({M, n}, 0.0, 1.0);
-    Vector f          = random_numbers<1>({N}, 0.0, 1.0);
+    constexpr Index M   = 10'000;
+    constexpr Index N   = 2'000;
+    constexpr Index n   = 5 + 5 * 4;
+    const Matrix    mat = random_numbers<2>({M, n}, 0.0, 1.0);
+    Vector          f   = random_numbers<1>({N}, 0.0, 1.0);
     stdr::sort(f);
-    ComplexMatrix a(N, n / 5);
+    ComplexMatrix     a(N, n / 5);
     std::vector<bool> df(n / 5 - 1);
     stdr::fill(df, false);
 

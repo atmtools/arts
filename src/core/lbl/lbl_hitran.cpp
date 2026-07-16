@@ -49,7 +49,7 @@ struct reader {
     it += n;
   }
 
-  [[nodiscard]] constexpr bool end_of_string() const { return it == end; }
+  [[nodiscard]] constexpr bool             end_of_string() const { return it == end; }
   [[nodiscard]] constexpr std::string_view remaining_string() const { return {it, end}; }
 };
 
@@ -79,10 +79,10 @@ bool read_par_line(hitran_record& record, reader& data, const Numeric fmin) {
   return true;
 }
 
-bool read_hitran_par_record(hitran_record& record,
+bool read_hitran_par_record(hitran_record&                           record,
                             const std::vector<HitranFileFormatType>& format_order,
-                            const std::string& linedata,
-                            const Numeric fmin) try {
+                            const std::string&                       linedata,
+                            const Numeric                            fmin) try {
   using namespace Conversion;
 
   const auto get_str = [sep = ','](reader& data) {
@@ -112,9 +112,7 @@ bool read_hitran_par_record(hitran_record& record,
     if (not data.end_of_string()) data.skip(1);  // Skip separator
   }
 
-  if (not qn_up.empty() and not qn_lo.empty()) {
-    record.qid.state = Quantum::from_hitran(qn_up, qn_lo);
-  }
+  if (not qn_up.empty() and not qn_lo.empty()) { record.qid.state = Quantum::from_hitran(qn_up, qn_lo); }
 
   ARTS_USER_ERROR_IF(not data.end_of_string(), "Part of the line was not parsed: '{}'", data.remaining_string())
 
@@ -124,13 +122,13 @@ bool read_hitran_par_record(hitran_record& record,
 }
 }  // namespace
 
-hitran_data read_hitran_par(std::istream& file,
+hitran_data read_hitran_par(std::istream&                            file,
                             const std::vector<HitranFileFormatType>& format_order,
-                            const Vector2& frequency_range) {
+                            const Vector2&                           frequency_range) {
   hitran_data out;
 
   std::string linedata;
-  bool last_ok = true;
+  bool        last_ok = true;
 
   while (std::getline(file, linedata)) {
     last_ok =
@@ -147,9 +145,9 @@ hitran_data read_hitran_par(std::istream& file,
   return out;
 }
 
-hitran_data read_hitran_par(std::istream&& file,
+hitran_data read_hitran_par(std::istream&&                           file,
                             const std::vector<HitranFileFormatType>& format_order,
-                            const Vector2& frequency_range) {
+                            const Vector2&                           frequency_range) {
   return read_hitran_par(file, format_order, frequency_range);
 }
 
