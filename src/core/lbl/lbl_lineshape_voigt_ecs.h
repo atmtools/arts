@@ -48,9 +48,7 @@ struct ComputeData {
               const Vector2& los           = {},
               const ZeemanPolarization pol = ZeemanPolarization::no);
 
-  void update_zeeman(const Vector2& los,
-                     const Vector3& mag,
-                     const ZeemanPolarization pol);
+  void update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol);
 
   void core_calc_eqv();
   void core_calc(const ConstVectorView& f_grid);

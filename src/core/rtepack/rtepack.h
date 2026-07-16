@@ -78,34 +78,14 @@ using ArrayOfSpecmatTensor3       = Array<SpecmatTensor3>;
 using ArrayOfArrayOfSpecmatVector = Array<ArrayOfSpecmatVector>;
 using ArrayOfArrayOfSpecmatMatrix = Array<ArrayOfSpecmatMatrix>;
 
-using StokvecSortedGriddedField1 =
-    matpack::gridded_data_t<Stokvec, AscendingGrid>;
-using StokvecSortedGriddedField2 =
-    matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid>;
-using StokvecSortedGriddedField3 = matpack::
-    gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid>;
-using StokvecSortedGriddedField4 = matpack::gridded_data_t<Stokvec,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid>;
-using StokvecSortedGriddedField5 = matpack::gridded_data_t<Stokvec,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid>;
-using StokvecSortedGriddedField6 = matpack::gridded_data_t<Stokvec,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid,
-                                                           AscendingGrid>;
-using GriddedSpectralField6      = matpack::gridded_data_t<Stokvec,
-                                                           AscendingGrid,
-                                                           LatGrid,
-                                                           LonGrid,
-                                                           ZenGrid,
-                                                           AziGrid,
-                                                           AscendingGrid>;
+using StokvecSortedGriddedField1 = matpack::gridded_data_t<Stokvec, AscendingGrid>;
+using StokvecSortedGriddedField2 = matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField3 = matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField4 =
+    matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField5 =
+    matpack::gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
+using StokvecSortedGriddedField6 = matpack::
+    gridded_data_t<Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
+using GriddedSpectralField6 =
+    matpack::gridded_data_t<Stokvec, AscendingGrid, LatGrid, LonGrid, ZenGrid, AziGrid, AscendingGrid>;

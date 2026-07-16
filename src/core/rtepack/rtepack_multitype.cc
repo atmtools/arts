@@ -13,18 +13,14 @@
 namespace rtepack {
 stokvec_vector absvec(const propmat_vector_const_view &k) {
   stokvec_vector out(k.size());
-  std::transform(k.begin(), k.end(), out.begin(), [](const propmat &v) {
-    return absvec(v);
-  });
+  std::transform(k.begin(), k.end(), out.begin(), [](const propmat &v) { return absvec(v); });
   return out;
 }
 
 Tensor3 to_tensor3(const muelmat_vector_const_view &m) {
   Tensor3 out(m.size(), 4, 4);
 
-  std::transform(m.begin(), m.end(), out.begin(), [](const muelmat &v) {
-    return Matrix{v};
-  });
+  std::transform(m.begin(), m.end(), out.begin(), [](const muelmat &v) { return Matrix{v}; });
 
   return out;
 }
@@ -33,37 +29,20 @@ stokvec_vector to_stokvec_vector(const ConstMatrixView &v) {
   assert(v.ncols() == 4);
 
   stokvec_vector out(v.nrows());
-  std::transform(v.begin(), v.end(), out.begin(), [](const ConstVectorView &a) {
-    return stokvec{a[0], a[1], a[2], a[3]};
-  });
+  std::transform(
+      v.begin(), v.end(), out.begin(), [](const ConstVectorView &a) { return stokvec{a[0], a[1], a[2], a[3]}; });
   return out;
 }
 
 Matrix to_matrix(const stokvec_vector_const_view &v) {
   Matrix out(v.size(), 4);
-  std::transform(v.begin(), v.end(), out.begin(), [](const stokvec &s) {
-    return Vector{s[0], s[1], s[2], s[3]};
-  });
+  std::transform(v.begin(), v.end(), out.begin(), [](const stokvec &s) { return Vector{s[0], s[1], s[2], s[3]}; });
   return out;
 }
 
 Matrix to_matrix(const propmat &v) {
-  return Vector{v.A(),
-                v.B(),
-                v.C(),
-                v.D(),
-                v.B(),
-                v.A(),
-                v.U(),
-                v.V(),
-                v.C(),
-                -v.U(),
-                v.A(),
-                v.W(),
-                v.D(),
-                -v.V(),
-                -v.W(),
-                v.A()}
+  return Vector{
+      v.A(), v.B(), v.C(), v.D(), v.B(), v.A(), v.U(), v.V(), v.C(), -v.U(), v.A(), v.W(), v.D(), -v.V(), -v.W(), v.A()}
       .reshape(4, 4);
 }
 

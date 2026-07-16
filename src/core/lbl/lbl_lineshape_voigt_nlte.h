@@ -32,15 +32,9 @@ struct single_shape {
 
   constexpr single_shape() = default;
 
-  single_shape(const QuantumIdentifier&,
-               const line&,
-               const AtmPoint&,
-               const ZeemanPolarization,
-               const Index);
+  single_shape(const QuantumIdentifier&, const line&, const AtmPoint&, const ZeemanPolarization, const Index);
 
-  [[nodiscard]] constexpr Complex z(Numeric f) const {
-    return Complex{inv_gd * (f - f0), z_imag};
-  }
+  [[nodiscard]] constexpr Complex z(Numeric f) const { return Complex{inv_gd * (f - f0), z_imag}; }
 
   [[nodiscard]] static Complex F(const Complex z_);
 
@@ -71,8 +65,7 @@ struct single_shape {
 
   [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dH(const Complex dz_dH,
-                                               const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> dH(const Complex dz_dH, const Numeric f) const;
 
   [[nodiscard]] std::pair<Complex, Complex> dT(const Numeric dk_dT,
                                                const Numeric de_ratio_dT,
@@ -97,43 +90,37 @@ struct band_shape {
 
   [[nodiscard]] std::pair<Complex, Complex> df(const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dH(
-      const ConstComplexVectorView& dz_dH, const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> dH(const ConstComplexVectorView& dz_dH, const Numeric f) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dT(
-      const ConstVectorView& dk_dT,
-      const ConstVectorView& de_ratio_dT,
-      const ConstComplexVectorView& dz_dT,
-      const ConstVectorView& dz_dT_fac,
-      const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> dT(const ConstVectorView& dk_dT,
+                                               const ConstVectorView& de_ratio_dT,
+                                               const ConstComplexVectorView& dz_dT,
+                                               const ConstVectorView& dz_dT_fac,
+                                               const Numeric f) const;
 
   using CutView      = matpack::view_t<std::pair<Complex, Complex>, 1>;
   using CutViewConst = matpack::view_t<const std::pair<Complex, Complex>, 1>;
 
-  [[nodiscard]] std::pair<Complex, Complex> operator()(const CutViewConst& cut,
-                                                       const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> operator()(const CutViewConst& cut, const Numeric f) const;
 
   void operator()(CutView cut) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> df(const CutViewConst& cut,
-                                               const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> df(const CutViewConst& cut, const Numeric f) const;
 
   void df(CutView cut) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dH(
-      const CutViewConst& cut,
-      const ConstComplexVectorView& dz_dH,
-      const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> dH(const CutViewConst& cut,
+                                               const ConstComplexVectorView& dz_dH,
+                                               const Numeric f) const;
 
   void dH(CutView cut, const ConstComplexVectorView& df0_dH) const;
 
-  [[nodiscard]] std::pair<Complex, Complex> dT(
-      const CutViewConst& cut,
-      const ConstVectorView& dk_dT,
-      const ConstVectorView& de_ratio_dT,
-      const ConstComplexVectorView& dz_dT,
-      const ConstVectorView& dz_dT_fac,
-      const Numeric f) const;
+  [[nodiscard]] std::pair<Complex, Complex> dT(const CutViewConst& cut,
+                                               const ConstVectorView& dk_dT,
+                                               const ConstVectorView& de_ratio_dT,
+                                               const ConstComplexVectorView& dz_dT,
+                                               const ConstVectorView& dz_dT_fac,
+                                               const Numeric f) const;
 
   void dT(CutView cut,
           const ConstVectorView& dk_dT,
@@ -152,9 +139,8 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const ZeemanPolarization pol);
 
 struct ComputeData {
-  std::vector<single_shape>
-      lines{};  //! Line shapes; save for reuse, assume moved from
-  std::vector<line_pos> pos{};  //! Save for reuse, size of line shapes
+  std::vector<single_shape> lines{};  //! Line shapes; save for reuse, assume moved from
+  std::vector<line_pos> pos{};        //! Save for reuse, size of line shapes
 
   using PairDataC = matpack::data_t<std::pair<Complex, Complex>, 1>;
 
@@ -181,14 +167,10 @@ struct ComputeData {
               const Vector2& los           = {},
               const ZeemanPolarization pol = ZeemanPolarization::no);
 
-  void update_zeeman(const Vector2& los,
-                     const Vector3& mag,
-                     const ZeemanPolarization pol);
+  void update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
-  void core_calc(const band_shape& shp,
-                 const band_data& bnd,
-                 const ConstVectorView& f_grid);
+  void core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const QuantumIdentifier& qid,
@@ -199,10 +181,7 @@ struct ComputeData {
                     const ZeemanPolarization pol);
 
   //! Sets dshape and dscl
-  void df_core_calc(const band_shape& shp,
-                    const band_data& bnd,
-                    const ConstVectorView& f_grid,
-                    const AtmPoint& atm);
+  void df_core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid, const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,

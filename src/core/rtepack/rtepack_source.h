@@ -63,8 +63,7 @@ struct std::formatter<SourceVector> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 

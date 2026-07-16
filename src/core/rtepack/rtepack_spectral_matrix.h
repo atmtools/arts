@@ -11,8 +11,7 @@ namespace rtepack {
 //! A 4x4 matrix of Complex values to be used as a Mueller Matrix
 struct specmat final : ComplexMatrix44 {
   constexpr specmat(Complex tau = 1.0) noexcept
-      : ComplexMatrix44{
-            tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
+      : ComplexMatrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
   constexpr specmat(Complex m00,
                     Complex m01,
@@ -30,25 +29,9 @@ struct specmat final : ComplexMatrix44 {
                     Complex m31,
                     Complex m32,
                     Complex m33) noexcept
-      : ComplexMatrix44{m00,
-                        m01,
-                        m02,
-                        m03,
-                        m10,
-                        m11,
-                        m12,
-                        m13,
-                        m20,
-                        m21,
-                        m22,
-                        m23,
-                        m30,
-                        m31,
-                        m32,
-                        m33} {}
+      : ComplexMatrix44{m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33} {}
 
-  constexpr specmat(std::array<Complex, 16> data) noexcept
-      : ComplexMatrix44{data} {}
+  constexpr specmat(std::array<Complex, 16> data) noexcept : ComplexMatrix44{data} {}
 
   //! The identity matrix
   static constexpr specmat id() { return specmat{1.0}; }
@@ -94,38 +77,8 @@ struct specmat final : ComplexMatrix44 {
   }
 
   constexpr specmat &operator*=(const specmat &b) {
-    const auto [a00,
-                a01,
-                a02,
-                a03,
-                a10,
-                a11,
-                a12,
-                a13,
-                a20,
-                a21,
-                a22,
-                a23,
-                a30,
-                a31,
-                a32,
-                a33] = data;
-    const auto [b00,
-                b01,
-                b02,
-                b03,
-                b10,
-                b11,
-                b12,
-                b13,
-                b20,
-                b21,
-                b22,
-                b23,
-                b30,
-                b31,
-                b32,
-                b33] = b;
+    const auto [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = data;
+    const auto [b00, b01, b02, b03, b10, b11, b12, b13, b20, b21, b22, b23, b30, b31, b32, b33] = b;
 
     return *this = {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
                     a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
@@ -206,37 +159,32 @@ constexpr Complex det(const specmat &A) {
          d * (e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n));
 }
 
-constexpr Complex tr(const specmat &A) {
-  return A[0, 0] + A[1, 1] + A[2, 2] + A[3, 3];
-}
+constexpr Complex tr(const specmat &A) { return A[0, 0] + A[1, 1] + A[2, 2] + A[3, 3]; }
 
 constexpr Complex midtr(const specmat &A) {
-  return {std::midpoint(std::midpoint(A[0, 0].real(), A[1, 1].real()),
-                        std::midpoint(A[2, 2].real(), A[3, 3].real())),
-          std::midpoint(std::midpoint(A[0, 0].imag(), A[1, 1].imag()),
-                        std::midpoint(A[2, 2].imag(), A[3, 3].imag()))};
+  return {std::midpoint(std::midpoint(A[0, 0].real(), A[1, 1].real()), std::midpoint(A[2, 2].real(), A[3, 3].real())),
+          std::midpoint(std::midpoint(A[0, 0].imag(), A[1, 1].imag()), std::midpoint(A[2, 2].imag(), A[3, 3].imag()))};
 }
 
 constexpr specmat adj(const specmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
 
-  return specmat{
-      f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
-      b * (l * o - k * p) + c * (j * p - l * n) + d * (k * n - j * o),
-      b * (g * p - h * o) + c * (h * n - f * p) + d * (f * o - g * n),
-      b * (h * k - g * l) + c * (f * l - h * j) + d * (g * j - f * k),
-      e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o),
-      a * (k * p - l * o) + c * (l * m - i * p) + d * (i * o - k * m),
-      a * (h * o - g * p) + c * (e * p - h * m) + d * (g * m - e * o),
-      a * (g * l - h * k) + c * (h * i - e * l) + d * (e * k - g * i),
-      e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m),
-      a * (l * n - j * p) + b * (i * p - l * m) + d * (j * m - i * n),
-      a * (f * p - h * n) + b * (h * m - e * p) + d * (e * n - f * m),
-      a * (h * j - f * l) + b * (e * l - h * i) + d * (f * i - e * j),
-      e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n),
-      a * (j * o - k * n) + b * (k * m - i * o) + c * (i * n - j * m),
-      a * (g * n - f * o) + b * (e * o - g * m) + c * (f * m - e * n),
-      a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i)};
+  return specmat{f * (k * p - l * o) + g * (l * n - j * p) + h * (j * o - k * n),
+                 b * (l * o - k * p) + c * (j * p - l * n) + d * (k * n - j * o),
+                 b * (g * p - h * o) + c * (h * n - f * p) + d * (f * o - g * n),
+                 b * (h * k - g * l) + c * (f * l - h * j) + d * (g * j - f * k),
+                 e * (l * o - k * p) + g * (i * p - l * m) + h * (k * m - i * o),
+                 a * (k * p - l * o) + c * (l * m - i * p) + d * (i * o - k * m),
+                 a * (h * o - g * p) + c * (e * p - h * m) + d * (g * m - e * o),
+                 a * (g * l - h * k) + c * (h * i - e * l) + d * (e * k - g * i),
+                 e * (j * p - l * n) + f * (l * m - i * p) + h * (i * n - j * m),
+                 a * (l * n - j * p) + b * (i * p - l * m) + d * (j * m - i * n),
+                 a * (f * p - h * n) + b * (h * m - e * p) + d * (e * n - f * m),
+                 a * (h * j - f * l) + b * (e * l - h * i) + d * (f * i - e * j),
+                 e * (k * n - j * o) + f * (i * o - k * m) + g * (j * m - i * n),
+                 a * (j * o - k * n) + b * (k * m - i * o) + c * (i * n - j * m),
+                 a * (g * n - f * o) + b * (e * o - g * m) + c * (f * m - e * n),
+                 a * (f * k - g * j) + b * (g * i - e * k) + c * (e * j - f * i)};
 }
 
 constexpr specmat inv(const specmat &A) { return adj(A) / det(A); }
@@ -274,5 +222,4 @@ template <>
 struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
 
 template <>
-struct xml_io_stream<rtepack::specmat>
-    : xml_io_stream_inherit<ComplexMatrix44, rtepack::specmat> {};
+struct xml_io_stream<rtepack::specmat> : xml_io_stream_inherit<ComplexMatrix44, rtepack::specmat> {};

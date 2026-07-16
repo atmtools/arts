@@ -37,8 +37,7 @@ struct std::formatter<lbl::jpl_record> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
@@ -46,22 +45,7 @@ struct std::formatter<lbl::jpl_record> {
   FmtContext::iterator format(const lbl::jpl_record& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
-    tags.format(ctx,
-                v.jpl_id,
-                sep,
-                v.f0,
-                sep,
-                v.df,
-                sep,
-                v.s,
-                sep,
-                v.dr,
-                sep,
-                v.E,
-                sep,
-                v.g_upp,
-                sep,
-                v.qnfmt);
+    tags.format(ctx, v.jpl_id, sep, v.f0, sep, v.df, sep, v.s, sep, v.dr, sep, v.E, sep, v.g_upp, sep, v.qnfmt);
     tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }

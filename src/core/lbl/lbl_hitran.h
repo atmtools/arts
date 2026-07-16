@@ -20,16 +20,15 @@ struct hitran_record {
   Numeric g_upp;
   Numeric g_low;
 
-  [[nodiscard]] line from(HitranLineStrengthOption ls,
-                          QuantumState&& local,
-                          bool do_zeeman) const;
+  [[nodiscard]] line from(HitranLineStrengthOption ls, QuantumState&& local, bool do_zeeman) const;
 };
 using hitran_data = std::vector<hitran_record>;
 
-hitran_data read_hitran_par(std::istream& file, 
-  const std::vector<HitranFileFormatType>& format_order,const Vector2& frequency_range);
+hitran_data read_hitran_par(std::istream& file,
+                            const std::vector<HitranFileFormatType>& format_order,
+                            const Vector2& frequency_range);
 hitran_data read_hitran_par(std::istream&& file,
-  const std::vector<HitranFileFormatType>& format_order,
+                            const std::vector<HitranFileFormatType>& format_order,
                             const Vector2& frequency_range);
 }  // namespace lbl
 
@@ -40,14 +39,12 @@ struct std::formatter<lbl::hitran_record> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lbl::hitran_record& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const lbl::hitran_record& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     tags.add_if_bracket(ctx, "["sv);
     tags.format(ctx,

@@ -75,11 +75,10 @@ Numeric test_linprop_deriv_k1(const PropmatVector& K) {
   Numeric sum = 0.0;
 
   for (auto& k : K) {
-    const auto t     = rtepack::tran(k, k, 1.0);
-    const auto exp_t = t();
-    const auto la    = t.linsrc_linprop(exp_t, k, k, 1.0)[0, 0];
-    sum +=
-        t.linsrc_linprop_deriv(la, exp_t, k, k, k, exp_t, 1.0, 1.0, true)[0, 0];
+    const auto t      = rtepack::tran(k, k, 1.0);
+    const auto exp_t  = t();
+    const auto la     = t.linsrc_linprop(exp_t, k, k, 1.0)[0, 0];
+    sum              += t.linsrc_linprop_deriv(la, exp_t, k, k, k, exp_t, 1.0, 1.0, true)[0, 0];
   }
 
   return sum;
@@ -94,8 +93,7 @@ Numeric test_linprop_deriv_k2(const PropmatVector& K) {
     const auto t      = rtepack::tran(k, k, 1.0);
     const auto exp_t  = t();
     const auto la     = t.linsrc_linprop(exp_t, k, k, 1.0)[0, 0];
-    sum              += t.linsrc_linprop_deriv(
-        la, exp_t, k, k, k, exp_t, 1.0, 1.0, false)[0, 0];
+    sum              += t.linsrc_linprop_deriv(la, exp_t, k, k, k, exp_t, 1.0, 1.0, false)[0, 0];
   }
 
   return sum;
@@ -125,14 +123,11 @@ Numeric test_sqrt(const PropmatVector& K) {
   return sum;
 }
 
-Numeric test_transmittance_matrix_init_constant(
-    const std::vector<PropmatVector>& K,
-    const std::vector<PropmatMatrix>& dK,
-    const Vector& r,
-    const Tensor3& dr) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("test_transmittance_matrix_init_constant; threads {}",
-                  omp_get_max_threads()));
+Numeric test_transmittance_matrix_init_constant(const std::vector<PropmatVector>& K,
+                                                const std::vector<PropmatMatrix>& dK,
+                                                const Vector& r,
+                                                const Tensor3& dr) {
+  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_constant; threads {}", omp_get_max_threads()));
 
   Numeric sum{};
   rtepack::TransmittanceMatrix tm;
@@ -142,14 +137,11 @@ Numeric test_transmittance_matrix_init_constant(
   return sum;
 }
 
-Numeric test_transmittance_matrix_init_linsrc(
-    const std::vector<PropmatVector>& K,
-    const std::vector<PropmatMatrix>& dK,
-    const Vector& r,
-    const Tensor3& dr) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("test_transmittance_matrix_init_linsrc; threads {}",
-                  omp_get_max_threads()));
+Numeric test_transmittance_matrix_init_linsrc(const std::vector<PropmatVector>& K,
+                                              const std::vector<PropmatMatrix>& dK,
+                                              const Vector& r,
+                                              const Tensor3& dr) {
+  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linsrc; threads {}", omp_get_max_threads()));
 
   Numeric sum{};
   rtepack::TransmittanceMatrix tm;
@@ -159,14 +151,11 @@ Numeric test_transmittance_matrix_init_linsrc(
   return sum;
 }
 
-Numeric test_transmittance_matrix_init_linprop(
-    const std::vector<PropmatVector>& K,
-    const std::vector<PropmatMatrix>& dK,
-    const Vector& r,
-    const Tensor3& dr) {
-  ARTS_NAMED_TIME_REPORT(
-      std::format("test_transmittance_matrix_init_linprop; threads {}",
-                  omp_get_max_threads()));
+Numeric test_transmittance_matrix_init_linprop(const std::vector<PropmatVector>& K,
+                                               const std::vector<PropmatMatrix>& dK,
+                                               const Vector& r,
+                                               const Tensor3& dr) {
+  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linprop; threads {}", omp_get_max_threads()));
 
   Numeric sum{};
   rtepack::TransmittanceMatrix tm;
@@ -183,8 +172,7 @@ int main() {
   {
     constexpr Index M = 10'000'000;
     PropmatVector K(M);
-    MatrixView Kv{MatrixView::base{reinterpret_cast<Numeric*>(K.data_handle()),
-                                   std::array<Index, 2>{M, 7}}};
+    MatrixView Kv{MatrixView::base{reinterpret_cast<Numeric*>(K.data_handle()), std::array<Index, 2>{M, 7}}};
     random_numbers(Kv, 0.0, 1.0);
     const Vector r = random_numbers<1>(10);
 
@@ -207,9 +195,7 @@ int main() {
     std::vector<PropmatVector> K(M);
     for (auto& kv : K) {
       kv = PropmatVector(N);
-      MatrixView Kv{
-          MatrixView::base{reinterpret_cast<Numeric*>(kv.data_handle()),
-                           std::array<Index, 2>{N, 7}}};
+      MatrixView Kv{MatrixView::base{reinterpret_cast<Numeric*>(kv.data_handle()), std::array<Index, 2>{N, 7}}};
       random_numbers(Kv, 0.0, 1.0);
     }
     const Vector r = random_numbers<1>({M - 1});
@@ -217,9 +203,7 @@ int main() {
     std::vector<PropmatMatrix> dK(M);
     for (auto& kv : dK) {
       kv = PropmatMatrix(P, N);
-      Tensor3View dKv{
-          Tensor3View::base{reinterpret_cast<Numeric*>(kv.data_handle()),
-                            std::array<Index, 3>{N, P, 7}}};
+      Tensor3View dKv{Tensor3View::base{reinterpret_cast<Numeric*>(kv.data_handle()), std::array<Index, 3>{N, P, 7}}};
       random_numbers(dKv, 0.0, 1.0);
     }
     const Tensor3 dr = random_numbers<3>({2, M - 1, P});

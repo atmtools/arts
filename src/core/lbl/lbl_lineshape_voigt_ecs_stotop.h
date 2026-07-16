@@ -19,9 +19,7 @@ namespace lbl::voigt::ecs::stotop {
  *                upper and lower)
  * @return The reduced dipole
  */
-Numeric reduced_dipole(const Rational Jf,
-                       const Rational Ji,
-                       const Rational K);
+Numeric reduced_dipole(const Rational Jf, const Rational Ji, const Rational K);
 
 /*! Compute the off-diagonal elements of the relaxation matrix
  *  for symmetric top molecules (NH3, PH3, etc.)

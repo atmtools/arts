@@ -32,20 +32,12 @@ struct reader {
       T x{};
       if constexpr (std::same_as<T, double> or std::same_as<T, float>) {
         auto res = fast_float::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{},
-                           "Failed to parse value from string \"{}\"",
-                           orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(),
-                           "Failed to fully parse string \"{}\"",
-                           orig)
+        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse value from string \"{}\"", orig)
+        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(), "Failed to fully parse string \"{}\"", orig)
       } else {
         auto res = std::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{},
-                           "Failed to parse value from string \"{}\"",
-                           orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(),
-                           "Failed to fully parse string \"{}\"",
-                           orig)
+        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse value from string \"{}\"", orig)
+        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(), "Failed to fully parse string \"{}\"", orig)
       }
 
       return x;
@@ -58,9 +50,7 @@ struct reader {
   }
 
   [[nodiscard]] constexpr bool end_of_string() const { return it == end; }
-  [[nodiscard]] constexpr std::string_view remaining_string() const {
-    return {it, end};
-  }
+  [[nodiscard]] constexpr std::string_view remaining_string() const { return {it, end}; }
 };
 
 bool read_par_line(hitran_record& record, reader& data, const Numeric fmin) {
@@ -75,8 +65,8 @@ bool read_par_line(hitran_record& record, reader& data, const Numeric fmin) {
   // Set this after the frequency check to avoid unnecessary work
   record.qid = Hitran::id_from_lookup(M, I);
 
-  record.S = kaycm_per_cmsquared2hz_per_msquared(data.read_next<Numeric>(10));
-  record.A = data.read_next<Numeric>(10);
+  record.S          = kaycm_per_cmsquared2hz_per_msquared(data.read_next<Numeric>(10));
+  record.A          = data.read_next<Numeric>(10);
   record.gamma_air  = kaycm_per_atm2hz_per_pa(data.read_next<Numeric>(5));
   record.gamma_self = kaycm_per_atm2hz_per_pa(data.read_next<Numeric>(5));
   record.E          = kaycm2joule(data.read_next<Numeric>(10));
@@ -89,11 +79,10 @@ bool read_par_line(hitran_record& record, reader& data, const Numeric fmin) {
   return true;
 }
 
-bool read_hitran_par_record(
-    hitran_record& record,
-    const std::vector<HitranFileFormatType>& format_order,
-    const std::string& linedata,
-    const Numeric fmin) try {
+bool read_hitran_par_record(hitran_record& record,
+                            const std::vector<HitranFileFormatType>& format_order,
+                            const std::string& linedata,
+                            const Numeric fmin) try {
   using namespace Conversion;
 
   const auto get_str = [sep = ','](reader& data) {
@@ -107,11 +96,8 @@ bool read_hitran_par_record(
   std::string_view qn_up, qn_lo;
 
   for (auto& fmt : format_order) {
-    ARTS_USER_ERROR_IF(data.end_of_string(),
-                       "Reached end of line at state option {} out of {:B,}",
-                       fmt,
-                       format_order,
-                       linedata);
+    ARTS_USER_ERROR_IF(
+        data.end_of_string(), "Reached end of line at state option {} out of {:B,}", fmt, format_order, linedata);
 
     switch (fmt) {
       using enum HitranFileFormatType;
@@ -130,33 +116,25 @@ bool read_hitran_par_record(
     record.qid.state = Quantum::from_hitran(qn_up, qn_lo);
   }
 
-  ARTS_USER_ERROR_IF(not data.end_of_string(),
-                     "Part of the line was not parsed: '{}'",
-                     data.remaining_string())
+  ARTS_USER_ERROR_IF(not data.end_of_string(), "Part of the line was not parsed: '{}'", data.remaining_string())
 
   return true;
 } catch (std::exception& e) {
-  ARTS_USER_ERROR(
-      "Internal error:\n\n{}\n\nFailed to read HITRAN line record:\n\n{}",
-      e.what(),
-      linedata);
+  ARTS_USER_ERROR("Internal error:\n\n{}\n\nFailed to read HITRAN line record:\n\n{}", e.what(), linedata);
 }
 }  // namespace
 
-hitran_data read_hitran_par(
-    std::istream& file,
-    const std::vector<HitranFileFormatType>& format_order,
-    const Vector2& frequency_range) {
+hitran_data read_hitran_par(std::istream& file,
+                            const std::vector<HitranFileFormatType>& format_order,
+                            const Vector2& frequency_range) {
   hitran_data out;
 
   std::string linedata;
   bool last_ok = true;
 
   while (std::getline(file, linedata)) {
-    last_ok = read_hitran_par_record(last_ok ? out.emplace_back() : out.back(),
-                                     format_order,
-                                     linedata,
-                                     frequency_range[0]);
+    last_ok =
+        read_hitran_par_record(last_ok ? out.emplace_back() : out.back(), format_order, linedata, frequency_range[0]);
 
     if (last_ok and out.back().f0 > frequency_range[1]) {
       out.pop_back();
@@ -169,16 +147,13 @@ hitran_data read_hitran_par(
   return out;
 }
 
-hitran_data read_hitran_par(
-    std::istream&& file,
-    const std::vector<HitranFileFormatType>& format_order,
-    const Vector2& frequency_range) {
+hitran_data read_hitran_par(std::istream&& file,
+                            const std::vector<HitranFileFormatType>& format_order,
+                            const Vector2& frequency_range) {
   return read_hitran_par(file, format_order, frequency_range);
 }
 
-line hitran_record::from(HitranLineStrengthOption ls,
-                         QuantumState&& local,
-                         bool do_zeeman) const {
+line hitran_record::from(HitranLineStrengthOption ls, QuantumState&& local, bool do_zeeman) const {
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
 
@@ -202,12 +177,11 @@ line hitran_record::from(HitranLineStrengthOption ls,
     case HitranLineStrengthOption::A: break;
   }
 
-  ARTS_USER_ERROR_IF(
-      not std::isnormal(l.a) or not std::isnormal(l.gu),
-      "Invalid Einstein coefficient {} or gu {} for full HITRAN RECORD: {}",
-      l.a,
-      l.gu,
-      *this)
+  ARTS_USER_ERROR_IF(not std::isnormal(l.a) or not std::isnormal(l.gu),
+                     "Invalid Einstein coefficient {} or gu {} for full HITRAN RECORD: {}",
+                     l.a,
+                     l.gu,
+                     *this)
 
   if (do_zeeman) {
     l.z = lbl::zeeman::GetAdvancedModel(qid);

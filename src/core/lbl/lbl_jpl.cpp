@@ -35,24 +35,14 @@ struct reader {
       T x{};
       if constexpr (std::same_as<T, double> or std::same_as<T, float>) {
         auto res = fast_float::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{},
-                           "Failed to parse {} from string \"{}\"",
-                           error_context,
-                           orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(),
-                           "Failed to fully parse {} string \"{}\"",
-                           error_context,
-                           orig)
+        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse {} from string \"{}\"", error_context, orig)
+        ARTS_USER_ERROR_IF(
+            res.ptr != sv.data() + sv.size(), "Failed to fully parse {} string \"{}\"", error_context, orig)
       } else {
         auto res = std::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{},
-                           "Failed to parse {} from string \"{}\"",
-                           error_context,
-                           orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(),
-                           "Failed to fully parse {} string \"{}\"",
-                           error_context,
-                           orig)
+        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse {} from string \"{}\"", error_context, orig)
+        ARTS_USER_ERROR_IF(
+            res.ptr != sv.data() + sv.size(), "Failed to fully parse {} string \"{}\"", error_context, orig)
       }
 
       return x;
@@ -65,18 +55,16 @@ struct reader {
   }
 
   [[nodiscard]] constexpr bool end_of_string() const { return it == end; }
-  [[nodiscard]] constexpr std::string_view remaining_string() const {
-    return {it, end};
-  }
+  [[nodiscard]] constexpr std::string_view remaining_string() const { return {it, end}; }
 };
 
 bool read_jpl_entry(jpl_record& record, reader& data) {
   using namespace Conversion;
 
-  record.f0     = data.read_next<Numeric>(13, "Central Frequency"sv) * 1e6;  // MHz to Hz
-  record.df     = data.read_next<Numeric>(8, "Frequency Deviation"sv) * 1e6;   // MHz to Hz (?)
-  record.s      = std::pow(10., data.read_next<Numeric>(8, "Line Intensity"sv)) /
-                  1e12;  // log_10(nm2 MHz at T0) to ARTS units
+  record.f0 = data.read_next<Numeric>(13, "Central Frequency"sv) * 1e6;   // MHz to Hz
+  record.df = data.read_next<Numeric>(8, "Frequency Deviation"sv) * 1e6;  // MHz to Hz (?)
+  record.s =
+      std::pow(10., data.read_next<Numeric>(8, "Line Intensity"sv)) / 1e12;  // log_10(nm2 MHz at T0) to ARTS units
   record.dr     = data.read_next<Index>(2, "dr"sv);
   record.E      = kaycm2joule(data.read_next<Numeric>(10, "Energy"sv));  // cm^-1 to J
   record.g_upp  = data.read_next<Index>(3, "Upper State Degeneracy"sv);
@@ -91,10 +79,7 @@ bool read_jpl_line(jpl_record& record, const std::string& linedata) try {
 
   return read_jpl_entry(record, data);
 } catch (std::exception& e) {
-  ARTS_USER_ERROR(
-      "Internal error:\n\n{}\n\nFailed to read JPL line record:\n\n{}",
-      e.what(),
-      linedata);
+  ARTS_USER_ERROR("Internal error:\n\n{}\n\nFailed to read JPL line record:\n\n{}", e.what(), linedata);
 }
 }  // namespace
 
@@ -105,8 +90,7 @@ jpl_data read_jpl_lines(std::istream& file) {
   bool last_ok = true;
 
   while (std::getline(file, linedata)) {
-    last_ok =
-        read_jpl_line(last_ok ? out.emplace_back() : out.back(), linedata);
+    last_ok = read_jpl_line(last_ok ? out.emplace_back() : out.back(), linedata);
   }
 
   if (not last_ok) out.pop_back();
@@ -129,14 +113,9 @@ line jpl_record::from() const {
   // Rescale so at T0, the line intensity matches the JPL value.
   // This is needed because ARTS defines the line intensities based
   // on built-in partition functions, which may differ from the JPL ones.
-  out.a    = einstein_a(s,
-                        out.gu,
-                        out.e0,
-                        out.f0,
-                        jpl_id.T0,
-                        Math::pow2(jpl_id.QT0) /
-                            PartitionFunctions::Q(jpl_id.T0, jpl_id.qid.isot));
-  out.z.on = false;
+  out.a = einstein_a(
+      s, out.gu, out.e0, out.f0, jpl_id.T0, Math::pow2(jpl_id.QT0) / PartitionFunctions::Q(jpl_id.T0, jpl_id.qid.isot));
+  out.z.on                                  = false;
   out.z.mdata                               = {};
   out.qn                                    = {};
   out.ls                                    = line_shape::model{};

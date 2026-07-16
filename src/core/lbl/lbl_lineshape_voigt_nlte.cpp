@@ -43,15 +43,11 @@ std::pair<Numeric, Numeric> line_strength_calc(const Numeric inv_gd,
   const Numeric x = atm[qid.isot.spec];
 
   //! Missing factor is c^2 f / 8pi
-  return {inv_sqrt_pi * inv_gd * r * x * k,
-          2 * h * inv_sqrt_pi * inv_gd * r * x * (e - k * B_part) / (c * c)};
+  return {inv_sqrt_pi * inv_gd * r * x * k, 2 * h * inv_sqrt_pi * inv_gd * r * x * (e - k * B_part) / (c * c)};
 }
 
-std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
-                                                   const Numeric f0,
-                                                   const QuantumIdentifier& qid,
-                                                   const line& line,
-                                                   const AtmPoint& atm) {
+std::pair<Numeric, Numeric> dline_strength_calc_dT(
+    const Numeric inv_gd, const Numeric f0, const QuantumIdentifier& qid, const line& line, const AtmPoint& atm) {
   using Constant::h, Constant::inv_sqrt_pi;
   using Math::pow2, Math::pow3;
 
@@ -75,17 +71,12 @@ std::pair<Numeric, Numeric> dline_strength_calc_dT(const Numeric inv_gd,
 
   //! Missing factor is c^2 f / 8pi
   return {inv_sqrt_pi * dinv_gd * r * x * k,
-          inv_sqrt_pi * inv_gd * r * x * e * dinv_b +
-              inv_sqrt_pi * dinv_gd * r * x * (e * inv_b - k)};
+          inv_sqrt_pi * inv_gd * r * x * e * dinv_b + inv_sqrt_pi * dinv_gd * r * x * (e * inv_b - k)};
 }
 
-Numeric line_center_calc(const line& line, const AtmPoint& atm) {
-  return line.f0 + line.ls.D0(atm);
-}
+Numeric line_center_calc(const line& line, const AtmPoint& atm) { return line.f0 + line.ls.D0(atm); }
 
-Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
-  return line.ls.dD0_dT(atm);
-}
+Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) { return line.ls.dD0_dT(atm); }
 
 Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
   constexpr auto c = Constant::doppler_broadening_const_squared;
@@ -101,20 +92,15 @@ struct single_shape_builder {
   Numeric scaled_gd_part;
   Numeric G0;
 
-  single_shape_builder(const QuantumIdentifier& id,
-                       const line& l,
-                       const AtmPoint& a)
+  single_shape_builder(const QuantumIdentifier& id, const line& l, const AtmPoint& a)
       : qid(id),
         ln(l),
         atm(a),
         f0(line_center_calc(ln, atm)),
-        scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared *
-                                 atm.temperature / id.isot.mass)),
+        scaled_gd_part(std::sqrt(Constant::doppler_broadening_const_squared * atm.temperature / id.isot.mass)),
         G0(ln.ls.G0(atm)) {}
 
-  [[nodiscard]] single_shape as_zeeman(const Numeric H,
-                                       const ZeemanPolarization pol,
-                                       const Size iz) const {
+  [[nodiscard]] single_shape as_zeeman(const Numeric H, const ZeemanPolarization pol, const Size iz) const {
     single_shape s;
     s.f0                    = f0 + H * ln.z.Splitting(ln.qn, pol, iz);
     s.inv_gd                = 1.0 / (scaled_gd_part * f0);
@@ -138,14 +124,10 @@ struct single_shape_builder {
 };
 }  // namespace
 
-single_shape::single_shape(const QuantumIdentifier& qid,
-                           const line& line,
-                           const AtmPoint& atm,
-                           const ZeemanPolarization pol,
-                           const Index iz)
+single_shape::single_shape(
+    const QuantumIdentifier& qid, const line& line, const AtmPoint& atm, const ZeemanPolarization pol, const Index iz)
     : f0(line_center_calc(line, atm) +
-         std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) *
-             line.z.Splitting(line.qn, pol, iz)),
+         std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]) * line.z.Splitting(line.qn, pol, iz)),
       inv_gd(1.0 / scaled_gd(atm.temperature, qid.isot.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd) {
   const auto [kp, e_ratiop] = line_strength_calc(inv_gd, qid, line, atm);
@@ -181,27 +163,21 @@ Complex single_shape::dF(const Complex z_, const Complex F_) {
    * y > 1e7, it always fails.  This is about the analytical form
    * above using the latest version of the MIT Faddeeva package.
   */
-  const Complex dz{std::max(1e-4 * nonstd::abs(z_.real()), 1e-4),
-                   std::max(1e-4 * nonstd::abs(z_.imag()), 1e-4)};
+  const Complex dz{std::max(1e-4 * nonstd::abs(z_.real()), 1e-4), std::max(1e-4 * nonstd::abs(z_.imag()), 1e-4)};
   const Complex F_2 = Faddeeva::w(z_ + dz);
   return (F_2 - F_) / dz;
 }
 
-single_shape::zFdF::zFdF(const Complex z_)
-    : z{z_}, F{single_shape::F(z_)}, dF{single_shape::dF(z_, F)} {}
+single_shape::zFdF::zFdF(const Complex z_) : z{z_}, F{single_shape::F(z_)}, dF{single_shape::dF(z_, F)} {}
 
 single_shape::zFdF single_shape::all(const Numeric f) const { return z(f); }
 
-std::pair<Complex, Complex> single_shape::dru(const Numeric dk_dru,
-                                              const Numeric de_ratio_dru,
-                                              const Numeric f) const {
+std::pair<Complex, Complex> single_shape::dru(const Numeric dk_dru, const Numeric de_ratio_dru, const Numeric f) const {
   const auto F_ = F(f);
   return {dk_dru * F_, de_ratio_dru * F_};
 }
 
-std::pair<Complex, Complex> single_shape::drl(const Numeric dk_drl,
-                                              const Numeric de_ratio_drl,
-                                              const Numeric f) const {
+std::pair<Complex, Complex> single_shape::drl(const Numeric dk_drl, const Numeric de_ratio_drl, const Numeric f) const {
   const auto F_ = F(f);
   return {dk_drl * F_, de_ratio_drl * F_};
 }
@@ -211,8 +187,7 @@ std::pair<Complex, Complex> single_shape::df(const Numeric f) const {
   return {k * dF_, e_ratio * dF_};
 }
 
-std::pair<Complex, Complex> single_shape::dH(const Complex dz_dH,
-                                             const Numeric f) const {
+std::pair<Complex, Complex> single_shape::dH(const Complex dz_dH, const Numeric f) const {
   const auto dF_ = dz_dH * dF(f);
   return {k * dF_, e_ratio * dF_};
 }
@@ -223,13 +198,13 @@ std::pair<Complex, Complex> single_shape::dT(const Numeric dk_dT,
                                              const Numeric dz_dT_fac,
                                              const Numeric f) const {
   const auto [z_, F_, dF_] = all(f);
-  return {dk_dT * F_ + k * (dz_dT + dz_dT_fac * z_) * dF_,
-          de_ratio_dT * F_ + e_ratio * (dz_dT + dz_dT_fac * z_) * dF_};
+  return {dk_dT * F_ + k * (dz_dT + dz_dT_fac * z_) * dF_, de_ratio_dT * F_ + e_ratio * (dz_dT + dz_dT_fac * z_) * dF_};
 }
 
 namespace {
-constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
-    const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
+constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(const std::span<const single_shape> lines,
+                                                                           Numeric f,
+                                                                           Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
     auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
     auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
@@ -240,9 +215,7 @@ constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
   return {0, lines.size()};
 }
 
-constexpr auto frequency_span(const auto& list,
-                              const Size start,
-                              const Size count) {
+constexpr auto frequency_span(const auto& list, const Size start, const Size count) {
   std::span out{list};
   return out.subspan(start, count);
 }
@@ -254,17 +227,13 @@ constexpr auto frequency_spans(const Numeric cutoff,
                                const Ts&... lists) {
   assert(lines.size() == (static_cast<Size>(lists.size()) and ...));
 
-  const auto [start, count] =
-      find_offset_and_count_of_frequency_range(lines, f, cutoff);
-  return std::tuple{frequency_span(lines, start, count),
-                    frequency_span(lists, start, count)...};
+  const auto [start, count] = find_offset_and_count_of_frequency_range(lines, f, cutoff);
+  return std::tuple{frequency_span(lines, start, count), frequency_span(lists, start, count)...};
 }
 
 Size count_lines(const band_data& bnd, const ZeemanPolarization type) {
   return std::transform_reduce(
-      bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        return line.z.size(line.qn, type);
-      });
+      bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) { return line.z.size(line.qn, type); });
 }
 
 void zeeman_push_back(std::vector<single_shape>& lines,
@@ -299,15 +268,8 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const AtmPoint& atm,
                      const ZeemanPolarization pol,
                      const Size iline) {
-  if ((line.z.on and pol != ZeemanPolarization::no) or
-      (not line.z.on and pol == ZeemanPolarization::no)) {
-    zeeman_push_back(lines,
-                     pos,
-                     single_shape_builder{qid, line, atm},
-                     line,
-                     atm,
-                     pol,
-                     iline);
+  if ((line.z.on and pol != ZeemanPolarization::no) or (not line.z.on and pol == ZeemanPolarization::no)) {
+    zeeman_push_back(lines, pos, single_shape_builder{qid, line, atm}, line, atm, pol, iline);
   }
 }
 }  // namespace
@@ -341,17 +303,13 @@ void band_shape_helper(std::vector<single_shape>& lines,
     } break;
   }
 
-  stdr::sort(stdv::zip(lines, pos), {}, [](const auto& x) {
-    return std::get<0>(x).f0;
-  });
+  stdr::sort(stdv::zip(lines, pos), {}, [](const auto& x) { return std::get<0>(x).f0; });
 }
 
-band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut)
-    : lines(std::move(ls)), cutoff(cut) {}
+band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut) : lines(std::move(ls)), cutoff(cut) {}
 
 namespace {
-constexpr auto add_pair = [](auto&& lhs,
-                             auto&& rhs) -> std::pair<Complex, Complex> {
+constexpr auto add_pair = [](auto&& lhs, auto&& rhs) -> std::pair<Complex, Complex> {
   return {lhs.first + rhs.first, lhs.second + rhs.second};
 };
 
@@ -361,31 +319,22 @@ constexpr std::pair<Complex, Complex> rem_pair(auto&& lhs, auto&& rhs) {
 }  // namespace
 
 std::pair<Complex, Complex> band_shape::operator()(const Numeric f) const {
-  return std::transform_reduce(lines.begin(),
-                               lines.end(),
-                               std::pair<Complex, Complex>{},
-                               add_pair,
-                               [f](auto& ls) { return ls(f); });
+  return std::transform_reduce(
+      lines.begin(), lines.end(), std::pair<Complex, Complex>{}, add_pair, [f](auto& ls) { return ls(f); });
 }
 
 std::pair<Complex, Complex> band_shape::df(const Numeric f) const {
-  return std::transform_reduce(lines.begin(),
-                               lines.end(),
-                               std::pair<Complex, Complex>{},
-                               add_pair,
-                               [f](auto& ls) { return ls.df(f); });
+  return std::transform_reduce(
+      lines.begin(), lines.end(), std::pair<Complex, Complex>{}, add_pair, [f](auto& ls) { return ls.df(f); });
 }
 
-std::pair<Complex, Complex> band_shape::dH(const ConstComplexVectorView& dz_dH,
-                                           const Numeric f) const {
+std::pair<Complex, Complex> band_shape::dH(const ConstComplexVectorView& dz_dH, const Numeric f) const {
   assert(static_cast<Size>(dz_dH.size()) == lines.size());
 
-  return std::transform_reduce(lines.begin(),
-                               lines.end(),
-                               dz_dH.begin(),
-                               std::pair<Complex, Complex>{},
-                               add_pair,
-                               [f](auto& ls, auto& d) { return ls.dH(d, f); });
+  return std::transform_reduce(
+      lines.begin(), lines.end(), dz_dH.begin(), std::pair<Complex, Complex>{}, add_pair, [f](auto& ls, auto& d) {
+        return ls.dH(d, f);
+      });
 }
 
 std::pair<Complex, Complex> band_shape::dT(const ConstVectorView& dk_dT,
@@ -399,51 +348,36 @@ std::pair<Complex, Complex> band_shape::dT(const ConstVectorView& dk_dT,
   std::pair<Complex, Complex> out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i = 0; i < lines.size(); ++i) {
-    out = add_pair(
-        out, lines[i].dT(dk_dT[i], de_ratio_dT[i], dz_dT[i], dz_dT_fac[i], f));
+    out = add_pair(out, lines[i].dT(dk_dT[i], de_ratio_dT[i], dz_dT[i], dz_dT_fac[i], f));
   }
 
   return out;
 }
 
-std::pair<Complex, Complex> band_shape::operator()(const CutViewConst& cut,
-                                                   const Numeric f) const {
+std::pair<Complex, Complex> band_shape::operator()(const CutViewConst& cut, const Numeric f) const {
   const auto [s, cs] = frequency_spans(cutoff, f, lines, cut);
   return std::transform_reduce(
-      s.begin(),
-      s.end(),
-      cs.begin(),
-      std::pair<Complex, Complex>{},
-      add_pair,
-      [f](auto& ls, auto& c) { return rem_pair(ls(f), c); });
+      s.begin(), s.end(), cs.begin(), std::pair<Complex, Complex>{}, add_pair, [f](auto& ls, auto& c) {
+        return rem_pair(ls(f), c);
+      });
 }
 
 void band_shape::operator()(CutView cut) const {
   std::transform(
-      lines.begin(),
-      lines.end(),
-      cut.begin(),
-      [cutoff_freq = cutoff](auto& ls) { return ls(ls.f0 + cutoff_freq); });
+      lines.begin(), lines.end(), cut.begin(), [cutoff_freq = cutoff](auto& ls) { return ls(ls.f0 + cutoff_freq); });
 }
 
-std::pair<Complex, Complex> band_shape::df(const CutViewConst& cut,
-                                           const Numeric f) const {
+std::pair<Complex, Complex> band_shape::df(const CutViewConst& cut, const Numeric f) const {
   const auto [s, cs] = frequency_spans(cutoff, f, lines, cut);
   return std::transform_reduce(
-      s.begin(),
-      s.end(),
-      cs.begin(),
-      std::pair<Complex, Complex>{},
-      add_pair,
-      [f](auto& ls, auto& c) { return rem_pair(ls.df(f), c); });
+      s.begin(), s.end(), cs.begin(), std::pair<Complex, Complex>{}, add_pair, [f](auto& ls, auto& c) {
+        return rem_pair(ls.df(f), c);
+      });
 }
 
 void band_shape::df(CutView cut) const {
   std::transform(
-      lines.begin(),
-      lines.end(),
-      cut.begin(),
-      [cutoff_freq = cutoff](auto& ls) { return ls.df(ls.f0 + cutoff_freq); });
+      lines.begin(), lines.end(), cut.begin(), [cutoff_freq = cutoff](auto& ls) { return ls.df(ls.f0 + cutoff_freq); });
 }
 
 std::pair<Complex, Complex> band_shape::dH(const CutViewConst& cut,
@@ -464,13 +398,9 @@ std::pair<Complex, Complex> band_shape::dH(const CutViewConst& cut,
 void band_shape::dH(CutView cut, const ConstComplexVectorView& df0_dH) const {
   assert(static_cast<Size>(df0_dH.size()) == lines.size());
 
-  std::transform(lines.begin(),
-                 lines.end(),
-                 df0_dH.begin(),
-                 cut.begin(),
-                 [cutoff_freq = cutoff](auto& ls, auto& d) {
-                   return ls.dH(d, ls.f0 + cutoff_freq);
-                 });
+  std::transform(lines.begin(), lines.end(), df0_dH.begin(), cut.begin(), [cutoff_freq = cutoff](auto& ls, auto& d) {
+    return ls.dH(d, ls.f0 + cutoff_freq);
+  });
 }
 
 std::pair<Complex, Complex> band_shape::dT(const CutViewConst& cut,
@@ -484,12 +414,10 @@ std::pair<Complex, Complex> band_shape::dT(const CutViewConst& cut,
 
   std::pair<Complex, Complex> out{};  //! Fixme, use zip in C++ 23...
 
-  const auto [s, cs, dk, de, dz, dzf] = frequency_spans(
-      cutoff, f, lines, cut, dk_dT, de_ratio_dT, dz_dT, dz_dT_fac);
+  const auto [s, cs, dk, de, dz, dzf] = frequency_spans(cutoff, f, lines, cut, dk_dT, de_ratio_dT, dz_dT, dz_dT_fac);
 
   for (Size i = 0; i < s.size(); ++i) {
-    out =
-        add_pair(out, rem_pair(s[i].dT(dk[i], de[i], dz[i], dzf[i], f), cs[i]));
+    out = add_pair(out, rem_pair(s[i].dT(dk[i], de[i], dz[i], dzf[i], f), cs[i]));
   }
 
   return out;
@@ -504,14 +432,11 @@ void band_shape::dT(CutView cut,
   assert(static_cast<Size>(dk_dT.size()) == lines.size());
 
   for (Size i = 0; i < lines.size(); ++i) {
-    cut[i] = lines[i].dT(
-        dk_dT[i], de_ratio_dT[i], dz_dT[i], dz_dT_fac[i], lines[i].f0 + cutoff);
+    cut[i] = lines[i].dT(dk_dT[i], de_ratio_dT[i], dz_dT[i], dz_dT_fac[i], lines[i].f0 + cutoff);
   }
 }
 
-void ComputeData::update_zeeman(const Vector2& los,
-                                const Vector3& mag,
-                                const ZeemanPolarization pol) {
+void ComputeData::update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol) {
   npm = zeeman::norm_view(pol, mag, los);
   if (pol != ZeemanPolarization::no) {
     dnpm_du = zeeman::dnorm_view_du(pol, mag, los);
@@ -524,26 +449,18 @@ ComputeData::ComputeData(const ConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
                          const ZeemanPolarization pol)
-    : scl(f_grid.size()),
-      dscl(f_grid.size()),
-      shape(f_grid.size()),
-      dshape(f_grid.size()) {
-  std::transform(f_grid.begin(),
-                 f_grid.end(),
-                 scl.begin(),
-                 [N = number_density(atm.pressure, atm.temperature)](auto f) {
-                   constexpr Numeric c =
-                       Constant::c * Constant::c / (8 * Constant::pi);
-                   return N * f * c;  // Lacking term???
-                 });
+    : scl(f_grid.size()), dscl(f_grid.size()), shape(f_grid.size()), dshape(f_grid.size()) {
+  std::transform(
+      f_grid.begin(), f_grid.end(), scl.begin(), [N = number_density(atm.pressure, atm.temperature)](auto f) {
+        constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
+        return N * f * c;  // Lacking term???
+      });
 
   update_zeeman(los, atm.mag, pol);
 }
 
 //! Sizes cut, dcut, dz, ds; sets shape
-void ComputeData::core_calc(const band_shape& shp,
-                            const band_data& bnd,
-                            const ConstVectorView& f_grid) {
+void ComputeData::core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid) {
   cut.resize(shp.size());
   dz.resize(shp.size());
   dz_fac.resize(shp.size());
@@ -553,15 +470,9 @@ void ComputeData::core_calc(const band_shape& shp,
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp(cut);
-    std::transform(
-        f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) {
-          return shp(cut, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) { return shp(cut, f); });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), shape.begin(), [&shp](Numeric f) {
-          return shp(f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), shape.begin(), [&shp](Numeric f) { return shp(f); });
   }
 }
 
@@ -573,10 +484,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
                                const AtmPoint& atm,
                                const ZeemanPolarization pol) {
   std::transform(
-      f_grid.begin(),
-      f_grid.end(),
-      dscl.begin(),
-      [dN = dnumber_density_dt(atm.pressure, atm.temperature)](auto f) {
+      f_grid.begin(), f_grid.end(), dscl.begin(), [dN = dnumber_density_dt(atm.pressure, atm.temperature)](auto f) {
         constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
         return f * dN * c;
       });
@@ -595,21 +503,18 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
     dk[i]                 = line.z.Strength(line.qn, pol, pos[i].iz) * dkp;
     de_ratio[i]           = line.z.Strength(line.qn, pol, pos[i].iz) * dep;
 
-    dz[i] =
-        inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
+    dz[i] = inv_gd * Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dT(dcut, dk, de_ratio, dz, dz_fac);
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dT(dcut, dk, de_ratio, dz, dz_fac, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
+      return shp.dT(dcut, dk, de_ratio, dz, dz_fac, f);
+    });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dT(dk, de_ratio, dz, dz_fac, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
+      return shp.dT(dk, de_ratio, dz, dz_fac, f);
+    });
   }
 }
 
@@ -621,25 +526,17 @@ void ComputeData::df_core_calc(const band_shape& shp,
   std::transform(f_grid.begin(),
                  f_grid.end(),
                  dscl.begin(),
-                 [N = number_density(atm.pressure, atm.temperature),
-                  T = atm.temperature](auto f) {
-                   constexpr Numeric c =
-                       Constant::c * Constant::c / (8 * Constant::pi);
-                   const Numeric r = (Constant::h * f) / (Constant::k * T);
+                 [N = number_density(atm.pressure, atm.temperature), T = atm.temperature](auto f) {
+                   constexpr Numeric c = Constant::c * Constant::c / (8 * Constant::pi);
+                   const Numeric r     = (Constant::h * f) / (Constant::k * T);
                    return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.df(dcut);
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.df(dcut, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.df(dcut, f); });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [&shp](Numeric f) {
-          return shp.df(f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [&shp](Numeric f) { return shp.df(f); });
   }
 }
 
@@ -654,21 +551,15 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u *
-            line.z.Splitting(line.qn, pol, pos[i].iz);
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_u * line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dcut, dz, f);
-        });
+        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dcut, dz, f); });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dz, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dz, f); });
   }
 }
 
@@ -683,21 +574,15 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v *
-            line.z.Splitting(line.qn, pol, pos[i].iz);
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_v * line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dcut, dz, f);
-        });
+        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dcut, dz, f); });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dz, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dz, f); });
   }
 }
 
@@ -712,21 +597,15 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
-    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w *
-            line.z.Splitting(line.qn, pol, pos[i].iz);
+    dz[i]            = -shp.lines[i].inv_gd * dH_dmag_w * line.z.Splitting(line.qn, pol, pos[i].iz);
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dcut, dz, f);
-        });
+        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dcut, dz, f); });
   } else {
-    std::transform(
-        f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dH(dz, f);
-        });
+    std::transform(f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) { return shp.dH(dz, f); });
   }
 }
 
@@ -905,8 +784,7 @@ void calculate(PropmatVectorView pm_,
          f_grid_.size() == static_cast<Size>(dpm.ncols()));
   assert(nf == pm.size());
 
-  band_shape_helper(
-      com_data.lines, com_data.pos, bnd_qid, bnd, atm, fmin, fmax, pol);
+  band_shape_helper(com_data.lines, com_data.pos, bnd_qid, bnd, atm, fmin, fmax, pol);
 
   if (com_data.lines.empty()) return;
 

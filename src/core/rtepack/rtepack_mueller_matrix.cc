@@ -3,8 +3,7 @@
 #include <configtypes.h>
 
 namespace rtepack {
-void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
-                                     const Array<muelmat_vector> &T) {
+void forward_cumulative_transmission(Array<muelmat_vector> &Pi, const Array<muelmat_vector> &T) {
   const Size N = T.size();
 
   Pi.resize(N);
@@ -23,8 +22,7 @@ void forward_cumulative_transmission(Array<muelmat_vector> &Pi,
   }
 }
 
-Array<muelmat_vector> forward_cumulative_transmission(
-    const Array<muelmat_vector> &T) {
+Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T) {
   Array<muelmat_vector> out;
   forward_cumulative_transmission(out, T);
   return out;

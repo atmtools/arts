@@ -4,12 +4,8 @@
 #include <enums.h>
 
 namespace lbl::linemixing {
-Numeric species_data::Q(const Rational J,
-                        const Numeric T,
-                        const Numeric T0,
-                        const Numeric energy) const {
-  return std::exp(-beta(T0, T) * energy / (Constant::k * T)) * scaling(T0, T) /
-         powr(J * (J + 1), lambda(T0, T));
+Numeric species_data::Q(const Rational J, const Numeric T, const Numeric T0, const Numeric energy) const {
+  return std::exp(-beta(T0, T) * energy / (Constant::k * T)) * scaling(T0, T) / powr(J * (J + 1), lambda(T0, T));
 }
 
 Numeric species_data::Omega(const Numeric T,
@@ -38,11 +34,10 @@ Numeric species_data::Omega(const Numeric T,
 }
 }  // namespace lbl::linemixing
 
-void xml_io_stream<LinemixingSingleEcsData>::write(
-    std::ostream &os,
-    const LinemixingSingleEcsData &x,
-    bofstream *pbofs,
-    std::string_view name) {
+void xml_io_stream<LinemixingSingleEcsData>::write(std::ostream &os,
+                                                   const LinemixingSingleEcsData &x,
+                                                   bofstream *pbofs,
+                                                   std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -54,9 +49,7 @@ void xml_io_stream<LinemixingSingleEcsData>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<LinemixingSingleEcsData>::read(std::istream &is,
-                                                  LinemixingSingleEcsData &x,
-                                                  bifstream *pbifs) try {
+void xml_io_stream<LinemixingSingleEcsData>::read(std::istream &is, LinemixingSingleEcsData &x, bifstream *pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -69,6 +62,5 @@ void xml_io_stream<LinemixingSingleEcsData>::read(std::istream &is,
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception &e) {
-  throw std::runtime_error(
-      std::format("Error reading {}:\n{}", type_name, e.what()));
+  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name, e.what()));
 }

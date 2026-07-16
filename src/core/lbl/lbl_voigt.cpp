@@ -20,11 +20,7 @@ bool is_voigt(LineByLineLineshape lsm) {
 }
 
 namespace lbl {
-void compute_voigt(VectorView y,
-           const line& l,
-           const AscendingGrid& f_grid,
-           const AtmPoint& atm,
-           const Numeric mass) {
+void compute_voigt(VectorView y, const line& l, const AscendingGrid& f_grid, const AtmPoint& atm, const Numeric mass) {
   assert(y.size() == f_grid.size());
 
   constexpr Numeric dop = Constant::doppler_broadening_const_squared;
@@ -40,8 +36,6 @@ void compute_voigt(VectorView y,
   const Complex z0{-f0 * invGD, G0 * invGD};
   const Complex s{Constant::inv_sqrt_pi * invGD * Complex{1 + G, -Y}};
 
-  stdr::transform(f_grid, y.begin(), [s, z0, invGD](Numeric f) {
-    return std::real(s * Faddeeva::w(f * invGD + z0));
-  });
+  stdr::transform(f_grid, y.begin(), [s, z0, invGD](Numeric f) { return std::real(s * Faddeeva::w(f * invGD + z0)); });
 }
 }  // namespace lbl

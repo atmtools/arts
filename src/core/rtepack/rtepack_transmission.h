@@ -94,9 +94,7 @@ struct tran {
                               const propmat &dk,
                               const Numeric r,
                               const Numeric dr) const;
-  [[nodiscard]] muelmat linsrc_deriv(const propmat &dk,
-                                     const Numeric r,
-                                     const Numeric dr) const;
+  [[nodiscard]] muelmat linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const;
   [[nodiscard]] muelmat linsrc_linprop_deriv(const muelmat &lambda,
                                              const muelmat &t,
                                              const propmat &k1,
@@ -134,16 +132,13 @@ struct std::formatter<TransmittanceMatrix> {
   [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context &ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const TransmittanceMatrix &v,
-                              FmtContext &ctx) const {
+  FmtContext::iterator format(const TransmittanceMatrix &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    return tags.format(
-        ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL);
+    return tags.format(ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL);
   }
 };

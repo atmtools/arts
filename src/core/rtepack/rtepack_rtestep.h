@@ -37,32 +37,29 @@ void nlte_step(stokvec_vector_view I,
                const Numeric &T1,
                const Numeric &r);
 
-void two_level_linear_emission_step_by_step_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0);
+void two_level_linear_emission_step_by_step_full(stokvec_vector &I,
+                                                 std::vector<stokvec_matrix> &dI,
+                                                 const std::vector<muelmat_vector> &Ts,
+                                                 const std::vector<muelmat_vector> &Pi,
+                                                 const std::vector<muelmat_tensor3> &dTs,
+                                                 const std::vector<stokvec_vector> &Js,
+                                                 const std::vector<stokvec_matrix> &dJs,
+                                                 const stokvec_vector &I0);
 
-void two_level_linear_evolution_step_by_step_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &Ls,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<muelmat_tensor3> &dLs,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0);
+void two_level_linear_evolution_step_by_step_full(stokvec_vector &I,
+                                                  std::vector<stokvec_matrix> &dI,
+                                                  const std::vector<muelmat_vector> &Ts,
+                                                  const std::vector<muelmat_vector> &Ls,
+                                                  const std::vector<muelmat_vector> &Pi,
+                                                  const std::vector<muelmat_tensor3> &dTs,
+                                                  const std::vector<muelmat_tensor3> &dLs,
+                                                  const std::vector<stokvec_vector> &Js,
+                                                  const std::vector<stokvec_matrix> &dJs,
+                                                  const stokvec_vector &I0);
 
-void two_level_linear_emission_step_by_step_full(
-    std::vector<stokvec_vector> &Is,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<stokvec_vector> &Js);
+void two_level_linear_emission_step_by_step_full(std::vector<stokvec_vector> &Is,
+                                                 const std::vector<muelmat_vector> &Ts,
+                                                 const std::vector<stokvec_vector> &Js);
 
 void two_level_linear_transmission_step(stokvec_vector &I,
                                         std::vector<stokvec_matrix> &dI,
@@ -76,9 +73,7 @@ void rte_emission(stokvec_vector_view I,
                   const TransmittanceMatrix &tramat,
                   const SourceVector &srcvec);
 
-void rte_emission_path(stokvec_matrix_view Is,
-                       const TransmittanceMatrix &Ts,
-                       const SourceVector &Js);
+void rte_emission_path(stokvec_matrix_view Is, const TransmittanceMatrix &Ts, const SourceVector &Js);
 
 void rte_transmission(stokvec_vector_view I,
                       stokvec_tensor3_view dI,

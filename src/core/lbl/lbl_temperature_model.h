@@ -64,25 +64,17 @@ constexpr Numeric T0(Numeric X0) { return X0; }
 
 constexpr Numeric dT0_dX0(Numeric) { return 1; }
 
-inline Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
-  return X0 * nonstd::pow(T0 / T, X1);
-}
+inline Numeric T1(Numeric X0, Numeric X1, Numeric T0, Numeric T) { return X0 * nonstd::pow(T0 / T, X1); }
 
-inline Numeric dT1_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) {
-  return nonstd::pow(T0 / T, X1);
-}
+inline Numeric dT1_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) { return nonstd::pow(T0 / T, X1); }
 
 inline Numeric dT1_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return X0 * nonstd::pow(T0 / T, X1) * std::log(T0 / T);
 }
 
-inline Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
-  return X0 * X1 * nonstd::pow(T0 / T, X1) / T0;
-}
+inline Numeric dT1_dT0(Numeric X0, Numeric X1, Numeric T0, Numeric T) { return X0 * X1 * nonstd::pow(T0 / T, X1) / T0; }
 
-inline Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
-  return -X0 * X1 * nonstd::pow(T0 / T, X1) / T;
-}
+inline Numeric dT1_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) { return -X0 * X1 * nonstd::pow(T0 / T, X1) / T; }
 
 inline Numeric T2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return X0 * nonstd::pow(T0 / T, X1) * (1 + X2 * std::log(T / T0));
@@ -92,37 +84,27 @@ inline Numeric dT2_dX0(Numeric, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return nonstd::pow(T0 / T, X1) * (1 + X2 * std::log(T / T0));
 }
 
-inline Numeric dT2_dX1(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
-  return X0 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) *
-         std::log(T0 / T);
+inline Numeric dT2_dX1(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+  return X0 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) * std::log(T0 / T);
 }
 
 inline Numeric dT2_dX2(Numeric X0, Numeric X1, Numeric, Numeric T0, Numeric T) {
   return X0 * nonstd::pow(T0 / T, X1) * std::log(T / T0);
 }
 
-inline Numeric dT2_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
-  return X0 * X1 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) / T0 -
-         X0 * X2 * nonstd::pow(T0 / T, X1) / T0;
+inline Numeric dT2_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+  return X0 * X1 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) / T0 - X0 * X2 * nonstd::pow(T0 / T, X1) / T0;
 }
 
-inline Numeric dT2_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
-  return -X0 * X1 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) / T +
-         X0 * X2 * nonstd::pow(T0 / T, X1) / T;
+inline Numeric dT2_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+  return -X0 * X1 * nonstd::pow(T0 / T, X1) * (X2 * std::log(T / T0) + 1.) / T + X0 * X2 * nonstd::pow(T0 / T, X1) / T;
 }
 
-constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
-  return X0 + X1 * (T - T0);
-}
+constexpr Numeric T3(Numeric X0, Numeric X1, Numeric T0, Numeric T) { return X0 + X1 * (T - T0); }
 
 constexpr Numeric dT3_dX0(Numeric, Numeric, Numeric, Numeric) { return 1; }
 
-constexpr Numeric dT3_dX1(Numeric, Numeric, Numeric T0, Numeric T) {
-  return T - T0;
-}
+constexpr Numeric dT3_dX1(Numeric, Numeric, Numeric T0, Numeric T) { return T - T0; }
 
 constexpr Numeric dT3_dT0(Numeric, Numeric X1, Numeric, Numeric) { return -X1; }
 
@@ -132,38 +114,27 @@ inline Numeric T4(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return (X0 + X1 * (T0 / T - 1)) * nonstd::pow(T0 / T, X2);
 }
 
-inline Numeric dT4_dX0(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) {
-  return nonstd::pow(T0 / T, X2);
-}
+inline Numeric dT4_dX0(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) { return nonstd::pow(T0 / T, X2); }
 
 inline Numeric dT4_dX1(Numeric, Numeric, Numeric X2, Numeric T0, Numeric T) {
   return nonstd::pow(T0 / T, X2) * (T0 / T - 1.);
 }
 
-inline Numeric dT4_dX2(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+inline Numeric dT4_dX2(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
   return nonstd::pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1)) * std::log(T0 / T);
 }
 
-inline Numeric dT4_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
-  return X2 * nonstd::pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T0 +
-         X1 * nonstd::pow(T0 / T, X2) / T;
+inline Numeric dT4_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+  return X2 * nonstd::pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T0 + X1 * nonstd::pow(T0 / T, X2) / T;
 }
 
-inline Numeric dT4_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
-  return -X2 * nonstd::pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T -
-         T0 * X1 * nonstd::pow(T0 / T, X2) / (T * T);
+inline Numeric dT4_dT(Numeric X0, Numeric X1, Numeric X2, Numeric T0, Numeric T) {
+  return -X2 * nonstd::pow(T0 / T, X2) * (X0 + X1 * (T0 / T - 1.)) / T - T0 * X1 * nonstd::pow(T0 / T, X2) / (T * T);
 }
 
-inline Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
-  return X0 * nonstd::pow(T0 / T, 0.25 + 1.5 * X1);
-}
+inline Numeric T5(Numeric X0, Numeric X1, Numeric T0, Numeric T) { return X0 * nonstd::pow(T0 / T, 0.25 + 1.5 * X1); }
 
-inline Numeric dT5_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) {
-  return nonstd::pow(T0 / T, 1.5 * X1 + 0.25);
-}
+inline Numeric dT5_dX0(Numeric, Numeric X1, Numeric T0, Numeric T) { return nonstd::pow(T0 / T, 1.5 * X1 + 0.25); }
 
 inline Numeric dT5_dX1(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return 1.5 * X0 * nonstd::pow(T0 / T, 1.5 * X1 + 0.25) * std::log(T0 / T);
@@ -177,41 +148,32 @@ inline Numeric dT5_dT(Numeric X0, Numeric X1, Numeric T0, Numeric T) {
   return -X0 * nonstd::pow(T0 / T, 1.5 * X1 + 0.25) * (1.5 * X1 + 0.25) / T;
 }
 
-inline Numeric DPL(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
+inline Numeric DPL(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return X0 * nonstd::pow(T0 / T, X1) + X2 * nonstd::pow(T0 / T, X3);
 }
 
-inline Numeric dDPL_dX0(
-    Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
+inline Numeric dDPL_dX0(Numeric, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
   return nonstd::pow(T0 / T, X1);
 }
 
-inline Numeric dDPL_dX1(
-    Numeric X0, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
+inline Numeric dDPL_dX1(Numeric X0, Numeric X1, Numeric, Numeric, Numeric T0, Numeric T) {
   return X0 * nonstd::pow(T0 / T, X1) * std::log(T0 / T);
 }
 
-inline Numeric dDPL_dX2(
-    Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) {
+inline Numeric dDPL_dX2(Numeric, Numeric, Numeric, Numeric X3, Numeric T0, Numeric T) {
   return nonstd::pow(T0 / T, X3);
 }
 
-inline Numeric dDPL_dX3(
-    Numeric, Numeric, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
+inline Numeric dDPL_dX3(Numeric, Numeric, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
   return X2 * nonstd::pow(T0 / T, X3) * std::log(T0 / T);
 }
 
-inline Numeric dDPL_dT0(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
-  return X0 * X1 * nonstd::pow(T0 / T, X1) / T0 +
-         X2 * X3 * nonstd::pow(T0 / T, X3) / T0;
+inline Numeric dDPL_dT0(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
+  return X0 * X1 * nonstd::pow(T0 / T, X1) / T0 + X2 * X3 * nonstd::pow(T0 / T, X3) / T0;
 }
 
-inline Numeric dDPL_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
-  return -X0 * X1 * nonstd::pow(T0 / T, X1) / T +
-         -X2 * X3 * nonstd::pow(T0 / T, X3) / T;
+inline Numeric dDPL_dT(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T0, Numeric T) {
+  return -X0 * X1 * nonstd::pow(T0 / T, X1) / T + -X2 * X3 * nonstd::pow(T0 / T, X3) / T;
 }
 
 inline Numeric POLY(const ConstVectorView& x, Numeric T) {
@@ -230,9 +192,7 @@ constexpr Numeric dPOLY_dX1(const ConstVectorView&, Numeric T) { return T; }
 
 constexpr Numeric dPOLY_dX2(const ConstVectorView&, Numeric T) { return T * T; }
 
-constexpr Numeric dPOLY_dX3(const ConstVectorView&, Numeric T) {
-  return T * T * T;
-}
+constexpr Numeric dPOLY_dX3(const ConstVectorView&, Numeric T) { return T * T * T; }
 
 inline Numeric dPOLY_dT(const ConstVectorView& x, Numeric T) {
   Numeric poly_fac = 1.0;
@@ -244,8 +204,7 @@ inline Numeric dPOLY_dT(const ConstVectorView& x, Numeric T) {
   return poly_sum;
 }
 
-constexpr Numeric AER(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
+constexpr Numeric AER(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
   if (T < 250.0) return X0 + (T - 200.0) * (X1 - X0) / (250.0 - 200.0);
   if (T > 296.0) return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
   return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
@@ -273,8 +232,7 @@ constexpr Numeric dAER_dX3(Numeric, Numeric, Numeric, Numeric, Numeric T) {
   return 0;
 }
 
-constexpr Numeric dAER_dT(
-    Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
+constexpr Numeric dAER_dT(Numeric X0, Numeric X1, Numeric X2, Numeric X3, Numeric T) {
   if (T < 250.0) return (X1 - X0) / (250.0 - 200.0);
   if (T > 296.0) return (X3 - X2) / (340.0 - 296.0);
   return (X2 - X1) / (296.0 - 250.0);
@@ -343,9 +301,7 @@ class data {
 };
 }  // namespace lbl::temperature
 
-std::string to_educational_string(
-    const lbl::temperature::data&,
-    std::optional<LineShapeModelVariable> = std::nullopt);
+std::string to_educational_string(const lbl::temperature::data&, std::optional<LineShapeModelVariable> = std::nullopt);
 
 template <>
 struct std::formatter<lbl::temperature::data> {
@@ -354,20 +310,17 @@ struct std::formatter<lbl::temperature::data> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lbl::temperature::data& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const lbl::temperature::data& v, FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Equation: "sv, to_educational_string(v));
     } else if (tags.io) {
       tags.format(ctx, v.Type(), " "sv);
-      if (lbl::temperature::model_size(v.Type()) ==
-          std::numeric_limits<Size>::max()) {
+      if (lbl::temperature::model_size(v.Type()) == std::numeric_limits<Size>::max()) {
         tags.format(ctx, v.X().size(), " "sv);
       }
       tags.format(ctx, v.X());
@@ -390,9 +343,7 @@ struct xml_io_stream<lbl::temperature::data> {
                     bofstream* pbofs      = nullptr,
                     std::string_view name = ""sv);
 
-  static void read(std::istream& is,
-                   lbl::temperature::data& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, lbl::temperature::data& x, bifstream* pbifs = nullptr);
 };
 
 using TemperatureModel = lbl::temperature::data;

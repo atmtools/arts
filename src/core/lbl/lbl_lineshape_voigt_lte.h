@@ -33,21 +33,12 @@ struct single_shape {
   constexpr single_shape() = default;
 
   //! Updates the single shape to the given iz (iz==0 returns *this)
-  [[nodiscard]] single_shape update_iz(const SpeciesIsotope&,
-                                       const line&,
-                                       const AtmPoint&,
-                                       const ZeemanPolarization,
-                                       const Index iz) const;
+  [[nodiscard]] single_shape update_iz(
+      const SpeciesIsotope&, const line&, const AtmPoint&, const ZeemanPolarization, const Index iz) const;
 
-  single_shape(const SpeciesIsotope&,
-               const line&,
-               const AtmPoint&,
-               const ZeemanPolarization,
-               const Index);
+  single_shape(const SpeciesIsotope&, const line&, const AtmPoint&, const ZeemanPolarization, const Index);
 
-  [[nodiscard]] constexpr Complex z(Numeric f) const {
-    return Complex{inv_gd * (f - f0), z_imag};
-  }
+  [[nodiscard]] constexpr Complex z(Numeric f) const { return Complex{inv_gd * (f - f0), z_imag}; }
 
   [[nodiscard]] static Complex F(const Complex z_);
 
@@ -94,10 +85,7 @@ struct single_shape {
                              const Numeric dz_dVMR_fac,
                              const Numeric f) const;
 
-  [[nodiscard]] Complex dT(const Complex ds_dT,
-                           const Complex dz_dT,
-                           const Numeric dz_dT_fac,
-                           const Numeric f) const;
+  [[nodiscard]] Complex dT(const Complex ds_dT, const Complex dz_dT, const Numeric dz_dT_fac, const Numeric f) const;
 
   [[nodiscard]] Complex da(const Complex ds_da, const Numeric f) const;
 
@@ -120,8 +108,9 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const Numeric fmax,
                        const ZeemanPolarization pol);
 
-constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
-    const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
+constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(const std::span<const single_shape> lines,
+                                                                           Numeric f,
+                                                                           Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
     auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
     auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
@@ -133,9 +122,7 @@ constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
 }
 
 namespace detail {
-constexpr auto frequency_span(const auto& list,
-                              const Size start,
-                              const Size count) {
+constexpr auto frequency_span(const auto& list, const Size start, const Size count) {
   std::span out{list};
   return out.subspan(start, count);
 }
@@ -148,10 +135,8 @@ constexpr auto frequency_spans(const Numeric cutoff,
                                const Ts&... lists) {
   assert(lines.size() == (static_cast<Size>(lists.size()) and ...));
 
-  const auto [start, count] =
-      find_offset_and_count_of_frequency_range(lines, f, cutoff);
-  return std::tuple{detail::frequency_span(lines, start, count),
-                    detail::frequency_span(lists, start, count)...};
+  const auto [start, count] = find_offset_and_count_of_frequency_range(lines, f, cutoff);
+  return std::tuple{detail::frequency_span(lines, start, count), detail::frequency_span(lists, start, count)...};
 }
 
 //! A band shape is a collection of single shapes.  The shapes are sorted by frequency.
@@ -170,8 +155,7 @@ struct band_shape {
 
   [[nodiscard]] Complex df(const Numeric f) const;
 
-  [[nodiscard]] Complex dH(const ConstComplexVectorView& dz_dH,
-                           const Numeric f) const;
+  [[nodiscard]] Complex dH(const ConstComplexVectorView& dz_dH, const Numeric f) const;
 
   [[nodiscard]] Complex dT(const ConstComplexVectorView& ds_dT,
                            const ConstComplexVectorView& dz_dT,
@@ -189,9 +173,7 @@ struct band_shape {
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex da(const ConstComplexVectorView ds_da,
-                           const Numeric f,
-                           const std::vector<Size>& filter) const;
+  [[nodiscard]] Complex da(const ConstComplexVectorView ds_da, const Numeric f, const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex de0(const ConstComplexVectorView ds_de0,
                             const Numeric f,
@@ -213,21 +195,15 @@ struct band_shape {
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dY(const ConstComplexVectorView ds_dY,
-                           const Numeric f,
-                           const std::vector<Size>& filter) const;
+  [[nodiscard]] Complex dY(const ConstComplexVectorView ds_dY, const Numeric f, const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dG(const ConstComplexVectorView ds_dG,
-                           const Numeric f,
-                           const std::vector<Size>& filter) const;
+  [[nodiscard]] Complex dG(const ConstComplexVectorView ds_dG, const Numeric f, const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex operator()(const ConstComplexVectorView& cut,
-                                   const Numeric f) const;
+  [[nodiscard]] Complex operator()(const ConstComplexVectorView& cut, const Numeric f) const;
 
   void operator()(ComplexVectorView cut) const;
 
-  [[nodiscard]] Complex df(const ConstComplexVectorView& cut,
-                           const Numeric f) const;
+  [[nodiscard]] Complex df(const ConstComplexVectorView& cut, const Numeric f) const;
 
   void df(ComplexVectorView cut) const;
 
@@ -277,18 +253,14 @@ struct band_shape {
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void da(ComplexVectorView cut,
-          const ConstComplexVectorView ds_da,
-          const std::vector<Size>& filter) const;
+  void da(ComplexVectorView cut, const ConstComplexVectorView ds_da, const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex de0(const ConstComplexVectorView& cut,
                             const ConstComplexVectorView ds_de0,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void de0(ComplexVectorView cut,
-           const ConstComplexVectorView ds_de0,
-           const std::vector<Size>& filter) const;
+  void de0(ComplexVectorView cut, const ConstComplexVectorView ds_de0, const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dDV(const ConstComplexVectorView& cut,
                             const ConstComplexVectorView ds_dDV,
@@ -321,40 +293,30 @@ struct band_shape {
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  void dG0(ComplexVectorView cut,
-           const ConstComplexVectorView dz_dG0,
-           const std::vector<Size>& filter) const;
+  void dG0(ComplexVectorView cut, const ConstComplexVectorView dz_dG0, const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dY(const ConstComplexVectorView& cut,
                            const ConstComplexVectorView ds_dY,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void dY(ComplexVectorView cut,
-          const ConstComplexVectorView ds_dY,
-          const std::vector<Size>& filter) const;
+  void dY(ComplexVectorView cut, const ConstComplexVectorView ds_dY, const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dG(const ConstComplexVectorView& cut,
                            const ConstComplexVectorView ds_dG,
                            const Numeric f,
                            const std::vector<Size>& filter) const;
 
-  void dG(ComplexVectorView cut,
-          const ConstComplexVectorView ds_dG,
-          const std::vector<Size>& filter) const;
+  void dG(ComplexVectorView cut, const ConstComplexVectorView ds_dG, const std::vector<Size>& filter) const;
 };
 
 struct ComputeData {
-  std::vector<single_shape>
-      lines{};  //! Line shapes; save for reuse, assume moved from
-  std::vector<line_pos> pos{};  //! Save for reuse, size of line shapes
+  std::vector<single_shape> lines{};  //! Line shapes; save for reuse, assume moved from
+  std::vector<line_pos> pos{};        //! Save for reuse, size of line shapes
 
-  Size filtered_line{std::numeric_limits<
-      Size>::max()};  //! filter is for this and filtered_spec
-  SpeciesEnum filtered_spec{
-      SpeciesEnum::unused};  //! filter is for this and filtered_spec
-  std::vector<Size>
-      filter;  //! Filter for line parameters; resized all the time but reserves size of line shapes
+  Size filtered_line{std::numeric_limits<Size>::max()};  //! filter is for this and filtered_spec
+  SpeciesEnum filtered_spec{SpeciesEnum::unused};        //! filter is for this and filtered_spec
+  std::vector<Size> filter;  //! Filter for line parameters; resized all the time but reserves size of line shapes
 
   ComplexVector cut{};   //! Size of line shapes
   ComplexVector dz{};    //! Size of line shapes
@@ -378,14 +340,10 @@ struct ComputeData {
               const Vector2& los           = {},
               const ZeemanPolarization pol = ZeemanPolarization::no);
 
-  void update_zeeman(const Vector2& los,
-                     const Vector3& mag,
-                     const ZeemanPolarization pol);
+  void update_zeeman(const Vector2& los, const Vector3& mag, const ZeemanPolarization pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
-  void core_calc(const band_shape& shp,
-                 const band_data& bnd,
-                 const ConstVectorView& f_grid);
+  void core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const SpeciesIsotope& spec,
@@ -396,10 +354,7 @@ struct ComputeData {
                     const ZeemanPolarization pol);
 
   //! Sets dshape and dscl
-  void df_core_calc(const band_shape& shp,
-                    const band_data& bnd,
-                    const ConstVectorView& f_grid,
-                    const AtmPoint& atm);
+  void df_core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid, const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,
@@ -450,10 +405,7 @@ struct ComputeData {
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
-  void da_core_calc(const band_shape& shp,
-                    const band_data& bnd,
-                    const ConstVectorView& f_grid,
-                    const line_key& key);
+  void da_core_calc(const band_shape& shp, const band_data& bnd, const ConstVectorView& f_grid, const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dG0_core_calc(const band_shape& shp,

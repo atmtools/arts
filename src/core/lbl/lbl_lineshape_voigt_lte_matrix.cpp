@@ -11,15 +11,11 @@
 
 namespace lbl::voigt::lte::matrix {
 namespace {
-Complex z_(const ConstVectorView& v, const Numeric& f) {
-  return {(f - v[0]) * v[1], v[2]};
-}
+Complex z_(const ConstVectorView& v, const Numeric& f) { return {(f - v[0]) * v[1], v[2]}; }
 
 Complex s_(const ConstVectorView& v) { return {v[3], v[4]}; }
 
-Complex dz_(const ConstVectorView& v,
-            const ConstVectorView& dv,
-            const Numeric& f) {
+Complex dz_(const ConstVectorView& v, const ConstVectorView& dv, const Numeric& f) {
   return {(f - v[0]) * dv[1] - dv[0] * v[1], dv[2]};
 }
 
@@ -39,25 +35,16 @@ Complex dw_(const Complex& z, const Complex& w) {
    * y > 1e7, it always fails.  This is about the analytical form
    * above using the latest version of the MIT Faddeeva package.
   */
-  const Complex dz{std::max(1e-4 * nonstd::abs(z.real()), 1e-4),
-                   std::max(1e-4 * nonstd::abs(z.imag()), 1e-4)};
+  const Complex dz{std::max(1e-4 * nonstd::abs(z.real()), 1e-4), std::max(1e-4 * nonstd::abs(z.imag()), 1e-4)};
   const Complex w_2 = Faddeeva::w(z + dz);
   return (w_2 - w) / dz;
 }
 
-constexpr Complex dexpr(const Complex& w,
-                        const Complex& dw,
-                        const Complex& s,
-                        const Complex& ds,
-                        const Complex& dz) {
+constexpr Complex dexpr(const Complex& w, const Complex& dw, const Complex& s, const Complex& ds, const Complex& dz) {
   return w * ds + dw * dz * s;
 }
 
-Complex dexpr_df(const Complex& dw,
-                 const Complex& s,
-                 const ConstVectorView& v) {
-  return dw * v[1] * s;
-}
+Complex dexpr_df(const Complex& dw, const Complex& s, const ConstVectorView& v) { return dw * v[1] * s; }
 
 constexpr Complex expr(const Complex& w, const Complex& s) { return w * s; }
 
@@ -70,9 +57,7 @@ struct Zee {
   Numeric Sz, dH;
 };
 
-void zeeman_splitting(std::vector<Zee>& zee,
-                      const lbl::line& line,
-                      const ZeemanPolarization& pol) {
+void zeeman_splitting(std::vector<Zee>& zee, const lbl::line& line, const ZeemanPolarization& pol) {
   const Size nz = line.z.size(line.qn, pol);
   zee.resize(nz);
   for (Size iz = 0; iz < nz; ++iz) {
@@ -218,11 +203,8 @@ void prepare_p_deriv_line(MatrixView& mat,
   }
 }
 
-void prepare_mag_deriv_line(MatrixView& mat,
-                            const std::vector<Zee>& zee,
-                            const Numeric dH,
-                            const Numeric G0,
-                            const Range& range) {
+void prepare_mag_deriv_line(
+    MatrixView& mat, const std::vector<Zee>& zee, const Numeric dH, const Numeric G0, const Range& range) {
   const Size nz = zee.size();
   assert(static_cast<Size>(mat.nrows()) == nz);
 
@@ -450,10 +432,9 @@ void prepare_g0_deriv(MatrixView& mat,
         idx += lines[i].z.size(lines[i].qn, pol);
       }
 
-      auto& line    = lines[target.type.line];
-      const Size nz = line.z.size(line.qn, pol);
-      const Numeric dG0 =
-          line.ls.dG0_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
+      auto& line        = lines[target.type.line];
+      const Size nz     = line.z.size(line.qn, pol);
+      const Numeric dG0 = line.ls.dG0_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
 
       for (Size iz = 0; iz < nz; ++iz) {
         auto v  = mat[idx + iz];
@@ -482,11 +463,10 @@ void prepare_d0_deriv(MatrixView& mat,
         idx += lines[i].z.size(lines[i].qn, pol);
       }
 
-      auto& line       = lines[target.type.line];
-      const Size nz    = line.z.size(line.qn, pol);
-      const Numeric G0 = line.ls.G0(atm);
-      const Numeric dD0 =
-          line.ls.dD0_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
+      auto& line        = lines[target.type.line];
+      const Size nz     = line.z.size(line.qn, pol);
+      const Numeric G0  = line.ls.G0(atm);
+      const Numeric dD0 = line.ls.dD0_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
 
       for (Size iz = 0; iz < nz; ++iz) {
         auto v  = mat[idx + iz];
@@ -517,11 +497,10 @@ void prepare_dv_deriv(MatrixView& mat,
         idx += lines[i].z.size(lines[i].qn, pol);
       }
 
-      auto& line       = lines[target.type.line];
-      const Size nz    = line.z.size(line.qn, pol);
-      const Numeric G0 = line.ls.G0(atm);
-      const Numeric dDV =
-          line.ls.dDV_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
+      auto& line        = lines[target.type.line];
+      const Size nz     = line.z.size(line.qn, pol);
+      const Numeric G0  = line.ls.G0(atm);
+      const Numeric dDV = line.ls.dDV_dX(atm, target.type.band.isot.spec, target.type.ls_coeff);
 
       for (Size iz = 0; iz < nz; ++iz) {
         auto v  = mat[idx + iz];
@@ -651,30 +630,19 @@ void prepare_with_atmjac_line(MatrixView& mat,
               using enum AtmKey;
               case t: {
                 const Numeric i = 0.5 / atm.temperature;
-                prepare_t_deriv_line(
-                    mat, line, zee, atm, Q, dQdT, rx, s_, i, G0, lmr, lmi, r);
+                prepare_t_deriv_line(mat, line, zee, atm, Q, dQdT, rx, s_, i, G0, lmr, lmi, r);
               } break;
-              case p:
-                prepare_p_deriv_line(
-                    mat, line, zee, atm, rx, s_, G0, lmr, lmi, r);
-                break;
-              case mag_u:
-                prepare_mag_deriv_line(mat, zee, atm.mag[0] / H, G0, r);
-                break;
-              case mag_v:
-                prepare_mag_deriv_line(mat, zee, atm.mag[1] / H, G0, r);
-                break;
-              case mag_w:
-                prepare_mag_deriv_line(mat, zee, atm.mag[2] / H, G0, r);
-                break;
+              case p:      prepare_p_deriv_line(mat, line, zee, atm, rx, s_, G0, lmr, lmi, r); break;
+              case mag_u:  prepare_mag_deriv_line(mat, zee, atm.mag[0] / H, G0, r); break;
+              case mag_v:  prepare_mag_deriv_line(mat, zee, atm.mag[1] / H, G0, r); break;
+              case mag_w:  prepare_mag_deriv_line(mat, zee, atm.mag[2] / H, G0, r); break;
               case wind_u: [[fallthrough]];
               case wind_v: [[fallthrough]];
               case wind_w: break;
             }
           } else if constexpr (std::same_as<T, SpeciesEnum>) {
             const Numeric drx = Constant::inv_sqrt_pi * isotr;
-            prepare_deriv_vmr_line(
-                mat, line, zee, atm, jac, rx, drx, s_, G0, lmr, lmi, r);
+            prepare_deriv_vmr_line(mat, line, zee, atm, jac, rx, drx, s_, G0, lmr, lmi, r);
           } else if constexpr (std::is_same_v<T, SpeciesIsotope>) {
             const Numeric drx = Constant::inv_sqrt_pi * vmr;
             prepare_deriv_isoratio_line(mat, zee, drx, s_, lmr, lmi, r);
@@ -718,8 +686,7 @@ void prepare_with_jac(MatrixView mat,
                       const std::span<const flat_band_data>& bands,
                       const JacobianTargets& jac_targets,
                       const ZeemanPolarization& pol) {
-  assert(static_cast<Size>(static_cast<Size>(mat.ncols())) ==
-         jac_targets.target_count() * 5 + 5);
+  assert(static_cast<Size>(static_cast<Size>(mat.ncols())) == jac_targets.target_count() * 5 + 5);
 
   if (jac_targets.empty()) return prepare_wo_jac(mat, atm, bands, pol);
 
@@ -742,23 +709,19 @@ void prepare_with_jac(MatrixView mat,
       zeeman_splitting(zee, line, pol);
       const Size nz = zee.size();
       auto matl     = mat[Range{idx, nz}];
-      prepare_with_atmjac_line(
-          matl, line, atm, zee, Q, dQdT, isotr, vmr, H, GD, jac_targets);
+      prepare_with_atmjac_line(matl, line, atm, zee, Q, dQdT, isotr, vmr, H, GD, jac_targets);
       idx += nz;
     }
 
 #pragma omp parallel for if (arts_omp_parallel())
     for (auto& target : jac_targets.line) {
-      prepare_line_deriv(
-          mat, atm, bands, target, {target.target_pos * 5 + 5, 5}, pol);
+      prepare_line_deriv(mat, atm, bands, target, {target.target_pos * 5 + 5, 5}, pol);
     }
   }
 }
 }  // namespace
 
-void str_scale(ComplexVectorView a,
-               const AtmPoint& atm,
-               const ConstVectorView& fs) {
+void str_scale(ComplexVectorView a, const AtmPoint& atm, const ConstVectorView& fs) {
   using Constant::pi, Constant::c, Constant::h, Constant::k;
   constexpr Numeric sc = c * c / (8 * pi);
 
@@ -778,11 +741,8 @@ void str_scale(ComplexVectorView a,
   }
 }
 
-void str_scale(ComplexMatrixView a,
-               const AtmPoint& atm,
-               const ConstVectorView& fs,
-               const std::vector<bool>& df,
-               const Size it) {
+void str_scale(
+    ComplexMatrixView a, const AtmPoint& atm, const ConstVectorView& fs, const std::vector<bool>& df, const Size it) {
   using Constant::pi, Constant::c, Constant::h, Constant::k;
   constexpr Numeric sc = c * c / (8 * pi);
 
@@ -822,9 +782,7 @@ void str_scale(ComplexMatrixView a,
   }
 }
 
-void sumup(ComplexVectorView a,
-           const ConstMatrixView& mat,
-           const ConstVectorView& f) {
+void sumup(ComplexVectorView a, const ConstMatrixView& mat, const ConstVectorView& f) {
   const Size n = mat.nrows();
   const Size m = f.ncols();
   assert(mat.ncols() >= 5);
@@ -841,10 +799,7 @@ void sumup(ComplexVectorView a,
   }
 }
 
-void sumup(ComplexVectorView a,
-           const ConstMatrixView& mat,
-           const ConstVectorView& f,
-           const Numeric cutoff) {
+void sumup(ComplexVectorView a, const ConstMatrixView& mat, const ConstVectorView& f, const Numeric cutoff) {
   const Size m = f.ncols();
   assert(mat.ncols() >= 5);
   assert(static_cast<Size>(a.ncols()) == m);
@@ -889,10 +844,7 @@ void sumup(ComplexVectorView a,
   }
 }
 
-void sumup(ComplexMatrixView res,
-           const ConstMatrixView& mat,
-           const ConstVectorView& fs,
-           const std::vector<bool>& df) {
+void sumup(ComplexMatrixView res, const ConstMatrixView& mat, const ConstVectorView& fs, const std::vector<bool>& df) {
   const Size nf = fs.size();
   const Size nl = mat.nrows();
   const Size nq = df.size();
@@ -917,8 +869,7 @@ void sumup(ComplexMatrixView res,
 
       for (Size iq = 0; iq < nq; ++iq) {
         const auto dv  = v[Range(5 + iq * 5, 5)];
-        aj[iq + 1]    += df[iq] ? dexpr_df(dw, s, v)
-                                : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
+        aj[iq + 1]    += df[iq] ? dexpr_df(dw, s, v) : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
       }
     }
   }
@@ -946,8 +897,7 @@ void sumup(ComplexMatrixView res,
   Size i0       = lower.pos;
   const Size i1 = upper.pos;
 
-  const ComplexMatrix cutoffs =
-      [nq, i0, i1, cutoff, &mat, &df]() -> ComplexMatrix {
+  const ComplexMatrix cutoffs = [nq, i0, i1, cutoff, &mat, &df]() -> ComplexMatrix {
     ComplexMatrix res(mat.nrows(), 1 + nq);
 
 #pragma omp parallel for if (arts_omp_parallel(i1 - i0))
@@ -964,8 +914,7 @@ void sumup(ComplexMatrixView res,
 
       for (Size iq = 0; iq < nq; ++iq) {
         const auto dv   = v[Range(5 + iq * 5, 5)];
-        res[i, iq + 1] += df[iq] ? dexpr_df(dw, s, v)
-                                 : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
+        res[i, iq + 1] += df[iq] ? dexpr_df(dw, s, v) : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
       }
     }
 
@@ -993,8 +942,7 @@ void sumup(ComplexMatrixView res,
 
       for (Size iq = 0; iq < nq; ++iq) {
         const auto dv  = v[Range(5 + iq * 5, 5)];
-        aj[iq + 1]    += df[iq] ? dexpr_df(dw, s, v)
-                                : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
+        aj[iq + 1]    += df[iq] ? dexpr_df(dw, s, v) : dexpr(w, dw, s, ds_(dv), dz_(v, dv, f));
       }
 
       aj -= cutoffs[i];

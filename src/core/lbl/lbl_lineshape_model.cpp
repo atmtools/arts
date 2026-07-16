@@ -11,17 +11,15 @@
 #include "lbl_temperature_model.h"
 
 namespace lbl::line_shape {
-#define VARIABLE(name, PVAR, DPVAR)                              \
-  Numeric species_model::name(                                   \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
-    auto ptr = data.find(LineShapeModelVariable::name);          \
-    return ptr != data.end() ? PVAR * ptr->second(T0, T) : 0.0;  \
-  }                                                              \
-                                                                 \
-  Numeric species_model::d##name##_dP(                           \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
-    auto ptr = data.find(LineShapeModelVariable::name);          \
-    return ptr != data.end() ? DPVAR * ptr->second(T0, T) : 0.0; \
+#define VARIABLE(name, PVAR, DPVAR)                                                              \
+  Numeric species_model::name(Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const {         \
+    auto ptr = data.find(LineShapeModelVariable::name);                                          \
+    return ptr != data.end() ? PVAR * ptr->second(T0, T) : 0.0;                                  \
+  }                                                                                              \
+                                                                                                 \
+  Numeric species_model::d##name##_dP(Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
+    auto ptr = data.find(LineShapeModelVariable::name);                                          \
+    return ptr != data.end() ? DPVAR * ptr->second(T0, T) : 0.0;                                 \
   }
 
 VARIABLE(G0, P, 1);
@@ -36,11 +34,10 @@ VARIABLE(DV, P* P, 2 * P);
 
 #undef VARIABLE
 
-#define DERIVATIVE(name, deriv, PVAR)                                    \
-  Numeric species_model::d##name##_d##deriv(                             \
-      Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const {         \
-    auto ptr = data.find(LineShapeModelVariable::name);                  \
-    return ptr != data.end() ? PVAR * ptr->second.d##deriv(T0, T) : 0.0; \
+#define DERIVATIVE(name, deriv, PVAR)                                                                  \
+  Numeric species_model::d##name##_d##deriv(Numeric T0, Numeric T, Numeric P [[maybe_unused]]) const { \
+    auto ptr = data.find(LineShapeModelVariable::name);                                                \
+    return ptr != data.end() ? PVAR * ptr->second.d##deriv(T0, T) : 0.0;                               \
   }
 
 #define VARIABLE(deriv)        \
@@ -67,49 +64,43 @@ VARIABLE(X3);
 
 /////////////////////////////////////////////////////////////////////////////
 
-#define VARIABLE(mod)                                                     \
-  Numeric model::mod(const AtmPoint& atm) const {                         \
-    Numeric vmr = 0.0;                                                    \
-    Numeric res = 0.0;                                                    \
-    Numeric bth = NAN;                                                    \
-                                                                          \
-    for (auto& [s, m] : single_models) {                                  \
-      const Numeric this_res = m.mod(T0, atm.temperature, atm.pressure);  \
-      if (s != SpeciesEnum::Bath) {                                       \
-        const Numeric this_vmr  = atm[s];                                 \
-        vmr                    += this_vmr;                               \
-        res                    += this_vmr * this_res;                    \
-      } else {                                                            \
-        bth = this_res;                                                   \
-      }                                                                   \
-    }                                                                     \
-                                                                          \
-    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;           \
-                                                                          \
-    return vmr != 0.0 ? res / vmr : 0.0;                                  \
-  }                                                                       \
-                                                                          \
-  [[nodiscard]] Numeric model::d##mod##_dVMR(const AtmPoint& atm,         \
-                                             SpeciesEnum species) const { \
-    auto ptr = single_models.find(species);                               \
-                                                                          \
-    if (ptr == single_models.end()) return 0.0;                           \
-                                                                          \
-    const Numeric x = ptr->second.mod(T0, atm.temperature, atm.pressure); \
-                                                                          \
-    if (species == SpeciesEnum::Bath) return -x;                          \
-                                                                          \
-    const auto bth = single_models.find(SpeciesEnum::Bath);               \
-    if (bth != single_models.end())                                       \
-      return x - bth->second.mod(T0, atm.temperature, atm.pressure);      \
-                                                                          \
-    const Numeric t =                                                     \
-        std::transform_reduce(single_models.begin(),                      \
-                              single_models.end(),                        \
-                              0.0,                                        \
-                              std::plus<>{},                              \
-                              [&atm](auto& m) { return atm[m.first]; });  \
-    return (t - x) / t * t;                                               \
+#define VARIABLE(mod)                                                                                              \
+  Numeric model::mod(const AtmPoint& atm) const {                                                                  \
+    Numeric vmr = 0.0;                                                                                             \
+    Numeric res = 0.0;                                                                                             \
+    Numeric bth = NAN;                                                                                             \
+                                                                                                                   \
+    for (auto& [s, m] : single_models) {                                                                           \
+      const Numeric this_res = m.mod(T0, atm.temperature, atm.pressure);                                           \
+      if (s != SpeciesEnum::Bath) {                                                                                \
+        const Numeric this_vmr  = atm[s];                                                                          \
+        vmr                    += this_vmr;                                                                        \
+        res                    += this_vmr * this_res;                                                             \
+      } else {                                                                                                     \
+        bth = this_res;                                                                                            \
+      }                                                                                                            \
+    }                                                                                                              \
+                                                                                                                   \
+    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;                                                    \
+                                                                                                                   \
+    return vmr != 0.0 ? res / vmr : 0.0;                                                                           \
+  }                                                                                                                \
+                                                                                                                   \
+  [[nodiscard]] Numeric model::d##mod##_dVMR(const AtmPoint& atm, SpeciesEnum species) const {                     \
+    auto ptr = single_models.find(species);                                                                        \
+                                                                                                                   \
+    if (ptr == single_models.end()) return 0.0;                                                                    \
+                                                                                                                   \
+    const Numeric x = ptr->second.mod(T0, atm.temperature, atm.pressure);                                          \
+                                                                                                                   \
+    if (species == SpeciesEnum::Bath) return -x;                                                                   \
+                                                                                                                   \
+    const auto bth = single_models.find(SpeciesEnum::Bath);                                                        \
+    if (bth != single_models.end()) return x - bth->second.mod(T0, atm.temperature, atm.pressure);                 \
+                                                                                                                   \
+    const Numeric t = std::transform_reduce(                                                                       \
+        single_models.begin(), single_models.end(), 0.0, std::plus<>{}, [&atm](auto& m) { return atm[m.first]; }); \
+    return (t - x) / t * t;                                                                                        \
   }
 
 VARIABLE(G0);
@@ -124,27 +115,26 @@ VARIABLE(DV);
 
 #undef VARIABLE
 
-#define DERIVATIVE(mod, deriv)                                    \
-  Numeric model::d##mod##_d##deriv(const AtmPoint& atm) const {   \
-    Numeric vmr = 0.0;                                            \
-    Numeric res = 0.0;                                            \
-    Numeric bth = NAN;                                            \
-                                                                  \
-    for (auto& [s, m] : single_models) {                          \
-      const Numeric this_res =                                    \
-          m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
-      if (s != SpeciesEnum::Bath) {                               \
-        const Numeric this_vmr  = atm[s];                         \
-        vmr                    += this_vmr;                       \
-        res                    += this_vmr * this_res;            \
-      } else {                                                    \
-        bth = this_res;                                           \
-      }                                                           \
-    }                                                             \
-                                                                  \
-    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;   \
-                                                                  \
-    return vmr != 0.0 ? res / vmr : 0.0;                          \
+#define DERIVATIVE(mod, deriv)                                                         \
+  Numeric model::d##mod##_d##deriv(const AtmPoint& atm) const {                        \
+    Numeric vmr = 0.0;                                                                 \
+    Numeric res = 0.0;                                                                 \
+    Numeric bth = NAN;                                                                 \
+                                                                                       \
+    for (auto& [s, m] : single_models) {                                               \
+      const Numeric this_res = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
+      if (s != SpeciesEnum::Bath) {                                                    \
+        const Numeric this_vmr  = atm[s];                                              \
+        vmr                    += this_vmr;                                            \
+        res                    += this_vmr * this_res;                                 \
+      } else {                                                                         \
+        bth = this_res;                                                                \
+      }                                                                                \
+    }                                                                                  \
+                                                                                       \
+    if (not nonstd::isnan(bth)) return res + (1.0 - vmr) * bth;                        \
+                                                                                       \
+    return vmr != 0.0 ? res / vmr : 0.0;                                               \
   }
 
 #define VARIABLE(deriv)   \
@@ -166,37 +156,28 @@ VARIABLE(T0);
 
 #undef DERIVATIVE
 
-#define DERIVATIVE(mod, deriv)                                                \
-  Numeric model::d##mod##_d##deriv(const AtmPoint& atm,                       \
-                                   const SpeciesEnum spec) const {            \
-    const auto ptr = single_models.find(spec);                                \
-    if (ptr == single_models.end()) return 0.0;                               \
-    const auto& m = ptr->second;                                              \
-                                                                              \
-    const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
-                                                                              \
-    if (spec == SpeciesEnum::Bath) {                                          \
-      const Numeric vmr = std::transform_reduce(                              \
-          single_models.begin(),                                              \
-          single_models.end(),                                                \
-          0.0,                                                                \
-          std::plus<>{},                                                      \
-          [&atm](auto& ml) {                                                  \
-            return ml.first == SpeciesEnum::Bath ? 0.0 : atm[ml.first];       \
-          });                                                                 \
-      return (1 - vmr) * x;                                                   \
-    }                                                                         \
-                                                                              \
-    const auto bth = single_models.find(SpeciesEnum::Bath);                   \
-    if (bth != single_models.end()) return atm[spec] * x;                     \
-                                                                              \
-    const Numeric vmr =                                                       \
-        std::transform_reduce(single_models.begin(),                          \
-                              single_models.end(),                            \
-                              0.0,                                            \
-                              std::plus<>{},                                  \
-                              [&atm](auto& ml) { return atm[ml.first]; });    \
-    return x * atm[spec] / vmr;                                               \
+#define DERIVATIVE(mod, deriv)                                                                                       \
+  Numeric model::d##mod##_d##deriv(const AtmPoint& atm, const SpeciesEnum spec) const {                              \
+    const auto ptr = single_models.find(spec);                                                                       \
+    if (ptr == single_models.end()) return 0.0;                                                                      \
+    const auto& m = ptr->second;                                                                                     \
+                                                                                                                     \
+    const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure);                                        \
+                                                                                                                     \
+    if (spec == SpeciesEnum::Bath) {                                                                                 \
+      const Numeric vmr =                                                                                            \
+          std::transform_reduce(single_models.begin(), single_models.end(), 0.0, std::plus<>{}, [&atm](auto& ml) {   \
+            return ml.first == SpeciesEnum::Bath ? 0.0 : atm[ml.first];                                              \
+          });                                                                                                        \
+      return (1 - vmr) * x;                                                                                          \
+    }                                                                                                                \
+                                                                                                                     \
+    const auto bth = single_models.find(SpeciesEnum::Bath);                                                          \
+    if (bth != single_models.end()) return atm[spec] * x;                                                            \
+                                                                                                                     \
+    const Numeric vmr = std::transform_reduce(                                                                       \
+        single_models.begin(), single_models.end(), 0.0, std::plus<>{}, [&atm](auto& ml) { return atm[ml.first]; }); \
+    return x * atm[spec] / vmr;                                                                                      \
   }
 
 #define VARIABLE(deriv)   \
@@ -219,30 +200,26 @@ VARIABLE(X3);
 
 #undef DERIVATIVE
 
-#define VARIABLE(name)                                                         \
-  Numeric model::d##name##_dX(const AtmPoint& atm,                             \
-                              const SpeciesEnum spec,                          \
-                              LineShapeModelCoefficient coeff) const {         \
-    switch (coeff) {                                                           \
-      case LineShapeModelCoefficient::X0:     return d##name##_dX0(atm, spec); \
-      case LineShapeModelCoefficient::X1:     return d##name##_dX1(atm, spec); \
-      case LineShapeModelCoefficient::X2:     return d##name##_dX2(atm, spec); \
-      case LineShapeModelCoefficient::X3:     return d##name##_dX3(atm, spec); \
-      case LineShapeModelCoefficient::unused: return NAN;                      \
-    }                                                                          \
-    std::unreachable();                                                        \
-  }                                                                            \
-  Numeric species_model::d##name##_dX(                                         \
-      Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff)       \
-      const {                                                                  \
-    switch (coeff) {                                                           \
-      case LineShapeModelCoefficient::X0:     return d##name##_dX0(T0, T, P);  \
-      case LineShapeModelCoefficient::X1:     return d##name##_dX1(T0, T, P);  \
-      case LineShapeModelCoefficient::X2:     return d##name##_dX2(T0, T, P);  \
-      case LineShapeModelCoefficient::X3:     return d##name##_dX3(T0, T, P);  \
-      case LineShapeModelCoefficient::unused: return NAN;                      \
-    }                                                                          \
-    std::unreachable();                                                        \
+#define VARIABLE(name)                                                                                              \
+  Numeric model::d##name##_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const { \
+    switch (coeff) {                                                                                                \
+      case LineShapeModelCoefficient::X0:     return d##name##_dX0(atm, spec);                                      \
+      case LineShapeModelCoefficient::X1:     return d##name##_dX1(atm, spec);                                      \
+      case LineShapeModelCoefficient::X2:     return d##name##_dX2(atm, spec);                                      \
+      case LineShapeModelCoefficient::X3:     return d##name##_dX3(atm, spec);                                      \
+      case LineShapeModelCoefficient::unused: return NAN;                                                           \
+    }                                                                                                               \
+    std::unreachable();                                                                                             \
+  }                                                                                                                 \
+  Numeric species_model::d##name##_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const {    \
+    switch (coeff) {                                                                                                \
+      case LineShapeModelCoefficient::X0:     return d##name##_dX0(T0, T, P);                                       \
+      case LineShapeModelCoefficient::X1:     return d##name##_dX1(T0, T, P);                                       \
+      case LineShapeModelCoefficient::X2:     return d##name##_dX2(T0, T, P);                                       \
+      case LineShapeModelCoefficient::X3:     return d##name##_dX3(T0, T, P);                                       \
+      case LineShapeModelCoefficient::unused: return NAN;                                                           \
+    }                                                                                                               \
+    std::unreachable();                                                                                             \
   }
 
 VARIABLE(G0);
@@ -274,8 +251,7 @@ std::istream& operator>>(std::istream& is, species_model& x) {
   return is;
 }
 
-std::istream& operator>>(std::istream& is,
-                         std::unordered_map<SpeciesEnum, species_model>& x) {
+std::istream& operator>>(std::istream& is, std::unordered_map<SpeciesEnum, species_model>& x) {
   Size n;
   is >> n;
   x.reserve(n);
@@ -292,8 +268,7 @@ std::istream& operator>>(std::istream& is, model& x) try {
   is >> double_imanip() >> x.T0;
   return is >> x.single_models;
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
 void model::clear_zeroes() {
@@ -309,27 +284,22 @@ void model::clear_zeroes() {
 }  // namespace lbl::line_shape
 
 template <>
-std::optional<std::string>
-to_helper_string<lbl::line_shape::species_model::map_t>(
+std::optional<std::string> to_helper_string<lbl::line_shape::species_model::map_t>(
     const lbl::line_shape::species_model::map_t& map) {
   std::string out{};
 
   std::string_view x = ""sv;
   for (const auto& [key, value] : map) {
-    out += std::format("{}{}: {}",
-                       std::exchange(x, "; "sv),
-                       key,
-                       to_educational_string(value, key));
+    out += std::format("{}{}: {}", std::exchange(x, "; "sv), key, to_educational_string(value, key));
   }
 
   return out;
 }
 
-void xml_io_stream<lbl::line_shape::model>::write(
-    std::ostream& os,
-    const lbl::line_shape::model& x,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<lbl::line_shape::model>::write(std::ostream& os,
+                                                  const lbl::line_shape::model& x,
+                                                  bofstream* pbofs,
+                                                  std::string_view name) {
   XMLTag tag(type_name, "name", name, "T0", x.T0);
   tag.write_to_stream(os);
 
@@ -338,9 +308,7 @@ void xml_io_stream<lbl::line_shape::model>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<lbl::line_shape::model>::read(std::istream& is,
-                                                 lbl::line_shape::model& x,
-                                                 bifstream* pbifs) try {
+void xml_io_stream<lbl::line_shape::model>::read(std::istream& is, lbl::line_shape::model& x, bifstream* pbifs) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -351,28 +319,26 @@ void xml_io_stream<lbl::line_shape::model>::read(std::istream& is,
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
-void xml_io_stream<lbl::line_shape::species_model>::write(
-    std::ostream& os,
-    const lbl::line_shape::species_model& x,
-    bofstream*,
-    std::string_view name) {
+void xml_io_stream<lbl::line_shape::species_model>::write(std::ostream& os,
+                                                          const lbl::line_shape::species_model& x,
+                                                          bofstream*,
+                                                          std::string_view name) {
   XMLTag tag(type_name, "name", name, "nelem", x.data.size());
   tag.write_to_stream(os);
 
   for (auto& [key, elem] : x.data) {
-    std::println(
-        os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X());
+    std::println(os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X());
   }
 
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<lbl::line_shape::species_model>::read(
-    std::istream& is, lbl::line_shape::species_model& x, bifstream*) try {
+void xml_io_stream<lbl::line_shape::species_model>::read(std::istream& is,
+                                                         lbl::line_shape::species_model& x,
+                                                         bifstream*) try {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -396,6 +362,5 @@ void xml_io_stream<lbl::line_shape::species_model>::read(
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(
-      std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
 }

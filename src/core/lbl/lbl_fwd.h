@@ -35,9 +35,7 @@ class lte {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(ZeemanPolarization pol);
-  void set(std::shared_ptr<AbsorptionBands> bands,
-           std::shared_ptr<AtmPoint> atm,
-           ZeemanPolarization pol);
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm, ZeemanPolarization pol);
 };
 
 class lte_mirror {
@@ -64,9 +62,7 @@ class lte_mirror {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(ZeemanPolarization pol);
-  void set(std::shared_ptr<AbsorptionBands> bands,
-           std::shared_ptr<AtmPoint> atm,
-           ZeemanPolarization pol);
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm, ZeemanPolarization pol);
 };
 
 class nlte {
@@ -93,9 +89,7 @@ class nlte {
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_pol(ZeemanPolarization pol);
-  void set(std::shared_ptr<AbsorptionBands> bands,
-           std::shared_ptr<AtmPoint> atm,
-           ZeemanPolarization pol);
+  void set(std::shared_ptr<AbsorptionBands> bands, std::shared_ptr<AtmPoint> atm, ZeemanPolarization pol);
 };
 }  // namespace models
 
@@ -114,11 +108,9 @@ class line_storage {
   line_storage& operator=(const line_storage&);
   line_storage& operator=(line_storage&&) noexcept;
 
-  line_storage(std::shared_ptr<AtmPoint> atm,
-               std::shared_ptr<AbsorptionBands> bands);
+  line_storage(std::shared_ptr<AtmPoint> atm, std::shared_ptr<AbsorptionBands> bands);
 
-  std::pair<Complex, Complex> operator()(const Numeric frequency,
-                                         const ZeemanPolarization pol) const;
+  std::pair<Complex, Complex> operator()(const Numeric frequency, const ZeemanPolarization pol) const;
 
   void set_model(std::shared_ptr<AbsorptionBands> bands);
   void set_atm(std::shared_ptr<AtmPoint> atm);

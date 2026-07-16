@@ -21,12 +21,10 @@ struct species_model {
   //! Removes the variables from the model.
   template <LineShapeModelVariable... V>
   map_t::size_type remove_variables() {
-    return (... + std::erase_if(
-                      data, [v = V](const auto& x) { return x.first == v; }));
+    return (... + std::erase_if(data, [v = V](const auto& x) { return x.first == v; }));
   }
 
-#define VARIABLE(name) \
-  [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const
+#define VARIABLE(name) [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const
 
   VARIABLE(G0);
   VARIABLE(D0);
@@ -61,50 +59,23 @@ struct species_model {
 
 #undef DERIVATIVE
 
-  [[nodiscard]] Numeric dG0_dX(Numeric T0,
-                               Numeric T,
-                               Numeric P,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG0_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dD0_dX(Numeric T0,
-                               Numeric T,
-                               Numeric P,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dD0_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dG2_dX(Numeric T0,
-                               Numeric T,
-                               Numeric P,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG2_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dD2_dX(Numeric T0,
-                               Numeric T,
-                               Numeric P,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dD2_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dETA_dX(Numeric T0,
-                                Numeric T,
-                                Numeric P,
-                                LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dETA_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dFVC_dX(Numeric T0,
-                                Numeric T,
-                                Numeric P,
-                                LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dFVC_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dY_dX(Numeric T0,
-                              Numeric T,
-                              Numeric P,
-                              LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dY_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dG_dX(Numeric T0,
-                              Numeric T,
-                              Numeric P,
-                              LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dDV_dX(Numeric T0,
-                               Numeric T,
-                               Numeric P,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dDV_dX(Numeric T0, Numeric T, Numeric P, LineShapeModelCoefficient coeff) const;
 
   friend std::istream& operator>>(std::istream& os, species_model& x);
 };
@@ -119,11 +90,10 @@ struct model {
 
   friend std::istream& operator>>(std::istream& is, model& x);
 
-#define VARIABLE(name)                                      \
-  [[nodiscard]] Numeric name(const AtmPoint& atm) const;    \
-                                                            \
-  [[nodiscard]] Numeric d##name##_dVMR(const AtmPoint& atm, \
-                                       SpeciesEnum species) const
+#define VARIABLE(name)                                   \
+  [[nodiscard]] Numeric name(const AtmPoint& atm) const; \
+                                                         \
+  [[nodiscard]] Numeric d##name##_dVMR(const AtmPoint& atm, SpeciesEnum species) const
 
   VARIABLE(G0);
   VARIABLE(D0);
@@ -154,25 +124,16 @@ struct model {
 
 #undef DERIVATIVE
 
-#define DERIVATIVE(name)                                            \
-  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm,            \
-                                    const SpeciesEnum spec) const;  \
-  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm,            \
-                                    const SpeciesEnum spec) const;  \
-  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm,            \
-                                    const SpeciesEnum spec) const;  \
-  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm,            \
-                                    const SpeciesEnum spec) const;  \
-  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm,           \
-                                     const SpeciesEnum spec) const; \
-  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm,           \
-                                     const SpeciesEnum spec) const; \
-  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm,             \
-                                   const SpeciesEnum spec) const;   \
-  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm,             \
-                                   const SpeciesEnum spec) const;   \
-  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm,            \
-                                    const SpeciesEnum spec) const
+#define DERIVATIVE(name)                                                                 \
+  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;  \
+  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm, const SpeciesEnum spec) const; \
+  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm, const SpeciesEnum spec) const; \
+  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;   \
+  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm, const SpeciesEnum spec) const;   \
+  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm, const SpeciesEnum spec) const
 
   DERIVATIVE(X0);
   DERIVATIVE(X1);
@@ -183,48 +144,29 @@ struct model {
 
 #undef DERIVATIVE
 
-  [[nodiscard]] Numeric dG0_dX(const AtmPoint& atm,
-                               const SpeciesEnum spec,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG0_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dD0_dX(const AtmPoint& atm,
-                               const SpeciesEnum spec,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dD0_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dG2_dX(const AtmPoint& atm,
-                               const SpeciesEnum spec,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG2_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dD2_dX(const AtmPoint& atm,
-                               const SpeciesEnum spec,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dD2_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dETA_dX(const AtmPoint& atm,
-                                const SpeciesEnum spec,
-                                LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dETA_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm,
-                                const SpeciesEnum spec,
-                                LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dY_dX(const AtmPoint& atm,
-                              const SpeciesEnum spec,
-                              LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dY_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dG_dX(const AtmPoint& atm,
-                              const SpeciesEnum spec,
-                              LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dG_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
-  [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm,
-                               const SpeciesEnum spec,
-                               LineShapeModelCoefficient coeff) const;
+  [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm, const SpeciesEnum spec, LineShapeModelCoefficient coeff) const;
 
   //! Remove all line shape variables that evaluate unconditionally to 0
   void clear_zeroes();
 };
 
-std::istream& operator>>(std::istream& is,
-                         std::unordered_map<SpeciesEnum, species_model>& x);
+std::istream& operator>>(std::istream& is, std::unordered_map<SpeciesEnum, species_model>& x);
 }  // namespace lbl::line_shape
 
 using LineShapeSpeciesModel = lbl::line_shape::species_model;
@@ -238,14 +180,12 @@ struct std::formatter<LineShapeSpeciesModel> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const LineShapeSpeciesModel& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const LineShapeSpeciesModel& v, FmtContext& ctx) const {
     if (tags.help) {
       tags.format(ctx, "Data: "sv, v.data);
     } else if (tags.io) {
@@ -267,25 +207,18 @@ struct std::formatter<lbl::line_shape::model> {
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const lbl::line_shape::model& v,
-                              FmtContext& ctx) const {
+  FmtContext::iterator format(const lbl::line_shape::model& v, FmtContext& ctx) const {
     if (tags.help) {
-      return tags.format(ctx,
-                         "Reference temperature: "sv,
-                         v.T0,
-                         " K; Single models: "sv,
-                         v.single_models);
+      return tags.format(ctx, "Reference temperature: "sv, v.T0, " K; Single models: "sv, v.single_models);
     }
 
     if (tags.io) {
-      return tags.format(
-          ctx, v.T0, " "sv, v.single_models.size(), " "sv, v.single_models);
+      return tags.format(ctx, v.T0, " "sv, v.single_models.size(), " "sv, v.single_models);
     }
 
     const auto sep = tags.sep();
@@ -298,8 +231,7 @@ struct std::formatter<lbl::line_shape::model> {
 };
 
 template <>
-std::optional<std::string> to_helper_string<LineShapeSpeciesModel::map_t>(
-    const LineShapeSpeciesModel::map_t&);
+std::optional<std::string> to_helper_string<LineShapeSpeciesModel::map_t>(const LineShapeSpeciesModel::map_t&);
 
 template <>
 struct xml_io_stream<lbl::line_shape::model> {

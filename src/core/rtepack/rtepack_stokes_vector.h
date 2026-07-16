@@ -11,10 +11,7 @@
 
 namespace rtepack {
 struct stokvec final : Vector4 {
-  [[nodiscard]] constexpr stokvec(Numeric i = 0.0,
-                                  Numeric q = 0.0,
-                                  Numeric u = 0.0,
-                                  Numeric v = 0.0)
+  [[nodiscard]] constexpr stokvec(Numeric i = 0.0, Numeric q = 0.0, Numeric u = 0.0, Numeric v = 0.0)
       : Vector4{i, q, u, v} {}
 
   constexpr stokvec(std::array<Numeric, 4> data) noexcept : Vector4{data} {}
@@ -50,22 +47,16 @@ struct stokvec final : Vector4 {
     return *this;
   }
 
-  [[nodiscard]] constexpr bool is_zero() const {
-    return I() == 0.0 && Q() == 0.0 && U() == 0.0 && V() == 0.0;
-  }
+  [[nodiscard]] constexpr bool is_zero() const { return I() == 0.0 && Q() == 0.0 && U() == 0.0 && V() == 0.0; }
 
-  [[nodiscard]] constexpr bool is_polarized() const {
-    return Q() != 0.0 or U() != 0.0 or V() != 0.0;
-  }
+  [[nodiscard]] constexpr bool is_polarized() const { return Q() != 0.0 or U() != 0.0 or V() != 0.0; }
 
   [[nodiscard]] constexpr Size nonzero_components() const {
-    return static_cast<Size>(I() != 0.0) + static_cast<Size>(Q() != 0.0) +
-           static_cast<Size>(U() != 0.0) + static_cast<Size>(V() != 0.0);
+    return static_cast<Size>(I() != 0.0) + static_cast<Size>(Q() != 0.0) + static_cast<Size>(U() != 0.0) +
+           static_cast<Size>(V() != 0.0);
   }
 
-  constexpr stokvec operator-() const {
-    return stokvec{-data[0], -data[1], -data[2], -data[3]};
-  }
+  constexpr stokvec operator-() const { return stokvec{-data[0], -data[1], -data[2], -data[3]}; }
 };
 
 constexpr stokvec to_stokvec(PolarizationChoice p) {
@@ -116,10 +107,7 @@ constexpr stokvec operator/(stokvec a, const Numeric &b) {
 }
 
 constexpr stokvec fma(const Numeric &x, const stokvec &a, const stokvec &b) {
-  return {std::fma(x, a.I(), b.I()),
-          std::fma(x, a.Q(), b.Q()),
-          std::fma(x, a.U(), b.U()),
-          std::fma(x, a.V(), b.V())};
+  return {std::fma(x, a.I(), b.I()), std::fma(x, a.Q(), b.Q()), std::fma(x, a.U(), b.U()), std::fma(x, a.V(), b.V())};
 }
 
 //! Take the average of two stokvec vectors
@@ -135,10 +123,10 @@ constexpr stokvec avg(const stokvec &a, const stokvec &b) {
   * @param type Spectral Radiance Unit Type
  * @return A function that takes a stokes vector and a frequency and returns a converted stokes vector
  */
-std::function<stokvec(const stokvec, const Numeric)> unit_converter(
-    const SpectralRadianceUnitType type, const Numeric n = 1.0);
-std::function<stokvec(const stokvec, const stokvec, const Numeric)>
-dunit_converter(const SpectralRadianceUnitType type, const Numeric n = 1.0);
+std::function<stokvec(const stokvec, const Numeric)> unit_converter(const SpectralRadianceUnitType type,
+                                                                    const Numeric n = 1.0);
+std::function<stokvec(const stokvec, const stokvec, const Numeric)> dunit_converter(const SpectralRadianceUnitType type,
+                                                                                    const Numeric n = 1.0);
 
 using stokvec_vector            = matpack::data_t<stokvec, 1>;
 using stokvec_vector_view       = matpack::view_t<stokvec, 1>;
@@ -169,5 +157,4 @@ template <>
 struct std::formatter<rtepack::stokvec> : std::formatter<Vector4> {};
 
 template <>
-struct xml_io_stream<rtepack::stokvec>
-    : xml_io_stream_inherit<Vector4, rtepack::stokvec> {};
+struct xml_io_stream<rtepack::stokvec> : xml_io_stream_inherit<Vector4, rtepack::stokvec> {};

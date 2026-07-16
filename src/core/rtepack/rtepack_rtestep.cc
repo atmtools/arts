@@ -11,15 +11,14 @@
 #include "rtepack_transmission.h"
 
 namespace rtepack {
-void two_level_linear_emission_step_by_step_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0) {
+void two_level_linear_emission_step_by_step_full(stokvec_vector &I,
+                                                 std::vector<stokvec_matrix> &dI,
+                                                 const std::vector<muelmat_vector> &Ts,
+                                                 const std::vector<muelmat_vector> &Pi,
+                                                 const std::vector<muelmat_tensor3> &dTs,
+                                                 const std::vector<stokvec_vector> &Js,
+                                                 const std::vector<stokvec_matrix> &dJs,
+                                                 const stokvec_vector &I0) {
   const Size nv = I0.size();
   const Size N  = Ts.size();
 
@@ -46,23 +45,18 @@ void two_level_linear_emission_step_by_step_full(
                      Js.size(),
                      dJs.size());
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape(I0, Ts, Pi, Js),
-      R"(Must have same number of frequency elements ({}) in all Ts:s, Pi:s, and Js:s)",
-      nv);
+  ARTS_USER_ERROR_IF(not all_same_shape(I0, Ts, Pi, Js),
+                     R"(Must have same number of frequency elements ({}) in all Ts:s, Pi:s, and Js:s)",
+                     nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape({nq, nv}, dJs),
-      R"(Must have same number of elements ({}, {}) in all dJs:s)",
-      nq,
-      nv);
+      not all_same_shape({nq, nv}, dJs), R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({2, nq, nv}, dTs),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s)",
-      2,
-      nq,
-      nv);
+  ARTS_USER_ERROR_IF(not all_same_shape({2, nq, nv}, dTs),
+                     R"(Must have same number of elements ({}, {}, {}) in all dTs:s)",
+                     2,
+                     nq,
+                     nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -98,17 +92,16 @@ void two_level_linear_emission_step_by_step_full(
   }
 }
 
-void two_level_linear_evolution_step_by_step_full(
-    stokvec_vector &I,
-    std::vector<stokvec_matrix> &dI,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<muelmat_vector> &Ls,
-    const std::vector<muelmat_vector> &Pi,
-    const std::vector<muelmat_tensor3> &dTs,
-    const std::vector<muelmat_tensor3> &dLs,
-    const std::vector<stokvec_vector> &Js,
-    const std::vector<stokvec_matrix> &dJs,
-    const stokvec_vector &I0) {
+void two_level_linear_evolution_step_by_step_full(stokvec_vector &I,
+                                                  std::vector<stokvec_matrix> &dI,
+                                                  const std::vector<muelmat_vector> &Ts,
+                                                  const std::vector<muelmat_vector> &Ls,
+                                                  const std::vector<muelmat_vector> &Pi,
+                                                  const std::vector<muelmat_tensor3> &dTs,
+                                                  const std::vector<muelmat_tensor3> &dLs,
+                                                  const std::vector<stokvec_vector> &Js,
+                                                  const std::vector<stokvec_matrix> &dJs,
+                                                  const stokvec_vector &I0) {
   const Size nv = I0.size();
   const Size N  = Ts.size();
 
@@ -139,23 +132,18 @@ void two_level_linear_evolution_step_by_step_full(
                      Js.size(),
                      dJs.size());
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape(I0, Ts, Ls, Pi, Js),
-      R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)",
-      nv);
+  ARTS_USER_ERROR_IF(not all_same_shape(I0, Ts, Ls, Pi, Js),
+                     R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)",
+                     nv);
 
   ARTS_USER_ERROR_IF(
-      not all_same_shape({nq, nv}, dJs),
-      R"(Must have same number of elements ({}, {}) in all dJs:s)",
-      nq,
-      nv);
+      not all_same_shape({nq, nv}, dJs), R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({2, nq, nv}, dTs, dLs),
-      R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)",
-      2,
-      nq,
-      nv);
+  ARTS_USER_ERROR_IF(not all_same_shape({2, nq, nv}, dTs, dLs),
+                     R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)",
+                     2,
+                     nq,
+                     nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -187,10 +175,8 @@ void two_level_linear_evolution_step_by_step_full(
         const auto &P  = Pi[i][iv];
 
         for (Size iq = 0; iq < nq; iq++) {
-          dI0[iq] +=
-              P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
-          dI1[iq] += P * (dT1[iq] * ImJ0 + dL1[iq] * J0mJ1 + L * dJ1[iq] -
-                          T * dJ0[iq]);
+          dI0[iq] += P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
+          dI1[iq] += P * (dT1[iq] * ImJ0 + dL1[iq] * J0mJ1 + L * dJ1[iq] - T * dJ0[iq]);
         }
       }
 
@@ -199,10 +185,9 @@ void two_level_linear_evolution_step_by_step_full(
   }
 }
 
-void two_level_linear_emission_step_by_step_full(
-    std::vector<stokvec_vector> &Is,
-    const std::vector<muelmat_vector> &Ts,
-    const std::vector<stokvec_vector> &Js) {
+void two_level_linear_emission_step_by_step_full(std::vector<stokvec_vector> &Is,
+                                                 const std::vector<muelmat_vector> &Ts,
+                                                 const std::vector<stokvec_vector> &Js) {
   const Size N = Ts.size();
 
   if (N == 0) return;
@@ -220,9 +205,8 @@ Js.size() = {}
                      Ts.size(),
                      Js.size())
 
-  ARTS_USER_ERROR_IF(
-      not arr::elemwise_same_size(Is, Ts, Js),
-      "Not all elements have the same number of frequency elements")
+  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(Is, Ts, Js),
+                     "Not all elements have the same number of frequency elements")
 
   for (Size i = N - 2; i < N; i--) {
     stokvec_vector &I0       = Is[i + 1];
@@ -254,8 +238,7 @@ void nlte_step(stokvec_vector_view I,
   for (Size iv = 0; iv < NV; iv++) {
     const Numeric B0 = planck(f[iv], T0);
     const Numeric B1 = planck(f[iv], T1);
-    const stokvec J =
-        std::midpoint(B0, B1) + avg(inv(K0[iv]) * J0[iv], inv(K1[iv]) * J1[iv]);
+    const stokvec J  = std::midpoint(B0, B1) + avg(inv(K0[iv]) * J0[iv], inv(K1[iv]) * J1[iv]);
 
     I[iv] = tran(K0[iv], K1[iv], r)() * (I[iv] - J) + J;
   }
@@ -358,10 +341,8 @@ void linevo(stokvec_vector_view &Is,
         const auto &P    = Pi[iv, i];
 
         for (Size iq = 0; iq < nq; iq++) {
-          dI0[iq] +=
-              P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
-          dI1[iq] += P * (dT1[iq] * ImJ0 + dL1[iq] * J0mJ1 + L * dJ1[iq] -
-                          T * dJ0[iq]);
+          dI0[iq] += P * (dJ1[iq] - L * dJ0[iq] + dT0[iq] * ImJ0 + dL0[iq] * J0mJ1);
+          dI1[iq] += P * (dT1[iq] * ImJ0 + dL1[iq] * J0mJ1 + L * dJ1[iq] - T * dJ0[iq]);
         }
       }
 
@@ -377,14 +358,7 @@ void rte_emission(stokvec_vector_view I,
                   const SourceVector &srcvec) {
   switch (tramat.option) {
     case TransmittanceOption::constant:
-      constant(I,
-               dI,
-               tramat.T,
-               tramat.P,
-               tramat.dT[0],
-               tramat.dT[1],
-               srcvec.J,
-               srcvec.dJ);
+      constant(I, dI, tramat.T, tramat.P, tramat.dT[0], tramat.dT[1], srcvec.J, srcvec.dJ);
       break;
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
@@ -404,9 +378,7 @@ void rte_emission(stokvec_vector_view I,
 }
 
 namespace {
-void constant(stokvec_matrix_view Is,
-              const muelmat_matrix_const_view &Ts,
-              const stokvec_matrix_const_view &Js) {
+void constant(stokvec_matrix_view Is, const muelmat_matrix_const_view &Ts, const stokvec_matrix_const_view &Js) {
   const Size nv = Is.nrows();
   const Size np = Is.ncols();
 
@@ -440,9 +412,7 @@ void linevo(stokvec_matrix_view Is,
 }
 }  // namespace
 
-void rte_emission_path(stokvec_matrix_view Is,
-                       const TransmittanceMatrix &Ts,
-                       const SourceVector &Js) {
+void rte_emission_path(stokvec_matrix_view Is, const TransmittanceMatrix &Ts, const SourceVector &Js) {
   if (Is.size() == 0) return;
 
   switch (Ts.option) {

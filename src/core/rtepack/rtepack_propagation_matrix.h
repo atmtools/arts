@@ -38,9 +38,7 @@ struct propmat final : Vector7 {
   [[nodiscard]] constexpr decltype(auto) W() { return data[6]; }
 
   //! Check if the matrix is purely rotational
-  [[nodiscard]] constexpr bool is_rotational() const {
-    return A() == 0.0 and B() == 0.0 and C() == 0.0 and D() == 0.0;
-  }
+  [[nodiscard]] constexpr bool is_rotational() const { return A() == 0.0 and B() == 0.0 and C() == 0.0 and D() == 0.0; }
 
   //! Check if the matrix is polarized
   [[nodiscard]] constexpr bool is_polarized() const {
@@ -49,9 +47,7 @@ struct propmat final : Vector7 {
 
   constexpr auto operator<=>(const propmat &pm) const { return A() <=> pm.A(); }
 
-  [[nodiscard]] constexpr propmat operator-() const {
-    return {-A(), -B(), -C(), -D(), -U(), -V(), -W()};
-  }
+  [[nodiscard]] constexpr propmat operator-() const { return {-A(), -B(), -C(), -D(), -U(), -V(), -W()}; }
 };
 
 //! Addition of two propmat matrixes
@@ -130,5 +126,4 @@ template <>
 struct std::formatter<rtepack::propmat> : std::formatter<Vector7> {};
 
 template <>
-struct xml_io_stream<rtepack::propmat>
-    : xml_io_stream_inherit<Vector7, rtepack::propmat> {};
+struct xml_io_stream<rtepack::propmat> : xml_io_stream_inherit<Vector7, rtepack::propmat> {};

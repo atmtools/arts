@@ -13,9 +13,5 @@ namespace lbl {
  * @param atm The atmospheric point
  * @param mass The mass of the molecule (in u)
  */
-void compute_voigt(VectorView y,
-                   const line& l,
-                   const AscendingGrid& f,
-                   const AtmPoint& atm,
-                   const Numeric mass);
+void compute_voigt(VectorView y, const line& l, const AscendingGrid& f, const AtmPoint& atm, const Numeric mass);
 }  // namespace lbl

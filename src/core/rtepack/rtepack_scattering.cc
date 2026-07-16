@@ -8,8 +8,7 @@
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
-Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
-                                       const ConstMatrixView &pnd) {
+Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe, const ConstMatrixView &pnd) {
   assert(Pe.ncols() == 4 and Pe.nrows() == 4);
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
@@ -66,8 +65,7 @@ Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
   return aotm;
 }
 
-Array<muelmat_matrix> bulk_backscatter_derivative(
-    const ConstTensor5View &Pe, const ArrayOfMatrix &dpnd_dx) {
+Array<muelmat_matrix> bulk_backscatter_derivative(const ConstTensor5View &Pe, const ArrayOfMatrix &dpnd_dx) {
   assert(Pe.ncols() == 4 and Pe.nrows() == 4);
 
   const Index nv = Pe.npages();
@@ -121,46 +119,39 @@ void setBackscatterTransmissionDerivative(stokvec_matrix &out,
                                           const muelmat_vector &Tf,
                                           const muelmat_matrix &dZ) {
   for (Index j = 0; j < dZ.nrows(); j++)
-    for (Index i = 0; i < dZ.ncols(); i++)
-      out[j, i] += Tr[i] * dZ[j, i] * Tf[i] * I0[i];
+    for (Index i = 0; i < dZ.ncols(); i++) out[j, i] += Tr[i] * dZ[j, i] * Tf[i] * I0[i];
 }
 }  // namespace
 
-void bulk_backscatter_commutative_transmission_rte(
-    Array<stokvec_vector> &I,
-    Array<Array<stokvec_matrix>> &dI,
-    const stokvec_vector &I_incoming,
-    const Array<muelmat_vector> &T,
-    const Array<muelmat_vector> &PiTf,
-    const Array<muelmat_vector> &PiTr,
-    const Array<muelmat_vector> &Z,
-    const Array<muelmat_matrix> &dT1,
-    const Array<muelmat_matrix> &dT2,
-    const Array<muelmat_matrix> &dZ) {
+void bulk_backscatter_commutative_transmission_rte(Array<stokvec_vector> &I,
+                                                   Array<Array<stokvec_matrix>> &dI,
+                                                   const stokvec_vector &I_incoming,
+                                                   const Array<muelmat_vector> &T,
+                                                   const Array<muelmat_vector> &PiTf,
+                                                   const Array<muelmat_vector> &PiTr,
+                                                   const Array<muelmat_vector> &Z,
+                                                   const Array<muelmat_matrix> &dT1,
+                                                   const Array<muelmat_matrix> &dT2,
+                                                   const Array<muelmat_matrix> &dZ) {
   const Size np  = dT1.size();
   const Index nv = np ? dT1.front().ncols() : 0;
   const Index nq = np ? dT1.front().nrows() : 0;
 
   // For all transmission, the I-vector is the same
-  for (Size ip = 0; ip < np; ip++)
-    setBackscatterTransmission(I[ip], I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
+  for (Size ip = 0; ip < np; ip++) setBackscatterTransmission(I[ip], I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
 
   for (Size ip = 0; ip < np; ip++) {
-    setBackscatterTransmissionDerivative(
-        dI[ip][ip], I_incoming, PiTr[ip], PiTf[ip], dZ[ip]);
+    setBackscatterTransmissionDerivative(dI[ip][ip], I_incoming, PiTr[ip], PiTf[ip], dZ[ip]);
   }
 
   for (Size ip = 0; ip < np; ip++) {
     for (Size j = ip; j < np; j++) {
       for (Index iq = 0; iq < nq; iq++) {
         for (Index iv = 0; iv < nv; iv++) {
-          dI[ip][j][iq, iv] +=
-              T[ip][iv] * ((dT1[ip][iq, iv] + dT2[ip][iq, iv]) * I[j][iv]);
+          dI[ip][j][iq, iv] += T[ip][iv] * ((dT1[ip][iq, iv] + dT2[ip][iq, iv]) * I[j][iv]);
 
           if (j < np - 1 and j > ip)
-            dI[ip][j][iq, iv] +=
-                inv(T[ip + 1][iv]) *
-                ((dT1[ip][iq, iv] + dT2[ip][iq, iv]) * I[j][iv]);
+            dI[ip][j][iq, iv] += inv(T[ip + 1][iv]) * ((dT1[ip][iq, iv] + dT2[ip][iq, iv]) * I[j][iv]);
         }
       }
     }
@@ -175,17 +166,14 @@ Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
   const auto &[za_sca, aa_sca] = los_out;
   const auto &[za_inc, aa_inc] = los_in;
 
-  const Numeric theta = cosd(za_sca) * cosd(za_inc) +
-                        sind(za_sca) * sind(za_inc) * cosd(aa_sca - aa_inc);
+  const Numeric theta = cosd(za_sca) * cosd(za_inc) + sind(za_sca) * sind(za_inc) * cosd(aa_sca - aa_inc);
 
   // Fix potential overflows by clamping numerical errors
   return std::clamp(theta, -1.0, 1.0);
 }
 }  // namespace
 
-muelmat rayleigh_scattering(const Vector2 &los_in,
-                            const Vector2 &los_out,
-                            const Numeric depolarization_factor) try {
+muelmat rayleigh_scattering(const Vector2 &los_in, const Vector2 &los_out, const Numeric depolarization_factor) try {
   using Constant::pi;
   using Math::pow2;
 
@@ -195,10 +183,8 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
   const auto [za_sca, aa_sca] = los_out;
   const auto [za_inc, aa_inc] = los_in;
 
-  const Numeric delta =
-      (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
-  const Numeric delta_prime =
-      (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
+  const Numeric delta       = (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
+  const Numeric delta_prime = (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
 
   const auto F11 = 0.75 * delta * (1 + pow2(cos_theta)) + 1 - delta;
   const auto F12 = -0.75 * delta * pow2(sin_theta);
@@ -222,13 +208,11 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
   // Several cases have to be considered:
   //
 
-  if ((std::abs(theta_rad) < ANGTOL_RAD)          // forward scattering
-      || (std::abs(theta_rad - pi) < ANGTOL_RAD)  // backward scattering
-      || (std::abs(aa_inc_rad - aa_sca_rad) <
-          ANGTOL_RAD)  // inc and sca on meridian
-      || (std::abs(std::abs(aa_inc_rad - aa_sca_rad) - Constant::two_pi) <
-          ANGTOL_RAD)                                                     //   "
-      || (std::abs(std::abs(aa_inc_rad - aa_sca_rad) - pi) < ANGTOL_RAD)  //   "
+  if ((std::abs(theta_rad) < ANGTOL_RAD)                                                // forward scattering
+      || (std::abs(theta_rad - pi) < ANGTOL_RAD)                                        // backward scattering
+      || (std::abs(aa_inc_rad - aa_sca_rad) < ANGTOL_RAD)                               // inc and sca on meridian
+      || (std::abs(std::abs(aa_inc_rad - aa_sca_rad) - Constant::two_pi) < ANGTOL_RAD)  //   "
+      || (std::abs(std::abs(aa_inc_rad - aa_sca_rad) - pi) < ANGTOL_RAD)                //   "
   ) {
     pha[0, 1] = F12;
     pha[1, 0] = F12;
@@ -266,10 +250,8 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
       sigma1 = pi;
       sigma2 = aa_sca_rad - aa_inc_rad;
     } else {
-      s1 = (std::cos(za_sca_rad) - std::cos(za_inc_rad) * cos_theta) /
-           (std::sin(za_inc_rad) * sin_theta);
-      s2 = (std::cos(za_inc_rad) - std::cos(za_sca_rad) * cos_theta) /
-           (std::sin(za_sca_rad) * sin_theta);
+      s1 = (std::cos(za_sca_rad) - std::cos(za_inc_rad) * cos_theta) / (std::sin(za_inc_rad) * sin_theta);
+      s2 = (std::cos(za_inc_rad) - std::cos(za_sca_rad) * cos_theta) / (std::sin(za_sca_rad) * sin_theta);
 
       sigma1 = std::acos(std::clamp(s1, -1., 1.));
       sigma2 = std::acos(std::clamp(s2, -1., 1.));
@@ -285,16 +267,15 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
     pha[1, 0] = C2 * F12;
     pha[1, 1] = C1 * C2 * F22 - S1 * S2 * F33;
 
-    ARTS_USER_ERROR_IF(
-        std::isnan(pha[0, 1]) || std::isnan(pha[1, 0]) || std::isnan(pha[1, 1]),
-        "NaN value(s) detected in *phaCalc* (0/1,1). Could the "
-        "input data contain NaNs? Please check with *scat_dataCheck*. If "
-        "input data are OK  and you critically need the ongoing calculations, "
-        "try to change the observation LOS slightly. If you can reproduce "
-        "this error, please contact Patrick in order to help tracking down "
-        "the reason to this problem. If you see this message occasionally "
-        "when doing MC calculations, it should not be critical. This path "
-        "sampling will be rejected and replaced with a new one.");
+    ARTS_USER_ERROR_IF(std::isnan(pha[0, 1]) || std::isnan(pha[1, 0]) || std::isnan(pha[1, 1]),
+                       "NaN value(s) detected in *phaCalc* (0/1,1). Could the "
+                       "input data contain NaNs? Please check with *scat_dataCheck*. If "
+                       "input data are OK  and you critically need the ongoing calculations, "
+                       "try to change the observation LOS slightly. If you can reproduce "
+                       "this error, please contact Patrick in order to help tracking down "
+                       "the reason to this problem. If you see this message occasionally "
+                       "when doing MC calculations, it should not be critical. This path "
+                       "sampling will be rejected and replaced with a new one.");
 
     /*CPD: For skokes_dim > 2 some of the transformation formula
             for each element have a different sign depending on whether or
@@ -305,8 +286,7 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
             by Remote Sensing Techniques (R. Guzzi, Ed.), Springer-Verlag,
             Berlin, pp. 77-127.
             This is available at http://www.giss.nasa.gov/~crmim/publications/ */
-    const Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
-                             (aa_sca - aa_inc > 180) * 360;
+    const Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 - (aa_sca - aa_inc > 180) * 360;
     if (delta_aa >= 0) {
       pha[0, 2] = S1 * F12;
       pha[1, 2] = S1 * C2 * F22 + C1 * S2 * F33;
