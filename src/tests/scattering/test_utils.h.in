@@ -184,6 +184,14 @@ template <typename A, typename B> Numeric max_rel_error(const A& a, const B& b) 
   return max;
 }
 
+#if defined(__GNUC__) 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#elif defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
+
 /** Functional filling of tensor.
  *
  * Applies a given function mapping element coordinates to tensor
@@ -225,6 +233,10 @@ template <Index axis, matpack::any_md Tensor> void fill_along_axis(Tensor& t) {
   auto get_coord = [](auto... params) { return std::get<axis>(std::make_tuple(params...)); };
   generate(t, get_coord);
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 /** Fill tensor with increasing values along axis.
  *
