@@ -69,36 +69,6 @@ void arts_omp_set_num_threads(int i [[maybe_unused]]) {
 #endif
 }
 
-//! Wrapper for omp_get_nested
-/*! 
-  This wrapper works with and without OMP support.
-
-  \return 1 or 0, depending on if nested parallel execution is enabled or not. 
-*/
-int arts_omp_get_nested() {
-#ifdef _OPENMP
-  int nested = omp_get_nested();
-#else
-  int nested = 0;
-#endif
-
-  return nested;
-}
-
-//! Wrapper for omp_set_nested
-/*! 
-  This wrapper works with and without OMP support.
-
-  \param i Turn on nested parallelism with 1, turn off with 0.
-*/
-void arts_omp_set_nested(int i [[maybe_unused]]) {
-#ifdef _OPENMP
-  omp_set_nested(i);
-#else
-  // Nothing to do here.
-#endif
-}
-
 //! Wrapper for omp_set_dynamic
 /*! 
   This wrapper works with and without OMP support.
