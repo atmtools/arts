@@ -25,17 +25,13 @@ void Agenda::add(const Method& method) {
   methods.push_back(method);
 }
 
-void Agenda::finalize(bool fix) try {
-  const static auto& wsa = workspace_agendas();
+struct InAndOut {
+  std::vector<std::string> ins_first, outs_first, in_then_out;
+};
 
-  auto                            ag_ptr   = wsa.find(name);
-  const std::vector<std::string>  empty    = {};
-  const std::vector<std::string>& must_out = ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
-  const std::vector<std::string>& must_in  = ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
-
-  std::vector<std::string> ins_first;
-  std::vector<std::string> outs_first;
-  std::vector<std::string> in_then_out;
+InAndOut agendas_ins_and_outs(std::vector<Method>& methods) {
+  InAndOut out{};
+  auto& [ins_first, outs_first, in_then_out] = out;
 
   for (const Method& method : methods) {
     const auto& ins  = method.get_ins();
@@ -67,6 +63,60 @@ void Agenda::finalize(bool fix) try {
   sort_and_erase_copies(ins_first);
   sort_and_erase_copies(outs_first);
   sort_and_erase_copies(in_then_out);
+
+  return out;
+}
+
+struct BadOrRecoverable {
+  std::vector<std::string> required, can_be_fixed;
+};
+
+BadOrRecoverable missing_inputs(const std::vector<std::string>& must_in,
+                                const std::vector<std::string>& ins_first,
+                                const std::vector<std::string>& outs_first) {
+  BadOrRecoverable out{};
+
+  auto& [required, can_be_fixed] = out;
+
+  for (const std::string& i : must_in) {
+    if (stdr::binary_search(outs_first, i)) required.push_back(i);
+    if (not stdr::binary_search(ins_first, i)) can_be_fixed.push_back(i);
+  }
+
+  return out;
+}
+
+BadOrRecoverable missing_outputs(const std::vector<std::string>& must_in,
+                                const std::vector<std::string>& ins_first,
+                                const std::vector<std::string>& outs_first) {
+  BadOrRecoverable out{};
+
+  auto& [required, can_be_fixed] = out;
+
+  for (const std::string& i : must_in) {
+    if (stdr::binary_search(outs_first, i)) required.push_back(i);
+    if (not stdr::binary_search(ins_first, i)) can_be_fixed.push_back(i);
+  }
+
+  return out;
+}
+
+void Agenda::finalize(bool fix) try {
+  const static auto& wsa = workspace_agendas();
+
+  auto                            ag_ptr   = wsa.find(name);
+  const std::vector<std::string>  empty    = {};
+  const std::vector<std::string>& must_out = ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
+  const std::vector<std::string>& must_in  = ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
+
+  auto [ins_first, outs_first, in_then_out] = agendas_ins_and_outs(methods);
+
+  const auto [required_input, fixable_input] = missing_inputs(must_in, ins_first, outs_first);
+
+  if (not required_input.empty()) {
+    throw std::runtime_error(std::format(
+        R"(Agenda "{}" first requires {:B,} as input but they are output of the agenda)", name, required_input));
+  }
 
   for (const std::string& i : must_in) {
     if (stdr::binary_search(outs_first, i)) {

@@ -71,6 +71,7 @@ void py_global(py::module_& m) try {
       .def_ro("desc", &WorkspaceGroupRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace group records";
   generic_interface(wsgs);
+  static_assert(arts_formattable_or_value_type<WorkspaceGroupRecord>);
 
   global.def("workspace_groups",
              &internal_workspace_groups,
@@ -89,6 +90,7 @@ Return
       .def_ro("desc", &WorkspaceVariableRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Workspace variable records";
   generic_interface(wsvs);
+  static_assert(arts_formattable_or_value_type<WorkspaceVariableRecord>);
 
   global.def("workspace_variables",
              &workspace_variables,
@@ -104,6 +106,7 @@ Return
       .def_ro("title", &WsvShortForm::title, "Variable naming title\n\n.. :class:`str`")
       .doc() = "Workspace variable shortname records";
   generic_interface(wsv_short);
+  static_assert(arts_formattable_or_value_type<WsvShortForm>);
 
   global.def("workspace_variables_shortnames",
              &workspace_variables_shortnames,
@@ -133,6 +136,7 @@ Return
       .def_ro("desc", &WorkspaceMethodInternalRecord::desc, "Description\n\n.. :class:`str`")
       .doc() = "Method records used as workspace variables";
   generic_interface(wsms);
+  static_assert(arts_formattable_or_value_type<WorkspaceMethodInternalRecord>);
 
   global.def("workspace_methods",
              &internal_workspace_methods,
@@ -149,6 +153,7 @@ Return
       .def_ro("input", &WorkspaceAgendaInternalRecord::input, "Inputs\n\n.. :class:`list[str]`")
       .doc() = "Agenda records used as workspace variables";
   generic_interface(wsas);
+  static_assert(arts_formattable_or_value_type<WorkspaceAgendaInternalRecord>);
 
   global.def("workspace_agendas",
              &internal_workspace_agendas,
