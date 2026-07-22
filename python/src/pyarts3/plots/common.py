@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+__all__ = ["default_fig_ax", "select_flat_ax"]
+
+
 def default_fig_ax(fig=None, ax=None, nrows=1, ncols=1, N=-1, fig_kwargs={}, ax_kwargs={}):
     """Utility to create default matplotlib figure and axes if not provided.
 

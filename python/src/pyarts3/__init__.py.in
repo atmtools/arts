@@ -45,6 +45,7 @@ def __getattr__(attr):
 
 def __dir__():
     return [
+        "arts",
         "data",
         "fields",
         "gui",

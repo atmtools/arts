@@ -491,6 +491,23 @@ struct std::formatter<std::tuple<WT...>> {
   }
 };
 
+template <arts_formattable T> struct std::formatter<std::optional<T>> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+
+  [[nodiscard]] constexpr const auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext> FmtContext::iterator format(const std::optional<T>& v, FmtContext& ctx) const {
+    if (v) { return tags.format(ctx, "Optional("sv, *v, ")"sv); }
+    return tags.format(ctx, "Optional(nullopt)"sv);
+  }
+};
+
 template <typename R, typename... Ts> struct std::formatter<std::function<R(Ts...)>> {
   format_tags tags;
 

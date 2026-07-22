@@ -819,6 +819,8 @@ This is otherwise the same as *measurement_jac*.  See it for more details.
   wsv_data["measurement_vec"] = {
       .desc = R"(The measurement vector for, e.g., a sensor.
 
+This is the core variable describing the measured data, or the model of measured data.  It is the vector that is used in the inversion process to retrieve a model state vector.
+
 This must often be the same size as *measurement_sensor*.
 
 The notation in ARTS, for the purpose of *OEM*, is that
@@ -835,7 +837,7 @@ where
 Throughout ARTS, *measurement_vec* have different contextual meanings.
 These are:
 
-1. :math:`\vec{y}` - i.e., measured data.
+1. :math:`\vec{y}` - the measured data by a sensor, i.e., the vector of observations.
 2. :math:`\vec{y} - \epsilon` - e.g., the best fit to measured data, *measurement_vec_fit*.
 3. :math:`\mathbf{F}\left(\vec{x}\right)` - i.e., the physical model of the measurement.
 )",
@@ -843,7 +845,7 @@ These are:
   };
 
   wsv_data["measurement_vec_error"] = {
-      .desc = R"(The model measurement vector error for, e.g., a sensor.
+      .desc = R"(The error *measurement_vec*.
 
 This must often be the same size as *measurement_sensor*.
 
