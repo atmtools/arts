@@ -25,6 +25,7 @@ void Agenda::add(const Method& method) {
   methods.push_back(method);
 }
 
+namespace {
 struct InAndOut {
   std::vector<std::string> ins_first, outs_first, in_then_out;
 };
@@ -86,20 +87,21 @@ BadOrRecoverable missing_inputs(const std::vector<std::string>& must_in,
   return out;
 }
 
-BadOrRecoverable missing_outputs(const std::vector<std::string>& must_in,
-                                const std::vector<std::string>& ins_first,
-                                const std::vector<std::string>& outs_first) {
+BadOrRecoverable missing_outputs(const std::vector<std::string>& must_out,
+                                 const std::vector<std::string>& ins_first,
+                                 const std::vector<std::string>& outs_first,
+                                 const std::vector<std::string>& in_then_out) {
   BadOrRecoverable out{};
 
   auto& [required, can_be_fixed] = out;
 
-  for (const std::string& i : must_in) {
-    if (stdr::binary_search(outs_first, i)) required.push_back(i);
-    if (not stdr::binary_search(ins_first, i)) can_be_fixed.push_back(i);
+  for (const std::string& o : must_out) {
+    if (stdr::binary_search(ins_first, o) and not stdr::binary_search(in_then_out, o)) required.push_back(o);
+    if (not stdr::binary_search(outs_first, o) and not stdr::binary_search(in_then_out, o)) can_be_fixed.push_back(o);
   }
-
   return out;
 }
+}  // namespace
 
 void Agenda::finalize(bool fix) try {
   const static auto& wsa = workspace_agendas();
@@ -110,57 +112,22 @@ void Agenda::finalize(bool fix) try {
   const std::vector<std::string>& must_in  = ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
 
   auto [ins_first, outs_first, in_then_out] = agendas_ins_and_outs(methods);
+  const auto [rin, fin]                     = missing_inputs(must_in, ins_first, outs_first);
+  const auto [rut, fut]                     = missing_outputs(must_out, ins_first, outs_first, in_then_out);
 
-  const auto [required_input, fixable_input] = missing_inputs(must_in, ins_first, outs_first);
-
-  if (not required_input.empty()) {
-    throw std::runtime_error(std::format(
-        R"(Agenda "{}" first requires {:B,} as input but they are output of the agenda)", name, required_input));
+  std::string error{};
+  if (not rin.empty()) error += std::format("Required input(s) {:B,} are instead output(s)\n", rin);
+  if (not rut.empty()) error += std::format("Required output(s) {:B,} are instead input(s)\n", rut);
+  if (not fix) {
+    if (not fin.empty()) error += std::format("Must use {:B,} - set fix to ignore this error\n", fin);
+    if (not fut.empty()) error += std::format("Must set {:B,} - set fix to ignore this error\n", fut);
   }
+  if (not error.empty()) throw std::runtime_error(error);
 
-  for (const std::string& i : must_in) {
-    if (stdr::binary_search(outs_first, i)) {
-      throw std::runtime_error(std::format(R"(Agenda "{}" first uses "{}" as an input but it is an output)", name, i));
-    }
-
-    if (not stdr::binary_search(ins_first, i)) {
-      if (fix) {
-        methods.emplace_back("Ignore", std::vector<std::string>{i}, std::unordered_map<std::string, std::string>{});
-      } else {
-        throw std::runtime_error(std::format(R"(Agenda "{}" does not use "{}")", name, i));
-      }
-    }
-  }
-
-  for (const std::string& o : must_out) {
-    if (stdr::binary_search(ins_first, o) and not stdr::binary_search(in_then_out, o)) {
-      throw std::runtime_error(std::format(
-          R"(Agenda "{}" uses "{}" only as an input but it is Agenda in-out
-
-Agenda user input:      {:B,}
-Agenda user output:     {:B,}
-Agenda user in-out:     {:B,}
-
-Agenda required input:  {:B,}
-Agenda required output: {:B,}
-)",
-          name,
-          o,
-          ins_first,
-          outs_first,
-          in_then_out,
-          must_in,
-          must_out));
-    }
-
-    if (not stdr::binary_search(outs_first, o) and not stdr::binary_search(in_then_out, o)) {
-      if (fix) {
-        methods.emplace_back("Touch", std::vector<std::string>{o}, std::unordered_map<std::string, std::string>{});
-      } else {
-        throw std::runtime_error(std::format(R"(Agenda "{}" does not set "{}")", name, o));
-      }
-    }
-  }
+  using T1 = std::vector<std::string>;
+  using T2 = std::unordered_map<std::string, std::string>;
+  for (const std::string& i : fin) methods.emplace_back("Ignore", T1{i}, T2{});
+  for (const std::string& o : fut) methods.emplace_back("Touch", T1{o}, T2{});
 
   std::erase_if(ins_first, [&must_in](const auto& str) { return stdr::any_of(must_in, Cmp::eq(str)); });
 
