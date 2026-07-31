@@ -389,7 +389,7 @@ void py_auto_agenda_operators(py::module_& m) {{
       vars.push_back(std::format(R"("{}"_a)", v));
       params += std::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
-     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
+     {2} See also :attr:`~pyarts3.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,
@@ -400,7 +400,7 @@ void py_auto_agenda_operators(py::module_& m) {{
     for (auto&& v : ag.output) {
       retval += std::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
-     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
+     {2} See also :attr:`~pyarts3.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,

@@ -7,6 +7,11 @@
 #include <string>
 #include <unordered_map>
 
+AgendaCreator& AgendaCreator::set(const std::string& name, WorkspaceGroup auto v) {
+  a.add(Method{name, std::move(v)});
+  return *this;
+}
+
 SetWsv::SetWsv(std::string n) : name(std::move(n)) {
   if (auto ind = name.find('='); ind not_eq name.npos) { *this = SetWsv(name.substr(0, ind), name.substr(ind + 1)); }
 }

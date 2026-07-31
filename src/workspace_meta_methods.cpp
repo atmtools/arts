@@ -263,7 +263,16 @@ This method simply is a convenience wrapper for that use case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name             = "atm_fieldRead",
-      .desc             = "Read atmospheric data files from a directory",
+      .desc             = R"(The standard method to read atmospheric data files from a directory
+
+Common use case (requires having set the ENV variables, as described in the documentation):
+
+```python
+ws.atm_fieldRead(
+    toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
+)
+```
+)",
       .author           = {"Richard Larsson"},
       .methods          = {"atm_fieldInit", "atm_fieldAppendBaseData", "atm_fieldAppendAuto"},
       .out              = {"atm_field"},

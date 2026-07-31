@@ -4,6 +4,8 @@
 #include <auto_wsm.h>
 #include <compare.h>
 #include <debug.h>
+#include <enumsWorkspaceInitialization.h>
+#include <time_report.h>
 
 #include <algorithm>
 #include <exception>
@@ -14,8 +16,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "enumsWorkspaceInitialization.h"
-#include "time_report.h"
 #include "workspace_class.h"
 #include "workspace_method_class.h"
 
@@ -25,12 +25,16 @@ void Agenda::add(const Method& method) {
   methods.push_back(method);
 }
 
-namespace {
-struct InAndOut {
-  std::vector<std::string> ins_first, outs_first, in_then_out;
-};
+void Agenda::append_methods(const Agenda& other) { methods.append_range(other.methods); }
 
-InAndOut agendas_ins_and_outs(std::vector<Method>& methods) {
+void Agenda::prepend_methods(const Agenda& other) { methods.insert_range(methods.begin(), other.methods); }
+
+void Agenda::insert_methods(const Agenda& other, const std::string_view before) {
+  methods.insert_range(stdr::find_if(methods, Cmp::eq(before), &Method::get_name), other.methods);
+}
+
+namespace {
+InAndOut agendas_ins_and_outs(const std::vector<Method>& methods) {
   InAndOut out{};
   auto& [ins_first, outs_first, in_then_out] = out;
 
@@ -102,6 +106,10 @@ BadOrRecoverable missing_outputs(const std::vector<std::string>& must_out,
   return out;
 }
 }  // namespace
+
+InAndOut Agenda::get_required_inputs() const {
+  return agendas_ins_and_outs(methods);
+}
 
 void Agenda::finalize(bool fix) try {
   const static auto& wsa = workspace_agendas();

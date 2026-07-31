@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 from ast import (
@@ -540,3 +541,88 @@ def in_parallel(func=None, *, ws=None):
     if func is None:
         return execute
     return execute(func)
+
+
+def arts_method(code_string, workspace_name = 'ws', state=None):
+    """
+    Converts a string of ARTS workspace operations into an Agenda object.
+
+    This allows creating an Agenda from simple strings like 
+    'ws.abs_speciesSet(species=["O2"])'.
+
+    Parameters
+    ----------
+    code_string : str
+        The Python code representing the ARTS operation(s). 
+        It is assumed that the specified workspace_name is used as the workspace identifier.
+    workspace_name : str, optional
+        The name of the workspace variable in the code string, defaults to 'ws'
+    state : dict, optional
+        The global state for evaluating expressions within the string. 
+        If None, a basic state containing pyarts3 globals is provided.
+
+    Returns
+    -------
+    pyarts3.arts.Agenda
+        An Agenda object containing the parsed Method(s).
+    """
+    orig_code_string = copy.deepcopy(code_string)
+    pot_err = ""
+
+    if not code_string.startswith(f"{workspace_name}."):
+        code_string = f"{workspace_name}." + code_string
+        pot_err += f"Method requires '{workspace_name}' as the workspace variable but didn't find it, so prepending it: {orig_code_string} -> {code_string}.  "
+
+    close_parens = code_string.count(')')
+    open_parens = code_string.count('(')
+
+    if close_parens != open_parens:
+        raise SyntaxError(
+            f"Unbalanced parentheses in code string: {orig_code_string}. "
+            f"Open: {open_parens}, Close: {close_parens}"
+        )
+
+    if close_parens == 0:
+        code_string += "()"
+        pot_err += f"No parentheses found in method call, so appending '()' to the end: {orig_code_string} -> {code_string}.  "
+
+    # Parse the code string into an AST (Abstract Syntax Tree)
+    try:
+        tree = parse(code_string)
+    except SyntaxError as e:
+        raise SyntaxError(
+            f"Failed to parse code string: {orig_code_string}. Error: {e}.{'\n\n' if pot_err else ''}{pot_err}"
+        )
+
+    # Provide necessary globals if state is not provided so that _eval and
+    # _expr_call_parser can resolve ARTS types and methods.
+    if state is None:
+        state = {
+            'cxx': cxx,
+            'workspace_methods': workspace_methods,
+            'workspace_variables': workspace_variables
+        }
+
+    # Use the internal interpreter to get a list of Method objects or error strings
+    try:
+        results = _return_workspace_methods(tree.body, workspace_name, state)
+    except Exception as e:
+        raise SyntaxError(
+            f"Error while interpreting code string: {orig_code_string}. Error: {e}.{'\n\n' if pot_err else ''}{pot_err}"
+        )
+
+    # Initialize an Agenda to hold the results
+    agenda = Agenda("generated_from_string")
+
+    for res in results:
+        if isinstance(res, Method):
+            agenda.add(res)
+        elif isinstance(res, list):
+            # _expr_call_parser may return a list of methods (the main call + its arguments)
+            for m in res:
+                agenda.add(m)
+        elif isinstance(res, str):
+            # If the result is a string, it represents a parsing error’
+            raise SyntaxError(f"ARTS agenda parsing error: {res}{'\n\n' if pot_err else ''}{pot_err}")
+
+    return agenda

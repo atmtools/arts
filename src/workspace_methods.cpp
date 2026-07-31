@@ -4126,7 +4126,9 @@ See these individually for more details.
 
   wsm_data["ReadCatalogData"] = {
       .desc =
-          R"--(Reads split catalog data from a folder structure similar to ``arts-cat-data``
+          R"--(The standard method to read absorption catalog data for ARTS.
+
+Reads split catalog data from a folder structure similar to ``arts-cat-data``
 
 Wraps:
 
