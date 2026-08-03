@@ -2,6 +2,7 @@ dependencies:
         - binutils
         - ccache
         - cmake
+        - cpython
         - doxygen
         - docutils
         - graphviz

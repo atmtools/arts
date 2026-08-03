@@ -4,6 +4,7 @@ dependencies:
         - clangxx<23
         - cmake
         - compiler-rt
+        - cpython
         - docutils
         - doxygen
         - eigen
