@@ -476,7 +476,7 @@ You can execute *{0}* directly from the workspace by calling *{0}Execute*.
 As all agendas in ARTS, it is also customizable via its operator helper class: *{1}*.
 See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
 
-Also see the :class:`~pyarts3.workspace.arts_agenda` property for how to fully define an agenda in python.
+Also see the :class:`~pyarts3.arts_agenda` property for how to fully define an agenda in python.
 )",
                                name,
                                record.named_operator.empty() ? name + "Operator" : record.named_operator);

@@ -190,7 +190,7 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
 
   wsv_data["atm_field"] = {
       .desc =
-          R"--(An atmospheric field in ARTS.
+          R"--(An atmospheric field in ARTS, this is the main atmospheric data structure in ARTS.
 
 The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
@@ -247,7 +247,7 @@ For more information, see :doc:`user.atm_field`.
 
   wsv_data["atm_profile"] = {
       .desc =
-          R"--(An atmospheric profile in ARTS.
+          R"--(A special case atmospheric profile in ARTS for 1D/2D calculations, see *atm_field* for the common interface.
 
 This exists to interface between the fully 3D atmospheric field native to ARTS
 and various 1D and 2D solvers that make use of profiles for fixed geometries.
@@ -1008,9 +1008,19 @@ Units: degrees
   //! Sensors
 
   wsv_data["measurement_sensor"] = {
-      .desc = R"(A list of sensor elements.
+      .desc = R"(A list of sensor elements that fully describe one or more observing sensor(s).
 
-Size is number of elements of the sensor.
+Size is number of elements of the sensor(s).  These should correspond to what the
+sensor actually measures, e.g., the number of channels in a spectrometer,
+separate elements as a function of polarization, time, etc.
+
+The frequency grid is shared between multiple sensor elements, so that the frequency grid
+identifies a sensor.  Two sensor elements are considered to be from the same sensor if they
+share the same frequency grid.  This is important for the inversion process,
+as it is used to determine how to compute the *measurement_jac* and *measurement_vec_error_covmat*.
+See *measurement_sensor_meta* for more information about how the sensor elements are structured.
+
+The size of this variable should be the same as *measurement_vec*.
 )",
       .type = "ArrayOfSensorObsel",
   };

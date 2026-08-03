@@ -44,8 +44,8 @@ String as_pyarts(const String& x) try {
 
   if (found_in_options(x) or found_in(wsgs) or found_in(group_friends))
     return std::format(":class:`~pyarts3.arts.{}`", x);
-  if (found_in(wsms)) return std::format(":func:`~pyarts3.workspace.Workspace.{}`", x);
-  if (found_in(wsvs)) return std::format(":attr:`~pyarts3.workspace.Workspace.{}`", x);
+  if (found_in(wsms)) return std::format(":func:`~pyarts3.Workspace.{}`", x);
+  if (found_in(wsvs)) return std::format(":attr:`~pyarts3.Workspace.{}`", x);
 
   throw std::invalid_argument(std::format(R"("{0}"  is not a valid group, method, or workspace variable.
 
@@ -137,7 +137,7 @@ String get_agenda_io(const String& x) try {
                        1 + (ag.output.size() > 3));
 
     for (auto& varname : ag.output) {
-      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+      out += std::format(R"(    * :attr:`~pyarts3.Workspace.{}`
 )",
                          varname);
     }
@@ -154,7 +154,7 @@ String get_agenda_io(const String& x) try {
                        1 + (ag.input.size() > 3));
 
     for (auto& varname : ag.input) {
-      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+      out += std::format(R"(    * :attr:`~pyarts3.Workspace.{}`
 )",
                          varname);
     }
@@ -274,7 +274,7 @@ String method_docs(const String& name) try {
                                    metamethods.size() > 1 ? "s"sv : ""sv,
                                    hlist_num_cols(metamethods),
                                    metamethods | stdv::transform([](const auto& m) {
-                                     return std::format("\n    * :func:`~pyarts3.workspace.Workspace.{}`", m);
+                                     return std::format("\n    * :func:`~pyarts3.Workspace.{}`", m);
                                    }) | stdr::to<std::vector<String>>());
   fix();
 
@@ -285,7 +285,7 @@ String method_docs(const String& name) try {
     const auto&  grpname  = wsv.type;
     out                  += std::format(R"(
 {0} : ~pyarts3.arts.{1}, optional
-    {2} See :attr:`~pyarts3.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[{3}]**)",
+    {2} See :attr:`~pyarts3.Workspace.{0}`, defaults to ``self.{0}`` **[{3}]**)",
                                         varname,
                                         grpname,
                                         unwrap_stars(short_doc(varname)),
@@ -312,7 +312,7 @@ String method_docs(const String& name) try {
     const auto& grpname  = wsv.type;
     out                 += std::format(R"(
 {0} : ~pyarts3.arts.{1}, optional
-    {2} See :attr:`~pyarts3.workspace.Workspace.{0}`, defaults to ``self.{0}`` **[IN]**)",
+    {2} See :attr:`~pyarts3.Workspace.{0}`, defaults to ``self.{0}`` **[IN]**)",
                                        varname,
                                        grpname,
                                        unwrap_stars(short_doc(varname)));
@@ -464,11 +464,11 @@ String variable_used_by(const String& name) {
 
   const auto to_wsain = stdv::filter([&usedocs](const String& x) { return stdr::none_of(usedocs.ag_out, Cmp::eq(x)); });
 
-  const auto to_attr = stdv::transform(
-      [](const String& x) -> String { return std::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x); });
+  const auto to_attr =
+      stdv::transform([](const String& x) -> String { return std::format("    * :attr:`~pyarts3.Workspace.{}`", x); });
 
-  const auto to_func = stdv::transform(
-      [](const String& x) -> String { return std::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x); });
+  const auto to_func =
+      stdv::transform([](const String& x) -> String { return std::format("    * :func:`~pyarts3.Workspace.{}`", x); });
 
   const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;
   const auto wsminout = usedocs.wsm_out | to_wsminout | to_vstring;

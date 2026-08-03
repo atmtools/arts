@@ -3,8 +3,10 @@
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string_view.h>
+#include <nanobind/stl/tuple.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -232,6 +234,16 @@ workspace variables are added to the workspace
 The input order takes priority over the named argument order,
 so Copy(a, out=b) will not even see the b variable.
 )--")
+      .def("append_methods", &Agenda::append_methods, "other"_a, "Appends methods from another agenda")
+      .def("prepend_methods", &Agenda::prepend_methods, "other"_a, "Prepends methods from another agenda")
+      .def("insert_methods", &Agenda::insert_methods, "other"_a, "before"_a, "Inserts methods from another agenda")
+      .def(
+          "get_required_inputs",
+          [](const Agenda& a) {
+            auto [ins_first, outs_first, in_then_out] = a.get_required_inputs();
+            return std::tuple{ins_first, outs_first, in_then_out};
+          },
+          "Returns the interactions of the agenda as [inputs, outputs, inputs-then-outputs]")
       .def(
           "execute",
           [](Agenda& a, Workspace& ws) { a.execute(ws); },
