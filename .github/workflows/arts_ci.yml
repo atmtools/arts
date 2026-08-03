@@ -33,7 +33,7 @@ jobs:
         with:
           name: testdata
           path: build/
-          retention-days: 1
+          retention-days: 7
   build:
     name: Build
     needs: prepare
