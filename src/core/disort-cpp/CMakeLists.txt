@@ -10,6 +10,12 @@ add_library(disort-cpp STATIC disort.cpp)
 target_link_libraries(disort-cpp PUBLIC matpack legendre time_report operators disort-cpp-eigen)
 target_include_directories(disort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# VDISORT CHANGE BEGIN: polarized four-Stokes sibling of disort::main_data.
+add_library(vdisort-cpp STATIC vdisort.cpp)
+target_link_libraries(vdisort-cpp PUBLIC matpack legendre time_report operators)
+target_include_directories(vdisort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# VDISORT CHANGE END
+
 # Add tests, split them because they contain too much data otherwise
 add_executable(disort-cpp-test-1 disort-test-1.cpp)
 add_executable(disort-cpp-test-2 disort-test-2.cpp)
@@ -19,6 +25,8 @@ add_executable(disort-cpp-test-5 disort-test-5.cpp)
 add_executable(disort-cpp-test-8 disort-test-8.cpp)
 add_executable(disort-cpp-test-9 disort-test-9.cpp)
 add_executable(disort-cpp-test-11 disort-test-11.cpp)
+add_executable(disort-cpp-disotest disotest.cpp)
+add_executable(vdisort-cpp-test vdisort-test.cpp)
 add_executable(disort-test-clearsky-multilayer disort-test-clearsky-multilayer.cpp)
 
 target_link_libraries(disort-cpp-test-1 disort-cpp artstime rng)
@@ -29,6 +37,8 @@ target_link_libraries(disort-cpp-test-5 disort-cpp artstime rng)
 target_link_libraries(disort-cpp-test-8 disort-cpp artstime rng)
 target_link_libraries(disort-cpp-test-9 disort-cpp artstime rng)
 target_link_libraries(disort-cpp-test-11 disort-cpp artstime rng)
+target_link_libraries(disort-cpp-disotest disort-cpp artstime rng)
+target_link_libraries(vdisort-cpp-test vdisort-cpp disort-cpp artstime)
 target_link_libraries(disort-test-clearsky-multilayer disort-cpp artstime rng)
 
 add_test(NAME "cpp.fast.disort-cpp-test-1" COMMAND disort-cpp-test-1)
@@ -39,6 +49,8 @@ add_test(NAME "cpp.fast.disort-cpp-test-5" COMMAND disort-cpp-test-5)
 add_test(NAME "cpp.fast.disort-cpp-test-8" COMMAND disort-cpp-test-8)
 add_test(NAME "cpp.fast.disort-cpp-test-9" COMMAND disort-cpp-test-9)
 add_test(NAME "cpp.fast.disort-cpp-test-11" COMMAND disort-cpp-test-11)
+add_test(NAME "cpp.fast.disort-cpp-disotest" COMMAND disort-cpp-disotest)
+add_test(NAME "cpp.fast.vdisort-cpp-test" COMMAND vdisort-cpp-test)
 add_test(NAME "cpp.fast.disort-test-clearsky-multilayer" COMMAND disort-test-clearsky-multilayer)
 
 add_dependencies(check-deps disort-cpp-test-1)
@@ -49,6 +61,8 @@ add_dependencies(check-deps disort-cpp-test-5)
 add_dependencies(check-deps disort-cpp-test-8)
 add_dependencies(check-deps disort-cpp-test-9)
 add_dependencies(check-deps disort-cpp-test-11)
+add_dependencies(check-deps disort-cpp-disotest)
+add_dependencies(check-deps vdisort-cpp-test)
 add_dependencies(check-deps disort-test-clearsky-multilayer)
 
 if (NOT ENABLE_ARTS_LGPL AND NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)

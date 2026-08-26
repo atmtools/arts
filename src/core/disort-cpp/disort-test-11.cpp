@@ -289,6 +289,7 @@ void test_11a_multilayer() try {
   compare("test_11a-multilayer", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-11a-multilayer:\n{}", e.what())); }
 
+#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   std::cout << std::setprecision(16);
   test_11a_1layer();
@@ -297,3 +298,4 @@ int main() try {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
 }
+#endif

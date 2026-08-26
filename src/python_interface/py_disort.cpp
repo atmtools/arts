@@ -5,6 +5,7 @@
 #include <nanobind/stl/vector.h>
 #include <pydocs.h>
 #include <python_interface.h>
+#include <vdisort.h>
 
 #include <concepts>
 #include <optional>
@@ -23,6 +24,14 @@ using bdrf_func          = DisortBDRFOperator::func_t;
 void py_disort(py::module_& m) try {
   auto disort_nm  = m.def_submodule("disort");
   disort_nm.doc() = "DISORT solver internal types";
+
+  // VDISORT PYTHON INTERFACE BEGIN: polarized solver namespace and constants.
+  auto vdisort_nm                     = m.def_submodule("vdisort");
+  vdisort_nm.doc()                    = "VDISORT polarized solver internal types";
+  vdisort_nm.attr("stokes_dimension") = vdisort::stokes_dimension;
+  vdisort_nm.attr("cosine_mode")      = vdisort::cosine_mode;
+  vdisort_nm.attr("sine_mode")        = vdisort::sine_mode;
+  // VDISORT PYTHON INTERFACE END
 
   py::class_<DisortBDRFOperator> bdrfop(m, "DisortBDRFOperator");
   bdrfop.doc() = "A BDRF operator for DISORT";
@@ -68,6 +77,77 @@ void py_disort(py::module_& m) try {
   auto vecs  = py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(disort_nm, "ArrayOfBDRF");
   vecs.doc() = "An array of BDRF functions";
   generic_interface(vecs);
+
+  // VDISORT PYTHON INTERFACE BEGIN: a Fourier BRDF mode has cosine and sine
+  // Mueller-matrix callbacks.  Each callback returns [4*n_out, 4*n_in].
+  const auto polarized_bdrf_callback = [](const DisortBDRFOperator& f) {
+    return vdisort::BDRF::func_t{[f](MatrixView mat, const ConstVectorView& mu_out, const ConstVectorView& mu_in) {
+      const Matrix out = f(Vector{mu_out}, Vector{mu_in});
+      if (out.shape() != mat.shape()) {
+        throw std::runtime_error(
+            std::format("Polarized BDRF function returned wrong shape\n{:B,} vs {:B,}", out.shape(), mat.shape()));
+      }
+      mat = out;
+    }};
+  };
+
+  py::class_<vdisort::BDRF> vdisbdrf(m, "VDisortBDRF");
+  vdisbdrf.doc() = unwrap_stars(R"(A polarized VDISORT BDRF Fourier mode.
+
+The cosine and optional sine callables receive ``(mu_out, mu_in)`` and return
+a matrix of shape ``(4 * len(mu_out), 4 * len(mu_in))``.  Each 4-by-4 block is
+the Mueller reflection matrix for one outgoing/incident stream pair.
+)");
+  vdisbdrf
+      .def(
+          "__init__",
+          [polarized_bdrf_callback](vdisort::BDRF* b, const DisortBDRFOperator& cosine) {
+            new (b)
+                vdisort::BDRF{.cosine = polarized_bdrf_callback(cosine),
+                              .sine   = vdisort::BDRF::func_t{
+                                  [](MatrixView mat, const ConstVectorView&, const ConstVectorView&) { mat = 0.0; }}};
+          },
+          "cosine"_a,
+          py::keep_alive<0, 1>())
+      .def(
+          "__init__",
+          [polarized_bdrf_callback](
+              vdisort::BDRF* b, const DisortBDRFOperator& cosine, const DisortBDRFOperator& sine) {
+            new (b) vdisort::BDRF{.cosine = polarized_bdrf_callback(cosine), .sine = polarized_bdrf_callback(sine)};
+          },
+          "cosine"_a,
+          "sine"_a,
+          py::keep_alive<0, 1>(),
+          py::keep_alive<0, 2>())
+      .def(
+          "__call__",
+          [](const vdisort::BDRF& bdrf, const Index alpha, const Vector& mu_out, const Vector& mu_in) {
+            Matrix out(vdisort::stokes_dimension * mu_out.size(), vdisort::stokes_dimension * mu_in.size());
+            bdrf(alpha, out, mu_out, mu_in);
+            return out;
+          },
+          "alpha"_a,
+          "mu_out"_a,
+          "mu_in"_a);
+  generic_interface(vdisbdrf);
+  py::implicitly_convertible<bdrf_func, vdisort::BDRF>();
+
+  auto vvecs =
+      py::bind_vector<std::vector<vdisort::BDRF>, py::rv_policy::reference_internal>(vdisort_nm, "ArrayOfBDRF");
+  vvecs.doc() = "An array of polarized BDRF Fourier modes";
+  generic_interface(vvecs);
+
+  vdisort_nm.def("combine_phase_matrices",
+                 &vdisort::combine_phase_matrices,
+                 "cosine"_a,
+                 "sine"_a,
+                 "Convert ordinary cosine/sine phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def("combine_beam_phase_matrices",
+                 &vdisort::combine_beam_phase_matrices,
+                 "cosine"_a,
+                 "sine"_a,
+                 "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
+  // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
   generic_interface(coupling_result);
@@ -258,6 +338,153 @@ The relevant references are:
           "tau"_a,
           "Compute the downward flux");
   generic_interface(x);
+
+  // VDISORT PYTHON INTERFACE BEGIN: low-level polarized counterpart of
+  // cppdisort.  Radiation fields retain the scalar axes and append Stokes.
+  py::class_<vdisort::main_data> vx(m, "cppvdisort");
+  vx.doc() = unwrap_stars(R"(A low-level polarized VDISORT object.
+
+The calling style mirrors :class:`cppdisort`, but scalar phase coefficients,
+boundary values, sources, and beam intensity are replaced by their polarized
+counterparts.  Stokes components are ordered ``[I, Q, U, V]``.
+
+``phase_matrix`` has shape ``[2, NFourier, NLayers, NQuad, NQuad, 4, 4]``.
+The leading dimension contains the combined cosine and sine equations.
+``b_pos`` and ``b_neg`` have shape ``[2, NFourier, NQuad/2, 4]`` and
+``s_poly_coeffs`` has shape ``[NLayers, Ncoeffs, 4]``.
+)");
+  vx.def(
+      "__init__",
+      [](vdisort::main_data*               n,
+         const AscendingGrid&              tau_arr,
+         const Vector&                     omega_arr,
+         const Index                       NQuad,
+         const Tensor7&                    phase_matrix,
+         Numeric                           mu0,
+         const Vector&                     beam_stokes,
+         Numeric                           phi0,
+         const std::optional<Index>        NFourier_,
+         const std::optional<Tensor4>&     b_pos,
+         const std::optional<Tensor4>&     b_neg,
+         const std::vector<vdisort::BDRF>& bdrf,
+         const std::optional<Tensor3>&     s_poly_coeffs,
+         const std::optional<Tensor6>&     beam_phase_matrix,
+         const std::optional<Vector>&      source_coordinate_scale,
+         const std::optional<Vector>&      source_coordinate_offset) {
+        const Index NFourier = NFourier_.value_or(phase_matrix.shape()[1]);
+        const Index NLayers  = tau_arr.size();
+
+        new (n) vdisort::main_data(NQuad,
+                                   NFourier,
+                                   tau_arr,
+                                   omega_arr,
+                                   phase_matrix,
+                                   b_pos.value_or(Tensor4(2, NFourier, NQuad / 2, vdisort::stokes_dimension, 0.0)),
+                                   b_neg.value_or(Tensor4(2, NFourier, NQuad / 2, vdisort::stokes_dimension, 0.0)),
+                                   s_poly_coeffs.value_or(Tensor3(NLayers, 0, vdisort::stokes_dimension, 0.0)),
+                                   bdrf,
+                                   mu0,
+                                   beam_stokes,
+                                   phi0,
+                                   beam_phase_matrix.value_or(Tensor6{}),
+                                   source_coordinate_scale.value_or(Vector{}),
+                                   source_coordinate_offset.value_or(Vector{}));
+      },
+      "Run polarized VDISORT with an interface parallel to cppdisort.\n",
+      "tau_arr"_a,
+      "omega_arr"_a,
+      "NQuad"_a,
+      "phase_matrix"_a,
+      "mu0"_a,
+      "beam_stokes"_a,
+      "phi0"_a,
+      "NFourier"_a.none()                 = py::none(),
+      "b_pos"_a.none()                    = py::none(),
+      "b_neg"_a.none()                    = py::none(),
+      "BDRF_Fourier_modes"_a              = std::vector<vdisort::BDRF>{},
+      "s_poly_coeffs"_a.none()            = py::none(),
+      "beam_phase_matrix"_a.none()        = py::none(),
+      "source_coordinate_scale"_a.none()  = py::none(),
+      "source_coordinate_offset"_a.none() = py::none());
+  vx.def(
+        "u",
+        [](vdisort::main_data& dis, const AscendingGrid& tau, const Vector& phi) {
+          Tensor4 out(tau.size(), phi.size(), dis.mu().size(), vdisort::stokes_dimension);
+          dis.ungridded_u(out, tau, phi);
+          return out;
+        },
+        "tau"_a,
+        "phi"_a,
+        "Compute the Stokes radiance with shape [tau, phi, stream, stokes]")
+      .def(
+          "flux",
+          [](vdisort::main_data& dis, const AscendingGrid& tau) {
+            Matrix out(3, tau.size());
+            dis.ungridded_flux(out[0], out[1], out[2], tau);
+            return out;
+          },
+          "tau"_a,
+          "Compute Stokes-I upward, downward-diffuse, and downward-direct flux")
+      .def(
+          "pydisort_u",
+          [](vdisort::main_data& dis, Vector tau_, const Vector& phi) {
+            std::vector<Index> sorting(tau_.size());
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
+
+            AscendingGrid tau{std::move(tau_)};
+            Tensor4       res(tau.size(), phi.size(), dis.mu().size(), vdisort::stokes_dimension);
+            dis.ungridded_u(res, tau, phi);
+
+            Tensor4 out(dis.mu().size(), tau.size(), phi.size(), vdisort::stokes_dimension);
+            for (Size i = 0; i < tau.size(); ++i)
+              for (Size p = 0; p < phi.size(); ++p)
+                for (Size stream = 0; stream < dis.mu().size(); ++stream)
+                  out[stream, i, p, joker] = res[sorting[i], p, stream, joker];
+            return out;
+          },
+          "tau"_a,
+          "phi"_a,
+          "Compute Stokes radiance with shape [stream, tau, phi, stokes]")
+      .def(
+          "pydisort_flux_up",
+          [](vdisort::main_data& dis, Vector tau_) {
+            std::vector<Index> sorting(tau_.size());
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
+
+            AscendingGrid tau{std::move(tau_)};
+            Matrix        res(3, tau.size());
+            dis.ungridded_flux(res[0], res[1], res[2], tau);
+
+            Vector out(tau.size());
+            for (Size i = 0; i < tau.size(); ++i) { out[i] = res[0, sorting[i]]; }
+            return out;
+          },
+          "tau"_a,
+          "Compute the upward Stokes-I flux")
+      .def(
+          "pydisort_flux_down",
+          [](vdisort::main_data& dis, Vector tau_) {
+            std::vector<Index> sorting(tau_.size());
+            stdr::iota(sorting, 0);
+            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
+
+            AscendingGrid tau{std::move(tau_)};
+            Matrix        res(3, tau.size());
+            dis.ungridded_flux(res[0], res[1], res[2], tau);
+
+            ArrayOfVector out(2, Vector(tau.size()));
+            for (Size i = 0; i < tau.size(); ++i) {
+              out[0][i] = res[1, sorting[i]];
+              out[1][i] = res[2, sorting[i]];
+            }
+            return out;
+          },
+          "tau"_a,
+          "Compute downward diffuse and direct Stokes-I flux");
+  generic_interface(vx);
+  // VDISORT PYTHON INTERFACE END
 
   py::class_<DisortSettings> disort_settings(m, "DisortSettings");
   generic_interface(disort_settings);

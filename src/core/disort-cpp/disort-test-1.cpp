@@ -809,6 +809,7 @@ void test_1f() {
   compare("test_1f", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 }
 
+#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   test_1a();
   test_1b();
@@ -822,3 +823,4 @@ int main() try {
   std::cerr << e.what() << '\n';
   return EXIT_FAILURE;
 }
+#endif

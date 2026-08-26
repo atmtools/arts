@@ -574,6 +574,7 @@ void test_2d() {
   compare("test_2d", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 }
 
+#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   test_2a();
   test_2b();
@@ -585,3 +586,4 @@ int main() try {
   std::cerr << e.what() << '\n';
   return EXIT_FAILURE;
 }
+#endif
