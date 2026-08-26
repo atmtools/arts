@@ -1097,6 +1097,20 @@ void define_wsv_data() {
       GROUP("ArrayOfTensor7")));
 
   wsv_data.push_back(WsvRecord(
+    NAME("dobatch_disort_aux"),
+    DESCRIPTION(
+        "Batch of auxilary data to the output of the Disort-Methods.\n"
+        "\n"
+        "Different data beside the direct result of Disort\n"
+        "calculations can be obtained by this variable. These auxilary\n"
+        "data are selected by *disort_aux_vars*.\n"
+        "\n"
+        "Usage: Most commonly produced by *DOBatchCalc*.\n"
+        "\n"
+        "Dimensions: [batch cases] [quantity][ frequencies, levels/layers ].\n"),
+    GROUP("ArrayOfArrayOfMatrix")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("dobatch_radiance_field"),
       DESCRIPTION(
           "Batch of radiance fields.\n"

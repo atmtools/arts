@@ -633,6 +633,7 @@ void DOBatchCalc(Workspace& ws,
                  ArrayOfTensor5& dobatch_radiance_field,
                  ArrayOfTensor4& dobatch_irradiance_field,
                  ArrayOfTensor5& dobatch_spectral_irradiance_field,
+                 ArrayOfArrayOfMatrix& dobatch_disort_aux,
                  const Index& ybatch_start,
                  const Index& ybatch_n,
                  const Agenda& dobatch_calc_agenda,
@@ -662,6 +663,7 @@ void DOBatchCalc(Workspace& ws,
   dobatch_radiance_field.resize(ybatch_n);
   dobatch_irradiance_field.resize(ybatch_n);
   dobatch_spectral_irradiance_field.resize(ybatch_n);
+  dobatch_disort_aux.resize(ybatch_n);
 
   // Go through the batch:
 
@@ -691,12 +693,14 @@ void DOBatchCalc(Workspace& ws,
         Tensor5 radiance_field;
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
+        ArrayOfMatrix disort_aux;
 
         dobatch_calc_agendaExecute(wss,
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,
                                    spectral_irradiance_field,
+                                   disort_aux,
                                    ybatch_start + ybatch_index,
                                    dobatch_calc_agenda);
 
@@ -709,6 +713,8 @@ void DOBatchCalc(Workspace& ws,
 #pragma omp critical(dobatchCalc_assign_spectral_irradiance_field)
         dobatch_spectral_irradiance_field[ybatch_index] =
             spectral_irradiance_field;
+#pragma omp critical(dobatchCalc_assign_disort_aux)
+        dobatch_disort_aux[ybatch_index] = disort_aux;
 
       } catch (const std::exception& e) {
         if (robust && !do_abort) {
