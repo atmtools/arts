@@ -447,7 +447,7 @@ void main_data::solve_for_coefs() {
         }
 
         for (Index l = 0; l < ln; l++) {
-          const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
+          const Numeric scl = std::exp(-scaled_tau_arr_with_0[l + 1] / mu0);
           for (Index j = 0; j < NQuad; j++) { RHS_middle[l, j] += (B_collect_m[l + 1, j] - B_collect_m[l, j]) * scl; }
         }
 
@@ -649,39 +649,41 @@ void main_data::diagonalize() {
  * Modifies:
  * - scaled_mu0
  * - Leg_coeffs_residue_avg
- * - omega_avg
- * - f_avg
+ * - IMS_scalar
  */
 void main_data::set_ims_factors() {
   ARTS_TIME_REPORT
 
-  const Numeric sum1 = dot(omega_arr, tau_arr.vec());
-  omega_avg          = sum1 / sum(tau_arr.vec());
+  Numeric cumulative_peak_scattering = 0.0;
+  Vector  cumulative_residue(NLeg_all, 0.0);
 
-  const Numeric sum2 = einsum<Numeric, "", "i", "i", "i">(f_arr, omega_arr, tau_arr);
-  if (std::isnormal(sum2)) {
-    f_avg = sum2 / sum1;
+  for (Index l = 0; l < NLayers; ++l) {
+    const Numeric tau_top   = l == 0 ? 0.0 : tau_arr[l - 1];
+    const Numeric thickness = tau_arr[l] - tau_top;
+    const Numeric weight    = omega_arr[l] * thickness;
 
-    for (Index i = 0; i < NLeg_all; i++) {
-      Numeric sum3 = 0.0;
-      if (not f_arr.empty()) {
-        if (i < NLeg) {
-          for (Index j = 0; j < NLayers; j++) { sum3 += f_arr[j] * omega_arr[j] * tau_arr[j]; }
-        } else {
-          for (Index j = 0; j < NLayers; j++) { sum3 += Leg_coeffs_all[j, i] * omega_arr[j] * tau_arr[j]; }
-        }
-      }
+    cumulative_peak_scattering += f_arr[l] * weight;
 
-      const Numeric x           = sum3 / sum2;
-      Leg_coeffs_residue_avg[i] = static_cast<Numeric>(2 * i + 1) * (2.0 * x - Math::pow2(x));
+    const Numeric omega_f_avg = cumulative_peak_scattering / tau_arr[l];
+    scaled_mu0[l + 1]         = mu0 / (1.0 - omega_f_avg);
+    IMS_scalar[l + 1]         = I0 / (4.0 * Constant::pi) * Math::pow2(omega_f_avg) / (1.0 - omega_f_avg);
+
+    for (Index i = 0; i < NLeg_all; ++i) {
+      const Numeric residue  = i < NLeg ? f_arr[l] : Leg_coeffs_all[l, i];
+      cumulative_residue[i] += residue * weight;
+
+      const Numeric residue_avg =
+          cumulative_peak_scattering > 0.0 ? cumulative_residue[i] / cumulative_peak_scattering : 0.0;
+      Leg_coeffs_residue_avg[l + 1, i] =
+          static_cast<Numeric>(2 * i + 1) * (2.0 * residue_avg - Math::pow2(residue_avg));
     }
-
-    scaled_mu0 = mu0 / (1.0 - omega_avg * f_avg);
-  } else {
-    f_avg                  = 0.0;
-    Leg_coeffs_residue_avg = 0.0;
-    scaled_mu0             = mu0;
   }
+
+  // The top-boundary limiting set samples only the first layer.  Copying the
+  // first lower-boundary set also makes IMS exact throughout a single layer.
+  scaled_mu0[0]             = scaled_mu0[1];
+  IMS_scalar[0]             = IMS_scalar[1];
+  Leg_coeffs_residue_avg[0] = Leg_coeffs_residue_avg[1];
 }
 
 void main_data::set_scales() {
@@ -690,7 +692,11 @@ void main_data::set_scales() {
   eintra<"i", "i", "i">([](auto om, auto fr) { return 1 - om * fr; }, scale_tau, omega_arr, f_arr);
 
   scaled_tau_arr_with_0[0] = 0;
-  einsum<"i", "i", "i">(scaled_tau_arr_with_0[Range{1, NLayers}], tau_arr, scale_tau);
+  for (Index l = 0; l < NLayers; ++l) {
+    const Numeric tau_top        = l == 0 ? 0.0 : tau_arr[l - 1];
+    const Numeric thickness      = tau_arr[l] - tau_top;
+    scaled_tau_arr_with_0[l + 1] = scaled_tau_arr_with_0[l] + scale_tau[l] * thickness;
+  }
 
   eintra<"ij", "j", "ij", "i">(
       [](auto j, auto lca, auto f) { return static_cast<Numeric>(2 * j + 1) * (lca - f) / (1.0 - f); },
@@ -782,11 +788,6 @@ void main_data::check_input_value() const {
       stdr::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }), "f_arr must be [0, 1], got {:B,}", f_arr);
 
   ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
-
-  ARTS_USER_ERROR_IF(stdr::any_of(mu_arr[rf(N)], [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
-                     "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0. Got mu_arr {:B,} for mu0 {}",
-                     mu_arr,
-                     mu0);
 }
 
 void main_data::transmission() {
@@ -886,7 +887,8 @@ main_data::main_data(const Index NLayers_,
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
       W(N),
-      Leg_coeffs_residue_avg(NLeg_all),
+      Leg_coeffs_residue_avg(NLayers + 1, NLeg_all),
+      IMS_scalar(NLayers + 1),
       weighted_scaled_Leg_coeffs(NLayers, NLeg),
       weighted_Leg_coeffs_all(NLayers, NLeg_all),
       GC_collect(NFourier, NLayers, NQuad, NQuad),
@@ -896,6 +898,7 @@ main_data::main_data(const Index NLayers_,
       exponent(NLayers, NFourier, NQuad, 1.0),
       um(NLayers, NFourier, NQuad),
       B_collect(NFourier, NLayers, NQuad),
+      scaled_mu0(NLayers + 1),
       // Pure compute allocations
       n(NQuad * NLayers),
       RHS(n),
@@ -979,7 +982,8 @@ main_data::main_data(const Index       NQuad_,
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
       W(N),
-      Leg_coeffs_residue_avg(NLeg_all),
+      Leg_coeffs_residue_avg(NLayers + 1, NLeg_all),
+      IMS_scalar(NLayers + 1),
       weighted_scaled_Leg_coeffs(NLayers, NLeg),
       weighted_Leg_coeffs_all(NLayers, NLeg_all),
       GC_collect(NFourier, NLayers, NQuad, NQuad),
@@ -989,6 +993,7 @@ main_data::main_data(const Index       NQuad_,
       exponent(NLayers, NFourier, NQuad, 1.0),
       um(NLayers, NFourier, NQuad),
       B_collect(NFourier, NLayers, NQuad),
+      scaled_mu0(NLayers + 1),
       // Pure compute allocations
       n(NQuad * NLayers),
       RHS(n),
@@ -1150,6 +1155,44 @@ void calculate_nu(Vector& nu, const ConstVectorView& mu, const Numeric phi, cons
         return x * mu_p + scl * std::sqrt(1.0 - x * x);
       });
 }
+
+Numeric phi1_neg(const Numeric x) {
+  if (x == 0.0) return 1.0;
+  return -std::expm1(-x) / x;
+}
+
+Numeric phi2(const Numeric x) {
+  if (std::abs(x) >= 1.0) return (std::expm1(x) - x) / Math::pow2(x);
+
+  // phi2(x) = sum(k=0..infinity) x^k / (k + 2)!.  Sixteen
+  // nonconstant terms give sub-ulp truncation error for |x| < 1.
+  Numeric term = 0.5;
+  Numeric sum  = term;
+  for (Index k = 1; k <= 16; ++k) {
+    term *= x / static_cast<Numeric>(k + 2);
+    sum  += term;
+  }
+  return sum;
+}
+
+Numeric downward_tms_kernel(const Numeric mu,
+                            const Numeric mu0,
+                            const Numeric thickness,
+                            const Numeric value_at_lower_end,
+                            const Numeric value_at_upper_end) {
+  const Numeric y = 1.0 / mu - 1.0 / mu0;
+  const Numeric w = thickness * y;
+  if (std::abs(w) < 1.0) return thickness / mu * phi1_neg(w) * value_at_lower_end;
+  return (value_at_lower_end - value_at_upper_end) / (mu * y);
+}
+
+Numeric ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
+  const Numeric x = 1.0 / mu - 1.0 / scaled_mu0;
+  const Numeric z = -tau * x;
+  if (std::abs(z) < 1.0) { return Math::pow2(tau) * std::exp(-tau / scaled_mu0) * phi2(z) / (mu * scaled_mu0); }
+
+  return ((tau - 1.0 / x) * std::exp(-tau / scaled_mu0) + std::exp(-tau / mu) / x) / (mu * scaled_mu0 * x);
+}
 }  // namespace
 
 void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const {
@@ -1163,26 +1206,34 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const 
   const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
   const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  // mathscr_B
+  // The upward beam factor is regular and remains in mathscr_B.  The
+  // downward factor has a removable singularity at mu == mu0 and is folded
+  // into the exponential kernel below.
   calculate_nu(data.nu, mu_arr, phi, -mu0, phi0);
 
   data.mathscr_B.resize(NLayers, NQuad);
   for (Index j = 0; j < NLayers; j++) {
     for (Index i = 0; i < NQuad; i++) {
-      const Numeric p_true = Legendre::legendre_sum(weighted_Leg_coeffs_all[j], data.nu[i]);
-      const Numeric p_trun = Legendre::legendre_sum(weighted_scaled_Leg_coeffs[j], data.nu[i]);
-      data.mathscr_B[j, i] = (scaled_omega_arr[j] * I0) / (4 * Constant::pi) * (mu0 / (mu0 + mu_arr[i])) *
-                             (p_true / (1.0 - f_arr[j]) - p_trun);
+      const Numeric p_true      = Legendre::legendre_sum(weighted_Leg_coeffs_all[j], data.nu[i]);
+      const Numeric p_trun      = Legendre::legendre_sum(weighted_scaled_Leg_coeffs[j], data.nu[i]);
+      const Numeric beam_factor = i < N ? mu0 / (mu0 + mu_arr[i]) : 1.0;
+      data.mathscr_B[j, i] =
+          (scaled_omega_arr[j] * I0) / (4 * Constant::pi) * beam_factor * (p_true / (1.0 - f_arr[j]) - p_trun);
     }
   }
 
   data.TMS.resize(NQuad);
   const Numeric exptau = std::exp(-scaled_tau / mu0);
   for (Index i = 0; i < N; i++) {
-    data.TMS[i]     = exptau - std::exp((scaled_tau - scaled_tau_arr_l) / mu_arr[i] - scaled_tau_arr_l / mu0);
-    data.TMS[i + N] = exptau - std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu_arr[i] - scaled_tau_arr_lm1 / mu0);
+    const Numeric mu = mu_arr[i];
+
+    const Numeric up_at_bottom = std::exp((scaled_tau - scaled_tau_arr_l) / mu - scaled_tau_arr_l / mu0);
+    data.TMS[i]                = data.mathscr_B[l, i] * (exptau - up_at_bottom);
+
+    const Numeric down_at_top = std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu - scaled_tau_arr_lm1 / mu0);
+    data.TMS[i + N] =
+        data.mathscr_B[l, i + N] * downward_tms_kernel(mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, down_at_top);
   }
-  data.TMS *= data.mathscr_B[l];
 
   if (tau_arr.size() > 1) {
     data.contribution_from_other_layers_pos.resize(N, NLayers);
@@ -1191,20 +1242,25 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const 
     data.contribution_from_other_layers_neg = 0;
     for (Index i = 0; i < NLayers; i++) {
       if (l > i) {
-        // neg
+        // Downward contribution from a complete layer above the point.
         for (Index j = 0; j < N; j++) {
+          const Numeric mu         = mu_arr[j];
+          const Numeric tau_top    = scaled_tau_arr_with_0[i];
+          const Numeric tau_bottom = scaled_tau_arr_with_0[i + 1];
+          const Numeric at_bottom  = std::exp((tau_bottom - scaled_tau) / mu - tau_bottom / mu0);
+          const Numeric at_top     = std::exp((tau_top - scaled_tau) / mu - tau_top / mu0);
           data.contribution_from_other_layers_neg[j, i] =
-              (data.mathscr_B[i, j + N] *
-               (std::exp((scaled_tau_arr_with_0[i] - scaled_tau) / mu_arr[j] - scaled_tau_arr_with_0[i] / mu0) -
-                std::exp((scaled_tau_arr_with_0[i] - scaled_tau) / mu_arr[j] - scaled_tau_arr_with_0[i] / mu0)));
+              data.mathscr_B[i, j + N] * downward_tms_kernel(mu, mu0, tau_bottom - tau_top, at_bottom, at_top);
         }
       } else if (l < i) {
-        // pos
+        // Upward contribution from a complete layer below the point.
         for (Index j = 0; j < N; j++) {
-          data.contribution_from_other_layers_pos[j, i] =
-              (data.mathscr_B[i, j] *
-               (std::exp((scaled_tau - scaled_tau_arr_with_0[i]) / mu_arr[j] - scaled_tau_arr_with_0[i] / mu0) -
-                std::exp((scaled_tau - scaled_tau_arr_with_0[i]) / mu_arr[j] - scaled_tau_arr_with_0[i] / mu0)));
+          const Numeric mu                              = mu_arr[j];
+          const Numeric tau_top                         = scaled_tau_arr_with_0[i];
+          const Numeric tau_bottom                      = scaled_tau_arr_with_0[i + 1];
+          const Numeric at_top                          = std::exp((scaled_tau - tau_top) / mu - tau_top / mu0);
+          const Numeric at_bottom                       = std::exp((scaled_tau - tau_bottom) / mu - tau_bottom / mu0);
+          data.contribution_from_other_layers_pos[j, i] = data.mathscr_B[i, j] * (at_top - at_bottom);
         }
       } else {
         continue;
@@ -1223,15 +1279,27 @@ void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
+  const Index   l         = tau_index(tau);
+  const Numeric tau_top   = l == 0 ? 0.0 : tau_arr[l - 1];
+  const Numeric thickness = tau_arr[l] - tau_top;
+
   ims.resize(N);
   for (Index i = 0; i < N; i++) {
-    const Numeric nu  = calculate_nu(mu_arr[i + N], phi, -mu0, phi0);
-    const Numeric x   = 1.0 / mu_arr[i] - 1.0 / scaled_mu0;
-    const Numeric chi = (1 / (mu_arr[i] * scaled_mu0 * x)) *
-                        ((tau - 1 / x) * std::exp(-tau / scaled_mu0) + std::exp(-tau / mu_arr[i]) / x);
-    ims[i]            = (I0 / (4 * Constant::pi) * Math::pow2(omega_avg * f_avg) / (1 - omega_avg * f_avg) *
-                         Legendre::legendre_sum(Leg_coeffs_residue_avg, nu)) *
-                        chi;
+    const Numeric mu = mu_arr[i];
+    const Numeric nu = calculate_nu(mu_arr[i + N], phi, -mu0, phi0);
+
+    const auto correction_for_boundary = [&](const Index k) {
+      return IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) * ims_chi(tau, mu, scaled_mu0[k]);
+    };
+
+    if (NLayers == 1) {
+      ims[i] = correction_for_boundary(1);
+    } else {
+      const Numeric lower  = correction_for_boundary(l);
+      const Numeric upper  = correction_for_boundary(l + 1);
+      const Numeric weight = (tau - tau_top) / thickness;
+      ims[i]               = std::lerp(lower, upper, weight);
+    }
   }
 }
 
@@ -1247,7 +1315,6 @@ void main_data::u_corr(u_data& u_data, Vector& ims, tms_data& tms_data, const Nu
   for (Index i = N; i < NQuad; i++) { u_data.intensities[i] += I0_orig * (tms_data.TMS[i] + ims[i - N]); }
 }
 
-//! FIXME: This implementation should be improved
 void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
   ARTS_TIME_REPORT
 
@@ -1267,20 +1334,12 @@ void main_data::gridded_IMS(Tensor3View ims, const Vector& phi) const {
 
   const Index M = phi.size();
 
-  for (Index l = 0; l < NLayers; l++) {
+  Vector correction;
+  for (Index l = 0; l < NLayers; l++)
     for (Index j = 0; j < M; j++) {
-      for (Index i = 0; i < N; i++) {
-        const Numeric nu = calculate_nu(mu_arr[i + N], phi[j], -mu0, phi0);
-        const Numeric x  = 1.0 / mu_arr[i] - 1.0 / scaled_mu0;
-        const Numeric chi =
-            (1 / (mu_arr[i] * scaled_mu0 * x)) *
-            ((tau_arr[l] - 1.0 / x) * std::exp(-tau_arr[l] / scaled_mu0) + std::exp(-tau_arr[l] / mu_arr[i]) / x);
-        ims[l, j, i] = (I0 / (4 * Constant::pi) * Math::pow2(omega_avg * f_avg) / (1 - omega_avg * f_avg) *
-                        Legendre::legendre_sum(Leg_coeffs_residue_avg, nu)) *
-                       chi;
-      }
+      IMS(correction, tau_arr[l], phi[j]);
+      ims[l, j] = correction;
     }
-  }
 }
 
 void main_data::gridded_u_corr(Tensor3View u_data, Tensor3View tms, Tensor3View ims, const Vector& phi) const {

@@ -502,7 +502,9 @@ void test_spectral_phase_matrix_split() {
 // makes it callable from the polarized VDISORT test executable.
 #define disort vdisort_scalar_test
 #define main   run_all_scalar_disort_tests_through_vdisort
+#define DISORT_TEST_VDISORT_ADAPTER
 #include "disotest.cpp"
+#undef DISORT_TEST_VDISORT_ADAPTER
 #undef main
 #undef disort
 // VDISORT SCALAR TEST PORT END

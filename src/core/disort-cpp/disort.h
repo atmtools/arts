@@ -146,7 +146,8 @@ class main_data {
   Vector  mu_arr{};                      // [NQuad]
   Vector  inv_mu_arr{};                  // [NQuad]
   Vector  W{};                           // [N]
-  Vector  Leg_coeffs_residue_avg{};      // [NLeg_all]
+  Matrix  Leg_coeffs_residue_avg{};      // [NLayers + 1, NLeg_all]
+  Vector  IMS_scalar{};                  // [NLayers + 1]
   Matrix  weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
   Matrix  weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
   Tensor4 GC_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
@@ -157,9 +158,7 @@ class main_data {
   Tensor3 um{};                          // [NLayers, NFourier, NQuad]
   Tensor3 B_collect{};                   // [NFourier, NLayers, NQuad]
   Numeric I0_orig{};
-  Numeric f_avg{};
-  Numeric omega_avg{};
-  Numeric scaled_mu0{};
+  Vector  scaled_mu0{};  // [NLayers + 1]
 
   //! Internal compute data
   Index  n{};                           // NQuad * NLayers;
@@ -359,8 +358,7 @@ class main_data {
     * Modifies:
     * - scaled_mu0
     * - Leg_coeffs_residue_avg
-    * - omega_avg
-    * - f_avg
+    * - IMS_scalar
     */
   void set_ims_factors();
 
@@ -553,6 +551,9 @@ class main_data {
 
   //! The optical thicknesses grid - NLayers
   [[nodiscard]] auto&& tau() const { return tau_arr; }
+
+  //! The cumulative delta-scaled optical thicknesses, including zero - NLayers + 1
+  [[nodiscard]] auto&& scaled_tau() const { return scaled_tau_arr_with_0; }
 
   //! The single scattering albedo - NLayers
   [[nodiscard]] auto&& omega() const { return omega_arr; }
@@ -834,11 +835,8 @@ template <> struct std::formatter<disort::main_data> {
                        "I0_orig: "sv,
                        v.I0_orig,
                        sep,
-                       "f_avg: "sv,
-                       v.f_avg,
-                       sep,
-                       "omega_avg: "sv,
-                       v.omega_avg,
+                       "IMS_scalar: "sv,
+                       v.IMS_scalar,
                        sep,
                        "scaled_mu0: "sv,
                        v.scaled_mu0,

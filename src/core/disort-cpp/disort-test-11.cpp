@@ -3,6 +3,57 @@
 #include "artstime.h"
 #include "disort.h"
 
+#ifndef DISORT_TEST_VDISORT_ADAPTER
+namespace {
+void require_close(const std::string_view name, const auto& a, const auto& b, const Numeric tolerance) {
+  ARTS_USER_ERROR_IF(a.shape() != b.shape(), "{}: shape mismatch {} vs {}", name, a.shape(), b.shape());
+
+  Numeric largest_error = 0.0;
+  auto    ai            = a.elem_begin();
+  auto    bi            = b.elem_begin();
+  for (; ai != a.elem_end(); ++ai, ++bi) {
+    const Numeric av    = *ai;
+    const Numeric bv    = *bi;
+    const Numeric scale = std::max({1.0, std::abs(av), std::abs(bv)});
+    largest_error       = std::max(largest_error, std::abs(av - bv) / scale);
+  }
+  ARTS_USER_ERROR_IF(largest_error > tolerance, "{}: largest scaled error is {}", name, largest_error);
+}
+
+disort::main_data identical_atmosphere(const AscendingGrid& tau_arr, const Numeric mu0 = 0.6) {
+  constexpr Index   NQuad    = 8;
+  constexpr Index   NLeg     = NQuad;
+  constexpr Index   NFourier = NQuad;
+  constexpr Index   NLeg_all = 2 * NQuad;
+  constexpr Numeric omega    = 0.8;
+  Matrix            legendre(tau_arr.size(), NLeg_all);
+  for (auto&& row : legendre)
+    for (Index k = 0; k < NLeg_all; ++k) row[k] = std::pow(0.75, static_cast<Numeric>(k));
+
+  return {NQuad,
+          NLeg,
+          NFourier,
+          tau_arr,
+          Vector(tau_arr.size(), omega),
+          legendre,
+          Matrix(NFourier, NQuad / 2, 0.0),
+          Matrix(NFourier, NQuad / 2, 0.0),
+          Vector(tau_arr.size(), legendre[0, NLeg]),
+          Matrix(tau_arr.size(), 0),
+          {},
+          mu0,
+          Constant::pi / mu0,
+          0.9 * Constant::pi};
+}
+
+void require_finite(const std::string_view name, const auto& values) {
+  ARTS_USER_ERROR_IF(stdr::any_of(values | by_elem, [](const Numeric x) { return !std::isfinite(x); }),
+                     "{} contains a non-finite value",
+                     name);
+}
+}  // namespace
+#endif
+
 void test_11a_1layer() try {
   const AscendingGrid tau_arr{8.};
   const Vector        omega_arr{0.999999};
@@ -289,11 +340,154 @@ void test_11a_multilayer() try {
   compare("test_11a-multilayer", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-11a-multilayer:\n{}", e.what())); }
 
+#ifndef DISORT_TEST_VDISORT_ADAPTER
+void test_11b_identical_layer_invariance() try {
+  const auto one_layer  = identical_atmosphere(AscendingGrid{8.0});
+  const auto many_layer = identical_atmosphere(
+      AscendingGrid{0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0});
+  const Vector tau{0.0, 0.17, 0.5, 1.37, 4.25, 7.91, 8.0};
+  const Vector phi{0.0, 0.41, 2.7, Constant::two_pi - 0.2};
+
+  require_close("one layer vs identical sublayers, corrected intensity",
+                compute_u(one_layer, tau, phi, true),
+                compute_u(many_layer, tau, phi, true),
+                2e-9);
+
+  disort::tms_data tms_one;
+  disort::tms_data tms_many;
+  Vector           ims_one;
+  Vector           ims_many;
+  for (const Numeric t : tau)
+    for (const Numeric p : phi) {
+      one_layer.TMS(tms_one, t, p);
+      many_layer.TMS(tms_many, t, p);
+      require_close("one layer vs identical sublayers, TMS", tms_one.TMS, tms_many.TMS, 2e-13);
+
+      one_layer.IMS(ims_one, t, p);
+      many_layer.IMS(ims_many, t, p);
+      require_close("one layer vs identical sublayers, IMS", ims_one, ims_many, 2e-13);
+    }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11b-identical-layer-invariance:\n{}", e.what()));
+}
+
+void test_11c_heterogeneous_delta_scaling() try {
+  const AscendingGrid tau_arr{1.0, 3.0, 6.0};
+  const Vector        omega{0.5, 0.8, 0.25};
+  const Vector        f{0.2, 0.4, 0.6};
+  Matrix              legendre(tau_arr.size(), 8, 0.0);
+  legendre[joker, 0] = 1.0;
+
+  const disort::main_data dis(4,
+                              4,
+                              4,
+                              tau_arr,
+                              omega,
+                              legendre,
+                              Matrix(4, 2, 0.0),
+                              Matrix(4, 2, 0.0),
+                              f,
+                              Matrix(tau_arr.size(), 0),
+                              {},
+                              0.6,
+                              Constant::pi / 0.6,
+                              0.0);
+
+  const Vector expected{0.0,
+                        1.0 * (1.0 - omega[0] * f[0]),
+                        1.0 * (1.0 - omega[0] * f[0]) + 2.0 * (1.0 - omega[1] * f[1]),
+                        1.0 * (1.0 - omega[0] * f[0]) + 2.0 * (1.0 - omega[1] * f[1]) + 3.0 * (1.0 - omega[2] * f[2])};
+  require_close("cumulative delta-scaled optical depth", dis.scaled_tau(), expected, 1e-14);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11c-heterogeneous-delta-scaling:\n{}", e.what()));
+}
+
+void test_11d_removable_correction_singularities() try {
+  const auto    probe   = identical_atmosphere(AscendingGrid{1.0});
+  const Numeric mu_quad = probe.mu()[2];
+
+  // TMS has a removable singularity when the downward evaluation angle is
+  // the beam angle.
+  const auto       tms_singular = identical_atmosphere(AscendingGrid{1.0}, mu_quad);
+  disort::tms_data tms;
+  tms_singular.TMS(tms, 0.37, 1.1);
+  require_finite("TMS at mu == mu0", tms.TMS);
+
+  // IMS has its removable singularity at mu == scaled_mu0.  For this
+  // identical atmosphere omega*f is constant, so choose mu0 accordingly.
+  constexpr Numeric omega        = 0.8;
+  const Numeric     f            = std::pow(0.75, 8.0);
+  const auto        ims_singular = identical_atmosphere(AscendingGrid{1.0}, mu_quad * (1.0 - omega * f));
+  Vector            ims;
+  ims_singular.IMS(ims, 0.37, 1.1);
+  require_finite("IMS at mu == scaled_mu0", ims);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11d-removable-correction-singularities:\n{}", e.what()));
+}
+
+void test_11e_current_pythonic_disort_correction() try {
+  const AscendingGrid tau_arr{0.4, 1.2, 2.0};
+  const Vector        omega{0.7, 0.5, 0.8};
+  const Vector        g{0.7, 0.6, 0.8};
+  Matrix              legendre(tau_arr.size(), 8);
+  for (Size l = 0; l < tau_arr.size(); ++l)
+    for (Index k = 0; k < legendre.ncols(); ++k) legendre[l, k] = std::pow(g[l], static_cast<Numeric>(k));
+
+  const disort::main_data dis(4,
+                              4,
+                              4,
+                              tau_arr,
+                              omega,
+                              legendre,
+                              Matrix(4, 2, 0.0),
+                              Matrix(4, 2, 0.0),
+                              Vector{legendre[joker, 4]},
+                              Matrix(tau_arr.size(), 0),
+                              {},
+                              0.63,
+                              Constant::pi / 0.63,
+                              0.7);
+
+  const Vector     tau{0.2, 0.8, 1.7};
+  const Vector     phi{0.3, 2.0};
+  Tensor3          correction(4, tau.size(), phi.size());
+  disort::u_data   uncorrected;
+  disort::u_data   corrected;
+  disort::tms_data tms;
+  Vector           ims;
+  for (Size t = 0; t < tau.size(); ++t)
+    for (Size p = 0; p < phi.size(); ++p) {
+      dis.u(uncorrected, tau[t], phi[p]);
+      dis.u_corr(corrected, ims, tms, tau[t], phi[p]);
+      correction[joker, t, p]  = corrected.intensities;
+      correction[joker, t, p] -= uncorrected.intensities;
+    }
+
+  // Generated with the current Pythonic-DISORT main branch using the same
+  // inputs and u(NT_cor=True) - u(NT_cor=False).
+  const Tensor3 expected{
+      Vector{-3.7472007688001185e-02, -8.5810638855479404e-03, -1.0028434790383289e-02, -2.9933874791298332e-03,
+             3.1288563974852940e-03,  -1.2147006561405757e-02, 3.8091906483520219e-03,  1.2244675379773216e-02,
+             -1.1816920676733372e-04, 8.5884505553329264e-03,  -8.1475725099112301e-04, 4.0094675513905817e-03,
+             -2.7627970164139759e-02, 2.2184021393160600e-02,  -5.6523876751377600e-03, 9.9286562788651611e-03,
+             -6.9779555324503306e-02, 2.3324575189257499e-02,  2.4542826376617186e-01,  -2.9144267704404744e-02,
+             3.4603070992895713e-01,  -4.2585714157869131e-02, 3.8286134329015187e-01,  -3.6153231461532376e-02}
+          .reshape(4, 3, 2)};
+  require_close("current Pythonic-DISORT heterogeneous NT correction", correction, expected, 3e-13);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11e-current-pythonic-disort-correction:\n{}", e.what()));
+}
+#endif
+
 #ifndef DISORT_TEST_NO_MAIN
 int main() try {
   std::cout << std::setprecision(16);
   test_11a_1layer();
   test_11a_multilayer();
+  test_11b_identical_layer_invariance();
+  test_11c_heterogeneous_delta_scaling();
+  test_11d_removable_correction_singularities();
+  test_11e_current_pythonic_disort_correction();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
