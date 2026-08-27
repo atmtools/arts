@@ -3,21 +3,19 @@
 #include "matpack_mdspan_data_t.h"
 
 namespace matpack {
-template <typename T>
-class basic_band_matrix {
-  Index        KU;
-  Index        KL;
-  Index        M;
-  Index        N;
-  data_t<T, 2> AB;
+template <typename T> class basic_band_matrix {
+  Index            KU;
+  Index            KL;
+  Index            M;
+  Index            N;
+  data_t<T, 2>     AB;
   std::vector<int> ipiv;
 
   static data_t<T, 2> mat(Index KL, Index KU, Index N) { return data_t<T, 2>(N, 2 * KL + KU + 1); }
 
  public:
   // Empty matrix of known size
-  basic_band_matrix(Index ku, Index kl, Index m, Index n)
-      : KU(ku), KL(kl), M(m), N(n), AB(mat(KL, KU, N)), ipiv(N) {}
+  basic_band_matrix(Index ku, Index kl, Index m, Index n) : KU(ku), KL(kl), M(m), N(n), AB(mat(KL, KU, N)), ipiv(N) {}
 
   basic_band_matrix()                                        = default;
   basic_band_matrix(const basic_band_matrix&)                = default;
@@ -29,8 +27,7 @@ class basic_band_matrix {
 
   [[nodiscard]] constexpr Index start_row(Index j) const { return std::max<Index>(0, j - KU); }
 
-  explicit basic_band_matrix(const data_t<T, 2>& ab)
-      : KU(0), KL(0), M(ab.nrows()), N(ab.ncols()), AB(0, 0), ipiv(N) {
+  explicit basic_band_matrix(const data_t<T, 2>& ab) : KU(0), KL(0), M(ab.nrows()), N(ab.ncols()), AB(0, 0), ipiv(N) {
     for (Index i = 0; i < M; ++i) {
       for (Index j = 0; j < N; ++j) {
         if (i == j) continue;

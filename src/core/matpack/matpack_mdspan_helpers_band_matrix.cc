@@ -8,8 +8,7 @@ extern "C" void zgbsv_(
     int* N, int* KL, int* KU, int* NRHS, Complex* AB, int* LDAB, int* IPIV, Complex* B, int* LDB, int* INFO);
 
 namespace matpack {
-template <>
-int basic_band_matrix<Numeric>::solve(Vector& bx) {
+template <> int basic_band_matrix<Numeric>::solve(Vector& bx) {
   ARTS_TIME_REPORT
 
   int n    = static_cast<int>(N);
@@ -24,8 +23,7 @@ int basic_band_matrix<Numeric>::solve(Vector& bx) {
   return info;
 }
 
-template <>
-int basic_band_matrix<Complex>::solve(ComplexVector& bx) {
+template <> int basic_band_matrix<Complex>::solve(ComplexVector& bx) {
   ARTS_TIME_REPORT
 
   int n    = static_cast<int>(N);

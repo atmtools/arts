@@ -83,21 +83,20 @@ void py_disort(py::module_& m) try {
   // VDISORT PYTHON INTERFACE BEGIN: a Fourier BRDF mode has cosine and sine
   // Mueller-matrix callbacks.  Each callback returns [4*n_out, 4*n_in].
   const auto polarized_bdrf_callback = [](const DisortBDRFOperator& f) {
-    return vdisort::BDRF::func_t{[f](rtepack::muelmat_matrix_view mat,
-                                     const ConstVectorView&       mu_out,
-                                     const ConstVectorView&       mu_in) {
-      const Matrix out = f(Vector{mu_out}, Vector{mu_in});
-      const std::array expected{4 * mat.nrows(), 4 * mat.ncols()};
-      if (out.shape() != expected) {
-        throw std::runtime_error(
-            std::format("Polarized BDRF function returned wrong shape\n{:B,} vs {:B,}", out.shape(), expected));
-      }
-      for (Index i = 0; i < mat.nrows(); ++i)
-        for (Index j = 0; j < mat.ncols(); ++j)
-          for (Index so = 0; so < vdisort::stokes_dimension; ++so)
-            for (Index si = 0; si < vdisort::stokes_dimension; ++si)
-              mat[i, j][so, si] = out[4 * i + so, 4 * j + si];
-    }};
+    return vdisort::BDRF::func_t{
+        [f](rtepack::muelmat_matrix_view mat, const ConstVectorView& mu_out, const ConstVectorView& mu_in) {
+          const Matrix     out = f(Vector{mu_out}, Vector{mu_in});
+          const std::array expected{4 * mat.nrows(), 4 * mat.ncols()};
+          if (out.shape() != expected) {
+            throw std::runtime_error(
+                std::format("Polarized BDRF function returned wrong shape\n{:B,} vs {:B,}", out.shape(), expected));
+          }
+          for (Index i = 0; i < mat.nrows(); ++i)
+            for (Index j = 0; j < mat.ncols(); ++j)
+              for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+                for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+                  mat[i, j][so, si] = out[4 * i + so, 4 * j + si];
+        }};
   };
 
   py::class_<vdisort::BDRF> vdisbdrf(m, "VDisortBDRF");
@@ -114,9 +113,9 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
             new (b)
                 vdisort::BDRF{.cosine = polarized_bdrf_callback(cosine),
                               .sine   = vdisort::BDRF::func_t{
-                                  [](rtepack::muelmat_matrix_view mat,
-                                     const ConstVectorView&,
-                                     const ConstVectorView&) { mat = rtepack::muelmat{0.0}; }}};
+                                  [](rtepack::muelmat_matrix_view mat, const ConstVectorView&, const ConstVectorView&) {
+                                    mat = rtepack::muelmat{0.0};
+                                  }}};
           },
           "cosine"_a,
           py::keep_alive<0, 1>())
@@ -154,20 +153,18 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
   vvecs.doc() = "An array of polarized BDRF Fourier modes";
   generic_interface(vvecs);
 
-  vdisort_nm.def("combine_phase_matrices",
-                 [](const Tensor6& cosine, const Tensor6& sine) {
-                   return vdisort::combine_phase_matrices(cosine, sine);
-                 },
-                 "cosine"_a,
-                 "sine"_a,
-                 "Convert ordinary cosine/sine phase coefficients to the combined VDISORT representation.");
-  vdisort_nm.def("combine_beam_phase_matrices",
-                 [](const Tensor5& cosine, const Tensor5& sine) {
-                   return vdisort::combine_beam_phase_matrices(cosine, sine);
-                 },
-                 "cosine"_a,
-                 "sine"_a,
-                 "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def(
+      "combine_phase_matrices",
+      [](const Tensor6& cosine, const Tensor6& sine) { return vdisort::combine_phase_matrices(cosine, sine); },
+      "cosine"_a,
+      "sine"_a,
+      "Convert ordinary cosine/sine phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def(
+      "combine_beam_phase_matrices",
+      [](const Tensor5& cosine, const Tensor5& sine) { return vdisort::combine_beam_phase_matrices(cosine, sine); },
+      "cosine"_a,
+      "sine"_a,
+      "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
   // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
