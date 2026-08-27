@@ -3,6 +3,7 @@
 #include <matpack.h>
 #include <operators.h>
 #include <rtepack_mueller_matrix.h>
+#include <rtepack_spectral_matrix.h>
 
 #include <array>
 #include <span>
@@ -34,6 +35,20 @@ inline constexpr Index sine_mode        = 1;
 
 using phase_matrix_data      = rtepack::muelmat_tensor5;
 using beam_phase_matrix_data = rtepack::muelmat_tensor4;
+
+struct phase_matrix_fourier_coefficients {
+  rtepack::muelmat_matrix cosine;
+  rtepack::muelmat_matrix sine;
+};
+
+/** Split a complex scattering phase matrix into real Fourier coefficients.
+ *
+ * For C = A + iB, this uses A as the cosine coefficient and -B as the sine
+ * coefficient.  No factor of two is applied.  Both outputs preserve the input
+ * [frequency, spectral-coefficient] shape.
+ */
+[[nodiscard]] phase_matrix_fourier_coefficients phase_matrix_fourier_split(
+    const rtepack::specmat_matrix_const_view& phase_matrix);
 
 // VDISORT CHANGE BEGIN: scalar radiances become one Stokes vector per stream.
 struct u_data {

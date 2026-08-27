@@ -106,6 +106,25 @@ vdisort::beam_phase_matrix_data to_beam_phase_matrix_data(const Tensor6& in) {
 }  // namespace
 
 namespace vdisort {
+phase_matrix_fourier_coefficients phase_matrix_fourier_split(
+    const rtepack::specmat_matrix_const_view& phase_matrix) {
+  phase_matrix_fourier_coefficients out{
+      .cosine = rtepack::muelmat_matrix(phase_matrix.nrows(), phase_matrix.ncols(), rtepack::muelmat{0.0}),
+      .sine   = rtepack::muelmat_matrix(phase_matrix.nrows(), phase_matrix.ncols(), rtepack::muelmat{0.0})};
+  for (Index frequency = 0; frequency < phase_matrix.nrows(); ++frequency) {
+    for (Index coefficient = 0; coefficient < phase_matrix.ncols(); ++coefficient) {
+      for (Index i = 0; i < stokes_dimension; ++i) {
+        for (Index j = 0; j < stokes_dimension; ++j) {
+          const Complex value = phase_matrix[frequency, coefficient][i, j];
+          out.cosine[frequency, coefficient][i, j] = value.real();
+          out.sine[frequency, coefficient][i, j]   = -value.imag();
+        }
+      }
+    }
+  }
+  return out;
+}
+
 void BDRF::operator()(const Index            alpha,
                       rtepack::muelmat_matrix_view out,
                       const ConstVectorView& mu_out,

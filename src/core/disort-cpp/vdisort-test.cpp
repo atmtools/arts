@@ -315,6 +315,17 @@ void test_combined_matrix_transform() {
   expect_close(native_combined[vdisort::cosine_mode, 1, 0, 0, 0][0, 2], -5.0, "native Eq. 81 cosine sign");
   expect_close(native_combined[vdisort::sine_mode, 1, 0, 0, 0][0, 2], 5.0, "native Eq. 81 sine sign");
 }
+
+void test_spectral_phase_matrix_split() {
+  rtepack::specmat_matrix spectral_result(2, 3, rtepack::specmat{Complex{0.0, 0.0}});
+  spectral_result[1, 2][3, 1] = Complex{4.5, -0.75};
+  const auto split            = vdisort::phase_matrix_fourier_split(spectral_result);
+  ARTS_USER_ERROR_IF((split.cosine.shape() != spectral_result.shape() or
+                      split.sine.shape() != spectral_result.shape()),
+                     "Splitting the phase matrix changed its shape");
+  expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
+  expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");
+}
 }  // namespace
 
 // VDISORT SCALAR TEST PORT BEGIN: compile the complete, unchanged scalar
@@ -336,6 +347,7 @@ int main() try {
   test_polarized_brdf();
   test_complex_uv_eigenmodes();
   test_combined_matrix_transform();
+  test_spectral_phase_matrix_split();
   ARTS_USER_ERROR_IF(run_all_scalar_disort_tests_through_vdisort() != EXIT_SUCCESS,
                      "The scalar DISORT suite failed through the VDISORT port");
   std::cout << "vdisort tests passed\n";
