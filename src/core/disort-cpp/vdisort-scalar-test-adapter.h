@@ -87,7 +87,7 @@ class main_data {
     vdisort::u_data field;
     model_->u(field, scaled_tau(tau), phi);
     out.resize(nquad_);
-    for (Index stream = 0; stream < nquad_; ++stream) out[stream] = i0_original_ * field.intensities[stream, 0];
+    for (Index stream = 0; stream < nquad_; ++stream) out[stream] = i0_original_ * field.intensities[stream].I();
   }
 
   void truncation_correction(Vector& out, const Numeric tau, const Numeric phi) const {
@@ -336,7 +336,7 @@ class main_data {
     vdisort::u0_data field;
     model_->u0(field, scaled_tau(tau));
     data.u0.resize(nquad_);
-    for (Index stream = 0; stream < nquad_; ++stream) data.u0[stream] = i0_original_ * field.u0[stream, 0];
+    for (Index stream = 0; stream < nquad_; ++stream) data.u0[stream] = i0_original_ * field.u0[stream].I();
   }
 
   void u_corr(u_data& data, Vector& ims, tms_data&, const Numeric tau, const Numeric phi) const {

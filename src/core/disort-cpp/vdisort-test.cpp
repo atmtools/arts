@@ -75,8 +75,8 @@ void test_polarized_absorption() {
   model.u(field, tau, 1.3);
   const Numeric mu = model.mu()[0];
   for (Index s = 0; s < 4; ++s) {
-    expect_close(field.intensities[0, s], bottom[s] * std::exp((tau - depth) / mu), "upward absorbing Stokes");
-    expect_close(field.intensities[1, s], top[s] * std::exp(-tau / mu), "downward absorbing Stokes");
+    expect_close(field.intensities[0][s], bottom[s] * std::exp((tau - depth) / mu), "upward absorbing Stokes");
+    expect_close(field.intensities[1][s], top[s] * std::exp(-tau / mu), "downward absorbing Stokes");
   }
 }
 
@@ -130,10 +130,10 @@ void test_scalar_limit() {
     vector_model.u0(vu, optical_depth);
     scalar_model.u0(su, optical_depth);
     for (Index i = 0; i < nquad; ++i) {
-      expect_close(vu.u0[i, 0], su.u0[i], "scalar-limit I");
-      expect_close(vu.u0[i, 1], 0.0, "scalar-limit Q");
-      expect_close(vu.u0[i, 2], 0.0, "scalar-limit U");
-      expect_close(vu.u0[i, 3], 0.0, "scalar-limit V");
+      expect_close(vu.u0[i][0], su.u0[i], "scalar-limit I");
+      expect_close(vu.u0[i][1], 0.0, "scalar-limit Q");
+      expect_close(vu.u0[i][2], 0.0, "scalar-limit U");
+      expect_close(vu.u0[i][3], 0.0, "scalar-limit V");
     }
   }
 }
@@ -230,8 +230,8 @@ void test_vector_source() {
   vdisort::u_data field;
   model.u(field, tau, 0.0);
   for (Index s = 0; s < 4; ++s) {
-    expect_close(field.intensities[0, s], q[s] * (1.0 - std::exp(-(depth - tau) / mu)), "upward vector source");
-    expect_close(field.intensities[1, s], q[s] * (1.0 - std::exp(-tau / mu)), "downward vector source");
+    expect_close(field.intensities[0][s], q[s] * (1.0 - std::exp(-(depth - tau) / mu)), "upward vector source");
+    expect_close(field.intensities[1][s], q[s] * (1.0 - std::exp(-tau / mu)), "downward vector source");
   }
 }
 
@@ -267,8 +267,8 @@ void test_polarized_brdf() {
   model.u0(field, depth);
   const Numeric mu               = model.mu()[0];
   const Numeric reflected_factor = Constant::pi * mu * reflectance;
-  expect_close(field.u0[0, 0], reflected_factor * std::exp(-depth / mu), "polarized BRDF I");
-  expect_close(field.u0[0, 1], 0.2 * reflected_factor * std::exp(-depth / mu), "polarized BRDF Q");
+  expect_close(field.u0[0][0], reflected_factor * std::exp(-depth / mu), "polarized BRDF I");
+  expect_close(field.u0[0][1], 0.2 * reflected_factor * std::exp(-depth / mu), "polarized BRDF Q");
 }
 
 void test_complex_uv_eigenmodes() {
@@ -294,7 +294,7 @@ void test_complex_uv_eigenmodes() {
   model.u(field, 0.2, 0.7);
   for (Index i = 0; i < nquad; ++i)
     for (Index s = 0; s < 4; ++s) {
-      const Numeric value = field.intensities[i, s];
+      const Numeric value = field.intensities[i][s];
       ARTS_USER_ERROR_IF(not std::isfinite(value), "Complex-eigenmode test produced {}", value);
     }
 }

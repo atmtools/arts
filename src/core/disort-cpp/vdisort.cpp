@@ -13,7 +13,38 @@
 #include <ranges>
 
 namespace {
-[[nodiscard]] bool polarized_source(const Vector& stokes) { return stokes.size() == 4 and stokes[0] > 0.0; }
+[[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
+
+rtepack::stokvec to_stokvec(const ConstVectorView block) {
+  ARTS_USER_ERROR_IF(block.size() != vdisort::stokes_dimension,
+                     "A Stokes vector must have four components, got {}",
+                     block.size());
+  return {block[0], block[1], block[2], block[3]};
+}
+
+rtepack::stokvec_tensor3 to_boundary_data(const Tensor4& in) {
+  if (in.size() == 0) return {};
+  const auto [nalpha, nfourier, nstream, nstokes] = in.shape();
+  ARTS_USER_ERROR_IF(nstokes != vdisort::stokes_dimension,
+                     "The boundary Stokes dimension must be 4, got {:B,}",
+                     in.shape());
+  rtepack::stokvec_tensor3 out(nalpha, nfourier, nstream);
+  for (Index a = 0; a < nalpha; ++a)
+    for (Index m = 0; m < nfourier; ++m)
+      for (Index i = 0; i < nstream; ++i) out[a, m, i] = to_stokvec(in[a, m, i]);
+  return out;
+}
+
+rtepack::stokvec_matrix to_source_poly_data(const Tensor3& in) {
+  const auto [nlayers, ncoeffs, nstokes] = in.shape();
+  ARTS_USER_ERROR_IF(nstokes != vdisort::stokes_dimension,
+                     "The source Stokes dimension must be 4, got {:B,}",
+                     in.shape());
+  rtepack::stokvec_matrix out(nlayers, ncoeffs);
+  for (Index l = 0; l < nlayers; ++l)
+    for (Index p = 0; p < ncoeffs; ++p) out[l, p] = to_stokvec(in[l, p]);
+  return out;
+}
 
 void fill_combined(rtepack::muelmat&       out_cos,
                    rtepack::muelmat&       out_sin,
@@ -236,14 +267,14 @@ main_data::main_data(
       has_source_poly(Nscoeffs > 0),
       tau_arr(NLayers),
       omega_arr(NLayers),
-      source_poly_coeffs(NLayers, Nscoeffs, stokes_dimension),
+      source_poly_coeffs(NLayers, Nscoeffs),
       source_coordinate_scale(NLayers, 1.0),
       source_coordinate_offset(NLayers, 0.0),
       phase_matrix(2, NFourier, NLayers, NQuad, NQuad, rtepack::muelmat{0.0}),
-      boundary_up(2, NFourier, N, stokes_dimension),
-      boundary_down(2, NFourier, N, stokes_dimension),
+      boundary_up(2, NFourier, N),
+      boundary_down(2, NFourier, N),
       brdf_fourier_modes(NBDRF),
-      beam_stokes(stokes_dimension, 0.0),
+      beam_stokes{},
       beam_phase_matrix(2, NFourier, NLayers, NQuad, rtepack::muelmat{0.0}),
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
@@ -251,9 +282,9 @@ main_data::main_data(
       G_collect(2, NFourier, NLayers, NState, NState),
       K_collect(2, NFourier, NLayers, NState),
       GC_collect(2, NFourier, NLayers, NState),
-      B_collect(2, NFourier, NLayers, NState),
-      source_collect(2, NFourier, NLayers, NState, Nscoeffs),
-      um(NLayers, 2, NFourier, NState),
+      B_collect(2, NFourier, NLayers, NQuad),
+      source_collect(2, NFourier, NLayers, NQuad, Nscoeffs),
+      um(NLayers, 2, NFourier, NQuad),
       top_anchored(static_cast<std::size_t>(2 * NFourier * NLayers * NState), 0) {
   ARTS_USER_ERROR_IF(NQuad <= 0 or NQuad % 2 != 0, "NQuad must be a positive even number, got {}", NQuad);
   Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
@@ -281,12 +312,12 @@ main_data::main_data(Index             NQuad_,
                 std::move(tau_arr_),
                 std::move(omega_arr_),
                 to_phase_matrix_data(phase_matrix_),
-                std::move(boundary_up_),
-                std::move(boundary_down_),
-                std::move(source_poly_coeffs_),
+                to_boundary_data(boundary_up_),
+                to_boundary_data(boundary_down_),
+                to_source_poly_data(source_poly_coeffs_),
                 std::move(brdf_fourier_modes_),
                 mu0_,
-                std::move(beam_stokes_),
+                to_stokvec(beam_stokes_),
                 phi0_,
                 to_beam_phase_matrix_data(beam_phase_matrix_),
                 std::move(source_coordinate_scale_),
@@ -297,12 +328,12 @@ main_data::main_data(Index                  NQuad_,
                      AscendingGrid          tau_arr_,
                      Vector                 omega_arr_,
                      phase_matrix_data      phase_matrix_,
-                     Tensor4                boundary_up_,
-                     Tensor4                boundary_down_,
-                     Tensor3                source_poly_coeffs_,
+                     rtepack::stokvec_tensor3 boundary_up_,
+                     rtepack::stokvec_tensor3 boundary_down_,
+                     rtepack::stokvec_matrix  source_poly_coeffs_,
                      std::vector<BDRF>      brdf_fourier_modes_,
                      Numeric                mu0_,
-                     Vector                 beam_stokes_,
+                     rtepack::stokvec       beam_stokes_,
                      Numeric                phi0_,
                      beam_phase_matrix_data beam_phase_matrix_,
                      Vector                 source_coordinate_scale_,
@@ -358,9 +389,11 @@ Numeric main_data::particular(
   // scalar-limit adapter uses this to retain DISORT's original-tau source
   // convention while its delta-M transport operator runs on scaled tau.
   const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau, source_coordinate_offset[layer]);
+  const Index   stream     = state / stokes_dimension;
+  const Index   stokes     = state % stokes_dimension;
   for (Index p = Nscoeffs - 1; p >= 0; --p)
-    value = std::fma(value, source_tau, source_collect[alpha, m, layer, state, p]);
-  if (has_beam_source) value += B_collect[alpha, m, layer, state] * std::exp(-tau / mu0);
+    value = std::fma(value, source_tau, source_collect[alpha, m, layer, stream, p][stokes]);
+  if (has_beam_source) value += B_collect[alpha, m, layer, stream][stokes] * std::exp(-tau / mu0);
   return value;
 }
 
@@ -369,8 +402,8 @@ void main_data::check_input_size() const {
       static_cast<Index>(tau_arr.size()) != NLayers, "tau_arr has size {}, expected {}", tau_arr.size(), NLayers);
   ARTS_USER_ERROR_IF(
       static_cast<Index>(omega_arr.size()) != NLayers, "omega_arr has size {}, expected {}", omega_arr.size(), NLayers);
-  ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array<Index, 3>{NLayers, Nscoeffs, stokes_dimension}),
-                     "source_poly_coeffs has shape {:B,}, expected [{}, {}, 4]",
+  ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array<Index, 2>{NLayers, Nscoeffs}),
+                     "source_poly_coeffs has shape {:B,}, expected [{}, {}] Stokes blocks",
                      source_poly_coeffs.shape(),
                      NLayers,
                      Nscoeffs);
@@ -387,17 +420,16 @@ void main_data::check_input_size() const {
                      NLayers,
                      NQuad,
                      NQuad);
-  ARTS_USER_ERROR_IF((boundary_up.shape() != std::array<Index, 4>{2, NFourier, N, stokes_dimension}),
-                     "boundary_up has shape {:B,}, expected [2, {}, {}, 4]",
+  ARTS_USER_ERROR_IF((boundary_up.shape() != std::array<Index, 3>{2, NFourier, N}),
+                     "boundary_up has shape {:B,}, expected [2, {}, {}] Stokes blocks",
                      boundary_up.shape(),
                      NFourier,
                      N);
-  ARTS_USER_ERROR_IF((boundary_down.shape() != std::array<Index, 4>{2, NFourier, N, stokes_dimension}),
-                     "boundary_down has shape {:B,}, expected [2, {}, {}, 4]",
+  ARTS_USER_ERROR_IF((boundary_down.shape() != std::array<Index, 3>{2, NFourier, N}),
+                     "boundary_down has shape {:B,}, expected [2, {}, {}] Stokes blocks",
                      boundary_down.shape(),
                      NFourier,
                      N);
-  ARTS_USER_ERROR_IF(beam_stokes.size() != stokes_dimension, "beam_stokes has size {}, expected 4", beam_stokes.size());
   ARTS_USER_ERROR_IF((beam_phase_matrix.shape() != std::array<Index, 4>{2, NFourier, NLayers, NQuad}),
                      "beam_phase_matrix has shape {:B,}, expected [2, {}, {}, {}] Mueller blocks",
                      beam_phase_matrix.shape(),
@@ -480,7 +512,7 @@ void main_data::diagonalize() {
         }
 
         if (has_beam_source) {
-          const rtepack::stokvec beam = rtepack::to_stokvec(beam_stokes);
+          const rtepack::stokvec& beam = beam_stokes;
           Vector        rhs(NState, 0.0);
           const Numeric epsilon = m == 0 ? 1.0 : 2.0;
           for (Index i = 0; i < NQuad; ++i) {
@@ -492,7 +524,9 @@ void main_data::diagonalize() {
           }
           diagonal(A_real) += 1.0 / mu0;
           solve_inplace(rhs, A_real);
-          for (Index s = 0; s < NState; ++s) B_collect[alpha, m, l, s] = rhs[s];
+          for (Index i = 0; i < NQuad; ++i)
+            for (Index s = 0; s < stokes_dimension; ++s)
+              B_collect[alpha, m, l, i][s] = rhs[state_index(i, s)];
         }
       }
     }
@@ -529,16 +563,18 @@ void main_data::source_function() {
         for (Index i = 0; i < NQuad; ++i) {
           for (Index s = 0; s < stokes_dimension; ++s) {
             const bool    active   = alpha == cosine_mode ? s < 2 : s >= 2;
-            const Numeric q        = active ? source_poly_coeffs[l, p, s] : 0.0;
+            const Numeric q        = active ? source_poly_coeffs[l, p][s] : 0.0;
             rhs[state_index(i, s)] = inv_mu_arr[i] * q + static_cast<Numeric>(p + 1) * next[state_index(i, s)];
           }
         }
         Matrix work{A};
         solve_inplace(rhs, work);
-        for (Index s = 0; s < NState; ++s) {
-          source_collect[alpha, m, l, s, p] = rhs[s];
-          next[s]                           = rhs[s];
-        }
+        for (Index i = 0; i < NQuad; ++i)
+          for (Index s = 0; s < stokes_dimension; ++s) {
+            const Index state = state_index(i, s);
+            source_collect[alpha, m, l, i, p][s] = rhs[state];
+            next[state]                           = rhs[state];
+          }
       }
     }
   }
@@ -581,7 +617,7 @@ void main_data::solve_for_coefs() {
           const Vector beam_mu{mu0};
           brdf_fourier_modes[m](alpha, beam_raw, mu_arr[Range{0, N}], beam_mu);
           const Numeric attenuation = std::exp(-tau_arr.back() / mu0);
-          const rtepack::stokvec beam = rtepack::to_stokvec(beam_stokes);
+          const rtepack::stokvec& beam = beam_stokes;
           for (Index i = 0; i < N; ++i) {
             const rtepack::stokvec reflected = attenuation * (beam_raw[i, 0] * beam);
             for (Index s = 0; s < stokes_dimension; ++s) direct_reflection[state_index(i, s)] = reflected[s];
@@ -595,7 +631,7 @@ void main_data::solve_for_coefs() {
         for (Index s = 0; s < stokes_dimension; ++s) {
           const Index row   = state_index(i, s);
           const Index state = state_index(N + i, s);
-          rhs[row]          = boundary_down[alpha, m, i, s] - particular(alpha, m, 0, state, 0.0);
+          rhs[row]          = boundary_down[alpha, m, i][s] - particular(alpha, m, 0, state, 0.0);
           for (Index e = 0; e < NState; ++e) lhs[row, e] = homogeneous(alpha, m, 0, state, e, 0.0);
         }
       }
@@ -623,7 +659,7 @@ void main_data::solve_for_coefs() {
           const Index row       = equation_count - NHalfState + hrow;
           const Index pos_state = state_index(i, s);
           Numeric     rhs_value =
-              boundary_up[alpha, m, i, s] + direct_reflection[hrow] - particular(alpha, m, last, pos_state, tau);
+              boundary_up[alpha, m, i][s] + direct_reflection[hrow] - particular(alpha, m, last, pos_state, tau);
           for (Index j = 0; j < N; ++j)
             for (Index si = 0; si < stokes_dimension; ++si) {
               const Index hin        = state_index(j, si);
@@ -660,7 +696,9 @@ void main_data::rad_field() {
     combined_field(field, tau_arr[l]);
     for (Index alpha = 0; alpha < 2; ++alpha)
       for (Index m = 0; m < NFourier; ++m)
-        for (Index state = 0; state < NState; ++state) um[l, alpha, m, state] = field[alpha * NFourier + m, state];
+        for (Index i = 0; i < NQuad; ++i)
+          for (Index s = 0; s < stokes_dimension; ++s)
+            um[l, alpha, m, i][s] = field[alpha * NFourier + m, state_index(i, s)];
   }
   // VDISORT CHANGE END
 }
@@ -714,18 +752,18 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   Matrix combined(2 * NFourier, NState);
   combined_field(combined, tau);
 
-  data.intensities.resize(NQuad, stokes_dimension);
-  data.intensities = 0.0;
+  data.intensities.resize(NQuad);
+  data.intensities = rtepack::stokvec{};
   for (Index m = 0; m < NFourier; ++m) {
     const Numeric c = std::cos(static_cast<Numeric>(m) * (phi0 - phi));
     const Numeric s = std::sin(static_cast<Numeric>(m) * (phi0 - phi));
     for (Index i = 0; i < NQuad; ++i) {
       for (Index stokes = 0; stokes < 2; ++stokes)
-        data.intensities[i, stokes] +=
+        data.intensities[i][stokes] +=
             combined[m, state_index(i, stokes)] * c + combined[NFourier + m, state_index(i, stokes)] * s;
       // VDISORT CHANGE: U and V swap combined cosine/sine roles, paper Eq. (78).
       for (Index stokes = 2; stokes < 4; ++stokes)
-        data.intensities[i, stokes] +=
+        data.intensities[i][stokes] +=
             combined[NFourier + m, state_index(i, stokes)] * c + combined[m, state_index(i, stokes)] * s;
     }
   }
@@ -734,12 +772,12 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
 void main_data::u0(u0_data& data, const Numeric tau) const {
   Matrix combined(2 * NFourier, NState);
   combined_field(combined, tau);
-  data.u0.resize(NQuad, stokes_dimension);
+  data.u0.resize(NQuad);
   for (Index i = 0; i < NQuad; ++i) {
-    data.u0[i, 0] = combined[0, state_index(i, 0)];
-    data.u0[i, 1] = combined[0, state_index(i, 1)];
-    data.u0[i, 2] = combined[NFourier, state_index(i, 2)];
-    data.u0[i, 3] = combined[NFourier, state_index(i, 3)];
+    data.u0[i][0] = combined[0, state_index(i, 0)];
+    data.u0[i][1] = combined[0, state_index(i, 1)];
+    data.u0[i][2] = combined[NFourier, state_index(i, 2)];
+    data.u0[i][3] = combined[NFourier, state_index(i, 3)];
   }
 }
 
@@ -748,7 +786,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   u0(field, tau);
   data.u0        = std::move(field.u0);
   Numeric result = 0.0;
-  for (Index i = 0; i < N; ++i) result += W[i] * mu_arr[i] * data.u0[i, 0];
+  for (Index i = 0; i < N; ++i) result += W[i] * mu_arr[i] * data.u0[i].I();
   return Constant::two_pi * result;
 }
 
@@ -757,8 +795,8 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric 
   u0(field, tau);
   data.u0         = std::move(field.u0);
   Numeric diffuse = 0.0;
-  for (Index i = 0; i < N; ++i) diffuse += W[i] * mu_arr[i] * data.u0[N + i, 0];
-  const Numeric direct = has_beam_source ? mu0 * beam_stokes[0] * std::exp(-tau / mu0) : 0.0;
+  for (Index i = 0; i < N; ++i) diffuse += W[i] * mu_arr[i] * data.u0[N + i].I();
+  const Numeric direct = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau / mu0) : 0.0;
   return {Constant::two_pi * diffuse, direct};
 }
 
@@ -774,7 +812,8 @@ void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
   for (Index l = 0; l < NLayers; ++l)
     for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
       u(data, tau_arr[l], phi[p]);
-      out[l, p] = data.intensities;
+      for (Index i = 0; i < NQuad; ++i)
+        for (Index s = 0; s < stokes_dimension; ++s) out[l, p, i, s] = data.intensities[i][s];
     }
 }
 
@@ -803,7 +842,8 @@ void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vec
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t)
     for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
       u(data, tau[t], phi[p]);
-      out[t, p] = data.intensities;
+      for (Index i = 0; i < NQuad; ++i)
+        for (Index s = 0; s < stokes_dimension; ++s) out[t, p, i, s] = data.intensities[i][s];
     }
 }
 
@@ -818,13 +858,12 @@ void main_data::ungridded_flux(VectorView up, VectorView down, VectorView down_d
   }
 }
 
-ConstTensor3View main_data::layer_um(const Size layer) const {
+rtepack::stokvec_tensor3_const_view main_data::layer_um(const Size layer) const {
   ARTS_USER_ERROR_IF(layer >= static_cast<Size>(NLayers), "Layer {} is out of range [0, {})", layer, NLayers);
   return um[layer];
 }
 
-void main_data::set_beam_source(Vector beam) {
-  ARTS_USER_ERROR_IF(beam.size() != stokes_dimension, "A VDISORT beam source must have four Stokes components");
+void main_data::set_beam_source(rtepack::stokvec beam) {
   beam_stokes     = std::move(beam);
   has_beam_source = polarized_source(beam_stokes);
 }
