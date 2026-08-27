@@ -282,10 +282,9 @@ class main_data {
     vector_brdf.reserve(brdf.size());
     for (Index mode = 0; mode < static_cast<Index>(brdf.size()); ++mode) {
       const BDRF scalar_mode = brdf[mode];
-      const auto cosine = [scalar_mode, mode](
-                              rtepack::muelmat_matrix_view out,
-                              const ConstVectorView&       mu_out,
-                              const ConstVectorView&       positive_mu_in) {
+      const auto cosine      = [scalar_mode, mode](rtepack::muelmat_matrix_view out,
+                                                   const ConstVectorView&       mu_out,
+                                                   const ConstVectorView&       positive_mu_in) {
         Vector negative_mu_in(positive_mu_in.size());
         for (Index i = 0; i < static_cast<Index>(positive_mu_in.size()); ++i) negative_mu_in[i] = -positive_mu_in[i];
         Matrix scalar(out.nrows(), out.ncols(), 0.0);

@@ -18,12 +18,12 @@ struct two_stream_solution {
 };
 
 two_stream_solution analytic_two_stream(const Complex phase,
-                                         const Numeric omega,
-                                         const Numeric mu,
-                                         const Numeric depth,
-                                         const Numeric tau,
-                                         const Complex top_down,
-                                         const Complex bottom_up) {
+                                        const Numeric omega,
+                                        const Numeric mu,
+                                        const Numeric depth,
+                                        const Numeric tau,
+                                        const Complex top_down,
+                                        const Complex bottom_up) {
   const Complex c = 0.5 * omega * phase;
   const Complex a = (1.0 - c) / mu;
   const Complex b = c / mu;
@@ -35,11 +35,10 @@ two_stream_solution analytic_two_stream(const Complex phase,
     return std::array<Complex, 4>{ch + a * sh, -b * sh, b * sh, ch - a * sh};
   };
 
-  const auto full = propagator(depth);
+  const auto    full   = propagator(depth);
   const Complex top_up = (bottom_up - full[1] * top_down) / full[0];
-  const auto at_tau = propagator(tau);
-  return {.up   = at_tau[0] * top_up + at_tau[1] * top_down,
-          .down = at_tau[2] * top_up + at_tau[3] * top_down};
+  const auto    at_tau = propagator(tau);
+  return {.up = at_tau[0] * top_up + at_tau[1] * top_down, .down = at_tau[2] * top_up + at_tau[3] * top_down};
 }
 
 void expect_close(const Numeric actual, const Numeric expected, const std::string_view what) {
@@ -79,16 +78,16 @@ vdisort::main_data make_vdisort(const Index                nquad,
                             std::move(beam_phase));
 }
 
-vdisort::main_data make_native_two_stream(const Numeric                 depth,
-                                           const Numeric                 omega,
-                                           vdisort::phase_matrix_data    phase,
-                                           rtepack::stokvec              top,
-                                           rtepack::stokvec              bottom) {
+vdisort::main_data make_native_two_stream(const Numeric              depth,
+                                          const Numeric              omega,
+                                          vdisort::phase_matrix_data phase,
+                                          rtepack::stokvec           top,
+                                          rtepack::stokvec           bottom) {
   rtepack::stokvec_tensor3 up(2, 1, 1), down(2, 1, 1);
-  up[vdisort::cosine_mode, 0, 0]     = {bottom.I(), bottom.Q(), 0.0, 0.0};
-  down[vdisort::cosine_mode, 0, 0]   = {top.I(), top.Q(), 0.0, 0.0};
-  up[vdisort::sine_mode, 0, 0]       = {0.0, 0.0, bottom.U(), bottom.V()};
-  down[vdisort::sine_mode, 0, 0]     = {0.0, 0.0, top.U(), top.V()};
+  up[vdisort::cosine_mode, 0, 0]   = {bottom.I(), bottom.Q(), 0.0, 0.0};
+  down[vdisort::cosine_mode, 0, 0] = {top.I(), top.Q(), 0.0, 0.0};
+  up[vdisort::sine_mode, 0, 0]     = {0.0, 0.0, bottom.U(), bottom.V()};
+  down[vdisort::sine_mode, 0, 0]   = {0.0, 0.0, top.U(), top.V()};
   rtepack::stokvec_matrix source(1, 0);
   return vdisort::main_data(2,
                             1,
@@ -105,11 +104,11 @@ vdisort::main_data make_native_two_stream(const Numeric                 depth,
 }
 
 void test_analytic_iq_two_stream() {
-  constexpr Numeric depth = 0.8;
-  constexpr Numeric omega = 0.6;
-  constexpr Numeric mu    = 0.5;
-  constexpr Numeric p     = 0.7;
-  constexpr Numeric q     = 0.2;
+  constexpr Numeric      depth = 0.8;
+  constexpr Numeric      omega = 0.6;
+  constexpr Numeric      mu    = 0.5;
+  constexpr Numeric      p     = 0.7;
+  constexpr Numeric      q     = 0.2;
   const rtepack::stokvec top{1.2, -0.25, 0.0, 0.0};
   const rtepack::stokvec bottom{0.4, 0.15, 0.0, 0.0};
 
@@ -125,10 +124,8 @@ void test_analytic_iq_two_stream() {
   auto model = make_native_two_stream(depth, omega, std::move(phase), top, bottom);
 
   for (const Numeric tau : {0.0, 0.31, depth}) {
-    const auto plus = analytic_two_stream(
-        p + q, omega, mu, depth, tau, top.I() + top.Q(), bottom.I() + bottom.Q());
-    const auto minus = analytic_two_stream(
-        p - q, omega, mu, depth, tau, top.I() - top.Q(), bottom.I() - bottom.Q());
+    const auto plus  = analytic_two_stream(p + q, omega, mu, depth, tau, top.I() + top.Q(), bottom.I() + bottom.Q());
+    const auto minus = analytic_two_stream(p - q, omega, mu, depth, tau, top.I() - top.Q(), bottom.I() - bottom.Q());
     vdisort::u0_data field;
     model.u0(field, tau);
     expect_close(field.u0[0].I(), 0.5 * (plus.up.real() + minus.up.real()), "analytic I/Q upward I");
@@ -139,11 +136,11 @@ void test_analytic_iq_two_stream() {
 }
 
 void test_analytic_uv_two_stream() {
-  constexpr Numeric depth = 0.65;
-  constexpr Numeric omega = 0.55;
-  constexpr Numeric mu    = 0.5;
-  constexpr Numeric p     = 0.6;
-  constexpr Numeric q     = 0.23;
+  constexpr Numeric      depth = 0.65;
+  constexpr Numeric      omega = 0.55;
+  constexpr Numeric      mu    = 0.5;
+  constexpr Numeric      p     = 0.6;
+  constexpr Numeric      q     = 0.23;
   const rtepack::stokvec top{0.0, 0.0, 0.3, -0.12};
   const rtepack::stokvec bottom{0.0, 0.0, -0.18, 0.21};
 
@@ -160,13 +157,8 @@ void test_analytic_uv_two_stream() {
   ARTS_USER_ERROR_IF(not model.has_complex_eigensolutions(), "Analytic U/V case did not exercise complex eigenvalues");
 
   for (const Numeric tau : {0.0, 0.27, depth}) {
-    const auto expected = analytic_two_stream(Complex{p, -q},
-                                              omega,
-                                              mu,
-                                              depth,
-                                              tau,
-                                              Complex{top.U(), top.V()},
-                                              Complex{bottom.U(), bottom.V()});
+    const auto expected = analytic_two_stream(
+        Complex{p, -q}, omega, mu, depth, tau, Complex{top.U(), top.V()}, Complex{bottom.U(), bottom.V()});
     vdisort::u0_data field;
     model.u0(field, tau);
     expect_close(field.u0[0].U(), expected.up.real(), "analytic U/V upward U");
@@ -177,17 +169,14 @@ void test_analytic_uv_two_stream() {
 }
 
 void test_analytic_polarized_beam_two_stream() {
-  constexpr Numeric depth = 0.7;
-  constexpr Numeric omega = 0.45;
-  constexpr Numeric mu    = 0.5;
-  constexpr Numeric mu0   = 0.8;
+  constexpr Numeric      depth = 0.7;
+  constexpr Numeric      omega = 0.45;
+  constexpr Numeric      mu    = 0.5;
+  constexpr Numeric      mu0   = 0.8;
   const rtepack::stokvec beam{1.0, 0.2, -0.15, 0.1};
-  const rtepack::muelmat scatter{0.8,  0.1,  0.0,  0.0,
-                                -0.05, 0.6,  0.0,  0.0,
-                                0.0,  0.0,  0.7,  0.12,
-                                0.0,  0.0, -0.08, 0.5};
+  const rtepack::muelmat scatter{0.8, 0.1, 0.0, 0.0, -0.05, 0.6, 0.0, 0.0, 0.0, 0.0, 0.7, 0.12, 0.0, 0.0, -0.08, 0.5};
 
-  vdisort::phase_matrix_data phase(2, 1, 1, 2, 2, rtepack::muelmat{0.0});
+  vdisort::phase_matrix_data      phase(2, 1, 1, 2, 2, rtepack::muelmat{0.0});
   vdisort::beam_phase_matrix_data beam_phase(2, 1, 1, 2, rtepack::muelmat{0.0});
   for (Index i = 0; i < 2; ++i) {
     for (Index so = 0; so < 2; ++so)
@@ -197,29 +186,27 @@ void test_analytic_polarized_beam_two_stream() {
   }
 
   rtepack::stokvec_tensor3 boundary(2, 1, 1);
-  rtepack::stokvec_matrix source(1, 0);
-  vdisort::main_data model(2,
-                           1,
-                           AscendingGrid{depth},
-                           Vector{omega},
-                           std::move(phase),
-                           boundary,
-                           std::move(boundary),
-                           std::move(source),
-                           {},
-                           mu0,
-                           beam,
-                           0.0,
-                           std::move(beam_phase));
-  const rtepack::stokvec scattered = scatter * beam;
+  rtepack::stokvec_matrix  source(1, 0);
+  vdisort::main_data       model(2,
+                                 1,
+                                 AscendingGrid{depth},
+                                 Vector{omega},
+                                 std::move(phase),
+                                 boundary,
+                                 std::move(boundary),
+                                 std::move(source),
+                                 {},
+                                 mu0,
+                                 beam,
+                                 0.0,
+                                 std::move(beam_phase));
+  const rtepack::stokvec   scattered = scatter * beam;
 
   const auto expected = [&](const Index stream, const Index stokes, const Numeric tau) {
     const Numeric inverse_mu = stream == 0 ? 1.0 / mu : -1.0 / mu;
     const Numeric rhs        = inverse_mu * omega * scattered[stokes] / (4.0 * Constant::pi);
     const Numeric b          = rhs / (inverse_mu + 1.0 / mu0);
-    if (stream == 0) {
-      return b * (std::exp(-tau / mu0) - std::exp(-depth / mu0 + (tau - depth) / mu));
-    }
+    if (stream == 0) { return b * (std::exp(-tau / mu0) - std::exp(-depth / mu0 + (tau - depth) / mu)); }
     return b * (std::exp(-tau / mu0) - std::exp(-tau / mu));
   };
 
@@ -227,8 +214,7 @@ void test_analytic_polarized_beam_two_stream() {
     vdisort::u0_data field;
     model.u0(field, tau);
     for (Index i = 0; i < 2; ++i)
-      for (Index s = 0; s < 4; ++s)
-        expect_close(field.u0[i][s], expected(i, s, tau), "analytic polarized beam source");
+      for (Index s = 0; s < 4; ++s) expect_close(field.u0[i][s], expected(i, s, tau), "analytic polarized beam source");
   }
 }
 
@@ -495,7 +481,7 @@ void test_combined_matrix_transform() {
   rtepack::muelmat_tensor4 native_sine(2, 1, 1, 1, rtepack::muelmat{0.0});
   native_cosine[1, 0, 0, 0][0, 2] = 3.0;
   native_sine[1, 0, 0, 0][0, 2]   = 5.0;
-  const auto native_combined = vdisort::combine_phase_matrices(native_cosine, native_sine);
+  const auto native_combined      = vdisort::combine_phase_matrices(native_cosine, native_sine);
   expect_close(native_combined[vdisort::cosine_mode, 1, 0, 0, 0][0, 2], -5.0, "native Eq. 81 cosine sign");
   expect_close(native_combined[vdisort::sine_mode, 1, 0, 0, 0][0, 2], 5.0, "native Eq. 81 sine sign");
 }
@@ -504,8 +490,7 @@ void test_spectral_phase_matrix_split() {
   rtepack::specmat_matrix spectral_result(2, 3, rtepack::specmat{Complex{0.0, 0.0}});
   spectral_result[1, 2][3, 1] = Complex{4.5, -0.75};
   const auto split            = vdisort::phase_matrix_fourier_split(spectral_result);
-  ARTS_USER_ERROR_IF((split.cosine.shape() != spectral_result.shape() or
-                      split.sine.shape() != spectral_result.shape()),
+  ARTS_USER_ERROR_IF((split.cosine.shape() != spectral_result.shape() or split.sine.shape() != spectral_result.shape()),
                      "Splitting the phase matrix changed its shape");
   expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
   expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");

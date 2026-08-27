@@ -74,13 +74,12 @@ struct flux_data {
  * before the pi*w*mu quadrature factor in Eq. (124).
  */
 struct BDRF {
-  using func_t =
-      CustomOperator<void, rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&>;
+  using func_t = CustomOperator<void, rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&>;
 
   func_t cosine;
   func_t sine;
 
-  void operator()(Index                         alpha,
+  void operator()(Index                        alpha,
                   rtepack::muelmat_matrix_view out,
                   const ConstVectorView&       mu_out,
                   const ConstVectorView&       mu_in) const;
@@ -102,7 +101,7 @@ struct BDRF {
  * the result has shape [2, NFourier, NLayers, NQuad, NQuad].
  */
 [[nodiscard]] phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
-                                                        const rtepack::muelmat_tensor4& sine);
+                                                       const rtepack::muelmat_tensor4& sine);
 
 /** Beam-angle counterpart of combine_phase_matrices.
  *
@@ -114,7 +113,7 @@ struct BDRF {
 
 /** Native rtepack overload of combine_beam_phase_matrices. */
 [[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
-                                                                  const rtepack::muelmat_tensor3& sine);
+                                                                 const rtepack::muelmat_tensor3& sine);
 
 /** The main data structure for the polarized VDISORT algorithm.
  *
@@ -139,17 +138,17 @@ class main_data {
   Vector        omega_arr{};  // [NLayers]
 
   // VDISORT CHANGE BEGIN: all radiation-bearing inputs carry Stokes and mode dimensions.
-  rtepack::stokvec_matrix source_poly_coeffs{};  // [NLayers, Nscoeffs]
-  Vector            source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
-  Vector            source_coordinate_offset{};  // [NLayers]
-  phase_matrix_data phase_matrix{};  // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
-  rtepack::stokvec_tensor3 boundary_up{};         // [2, NFourier, N]
-  rtepack::stokvec_tensor3 boundary_down{};       // [2, NFourier, N]
-  std::vector<BDRF> brdf_fourier_modes{};        // [NBDRF]
-  Numeric           mu0{};
-  rtepack::stokvec  beam_stokes{};  // irradiance Stokes vector S_b
-  Numeric           phi0{};
-  beam_phase_matrix_data beam_phase_matrix{};  // [2, NFourier, NLayers, NQuad] of 4x4 blocks
+  rtepack::stokvec_matrix  source_poly_coeffs{};        // [NLayers, Nscoeffs]
+  Vector                   source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
+  Vector                   source_coordinate_offset{};  // [NLayers]
+  phase_matrix_data        phase_matrix{};              // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
+  rtepack::stokvec_tensor3 boundary_up{};               // [2, NFourier, N]
+  rtepack::stokvec_tensor3 boundary_down{};             // [2, NFourier, N]
+  std::vector<BDRF>        brdf_fourier_modes{};        // [NBDRF]
+  Numeric                  mu0{};
+  rtepack::stokvec         beam_stokes{};  // irradiance Stokes vector S_b
+  Numeric                  phi0{};
+  beam_phase_matrix_data   beam_phase_matrix{};  // [2, NFourier, NLayers, NQuad] of 4x4 blocks
   // VDISORT CHANGE END
 
   //! Derived values
@@ -161,9 +160,9 @@ class main_data {
   ComplexTensor5             G_collect{};       // [2, NFourier, NLayers, NState, NState]
   ComplexTensor4             K_collect{};       // [2, NFourier, NLayers, NState]
   ComplexTensor4             GC_collect{};      // [2, NFourier, NLayers, NState]
-  rtepack::stokvec_tensor4 B_collect{};       // [2, NFourier, NLayers, NQuad]
-  rtepack::stokvec_tensor5 source_collect{};  // [2, NFourier, NLayers, NQuad, Nscoeffs]
-  rtepack::stokvec_tensor4 um{};              // [NLayers, 2, NFourier, NQuad], layer-bottom fields
+  rtepack::stokvec_tensor4   B_collect{};       // [2, NFourier, NLayers, NQuad]
+  rtepack::stokvec_tensor5   source_collect{};  // [2, NFourier, NLayers, NQuad, Nscoeffs]
+  rtepack::stokvec_tensor4   um{};              // [NLayers, 2, NFourier, NQuad], layer-bottom fields
   std::vector<unsigned char> top_anchored{};    // one flag per eigenmode collection
   // VDISORT CHANGE END
 
@@ -201,21 +200,21 @@ class main_data {
             Vector            source_coordinate_offset = {});
 
   // Native constructor: phase operators are stored as rtepack Mueller blocks.
-  main_data(Index                  NQuad,
-            Index                  NFourier,
-            AscendingGrid          tau_arr,
-            Vector                 omega_arr,
-            phase_matrix_data      phase_matrix,
+  main_data(Index                    NQuad,
+            Index                    NFourier,
+            AscendingGrid            tau_arr,
+            Vector                   omega_arr,
+            phase_matrix_data        phase_matrix,
             rtepack::stokvec_tensor3 boundary_up,
             rtepack::stokvec_tensor3 boundary_down,
             rtepack::stokvec_matrix  source_poly_coeffs,
-            std::vector<BDRF>      brdf_fourier_modes,
-            Numeric                mu0,
-            rtepack::stokvec       beam_stokes,
-            Numeric                phi0,
-            beam_phase_matrix_data beam_phase_matrix         = {},
-            Vector                 source_coordinate_scale   = {},
-            Vector                 source_coordinate_offset  = {});
+            std::vector<BDRF>        brdf_fourier_modes,
+            Numeric                  mu0,
+            rtepack::stokvec         beam_stokes,
+            Numeric                  phi0,
+            beam_phase_matrix_data   beam_phase_matrix        = {},
+            Vector                   source_coordinate_scale  = {},
+            Vector                   source_coordinate_offset = {});
   // VDISORT CHANGE END
 
   [[nodiscard]] Index tau_index(Numeric tau) const;
@@ -251,19 +250,19 @@ class main_data {
   [[nodiscard]] const Vector&        omega() const { return omega_arr; }
 
   // VDISORT CHANGE BEGIN: polarized accessors replace scalar coefficient accessors.
-  [[nodiscard]] const phase_matrix_data&          all_phase_matrices() const { return phase_matrix; }
-  [[nodiscard]] rtepack::muelmat_tensor5_view     all_phase_matrices() { return phase_matrix; }
+  [[nodiscard]] const phase_matrix_data&        all_phase_matrices() const { return phase_matrix; }
+  [[nodiscard]] rtepack::muelmat_tensor5_view   all_phase_matrices() { return phase_matrix; }
   [[nodiscard]] const rtepack::stokvec_tensor3& upward_boundary() const { return boundary_up; }
-  [[nodiscard]] rtepack::stokvec_tensor3_view upward_boundary() { return boundary_up; }
+  [[nodiscard]] rtepack::stokvec_tensor3_view   upward_boundary() { return boundary_up; }
   [[nodiscard]] const rtepack::stokvec_tensor3& downward_boundary() const { return boundary_down; }
-  [[nodiscard]] rtepack::stokvec_tensor3_view downward_boundary() { return boundary_down; }
-  [[nodiscard]] const rtepack::stokvec_matrix& source_poly() const { return source_poly_coeffs; }
-  [[nodiscard]] rtepack::stokvec_matrix_view source_poly() { return source_poly_coeffs; }
-  [[nodiscard]] std::span<const BDRF> brdf_modes() const { return brdf_fourier_modes; }
-  [[nodiscard]] std::span<BDRF>       brdf_modes() { return brdf_fourier_modes; }
-  [[nodiscard]] const rtepack::stokvec& beam_source() const { return beam_stokes; }
-  [[nodiscard]] rtepack::stokvec& beam_source() { return beam_stokes; }
-  void set_beam_source(rtepack::stokvec beam);
+  [[nodiscard]] rtepack::stokvec_tensor3_view   downward_boundary() { return boundary_down; }
+  [[nodiscard]] const rtepack::stokvec_matrix&  source_poly() const { return source_poly_coeffs; }
+  [[nodiscard]] rtepack::stokvec_matrix_view    source_poly() { return source_poly_coeffs; }
+  [[nodiscard]] std::span<const BDRF>           brdf_modes() const { return brdf_fourier_modes; }
+  [[nodiscard]] std::span<BDRF>                 brdf_modes() { return brdf_fourier_modes; }
+  [[nodiscard]] const rtepack::stokvec&         beam_source() const { return beam_stokes; }
+  [[nodiscard]] rtepack::stokvec&               beam_source() { return beam_stokes; }
+  void                                          set_beam_source(rtepack::stokvec beam);
   // VDISORT CHANGE END
 
   [[nodiscard]] Numeric  solar_zenith() const { return mu0; }

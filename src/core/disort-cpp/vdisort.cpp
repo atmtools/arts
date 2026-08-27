@@ -16,18 +16,16 @@ namespace {
 [[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
 
 rtepack::stokvec to_stokvec(const ConstVectorView block) {
-  ARTS_USER_ERROR_IF(block.size() != vdisort::stokes_dimension,
-                     "A Stokes vector must have four components, got {}",
-                     block.size());
+  ARTS_USER_ERROR_IF(
+      block.size() != vdisort::stokes_dimension, "A Stokes vector must have four components, got {}", block.size());
   return {block[0], block[1], block[2], block[3]};
 }
 
 rtepack::stokvec_tensor3 to_boundary_data(const Tensor4& in) {
   if (in.size() == 0) return {};
   const auto [nalpha, nfourier, nstream, nstokes] = in.shape();
-  ARTS_USER_ERROR_IF(nstokes != vdisort::stokes_dimension,
-                     "The boundary Stokes dimension must be 4, got {:B,}",
-                     in.shape());
+  ARTS_USER_ERROR_IF(
+      nstokes != vdisort::stokes_dimension, "The boundary Stokes dimension must be 4, got {:B,}", in.shape());
   rtepack::stokvec_tensor3 out(nalpha, nfourier, nstream);
   for (Index a = 0; a < nalpha; ++a)
     for (Index m = 0; m < nfourier; ++m)
@@ -37,9 +35,8 @@ rtepack::stokvec_tensor3 to_boundary_data(const Tensor4& in) {
 
 rtepack::stokvec_matrix to_source_poly_data(const Tensor3& in) {
   const auto [nlayers, ncoeffs, nstokes] = in.shape();
-  ARTS_USER_ERROR_IF(nstokes != vdisort::stokes_dimension,
-                     "The source Stokes dimension must be 4, got {:B,}",
-                     in.shape());
+  ARTS_USER_ERROR_IF(
+      nstokes != vdisort::stokes_dimension, "The source Stokes dimension must be 4, got {:B,}", in.shape());
   rtepack::stokvec_matrix out(nlayers, ncoeffs);
   for (Index l = 0; l < nlayers; ++l)
     for (Index p = 0; p < ncoeffs; ++p) out[l, p] = to_stokvec(in[l, p]);
@@ -137,8 +134,7 @@ vdisort::beam_phase_matrix_data to_beam_phase_matrix_data(const Tensor6& in) {
 }  // namespace
 
 namespace vdisort {
-phase_matrix_fourier_coefficients phase_matrix_fourier_split(
-    const rtepack::specmat_matrix_const_view& phase_matrix) {
+phase_matrix_fourier_coefficients phase_matrix_fourier_split(const rtepack::specmat_matrix_const_view& phase_matrix) {
   phase_matrix_fourier_coefficients out{
       .cosine = rtepack::muelmat_matrix(phase_matrix.nrows(), phase_matrix.ncols(), rtepack::muelmat{0.0}),
       .sine   = rtepack::muelmat_matrix(phase_matrix.nrows(), phase_matrix.ncols(), rtepack::muelmat{0.0})};
@@ -146,7 +142,7 @@ phase_matrix_fourier_coefficients phase_matrix_fourier_split(
     for (Index coefficient = 0; coefficient < phase_matrix.ncols(); ++coefficient) {
       for (Index i = 0; i < stokes_dimension; ++i) {
         for (Index j = 0; j < stokes_dimension; ++j) {
-          const Complex value = phase_matrix[frequency, coefficient][i, j];
+          const Complex value                      = phase_matrix[frequency, coefficient][i, j];
           out.cosine[frequency, coefficient][i, j] = value.real();
           out.sine[frequency, coefficient][i, j]   = -value.imag();
         }
@@ -156,18 +152,17 @@ phase_matrix_fourier_coefficients phase_matrix_fourier_split(
   return out;
 }
 
-void BDRF::operator()(const Index            alpha,
+void BDRF::operator()(const Index                  alpha,
                       rtepack::muelmat_matrix_view out,
-                      const ConstVectorView& mu_out,
-                      const ConstVectorView& mu_in) const {
+                      const ConstVectorView&       mu_out,
+                      const ConstVectorView&       mu_in) const {
   ARTS_USER_ERROR_IF(alpha != cosine_mode and alpha != sine_mode,
                      "The VDISORT BRDF mode must be 0 (cosine) or 1 (sine), got {}",
                      alpha);
   (alpha == cosine_mode ? cosine : sine)(out, mu_out, mu_in);
 }
 
-phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
-                                         const rtepack::muelmat_tensor4& sine) {
+phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine, const rtepack::muelmat_tensor4& sine) {
   ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
                      "Cosine and sine phase matrices have different shapes: {:B,} and {:B,}",
                      cosine.shape(),
@@ -190,7 +185,8 @@ Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine) {
                      sine.shape());
   const auto [nfourier, nlayers, nout, nin, ns1, ns2] = cosine.shape();
   ARTS_USER_ERROR_IF(ns1 != stokes_dimension or ns2 != stokes_dimension,
-                     "The last two phase-matrix dimensions must both be 4, got {:B,}", cosine.shape());
+                     "The last two phase-matrix dimensions must both be 4, got {:B,}",
+                     cosine.shape());
   rtepack::muelmat_tensor4 c(nfourier, nlayers, nout, nin), s(nfourier, nlayers, nout, nin);
   for (Index m = 0; m < nfourier; ++m)
     for (Index l = 0; l < nlayers; ++l)
@@ -200,7 +196,7 @@ Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine) {
           s[m, l, i, j] = to_muelmat(sine[m, l, i, j]);
         }
   const auto combined = combine_phase_matrices(c, s);
-  Tensor7 out(2, nfourier, nlayers, nout, nin, stokes_dimension, stokes_dimension, 0.0);
+  Tensor7    out(2, nfourier, nlayers, nout, nin, stokes_dimension, stokes_dimension, 0.0);
   for (Index a = 0; a < 2; ++a)
     for (Index m = 0; m < nfourier; ++m)
       for (Index l = 0; l < nlayers; ++l)
@@ -213,7 +209,7 @@ Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine) {
 }
 
 beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
-                                                    const rtepack::muelmat_tensor3& sine) {
+                                                   const rtepack::muelmat_tensor3& sine) {
   ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
                      "Cosine and sine beam phase matrices have different shapes: {:B,} and {:B,}",
                      cosine.shape(),
@@ -234,7 +230,8 @@ Tensor6 combine_beam_phase_matrices(const Tensor5& cosine, const Tensor5& sine) 
                      sine.shape());
   const auto [nfourier, nlayers, nout, ns1, ns2] = cosine.shape();
   ARTS_USER_ERROR_IF(ns1 != stokes_dimension or ns2 != stokes_dimension,
-                     "The last two beam phase-matrix dimensions must both be 4, got {:B,}", cosine.shape());
+                     "The last two beam phase-matrix dimensions must both be 4, got {:B,}",
+                     cosine.shape());
   rtepack::muelmat_tensor3 c(nfourier, nlayers, nout), s(nfourier, nlayers, nout);
   for (Index m = 0; m < nfourier; ++m)
     for (Index l = 0; l < nlayers; ++l)
@@ -243,14 +240,13 @@ Tensor6 combine_beam_phase_matrices(const Tensor5& cosine, const Tensor5& sine) 
         s[m, l, i] = to_muelmat(sine[m, l, i]);
       }
   const auto combined = combine_beam_phase_matrices(c, s);
-  Tensor6 out(2, nfourier, nlayers, nout, stokes_dimension, stokes_dimension, 0.0);
+  Tensor6    out(2, nfourier, nlayers, nout, stokes_dimension, stokes_dimension, 0.0);
   for (Index a = 0; a < 2; ++a)
     for (Index m = 0; m < nfourier; ++m)
       for (Index l = 0; l < nlayers; ++l)
         for (Index i = 0; i < nout; ++i)
           for (Index so = 0; so < stokes_dimension; ++so)
-            for (Index si = 0; si < stokes_dimension; ++si)
-              out[a, m, l, i, so, si] = combined[a, m, l, i][so, si];
+            for (Index si = 0; si < stokes_dimension; ++si) out[a, m, l, i, so, si] = combined[a, m, l, i][so, si];
   return out;
 }
 
@@ -323,21 +319,21 @@ main_data::main_data(Index             NQuad_,
                 std::move(source_coordinate_scale_),
                 std::move(source_coordinate_offset_)) {}
 
-main_data::main_data(Index                  NQuad_,
-                     Index                  NFourier_,
-                     AscendingGrid          tau_arr_,
-                     Vector                 omega_arr_,
-                     phase_matrix_data      phase_matrix_,
+main_data::main_data(Index                    NQuad_,
+                     Index                    NFourier_,
+                     AscendingGrid            tau_arr_,
+                     Vector                   omega_arr_,
+                     phase_matrix_data        phase_matrix_,
                      rtepack::stokvec_tensor3 boundary_up_,
                      rtepack::stokvec_tensor3 boundary_down_,
                      rtepack::stokvec_matrix  source_poly_coeffs_,
-                     std::vector<BDRF>      brdf_fourier_modes_,
-                     Numeric                mu0_,
-                     rtepack::stokvec       beam_stokes_,
-                     Numeric                phi0_,
-                     beam_phase_matrix_data beam_phase_matrix_,
-                     Vector                 source_coordinate_scale_,
-                     Vector                 source_coordinate_offset_)
+                     std::vector<BDRF>        brdf_fourier_modes_,
+                     Numeric                  mu0_,
+                     rtepack::stokvec         beam_stokes_,
+                     Numeric                  phi0_,
+                     beam_phase_matrix_data   beam_phase_matrix_,
+                     Vector                   source_coordinate_scale_,
+                     Vector                   source_coordinate_offset_)
     : main_data(static_cast<Index>(tau_arr_.size()),
                 NQuad_,
                 NFourier_,
@@ -513,20 +509,18 @@ void main_data::diagonalize() {
 
         if (has_beam_source) {
           const rtepack::stokvec& beam = beam_stokes;
-          Vector        rhs(NState, 0.0);
-          const Numeric epsilon = m == 0 ? 1.0 : 2.0;
+          Vector                  rhs(NState, 0.0);
+          const Numeric           epsilon = m == 0 ? 1.0 : 2.0;
           for (Index i = 0; i < NQuad; ++i) {
             const rtepack::stokvec scattered = beam_phase_matrix[alpha, m, l, i] * beam;
             for (Index so = 0; so < stokes_dimension; ++so) {
-              rhs[state_index(i, so)] =
-                  inv_mu_arr[i] * epsilon * omega_arr[l] * scattered[so] / (4.0 * Constant::pi);
+              rhs[state_index(i, so)] = inv_mu_arr[i] * epsilon * omega_arr[l] * scattered[so] / (4.0 * Constant::pi);
             }
           }
           diagonal(A_real) += 1.0 / mu0;
           solve_inplace(rhs, A_real);
           for (Index i = 0; i < NQuad; ++i)
-            for (Index s = 0; s < stokes_dimension; ++s)
-              B_collect[alpha, m, l, i][s] = rhs[state_index(i, s)];
+            for (Index s = 0; s < stokes_dimension; ++s) B_collect[alpha, m, l, i][s] = rhs[state_index(i, s)];
         }
       }
     }
@@ -571,9 +565,9 @@ void main_data::source_function() {
         solve_inplace(rhs, work);
         for (Index i = 0; i < NQuad; ++i)
           for (Index s = 0; s < stokes_dimension; ++s) {
-            const Index state = state_index(i, s);
+            const Index state                    = state_index(i, s);
             source_collect[alpha, m, l, i, p][s] = rhs[state];
-            next[state]                           = rhs[state];
+            next[state]                          = rhs[state];
           }
       }
     }
@@ -597,7 +591,7 @@ void main_data::solve_for_coefs() {
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
       matpack::complex_band_matrix lhs(bandwidth, bandwidth, equation_count, equation_count);
-      ComplexVector       rhs(equation_count, 0.0);
+      ComplexVector                rhs(equation_count, 0.0);
 
       // VDISORT CHANGE BEGIN: reflection is a matrix coupling Stokes components.
       Matrix reflection(NHalfState, NHalfState, 0.0);
@@ -614,10 +608,10 @@ void main_data::solve_for_coefs() {
 
         if (has_beam_source) {
           rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
-          const Vector beam_mu{mu0};
+          const Vector            beam_mu{mu0};
           brdf_fourier_modes[m](alpha, beam_raw, mu_arr[Range{0, N}], beam_mu);
-          const Numeric attenuation = std::exp(-tau_arr.back() / mu0);
-          const rtepack::stokvec& beam = beam_stokes;
+          const Numeric           attenuation = std::exp(-tau_arr.back() / mu0);
+          const rtepack::stokvec& beam        = beam_stokes;
           for (Index i = 0; i < N; ++i) {
             const rtepack::stokvec reflected = attenuation * (beam_raw[i, 0] * beam);
             for (Index s = 0; s < stokes_dimension; ++s) direct_reflection[state_index(i, s)] = reflected[s];
