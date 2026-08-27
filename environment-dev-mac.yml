@@ -3,6 +3,7 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - cpython
         - docutils
         - gfortran
         - glew
