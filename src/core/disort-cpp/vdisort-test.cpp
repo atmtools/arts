@@ -244,11 +244,11 @@ void test_polarized_brdf() {
   down[vdisort::cosine_mode, 0, 0, 1] = 0.2;
 
   const Numeric reflectance = 0.3;
-  const auto    callback    = [reflectance](MatrixView value, const auto&, const auto&) {
-    value              = 0.0;
-    const Index blocks = std::min(value.nrows(), value.ncols()) / 4;
+  const auto    callback    = [reflectance](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
+    value              = rtepack::muelmat{0.0};
+    const Index blocks = std::min(value.nrows(), value.ncols());
     for (Index i = 0; i < blocks; ++i)
-      for (Index s = 0; s < 4; ++s) value[4 * i + s, 4 * i + s] = reflectance;
+      for (Index s = 0; s < 4; ++s) value[i, i][s, s] = reflectance;
   };
   std::vector<vdisort::BDRF> brdf{{.cosine = {callback}, .sine = {callback}}};
 
@@ -306,6 +306,14 @@ void test_combined_matrix_transform() {
   const Tensor7 combined   = vdisort::combine_phase_matrices(cosine, sine);
   expect_close(combined[vdisort::cosine_mode, 1, 0, 0, 0, 0, 2], -5.0, "Eq. 81 cosine sign");
   expect_close(combined[vdisort::sine_mode, 1, 0, 0, 0, 0, 2], 5.0, "Eq. 81 sine sign");
+
+  rtepack::muelmat_tensor4 native_cosine(2, 1, 1, 1, rtepack::muelmat{0.0});
+  rtepack::muelmat_tensor4 native_sine(2, 1, 1, 1, rtepack::muelmat{0.0});
+  native_cosine[1, 0, 0, 0][0, 2] = 3.0;
+  native_sine[1, 0, 0, 0][0, 2]   = 5.0;
+  const auto native_combined = vdisort::combine_phase_matrices(native_cosine, native_sine);
+  expect_close(native_combined[vdisort::cosine_mode, 1, 0, 0, 0][0, 2], -5.0, "native Eq. 81 cosine sign");
+  expect_close(native_combined[vdisort::sine_mode, 1, 0, 0, 0][0, 2], 5.0, "native Eq. 81 sine sign");
 }
 }  // namespace
 

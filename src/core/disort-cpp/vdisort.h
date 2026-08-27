@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 #include <operators.h>
+#include <rtepack_mueller_matrix.h>
 
 #include <array>
 #include <span>
@@ -19,8 +20,9 @@
  *   - Stokes order is [I, Q, U, V].
  *   - positive mu is upward and the positive quadrature points precede the
  *     corresponding negative points;
- *   - phase_matrix[alpha,m,l,i,j,:,:] maps incident stream j to outgoing
- *     stream i and already contains the combined matrices of Eq. (81);
+ *   - phase_matrix[alpha,m,l,i,j] is an rtepack Mueller block mapping incident
+ *     stream j to outgoing stream i and already contains the combined matrices
+ *     of Eq. (81);
  *   - alpha=0 is the combined cosine equation and alpha=1 the combined sine
  *     equation;
  *   - boundary arrays use the same combined-component convention.
@@ -29,6 +31,9 @@ namespace vdisort {
 inline constexpr Index stokes_dimension = 4;
 inline constexpr Index cosine_mode      = 0;
 inline constexpr Index sine_mode        = 1;
+
+using phase_matrix_data      = rtepack::muelmat_tensor5;
+using beam_phase_matrix_data = rtepack::muelmat_tensor4;
 
 // VDISORT CHANGE BEGIN: scalar radiances become one Stokes vector per stream.
 struct u_data {
@@ -47,22 +52,26 @@ struct flux_data {
 // VDISORT CHANGE BEGIN: a BRDF Fourier mode is a 4x4 block operator.
 /** Polarized BRDF Fourier mode in the combined representation.
  *
- * Each callback fills a matrix with shape [4*n_out, 4*n_in].  Its 4x4 block
+ * Each callback fills a Mueller-block matrix with shape [n_out, n_in].  Block
  * (i,j) maps the incident Stokes vector at mu_in[j] to the reflected Stokes
  * vector at mu_out[i].  Values are the reflection matrices R^m in Eq. (123),
  * before the pi*w*mu quadrature factor in Eq. (124).
  */
 struct BDRF {
-  using func_t = CustomOperator<void, MatrixView, const ConstVectorView&, const ConstVectorView&>;
+  using func_t =
+      CustomOperator<void, rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&>;
 
   func_t cosine;
   func_t sine;
 
-  void operator()(Index alpha, MatrixView out, const ConstVectorView& mu_out, const ConstVectorView& mu_in) const;
+  void operator()(Index                         alpha,
+                  rtepack::muelmat_matrix_view out,
+                  const ConstVectorView&       mu_out,
+                  const ConstVectorView&       mu_in) const;
 };
 // VDISORT CHANGE END
 
-/** Convert ordinary phase-matrix cosine/sine Fourier coefficients to the
+/** Convert numeric ordinary phase-matrix cosine/sine Fourier coefficients to the
  * combined VDISORT matrices of Lin et al. (2022), Eqs. (81)-(82).
  *
  * Inputs have shape [NFourier, NLayers, NQuad, NQuad, 4, 4].  The result has
@@ -71,6 +80,14 @@ struct BDRF {
  */
 [[nodiscard]] Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine);
 
+/** Native rtepack overload of combine_phase_matrices.
+ *
+ * Inputs have shape [NFourier, NLayers, NQuad, NQuad] of Mueller blocks and
+ * the result has shape [2, NFourier, NLayers, NQuad, NQuad].
+ */
+[[nodiscard]] phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
+                                                        const rtepack::muelmat_tensor4& sine);
+
 /** Beam-angle counterpart of combine_phase_matrices.
  *
  * Inputs have shape [NFourier, NLayers, NQuad, 4, 4], with the incident
@@ -78,6 +95,10 @@ struct BDRF {
  * [2, NFourier, NLayers, NQuad, 4, 4].
  */
 [[nodiscard]] Tensor6 combine_beam_phase_matrices(const Tensor5& cosine, const Tensor5& sine);
+
+/** Native rtepack overload of combine_beam_phase_matrices. */
+[[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
+                                                                  const rtepack::muelmat_tensor3& sine);
 
 /** The main data structure for the polarized VDISORT algorithm.
  *
@@ -105,14 +126,14 @@ class main_data {
   Tensor3           source_poly_coeffs{};        // [NLayers, Nscoeffs, 4]
   Vector            source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
   Vector            source_coordinate_offset{};  // [NLayers]
-  Tensor7           phase_matrix{};              // [2, NFourier, NLayers, NQuad, NQuad, 4, 4]
+  phase_matrix_data phase_matrix{};  // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
   Tensor4           boundary_up{};               // [2, NFourier, N, 4]
   Tensor4           boundary_down{};             // [2, NFourier, N, 4]
   std::vector<BDRF> brdf_fourier_modes{};        // [NBDRF]
   Numeric           mu0{};
   Vector            beam_stokes{};  // [4], irradiance Stokes vector S_b
   Numeric           phi0{};
-  Tensor6           beam_phase_matrix{};  // [2, NFourier, NLayers, NQuad, 4, 4]
+  beam_phase_matrix_data beam_phase_matrix{};  // [2, NFourier, NLayers, NQuad] of 4x4 blocks
   // VDISORT CHANGE END
 
   //! Derived values
@@ -146,7 +167,7 @@ class main_data {
 
   main_data(Index NLayers, Index NQuad, Index NFourier, Index Nscoeffs, Index NBDRF);
 
-  // VDISORT CHANGE BEGIN: constructor accepts the vector phase operator and Stokes data.
+  // VDISORT CHANGE BEGIN: compatibility constructor for numeric 4x4 trailing dimensions.
   main_data(Index             NQuad,
             Index             NFourier,
             AscendingGrid     tau_arr,
@@ -162,6 +183,23 @@ class main_data {
             Tensor6           beam_phase_matrix        = {},
             Vector            source_coordinate_scale  = {},
             Vector            source_coordinate_offset = {});
+
+  // Native constructor: phase operators are stored as rtepack Mueller blocks.
+  main_data(Index                  NQuad,
+            Index                  NFourier,
+            AscendingGrid          tau_arr,
+            Vector                 omega_arr,
+            phase_matrix_data      phase_matrix,
+            Tensor4                boundary_up,
+            Tensor4                boundary_down,
+            Tensor3                source_poly_coeffs,
+            std::vector<BDRF>      brdf_fourier_modes,
+            Numeric                mu0,
+            Vector                 beam_stokes,
+            Numeric                phi0,
+            beam_phase_matrix_data beam_phase_matrix         = {},
+            Vector                 source_coordinate_scale   = {},
+            Vector                 source_coordinate_offset  = {});
   // VDISORT CHANGE END
 
   [[nodiscard]] Index tau_index(Numeric tau) const;
@@ -197,8 +235,8 @@ class main_data {
   [[nodiscard]] const Vector&        omega() const { return omega_arr; }
 
   // VDISORT CHANGE BEGIN: polarized accessors replace scalar coefficient accessors.
-  [[nodiscard]] const Tensor7&        all_phase_matrices() const { return phase_matrix; }
-  [[nodiscard]] Tensor7View           all_phase_matrices() { return phase_matrix; }
+  [[nodiscard]] const phase_matrix_data&          all_phase_matrices() const { return phase_matrix; }
+  [[nodiscard]] rtepack::muelmat_tensor5_view     all_phase_matrices() { return phase_matrix; }
   [[nodiscard]] const Tensor4&        upward_boundary() const { return boundary_up; }
   [[nodiscard]] Tensor4View           upward_boundary() { return boundary_up; }
   [[nodiscard]] const Tensor4&        downward_boundary() const { return boundary_down; }

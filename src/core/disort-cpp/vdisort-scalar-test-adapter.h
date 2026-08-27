@@ -283,19 +283,23 @@ class main_data {
     for (Index mode = 0; mode < static_cast<Index>(brdf.size()); ++mode) {
       const BDRF scalar_mode = brdf[mode];
       const auto cosine = [scalar_mode, mode](
-                              MatrixView out, const ConstVectorView& mu_out, const ConstVectorView& positive_mu_in) {
+                              rtepack::muelmat_matrix_view out,
+                              const ConstVectorView&       mu_out,
+                              const ConstVectorView&       positive_mu_in) {
         Vector negative_mu_in(positive_mu_in.size());
         for (Index i = 0; i < static_cast<Index>(positive_mu_in.size()); ++i) negative_mu_in[i] = -positive_mu_in[i];
-        Matrix scalar(out.nrows() / 4, out.ncols() / 4, 0.0);
+        Matrix scalar(out.nrows(), out.ncols(), 0.0);
         scalar_mode(scalar, mu_out, negative_mu_in);
-        out                       = 0.0;
+        out                       = rtepack::muelmat{0.0};
         const bool    direct_beam = positive_mu_in.data_handle() != mu_out.data_handle();
         const Numeric scale       = direct_beam ? positive_mu_in[0] * Constant::inv_pi
                                                 : static_cast<Numeric>(mode == 0 ? 2 : 1) * Constant::inv_pi;
         for (Index i = 0; i < scalar.nrows(); ++i)
-          for (Index j = 0; j < scalar.ncols(); ++j) out[4 * i, 4 * j] = scale * scalar[i, j];
+          for (Index j = 0; j < scalar.ncols(); ++j) out[i, j][0, 0] = scale * scalar[i, j];
       };
-      const auto sine = [](MatrixView out, const ConstVectorView&, const ConstVectorView&) { out = 0.0; };
+      const auto sine = [](rtepack::muelmat_matrix_view out, const ConstVectorView&, const ConstVectorView&) {
+        out = rtepack::muelmat{0.0};
+      };
       vector_brdf.push_back(vdisort::BDRF{.cosine = {cosine}, .sine = {sine}});
     }
 
