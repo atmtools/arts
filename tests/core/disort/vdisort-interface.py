@@ -68,7 +68,9 @@ def test_absorbing_stokes_field():
     field = np.asarray(model.u(np.array([tau]), np.array([1.3])))
     assert field.shape == (1, 1, nquad, arts.vdisort.stokes_dimension)
 
-    mu = 1.0 / np.sqrt(3.0)
+    # DISORT uses one Gauss-Legendre rule per hemisphere (double Gauss),
+    # whose one-point positive ordinate is the midpoint of [0, 1].
+    mu = 0.5
     np.testing.assert_allclose(field[0, 0, 0], bottom * np.exp((tau - depth) / mu))
     np.testing.assert_allclose(field[0, 0, 1], top * np.exp(-tau / mu))
 

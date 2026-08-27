@@ -12,47 +12,6 @@
 #include <ranges>
 
 namespace {
-// LAPACK's complex band solver is the exact complex counterpart of the real
-// dgbsv wrapper used by disort::main_data.
-extern "C" void zgbsv_(
-    int* n, int* kl, int* ku, int* nrhs, Complex* ab, int* ldab, int* ipiv, Complex* b, int* ldb, int* info);
-
-// VDISORT CHANGE BEGIN: complex eigenmodes require a complex band solve.
-class complex_band_matrix {
-  Index            ku_{};
-  Index            kl_{};
-  Index            n_{};
-  ComplexMatrix    data_{};
-  std::vector<int> pivots_{};
-
- public:
-  complex_band_matrix(Index ku, Index kl, Index n)
-      : ku_(ku), kl_(kl), n_(n), data_(n, 2 * kl + ku + 1, 0.0), pivots_(n) {}
-
-  Complex& operator[](Index row, Index column) {
-    ARTS_USER_ERROR_IF(row < std::max<Index>(0, column - ku_) or row >= std::min<Index>(n_, column + kl_ + 1),
-                       "VDISORT band index ({}, {}) is outside kl={}, ku={}",
-                       row,
-                       column,
-                       kl_,
-                       ku_);
-    return data_[column, ku_ + kl_ + row - column];
-  }
-
-  int solve(ComplexVector& rhs) {
-    int n    = static_cast<int>(n_);
-    int kl   = static_cast<int>(kl_);
-    int ku   = static_cast<int>(ku_);
-    int nrhs = 1;
-    int ldab = 2 * kl + ku + 1;
-    int ldb  = n;
-    int info = 0;
-    zgbsv_(&n, &kl, &ku, &nrhs, data_.data_handle(), &ldab, pivots_.data(), rhs.data_handle(), &ldb, &info);
-    return info;
-  }
-};
-// VDISORT CHANGE END
-
 [[nodiscard]] bool polarized_source(const Vector& stokes) { return stokes.size() == 4 and stokes[0] > 0.0; }
 
 void fill_combined(MatrixView            out_cos,
@@ -470,7 +429,7 @@ void main_data::solve_for_coefs() {
 
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
-      complex_band_matrix lhs(bandwidth, bandwidth, equation_count);
+      matpack::complex_band_matrix lhs(bandwidth, bandwidth, equation_count, equation_count);
       ComplexVector       rhs(equation_count, 0.0);
 
       // VDISORT CHANGE BEGIN: reflection is a matrix coupling Stokes components.

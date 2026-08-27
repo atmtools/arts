@@ -17,6 +17,8 @@
 #include "operators.h"
 #include "sorting.h"
 
+NB_MAKE_OPAQUE(std::vector<vdisort::BDRF>);
+
 namespace Python {
 using DisortBDRFOperator = CustomOperator<Matrix, const Vector&, const Vector&>;
 using bdrf_func          = DisortBDRFOperator::func_t;
