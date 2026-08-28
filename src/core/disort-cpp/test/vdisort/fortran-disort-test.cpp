@@ -38,6 +38,7 @@ struct scalar_vdisort_model {
   Numeric                         physical_depth{};
   Numeric                         physical_omega{};
   Numeric                         mu0{};
+  Numeric                         phi0{};
   Numeric                         beam_intensity{};
   Numeric                         delta_m_fraction{};
   Numeric                         optical_depth_scale{1.0};
@@ -57,15 +58,18 @@ Numeric scalar_phase_mode(const ConstVectorView& moments,
   return result;
 }
 
-scalar_vdisort_model make_scalar_model(const disort_test::reference::single_layer_case& test,
-                                       const Index                                      nquad,
-                                       const ConstVectorView&                           moments,
-                                       const ConstVectorView&                           user_mu,
-                                       const Numeric                                    mu0,
-                                       const Numeric                                    beam_intensity,
-                                       const Numeric                                    delta_m_fraction = 0.0) {
-  const Numeric optical_depth_scale = 1.0 - test.omega * delta_m_fraction;
-  const Numeric transport_omega     = test.omega * (1.0 - delta_m_fraction) / optical_depth_scale;
+scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
+                                       const Numeric          physical_omega,
+                                       const bool             has_beam,
+                                       const Index            nquad,
+                                       const ConstVectorView& moments,
+                                       const ConstVectorView& user_mu,
+                                       const Numeric          mu0,
+                                       const Numeric          beam_intensity,
+                                       const Numeric          delta_m_fraction = 0.0,
+                                       const Numeric          phi0             = 0.0) {
+  const Numeric optical_depth_scale = 1.0 - physical_omega * delta_m_fraction;
+  const Numeric transport_omega     = physical_omega * (1.0 - delta_m_fraction) / optical_depth_scale;
   Vector        transport_moments(std::min(nquad, static_cast<Index>(moments.size())));
   for (Index degree = 0; degree < static_cast<Index>(transport_moments.size()); ++degree)
     transport_moments[degree] = (moments[degree] - delta_m_fraction) / (1.0 - delta_m_fraction);
@@ -96,7 +100,7 @@ scalar_vdisort_model make_scalar_model(const disort_test::reference::single_laye
 
   Tensor4 up(nalpha, nmodes, n, nstokes, 0.0);
   Tensor4 down(nalpha, nmodes, n, nstokes, 0.0);
-  if (not test.beam) down[vdisort::cosine_mode, 0, joker, 0] = 1.0;
+  if (not has_beam) down[vdisort::cosine_mode, 0, joker, 0] = 1.0;
 
   Tensor6 beam_phase(nalpha, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
   for (Index m = 0; m < nmodes; ++m)
@@ -105,7 +109,7 @@ scalar_vdisort_model make_scalar_model(const disort_test::reference::single_laye
 
   vdisort::main_data solver(nquad,
                             nmodes,
-                            AscendingGrid{optical_depth_scale * test.depth},
+                            AscendingGrid{optical_depth_scale * physical_depth},
                             Vector{transport_omega},
                             std::move(phase),
                             std::move(up),
@@ -113,8 +117,8 @@ scalar_vdisort_model make_scalar_model(const disort_test::reference::single_laye
                             Tensor3(nlayers, 0, nstokes),
                             {},
                             mu0,
-                            test.beam ? Vector{beam_intensity, 0.0, 0.0, 0.0} : Vector(4, 0.0),
-                            0.0,
+                            has_beam ? Vector{beam_intensity, 0.0, 0.0, 0.0} : Vector(4, 0.0),
+                            phi0,
                             std::move(beam_phase));
 
   vdisort::phase_matrix_data user_phase(nalpha, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
@@ -135,10 +139,11 @@ scalar_vdisort_model make_scalar_model(const disort_test::reference::single_laye
           .user_beam_phase     = std::move(user_beam_phase),
           .original_moments    = Vector{moments},
           .transport_moments   = std::move(transport_moments),
-          .physical_depth      = test.depth,
-          .physical_omega      = test.omega,
+          .physical_depth      = physical_depth,
+          .physical_omega      = physical_omega,
           .mu0                 = mu0,
-          .beam_intensity      = test.beam ? beam_intensity : 0.0,
+          .phi0                = phi0,
+          .beam_intensity      = has_beam ? beam_intensity : 0.0,
           .delta_m_fraction    = delta_m_fraction,
           .optical_depth_scale = optical_depth_scale};
 }
@@ -201,7 +206,7 @@ Vector scalar_delta_m_correction(const scalar_vdisort_model& model,
   for (Index i = 0; i < static_cast<Index>(user_mu.size()); ++i) {
     const Numeric mu          = user_mu[i];
     const Numeric abs_mu      = std::abs(mu);
-    const Numeric nu          = scattering_angle_cosine(mu, phi, -model.mu0, 0.0);
+    const Numeric nu          = scattering_angle_cosine(mu, phi, -model.mu0, model.phi0);
     const Numeric p_true      = Legendre::legendre_sum(weighted_true, nu);
     const Numeric p_transport = Legendre::legendre_sum(weighted_transport, nu);
     const Numeric beam_factor = mu > 0.0 ? model.mu0 / (model.mu0 + mu) : 1.0;
@@ -243,7 +248,9 @@ void run_problem_1_case(const disort_test::reference::single_layer_case& test) {
   const auto& user_mu = disort_test::reference::problem_1_user_mu;
   Vector      moments(17, 0.0);
   moments[0]         = 1.0;
-  auto         model = make_scalar_model(test,
+  auto         model = make_scalar_model(test.depth,
+                                         test.omega,
+                                         test.beam,
                                          disort_test::reference::problem_1_streams,
                                          moments,
                                          user_mu,
@@ -284,7 +291,9 @@ void run_problem_2_case(const disort_test::reference::single_layer_case& test) {
   Vector      moments(17, 0.0);
   moments[0]         = 1.0;
   moments[2]         = 0.1;
-  auto         model = make_scalar_model(test,
+  auto         model = make_scalar_model(test.depth,
+                                         test.omega,
+                                         test.beam,
                                          disort_test::reference::problem_2_streams,
                                          moments,
                                          user_mu,
@@ -326,7 +335,8 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
   Vector          moments(disort_test::reference::problem_3_moments);
   for (Index degree = 0; degree < static_cast<Index>(moments.size()); ++degree)
     moments[degree] = std::pow(disort_test::reference::problem_3_asymmetry, degree);
-  auto         model = make_scalar_model(test, nquad, moments, user_mu, 1.0, Constant::pi, moments[nquad]);
+  auto model =
+      make_scalar_model(test.depth, test.omega, test.beam, nquad, moments, user_mu, 1.0, Constant::pi, moments[nquad]);
   const Vector output_tau{0.0, test.depth};
 
   vdisort::user_u_data user;
@@ -361,12 +371,67 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
 void test_problem_3() {
   for (const auto& test : disort_test::reference::problem_3) run_problem_3_case(test);
 }
+
+void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
+  constexpr Index nquad          = disort_test::reference::problem_4_streams;
+  const auto&     user_mu        = disort_test::reference::problem_4_user_mu;
+  const Matrix    moments_matrix = disort_test::reference::haze_l_moments();
+  const Vector    moments{moments_matrix[0]};
+  auto            model = make_scalar_model(disort_test::reference::problem_4_total_tau,
+                                            test.omega,
+                                            true,
+                                            nquad,
+                                            moments,
+                                            user_mu,
+                                            test.beam_mu,
+                                            Constant::pi,
+                                            moments[nquad]);
+
+  vdisort::user_u_data user;
+  for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
+    for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
+      const Numeric physical_tau = disort_test::reference::problem_4_output_tau[level];
+      const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
+      model.solver.u_user(user, scaled_tau, test.azimuth[azimuth], user_mu, model.user_phase, model.user_beam_phase);
+      const Vector correction = scalar_delta_m_correction(model, physical_tau, test.azimuth[azimuth], user_mu);
+      for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
+        user.intensities[angle].I() += correction[angle];
+        const auto label             = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+        expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, level, angle]);
+        expect_unpolarized(label, user.intensities[angle]);
+      }
+    }
+  }
+
+  vdisort::flux_data flux;
+  for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
+    const Numeric physical_tau                      = disort_test::reference::problem_4_output_tau[level];
+    const Numeric scaled_tau                        = model.optical_depth_scale * physical_tau;
+    const auto [scaled_diffuse_down, scaled_direct] = model.solver.flux_down(flux, scaled_tau);
+    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
+      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
+    const Numeric diffuse_down    = scaled_diffuse_down - (physical_direct - scaled_direct);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
+    const Numeric up = model.solver.flux_up(flux, scaled_tau);
+    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
+      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+  }
+}
+
+void test_problem_4() {
+  for (const auto& test : disort_test::reference::problem_4) run_problem_4_case(test);
+}
 }  // namespace
 
 int main() try {
   test_problem_1();
   test_problem_2();
   test_problem_3();
+  test_problem_4();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
