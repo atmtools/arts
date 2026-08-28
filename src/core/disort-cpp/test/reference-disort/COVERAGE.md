@@ -22,7 +22,7 @@ does not count.
 | 13 | a–d | ported physical output | The regular solves reproduce both shortcut albedo/transmission pairs. The `IBCND=1` shortcut itself is unavailable, but is not needed to test its physical results. |
 | 14 | a–d | ported | Hapke, Cox-Munk, RPV, and Ross-Li raw BRDFs, their Fourier reconstruction, all user-angle radiances, fluxes, and `DFDT` are checked. CPP represents the exactly transparent layer by `tau=1e-12`, `omega=1e-8` to avoid a degenerate eigensystem. |
 | 15 | a–d | ported | The Rayleigh/aerosol atmosphere uses all 600 Kokhanovsky moments for arbitrary-angle IMS/TMS corrections. Hapke, shadowed Cox-Munk, RPV, and Ross-Li cases are checked against every original radiance, flux, and `DFDT` value. |
-| 16 | a | blocked by solver feature | CPP has no pseudo-spherical direct-beam correction. |
+| 16 | a | intentionally unsupported | CPP-DISORT is kept plane-parallel; pseudo-spherical direct-beam corrections are out of scope and are not planned. |
 | 17 | a–b | blocked by solver feature | CPP has delta-M scaling, but not DISORT 4.0.99 delta-M-plus. |
 
 The older cDISORT suite has 48 subcases.  Its Problems 1–13 overlap the
