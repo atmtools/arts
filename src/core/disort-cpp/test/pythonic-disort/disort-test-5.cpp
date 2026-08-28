@@ -1,6 +1,7 @@
 #include "../reference-data.h"
 #include "../test-helpers.h"
 
+namespace {
 void test_5a() try {
   const AscendingGrid tau_arr{64};
   const Vector        omega_arr{1 - 1e-6};
@@ -787,6 +788,7 @@ void test_5BDRF() try {
 
   compare("test_5BDRF", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-5BDRF:\n{}", e.what())); }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

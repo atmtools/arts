@@ -1,5 +1,6 @@
 #include "../test-helpers.h"
 
+namespace {
 const Vector Leg_coeffs_ALL{
     1,       2.41260, 3.23047, 3.37296, 3.23150, 2.89350, 2.49594, 2.11361, 1.74812, 1.44692, 1.17714, 0.96643,
     0.78237, 0.64114, 0.51966, 0.42563, 0.34688, 0.28351, 0.23317, 0.18963, 0.15788, 0.12739, 0.10762, 0.08597,
@@ -614,6 +615,7 @@ void test_4c() try {
 
   compare("test_4c", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-4c:\n{}", e.what())); }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

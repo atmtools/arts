@@ -1,6 +1,7 @@
 #include "../test-helpers.h"
 #include "arts_constants.h"
 
+namespace {
 void test_8a() try {
   const AscendingGrid tau_arr{0.25, 0.5};
   const Vector        omega_arr{0.5, 0.3};
@@ -314,6 +315,7 @@ void test_8c() try {
 
   compare("test_8c", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-8c:\n{}", e.what())); }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

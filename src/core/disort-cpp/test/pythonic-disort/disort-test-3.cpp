@@ -1,5 +1,6 @@
 #include "../test-helpers.h"
 
+namespace {
 void test_3a() try {
   const AscendingGrid tau_arr{1};
   const Vector        omega_arr{1 - 1e-6};
@@ -267,6 +268,7 @@ void test_3b() try {
 
   compare("test_3b", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-3b:\n{}", e.what())); }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

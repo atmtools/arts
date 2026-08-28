@@ -1,5 +1,6 @@
 #include "../test-helpers.h"
 
+namespace {
 void test_9a() try {
   const AscendingGrid tau_arr{1., 3., 6., 10., 15., 21.};
   const Vector        omega_arr{0.65, 0.7, 0.75, 0.8, 0.85, 0.9};
@@ -231,6 +232,7 @@ void test_9b() try {
 
   compare("test_9b", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-9b:\n{}", e.what())); }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

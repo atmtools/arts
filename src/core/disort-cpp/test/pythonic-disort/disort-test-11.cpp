@@ -1,5 +1,4 @@
 #include "../test-helpers.h"
-#include "artstime.h"
 #include "disort.h"
 
 namespace {
@@ -49,7 +48,6 @@ void require_finite(const std::string_view name, const auto& values) {
                      "{} contains a non-finite value",
                      name);
 }
-}  // namespace
 
 void test_11a_1layer() try {
   const AscendingGrid tau_arr{8.};
@@ -538,6 +536,7 @@ void test_11g_gridded_correction_cache_equivalence() try {
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11g-gridded-correction-cache-equivalence:\n{}", e.what()));
 }
+}  // namespace
 
 int main() try {
   std::cout << std::setprecision(16);

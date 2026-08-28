@@ -10,6 +10,7 @@
 #include "configtypes.h"
 #include "rng.h"
 
+namespace {
 struct Timing {
   std::string_view name;
   Timing(const char* c) : name(c) {}
@@ -21,15 +22,6 @@ struct Timing {
     dt = end - start;
   }
 };
-
-inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
-  for (auto& t : vt) {
-    if (t.name.contains('\n') or t.name.contains(' ') or t.name.empty())
-      throw std::runtime_error(std::format("bad name: \"{}\"", t.name));
-    if (t.name not_eq "dummy") { os << std::setprecision(15) << t.name << " " << t.dt.count() << '\n'; }
-  }
-  return os;
-}
 
 constexpr Index   NQuad    = 40;
 constexpr Index   NFourier = 3;
@@ -304,6 +296,7 @@ void handle_opt(const char* c, bool& print, Index& N) {
   else
     N = std::stoi(s);
 }
+}  // namespace
 
 int main(int argc, char** argv) {
   bool  print = true;

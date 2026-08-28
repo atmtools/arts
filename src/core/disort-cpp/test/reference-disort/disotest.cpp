@@ -4,7 +4,7 @@
 #include "../test-helpers.h"
 
 namespace legacy_disotest {
-
+namespace {
 Numeric blackbody_radiance(const Numeric temperature) {
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi;
 }
@@ -391,7 +391,7 @@ void disort_test14() {
   run_case("test_14a (four stream)", four_stream, taus);
   run_case("test_14b (two stream)", two_stream, taus);
 }
-
+}  // namespace
 }  // namespace legacy_disotest
 
 int main() try {

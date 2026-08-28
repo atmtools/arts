@@ -2,6 +2,7 @@
 
 #include "../test-helpers.h"
 
+namespace {
 void test_1a() {
   const AscendingGrid tau_arr{0.03125};
   const Vector        omega_arr{0.2};
@@ -808,6 +809,7 @@ void test_1f() {
 
   compare("test_1f", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 }
+}  // namespace
 
 int main() try {
   test_1a();

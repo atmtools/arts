@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "disort.h"
+
 namespace {
 constexpr Numeric tolerance = 2e-9;
 
