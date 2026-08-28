@@ -10,7 +10,7 @@ does not count.
 | 1 | a–f | ported | All original user-angle radiances and fluxes pass, including exact-unity input through the internal conservative dither. |
 | 2 | a–d | ported | All original user-angle radiances and fluxes pass, including exact-unity input. |
 | 3 | a–b | ported | Arbitrary-angle IMS/TMS corrections are applied to the original user-angle radiances. |
-| 4 | a–c | fluxes portable; user radiances blocked | Higher phase moments trigger delta scaling; arbitrary-angle IMS/TMS correction is incomplete. |
+| 4 | a–c | ported | All Haze-L fluxes and user-angle radiances are checked with arbitrary-angle IMS/TMS corrections. |
 | 5 | a–b | fluxes portable; user radiances blocked | Delta-M intensity corrections at user angles remain incomplete. |
 | 6 | a–h | smoke only | Boundary and thermal-source inputs require normalization mapping to the CPP API. |
 | 7 | a–e | smoke only | Directly portable after thermal/boundary mapping. |
