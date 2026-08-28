@@ -146,7 +146,7 @@ std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, co
   for (Index mode = 0; mode < number_of_modes; ++mode) {
     result.emplace_back(BDRF{
         [raw, quadrature, mode](MatrixView output, const ConstVectorView& outgoing, const ConstVectorView& incoming) {
-          const Numeric factor = mode == 0 ? 1.0 : 2.0;
+          const Numeric factor = Constant::pi * (mode == 0 ? 1.0 : 2.0);
           for (Size i = 0; i < outgoing.size(); ++i)
             for (Size j = 0; j < incoming.size(); ++j) {
               Numeric coefficient = 0.0;

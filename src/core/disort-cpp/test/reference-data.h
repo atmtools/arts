@@ -516,4 +516,56 @@ inline const std::array problem_13{
     albedo_transmission_reference{"13a/13b", {1.0}, {0.99}, 0.54526, 0.84500},
     albedo_transmission_reference{"13c/13d", {0.5, 1.0}, {0.99, 0.50}, 0.27620, 0.50332},
 };
+
+enum class brdf_type { hapke, cox_munk, rpv, ross_li };
+
+struct transparent_brdf_case {
+  const char* name;
+  brdf_type type;
+  Vector azimuth;
+  Numeric direct;
+  Numeric diffuse_down;
+  Numeric up;
+  Numeric dfdt;
+  Matrix radiance;
+};
+
+inline Matrix radiance_3x4_phi_mu(std::initializer_list<Numeric> values) {
+  Vector data(values.size());
+  std::ranges::copy(values, data.begin());
+  return Matrix{std::move(data).reshape(3, 4)};
+}
+
+inline constexpr Index problem_14_streams = 32;
+inline constexpr Numeric problem_14_beam_mu = 0.8660254037844386;
+inline constexpr Numeric problem_14_beam = 1.0;
+inline const Vector problem_14_user_mu{0.1, 0.2, 0.5, 1.0};
+
+/** DISORT 4.0.99 Problem 14.  Radiance is stored as [azimuth, user_mu]. */
+inline const std::array problem_14{
+    transparent_brdf_case{
+        "14a", brdf_type::hapke, {0.0, Constant::pi / 2.0, Constant::pi},
+        0.866025, 0.0, 0.180998, 1.37365,
+        radiance_3x4_phi_mu({0.0519252, 0.0517173, 0.0500654, 0.0536730,
+                            0.0640461, 0.0626774, 0.0581123, 0.0536730,
+                            0.0777477, 0.0754426, 0.0693954, 0.0536730})},
+    transparent_brdf_case{
+        "14b", brdf_type::cox_munk, {0.0, Constant::pi / 4.0, Constant::pi / 2.0},
+        0.866025, 0.0, 0.0203449, 1.03199,
+        radiance_3x4_phi_mu({0.0169062, 0.0164195, 0.0268003, 0.00985518,
+                            0.000160887, 0.000387836, 0.00374155, 0.00985518,
+                            2.40499e-9, 4.45562e-8, 3.22034e-5, 0.00985518})},
+    transparent_brdf_case{
+        "14c", brdf_type::rpv, {0.0, Constant::pi / 2.0, Constant::pi},
+        0.866025, 0.0, 0.148584, 1.32427,
+        radiance_3x4_phi_mu({0.0466076, 0.0388121, 0.0333376, 0.0477098,
+                            0.0590715, 0.0497124, 0.0435047, 0.0477099,
+                            0.0782148, 0.0668223, 0.0614060, 0.0477098})},
+    transparent_brdf_case{
+        "14d", brdf_type::ross_li, {0.0, Constant::pi / 2.0, Constant::pi},
+        0.866025, 0.0, 0.213718, 1.38147,
+        radiance_3x4_phi_mu({0.0142562, 0.0441596, 0.0611839, 0.0727943,
+                            0.0385329, 0.0561919, 0.0660729, 0.0727943,
+                            0.0648269, 0.0700422, 0.0744868, 0.0727943})},
+};
 }  // namespace disort_test::reference

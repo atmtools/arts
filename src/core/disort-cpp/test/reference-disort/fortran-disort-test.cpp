@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <utility>
 
 #include "../reference-data.h"
 
@@ -654,7 +655,8 @@ void test_raw_brdfs_and_fourier_helper() {
   expect_reference("Ross-Li raw BRDF", mu0 * RossLi{}(0.5, mu0, Constant::pi / 2.0), 0.0660729, 2e-5);
 
   constexpr Numeric reflectance = 0.37;
-  const auto        modes       = fourier_modes([](Numeric, Numeric, Numeric) { return reflectance; }, 4, 32);
+  const auto modes = fourier_modes(
+      [](Numeric, Numeric, Numeric) { return reflectance * Constant::inv_pi; }, 4, 32);
   const Vector      outgoing{0.2, 0.8};
   const Vector      incoming{-0.3, -0.9};
   for (Index mode = 0; mode < 4; ++mode) {
@@ -665,6 +667,69 @@ void test_raw_brdfs_and_fourier_helper() {
                          coefficient[i, j],
                          mode == 0 ? reflectance : 0.0,
                          2e-13);
+  }
+}
+
+disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {
+  using enum disort_test::reference::brdf_type;
+  switch (type) {
+    case hapke: return disort::brdf::Hapke{};
+    case cox_munk: return disort::brdf::CoxMunk{};
+    case rpv: return disort::brdf::RPV{};
+    case ross_li: return disort::brdf::RossLi{};
+  }
+  std::unreachable();
+}
+
+void test_problem_14() {
+  using namespace disort_test::reference;
+  constexpr Numeric transparent_depth = 1e-12;
+  constexpr Numeric transparent_scattering = 1e-8;
+
+  for (const auto& test : problem_14) {
+    const auto raw = problem_14_raw(test.type);
+    for (Index azimuth = 0; azimuth < 3; ++azimuth)
+      for (Index angle = 0; angle < 4; ++angle)
+        expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
+                         problem_14_beam_mu * raw(problem_14_user_mu[angle],
+                                                  problem_14_beam_mu,
+                                                  test.azimuth[azimuth]),
+                         test.radiance[azimuth, angle],
+                         2e-5);
+
+    Matrix moments(1, problem_14_streams + 1, 0.0);
+    moments[0, 0] = 1.0;
+    const disort::main_data dis(problem_14_streams,
+                                problem_14_streams,
+                                problem_14_streams,
+                                AscendingGrid{transparent_depth},
+                                Vector{transparent_scattering},
+                                std::move(moments),
+                                Matrix(problem_14_streams, problem_14_streams / 2, 0.0),
+                                Matrix(problem_14_streams, problem_14_streams / 2, 0.0),
+                                Vector{0.0},
+                                Matrix(1, 0),
+                                disort::brdf::fourier_modes(raw, problem_14_streams),
+                                problem_14_beam_mu,
+                                problem_14_beam,
+                                0.0);
+
+    disort::user_u_data user;
+    for (Index azimuth = 0; azimuth < 3; ++azimuth) {
+      dis.u_user(user, 0.0, test.azimuth[azimuth], problem_14_user_mu);
+      for (Index angle = 0; angle < 4; ++angle)
+        expect_reference(std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle),
+                         user.intensities[angle],
+                         test.radiance[azimuth, angle],
+                         2e-5);
+    }
+
+    disort::flux_data flux;
+    const auto values = dis.flux(flux, 0.0);
+    expect_reference(std::format("{} direct flux", test.name), values.down_direct, test.direct);
+    expect_reference(std::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
+    expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
+    expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
   }
 }
 
@@ -684,6 +749,7 @@ int main() try {
   test_problem_13_boundary_limits();
   test_problem_13();
   test_raw_brdfs_and_fourier_helper();
+  test_problem_14();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

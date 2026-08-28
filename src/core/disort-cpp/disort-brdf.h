@@ -46,11 +46,12 @@ struct RossLi {
 /** Convert an azimuth-resolved scalar BRDF into the cosine Fourier modes
  * expected by disort::main_data.
  *
- * The coefficient convention is
- *   rho_m = (2 - delta_m0) / pi * integral_0^pi rho(dphi) cos(m dphi) dphi.
- * This is the convention used by DISORT's SURFAC/DISOBRDF routines and by
- * disort::BDRF.  incoming_mu may be signed when the resulting callbacks are
- * evaluated; raw functions always receive its positive magnitude.
+ * Raw functions return a physical BRDF per steradian.  The callback
+ * coefficient convention is DISORT's RHOQ quantity,
+ *   R_m = (2 - delta_m0) * integral_0^pi rho(dphi) cos(m dphi) dphi.
+ * Thus a physical Lambertian BRDF A/pi becomes R_0=A.  incoming_mu may be
+ * signed when the resulting callbacks are evaluated; raw functions always
+ * receive its positive magnitude.
  */
 std::vector<BDRF> fourier_modes(RawFunction raw, Index number_of_modes, Index azimuth_quadrature_points = 100);
 
