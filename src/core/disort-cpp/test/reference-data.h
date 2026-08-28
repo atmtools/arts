@@ -258,6 +258,34 @@ inline const std::array problem_6{
                         250.0, 1.0, 300.0, {250.0, 300.0}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
 };
 
+/** Active DISORT 4.0.99 reference fluxes for Problem 6.  These deliberately
+ * follow the uncommented DATA statements in DISOTESTAUX.f; cDISORT still
+ * prints the older thermal-emission values for cases 6e--6h. */
+struct flux_reference {
+  Vector direct;
+  Vector diffuse_down;
+  Vector up;
+  Vector dfdt;
+};
+
+inline const std::array problem_6_flux{
+    flux_reference{{100.0, 100.0}, {0.0, 0.0}, {0.0, 0.0}, {200.0, 200.0}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+                   {200.0, 73.5759, 27.0671}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {0.0, 0.0, 0.0}, {1.48450, 2.99914, 6.76676},
+                   {202.010, 77.9962, 40.6006}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {0.0, 0.0, 0.0}, {0.670783, 1.39084, 3.31655},
+                   {200.936, 75.7187, 34.5317}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {0.0, 0.0, 0.0}, {94.4651, 190.616, 428.806},
+                   {327.710, 353.897, 878.110}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {321.497, 142.493, 70.5305}, {97.7110, 197.247, 441.139},
+                   {975.154, 573.874, 1005.98}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {321.497, 304.775, 363.632}, {350.211, 443.254, 513.521},
+                   {601.025, 173.906, -7.36023}},
+    flux_reference{{100.0, 13.5335, 2.06115e-7}, {321.497, 255.455, 443.444}, {237.351, 261.131, 528.258},
+                   {423.780, 61.9842, 129.477}},
+};
+
 struct scattering_thermal_case {
   const char* name;
   Index streams;
@@ -287,6 +315,18 @@ inline const std::array problem_7{
                             0.0, 80000.0, 200.0, 100.0, surface_type::lambertian, 1.0},
     scattering_thermal_case{"7e", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 100.0, 320.0,
                             0.0, 80000.0, 200.0, 100.0, surface_type::hapke, 0.0},
+};
+
+/** Active DISORT 4.0.99 reference fluxes for Problem 7. */
+inline const std::array problem_7_flux{
+    flux_reference{{0.0, 0.0}, {0.0, 121.204}, {86.2936, 0.0}, {-51.3731, -541.036}},
+    flux_reference{{0.0, 0.0}, {0.0, 2.07786e-5}, {1.10949e-6, 0.0}, {8.23219e-8, -5.06461e-6}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {319.830, 354.099, 301.334}, {429.572, 447.018, 594.576},
+                   {-80.4270, 251.589, 715.964}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {319.830, 350.555, 292.063}, {312.563, 268.126, 305.596},
+                   {-168.356, 101.251, 409.326}},
+    flux_reference{{100.0, 36.7879, 13.5335}, {319.830, 354.468, 302.366}, {440.940, 464.624, 623.842},
+                   {-71.6977, 266.918, 750.170}},
 };
 
 /** Solver-neutral inputs and DISORT 4.0.99 reference output for Problem 8. */
@@ -456,4 +496,24 @@ inline constexpr Numeric problem_12_asymmetry = 0.9;
 inline constexpr Numeric problem_12_beam_mu = 1.0;
 inline constexpr Numeric problem_12_beam = 1.0;
 inline constexpr Numeric problem_12_surface_albedo = 1.0;
+
+/** Problem 13 values.  The shortcut cases 13a/13c return the same two
+ * observables as the corresponding regular calculations 13b/13d. */
+struct albedo_transmission_reference {
+  const char* name;
+  Vector cumulative_tau;
+  Vector single_scattering_albedo;
+  Numeric albedo;
+  Numeric transmission;
+};
+
+inline constexpr Index problem_13_streams = 16;
+inline constexpr Numeric problem_13_beam_mu = 0.5;
+inline constexpr Numeric problem_13_beam = 2.0;
+inline constexpr Numeric problem_13_surface_albedo = 0.5;
+inline constexpr Numeric problem_13_asymmetry = 0.8;
+inline const std::array problem_13{
+    albedo_transmission_reference{"13a/13b", {1.0}, {0.99}, 0.54526, 0.84500},
+    albedo_transmission_reference{"13c/13d", {0.5, 1.0}, {0.99, 0.50}, 0.27620, 0.50332},
+};
 }  // namespace disort_test::reference
