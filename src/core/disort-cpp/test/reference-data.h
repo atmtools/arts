@@ -296,4 +296,8 @@ inline const Vector problem_10_user_mu{-0.788675129, -0.211324871, 0.211324871, 
 inline const Vector problem_11_output_tau{0.0, 0.05, 0.5, 1.0};
 inline const Vector problem_11_user_mu{-1.0, -0.1, 0.1, 1.0};
 inline const Vector problem_11_azimuth{0.0, Constant::pi / 2.0};
+
+inline const Vector problem_12_output_tau{0.0, 10.0, 19.9, 20.1};
+inline const Vector problem_12_user_mu{-1.0, -0.1, 0.1, 1.0};
+inline constexpr Numeric problem_12_azimuth = 0.0;
 }  // namespace disort_test::reference

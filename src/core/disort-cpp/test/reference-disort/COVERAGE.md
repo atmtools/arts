@@ -18,7 +18,7 @@ does not count.
 | 9 | a–c | ported | All multilayer fluxes and user-angle radiances are checked, including the fully general thermal/beam/Lambertian case. |
 | 10 | a–b | ported | The formal `u_user()` solution at all four quadrature angles is compared with direct `u()` output; pointwise and bulk quadrature paths are also checked. |
 | 11 | a–b | ported | The original homogeneous layer is compared with its equivalent three-layer subdivision for all radiances, fluxes, and `DFDT`. |
-| 12 | a–b | smoke only | CPP lacks the absorption-optical-depth shortcut switch; physical output can be tested, shortcut execution cannot. |
+| 12 | a–b | ported physical equivalence | The complete one-layer solution is compared with the equivalent three-layer solution for corrected radiances, fluxes, and `DFDT`; the original absorption cutoff is intentionally not implemented. |
 | 13 | a–d | smoke only | CPP lacks the `IBCND=1` albedo/transmission shortcut; regular-method outputs can be tested. |
 | 14 | a–d | pending | Fortran 4.0.99 BRDF cases are portable through CPP BRDF callbacks. |
 | 15 | a–d | pending | Multilayer BRDF cases are portable through CPP BRDF callbacks. |
