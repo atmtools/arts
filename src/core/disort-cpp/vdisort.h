@@ -70,6 +70,13 @@ struct flux_data {
   rtepack::stokvec_vector u0;  // scratch [NQuad]
 };
 
+struct flux_values {
+  Numeric up{};
+  Numeric down_diffuse{};
+  Numeric down_direct{};
+  Numeric dfdt{};
+};
+
 // VDISORT CHANGE BEGIN: a BRDF Fourier mode is a 4x4 block operator.
 /** Polarized BRDF Fourier mode in the combined representation.
  *
@@ -249,6 +256,7 @@ class main_data {
 
   [[nodiscard]] Numeric                     flux_up(flux_data&, Numeric tau) const;
   [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, Numeric tau) const;
+  [[nodiscard]] flux_values                 flux(flux_data&, Numeric tau) const;
 
   void gridded_u(Tensor4View out, const Vector& phi) const;
   void gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;

@@ -112,6 +112,7 @@ void fill_combined(rtepack::muelmat&       out_cos,
 }
 
 rtepack::muelmat to_muelmat(const ConstMatrixView block) {
+  assert(block.rows() == vdisort::stokes_dimension and block.cols() == vdisort::stokes_dimension);
   rtepack::muelmat out{0.0};
   for (Index i = 0; i < vdisort::stokes_dimension; ++i)
     for (Index j = 0; j < vdisort::stokes_dimension; ++j) out[i, j] = block[i, j];
@@ -628,7 +629,7 @@ void main_data::solve_for_coefs() {
           const Numeric           attenuation = std::exp(-tau_arr.back() / mu0);
           const rtepack::stokvec& beam        = beam_stokes;
           for (Index i = 0; i < N; ++i) {
-            const rtepack::stokvec reflected = attenuation * (beam_raw[i, 0] * beam);
+            const rtepack::stokvec reflected = 0.5 * mu0 * attenuation * (beam_raw[i, 0] * beam);
             for (Index s = 0; s < stokes_dimension; ++s) direct_reflection[state_index(i, s)] = reflected[s];
           }
         }
@@ -866,7 +867,7 @@ void main_data::u_user(user_u_data&                  data,
             rtepack::muelmat_matrix beam_raw(1, 1, rtepack::muelmat{0.0});
             const Vector            beam_direction{mu0};
             brdf_fourier_modes[m](alpha, beam_raw, outgoing, beam_direction);
-            mode += std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
+            mode += 0.5 * mu0 * std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
         }
         mode                                                  *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
@@ -974,6 +975,35 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric 
   for (Index i = 0; i < N; ++i) diffuse += W[i] * mu_arr[i] * data.u0[N + i].I();
   const Numeric direct = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau / mu0) : 0.0;
   return {Constant::two_pi * diffuse, direct};
+}
+
+flux_values main_data::flux(flux_data& data, const Numeric tau) const {
+  u0_data field;
+  u0(field, tau);
+  data.u0 = std::move(field.u0);
+
+  Numeric up = 0.0, down = 0.0, mean_intensity = 0.0;
+  for (Index i = 0; i < N; ++i) {
+    const Numeric upward    = data.u0[i].I();
+    const Numeric downward  = data.u0[N + i].I();
+    up                     += W[i] * mu_arr[i] * upward;
+    down                   += W[i] * mu_arr[i] * downward;
+    mean_intensity         += 0.5 * W[i] * (upward + downward);
+  }
+
+  const Numeric direct = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau / mu0) : 0.0;
+  if (has_beam_source) mean_intensity += beam_stokes.I() * std::exp(-tau / mu0) / (4.0 * Constant::pi);
+
+  const Index   layer      = tau_index(tau);
+  const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau, source_coordinate_offset[layer]);
+  Numeric       source     = 0.0;
+  for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient)
+    source = std::fma(source, source_tau, source_poly_coeffs[layer, coefficient].I());
+
+  return {.up           = Constant::two_pi * up,
+          .down_diffuse = Constant::two_pi * down,
+          .down_direct  = direct,
+          .dfdt         = 4.0 * Constant::pi * ((1.0 - omega_arr[layer]) * mean_intensity - source)};
 }
 
 void main_data::gridded_u(Tensor4View out, const Vector& phi) const {

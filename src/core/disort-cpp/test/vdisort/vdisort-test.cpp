@@ -353,6 +353,15 @@ void test_scalar_linear_source_limit() {
     for (Index stream = 0; stream < nquad; ++stream)
       expect_close(
           vector_field.intensities[stream].I(), scalar_field.intensities[stream], "linear-source scalar limit");
+
+    disort::flux_data  scalar_flux_data;
+    vdisort::flux_data vector_flux_data;
+    const auto         scalar_flux = scalar.flux(scalar_flux_data, optical_depth);
+    const auto         vector_flux = vector.flux(vector_flux_data, optical_depth);
+    expect_close(vector_flux.up, scalar_flux.up, "linear-source upward flux");
+    expect_close(vector_flux.down_diffuse, scalar_flux.down_diffuse, "linear-source downward flux");
+    expect_close(vector_flux.down_direct, scalar_flux.down_direct, "linear-source direct flux");
+    expect_close(vector_flux.dfdt, scalar_flux.dfdt, "linear-source DFDT");
   }
 }
 

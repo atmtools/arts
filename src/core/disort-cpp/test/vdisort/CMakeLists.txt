@@ -4,6 +4,6 @@ add_test(NAME "cpp.fast.vdisort-cpp-test" COMMAND vdisort-cpp-test)
 add_dependencies(check-deps vdisort-cpp-test)
 
 add_executable(vdisort-fortran-test fortran-disort-test.cpp)
-target_link_libraries(vdisort-fortran-test vdisort-cpp artstime)
+target_link_libraries(vdisort-fortran-test vdisort-cpp disort-cpp artstime)
 add_test(NAME "cpp.fast.vdisort-fortran-test" COMMAND vdisort-fortran-test)
 add_dependencies(check-deps vdisort-fortran-test)

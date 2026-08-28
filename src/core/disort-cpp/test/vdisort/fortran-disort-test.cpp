@@ -1,4 +1,5 @@
 #include <arts_constants.h>
+#include <disort-brdf.h>
 #include <legendre.h>
 #include <vdisort.h>
 
@@ -477,6 +478,176 @@ void test_problem_5() {
   run_problem_5_case(disort_test::reference::problem_5a);
   run_problem_5_case(disort_test::reference::problem_5b);
 }
+
+Numeric band_blackbody_radiance(const Numeric temperature,
+                                const Numeric wavenumber_low,
+                                const Numeric wavenumber_high) {
+  if (temperature == 0.0 or wavenumber_low == wavenumber_high) return 0.0;
+  constexpr Index intervals = 4096;
+  const Numeric   scale     = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
+  const Numeric   x0        = scale * wavenumber_low;
+  const Numeric   x1        = scale * wavenumber_high;
+  const Numeric   dx        = (x1 - x0) / intervals;
+  const auto      integrand = [](const Numeric x) {
+    if (x == 0.0 or x > 700.0) return 0.0;
+    return x * x * x / std::expm1(x);
+  };
+  Numeric integral = integrand(x0) + integrand(x1);
+  for (Index i = 1; i < intervals; ++i) integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
+  integral *= dx / 3.0;
+  return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi * integral /
+         (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
+}
+
+std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& raw, const Index number_of_modes) {
+  constexpr Index nazimuth = 100;
+  Vector          azimuth_node(nazimuth), azimuth_weight(nazimuth);
+  Legendre::PositiveDoubleGaussLegendre(azimuth_node, azimuth_weight);
+  std::vector<vdisort::BDRF> result;
+  result.reserve(static_cast<std::size_t>(number_of_modes));
+  for (Index m = 0; m < number_of_modes; ++m) {
+    const auto coefficient = [raw, m, azimuth_node, azimuth_weight](rtepack::muelmat_matrix_view out,
+                                                                    const ConstVectorView&       outgoing,
+                                                                    const ConstVectorView&       incoming) {
+      out = rtepack::muelmat{0.0};
+      for (Index i = 0; i < static_cast<Index>(outgoing.size()); ++i)
+        for (Index j = 0; j < static_cast<Index>(incoming.size()); ++j) {
+          Numeric coefficient = 0.0;
+          for (Index k = 0; k < nazimuth; ++k) {
+            const Numeric azimuth  = Constant::pi * azimuth_node[k];
+            coefficient           += azimuth_weight[k] * raw(outgoing[i], std::abs(incoming[j]), azimuth) *
+                                     std::cos(static_cast<Numeric>(m) * azimuth);
+          }
+          out[i, j][0, 0] = 2.0 * (m == 0 ? 1.0 : 2.0) * coefficient;
+        }
+    };
+    const vdisort::BDRF::func_t sine{[](rtepack::muelmat_matrix_view out,
+                                        const ConstVectorView&,
+                                        const ConstVectorView&) { out = rtepack::muelmat{0.0}; }};
+    result.push_back(vdisort::BDRF{.cosine = {coefficient}, .sine = sine});
+  }
+  return result;
+}
+
+Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) {
+  constexpr Index nmu      = 64;
+  constexpr Index nazimuth = 256;
+  Vector          mu(nmu), weight(nmu);
+  Legendre::PositiveDoubleGaussLegendre(mu, weight);
+  Numeric reflectance = 0.0;
+  for (Index j = 0; j < nmu; ++j) {
+    Numeric azimuth_average = 0.0;
+    for (Index k = 0; k < nazimuth; ++k)
+      azimuth_average +=
+          raw(outgoing_mu, mu[j], Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(nazimuth));
+    // DISOBRDF's BEMST convention integrates azimuth through x = phi / pi,
+    // without restoring the Jacobian pi.  Reproduce that convention here so
+    // the thermal boundary agrees with the original DISORT reference cases.
+    reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
+  }
+  return 1.0 - reflectance;
+}
+
+vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) {
+  constexpr Index nquad   = 16;
+  constexpr Index nstokes = vdisort::stokes_dimension;
+  const Index     n       = nquad / 2;
+  const Numeric   depth   = test.optical_depth == 0.0 ? 1e-12 : test.optical_depth;
+
+  disort::brdf::RawFunction raw;
+  Index                     nmodes = 1;
+  if (test.surface == disort_test::reference::surface_type::lambertian) {
+    raw = [albedo = test.lambertian_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
+  } else if (test.surface == disort_test::reference::surface_type::hapke) {
+    raw    = disort::brdf::Hapke{.opposition_amplitude     = test.hapke_parameters[0],
+                                 .opposition_width         = test.hapke_parameters[1],
+                                 .single_scattering_albedo = test.hapke_parameters[2]};
+    nmodes = nquad;
+  }
+
+  std::vector<vdisort::BDRF> brdf;
+  if (raw) brdf = scalar_brdf_modes(raw, nmodes);
+
+  Tensor7 phase(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0);
+  phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
+  Tensor4 up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
+
+  const Numeric top_planck                = band_blackbody_radiance(test.top_temperature,
+                                                                    disort_test::reference::problem_6_wavenumber_low,
+                                                                    disort_test::reference::problem_6_wavenumber_high);
+  down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + test.top_emissivity * top_planck;
+
+  const Numeric bottom_planck = band_blackbody_radiance(test.bottom_temperature,
+                                                        disort_test::reference::problem_6_wavenumber_low,
+                                                        disort_test::reference::problem_6_wavenumber_high);
+  Vector        quadrature_mu(n), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu, quadrature_weight);
+  for (Index i = 0; i < n; ++i) {
+    Numeric emissivity = 1.0;
+    if (test.surface == disort_test::reference::surface_type::lambertian)
+      emissivity = 1.0 - test.lambertian_albedo;
+    else if (test.surface == disort_test::reference::surface_type::hapke)
+      emissivity = directional_emissivity(raw, quadrature_mu[i]);
+    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_planck;
+  }
+
+  Tensor3 source;
+  if (test.interface_temperature.size() == 2) {
+    source.resize(1, 2, nstokes);
+    source               = 0.0;
+    const Numeric top    = band_blackbody_radiance(test.interface_temperature[0],
+                                                   disort_test::reference::problem_6_wavenumber_low,
+                                                   disort_test::reference::problem_6_wavenumber_high);
+    const Numeric bottom = band_blackbody_radiance(test.interface_temperature[1],
+                                                   disort_test::reference::problem_6_wavenumber_low,
+                                                   disort_test::reference::problem_6_wavenumber_high);
+    source[0, 0, 0]      = top;
+    source[0, 1, 0]      = (bottom - top) / test.optical_depth;
+  } else {
+    source.resize(1, 0, nstokes);
+  }
+
+  return vdisort::main_data(nquad,
+                            nmodes,
+                            AscendingGrid{depth},
+                            Vector{test.single_scattering_albedo},
+                            std::move(phase),
+                            std::move(up),
+                            std::move(down),
+                            std::move(source),
+                            std::move(brdf),
+                            test.beam_mu,
+                            Vector{test.beam, 0.0, 0.0, 0.0},
+                            0.0);
+}
+
+void test_problem_6() {
+  for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_6.size()); ++case_index) {
+    const auto&        test      = disort_test::reference::problem_6[case_index];
+    const auto&        reference = disort_test::reference::problem_6_flux[case_index];
+    auto               model     = make_problem_6_model(test);
+    vdisort::flux_data flux_data;
+    for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
+      const Numeric tau  = test.optical_depth == 0.0 ? 0.0 : test.output_tau[level];
+      const auto    flux = model.flux(flux_data, tau);
+      for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+      expect_reference(std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
+      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                       flux.down_diffuse,
+                       reference.diffuse_down[level],
+                       1e-3);
+      // The active single-precision DISORT references retain their legacy
+      // non-Lambertian thermal-boundary integration.  The VDISORT scalar
+      // embedding agrees to below one percent for those mixed-source cases.
+      const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
+      expect_reference(
+          std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
+      expect_reference(
+          std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
+    }
+  }
+}
 }  // namespace
 
 int main() try {
@@ -485,6 +656,7 @@ int main() try {
   test_problem_3();
   test_problem_4();
   test_problem_5();
+  test_problem_6();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
