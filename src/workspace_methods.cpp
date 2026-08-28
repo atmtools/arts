@@ -5406,6 +5406,149 @@ Sets both upper and lower bounds.
       .gin_desc  = {"The value of the BDRF in all directions (Numeric for constant, Vector for spectral)"},
   };
 
+  wsm_data["disort_settingsSurfaceHapke"] = {
+      .desc = R"(Sets a Hapke surface BRDF and computes its DISORT cosine Fourier modes.
+
+The raw physical BRDF is converted to the Fourier convention used by
+*DisortSettings*.  All parameters are frequency independent.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value = {Numeric{1.0}, Numeric{0.06}, Numeric{0.6}, Index{100}},
+      .gin_desc  = {"Opposition-effect amplitude",
+                    "Opposition-effect angular width parameter",
+                    "Surface-particle single-scattering albedo",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceHapkeSpectral"] = {
+      .desc = R"(Sets a spectrally varying Hapke surface BRDF.
+
+Each parameter vector must have one value per frequency in *DisortSettings*.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
+      .gin_type  = {"Vector", "Vector", "Vector", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{100}},
+      .gin_desc  = {"Spectral opposition-effect amplitude",
+                    "Spectral opposition-effect angular width parameter",
+                    "Spectral surface-particle single-scattering albedo",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceCoxMunk"] = {
+      .desc = R"(Sets a Cox-Munk ocean surface BRDF and computes its DISORT cosine Fourier modes.
+
+All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"wind_speed", "refractive_index", "shadowing", "azimuth_quadrature_points"},
+      .gin_type  = {"Numeric", "Numeric", "Index", "Index"},
+      .gin_value = {Numeric{12.0}, Numeric{1.34}, Index{0}, Index{100}},
+      .gin_desc  = {"Wind speed in m/s",
+                    "Relative refractive index",
+                    "Whether to apply Cox-Munk facet shadowing (0 or 1)",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceCoxMunkSpectral"] = {
+      .desc = R"(Sets a Cox-Munk ocean BRDF with a spectrally varying refractive index.
+
+The refractive-index vector must have one value per frequency.  Wind speed and
+shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"wind_speed", "refractive_index", "shadowing", "azimuth_quadrature_points"},
+      .gin_type  = {"Numeric", "Vector", "Index", "Index"},
+      .gin_value = {Numeric{12.0}, std::nullopt, Index{0}, Index{100}},
+      .gin_desc  = {"Wind speed in m/s",
+                    "Spectral relative refractive index",
+                    "Whether to apply Cox-Munk facet shadowing (0 or 1)",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceRPV"] = {
+      .desc = R"(Sets an RPV surface BRDF and computes its DISORT cosine Fourier modes.
+
+All parameters are frequency independent.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"rho0", "kappa", "asymmetry", "hotspot", "azimuth_quadrature_points"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value = {Numeric{0.027}, Numeric{0.647}, Numeric{-0.169}, Numeric{0.1}, Index{100}},
+      .gin_desc  = {"RPV amplitude",
+                    "RPV Minnaert exponent",
+                    "Henyey-Greenstein asymmetry parameter",
+                    "Hot-spot strength",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceRPVSpectral"] = {
+      .desc = R"(Sets a spectrally varying RPV surface BRDF.
+
+Each parameter vector must have one value per frequency in *DisortSettings*.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"rho0", "kappa", "asymmetry", "hotspot", "azimuth_quadrature_points"},
+      .gin_type  = {"Vector", "Vector", "Vector", "Vector", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt, Index{100}},
+      .gin_desc  = {"Spectral RPV amplitude",
+                    "Spectral RPV Minnaert exponent",
+                    "Spectral Henyey-Greenstein asymmetry parameter",
+                    "Spectral hot-spot strength",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceRossLi"] = {
+      .desc = R"(Sets a Ross-Li surface BRDF and computes its DISORT cosine Fourier modes.
+
+All kernel weights and the hot-spot angle are frequency independent.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"isotropic", "volumetric", "geometric", "hotspot_angle", "azimuth_quadrature_points"},
+      .gin_type  = {"Numeric", "Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value = {Numeric{0.091}, Numeric{0.02}, Numeric{0.01}, Numeric{1.5}, Index{100}},
+      .gin_desc  = {"Isotropic kernel weight",
+                    "Ross-Thick volumetric kernel weight",
+                    "Li-Sparse geometric kernel weight",
+                    "Hot-spot angular width in degrees",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
+  wsm_data["disort_settingsSurfaceRossLiSpectral"] = {
+      .desc = R"(Sets a Ross-Li surface BRDF with spectrally varying kernel weights.
+
+Each kernel-weight vector must have one value per frequency.  The hot-spot
+angle is frequency independent.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"disort_settings"},
+      .in        = {"disort_settings"},
+      .gin       = {"isotropic", "volumetric", "geometric", "hotspot_angle", "azimuth_quadrature_points"},
+      .gin_type  = {"Vector", "Vector", "Vector", "Numeric", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Numeric{1.5}, Index{100}},
+      .gin_desc  = {"Spectral isotropic kernel weight",
+                    "Spectral Ross-Thick volumetric kernel weight",
+                    "Spectral Li-Sparse geometric kernel weight",
+                    "Hot-spot angular width in degrees",
+                    "Number of azimuth quadrature points used for each Fourier coefficient"},
+  };
+
   wsm_data["disort_settingsInit"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.
 )",
