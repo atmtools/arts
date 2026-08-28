@@ -440,6 +440,54 @@ void test_problem_5() {
   run_cloud_c1_case(disort_test::reference::problem_5a);
   run_cloud_c1_case(disort_test::reference::problem_5b);
 }
+
+void run_problem_8_case(const disort_test::reference::layered_isotropic_case& test) {
+  constexpr Index nquad = 8;
+  Matrix moments(2, nquad + 1, 0.0);
+  moments[joker, 0] = 1.0;
+
+  Matrix boundary_down(nquad, nquad / 2, 0.0);
+  boundary_down[0] = Constant::inv_pi;
+
+  const disort::main_data dis(
+      nquad,
+      nquad,
+      nquad,
+      AscendingGrid{test.cumulative_tau[0], test.cumulative_tau[1]},
+      test.single_scattering_albedo,
+      moments,
+      Matrix(nquad, nquad / 2, 0.0),
+      boundary_down,
+      Vector(2, 0.0),
+      Matrix(2, 0),
+      {},
+      0.5,
+      0.0,
+      0.0);
+
+  disort::user_u_data user;
+  disort::flux_data flux;
+  for (Index level = 0; level < 3; ++level) {
+    const Numeric tau = test.output_tau[level];
+    dis.u_user(user,
+               tau,
+               disort_test::reference::problem_8_azimuth,
+               disort_test::reference::problem_8_user_mu);
+    for (Index angle = 0; angle < 4; ++angle)
+      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+                       user.intensities[angle],
+                       test.radiance[level, angle]);
+
+    const auto [down, direct] = dis.flux_down(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, tau), test.up[level]);
+  }
+}
+
+void test_problem_8() {
+  for (const auto& test : disort_test::reference::problem_8) run_problem_8_case(test);
+}
 }  // namespace
 
 int main() try {
@@ -449,6 +497,7 @@ int main() try {
   test_problem_3();
   test_problem_4();
   test_problem_5();
+  test_problem_8();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

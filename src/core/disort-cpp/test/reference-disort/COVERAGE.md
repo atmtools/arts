@@ -14,7 +14,7 @@ does not count.
 | 5 | a–b | ported | Cloud C.1 inputs and references are shared for reuse by scalar VDISORT tests. |
 | 6 | a–h | smoke only | Boundary and thermal-source inputs require normalization mapping to the CPP API. |
 | 7 | a–e | smoke only | Directly portable after thermal/boundary mapping. |
-| 8 | a–c | pending | Directly portable. |
+| 8 | a–c | ported | All two-layer fluxes and four user-angle radiances are checked; inputs and references are shared for scalar VDISORT reuse. |
 | 9 | a–c | 9c smoke only | Directly portable; general thermal, multilayer, beam, and surface case. |
 | 10 | a–b | equivalence smoke only | CPP has formal user angles and quadrature output, so both paths are portable. |
 | 11 | a–b | Pythonic references only | Original single-layer/multilayer values remain to be added. |

@@ -154,4 +154,46 @@ inline const std::array problem_7{
     scattering_thermal_case{"7e", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 100.0, 320.0,
                             0.0, 80000.0, 200.0, 100.0, surface_type::hapke, 0.0},
 };
+
+/** Solver-neutral inputs and DISORT 4.0.99 reference output for Problem 8. */
+struct layered_isotropic_case {
+  const char* name;
+  Vector cumulative_tau;
+  Vector single_scattering_albedo;
+  Vector output_tau;
+  Vector direct;
+  Vector diffuse_down;
+  Vector up;
+  Matrix radiance;
+};
+
+inline Matrix radiance_3x4(std::initializer_list<Numeric> values) {
+  Vector data(values.size());
+  std::ranges::copy(values, data.begin());
+  return Matrix{std::move(data).reshape(3, 4)};
+}
+
+inline const Vector problem_8_user_mu{-1.0, -0.2, 0.2, 1.0};
+inline constexpr Numeric problem_8_azimuth = Constant::pi / 3.0;
+
+inline const std::array problem_8{
+    layered_isotropic_case{
+        "8a", {0.25, 0.5}, {0.5, 0.3}, {0.0, 0.25, 0.5},
+        {0.0, 0.0, 0.0}, {1.00000, 0.722235, 0.513132}, {0.0929633, 0.0278952, 0.0},
+        radiance_3x4({0.318310, 0.318310, 0.0562566, 0.0194423,
+                      0.262711, 0.136952, 0.0184909, 0.00552188,
+                      0.210014, 0.0560376, 0.0, 0.0})},
+    layered_isotropic_case{
+        "8b", {0.25, 0.5}, {0.8, 0.95}, {0.0, 0.25, 0.5},
+        {0.0, 0.0, 0.0}, {1.00000, 0.795332, 0.650417}, {0.225136, 0.126349, 0.0},
+        radiance_3x4({0.318310, 0.318310, 0.123687, 0.0495581,
+                      0.277499, 0.183950, 0.0835695, 0.0250575,
+                      0.240731, 0.129291, 0.0, 0.0})},
+    layered_isotropic_case{
+        "8c", {1.0, 3.0}, {0.8, 0.95}, {0.0, 1.0, 3.0},
+        {0.0, 0.0, 0.0}, {1.00000, 0.486157, 0.159984}, {0.378578, 0.243397, 0.0},
+        radiance_3x4({0.318310, 0.318310, 0.149335, 0.104766,
+                      0.189020, 0.0988158, 0.0965192, 0.0654445,
+                      0.0684762, 0.0296698, 0.0, 0.0})},
+};
 }  // namespace disort_test::reference
