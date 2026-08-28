@@ -7,8 +7,6 @@
 #include <iostream>
 
 #include "disort.h"
-#include "vdisort-scalar-test-adapter.h"
-
 namespace {
 constexpr Numeric tolerance = 2e-9;
 
@@ -320,27 +318,26 @@ void test_scalar_linear_source_limit() {
 
   disort::main_data scalar(
       nquad, nquad, modes, tau, omega, legendre, up, down, Vector(1, 0.0), source, {}, 0.5, 0.0, 0.0);
-  vdisort_scalar_test::main_data vector(nquad,
-                                        nquad,
-                                        modes,
-                                        tau,
-                                        omega,
-                                        std::move(legendre),
-                                        std::move(up),
-                                        std::move(down),
-                                        Vector(1, 0.0),
-                                        std::move(source),
-                                        {},
-                                        0.5,
-                                        0.0,
-                                        0.0);
+  Tensor7 phase(2, modes, 1, nquad, nquad, 4, 4, 0.0);
+  phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
+  Tensor4 vector_up(2, modes, nquad / 2, 4, 0.0), vector_down(2, modes, nquad / 2, 4, 0.0);
+  Tensor3 vector_source(1, 2, 4, 0.0);
+  vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
+  vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
+  auto vector = make_vdisort(nquad,
+                             tau,
+                             omega,
+                             std::move(phase),
+                             std::move(vector_up),
+                             std::move(vector_down),
+                             std::move(vector_source));
   for (const Numeric optical_depth : {0.0, 0.2, 0.8}) {
-    disort::u_data              scalar_field;
-    vdisort_scalar_test::u_data vector_field;
+    disort::u_data  scalar_field;
+    vdisort::u_data vector_field;
     scalar.u(scalar_field, optical_depth, 0.0);
     vector.u(vector_field, optical_depth, 0.0);
     for (Index stream = 0; stream < nquad; ++stream)
-      expect_close(vector_field.intensities[stream], scalar_field.intensities[stream], "linear-source scalar limit");
+      expect_close(vector_field.intensities[stream].I(), scalar_field.intensities[stream], "linear-source scalar limit");
   }
 }
 
@@ -357,27 +354,35 @@ void test_conservative_reflecting_source_limit() {
 
   disort::main_data scalar(
       nquad, nquad, modes, tau, omega, legendre, up, down, Vector(1, 0.0), source, brdf, 0.5, 0.0, 0.0);
-  vdisort_scalar_test::main_data vector(nquad,
-                                        nquad,
-                                        modes,
-                                        tau,
-                                        omega,
-                                        std::move(legendre),
-                                        std::move(up),
-                                        std::move(down),
-                                        Vector(1, 0.0),
-                                        std::move(source),
-                                        std::move(brdf),
-                                        0.5,
-                                        0.0,
-                                        0.0);
+  Tensor7 phase(2, modes, 1, nquad, nquad, 4, 4, 0.0);
+  phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
+  Tensor4 vector_up(2, modes, nquad / 2, 4, 0.0), vector_down(2, modes, nquad / 2, 4, 0.0);
+  Tensor3 vector_source(1, 2, 4, 0.0);
+  vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
+  vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
+  const auto reflection = [](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
+    value = rtepack::muelmat{0.0};
+    for (Index i = 0; i < value.nrows(); ++i)
+      for (Index j = 0; j < value.ncols(); ++j) value[i, j][0, 0] = 2.0 * Constant::inv_pi;
+  };
+  std::vector<vdisort::BDRF> vector_brdf{{.cosine = {reflection}, .sine = {reflection}}};
+  auto vector = make_vdisort(nquad,
+                             tau,
+                             omega,
+                             std::move(phase),
+                             std::move(vector_up),
+                             std::move(vector_down),
+                             std::move(vector_source),
+                             Vector(4, 0.0),
+                             {},
+                             std::move(vector_brdf));
   for (const Numeric optical_depth : {0.2, 4.0, 8.0}) {
-    disort::u_data              scalar_field;
-    vdisort_scalar_test::u_data vector_field;
+    disort::u_data  scalar_field;
+    vdisort::u_data vector_field;
     scalar.u(scalar_field, optical_depth, 0.0);
     vector.u(vector_field, optical_depth, 0.0);
     for (Index stream = 0; stream < nquad; ++stream)
-      expect_close(vector_field.intensities[stream],
+      expect_close(vector_field.intensities[stream].I(),
                    scalar_field.intensities[stream],
                    "conservative reflecting source scalar limit");
   }
@@ -497,18 +502,6 @@ void test_spectral_phase_matrix_split() {
 }
 }  // namespace
 
-// VDISORT SCALAR TEST PORT BEGIN: compile the complete, unchanged scalar
-// driver against vdisort_scalar_test::main_data.  Renaming its main function
-// makes it callable from the polarized VDISORT test executable.
-#define disort vdisort_scalar_test
-#define main   run_all_scalar_disort_tests_through_vdisort
-#define DISORT_TEST_VDISORT_ADAPTER
-#include "disotest.cpp"
-#undef DISORT_TEST_VDISORT_ADAPTER
-#undef main
-#undef disort
-// VDISORT SCALAR TEST PORT END
-
 int main() try {
   test_analytic_iq_two_stream();
   test_analytic_uv_two_stream();
@@ -522,8 +515,6 @@ int main() try {
   test_complex_uv_eigenmodes();
   test_combined_matrix_transform();
   test_spectral_phase_matrix_split();
-  ARTS_USER_ERROR_IF(run_all_scalar_disort_tests_through_vdisort() != EXIT_SUCCESS,
-                     "The scalar DISORT suite failed through the VDISORT port");
   std::cout << "vdisort tests passed\n";
   return 0;
 } catch (const std::exception& error) {

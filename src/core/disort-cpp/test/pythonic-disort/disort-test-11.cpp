@@ -1,9 +1,8 @@
-#include "disort-test.h"
+#include "../test-helpers.h"
 
 #include "artstime.h"
 #include "disort.h"
 
-#ifndef DISORT_TEST_VDISORT_ADAPTER
 namespace {
 void require_close(const std::string_view name, const auto& a, const auto& b, const Numeric tolerance) {
   ARTS_USER_ERROR_IF(a.shape() != b.shape(), "{}: shape mismatch {} vs {}", name, a.shape(), b.shape());
@@ -52,7 +51,6 @@ void require_finite(const std::string_view name, const auto& values) {
                      name);
 }
 }  // namespace
-#endif
 
 void test_11a_1layer() try {
   const AscendingGrid tau_arr{8.};
@@ -340,7 +338,6 @@ void test_11a_multilayer() try {
   compare("test_11a-multilayer", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-11a-multilayer:\n{}", e.what())); }
 
-#ifndef DISORT_TEST_VDISORT_ADAPTER
 void test_11b_identical_layer_invariance() try {
   const auto one_layer  = identical_atmosphere(AscendingGrid{8.0});
   const auto many_layer = identical_atmosphere(
@@ -495,9 +492,7 @@ void test_11f_disort_user_angle_formal_solution() try {
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
 }
-#endif
 
-#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   std::cout << std::setprecision(16);
   test_11a_1layer();
@@ -511,4 +506,3 @@ int main() try {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
 }
-#endif

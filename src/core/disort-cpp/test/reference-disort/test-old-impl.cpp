@@ -1,5 +1,5 @@
 #include <arts_constants.h>
-#include "disort.h"
+#include <disort.h>
 
 #include <iomanip>
 #include <iostream>

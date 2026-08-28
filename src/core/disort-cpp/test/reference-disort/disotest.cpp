@@ -1,18 +1,4 @@
-#define DISORT_TEST_NO_MAIN
-
-// Keep the scalar DISORT reference suite in the same problem order as
-// 3rdparty/cdisort/disotest.cc.  The case bodies remain separately includable
-// so this translation unit can later be mirrored by the VDISORT test driver.
-#include "disort-test-1.cpp"
-#include "disort-test-2.cpp"
-#include "disort-test-3.cpp"
-#include "disort-test-4.cpp"
-#define Leg_coeffs_ALL Leg_coeffs_ALL_5
-#include "disort-test-5.cpp"
-#undef Leg_coeffs_ALL
-#include "disort-test-11.cpp"
-#include "disort-test-8.cpp"
-#include "disort-test-9.cpp"
+#include "../test-helpers.h"
 
 namespace legacy_disotest {
 
@@ -312,44 +298,11 @@ void disort_test14() {
 int main() try {
   std::cout << std::setprecision(16);
 
-  test_1a();
-  test_1b();
-  test_1c();
-  test_1d();
-  test_1e();
-  test_1f();
-
-  test_2a();
-  test_2b();
-  test_2c();
-  test_2d();
-
-  test_3a();
-  test_3b();
-
-  test_4a();
-  test_4b();
-  test_4c();
-
-  test_5a();
-  test_5b();
-  test_5BDRF();
-
   legacy_disotest::disort_test06();
   legacy_disotest::disort_test07();
-
-  test_8a();
-  test_8b();
-  test_8c();
-
-  test_9a();
-  test_9b();
   legacy_disotest::disort_test09c();
 
   legacy_disotest::disort_test10();
-
-  test_11a_1layer();
-  test_11a_multilayer();
 
   legacy_disotest::disort_test12();
   legacy_disotest::disort_test13();

@@ -1,4 +1,4 @@
-#include "disort-test.h"
+#include "../test-helpers.h"
 
 const Vector Leg_coeffs_ALL{
     1,       2.41260, 3.23047, 3.37296, 3.23150, 2.89350, 2.49594, 2.11361, 1.74812, 1.44692, 1.17714, 0.96643,
@@ -615,7 +615,6 @@ void test_4c() try {
   compare("test_4c", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-4c:\n{}", e.what())); }
 
-#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   std::cout << std::setprecision(16);
   test_4a();
@@ -625,4 +624,3 @@ int main() try {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
 }
-#endif

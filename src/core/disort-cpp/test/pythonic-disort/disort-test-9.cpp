@@ -1,4 +1,4 @@
-#include "disort-test.h"
+#include "../test-helpers.h"
 
 void test_9a() try {
   const AscendingGrid tau_arr{1., 3., 6., 10., 15., 21.};
@@ -232,7 +232,6 @@ void test_9b() try {
   compare("test_9b", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-9b:\n{}", e.what())); }
 
-#ifndef DISORT_TEST_NO_MAIN
 int main() try {
   std::cout << std::setprecision(16);
   test_9a();
@@ -241,4 +240,3 @@ int main() try {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
 }
-#endif

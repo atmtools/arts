@@ -1,7 +1,7 @@
 #pragma once
 
 #include <arts_constants.h>
-#include "disort.h"
+#include <disort.h>
 #include <matpack.h>
 
 #include <iomanip>
