@@ -183,15 +183,15 @@ void test_analytic_polarized_beam_two_stream() {
       for (Index si = 2; si < 4; ++si) beam_phase[vdisort::sine_mode, 0, 0, i][so, si] = scatter[so, si];
   }
 
-  rtepack::stokvec_tensor3 boundary(2, 1, 1);
+  rtepack::stokvec_tensor3 boundary_up(2, 1, 1), boundary_down(2, 1, 1);
   rtepack::stokvec_matrix  source(1, 0);
   vdisort::main_data       model(2,
                                  1,
                                  AscendingGrid{depth},
                                  Vector{omega},
                                  std::move(phase),
-                                 boundary,
-                                 std::move(boundary),
+                                 std::move(boundary_up),
+                                 std::move(boundary_down),
                                  std::move(source),
                                  {},
                                  mu0,

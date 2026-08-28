@@ -20,6 +20,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -215,7 +216,7 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
   inplace_transpose(A);
 
   // Integers
-  int LDA, LDA_L, LDA_R, n_int, info;
+  int LDA, LDA_L, LDA_R, n_int, info = 0;
   n_int = (int)n;
   LDA = LDA_L = LDA_R = (int)A.extent(0);
 
@@ -223,7 +224,7 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
   char l_eig = 'N', r_eig = 'V';
 
   // Work matrix
-  int lwork = 2 * n_int + n_int * n_int;
+  int lwork = std::max(4 * n_int, 2 * n_int + n_int * n_int);
 
   // Memory references
   double* adata  = A.data_handle();
@@ -232,21 +233,10 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
   double* widata = WI.data_handle();
 
   // Main calculations.  Note that errors in the output is ignored
-  lapack::dgeev_(&l_eig,
-                 &r_eig,
-                 &n_int,
-                 adata,
-                 &LDA,
-                 wrdata,
-                 widata,
-                 nullptr,
-                 &LDA_L,
-                 rpdata,
-                 &LDA_R,
-                 wo.work(),
-                 &lwork,
-                 wo.rwork(),
-                 &info);
+  lapack::dgeev_(
+      &l_eig, &r_eig, &n_int, adata, &LDA, wrdata, widata, nullptr, &LDA_L, rpdata, &LDA_R, wo.work(), &lwork, &info);
+
+  ARTS_USER_ERROR_IF(info != 0, "DGEEV failed while diagonalizing a {}x{} matrix (INFO={})", n, n, info);
 
   inplace_transpose(P);
 }
