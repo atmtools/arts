@@ -600,6 +600,7 @@ void test_problem_12() {
     expect_reference(std::format("Problem 12 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-9);
   }
 }
+
 }  // namespace
 
 int main() try {

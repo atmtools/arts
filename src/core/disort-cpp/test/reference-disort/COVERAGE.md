@@ -19,7 +19,7 @@ does not count.
 | 10 | a–b | ported | The formal `u_user()` solution at all four quadrature angles is compared with direct `u()` output; pointwise and bulk quadrature paths are also checked. |
 | 11 | a–b | ported | The original homogeneous layer is compared with its equivalent three-layer subdivision for all radiances, fluxes, and `DFDT`. |
 | 12 | a–b | ported physical equivalence | The complete one-layer solution is compared with the equivalent three-layer solution for corrected radiances, fluxes, and `DFDT`; the original absorption cutoff is intentionally not implemented. |
-| 13 | a–d | references extracted | CPP lacks the `IBCND=1` shortcut; its two albedo/transmission pairs are shared and can be tested through the regular method. |
+| 13 | a–d | references extracted; numerical mismatch | `IBCND=1` is not required to test the physical output, but the regular CPP solve currently gives albedo `0.60993593` for 13b instead of the Fortran regular-method value `0.54526`; this must be resolved before marking the case ported. |
 | 14 | a–d | pending | Fortran 4.0.99 BRDF cases are portable through CPP BRDF callbacks. |
 | 15 | a–d | pending | Multilayer BRDF cases are portable through CPP BRDF callbacks. |
 | 16 | a | blocked by solver feature | CPP has no pseudo-spherical direct-beam correction. |
