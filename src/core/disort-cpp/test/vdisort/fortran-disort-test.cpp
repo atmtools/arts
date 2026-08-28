@@ -1139,6 +1139,149 @@ void test_problem_11() {
     }
   }
 }
+
+scalar_vdisort_model make_problem_12_model(const bool subdivided) {
+  constexpr Index   nquad               = disort_test::reference::problem_12_streams;
+  constexpr Index   nstokes             = vdisort::stokes_dimension;
+  constexpr Numeric physical_omega      = disort_test::reference::problem_12_omega;
+  constexpr Numeric g                   = disort_test::reference::problem_12_asymmetry;
+  const Numeric     delta_m_fraction    = std::pow(g, static_cast<Numeric>(nquad));
+  const Numeric     optical_depth_scale = 1.0 - physical_omega * delta_m_fraction;
+  const Numeric     transport_omega     = physical_omega * (1.0 - delta_m_fraction) / optical_depth_scale;
+  const Index       n                   = nquad / 2;
+  const Index       nmodes              = nquad;
+  const Index       nlayers             = subdivided ? 3 : 1;
+  const auto&       user_mu             = disort_test::reference::problem_12_user_mu;
+  const Index       nuser               = static_cast<Index>(user_mu.size());
+
+  Vector original_moments(nquad + 1);
+  for (Index degree = 0; degree <= nquad; ++degree)
+    original_moments[degree] = std::pow(g, static_cast<Numeric>(degree));
+  Vector transport_moments(nquad);
+  for (Index degree = 0; degree < nquad; ++degree)
+    transport_moments[degree] = (original_moments[degree] - delta_m_fraction) / (1.0 - delta_m_fraction);
+
+  Vector quadrature_mu(nquad), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
+  std::transform(quadrature_mu.begin(), quadrature_mu.begin() + n, quadrature_mu.begin() + n, [](const Numeric mu) {
+    return -mu;
+  });
+
+  Tensor7                         phase(2, nmodes, nlayers, nquad, nquad, nstokes, nstokes, 0.0);
+  Tensor6                         beam_phase(2, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
+  vdisort::phase_matrix_data      user_phase(2, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data user_beam_phase(2, nmodes, nlayers, nuser, rtepack::muelmat{0.0});
+  for (Index layer = 0; layer < nlayers; ++layer)
+    for (Index mode = 0; mode < nmodes; ++mode) {
+      for (Index out = 0; out < nquad; ++out) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(transport_moments, mode, quadrature_mu[out], quadrature_mu[in]);
+          phase[vdisort::cosine_mode, mode, layer, out, in, 0, 0] = value;
+          if (mode > 0) phase[vdisort::sine_mode, mode, layer, out, in, 0, 0] = value;
+        }
+        beam_phase[vdisort::cosine_mode, mode, layer, out, 0, 0] =
+            scalar_phase_mode(transport_moments, mode, quadrature_mu[out], -disort_test::reference::problem_12_beam_mu);
+      }
+      for (Index user = 0; user < nuser; ++user) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(transport_moments, mode, user_mu[user], quadrature_mu[in]);
+          user_phase[vdisort::cosine_mode, mode, layer, user, in][0, 0] = value;
+          if (mode > 0) user_phase[vdisort::sine_mode, mode, layer, user, in][0, 0] = value;
+        }
+        user_beam_phase[vdisort::cosine_mode, mode, layer, user][0, 0] =
+            scalar_phase_mode(transport_moments, mode, user_mu[user], -disort_test::reference::problem_12_beam_mu);
+      }
+    }
+
+  Tensor4                         up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
+  const disort::brdf::RawFunction lambert = [](Numeric, Numeric, Numeric) {
+    return disort_test::reference::problem_12_surface_albedo * Constant::inv_pi;
+  };
+  Vector cumulative_tau = subdivided ? Vector(disort_test::reference::problem_12_subdivided_tau)
+                                     : Vector{disort_test::reference::problem_12_output_tau.back()};
+  std::ranges::transform(cumulative_tau, cumulative_tau.begin(), [optical_depth_scale](const Numeric tau) {
+    return optical_depth_scale * tau;
+  });
+
+  vdisort::main_data solver(
+      nquad,
+      nmodes,
+      AscendingGrid{std::move(cumulative_tau)},
+      Vector(nlayers, transport_omega),
+      std::move(phase),
+      std::move(up),
+      std::move(down),
+      Tensor3(nlayers, 0, nstokes),
+      scalar_brdf_modes(lambert, 1),
+      disort_test::reference::problem_12_beam_mu,
+      Vector{disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu, 0.0, 0.0, 0.0},
+      0.0,
+      std::move(beam_phase));
+  return {.solver              = std::move(solver),
+          .user_phase          = std::move(user_phase),
+          .user_beam_phase     = std::move(user_beam_phase),
+          .original_moments    = std::move(original_moments),
+          .transport_moments   = std::move(transport_moments),
+          .physical_depth      = disort_test::reference::problem_12_output_tau.back(),
+          .physical_omega      = physical_omega,
+          .mu0                 = disort_test::reference::problem_12_beam_mu,
+          .phi0                = 0.0,
+          .beam_intensity      = disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu,
+          .delta_m_fraction    = delta_m_fraction,
+          .optical_depth_scale = optical_depth_scale};
+}
+
+void test_problem_12() {
+  auto        one_layer  = make_problem_12_model(false);
+  auto        subdivided = make_problem_12_model(true);
+  const auto& user_mu    = disort_test::reference::problem_12_user_mu;
+
+  vdisort::user_u_data one_user, subdivided_user;
+  vdisort::flux_data   one_flux_data, subdivided_flux_data;
+  for (const Numeric physical_tau : disort_test::reference::problem_12_output_tau) {
+    const Numeric scaled_tau = one_layer.optical_depth_scale * physical_tau;
+    one_layer.solver.u_user(one_user,
+                            scaled_tau,
+                            disort_test::reference::problem_12_azimuth,
+                            user_mu,
+                            one_layer.user_phase,
+                            one_layer.user_beam_phase);
+    subdivided.solver.u_user(subdivided_user,
+                             scaled_tau,
+                             disort_test::reference::problem_12_azimuth,
+                             user_mu,
+                             subdivided.user_phase,
+                             subdivided.user_beam_phase);
+    const Vector one_correction =
+        scalar_delta_m_correction(one_layer, physical_tau, disort_test::reference::problem_12_azimuth, user_mu);
+    const Vector subdivided_correction =
+        scalar_delta_m_correction(subdivided, physical_tau, disort_test::reference::problem_12_azimuth, user_mu);
+    for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
+      one_user.intensities[angle].I()        += one_correction[angle];
+      subdivided_user.intensities[angle].I() += subdivided_correction[angle];
+      const auto label = std::format("Problem 12 radiance [tau={}, angle={}]", physical_tau, angle);
+      expect_unpolarized(label, one_user.intensities[angle]);
+      expect_unpolarized(label, subdivided_user.intensities[angle]);
+      for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+        expect_reference(label, subdivided_user.intensities[angle][stokes], one_user.intensities[angle][stokes], 2e-7);
+    }
+
+    const auto one  = one_layer.solver.flux(one_flux_data, scaled_tau);
+    const auto many = subdivided.solver.flux(subdivided_flux_data, scaled_tau);
+    expect_reference(std::format("Problem 12 upward flux [{}]", physical_tau), many.up, one.up, 2e-7);
+    expect_reference(
+        std::format("Problem 12 diffuse-down flux [{}]", physical_tau), many.down_diffuse, one.down_diffuse, 2e-7);
+    expect_reference(
+        std::format("Problem 12 direct-down flux [{}]", physical_tau), many.down_direct, one.down_direct, 2e-12);
+    expect_reference(std::format("Problem 12 DFDT [{}]", physical_tau), many.dfdt, one.dfdt, 2e-7);
+    for (Index stream = 0; stream < static_cast<Index>(one_flux_data.u0.size()); ++stream) {
+      expect_unpolarized(std::format("Problem 12 one-layer flux field [{}, {}]", physical_tau, stream),
+                         one_flux_data.u0[stream]);
+      expect_unpolarized(std::format("Problem 12 subdivided flux field [{}, {}]", physical_tau, stream),
+                         subdivided_flux_data.u0[stream]);
+    }
+  }
+}
 }  // namespace
 
 int main() try {
@@ -1153,6 +1296,7 @@ int main() try {
   test_problem_9();
   test_problem_10();
   test_problem_11();
+  test_problem_12();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
