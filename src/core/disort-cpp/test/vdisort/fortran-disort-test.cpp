@@ -11,8 +11,11 @@ namespace {
 constexpr Numeric reference_tolerance    = 7e-5;
 constexpr Numeric polarization_tolerance = 2e-9;
 
-void expect_reference(const std::string_view name, const Numeric actual, const Numeric expected) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > reference_tolerance * std::max(1.0, std::abs(expected)),
+void expect_reference(const std::string_view name,
+                      const Numeric          actual,
+                      const Numeric          expected,
+                      const Numeric          tolerance = reference_tolerance) {
+  ARTS_USER_ERROR_IF(std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)),
                      "{}: expected {}, got {} (difference {})",
                      name,
                      expected,
@@ -425,6 +428,55 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
 void test_problem_4() {
   for (const auto& test : disort_test::reference::problem_4) run_problem_4_case(test);
 }
+
+void run_problem_5_case(const disort_test::reference::scalar_case& test) {
+  constexpr Index nquad          = disort_test::reference::problem_5_streams;
+  const auto&     user_mu        = disort_test::reference::problem_5_user_mu;
+  const Matrix    moments_matrix = disort_test::reference::cloud_c1_moments();
+  const Vector    moments{moments_matrix[0]};
+  auto            model = make_scalar_model(disort_test::reference::problem_5_total_tau,
+                                            test.omega,
+                                            true,
+                                            nquad,
+                                            moments,
+                                            user_mu,
+                                            1.0,
+                                            Constant::pi,
+                                            moments[nquad]);
+
+  vdisort::user_u_data user;
+  vdisort::flux_data   flux;
+  for (Index level = 0; level < static_cast<Index>(test.tau.size()); ++level) {
+    const Numeric physical_tau = test.tau[level];
+    const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
+    model.solver.u_user(user, scaled_tau, 0.0, user_mu, model.user_phase, model.user_beam_phase);
+    const Vector correction = scalar_delta_m_correction(model, physical_tau, 0.0, user_mu);
+    for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
+      user.intensities[angle].I() += correction[angle];
+      const auto label             = std::format("{} radiance [{}, {}]", test.name, level, angle);
+      expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle], 2e-4);
+      expect_unpolarized(label, user.intensities[angle]);
+    }
+
+    const auto [scaled_diffuse_down, scaled_direct] = model.solver.flux_down(flux, scaled_tau);
+    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
+      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
+    const Numeric diffuse_down    = scaled_diffuse_down - (physical_direct - scaled_direct);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
+    const Numeric up = model.solver.flux_up(flux, scaled_tau);
+    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
+      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+  }
+}
+
+void test_problem_5() {
+  run_problem_5_case(disort_test::reference::problem_5a);
+  run_problem_5_case(disort_test::reference::problem_5b);
+}
 }  // namespace
 
 int main() try {
@@ -432,6 +484,7 @@ int main() try {
   test_problem_2();
   test_problem_3();
   test_problem_4();
+  test_problem_5();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {

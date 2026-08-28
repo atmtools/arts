@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
-#include <map>
 #include <numeric>
 #include <ranges>
 
@@ -736,10 +735,14 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
 
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
+      ComplexVector modal_amplitude(NState);
+      for (Index e = 0; e < NState; ++e) {
+        const Numeric anchor = top_anchored[anchor_index(alpha, m, layer, e)] ? layer_top(layer) : tau_arr[layer];
+        modal_amplitude[e] = GC_collect[alpha, m, layer, e] * std::exp(K_collect[alpha, m, layer, e] * (tau - anchor));
+      }
       for (Index state = 0; state < NState; ++state) {
         Complex value = particular(alpha, m, layer, state, tau);
-        for (Index e = 0; e < NState; ++e)
-          value += GC_collect[alpha, m, layer, e] * homogeneous(alpha, m, layer, state, e, tau);
+        for (Index e = 0; e < NState; ++e) value += G_collect[alpha, m, layer, state, e] * modal_amplitude[e];
         const Numeric scale = 1.0 + std::abs(value.real());
         // VDISORT CHANGE: highly conservative scalar-limit cases can be very
         // ill-conditioned; conjugate eigenpairs may leave roundoff at a few
@@ -813,7 +816,7 @@ void main_data::u_user(user_u_data&                  data,
                      nuser);
 
   static const auto integration_quadrature = [] {
-    std::pair<Vector, Vector> result{Vector(32), Vector(32)};
+    std::pair<Vector, Vector> result{Vector(12), Vector(12)};
     Legendre::GaussLegendre(result.first, result.second);
     return result;
   }();
@@ -838,7 +841,11 @@ void main_data::u_user(user_u_data&                  data,
     const Numeric                 abs_mu   = std::abs(mu);
     const bool                    downward = mu < 0.0;
     std::vector<rtepack::stokvec> modes(static_cast<std::size_t>(2 * NFourier));
-    std::map<Numeric, Matrix>     field_cache;
+    Matrix                        bottom_field;
+    if (not downward and NBDRF > 0) {
+      bottom_field.resize(2 * NFourier, NState);
+      combined_field(bottom_field, tau_arr.back());
+    }
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
@@ -846,8 +853,6 @@ void main_data::u_user(user_u_data&                  data,
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
         if (not downward and m < NBDRF) {
-          Matrix bottom_field(2 * NFourier, NState);
-          combined_field(bottom_field, tau_arr.back());
           rtepack::muelmat_matrix raw(1, N, rtepack::muelmat{0.0});
           const Vector            outgoing{abs_mu};
           brdf_fourier_modes[m](alpha, raw, outgoing, mu_arr[Range{0, N}]);
@@ -864,38 +869,38 @@ void main_data::u_user(user_u_data&                  data,
             mode += std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
         }
-        mode *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
+        mode                                                  *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
+        modes[static_cast<std::size_t>(alpha * NFourier + m)]  = mode;
+      }
+    }
 
-        const Index first_layer = downward ? 0 : output_layer;
-        const Index last_layer  = downward ? output_layer : NLayers - 1;
-        for (Index layer = first_layer; layer <= last_layer; ++layer) {
-          const Numeric top    = layer_top(layer);
-          const Numeric bottom = tau_arr[layer];
-          const Numeric lower  = downward ? top : std::max(top, tau);
-          const Numeric upper  = downward ? std::min(bottom, tau) : bottom;
-          if (upper <= lower) continue;
+    const Index first_layer = downward ? 0 : output_layer;
+    const Index last_layer  = downward ? output_layer : NLayers - 1;
+    for (Index layer = first_layer; layer <= last_layer; ++layer) {
+      const Numeric top    = layer_top(layer);
+      const Numeric bottom = tau_arr[layer];
+      const Numeric lower  = downward ? top : std::max(top, tau);
+      const Numeric upper  = downward ? std::min(bottom, tau) : bottom;
+      if (upper <= lower) continue;
 
-          rtepack::stokvec integral{};
-          const Numeric    shortest_attenuation_length = has_beam_source ? std::min(abs_mu, mu0) : abs_mu;
-          const Index      segment_count =
-              std::max<Index>(1, static_cast<Index>(std::ceil((upper - lower) / (4.0 * shortest_attenuation_length))));
-          const Numeric inv_segment_count = 1.0 / static_cast<Numeric>(segment_count);
-          for (Index segment = 0; segment < segment_count; ++segment) {
-            const Numeric segment_lower = std::lerp(lower, upper, static_cast<Numeric>(segment) * inv_segment_count);
-            const Numeric segment_upper =
-                std::lerp(lower, upper, static_cast<Numeric>(segment + 1) * inv_segment_count);
-            const Numeric    midpoint  = 0.5 * (segment_lower + segment_upper);
-            const Numeric    halfwidth = 0.5 * (segment_upper - segment_lower);
-            rtepack::stokvec segment_integral{};
-            for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
-              const Numeric point          = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
-              auto          field_iterator = field_cache.find(point);
-              if (field_iterator == field_cache.end()) {
-                Matrix field(2 * NFourier, NState);
-                combined_field(field, point);
-                field_iterator = field_cache.emplace(point, std::move(field)).first;
-              }
-              const Matrix&    field = field_iterator->second;
+      const Numeric shortest_attenuation_length = has_beam_source ? std::min(abs_mu, mu0) : abs_mu;
+      const Index   segment_count =
+          std::max<Index>(1, static_cast<Index>(std::ceil((upper - lower) / (8.0 * shortest_attenuation_length))));
+      const Numeric inv_segment_count = 1.0 / static_cast<Numeric>(segment_count);
+      for (Index segment = 0; segment < segment_count; ++segment) {
+        const Numeric segment_lower = std::lerp(lower, upper, static_cast<Numeric>(segment) * inv_segment_count);
+        const Numeric segment_upper = std::lerp(lower, upper, static_cast<Numeric>(segment + 1) * inv_segment_count);
+        const Numeric midpoint      = 0.5 * (segment_lower + segment_upper);
+        const Numeric halfwidth     = 0.5 * (segment_upper - segment_lower);
+        std::vector<rtepack::stokvec> segment_integral(static_cast<std::size_t>(2 * NFourier));
+        for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
+          const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
+          Matrix        field(2 * NFourier, NState);
+          combined_field(field, point);
+          const Numeric distance           = downward ? tau - point : point - tau;
+          const Numeric integration_weight = integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu;
+          for (Index alpha = 0; alpha < 2; ++alpha) {
+            for (Index m = 0; m < NFourier; ++m) {
               rtepack::stokvec source{};
               for (Index j = 0; j < NQuad; ++j) {
                 rtepack::stokvec incident{};
@@ -920,14 +925,12 @@ void main_data::u_user(user_u_data&                  data,
                   if (active) source[s] += polynomial[s];
                 }
               }
-              const Numeric distance = downward ? tau - point : point - tau;
-              segment_integral += integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu * source;
+              segment_integral[static_cast<std::size_t>(alpha * NFourier + m)] += integration_weight * source;
             }
-            integral += halfwidth * segment_integral;
           }
-          mode += integral;
         }
-        modes[static_cast<std::size_t>(alpha * NFourier + m)] = mode;
+        for (Index mode = 0; mode < 2 * NFourier; ++mode)
+          modes[static_cast<std::size_t>(mode)] += halfwidth * segment_integral[static_cast<std::size_t>(mode)];
       }
     }
 

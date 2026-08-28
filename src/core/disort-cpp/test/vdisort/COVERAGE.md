@@ -22,7 +22,7 @@ or the existing synthetic scalar-limit tests does not count as a port.
 | 2 | a–d | ported | The shared scalar Legendre-to-VDISORT Fourier embedding reproduces every Rayleigh user-angle radiance and flux. Cases 2b and 2d retain exact `omega = 1`, and Q, U, and V are asserted to vanish. |
 | 3 | a–b | ported | Classical scalar delta-M preprocessing, physical/scaled optical-depth mapping, and arbitrary-angle TMS/IMS reproduce every corrected Henyey–Greenstein radiance and flux. Corrections affect only I; Q, U, and V are asserted to vanish. |
 | 4 | a–c | ported | Haze-L delta-M transport and arbitrary-angle TMS/IMS reproduce every radiance at all requested depths and azimuths, together with all fluxes. Q, U, and V remain zero. |
-| 5 | a–b | not ported | Reuse the shared Cloud C.1 data and scalar IMS/TMS path. Compare the complete original output set. |
+| 5 | a–b | ported | All Cloud C.1 moments feed the 48-stream scalar delta-M transport and TMS/IMS correction path. Every original radiance and flux matches, including the strong forward aureole, and Q, U, and V remain zero. |
 | 6 | a–h | not ported | Reuse the extracted references and the CPP-DISORT thermal/boundary normalization. Port all active flux assertions before adding any unavailable radiance references. |
 | 7 | a–e | not ported | Reuse the extracted references and established thermal/boundary mapping; compare all active flux quantities. |
 | 8 | a–c | not ported | Reuse the shared two-layer inputs and references. Compare all fluxes and four user-angle radiances. |
