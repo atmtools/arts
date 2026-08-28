@@ -196,4 +196,96 @@ inline const std::array problem_8{
                       0.189020, 0.0988158, 0.0965192, 0.0654445,
                       0.0684762, 0.0296698, 0.0, 0.0})},
 };
+
+enum class phase_type { isotropic, problem_9b, henyey_greenstein };
+
+/** Solver-neutral physical inputs and DISORT 4.0.99 output for Problem 9. */
+struct general_multilayer_case {
+  const char* name;
+  phase_type phase;
+  Vector cumulative_tau;
+  Vector single_scattering_albedo;
+  Vector output_tau;
+  Vector azimuth;
+  Numeric beam_mu;
+  Numeric beam;
+  Numeric top_isotropic;
+  bool thermal;
+  Numeric top_temperature;
+  Numeric bottom_temperature;
+  Vector interface_temperature;
+  Numeric wavenumber_low;
+  Numeric wavenumber_high;
+  Numeric surface_albedo;
+  Vector direct;
+  Vector diffuse_down;
+  Vector up;
+  Tensor3 radiance;
+};
+
+inline Tensor3 radiance_azimuth_tau_mu(const Index nazimuth,
+                                       std::initializer_list<Numeric> values) {
+  Vector data(values.size());
+  std::ranges::copy(values, data.begin());
+  return Tensor3{std::move(data).reshape(nazimuth, 5, 4)};
+}
+
+inline const Vector problem_9_user_mu{-1.0, -0.2, 0.2, 1.0};
+inline const Vector problem_9_cumulative_tau{1.0, 3.0, 6.0, 10.0, 15.0, 21.0};
+inline const Vector problem_9_omega{0.65, 0.70, 0.75, 0.80, 0.85, 0.90};
+inline const Vector problem_9_output_tau{0.0, 1.05, 2.1, 6.0, 21.0};
+
+inline const std::array problem_9{
+    general_multilayer_case{
+        "9a", phase_type::isotropic, problem_9_cumulative_tau, problem_9_omega,
+        problem_9_output_tau, {Constant::pi / 3.0}, 0.5, 0.0, Constant::inv_pi,
+        false, 0.0, 0.0, {}, 0.0, 0.0, 0.0,
+        {0, 0, 0, 0, 0},
+        {1.00000, 0.355151, 0.144265, 0.00671445, 6.16968e-7},
+        {0.227973, 0.0875098, 0.0361819, 0.00219291, 0.0},
+        radiance_azimuth_tau_mu(1, {
+            0.318310, 0.318310, 0.0998915, 0.0591345,
+            0.153507, 0.0509531, 0.0367006, 0.0231903,
+            0.0706614, 0.0209119, 0.0148545, 0.00972307,
+            0.00372784, 0.00108815, 0.000883316, 0.000594743,
+            2.87656e-7, 1.05921e-7, 0.0, 0.0})},
+    general_multilayer_case{
+        "9b", phase_type::problem_9b, problem_9_cumulative_tau, problem_9_omega,
+        problem_9_output_tau, {Constant::pi / 3.0}, 0.5, 0.0, Constant::inv_pi,
+        false, 0.0, 0.0, {}, 0.0, 0.0, 0.0,
+        {0, 0, 0, 0, 0},
+        {1.00000, 0.452357, 0.236473, 0.0276475, 7.41853e-5},
+        {0.100079, 0.0452014, 0.0241941, 0.00416016, 0.0},
+        radiance_azimuth_tau_mu(1, {
+            0.318310, 0.318310, 0.0739198, 0.0132768,
+            0.196609, 0.0592369, 0.0300230, 0.00705566,
+            0.115478, 0.0301809, 0.0152672, 0.00406932,
+            0.0146177, 0.00385590, 0.00238301, 0.000777890,
+            3.37742e-5, 1.20858e-5, 0.0, 0.0})},
+    general_multilayer_case{
+        "9c", phase_type::henyey_greenstein, problem_9_cumulative_tau, problem_9_omega,
+        problem_9_output_tau, {Constant::pi / 3.0, 2.0 * Constant::pi / 3.0, Constant::pi},
+        0.5, Constant::pi, 1.0, true, 550.0, 700.0,
+        {600.0, 610.0, 620.0, 630.0, 640.0, 650.0, 660.0},
+        999.0, 1000.0, 0.5,
+        {1.57080, 0.192354, 0.0235550, 9.65131e-6, 9.03133e-19},
+        {6.09217, 4.97279, 4.46616, 4.22731, 4.73767},
+        {4.68414, 4.24381, 4.16941, 4.30667, 5.11524},
+        radiance_azimuth_tau_mu(3, {
+            1.93920, 1.93920, 1.61855, 1.43872,
+            1.66764, 1.44453, 1.38339, 1.33890,
+            1.48511, 1.35009, 1.33079, 1.32794,
+            1.34514, 1.35131, 1.35980, 1.37918,
+            1.48927, 1.54270, 1.62823, 1.62823,
+            1.93920, 1.93920, 1.57895, 1.43872,
+            1.66764, 1.42925, 1.37317, 1.33890,
+            1.48511, 1.34587, 1.32921, 1.32794,
+            1.34514, 1.35129, 1.35979, 1.37918,
+            1.48927, 1.54270, 1.62823, 1.62823,
+            1.93920, 1.93920, 1.56559, 1.43872,
+            1.66764, 1.42444, 1.37034, 1.33890,
+            1.48511, 1.34469, 1.32873, 1.32794,
+            1.34514, 1.35128, 1.35979, 1.37918,
+            1.48927, 1.54270, 1.62823, 1.62823})},
+};
 }  // namespace disort_test::reference

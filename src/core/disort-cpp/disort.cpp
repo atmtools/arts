@@ -1776,7 +1776,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric 
 
   return {I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0_neg) -
                      direct_beam + direct_beam_scaled),
-          I0_orig * I0 * direct_beam};
+          I0_orig * direct_beam};
 }
 
 void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd) const {
@@ -1791,7 +1791,7 @@ void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView 
     flux_up[l] = Constant::two_pi * I0_orig * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[l] = I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rb(N)]) -
                             direct_beam + direct_beam_scaled);
-    flux_dd[l] = I0_orig * I0 * direct_beam;
+    flux_dd[l] = I0_orig * direct_beam;
   }
 }
 
@@ -1863,7 +1863,7 @@ void main_data::ungridded_flux(VectorView           flux_up,
     flux_up[il] = Constant::two_pi * I0_orig * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
     flux_do[il] = I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rb(N)]) -
                              direct_beam + direct_beam_scaled);
-    flux_dd[il] = I0_orig * I0 * direct_beam;
+    flux_dd[il] = I0_orig * direct_beam;
   }
 }
 

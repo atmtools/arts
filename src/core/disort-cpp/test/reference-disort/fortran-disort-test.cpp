@@ -488,6 +488,136 @@ void run_problem_8_case(const disort_test::reference::layered_isotropic_case& te
 void test_problem_8() {
   for (const auto& test : disort_test::reference::problem_8) run_problem_8_case(test);
 }
+
+Numeric band_blackbody_radiance(const Numeric temperature,
+                                const Numeric wavenumber_low,
+                                const Numeric wavenumber_high) {
+  if (temperature == 0.0 || wavenumber_low == wavenumber_high) return 0.0;
+  constexpr Index intervals = 4096;
+  const Numeric scale = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
+  const Numeric x0 = scale * wavenumber_low;
+  const Numeric x1 = scale * wavenumber_high;
+  const Numeric dx = (x1 - x0) / intervals;
+  const auto integrand = [](const Numeric x) {
+    if (x == 0.0 || x > 700.0) return 0.0;
+    return x * x * x / std::expm1(x);
+  };
+  Numeric integral = integrand(x0) + integrand(x1);
+  for (Index i = 1; i < intervals; ++i)
+    integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
+  integral *= dx / 3.0;
+  return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi * integral /
+         (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
+}
+
+Matrix problem_9_moments(const disort_test::reference::phase_type phase) {
+  constexpr Index nquad = 8;
+  Matrix moments(6, nquad + 1, 0.0);
+  if (phase == disort_test::reference::phase_type::isotropic) {
+    moments[joker, 0] = 1.0;
+  } else if (phase == disort_test::reference::phase_type::problem_9b) {
+    const Vector coefficients{1.0, 2.00916 / 3.0, 1.56339 / 5.0, 0.67407 / 7.0,
+                              0.22215 / 9.0, 0.04725 / 11.0, 0.00671 / 13.0,
+                              0.00068 / 15.0, 0.00005 / 17.0};
+    for (Index layer = 0; layer < 6; ++layer) moments[layer] = coefficients;
+  } else {
+    for (Index layer = 0; layer < 6; ++layer)
+      for (Index moment = 0; moment <= nquad; ++moment)
+        moments[layer, moment] = std::pow(static_cast<Numeric>(layer + 1) / 7.0, moment);
+  }
+  return moments;
+}
+
+Matrix problem_9_source(const disort_test::reference::general_multilayer_case& test) {
+  if (not test.thermal) return Matrix(6, 0);
+  Vector planck(7);
+  for (Index level = 0; level < 7; ++level)
+    planck[level] = band_blackbody_radiance(test.interface_temperature[level],
+                                           test.wavenumber_low,
+                                           test.wavenumber_high);
+  Matrix source(6, 2);
+  Numeric tau0 = 0.0;
+  for (Index layer = 0; layer < 6; ++layer) {
+    const Numeric tau1 = test.cumulative_tau[layer];
+    const Numeric slope = (planck[layer + 1] - planck[layer]) / (tau1 - tau0);
+    source[layer, 0] = planck[layer] - slope * tau0;
+    source[layer, 1] = slope;
+    tau0 = tau1;
+  }
+  return source;
+}
+
+void run_problem_9_case(const disort_test::reference::general_multilayer_case& test) {
+  constexpr Index nquad = 8;
+  Matrix up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
+  down[0] = test.top_isotropic;
+  std::vector<disort::BDRF> brdf;
+  if (test.thermal) {
+    down[0] += band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+    up[0] = (1.0 - test.surface_albedo) *
+            band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  }
+  if (test.surface_albedo != 0.0)
+    brdf.push_back(disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }});
+
+  const disort::main_data dis(nquad,
+                              nquad,
+                              nquad,
+                              AscendingGrid{1.0, 3.0, 6.0, 10.0, 15.0, 21.0},
+                              test.single_scattering_albedo,
+                              problem_9_moments(test.phase),
+                              up,
+                              down,
+                              Vector(6, 0.0),
+                              problem_9_source(test),
+                              std::move(brdf),
+                              test.beam_mu,
+                              test.beam,
+                              0.0);
+
+  disort::user_u_data user;
+  disort::tms_data tms;
+  disort::flux_data flux;
+  Vector ims;
+  for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
+    for (Index level = 0; level < 5; ++level) {
+      if (test.phase == disort_test::reference::phase_type::henyey_greenstein)
+        dis.u_user_corr(user,
+                        ims,
+                        tms,
+                        test.output_tau[level],
+                        test.azimuth[azimuth],
+                        disort_test::reference::problem_9_user_mu);
+      else
+        dis.u_user(user,
+                   test.output_tau[level],
+                   test.azimuth[azimuth],
+                   disort_test::reference::problem_9_user_mu);
+      for (Index angle = 0; angle < 4; ++angle)
+        expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+                         user.intensities[angle],
+                         test.radiance[azimuth, level, angle],
+                         test.thermal ? 1e-3 : 7e-5);
+    }
+
+  for (Index level = 0; level < 5; ++level) {
+    const Numeric tau = test.output_tau[level];
+    const auto [down_flux, direct] = dis.flux_down(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                     down_flux,
+                     test.diffuse_down[level],
+                     test.thermal ? 1e-3 : 7e-5);
+    expect_reference(std::format("{} up flux [{}]", test.name, level),
+                     dis.flux_up(flux, tau),
+                     test.up[level],
+                     test.thermal ? 1e-3 : 7e-5);
+  }
+}
+
+void test_problem_9() {
+  for (const auto& test : disort_test::reference::problem_9) run_problem_9_case(test);
+}
 }  // namespace
 
 int main() try {
@@ -498,6 +628,7 @@ int main() try {
   test_problem_4();
   test_problem_5();
   test_problem_8();
+  test_problem_9();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';
