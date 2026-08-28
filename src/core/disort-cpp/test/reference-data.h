@@ -8,6 +8,8 @@
 #include <initializer_list>
 
 #include "reference-aerosol-moments.h"
+#include "reference-cloud-moments.h"
+#include "reference-problem-17.h"
 
 namespace disort_test::reference {
 

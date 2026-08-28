@@ -46,6 +46,17 @@ struct BDRF {
   Matrix operator()(const Vector& a, const Vector& b) const;
 };
 
+/** A delta-M removed forward peak represented by its total fraction and
+ * normalized Legendre moments.  Classical delta-M uses moments equal to one. */
+struct delta_m_scaling {
+  Vector fraction;
+  Matrix moments;
+};
+
+/** Construct the DISORT 4 delta-M-plus Gaussian forward-peak model.
+ * The input must contain phase moments through degree `nleg + 1`. */
+delta_m_scaling delta_m_plus(ConstMatrixView phase_moments, Index nleg);
+
 struct mathscr_v_data {
   Matrix         src;
   Matrix         G;
@@ -148,6 +159,7 @@ class main_data {
   AscendingGrid     tau_arr{};             // [NLayers]
   Vector            omega_arr{};           // [NLayers]
   Vector            f_arr{};               // [NLayers]
+  Matrix            delta_m_peak{};        // [NLayers, NLeg]
   Matrix            source_poly_coeffs{};  // [NLayers, Nscoeffs]
   Matrix            Leg_coeffs_all{};      // [NLayers, NLeg_all]
   Matrix            boundary_up{};         // [NFourier, N]
@@ -222,6 +234,7 @@ class main_data {
   void prepare_TMS(tms_data& data,
                    Numeric phi,
                    const ConstVectorView& mu) const;
+  void check_classical_delta_m_correction() const;
   void evaluate_TMS(tms_data& data,
                     Numeric tau,
                     const ConstVectorView& mu) const;
@@ -256,7 +269,8 @@ class main_data {
             std::vector<BDRF> brdf_fourier_modes,
             Numeric           mu0,
             Numeric           I0,
-            Numeric           phi0);
+            Numeric           phi0,
+            Matrix            delta_m_peak = {});
 
   /** Get the index of the tau value closest to the given tau
     *
@@ -636,6 +650,9 @@ class main_data {
   //! The fractional scattering into the peak - NLayers or 0
   [[nodiscard]] auto&& f() const { return f_arr; }
 
+  //! Legendre coefficients of the normalized removed forward peak - NLayers x NLeg
+  [[nodiscard]] auto&& delta_m_peak_moments() const { return delta_m_peak; }
+
   //! Polynomial coefficients of isotropic internal sources - NLayers x Nscoeffs or 0 x 0
   [[nodiscard]] auto&& source_poly() const { return source_poly_coeffs; }
 
@@ -671,6 +688,9 @@ class main_data {
 
   //! The fractional scattering into the peak - NLayers or 0
   [[nodiscard]] auto f() { return VectorView{f_arr}; }
+
+  //! Legendre coefficients of the normalized removed forward peak - NLayers x NLeg
+  [[nodiscard]] auto delta_m_peak_moments() { return MatrixView{delta_m_peak}; }
 
   //! Polynomial coefficients of isotropic internal sources - NLayers x Nscoeffs or 0 x 0
   [[nodiscard]] auto source_poly() { return MatrixView{source_poly_coeffs}; }
@@ -843,6 +863,9 @@ template <> struct std::formatter<disort::main_data> {
                        sep,
                        "f_arr: "sv,
                        v.f_arr,
+                       sep,
+                       "delta_m_peak: "sv,
+                       v.delta_m_peak,
                        sep,
                        "source_poly_coeffs: "sv,
                        v.source_poly_coeffs,

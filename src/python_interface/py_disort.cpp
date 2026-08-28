@@ -27,6 +27,16 @@ void py_disort(py::module_& m) try {
   auto disort_nm  = m.def_submodule("disort");
   disort_nm.doc() = "DISORT solver internal types";
 
+  disort_nm.def(
+      "delta_m_plus",
+      [](const Matrix& phase_moments, const Index nleg) {
+        auto scaling = disort::delta_m_plus(phase_moments, nleg);
+        return py::make_tuple(std::move(scaling.fraction), std::move(scaling.moments));
+      },
+      "phase_moments"_a,
+      "nleg"_a,
+      "Construct DISORT 4 delta-M-plus fractions and removed-peak moments");
+
   // VDISORT PYTHON INTERFACE BEGIN: polarized solver namespace and constants.
   auto vdisort_nm                     = m.def_submodule("vdisort");
   vdisort_nm.doc()                    = "VDISORT polarized solver internal types";
@@ -246,7 +256,8 @@ The relevant references are:
          const std::optional<Matrix>&   b_neg,
          const std::optional<Vector>&   f_arr,
          const std::vector<DisortBDRF>& bdrf,
-         const std::optional<Matrix>&   s_poly_coeffs) {
+         const std::optional<Matrix>&   s_poly_coeffs,
+         const std::optional<Matrix>&   delta_m_peak) {
         const Index NFourier = NFourier_.value_or(NQuad);
         const Index NLeg     = NLeg_.value_or(NQuad);
         const Index NLayers  = tau_arr.size();
@@ -264,7 +275,8 @@ The relevant references are:
                                   bdrf,
                                   mu0,
                                   I0,
-                                  phi0);
+                                  phi0,
+                                  delta_m_peak.value_or(Matrix{}));
       },
       "Run disort, mostly mimicying the 0.7 Pythonic-DISORT interface.\n",
       "tau_arr"_a,
@@ -280,7 +292,8 @@ The relevant references are:
       "b_neg"_a.none()         = py::none(),
       "f_arr"_a.none()         = py::none(),
       "BDRF_Fourier_modes"_a   = std::vector<DisortBDRF>{},
-      "s_poly_coeffs"_a.none() = py::none());
+      "s_poly_coeffs"_a.none() = py::none(),
+      "delta_m_peak"_a.none()  = py::none());
   x.def(
        "u",
        [](disort::main_data& dis, const AscendingGrid& tau, const Vector& phi) {

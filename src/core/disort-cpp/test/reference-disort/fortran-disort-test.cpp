@@ -742,10 +742,11 @@ void test_problem_14() {
 void test_problem_15() {
   using namespace disort_test::reference;
 
-  Matrix moments(2, kokhanovsky_aerosol_moments.size(), 0.0);
+  constexpr Index problem_15_moment_count = 600;
+  Matrix          moments(2, problem_15_moment_count, 0.0);
   moments[0, 0] = 1.0;
   moments[0, 2] = 0.1;
-  moments[1]    = kokhanovsky_aerosol_moments;
+  moments[1]    = kokhanovsky_aerosol_moments[Range{0, problem_15_moment_count}];
 
   for (const auto& test : problem_15) {
     const auto raw = problem_15_raw(test.type);
@@ -797,6 +798,61 @@ void test_problem_15() {
   }
 }
 
+void test_problem_17() {
+  using namespace disort_test::reference;
+
+  const std::array<const Vector*, 2> phase_moments{
+      &kokhanovsky_aerosol_moments,
+      &kokhanovsky_cloud_moments,
+  };
+  const std::array expected_fraction{0.24306, 0.44398};
+
+  for (Index case_index = 0; case_index < std::ssize(problem_17); ++case_index) {
+    const auto& test = problem_17[case_index];
+    Matrix      moments(1, phase_moments[case_index]->size());
+    moments[0] = *phase_moments[case_index];
+    const auto scaling = disort::delta_m_plus(moments, problem_17_streams);
+
+    expect_reference(std::format("{} delta-M-plus fraction", test.name),
+                     scaling.fraction[0],
+                     expected_fraction[case_index],
+                     2e-5);
+
+    const disort::main_data dis(problem_17_streams,
+                                problem_17_streams,
+                                problem_17_streams,
+                                AscendingGrid{test.depth},
+                                Vector{1.0},
+                                std::move(moments),
+                                Matrix(problem_17_streams, problem_17_streams / 2, 0.0),
+                                Matrix(problem_17_streams, problem_17_streams / 2, 0.0),
+                                scaling.fraction,
+                                Matrix(1, 0),
+                                {},
+                                problem_17_beam_mu,
+                                problem_17_beam,
+                                0.0,
+                                scaling.moments);
+
+    expect_reference(std::format("{} scaled depth", test.name),
+                     dis.scaled_tau().back(),
+                     test.depth * (1.0 - (1.0 - 1e-8) * scaling.fraction[0]),
+                     2e-13);
+
+    disort::user_u_data user;
+    const Vector        output_tau{0.0, test.depth};
+    for (Index level = 0; level < 2; ++level) {
+      for (Index azimuth = 0; azimuth < std::ssize(problem_17_azimuth); ++azimuth) {
+        dis.u_user(user, output_tau[level], problem_17_azimuth[azimuth], problem_17_user_mu);
+        for (Index angle = 0; angle < std::ssize(problem_17_user_mu); ++angle)
+          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth),
+                           user.intensities[angle],
+                           test.radiance[level, angle, azimuth]);
+      }
+    }
+  }
+}
+
 }  // namespace
 
 int main() try {
@@ -815,6 +871,7 @@ int main() try {
   test_raw_brdfs_and_fourier_helper();
   test_problem_14();
   test_problem_15();
+  test_problem_17();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

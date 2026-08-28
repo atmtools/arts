@@ -19,6 +19,52 @@
 #include <vector>
 
 namespace disort {
+delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nleg) {
+  ARTS_USER_ERROR_IF(nleg < 1, "nleg must be positive, got {}", nleg);
+  ARTS_USER_ERROR_IF(phase_moments.ncols() < nleg + 2,
+                     "delta-M-plus requires phase moments through degree {}, got {} columns",
+                     nleg + 1,
+                     phase_moments.ncols());
+
+  delta_m_scaling out{Vector(phase_moments.nrows()), Matrix(phase_moments.nrows(), nleg, 1.0)};
+  const bool use_classical_delta_m = stdr::any_of(phase_moments, [nleg](const auto layer) {
+    return layer[nleg] < 1e-4 || layer[nleg + 1] < 0.7 * layer[nleg];
+  });
+
+  for (Index layer = 0; layer < phase_moments.nrows(); ++layer) {
+    const Numeric pn  = phase_moments[layer, nleg];
+    const Numeric pn1 = phase_moments[layer, nleg + 1];
+
+    // DISORT 4.0.99 falls back globally if any layer fails these guards.
+    if (use_classical_delta_m) {
+      out.fraction[layer] = pn;
+      continue;
+    }
+
+    ARTS_USER_ERROR_IF(pn <= 0.0 || pn1 <= 0.0 || pn == pn1,
+                       "Cannot derive delta-M-plus width from P_{}={} and P_{}={} in layer {}",
+                       nleg,
+                       pn,
+                       nleg + 1,
+                       pn1,
+                       layer);
+    const Numeric n        = static_cast<Numeric>(nleg);
+    const Numeric sigma_sq = (Math::pow2(n + 1.0) - Math::pow2(n)) /
+                             (std::log(Math::pow2(pn)) - std::log(Math::pow2(pn1)));
+    ARTS_USER_ERROR_IF(!(sigma_sq > 0.0) || !std::isfinite(sigma_sq),
+                       "Invalid delta-M-plus Gaussian width {} in layer {}",
+                       sigma_sq,
+                       layer);
+
+    out.fraction[layer] = pn * std::exp(Math::pow2(n) / (2.0 * sigma_sq));
+    for (Index degree = 0; degree < nleg; ++degree) {
+      const Numeric l           = static_cast<Numeric>(degree);
+      out.moments[layer, degree] = std::exp(-Math::pow2(l) / (2.0 * sigma_sq));
+    }
+  }
+  return out;
+}
+
 void radiances::resize(AscendingGrid f_grid, DescendingGrid alt_grid_, AziGrid azi_grid_, ZenGrid zen_grid_) {
   freq_grid = std::move(f_grid);
   alt_grid  = std::move(alt_grid_);
@@ -699,12 +745,15 @@ void main_data::set_scales() {
     scaled_tau_arr_with_0[l + 1] = scaled_tau_arr_with_0[l] + scale_tau[l] * thickness;
   }
 
-  eintra<"ij", "j", "ij", "i">(
-      [](auto j, auto lca, auto f) { return static_cast<Numeric>(2 * j + 1) * (lca - f) / (1.0 - f); },
+  eintra<"ij", "j", "ij", "i", "ij">(
+      [](auto j, auto lca, auto f, auto peak) {
+        return static_cast<Numeric>(2 * j + 1) * (lca - f * peak) / (1.0 - f);
+      },
       weighted_scaled_Leg_coeffs,
       stdv::iota(Index{0}, NLeg),
       Leg_coeffs_all[joker, Range{0, NLeg}],
-      f_arr);
+      f_arr,
+      delta_m_peak);
 
   eintra<"i", "i", "i", "i">(
       [](auto om, auto fr, auto st) { return om * (1.0 - fr) / st; }, scaled_omega_arr, omega_arr, f_arr, scale_tau);
@@ -750,6 +799,12 @@ void main_data::check_input_size() const {
 
   ARTS_USER_ERROR_IF(static_cast<Index>(f_arr.size()) != NLayers, "{} vs {}", f_arr.size(), NLayers);
 
+  ARTS_USER_ERROR_IF((delta_m_peak.shape() != std::array{NLayers, NLeg}),
+                     "{:B,} vs [{}, {}]",
+                     delta_m_peak.shape(),
+                     NLayers,
+                     NLeg);
+
   ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
                      "{:B,} vs [{}, {}]",
                      Leg_coeffs_all.shape(),
@@ -787,6 +842,11 @@ void main_data::check_input_value() const {
 
   ARTS_USER_ERROR_IF(
       stdr::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }), "f_arr must be [0, 1], got {:B,}", f_arr);
+
+  ARTS_USER_ERROR_IF(stdr::any_of(delta_m_peak | by_elem,
+                                  [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
+                     "delta_m_peak moments must be finite and [0, 1], got {:B,}",
+                     delta_m_peak);
 
   ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
 }
@@ -885,6 +945,7 @@ main_data::main_data(const Index NLayers_,
       tau_arr(NLayers),
       omega_arr(NLayers),
       f_arr(NLayers),
+      delta_m_peak(NLayers, NLeg, 1.0),
       source_poly_coeffs(NLayers, Nscoeffs),
       Leg_coeffs_all(NLayers, NLeg_all),
       boundary_up(NFourier, N),
@@ -962,7 +1023,8 @@ main_data::main_data(const Index       NQuad_,
                      std::vector<BDRF> brdf_fourier_modes_,
                      Numeric           mu0_,
                      Numeric           I0_,
-                     Numeric           phi0_)
+                     Numeric           phi0_,
+                     Matrix            delta_m_peak_)
     : NLayers(tau_arr_.size()),
       NQuad(NQuad_),
       NLeg(NLeg_),
@@ -977,6 +1039,7 @@ main_data::main_data(const Index       NQuad_,
       tau_arr(std::move(tau_arr_)),
       omega_arr(std::move(omega_arr_)),
       f_arr(std::move(f_arr_)),
+      delta_m_peak(std::move(delta_m_peak_)),
       source_poly_coeffs(std::move(source_poly_coeffs_)),
       Leg_coeffs_all(std::move(Leg_coeffs_all_)),
       boundary_up(std::move(boundary_up_)),
@@ -1042,6 +1105,8 @@ main_data::main_data(const Index       NQuad_,
 
   std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) { return -x; });
   std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](auto&& x) { return 1.0 / x; });
+
+  if (delta_m_peak.empty()) delta_m_peak = Matrix(NLayers, NLeg, 1.0);
 
   check_input_size();
   update_all(I0_);
@@ -1413,6 +1478,8 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi, const 
 }
 
 void main_data::prepare_TMS(tms_data& data, const Numeric phi, const ConstVectorView& mu) const {
+  check_classical_delta_m_correction();
+
   for (const Numeric x : mu)
     ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0, "Polar-angle cosine ({}) must be nonzero and in [-1, 1]", x);
 
@@ -1431,6 +1498,15 @@ void main_data::prepare_TMS(tms_data& data, const Numeric phi, const ConstVector
       data.mathscr_B[j, i] =
           (scaled_omega_arr[j] * I0) / (4 * Constant::pi) * beam_factor * (p_true / (1.0 - f_arr[j]) - p_trun);
     }
+  }
+}
+
+void main_data::check_classical_delta_m_correction() const {
+  for (Index layer = 0; layer < NLayers; ++layer) {
+    if (f_arr[layer] == 0.0) continue;
+    ARTS_USER_ERROR_IF(stdr::any_of(delta_m_peak[layer], [](const Numeric x) { return x != 1.0; }),
+                       "IMS/TMS corrections are unavailable for a non-classical delta-M removed peak; "
+                       "use u() or u_user() for delta-M-plus, matching DISORT 4.0.99");
   }
 }
 
@@ -1482,6 +1558,8 @@ void main_data::IMS(Vector&                ims,
                     const ConstVectorView& mu,
                     const ims_convention   convention) const {
   ARTS_TIME_REPORT
+
+  check_classical_delta_m_correction();
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
 
@@ -1608,6 +1686,8 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
 
 void main_data::gridded_IMS(Tensor3View ims, const Vector& phi, const ims_convention convention) const {
   ARTS_TIME_REPORT
+
+  check_classical_delta_m_correction();
 
   const Index M = phi.size();
 

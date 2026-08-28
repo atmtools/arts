@@ -23,7 +23,7 @@ does not count.
 | 14 | a–d | ported | Hapke, Cox-Munk, RPV, and Ross-Li raw BRDFs, their Fourier reconstruction, all user-angle radiances, fluxes, and `DFDT` are checked. CPP represents the exactly transparent layer by `tau=1e-12`, `omega=1e-8` to avoid a degenerate eigensystem. |
 | 15 | a–d | ported | The Rayleigh/aerosol atmosphere uses all 600 Kokhanovsky moments for arbitrary-angle IMS/TMS corrections. Hapke, shadowed Cox-Munk, RPV, and Ross-Li cases are checked against every original radiance, flux, and `DFDT` value. |
 | 16 | a | intentionally unsupported | CPP-DISORT is kept plane-parallel; pseudo-spherical direct-beam corrections are out of scope and are not planned. |
-| 17 | a–b | blocked by solver feature | CPP has delta-M scaling, but not DISORT 4.0.99 delta-M-plus. |
+| 17 | a–b | ported | Delta-M accepts a general removed-peak Legendre profile, and the DISORT 4 Gaussian delta-M-plus helper reproduces all 1,080 original aerosol/cloud user-angle radiances. IMS/TMS is intentionally unavailable for this mode, matching DISORT 4.0.99. |
 
 The older cDISORT suite has 48 subcases.  Its Problems 1–13 overlap the
 Fortran configurations above.  cDISORT Problem 14b additionally calls the
