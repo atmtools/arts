@@ -19,7 +19,7 @@ or the existing synthetic scalar-limit tests does not count as a port.
 | Problem | Cases | Current state | Work required for the VDISORT port |
 |---|---|---|---|
 | 1 | a–f | ported | All user-angle radiances and direct, diffuse-down, and upward fluxes match the shared Fortran references. Exact conservative scattering is exercised by 1b and 1e, and Q, U, and V are asserted to vanish. |
-| 2 | a–d | not ported | Reuse the Problem 1 adapter. Exact-unity cases must exercise conservative scattering without changing the physical input. |
+| 2 | a–d | ported | The shared scalar Legendre-to-VDISORT Fourier embedding reproduces every Rayleigh user-angle radiance and flux. Cases 2b and 2d retain exact `omega = 1`, and Q, U, and V are asserted to vanish. |
 | 3 | a–b | not ported | Add scalar-limit IMS/TMS corrections at the original user angles and compare every corrected radiance. This does not require a general polarized correction yet. |
 | 4 | a–c | not ported | Reuse arbitrary-angle scalar IMS/TMS for the Haze-L phase function and compare all fluxes and user-angle radiances. |
 | 5 | a–b | not ported | Reuse the shared Cloud C.1 data and scalar IMS/TMS path. Compare the complete original output set. |
