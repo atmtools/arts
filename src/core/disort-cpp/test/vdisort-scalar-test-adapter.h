@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "disort.h"
+#include <disort.h>
 #include "vdisort.h"
 
 /**

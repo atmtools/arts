@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "disort.h"
+#include <disort.h>
 
 int main() {
   const Index nv = 101;

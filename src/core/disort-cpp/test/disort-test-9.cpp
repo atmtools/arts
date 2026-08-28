@@ -1,4 +1,4 @@
-#include <disort-test.h>
+#include "disort-test.h"
 
 void test_9a() try {
   const AscendingGrid tau_arr{1., 3., 6., 10., 15., 21.};
