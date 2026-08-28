@@ -601,6 +601,79 @@ void test_problem_12() {
   }
 }
 
+void test_problem_13_boundary_limits() {
+  using namespace disort_test::reference;
+  constexpr Numeric depth = 0.25;
+  Matrix moments(1, problem_13_streams + 1, 0.0);
+  moments[0, 0] = 1.0;
+  std::vector<disort::BDRF> brdf{
+      disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
+  const disort::main_data absorbing(problem_13_streams,
+                                    problem_13_streams,
+                                    1,
+                                    AscendingGrid{depth},
+                                    Vector{0.0},
+                                    std::move(moments),
+                                    Matrix(1, problem_13_streams / 2, 0.0),
+                                    Matrix(1, problem_13_streams / 2, 0.0),
+                                    Vector{0.0},
+                                    Matrix(1, 0),
+                                    std::move(brdf),
+                                    problem_13_beam_mu,
+                                    problem_13_beam,
+                                    0.0);
+
+  const Numeric incident_flux = problem_13_beam * problem_13_beam_mu;
+  const Numeric bottom_beam = incident_flux * std::exp(-depth / problem_13_beam_mu);
+  Numeric upward_transmission = 0.0;
+  for (Index i = 0; i < problem_13_streams / 2; ++i)
+    upward_transmission += absorbing.weights()[i] * absorbing.mu()[i] * std::exp(-depth / absorbing.mu()[i]);
+  const Numeric expected_up = 2.0 * problem_13_surface_albedo * bottom_beam * upward_transmission;
+
+  disort::flux_data flux;
+  const auto top = absorbing.flux(flux, 0.0);
+  const auto bottom = absorbing.flux(flux, depth);
+  expect_reference("Problem 13 absorbing Lambertian top reflection", top.up, expected_up, 2e-12);
+  expect_reference("Problem 13 absorbing direct transmission", bottom.down_direct, bottom_beam, 2e-12);
+  expect_reference("Problem 13 absorbing diffuse transmission", bottom.down_diffuse, 0.0, 2e-12);
+}
+
+void test_problem_13() {
+  using namespace disort_test::reference;
+  for (const auto& test : problem_13) {
+    const Index layers = test.cumulative_tau.size();
+    Matrix moments(layers, problem_13_streams + 1);
+    for (Index layer = 0; layer < layers; ++layer)
+      for (Index moment = 0; moment <= problem_13_streams; ++moment)
+        moments[layer, moment] = std::pow(problem_13_asymmetry, moment);
+    std::vector<disort::BDRF> brdf{
+        disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
+    const disort::main_data dis(problem_13_streams,
+                                problem_13_streams,
+                                1,
+                                AscendingGrid{test.cumulative_tau},
+                                test.single_scattering_albedo,
+                                std::move(moments),
+                                Matrix(1, problem_13_streams / 2, 0.0),
+                                Matrix(1, problem_13_streams / 2, 0.0),
+                                Vector(layers, std::pow(problem_13_asymmetry, problem_13_streams)),
+                                Matrix(layers, 0),
+                                std::move(brdf),
+                                problem_13_beam_mu,
+                                problem_13_beam,
+                                0.0);
+
+    disort::flux_data flux;
+    const Numeric incident_flux = problem_13_beam * problem_13_beam_mu;
+    const auto top = dis.flux(flux, 0.0);
+    const auto bottom = dis.flux(flux, test.cumulative_tau.back());
+    expect_reference(std::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
+    expect_reference(std::format("{} transmission", test.name),
+                     (bottom.down_direct + bottom.down_diffuse) / incident_flux,
+                     test.transmission);
+  }
+}
+
 }  // namespace
 
 int main() try {
@@ -614,6 +687,8 @@ int main() try {
   test_problem_10();
   test_problem_11();
   test_problem_12();
+  test_problem_13_boundary_limits();
+  test_problem_13();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

@@ -442,7 +442,7 @@ void main_data::solve_for_coefs() {
       if (has_beam_source) {
         if (BDRF_bool) {
           stdr::copy(mathscr_X_pos, BDRF_RHS_contribution.begin());
-          mult(BDRF_RHS_contribution, R, B_collect_m[ln, rf(N)], 1.0, 1.0);
+          mult(BDRF_RHS_contribution, R, B_collect_m[ln, rb(N)], 1.0, 1.0);
         } else {
           BDRF_RHS_contribution = 0.0;
         }

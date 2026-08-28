@@ -89,7 +89,8 @@ disort::main_data make_disort(const Index               NQuad,
                               Matrix                    boundary_up   = {},
                               Matrix                    boundary_down = {},
                               Matrix                    source        = {},
-                              std::vector<disort::BDRF> brdf          = {}) {
+                              std::vector<disort::BDRF> brdf          = {},
+                              Vector                    f             = {}) {
   const Index nfourier = NQuad;
   const Index nlayers  = static_cast<Index>(tau.size());
   if (boundary_up.size() == 0) {
@@ -101,6 +102,10 @@ disort::main_data make_disort(const Index               NQuad,
     boundary_down = 0;
   }
   if (source.size() == 0) source.resize(tau.size(), 0);
+  if (f.empty()) {
+    f.resize(nlayers);
+    f = 0.0;
+  }
 
   return disort::main_data(NQuad,
                            NQuad,
@@ -110,7 +115,7 @@ disort::main_data make_disort(const Index               NQuad,
                            std::move(legendre),
                            std::move(boundary_up),
                            std::move(boundary_down),
-                           Vector(nlayers, 0),
+                           std::move(f),
                            std::move(source),
                            std::move(brdf),
                            mu0,
@@ -353,7 +358,19 @@ void disort_test13() {
     const AscendingGrid tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
     const Vector        omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
     const Vector        g(tau.size(), 0.8);
-    auto                dis = make_disort(nquad, tau, omega, henyey_greenstein(g, nquad), 0.5, 2.0);
+    std::vector<disort::BDRF> brdf{
+        disort::BDRF{[](auto value, auto&, auto&) { value = disort_test::reference::problem_13_surface_albedo; }}};
+    auto dis = make_disort(nquad,
+                           tau,
+                           omega,
+                           henyey_greenstein(g, nquad),
+                           0.5,
+                           2.0,
+                           {},
+                           {},
+                           {},
+                           std::move(brdf),
+                           Vector(tau.size(), std::pow(0.8, nquad)));
     if (multilayer) {
       run_case("test_13c (special-boundary equivalent)", dis, Vector{0.0, 1.0});
       run_case("test_13d (regular method)", dis, Vector{0.0, 1.0});
