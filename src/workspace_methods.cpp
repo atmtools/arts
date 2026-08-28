@@ -1710,6 +1710,17 @@ Method is purely for convenience and composition.
       .in     = {"disort_settings"},
   };
 
+  wsm_data["legendre_degreeFromDisortSettingsDeltaMPlus"] = {
+      .desc = R"--(Sets *legendre_degree* for DISORT delta-M-plus input.
+
+This requests two phase moments beyond the reduced DISORT Legendre dimension,
+which are required to derive the Gaussian forward-peak width.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"legendre_degree"},
+      .in     = {"disort_settings"},
+  };
+
   wsm_data["spectral_propmat_scatAddSpectralScatteringSpeciesTRO"] = {
       .desc =
           R"--(Adds *scat_species* results for totally random oriented spectral calculations to
@@ -5364,6 +5375,20 @@ Sets both upper and lower bounds.
 
   wsm_data["disort_settingsNoFractionalScattering"] = {
       .desc   = R"(Turns off fractional scattering in Disort calculations.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"disort_settings"},
+      .in     = {"disort_settings"},
+  };
+
+  wsm_data["disort_settingsDeltaMPlus"] = {
+      .desc = R"(Computes spectral delta-M-plus scaling from the phase moments.
+
+For every frequency and layer, this derives the removed forward-scattering
+fraction and normalized Gaussian-peak moments.  The stored phase coefficients
+must include moments through degree
+``disort_settings.legendre_polynomial_dimension + 1``.  Use
+*legendre_degreeFromDisortSettingsDeltaMPlus* when producing scattering input.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},

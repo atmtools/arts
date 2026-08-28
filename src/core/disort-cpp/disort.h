@@ -754,6 +754,9 @@ struct DisortSettings {
   // freq_grid.size() x [alt_grid.size() - 1]
   Matrix fractional_scattering{};
 
+  // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension
+  Tensor3 delta_m_peak_moments{};
+
   // freq_grid.size() x [alt_grid.size() - 1] x nsrc
   Tensor3 source_polynomial{};
 
@@ -1051,6 +1054,9 @@ single_scattering_albedo.shape():                         )-x-"sv,
 fractional_scattering.shape():                            )-x-"sv,
           v.fractional_scattering.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
+delta_m_peak_moments.shape():                             )-x-"sv,
+          v.delta_m_peak_moments.shape(),
+          R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nleg.
 source_polynomial.shape():                                )-x-"sv,
           v.source_polynomial.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1] x nsrc.
@@ -1114,6 +1120,10 @@ single_scattering_albedo:
 fractional_scattering:
 )-x-"sv,
                        v.fractional_scattering,
+                       R"-x-(
+delta_m_peak_moments:
+)-x-"sv,
+                       v.delta_m_peak_moments,
                        R"-x-(
 source_polynomial:
 )-x-"sv,

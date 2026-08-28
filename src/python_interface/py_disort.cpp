@@ -568,6 +568,7 @@ The leading dimension contains the combined cosine and sine equations.
   disort_settings.def_rw("optical_thicknesses", &DisortSettings::optical_thicknesses, ".. :class:`Matrix`");
   disort_settings.def_rw("single_scattering_albedo", &DisortSettings::single_scattering_albedo, ".. :class:`Matrix`");
   disort_settings.def_rw("fractional_scattering", &DisortSettings::fractional_scattering, ".. :class:`Matrix`");
+  disort_settings.def_rw("delta_m_peak_moments", &DisortSettings::delta_m_peak_moments, ".. :class:`Tensor3`");
   disort_settings.def_rw("source_polynomial", &DisortSettings::source_polynomial, ".. :class:`Tensor3`");
   disort_settings.def_rw("legendre_coefficients", &DisortSettings::legendre_coefficients, ".. :class:`Tensor3`");
   disort_settings.def_rw(

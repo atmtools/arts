@@ -2038,6 +2038,8 @@ void DisortSettings::resize(Index          quadrature_dimension_,
   optical_thicknesses.resize(nfreq, nlay);
   single_scattering_albedo.resize(nfreq, nlay);
   fractional_scattering.resize(nfreq, nlay);
+  delta_m_peak_moments.resize(nfreq, nlay, legendre_polynomial_dimension);
+  delta_m_peak_moments = 1.0;
   source_polynomial.resize(nfreq, nlay, 0);
   legendre_coefficients.resize(nfreq, nlay, legendre_polynomial_dimension);
   upward_boundary_condition.resize(nfreq, fourier_mode_dimension, quadrature_dimension / 2);
@@ -2056,6 +2058,7 @@ void DisortSettings::check() const {
           (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
           (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
           (fractional_scattering.shape() != std::array{nfreq, nlay}) or
+          (delta_m_peak_moments.shape() != std::array{nfreq, nlay, legendre_polynomial_dimension}) or
           (source_polynomial.shape() != std::array{nfreq, nlay, source_polynomial.ncols()}) or
           (legendre_coefficients.shape() != std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
           (upward_boundary_condition.shape() != std::array{nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
@@ -2093,14 +2096,15 @@ disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const {
   }
 
   dis.tau(optical_thicknesses[iv]);
-  dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
-  dis.beam_azimuth()        = deg2rad(solar_azimuth_angle[iv]);
-  dis.omega()               = single_scattering_albedo[iv];
-  dis.f()                   = fractional_scattering[iv];
-  dis.all_legendre_coeffs() = legendre_coefficients[iv];
-  dis.upward_boundary()     = upward_boundary_condition[iv];
-  dis.downward_boundary()   = downward_boundary_condition[iv];
-  dis.source_poly()         = source_polynomial[iv];
+  dis.solar_zenith()         = cosd(solar_zenith_angle[iv]);
+  dis.beam_azimuth()         = deg2rad(solar_azimuth_angle[iv]);
+  dis.omega()                = single_scattering_albedo[iv];
+  dis.f()                    = fractional_scattering[iv];
+  dis.delta_m_peak_moments() = delta_m_peak_moments[iv];
+  dis.all_legendre_coeffs()  = legendre_coefficients[iv];
+  dis.upward_boundary()      = upward_boundary_condition[iv];
+  dis.downward_boundary()    = downward_boundary_condition[iv];
+  dis.source_poly()          = source_polynomial[iv];
 
   dis.update_all(solar_source[iv]);
 
@@ -2166,6 +2170,7 @@ void xml_io_stream<DisortSettings>::read(std::istream& is_xml, DisortSettings& v
   xml_read_from_stream(is_xml, v.optical_thicknesses, pbifs);
   xml_read_from_stream(is_xml, v.single_scattering_albedo, pbifs);
   xml_read_from_stream(is_xml, v.fractional_scattering, pbifs);
+  xml_read_from_stream(is_xml, v.delta_m_peak_moments, pbifs);
   xml_read_from_stream(is_xml, v.source_polynomial, pbifs);
   xml_read_from_stream(is_xml, v.legendre_coefficients, pbifs);
   xml_read_from_stream(is_xml, v.upward_boundary_condition, pbifs);
@@ -2197,6 +2202,7 @@ void xml_io_stream<DisortSettings>::write(std::ostream&         os_xml,
   xml_write_to_stream(os_xml, v.optical_thicknesses, pbofs, "Tau");
   xml_write_to_stream(os_xml, v.single_scattering_albedo, pbofs, "albedo");
   xml_write_to_stream(os_xml, v.fractional_scattering, pbofs, "fractional_scattering");
+  xml_write_to_stream(os_xml, v.delta_m_peak_moments, pbofs, "delta_m_peak_moments");
   xml_write_to_stream(os_xml, v.source_polynomial, pbofs, "source_polynomial");
   xml_write_to_stream(os_xml, v.legendre_coefficients, pbofs, "legendre_coefficients");
   xml_write_to_stream(os_xml, v.upward_boundary_condition, pbofs, "upward_boundary_condition");

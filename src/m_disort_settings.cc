@@ -414,6 +414,27 @@ void disort_settingsNoFractionalScattering(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
   disort_settings.fractional_scattering = 0.0;
+  disort_settings.delta_m_peak_moments  = 1.0;
+}
+
+void disort_settingsDeltaMPlus(DisortSettings& disort_settings) {
+  ARTS_TIME_REPORT
+
+  const Index F = disort_settings.frequency_count();
+  const Index N = disort_settings.layer_count();
+  const Index L = disort_settings.legendre_polynomial_dimension;
+
+  ARTS_USER_ERROR_IF(disort_settings.legendre_coefficients.ncols() < L + 2,
+                     "Delta-M-plus requires phase moments through degree {}, got {} moments",
+                     L + 1,
+                     disort_settings.legendre_coefficients.ncols());
+
+  disort_settings.delta_m_peak_moments.resize(F, N, L);
+  for (Index iv = 0; iv < F; ++iv) {
+    auto scaling                              = disort::delta_m_plus(disort_settings.legendre_coefficients[iv], L);
+    disort_settings.fractional_scattering[iv] = scaling.fraction;
+    disort_settings.delta_m_peak_moments[iv]  = scaling.moments;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -844,7 +865,7 @@ void disort_settingsLegendreCoefficientsFromPath(DisortSettings&             dis
 
   const Size  N = disort_settings.layer_count();
   const Index F = disort_settings.frequency_count();
-  const Index L = disort_settings.legendre_polynomial_dimension;
+  const Index L = spectral_phamat_spectral_path.front().ncols();
 
   ARTS_USER_ERROR_IF(
       (N + 1) != spectral_phamat_spectral_path.size(),
@@ -856,14 +877,12 @@ void disort_settingsLegendreCoefficientsFromPath(DisortSettings&             dis
       N,
       spectral_phamat_spectral_path.size());
 
-  ARTS_USER_ERROR_IF(not all_same_shape({F, L}, spectral_phamat_spectral_path),
-                     "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
-                     std::array{F, L});
+  ARTS_USER_ERROR_IF(
+      L < disort_settings.legendre_polynomial_dimension or not all_same_shape({F, L}, spectral_phamat_spectral_path),
+      "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
+      std::array{F, L});
 
-  ARTS_USER_ERROR_IF(not same_shape({F, N, L}, disort_settings.legendre_coefficients),
-                     R"(The shape of disort_settings.legendre_coefficients must be {:B,}, but is {:B,})",
-                     std::array{F, static_cast<Index>(N), L},
-                     disort_settings.legendre_coefficients.shape());
+  disort_settings.legendre_coefficients.resize(F, N, L);
 
   Vector invfac(L);
   for (Index j = 0; j < L; j++) { invfac[j] = 1.0 / std::sqrt(2 * j + 1); }
@@ -998,8 +1017,17 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
       agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
       agenda.add("spectral_propmat_pathAddScattering");
 
-      agenda.add("disort_settingsNoFractionalScattering");
       agenda.add("disort_settingsLegendreCoefficientsFromPath");
+      agenda.add("disort_settingsNoFractionalScattering");
+      agenda.add("disort_settingsSingleScatteringAlbedoFromPath");
+      break;
+    case ScatteringSpeciesDeltaMPlus:
+      agenda.add("legendre_degreeFromDisortSettingsDeltaMPlus");
+      agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
+      agenda.add("spectral_propmat_pathAddScattering");
+
+      agenda.add("disort_settingsLegendreCoefficientsFromPath");
+      agenda.add("disort_settingsDeltaMPlus");
       agenda.add("disort_settingsSingleScatteringAlbedoFromPath");
       break;
     case None:
