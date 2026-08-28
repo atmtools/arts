@@ -1,8 +1,10 @@
 #pragma once
 
+#include <arts_constants.h>
 #include <matpack.h>
 
 #include <algorithm>
+#include <array>
 #include <initializer_list>
 
 namespace disort_test::reference {
@@ -72,4 +74,53 @@ inline const scalar_case problem_5b{
     radiance({67.9623, 0.221027, 0.136619, 0.114084, 0.0873870, 0.0881626,
               0.205706, 0.0492736, 0.0265449, 0.0202154, 0.0129661, 0.00951334,
               3.41286e-5, 1.39916e-5, 7.47039e-6, 5.65602e-6, 3.58245e-6, 2.57858e-6})};
+
+enum class surface_type { black, lambertian, hapke };
+
+/** Solver-neutral physical inputs for original DISORT Problem 6.
+ *
+ * beam is FBEAM (irradiance), whereas top_isotropic is FISOT (radiance).
+ * Temperatures describe Planck radiances over [0, 50000] cm^-1.  A Hapke
+ * surface derives its directional emissivity from the BRDF.
+ */
+struct thermal_source_case {
+  const char* name;
+  Numeric optical_depth;
+  Vector output_tau;
+  Numeric single_scattering_albedo;
+  Numeric beam_mu;
+  Numeric beam;
+  Numeric top_isotropic;
+  Numeric top_temperature;
+  Numeric top_emissivity;
+  Numeric bottom_temperature;
+  Vector interface_temperature;
+  surface_type surface;
+  Numeric lambertian_albedo;
+  std::array<Numeric, 3> hapke_parameters;
+};
+
+inline const Vector problem_6_user_mu{-1.0, -0.1, 0.1, 1.0};
+inline constexpr Numeric problem_6_azimuth = Constant::pi / 2.0;
+inline constexpr Numeric problem_6_wavenumber_low = 0.0;
+inline constexpr Numeric problem_6_wavenumber_high = 50000.0;
+
+inline const std::array problem_6{
+    thermal_source_case{"6a", 0.0, {0.0, 0.0}, 0.0, 0.5, 200.0, 0.0,
+                        0.0, 0.0, 0.0, {}, surface_type::black, 0.0, {}},
+    thermal_source_case{"6b", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 0.0,
+                        0.0, 0.0, 0.0, {}, surface_type::black, 0.0, {}},
+    thermal_source_case{"6c", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 0.0,
+                        0.0, 0.0, 0.0, {}, surface_type::lambertian, 0.5, {}},
+    thermal_source_case{"6d", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 0.0,
+                        0.0, 0.0, 0.0, {}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
+    thermal_source_case{"6e", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 0.0,
+                        0.0, 1.0, 300.0, {}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
+    thermal_source_case{"6f", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 100.0 / Constant::pi,
+                        250.0, 1.0, 300.0, {}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
+    thermal_source_case{"6g", 1.0, {0.0, 0.5, 1.0}, 0.0, 0.5, 200.0, 100.0 / Constant::pi,
+                        250.0, 1.0, 300.0, {250.0, 300.0}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
+    thermal_source_case{"6h", 10.0, {0.0, 1.0, 10.0}, 0.0, 0.5, 200.0, 100.0 / Constant::pi,
+                        250.0, 1.0, 300.0, {250.0, 300.0}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
+};
 }  // namespace disort_test::reference

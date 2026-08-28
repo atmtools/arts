@@ -1,4 +1,5 @@
 #include "../test-helpers.h"
+#include "../reference-data.h"
 
 namespace legacy_disotest {
 
@@ -14,7 +15,7 @@ Matrix henyey_greenstein(const Vector& g, const Index nmom) {
   return out;
 }
 
-Matrix linear_source(const AscendingGrid& tau, const Vector& temperature, const Vector& omega) {
+Matrix linear_source(const AscendingGrid& tau, const Vector& temperature) {
   ARTS_USER_ERROR_IF(temperature.size() != tau.size() + 1, "A temperature is required at every layer interface");
 
   Matrix  out(tau.size(), 2);
@@ -23,8 +24,10 @@ Matrix linear_source(const AscendingGrid& tau, const Vector& temperature, const 
     const Numeric b0    = blackbody_radiance(temperature[i]);
     const Numeric b1    = blackbody_radiance(temperature[i + 1]);
     const Numeric slope = (b1 - b0) / (tau[i] - tau0);
-    out[i, 0]           = (b0 - slope * tau0) / (1 - omega[i]);
-    out[i, 1]           = slope / (1 - omega[i]);
+    // CPP-DISORT applies the LTE absorption factor (1 - omega).  Store the
+    // Planck radiance polynomial itself, as in the physical Test 6 input.
+    out[i, 0]           = b0 - slope * tau0;
+    out[i, 1]           = slope;
     tau0                = tau[i];
   }
   return out;
@@ -154,7 +157,7 @@ void disort_test06() {
                            200.0,
                            up,
                            down,
-                           linear_source(tau, Vector{250.0, 300.0}, omega));
+                           linear_source(tau, Vector{250.0, 300.0}));
     run_case(name, dis, depth == 1.0 ? Vector{0.0, 0.5, 1.0} : Vector{0.0, 1.0, 10.0}, phis);
   }
 }
@@ -201,7 +204,7 @@ void disort_test07() {
                            c.beam,
                            up,
                            down,
-                           linear_source(tau, Vector{c.top_temperature, c.bottom_temperature}, omega),
+                           linear_source(tau, Vector{c.top_temperature, c.bottom_temperature}),
                            std::move(brdf));
     run_case(c.name, dis, c.depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0}, Vector{0.0, Constant::pi / 2});
   }
@@ -224,7 +227,7 @@ disort::main_data problem10(const Index nquad) {
                      Constant::pi,
                      up,
                      down,
-                     linear_source(tau, temperature, omega),
+                     linear_source(tau, temperature),
                      std::move(brdf));
 }
 
