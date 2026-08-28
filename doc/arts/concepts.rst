@@ -13,5 +13,6 @@ The subsections below are given in no particular order.
    
    concept.absorption
    concept.radiative_transfer
+   concept.disort
    concept.oem
    concept.physical_grids
