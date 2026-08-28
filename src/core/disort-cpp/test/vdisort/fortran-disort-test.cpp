@@ -850,10 +850,9 @@ struct problem_9_model {
   vdisort::beam_phase_matrix_data user_beam_phase;
 };
 
-Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test) {
-  constexpr Index nquad   = disort_test::reference::problem_9_streams;
-  const Index     nlayers = static_cast<Index>(test.cumulative_tau.size());
-  Matrix          moments(nlayers, nquad, 0.0);
+Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test, const Index nquad) {
+  const Index nlayers = static_cast<Index>(test.cumulative_tau.size());
+  Matrix      moments(nlayers, nquad, 0.0);
   if (test.phase == disort_test::reference::phase_type::isotropic) {
     moments[joker, 0] = 1.0;
   } else if (test.phase == disort_test::reference::phase_type::problem_9b) {
@@ -869,14 +868,15 @@ Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& 
   return moments;
 }
 
-problem_9_model make_problem_9_model(const disort_test::reference::general_multilayer_case& test) {
-  constexpr Index nquad   = disort_test::reference::problem_9_streams;
+problem_9_model make_problem_9_model(const disort_test::reference::general_multilayer_case& test,
+                                     const Index                                            nquad,
+                                     const ConstVectorView&                                 user_mu) {
   constexpr Index nstokes = vdisort::stokes_dimension;
   const Index     n       = nquad / 2;
   const Index     nlayers = static_cast<Index>(test.cumulative_tau.size());
-  const Index     nuser   = static_cast<Index>(disort_test::reference::problem_9_user_mu.size());
+  const Index     nuser   = static_cast<Index>(user_mu.size());
   const Index     nmodes  = test.beam == 0.0 ? 1 : nquad;
-  const Matrix    moments = problem_9_moments(test);
+  const Matrix    moments = problem_9_moments(test, nquad);
 
   Vector quadrature_mu(nquad), quadrature_weight(n);
   Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
@@ -902,13 +902,12 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
       }
       for (Index user = 0; user < nuser; ++user) {
         for (Index in = 0; in < nquad; ++in) {
-          const Numeric value = scalar_phase_mode(
-              layer_moments, mode, disort_test::reference::problem_9_user_mu[user], quadrature_mu[in]);
+          const Numeric value = scalar_phase_mode(layer_moments, mode, user_mu[user], quadrature_mu[in]);
           user_phase[vdisort::cosine_mode, mode, layer, user, in][0, 0] = value;
           if (mode > 0) user_phase[vdisort::sine_mode, mode, layer, user, in][0, 0] = value;
         }
         user_beam_phase[vdisort::cosine_mode, mode, layer, user][0, 0] =
-            scalar_phase_mode(layer_moments, mode, disort_test::reference::problem_9_user_mu[user], -test.beam_mu);
+            scalar_phase_mode(layer_moments, mode, user_mu[user], -test.beam_mu);
       }
     }
   }
@@ -968,7 +967,8 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
 
 void test_problem_9() {
   for (const auto& test : disort_test::reference::problem_9) {
-    auto                 model = make_problem_9_model(test);
+    auto model = make_problem_9_model(
+        test, disort_test::reference::problem_9_streams, disort_test::reference::problem_9_user_mu);
     vdisort::user_u_data user;
     vdisort::flux_data   flux_data;
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
@@ -1004,6 +1004,47 @@ void test_problem_9() {
     }
   }
 }
+
+void test_problem_10() {
+  const auto& test  = disort_test::reference::problem_9[2];
+  auto        model = make_problem_9_model(
+      test, disort_test::reference::problem_10_streams, disort_test::reference::problem_10_user_mu);
+
+  vdisort::u_data      quadrature;
+  vdisort::user_u_data user;
+  vdisort::flux_data   flux_data;
+
+  for (const Numeric tau : disort_test::reference::problem_10_output_tau) {
+    const auto flux_before = model.solver.flux(flux_data, tau);
+    for (const Numeric phi : disort_test::reference::problem_10_azimuth) {
+      model.solver.u(quadrature, tau, phi);
+      model.solver.u_user(
+          user, tau, phi, disort_test::reference::problem_10_user_mu, model.user_phase, model.user_beam_phase);
+
+      for (Index angle = 0; angle < disort_test::reference::problem_10_streams; ++angle) {
+        const auto    label   = std::format("Problem 10 radiance [tau={}, phi={}, angle={}]", tau, phi, angle);
+        const Numeric user_mu = disort_test::reference::problem_10_user_mu[angle];
+        const Index   stream =
+            static_cast<Index>(std::min_element(model.solver.mu().begin(),
+                                                model.solver.mu().end(),
+                                                [user_mu](const Numeric lhs, const Numeric rhs) {
+                                                  return std::abs(lhs - user_mu) < std::abs(rhs - user_mu);
+                                                }) -
+                               model.solver.mu().begin());
+        expect_unpolarized(label, quadrature.intensities[stream]);
+        expect_unpolarized(label, user.intensities[angle]);
+        for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+          expect_reference(label, user.intensities[angle][stokes], quadrature.intensities[stream][stokes], 2e-7);
+      }
+    }
+
+    const auto flux_after = model.solver.flux(flux_data, tau);
+    expect_reference("Problem 10 direct flux", flux_after.down_direct, flux_before.down_direct, 1e-12);
+    expect_reference("Problem 10 diffuse-down flux", flux_after.down_diffuse, flux_before.down_diffuse, 1e-12);
+    expect_reference("Problem 10 upward flux", flux_after.up, flux_before.up, 1e-12);
+    expect_reference("Problem 10 DFDT", flux_after.dfdt, flux_before.dfdt, 1e-12);
+  }
+}
 }  // namespace
 
 int main() try {
@@ -1016,6 +1057,7 @@ int main() try {
   test_problem_7();
   test_problem_8();
   test_problem_9();
+  test_problem_10();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
