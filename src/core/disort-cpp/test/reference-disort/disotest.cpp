@@ -1,10 +1,51 @@
 #include "../test-helpers.h"
 #include "../reference-data.h"
+#include <legendre.h>
 
 namespace legacy_disotest {
 
 Numeric blackbody_radiance(const Numeric temperature) {
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi;
+}
+
+Numeric band_blackbody_radiance(const Numeric temperature,
+                                const Numeric wavenumber_low,
+                                const Numeric wavenumber_high) {
+  if (temperature == 0.0 || wavenumber_high == wavenumber_low) return 0.0;
+  constexpr Index intervals = 4096;
+  const Numeric scale = Constant::h * Constant::c * 100.0 /
+                        (Constant::k * temperature);
+  const Numeric x0 = scale * wavenumber_low;
+  const Numeric x1 = scale * wavenumber_high;
+  const Numeric dx = (x1 - x0) / intervals;
+  const auto integrand = [](const Numeric x) {
+    if (x == 0.0) return 0.0;
+    if (x > 700.0) return 0.0;
+    return x * x * x / std::expm1(x);
+  };
+  Numeric integral = integrand(x0) + integrand(x1);
+  for (Index i = 1; i < intervals; ++i)
+    integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
+  integral *= dx / 3.0;
+  return blackbody_radiance(temperature) * integral /
+         (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
+}
+
+Numeric hapke(const Numeric mu,
+              const Numeric mup,
+              const Numeric dphi,
+              const Numeric b0 = 1.0,
+              const Numeric hh = 0.06,
+              const Numeric w = 0.6) {
+  const Numeric ctheta = std::clamp(mu * mup + std::sqrt((1.0 - mu * mu) * (1.0 - mup * mup)) * std::cos(dphi),
+                                    -1.0,
+                                    1.0);
+  const Numeric theta = std::acos(ctheta);
+  const Numeric opposition = b0 * hh / (hh + std::tan(0.5 * theta));
+  const Numeric gamma = std::sqrt(1.0 - w);
+  const Numeric h0 = (1.0 + 2.0 * mup) / (1.0 + 2.0 * gamma * mup);
+  const Numeric h = (1.0 + 2.0 * mu) / (1.0 + 2.0 * gamma * mu);
+  return 0.25 * w * ((1.0 + opposition) * (1.0 + 0.5 * ctheta) + h0 * h - 1.0) / (mu + mup);
 }
 
 Matrix henyey_greenstein(const Vector& g, const Index nmom) {
@@ -15,14 +56,14 @@ Matrix henyey_greenstein(const Vector& g, const Index nmom) {
   return out;
 }
 
-Matrix linear_source(const AscendingGrid& tau, const Vector& temperature) {
-  ARTS_USER_ERROR_IF(temperature.size() != tau.size() + 1, "A temperature is required at every layer interface");
+Matrix linear_polynomial(const AscendingGrid& tau, const Vector& values) {
+  ARTS_USER_ERROR_IF(values.size() != tau.size() + 1, "A value is required at every layer interface");
 
   Matrix  out(tau.size(), 2);
   Numeric tau0 = 0;
   for (Size i = 0; i < tau.size(); ++i) {
-    const Numeric b0    = blackbody_radiance(temperature[i]);
-    const Numeric b1    = blackbody_radiance(temperature[i + 1]);
+    const Numeric b0    = values[i];
+    const Numeric b1    = values[i + 1];
     const Numeric slope = (b1 - b0) / (tau[i] - tau0);
     // CPP-DISORT applies the LTE absorption factor (1 - omega).  Store the
     // Planck radiance polynomial itself, as in the physical Test 6 input.
@@ -31,6 +72,12 @@ Matrix linear_source(const AscendingGrid& tau, const Vector& temperature) {
     tau0                = tau[i];
   }
   return out;
+}
+
+Matrix linear_source(const AscendingGrid& tau, const Vector& temperature) {
+  Vector radiance(temperature.size());
+  std::ranges::transform(temperature, radiance.begin(), blackbody_radiance);
+  return linear_polynomial(tau, radiance);
 }
 
 disort::main_data make_disort(const Index               NQuad,
@@ -163,50 +210,67 @@ void disort_test06() {
 }
 
 void disort_test07() {
-  struct Case {
-    std::string_view name;
-    Index            nquad;
-    Numeric          depth;
-    Numeric          omega;
-    Numeric          g;
-    Numeric          top_temperature;
-    Numeric          bottom_temperature;
-    Numeric          beam;
-    Numeric          top_isotropic;
-    Numeric          bottom_albedo;
-  };
-
-  const std::array cases{
-      Case{"test_7a", 16, 1.0, 0.10, 0.05, 200.0, 300.0, 0.0, 0.0, 0.0},
-      Case{"test_7b", 16, 100.0, 0.95, 0.75, 200.0, 300.0, 0.0, 0.0, 0.0},
-      Case{"test_7c", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 200.0, 100.0, 0.0},
-      Case{"test_7d", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 200.0, 100.0, 1.0},
-      Case{"test_7e", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 200.0, 100.0, 0.5},
-  };
-
-  for (const auto& c : cases) {
-    const AscendingGrid tau{c.depth};
-    const Vector        omega{c.omega};
-    Matrix              up(c.nquad, c.nquad / 2, 0), down(c.nquad, c.nquad / 2, 0);
-    up[0]   = c.bottom_temperature == 0 ? 0 : blackbody_radiance(c.bottom_temperature);
-    down[0] = c.top_isotropic + blackbody_radiance(c.top_temperature);
+  for (const auto& c : disort_test::reference::problem_7) {
+    const AscendingGrid tau{c.optical_depth};
+    const Vector        omega{c.single_scattering_albedo};
+    Matrix              up(c.streams, c.streams / 2, 0), down(c.streams, c.streams / 2, 0);
+    const Numeric bottom_planck = band_blackbody_radiance(c.bottom_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
+    down[0] = c.top_isotropic + band_blackbody_radiance(c.top_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
 
     std::vector<disort::BDRF> brdf;
-    if (c.bottom_albedo != 0) {
-      brdf.push_back(disort::BDRF{[albedo = c.bottom_albedo](auto value, auto&, auto&) { value = albedo; }});
+    if (c.surface != disort_test::reference::surface_type::hapke)
+      up[0] = (1.0 - c.lambertian_albedo) * bottom_planck;
+    if (c.surface == disort_test::reference::surface_type::lambertian) {
+      brdf.push_back(disort::BDRF{[albedo = c.lambertian_albedo](auto value, auto&, auto&) { value = albedo; }});
+    } else if (c.surface == disort_test::reference::surface_type::hapke) {
+      constexpr Index naz = 512;
+      for (Index m = 0; m < c.streams; ++m) {
+        brdf.push_back(disort::BDRF{[m](auto value, const auto& outgoing, const auto& incoming) {
+          const Index nout = outgoing.size();
+          const Index nin = incoming.size();
+          for (Index i = 0; i < nout; ++i)
+            for (Index j = 0; j < nin; ++j) {
+              Numeric coefficient = 0.0;
+              for (Index k = 0; k < naz; ++k) {
+                const Numeric phi = Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(naz);
+                coefficient += hapke(outgoing[i], std::abs(incoming[j]), phi) *
+                               std::cos(static_cast<Numeric>(m) * phi);
+              }
+              value[i, j] = coefficient / naz;
+            }
+        }});
+      }
+      // Directional Kirchhoff emissivity at the computational angles.
+      Vector surface_mu(c.streams / 2), surface_weight(c.streams / 2);
+      Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
+      for (Index i = 0; i < c.streams / 2; ++i) {
+        constexpr Index nmu = 256;
+        Numeric reflectance = 0.0;
+        for (Index j = 0; j < nmu; ++j) {
+          const Numeric mup = (static_cast<Numeric>(j) + 0.5) / static_cast<Numeric>(nmu);
+          Numeric azimuth_average = 0.0;
+          for (Index k = 0; k < naz; ++k)
+            azimuth_average += hapke(surface_mu[i], mup,
+                                      Constant::two_pi * (static_cast<Numeric>(k) + 0.5) /
+                                          static_cast<Numeric>(naz));
+          reflectance += 2.0 * mup * azimuth_average / (nmu * naz);
+        }
+        up[0, i] = (1.0 - reflectance) * bottom_planck;
+      }
     }
 
-    auto dis = make_disort(c.nquad,
+    auto dis = make_disort(c.streams,
                            tau,
                            omega,
-                           henyey_greenstein(Vector{c.g}, c.nquad),
+                           henyey_greenstein(Vector{c.asymmetry_parameter}, c.streams),
                            0.5,
                            c.beam,
                            up,
                            down,
-                           linear_source(tau, Vector{c.top_temperature, c.bottom_temperature}),
+                           linear_polynomial(tau, Vector{band_blackbody_radiance(c.atmosphere_top_temperature, c.wavenumber_low, c.wavenumber_high),
+                                                         band_blackbody_radiance(c.atmosphere_bottom_temperature, c.wavenumber_low, c.wavenumber_high)}),
                            std::move(brdf));
-    run_case(c.name, dis, c.depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0}, Vector{0.0, Constant::pi / 2});
+    run_case(c.name, dis, c.optical_depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0}, Vector{0.0, Constant::pi / 2});
   }
 }
 

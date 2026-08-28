@@ -123,4 +123,35 @@ inline const std::array problem_6{
     thermal_source_case{"6h", 10.0, {0.0, 1.0, 10.0}, 0.0, 0.5, 200.0, 100.0 / Constant::pi,
                         250.0, 1.0, 300.0, {250.0, 300.0}, surface_type::hapke, 0.0, {1.0, 0.06, 0.6}},
 };
+
+struct scattering_thermal_case {
+  const char* name;
+  Index streams;
+  Numeric optical_depth;
+  Numeric single_scattering_albedo;
+  Numeric asymmetry_parameter;
+  Numeric atmosphere_top_temperature;
+  Numeric atmosphere_bottom_temperature;
+  Numeric top_boundary_temperature;
+  Numeric bottom_boundary_temperature;
+  Numeric wavenumber_low;
+  Numeric wavenumber_high;
+  Numeric beam;
+  Numeric top_isotropic;
+  surface_type surface;
+  Numeric lambertian_albedo;
+};
+
+inline const std::array problem_7{
+    scattering_thermal_case{"7a", 16, 1.0, 0.10, 0.05, 200.0, 300.0, 0.0, 0.0,
+                            300.0, 800.0, 0.0, 0.0, surface_type::black, 0.0},
+    scattering_thermal_case{"7b", 16, 100.0, 0.95, 0.75, 200.0, 300.0, 0.0, 0.0,
+                            2702.99, 2703.01, 0.0, 0.0, surface_type::black, 0.0},
+    scattering_thermal_case{"7c", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 100.0, 320.0,
+                            0.0, 80000.0, 200.0, 100.0, surface_type::black, 0.0},
+    scattering_thermal_case{"7d", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 100.0, 320.0,
+                            0.0, 80000.0, 200.0, 100.0, surface_type::lambertian, 1.0},
+    scattering_thermal_case{"7e", 12, 1.0, 0.50, 0.80, 300.0, 200.0, 100.0, 320.0,
+                            0.0, 80000.0, 200.0, 100.0, surface_type::hapke, 0.0},
+};
 }  // namespace disort_test::reference
