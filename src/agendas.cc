@@ -74,7 +74,8 @@ void define_agenda_data() {
                OUTPUT("spectral_radiance_field",
                       "radiance_field",
                       "irradiance_field",
-                      "spectral_irradiance_field"),
+                      "spectral_irradiance_field",
+                      "disort_aux"),
                INPUT("ybatch_index")));
 
   agenda_data.push_back(AgRecord(
