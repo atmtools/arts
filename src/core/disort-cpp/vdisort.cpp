@@ -457,8 +457,8 @@ void main_data::check_input_value() const {
   ARTS_USER_ERROR_IF(NLayers <= 0, "VDISORT requires at least one layer");
   ARTS_USER_ERROR_IF(NFourier <= 0, "VDISORT requires at least one Fourier mode");
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0, "tau_arr must be strictly positive, got {:B,}", tau_arr);
-  ARTS_USER_ERROR_IF(std::ranges::any_of(omega_arr, [](const Numeric x) { return x < 0.0 or x >= 1.0; }),
-                     "omega_arr must be in [0, 1), got {:B,}",
+  ARTS_USER_ERROR_IF(std::ranges::any_of(omega_arr, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
+                     "omega_arr must be in [0, 1], got {:B,}",
                      omega_arr);
   ARTS_USER_ERROR_IF(mu0 < 0.0 or mu0 > 1.0, "mu0 must be in [0, 1], got {}", mu0);
   ARTS_USER_ERROR_IF(phi0 < 0.0 or phi0 >= Constant::two_pi, "phi0 must be in [0, 2*pi), got {}", phi0);
@@ -873,40 +873,52 @@ void main_data::u_user(user_u_data&                  data,
           const Numeric upper  = downward ? std::min(bottom, tau) : bottom;
           if (upper <= lower) continue;
 
-          const Numeric    midpoint  = 0.5 * (lower + upper);
-          const Numeric    halfwidth = 0.5 * (upper - lower);
           rtepack::stokvec integral{};
-          for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
-            const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
-            Matrix        field(2 * NFourier, NState);
-            combined_field(field, point);
-            rtepack::stokvec source{};
-            for (Index j = 0; j < NQuad; ++j) {
-              rtepack::stokvec incident{};
-              for (Index s = 0; s < stokes_dimension; ++s) incident[s] = field[alpha * NFourier + m, state_index(j, s)];
-              source += 0.5 * omega_arr[layer] * W[j % N] * (user_phase_matrix[alpha, m, layer, iu, j] * incident);
-            }
-            if (has_beam_source) {
-              const Numeric epsilon  = m == 0 ? 1.0 : 2.0;
-              source                += epsilon * omega_arr[layer] / (4.0 * Constant::pi) * std::exp(-point / mu0) *
-                                       (user_beam_phase_matrix[alpha, m, layer, iu] * beam_stokes);
-            }
-            if (has_source_poly and m == 0) {
-              const Numeric source_tau =
-                  std::fma(source_coordinate_scale[layer], point, source_coordinate_offset[layer]);
-              rtepack::stokvec polynomial{};
-              for (Index p = Nscoeffs - 1; p >= 0; --p)
+          const Numeric    shortest_attenuation_length = has_beam_source ? std::min(abs_mu, mu0) : abs_mu;
+          const Index      segment_count =
+              std::max<Index>(1, static_cast<Index>(std::ceil((upper - lower) / (4.0 * shortest_attenuation_length))));
+          const Numeric inv_segment_count = 1.0 / static_cast<Numeric>(segment_count);
+          for (Index segment = 0; segment < segment_count; ++segment) {
+            const Numeric segment_lower = std::lerp(lower, upper, static_cast<Numeric>(segment) * inv_segment_count);
+            const Numeric segment_upper =
+                std::lerp(lower, upper, static_cast<Numeric>(segment + 1) * inv_segment_count);
+            const Numeric    midpoint  = 0.5 * (segment_lower + segment_upper);
+            const Numeric    halfwidth = 0.5 * (segment_upper - segment_lower);
+            rtepack::stokvec segment_integral{};
+            for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
+              const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
+              Matrix        field(2 * NFourier, NState);
+              combined_field(field, point);
+              rtepack::stokvec source{};
+              for (Index j = 0; j < NQuad; ++j) {
+                rtepack::stokvec incident{};
                 for (Index s = 0; s < stokes_dimension; ++s)
-                  polynomial[s] = std::fma(polynomial[s], source_tau, source_poly_coeffs[layer, p][s]);
-              for (Index s = 0; s < stokes_dimension; ++s) {
-                const bool active = alpha == cosine_mode ? s < 2 : s >= 2;
-                if (active) source[s] += polynomial[s];
+                  incident[s] = field[alpha * NFourier + m, state_index(j, s)];
+                source += 0.5 * omega_arr[layer] * W[j % N] * (user_phase_matrix[alpha, m, layer, iu, j] * incident);
               }
+              if (has_beam_source) {
+                const Numeric epsilon  = m == 0 ? 1.0 : 2.0;
+                source                += epsilon * omega_arr[layer] / (4.0 * Constant::pi) * std::exp(-point / mu0) *
+                                         (user_beam_phase_matrix[alpha, m, layer, iu] * beam_stokes);
+              }
+              if (has_source_poly and m == 0) {
+                const Numeric source_tau =
+                    std::fma(source_coordinate_scale[layer], point, source_coordinate_offset[layer]);
+                rtepack::stokvec polynomial{};
+                for (Index p = Nscoeffs - 1; p >= 0; --p)
+                  for (Index s = 0; s < stokes_dimension; ++s)
+                    polynomial[s] = std::fma(polynomial[s], source_tau, source_poly_coeffs[layer, p][s]);
+                for (Index s = 0; s < stokes_dimension; ++s) {
+                  const bool active = alpha == cosine_mode ? s < 2 : s >= 2;
+                  if (active) source[s] += polynomial[s];
+                }
+              }
+              const Numeric distance = downward ? tau - point : point - tau;
+              segment_integral += integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu * source;
             }
-            const Numeric distance  = downward ? tau - point : point - tau;
-            integral               += integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu * source;
+            integral += halfwidth * segment_integral;
           }
-          mode += halfwidth * integral;
+          mode += integral;
         }
         modes[static_cast<std::size_t>(alpha * NFourier + m)] = mode;
       }
