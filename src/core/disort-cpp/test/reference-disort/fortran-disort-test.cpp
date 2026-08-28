@@ -249,12 +249,72 @@ void test_problem_2() {
                     matrix({0, 0, 0, 3.64010e-1, 8.26993e-2, 4.92370e-2,
                             1.05950e-2, 7.69337e-3, 3.79276e-3, 0, 0, 0}));
 }
+
+void run_henyey_greenstein_case(const std::string_view name,
+                                const Numeric depth,
+                                const Vector& direct,
+                                const Vector& diffuse_down,
+                                const Vector& up,
+                                const Matrix& radiance) {
+  constexpr Index nquad = 16;
+  Matrix legendre(1, 33, 0.0);
+  for (Index i = 0; i < 33; ++i) legendre[0, i] = std::pow(0.75, i);
+
+  const disort::main_data dis(nquad,
+                              nquad,
+                              nquad,
+                              AscendingGrid{depth},
+                              Vector{1.0},
+                              legendre,
+                              Matrix(nquad, nquad / 2, 0.0),
+                              Matrix(nquad, nquad / 2, 0.0),
+                              Vector{legendre[0, nquad]},
+                              Matrix(1, 0),
+                              {},
+                              1.0,
+                              Constant::pi,
+                              0.0);
+  const Vector user_mu{-1.0, -0.5, -0.1, 0.1, 0.5, 1.0};
+  disort::user_u_data user;
+  disort::tms_data    tms;
+  disort::flux_data   flux;
+  Vector              ims;
+  for (Index level = 0; level < 2; ++level) {
+    const Numeric tau = level == 0 ? 0.0 : depth;
+    dis.u_user_corr(user, ims, tms, tau, 0.0, user_mu);
+    for (Index angle = 0; angle < 6; ++angle)
+      expect_reference(std::format("{} radiance [{}, {}]", name, level, angle),
+                       user.intensities[angle],
+                       radiance[level, angle]);
+    const auto [down, beam] = dis.flux_down(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", name, level), beam, direct[level]);
+    expect_reference(std::format("{} diffuse-down flux [{}]", name, level), down, diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", name, level), dis.flux_up(flux, tau), up[level]);
+  }
+}
+
+void test_problem_3() {
+  const auto matrix = [](std::initializer_list<Numeric> values) {
+    Vector data(values.size());
+    std::ranges::copy(values, data.begin());
+    return Matrix{std::move(data).reshape(2, 6)};
+  };
+  run_henyey_greenstein_case("3a", 1.0,
+                             {3.14159, 1.15573}, {0.0, 1.73849}, {0.247374, 0.0},
+                             matrix({0, 0, 0, 0.151159, 0.101103, 0.0395460,
+                                     3.05855, 0.266648, 0.213750, 0, 0, 0}));
+  run_henyey_greenstein_case("3b", 8.0,
+                             {3.14159, 0.00105389}, {0.0, 1.54958}, {1.59096, 0.0},
+                             matrix({0, 0, 0, 0.379740, 0.519598, 0.493302,
+                                     0.669581, 0.422350, 0.236362, 0, 0, 0}));
+}
 }  // namespace
 
 int main() try {
   test_1a_user_angles();
   test_problem_1();
   test_problem_2();
+  test_problem_3();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

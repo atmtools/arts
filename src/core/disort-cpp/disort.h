@@ -264,6 +264,11 @@ class main_data {
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
+  /** TMS correction at arbitrary signed polar-angle cosines. */
+  void TMS(tms_data& data,
+           Numeric tau,
+           Numeric phi,
+           const ConstVectorView& mu) const;
   void gridded_TMS(Tensor3View tms, const Vector& phi) const;
 
   /** Get the IMS correction factor
@@ -277,6 +282,14 @@ class main_data {
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;
+  /** IMS correction at arbitrary signed polar-angle cosines.
+   *
+   * The result has the same size as mu and is zero in upward directions.
+   */
+  void IMS(Vector& ims,
+           Numeric tau,
+           Numeric phi,
+           const ConstVectorView& mu) const;
   void gridded_IMS(Tensor3View ims, const Vector& phi) const;
 
   /** Spectral radiance at a given tau and phi
@@ -301,6 +314,14 @@ class main_data {
               Numeric tau,
               Numeric phi,
               const ConstVectorView& user_mu) const;
+
+  /** Corrected radiance at arbitrary nonzero polar-angle cosines. */
+  void u_user_corr(user_u_data& data,
+                   Vector& ims,
+                   tms_data& tms,
+                   Numeric tau,
+                   Numeric phi,
+                   const ConstVectorView& user_mu) const;
 
   /** Spectral radiance at a given tau, only for the 0th Fourier mode
     *

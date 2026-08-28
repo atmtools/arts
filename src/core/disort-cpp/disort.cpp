@@ -1416,9 +1416,20 @@ Numeric ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
 }  // namespace
 
 void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const {
+  TMS(data, tau, phi, mu_arr);
+}
+
+void main_data::TMS(tms_data& data,
+                    const Numeric tau,
+                    const Numeric phi,
+                    const ConstVectorView& mu) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  for (const Numeric x : mu)
+    ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0,
+                       "Polar-angle cosine ({}) must be nonzero and in [-1, 1]",
+                       x);
 
   const Index l = tau_index(tau);
 
@@ -1429,72 +1440,59 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const 
   // The upward beam factor is regular and remains in mathscr_B.  The
   // downward factor has a removable singularity at mu == mu0 and is folded
   // into the exponential kernel below.
-  calculate_nu(data.nu, mu_arr, phi, -mu0, phi0);
+  calculate_nu(data.nu, mu, phi, -mu0, phi0);
 
-  data.mathscr_B.resize(NLayers, NQuad);
+  const Index nmu = mu.size();
+  data.mathscr_B.resize(NLayers, nmu);
   for (Index j = 0; j < NLayers; j++) {
-    for (Index i = 0; i < NQuad; i++) {
+    for (Index i = 0; i < nmu; i++) {
       const Numeric p_true      = Legendre::legendre_sum(weighted_Leg_coeffs_all[j], data.nu[i]);
       const Numeric p_trun      = Legendre::legendre_sum(weighted_scaled_Leg_coeffs[j], data.nu[i]);
-      const Numeric beam_factor = i < N ? mu0 / (mu0 + mu_arr[i]) : 1.0;
+      const Numeric beam_factor = mu[i] > 0.0 ? mu0 / (mu0 + mu[i]) : 1.0;
       data.mathscr_B[j, i] =
           (scaled_omega_arr[j] * I0) / (4 * Constant::pi) * beam_factor * (p_true / (1.0 - f_arr[j]) - p_trun);
     }
   }
 
-  data.TMS.resize(NQuad);
+  data.TMS.resize(nmu);
+  data.TMS = 0.0;
   const Numeric exptau = std::exp(-scaled_tau / mu0);
-  for (Index i = 0; i < N; i++) {
-    const Numeric mu = mu_arr[i];
-
-    const Numeric up_at_bottom = std::exp((scaled_tau - scaled_tau_arr_l) / mu - scaled_tau_arr_l / mu0);
-    data.TMS[i]                = data.mathscr_B[l, i] * (exptau - up_at_bottom);
-
-    const Numeric down_at_top = std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu - scaled_tau_arr_lm1 / mu0);
-    data.TMS[i + N] =
-        data.mathscr_B[l, i + N] * downward_tms_kernel(mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, down_at_top);
-  }
-
-  if (tau_arr.size() > 1) {
-    data.contribution_from_other_layers_pos.resize(N, NLayers);
-    data.contribution_from_other_layers_pos = 0;
-    data.contribution_from_other_layers_neg.resize(N, NLayers);
-    data.contribution_from_other_layers_neg = 0;
-    for (Index i = 0; i < NLayers; i++) {
-      if (l > i) {
-        // Downward contribution from a complete layer above the point.
-        for (Index j = 0; j < N; j++) {
-          const Numeric mu         = mu_arr[j];
-          const Numeric tau_top    = scaled_tau_arr_with_0[i];
-          const Numeric tau_bottom = scaled_tau_arr_with_0[i + 1];
-          const Numeric at_bottom  = std::exp((tau_bottom - scaled_tau) / mu - tau_bottom / mu0);
-          const Numeric at_top     = std::exp((tau_top - scaled_tau) / mu - tau_top / mu0);
-          data.contribution_from_other_layers_neg[j, i] =
-              data.mathscr_B[i, j + N] * downward_tms_kernel(mu, mu0, tau_bottom - tau_top, at_bottom, at_top);
-        }
-      } else if (l < i) {
-        // Upward contribution from a complete layer below the point.
-        for (Index j = 0; j < N; j++) {
-          const Numeric mu                              = mu_arr[j];
-          const Numeric tau_top                         = scaled_tau_arr_with_0[i];
-          const Numeric tau_bottom                      = scaled_tau_arr_with_0[i + 1];
-          const Numeric at_top                          = std::exp((scaled_tau - tau_top) / mu - tau_top / mu0);
-          const Numeric at_bottom                       = std::exp((scaled_tau - tau_bottom) / mu - tau_bottom / mu0);
-          data.contribution_from_other_layers_pos[j, i] = data.mathscr_B[i, j] * (at_top - at_bottom);
-        }
-      } else {
-        continue;
+  for (Index j = 0; j < nmu; ++j) {
+    const Numeric abs_mu = std::abs(mu[j]);
+    if (mu[j] > 0.0) {
+      const Numeric at_bottom = std::exp((scaled_tau - scaled_tau_arr_l) / abs_mu - scaled_tau_arr_l / mu0);
+      data.TMS[j] = data.mathscr_B[l, j] * (exptau - at_bottom);
+      for (Index i = l + 1; i < NLayers; ++i) {
+        const Numeric top    = scaled_tau_arr_with_0[i];
+        const Numeric bottom = scaled_tau_arr_with_0[i + 1];
+        const Numeric at_top = std::exp((scaled_tau - top) / abs_mu - top / mu0);
+        const Numeric at_bottom_i = std::exp((scaled_tau - bottom) / abs_mu - bottom / mu0);
+        data.TMS[j] += data.mathscr_B[i, j] * (at_top - at_bottom_i);
       }
-    }
-
-    for (Index i = 0; i < N; i++) {
-      data.TMS[i + 0] += sum(data.contribution_from_other_layers_pos[i]);
-      data.TMS[i + N] += sum(data.contribution_from_other_layers_neg[i]);
+    } else {
+      const Numeric at_top = std::exp((scaled_tau_arr_lm1 - scaled_tau) / abs_mu - scaled_tau_arr_lm1 / mu0);
+      data.TMS[j] = data.mathscr_B[l, j] *
+                    downward_tms_kernel(abs_mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, at_top);
+      for (Index i = 0; i < l; ++i) {
+        const Numeric top       = scaled_tau_arr_with_0[i];
+        const Numeric bottom    = scaled_tau_arr_with_0[i + 1];
+        const Numeric at_bottom = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0);
+        const Numeric at_top_i  = std::exp((top - scaled_tau) / abs_mu - top / mu0);
+        data.TMS[j] += data.mathscr_B[i, j] *
+                       downward_tms_kernel(abs_mu, mu0, bottom - top, at_bottom, at_top_i);
+      }
     }
   }
 }
 
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
+  IMS(ims, tau, phi, mu_arr[rb(N)]);
+}
+
+void main_data::IMS(Vector& ims,
+                    const Numeric tau,
+                    const Numeric phi,
+                    const ConstVectorView& mu) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
@@ -1503,13 +1501,27 @@ void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
   const Numeric tau_top   = l == 0 ? 0.0 : tau_arr[l - 1];
   const Numeric thickness = tau_arr[l] - tau_top;
 
-  ims.resize(N);
-  for (Index i = 0; i < N; i++) {
-    const Numeric mu = mu_arr[i];
-    const Numeric nu = calculate_nu(mu_arr[i + N], phi, -mu0, phi0);
+  ims.resize(mu.size());
+  ims = 0.0;
+  const Index nmu = mu.size();
+  for (Index i = 0; i < nmu; i++) {
+    ARTS_USER_ERROR_IF(mu[i] == 0.0 || std::abs(mu[i]) > 1.0,
+                       "Polar-angle cosine ({}) must be nonzero and in [-1, 1]",
+                       mu[i]);
+    if (mu[i] > 0.0) continue;
+    const Numeric abs_mu = -mu[i];
+    const Numeric nu     = calculate_nu(mu[i], phi, -mu0, phi0);
+
+    // DISORT confines IMS to the 10-degree aureole surrounding the
+    // incident beam.  Outside it, TMS alone is the intended correction.
+    const Numeric beam_theta = std::acos(-mu0);
+    const Numeric ray_theta  = std::acos(mu[i]);
+    if (std::abs(beam_theta - ray_theta) > Constant::pi / 18.0) continue;
 
     const auto correction_for_boundary = [&](const Index k) {
-      return IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) * ims_chi(tau, mu, scaled_mu0[k]);
+      // SECSCA is subtracted in the original INTCOR routine.
+      return -IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) *
+             ims_chi(tau, abs_mu, scaled_mu0[k]);
     };
 
     if (NLayers == 1) {
@@ -1521,6 +1533,24 @@ void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
       ims[i]               = std::lerp(lower, upper, weight);
     }
   }
+}
+
+void main_data::u_user_corr(user_u_data& data,
+                            Vector& ims,
+                            tms_data& tms,
+                            const Numeric tau,
+                            const Numeric phi,
+                            const ConstVectorView& user_mu) const {
+  ARTS_TIME_REPORT
+
+  u_user(data, tau, phi, user_mu);
+  if (!has_beam_source) return;
+
+  TMS(tms, tau, phi, user_mu);
+  IMS(ims, tau, phi, user_mu);
+  const Index nmu = user_mu.size();
+  for (Index i = 0; i < nmu; ++i)
+    data.intensities[i] += I0_orig * (tms.TMS[i] + ims[i]);
 }
 
 void main_data::u_corr(u_data& u_data, Vector& ims, tms_data& tms_data, const Numeric tau, const Numeric phi) const {

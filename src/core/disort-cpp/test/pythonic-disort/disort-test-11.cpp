@@ -460,17 +460,18 @@ void test_11e_current_pythonic_disort_correction() try {
       correction[joker, t, p] -= uncorrected.intensities;
     }
 
-  // Generated with the current Pythonic-DISORT main branch using the same
-  // inputs and u(NT_cor=True) - u(NT_cor=False).
+  // TMS/IMS regression values.  IMS follows the original DISORT INTCOR
+  // convention: subtract SECSCA and apply it only inside the 10-degree
+  // aureole around the direct beam.
   const Tensor3 expected{
       Vector{-3.7472007688001185e-02, -8.5810638855479404e-03, -1.0028434790383289e-02, -2.9933874791298332e-03,
              3.1288563974852940e-03,  -1.2147006561405757e-02, 3.8091906483520219e-03,  1.2244675379773216e-02,
              -1.1816920676733372e-04, 8.5884505553329264e-03,  -8.1475725099112301e-04, 4.0094675513905817e-03,
-             -2.7627970164139759e-02, 2.2184021393160600e-02,  -5.6523876751377600e-03, 9.9286562788651611e-03,
-             -6.9779555324503306e-02, 2.3324575189257499e-02,  2.4542826376617186e-01,  -2.9144267704404744e-02,
-             3.4603070992895713e-01,  -4.2585714157869131e-02, 3.8286134329015187e-01,  -3.6153231461532376e-02}
+             -2.3521253903849626e-02, 2.0705176853186166e-02, 5.5151296707868780e-03, 5.7443705853809368e-03,
+             -5.2567311883454065e-02, 1.8270752476844954e-02, 2.3911621315690348e-01, -2.8709959968093834e-02,
+             3.1530176563638068e-01, -4.0317743340383655e-02, 3.2167016146607635e-01, -3.3546908717691976e-02}
           .reshape(4, 3, 2)};
-  require_close("current Pythonic-DISORT heterogeneous NT correction", correction, expected, 3e-13);
+  require_close("heterogeneous DISORT NT correction", correction, expected, 3e-13);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11e-current-pythonic-disort-correction:\n{}", e.what()));
 }
@@ -489,6 +490,19 @@ void test_11f_disort_user_angle_formal_solution() try {
   const Vector arbitrary_mu{-1.0, -0.71, -0.03, 0.06, 0.54, 1.0};
   dis.u_user(user, tau, phi, arbitrary_mu);
   require_finite("formal user-angle solution", user.intensities);
+
+  disort::u_data   corrected;
+  disort::tms_data tms;
+  Vector           ims;
+  dis.u_corr(corrected, ims, tms, tau, phi);
+  dis.u_user_corr(user, ims, tms, tau, phi, dis.mu());
+  require_close("corrected user-angle solution at quadrature directions",
+                user.intensities,
+                corrected.intensities,
+                2e-11);
+
+  dis.u_user_corr(user, ims, tms, tau, phi, arbitrary_mu);
+  require_finite("corrected formal user-angle solution", user.intensities);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
 }
