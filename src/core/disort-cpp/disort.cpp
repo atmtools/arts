@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <numeric>
 #include <ranges>
 #include <vector>
@@ -1099,6 +1100,216 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   }
 
   data.intensities *= I0_orig;
+}
+
+namespace {
+void user_angle_barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
+  const Index n = nodes.size();
+  weights.resize(n);
+  Vector log_weights(n);
+  Numeric largest = -std::numeric_limits<Numeric>::infinity();
+  for (Index i = 0; i < n; ++i) {
+    Numeric sign = 1.0;
+    log_weights[i] = 0.0;
+    for (Index j = 0; j < n; ++j) {
+      if (i == j) continue;
+      const Numeric d = nodes[i] - nodes[j];
+      log_weights[i] -= std::log(std::abs(d));
+      if (d < 0.0) sign = -sign;
+    }
+    weights[i] = sign;
+    largest    = std::max(largest, log_weights[i]);
+  }
+  for (Index i = 0; i < n; ++i) weights[i] *= std::exp(log_weights[i] - largest);
+}
+
+Numeric user_angle_barycentric(Vector& weights,
+                               Vector& work,
+                               const ConstVectorView& nodes,
+                               const ConstVectorView& values,
+                               const Numeric x) {
+  if (weights.size() != nodes.size()) user_angle_barycentric_weights(weights, nodes);
+  work.resize(nodes.size());
+  Numeric numerator = 0.0, denominator = 0.0;
+  for (Size i = 0; i < nodes.size(); ++i) {
+    const Numeric d = x - nodes[i];
+    if (d == 0.0) return values[i];
+    work[i] = weights[i] / d;
+    numerator += work[i] * values[i];
+    denominator += work[i];
+  }
+  return numerator / denominator;
+}
+
+Numeric user_angle_exponential_integral(const Numeric k,
+                                        const Numeric reference,
+                                        const Numeric lower,
+                                        const Numeric upper,
+                                        const Numeric observation,
+                                        const Numeric abs_mu,
+                                        const bool downward) {
+  if (upper <= lower) return 0.0;
+  const auto exponent = [&](const Numeric optical_depth) {
+    const Numeric distance = downward ? observation - optical_depth : optical_depth - observation;
+    return k * (optical_depth - reference) - distance / abs_mu;
+  };
+  const Numeric e0 = exponent(lower);
+  const Numeric e1 = exponent(upper);
+  const Numeric z  = e1 - e0;
+  const Numeric average = z == 0.0   ? std::exp(e0)
+                          : z > 0.0  ? std::exp(e1) * (-std::expm1(-z) / z)
+                                     : std::exp(e0) * (std::expm1(z) / z);
+  return (upper - lower) / abs_mu * average;
+}
+}  // namespace
+
+void main_data::u_user(user_u_data& data,
+                       const Numeric tau,
+                       const Numeric phi,
+                       const ConstVectorView& user_mu) const {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(tau < 0.0 || tau > tau_arr.back(),
+                     "Optical depth must be in [0, {}], got {}",
+                     tau_arr.back(),
+                     tau);
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(user_mu,
+                   [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }),
+      "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
+      user_mu);
+
+  const Index   output_layer = tau_index(tau);
+  const Numeric scaled_output = scaled_tau_arr_with_0[output_layer + 1] - (tau_arr[output_layer] - tau) * scale_tau[output_layer];
+
+  const auto scattering_source = [&](const Index m,
+                                     const Index layer,
+                                     const Numeric mu,
+                                     const auto& ordinate_values) {
+    Numeric result = 0.0;
+    for (Index degree = m; degree < NLeg; ++degree) {
+      Numeric moment = 0.0;
+      for (Index j = 0; j < NQuad; ++j) {
+        moment += W[j % N] * Legendre::assoc_legendre(degree, m, mu_arr[j]) * ordinate_values[j];
+      }
+      result += 0.5 * scaled_omega_arr[layer] * weighted_scaled_Leg_coeffs[layer, degree] *
+                poch(degree + m + 1, -2 * m) * Legendre::assoc_legendre(degree, m, mu) * moment;
+    }
+    return result;
+  };
+
+  const auto external_boundary = [&](const Index m, const Numeric mu) {
+    const auto nodes  = mu > 0.0 ? mu_arr[rf(N)] : mu_arr[rb(N)];
+    const auto values = mu > 0.0 ? boundary_up[m] : boundary_down[m];
+    if (data.barycentric_weights.size() != static_cast<Size>(N)) {
+      user_angle_barycentric_weights(data.barycentric_weights, mu_arr[rf(N)]);
+    }
+    return user_angle_barycentric(
+        data.barycentric_weights, data.interpolation_work, nodes, values, mu);
+  };
+
+  static const auto source_quadrature = [] {
+    std::pair<Vector, Vector> out{Vector(32), Vector(32)};
+    Legendre::GaussLegendre(out.first, out.second);
+    return out;
+  }();
+
+  data.source.resize(NQuad, Nscoeffs);
+  data.particular.resize(NQuad);
+  data.intensities.resize(user_mu.size());
+  data.intensities = 0.0;
+
+  for (Size iu = 0; iu < user_mu.size(); ++iu) {
+    const Numeric mu       = user_mu[iu];
+    const Numeric abs_mu   = std::abs(mu);
+    const bool    downward = mu < 0.0;
+
+    for (Index m = 0; m < NFourier; ++m) {
+      Numeric mode = external_boundary(m, mu);
+      if (downward) {
+        mode *= std::exp(-scaled_output / abs_mu);
+      } else {
+        const Index bottom_layer = NLayers - 1;
+        Numeric     bottom       = mode;
+        if (m < NBDRF) {
+          const Vector outgoing{mu};
+          Matrix       reflectivity(1, N);
+          brdf_fourier_modes[m](reflectivity, outgoing, mu_arr[rb(N)]);
+          for (Index j = 0; j < N; ++j) {
+            bottom += (1 + (m == 0)) * reflectivity[0, j] * mu_arr[j] * W[j] * um[bottom_layer, m, N + j];
+          }
+          if (has_beam_source) {
+            Matrix direct_reflectivity(1, 1);
+            const Vector beam_direction{-mu0};
+            brdf_fourier_modes[m](direct_reflectivity, outgoing, beam_direction);
+            bottom += direct_reflectivity[0, 0] * mu0 * I0 / Constant::pi *
+                      std::exp(-scaled_tau_arr_with_0.back() / mu0);
+          }
+        }
+        mode = bottom * std::exp(-(scaled_tau_arr_with_0.back() - scaled_output) / abs_mu);
+      }
+
+      const Index first_layer = downward ? 0 : output_layer;
+      const Index last_layer  = downward ? output_layer : NLayers - 1;
+      for (Index layer = first_layer; layer <= last_layer; ++layer) {
+        const Numeric layer_top    = scaled_tau_arr_with_0[layer];
+        const Numeric layer_bottom = scaled_tau_arr_with_0[layer + 1];
+        const Numeric lower        = downward ? layer_top : std::max(layer_top, scaled_output);
+        const Numeric upper        = downward ? std::min(layer_bottom, scaled_output) : layer_bottom;
+        if (upper <= lower) continue;
+
+        for (Index q = 0; q < NQuad; ++q) {
+          const Numeric source = scattering_source(m, layer, mu, GC_collect[m, layer, joker, q]);
+          const Numeric reference = q < N ? layer_top : layer_bottom;
+          mode += source * user_angle_exponential_integral(
+                               K_collect[m, layer, q], reference, lower, upper, scaled_output, abs_mu, downward);
+        }
+
+        if (has_beam_source) {
+          Numeric source = scattering_source(m, layer, mu, B_collect[m, layer]);
+          for (Index degree = m; degree < NLeg; ++degree) {
+            source += scaled_omega_arr[layer] * I0 * (2 - (m == 0)) / (4 * Constant::pi) *
+                      weighted_scaled_Leg_coeffs[layer, degree] * poch(degree + m + 1, -2 * m) *
+                      Legendre::assoc_legendre(degree, m, mu) *
+                      Legendre::assoc_legendre(degree, m, -mu0);
+          }
+          mode += source * user_angle_exponential_integral(
+                               -1.0 / mu0, 0.0, lower, upper, scaled_output, abs_mu, downward);
+        }
+
+        if (has_source_poly && m == 0) {
+          const Numeric midpoint  = 0.5 * (lower + upper);
+          const Numeric halfwidth = 0.5 * (upper - lower);
+          Numeric       integral  = 0.0;
+          for (Index k = 0; k < static_cast<Index>(source_quadrature.first.size()); ++k) {
+            const Numeric scaled_point = midpoint + halfwidth * source_quadrature.first[k];
+            const Numeric physical_top = layer == 0 ? 0.0 : tau_arr[layer - 1];
+            const Numeric physical_point = physical_top + (scaled_point - layer_top) / scale_tau[layer];
+            mathscr_v(data.particular,
+                      data.source,
+                      physical_point,
+                      omega_arr[layer],
+                      source_poly_coeffs[layer],
+                      G_collect[0, layer],
+                      K_collect[0, layer],
+                      inv_mu_arr);
+            Numeric polynomial = 0.0;
+            for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient) {
+              polynomial = std::fma(polynomial, physical_point, source_poly_coeffs[layer, coefficient]);
+            }
+            const Numeric source = scattering_source(0, layer, mu, data.particular) +
+                                   (1.0 - omega_arr[layer]) / scale_tau[layer] * polynomial;
+            const Numeric distance = downward ? scaled_output - scaled_point : scaled_point - scaled_output;
+            integral += source_quadrature.second[k] * source * std::exp(-distance / abs_mu) / abs_mu;
+          }
+          mode += halfwidth * integral;
+        }
+      }
+
+      data.intensities[iu] += mode * std::cos(static_cast<Numeric>(m) * (phi0 - phi));
+    }
+    data.intensities[iu] *= I0_orig;
+  }
 }
 
 void main_data::u0(u0_data& data, const Numeric tau) const {

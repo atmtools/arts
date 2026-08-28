@@ -77,6 +77,15 @@ struct u_data {
   Vector         intensities;
 };
 
+/** Reusable scratch storage for DISORT user-angle radiances. */
+struct user_u_data {
+  mathscr_v_data source;
+  Vector         barycentric_weights;
+  Vector         interpolation_work;
+  Vector         particular;
+  Vector         intensities;
+};
+
 struct u0_data {
   mathscr_v_data src;
   Vector         exponent;
@@ -281,6 +290,17 @@ class main_data {
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
   void u(u_data& data, const Numeric tau, const Numeric phi) const;
+
+  /** Radiance at arbitrary nonzero polar-angle cosines.
+   *
+   * Reconstructs the angular source from the discrete-ordinate solution and
+   * formally integrates it along each ray, following DISORT's TERPEV,
+   * TERPSO, and USRINT path.
+   */
+  void u_user(user_u_data& data,
+              Numeric tau,
+              Numeric phi,
+              const ConstVectorView& user_mu) const;
 
   /** Spectral radiance at a given tau, only for the 0th Fourier mode
     *

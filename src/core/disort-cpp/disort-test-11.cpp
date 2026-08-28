@@ -477,6 +477,24 @@ void test_11e_current_pythonic_disort_correction() try {
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11e-current-pythonic-disort-correction:\n{}", e.what()));
 }
+
+void test_11f_disort_user_angle_formal_solution() try {
+  const auto    dis = identical_atmosphere(AscendingGrid{0.4, 1.2, 2.0});
+  const Numeric tau = 0.83;
+  const Numeric phi = 1.37;
+
+  disort::u_data      ordinate;
+  disort::user_u_data user;
+  dis.u(ordinate, tau, phi);
+  dis.u_user(user, tau, phi, dis.mu());
+  require_close("formal user-angle solution at quadrature directions", user.intensities, ordinate.intensities, 2e-11);
+
+  const Vector arbitrary_mu{-1.0, -0.71, -0.03, 0.06, 0.54, 1.0};
+  dis.u_user(user, tau, phi, arbitrary_mu);
+  require_finite("formal user-angle solution", user.intensities);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
+}
 #endif
 
 #ifndef DISORT_TEST_NO_MAIN
@@ -488,6 +506,7 @@ int main() try {
   test_11c_heterogeneous_delta_scaling();
   test_11d_removable_correction_singularities();
   test_11e_current_pythonic_disort_correction();
+  test_11f_disort_user_angle_formal_solution();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;

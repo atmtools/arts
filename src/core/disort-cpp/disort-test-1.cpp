@@ -144,6 +144,42 @@ void test_1a() {
   };
 
   compare("test_1a", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
+
+#ifndef DISORT_TEST_VDISORT_ADAPTER
+  // DISORT 4.0.99 test 1a user-angle values (DISOTESTAUX.f).  These
+  // exercise TERPEV/TERPSO/USRINT rather than the quadrature directions.
+  const Vector user_mu{-1.0, -0.5, -0.1, 0.1, 0.5, 1.0};
+  const Matrix expected_user{Vector{0.0,
+                                    0.0,
+                                    0.0,
+                                    1.17771e-1,
+                                    2.64170e-2,
+                                    1.34041e-2,
+                                    1.33826e-2,
+                                    2.63324e-2,
+                                    1.15898e-1,
+                                    0.0,
+                                    0.0,
+                                    0.0}
+                                 .reshape(2, 6)};
+  disort::user_u_data user_data;
+  Matrix              actual_user(2, 6);
+  dis.u_user(user_data, 0.0, 0.0, user_mu);
+  actual_user[0] = user_data.intensities;
+  dis.u_user(user_data, tau_arr.back(), 0.0, user_mu);
+  actual_user[1] = user_data.intensities;
+  auto actual_it = actual_user.elem_begin();
+  auto expected_it = expected_user.elem_begin();
+  for (Size i = 0; i < actual_user.size(); ++i, ++actual_it, ++expected_it) {
+    const Numeric expected = *expected_it;
+    const Numeric actual   = *actual_it;
+    ARTS_USER_ERROR_IF(std::abs(actual - expected) > 7e-6 * std::max(1.0, std::abs(expected)),
+                       "DISORT 4.0.99 test 1a user-angle mismatch at {}: {} vs {}",
+                       i,
+                       actual,
+                       expected);
+  }
+#endif
 }
 
 void test_1b() {

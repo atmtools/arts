@@ -292,6 +292,22 @@ The relevant references are:
        "phi"_a,
        "Compute the intensity")
       .def(
+          "u_user",
+          [](disort::main_data& dis, const Vector& mu, const AscendingGrid& tau, const Vector& phi) {
+            Tensor3             out(mu.size(), tau.size(), phi.size());
+            disort::user_u_data data;
+            for (Size t = 0; t < tau.size(); ++t)
+              for (Size p = 0; p < phi.size(); ++p) {
+                dis.u_user(data, tau[t], phi[p], mu);
+                out[joker, t, p] = data.intensities;
+              }
+            return out;
+          },
+          "mu"_a,
+          "tau"_a,
+          "phi"_a,
+          "Compute intensity at user polar-angle cosines using DISORT source reconstruction and formal ray integration")
+      .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {
             Matrix out(3, tau.size());
