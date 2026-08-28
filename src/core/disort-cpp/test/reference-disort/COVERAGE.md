@@ -21,7 +21,7 @@ does not count.
 | 12 | a–b | ported physical equivalence | The complete one-layer solution is compared with the equivalent three-layer solution for corrected radiances, fluxes, and `DFDT`; the original absorption cutoff is intentionally not implemented. |
 | 13 | a–d | ported physical output | The regular solves reproduce both shortcut albedo/transmission pairs. The `IBCND=1` shortcut itself is unavailable, but is not needed to test its physical results. |
 | 14 | a–d | ported | Hapke, Cox-Munk, RPV, and Ross-Li raw BRDFs, their Fourier reconstruction, all user-angle radiances, fluxes, and `DFDT` are checked. CPP represents the exactly transparent layer by `tau=1e-12`, `omega=1e-8` to avoid a degenerate eigensystem. |
-| 15 | a–d | pending | Multilayer BRDF cases are portable through CPP BRDF callbacks. |
+| 15 | a–d | ported | The Rayleigh/aerosol atmosphere uses all 600 Kokhanovsky moments for arbitrary-angle IMS/TMS corrections. Hapke, shadowed Cox-Munk, RPV, and Ross-Li cases are checked against every original radiance, flux, and `DFDT` value. |
 | 16 | a | blocked by solver feature | CPP has no pseudo-spherical direct-beam correction. |
 | 17 | a–b | blocked by solver feature | CPP has delta-M scaling, but not DISORT 4.0.99 delta-M-plus. |
 

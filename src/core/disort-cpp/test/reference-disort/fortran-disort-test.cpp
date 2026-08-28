@@ -681,6 +681,12 @@ disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type
   std::unreachable();
 }
 
+disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) {
+  if (type == disort_test::reference::brdf_type::cox_munk)
+    return disort::brdf::CoxMunk{.shadowing = true};
+  return problem_14_raw(type);
+}
+
 void test_problem_14() {
   using namespace disort_test::reference;
   constexpr Numeric transparent_depth = 1e-12;
@@ -733,6 +739,64 @@ void test_problem_14() {
   }
 }
 
+void test_problem_15() {
+  using namespace disort_test::reference;
+
+  Matrix moments(2, kokhanovsky_aerosol_moments.size(), 0.0);
+  moments[0, 0] = 1.0;
+  moments[0, 2] = 0.1;
+  moments[1]    = kokhanovsky_aerosol_moments;
+
+  for (const auto& test : problem_15) {
+    const auto raw = problem_15_raw(test.type);
+    const disort::main_data dis(problem_15_streams,
+                                problem_15_streams,
+                                problem_15_streams,
+                                AscendingGrid{problem_15_tau},
+                                Vector{1.0, 1.0},
+                                moments,
+                                Matrix(problem_15_streams, problem_15_streams / 2, 0.0),
+                                Matrix(problem_15_streams, problem_15_streams / 2, 0.0),
+                                Vector{0.0, kokhanovsky_aerosol_moments[problem_15_streams]},
+                                Matrix(2, 0),
+                                disort::brdf::fourier_modes(raw, problem_15_streams),
+                                problem_15_beam_mu,
+                                problem_15_beam,
+                                0.0);
+
+    disort::user_u_data user;
+    disort::tms_data    tms;
+    Vector              ims;
+    for (Index azimuth = 0; azimuth < std::ssize(problem_15_azimuth); ++azimuth) {
+      for (Index level = 0; level < std::ssize(problem_15_output_tau); ++level) {
+        dis.u_user_corr(user,
+                        ims,
+                        tms,
+                        problem_15_output_tau[level],
+                        problem_15_azimuth[azimuth],
+                        problem_15_user_mu);
+        for (Index angle = 0; angle < std::ssize(problem_15_user_mu); ++angle)
+          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+                           user.intensities[angle],
+                           test.radiance[azimuth, level, angle]);
+      }
+    }
+
+    disort::flux_data flux;
+    for (Index level = 0; level < std::ssize(problem_15_output_tau); ++level) {
+      const auto values = dis.flux(flux, problem_15_output_tau[level]);
+      expect_reference(std::format("{} direct flux [{}]", test.name, level),
+                       values.down_direct,
+                       test.direct[level]);
+      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                       values.down_diffuse,
+                       test.diffuse_down[level]);
+      expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
+      expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
+    }
+  }
+}
+
 }  // namespace
 
 int main() try {
@@ -750,6 +814,7 @@ int main() try {
   test_problem_13();
   test_raw_brdfs_and_fourier_helper();
   test_problem_14();
+  test_problem_15();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';
