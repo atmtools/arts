@@ -771,8 +771,8 @@ void main_data::check_input_value() const {
 
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0, "tau_arr must be strictly positive, got {:B,}", tau_arr);
 
-  ARTS_USER_ERROR_IF(stdr::any_of(omega_arr, [](auto&& omega) { return omega >= 1 or omega < 0; }),
-                     "omega_arr must be [0, 1), but got {:B,}",
+  ARTS_USER_ERROR_IF(stdr::any_of(omega_arr, [](auto&& omega) { return omega > 1 or omega < 0; }),
+                     "omega_arr must be [0, 1], but got {:B,}",
                      omega_arr);
 
   ARTS_USER_ERROR_IF(
@@ -842,6 +842,15 @@ void main_data::source_function() {
 
 void main_data::update_all(const Numeric I0_) {
   ARTS_TIME_REPORT
+
+  // DISORT and cDISORT dither exact conservative scattering to avoid the
+  // zero eigenvalue of the m=0 system.  Their 100-epsilon dither is below
+  // the stable resolution of this reduced eigensolver; 1e-8 is the smallest
+  // tested scale that retains the original DISORT conservative references.
+  constexpr Numeric conservative_dither = 1.0e-8;
+  std::transform(omega_arr.begin(), omega_arr.end(), omega_arr.begin(), [=](const Numeric omega) {
+    return std::min(omega, 1.0 - conservative_dither);
+  });
 
   check_input_value();
 

@@ -149,7 +149,7 @@ void test_1a() {
 
 void test_1b() {
   const AscendingGrid tau_arr{0.03125};
-  // Reduced from 1 because we have not implemented that special case
+  // This reference dataset was generated at this explicitly near-conservative value.
   const Vector omega_arr{1 - 1e-6};
   const Index  NQuad = 16;
   Matrix       Leg_coeffs_all(1, 17, 0);

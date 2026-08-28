@@ -52,7 +52,7 @@ static const Vector dtau{
     1.45281750e-07, 1.27701031e-07, 1.07430593e-07};
 static const Index NLayers = dtau.size();
 
-const Vector omega(NLayers, 1.0 - 1e-6);  // not 1.0
+const Vector omega(NLayers, 1.0 - 1e-6);  // Fixed near-conservative value used by this comparison dataset
 
 void oldimpl(bool print_results = false) {
   disort_state  ds;

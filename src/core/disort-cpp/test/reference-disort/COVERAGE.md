@@ -7,8 +7,8 @@ does not count.
 
 | Problem | Cases | Current state | CPP limitation or required work |
 |---|---|---|---|
-| 1 | a–f | ported | All original user-angle radiances and fluxes pass. Exact conservative scattering in 1b/1e is evaluated as `1-epsilon`, matching the existing CPP limitation. |
-| 2 | a–d | ported | All original user-angle radiances and fluxes pass. Conservative cases use `1-epsilon`. |
+| 1 | a–f | ported | All original user-angle radiances and fluxes pass, including exact-unity input through the internal conservative dither. |
+| 2 | a–d | ported | All original user-angle radiances and fluxes pass, including exact-unity input. |
 | 3 | a–b | fluxes portable; user radiances blocked | Delta-scaled original radiances require IMS/TMS corrections evaluated at arbitrary user angles. |
 | 4 | a–c | fluxes portable; user radiances blocked | Higher phase moments trigger delta scaling; arbitrary-angle IMS/TMS correction is incomplete. |
 | 5 | a–b | fluxes portable; user radiances blocked | Delta-M intensity corrections at user angles remain incomplete. |
