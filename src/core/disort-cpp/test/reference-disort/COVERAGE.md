@@ -16,7 +16,7 @@ does not count.
 | 7 | a–e | smoke only | Directly portable after thermal/boundary mapping. |
 | 8 | a–c | ported | All two-layer fluxes and four user-angle radiances are checked; inputs and references are shared for scalar VDISORT reuse. |
 | 9 | a–c | ported | All multilayer fluxes and user-angle radiances are checked, including the fully general thermal/beam/Lambertian case. |
-| 10 | a–b | equivalence smoke only | CPP has formal user angles and quadrature output, so both paths are portable. |
+| 10 | a–b | ported | The formal `u_user()` solution at all four quadrature angles is compared with direct `u()` output; pointwise and bulk quadrature paths are also checked. |
 | 11 | a–b | Pythonic references only | Original single-layer/multilayer values remain to be added. |
 | 12 | a–b | smoke only | CPP lacks the absorption-optical-depth shortcut switch; physical output can be tested, shortcut execution cannot. |
 | 13 | a–d | smoke only | CPP lacks the `IBCND=1` albedo/transmission shortcut; regular-method outputs can be tested. |

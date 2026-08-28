@@ -510,8 +510,7 @@ Numeric band_blackbody_radiance(const Numeric temperature,
          (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 }
 
-Matrix problem_9_moments(const disort_test::reference::phase_type phase) {
-  constexpr Index nquad = 8;
+Matrix problem_9_moments(const disort_test::reference::phase_type phase, const Index nquad = 8) {
   Matrix moments(6, nquad + 1, 0.0);
   if (phase == disort_test::reference::phase_type::isotropic) {
     moments[joker, 0] = 1.0;
@@ -618,6 +617,67 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
 void test_problem_9() {
   for (const auto& test : disort_test::reference::problem_9) run_problem_9_case(test);
 }
+
+void test_problem_10() {
+  constexpr Index nquad = 4;
+  const auto& test = disort_test::reference::problem_9[2];
+  Matrix up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
+  down[0] = test.top_isotropic +
+            band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+  up[0] = (1.0 - test.surface_albedo) *
+          band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  std::vector<disort::BDRF> brdf{
+      disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }}};
+
+  const disort::main_data dis(nquad,
+                              nquad,
+                              nquad,
+                              AscendingGrid{1.0, 3.0, 6.0, 10.0, 15.0, 21.0},
+                              test.single_scattering_albedo,
+                              problem_9_moments(test.phase, nquad),
+                              up,
+                              down,
+                              Vector(6, 0.0),
+                              problem_9_source(test),
+                              std::move(brdf),
+                              test.beam_mu,
+                              test.beam,
+                              0.0);
+
+  disort::u_data quadrature;
+  disort::user_u_data formal;
+  // CPP stores +mu from grazing to vertical, followed by the corresponding
+  // -mu values; the original DISORT user list is monotonically increasing.
+  constexpr std::array<Index, nquad> user_to_quadrature{3, 2, 0, 1};
+  for (const Numeric phi : disort_test::reference::problem_10_azimuth)
+    for (const Numeric tau : disort_test::reference::problem_10_output_tau) {
+      dis.u(quadrature, tau, phi);
+      dis.u_user(formal, tau, phi, disort_test::reference::problem_10_user_mu);
+      for (Index angle = 0; angle < nquad; ++angle)
+        expect_reference(std::format("Problem 10 formal/quadrature [{}, {}, {}]", phi, tau, angle),
+                         formal.intensities[angle],
+                         quadrature.intensities[user_to_quadrature[angle]],
+                         2e-6);
+    }
+
+  Tensor3 bulk(disort_test::reference::problem_10_output_tau.size(),
+               disort_test::reference::problem_10_azimuth.size(),
+               nquad);
+  dis.ungridded_u(bulk,
+                  AscendingGrid{0.0, 2.1, 21.0},
+                  disort_test::reference::problem_10_azimuth);
+  for (Index level = 0; level < 3; ++level)
+    for (Index azimuth = 0; azimuth < 2; ++azimuth) {
+      dis.u(quadrature,
+            disort_test::reference::problem_10_output_tau[level],
+            disort_test::reference::problem_10_azimuth[azimuth]);
+      for (Index angle = 0; angle < nquad; ++angle)
+        expect_reference(std::format("Problem 10 pointwise/bulk [{}, {}, {}]", level, azimuth, angle),
+                         bulk[level, azimuth, angle],
+                         quadrature.intensities[angle],
+                         2e-12);
+    }
+}
 }  // namespace
 
 int main() try {
@@ -629,6 +689,7 @@ int main() try {
   test_problem_5();
   test_problem_8();
   test_problem_9();
+  test_problem_10();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';
