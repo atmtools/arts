@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
+#include <map>
 #include <numeric>
 #include <ranges>
 
@@ -837,6 +838,7 @@ void main_data::u_user(user_u_data&                  data,
     const Numeric                 abs_mu   = std::abs(mu);
     const bool                    downward = mu < 0.0;
     std::vector<rtepack::stokvec> modes(static_cast<std::size_t>(2 * NFourier));
+    std::map<Numeric, Matrix>     field_cache;
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
@@ -886,9 +888,14 @@ void main_data::u_user(user_u_data&                  data,
             const Numeric    halfwidth = 0.5 * (segment_upper - segment_lower);
             rtepack::stokvec segment_integral{};
             for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
-              const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
-              Matrix        field(2 * NFourier, NState);
-              combined_field(field, point);
+              const Numeric point          = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
+              auto          field_iterator = field_cache.find(point);
+              if (field_iterator == field_cache.end()) {
+                Matrix field(2 * NFourier, NState);
+                combined_field(field, point);
+                field_iterator = field_cache.emplace(point, std::move(field)).first;
+              }
+              const Matrix&    field = field_iterator->second;
               rtepack::stokvec source{};
               for (Index j = 0; j < NQuad; ++j) {
                 rtepack::stokvec incident{};
