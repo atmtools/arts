@@ -1,4 +1,5 @@
 #include <arts_constants.h>
+#include <disort-brdf.h>
 #include <disort.h>
 
 #include <cmath>
@@ -27,7 +28,7 @@ void run_isotropic_case(const disort_test::reference::single_layer_case& test) {
   Matrix down(nquad, nquad / 2, 0.0);
   if (not test.beam) down[0] = 1.0;
 
-  const Numeric mu0 = disort_test::reference::problem_1_beam_mu;
+  const Numeric           mu0 = disort_test::reference::problem_1_beam_mu;
   const disort::main_data dis(nquad,
                               nquad,
                               nquad,
@@ -43,7 +44,7 @@ void run_isotropic_case(const disort_test::reference::single_layer_case& test) {
                               test.beam ? Constant::pi / mu0 : 0.0,
                               0.0);
 
-  const Vector tau{0.0, test.depth};
+  const Vector        tau{0.0, test.depth};
   disort::user_u_data user;
   disort::flux_data   flux;
   for (Index level = 0; level < 2; ++level) {
@@ -68,9 +69,9 @@ void test_problem_1() {
 void run_rayleigh_case(const disort_test::reference::single_layer_case& test) {
   constexpr Index nquad = disort_test::reference::problem_2_streams;
   Matrix          legendre(1, 17, 0.0);
-  legendre[0, 0] = 1.0;
-  legendre[0, 2] = 0.1;
-  constexpr Numeric mu0 = disort_test::reference::problem_2_beam_mu;
+  legendre[0, 0]              = 1.0;
+  legendre[0, 2]              = 0.1;
+  constexpr Numeric       mu0 = disort_test::reference::problem_2_beam_mu;
   const disort::main_data dis(nquad,
                               nquad,
                               nquad,
@@ -85,8 +86,8 @@ void run_rayleigh_case(const disort_test::reference::single_layer_case& test) {
                               mu0,
                               Constant::pi,
                               0.0);
-  disort::user_u_data user;
-  disort::flux_data   flux;
+  disort::user_u_data     user;
+  disort::flux_data       flux;
   for (Index level = 0; level < 2; ++level) {
     const Numeric tau = level == 0 ? 0.0 : test.depth;
     dis.u_user(user, tau, 0.0, disort_test::reference::problem_2_user_mu);
@@ -107,7 +108,7 @@ void test_problem_2() {
 
 void run_henyey_greenstein_case(const disort_test::reference::single_layer_case& test) {
   constexpr Index nquad = disort_test::reference::problem_3_streams;
-  Matrix legendre(1, disort_test::reference::problem_3_moments, 0.0);
+  Matrix          legendre(1, disort_test::reference::problem_3_moments, 0.0);
   for (Index i = 0; i < disort_test::reference::problem_3_moments; ++i)
     legendre[0, i] = std::pow(disort_test::reference::problem_3_asymmetry, i);
 
@@ -125,10 +126,10 @@ void run_henyey_greenstein_case(const disort_test::reference::single_layer_case&
                               1.0,
                               Constant::pi,
                               0.0);
-  disort::user_u_data user;
-  disort::tms_data    tms;
-  disort::flux_data   flux;
-  Vector              ims;
+  disort::user_u_data     user;
+  disort::tms_data        tms;
+  disort::flux_data       flux;
+  Vector                  ims;
   for (Index level = 0; level < 2; ++level) {
     const Numeric tau = level == 0 ? 0.0 : test.depth;
     dis.u_user_corr(user, ims, tms, tau, 0.0, disort_test::reference::problem_3_user_mu);
@@ -148,8 +149,8 @@ void test_problem_3() {
 }
 
 void run_haze_l_case(const disort_test::reference::haze_l_case& test) {
-  constexpr Index nquad = disort_test::reference::problem_4_streams;
-  const Matrix moments = disort_test::reference::haze_l_moments();
+  constexpr Index         nquad   = disort_test::reference::problem_4_streams;
+  const Matrix            moments = disort_test::reference::haze_l_moments();
   const disort::main_data dis(nquad,
                               nquad,
                               nquad,
@@ -164,11 +165,11 @@ void run_haze_l_case(const disort_test::reference::haze_l_case& test) {
                               test.beam_mu,
                               Constant::pi,
                               0.0);
-  disort::user_u_data user;
-  disort::tms_data tms;
-  disort::flux_data flux;
-  Vector ims;
-  const Index nphi = test.azimuth.size();
+  disort::user_u_data     user;
+  disort::tms_data        tms;
+  disort::flux_data       flux;
+  Vector                  ims;
+  const Index             nphi = test.azimuth.size();
   for (Index p = 0; p < nphi; ++p)
     for (Index level = 0; level < 3; ++level) {
       dis.u_user_corr(user,
@@ -185,9 +186,8 @@ void run_haze_l_case(const disort_test::reference::haze_l_case& test) {
   for (Index level = 0; level < 3; ++level) {
     const auto values = dis.flux(flux, disort_test::reference::problem_4_output_tau[level]);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
-                     values.down_diffuse,
-                     test.diffuse_down[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
@@ -197,8 +197,8 @@ void test_problem_4() {
 }
 
 void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
-  constexpr Index nquad = disort_test::reference::problem_5_streams;
-  const Matrix moments = disort_test::reference::cloud_c1_moments();
+  constexpr Index         nquad   = disort_test::reference::problem_5_streams;
+  const Matrix            moments = disort_test::reference::cloud_c1_moments();
   const disort::main_data dis(nquad,
                               nquad,
                               nquad,
@@ -213,10 +213,10 @@ void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
                               1.0,
                               Constant::pi,
                               0.0);
-  disort::user_u_data user;
-  disort::tms_data tms;
-  disort::flux_data flux;
-  Vector ims;
+  disort::user_u_data     user;
+  disort::tms_data        tms;
+  disort::flux_data       flux;
+  Vector                  ims;
   for (Index level = 0; level < 3; ++level) {
     dis.u_user_corr(user, ims, tms, test.tau[level], 0.0, disort_test::reference::problem_5_user_mu);
     for (Index angle = 0; angle < 6; ++angle)
@@ -227,7 +227,8 @@ void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
     const auto [down, beam] = dis.flux_down(flux, test.tau[level]);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), beam, test.direct[level]);
     expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, test.tau[level]), test.up[level]);
+    expect_reference(
+        std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, test.tau[level]), test.up[level]);
   }
 }
 
@@ -238,36 +239,32 @@ void test_problem_5() {
 
 void run_problem_8_case(const disort_test::reference::layered_isotropic_case& test) {
   constexpr Index nquad = disort_test::reference::problem_8_streams;
-  Matrix moments(2, nquad + 1, 0.0);
+  Matrix          moments(2, nquad + 1, 0.0);
   moments[joker, 0] = 1.0;
 
   Matrix boundary_down(nquad, nquad / 2, 0.0);
   boundary_down[0] = Constant::inv_pi;
 
-  const disort::main_data dis(
-      nquad,
-      nquad,
-      nquad,
-      AscendingGrid{test.cumulative_tau[0], test.cumulative_tau[1]},
-      test.single_scattering_albedo,
-      moments,
-      Matrix(nquad, nquad / 2, 0.0),
-      boundary_down,
-      Vector(2, 0.0),
-      Matrix(2, 0),
-      {},
-      0.5,
-      0.0,
-      0.0);
+  const disort::main_data dis(nquad,
+                              nquad,
+                              nquad,
+                              AscendingGrid{test.cumulative_tau[0], test.cumulative_tau[1]},
+                              test.single_scattering_albedo,
+                              moments,
+                              Matrix(nquad, nquad / 2, 0.0),
+                              boundary_down,
+                              Vector(2, 0.0),
+                              Matrix(2, 0),
+                              {},
+                              0.5,
+                              0.0,
+                              0.0);
 
   disort::user_u_data user;
-  disort::flux_data flux;
+  disort::flux_data   flux;
   for (Index level = 0; level < 3; ++level) {
     const Numeric tau = test.output_tau[level];
-    dis.u_user(user,
-               tau,
-               disort_test::reference::problem_8_azimuth,
-               disort_test::reference::problem_8_user_mu);
+    dis.u_user(user, tau, disort_test::reference::problem_8_azimuth, disort_test::reference::problem_8_user_mu);
     for (Index angle = 0; angle < 4; ++angle)
       expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
@@ -289,24 +286,23 @@ Numeric band_blackbody_radiance(const Numeric temperature,
                                 const Numeric wavenumber_high) {
   if (temperature == 0.0 || wavenumber_low == wavenumber_high) return 0.0;
   constexpr Index intervals = 4096;
-  const Numeric scale = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
-  const Numeric x0 = scale * wavenumber_low;
-  const Numeric x1 = scale * wavenumber_high;
-  const Numeric dx = (x1 - x0) / intervals;
-  const auto integrand = [](const Numeric x) {
+  const Numeric   scale     = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
+  const Numeric   x0        = scale * wavenumber_low;
+  const Numeric   x1        = scale * wavenumber_high;
+  const Numeric   dx        = (x1 - x0) / intervals;
+  const auto      integrand = [](const Numeric x) {
     if (x == 0.0 || x > 700.0) return 0.0;
     return x * x * x / std::expm1(x);
   };
   Numeric integral = integrand(x0) + integrand(x1);
-  for (Index i = 1; i < intervals; ++i)
-    integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
+  for (Index i = 1; i < intervals; ++i) integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
   integral *= dx / 3.0;
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi * integral /
          (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 }
 
 Matrix problem_9_moments(const disort_test::reference::phase_type phase,
-                         const Index nquad = disort_test::reference::problem_9_streams) {
+                         const Index                              nquad = disort_test::reference::problem_9_streams) {
   Matrix moments(6, nquad + 1, 0.0);
   if (phase == disort_test::reference::phase_type::isotropic) {
     moments[joker, 0] = 1.0;
@@ -324,30 +320,29 @@ Matrix problem_9_source(const disort_test::reference::general_multilayer_case& t
   if (not test.thermal) return Matrix(6, 0);
   Vector planck(7);
   for (Index level = 0; level < 7; ++level)
-    planck[level] = band_blackbody_radiance(test.interface_temperature[level],
-                                           test.wavenumber_low,
-                                           test.wavenumber_high);
-  Matrix source(6, 2);
+    planck[level] =
+        band_blackbody_radiance(test.interface_temperature[level], test.wavenumber_low, test.wavenumber_high);
+  Matrix  source(6, 2);
   Numeric tau0 = 0.0;
   for (Index layer = 0; layer < 6; ++layer) {
-    const Numeric tau1 = test.cumulative_tau[layer];
+    const Numeric tau1  = test.cumulative_tau[layer];
     const Numeric slope = (planck[layer + 1] - planck[layer]) / (tau1 - tau0);
-    source[layer, 0] = planck[layer] - slope * tau0;
-    source[layer, 1] = slope;
-    tau0 = tau1;
+    source[layer, 0]    = planck[layer] - slope * tau0;
+    source[layer, 1]    = slope;
+    tau0                = tau1;
   }
   return source;
 }
 
 void run_problem_9_case(const disort_test::reference::general_multilayer_case& test) {
   constexpr Index nquad = disort_test::reference::problem_9_streams;
-  Matrix up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
+  Matrix          up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
   down[0] = test.top_isotropic;
   std::vector<disort::BDRF> brdf;
   if (test.thermal) {
     down[0] += band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
-    up[0] = (1.0 - test.surface_albedo) *
-            band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+    up[0]    = (1.0 - test.surface_albedo) *
+               band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   }
   if (test.surface_albedo != 0.0)
     brdf.push_back(disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }});
@@ -368,23 +363,16 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
                               0.0);
 
   disort::user_u_data user;
-  disort::tms_data tms;
-  disort::flux_data flux;
-  Vector ims;
+  disort::tms_data    tms;
+  disort::flux_data   flux;
+  Vector              ims;
   for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
     for (Index level = 0; level < 5; ++level) {
       if (test.phase == disort_test::reference::phase_type::henyey_greenstein)
-        dis.u_user_corr(user,
-                        ims,
-                        tms,
-                        test.output_tau[level],
-                        test.azimuth[azimuth],
-                        disort_test::reference::problem_9_user_mu);
+        dis.u_user_corr(
+            user, ims, tms, test.output_tau[level], test.azimuth[azimuth], disort_test::reference::problem_9_user_mu);
       else
-        dis.u_user(user,
-                   test.output_tau[level],
-                   test.azimuth[azimuth],
-                   disort_test::reference::problem_9_user_mu);
+        dis.u_user(user, test.output_tau[level], test.azimuth[azimuth], disort_test::reference::problem_9_user_mu);
       for (Index angle = 0; angle < 4; ++angle)
         expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                          user.intensities[angle],
@@ -393,7 +381,7 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
     }
 
   for (Index level = 0; level < 5; ++level) {
-    const Numeric tau = test.output_tau[level];
+    const Numeric tau              = test.output_tau[level];
     const auto [down_flux, direct] = dis.flux_down(flux, tau);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
     expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
@@ -413,10 +401,10 @@ void test_problem_9() {
 
 void test_problem_10() {
   constexpr Index nquad = disort_test::reference::problem_10_streams;
-  const auto& test = disort_test::reference::problem_9[2];
-  Matrix up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
-  down[0] = test.top_isotropic +
-            band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+  const auto&     test  = disort_test::reference::problem_9[2];
+  Matrix          up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
+  down[0] =
+      test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
   up[0] = (1.0 - test.surface_albedo) *
           band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   std::vector<disort::BDRF> brdf{
@@ -437,7 +425,7 @@ void test_problem_10() {
                               test.beam,
                               0.0);
 
-  disort::u_data quadrature;
+  disort::u_data      quadrature;
   disort::user_u_data formal;
   // CPP stores +mu from grazing to vertical, followed by the corresponding
   // -mu values; the original DISORT user list is monotonically increasing.
@@ -453,9 +441,8 @@ void test_problem_10() {
                          2e-6);
     }
 
-  Tensor3 bulk(disort_test::reference::problem_10_output_tau.size(),
-               disort_test::reference::problem_10_azimuth.size(),
-               nquad);
+  Tensor3 bulk(
+      disort_test::reference::problem_10_output_tau.size(), disort_test::reference::problem_10_azimuth.size(), nquad);
   dis.ungridded_u(bulk,
                   AscendingGrid{Vector(disort_test::reference::problem_10_output_tau)},
                   disort_test::reference::problem_10_azimuth);
@@ -473,9 +460,9 @@ void test_problem_10() {
 }
 
 disort::main_data problem_11_atmosphere(const bool subdivided) {
-  constexpr Index nquad = disort_test::reference::problem_11_streams;
-  const Index layers = subdivided ? 3 : 1;
-  Matrix moments(layers, nquad + 1, 0.0);
+  constexpr Index nquad  = disort_test::reference::problem_11_streams;
+  const Index     layers = subdivided ? 3 : 1;
+  Matrix          moments(layers, nquad + 1, 0.0);
   moments[joker, 0] = 1.0;
   Matrix down(nquad, nquad / 2, 0.0);
   down[0] = disort_test::reference::problem_11_top_isotropic;
@@ -494,16 +481,15 @@ disort::main_data problem_11_atmosphere(const bool subdivided) {
                            Matrix(layers, 0),
                            std::move(brdf),
                            disort_test::reference::problem_11_beam_mu,
-                           disort_test::reference::problem_11_beam /
-                               disort_test::reference::problem_11_beam_mu,
+                           disort_test::reference::problem_11_beam / disort_test::reference::problem_11_beam_mu,
                            0.0);
 }
 
 void test_problem_11() {
-  const auto one_layer = problem_11_atmosphere(false);
-  const auto subdivided = problem_11_atmosphere(true);
+  const auto          one_layer  = problem_11_atmosphere(false);
+  const auto          subdivided = problem_11_atmosphere(true);
   disort::user_u_data one_user, subdivided_user;
-  disort::flux_data one_flux, subdivided_flux;
+  disort::flux_data   one_flux, subdivided_flux;
 
   for (const Numeric phi : disort_test::reference::problem_11_azimuth)
     for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
@@ -517,25 +503,19 @@ void test_problem_11() {
     }
 
   for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
-    const auto one = one_layer.flux(one_flux, tau);
+    const auto one  = one_layer.flux(one_flux, tau);
     const auto many = subdivided.flux(subdivided_flux, tau);
     expect_reference(std::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-10);
-    expect_reference(std::format("Problem 11 diffuse-down flux [{}]", tau),
-                     many.down_diffuse,
-                     one.down_diffuse,
-                     2e-10);
-    expect_reference(std::format("Problem 11 direct-down flux [{}]", tau),
-                     many.down_direct,
-                     one.down_direct,
-                     2e-10);
+    expect_reference(std::format("Problem 11 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-10);
+    expect_reference(std::format("Problem 11 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-10);
     expect_reference(std::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-10);
   }
 }
 
 disort::main_data problem_12_atmosphere(const bool subdivided) {
-  constexpr Index nquad = disort_test::reference::problem_12_streams;
-  const Index layers = subdivided ? 3 : 1;
-  Matrix moments(layers, nquad + 1);
+  constexpr Index nquad  = disort_test::reference::problem_12_streams;
+  const Index     layers = subdivided ? 3 : 1;
+  Matrix          moments(layers, nquad + 1);
   for (Index layer = 0; layer < layers; ++layer)
     for (Index moment = 0; moment <= nquad; ++moment)
       moments[layer, moment] = std::pow(disort_test::reference::problem_12_asymmetry, moment);
@@ -554,18 +534,17 @@ disort::main_data problem_12_atmosphere(const bool subdivided) {
                            Matrix(layers, 0),
                            std::move(brdf),
                            disort_test::reference::problem_12_beam_mu,
-                           disort_test::reference::problem_12_beam /
-                               disort_test::reference::problem_12_beam_mu,
+                           disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu,
                            0.0);
 }
 
 void test_problem_12() {
-  const auto one_layer = problem_12_atmosphere(false);
-  const auto subdivided = problem_12_atmosphere(true);
+  const auto          one_layer  = problem_12_atmosphere(false);
+  const auto          subdivided = problem_12_atmosphere(true);
   disort::user_u_data one_user, subdivided_user;
-  disort::tms_data one_tms, subdivided_tms;
-  Vector one_ims, subdivided_ims;
-  disort::flux_data one_flux, subdivided_flux;
+  disort::tms_data    one_tms, subdivided_tms;
+  Vector              one_ims, subdivided_ims;
+  disort::flux_data   one_flux, subdivided_flux;
 
   for (const Numeric tau : disort_test::reference::problem_12_output_tau) {
     one_layer.u_user_corr(one_user,
@@ -586,17 +565,11 @@ void test_problem_12() {
                        one_user.intensities[angle],
                        2e-9);
 
-    const auto one = one_layer.flux(one_flux, tau);
+    const auto one  = one_layer.flux(one_flux, tau);
     const auto many = subdivided.flux(subdivided_flux, tau);
     expect_reference(std::format("Problem 12 upward flux [{}]", tau), many.up, one.up, 2e-9);
-    expect_reference(std::format("Problem 12 diffuse-down flux [{}]", tau),
-                     many.down_diffuse,
-                     one.down_diffuse,
-                     2e-9);
-    expect_reference(std::format("Problem 12 direct-down flux [{}]", tau),
-                     many.down_direct,
-                     one.down_direct,
-                     2e-12);
+    expect_reference(std::format("Problem 12 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-9);
+    expect_reference(std::format("Problem 12 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-12);
     expect_reference(std::format("Problem 12 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-9);
   }
 }
@@ -604,35 +577,34 @@ void test_problem_12() {
 void test_problem_13_boundary_limits() {
   using namespace disort_test::reference;
   constexpr Numeric depth = 0.25;
-  Matrix moments(1, problem_13_streams + 1, 0.0);
+  Matrix            moments(1, problem_13_streams + 1, 0.0);
   moments[0, 0] = 1.0;
-  std::vector<disort::BDRF> brdf{
-      disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
-  const disort::main_data absorbing(problem_13_streams,
-                                    problem_13_streams,
-                                    1,
-                                    AscendingGrid{depth},
-                                    Vector{0.0},
-                                    std::move(moments),
-                                    Matrix(1, problem_13_streams / 2, 0.0),
-                                    Matrix(1, problem_13_streams / 2, 0.0),
-                                    Vector{0.0},
-                                    Matrix(1, 0),
-                                    std::move(brdf),
-                                    problem_13_beam_mu,
-                                    problem_13_beam,
-                                    0.0);
+  std::vector<disort::BDRF> brdf{disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
+  const disort::main_data   absorbing(problem_13_streams,
+                                      problem_13_streams,
+                                      1,
+                                      AscendingGrid{depth},
+                                      Vector{0.0},
+                                      std::move(moments),
+                                      Matrix(1, problem_13_streams / 2, 0.0),
+                                      Matrix(1, problem_13_streams / 2, 0.0),
+                                      Vector{0.0},
+                                      Matrix(1, 0),
+                                      std::move(brdf),
+                                      problem_13_beam_mu,
+                                      problem_13_beam,
+                                      0.0);
 
-  const Numeric incident_flux = problem_13_beam * problem_13_beam_mu;
-  const Numeric bottom_beam = incident_flux * std::exp(-depth / problem_13_beam_mu);
-  Numeric upward_transmission = 0.0;
+  const Numeric incident_flux       = problem_13_beam * problem_13_beam_mu;
+  const Numeric bottom_beam         = incident_flux * std::exp(-depth / problem_13_beam_mu);
+  Numeric       upward_transmission = 0.0;
   for (Index i = 0; i < problem_13_streams / 2; ++i)
     upward_transmission += absorbing.weights()[i] * absorbing.mu()[i] * std::exp(-depth / absorbing.mu()[i]);
   const Numeric expected_up = 2.0 * problem_13_surface_albedo * bottom_beam * upward_transmission;
 
   disort::flux_data flux;
-  const auto top = absorbing.flux(flux, 0.0);
-  const auto bottom = absorbing.flux(flux, depth);
+  const auto        top    = absorbing.flux(flux, 0.0);
+  const auto        bottom = absorbing.flux(flux, depth);
   expect_reference("Problem 13 absorbing Lambertian top reflection", top.up, expected_up, 2e-12);
   expect_reference("Problem 13 absorbing direct transmission", bottom.down_direct, bottom_beam, 2e-12);
   expect_reference("Problem 13 absorbing diffuse transmission", bottom.down_diffuse, 0.0, 2e-12);
@@ -642,35 +614,57 @@ void test_problem_13() {
   using namespace disort_test::reference;
   for (const auto& test : problem_13) {
     const Index layers = test.cumulative_tau.size();
-    Matrix moments(layers, problem_13_streams + 1);
+    Matrix      moments(layers, problem_13_streams + 1);
     for (Index layer = 0; layer < layers; ++layer)
       for (Index moment = 0; moment <= problem_13_streams; ++moment)
         moments[layer, moment] = std::pow(problem_13_asymmetry, moment);
-    std::vector<disort::BDRF> brdf{
-        disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
-    const disort::main_data dis(problem_13_streams,
-                                problem_13_streams,
-                                1,
-                                AscendingGrid{test.cumulative_tau},
-                                test.single_scattering_albedo,
-                                std::move(moments),
-                                Matrix(1, problem_13_streams / 2, 0.0),
-                                Matrix(1, problem_13_streams / 2, 0.0),
-                                Vector(layers, std::pow(problem_13_asymmetry, problem_13_streams)),
-                                Matrix(layers, 0),
-                                std::move(brdf),
-                                problem_13_beam_mu,
-                                problem_13_beam,
-                                0.0);
+    std::vector<disort::BDRF> brdf{disort::BDRF{[](auto value, auto&, auto&) { value = problem_13_surface_albedo; }}};
+    const disort::main_data   dis(problem_13_streams,
+                                  problem_13_streams,
+                                  1,
+                                  AscendingGrid{test.cumulative_tau},
+                                  test.single_scattering_albedo,
+                                  std::move(moments),
+                                  Matrix(1, problem_13_streams / 2, 0.0),
+                                  Matrix(1, problem_13_streams / 2, 0.0),
+                                  Vector(layers, std::pow(problem_13_asymmetry, problem_13_streams)),
+                                  Matrix(layers, 0),
+                                  std::move(brdf),
+                                  problem_13_beam_mu,
+                                  problem_13_beam,
+                                  0.0);
 
     disort::flux_data flux;
-    const Numeric incident_flux = problem_13_beam * problem_13_beam_mu;
-    const auto top = dis.flux(flux, 0.0);
-    const auto bottom = dis.flux(flux, test.cumulative_tau.back());
+    const Numeric     incident_flux = problem_13_beam * problem_13_beam_mu;
+    const auto        top           = dis.flux(flux, 0.0);
+    const auto        bottom        = dis.flux(flux, test.cumulative_tau.back());
     expect_reference(std::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
     expect_reference(std::format("{} transmission", test.name),
                      (bottom.down_direct + bottom.down_diffuse) / incident_flux,
                      test.transmission);
+  }
+}
+
+void test_raw_brdfs_and_fourier_helper() {
+  constexpr Numeric mu0 = 0.8660254037844386;
+  using namespace disort::brdf;
+  expect_reference("Hapke raw BRDF", mu0 * Hapke{}(0.1, mu0, 0.0), 0.0519252, 2e-5);
+  expect_reference("Cox-Munk raw BRDF", mu0 * CoxMunk{}(0.5, mu0, Constant::pi / 4.0), 0.00374155, 2e-5);
+  expect_reference("RPV raw BRDF", mu0 * RPV{}(0.2, mu0, Constant::pi), 0.0668223, 2e-5);
+  expect_reference("Ross-Li raw BRDF", mu0 * RossLi{}(0.5, mu0, Constant::pi / 2.0), 0.0660729, 2e-5);
+
+  constexpr Numeric reflectance = 0.37;
+  const auto        modes       = fourier_modes([](Numeric, Numeric, Numeric) { return reflectance; }, 4, 32);
+  const Vector      outgoing{0.2, 0.8};
+  const Vector      incoming{-0.3, -0.9};
+  for (Index mode = 0; mode < 4; ++mode) {
+    const Matrix coefficient = modes[mode](outgoing, incoming);
+    for (Index i = 0; i < coefficient.nrows(); ++i)
+      for (Index j = 0; j < coefficient.ncols(); ++j)
+        expect_reference(std::format("constant BRDF Fourier mode {}", mode),
+                         coefficient[i, j],
+                         mode == 0 ? reflectance : 0.0,
+                         2e-13);
   }
 }
 
@@ -689,6 +683,7 @@ int main() try {
   test_problem_12();
   test_problem_13_boundary_limits();
   test_problem_13();
+  test_raw_brdfs_and_fourier_helper();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

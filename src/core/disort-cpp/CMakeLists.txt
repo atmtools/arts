@@ -5,7 +5,7 @@ else (ENABLE_ARTS_LGPL)
 endif ()
 target_link_libraries(disort-cpp-eigen PUBLIC matpack)
 
-add_library(disort-cpp STATIC disort.cpp)
+add_library(disort-cpp STATIC disort.cpp disort-brdf.cpp)
 
 target_link_libraries(disort-cpp PUBLIC matpack legendre time_report operators disort-cpp-eigen)
 target_include_directories(disort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
