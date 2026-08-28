@@ -843,6 +843,167 @@ void test_problem_8() {
     }
   }
 }
+
+struct problem_9_model {
+  vdisort::main_data              solver;
+  vdisort::phase_matrix_data      user_phase;
+  vdisort::beam_phase_matrix_data user_beam_phase;
+};
+
+Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test) {
+  constexpr Index nquad   = disort_test::reference::problem_9_streams;
+  const Index     nlayers = static_cast<Index>(test.cumulative_tau.size());
+  Matrix          moments(nlayers, nquad, 0.0);
+  if (test.phase == disort_test::reference::phase_type::isotropic) {
+    moments[joker, 0] = 1.0;
+  } else if (test.phase == disort_test::reference::phase_type::problem_9b) {
+    for (Index layer = 0; layer < nlayers; ++layer)
+      for (Index degree = 0; degree < nquad; ++degree)
+        moments[layer, degree] = disort_test::reference::problem_9b_moments[degree];
+  } else {
+    for (Index layer = 0; layer < nlayers; ++layer)
+      for (Index degree = 0; degree < nquad; ++degree)
+        moments[layer, degree] =
+            std::pow(disort_test::reference::problem_9c_asymmetry[layer], static_cast<Numeric>(degree));
+  }
+  return moments;
+}
+
+problem_9_model make_problem_9_model(const disort_test::reference::general_multilayer_case& test) {
+  constexpr Index nquad   = disort_test::reference::problem_9_streams;
+  constexpr Index nstokes = vdisort::stokes_dimension;
+  const Index     n       = nquad / 2;
+  const Index     nlayers = static_cast<Index>(test.cumulative_tau.size());
+  const Index     nuser   = static_cast<Index>(disort_test::reference::problem_9_user_mu.size());
+  const Index     nmodes  = test.beam == 0.0 ? 1 : nquad;
+  const Matrix    moments = problem_9_moments(test);
+
+  Vector quadrature_mu(nquad), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
+  std::transform(quadrature_mu.begin(), quadrature_mu.begin() + n, quadrature_mu.begin() + n, [](const Numeric mu) {
+    return -mu;
+  });
+
+  Tensor7                         phase(2, nmodes, nlayers, nquad, nquad, nstokes, nstokes, 0.0);
+  Tensor6                         beam_phase(2, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
+  vdisort::phase_matrix_data      user_phase(2, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data user_beam_phase(2, nmodes, nlayers, nuser, rtepack::muelmat{0.0});
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    const auto layer_moments = moments[layer];
+    for (Index mode = 0; mode < nmodes; ++mode) {
+      for (Index out = 0; out < nquad; ++out) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(layer_moments, mode, quadrature_mu[out], quadrature_mu[in]);
+          phase[vdisort::cosine_mode, mode, layer, out, in, 0, 0] = value;
+          if (mode > 0) phase[vdisort::sine_mode, mode, layer, out, in, 0, 0] = value;
+        }
+        beam_phase[vdisort::cosine_mode, mode, layer, out, 0, 0] =
+            scalar_phase_mode(layer_moments, mode, quadrature_mu[out], -test.beam_mu);
+      }
+      for (Index user = 0; user < nuser; ++user) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(
+              layer_moments, mode, disort_test::reference::problem_9_user_mu[user], quadrature_mu[in]);
+          user_phase[vdisort::cosine_mode, mode, layer, user, in][0, 0] = value;
+          if (mode > 0) user_phase[vdisort::sine_mode, mode, layer, user, in][0, 0] = value;
+        }
+        user_beam_phase[vdisort::cosine_mode, mode, layer, user][0, 0] =
+            scalar_phase_mode(layer_moments, mode, disort_test::reference::problem_9_user_mu[user], -test.beam_mu);
+      }
+    }
+  }
+
+  Tensor4 up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
+  down[vdisort::cosine_mode, 0, joker, 0] =
+      test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+  const Numeric bottom_planck =
+      band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  up[vdisort::cosine_mode, 0, joker, 0] = (1.0 - test.surface_albedo) * bottom_planck;
+
+  std::vector<vdisort::BDRF> brdf;
+  if (test.surface_albedo != 0.0) {
+    const disort::brdf::RawFunction lambert = [albedo = test.surface_albedo](Numeric, Numeric, Numeric) {
+      return albedo * Constant::inv_pi;
+    };
+    brdf = scalar_brdf_modes(lambert, 1);
+  }
+
+  Tensor3 source;
+  if (test.interface_temperature.empty()) {
+    source.resize(nlayers, 0, nstokes);
+  } else {
+    source.resize(nlayers, 2, nstokes);
+    source = 0.0;
+    Vector planck(nlayers + 1);
+    for (Index interface = 0; interface <= nlayers; ++interface)
+      planck[interface] =
+          band_blackbody_radiance(test.interface_temperature[interface], test.wavenumber_low, test.wavenumber_high);
+    Numeric tau0 = 0.0;
+    for (Index layer = 0; layer < nlayers; ++layer) {
+      const Numeric tau1       = test.cumulative_tau[layer];
+      const Numeric slope      = (planck[layer + 1] - planck[layer]) / (tau1 - tau0);
+      const Numeric absorption = 1.0 - test.single_scattering_albedo[layer];
+      source[layer, 0, 0]      = absorption * (planck[layer] - slope * tau0);
+      source[layer, 1, 0]      = absorption * slope;
+      tau0                     = tau1;
+    }
+  }
+
+  vdisort::main_data solver(nquad,
+                            nmodes,
+                            AscendingGrid{test.cumulative_tau},
+                            Vector{test.single_scattering_albedo},
+                            std::move(phase),
+                            std::move(up),
+                            std::move(down),
+                            std::move(source),
+                            std::move(brdf),
+                            test.beam_mu,
+                            Vector{test.beam, 0.0, 0.0, 0.0},
+                            0.0,
+                            std::move(beam_phase));
+  return {
+      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+}
+
+void test_problem_9() {
+  for (const auto& test : disort_test::reference::problem_9) {
+    auto                 model = make_problem_9_model(test);
+    vdisort::user_u_data user;
+    vdisort::flux_data   flux_data;
+    for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
+      for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
+        model.solver.u_user(user,
+                            test.output_tau[level],
+                            test.azimuth[azimuth],
+                            disort_test::reference::problem_9_user_mu,
+                            model.user_phase,
+                            model.user_beam_phase);
+        for (Index angle = 0; angle < static_cast<Index>(user.intensities.size()); ++angle) {
+          expect_unpolarized(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+                             user.intensities[angle]);
+          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+                           user.intensities[angle].I(),
+                           test.radiance[azimuth, level, angle],
+                           test.thermal ? 1e-3 : reference_tolerance);
+        }
+      }
+
+    for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
+      const auto flux = model.solver.flux(flux_data, test.output_tau[level]);
+      for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+      const Numeric tolerance = test.thermal ? 1e-3 : reference_tolerance;
+      expect_reference(
+          std::format("{} direct flux [{}]", test.name, level), flux.down_direct, test.direct[level], tolerance);
+      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                       flux.down_diffuse,
+                       test.diffuse_down[level],
+                       tolerance);
+      expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, test.up[level], tolerance);
+    }
+  }
+}
 }  // namespace
 
 int main() try {
@@ -854,6 +1015,7 @@ int main() try {
   test_problem_6();
   test_problem_7();
   test_problem_8();
+  test_problem_9();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
