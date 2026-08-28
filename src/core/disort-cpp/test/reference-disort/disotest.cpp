@@ -275,23 +275,28 @@ void disort_test07() {
 }
 
 disort::main_data problem10(const Index nquad) {
-  const AscendingGrid tau{1.0, 3.0, 6.0, 10.0, 15.0, 21.0};
-  const Vector        omega{0.65, 0.70, 0.75, 0.80, 0.85, 0.90};
-  const Vector        g{1.0 / 7, 2.0 / 7, 3.0 / 7, 4.0 / 7, 5.0 / 7, 6.0 / 7};
-  const Vector        temperature{600.0, 610.0, 620.0, 630.0, 640.0, 650.0, 660.0};
+  const auto&         test = disort_test::reference::problem_9[2];
+  const AscendingGrid tau{Vector(test.cumulative_tau)};
   Matrix              up(nquad, nquad / 2, 0), down(nquad, nquad / 2, 0);
-  up[0]   = blackbody_radiance(700.0);
-  down[0] = 1.0 + blackbody_radiance(550.0);
-  std::vector<disort::BDRF> brdf{disort::BDRF{[](auto value, auto&, auto&) { value = 0.5; }}};
+  up[0] = (1.0 - test.surface_albedo) *
+          band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  down[0] = test.top_isotropic +
+            band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+  Vector source_radiance(test.interface_temperature.size());
+  for (Size i = 0; i < test.interface_temperature.size(); ++i)
+    source_radiance[i] =
+        band_blackbody_radiance(test.interface_temperature[i], test.wavenumber_low, test.wavenumber_high);
+  std::vector<disort::BDRF> brdf{
+      disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }}};
   return make_disort(nquad,
                      tau,
-                     omega,
-                     henyey_greenstein(g, nquad),
+                     test.single_scattering_albedo,
+                     henyey_greenstein(disort_test::reference::problem_9c_asymmetry, nquad),
                      nquad == 2 ? 0.500001 : 0.5,
                      Constant::pi,
                      up,
                      down,
-                     linear_source(tau, temperature),
+                     linear_polynomial(tau, source_radiance),
                      std::move(brdf));
 }
 
@@ -323,14 +328,23 @@ void disort_test10() {
 }
 
 void disort_test12() {
-  const Index  nquad = 20;
-  const Vector g1{0.9};
-  auto         one_layer = make_disort(nquad, AscendingGrid{20.1}, Vector{0.5}, henyey_greenstein(g1, nquad), 1.0, 1.0);
+  constexpr Index nquad = disort_test::reference::problem_12_streams;
+  const Vector g1{disort_test::reference::problem_12_asymmetry};
+  auto one_layer = make_disort(nquad,
+                               AscendingGrid{disort_test::reference::problem_12_output_tau.back()},
+                               Vector{disort_test::reference::problem_12_omega},
+                               henyey_greenstein(g1, nquad),
+                               disort_test::reference::problem_12_beam_mu,
+                               disort_test::reference::problem_12_beam);
   auto         split     = make_disort(
-      nquad, AscendingGrid{10.0, 19.9, 20.1}, Vector(3, 0.5), henyey_greenstein(Vector(3, 0.9), nquad), 1.0, 1.0);
-  const Vector taus{0.0, 10.0, 19.9, 20.1};
-  run_case("test_12a", one_layer, taus);
-  run_case("test_12b", split, taus);
+      nquad,
+      AscendingGrid{Vector(disort_test::reference::problem_12_subdivided_tau)},
+      Vector(3, disort_test::reference::problem_12_omega),
+      henyey_greenstein(Vector(3, disort_test::reference::problem_12_asymmetry), nquad),
+      disort_test::reference::problem_12_beam_mu,
+      disort_test::reference::problem_12_beam);
+  run_case("test_12a", one_layer, disort_test::reference::problem_12_output_tau);
+  run_case("test_12b", split, disort_test::reference::problem_12_output_tau);
 }
 
 void disort_test13() {

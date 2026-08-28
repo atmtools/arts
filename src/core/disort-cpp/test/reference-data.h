@@ -9,6 +9,136 @@
 
 namespace disort_test::reference {
 
+inline Matrix matrix_2x6(std::initializer_list<Numeric> values) {
+  Vector data(values.size());
+  std::ranges::copy(values, data.begin());
+  return Matrix{std::move(data).reshape(2, 6)};
+}
+
+inline Tensor3 tensor_3x6(const Index nphi, std::initializer_list<Numeric> values) {
+  Vector data(values.size());
+  std::ranges::copy(values, data.begin());
+  return Tensor3{std::move(data).reshape(nphi, 3, 6)};
+}
+
+struct single_layer_case {
+  const char* name;
+  Numeric depth;
+  Numeric omega;
+  bool beam;
+  Vector direct;
+  Vector diffuse_down;
+  Vector up;
+  Matrix radiance;
+};
+
+inline const Vector problem_1_user_mu{-1.0, -0.5, -0.1, 0.1, 0.5, 1.0};
+inline constexpr Index problem_1_streams = 16;
+inline constexpr Numeric problem_1_beam_mu = 0.1;
+inline const std::array problem_1{
+    single_layer_case{"1a", 0.03125, 0.2, true, {3.14159, 2.29844}, {0, 0.0794108}, {0.0799451, 0},
+                      matrix_2x6({0, 0, 0, 0.117771, 0.0264170, 0.0134041,
+                                  0.0133826, 0.0263324, 0.115898, 0, 0, 0})},
+    single_layer_case{"1b", 0.03125, 1.0, true, {3.14159, 2.29844}, {0, 0.420233}, {0.422922, 0},
+                      matrix_2x6({0, 0, 0, 0.622884, 0.139763, 0.0709192,
+                                  0.0708109, 0.139337, 0.613458, 0, 0, 0})},
+    single_layer_case{"1c", 0.03125, 0.99, false, {0, 0}, {3.14159, 3.04897}, {0.0906556, 0},
+                      matrix_2x6({1, 1, 1, 0.133177, 0.0299879, 0.0152233,
+                                  0.984447, 0.969363, 0.863946, 0, 0, 0})},
+    single_layer_case{"1d", 32.0, 0.2, true, {3.14159, 0}, {0, 0}, {0.259686, 0},
+                      matrix_2x6({0, 0, 0, 0.262972, 0.0906967, 0.0502853,
+                                  1.22980e-15, 1.30698e-17, 6.88840e-18, 0, 0, 0})},
+    single_layer_case{"1e", 32.0, 1.0, true, {3.14159, 0}, {0, 0.0676954}, {3.07390, 0},
+                      matrix_2x6({0, 0, 0, 1.93321, 1.02732, 0.797199,
+                                  0.0271316, 0.0187805, 0.0116385, 0, 0, 0})},
+    single_layer_case{"1f", 32.0, 0.99, false, {0, 0}, {3.14159, 0.00460048}, {2.49618, 0},
+                      matrix_2x6({1, 1, 1, 0.877510, 0.815136, 0.752715,
+                                  0.00186840, 0.00126492, 0.000779280, 0, 0, 0})},
+};
+
+inline const Vector problem_2_user_mu{-0.981986, -0.538263, -0.018014, 0.018014, 0.538263, 0.981986};
+inline constexpr Index problem_2_streams = 16;
+inline constexpr Numeric problem_2_beam_mu = 0.080442;
+inline const std::array problem_2{
+    single_layer_case{"2a", 0.2, 0.5, true, {0.252716, 0.0210311}, {0, 0.0441791}, {0.0535063, 0},
+                      matrix_2x6({0, 0, 0, 0.161796, 0.0211501, 0.00786713,
+                                  0.00771897, 0.0200778, 0.0257685, 0, 0, 0})},
+    single_layer_case{"2b", 0.2, 1.0, true, {0.252716, 0.0210311}, {0, 0.106123}, {0.125561, 0},
+                      matrix_2x6({0, 0, 0, 0.347678, 0.0487120, 0.0189387,
+                                  0.0186027, 0.0464061, 0.0677603, 0, 0, 0})},
+    single_layer_case{"2c", 5.0, 0.5, true, {0.252716, 2.56077e-28}, {0, 0.000251683}, {0.0624730, 0},
+                      matrix_2x6({0, 0, 0, 0.162566, 0.0245786, 0.0101498,
+                                  0.000170004, 0.0000397168, 0.0000132472, 0, 0, 0})},
+    single_layer_case{"2d", 5.0, 1.0, true, {0.252716, 0}, {0, 0.0268008}, {0.225915, 0},
+                      matrix_2x6({0, 0, 0, 0.364010, 0.0826993, 0.0492370,
+                                  0.0105950, 0.00769337, 0.00379276, 0, 0, 0})},
+};
+
+inline const Vector problem_3_user_mu = problem_1_user_mu;
+inline constexpr Index problem_3_streams = 16;
+inline constexpr Index problem_3_moments = 33;
+inline constexpr Numeric problem_3_asymmetry = 0.75;
+inline const std::array problem_3{
+    single_layer_case{"3a", 1.0, 1.0, true, {3.14159, 1.15573}, {0, 1.73849}, {0.247374, 0},
+                      matrix_2x6({0, 0, 0, 0.151159, 0.101103, 0.0395460,
+                                  3.05855, 0.266648, 0.213750, 0, 0, 0})},
+    single_layer_case{"3b", 8.0, 1.0, true, {3.14159, 0.00105389}, {0, 1.54958}, {1.59096, 0},
+                      matrix_2x6({0, 0, 0, 0.379740, 0.519598, 0.493302,
+                                  0.669581, 0.422350, 0.236362, 0, 0, 0})},
+};
+
+inline const Vector haze_l_weighted_coefficients{
+    2.41260, 3.23047, 3.37296, 3.23150, 2.89350, 2.49594, 2.11361, 1.74812,
+    1.44692, 1.17714, 0.96643, 0.78237, 0.64114, 0.51966, 0.42563, 0.34688,
+    0.28351, 0.23317, 0.18963, 0.15788, 0.12739, 0.10762, 0.08597, 0.07381,
+    0.05828, 0.05089, 0.03971, 0.03524, 0.02720, 0.02451, 0.01874, 0.01711};
+
+inline Matrix haze_l_moments() {
+  Matrix moments(1, 33, 0.0);
+  moments[0, 0] = 1.0;
+  for (Index k = 1; k <= 32; ++k)
+    moments[0, k] = haze_l_weighted_coefficients[k - 1] / static_cast<Numeric>(2 * k + 1);
+  return moments;
+}
+
+struct haze_l_case {
+  const char* name;
+  Numeric omega;
+  Numeric beam_mu;
+  Vector azimuth;
+  Vector direct;
+  Vector diffuse_down;
+  Vector up;
+  Tensor3 radiance;
+};
+
+inline const Vector problem_4_user_mu = problem_1_user_mu;
+inline const Vector problem_4_output_tau{0.0, 0.5, 1.0};
+inline constexpr Index problem_4_streams = 32;
+inline constexpr Numeric problem_4_total_tau = 1.0;
+inline const std::array problem_4{
+    haze_l_case{"4a", 1.0, 1.0, {0}, {3.14159, 1.90547, 1.15573}, {0, 1.17401, 1.81264}, {0.173223, 0.111113, 0},
+                tensor_3x6(1, {0, 0, 0, 0.0926837, 0.0659569, 0.0364755,
+                                2.51608, 0.119287, 0.134962, 0.123887, 0.0402058, 0.0177746,
+                                3.37302, 0.219835, 0.156893, 0, 0, 0})},
+    haze_l_case{"4b", 0.9, 1.0, {0}, {3.14159, 1.90547, 1.15573}, {0, 1.01517, 1.51554}, {0.123665, 0.0788690, 0},
+                tensor_3x6(1, {0, 0, 0, 0.0653056, 0.0455144, 0.0282693,
+                                2.24258, 0.0966049, 0.0961335, 0.0843278, 0.0279473, 0.0138835,
+                                2.97057, 0.167698, 0.108115, 0, 0, 0})},
+    haze_l_case{"4c", 0.9, 0.5, {0, Constant::pi / 2, Constant::pi}, {1.57080, 0.577864, 0.212584},
+                {0, 0.702764, 0.803294}, {0.225487, 0.123848, 0},
+                tensor_3x6(3, {
+                    0, 0, 0, 0.870812, 0.224960, 0.0227572,
+                    0.0477016, 3.02631, 1.41195, 0.697692, 0.109130, 0.00932861,
+                    0.0838488, 2.70538, 0.876523, 0, 0, 0,
+                    0, 0, 0, 0.0888117, 0.0577411, 0.0227572,
+                    0.0477016, 0.0580971, 0.104502, 0.0916071, 0.0295842, 0.00932861,
+                    0.0838488, 0.0942187, 0.0895457, 0, 0, 0,
+                    0, 0, 0, 0.0698247, 0.0502877, 0.0227572,
+                    0.0477016, 0.0258544, 0.0625954, 0.0591273, 0.0247702, 0.00932861,
+                    0.0838488, 0.0399383, 0.0467155, 0, 0, 0})},
+};
+
 inline const Vector cloud_c1_weighted_coefficients{
     1,      2.544,  3.883,  4.568,  5.235,  5.887,  6.457,  7.177,  7.859,  8.494,  9.286,  9.856,  10.615, 11.229,
     11.851, 12.503, 13.058, 13.626, 14.209, 14.660, 15.231, 15.641, 16.126, 16.539, 16.934, 17.325, 17.673, 17.999,
@@ -74,6 +204,10 @@ inline const scalar_case problem_5b{
     radiance({67.9623, 0.221027, 0.136619, 0.114084, 0.0873870, 0.0881626,
               0.205706, 0.0492736, 0.0265449, 0.0202154, 0.0129661, 0.00951334,
               3.41286e-5, 1.39916e-5, 7.47039e-6, 5.65602e-6, 3.58245e-6, 2.57858e-6})};
+
+inline constexpr Index problem_5_streams = 48;
+inline constexpr Numeric problem_5_total_tau = 64.0;
+inline const Vector problem_5_user_mu = problem_1_user_mu;
 
 enum class surface_type { black, lambertian, hapke };
 
@@ -174,6 +308,7 @@ inline Matrix radiance_3x4(std::initializer_list<Numeric> values) {
 }
 
 inline const Vector problem_8_user_mu{-1.0, -0.2, 0.2, 1.0};
+inline constexpr Index problem_8_streams = 8;
 inline constexpr Numeric problem_8_azimuth = Constant::pi / 3.0;
 
 inline const std::array problem_8{
@@ -231,9 +366,15 @@ inline Tensor3 radiance_azimuth_tau_mu(const Index nazimuth,
 }
 
 inline const Vector problem_9_user_mu{-1.0, -0.2, 0.2, 1.0};
+inline constexpr Index problem_9_streams = 8;
 inline const Vector problem_9_cumulative_tau{1.0, 3.0, 6.0, 10.0, 15.0, 21.0};
 inline const Vector problem_9_omega{0.65, 0.70, 0.75, 0.80, 0.85, 0.90};
 inline const Vector problem_9_output_tau{0.0, 1.05, 2.1, 6.0, 21.0};
+inline const Vector problem_9b_moments{1.0, 2.00916 / 3.0, 1.56339 / 5.0, 0.67407 / 7.0,
+                                       0.22215 / 9.0, 0.04725 / 11.0, 0.00671 / 13.0,
+                                       0.00068 / 15.0, 0.00005 / 17.0};
+inline const Vector problem_9c_asymmetry{1.0 / 7.0, 2.0 / 7.0, 3.0 / 7.0,
+                                         4.0 / 7.0, 5.0 / 7.0, 6.0 / 7.0};
 
 inline const std::array problem_9{
     general_multilayer_case{
@@ -292,12 +433,27 @@ inline const std::array problem_9{
 inline const Vector problem_10_output_tau{0.0, 2.1, 21.0};
 inline const Vector problem_10_azimuth{Constant::pi / 3.0, 2.0 * Constant::pi / 3.0};
 inline const Vector problem_10_user_mu{-0.788675129, -0.211324871, 0.211324871, 0.788675129};
+inline constexpr Index problem_10_streams = 4;
 
 inline const Vector problem_11_output_tau{0.0, 0.05, 0.5, 1.0};
 inline const Vector problem_11_user_mu{-1.0, -0.1, 0.1, 1.0};
 inline const Vector problem_11_azimuth{0.0, Constant::pi / 2.0};
+inline const Vector problem_11_subdivided_tau{0.05, 0.5, 1.0};
+inline constexpr Index problem_11_streams = 16;
+inline constexpr Numeric problem_11_omega = 0.9;
+inline constexpr Numeric problem_11_beam_mu = 0.5;
+inline constexpr Numeric problem_11_beam = 1.0;
+inline constexpr Numeric problem_11_top_isotropic = 0.5 * Constant::inv_pi;
+inline constexpr Numeric problem_11_surface_albedo = 0.5;
 
 inline const Vector problem_12_output_tau{0.0, 10.0, 19.9, 20.1};
 inline const Vector problem_12_user_mu{-1.0, -0.1, 0.1, 1.0};
 inline constexpr Numeric problem_12_azimuth = 0.0;
+inline const Vector problem_12_subdivided_tau{10.0, 19.9, 20.1};
+inline constexpr Index problem_12_streams = 20;
+inline constexpr Numeric problem_12_omega = 0.5;
+inline constexpr Numeric problem_12_asymmetry = 0.9;
+inline constexpr Numeric problem_12_beam_mu = 1.0;
+inline constexpr Numeric problem_12_beam = 1.0;
+inline constexpr Numeric problem_12_surface_albedo = 1.0;
 }  // namespace disort_test::reference
