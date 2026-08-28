@@ -292,6 +292,14 @@ void test_scalar_limit() {
                                  1.0,
                                  0.0);
 
+  const Vector               user_mu{-1.0, -0.5, -0.1, 0.1, 0.5, 1.0};
+  vdisort::phase_matrix_data user_phase(2, modes, 1, user_mu.size(), nquad, rtepack::muelmat{0.0});
+  for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu)
+    for (Index j = 0; j < nquad; ++j) user_phase[vdisort::cosine_mode, 0, 0, iu, j][0, 0] = 1.0;
+  vdisort::beam_phase_matrix_data user_beam_phase(2, modes, 1, user_mu.size(), rtepack::muelmat{0.0});
+  for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu)
+    user_beam_phase[vdisort::cosine_mode, 0, 0, iu][0, 0] = 1.0;
+
   for (const Numeric optical_depth : {0.0, 0.2, 0.8}) {
     vdisort::u0_data vu;
     disort::u0_data  su;
@@ -302,6 +310,17 @@ void test_scalar_limit() {
       expect_close(vu.u0[i][1], 0.0, "scalar-limit Q");
       expect_close(vu.u0[i][2], 0.0, "scalar-limit U");
       expect_close(vu.u0[i][3], 0.0, "scalar-limit V");
+    }
+
+    vdisort::user_u_data vector_user;
+    disort::user_u_data  scalar_user;
+    vector_model.u_user(vector_user, optical_depth, 0.0, user_mu, user_phase, user_beam_phase);
+    scalar_model.u_user(scalar_user, optical_depth, 0.0, user_mu);
+    for (Index i = 0; i < static_cast<Index>(user_mu.size()); ++i) {
+      expect_close(vector_user.intensities[i].I(), scalar_user.intensities[i], "user-angle scalar-limit I");
+      expect_close(vector_user.intensities[i].Q(), 0.0, "user-angle scalar-limit Q");
+      expect_close(vector_user.intensities[i].U(), 0.0, "user-angle scalar-limit U");
+      expect_close(vector_user.intensities[i].V(), 0.0, "user-angle scalar-limit V");
     }
   }
 }

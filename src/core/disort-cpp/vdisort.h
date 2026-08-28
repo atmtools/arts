@@ -56,6 +56,11 @@ struct u_data {
   rtepack::stokvec_vector intensities;  // [NQuad]
 };
 
+/** Scratch and result storage for the formal solution at user directions. */
+struct user_u_data {
+  rtepack::stokvec_vector intensities;  // [NUser]
+};
+
 struct u0_data {
   rtepack::stokvec_vector u0;  // [NQuad]
 };
@@ -220,6 +225,26 @@ class main_data {
   [[nodiscard]] Index tau_index(Numeric tau) const;
 
   void u(u_data& data, Numeric tau, Numeric phi) const;
+
+  /** Radiance at arbitrary nonzero polar-angle cosines.
+   *
+   * The directional phase inputs contain the combined VDISORT matrices at
+   * the requested outgoing directions.  Their shapes are
+   * [2, NFourier, NLayers, NUser, NQuad] and, for the direct beam,
+   * [2, NFourier, NLayers, NUser].  Supplying these values explicitly avoids
+   * attempting to reconstruct unsampled polarized phase matrices from the
+   * quadrature grid.
+   *
+   * The discrete-ordinate field is formally integrated along each requested
+   * ray.  This call is on demand and does not add work to u(), gridded_u(), or
+   * the flux methods.
+   */
+  void u_user(user_u_data&                  data,
+              Numeric                       tau,
+              Numeric                       phi,
+              const ConstVectorView&        user_mu,
+              const phase_matrix_data&      user_phase_matrix,
+              const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
   void u0(u0_data& data, Numeric tau) const;
 
   [[nodiscard]] Numeric                     flux_up(flux_data&, Numeric tau) const;
