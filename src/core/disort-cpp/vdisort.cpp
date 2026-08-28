@@ -1014,12 +1014,20 @@ void main_data::u_user(user_u_data&                  data,
                        const ConstVectorView&        user_mu,
                        const phase_matrix_data&      user_phase_matrix,
                        const beam_phase_matrix_data& user_beam_phase_matrix) const {
+  u_user_cache(data, tau, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  u_user_from_cache(data, phi);
+}
+
+void main_data::u_user_cache(user_u_data&                  data,
+                             const Numeric                 tau,
+                             const ConstVectorView&        user_mu,
+                             const phase_matrix_data&      user_phase_matrix,
+                             const beam_phase_matrix_data& user_beam_phase_matrix) const {
   ARTS_TIME_REPORT
 
   const Index nuser = static_cast<Index>(user_mu.size());
   ARTS_USER_ERROR_IF(
       tau < 0.0 or tau > tau_arr.back(), "Optical depth must be in [0, {}], got {}", tau_arr.back(), tau);
-  ARTS_USER_ERROR_IF(phi < 0.0 or phi >= Constant::two_pi, "phi must be in [0, 2*pi), got {}", phi);
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(user_mu,
                           [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
@@ -1058,10 +1066,9 @@ void main_data::u_user(user_u_data&                  data,
         return result;
       };
 
-  data.intensities.resize(nuser);
-  data.intensities                           = rtepack::stokvec{};
+  data.modes.resize(nuser, 2 * NFourier);
+  data.modes                                 = rtepack::stokvec{};
   const Index                   output_layer = tau_index(tau);
-  std::vector<rtepack::stokvec> modes(static_cast<std::size_t>(2 * NFourier));
   std::vector<rtepack::stokvec> segment_integral(static_cast<std::size_t>(2 * NFourier));
   Matrix                        field(2 * NFourier, NState);
   Matrix                        bottom_field;
@@ -1098,8 +1105,8 @@ void main_data::u_user(user_u_data&                  data,
             mode += 0.5 * mu0 * std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
         }
-        mode                                                  *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
-        modes[static_cast<std::size_t>(alpha * NFourier + m)]  = mode;
+        mode                                 *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
+        data.modes[iu, alpha * NFourier + m]  = mode;
       }
     }
 
@@ -1158,17 +1165,31 @@ void main_data::u_user(user_u_data&                  data,
           }
         }
         for (Index mode = 0; mode < 2 * NFourier; ++mode)
-          modes[static_cast<std::size_t>(mode)] += halfwidth * segment_integral[static_cast<std::size_t>(mode)];
+          data.modes[iu, mode] += halfwidth * segment_integral[static_cast<std::size_t>(mode)];
       }
     }
+  }
+}
 
+void main_data::u_user_from_cache(user_u_data& data, const Numeric phi) const {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(phi < 0.0 or phi >= Constant::two_pi, "phi must be in [0, 2*pi), got {}", phi);
+  ARTS_USER_ERROR_IF(data.modes.ncols() != 2 * NFourier,
+                     "Cached user modes have shape {:B,}, expected [NUser, {}] Stokes blocks",
+                     data.modes.shape(),
+                     2 * NFourier);
+  const Index nuser = data.modes.nrows();
+  data.intensities.resize(nuser);
+  data.intensities = rtepack::stokvec{};
+  for (Index iu = 0; iu < nuser; ++iu) {
     for (Index m = 0; m < NFourier; ++m) {
       const Numeric c = std::cos(static_cast<Numeric>(m) * (phi0 - phi));
       const Numeric s = std::sin(static_cast<Numeric>(m) * (phi0 - phi));
       for (Index stokes = 0; stokes < 2; ++stokes)
-        data.intensities[iu][stokes] += modes[m][stokes] * c + modes[NFourier + m][stokes] * s;
+        data.intensities[iu][stokes] += data.modes[iu, m][stokes] * c + data.modes[iu, NFourier + m][stokes] * s;
       for (Index stokes = 2; stokes < 4; ++stokes)
-        data.intensities[iu][stokes] += modes[NFourier + m][stokes] * c + modes[m][stokes] * s;
+        data.intensities[iu][stokes] += data.modes[iu, NFourier + m][stokes] * c + data.modes[iu, m][stokes] * s;
     }
   }
 }

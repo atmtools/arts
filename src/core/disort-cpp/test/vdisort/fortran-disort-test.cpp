@@ -438,11 +438,12 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
                                             moments[nquad]);
 
   vdisort::user_u_data user;
-  for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
-    for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
-      const Numeric physical_tau = disort_test::reference::problem_4_output_tau[level];
-      const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
-      model.solver.u_user(user, scaled_tau, test.azimuth[azimuth], user_mu, model.user_phase, model.user_beam_phase);
+  for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
+    const Numeric physical_tau = disort_test::reference::problem_4_output_tau[level];
+    const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
+    model.solver.u_user_cache(user, scaled_tau, user_mu, model.user_phase, model.user_beam_phase);
+    for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
+      model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
       const Vector correction = scalar_delta_m_correction(model, physical_tau, test.azimuth[azimuth], user_mu);
       for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
         user.intensities[angle].I() += correction[angle];
@@ -1017,14 +1018,14 @@ void test_problem_9() {
         test, disort_test::reference::problem_9_streams, disort_test::reference::problem_9_user_mu);
     vdisort::user_u_data user;
     vdisort::flux_data   flux_data;
-    for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
-      for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
-        model.solver.u_user(user,
-                            test.output_tau[level],
-                            test.azimuth[azimuth],
-                            disort_test::reference::problem_9_user_mu,
-                            model.user_phase,
-                            model.user_beam_phase);
+    for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
+      model.solver.u_user_cache(user,
+                                test.output_tau[level],
+                                disort_test::reference::problem_9_user_mu,
+                                model.user_phase,
+                                model.user_beam_phase);
+      for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
+        model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
         for (Index angle = 0; angle < static_cast<Index>(user.intensities.size()); ++angle) {
           expect_unpolarized(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                              user.intensities[angle]);
@@ -1034,6 +1035,7 @@ void test_problem_9() {
                            test.thermal ? 1e-3 : reference_tolerance);
         }
       }
+    }
 
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
       const auto flux = model.solver.flux(flux_data, test.output_tau[level]);
@@ -1525,9 +1527,9 @@ void test_problem_14() {
                          2e-5);
 
     vdisort::user_u_data user;
+    model.solver.u_user_cache(user, 0.0, problem_14_user_mu, model.user_phase, model.user_beam_phase);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
-      model.solver.u_user(
-          user, 0.0, test.azimuth[azimuth], problem_14_user_mu, model.user_phase, model.user_beam_phase);
+      model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle) {
         const auto label = std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
         expect_unpolarized(label, user.intensities[angle]);
@@ -1679,14 +1681,14 @@ void test_problem_15() {
     const auto& test = problem_15[case_index];
     if (case_index != 0) update_scalar_brdf(model, problem_15_raw(test.type), problem_15_streams);
     vdisort::user_u_data user;
-    for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth)
-      for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
-        model.solver.u_user(user,
-                            scaled_depth(problem_15_output_tau[level]),
-                            problem_15_azimuth[azimuth],
-                            problem_15_user_mu,
-                            model.user_phase,
-                            model.user_beam_phase);
+    for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
+      model.solver.u_user_cache(user,
+                                scaled_depth(problem_15_output_tau[level]),
+                                problem_15_user_mu,
+                                model.user_phase,
+                                model.user_beam_phase);
+      for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth) {
+        model.solver.u_user_from_cache(user, problem_15_azimuth[azimuth]);
         const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth);
         for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
           user.intensities[angle] += corr[angle];
@@ -1695,6 +1697,7 @@ void test_problem_15() {
           expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, level, angle]);
         }
       }
+    }
 
     vdisort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
@@ -1748,20 +1751,21 @@ void test_problem_17() {
 
     vdisort::user_u_data user;
     const Vector         physical_tau{0.0, test.depth};
-    for (Index level = 0; level < static_cast<Index>(physical_tau.size()); ++level)
+    for (Index level = 0; level < static_cast<Index>(physical_tau.size()); ++level) {
+      model.solver.u_user_cache(user,
+                                model.optical_depth_scale * physical_tau[level],
+                                problem_17_user_mu,
+                                model.user_phase,
+                                model.user_beam_phase);
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_17_azimuth.size()); ++azimuth) {
-        model.solver.u_user(user,
-                            model.optical_depth_scale * physical_tau[level],
-                            problem_17_azimuth[azimuth],
-                            problem_17_user_mu,
-                            model.user_phase,
-                            model.user_beam_phase);
+        model.solver.u_user_from_cache(user, problem_17_azimuth[azimuth]);
         for (Index angle = 0; angle < static_cast<Index>(problem_17_user_mu.size()); ++angle) {
           const auto label = std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth);
           expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle, azimuth]);
           expect_unpolarized(label, user.intensities[angle]);
         }
       }
+    }
   }
 }
 
@@ -1812,6 +1816,8 @@ void test_polarized_delta_m_correction() {
 }  // namespace
 
 int main() try {
+  ARTS_TIME_REPORT
+
   test_problem_1();
   test_problem_2();
   test_problem_3();

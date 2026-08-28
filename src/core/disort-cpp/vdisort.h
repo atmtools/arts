@@ -60,6 +60,7 @@ struct u_data {
 /** Scratch and result storage for the formal solution at user directions. */
 struct user_u_data {
   rtepack::stokvec_vector intensities;  // [NUser]
+  rtepack::stokvec_matrix modes;        // [NUser, 2 * NFourier]
 };
 
 struct u0_data {
@@ -311,6 +312,16 @@ class main_data {
               const ConstVectorView&        user_mu,
               const phase_matrix_data&      user_phase_matrix,
               const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
+
+  /** Compute and retain the azimuth-independent Fourier modes for user rays. */
+  void u_user_cache(user_u_data&                  data,
+                    Numeric                       tau,
+                    const ConstVectorView&        user_mu,
+                    const phase_matrix_data&      user_phase_matrix,
+                    const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
+
+  /** Synthesize an azimuth from the most recent u_user_cache() result. */
+  void u_user_from_cache(user_u_data& data, Numeric phi) const;
   void u0(u0_data& data, Numeric tau) const;
 
   [[nodiscard]] Numeric                     flux_up(flux_data&, Numeric tau) const;
