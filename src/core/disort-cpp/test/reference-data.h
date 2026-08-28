@@ -292,4 +292,8 @@ inline const std::array problem_9{
 inline const Vector problem_10_output_tau{0.0, 2.1, 21.0};
 inline const Vector problem_10_azimuth{Constant::pi / 3.0, 2.0 * Constant::pi / 3.0};
 inline const Vector problem_10_user_mu{-0.788675129, -0.211324871, 0.211324871, 0.788675129};
+
+inline const Vector problem_11_output_tau{0.0, 0.05, 0.5, 1.0};
+inline const Vector problem_11_user_mu{-1.0, -0.1, 0.1, 1.0};
+inline const Vector problem_11_azimuth{0.0, Constant::pi / 2.0};
 }  // namespace disort_test::reference

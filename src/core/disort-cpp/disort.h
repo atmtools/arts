@@ -99,10 +99,14 @@ struct tms_data {
 };
 
 struct flux_data {
-  Vector         exponent;
-  mathscr_v_data src;
-  Vector         u0_pos;
-  Vector         u0_neg;
+  u0_data u0;
+};
+
+struct flux_values {
+  Numeric up{};
+  Numeric down_diffuse{};
+  Numeric down_direct{};
+  Numeric dfdt{};
 };
 
 struct coupling_result {
@@ -111,7 +115,7 @@ struct coupling_result {
   bool    converged{false};
 };
 
-enum class ims_convention {
+enum class ims_convention : bool {
   /** DISORT 4.0.99 INTCOR: subtract IMS within the 10-degree aureole. */
   disort,
   /** Pythonic-DISORT NT correction: add IMS in every downward direction. */
@@ -377,6 +381,9 @@ class main_data {
                       Tensor3View ims,
                       const Vector& phi,
                       ims_convention convention = ims_convention::disort) const;
+
+  /** Compute all flux quantities at a given tau from one zeroth-mode evaluation. */
+  [[nodiscard]] flux_values flux(flux_data&, Numeric tau) const;
 
   /** Compute the upward flux at a given tau
     *

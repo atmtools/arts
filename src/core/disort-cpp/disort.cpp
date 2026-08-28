@@ -1115,15 +1115,15 @@ namespace {
 void user_angle_barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
   const Index n = nodes.size();
   weights.resize(n);
-  Vector log_weights(n);
+  Vector  log_weights(n);
   Numeric largest = -std::numeric_limits<Numeric>::infinity();
   for (Index i = 0; i < n; ++i) {
-    Numeric sign = 1.0;
+    Numeric sign   = 1.0;
     log_weights[i] = 0.0;
     for (Index j = 0; j < n; ++j) {
       if (i == j) continue;
-      const Numeric d = nodes[i] - nodes[j];
-      log_weights[i] -= std::log(std::abs(d));
+      const Numeric d  = nodes[i] - nodes[j];
+      log_weights[i]  -= std::log(std::abs(d));
       if (d < 0.0) sign = -sign;
     }
     weights[i] = sign;
@@ -1132,19 +1132,16 @@ void user_angle_barycentric_weights(Vector& weights, const ConstVectorView& node
   for (Index i = 0; i < n; ++i) weights[i] *= std::exp(log_weights[i] - largest);
 }
 
-Numeric user_angle_barycentric(Vector& weights,
-                               Vector& work,
-                               const ConstVectorView& nodes,
-                               const ConstVectorView& values,
-                               const Numeric x) {
+Numeric user_angle_barycentric(
+    Vector& weights, Vector& work, const ConstVectorView& nodes, const ConstVectorView& values, const Numeric x) {
   if (weights.size() != nodes.size()) user_angle_barycentric_weights(weights, nodes);
   work.resize(nodes.size());
   Numeric numerator = 0.0, denominator = 0.0;
   for (Size i = 0; i < nodes.size(); ++i) {
     const Numeric d = x - nodes[i];
     if (d == 0.0) return values[i];
-    work[i] = weights[i] / d;
-    numerator += work[i] * values[i];
+    work[i]      = weights[i] / d;
+    numerator   += work[i] * values[i];
     denominator += work[i];
   }
   return numerator / denominator;
@@ -1156,45 +1153,37 @@ Numeric user_angle_exponential_integral(const Numeric k,
                                         const Numeric upper,
                                         const Numeric observation,
                                         const Numeric abs_mu,
-                                        const bool downward) {
+                                        const bool    downward) {
   if (upper <= lower) return 0.0;
   const auto exponent = [&](const Numeric optical_depth) {
     const Numeric distance = downward ? observation - optical_depth : optical_depth - observation;
     return k * (optical_depth - reference) - distance / abs_mu;
   };
-  const Numeric e0 = exponent(lower);
-  const Numeric e1 = exponent(upper);
-  const Numeric z  = e1 - e0;
-  const Numeric average = z == 0.0   ? std::exp(e0)
-                          : z > 0.0  ? std::exp(e1) * (-std::expm1(-z) / z)
-                                     : std::exp(e0) * (std::expm1(z) / z);
+  const Numeric e0      = exponent(lower);
+  const Numeric e1      = exponent(upper);
+  const Numeric z       = e1 - e0;
+  const Numeric average = z == 0.0  ? std::exp(e0)
+                          : z > 0.0 ? std::exp(e1) * (-std::expm1(-z) / z)
+                                    : std::exp(e0) * (std::expm1(z) / z);
   return (upper - lower) / abs_mu * average;
 }
 }  // namespace
 
-void main_data::u_user(user_u_data& data,
-                       const Numeric tau,
-                       const Numeric phi,
-                       const ConstVectorView& user_mu) const {
+void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, const ConstVectorView& user_mu) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau < 0.0 || tau > tau_arr.back(),
-                     "Optical depth must be in [0, {}], got {}",
-                     tau_arr.back(),
-                     tau);
   ARTS_USER_ERROR_IF(
-      stdr::any_of(user_mu,
-                   [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }),
+      tau < 0.0 || tau > tau_arr.back(), "Optical depth must be in [0, {}], got {}", tau_arr.back(), tau);
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
 
   const Index   output_layer = tau_index(tau);
-  const Numeric scaled_output = scaled_tau_arr_with_0[output_layer + 1] - (tau_arr[output_layer] - tau) * scale_tau[output_layer];
+  const Numeric scaled_output =
+      scaled_tau_arr_with_0[output_layer + 1] - (tau_arr[output_layer] - tau) * scale_tau[output_layer];
 
-  const auto scattering_source = [&](const Index m,
-                                     const Index layer,
-                                     const Numeric mu,
-                                     const auto& ordinate_values) {
+  const auto scattering_source = [&](const Index m, const Index layer, const Numeric mu, const auto& ordinate_values) {
     Numeric result = 0.0;
     for (Index degree = m; degree < NLeg; ++degree) {
       Numeric moment = 0.0;
@@ -1213,8 +1202,7 @@ void main_data::u_user(user_u_data& data,
     if (data.barycentric_weights.size() != static_cast<Size>(N)) {
       user_angle_barycentric_weights(data.barycentric_weights, mu_arr[rf(N)]);
     }
-    return user_angle_barycentric(
-        data.barycentric_weights, data.interpolation_work, nodes, values, mu);
+    return user_angle_barycentric(data.barycentric_weights, data.interpolation_work, nodes, values, mu);
   };
 
   static const auto source_quadrature = [] {
@@ -1248,11 +1236,11 @@ void main_data::u_user(user_u_data& data,
             bottom += (1 + (m == 0)) * reflectivity[0, j] * mu_arr[j] * W[j] * um[bottom_layer, m, N + j];
           }
           if (has_beam_source) {
-            Matrix direct_reflectivity(1, 1);
+            Matrix       direct_reflectivity(1, 1);
             const Vector beam_direction{-mu0};
             brdf_fourier_modes[m](direct_reflectivity, outgoing, beam_direction);
-            bottom += direct_reflectivity[0, 0] * mu0 * I0 / Constant::pi *
-                      std::exp(-scaled_tau_arr_with_0.back() / mu0);
+            bottom +=
+                direct_reflectivity[0, 0] * mu0 * I0 / Constant::pi * std::exp(-scaled_tau_arr_with_0.back() / mu0);
           }
         }
         mode = bottom * std::exp(-(scaled_tau_arr_with_0.back() - scaled_output) / abs_mu);
@@ -1268,10 +1256,10 @@ void main_data::u_user(user_u_data& data,
         if (upper <= lower) continue;
 
         for (Index q = 0; q < NQuad; ++q) {
-          const Numeric source = scattering_source(m, layer, mu, GC_collect[m, layer, joker, q]);
-          const Numeric reference = q < N ? layer_top : layer_bottom;
-          mode += source * user_angle_exponential_integral(
-                               K_collect[m, layer, q], reference, lower, upper, scaled_output, abs_mu, downward);
+          const Numeric source     = scattering_source(m, layer, mu, GC_collect[m, layer, joker, q]);
+          const Numeric reference  = q < N ? layer_top : layer_bottom;
+          mode                    += source * user_angle_exponential_integral(
+                                                  K_collect[m, layer, q], reference, lower, upper, scaled_output, abs_mu, downward);
         }
 
         if (has_beam_source) {
@@ -1279,11 +1267,10 @@ void main_data::u_user(user_u_data& data,
           for (Index degree = m; degree < NLeg; ++degree) {
             source += scaled_omega_arr[layer] * I0 * (2 - (m == 0)) / (4 * Constant::pi) *
                       weighted_scaled_Leg_coeffs[layer, degree] * poch(degree + m + 1, -2 * m) *
-                      Legendre::assoc_legendre(degree, m, mu) *
-                      Legendre::assoc_legendre(degree, m, -mu0);
+                      Legendre::assoc_legendre(degree, m, mu) * Legendre::assoc_legendre(degree, m, -mu0);
           }
-          mode += source * user_angle_exponential_integral(
-                               -1.0 / mu0, 0.0, lower, upper, scaled_output, abs_mu, downward);
+          mode +=
+              source * user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, scaled_output, abs_mu, downward);
         }
 
         if (has_source_poly && m == 0) {
@@ -1291,8 +1278,8 @@ void main_data::u_user(user_u_data& data,
           const Numeric halfwidth = 0.5 * (upper - lower);
           Numeric       integral  = 0.0;
           for (Index k = 0; k < static_cast<Index>(source_quadrature.first.size()); ++k) {
-            const Numeric scaled_point = midpoint + halfwidth * source_quadrature.first[k];
-            const Numeric physical_top = layer == 0 ? 0.0 : tau_arr[layer - 1];
+            const Numeric scaled_point   = midpoint + halfwidth * source_quadrature.first[k];
+            const Numeric physical_top   = layer == 0 ? 0.0 : tau_arr[layer - 1];
             const Numeric physical_point = physical_top + (scaled_point - layer_top) / scale_tau[layer];
             mathscr_v(data.particular,
                       data.source,
@@ -1306,10 +1293,10 @@ void main_data::u_user(user_u_data& data,
             for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient) {
               polynomial = std::fma(polynomial, physical_point, source_poly_coeffs[layer, coefficient]);
             }
-            const Numeric source = scattering_source(0, layer, mu, data.particular) +
-                                   (1.0 - omega_arr[layer]) / scale_tau[layer] * polynomial;
-            const Numeric distance = downward ? scaled_output - scaled_point : scaled_point - scaled_output;
-            integral += source_quadrature.second[k] * source * std::exp(-distance / abs_mu) / abs_mu;
+            const Numeric source    = scattering_source(0, layer, mu, data.particular) +
+                                      (1.0 - omega_arr[layer]) / scale_tau[layer] * polynomial;
+            const Numeric distance  = downward ? scaled_output - scaled_point : scaled_point - scaled_output;
+            integral               += source_quadrature.second[k] * source * std::exp(-distance / abs_mu) / abs_mu;
           }
           mode += halfwidth * integral;
         }
@@ -1415,14 +1402,9 @@ Numeric ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
 }
 }  // namespace
 
-void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const {
-  TMS(data, tau, phi, mu_arr);
-}
+void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const { TMS(data, tau, phi, mu_arr); }
 
-void main_data::TMS(tms_data& data,
-                    const Numeric tau,
-                    const Numeric phi,
-                    const ConstVectorView& mu) const {
+void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi, const ConstVectorView& mu) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
@@ -1430,13 +1412,9 @@ void main_data::TMS(tms_data& data,
   evaluate_TMS(data, tau, mu);
 }
 
-void main_data::prepare_TMS(tms_data& data,
-                            const Numeric phi,
-                            const ConstVectorView& mu) const {
+void main_data::prepare_TMS(tms_data& data, const Numeric phi, const ConstVectorView& mu) const {
   for (const Numeric x : mu)
-    ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0,
-                       "Polar-angle cosine ({}) must be nonzero and in [-1, 1]",
-                       x);
+    ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0, "Polar-angle cosine ({}) must be nonzero and in [-1, 1]", x);
 
   // The upward beam factor is regular and remains in mathscr_B.  The
   // downward factor has a removable singularity at mu == mu0 and is folded
@@ -1456,9 +1434,7 @@ void main_data::prepare_TMS(tms_data& data,
   }
 }
 
-void main_data::evaluate_TMS(tms_data& data,
-                             const Numeric tau,
-                             const ConstVectorView& mu) const {
+void main_data::evaluate_TMS(tms_data& data, const Numeric tau, const ConstVectorView& mu) const {
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
@@ -1467,48 +1443,44 @@ void main_data::evaluate_TMS(tms_data& data,
 
   const Index nmu = mu.size();
   data.TMS.resize(nmu);
-  data.TMS = 0.0;
+  data.TMS             = 0.0;
   const Numeric exptau = std::exp(-scaled_tau / mu0);
   for (Index j = 0; j < nmu; ++j) {
     const Numeric abs_mu = std::abs(mu[j]);
     if (mu[j] > 0.0) {
       const Numeric at_bottom = std::exp((scaled_tau - scaled_tau_arr_l) / abs_mu - scaled_tau_arr_l / mu0);
-      data.TMS[j] = data.mathscr_B[l, j] * (exptau - at_bottom);
+      data.TMS[j]             = data.mathscr_B[l, j] * (exptau - at_bottom);
       for (Index i = l + 1; i < NLayers; ++i) {
-        const Numeric top    = scaled_tau_arr_with_0[i];
-        const Numeric bottom = scaled_tau_arr_with_0[i + 1];
-        const Numeric at_top = std::exp((scaled_tau - top) / abs_mu - top / mu0);
-        const Numeric at_bottom_i = std::exp((scaled_tau - bottom) / abs_mu - bottom / mu0);
-        data.TMS[j] += data.mathscr_B[i, j] * (at_top - at_bottom_i);
+        const Numeric top          = scaled_tau_arr_with_0[i];
+        const Numeric bottom       = scaled_tau_arr_with_0[i + 1];
+        const Numeric at_top       = std::exp((scaled_tau - top) / abs_mu - top / mu0);
+        const Numeric at_bottom_i  = std::exp((scaled_tau - bottom) / abs_mu - bottom / mu0);
+        data.TMS[j]               += data.mathscr_B[i, j] * (at_top - at_bottom_i);
       }
     } else {
       const Numeric at_top = std::exp((scaled_tau_arr_lm1 - scaled_tau) / abs_mu - scaled_tau_arr_lm1 / mu0);
-      data.TMS[j] = data.mathscr_B[l, j] *
-                    downward_tms_kernel(abs_mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, at_top);
+      data.TMS[j] =
+          data.mathscr_B[l, j] * downward_tms_kernel(abs_mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, at_top);
       for (Index i = 0; i < l; ++i) {
         const Numeric top       = scaled_tau_arr_with_0[i];
         const Numeric bottom    = scaled_tau_arr_with_0[i + 1];
         const Numeric at_bottom = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0);
         const Numeric at_top_i  = std::exp((top - scaled_tau) / abs_mu - top / mu0);
-        data.TMS[j] += data.mathscr_B[i, j] *
-                       downward_tms_kernel(abs_mu, mu0, bottom - top, at_bottom, at_top_i);
+        data.TMS[j] += data.mathscr_B[i, j] * downward_tms_kernel(abs_mu, mu0, bottom - top, at_bottom, at_top_i);
       }
     }
   }
 }
 
-void main_data::IMS(Vector& ims,
-                    const Numeric tau,
-                    const Numeric phi,
-                    const ims_convention convention) const {
+void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi, const ims_convention convention) const {
   IMS(ims, tau, phi, mu_arr[rb(N)], convention);
 }
 
-void main_data::IMS(Vector& ims,
-                    const Numeric tau,
-                    const Numeric phi,
+void main_data::IMS(Vector&                ims,
+                    const Numeric          tau,
+                    const Numeric          phi,
                     const ConstVectorView& mu,
-                    const ims_convention convention) const {
+                    const ims_convention   convention) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
@@ -1518,12 +1490,11 @@ void main_data::IMS(Vector& ims,
   const Numeric thickness = tau_arr[l] - tau_top;
 
   ims.resize(mu.size());
-  ims = 0.0;
+  ims             = 0.0;
   const Index nmu = mu.size();
   for (Index i = 0; i < nmu; i++) {
-    ARTS_USER_ERROR_IF(mu[i] == 0.0 || std::abs(mu[i]) > 1.0,
-                       "Polar-angle cosine ({}) must be nonzero and in [-1, 1]",
-                       mu[i]);
+    ARTS_USER_ERROR_IF(
+        mu[i] == 0.0 || std::abs(mu[i]) > 1.0, "Polar-angle cosine ({}) must be nonzero and in [-1, 1]", mu[i]);
     if (mu[i] > 0.0) continue;
     const Numeric abs_mu = -mu[i];
     const Numeric nu     = calculate_nu(mu[i], phi, -mu0, phi0);
@@ -1553,11 +1524,11 @@ void main_data::IMS(Vector& ims,
   }
 }
 
-void main_data::u_user_corr(user_u_data& data,
-                            Vector& ims,
-                            tms_data& tms,
-                            const Numeric tau,
-                            const Numeric phi,
+void main_data::u_user_corr(user_u_data&           data,
+                            Vector&                ims,
+                            tms_data&              tms,
+                            const Numeric          tau,
+                            const Numeric          phi,
                             const ConstVectorView& user_mu) const {
   ARTS_TIME_REPORT
 
@@ -1567,15 +1538,14 @@ void main_data::u_user_corr(user_u_data& data,
   TMS(tms, tau, phi, user_mu);
   IMS(ims, tau, phi, user_mu);
   const Index nmu = user_mu.size();
-  for (Index i = 0; i < nmu; ++i)
-    data.intensities[i] += I0_orig * (tms.TMS[i] + ims[i]);
+  for (Index i = 0; i < nmu; ++i) data.intensities[i] += I0_orig * (tms.TMS[i] + ims[i]);
 }
 
-void main_data::u_corr(u_data& u_data,
-                       Vector& ims,
-                       tms_data& tms_data,
-                       const Numeric tau,
-                       const Numeric phi,
+void main_data::u_corr(u_data&              u_data,
+                       Vector&              ims,
+                       tms_data&            tms_data,
+                       const Numeric        tau,
+                       const Numeric        phi,
                        const ims_convention convention) const {
   ARTS_TIME_REPORT
 
@@ -1596,13 +1566,10 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
 
   Matrix ray_transport(N, NLayers);
   Vector beam_at_boundary(NLayers + 1);
-  for (Index l = 0; l <= NLayers; ++l)
-    beam_at_boundary[l] = std::exp(-scaled_tau_arr_with_0[l] / mu0);
+  for (Index l = 0; l <= NLayers; ++l) beam_at_boundary[l] = std::exp(-scaled_tau_arr_with_0[l] / mu0);
   for (Index angle = 0; angle < N; ++angle)
     for (Index l = 0; l < NLayers; ++l)
-      ray_transport[angle, l] =
-          std::exp(-(scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]) /
-                   mu_arr[angle]);
+      ray_transport[angle, l] = std::exp(-(scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]) / mu_arr[angle]);
 
   // At layer boundaries the transport from one boundary to the next is a
   // recurrence.  Prepare the phase coefficients once per azimuth and sweep
@@ -1621,46 +1588,42 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
         const Numeric transport = ray_transport[angle, l];
         const Numeric at_bottom = beam_at_boundary[l + 1];
         const Numeric at_top    = transport * beam_at_boundary[l];
-        downward = transport * downward +
-                   t.mathscr_B[l, angle + N] *
-                       downward_tms_kernel(mu, mu0, thickness, at_bottom, at_top);
+        downward             = transport * downward +
+                               t.mathscr_B[l, angle + N] * downward_tms_kernel(mu, mu0, thickness, at_bottom, at_top);
         tms[l, j, angle + N] = downward;
       }
 
-      Numeric upward = 0.0;
+      Numeric upward             = 0.0;
       tms[NLayers - 1, j, angle] = 0.0;
       for (Index l = NLayers - 1; l > 0; --l) {
         const Numeric transport = ray_transport[angle, l];
         const Numeric at_top    = beam_at_boundary[l];
         const Numeric at_bottom = transport * beam_at_boundary[l + 1];
-        upward = transport * upward + t.mathscr_B[l, angle] * (at_top - at_bottom);
-        tms[l - 1, j, angle] = upward;
+        upward                  = transport * upward + t.mathscr_B[l, angle] * (at_top - at_bottom);
+        tms[l - 1, j, angle]    = upward;
       }
     }
   }
 }
 
-void main_data::gridded_IMS(Tensor3View ims,
-                            const Vector& phi,
-                            const ims_convention convention) const {
+void main_data::gridded_IMS(Tensor3View ims, const Vector& phi, const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   const Index M = phi.size();
 
-  Vector nu;
-  const auto downward_mu = mu_arr[rb(N)];
-  const Numeric beam_theta = std::acos(-mu0);
-  Matrix depth_factor(NLayers, N, 0.0);
+  Vector        nu;
+  const auto    downward_mu = mu_arr[rb(N)];
+  const Numeric beam_theta  = std::acos(-mu0);
+  Matrix        depth_factor(NLayers, N, 0.0);
   for (Index angle = 0; angle < N; ++angle) {
-    const Numeric mu = -downward_mu[angle];
-    const bool in_aureole = convention == ims_convention::pythonic_disort ||
-                            std::abs(beam_theta - std::acos(downward_mu[angle])) <= Constant::pi / 18.0;
+    const Numeric mu         = -downward_mu[angle];
+    const bool    in_aureole = convention == ims_convention::pythonic_disort ||
+                               std::abs(beam_theta - std::acos(downward_mu[angle])) <= Constant::pi / 18.0;
     if (!in_aureole) continue;
     for (Index l = 0; l < NLayers; ++l) {
-      const Index boundary = l + 1;
-      const Numeric sign = convention == ims_convention::disort ? -1.0 : 1.0;
-      depth_factor[l, angle] =
-          sign * IMS_scalar[boundary] * ims_chi(tau_arr[l], mu, scaled_mu0[boundary]);
+      const Index   boundary = l + 1;
+      const Numeric sign     = convention == ims_convention::disort ? -1.0 : 1.0;
+      depth_factor[l, angle] = sign * IMS_scalar[boundary] * ims_chi(tau_arr[l], mu, scaled_mu0[boundary]);
     }
   }
   for (Index j = 0; j < M; ++j) {
@@ -1668,19 +1631,14 @@ void main_data::gridded_IMS(Tensor3View ims,
     for (Index angle = 0; angle < N; ++angle) {
       for (Index l = 0; l < NLayers; ++l) {
         const Index boundary = l + 1;
-        ims[l, j, angle] = depth_factor[l, angle] *
-                           Legendre::legendre_sum(
-                               Leg_coeffs_residue_avg[boundary], nu[angle]);
+        ims[l, j, angle] = depth_factor[l, angle] * Legendre::legendre_sum(Leg_coeffs_residue_avg[boundary], nu[angle]);
       }
     }
   }
 }
 
-void main_data::gridded_u_corr(Tensor3View u_data,
-                               Tensor3View tms,
-                               Tensor3View ims,
-                               const Vector& phi,
-                               const ims_convention convention) const {
+void main_data::gridded_u_corr(
+    Tensor3View u_data, Tensor3View tms, Tensor3View ims, const Vector& phi, const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   gridded_u(u_data, phi);
@@ -1696,87 +1654,41 @@ void main_data::gridded_u_corr(Tensor3View u_data,
   }
 }
 
-Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
+flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be less than the last layer ({})", tau, tau_arr.back());
-
-  const Index l = tau_index(tau);
-
-  const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
-  const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-  const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
-
-  data.u0_pos.resize(N);
-  if (has_source_poly) {
-    data.src.resize(NQuad, Nscoeffs);
-    mathscr_v(
-        data.u0_pos, data.src, tau, omega_arr[l], source_poly_coeffs[l], G_collect[0, l], K_collect[0, l], inv_mu_arr);
-  } else {
-    data.u0_pos = 0.0;
-  }
-
-  if (has_beam_source) {
-    for (Index i = 0; i < N; i++) { data.u0_pos[i] += B_collect[0, l, i] * std::exp(-scaled_tau / mu0); }
-  }
-
-  data.exponent.resize(NQuad);
-  for (Index i = 0; i < N; i++) {
-    data.exponent[i]     = std::exp(K_collect[0, l, i] * (scaled_tau - scaled_tau_arr_lm1));
-    data.exponent[i + N] = std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
-  }
-
-  mult(data.u0_pos, GC_collect[0, l, rf(N), joker], data.exponent, 1.0, 1.0);
-
-  return Constant::two_pi * I0_orig * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0_pos);
-}
-
-std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric tau) const {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be less than the last layer ({})", tau, tau_arr.back());
-
-  const Index l = tau_index(tau);
-
-  const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
-  const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-  const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
-
-  data.u0_neg.resize(N);
-  if (has_source_poly) {
-    data.src.resize(NQuad, Nscoeffs);
-    mathscr_v(data.u0_neg,
-              data.src,
-              tau,
-              omega_arr[l],
-              source_poly_coeffs[l],
-              G_collect[0, l],
-              K_collect[0, l],
-              inv_mu_arr,
-              N);
-  } else {
-    data.u0_neg = 0.0;
-  }
+  const Index   l                = tau_index(tau);
+  const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
+  const Numeric scaled_tau       = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   const Numeric direct_beam        = has_beam_source ? I0 * mu0 * std::exp(-tau / mu0) : 0;
   const Numeric direct_beam_scaled = has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
-  if (has_beam_source) {
-    for (Index i = 0; i < N; i++) { data.u0_neg[i] += B_collect[0, l, i + N] * std::exp(-scaled_tau / mu0); }
+  u0(data.u0, tau);
+
+  flux_values out;
+  out.up           = Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0.u0[rf(N)]);
+  out.down_diffuse = Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0.u0[rb(N)]) -
+                     I0_orig * (direct_beam - direct_beam_scaled);
+  out.down_direct  = I0_orig * direct_beam;
+
+  Numeric mean_intensity = 0.5 * einsum<Numeric, "", "i", "i">(W, data.u0.u0[rf(N)] + data.u0.u0[rb(N)]);
+  if (has_beam_source) mean_intensity += I0_orig * I0 * std::exp(-tau / mu0) / (4.0 * Constant::pi);
+
+  Numeric source = 0.0;
+  if (has_source_poly) {
+    for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient)
+      source = std::fma(source, tau, source_poly_coeffs[l, coefficient]);
   }
+  out.dfdt = (1.0 - omega_arr[l]) * 4.0 * Constant::pi * (mean_intensity - source);
+  return out;
+}
 
-  data.exponent.resize(NQuad);
-  for (Index i = 0; i < N; i++) {
-    data.exponent[i]     = std::exp(K_collect[0, l, i] * (scaled_tau - scaled_tau_arr_lm1));
-    data.exponent[i + N] = std::exp(K_collect[0, l, i + N] * (scaled_tau - scaled_tau_arr_l));
-  }
+Numeric main_data::flux_up(flux_data& data, const Numeric tau) const { return flux(data, tau).up; }
 
-  mult(data.u0_neg, GC_collect[0, l, rb(N), joker], data.exponent, 1.0, 1.0);
-
-  return {I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0_neg) -
-                     direct_beam + direct_beam_scaled),
-          I0_orig * direct_beam};
+std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric tau) const {
+  const auto out = flux(data, tau);
+  return {out.down_diffuse, out.down_direct};
 }
 
 void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd) const {

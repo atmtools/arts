@@ -678,6 +678,64 @@ void test_problem_10() {
                          2e-12);
     }
 }
+
+disort::main_data problem_11_atmosphere(const bool subdivided) {
+  constexpr Index nquad = 16;
+  const Index layers = subdivided ? 3 : 1;
+  Matrix moments(layers, nquad + 1, 0.0);
+  moments[joker, 0] = 1.0;
+  Matrix down(nquad, nquad / 2, 0.0);
+  down[0] = 0.5 * Constant::inv_pi;
+  std::vector<disort::BDRF> brdf{
+      disort::BDRF{[](auto value, auto&, auto&) { value = 0.5; }}};
+  return disort::main_data(nquad,
+                           nquad,
+                           nquad,
+                           subdivided ? AscendingGrid{0.05, 0.5, 1.0} : AscendingGrid{1.0},
+                           Vector(layers, 0.9),
+                           std::move(moments),
+                           Matrix(nquad, nquad / 2, 0.0),
+                           std::move(down),
+                           Vector(layers, 0.0),
+                           Matrix(layers, 0),
+                           std::move(brdf),
+                           0.5,
+                           2.0,
+                           0.0);
+}
+
+void test_problem_11() {
+  const auto one_layer = problem_11_atmosphere(false);
+  const auto subdivided = problem_11_atmosphere(true);
+  disort::user_u_data one_user, subdivided_user;
+  disort::flux_data one_flux, subdivided_flux;
+
+  for (const Numeric phi : disort_test::reference::problem_11_azimuth)
+    for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
+      one_layer.u_user(one_user, tau, phi, disort_test::reference::problem_11_user_mu);
+      subdivided.u_user(subdivided_user, tau, phi, disort_test::reference::problem_11_user_mu);
+      for (Index angle = 0; angle < 4; ++angle)
+        expect_reference(std::format("Problem 11 radiance [{}, {}, {}]", phi, tau, angle),
+                         subdivided_user.intensities[angle],
+                         one_user.intensities[angle],
+                         2e-10);
+    }
+
+  for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
+    const auto one = one_layer.flux(one_flux, tau);
+    const auto many = subdivided.flux(subdivided_flux, tau);
+    expect_reference(std::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-10);
+    expect_reference(std::format("Problem 11 diffuse-down flux [{}]", tau),
+                     many.down_diffuse,
+                     one.down_diffuse,
+                     2e-10);
+    expect_reference(std::format("Problem 11 direct-down flux [{}]", tau),
+                     many.down_direct,
+                     one.down_direct,
+                     2e-10);
+    expect_reference(std::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-10);
+  }
+}
 }  // namespace
 
 int main() try {
@@ -690,6 +748,7 @@ int main() try {
   test_problem_8();
   test_problem_9();
   test_problem_10();
+  test_problem_11();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

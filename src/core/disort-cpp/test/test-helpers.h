@@ -73,10 +73,10 @@ inline std::tuple<Vector, Vector, Vector> compute_flux(const disort::main_data& 
   disort::flux_data flux_data;
 
   for (Size j = 0; j < taus.size(); j++) {
-    auto [ds, dr]        = dis.flux_down(flux_data, taus[j]);
-    flux_up[j]           = dis.flux_up(flux_data, taus[j]);
-    flux_down_diffuse[j] = ds;
-    flux_down_direct[j]  = dr;
+    const auto values    = dis.flux(flux_data, taus[j]);
+    flux_up[j]           = values.up;
+    flux_down_diffuse[j] = values.down_diffuse;
+    flux_down_direct[j]  = values.down_direct;
   }
   return {flux_up, flux_down_diffuse, flux_down_direct};
 }
