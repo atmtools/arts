@@ -1,6 +1,6 @@
-#include "../test-helpers.h"
-
 #include <cstdlib>
+
+#include "../test-helpers.h"
 
 void test_1a() {
   const AscendingGrid tau_arr{0.03125};
@@ -144,7 +144,6 @@ void test_1a() {
   };
 
   compare("test_1a", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
-
 }
 
 void test_1b() {

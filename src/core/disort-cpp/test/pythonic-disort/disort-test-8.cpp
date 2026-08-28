@@ -1,5 +1,4 @@
 #include "../test-helpers.h"
-
 #include "arts_constants.h"
 
 void test_8a() try {

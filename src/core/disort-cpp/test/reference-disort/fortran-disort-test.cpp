@@ -655,10 +655,9 @@ void test_raw_brdfs_and_fourier_helper() {
   expect_reference("Ross-Li raw BRDF", mu0 * RossLi{}(0.5, mu0, Constant::pi / 2.0), 0.0660729, 2e-5);
 
   constexpr Numeric reflectance = 0.37;
-  const auto modes = fourier_modes(
-      [](Numeric, Numeric, Numeric) { return reflectance * Constant::inv_pi; }, 4, 32);
-  const Vector      outgoing{0.2, 0.8};
-  const Vector      incoming{-0.3, -0.9};
+  const auto   modes = fourier_modes([](Numeric, Numeric, Numeric) { return reflectance * Constant::inv_pi; }, 4, 32);
+  const Vector outgoing{0.2, 0.8};
+  const Vector incoming{-0.3, -0.9};
   for (Index mode = 0; mode < 4; ++mode) {
     const Matrix coefficient = modes[mode](outgoing, incoming);
     for (Index i = 0; i < coefficient.nrows(); ++i)
@@ -673,23 +672,22 @@ void test_raw_brdfs_and_fourier_helper() {
 disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {
   using enum disort_test::reference::brdf_type;
   switch (type) {
-    case hapke: return disort::brdf::Hapke{};
+    case hapke:    return disort::brdf::Hapke{};
     case cox_munk: return disort::brdf::CoxMunk{};
-    case rpv: return disort::brdf::RPV{};
-    case ross_li: return disort::brdf::RossLi{};
+    case rpv:      return disort::brdf::RPV{};
+    case ross_li:  return disort::brdf::RossLi{};
   }
   std::unreachable();
 }
 
 disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) {
-  if (type == disort_test::reference::brdf_type::cox_munk)
-    return disort::brdf::CoxMunk{.shadowing = true};
+  if (type == disort_test::reference::brdf_type::cox_munk) return disort::brdf::CoxMunk{.shadowing = true};
   return problem_14_raw(type);
 }
 
 void test_problem_14() {
   using namespace disort_test::reference;
-  constexpr Numeric transparent_depth = 1e-12;
+  constexpr Numeric transparent_depth      = 1e-12;
   constexpr Numeric transparent_scattering = 1e-8;
 
   for (const auto& test : problem_14) {
@@ -697,9 +695,7 @@ void test_problem_14() {
     for (Index azimuth = 0; azimuth < 3; ++azimuth)
       for (Index angle = 0; angle < 4; ++angle)
         expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
-                         problem_14_beam_mu * raw(problem_14_user_mu[angle],
-                                                  problem_14_beam_mu,
-                                                  test.azimuth[azimuth]),
+                         problem_14_beam_mu * raw(problem_14_user_mu[angle], problem_14_beam_mu, test.azimuth[azimuth]),
                          test.radiance[azimuth, angle],
                          2e-5);
 
@@ -731,7 +727,7 @@ void test_problem_14() {
     }
 
     disort::flux_data flux;
-    const auto values = dis.flux(flux, 0.0);
+    const auto        values = dis.flux(flux, 0.0);
     expect_reference(std::format("{} direct flux", test.name), values.down_direct, test.direct);
     expect_reference(std::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
     expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
@@ -749,7 +745,7 @@ void test_problem_15() {
   moments[1]    = kokhanovsky_aerosol_moments[Range{0, problem_15_moment_count}];
 
   for (const auto& test : problem_15) {
-    const auto raw = problem_15_raw(test.type);
+    const auto              raw = problem_15_raw(test.type);
     const disort::main_data dis(problem_15_streams,
                                 problem_15_streams,
                                 problem_15_streams,
@@ -770,12 +766,7 @@ void test_problem_15() {
     Vector              ims;
     for (Index azimuth = 0; azimuth < std::ssize(problem_15_azimuth); ++azimuth) {
       for (Index level = 0; level < std::ssize(problem_15_output_tau); ++level) {
-        dis.u_user_corr(user,
-                        ims,
-                        tms,
-                        problem_15_output_tau[level],
-                        problem_15_azimuth[azimuth],
-                        problem_15_user_mu);
+        dis.u_user_corr(user, ims, tms, problem_15_output_tau[level], problem_15_azimuth[azimuth], problem_15_user_mu);
         for (Index angle = 0; angle < std::ssize(problem_15_user_mu); ++angle)
           expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                            user.intensities[angle],
@@ -786,12 +777,9 @@ void test_problem_15() {
     disort::flux_data flux;
     for (Index level = 0; level < std::ssize(problem_15_output_tau); ++level) {
       const auto values = dis.flux(flux, problem_15_output_tau[level]);
-      expect_reference(std::format("{} direct flux [{}]", test.name, level),
-                       values.down_direct,
-                       test.direct[level]);
-      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
-                       values.down_diffuse,
-                       test.diffuse_down[level]);
+      expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+      expect_reference(
+          std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
       expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
       expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
     }
@@ -810,13 +798,11 @@ void test_problem_17() {
   for (Index case_index = 0; case_index < std::ssize(problem_17); ++case_index) {
     const auto& test = problem_17[case_index];
     Matrix      moments(1, phase_moments[case_index]->size());
-    moments[0] = *phase_moments[case_index];
+    moments[0]         = *phase_moments[case_index];
     const auto scaling = disort::delta_m_plus(moments, problem_17_streams);
 
-    expect_reference(std::format("{} delta-M-plus fraction", test.name),
-                     scaling.fraction[0],
-                     expected_fraction[case_index],
-                     2e-5);
+    expect_reference(
+        std::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
 
     const disort::main_data dis(problem_17_streams,
                                 problem_17_streams,

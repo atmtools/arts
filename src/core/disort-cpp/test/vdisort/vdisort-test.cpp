@@ -1,7 +1,6 @@
-#include <vdisort.h>
-
 #include <arts_constants.h>
 #include <rtepack_multitype.h>
+#include <vdisort.h>
 
 #include <cmath>
 #include <iostream>
@@ -324,20 +323,16 @@ void test_scalar_linear_source_limit() {
   Tensor3 vector_source(1, 2, 4, 0.0);
   vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
   vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
-  auto vector = make_vdisort(nquad,
-                             tau,
-                             omega,
-                             std::move(phase),
-                             std::move(vector_up),
-                             std::move(vector_down),
-                             std::move(vector_source));
+  auto vector            = make_vdisort(
+      nquad, tau, omega, std::move(phase), std::move(vector_up), std::move(vector_down), std::move(vector_source));
   for (const Numeric optical_depth : {0.0, 0.2, 0.8}) {
     disort::u_data  scalar_field;
     vdisort::u_data vector_field;
     scalar.u(scalar_field, optical_depth, 0.0);
     vector.u(vector_field, optical_depth, 0.0);
     for (Index stream = 0; stream < nquad; ++stream)
-      expect_close(vector_field.intensities[stream].I(), scalar_field.intensities[stream], "linear-source scalar limit");
+      expect_close(
+          vector_field.intensities[stream].I(), scalar_field.intensities[stream], "linear-source scalar limit");
   }
 }
 
@@ -360,22 +355,22 @@ void test_conservative_reflecting_source_limit() {
   Tensor3 vector_source(1, 2, 4, 0.0);
   vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
   vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
-  const auto reflection = [](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
+  const auto reflection  = [](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
     value = rtepack::muelmat{0.0};
     for (Index i = 0; i < value.nrows(); ++i)
       for (Index j = 0; j < value.ncols(); ++j) value[i, j][0, 0] = 2.0 * Constant::inv_pi;
   };
   std::vector<vdisort::BDRF> vector_brdf{{.cosine = {reflection}, .sine = {reflection}}};
-  auto vector = make_vdisort(nquad,
-                             tau,
-                             omega,
-                             std::move(phase),
-                             std::move(vector_up),
-                             std::move(vector_down),
-                             std::move(vector_source),
-                             Vector(4, 0.0),
-                             {},
-                             std::move(vector_brdf));
+  auto                       vector = make_vdisort(nquad,
+                                                   tau,
+                                                   omega,
+                                                   std::move(phase),
+                                                   std::move(vector_up),
+                                                   std::move(vector_down),
+                                                   std::move(vector_source),
+                                                   Vector(4, 0.0),
+                                                   {},
+                                                   std::move(vector_brdf));
   for (const Numeric optical_depth : {0.2, 4.0, 8.0}) {
     disort::u_data  scalar_field;
     vdisort::u_data vector_field;

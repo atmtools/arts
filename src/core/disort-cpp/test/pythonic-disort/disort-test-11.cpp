@@ -1,5 +1,4 @@
 #include "../test-helpers.h"
-
 #include "artstime.h"
 #include "disort.h"
 
@@ -467,9 +466,9 @@ void test_11e_current_pythonic_disort_correction() try {
       Vector{-3.7472007688001185e-02, -8.5810638855479404e-03, -1.0028434790383289e-02, -2.9933874791298332e-03,
              3.1288563974852940e-03,  -1.2147006561405757e-02, 3.8091906483520219e-03,  1.2244675379773216e-02,
              -1.1816920676733372e-04, 8.5884505553329264e-03,  -8.1475725099112301e-04, 4.0094675513905817e-03,
-             -2.3521253903849626e-02, 2.0705176853186166e-02, 5.5151296707868780e-03, 5.7443705853809368e-03,
-             -5.2567311883454065e-02, 1.8270752476844954e-02, 2.3911621315690348e-01, -2.8709959968093834e-02,
-             3.1530176563638068e-01, -4.0317743340383655e-02, 3.2167016146607635e-01, -3.3546908717691976e-02}
+             -2.3521253903849626e-02, 2.0705176853186166e-02,  5.5151296707868780e-03,  5.7443705853809368e-03,
+             -5.2567311883454065e-02, 1.8270752476844954e-02,  2.3911621315690348e-01,  -2.8709959968093834e-02,
+             3.1530176563638068e-01,  -4.0317743340383655e-02, 3.2167016146607635e-01,  -3.3546908717691976e-02}
           .reshape(4, 3, 2)};
   require_close("heterogeneous DISORT NT correction", correction, expected, 3e-13);
 } catch (std::exception& e) {
@@ -496,10 +495,8 @@ void test_11f_disort_user_angle_formal_solution() try {
   Vector           ims;
   dis.u_corr(corrected, ims, tms, tau, phi);
   dis.u_user_corr(user, ims, tms, tau, phi, dis.mu());
-  require_close("corrected user-angle solution at quadrature directions",
-                user.intensities,
-                corrected.intensities,
-                2e-11);
+  require_close(
+      "corrected user-angle solution at quadrature directions", user.intensities, corrected.intensities, 2e-11);
 
   dis.u_user_corr(user, ims, tms, tau, phi, arbitrary_mu);
   require_finite("corrected formal user-angle solution", user.intensities);
@@ -508,18 +505,18 @@ void test_11f_disort_user_angle_formal_solution() try {
 }
 
 void test_11g_gridded_correction_cache_equivalence() try {
-  const auto dis = identical_atmosphere(AscendingGrid{0.4, 1.2, 2.0});
+  const auto   dis = identical_atmosphere(AscendingGrid{0.4, 1.2, 2.0});
   const Vector phi{0.2, 1.7};
-  Tensor3 cached_tms(3, 2, dis.mu().size());
-  Tensor3 cached_ims(3, 2, dis.mu().size() / 2);
-  Tensor3 point_tms(3, 2, dis.mu().size());
-  Tensor3 point_ims(3, 2, dis.mu().size() / 2);
+  Tensor3      cached_tms(3, 2, dis.mu().size());
+  Tensor3      cached_ims(3, 2, dis.mu().size() / 2);
+  Tensor3      point_tms(3, 2, dis.mu().size());
+  Tensor3      point_ims(3, 2, dis.mu().size() / 2);
   dis.gridded_TMS(cached_tms, phi);
   dis.gridded_IMS(cached_ims, phi);
 
   disort::tms_data tms;
-  Vector ims;
-  const Vector tau{0.4, 1.2, 2.0};
+  Vector           ims;
+  const Vector     tau{0.4, 1.2, 2.0};
   for (Index l = 0; l < 3; ++l)
     for (Index p = 0; p < 2; ++p) {
       dis.TMS(tms, tau[l], phi[p]);
@@ -534,10 +531,7 @@ void test_11g_gridded_correction_cache_equivalence() try {
   dis.gridded_IMS(cached_ims, phi, disort::ims_convention::pythonic_disort);
   for (Index l = 0; l < 3; ++l)
     for (Index p = 0; p < 2; ++p) {
-      dis.IMS(ims,
-              tau[l],
-              phi[p],
-              disort::ims_convention::pythonic_disort);
+      dis.IMS(ims, tau[l], phi[p], disort::ims_convention::pythonic_disort);
       point_ims[l, p] = ims;
     }
   require_close("cached gridded Pythonic IMS", cached_ims, point_ims, 2e-13);

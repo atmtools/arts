@@ -231,13 +231,9 @@ class main_data {
   //! [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
   mathscr_v_data comp_data{};
 
-  void prepare_TMS(tms_data& data,
-                   Numeric phi,
-                   const ConstVectorView& mu) const;
+  void prepare_TMS(tms_data& data, Numeric phi, const ConstVectorView& mu) const;
   void check_classical_delta_m_correction() const;
-  void evaluate_TMS(tms_data& data,
-                    Numeric tau,
-                    const ConstVectorView& mu) const;
+  void evaluate_TMS(tms_data& data, Numeric tau, const ConstVectorView& mu) const;
 
  public:
   friend struct std::formatter<main_data>;
@@ -295,10 +291,7 @@ class main_data {
     */
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
   /** TMS correction at arbitrary signed polar-angle cosines. */
-  void TMS(tms_data& data,
-           Numeric tau,
-           Numeric phi,
-           const ConstVectorView& mu) const;
+  void TMS(tms_data& data, Numeric tau, Numeric phi, const ConstVectorView& mu) const;
   void gridded_TMS(Tensor3View tms, const Vector& phi) const;
 
   /** Get the IMS correction factor
@@ -311,22 +304,17 @@ class main_data {
     * @param tau The point-wise optical thickness
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
-  void IMS(Vector& ims,
-           Numeric tau,
-           Numeric phi,
-           ims_convention convention = ims_convention::disort) const;
+  void IMS(Vector& ims, Numeric tau, Numeric phi, ims_convention convention = ims_convention::disort) const;
   /** IMS correction at arbitrary signed polar-angle cosines.
    *
    * The result has the same size as mu and is zero in upward directions.
    */
-  void IMS(Vector& ims,
-           Numeric tau,
-           Numeric phi,
+  void IMS(Vector&                ims,
+           Numeric                tau,
+           Numeric                phi,
            const ConstVectorView& mu,
-           ims_convention convention = ims_convention::disort) const;
-  void gridded_IMS(Tensor3View ims,
-                   const Vector& phi,
-                   ims_convention convention = ims_convention::disort) const;
+           ims_convention         convention = ims_convention::disort) const;
+  void gridded_IMS(Tensor3View ims, const Vector& phi, ims_convention convention = ims_convention::disort) const;
 
   /** Spectral radiance at a given tau and phi
     *
@@ -346,18 +334,11 @@ class main_data {
    * formally integrates it along each ray, following DISORT's TERPEV,
    * TERPSO, and USRINT path.
    */
-  void u_user(user_u_data& data,
-              Numeric tau,
-              Numeric phi,
-              const ConstVectorView& user_mu) const;
+  void u_user(user_u_data& data, Numeric tau, Numeric phi, const ConstVectorView& user_mu) const;
 
   /** Corrected radiance at arbitrary nonzero polar-angle cosines. */
-  void u_user_corr(user_u_data& data,
-                   Vector& ims,
-                   tms_data& tms,
-                   Numeric tau,
-                   Numeric phi,
-                   const ConstVectorView& user_mu) const;
+  void u_user_corr(
+      user_u_data& data, Vector& ims, tms_data& tms, Numeric tau, Numeric phi, const ConstVectorView& user_mu) const;
 
   /** Spectral radiance at a given tau, only for the 0th Fourier mode
     *
@@ -384,16 +365,16 @@ class main_data {
     * @param tau The point-wise optical thickness 
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
-  void u_corr(u_data& u_data,
-              Vector& ims,
-              tms_data& tms_data,
-              Numeric tau,
-              Numeric phi,
+  void u_corr(u_data&        u_data,
+              Vector&        ims,
+              tms_data&      tms_data,
+              Numeric        tau,
+              Numeric        phi,
               ims_convention convention = ims_convention::disort) const;
-  void gridded_u_corr(Tensor3View u_data,
-                      Tensor3View tms,
-                      Tensor3View ims,
-                      const Vector& phi,
+  void gridded_u_corr(Tensor3View    u_data,
+                      Tensor3View    tms,
+                      Tensor3View    ims,
+                      const Vector&  phi,
                       ims_convention convention = ims_convention::disort) const;
 
   /** Compute all flux quantities at a given tau from one zeroth-mode evaluation. */

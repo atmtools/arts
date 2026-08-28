@@ -1,6 +1,7 @@
-#include "../test-helpers.h"
-#include "../reference-data.h"
 #include <legendre.h>
+
+#include "../reference-data.h"
+#include "../test-helpers.h"
 
 namespace legacy_disotest {
 
@@ -13,22 +14,19 @@ Numeric band_blackbody_radiance(const Numeric temperature,
                                 const Numeric wavenumber_high) {
   if (temperature == 0.0 || wavenumber_high == wavenumber_low) return 0.0;
   constexpr Index intervals = 4096;
-  const Numeric scale = Constant::h * Constant::c * 100.0 /
-                        (Constant::k * temperature);
-  const Numeric x0 = scale * wavenumber_low;
-  const Numeric x1 = scale * wavenumber_high;
-  const Numeric dx = (x1 - x0) / intervals;
-  const auto integrand = [](const Numeric x) {
+  const Numeric   scale     = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
+  const Numeric   x0        = scale * wavenumber_low;
+  const Numeric   x1        = scale * wavenumber_high;
+  const Numeric   dx        = (x1 - x0) / intervals;
+  const auto      integrand = [](const Numeric x) {
     if (x == 0.0) return 0.0;
     if (x > 700.0) return 0.0;
     return x * x * x / std::expm1(x);
   };
   Numeric integral = integrand(x0) + integrand(x1);
-  for (Index i = 1; i < intervals; ++i)
-    integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
+  for (Index i = 1; i < intervals; ++i) integral += (i % 2 ? 4.0 : 2.0) * integrand(x0 + static_cast<Numeric>(i) * dx);
   integral *= dx / 3.0;
-  return blackbody_radiance(temperature) * integral /
-         (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
+  return blackbody_radiance(temperature) * integral / (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 }
 
 Numeric hapke(const Numeric mu,
@@ -36,15 +34,14 @@ Numeric hapke(const Numeric mu,
               const Numeric dphi,
               const Numeric b0 = 1.0,
               const Numeric hh = 0.06,
-              const Numeric w = 0.6) {
-  const Numeric ctheta = std::clamp(mu * mup + std::sqrt((1.0 - mu * mu) * (1.0 - mup * mup)) * std::cos(dphi),
-                                    -1.0,
-                                    1.0);
-  const Numeric theta = std::acos(ctheta);
+              const Numeric w  = 0.6) {
+  const Numeric ctheta =
+      std::clamp(mu * mup + std::sqrt((1.0 - mu * mu) * (1.0 - mup * mup)) * std::cos(dphi), -1.0, 1.0);
+  const Numeric theta      = std::acos(ctheta);
   const Numeric opposition = b0 * hh / (hh + std::tan(0.5 * theta));
-  const Numeric gamma = std::sqrt(1.0 - w);
-  const Numeric h0 = (1.0 + 2.0 * mup) / (1.0 + 2.0 * gamma * mup);
-  const Numeric h = (1.0 + 2.0 * mu) / (1.0 + 2.0 * gamma * mu);
+  const Numeric gamma      = std::sqrt(1.0 - w);
+  const Numeric h0         = (1.0 + 2.0 * mup) / (1.0 + 2.0 * gamma * mup);
+  const Numeric h          = (1.0 + 2.0 * mu) / (1.0 + 2.0 * gamma * mu);
   return 0.25 * w * ((1.0 + opposition) * (1.0 + 0.5 * ctheta) + h0 * h - 1.0) / (mu + mup);
 }
 
@@ -67,9 +64,9 @@ Matrix linear_polynomial(const AscendingGrid& tau, const Vector& values) {
     const Numeric slope = (b1 - b0) / (tau[i] - tau0);
     // CPP-DISORT applies the LTE absorption factor (1 - omega).  Store the
     // Planck radiance polynomial itself, as in the physical Test 6 input.
-    out[i, 0]           = b0 - slope * tau0;
-    out[i, 1]           = slope;
-    tau0                = tau[i];
+    out[i, 0] = b0 - slope * tau0;
+    out[i, 1] = slope;
+    tau0      = tau[i];
   }
   return out;
 }
@@ -219,12 +216,13 @@ void disort_test07() {
     const AscendingGrid tau{c.optical_depth};
     const Vector        omega{c.single_scattering_albedo};
     Matrix              up(c.streams, c.streams / 2, 0), down(c.streams, c.streams / 2, 0);
-    const Numeric bottom_planck = band_blackbody_radiance(c.bottom_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
-    down[0] = c.top_isotropic + band_blackbody_radiance(c.top_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
+    const Numeric       bottom_planck =
+        band_blackbody_radiance(c.bottom_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
+    down[0] =
+        c.top_isotropic + band_blackbody_radiance(c.top_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
 
     std::vector<disort::BDRF> brdf;
-    if (c.surface != disort_test::reference::surface_type::hapke)
-      up[0] = (1.0 - c.lambertian_albedo) * bottom_planck;
+    if (c.surface != disort_test::reference::surface_type::hapke) up[0] = (1.0 - c.lambertian_albedo) * bottom_planck;
     if (c.surface == disort_test::reference::surface_type::lambertian) {
       brdf.push_back(disort::BDRF{[albedo = c.lambertian_albedo](auto value, auto&, auto&) { value = albedo; }});
     } else if (c.surface == disort_test::reference::surface_type::hapke) {
@@ -232,14 +230,13 @@ void disort_test07() {
       for (Index m = 0; m < c.streams; ++m) {
         brdf.push_back(disort::BDRF{[m](auto value, const auto& outgoing, const auto& incoming) {
           const Index nout = outgoing.size();
-          const Index nin = incoming.size();
+          const Index nin  = incoming.size();
           for (Index i = 0; i < nout; ++i)
             for (Index j = 0; j < nin; ++j) {
               Numeric coefficient = 0.0;
               for (Index k = 0; k < naz; ++k) {
                 const Numeric phi = Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(naz);
-                coefficient += hapke(outgoing[i], std::abs(incoming[j]), phi) *
-                               std::cos(static_cast<Numeric>(m) * phi);
+                coefficient += hapke(outgoing[i], std::abs(incoming[j]), phi) * std::cos(static_cast<Numeric>(m) * phi);
               }
               value[i, j] = coefficient / naz;
             }
@@ -249,33 +246,38 @@ void disort_test07() {
       Vector surface_mu(c.streams / 2), surface_weight(c.streams / 2);
       Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
       for (Index i = 0; i < c.streams / 2; ++i) {
-        constexpr Index nmu = 256;
-        Numeric reflectance = 0.0;
+        constexpr Index nmu         = 256;
+        Numeric         reflectance = 0.0;
         for (Index j = 0; j < nmu; ++j) {
-          const Numeric mup = (static_cast<Numeric>(j) + 0.5) / static_cast<Numeric>(nmu);
-          Numeric azimuth_average = 0.0;
+          const Numeric mup             = (static_cast<Numeric>(j) + 0.5) / static_cast<Numeric>(nmu);
+          Numeric       azimuth_average = 0.0;
           for (Index k = 0; k < naz; ++k)
-            azimuth_average += hapke(surface_mu[i], mup,
-                                      Constant::two_pi * (static_cast<Numeric>(k) + 0.5) /
-                                          static_cast<Numeric>(naz));
+            azimuth_average += hapke(
+                surface_mu[i], mup, Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(naz));
           reflectance += 2.0 * mup * azimuth_average / (nmu * naz);
         }
         up[0, i] = (1.0 - reflectance) * bottom_planck;
       }
     }
 
-    auto dis = make_disort(c.streams,
-                           tau,
-                           omega,
-                           henyey_greenstein(Vector{c.asymmetry_parameter}, c.streams),
-                           0.5,
-                           c.beam,
-                           up,
-                           down,
-                           linear_polynomial(tau, Vector{band_blackbody_radiance(c.atmosphere_top_temperature, c.wavenumber_low, c.wavenumber_high),
-                                                         band_blackbody_radiance(c.atmosphere_bottom_temperature, c.wavenumber_low, c.wavenumber_high)}),
-                           std::move(brdf));
-    run_case(c.name, dis, c.optical_depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0}, Vector{0.0, Constant::pi / 2});
+    auto dis = make_disort(
+        c.streams,
+        tau,
+        omega,
+        henyey_greenstein(Vector{c.asymmetry_parameter}, c.streams),
+        0.5,
+        c.beam,
+        up,
+        down,
+        linear_polynomial(
+            tau,
+            Vector{band_blackbody_radiance(c.atmosphere_top_temperature, c.wavenumber_low, c.wavenumber_high),
+                   band_blackbody_radiance(c.atmosphere_bottom_temperature, c.wavenumber_low, c.wavenumber_high)}),
+        std::move(brdf));
+    run_case(c.name,
+             dis,
+             c.optical_depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0},
+             Vector{0.0, Constant::pi / 2});
   }
 }
 
@@ -285,8 +287,8 @@ disort::main_data problem10(const Index nquad) {
   Matrix              up(nquad, nquad / 2, 0), down(nquad, nquad / 2, 0);
   up[0] = (1.0 - test.surface_albedo) *
           band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
-  down[0] = test.top_isotropic +
-            band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
+  down[0] =
+      test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
   Vector source_radiance(test.interface_temperature.size());
   for (Size i = 0; i < test.interface_temperature.size(); ++i)
     source_radiance[i] =
@@ -334,20 +336,19 @@ void disort_test10() {
 
 void disort_test12() {
   constexpr Index nquad = disort_test::reference::problem_12_streams;
-  const Vector g1{disort_test::reference::problem_12_asymmetry};
-  auto one_layer = make_disort(nquad,
-                               AscendingGrid{disort_test::reference::problem_12_output_tau.back()},
-                               Vector{disort_test::reference::problem_12_omega},
-                               henyey_greenstein(g1, nquad),
-                               disort_test::reference::problem_12_beam_mu,
-                               disort_test::reference::problem_12_beam);
-  auto         split     = make_disort(
-      nquad,
-      AscendingGrid{Vector(disort_test::reference::problem_12_subdivided_tau)},
-      Vector(3, disort_test::reference::problem_12_omega),
-      henyey_greenstein(Vector(3, disort_test::reference::problem_12_asymmetry), nquad),
-      disort_test::reference::problem_12_beam_mu,
-      disort_test::reference::problem_12_beam);
+  const Vector    g1{disort_test::reference::problem_12_asymmetry};
+  auto            one_layer = make_disort(nquad,
+                                          AscendingGrid{disort_test::reference::problem_12_output_tau.back()},
+                                          Vector{disort_test::reference::problem_12_omega},
+                                          henyey_greenstein(g1, nquad),
+                                          disort_test::reference::problem_12_beam_mu,
+                                          disort_test::reference::problem_12_beam);
+  auto            split = make_disort(nquad,
+                                      AscendingGrid{Vector(disort_test::reference::problem_12_subdivided_tau)},
+                                      Vector(3, disort_test::reference::problem_12_omega),
+                                      henyey_greenstein(Vector(3, disort_test::reference::problem_12_asymmetry), nquad),
+                                      disort_test::reference::problem_12_beam_mu,
+                                      disort_test::reference::problem_12_beam);
   run_case("test_12a", one_layer, disort_test::reference::problem_12_output_tau);
   run_case("test_12b", split, disort_test::reference::problem_12_output_tau);
 }
@@ -355,9 +356,9 @@ void disort_test12() {
 void disort_test13() {
   constexpr Index nquad = 16;
   for (const bool multilayer : {false, true}) {
-    const AscendingGrid tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
-    const Vector        omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
-    const Vector        g(tau.size(), 0.8);
+    const AscendingGrid       tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
+    const Vector              omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
+    const Vector              g(tau.size(), 0.8);
     std::vector<disort::BDRF> brdf{
         disort::BDRF{[](auto value, auto&, auto&) { value = disort_test::reference::problem_13_surface_albedo; }}};
     auto dis = make_disort(nquad,

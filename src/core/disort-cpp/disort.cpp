@@ -27,9 +27,8 @@ delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nl
                      phase_moments.ncols());
 
   delta_m_scaling out{Vector(phase_moments.nrows()), Matrix(phase_moments.nrows(), nleg, 1.0)};
-  const bool use_classical_delta_m = stdr::any_of(phase_moments, [nleg](const auto layer) {
-    return layer[nleg] < 1e-4 || layer[nleg + 1] < 0.7 * layer[nleg];
-  });
+  const bool      use_classical_delta_m = stdr::any_of(
+      phase_moments, [nleg](const auto layer) { return layer[nleg] < 1e-4 || layer[nleg + 1] < 0.7 * layer[nleg]; });
 
   for (Index layer = 0; layer < phase_moments.nrows(); ++layer) {
     const Numeric pn  = phase_moments[layer, nleg];
@@ -48,9 +47,9 @@ delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nl
                        nleg + 1,
                        pn1,
                        layer);
-    const Numeric n        = static_cast<Numeric>(nleg);
-    const Numeric sigma_sq = (Math::pow2(n + 1.0) - Math::pow2(n)) /
-                             (std::log(Math::pow2(pn)) - std::log(Math::pow2(pn1)));
+    const Numeric n = static_cast<Numeric>(nleg);
+    const Numeric sigma_sq =
+        (Math::pow2(n + 1.0) - Math::pow2(n)) / (std::log(Math::pow2(pn)) - std::log(Math::pow2(pn1)));
     ARTS_USER_ERROR_IF(!(sigma_sq > 0.0) || !std::isfinite(sigma_sq),
                        "Invalid delta-M-plus Gaussian width {} in layer {}",
                        sigma_sq,
@@ -58,7 +57,7 @@ delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nl
 
     out.fraction[layer] = pn * std::exp(Math::pow2(n) / (2.0 * sigma_sq));
     for (Index degree = 0; degree < nleg; ++degree) {
-      const Numeric l           = static_cast<Numeric>(degree);
+      const Numeric l            = static_cast<Numeric>(degree);
       out.moments[layer, degree] = std::exp(-Math::pow2(l) / (2.0 * sigma_sq));
     }
   }
@@ -799,11 +798,8 @@ void main_data::check_input_size() const {
 
   ARTS_USER_ERROR_IF(static_cast<Index>(f_arr.size()) != NLayers, "{} vs {}", f_arr.size(), NLayers);
 
-  ARTS_USER_ERROR_IF((delta_m_peak.shape() != std::array{NLayers, NLeg}),
-                     "{:B,} vs [{}, {}]",
-                     delta_m_peak.shape(),
-                     NLayers,
-                     NLeg);
+  ARTS_USER_ERROR_IF(
+      (delta_m_peak.shape() != std::array{NLayers, NLeg}), "{:B,} vs [{}, {}]", delta_m_peak.shape(), NLayers, NLeg);
 
   ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
                      "{:B,} vs [{}, {}]",
@@ -843,10 +839,10 @@ void main_data::check_input_value() const {
   ARTS_USER_ERROR_IF(
       stdr::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }), "f_arr must be [0, 1], got {:B,}", f_arr);
 
-  ARTS_USER_ERROR_IF(stdr::any_of(delta_m_peak | by_elem,
-                                  [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
-                     "delta_m_peak moments must be finite and [0, 1], got {:B,}",
-                     delta_m_peak);
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(delta_m_peak | by_elem, [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
+      "delta_m_peak moments must be finite and [0, 1], got {:B,}",
+      delta_m_peak);
 
   ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
 }

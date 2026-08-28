@@ -1,10 +1,10 @@
-#include "../test-helpers.h"
 #include "../reference-data.h"
+#include "../test-helpers.h"
 
 void test_5a() try {
   const AscendingGrid tau_arr{64};
   const Vector        omega_arr{1 - 1e-6};
-  const Index         NQuad = 48;
+  const Index         NQuad          = 48;
   Matrix              Leg_coeffs_all = disort_test::reference::cloud_c1_moments();
 
   const Numeric mu0  = 1;
@@ -252,7 +252,7 @@ void test_5a() try {
 void test_5b() try {
   const AscendingGrid tau_arr{64};
   const Vector        omega_arr{0.9};
-  const Index         NQuad = 48;
+  const Index         NQuad          = 48;
   Matrix              Leg_coeffs_all = disort_test::reference::cloud_c1_moments();
 
   const Numeric mu0  = 1;
@@ -543,7 +543,7 @@ void test_5b() try {
 void test_5BDRF() try {
   const AscendingGrid tau_arr{64};
   const Vector        omega_arr{1 - 1e-6};
-  const Index         NQuad = 48;
+  const Index         NQuad          = 48;
   Matrix              Leg_coeffs_all = disort_test::reference::cloud_c1_moments();
 
   const Numeric                   mu0  = 1;

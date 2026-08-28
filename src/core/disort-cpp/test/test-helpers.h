@@ -42,12 +42,7 @@ inline Tensor3 compute_u(const disort::main_data& dis, const Vector& taus, const
   for (Size j = 0; j < taus.size(); j++) {
     for (Size i = 0; i < phis.size(); i++) {
       if (nt_corr) {
-        dis.u_corr(u_data,
-                   ims,
-                   tms_data,
-                   taus[j],
-                   phis[i],
-                   disort::ims_convention::pythonic_disort);
+        dis.u_corr(u_data, ims, tms_data, taus[j], phis[i], disort::ims_convention::pythonic_disort);
       } else {
         dis.u(u_data, taus[j], phis[i]);
       }
