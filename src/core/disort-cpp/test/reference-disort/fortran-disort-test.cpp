@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "../reference-data.h"
+
 namespace {
 void expect_reference(const std::string_view name,
                       const Numeric          actual,
@@ -397,6 +399,47 @@ void test_problem_4() {
                       0.0477016, 0.0258544, 0.0625954, 0.0591273, 0.0247702, 0.00932861,
                       0.0838488, 0.0399383, 0.0467155, 0, 0, 0}));
 }
+
+void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
+  constexpr Index nquad = 48;
+  const Matrix moments = disort_test::reference::cloud_c1_moments();
+  const disort::main_data dis(nquad,
+                              nquad,
+                              nquad,
+                              AscendingGrid{64.0},
+                              Vector{test.omega},
+                              moments,
+                              Matrix(nquad, nquad / 2, 0.0),
+                              Matrix(nquad, nquad / 2, 0.0),
+                              Vector{moments[0, nquad]},
+                              Matrix(1, 0),
+                              {},
+                              1.0,
+                              Constant::pi,
+                              0.0);
+  const Vector user_mu{-1.0, -0.5, -0.1, 0.1, 0.5, 1.0};
+  disort::user_u_data user;
+  disort::tms_data tms;
+  disort::flux_data flux;
+  Vector ims;
+  for (Index level = 0; level < 3; ++level) {
+    dis.u_user_corr(user, ims, tms, test.tau[level], 0.0, user_mu);
+    for (Index angle = 0; angle < 6; ++angle)
+      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+                       user.intensities[angle],
+                       test.radiance[level, angle],
+                       2e-4);
+    const auto [down, beam] = dis.flux_down(flux, test.tau[level]);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), beam, test.direct[level]);
+    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, test.tau[level]), test.up[level]);
+  }
+}
+
+void test_problem_5() {
+  run_cloud_c1_case(disort_test::reference::problem_5a);
+  run_cloud_c1_case(disort_test::reference::problem_5b);
+}
 }  // namespace
 
 int main() try {
@@ -405,6 +448,7 @@ int main() try {
   test_problem_2();
   test_problem_3();
   test_problem_4();
+  test_problem_5();
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

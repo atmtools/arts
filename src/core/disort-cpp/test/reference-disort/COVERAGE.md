@@ -11,7 +11,7 @@ does not count.
 | 2 | a–d | ported | All original user-angle radiances and fluxes pass, including exact-unity input. |
 | 3 | a–b | ported | Arbitrary-angle IMS/TMS corrections are applied to the original user-angle radiances. |
 | 4 | a–c | ported | All Haze-L fluxes and user-angle radiances are checked with arbitrary-angle IMS/TMS corrections. |
-| 5 | a–b | fluxes portable; user radiances blocked | Delta-M intensity corrections at user angles remain incomplete. |
+| 5 | a–b | ported | Cloud C.1 inputs and references are shared for reuse by scalar VDISORT tests. |
 | 6 | a–h | smoke only | Boundary and thermal-source inputs require normalization mapping to the CPP API. |
 | 7 | a–e | smoke only | Directly portable after thermal/boundary mapping. |
 | 8 | a–c | pending | Directly portable. |
