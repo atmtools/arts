@@ -1426,16 +1426,17 @@ void main_data::TMS(tms_data& data,
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  prepare_TMS(data, phi, mu);
+  evaluate_TMS(data, tau, mu);
+}
+
+void main_data::prepare_TMS(tms_data& data,
+                            const Numeric phi,
+                            const ConstVectorView& mu) const {
   for (const Numeric x : mu)
     ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0,
                        "Polar-angle cosine ({}) must be nonzero and in [-1, 1]",
                        x);
-
-  const Index l = tau_index(tau);
-
-  const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
-  const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-  const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   // The upward beam factor is regular and remains in mathscr_B.  The
   // downward factor has a removable singularity at mu == mu0 and is folded
@@ -1453,7 +1454,18 @@ void main_data::TMS(tms_data& data,
           (scaled_omega_arr[j] * I0) / (4 * Constant::pi) * beam_factor * (p_true / (1.0 - f_arr[j]) - p_trun);
     }
   }
+}
 
+void main_data::evaluate_TMS(tms_data& data,
+                             const Numeric tau,
+                             const ConstVectorView& mu) const {
+  const Index l = tau_index(tau);
+
+  const Numeric scaled_tau_arr_l   = scaled_tau_arr_with_0[l + 1];
+  const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
+  const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
+
+  const Index nmu = mu.size();
   data.TMS.resize(nmu);
   data.TMS = 0.0;
   const Numeric exptau = std::exp(-scaled_tau / mu0);
@@ -1485,14 +1497,18 @@ void main_data::TMS(tms_data& data,
   }
 }
 
-void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
-  IMS(ims, tau, phi, mu_arr[rb(N)]);
+void main_data::IMS(Vector& ims,
+                    const Numeric tau,
+                    const Numeric phi,
+                    const ims_convention convention) const {
+  IMS(ims, tau, phi, mu_arr[rb(N)], convention);
 }
 
 void main_data::IMS(Vector& ims,
                     const Numeric tau,
                     const Numeric phi,
-                    const ConstVectorView& mu) const {
+                    const ConstVectorView& mu,
+                    const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
@@ -1512,15 +1528,17 @@ void main_data::IMS(Vector& ims,
     const Numeric abs_mu = -mu[i];
     const Numeric nu     = calculate_nu(mu[i], phi, -mu0, phi0);
 
-    // DISORT confines IMS to the 10-degree aureole surrounding the
-    // incident beam.  Outside it, TMS alone is the intended correction.
-    const Numeric beam_theta = std::acos(-mu0);
-    const Numeric ray_theta  = std::acos(mu[i]);
-    if (std::abs(beam_theta - ray_theta) > Constant::pi / 18.0) continue;
+    if (convention == ims_convention::disort) {
+      // DISORT confines IMS to the 10-degree aureole surrounding the
+      // incident beam.  Outside it, TMS alone is the intended correction.
+      const Numeric beam_theta = std::acos(-mu0);
+      const Numeric ray_theta  = std::acos(mu[i]);
+      if (std::abs(beam_theta - ray_theta) > Constant::pi / 18.0) continue;
+    }
 
     const auto correction_for_boundary = [&](const Index k) {
-      // SECSCA is subtracted in the original INTCOR routine.
-      return -IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) *
+      const Numeric sign = convention == ims_convention::disort ? -1.0 : 1.0;
+      return sign * IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) *
              ims_chi(tau, abs_mu, scaled_mu0[k]);
     };
 
@@ -1553,11 +1571,16 @@ void main_data::u_user_corr(user_u_data& data,
     data.intensities[i] += I0_orig * (tms.TMS[i] + ims[i]);
 }
 
-void main_data::u_corr(u_data& u_data, Vector& ims, tms_data& tms_data, const Numeric tau, const Numeric phi) const {
+void main_data::u_corr(u_data& u_data,
+                       Vector& ims,
+                       tms_data& tms_data,
+                       const Numeric tau,
+                       const Numeric phi,
+                       const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   TMS(tms_data, tau, phi);
-  IMS(ims, tau, phi);
+  IMS(ims, tau, phi, convention);
   u(u_data, tau, phi);
 
   for (Index i = 0; i < N; i++) { u_data.intensities[i] += I0_orig * tms_data.TMS[i]; }
@@ -1571,35 +1594,100 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
   const Index M = phi.size();
   tms_data    t{};
 
-  for (Index l = 0; l < NLayers; l++) {
-    for (Index j = 0; j < M; j++) {
-      TMS(t, tau_arr[l], phi[j]);
-      tms[l, j] = t.TMS;
+  Matrix ray_transport(N, NLayers);
+  Vector beam_at_boundary(NLayers + 1);
+  for (Index l = 0; l <= NLayers; ++l)
+    beam_at_boundary[l] = std::exp(-scaled_tau_arr_with_0[l] / mu0);
+  for (Index angle = 0; angle < N; ++angle)
+    for (Index l = 0; l < NLayers; ++l)
+      ray_transport[angle, l] =
+          std::exp(-(scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]) /
+                   mu_arr[angle]);
+
+  // At layer boundaries the transport from one boundary to the next is a
+  // recurrence.  Prepare the phase coefficients once per azimuth and sweep
+  // downward/upward, instead of re-summing all intervening layers for every
+  // output boundary.
+  for (Index j = 0; j < M; j++) {
+    prepare_TMS(t, phi[j], mu_arr);
+    for (Index angle = 0; angle < N; ++angle) {
+      const Numeric mu = mu_arr[angle];
+
+      Numeric downward = 0.0;
+      for (Index l = 0; l < NLayers; ++l) {
+        const Numeric top       = scaled_tau_arr_with_0[l];
+        const Numeric bottom    = scaled_tau_arr_with_0[l + 1];
+        const Numeric thickness = bottom - top;
+        const Numeric transport = ray_transport[angle, l];
+        const Numeric at_bottom = beam_at_boundary[l + 1];
+        const Numeric at_top    = transport * beam_at_boundary[l];
+        downward = transport * downward +
+                   t.mathscr_B[l, angle + N] *
+                       downward_tms_kernel(mu, mu0, thickness, at_bottom, at_top);
+        tms[l, j, angle + N] = downward;
+      }
+
+      Numeric upward = 0.0;
+      tms[NLayers - 1, j, angle] = 0.0;
+      for (Index l = NLayers - 1; l > 0; --l) {
+        const Numeric transport = ray_transport[angle, l];
+        const Numeric at_top    = beam_at_boundary[l];
+        const Numeric at_bottom = transport * beam_at_boundary[l + 1];
+        upward = transport * upward + t.mathscr_B[l, angle] * (at_top - at_bottom);
+        tms[l - 1, j, angle] = upward;
+      }
     }
   }
 }
 
-void main_data::gridded_IMS(Tensor3View ims, const Vector& phi) const {
+void main_data::gridded_IMS(Tensor3View ims,
+                            const Vector& phi,
+                            const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   const Index M = phi.size();
 
-  Vector correction;
-  for (Index l = 0; l < NLayers; l++)
-    for (Index j = 0; j < M; j++) {
-      IMS(correction, tau_arr[l], phi[j]);
-      ims[l, j] = correction;
+  Vector nu;
+  const auto downward_mu = mu_arr[rb(N)];
+  const Numeric beam_theta = std::acos(-mu0);
+  Matrix depth_factor(NLayers, N, 0.0);
+  for (Index angle = 0; angle < N; ++angle) {
+    const Numeric mu = -downward_mu[angle];
+    const bool in_aureole = convention == ims_convention::pythonic_disort ||
+                            std::abs(beam_theta - std::acos(downward_mu[angle])) <= Constant::pi / 18.0;
+    if (!in_aureole) continue;
+    for (Index l = 0; l < NLayers; ++l) {
+      const Index boundary = l + 1;
+      const Numeric sign = convention == ims_convention::disort ? -1.0 : 1.0;
+      depth_factor[l, angle] =
+          sign * IMS_scalar[boundary] * ims_chi(tau_arr[l], mu, scaled_mu0[boundary]);
     }
+  }
+  for (Index j = 0; j < M; ++j) {
+    calculate_nu(nu, downward_mu, phi[j], -mu0, phi0);
+    for (Index angle = 0; angle < N; ++angle) {
+      for (Index l = 0; l < NLayers; ++l) {
+        const Index boundary = l + 1;
+        ims[l, j, angle] = depth_factor[l, angle] *
+                           Legendre::legendre_sum(
+                               Leg_coeffs_residue_avg[boundary], nu[angle]);
+      }
+    }
+  }
 }
 
-void main_data::gridded_u_corr(Tensor3View u_data, Tensor3View tms, Tensor3View ims, const Vector& phi) const {
+void main_data::gridded_u_corr(Tensor3View u_data,
+                               Tensor3View tms,
+                               Tensor3View ims,
+                               const Vector& phi,
+                               const ims_convention convention) const {
   ARTS_TIME_REPORT
 
   gridded_u(u_data, phi);
 
   if (has_beam_source) {
     gridded_TMS(tms, phi);
-    gridded_IMS(ims, phi);
+    gridded_IMS(ims, phi, convention);
 
     tms                         *= I0_orig;
     u_data                      += tms;

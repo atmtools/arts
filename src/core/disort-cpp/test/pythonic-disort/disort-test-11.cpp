@@ -507,6 +507,44 @@ void test_11f_disort_user_angle_formal_solution() try {
   throw std::runtime_error(std::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
 }
 
+void test_11g_gridded_correction_cache_equivalence() try {
+  const auto dis = identical_atmosphere(AscendingGrid{0.4, 1.2, 2.0});
+  const Vector phi{0.2, 1.7};
+  Tensor3 cached_tms(3, 2, dis.mu().size());
+  Tensor3 cached_ims(3, 2, dis.mu().size() / 2);
+  Tensor3 point_tms(3, 2, dis.mu().size());
+  Tensor3 point_ims(3, 2, dis.mu().size() / 2);
+  dis.gridded_TMS(cached_tms, phi);
+  dis.gridded_IMS(cached_ims, phi);
+
+  disort::tms_data tms;
+  Vector ims;
+  const Vector tau{0.4, 1.2, 2.0};
+  for (Index l = 0; l < 3; ++l)
+    for (Index p = 0; p < 2; ++p) {
+      dis.TMS(tms, tau[l], phi[p]);
+      dis.IMS(ims, tau[l], phi[p]);
+      point_tms[l, p] = tms.TMS;
+      point_ims[l, p] = ims;
+    }
+
+  require_close("cached gridded TMS", cached_tms, point_tms, 2e-13);
+  require_close("cached gridded IMS", cached_ims, point_ims, 2e-13);
+
+  dis.gridded_IMS(cached_ims, phi, disort::ims_convention::pythonic_disort);
+  for (Index l = 0; l < 3; ++l)
+    for (Index p = 0; p < 2; ++p) {
+      dis.IMS(ims,
+              tau[l],
+              phi[p],
+              disort::ims_convention::pythonic_disort);
+      point_ims[l, p] = ims;
+    }
+  require_close("cached gridded Pythonic IMS", cached_ims, point_ims, 2e-13);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-11g-gridded-correction-cache-equivalence:\n{}", e.what()));
+}
+
 int main() try {
   std::cout << std::setprecision(16);
   test_11a_1layer();
@@ -516,6 +554,7 @@ int main() try {
   test_11d_removable_correction_singularities();
   test_11e_current_pythonic_disort_correction();
   test_11f_disort_user_angle_formal_solution();
+  test_11g_gridded_correction_cache_equivalence();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;

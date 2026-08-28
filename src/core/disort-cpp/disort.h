@@ -96,8 +96,6 @@ struct tms_data {
   Vector nu;
   Vector TMS;
   Matrix mathscr_B;
-  Matrix contribution_from_other_layers_pos;
-  Matrix contribution_from_other_layers_neg;
 };
 
 struct flux_data {
@@ -111,6 +109,13 @@ struct coupling_result {
   Index   iterations{0};
   Numeric max_relative_change{0.0};
   bool    converged{false};
+};
+
+enum class ims_convention {
+  /** DISORT 4.0.99 INTCOR: subtract IMS within the 10-degree aureole. */
+  disort,
+  /** Pythonic-DISORT NT correction: add IMS in every downward direction. */
+  pythonic_disort,
 };
 
 /** The main data structure for the DISORT algorithm
@@ -210,6 +215,13 @@ class main_data {
   //! [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
   mathscr_v_data comp_data{};
 
+  void prepare_TMS(tms_data& data,
+                   Numeric phi,
+                   const ConstVectorView& mu) const;
+  void evaluate_TMS(tms_data& data,
+                    Numeric tau,
+                    const ConstVectorView& mu) const;
+
  public:
   friend struct std::formatter<main_data>;
 
@@ -281,7 +293,10 @@ class main_data {
     * @param tau The point-wise optical thickness
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
-  void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;
+  void IMS(Vector& ims,
+           Numeric tau,
+           Numeric phi,
+           ims_convention convention = ims_convention::disort) const;
   /** IMS correction at arbitrary signed polar-angle cosines.
    *
    * The result has the same size as mu and is zero in upward directions.
@@ -289,8 +304,11 @@ class main_data {
   void IMS(Vector& ims,
            Numeric tau,
            Numeric phi,
-           const ConstVectorView& mu) const;
-  void gridded_IMS(Tensor3View ims, const Vector& phi) const;
+           const ConstVectorView& mu,
+           ims_convention convention = ims_convention::disort) const;
+  void gridded_IMS(Tensor3View ims,
+                   const Vector& phi,
+                   ims_convention convention = ims_convention::disort) const;
 
   /** Spectral radiance at a given tau and phi
     *
@@ -348,8 +366,17 @@ class main_data {
     * @param tau The point-wise optical thickness 
     * @param phi The azimuthal angle of observation [0, 2 * pi)
     */
-  void u_corr(u_data& u_data, Vector& ims, tms_data& tms_data, const Numeric tau, const Numeric phi) const;
-  void gridded_u_corr(Tensor3View u_data, Tensor3View tms, Tensor3View ims, const Vector& phi) const;
+  void u_corr(u_data& u_data,
+              Vector& ims,
+              tms_data& tms_data,
+              Numeric tau,
+              Numeric phi,
+              ims_convention convention = ims_convention::disort) const;
+  void gridded_u_corr(Tensor3View u_data,
+                      Tensor3View tms,
+                      Tensor3View ims,
+                      const Vector& phi,
+                      ims_convention convention = ims_convention::disort) const;
 
   /** Compute the upward flux at a given tau
     *
