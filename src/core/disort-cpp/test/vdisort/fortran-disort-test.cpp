@@ -1405,6 +1405,91 @@ void test_problem_13() {
                      test.transmission);
   }
 }
+
+disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {
+  using enum disort_test::reference::brdf_type;
+  switch (type) {
+    case hapke:    return disort::brdf::Hapke{};
+    case cox_munk: return disort::brdf::CoxMunk{};
+    case rpv:      return disort::brdf::RPV{};
+    case ross_li:  return disort::brdf::RossLi{};
+  }
+  std::unreachable();
+}
+
+problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
+  constexpr Index   nquad   = disort_test::reference::problem_14_streams;
+  constexpr Index   nmodes  = nquad;
+  constexpr Index   nlayers = 1;
+  constexpr Index   nstokes = vdisort::stokes_dimension;
+  constexpr Numeric depth   = 1e-12;
+  constexpr Numeric omega   = 1e-8;
+  const Index       n       = nquad / 2;
+  const auto&       user_mu = disort_test::reference::problem_14_user_mu;
+  const Index       nuser   = static_cast<Index>(user_mu.size());
+
+  Tensor7 phase(2, nmodes, nlayers, nquad, nquad, nstokes, nstokes, 0.0);
+  phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
+  Tensor6 beam_phase(2, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
+  beam_phase[vdisort::cosine_mode, 0, 0, joker, 0, 0] = 1.0;
+
+  vdisort::phase_matrix_data      user_phase(2, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data user_beam_phase(2, nmodes, nlayers, nuser, rtepack::muelmat{0.0});
+  for (Index user = 0; user < nuser; ++user) {
+    for (Index stream = 0; stream < nquad; ++stream) user_phase[vdisort::cosine_mode, 0, 0, user, stream][0, 0] = 1.0;
+    user_beam_phase[vdisort::cosine_mode, 0, 0, user][0, 0] = 1.0;
+  }
+
+  vdisort::main_data solver(nquad,
+                            nmodes,
+                            AscendingGrid{depth},
+                            Vector{omega},
+                            std::move(phase),
+                            Tensor4(2, nmodes, n, nstokes, 0.0),
+                            Tensor4(2, nmodes, n, nstokes, 0.0),
+                            Tensor3(nlayers, 0, nstokes),
+                            scalar_brdf_modes(raw, nmodes),
+                            disort_test::reference::problem_14_beam_mu,
+                            Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
+                            0.0,
+                            std::move(beam_phase));
+  return {
+      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+}
+
+void test_problem_14() {
+  using namespace disort_test::reference;
+  for (const auto& test : problem_14) {
+    const auto raw = problem_14_raw(test.type);
+    for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
+      for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle)
+        expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
+                         problem_14_beam_mu * raw(problem_14_user_mu[angle], problem_14_beam_mu, test.azimuth[azimuth]),
+                         test.radiance[azimuth, angle],
+                         2e-5);
+
+    auto                 model = make_problem_14_model(raw);
+    vdisort::user_u_data user;
+    for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
+      model.solver.u_user(
+          user, 0.0, test.azimuth[azimuth], problem_14_user_mu, model.user_phase, model.user_beam_phase);
+      for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle) {
+        const auto label = std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
+        expect_unpolarized(label, user.intensities[angle]);
+        expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, angle], 2e-5);
+      }
+    }
+
+    vdisort::flux_data flux_data;
+    const auto         values = model.solver.flux(flux_data, 0.0);
+    for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+      expect_unpolarized(std::format("{} flux field [{}]", test.name, stream), flux_data.u0[stream]);
+    expect_reference(std::format("{} direct flux", test.name), values.down_direct, test.direct);
+    expect_reference(std::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
+    expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
+    expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
+  }
+}
 }  // namespace
 
 int main() try {
@@ -1421,6 +1506,7 @@ int main() try {
   test_problem_11();
   test_problem_12();
   test_problem_13();
+  test_problem_14();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {

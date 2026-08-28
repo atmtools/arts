@@ -112,7 +112,7 @@ void fill_combined(rtepack::muelmat&       out_cos,
 }
 
 rtepack::muelmat to_muelmat(const ConstMatrixView block) {
-  assert(block.rows() == vdisort::stokes_dimension and block.cols() == vdisort::stokes_dimension);
+  assert(block.nrows() == vdisort::stokes_dimension and block.ncols() == vdisort::stokes_dimension);
   rtepack::muelmat out{0.0};
   for (Index i = 0; i < vdisort::stokes_dimension; ++i)
     for (Index j = 0; j < vdisort::stokes_dimension; ++j) out[i, j] = block[i, j];
