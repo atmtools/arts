@@ -648,6 +648,129 @@ void test_problem_6() {
     }
   }
 }
+
+vdisort::main_data make_problem_7_model(const disort_test::reference::scattering_thermal_case& test) {
+  constexpr Index nstokes = vdisort::stokes_dimension;
+  constexpr Index nmodes  = 1;  // Problem 7 has active azimuth-integrated flux references only.
+  const Index     nquad   = test.streams;
+  const Index     n       = nquad / 2;
+
+  Vector moments(nquad);
+  for (Index degree = 0; degree < nquad; ++degree)
+    moments[degree] = std::pow(test.asymmetry_parameter, static_cast<Numeric>(degree));
+
+  Vector quadrature_mu(nquad), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
+  std::transform(quadrature_mu.begin(), quadrature_mu.begin() + n, quadrature_mu.begin() + n, [](const Numeric mu) {
+    return -mu;
+  });
+
+  Tensor7 phase(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0);
+  for (Index i = 0; i < nquad; ++i)
+    for (Index j = 0; j < nquad; ++j)
+      phase[vdisort::cosine_mode, 0, 0, i, j, 0, 0] = scalar_phase_mode(moments, 0, quadrature_mu[i], quadrature_mu[j]);
+
+  Tensor6           beam_phase(2, nmodes, 1, nquad, nstokes, nstokes, 0.0);
+  constexpr Numeric mu0 = 0.5;
+  for (Index i = 0; i < nquad; ++i)
+    beam_phase[vdisort::cosine_mode, 0, 0, i, 0, 0] = scalar_phase_mode(moments, 0, quadrature_mu[i], -mu0);
+
+  disort::brdf::RawFunction raw;
+  if (test.surface == disort_test::reference::surface_type::lambertian) {
+    raw = [albedo = test.lambertian_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
+  } else if (test.surface == disort_test::reference::surface_type::hapke) {
+    raw = disort::brdf::Hapke{.opposition_amplitude = 1.0, .opposition_width = 0.06, .single_scattering_albedo = 0.6};
+  }
+  std::vector<vdisort::BDRF> brdf;
+  if (raw) brdf = scalar_brdf_modes(raw, nmodes);
+
+  Tensor4       up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
+  const Numeric top_boundary_planck =
+      band_blackbody_radiance(test.top_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
+  down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + top_boundary_planck;
+
+  const Numeric bottom_boundary_planck =
+      band_blackbody_radiance(test.bottom_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
+  for (Index i = 0; i < n; ++i) {
+    Numeric emissivity = 1.0;
+    if (test.surface == disort_test::reference::surface_type::lambertian)
+      emissivity = 1.0 - test.lambertian_albedo;
+    else if (test.surface == disort_test::reference::surface_type::hapke)
+      emissivity = directional_emissivity(raw, quadrature_mu[i]);
+    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_boundary_planck;
+  }
+
+  const Numeric atmosphere_top_planck =
+      band_blackbody_radiance(test.atmosphere_top_temperature, test.wavenumber_low, test.wavenumber_high);
+  const Numeric atmosphere_bottom_planck =
+      band_blackbody_radiance(test.atmosphere_bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  const Numeric absorption = 1.0 - test.single_scattering_albedo;
+  Tensor3       source(1, 2, nstokes, 0.0);
+  source[0, 0, 0] = absorption * atmosphere_top_planck;
+  source[0, 1, 0] = absorption * (atmosphere_bottom_planck - atmosphere_top_planck) / test.optical_depth;
+
+  return vdisort::main_data(nquad,
+                            nmodes,
+                            AscendingGrid{test.optical_depth},
+                            Vector{test.single_scattering_albedo},
+                            std::move(phase),
+                            std::move(up),
+                            std::move(down),
+                            std::move(source),
+                            std::move(brdf),
+                            mu0,
+                            Vector{test.beam, 0.0, 0.0, 0.0},
+                            0.0,
+                            std::move(beam_phase));
+}
+
+void expect_small_reference(const std::string_view name,
+                            const Numeric          actual,
+                            const Numeric          expected,
+                            const Numeric          relative_tolerance = 2e-3,
+                            const Numeric          absolute_tolerance = 1e-10) {
+  ARTS_USER_ERROR_IF(std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected),
+                     "{}: expected {}, got {} (difference {})",
+                     name,
+                     expected,
+                     actual,
+                     actual - expected);
+}
+
+void test_problem_7() {
+  for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_7.size()); ++case_index) {
+    const auto&        test       = disort_test::reference::problem_7[case_index];
+    const auto&        reference  = disort_test::reference::problem_7_flux[case_index];
+    auto               model      = make_problem_7_model(test);
+    const Vector       output_tau = case_index < 2 ? Vector{0.0, test.optical_depth} : Vector{0.0, 0.5, 1.0};
+    vdisort::flux_data flux_data;
+    for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
+      const auto flux = model.flux(flux_data, output_tau[level]);
+      for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+
+      if (case_index == 1) {
+        expect_small_reference(
+            std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
+        expect_small_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                               flux.down_diffuse,
+                               reference.diffuse_down[level]);
+        expect_small_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level]);
+        expect_small_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level]);
+      } else {
+        const Numeric tolerance = case_index == 4 ? 1e-2 : 2e-3;
+        expect_reference(
+            std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], tolerance);
+        expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                         flux.down_diffuse,
+                         reference.diffuse_down[level],
+                         tolerance);
+        expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], tolerance);
+        expect_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], tolerance);
+      }
+    }
+  }
+}
 }  // namespace
 
 int main() try {
@@ -657,6 +780,7 @@ int main() try {
   test_problem_4();
   test_problem_5();
   test_problem_6();
+  test_problem_7();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
