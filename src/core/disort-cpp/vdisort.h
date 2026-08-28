@@ -7,6 +7,7 @@
 #include <rtepack_stokes_vector.h>
 
 #include <array>
+#include <functional>
 #include <span>
 #include <vector>
 
@@ -75,6 +76,61 @@ struct flux_values {
   Numeric down_diffuse{};
   Numeric down_direct{};
   Numeric dfdt{};
+};
+
+/** Laboratory-frame Mueller phase function used by the delta-M correction.
+ * Arguments are layer, outgoing (mu, phi), and incident (mu, phi).
+ */
+using lab_phase_function = std::function<rtepack::muelmat(Index, Numeric, Numeric, Numeric, Numeric)>;
+
+/** Cached, fully Mueller-valued Nakajima-Tanaka delta-M correction.
+ *
+ * `removed_phase` is the normalized angular shape R of the removed peak.  The
+ * IMS cache evaluates 2R - (1/4pi) integral R(out,mid) R(mid,beam) dOmega_mid,
+ * with all matrices expressed in the laboratory Stokes frame.  Consequently
+ * reference-plane rotations belong in the supplied callbacks and are retained
+ * through the Mueller product.
+ */
+class delta_m_correction_cache {
+  AscendingGrid    physical_tau_;
+  AscendingGrid    scaled_tau_;
+  Vector           omega_;
+  Vector           fraction_;
+  Vector           scale_;
+  Vector           user_mu_;
+  Vector           phi_;
+  Numeric          mu0_{};
+  Numeric          phi0_{};
+  rtepack::stokvec beam_{};
+
+  rtepack::muelmat_tensor3 tms_operator_;  // [layer, phi, user]
+  rtepack::muelmat_tensor3 ims_operator_;  // [boundary, phi, user]
+  Vector                   ims_scalar_;    // [boundary]
+  Vector                   ims_mu0_;       // [boundary]
+
+ public:
+  delta_m_correction_cache() = default;
+  delta_m_correction_cache(AscendingGrid      physical_tau,
+                           Vector             omega,
+                           Vector             fraction,
+                           Numeric            mu0,
+                           Numeric            phi0,
+                           rtepack::stokvec   beam,
+                           Vector             user_mu,
+                           Vector             phi,
+                           lab_phase_function original_phase,
+                           lab_phase_function transport_phase,
+                           lab_phase_function removed_phase,
+                           Index              intermediate_mu  = 32,
+                           Index              intermediate_phi = 64);
+
+  /** Return the cached TMS+IMS Stokes correction at one cached azimuth. */
+  [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric tau, Index phi_index) const;
+
+  [[nodiscard]] const AscendingGrid& physical_tau() const { return physical_tau_; }
+  [[nodiscard]] const AscendingGrid& scaled_tau() const { return scaled_tau_; }
+  [[nodiscard]] const Vector&        user_mu() const { return user_mu_; }
+  [[nodiscard]] const Vector&        phi() const { return phi_; }
 };
 
 // VDISORT CHANGE BEGIN: a BRDF Fourier mode is a 4x4 block operator.

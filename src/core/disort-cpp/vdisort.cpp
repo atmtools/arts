@@ -150,6 +150,209 @@ vdisort::beam_phase_matrix_data to_beam_phase_matrix_data(const Tensor6& in) {
 }  // namespace
 
 namespace vdisort {
+namespace {
+Numeric correction_phi2(const Numeric x) {
+  if (std::abs(x) >= 1.0) return (std::expm1(x) - x) / (x * x);
+  Numeric term = 0.5;
+  Numeric sum  = term;
+  for (Index k = 1; k <= 20; ++k) {
+    term *= x / static_cast<Numeric>(k + 2);
+    sum  += term;
+  }
+  return sum;
+}
+
+Numeric correction_downward_kernel(const Numeric mu,
+                                   const Numeric mu0,
+                                   const Numeric thickness,
+                                   const Numeric lower_value,
+                                   const Numeric upper_value) {
+  const Numeric y = 1.0 / mu - 1.0 / mu0;
+  const Numeric w = thickness * y;
+  if (std::abs(w) < 1.0) return thickness / mu * (w == 0.0 ? 1.0 : -std::expm1(-w) / w) * lower_value;
+  return (lower_value - upper_value) / (mu * y);
+}
+
+Numeric correction_ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
+  const Numeric x = 1.0 / mu - 1.0 / scaled_mu0;
+  const Numeric z = -tau * x;
+  if (std::abs(z) < 1.0) return tau * tau * std::exp(-tau / scaled_mu0) * correction_phi2(z) / (mu * scaled_mu0);
+  return ((tau - 1.0 / x) * std::exp(-tau / scaled_mu0) + std::exp(-tau / mu) / x) / (mu * scaled_mu0 * x);
+}
+}  // namespace
+
+delta_m_correction_cache::delta_m_correction_cache(AscendingGrid      physical_tau,
+                                                   Vector             omega,
+                                                   Vector             fraction,
+                                                   const Numeric      mu0,
+                                                   const Numeric      phi0,
+                                                   rtepack::stokvec   beam,
+                                                   Vector             user_mu,
+                                                   Vector             phi,
+                                                   lab_phase_function original_phase,
+                                                   lab_phase_function transport_phase,
+                                                   lab_phase_function removed_phase,
+                                                   const Index        intermediate_mu,
+                                                   const Index        intermediate_phi)
+    : physical_tau_(std::move(physical_tau)),
+      omega_(std::move(omega)),
+      fraction_(std::move(fraction)),
+      user_mu_(std::move(user_mu)),
+      phi_(std::move(phi)),
+      mu0_(mu0),
+      phi0_(phi0),
+      beam_(beam) {
+  const Index nlayers = static_cast<Index>(physical_tau_.size());
+  const Index nuser   = static_cast<Index>(user_mu_.size());
+  const Index nphi    = static_cast<Index>(phi_.size());
+  ARTS_USER_ERROR_IF(omega_.size() != physical_tau_.size() or fraction_.size() != physical_tau_.size(),
+                     "Polarized delta-M arrays must all contain {} layers, got omega={} and fraction={}",
+                     nlayers,
+                     omega_.size(),
+                     fraction_.size());
+  ARTS_USER_ERROR_IF(mu0_ <= 0.0 or mu0_ > 1.0, "The delta-M beam cosine must be in (0, 1], got {}", mu0_);
+  ARTS_USER_ERROR_IF(intermediate_mu <= 0 or intermediate_phi <= 0,
+                     "IMS quadrature sizes must be positive, got {} x {}",
+                     intermediate_mu,
+                     intermediate_phi);
+  ARTS_USER_ERROR_IF(std::ranges::any_of(user_mu_, [](const Numeric mu) { return mu == 0.0 or std::abs(mu) > 1.0; }),
+                     "Delta-M user cosines must be nonzero and in [-1, 1], got {:B,}",
+                     user_mu_);
+
+  scale_.resize(nlayers);
+  Vector  scaled_tau(nlayers);
+  Numeric physical_top = 0.0, scaled_top = 0.0;
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    ARTS_USER_ERROR_IF(omega_[layer] < 0.0 or omega_[layer] > 1.0 or fraction_[layer] < 0.0 or fraction_[layer] >= 1.0,
+                       "Invalid delta-M omega/fraction in layer {}: {}, {}",
+                       layer,
+                       omega_[layer],
+                       fraction_[layer]);
+    scale_[layer]      = 1.0 - omega_[layer] * fraction_[layer];
+    scaled_top        += scale_[layer] * (physical_tau_[layer] - physical_top);
+    scaled_tau[layer]  = scaled_top;
+    physical_top       = physical_tau_[layer];
+  }
+  scaled_tau_ = AscendingGrid{std::move(scaled_tau)};
+
+  tms_operator_.resize(nlayers, nphi, nuser);
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    const Numeric transport_omega = omega_[layer] * (1.0 - fraction_[layer]) / scale_[layer];
+    for (Index p = 0; p < nphi; ++p)
+      for (Index u = 0; u < nuser; ++u) {
+        const Numeric beam_factor = user_mu_[u] > 0.0 ? mu0_ / (mu0_ + user_mu_[u]) : 1.0;
+        tms_operator_[layer, p, u] =
+            transport_omega * Constant::inv_pi * 0.25 * beam_factor *
+            (original_phase(layer, user_mu_[u], phi_[p], -mu0_, phi0_) / (1.0 - fraction_[layer]) -
+             transport_phase(layer, user_mu_[u], phi_[p], -mu0_, phi0_));
+      }
+  }
+
+  Vector mid_mu(intermediate_mu), mid_weight(intermediate_mu);
+  Legendre::GaussLegendre(mid_mu, mid_weight);
+  ims_operator_.resize(nlayers + 1, nphi, nuser);
+  ims_operator_ = rtepack::muelmat{0.0};
+  ims_scalar_.resize(nlayers + 1);
+  ims_mu0_.resize(nlayers + 1);
+  Numeric cumulative_peak = 0.0;
+  Vector  layer_peak_weight(nlayers, 0.0);
+  physical_top = 0.0;
+  for (Index boundary = 1; boundary <= nlayers; ++boundary) {
+    const Index layer           = boundary - 1;
+    layer_peak_weight[layer]    = omega_[layer] * fraction_[layer] * (physical_tau_[layer] - physical_top);
+    cumulative_peak            += layer_peak_weight[layer];
+    physical_top                = physical_tau_[layer];
+    const Numeric average_peak  = cumulative_peak / physical_tau_[layer];
+    ims_mu0_[boundary]          = mu0_ / (1.0 - average_peak);
+    ims_scalar_[boundary]       = Constant::inv_pi * 0.25 * average_peak * average_peak / (1.0 - average_peak);
+    if (cumulative_peak == 0.0) continue;
+
+    const auto average_removed =
+        [&](const Numeric out_mu, const Numeric out_phi, const Numeric in_mu, const Numeric in_phi) {
+          rtepack::muelmat value{0.0};
+          for (Index l = 0; l < boundary; ++l)
+            if (layer_peak_weight[l] != 0.0)
+              value += layer_peak_weight[l] * removed_phase(l, out_mu, out_phi, in_mu, in_phi);
+          return value / cumulative_peak;
+        };
+
+    for (Index p = 0; p < nphi; ++p)
+      for (Index u = 0; u < nuser; ++u) {
+        const rtepack::muelmat direct = average_removed(user_mu_[u], phi_[p], -mu0_, phi0_);
+        rtepack::muelmat       convolution{0.0};
+        for (Index q = 0; q < intermediate_mu; ++q)
+          for (Index a = 0; a < intermediate_phi; ++a) {
+            const Numeric mid_phi =
+                Constant::two_pi * (static_cast<Numeric>(a) + 0.5) / static_cast<Numeric>(intermediate_phi);
+            convolution += mid_weight[q] * (average_removed(user_mu_[u], phi_[p], mid_mu[q], mid_phi) *
+                                            average_removed(mid_mu[q], mid_phi, -mu0_, phi0_));
+          }
+        convolution                   *= 0.5 / static_cast<Numeric>(intermediate_phi);
+        ims_operator_[boundary, p, u]  = 2.0 * direct - convolution;
+      }
+  }
+  ims_operator_[0] = ims_operator_[1];
+  ims_scalar_[0]   = ims_scalar_[1];
+  ims_mu0_[0]      = ims_mu0_[1];
+}
+
+rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, const Index phi_index) const {
+  ARTS_USER_ERROR_IF(tau < 0.0 or tau > physical_tau_.back(),
+                     "Physical correction depth must be in [0, {}], got {}",
+                     physical_tau_.back(),
+                     tau);
+  ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
+                     "Correction azimuth index {} is outside [0, {})",
+                     phi_index,
+                     phi_.size());
+  const Index layer = std::min<Index>(
+      std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, tau)), physical_tau_.size() - 1);
+  const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
+  const Numeric scaled_layer_top   = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
+  const Numeric scaled_tau         = scaled_layer_top + scale_[layer] * (tau - physical_layer_top);
+
+  rtepack::stokvec_vector out(user_mu_.size(), rtepack::stokvec{});
+  for (Index u = 0; u < static_cast<Index>(user_mu_.size()); ++u) {
+    const Numeric mu = user_mu_[u], abs_mu = std::abs(mu);
+    if (mu > 0.0) {
+      const Numeric at_observation  = std::exp(-scaled_tau / mu0_);
+      const Numeric at_bottom       = std::exp((scaled_tau - scaled_tau_[layer]) / abs_mu - scaled_tau_[layer] / mu0_);
+      out[u]                       += (at_observation - at_bottom) * (tms_operator_[layer, phi_index, u] * beam_);
+      for (Index l = layer + 1; l < static_cast<Index>(physical_tau_.size()); ++l) {
+        const Numeric top = scaled_tau_[l - 1], bottom = scaled_tau_[l];
+        const Numeric a  = std::exp((scaled_tau - top) / abs_mu - top / mu0_);
+        const Numeric b  = std::exp((scaled_tau - bottom) / abs_mu - bottom / mu0_);
+        out[u]          += (a - b) * (tms_operator_[l, phi_index, u] * beam_);
+      }
+    } else {
+      const Numeric at_observation = std::exp(-scaled_tau / mu0_);
+      const Numeric at_top         = std::exp((scaled_layer_top - scaled_tau) / abs_mu - scaled_layer_top / mu0_);
+      out[u] += correction_downward_kernel(abs_mu, mu0_, scaled_tau - scaled_layer_top, at_observation, at_top) *
+                (tms_operator_[layer, phi_index, u] * beam_);
+      for (Index l = 0; l < layer; ++l) {
+        const Numeric top = l == 0 ? 0.0 : scaled_tau_[l - 1], bottom = scaled_tau_[l];
+        const Numeric a = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0_);
+        const Numeric b = std::exp((top - scaled_tau) / abs_mu - top / mu0_);
+        out[u] +=
+            correction_downward_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
+      }
+
+      const Numeric beam_theta = std::acos(-mu0_);
+      const Numeric ray_theta  = std::acos(mu);
+      if (std::abs(beam_theta - ray_theta) <= Constant::pi / 18.0) {
+        const Numeric layer_bottom        = physical_tau_[layer];
+        const Numeric weight              = (tau - physical_layer_top) / (layer_bottom - physical_layer_top);
+        const auto    boundary_correction = [&](const Index boundary) {
+          return ims_scalar_[boundary] * correction_ims_chi(tau, abs_mu, ims_mu0_[boundary]) *
+                 (ims_operator_[boundary, phi_index, u] * beam_);
+        };
+        out[u] -= (1.0 - weight) * boundary_correction(layer) + weight * boundary_correction(layer + 1);
+      }
+    }
+  }
+  return out;
+}
+
 phase_matrix_fourier_coefficients phase_matrix_fourier_split(const rtepack::specmat_matrix_const_view& phase_matrix) {
   phase_matrix_fourier_coefficients out{
       .cosine = rtepack::muelmat_matrix(phase_matrix.nrows(), phase_matrix.ncols(), rtepack::muelmat{0.0}),

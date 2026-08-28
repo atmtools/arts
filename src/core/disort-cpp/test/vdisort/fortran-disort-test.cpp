@@ -1,6 +1,7 @@
 #include <arts_constants.h>
 #include <disort-brdf.h>
 #include <legendre.h>
+#include <rtepack_multitype.h>
 #include <vdisort.h>
 
 #include <cmath>
@@ -343,6 +344,36 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
       make_scalar_model(test.depth, test.omega, test.beam, nquad, moments, user_mu, 1.0, Constant::pi, moments[nquad]);
   const Vector output_tau{0.0, test.depth};
 
+  Vector weighted_true(moments.size()), weighted_transport(model.transport_moments.size()),
+      weighted_removed(moments.size());
+  for (Index degree = 0; degree < static_cast<Index>(moments.size()); ++degree) {
+    weighted_true[degree]    = static_cast<Numeric>(2 * degree + 1) * moments[degree];
+    const Numeric residue    = degree < nquad ? 1.0 : moments[degree] / model.delta_m_fraction;
+    weighted_removed[degree] = static_cast<Numeric>(2 * degree + 1) * residue;
+  }
+  for (Index degree = 0; degree < static_cast<Index>(model.transport_moments.size()); ++degree)
+    weighted_transport[degree] = static_cast<Numeric>(2 * degree + 1) * model.transport_moments[degree];
+  const auto scalar_phase = [](const Vector coefficients) {
+    return [coefficients](Index, Numeric out_mu, Numeric out_phi, Numeric in_mu, Numeric in_phi) {
+      rtepack::muelmat result{0.0};
+      result[0, 0] = Legendre::legendre_sum(coefficients, scattering_angle_cosine(out_mu, out_phi, in_mu, in_phi));
+      return result;
+    };
+  };
+  const vdisort::delta_m_correction_cache polarized_correction(AscendingGrid{test.depth},
+                                                               Vector{test.omega},
+                                                               Vector{model.delta_m_fraction},
+                                                               model.mu0,
+                                                               model.phi0,
+                                                               rtepack::stokvec{model.beam_intensity, 0.0, 0.0, 0.0},
+                                                               Vector{user_mu},
+                                                               Vector{0.0},
+                                                               scalar_phase(weighted_true),
+                                                               scalar_phase(weighted_transport),
+                                                               scalar_phase(weighted_removed),
+                                                               48,
+                                                               96);
+
   vdisort::user_u_data user;
   vdisort::flux_data   flux;
   for (Index level = 0; level < 2; ++level) {
@@ -350,7 +381,14 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
     const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
     model.solver.u_user(user, scaled_tau, 0.0, user_mu, model.user_phase, model.user_beam_phase);
     const Vector correction = scalar_delta_m_correction(model, physical_tau, 0.0, user_mu);
+    const auto   polarized  = polarized_correction.evaluate(physical_tau, 0);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
+      expect_reference(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
+                       polarized[angle].I(),
+                       correction[angle],
+                       2e-7);
+      expect_unpolarized(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
+                         polarized[angle]);
       user.intensities[angle].I() += correction[angle];
       const auto label             = std::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle]);
@@ -1490,6 +1528,51 @@ void test_problem_14() {
     expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
   }
 }
+
+void test_polarized_delta_m_correction() {
+  rtepack::muelmat removed{0.0};
+  removed[0, 0]             = 1.0;
+  removed[1, 0]             = 0.2;
+  removed[2, 0]             = -0.1;
+  removed[3, 0]             = 0.05;
+  removed[1, 1]             = 0.7;
+  removed[2, 2]             = 0.6;
+  removed[3, 3]             = 0.5;
+  const auto constant_phase = [removed](Index, Numeric, Numeric, Numeric, Numeric) { return removed; };
+  const auto zero_phase     = [](Index, Numeric, Numeric, Numeric, Numeric) { return rtepack::muelmat{0.0}; };
+
+  constexpr Numeric                       depth    = 1.0;
+  constexpr Numeric                       omega    = 0.8;
+  constexpr Numeric                       fraction = 0.2;
+  constexpr Numeric                       mu0      = 0.5;
+  constexpr Numeric                       tau      = 0.5;
+  constexpr Numeric                       user_mu  = -0.5;
+  const rtepack::stokvec                  beam{1.0, 0.1, -0.05, 0.02};
+  const vdisort::delta_m_correction_cache correction(AscendingGrid{depth},
+                                                     Vector{omega},
+                                                     Vector{fraction},
+                                                     mu0,
+                                                     0.0,
+                                                     beam,
+                                                     Vector{user_mu},
+                                                     Vector{0.0},
+                                                     zero_phase,
+                                                     zero_phase,
+                                                     constant_phase,
+                                                     8,
+                                                     16);
+  const auto                              actual       = correction.evaluate(tau, 0);
+  const Numeric                           omega_f      = omega * fraction;
+  const Numeric                           scalar       = Constant::inv_pi * 0.25 * omega_f * omega_f / (1.0 - omega_f);
+  const rtepack::muelmat                  ims_operator = 2.0 * removed - removed * removed;
+  const rtepack::stokvec expected = -scalar * ims_chi(tau, -user_mu, mu0 / (1.0 - omega_f)) * (ims_operator * beam);
+  for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+    expect_reference(
+        std::format("Polarized delta-M IMS Stokes {}", stokes), actual[0][stokes], expected[stokes], 2e-12);
+  ARTS_USER_ERROR_IF(std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0,
+                     "Polarized delta-M IMS failed to generate all polarized Stokes components: {}",
+                     actual[0]);
+}
 }  // namespace
 
 int main() try {
@@ -1507,6 +1590,7 @@ int main() try {
   test_problem_12();
   test_problem_13();
   test_problem_14();
+  test_polarized_delta_m_correction();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
