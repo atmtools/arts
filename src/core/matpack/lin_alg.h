@@ -97,6 +97,16 @@ struct diagonalize_workdata {
   constexpr Numeric* rwork() { return w.data() + 2 * N; }
 };
 
+struct complex_diagonalize_workdata {
+  Index         N{};
+  ComplexMatrix matrix;
+  ComplexVector work;
+  Vector        rwork;
+
+  complex_diagonalize_workdata() = default;
+  explicit complex_diagonalize_workdata(Index n) : N(n), matrix(n, n), work(2 * n + n * n), rwork(2 * n) {}
+};
+
 // Matrix diagonalization with lapack
 void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A);
 
@@ -111,6 +121,10 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
 
 // Matrix diagonalization with lapack
 void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A);
+void diagonalize(ComplexMatrixView             P,
+                 ComplexVectorView             W,
+                 ConstComplexMatrixView        A,
+                 complex_diagonalize_workdata& workdata);
 
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);

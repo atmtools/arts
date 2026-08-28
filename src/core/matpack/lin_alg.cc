@@ -305,6 +305,14 @@ void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A, 
  * \param[in]  A The matrix to diagonalize.
  */
 void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A) {
+  complex_diagonalize_workdata workdata(A.ncols());
+  diagonalize(P, W, A, workdata);
+}
+
+void diagonalize(ComplexMatrixView             P,
+                 ComplexVectorView             W,
+                 const ConstComplexMatrixView  A,
+                 complex_diagonalize_workdata& workdata) {
   Index n = A.ncols();
 
   // A must be a square matrix.
@@ -312,8 +320,9 @@ void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMat
   assert(n == static_cast<Index>(W.size()));
   assert(n == P.nrows());
   assert(n == P.ncols());
+  assert(n == workdata.N);
 
-  ComplexMatrix A_tmp{transpose(A)};
+  workdata.matrix = transpose(A);
 
   // Integers
   int LDA = int(A.ncols()), LDA_L = int(A.ncols()), LDA_R = int(A.ncols()), n_int = int(n), info;
@@ -322,25 +331,24 @@ void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMat
   char l_eig = 'N', r_eig = 'V';
 
   // Work matrix
-  int           lwork = 2 * n_int + n_int * n_int;
-  ComplexVector work(lwork);
-  ComplexVector lpdata(0);
-  Vector        rwork(2 * n_int);
+  int     lwork = static_cast<int>(workdata.work.size());
+  Complex left_eigenvector_dummy{};
+  LDA_L = 1;
 
   // Main calculations.  Note that errors in the output is ignored
   lapack::zgeev_(&l_eig,
                  &r_eig,
                  &n_int,
-                 A_tmp.data_handle(),
+                 workdata.matrix.data_handle(),
                  &LDA,
                  W.data_handle(),
-                 lpdata.data_handle(),
+                 &left_eigenvector_dummy,
                  &LDA_L,
                  P.data_handle(),
                  &LDA_R,
-                 work.data_handle(),
+                 workdata.work.data_handle(),
                  &lwork,
-                 rwork.data_handle(),
+                 workdata.rwork.data_handle(),
                  &info);
 
   for (Index i = 0; i < n; i++)

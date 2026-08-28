@@ -2,6 +2,7 @@
 #include <disort-brdf.h>
 #include <legendre.h>
 #include <rtepack_multitype.h>
+#include <time_report.h>
 #include <vdisort.h>
 
 #include <cmath>
@@ -71,13 +72,20 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
                                        const ConstVectorView& user_mu,
                                        const Numeric          mu0,
                                        const Numeric          beam_intensity,
-                                       const Numeric          delta_m_fraction = 0.0,
-                                       const Numeric          phi0             = 0.0) {
+                                       const Numeric          delta_m_fraction     = 0.0,
+                                       const Numeric          phi0                 = 0.0,
+                                       const Vector*          removed_peak_moments = nullptr) {
   const Numeric optical_depth_scale = 1.0 - physical_omega * delta_m_fraction;
   const Numeric transport_omega     = physical_omega * (1.0 - delta_m_fraction) / optical_depth_scale;
   Vector        transport_moments(std::min(nquad, static_cast<Index>(moments.size())));
-  for (Index degree = 0; degree < static_cast<Index>(transport_moments.size()); ++degree)
-    transport_moments[degree] = (moments[degree] - delta_m_fraction) / (1.0 - delta_m_fraction);
+  ARTS_USER_ERROR_IF(removed_peak_moments != nullptr and removed_peak_moments->size() < transport_moments.size(),
+                     "The removed peak has {} moments, but {} are required",
+                     removed_peak_moments->size(),
+                     transport_moments.size());
+  for (Index degree = 0; degree < static_cast<Index>(transport_moments.size()); ++degree) {
+    const Numeric removed_moment = removed_peak_moments == nullptr ? 1.0 : (*removed_peak_moments)[degree];
+    transport_moments[degree]    = (moments[degree] - delta_m_fraction * removed_moment) / (1.0 - delta_m_fraction);
+  }
 
   Index highest_nonzero_degree = 0;
   for (Index degree = 0; degree < static_cast<Index>(transport_moments.size()); ++degree)
@@ -1495,10 +1503,20 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
 }
 
+void update_scalar_brdf(problem_9_model& model, const disort::brdf::RawFunction& raw, const Index nmodes) {
+  const auto modes = scalar_brdf_modes(raw, nmodes);
+  std::ranges::copy(modes, model.solver.brdf_modes().begin());
+  model.solver.solve_for_coefs();
+  model.solver.rad_field();
+}
+
 void test_problem_14() {
   using namespace disort_test::reference;
-  for (const auto& test : problem_14) {
-    const auto raw = problem_14_raw(test.type);
+  auto model = make_problem_14_model(problem_14_raw(problem_14.front().type));
+  for (Index case_index = 0; case_index < static_cast<Index>(problem_14.size()); ++case_index) {
+    const auto& test = problem_14[case_index];
+    const auto  raw  = problem_14_raw(test.type);
+    if (case_index != 0) update_scalar_brdf(model, raw, problem_14_streams);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle)
         expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
@@ -1506,7 +1524,6 @@ void test_problem_14() {
                          test.radiance[azimuth, angle],
                          2e-5);
 
-    auto                 model = make_problem_14_model(raw);
     vdisort::user_u_data user;
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
       model.solver.u_user(
@@ -1657,8 +1674,10 @@ void test_problem_15() {
   const auto scaled_depth = [f = fraction[1]](const Numeric tau) {
     return tau <= problem_15_tau[0] ? tau : problem_15_tau[0] + (tau - problem_15_tau[0]) * (1.0 - f);
   };
-  for (const auto& test : problem_15) {
-    auto                 model = make_problem_15_model(problem_15_raw(test.type), transport, scaled_tau);
+  auto model = make_problem_15_model(problem_15_raw(problem_15.front().type), transport, scaled_tau);
+  for (Index case_index = 0; case_index < static_cast<Index>(problem_15.size()); ++case_index) {
+    const auto& test = problem_15[case_index];
+    if (case_index != 0) update_scalar_brdf(model, problem_15_raw(test.type), problem_15_streams);
     vdisort::user_u_data user;
     for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth)
       for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
@@ -1690,6 +1709,59 @@ void test_problem_15() {
       expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
       expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
     }
+  }
+}
+
+void test_problem_17() {
+  using namespace disort_test::reference;
+
+  const std::array<const Vector*, 2> phase_moments{
+      &kokhanovsky_aerosol_moments,
+      &kokhanovsky_cloud_moments,
+  };
+  const std::array expected_fraction{0.24306, 0.44398};
+
+  for (Index case_index = 0; case_index < static_cast<Index>(problem_17.size()); ++case_index) {
+    const auto& test = problem_17[case_index];
+    Matrix      moments(1, phase_moments[case_index]->size());
+    moments[0]         = *phase_moments[case_index];
+    const auto scaling = disort::delta_m_plus(moments, problem_17_streams);
+    expect_reference(
+        std::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
+
+    Vector removed_peak_moments{scaling.moments[0]};
+    auto   model = make_scalar_model(test.depth,
+                                     1.0,
+                                     true,
+                                     problem_17_streams,
+                                     moments[0],
+                                     problem_17_user_mu,
+                                     problem_17_beam_mu,
+                                     problem_17_beam,
+                                     scaling.fraction[0],
+                                     0.0,
+                                     &removed_peak_moments);
+    expect_reference(std::format("{} scaled depth", test.name),
+                     model.solver.tau().back(),
+                     test.depth * (1.0 - scaling.fraction[0]),
+                     2e-13);
+
+    vdisort::user_u_data user;
+    const Vector         physical_tau{0.0, test.depth};
+    for (Index level = 0; level < static_cast<Index>(physical_tau.size()); ++level)
+      for (Index azimuth = 0; azimuth < static_cast<Index>(problem_17_azimuth.size()); ++azimuth) {
+        model.solver.u_user(user,
+                            model.optical_depth_scale * physical_tau[level],
+                            problem_17_azimuth[azimuth],
+                            problem_17_user_mu,
+                            model.user_phase,
+                            model.user_beam_phase);
+        for (Index angle = 0; angle < static_cast<Index>(problem_17_user_mu.size()); ++angle) {
+          const auto label = std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth);
+          expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle, azimuth]);
+          expect_unpolarized(label, user.intensities[angle]);
+        }
+      }
   }
 }
 
@@ -1755,7 +1827,11 @@ int main() try {
   test_problem_13();
   test_problem_14();
   test_problem_15();
+  test_problem_17();
   test_polarized_delta_m_correction();
+#if ARTS_PROFILING
+  arts::print_report();
+#endif
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {

@@ -203,6 +203,8 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
       mu0_(mu0),
       phi0_(phi0),
       beam_(beam) {
+  ARTS_TIME_REPORT
+
   const Index nlayers = static_cast<Index>(physical_tau_.size());
   const Index nuser   = static_cast<Index>(user_mu_.size());
   const Index nphi    = static_cast<Index>(phi_.size());
@@ -308,6 +310,8 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
 }
 
 rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, const Index phi_index) const {
+  ARTS_TIME_REPORT
+
   ARTS_USER_ERROR_IF(tau < 0.0 or tau > physical_tau_.back(),
                      "Physical correction depth must be in [0, {}], got {}",
                      physical_tau_.back(),
@@ -698,10 +702,17 @@ void main_data::diagonalize() {
 
   // VDISORT CHANGE BEGIN: solve the real, generally non-symmetric 8N x 8N
   // eigenproblem with complex arithmetic (paper Eqs. 85-90).
+  Matrix                       A_real(NState, NState);
+  ComplexMatrix                A(NState, NState);
+  ComplexMatrix                eigenvectors(NState, NState);
+  ComplexVector                eigenvalues(NState);
+  Vector                       rhs(NState);
+  std::vector<Index>           order(static_cast<std::size_t>(NState));
+  complex_diagonalize_workdata eigen_work(NState);
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
       for (Index l = 0; l < NLayers; ++l) {
-        Matrix A_real(NState, NState, 0.0);
+        A_real = 0.0;
         for (Index i = 0; i < NQuad; ++i) {
           for (Index so = 0; so < stokes_dimension; ++so) {
             const Index row = state_index(i, so);
@@ -715,15 +726,11 @@ void main_data::diagonalize() {
           }
         }
 
-        ComplexMatrix A(NState, NState);
         for (Index i = 0; i < NState; ++i)
           for (Index j = 0; j < NState; ++j) A[i, j] = A_real[i, j];
 
-        ComplexMatrix eigenvectors(NState, NState);
-        ComplexVector eigenvalues(NState);
-        ::diagonalize(eigenvectors, eigenvalues, A);
+        ::diagonalize(eigenvectors, eigenvalues, A, eigen_work);
 
-        std::vector<Index> order(static_cast<std::size_t>(NState));
         std::iota(order.begin(), order.end(), Index{0});
         std::ranges::sort(order, [&](const Index a, const Index b) {
           if (eigenvalues[a].real() != eigenvalues[b].real()) return eigenvalues[a].real() < eigenvalues[b].real();
@@ -739,8 +746,8 @@ void main_data::diagonalize() {
 
         if (has_beam_source) {
           const rtepack::stokvec& beam = beam_stokes;
-          Vector                  rhs(NState, 0.0);
-          const Numeric           epsilon = m == 0 ? 1.0 : 2.0;
+          rhs                          = 0.0;
+          const Numeric epsilon        = m == 0 ? 1.0 : 2.0;
           for (Index i = 0; i < NQuad; ++i) {
             const rtepack::stokvec scattered = beam_phase_matrix[alpha, m, l, i] * beam;
             for (Index so = 0; so < stokes_dimension; ++so) {
@@ -815,17 +822,21 @@ void main_data::transmission() {
 void main_data::solve_for_coefs() {
   ARTS_TIME_REPORT
 
-  const Index equation_count = NLayers * NState;
-  const Index bandwidth      = 3 * NHalfState - 1;
+  const Index                  equation_count = NLayers * NState;
+  const Index                  bandwidth      = 3 * NHalfState - 1;
+  matpack::complex_band_matrix lhs(bandwidth, bandwidth, equation_count, equation_count);
+  ComplexVector                rhs(equation_count);
+  Matrix                       reflection(NHalfState, NHalfState);
+  Vector                       direct_reflection(NHalfState);
 
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
-      matpack::complex_band_matrix lhs(bandwidth, bandwidth, equation_count, equation_count);
-      ComplexVector                rhs(equation_count, 0.0);
+      lhs.zero();
+      rhs = 0.0;
 
       // VDISORT CHANGE BEGIN: reflection is a matrix coupling Stokes components.
-      Matrix reflection(NHalfState, NHalfState, 0.0);
-      Vector direct_reflection(NHalfState, 0.0);
+      reflection        = 0.0;
+      direct_reflection = 0.0;
       if (m < NBDRF) {
         rtepack::muelmat_matrix raw(N, N, rtepack::muelmat{0.0});
         brdf_fourier_modes[m](alpha, raw, mu_arr[Range{0, N}], mu_arr[Range{0, N}]);
@@ -1036,31 +1047,38 @@ void main_data::u_user(user_u_data&                  data,
     return result;
   }();
 
+  Vector     interpolation_values(N);
   const auto interpolate_boundary =
       [&](const rtepack::stokvec_tensor3& boundary, const Index alpha, const Index m, const Numeric abs_mu) {
         rtepack::stokvec result{};
-        Vector           values(N);
         for (Index s = 0; s < stokes_dimension; ++s) {
-          for (Index i = 0; i < N; ++i) values[i] = boundary[alpha, m, i][s];
-          result[s] = barycentric_interpolate(mu_arr[Range{0, N}], values, abs_mu);
+          for (Index i = 0; i < N; ++i) interpolation_values[i] = boundary[alpha, m, i][s];
+          result[s] = barycentric_interpolate(mu_arr[Range{0, N}], interpolation_values, abs_mu);
         }
         return result;
       };
 
   data.intensities.resize(nuser);
-  data.intensities         = rtepack::stokvec{};
-  const Index output_layer = tau_index(tau);
+  data.intensities                           = rtepack::stokvec{};
+  const Index                   output_layer = tau_index(tau);
+  std::vector<rtepack::stokvec> modes(static_cast<std::size_t>(2 * NFourier));
+  std::vector<rtepack::stokvec> segment_integral(static_cast<std::size_t>(2 * NFourier));
+  Matrix                        field(2 * NFourier, NState);
+  Matrix                        bottom_field;
+  rtepack::muelmat_matrix       raw(1, N);
+  rtepack::muelmat_matrix       beam_raw(1, 1);
+  Vector                        outgoing(1);
+  const Vector                  beam_direction{mu0};
+  if (NBDRF > 0 and std::ranges::any_of(user_mu, [](const Numeric mu) { return mu > 0.0; })) {
+    bottom_field.resize(2 * NFourier, NState);
+    combined_field(bottom_field, tau_arr.back());
+  }
 
   for (Index iu = 0; iu < nuser; ++iu) {
-    const Numeric                 mu       = user_mu[iu];
-    const Numeric                 abs_mu   = std::abs(mu);
-    const bool                    downward = mu < 0.0;
-    std::vector<rtepack::stokvec> modes(static_cast<std::size_t>(2 * NFourier));
-    Matrix                        bottom_field;
-    if (not downward and NBDRF > 0) {
-      bottom_field.resize(2 * NFourier, NState);
-      combined_field(bottom_field, tau_arr.back());
-    }
+    const Numeric mu       = user_mu[iu];
+    const Numeric abs_mu   = std::abs(mu);
+    const bool    downward = mu < 0.0;
+    outgoing[0]            = abs_mu;
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
@@ -1068,8 +1086,6 @@ void main_data::u_user(user_u_data&                  data,
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
         if (not downward and m < NBDRF) {
-          rtepack::muelmat_matrix raw(1, N, rtepack::muelmat{0.0});
-          const Vector            outgoing{abs_mu};
           brdf_fourier_modes[m](alpha, raw, outgoing, mu_arr[Range{0, N}]);
           for (Index j = 0; j < N; ++j) {
             rtepack::stokvec incident{};
@@ -1078,8 +1094,6 @@ void main_data::u_user(user_u_data&                  data,
             mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * incident);
           }
           if (has_beam_source) {
-            rtepack::muelmat_matrix beam_raw(1, 1, rtepack::muelmat{0.0});
-            const Vector            beam_direction{mu0};
             brdf_fourier_modes[m](alpha, beam_raw, outgoing, beam_direction);
             mode += 0.5 * mu0 * std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
@@ -1107,10 +1121,9 @@ void main_data::u_user(user_u_data&                  data,
         const Numeric segment_upper = std::lerp(lower, upper, static_cast<Numeric>(segment + 1) * inv_segment_count);
         const Numeric midpoint      = 0.5 * (segment_lower + segment_upper);
         const Numeric halfwidth     = 0.5 * (segment_upper - segment_lower);
-        std::vector<rtepack::stokvec> segment_integral(static_cast<std::size_t>(2 * NFourier));
+        std::ranges::fill(segment_integral, rtepack::stokvec{});
         for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
           const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
-          Matrix        field(2 * NFourier, NState);
           combined_field(field, point);
           const Numeric distance           = downward ? tau - point : point - tau;
           const Numeric integration_weight = integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu;

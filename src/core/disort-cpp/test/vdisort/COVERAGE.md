@@ -34,7 +34,7 @@ or the existing synthetic scalar-limit tests does not count as a port.
 | 14 | a–d | ported | Hapke, Cox-Munk, RPV, and Ross-Li raw BRDFs are transformed into 32 scalar M00 Fourier modes over the same transparent-layer representation as CPP-DISORT. Every surface-reflected radiance and all direct, diffuse-down, upward, and `DFDT` fluxes match; Q, U, and V remain zero. |
 | 15 | a–d | ported | All 600 aerosol moments feed the two-layer scalar reduction of the full cached Mueller IMS/TMS correction, with an exact spectral convolution of the removed peak. Hapke, shadowed Cox-Munk, RPV, and Ross-Li cases reproduce every radiance and all direct, diffuse-down, upward, and `DFDT` fluxes; Q, U, and V remain zero. |
 | 16 | a | intentionally unsupported | Pseudo-spherical direct-beam corrections are neither required by polarization nor part of the VDISORT geometry model. This is the only Fortran problem not targeted. |
-| 17 | a–b | not ported | For the scalar reduction, apply the validated scalar Gaussian delta-M-plus transformation before constructing the M00 VDISORT operator. Compare all 1,080 radiances; a general Mueller-valued delta-M formulation is not required for this scalar test. |
+| 17 | a–b | ported | The validated scalar Gaussian delta-M-plus transformation constructs the M00 VDISORT operator for the aerosol and cloud cases. All 1,080 radiances match and Q, U, and V remain zero. IMS/TMS is deliberately disabled, matching DISORT 4.0.99; this is not a general Mueller-valued delta-M-plus implementation. |
 
 ## Geometry scope
 
