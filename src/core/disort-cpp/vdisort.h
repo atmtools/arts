@@ -82,6 +82,8 @@ struct flux_values {
  * Arguments are layer, outgoing (mu, phi), and incident (mu, phi).
  */
 using lab_phase_function = std::function<rtepack::muelmat(Index, Numeric, Numeric, Numeric, Numeric)>;
+using lab_phase_pair_convolution_function =
+    std::function<rtepack::muelmat(Index, Index, Numeric, Numeric, Numeric, Numeric)>;
 
 /** Cached, fully Mueller-valued Nakajima-Tanaka delta-M correction.
  *
@@ -110,19 +112,20 @@ class delta_m_correction_cache {
 
  public:
   delta_m_correction_cache() = default;
-  delta_m_correction_cache(AscendingGrid      physical_tau,
-                           Vector             omega,
-                           Vector             fraction,
-                           Numeric            mu0,
-                           Numeric            phi0,
-                           rtepack::stokvec   beam,
-                           Vector             user_mu,
-                           Vector             phi,
-                           lab_phase_function original_phase,
-                           lab_phase_function transport_phase,
-                           lab_phase_function removed_phase,
-                           Index              intermediate_mu  = 32,
-                           Index              intermediate_phi = 64);
+  delta_m_correction_cache(AscendingGrid                       physical_tau,
+                           Vector                              omega,
+                           Vector                              fraction,
+                           Numeric                             mu0,
+                           Numeric                             phi0,
+                           rtepack::stokvec                    beam,
+                           Vector                              user_mu,
+                           Vector                              phi,
+                           lab_phase_function                  original_phase,
+                           lab_phase_function                  transport_phase,
+                           lab_phase_function                  removed_phase,
+                           Index                               intermediate_mu          = 32,
+                           Index                               intermediate_phi         = 64,
+                           lab_phase_pair_convolution_function removed_pair_convolution = {});
 
   /** Return the cached TMS+IMS Stokes correction at one cached azimuth. */
   [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric tau, Index phi_index) const;

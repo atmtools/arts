@@ -181,19 +181,20 @@ Numeric correction_ims_chi(const Numeric tau, const Numeric mu, const Numeric sc
 }
 }  // namespace
 
-delta_m_correction_cache::delta_m_correction_cache(AscendingGrid      physical_tau,
-                                                   Vector             omega,
-                                                   Vector             fraction,
-                                                   const Numeric      mu0,
-                                                   const Numeric      phi0,
-                                                   rtepack::stokvec   beam,
-                                                   Vector             user_mu,
-                                                   Vector             phi,
-                                                   lab_phase_function original_phase,
-                                                   lab_phase_function transport_phase,
-                                                   lab_phase_function removed_phase,
-                                                   const Index        intermediate_mu,
-                                                   const Index        intermediate_phi)
+delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                       physical_tau,
+                                                   Vector                              omega,
+                                                   Vector                              fraction,
+                                                   const Numeric                       mu0,
+                                                   const Numeric                       phi0,
+                                                   rtepack::stokvec                    beam,
+                                                   Vector                              user_mu,
+                                                   Vector                              phi,
+                                                   lab_phase_function                  original_phase,
+                                                   lab_phase_function                  transport_phase,
+                                                   lab_phase_function                  removed_phase,
+                                                   const Index                         intermediate_mu,
+                                                   const Index                         intermediate_phi,
+                                                   lab_phase_pair_convolution_function removed_pair_convolution)
     : physical_tau_(std::move(physical_tau)),
       omega_(std::move(omega)),
       fraction_(std::move(fraction)),
@@ -280,15 +281,25 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid      physical_t
       for (Index u = 0; u < nuser; ++u) {
         const rtepack::muelmat direct = average_removed(user_mu_[u], phi_[p], -mu0_, phi0_);
         rtepack::muelmat       convolution{0.0};
-        for (Index q = 0; q < intermediate_mu; ++q)
-          for (Index a = 0; a < intermediate_phi; ++a) {
-            const Numeric mid_phi =
-                Constant::two_pi * (static_cast<Numeric>(a) + 0.5) / static_cast<Numeric>(intermediate_phi);
-            convolution += mid_weight[q] * (average_removed(user_mu_[u], phi_[p], mid_mu[q], mid_phi) *
-                                            average_removed(mid_mu[q], mid_phi, -mu0_, phi0_));
-          }
-        convolution                   *= 0.5 / static_cast<Numeric>(intermediate_phi);
-        ims_operator_[boundary, p, u]  = 2.0 * direct - convolution;
+        if (removed_pair_convolution) {
+          for (Index first = 0; first < boundary; ++first)
+            for (Index second = 0; second < boundary; ++second)
+              if (layer_peak_weight[first] != 0.0 and layer_peak_weight[second] != 0.0)
+                convolution += layer_peak_weight[first] * layer_peak_weight[second] *
+                               removed_pair_convolution(first, second, user_mu_[u], phi_[p], -mu0_, phi0_);
+          convolution /= cumulative_peak * cumulative_peak;
+        } else {
+          for (Index q = 0; q < intermediate_mu; ++q)
+            for (Index a = 0; a < intermediate_phi; ++a) {
+              const Numeric mid_phi =
+                  Constant::two_pi * (static_cast<Numeric>(a) + 0.5) / static_cast<Numeric>(intermediate_phi);
+              convolution += mid_weight[q] * (average_removed(user_mu_[u], phi_[p], mid_mu[q], mid_phi) *
+                                              average_removed(mid_mu[q], mid_phi, -mu0_, phi0_));
+            }
+          convolution *= 0.5 / static_cast<Numeric>(intermediate_phi);
+        }
+
+        ims_operator_[boundary, p, u] = 2.0 * direct - convolution;
       }
   }
   ims_operator_[0] = ims_operator_[1];
@@ -823,7 +834,7 @@ void main_data::solve_for_coefs() {
             for (Index j = 0; j < N; ++j)
               for (Index si = 0; si < stokes_dimension; ++si)
                 reflection[state_index(i, so), state_index(j, si)] =
-                    Constant::pi * W[j] * mu_arr[j] * raw[i, j][so, si];
+                    Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * raw[i, j][so, si];
 
         if (has_beam_source) {
           rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
@@ -1064,7 +1075,7 @@ void main_data::u_user(user_u_data&                  data,
             rtepack::stokvec incident{};
             for (Index s = 0; s < stokes_dimension; ++s)
               incident[s] = bottom_field[alpha * NFourier + m, state_index(N + j, s)];
-            mode += Constant::pi * W[j] * mu_arr[j] * (raw[0, j] * incident);
+            mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * incident);
           }
           if (has_beam_source) {
             rtepack::muelmat_matrix beam_raw(1, 1, rtepack::muelmat{0.0});

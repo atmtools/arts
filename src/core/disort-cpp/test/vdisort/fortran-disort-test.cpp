@@ -1529,6 +1529,170 @@ void test_problem_14() {
   }
 }
 
+disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) {
+  if (type == disort_test::reference::brdf_type::cox_munk) return disort::brdf::CoxMunk{.shadowing = true};
+  return problem_14_raw(type);
+}
+
+problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
+                                      const Matrix&                    transport_moments,
+                                      const AscendingGrid&             scaled_tau) {
+  using namespace disort_test::reference;
+  constexpr Index nquad   = problem_15_streams;
+  constexpr Index nmodes  = nquad;
+  constexpr Index nlayers = 2;
+  constexpr Index nstokes = vdisort::stokes_dimension;
+  const Index     n       = nquad / 2;
+  const Index     nuser   = static_cast<Index>(problem_15_user_mu.size());
+
+  Vector quadrature_mu(nquad), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
+  std::transform(quadrature_mu.begin(), quadrature_mu.begin() + n, quadrature_mu.begin() + n, [](const Numeric mu) {
+    return -mu;
+  });
+  Tensor7                         phase(2, nmodes, nlayers, nquad, nquad, nstokes, nstokes, 0.0);
+  Tensor6                         beam_phase(2, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
+  vdisort::phase_matrix_data      user_phase(2, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data user_beam_phase(2, nmodes, nlayers, nuser, rtepack::muelmat{0.0});
+  for (Index layer = 0; layer < nlayers; ++layer)
+    for (Index mode = 0; mode < nmodes; ++mode) {
+      const auto moments = transport_moments[layer];
+      for (Index out = 0; out < nquad; ++out) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(moments, mode, quadrature_mu[out], quadrature_mu[in]);
+          phase[vdisort::cosine_mode, mode, layer, out, in, 0, 0] = value;
+          if (mode > 0) phase[vdisort::sine_mode, mode, layer, out, in, 0, 0] = value;
+        }
+        beam_phase[vdisort::cosine_mode, mode, layer, out, 0, 0] =
+            scalar_phase_mode(moments, mode, quadrature_mu[out], -problem_15_beam_mu);
+      }
+      for (Index user = 0; user < nuser; ++user) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(moments, mode, problem_15_user_mu[user], quadrature_mu[in]);
+          user_phase[vdisort::cosine_mode, mode, layer, user, in][0, 0] = value;
+          if (mode > 0) user_phase[vdisort::sine_mode, mode, layer, user, in][0, 0] = value;
+        }
+        user_beam_phase[vdisort::cosine_mode, mode, layer, user][0, 0] =
+            scalar_phase_mode(moments, mode, problem_15_user_mu[user], -problem_15_beam_mu);
+      }
+    }
+
+  vdisort::main_data solver(nquad,
+                            nmodes,
+                            scaled_tau,
+                            Vector{1.0, 1.0},
+                            std::move(phase),
+                            Tensor4(2, nmodes, n, nstokes, 0.0),
+                            Tensor4(2, nmodes, n, nstokes, 0.0),
+                            Tensor3(nlayers, 0, nstokes),
+                            scalar_brdf_modes(raw, nmodes),
+                            problem_15_beam_mu,
+                            Vector{problem_15_beam, 0.0, 0.0, 0.0},
+                            0.0,
+                            std::move(beam_phase));
+  return {
+      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+}
+
+void test_problem_15() {
+  using namespace disort_test::reference;
+  constexpr Index moment_count = 600;
+  Matrix          original(2, moment_count, 0.0);
+  original[0, 0] = 1.0;
+  original[0, 2] = 0.1;
+  original[1]    = kokhanovsky_aerosol_moments[Range{0, moment_count}];
+  const Vector fraction{0.0, original[1, problem_15_streams]};
+  Matrix       transport(2, problem_15_streams, 0.0);
+  for (Index layer = 0; layer < 2; ++layer)
+    for (Index degree = 0; degree < problem_15_streams; ++degree)
+      transport[layer, degree] = (original[layer, degree] - fraction[layer]) / (1.0 - fraction[layer]);
+  const Numeric       scaled_bottom = problem_15_tau[0] + (problem_15_tau[1] - problem_15_tau[0]) * (1.0 - fraction[1]);
+  const AscendingGrid scaled_tau{problem_15_tau[0], scaled_bottom};
+
+  Matrix weighted_original(2, moment_count), weighted_transport(2, problem_15_streams),
+      weighted_removed(2, moment_count, 0.0);
+  for (Index layer = 0; layer < 2; ++layer) {
+    for (Index degree = 0; degree < moment_count; ++degree)
+      weighted_original[layer, degree] = static_cast<Numeric>(2 * degree + 1) * original[layer, degree];
+    for (Index degree = 0; degree < problem_15_streams; ++degree)
+      weighted_transport[layer, degree] = static_cast<Numeric>(2 * degree + 1) * transport[layer, degree];
+  }
+  for (Index degree = 0; degree < moment_count; ++degree) {
+    const Numeric residue       = degree < problem_15_streams ? 1.0 : original[1, degree] / fraction[1];
+    weighted_removed[1, degree] = static_cast<Numeric>(2 * degree + 1) * residue;
+  }
+  const auto phase_callback = [](const Matrix coefficients) {
+    return [coefficients](Index layer, Numeric out_mu, Numeric out_phi, Numeric in_mu, Numeric in_phi) {
+      rtepack::muelmat result{0.0};
+      result[0, 0] =
+          Legendre::legendre_sum(coefficients[layer], scattering_angle_cosine(out_mu, out_phi, in_mu, in_phi));
+      return result;
+    };
+  };
+  const auto removed_convolution =
+      [weighted_removed](Index first, Index second, Numeric out_mu, Numeric out_phi, Numeric in_mu, Numeric in_phi) {
+        rtepack::muelmat result{0.0};
+        Vector           coefficients(moment_count);
+        for (Index degree = 0; degree < moment_count; ++degree)
+          coefficients[degree] =
+              weighted_removed[first, degree] * weighted_removed[second, degree] / static_cast<Numeric>(2 * degree + 1);
+        result[0, 0] = Legendre::legendre_sum(coefficients, scattering_angle_cosine(out_mu, out_phi, in_mu, in_phi));
+        return result;
+      };
+  const vdisort::delta_m_correction_cache correction(AscendingGrid{problem_15_tau},
+                                                     Vector{1.0, 1.0},
+                                                     fraction,
+                                                     problem_15_beam_mu,
+                                                     0.0,
+                                                     rtepack::stokvec{problem_15_beam, 0.0, 0.0, 0.0},
+                                                     Vector{problem_15_user_mu},
+                                                     Vector{problem_15_azimuth},
+                                                     phase_callback(weighted_original),
+                                                     phase_callback(weighted_transport),
+                                                     phase_callback(weighted_removed),
+                                                     1,
+                                                     1,
+                                                     removed_convolution);
+
+  const auto scaled_depth = [f = fraction[1]](const Numeric tau) {
+    return tau <= problem_15_tau[0] ? tau : problem_15_tau[0] + (tau - problem_15_tau[0]) * (1.0 - f);
+  };
+  for (const auto& test : problem_15) {
+    auto                 model = make_problem_15_model(problem_15_raw(test.type), transport, scaled_tau);
+    vdisort::user_u_data user;
+    for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth)
+      for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
+        model.solver.u_user(user,
+                            scaled_depth(problem_15_output_tau[level]),
+                            problem_15_azimuth[azimuth],
+                            problem_15_user_mu,
+                            model.user_phase,
+                            model.user_beam_phase);
+        const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth);
+        for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
+          user.intensities[angle] += corr[angle];
+          const auto label         = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+          expect_unpolarized(label, user.intensities[angle]);
+          expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, level, angle]);
+        }
+      }
+
+    vdisort::flux_data flux_data;
+    for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
+      const Numeric physical_tau = problem_15_output_tau[level];
+      const auto    values       = model.solver.flux(flux_data, scaled_depth(physical_tau));
+      const Numeric physical_direct =
+          problem_15_beam_mu * problem_15_beam * std::exp(-physical_tau / problem_15_beam_mu);
+      const Numeric physical_diffuse = values.down_diffuse - (physical_direct - values.down_direct);
+      expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+      expect_reference(
+          std::format("{} diffuse-down flux [{}]", test.name, level), physical_diffuse, test.diffuse_down[level]);
+      expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
+      expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
+    }
+  }
+}
+
 void test_polarized_delta_m_correction() {
   rtepack::muelmat removed{0.0};
   removed[0, 0]             = 1.0;
@@ -1590,6 +1754,7 @@ int main() try {
   test_problem_12();
   test_problem_13();
   test_problem_14();
+  test_problem_15();
   test_polarized_delta_m_correction();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;

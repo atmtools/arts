@@ -32,9 +32,27 @@ or the existing synthetic scalar-limit tests does not count as a port.
 | 12 | a–b | ported | The optically thick homogeneous atmosphere and its identical three-layer subdivision use the same scalar delta-M transport without an absorption cutoff. All corrected arbitrary-angle radiances and direct, diffuse-down, upward, and `DFDT` fluxes agree; Q, U, and V remain zero. |
 | 13 | a–d | ported | The regular scalar delta-M solves reproduce both single- and two-layer albedo/transmission pairs, covering the physical results of the `IBCND=1` shortcut cases without implementing that shortcut. An absorbing-atmosphere check independently verifies direct transmission and Lambertian beam reflection. |
 | 14 | a–d | ported | Hapke, Cox-Munk, RPV, and Ross-Li raw BRDFs are transformed into 32 scalar M00 Fourier modes over the same transparent-layer representation as CPP-DISORT. Every surface-reflected radiance and all direct, diffuse-down, upward, and `DFDT` fluxes match; Q, U, and V remain zero. |
-| 15 | a–d | not ported | Reuse all 600 aerosol moments, the scalar BRDF embedding, and scalar IMS/TMS corrections. Compare every original radiance, flux, and `DFDT` value. |
-| 16 | a | intentionally unsupported | Pseudo-spherical direct-beam corrections are out of scope. This is the only Fortran problem not targeted. |
+| 15 | a–d | ported | All 600 aerosol moments feed the two-layer scalar reduction of the full cached Mueller IMS/TMS correction, with an exact spectral convolution of the removed peak. Hapke, shadowed Cox-Munk, RPV, and Ross-Li cases reproduce every radiance and all direct, diffuse-down, upward, and `DFDT` fluxes; Q, U, and V remain zero. |
+| 16 | a | intentionally unsupported | Pseudo-spherical direct-beam corrections are neither required by polarization nor part of the VDISORT geometry model. This is the only Fortran problem not targeted. |
 | 17 | a–b | not ported | For the scalar reduction, apply the validated scalar Gaussian delta-M-plus transformation before constructing the M00 VDISORT operator. Compare all 1,080 radiances; a general Mueller-valued delta-M formulation is not required for this scalar test. |
+
+## Geometry scope
+
+VDISORT is a polarized extension of the plane-parallel discrete-ordinate
+solver.  Its Stokes and Mueller treatment does not require pseudo-spherical
+geometry: polarization changes the transported quantities and scattering
+operators, not the assumed geometry.  Both the diffuse field and direct beam
+therefore remain plane-parallel.
+
+Problem 16 tests DISORT's pseudo-spherical direct-beam shortcut and is
+intentionally unsupported.  We do not intend to add a planet radius,
+pseudo-spherical switch, or curved-beam calculation to the VDISORT core.
+
+If ARTS later requires curved direct-beam paths, they should be supplied by
+the ARTS geometry and ray-tracing layer, with path-dependent illumination
+passed into VDISORT.  This keeps the transport solver independent of a
+single-radius planetary approximation and is suitable for ARTS's
+multiple-planet use cases.
 
 ## Common scalar-reduction infrastructure
 
