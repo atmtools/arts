@@ -1282,6 +1282,129 @@ void test_problem_12() {
     }
   }
 }
+
+vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_transmission_reference& test) {
+  constexpr Index   nquad   = disort_test::reference::problem_13_streams;
+  constexpr Index   nmodes  = nquad;
+  constexpr Index   nstokes = vdisort::stokes_dimension;
+  constexpr Numeric g       = disort_test::reference::problem_13_asymmetry;
+  const Numeric     f       = std::pow(g, static_cast<Numeric>(nquad));
+  const Index       n       = nquad / 2;
+  const Index       nlayers = static_cast<Index>(test.cumulative_tau.size());
+
+  Vector transport_moments(nquad);
+  for (Index degree = 0; degree < nquad; ++degree)
+    transport_moments[degree] = (std::pow(g, static_cast<Numeric>(degree)) - f) / (1.0 - f);
+
+  Vector quadrature_mu(nquad), quadrature_weight(n);
+  Legendre::PositiveDoubleGaussLegendre(quadrature_mu[Range{0, n}], quadrature_weight);
+  std::transform(quadrature_mu.begin(), quadrature_mu.begin() + n, quadrature_mu.begin() + n, [](const Numeric mu) {
+    return -mu;
+  });
+
+  Tensor7 phase(2, nmodes, nlayers, nquad, nquad, nstokes, nstokes, 0.0);
+  Tensor6 beam_phase(2, nmodes, nlayers, nquad, nstokes, nstokes, 0.0);
+  for (Index layer = 0; layer < nlayers; ++layer)
+    for (Index mode = 0; mode < nmodes; ++mode)
+      for (Index out = 0; out < nquad; ++out) {
+        for (Index in = 0; in < nquad; ++in) {
+          const Numeric value = scalar_phase_mode(transport_moments, mode, quadrature_mu[out], quadrature_mu[in]);
+          phase[vdisort::cosine_mode, mode, layer, out, in, 0, 0] = value;
+          if (mode > 0) phase[vdisort::sine_mode, mode, layer, out, in, 0, 0] = value;
+        }
+        beam_phase[vdisort::cosine_mode, mode, layer, out, 0, 0] =
+            scalar_phase_mode(transport_moments, mode, quadrature_mu[out], -disort_test::reference::problem_13_beam_mu);
+      }
+
+  Vector  scaled_cumulative_tau(nlayers), transport_omega(nlayers);
+  Numeric physical_top = 0.0;
+  Numeric scaled_top   = 0.0;
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    const Numeric omega           = test.single_scattering_albedo[layer];
+    const Numeric scale           = 1.0 - omega * f;
+    scaled_top                   += scale * (test.cumulative_tau[layer] - physical_top);
+    scaled_cumulative_tau[layer]  = scaled_top;
+    transport_omega[layer]        = omega * (1.0 - f) / scale;
+    physical_top                  = test.cumulative_tau[layer];
+  }
+
+  Tensor4                         up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
+  const disort::brdf::RawFunction lambert = [](Numeric, Numeric, Numeric) {
+    return disort_test::reference::problem_13_surface_albedo * Constant::inv_pi;
+  };
+  return vdisort::main_data(nquad,
+                            nmodes,
+                            AscendingGrid{std::move(scaled_cumulative_tau)},
+                            std::move(transport_omega),
+                            std::move(phase),
+                            std::move(up),
+                            std::move(down),
+                            Tensor3(nlayers, 0, nstokes),
+                            scalar_brdf_modes(lambert, 1),
+                            disort_test::reference::problem_13_beam_mu,
+                            Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
+                            0.0,
+                            std::move(beam_phase));
+}
+
+void test_problem_13_boundary_limits() {
+  using namespace disort_test::reference;
+  constexpr Numeric               depth   = 0.25;
+  constexpr Index                 nquad   = problem_13_streams;
+  constexpr Index                 nmodes  = 1;
+  constexpr Index                 nstokes = vdisort::stokes_dimension;
+  constexpr Index                 n       = nquad / 2;
+  const disort::brdf::RawFunction lambert = [](Numeric, Numeric, Numeric) {
+    return problem_13_surface_albedo * Constant::inv_pi;
+  };
+  vdisort::main_data absorbing(nquad,
+                               nmodes,
+                               AscendingGrid{depth},
+                               Vector{0.0},
+                               Tensor7(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0),
+                               Tensor4(2, nmodes, n, nstokes, 0.0),
+                               Tensor4(2, nmodes, n, nstokes, 0.0),
+                               Tensor3(1, 0, nstokes),
+                               scalar_brdf_modes(lambert, 1),
+                               problem_13_beam_mu,
+                               Vector{problem_13_beam, 0.0, 0.0, 0.0},
+                               0.0,
+                               Tensor6(2, nmodes, 1, nquad, nstokes, nstokes, 0.0));
+
+  const Numeric incident_flux       = problem_13_beam * problem_13_beam_mu;
+  const Numeric bottom_beam         = incident_flux * std::exp(-depth / problem_13_beam_mu);
+  Numeric       upward_transmission = 0.0;
+  for (Index i = 0; i < n; ++i)
+    upward_transmission += absorbing.weights()[i] * absorbing.mu()[i] * std::exp(-depth / absorbing.mu()[i]);
+  const Numeric expected_up = 2.0 * problem_13_surface_albedo * bottom_beam * upward_transmission;
+
+  vdisort::flux_data flux_data;
+  const auto         top    = absorbing.flux(flux_data, 0.0);
+  const auto         bottom = absorbing.flux(flux_data, depth);
+  expect_reference("Problem 13 absorbing Lambertian top reflection", top.up, expected_up, 2e-12);
+  expect_reference("Problem 13 absorbing direct transmission", bottom.down_direct, bottom_beam, 2e-12);
+  expect_reference("Problem 13 absorbing diffuse transmission", bottom.down_diffuse, 0.0, 2e-12);
+}
+
+void test_problem_13() {
+  using namespace disort_test::reference;
+  test_problem_13_boundary_limits();
+  for (const auto& test : problem_13) {
+    auto               solver        = make_problem_13_model(test);
+    const Numeric      incident_flux = problem_13_beam * problem_13_beam_mu;
+    vdisort::flux_data flux_data;
+    const auto         top = solver.flux(flux_data, 0.0);
+    for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+      expect_unpolarized(std::format("Problem 13 top flux field [{}, {}]", test.name, stream), flux_data.u0[stream]);
+    const auto bottom = solver.flux(flux_data, solver.tau().back());
+    for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
+      expect_unpolarized(std::format("Problem 13 bottom flux field [{}, {}]", test.name, stream), flux_data.u0[stream]);
+    expect_reference(std::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
+    expect_reference(std::format("{} transmission", test.name),
+                     (bottom.down_direct + bottom.down_diffuse) / incident_flux,
+                     test.transmission);
+  }
+}
 }  // namespace
 
 int main() try {
@@ -1297,6 +1420,7 @@ int main() try {
   test_problem_10();
   test_problem_11();
   test_problem_12();
+  test_problem_13();
   std::cout << "VDISORT Fortran reference tests passed\n";
   return 0;
 } catch (const std::exception& exception) {
