@@ -416,7 +416,10 @@ counterparts.  Stokes components are ordered ``[I, Q, U, V]``.
 ``phase_matrix`` has shape ``[2, NFourier, NLayers, NQuad, NQuad, 4, 4]``.
 The leading dimension contains the combined cosine and sine equations.
 ``b_pos`` and ``b_neg`` have shape ``[2, NFourier, NQuad/2, 4]`` and
-``s_poly_coeffs`` has shape ``[NLayers, Ncoeffs, 4]``.
+``s_poly_coeffs`` has shape ``[NLayers, Ncoeffs, 4]``.  Its coefficients are
+the Stokes source function ``B = [B_I, B_Q, B_U, B_V]``; VDISORT applies the
+layer factor ``1 - omega`` internally.  An unpolarized source is therefore
+supplied as ``[B, 0, 0, 0]``.
 )");
   vx.def(
       "__init__",

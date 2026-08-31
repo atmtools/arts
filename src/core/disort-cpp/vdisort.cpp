@@ -630,6 +630,7 @@ main_data::main_data(
       inv_mu_arr(NQuad),
       W(N),
       half_range_barycentric_weights(N),
+      scaled_source_poly_coeffs(NLayers, Nscoeffs),
       G_collect(2, NFourier, NLayers, NState, NState),
       K_collect(2, NFourier, NLayers, NState),
       GC_collect(2, NFourier, NLayers, NState),
@@ -887,13 +888,24 @@ void main_data::diagonalize() {
   // VDISORT CHANGE END
 }
 
+void main_data::set_scales() {
+  ARTS_TIME_REPORT
+
+  scaled_source_poly_coeffs = rtepack::stokvec{};
+  for (Index l = 0; l < NLayers; ++l)
+    for (Index p = 0; p < Nscoeffs; ++p)
+      scaled_source_poly_coeffs[l, p] = (1.0 - omega_arr[l]) * source_poly_coeffs[l, p];
+}
+
 void main_data::source_function() {
   ARTS_TIME_REPORT
   source_collect = 0.0;
   if (not has_source_poly) return;
 
-  // VDISORT CHANGE BEGIN: polynomial source coefficients are four-vectors.
-  // The m=0 combined systems split [I,Q] and [U,V] as in paper Eq. (82).
+  // VDISORT CHANGE BEGIN: polynomial source-function coefficients are
+  // four-vectors B.  The transfer-equation emission is (1 - omega) B, as in
+  // scalar DISORT.  The m=0 combined systems split [I,Q] and [U,V] as in
+  // paper Eq. (82).
   for (Index alpha = 0; alpha < 2; ++alpha) {
     const Index m = 0;
     for (Index l = 0; l < NLayers; ++l) {
@@ -916,7 +928,7 @@ void main_data::source_function() {
         for (Index i = 0; i < NQuad; ++i) {
           for (Index s = 0; s < stokes_dimension; ++s) {
             const bool    active = alpha == cosine_mode ? s < 2 : s >= 2;
-            const Numeric q      = active ? source_poly_coeffs[l, p][s] : 0.0;
+            const Numeric q      = active ? scaled_source_poly_coeffs[l, p][s] : 0.0;
             rhs[state_index(i, s)] =
                 inv_mu_arr[i] * q + source_coordinate_scale[l] * static_cast<Numeric>(p + 1) * next[state_index(i, s)];
           }
@@ -1067,6 +1079,7 @@ void main_data::update_all() {
   has_beam_source = polarized_source(beam_stokes);
   check_input_size();
   check_input_value();
+  set_scales();
   diagonalize();
   transmission();
   source_function();
@@ -1295,7 +1308,7 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
               if (m == 0)
                 for (Index s = 0; s < stokes_dimension; ++s) {
                   const bool active = alpha == cosine_mode ? s < 2 : s >= 2;
-                  if (active) polynomial_coefficients[p][s] += source_poly_coeffs[layer, p][s];
+                  if (active) polynomial_coefficients[p][s] += scaled_source_poly_coeffs[layer, p][s];
                 }
             }
             for (Index t = 0; t < ntau; ++t) {
@@ -1431,7 +1444,7 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   return {.up           = Constant::two_pi * up,
           .down_diffuse = Constant::two_pi * down,
           .down_direct  = direct,
-          .dfdt         = 4.0 * Constant::pi * ((1.0 - omega_arr[layer]) * mean_intensity - source)};
+          .dfdt         = 4.0 * Constant::pi * (1.0 - omega_arr[layer]) * (mean_intensity - source)};
 }
 
 void main_data::gridded_u(Tensor4View out, const Vector& phi) const {

@@ -173,6 +173,7 @@ class main_data {
   Vector  scale_tau{};                   // [NLayers]
   Vector  scaled_omega_arr{};            // [NLayers]
   Vector  scaled_tau_arr_with_0{};       // [NLayers + 1]
+  Matrix  scaled_source_poly_coeffs{};   // [NLayers, Nscoeffs], emission polynomial in scaled tau
   Vector  mu_arr{};                      // [NQuad]
   Vector  inv_mu_arr{};                  // [NQuad]
   Vector  W{};                           // [N]

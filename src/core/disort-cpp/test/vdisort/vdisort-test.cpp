@@ -341,8 +341,8 @@ void test_scalar_linear_source_limit() {
   phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
   Tensor4 vector_up(2, modes, nquad / 2, 4, 0.0), vector_down(2, modes, nquad / 2, 4, 0.0);
   Tensor3 vector_source(1, 2, 4, 0.0);
-  vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
-  vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
+  vector_source[0, 0, 0] = source[0, 0];
+  vector_source[0, 1, 0] = source[0, 1];
   auto vector            = make_vdisort(
       nquad, tau, omega, std::move(phase), std::move(vector_up), std::move(vector_down), std::move(vector_source));
   for (const Numeric optical_depth : {0.0, 0.2, 0.8}) {
@@ -456,8 +456,8 @@ void test_conservative_reflecting_source_limit() {
   phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
   Tensor4 vector_up(2, modes, nquad / 2, 4, 0.0), vector_down(2, modes, nquad / 2, 4, 0.0);
   Tensor3 vector_source(1, 2, 4, 0.0);
-  vector_source[0, 0, 0] = (1.0 - omega[0]) * source[0, 0];
-  vector_source[0, 1, 0] = (1.0 - omega[0]) * source[0, 1];
+  vector_source[0, 0, 0] = source[0, 0];
+  vector_source[0, 1, 0] = source[0, 1];
   const auto reflection  = [](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
     value = rtepack::muelmat{0.0};
     for (Index i = 0; i < value.nrows(); ++i)
@@ -492,19 +492,24 @@ void test_vector_source() {
   Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
   Tensor4         up(2, 1, n, 4, 0.0), down(2, 1, n, 4, 0.0);
   Tensor3         source(1, 1, 4, 0.0);
-  const Vector    q{1.0, -0.2, 0.1, 0.05};
-  source[0, 0] = q;
+  const Vector    source_function{1.0, -0.2, 0.1, 0.05};
+  source[0, 0] = source_function;
 
   const Numeric depth = 0.6;
+  const Numeric omega = 0.3;
   auto          model = make_vdisort(
-      nquad, AscendingGrid{depth}, Vector{0.0}, std::move(phase), std::move(up), std::move(down), std::move(source));
+      nquad, AscendingGrid{depth}, Vector{omega}, std::move(phase), std::move(up), std::move(down), std::move(source));
   const Numeric   tau = 0.25;
   const Numeric   mu  = model.mu()[0];
   vdisort::u_data field;
   model.u(field, tau, 0.0);
   for (Index s = 0; s < 4; ++s) {
-    expect_close(field.intensities[0][s], q[s] * (1.0 - std::exp(-(depth - tau) / mu)), "upward vector source");
-    expect_close(field.intensities[1][s], q[s] * (1.0 - std::exp(-tau / mu)), "downward vector source");
+    expect_close(field.intensities[0][s],
+                 (1.0 - omega) * source_function[s] * (1.0 - std::exp(-(depth - tau) / mu)),
+                 "upward vector source function");
+    expect_close(field.intensities[1][s],
+                 (1.0 - omega) * source_function[s] * (1.0 - std::exp(-tau / mu)),
+                 "downward vector source function");
   }
 }
 

@@ -209,7 +209,7 @@ class main_data {
   Vector        omega_arr{};  // [NLayers]
 
   // VDISORT CHANGE BEGIN: all radiation-bearing inputs carry Stokes and mode dimensions.
-  rtepack::stokvec_matrix  source_poly_coeffs{};        // [NLayers, Nscoeffs]
+  rtepack::stokvec_matrix  source_poly_coeffs{};        // [NLayers, Nscoeffs], Stokes source function B
   Vector                   source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
   Vector                   source_coordinate_offset{};  // [NLayers]
   phase_matrix_data        phase_matrix{};              // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
@@ -223,10 +223,11 @@ class main_data {
   // VDISORT CHANGE END
 
   //! Derived values
-  Vector mu_arr{};                          // [NQuad]
-  Vector inv_mu_arr{};                      // [NQuad]
-  Vector W{};                               // [N]
-  Vector half_range_barycentric_weights{};  // [N]
+  Vector                  mu_arr{};                          // [NQuad]
+  Vector                  inv_mu_arr{};                      // [NQuad]
+  Vector                  W{};                               // [N]
+  Vector                  half_range_barycentric_weights{};  // [N]
+  rtepack::stokvec_matrix scaled_source_poly_coeffs{};       // [NLayers, Nscoeffs], transport emission
 
   // VDISORT CHANGE BEGIN: the homogeneous solution is complex (paper Sec. 3.3.1).
   ComplexTensor5             G_collect{};       // [2, NFourier, NLayers, NState, NState]
@@ -345,6 +346,7 @@ class main_data {
   [[nodiscard]] rtepack::stokvec_tensor3_const_view layer_um(Size layer) const;
 
   void diagonalize();
+  void set_scales();
   void transmission();
   void source_function();
   void solve_for_coefs();

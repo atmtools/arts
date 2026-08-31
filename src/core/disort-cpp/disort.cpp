@@ -348,14 +348,13 @@ void source_set_k1(mathscr_v_data& data, const ConstMatrixView& G, const ConstVe
 
 void source_set_k2(mathscr_v_data&        data,
                    const Numeric          tau,
-                   const Numeric          omega,
                    const ConstVectorView& source_poly_coeffs,
                    const ConstVectorView& K) {
   const Index Nk = K.size();
   const Index Nc = source_poly_coeffs.size();
   const Index n  = Nc - 1;
 
-  Numeric x = 1 - omega;
+  Numeric x = 1.0;
   for (Index i = n; i >= 0; x *= tau, i--) data.cvec[i] = x;
 
   const auto leg = [&, n](Index i, Index j) {
@@ -388,7 +387,6 @@ void source_update_um(mathscr_v_data&        data,
 void mathscr_v(VectorView             um,
                mathscr_v_data&        data,
                const Numeric          tau,
-               const Numeric          omega,
                const ConstVectorView& source_poly_coeffs,
                const ConstMatrixView& G,
                const ConstVectorView& K,
@@ -397,7 +395,7 @@ void mathscr_v(VectorView             um,
                const Numeric          scl = 1.0,
                const Numeric          add = 0.0) {
   source_set_k1(data, G, inv_mu);
-  source_set_k2(data, tau, omega, source_poly_coeffs, K);
+  source_set_k2(data, tau, source_poly_coeffs, K);
   source_scale_k2(data);
   source_update_um(data, um, G, Ni0, scl, add);
 }
@@ -406,35 +404,34 @@ void source_terms(MatrixView              SRC0,
                   MatrixView              SRC1,
                   VectorView              SRCB,
                   mathscr_v_data&         data,
-                  const Vector&           tau,
-                  const Vector&           omega,
-                  const Matrix&           Sc,
+                  const ConstVectorView&  tau,
+                  const ConstMatrixView&  Sc,
                   const ConstTensor3View& Gm,
                   const ConstMatrixView&  Km,
                   const Vector&           inv_mu_arr,
                   const Index             N,
                   const Index             NLayers) {
   source_set_k1(data, Gm[0], inv_mu_arr);
-  source_set_k2(data, 0.0, omega[0], Sc[0], Km[0]);
+  source_set_k2(data, 0.0, Sc[0], Km[0]);
   source_scale_k2(data);
   source_update_um(data, SRCB[rf(N)], Gm[0], N);
 
   for (Index l = 0; l < NLayers; l++) {
-    source_set_k2(data, tau[l], omega[l], Sc[l], Km[l]);
+    source_set_k2(data, tau[l], Sc[l], Km[l]);
     source_scale_k2(data);
     source_update_um(data, SRC0[l], Gm[l]);
 
     if (l < NLayers - 1) {
       source_set_k1(data, Gm[l + 1], inv_mu_arr);
 
-      source_set_k2(data, tau[l], omega[l + 1], Sc[l + 1], Km[l + 1]);
+      source_set_k2(data, tau[l], Sc[l + 1], Km[l + 1]);
       source_scale_k2(data);
       source_update_um(data, SRC1[l], Gm[l + 1]);
     }
   }
 
   const Index ln = NLayers - 1;
-  source_set_k2(data, tau.back(), omega[ln], Sc[ln], Km[ln]);
+  source_set_k2(data, tau.back(), Sc[ln], Km[ln]);
   source_scale_k2(data);
   source_update_um(data, SRCB[rb(N)], Gm[ln]);
 }
@@ -744,6 +741,35 @@ void main_data::set_scales() {
     scaled_tau_arr_with_0[l + 1] = scaled_tau_arr_with_0[l] + scale_tau[l] * thickness;
   }
 
+  eintra<"i", "i", "i", "i">(
+      [](auto om, auto fr, auto st) { return om * (1.0 - fr) / st; }, scaled_omega_arr, omega_arr, f_arr, scale_tau);
+
+  // Rewrite B_l(tau) as the transport-equation emission polynomial
+  // (1 - omega'_l) B_l(tau(tau')) once per update, where tau' is the
+  // cumulative delta-M-scaled optical depth used by K_collect.  In layer l,
+  // tau = affine_scale * tau' + affine_offset.  Horner composition avoids
+  // repeated polynomial refits and absorption scaling in radiance evaluation.
+  scaled_source_poly_coeffs = 0.0;
+  if (has_source_poly) {
+    for (Index l = 0; l < NLayers; ++l) {
+      const Numeric physical_top  = l == 0 ? 0.0 : tau_arr[l - 1];
+      const Numeric scaled_top    = scaled_tau_arr_with_0[l];
+      const Numeric affine_scale  = 1.0 / scale_tau[l];
+      const Numeric affine_offset = physical_top - affine_scale * scaled_top;
+      auto          coefficients  = scaled_source_poly_coeffs[l];
+      coefficients[0]             = source_poly_coeffs[l, Nscoeffs - 1];
+      Index degree                = 0;
+      for (Index p = Nscoeffs - 2; p >= 0; --p) {
+        coefficients[degree + 1] = affine_scale * coefficients[degree];
+        for (Index j = degree; j >= 1; --j)
+          coefficients[j] = std::fma(affine_offset, coefficients[j], affine_scale * coefficients[j - 1]);
+        coefficients[0] = std::fma(affine_offset, coefficients[0], source_poly_coeffs[l, p]);
+        ++degree;
+      }
+      coefficients *= 1.0 - scaled_omega_arr[l];
+    }
+  }
+
   eintra<"ij", "j", "ij", "i", "ij">(
       [](auto j, auto lca, auto f, auto peak) {
         return static_cast<Numeric>(2 * j + 1) * (lca - f * peak) / (1.0 - f);
@@ -753,9 +779,6 @@ void main_data::set_scales() {
       Leg_coeffs_all[joker, Range{0, NLeg}],
       f_arr,
       delta_m_peak);
-
-  eintra<"i", "i", "i", "i">(
-      [](auto om, auto fr, auto st) { return om * (1.0 - fr) / st; }, scaled_omega_arr, omega_arr, f_arr, scale_tau);
 }
 
 void main_data::set_weighted_Leg_coeffs_all() {
@@ -888,9 +911,8 @@ void main_data::source_function() {
                SRC1,
                SRCB,
                comp_data,
-               tau_arr,
-               omega_arr,
-               source_poly_coeffs,
+               scaled_tau_arr_with_0[Range{1, NLayers}],
+               scaled_source_poly_coeffs,
                G_collect[0],
                K_collect[0],
                inv_mu_arr,
@@ -953,6 +975,7 @@ main_data::main_data(const Index NLayers_,
       scale_tau(NLayers),
       scaled_omega_arr(NLayers),
       scaled_tau_arr_with_0(NLayers + 1),
+      scaled_source_poly_coeffs(NLayers, Nscoeffs),
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
       W(N),
@@ -1050,6 +1073,7 @@ main_data::main_data(const Index       NQuad_,
       scale_tau(NLayers),
       scaled_omega_arr(NLayers),
       scaled_tau_arr_with_0(NLayers + 1),
+      scaled_source_poly_coeffs(NLayers, Nscoeffs),
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
       W(N),
@@ -1152,9 +1176,8 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
     data.src.resize(NQuad, Nscoeffs);
     mathscr_v(data.um[0],
               data.src,
-              tau,
-              omega_arr[l],
-              source_poly_coeffs[l],
+              scaled_tau,
+              scaled_source_poly_coeffs[l],
               G_collect[0, l],
               K_collect[0, l],
               inv_mu_arr,
@@ -1341,23 +1364,19 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
           const Numeric halfwidth = 0.5 * (upper - lower);
           Numeric       integral  = 0.0;
           for (Index k = 0; k < static_cast<Index>(source_quadrature.first.size()); ++k) {
-            const Numeric scaled_point   = midpoint + halfwidth * source_quadrature.first[k];
-            const Numeric physical_top   = layer == 0 ? 0.0 : tau_arr[layer - 1];
-            const Numeric physical_point = physical_top + (scaled_point - layer_top) / scale_tau[layer];
+            const Numeric scaled_point = midpoint + halfwidth * source_quadrature.first[k];
             mathscr_v(data.particular,
                       data.source,
-                      physical_point,
-                      omega_arr[layer],
-                      source_poly_coeffs[layer],
+                      scaled_point,
+                      scaled_source_poly_coeffs[layer],
                       G_collect[0, layer],
                       K_collect[0, layer],
                       inv_mu_arr);
             Numeric polynomial = 0.0;
             for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient) {
-              polynomial = std::fma(polynomial, physical_point, source_poly_coeffs[layer, coefficient]);
+              polynomial = std::fma(polynomial, scaled_point, scaled_source_poly_coeffs[layer, coefficient]);
             }
-            const Numeric source    = scattering_source(0, layer, mu, data.particular) +
-                                      (1.0 - omega_arr[layer]) / scale_tau[layer] * polynomial;
+            const Numeric source    = scattering_source(0, layer, mu, data.particular) + polynomial;
             const Numeric distance  = downward ? scaled_output - scaled_point : scaled_point - scaled_output;
             integral               += source_quadrature.second[k] * source * std::exp(-distance / abs_mu) / abs_mu;
           }
@@ -1392,7 +1411,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   if (has_source_poly) {
     data.src.resize(NQuad, Nscoeffs);
     mathscr_v(
-        data.u0, data.src, tau, omega_arr[l], source_poly_coeffs[l], G_collect[0, l], K_collect[0, l], inv_mu_arr);
+        data.u0, data.src, scaled_tau, scaled_source_poly_coeffs[l], G_collect[0, l], K_collect[0, l], inv_mu_arr);
   } else {
     data.u0 = 0.0;
   }
@@ -1838,7 +1857,7 @@ void main_data::ungridded_flux(VectorView           flux_up,
     const Numeric scaled_tau         = scaled_tau_arr_l - (tau_arr[l] - tau[il]) * scale_tau[l];
 
     if (has_source_poly) {
-      mathscr_v(u0, src, tau[il], omega_arr[l], source_poly_coeffs[l], G_collect[0, l], K_collect[0, l], inv_mu_arr);
+      mathscr_v(u0, src, scaled_tau, scaled_source_poly_coeffs[l], G_collect[0, l], K_collect[0, l], inv_mu_arr);
     } else {
       u0 = 0.0;
     }
@@ -1910,9 +1929,8 @@ void main_data::ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vec
     if (has_source_poly) {
       mathscr_v(um[0],
                 src,
-                tau[il],
-                omega_arr[l],
-                source_poly_coeffs[l],
+                scaled_tau,
+                scaled_source_poly_coeffs[l],
                 G_collect[0, l],
                 K_collect[0, l],
                 inv_mu_arr,

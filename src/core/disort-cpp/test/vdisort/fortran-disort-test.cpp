@@ -754,10 +754,9 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
       band_blackbody_radiance(test.atmosphere_top_temperature, test.wavenumber_low, test.wavenumber_high);
   const Numeric atmosphere_bottom_planck =
       band_blackbody_radiance(test.atmosphere_bottom_temperature, test.wavenumber_low, test.wavenumber_high);
-  const Numeric absorption = 1.0 - test.single_scattering_albedo;
-  Tensor3       source(1, 2, nstokes, 0.0);
-  source[0, 0, 0] = absorption * atmosphere_top_planck;
-  source[0, 1, 0] = absorption * (atmosphere_bottom_planck - atmosphere_top_planck) / test.optical_depth;
+  Tensor3 source(1, 2, nstokes, 0.0);
+  source[0, 0, 0] = atmosphere_top_planck;
+  source[0, 1, 0] = (atmosphere_bottom_planck - atmosphere_top_planck) / test.optical_depth;
 
   return vdisort::main_data(nquad,
                             nmodes,
@@ -989,12 +988,11 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
           band_blackbody_radiance(test.interface_temperature[interface], test.wavenumber_low, test.wavenumber_high);
     Numeric tau0 = 0.0;
     for (Index layer = 0; layer < nlayers; ++layer) {
-      const Numeric tau1       = test.cumulative_tau[layer];
-      const Numeric slope      = (planck[layer + 1] - planck[layer]) / (tau1 - tau0);
-      const Numeric absorption = 1.0 - test.single_scattering_albedo[layer];
-      source[layer, 0, 0]      = absorption * (planck[layer] - slope * tau0);
-      source[layer, 1, 0]      = absorption * slope;
-      tau0                     = tau1;
+      const Numeric tau1  = test.cumulative_tau[layer];
+      const Numeric slope = (planck[layer + 1] - planck[layer]) / (tau1 - tau0);
+      source[layer, 0, 0] = planck[layer] - slope * tau0;
+      source[layer, 1, 0] = slope;
+      tau0                = tau1;
     }
   }
 

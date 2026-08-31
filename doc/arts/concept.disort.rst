@@ -591,21 +591,21 @@ direct beam, an internal source polynomial in every layer, and a reflecting
 lower boundary.  Only the zeroth Fourier mode contains an azimuth-independent
 internal source.
 
-There is one notable normalization difference inside the cores.  Scalar
-DISORT's polynomial represents a source radiance :math:`B(\tau)` and the
-transport code applies :math:`1-\omega`.  VDISORT's polynomial is the complete
-emission vector :math:`\boldsymbol q(\tau)` already appearing in the transfer
-equation.  Thus an unpolarized thermal source is embedded as
+In both cores the polynomial represents a source radiance.  VDISORT takes the
+Stokes source function :math:`\boldsymbol B(\tau)`, and the transport code
+applies :math:`1-\omega`.  Thus an unpolarized thermal source is supplied as
 
 .. math::
 
-   \boldsymbol q(\tau)
-   = (1-\omega)[B(\tau),0,0,0]^{\mathsf T}.
+   \boldsymbol B(\tau)=[B(\tau),0,0,0]^{\mathsf T},
 
-This distinction must be observed by adapters comparing the two solvers.
-VDISORT can evaluate its polynomial in a layer-local affine coordinate, which
-avoids refitting coefficients when the natural source coordinate is not the
-global optical depth.
+and VDISORT forms the emission vector
+:math:`\boldsymbol q=(1-\omega)\boldsymbol B` internally.  VDISORT can evaluate
+its polynomial in a layer-local affine coordinate, which avoids refitting
+coefficients when the natural source coordinate is not the global optical
+depth.  In both implementations, ``source_poly_coeffs`` retains the physical
+source-function input while ``scaled_source_poly_coeffs`` caches the
+transport-equation emission coefficients used by the solver.
 
 The direct beam is stored separately from the diffuse quadrature field.  In
 VDISORT it is a full Stokes vector and is considered present when its intensity
@@ -815,17 +815,32 @@ Classical delta-M has :math:`r_l=1`.  Physical optical depths remain available
 to callers, while the eigensystem and direct-beam particular solution use the
 scaled coordinate :math:`\tau'`.
 
-.. warning::
+Internal-source polynomials retain their physical meaning under this coordinate
+change.  In layer :math:`l`, write the cumulative transformation as
 
-   Scalar internal-source polynomials are currently evaluated in physical
-   :math:`\tau`, while ``K_collect`` belongs to the scaled :math:`\tau'`
-   eigensystem.  CPP-DISORT does not yet transform the polynomial coefficients
-   to :math:`\tau'` and apply the corresponding
-   :math:`1/(1-\omega f)` source scaling.  The implemented polynomial
-   particular solution is therefore mathematically consistent for
-   :math:`f=0` (or for a zero internal source), but the simultaneous case
-   :math:`f>0` with a nonzero internal source is not presently validated and
-   should not be treated as equivalent to the original physical equation.
+.. math::
+
+   \tau' = s_l\tau+c_l,
+   \qquad c_l=t_l'-s_l t_l,
+
+where :math:`t_l` and :math:`t_l'` are the physical and scaled optical depths
+at the layer top.  The solver composes each physical polynomial with the
+inverse affine map once,
+
+.. math::
+
+   B_l'(\tau')=B_l\!\left(\frac{\tau'-c_l}{s_l}\right),
+
+and includes the absorption factor in the derived coefficients.  Since
+
+.. math::
+
+   1-\omega'=\frac{1-\omega}{s_l},
+
+the resulting ``scaled_source_poly_coeffs`` represent the required transformed
+emission :math:`(1-\omega)B_l(\tau)/s_l` in the :math:`\tau'` equation.  The
+cached coefficients are reused directly by quadrature, flux, gridded, and
+arbitrary-angle evaluations.
 
 The delta-M-plus option represents the removed peak by Gaussian Legendre
 moments
@@ -950,15 +965,10 @@ includes the direct beam, scalar DISORT evaluates
 
    \mathrm{DFDT}=4\pi(1-\omega)(J-B).
 
-VDISORT uses the equivalent form
-
-.. math::
-
-   \mathrm{DFDT}=4\pi\left[(1-\omega)J-q_I\right],
-
-because its polynomial already stores the complete emission term
-:math:`q_I=(1-\omega)B`.  Computing all flux quantities in one call reuses a
-single zeroth-mode radiance evaluation.
+VDISORT uses the same expression because its polynomial stores
+:math:`\boldsymbol B`, not the already absorption-weighted emission vector.
+Computing all flux quantities in one call reuses a single zeroth-mode radiance
+evaluation.
 
 Numerical behavior and limitations
 **********************************
