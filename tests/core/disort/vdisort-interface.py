@@ -37,6 +37,12 @@ def _rayleigh_phase_matrix(cos_scattering_angle):
     return phase
 
 
+def _sun_halo_profile(scattering_angle, center=np.deg2rad(22.0)):
+    """Smooth axisymmetric phase profile with a narrow 22-degree halo."""
+    width = np.deg2rad(1.25)
+    return 1.0 + 80.0 * np.exp(-0.5 * ((scattering_angle - center) / width) ** 2)
+
+
 def test_phase_helpers():
     cosine = np.zeros((1, 1, 2, 2, 4, 4))
     sine = np.zeros_like(cosine)
@@ -363,9 +369,124 @@ def test_optically_thin_rayleigh_atmosphere():
         plt.show()
 
 
+def test_optically_thin_sun_halo():
+    """Transport a prescribed 22-degree halo through a thin atmosphere."""
+    depth = 1.0e-8
+    nquad = 4
+    nfourier = 1
+
+    # Normalize the prescribed phase function to unit spherical mean.  It is
+    # axisymmetric about the vertical incident beam, so only Fourier mode zero
+    # is present.
+    normalization_nodes, normalization_weights = np.polynomial.legendre.leggauss(256)
+    phase_normalization = 0.5 * np.dot(
+        normalization_weights,
+        _sun_halo_profile(np.arccos(normalization_nodes)),
+    )
+
+    phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
+    quadrature_beam_phase = np.zeros((2, nfourier, 1, nquad, 4, 4))
+    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
+    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    signed_mu = np.concatenate((positive_mu, -positive_mu))
+    quadrature_scattering_angle = np.arccos(-signed_mu)
+    quadrature_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = (
+        _sun_halo_profile(quadrature_scattering_angle) / phase_normalization
+    )
+
+    model = arts.cppvdisort(
+        tau_arr=np.array([depth]),
+        omega_arr=np.array([1.0]),
+        NQuad=nquad,
+        phase_matrix=phase,
+        mu0=1.0,
+        beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
+        phi0=0.0,
+        beam_phase_matrix=quadrature_beam_phase,
+    )
+
+    scattering_angle = np.deg2rad(np.linspace(1.0, 45.0, 177))
+    mu = -np.cos(scattering_angle)
+    halo_phase = _sun_halo_profile(scattering_angle) / phase_normalization
+    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
+    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
+    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = halo_phase
+
+    stokes = np.asarray(
+        model.u_user(
+            tau=np.array([depth]),
+            phi=np.array([0.0]),
+            mu=mu,
+            phase_matrix=user_phase,
+            beam_phase_matrix=user_beam_phase,
+        )
+    )[0, 0]
+
+    abs_mu = np.abs(mu)
+    slant_difference = depth * (1.0 / abs_mu - 1.0)
+    ray_integral = np.exp(-depth) * -np.expm1(-slant_difference) / (1.0 - abs_mu)
+    expected_intensity = halo_phase * ray_integral / (4.0 * np.pi)
+    np.testing.assert_allclose(
+        stokes[:, 0], expected_intensity, rtol=2.0e-8, atol=2.0e-15
+    )
+    np.testing.assert_allclose(stokes[:, 1:], 0.0, atol=2.0e-15)
+
+    peak = np.argmax(stokes[:, 0])
+    peak_angle = scattering_angle[peak]
+    assert abs(peak_angle - np.deg2rad(22.0)) <= np.deg2rad(0.25)
+    assert stokes[peak, 0] > 40.0 * stokes[0, 0]
+    assert stokes[peak, 0] > 25.0 * stokes[-1, 0]
+
+    if "ARTS_HEADLESS" not in os.environ:
+        import matplotlib.pyplot as plt
+
+        figure = plt.figure(figsize=(11, 4), constrained_layout=True)
+        angular_plot = figure.add_subplot(1, 2, 1)
+        sky_plot = figure.add_subplot(1, 2, 2, projection="polar")
+
+        angular_plot.plot(np.rad2deg(scattering_angle), stokes[:, 0], label="VDISORT")
+        angular_plot.plot(
+            np.rad2deg(scattering_angle),
+            expected_intensity,
+            "--",
+            label="Analytical single scattering",
+        )
+        angular_plot.axvline(22.0, color="black", linestyle=":")
+        angular_plot.set(
+            xlabel="Angular distance from the Sun [degree]",
+            ylabel="Radiance",
+            title="22-degree halo angular cut",
+            xlim=(0.0, 45.0),
+        )
+        angular_plot.grid(True, alpha=0.25)
+        angular_plot.legend()
+
+        sky_azimuth = np.linspace(0.0, 2.0 * np.pi, 181)
+        azimuth_grid, radius_grid = np.meshgrid(
+            sky_azimuth, scattering_angle, indexing="xy"
+        )
+        halo_image = np.broadcast_to(stokes[:, 0, None], radius_grid.shape)
+        image = sky_plot.pcolormesh(
+            azimuth_grid,
+            radius_grid,
+            halo_image,
+            shading="auto",
+            cmap="inferno",
+        )
+        sky_plot.set(
+            title="Axisymmetric sky view",
+            rmax=np.deg2rad(45.0),
+            rticks=np.deg2rad([10.0, 22.0, 30.0, 45.0]),
+        )
+        sky_plot.set_yticklabels(["10°", "22°", "30°", "45°"])
+        figure.colorbar(image, ax=sky_plot, label="Radiance", pad=0.1)
+        plt.show()
+
+
 if __name__ == "__main__":
     test_phase_helpers()
     test_bdrf()
     test_absorbing_stokes_field()
     test_fresnel_brewster_angle()
     test_optically_thin_rayleigh_atmosphere()
+    test_optically_thin_sun_halo()
