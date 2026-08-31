@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
+#include <limits>
 #include <numeric>
 #include <ranges>
 
@@ -21,19 +22,138 @@ rtepack::stokvec to_stokvec(const ConstVectorView block) {
   return {block[0], block[1], block[2], block[3]};
 }
 
-Numeric barycentric_interpolate(const ConstVectorView& nodes, const ConstVectorView& values, const Numeric x) {
+void barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
+  const Index n = static_cast<Index>(nodes.size());
+  weights.resize(n);
+  Vector  log_weights(n);
+  Numeric largest = -std::numeric_limits<Numeric>::infinity();
+  for (Index i = 0; i < n; ++i) {
+    Numeric sign   = 1.0;
+    log_weights[i] = 0.0;
+    for (Index j = 0; j < n; ++j) {
+      if (i == j) continue;
+      const Numeric difference  = nodes[i] - nodes[j];
+      log_weights[i]           -= std::log(std::abs(difference));
+      if (difference < 0.0) sign = -sign;
+    }
+    weights[i] = sign;
+    largest    = std::max(largest, log_weights[i]);
+  }
+  for (Index i = 0; i < n; ++i) weights[i] *= std::exp(log_weights[i] - largest);
+}
+
+Numeric barycentric_interpolate(const ConstVectorView& nodes,
+                                const ConstVectorView& weights,
+                                const ConstVectorView& values,
+                                const Numeric          x) {
   Numeric numerator   = 0.0;
   Numeric denominator = 0.0;
   for (Index i = 0; i < static_cast<Index>(nodes.size()); ++i) {
     if (x == nodes[i]) return values[i];
-    Numeric weight = 1.0;
-    for (Index j = 0; j < static_cast<Index>(nodes.size()); ++j)
-      if (i != j) weight /= nodes[i] - nodes[j];
-    const Numeric term  = weight / (x - nodes[i]);
+    const Numeric term  = weights[i] / (x - nodes[i]);
     numerator          += term * values[i];
     denominator        += term;
   }
   return numerator / denominator;
+}
+
+Complex exprel(const Complex z) {
+  if (z == Complex{0.0}) return 1.0;
+
+  // The direct quotient is well conditioned away from zero.  Around zero,
+  // sum exprel(z) = sum_n z^n/(n+1)! to a floating-point stopping criterion.
+  if (std::abs(z) > 0.5) return (std::exp(z) - 1.0) / z;
+
+  Complex         term      = 1.0;
+  Complex         sum       = term;
+  constexpr Index max_terms = 4 * std::numeric_limits<Numeric>::max_digits10;
+  for (Index n = 1; n <= max_terms; ++n) {
+    term *= z / static_cast<Numeric>(n + 1);
+    sum  += term;
+    if (std::abs(term) <= std::numeric_limits<Numeric>::epsilon() * std::abs(sum)) break;
+  }
+  return sum;
+}
+
+Complex user_angle_exponential_integral(const Complex k,
+                                        const Numeric reference,
+                                        const Numeric lower,
+                                        const Numeric upper,
+                                        const Numeric observation,
+                                        const Numeric abs_mu,
+                                        const bool    downward) {
+  if (upper <= lower) return 0.0;
+  const auto exponent = [&](const Numeric optical_depth) {
+    const Numeric distance = downward ? observation - optical_depth : optical_depth - observation;
+    return k * (optical_depth - reference) - distance / abs_mu;
+  };
+  const Complex e0      = exponent(lower);
+  const Complex e1      = exponent(upper);
+  const Complex z       = e1 - e0;
+  const Complex average = z.real() > 0.0 ? std::exp(e1) * exprel(-z) : std::exp(e0) * exprel(z);
+  return (upper - lower) / abs_mu * average;
+}
+
+void exponential_moments(Vector& moments, const Numeric z) {
+  const Index count = static_cast<Index>(moments.size());
+  if (count == 0) return;
+  if (z == 0.0) {
+    for (Index degree = 0; degree < count; ++degree) moments[degree] = 1.0 / static_cast<Numeric>(degree + 1);
+    return;
+  }
+
+  if (std::abs(z) <= 1.0) {
+    constexpr Index max_terms = 4 * std::numeric_limits<Numeric>::max_digits10;
+    for (Index degree = 0; degree < count; ++degree) {
+      Numeric term = 1.0 / static_cast<Numeric>(degree + 1);
+      Numeric sum  = term;
+      for (Index n = 1; n <= max_terms; ++n) {
+        term *= z / static_cast<Numeric>(n) * static_cast<Numeric>(n + degree) / static_cast<Numeric>(n + degree + 1);
+        sum  += term;
+        if (std::abs(term) <= std::numeric_limits<Numeric>::epsilon() * std::abs(sum)) break;
+      }
+      moments[degree] = sum;
+    }
+    return;
+  }
+
+  const Numeric exponential = std::exp(z);
+  moments[0]                = -std::expm1(z) / -z;
+  for (Index degree = 1; degree < count; ++degree)
+    moments[degree] = (exponential - static_cast<Numeric>(degree) * moments[degree - 1]) / z;
+}
+
+rtepack::stokvec user_angle_polynomial_integral(const rtepack::stokvec_vector& coefficients,
+                                                const Numeric                  source_scale,
+                                                const Numeric                  source_offset,
+                                                const Numeric                  lower,
+                                                const Numeric                  upper,
+                                                const Numeric                  observation,
+                                                const Numeric                  abs_mu,
+                                                const bool                     downward) {
+  rtepack::stokvec result{};
+  const Index      count = static_cast<Index>(coefficients.size());
+  if (count == 0 or upper <= lower) return result;
+
+  const Numeric width    = upper - lower;
+  const Numeric endpoint = downward ? upper : lower;
+  const Numeric distance = downward ? observation - upper : lower - observation;
+  const Numeric base     = std::fma(source_scale, endpoint, source_offset);
+  const Numeric step     = (downward ? -1.0 : 1.0) * source_scale * width;
+  const Numeric z        = -width / abs_mu;
+
+  Vector moments(count);
+  exponential_moments(moments, z);
+  for (Index power = 0; power < count; ++power) {
+    Numeric choose = 1.0;
+    for (Index degree = 0; degree <= power; ++degree) {
+      const Numeric factor  = choose * std::pow(base, power - degree) * std::pow(step, degree) * moments[degree];
+      result               += factor * coefficients[power];
+      if (degree < power) choose *= static_cast<Numeric>(power - degree) / static_cast<Numeric>(degree + 1);
+    }
+  }
+  result *= width / abs_mu * std::exp(-distance / abs_mu);
+  return result;
 }
 
 rtepack::stokvec_tensor3 to_boundary_data(const Tensor4& in) {
@@ -509,6 +629,7 @@ main_data::main_data(
       mu_arr(NQuad),
       inv_mu_arr(NQuad),
       W(N),
+      half_range_barycentric_weights(N),
       G_collect(2, NFourier, NLayers, NState, NState),
       K_collect(2, NFourier, NLayers, NState),
       GC_collect(2, NFourier, NLayers, NState),
@@ -520,6 +641,7 @@ main_data::main_data(
   Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
   std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](const Numeric x) { return -x; });
   std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](const Numeric x) { return 1.0 / x; });
+  barycentric_weights(half_range_barycentric_weights, mu_arr[Range{0, N}]);
 }
 
 main_data::main_data(Index             NQuad_,
@@ -793,9 +915,10 @@ void main_data::source_function() {
         Vector rhs(NState, 0.0);
         for (Index i = 0; i < NQuad; ++i) {
           for (Index s = 0; s < stokes_dimension; ++s) {
-            const bool    active   = alpha == cosine_mode ? s < 2 : s >= 2;
-            const Numeric q        = active ? source_poly_coeffs[l, p][s] : 0.0;
-            rhs[state_index(i, s)] = inv_mu_arr[i] * q + static_cast<Numeric>(p + 1) * next[state_index(i, s)];
+            const bool    active = alpha == cosine_mode ? s < 2 : s >= 2;
+            const Numeric q      = active ? source_poly_coeffs[l, p][s] : 0.0;
+            rhs[state_index(i, s)] =
+                inv_mu_arr[i] * q + source_coordinate_scale[l] * static_cast<Numeric>(p + 1) * next[state_index(i, s)];
           }
         }
         Matrix work{A};
@@ -987,7 +1110,8 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
 }
 
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
-  ARTS_USER_ERROR_IF(phi < 0.0 or phi >= Constant::two_pi, "phi must be in [0, 2*pi), got {}", phi);
+  ARTS_USER_ERROR_IF(
+      !std::isfinite(phi) or phi < 0.0 or phi >= Constant::two_pi, "phi must be finite and in [0, 2*pi), got {}", phi);
   Matrix combined(2 * NFourier, NState);
   combined_field(combined, tau);
 
@@ -1014,20 +1138,26 @@ void main_data::u_user(user_u_data&                  data,
                        const ConstVectorView&        user_mu,
                        const phase_matrix_data&      user_phase_matrix,
                        const beam_phase_matrix_data& user_beam_phase_matrix) const {
-  u_user_cache(data, tau, user_mu, user_phase_matrix, user_beam_phase_matrix);
-  u_user_from_cache(data, phi);
+  rtepack::stokvec_tensor3 result(1, 1, user_mu.size());
+  ungridded_u_user(result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  data.intensities.resize(user_mu.size());
+  for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user) data.intensities[user] = result[0, 0, user];
 }
 
-void main_data::u_user_cache(user_u_data&                  data,
-                             const Numeric                 tau,
-                             const ConstVectorView&        user_mu,
-                             const phase_matrix_data&      user_phase_matrix,
-                             const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::user_fourier_modes(ComplexTensor4&               modes,
+                                   const AscendingGrid&          tau,
+                                   const ConstVectorView&        user_mu,
+                                   const phase_matrix_data&      user_phase_matrix,
+                                   const beam_phase_matrix_data& user_beam_phase_matrix) const {
   ARTS_TIME_REPORT
 
+  const Index ntau  = static_cast<Index>(tau.size());
   const Index nuser = static_cast<Index>(user_mu.size());
-  ARTS_USER_ERROR_IF(
-      tau < 0.0 or tau > tau_arr.back(), "Optical depth must be in [0, {}], got {}", tau_arr.back(), tau);
+  ARTS_USER_ERROR_IF(tau.empty(), "At least one optical depth is required for user-angle radiances");
+  ARTS_USER_ERROR_IF(tau.front() < 0.0 or tau.back() > tau_arr.back(),
+                     "User-angle optical depths must be in [0, {}], got {:B,}",
+                     tau_arr.back(),
+                     tau);
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(user_mu,
                           [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
@@ -1049,37 +1179,26 @@ void main_data::u_user_cache(user_u_data&                  data,
                      NLayers,
                      nuser);
 
-  static const auto integration_quadrature = [] {
-    std::pair<Vector, Vector> result{Vector(12), Vector(12)};
-    Legendre::GaussLegendre(result.first, result.second);
-    return result;
-  }();
-
   Vector     interpolation_values(N);
   const auto interpolate_boundary =
       [&](const rtepack::stokvec_tensor3& boundary, const Index alpha, const Index m, const Numeric abs_mu) {
         rtepack::stokvec result{};
         for (Index s = 0; s < stokes_dimension; ++s) {
           for (Index i = 0; i < N; ++i) interpolation_values[i] = boundary[alpha, m, i][s];
-          result[s] = barycentric_interpolate(mu_arr[Range{0, N}], interpolation_values, abs_mu);
+          result[s] = barycentric_interpolate(
+              mu_arr[Range{0, N}], half_range_barycentric_weights, interpolation_values, abs_mu);
         }
         return result;
       };
 
-  data.modes.resize(nuser, 2 * NFourier);
-  data.modes                                 = rtepack::stokvec{};
-  const Index                   output_layer = tau_index(tau);
-  std::vector<rtepack::stokvec> segment_integral(static_cast<std::size_t>(2 * NFourier));
-  Matrix                        field(2 * NFourier, NState);
-  Matrix                        bottom_field;
-  rtepack::muelmat_matrix       raw(1, N);
-  rtepack::muelmat_matrix       beam_raw(1, 1);
-  Vector                        outgoing(1);
-  const Vector                  beam_direction{mu0};
-  if (NBDRF > 0 and std::ranges::any_of(user_mu, [](const Numeric mu) { return mu > 0.0; })) {
-    bottom_field.resize(2 * NFourier, NState);
-    combined_field(bottom_field, tau_arr.back());
-  }
+  modes.resize(ntau, nuser, 2 * NFourier, stokes_dimension);
+  modes = Complex{0.0};
+
+  rtepack::muelmat_matrix raw(1, N);
+  rtepack::muelmat_matrix beam_raw(1, 1);
+  Vector                  outgoing(1);
+  const Vector            beam_direction{mu0};
+  const Numeric           atmosphere_bottom = tau_arr.back();
 
   for (Index iu = 0; iu < nuser; ++iu) {
     const Numeric mu       = user_mu[iu];
@@ -1095,101 +1214,162 @@ void main_data::u_user_cache(user_u_data&                  data,
         if (not downward and m < NBDRF) {
           brdf_fourier_modes[m](alpha, raw, outgoing, mu_arr[Range{0, N}]);
           for (Index j = 0; j < N; ++j) {
-            rtepack::stokvec incident{};
-            for (Index s = 0; s < stokes_dimension; ++s)
-              incident[s] = bottom_field[alpha * NFourier + m, state_index(N + j, s)];
-            mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * incident);
+            mode +=
+                Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * um[NLayers - 1, alpha, m, N + j]);
           }
           if (has_beam_source) {
             brdf_fourier_modes[m](alpha, beam_raw, outgoing, beam_direction);
-            mode += 0.5 * mu0 * std::exp(-tau_arr.back() / mu0) * (beam_raw[0, 0] * beam_stokes);
+            mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
         }
-        mode                                 *= std::exp(-std::abs(tau - boundary_tau) / abs_mu);
-        data.modes[iu, alpha * NFourier + m]  = mode;
+        for (Index t = 0; t < ntau; ++t) {
+          const Numeric attenuation = std::exp(-std::abs(tau[t] - boundary_tau) / abs_mu);
+          for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, alpha * NFourier + m, s] += attenuation * mode[s];
+        }
       }
     }
+  }
 
-    const Index first_layer = downward ? 0 : output_layer;
-    const Index last_layer  = downward ? output_layer : NLayers - 1;
-    for (Index layer = first_layer; layer <= last_layer; ++layer) {
-      const Numeric top    = layer_top(layer);
-      const Numeric bottom = tau_arr[layer];
-      const Numeric lower  = downward ? top : std::max(top, tau);
-      const Numeric upper  = downward ? std::min(bottom, tau) : bottom;
-      if (upper <= lower) continue;
+  const auto limits = [&](const Index layer, const Numeric observation, const bool downward) {
+    const Numeric top    = layer_top(layer);
+    const Numeric bottom = tau_arr[layer];
+    return std::pair{downward ? top : std::max(top, observation), downward ? std::min(bottom, observation) : bottom};
+  };
 
-      const Numeric shortest_attenuation_length = has_beam_source ? std::min(abs_mu, mu0) : abs_mu;
-      const Index   segment_count =
-          std::max<Index>(1, static_cast<Index>(std::ceil((upper - lower) / (8.0 * shortest_attenuation_length))));
-      const Numeric inv_segment_count = 1.0 / static_cast<Numeric>(segment_count);
-      for (Index segment = 0; segment < segment_count; ++segment) {
-        const Numeric segment_lower = std::lerp(lower, upper, static_cast<Numeric>(segment) * inv_segment_count);
-        const Numeric segment_upper = std::lerp(lower, upper, static_cast<Numeric>(segment + 1) * inv_segment_count);
-        const Numeric midpoint      = 0.5 * (segment_lower + segment_upper);
-        const Numeric halfwidth     = 0.5 * (segment_upper - segment_lower);
-        std::ranges::fill(segment_integral, rtepack::stokvec{});
-        for (Index q = 0; q < static_cast<Index>(integration_quadrature.first.size()); ++q) {
-          const Numeric point = std::fma(halfwidth, integration_quadrature.first[q], midpoint);
-          combined_field(field, point);
-          const Numeric distance           = downward ? tau - point : point - tau;
-          const Numeric integration_weight = integration_quadrature.second[q] * std::exp(-distance / abs_mu) / abs_mu;
-          for (Index alpha = 0; alpha < 2; ++alpha) {
-            for (Index m = 0; m < NFourier; ++m) {
-              rtepack::stokvec source{};
-              for (Index j = 0; j < NQuad; ++j) {
-                rtepack::stokvec incident{};
-                for (Index s = 0; s < stokes_dimension; ++s)
-                  incident[s] = field[alpha * NFourier + m, state_index(j, s)];
-                source += 0.5 * omega_arr[layer] * W[j % N] * (user_phase_matrix[alpha, m, layer, iu, j] * incident);
-              }
-              if (has_beam_source) {
-                const Numeric epsilon  = m == 0 ? 1.0 : 2.0;
-                source                += epsilon * omega_arr[layer] / (4.0 * Constant::pi) * std::exp(-point / mu0) *
-                                         (user_beam_phase_matrix[alpha, m, layer, iu] * beam_stokes);
-              }
-              if (has_source_poly and m == 0) {
-                const Numeric source_tau =
-                    std::fma(source_coordinate_scale[layer], point, source_coordinate_offset[layer]);
-                rtepack::stokvec polynomial{};
-                for (Index p = Nscoeffs - 1; p >= 0; --p)
-                  for (Index s = 0; s < stokes_dimension; ++s)
-                    polynomial[s] = std::fma(polynomial[s], source_tau, source_poly_coeffs[layer, p][s]);
+  rtepack::stokvec_vector polynomial_coefficients(Nscoeffs);
+  for (Index layer = 0; layer < NLayers; ++layer) {
+    for (Index alpha = 0; alpha < 2; ++alpha) {
+      for (Index m = 0; m < NFourier; ++m) {
+        const Index mode = alpha * NFourier + m;
+        for (Index iu = 0; iu < nuser; ++iu) {
+          const Numeric mu       = user_mu[iu];
+          const Numeric abs_mu   = std::abs(mu);
+          const bool    downward = mu < 0.0;
+
+          for (Index eigen = 0; eigen < NState; ++eigen) {
+            std::array<Complex, stokes_dimension> source{};
+            for (Index j = 0; j < NQuad; ++j) {
+              const Numeric factor = 0.5 * omega_arr[layer] * W[j % N];
+              const auto&   phase  = user_phase_matrix[alpha, m, layer, iu, j];
+              for (Index so = 0; so < stokes_dimension; ++so)
+                for (Index si = 0; si < stokes_dimension; ++si)
+                  source[so] += factor * phase[so, si] * G_collect[alpha, m, layer, state_index(j, si), eigen];
+            }
+            const Complex coefficient = GC_collect[alpha, m, layer, eigen];
+            if (coefficient == Complex{0.0}) continue;
+            const Numeric anchor =
+                top_anchored[anchor_index(alpha, m, layer, eigen)] ? layer_top(layer) : tau_arr[layer];
+            for (Index t = 0; t < ntau; ++t) {
+              const auto [lower, upper] = limits(layer, tau[t], downward);
+              if (upper <= lower) continue;
+              const Complex integral = user_angle_exponential_integral(
+                  K_collect[alpha, m, layer, eigen], anchor, lower, upper, tau[t], abs_mu, downward);
+              for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += coefficient * source[s] * integral;
+            }
+          }
+
+          if (has_beam_source) {
+            rtepack::stokvec source{};
+            for (Index j = 0; j < NQuad; ++j)
+              source += 0.5 * omega_arr[layer] * W[j % N] *
+                        (user_phase_matrix[alpha, m, layer, iu, j] * B_collect[alpha, m, layer, j]);
+            const Numeric epsilon  = m == 0 ? 1.0 : 2.0;
+            source                += epsilon * omega_arr[layer] / (4.0 * Constant::pi) *
+                                     (user_beam_phase_matrix[alpha, m, layer, iu] * beam_stokes);
+            for (Index t = 0; t < ntau; ++t) {
+              const auto [lower, upper] = limits(layer, tau[t], downward);
+              if (upper <= lower) continue;
+              const Complex integral =
+                  user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, tau[t], abs_mu, downward);
+              for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += source[s] * integral;
+            }
+          }
+
+          if (has_source_poly) {
+            polynomial_coefficients = rtepack::stokvec{};
+            for (Index p = 0; p < Nscoeffs; ++p) {
+              for (Index j = 0; j < NQuad; ++j)
+                polynomial_coefficients[p] +=
+                    0.5 * omega_arr[layer] * W[j % N] *
+                    (user_phase_matrix[alpha, m, layer, iu, j] * source_collect[alpha, m, layer, j, p]);
+              if (m == 0)
                 for (Index s = 0; s < stokes_dimension; ++s) {
                   const bool active = alpha == cosine_mode ? s < 2 : s >= 2;
-                  if (active) source[s] += polynomial[s];
+                  if (active) polynomial_coefficients[p][s] += source_poly_coeffs[layer, p][s];
                 }
-              }
-              segment_integral[static_cast<std::size_t>(alpha * NFourier + m)] += integration_weight * source;
+            }
+            for (Index t = 0; t < ntau; ++t) {
+              const auto [lower, upper] = limits(layer, tau[t], downward);
+              if (upper <= lower) continue;
+              const rtepack::stokvec integral = user_angle_polynomial_integral(polynomial_coefficients,
+                                                                               source_coordinate_scale[layer],
+                                                                               source_coordinate_offset[layer],
+                                                                               lower,
+                                                                               upper,
+                                                                               tau[t],
+                                                                               abs_mu,
+                                                                               downward);
+              for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += integral[s];
             }
           }
         }
-        for (Index mode = 0; mode < 2 * NFourier; ++mode)
-          data.modes[iu, mode] += halfwidth * segment_integral[static_cast<std::size_t>(mode)];
       }
     }
   }
 }
 
-void main_data::u_user_from_cache(user_u_data& data, const Numeric phi) const {
+void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
+                                 const AscendingGrid&          tau,
+                                 const Vector&                 phi,
+                                 const ConstVectorView&        user_mu,
+                                 const phase_matrix_data&      user_phase_matrix,
+                                 const beam_phase_matrix_data& user_beam_phase_matrix) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(phi < 0.0 or phi >= Constant::two_pi, "phi must be in [0, 2*pi), got {}", phi);
-  ARTS_USER_ERROR_IF(data.modes.ncols() != 2 * NFourier,
-                     "Cached user modes have shape {:B,}, expected [NUser, {}] Stokes blocks",
-                     data.modes.shape(),
-                     2 * NFourier);
-  const Index nuser = data.modes.nrows();
-  data.intensities.resize(nuser);
-  data.intensities = rtepack::stokvec{};
-  for (Index iu = 0; iu < nuser; ++iu) {
-    for (Index m = 0; m < NFourier; ++m) {
-      const Numeric c = std::cos(static_cast<Numeric>(m) * (phi0 - phi));
-      const Numeric s = std::sin(static_cast<Numeric>(m) * (phi0 - phi));
-      for (Index stokes = 0; stokes < 2; ++stokes)
-        data.intensities[iu][stokes] += data.modes[iu, m][stokes] * c + data.modes[iu, NFourier + m][stokes] * s;
-      for (Index stokes = 2; stokes < 4; ++stokes)
-        data.intensities[iu][stokes] += data.modes[iu, NFourier + m][stokes] * c + data.modes[iu, m][stokes] * s;
+  const std::array<Index, 3> expected_shape{
+      static_cast<Index>(tau.size()), static_cast<Index>(phi.size()), static_cast<Index>(user_mu.size())};
+  ARTS_USER_ERROR_IF(out.shape() != expected_shape,
+                     "User-angle output has shape {:B,}, expected [{}, {}, {}] Stokes blocks",
+                     out.shape(),
+                     tau.size(),
+                     phi.size(),
+                     user_mu.size());
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          phi, [](const Numeric value) { return !std::isfinite(value) or value < 0.0 or value >= Constant::two_pi; }),
+      "User azimuths must be finite and in [0, 2*pi), got {:B,}",
+      phi);
+
+  ComplexTensor4 modes;
+  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  out = rtepack::stokvec{};
+  for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
+    for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu) {
+      for (Index m = 0; m < NFourier; ++m) {
+        for (Index alpha = 0; alpha < 2; ++alpha)
+          for (Index stokes = 0; stokes < stokes_dimension; ++stokes) {
+            const Complex value = modes[t, iu, alpha * NFourier + m, stokes];
+            const Numeric scale = 1.0 + std::abs(value.real());
+            ARTS_USER_ERROR_IF(std::abs(value.imag()) > 2e-8 * scale,
+                               "VDISORT left an uncancelled imaginary user radiance {} at tau={}, user={}, "
+                               "alpha={}, m={}, stokes={}",
+                               value,
+                               tau[t],
+                               iu,
+                               alpha,
+                               m,
+                               stokes);
+          }
+
+        for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
+          const Numeric c = std::cos(static_cast<Numeric>(m) * (phi0 - phi[p]));
+          const Numeric s = std::sin(static_cast<Numeric>(m) * (phi0 - phi[p]));
+          for (Index stokes = 0; stokes < 2; ++stokes)
+            out[t, p, iu][stokes] += modes[t, iu, m, stokes].real() * c + modes[t, iu, NFourier + m, stokes].real() * s;
+          for (Index stokes = 2; stokes < stokes_dimension; ++stokes)
+            out[t, p, iu][stokes] += modes[t, iu, NFourier + m, stokes].real() * c + modes[t, iu, m, stokes].real() * s;
+        }
+      }
     }
   }
 }
@@ -1262,13 +1442,35 @@ void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
       NLayers,
       phi.size(),
       NQuad);
-  u_data data;
-  for (Index l = 0; l < NLayers; ++l)
-    for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
-      u(data, tau_arr[l], phi[p]);
-      for (Index i = 0; i < NQuad; ++i)
-        for (Index s = 0; s < stokes_dimension; ++s) out[l, p, i, s] = data.intensities[i][s];
+
+  const Index nphi = static_cast<Index>(phi.size());
+  Matrix      cosine(nphi, NFourier);
+  Matrix      sine(nphi, NFourier);
+  for (Index p = 0; p < nphi; ++p) {
+    ARTS_USER_ERROR_IF(!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi,
+                       "phi must be finite and in [0, 2*pi), got {}",
+                       phi[p]);
+    for (Index m = 0; m < NFourier; ++m) {
+      const Numeric angle = static_cast<Numeric>(m) * (phi0 - phi[p]);
+      cosine[p, m]        = std::cos(angle);
+      sine[p, m]          = std::sin(angle);
     }
+  }
+
+  out = 0.0;
+  for (Index l = 0; l < NLayers; ++l)
+    for (Index p = 0; p < nphi; ++p)
+      for (Index m = 0; m < NFourier; ++m) {
+        const Numeric c = cosine[p, m];
+        const Numeric s = sine[p, m];
+        for (Index i = 0; i < NQuad; ++i) {
+          for (Index stokes = 0; stokes < 2; ++stokes)
+            out[l, p, i, stokes] += um[l, cosine_mode, m, i][stokes] * c + um[l, sine_mode, m, i][stokes] * s;
+          // VDISORT paper Eq. (78): U and V swap combined cosine/sine roles.
+          for (Index stokes = 2; stokes < stokes_dimension; ++stokes)
+            out[l, p, i, stokes] += um[l, sine_mode, m, i][stokes] * c + um[l, cosine_mode, m, i][stokes] * s;
+        }
+      }
 }
 
 void main_data::gridded_flux(VectorView up, VectorView down, VectorView down_direct) const {
@@ -1276,10 +1478,16 @@ void main_data::gridded_flux(VectorView up, VectorView down, VectorView down_dir
                          down_direct.size() != static_cast<Size>(NLayers),
                      "All gridded flux outputs must have size {}",
                      NLayers);
-  flux_data data;
   for (Index l = 0; l < NLayers; ++l) {
-    up[l]                             = flux_up(data, tau_arr[l]);
-    std::tie(down[l], down_direct[l]) = flux_down(data, tau_arr[l]);
+    Numeric upward   = 0.0;
+    Numeric downward = 0.0;
+    for (Index i = 0; i < N; ++i) {
+      upward   += W[i] * mu_arr[i] * um[l, cosine_mode, 0, i].I();
+      downward += W[i] * mu_arr[i] * um[l, cosine_mode, 0, N + i].I();
+    }
+    up[l]          = Constant::two_pi * upward;
+    down[l]        = Constant::two_pi * downward;
+    down_direct[l] = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau_arr[l] / mu0) : 0.0;
   }
 }
 
@@ -1292,23 +1500,59 @@ void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vec
       tau.size(),
       phi.size(),
       NQuad);
-  u_data data;
-  for (Index t = 0; t < static_cast<Index>(tau.size()); ++t)
-    for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
-      u(data, tau[t], phi[p]);
-      for (Index i = 0; i < NQuad; ++i)
-        for (Index s = 0; s < stokes_dimension; ++s) out[t, p, i, s] = data.intensities[i][s];
+
+  const Index nphi = static_cast<Index>(phi.size());
+  if (tau.empty() or nphi == 0) return;
+
+  Matrix cosine(nphi, NFourier);
+  Matrix sine(nphi, NFourier);
+  for (Index p = 0; p < nphi; ++p) {
+    ARTS_USER_ERROR_IF(!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi,
+                       "phi must be finite and in [0, 2*pi), got {}",
+                       phi[p]);
+    for (Index m = 0; m < NFourier; ++m) {
+      const Numeric angle = static_cast<Numeric>(m) * (phi0 - phi[p]);
+      cosine[p, m]        = std::cos(angle);
+      sine[p, m]          = std::sin(angle);
     }
+  }
+
+  out = 0.0;
+  Matrix combined(2 * NFourier, NState);
+  for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
+    combined_field(combined, tau[t]);
+    for (Index p = 0; p < nphi; ++p)
+      for (Index m = 0; m < NFourier; ++m) {
+        const Numeric c = cosine[p, m];
+        const Numeric s = sine[p, m];
+        for (Index i = 0; i < NQuad; ++i) {
+          for (Index stokes = 0; stokes < 2; ++stokes)
+            out[t, p, i, stokes] +=
+                combined[m, state_index(i, stokes)] * c + combined[NFourier + m, state_index(i, stokes)] * s;
+          for (Index stokes = 2; stokes < stokes_dimension; ++stokes)
+            out[t, p, i, stokes] +=
+                combined[NFourier + m, state_index(i, stokes)] * c + combined[m, state_index(i, stokes)] * s;
+        }
+      }
+  }
 }
 
 void main_data::ungridded_flux(VectorView up, VectorView down, VectorView down_direct, const AscendingGrid& tau) const {
   ARTS_USER_ERROR_IF(up.size() != tau.size() or down.size() != tau.size() or down_direct.size() != tau.size(),
                      "All ungridded flux outputs must have the same size as tau ({})",
                      tau.size());
-  flux_data data;
+  Matrix combined(2 * NFourier, NState);
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
-    up[t]                             = flux_up(data, tau[t]);
-    std::tie(down[t], down_direct[t]) = flux_down(data, tau[t]);
+    combined_field(combined, tau[t]);
+    Numeric upward   = 0.0;
+    Numeric downward = 0.0;
+    for (Index i = 0; i < N; ++i) {
+      upward   += W[i] * mu_arr[i] * combined[0, state_index(i, 0)];
+      downward += W[i] * mu_arr[i] * combined[0, state_index(N + i, 0)];
+    }
+    up[t]          = Constant::two_pi * upward;
+    down[t]        = Constant::two_pi * downward;
+    down_direct[t] = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau[t] / mu0) : 0.0;
   }
 }
 

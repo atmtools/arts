@@ -45,6 +45,14 @@ extensions = [
     'sphinxcontrib.bibtex',
 ]
 
+# ``\\boldsymbol`` belongs to an optional MathJax 3 TeX package.  It is used
+# for vector and matrix notation in the mathematical documentation, including
+# bold Greek symbols for which ``\\mathbf`` is not an equivalent substitute.
+mathjax3_config = {
+    'loader': {'load': ['[tex]/boldsymbol']},
+    'tex': {'packages': {'[+]': ['boldsymbol']}},
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

@@ -57,10 +57,9 @@ struct u_data {
   rtepack::stokvec_vector intensities;  // [NQuad]
 };
 
-/** Scratch and result storage for the formal solution at user directions. */
+/** Result storage for the formal solution at user directions. */
 struct user_u_data {
   rtepack::stokvec_vector intensities;  // [NUser]
-  rtepack::stokvec_matrix modes;        // [NUser, 2 * NFourier]
 };
 
 struct u0_data {
@@ -224,9 +223,10 @@ class main_data {
   // VDISORT CHANGE END
 
   //! Derived values
-  Vector mu_arr{};      // [NQuad]
-  Vector inv_mu_arr{};  // [NQuad]
-  Vector W{};           // [N]
+  Vector mu_arr{};                          // [NQuad]
+  Vector inv_mu_arr{};                      // [NQuad]
+  Vector W{};                               // [N]
+  Vector half_range_barycentric_weights{};  // [N]
 
   // VDISORT CHANGE BEGIN: the homogeneous solution is complex (paper Sec. 3.3.1).
   ComplexTensor5             G_collect{};       // [2, NFourier, NLayers, NState, NState]
@@ -244,6 +244,11 @@ class main_data {
   [[nodiscard]] Complex homogeneous(Index alpha, Index m, Index layer, Index state, Index eigen, Numeric tau) const;
   [[nodiscard]] Numeric particular(Index alpha, Index m, Index layer, Index state, Numeric tau) const;
   void                  combined_field(MatrixView out, Numeric tau) const;
+  void                  user_fourier_modes(ComplexTensor4&               out,
+                                           const AscendingGrid&          tau,
+                                           const ConstVectorView&        user_mu,
+                                           const phase_matrix_data&      user_phase_matrix,
+                                           const beam_phase_matrix_data& user_beam_phase_matrix) const;
 
  public:
   main_data()                            = default;
@@ -313,15 +318,19 @@ class main_data {
               const phase_matrix_data&      user_phase_matrix,
               const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
 
-  /** Compute and retain the azimuth-independent Fourier modes for user rays. */
-  void u_user_cache(user_u_data&                  data,
-                    Numeric                       tau,
-                    const ConstVectorView&        user_mu,
-                    const phase_matrix_data&      user_phase_matrix,
-                    const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
-
-  /** Synthesize an azimuth from the most recent u_user_cache() result. */
-  void u_user_from_cache(user_u_data& data, Numeric phi) const;
+  /** Radiance at arbitrary polar angles, optical depths, and azimuths.
+   *
+   * The output contains Stokes blocks with shape [NTau, NPhi, NUser].
+   * User-direction phase projections are formed once per call and the
+   * layerwise modal exponentials are integrated analytically.  This is the
+   * bulk, test-facing counterpart of DISORT's TERPEV/TERPSO/USRINT path.
+   */
+  void ungridded_u_user(rtepack::stokvec_tensor3_view out,
+                        const AscendingGrid&          tau,
+                        const Vector&                 phi,
+                        const ConstVectorView&        user_mu,
+                        const phase_matrix_data&      user_phase_matrix,
+                        const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
   void u0(u0_data& data, Numeric tau) const;
 
   [[nodiscard]] Numeric                     flux_up(flux_data&, Numeric tau) const;

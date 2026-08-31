@@ -365,6 +365,80 @@ void test_scalar_linear_source_limit() {
   }
 }
 
+void test_affine_source_coordinate() {
+  constexpr Index   nquad             = 4;
+  constexpr Index   modes             = 1;
+  constexpr Numeric depth             = 0.9;
+  constexpr Numeric omega             = 0.35;
+  constexpr Numeric intercept         = 0.8;
+  constexpr Numeric slope             = -0.3;
+  constexpr Numeric coordinate_scale  = 2.5;
+  constexpr Numeric coordinate_offset = -0.4;
+
+  const auto make_model = [=](const Numeric scale,
+                              const Numeric offset,
+                              const Numeric constant_coefficient,
+                              const Numeric linear_coefficient) {
+    Tensor7 phase(2, modes, 1, nquad, nquad, 4, 4, 0.0);
+    phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
+    Tensor4 up(2, modes, nquad / 2, 4, 0.0), down(2, modes, nquad / 2, 4, 0.0);
+    Tensor3 source(1, 2, 4, 0.0);
+    source[0, 0, 0] = constant_coefficient;
+    source[0, 1, 0] = linear_coefficient;
+    return vdisort::main_data(nquad,
+                              modes,
+                              AscendingGrid{depth},
+                              Vector{omega},
+                              std::move(phase),
+                              std::move(up),
+                              std::move(down),
+                              std::move(source),
+                              {},
+                              0.5,
+                              Vector(4, 0.0),
+                              0.0,
+                              {},
+                              Vector{scale},
+                              Vector{offset});
+  };
+
+  auto physical = make_model(1.0, 0.0, intercept, slope);
+  auto affine   = make_model(coordinate_scale,
+                             coordinate_offset,
+                             intercept - slope * coordinate_offset / coordinate_scale,
+                             slope / coordinate_scale);
+
+  for (const Numeric optical_depth : {0.0, 0.23, depth}) {
+    vdisort::u_data physical_field;
+    vdisort::u_data affine_field;
+    physical.u(physical_field, optical_depth, 0.7);
+    affine.u(affine_field, optical_depth, 0.7);
+    for (Index stream = 0; stream < nquad; ++stream)
+      for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+        expect_close(affine_field.intensities[stream][stokes],
+                     physical_field.intensities[stream][stokes],
+                     "affine source-coordinate quadrature field");
+  }
+
+  const Vector               user_mu{-0.75, 0.35};
+  vdisort::phase_matrix_data user_phase(2, modes, 1, user_mu.size(), nquad, rtepack::muelmat{0.0});
+  for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user)
+    for (Index stream = 0; stream < nquad; ++stream) user_phase[vdisort::cosine_mode, 0, 0, user, stream][0, 0] = 1.0;
+  const AscendingGrid      output_tau{0.0, 0.23, depth};
+  const Vector             phi{0.0, 0.7};
+  rtepack::stokvec_tensor3 physical_user(output_tau.size(), phi.size(), user_mu.size());
+  rtepack::stokvec_tensor3 affine_user(output_tau.size(), phi.size(), user_mu.size());
+  physical.ungridded_u_user(physical_user, output_tau, phi, user_mu, user_phase);
+  affine.ungridded_u_user(affine_user, output_tau, phi, user_mu, user_phase);
+  for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level)
+    for (Index azimuth = 0; azimuth < static_cast<Index>(phi.size()); ++azimuth)
+      for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user)
+        for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+          expect_close(affine_user[level, azimuth, user][stokes],
+                       physical_user[level, azimuth, user][stokes],
+                       "affine source-coordinate user radiance");
+}
+
 void test_conservative_reflecting_source_limit() {
   constexpr Index     nquad = 4;
   constexpr Index     modes = 1;
@@ -498,6 +572,90 @@ void test_complex_uv_eigenmodes() {
     }
 }
 
+void test_bulk_quadrature_equivalence() {
+  constexpr Index nquad  = 2;
+  constexpr Index n      = nquad / 2;
+  constexpr Index modes  = 2;
+  constexpr Index layers = 2;
+
+  Tensor7 phase(2, modes, layers, nquad, nquad, 4, 4, 0.0);
+  Tensor4 up(2, modes, n, 4, 0.0), down(2, modes, n, 4, 0.0);
+
+  up[vdisort::cosine_mode, 0, 0]   = Vector{1.1, -0.2, 0.0, 0.0};
+  up[vdisort::sine_mode, 0, 0]     = Vector{0.0, 0.0, 0.3, -0.1};
+  down[vdisort::cosine_mode, 0, 0] = Vector{0.7, 0.15, 0.0, 0.0};
+  down[vdisort::sine_mode, 0, 0]   = Vector{0.0, 0.0, -0.25, 0.08};
+
+  up[vdisort::cosine_mode, 1, 0]   = Vector{0.12, -0.04, 0.07, 0.02};
+  up[vdisort::sine_mode, 1, 0]     = Vector{-0.03, 0.05, -0.06, 0.09};
+  down[vdisort::cosine_mode, 1, 0] = Vector{-0.08, 0.02, 0.11, -0.04};
+  down[vdisort::sine_mode, 1, 0]   = Vector{0.06, -0.01, 0.03, 0.05};
+
+  Tensor6             beam_phase(2, modes, layers, nquad, 4, 4, 0.0);
+  const AscendingGrid layer_tau{0.3, 0.9};
+  auto                model = make_vdisort(nquad,
+                                           layer_tau,
+                                           Vector{0.0, 0.0},
+                                           std::move(phase),
+                                           std::move(up),
+                                           std::move(down),
+                                           {},
+                                           Vector{0.7, 0.1, -0.05, 0.02},
+                                           std::move(beam_phase));
+
+  const Vector phi{0.0, 0.4, 1.7};
+  Tensor4      gridded(layer_tau.size(), phi.size(), nquad, 4);
+  model.gridded_u(gridded, phi);
+  for (Index layer = 0; layer < static_cast<Index>(layer_tau.size()); ++layer)
+    for (Index azimuth = 0; azimuth < static_cast<Index>(phi.size()); ++azimuth) {
+      vdisort::u_data pointwise;
+      model.u(pointwise, layer_tau[layer], phi[azimuth]);
+      for (Index stream = 0; stream < nquad; ++stream)
+        for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+          expect_close(gridded[layer, azimuth, stream, stokes],
+                       pointwise.intensities[stream][stokes],
+                       "gridded/pointwise polarized radiance");
+    }
+
+  const AscendingGrid output_tau{0.0, 0.17, 0.3, 0.56, 0.9};
+  Tensor4             ungridded(output_tau.size(), phi.size(), nquad, 4);
+  model.ungridded_u(ungridded, output_tau, phi);
+  for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level)
+    for (Index azimuth = 0; azimuth < static_cast<Index>(phi.size()); ++azimuth) {
+      vdisort::u_data pointwise;
+      model.u(pointwise, output_tau[level], phi[azimuth]);
+      for (Index stream = 0; stream < nquad; ++stream)
+        for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+          expect_close(ungridded[level, azimuth, stream, stokes],
+                       pointwise.intensities[stream][stokes],
+                       "ungridded/pointwise polarized radiance");
+    }
+
+  ARTS_USER_ERROR_IF(std::abs(ungridded[1, 1, 0, 2]) < 1e-12 or std::abs(ungridded[1, 1, 0, 3]) < 1e-12 or
+                         std::abs(ungridded[1, 0, 0, 0] - ungridded[1, 1, 0, 0]) < 1e-12,
+                     "Bulk equivalence model did not exercise U, V, and m>0 radiance");
+
+  Vector gridded_up(layers), gridded_down(layers), gridded_direct(layers);
+  model.gridded_flux(gridded_up, gridded_down, gridded_direct);
+  for (Index layer = 0; layer < layers; ++layer) {
+    vdisort::flux_data scratch;
+    const auto         pointwise = model.flux(scratch, layer_tau[layer]);
+    expect_close(gridded_up[layer], pointwise.up, "gridded/pointwise upward flux");
+    expect_close(gridded_down[layer], pointwise.down_diffuse, "gridded/pointwise downward flux");
+    expect_close(gridded_direct[layer], pointwise.down_direct, "gridded/pointwise direct flux");
+  }
+
+  Vector ungridded_up(output_tau.size()), ungridded_down(output_tau.size()), ungridded_direct(output_tau.size());
+  model.ungridded_flux(ungridded_up, ungridded_down, ungridded_direct, output_tau);
+  for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
+    vdisort::flux_data scratch;
+    const auto         pointwise = model.flux(scratch, output_tau[level]);
+    expect_close(ungridded_up[level], pointwise.up, "ungridded/pointwise upward flux");
+    expect_close(ungridded_down[level], pointwise.down_diffuse, "ungridded/pointwise downward flux");
+    expect_close(ungridded_direct[level], pointwise.down_direct, "ungridded/pointwise direct flux");
+  }
+}
+
 void test_combined_matrix_transform() {
   Tensor6 cosine(2, 1, 1, 1, 4, 4, 0.0), sine(2, 1, 1, 1, 4, 4, 0.0);
   cosine[1, 0, 0, 0, 0, 2] = 3.0;
@@ -533,10 +691,12 @@ int main() try {
   test_polarized_absorption();
   test_scalar_limit();
   test_scalar_linear_source_limit();
+  test_affine_source_coordinate();
   test_conservative_reflecting_source_limit();
   test_vector_source();
   test_polarized_brdf();
   test_complex_uv_eigenmodes();
+  test_bulk_quadrature_equivalence();
   test_combined_matrix_transform();
   test_spectral_phase_matrix_split();
   std::cout << "vdisort tests passed\n";

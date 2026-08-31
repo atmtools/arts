@@ -826,18 +826,20 @@ void main_data::check_input_value() const {
                      "omega_arr must be [0, 1], but got {:B,}",
                      omega_arr);
 
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(Leg_coeffs_all,
-                   [](auto&& x) { return x[0] != 1 or stdr::any_of(x, [](auto&& u) { return std::abs(u) > 1; }); }),
-      "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
-      Leg_coeffs_all);
+  ARTS_USER_ERROR_IF(stdr::any_of(Leg_coeffs_all,
+                                  [](auto&& x) {
+                                    return x.size() == 0 or x[0] != 1 or
+                                           stdr::any_of(x, [](auto&& u) { return std::abs(u) > 1; });
+                                  }),
+                     "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
+                     Leg_coeffs_all);
 
   ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative, got {}", I0);
 
   ARTS_USER_ERROR_IF(phi0 < 0 or phi0 >= Constant::two_pi, "phi0 must be [0, 2*pi), got {}", phi0);
 
   ARTS_USER_ERROR_IF(
-      stdr::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }), "f_arr must be [0, 1], got {:B,}", f_arr);
+      stdr::any_of(f_arr, [](auto&& x) { return x >= 1 or x < 0; }), "f_arr must be [0, 1), got {:B,}", f_arr);
 
   ARTS_USER_ERROR_IF(
       stdr::any_of(delta_m_peak | by_elem, [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
@@ -899,7 +901,9 @@ void main_data::source_function() {
 void main_data::update_all(const Numeric I0_) {
   ARTS_TIME_REPORT
 
-  // DISORT and cDISORT dither exact conservative scattering to avoid the
+  check_input_value();
+
+  // DISORT and cDISORT dither conservative scattering to avoid the
   // zero eigenvalue of the m=0 system.  Their 100-epsilon dither is below
   // the stable resolution of this reduced eigensolver; 1e-8 is the smallest
   // tested scale that retains the original DISORT conservative references.
@@ -907,8 +911,6 @@ void main_data::update_all(const Numeric I0_) {
   std::transform(omega_arr.begin(), omega_arr.end(), omega_arr.begin(), [=](const Numeric omega) {
     return std::min(omega, 1.0 - conservative_dither);
   });
-
-  check_input_value();
 
   set_weighted_Leg_coeffs_all();
   if (I0_ >= 0 or has_beam_source) { set_beam_source(I0_ >= 0 ? I0_ : I0 * I0_orig); }
@@ -1623,9 +1625,11 @@ void main_data::u_corr(u_data&              u_data,
                        const ims_convention convention) const {
   ARTS_TIME_REPORT
 
+  u(u_data, tau, phi);
+  if (!has_beam_source) return;
+
   TMS(tms_data, tau, phi);
   IMS(ims, tau, phi, convention);
-  u(u_data, tau, phi);
 
   for (Index i = 0; i < N; i++) { u_data.intensities[i] += I0_orig * tms_data.TMS[i]; }
 
@@ -1770,6 +1774,10 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric 
 void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd) const {
   ARTS_TIME_REPORT
 
+  assert(flux_up.size() == static_cast<Size>(NLayers));
+  assert(flux_do.size() == static_cast<Size>(NLayers));
+  assert(flux_dd.size() == static_cast<Size>(NLayers));
+
   for (Index l = 0; l < NLayers; l++) {
     const auto&& u0 = um[l, 0];
 
@@ -1812,7 +1820,7 @@ void main_data::ungridded_flux(VectorView           flux_up,
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
-  ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
+  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
                      "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
                      tau_arr.back());
@@ -1859,7 +1867,7 @@ void main_data::ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vec
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
-  ARTS_USER_ERROR_IF(tau.back() < tau_arr.back(),
+  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
                      "the last tau ({}) must be less than the last layer ({})",
                      tau.back(),
                      tau_arr.back());

@@ -437,19 +437,22 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
                                             Constant::pi,
                                             moments[nquad]);
 
-  vdisort::user_u_data user;
+  const AscendingGrid      scaled_output_tau(disort_test::reference::problem_4_output_tau.begin(),
+                                             disort_test::reference::problem_4_output_tau.end(),
+                                             [&](const Numeric tau) { return model.optical_depth_scale * tau; });
+  rtepack::stokvec_tensor3 user(scaled_output_tau.size(), test.azimuth.size(), user_mu.size());
+  model.solver.ungridded_u_user(
+      user, scaled_output_tau, test.azimuth, user_mu, model.user_phase, model.user_beam_phase);
   for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
     const Numeric physical_tau = disort_test::reference::problem_4_output_tau[level];
-    const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
-    model.solver.u_user_cache(user, scaled_tau, user_mu, model.user_phase, model.user_beam_phase);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
-      model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
       const Vector correction = scalar_delta_m_correction(model, physical_tau, test.azimuth[azimuth], user_mu);
       for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
-        user.intensities[angle].I() += correction[angle];
-        const auto label             = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
-        expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, level, angle]);
-        expect_unpolarized(label, user.intensities[angle]);
+        auto intensity    = user[level, azimuth, angle];
+        intensity.I()    += correction[angle];
+        const auto label  = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+        expect_reference(label, intensity.I(), test.radiance[azimuth, level, angle]);
+        expect_unpolarized(label, intensity);
       }
     }
   }
@@ -1016,21 +1019,23 @@ void test_problem_9() {
   for (const auto& test : disort_test::reference::problem_9) {
     auto model = make_problem_9_model(
         test, disort_test::reference::problem_9_streams, disort_test::reference::problem_9_user_mu);
-    vdisort::user_u_data user;
-    vdisort::flux_data   flux_data;
+    const AscendingGrid      output_tau{test.output_tau};
+    rtepack::stokvec_tensor3 user(
+        output_tau.size(), test.azimuth.size(), disort_test::reference::problem_9_user_mu.size());
+    model.solver.ungridded_u_user(user,
+                                  output_tau,
+                                  test.azimuth,
+                                  disort_test::reference::problem_9_user_mu,
+                                  model.user_phase,
+                                  model.user_beam_phase);
+    vdisort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
-      model.solver.u_user_cache(user,
-                                test.output_tau[level],
-                                disort_test::reference::problem_9_user_mu,
-                                model.user_phase,
-                                model.user_beam_phase);
       for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
-        model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
-        for (Index angle = 0; angle < static_cast<Index>(user.intensities.size()); ++angle) {
-          expect_unpolarized(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
-                             user.intensities[angle]);
+        for (Index angle = 0; angle < static_cast<Index>(disort_test::reference::problem_9_user_mu.size()); ++angle) {
+          const auto intensity = user[level, azimuth, angle];
+          expect_unpolarized(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle), intensity);
           expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
-                           user.intensities[angle].I(),
+                           intensity.I(),
                            test.radiance[azimuth, level, angle],
                            test.thermal ? 1e-3 : reference_tolerance);
         }
@@ -1526,14 +1531,14 @@ void test_problem_14() {
                          test.radiance[azimuth, angle],
                          2e-5);
 
-    vdisort::user_u_data user;
-    model.solver.u_user_cache(user, 0.0, problem_14_user_mu, model.user_phase, model.user_beam_phase);
+    const AscendingGrid      tau{0.0};
+    rtepack::stokvec_tensor3 user(tau.size(), test.azimuth.size(), problem_14_user_mu.size());
+    model.solver.ungridded_u_user(user, tau, test.azimuth, problem_14_user_mu, model.user_phase, model.user_beam_phase);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
-      model.solver.u_user_from_cache(user, test.azimuth[azimuth]);
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle) {
         const auto label = std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
-        expect_unpolarized(label, user.intensities[angle]);
-        expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, angle], 2e-5);
+        expect_unpolarized(label, user[0, azimuth, angle]);
+        expect_reference(label, user[0, azimuth, angle].I(), test.radiance[azimuth, angle], 2e-5);
       }
     }
 
@@ -1680,21 +1685,18 @@ void test_problem_15() {
   for (Index case_index = 0; case_index < static_cast<Index>(problem_15.size()); ++case_index) {
     const auto& test = problem_15[case_index];
     if (case_index != 0) update_scalar_brdf(model, problem_15_raw(test.type), problem_15_streams);
-    vdisort::user_u_data user;
+    const AscendingGrid scaled_output_tau(problem_15_output_tau.begin(), problem_15_output_tau.end(), scaled_depth);
+    rtepack::stokvec_tensor3 user(scaled_output_tau.size(), problem_15_azimuth.size(), problem_15_user_mu.size());
+    model.solver.ungridded_u_user(
+        user, scaled_output_tau, problem_15_azimuth, problem_15_user_mu, model.user_phase, model.user_beam_phase);
     for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
-      model.solver.u_user_cache(user,
-                                scaled_depth(problem_15_output_tau[level]),
-                                problem_15_user_mu,
-                                model.user_phase,
-                                model.user_beam_phase);
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth) {
-        model.solver.u_user_from_cache(user, problem_15_azimuth[azimuth]);
         const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth);
         for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
-          user.intensities[angle] += corr[angle];
-          const auto label         = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
-          expect_unpolarized(label, user.intensities[angle]);
-          expect_reference(label, user.intensities[angle].I(), test.radiance[azimuth, level, angle]);
+          auto       intensity = user[level, azimuth, angle] + corr[angle];
+          const auto label     = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+          expect_unpolarized(label, intensity);
+          expect_reference(label, intensity.I(), test.radiance[azimuth, level, angle]);
         }
       }
     }
@@ -1749,20 +1751,18 @@ void test_problem_17() {
                      test.depth * (1.0 - scaling.fraction[0]),
                      2e-13);
 
-    vdisort::user_u_data user;
-    const Vector         physical_tau{0.0, test.depth};
+    const Vector        physical_tau{0.0, test.depth};
+    const AscendingGrid scaled_tau(
+        physical_tau.begin(), physical_tau.end(), [&](const Numeric tau) { return model.optical_depth_scale * tau; });
+    rtepack::stokvec_tensor3 user(scaled_tau.size(), problem_17_azimuth.size(), problem_17_user_mu.size());
+    model.solver.ungridded_u_user(
+        user, scaled_tau, problem_17_azimuth, problem_17_user_mu, model.user_phase, model.user_beam_phase);
     for (Index level = 0; level < static_cast<Index>(physical_tau.size()); ++level) {
-      model.solver.u_user_cache(user,
-                                model.optical_depth_scale * physical_tau[level],
-                                problem_17_user_mu,
-                                model.user_phase,
-                                model.user_beam_phase);
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_17_azimuth.size()); ++azimuth) {
-        model.solver.u_user_from_cache(user, problem_17_azimuth[azimuth]);
         for (Index angle = 0; angle < static_cast<Index>(problem_17_user_mu.size()); ++angle) {
           const auto label = std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth);
-          expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle, azimuth]);
-          expect_unpolarized(label, user.intensities[angle]);
+          expect_reference(label, user[level, azimuth, angle].I(), test.radiance[level, angle, azimuth]);
+          expect_unpolarized(label, user[level, azimuth, angle]);
         }
       }
     }
