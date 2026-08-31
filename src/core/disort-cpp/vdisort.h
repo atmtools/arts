@@ -151,12 +151,20 @@ struct BDRF {
 
   func_t cosine;
   func_t sine;
+  func_t beam_cosine;
+  func_t beam_sine;
 
   /** Evaluate one combined cosine or sine BRDF Fourier operator. */
   void operator()(Index                        alpha,
                   rtepack::muelmat_matrix_view out,
                   const ConstVectorView&       mu_out,
                   const ConstVectorView&       mu_in) const;
+
+  /** Evaluate a mode specialized for a fixed physical incident beam. */
+  void beam(Index                        alpha,
+            rtepack::muelmat_matrix_view out,
+            const ConstVectorView&       mu_out,
+            const ConstVectorView&       mu_in) const;
 };
 
 /** Convert ordinary phase-matrix cosine/sine Fourier coefficients to the

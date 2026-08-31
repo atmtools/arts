@@ -354,6 +354,20 @@ void BDRF::operator()(const Index                  alpha,
   (alpha == cosine_mode ? cosine : sine)(out, mu_out, mu_in);
 }
 
+void BDRF::beam(const Index                  alpha,
+                rtepack::muelmat_matrix_view out,
+                const ConstVectorView&       mu_out,
+                const ConstVectorView&       mu_in) const {
+  ARTS_USER_ERROR_IF(alpha != cosine_mode and alpha != sine_mode,
+                     "The VDISORT BRDF beam mode must be 0 (cosine) or 1 (sine), got {}",
+                     alpha);
+  const auto& specialized = alpha == cosine_mode ? beam_cosine : beam_sine;
+  if (specialized.f)
+    specialized(out, mu_out, mu_in);
+  else
+    (*this)(alpha, out, mu_out, mu_in);
+}
+
 phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine, const rtepack::muelmat_tensor4& sine) {
   ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
                      "Cosine and sine phase matrices have different shapes: {:B,} and {:B,}",
@@ -933,7 +947,7 @@ void main_data::solve_for_coefs() {
         if (has_beam_source) {
           rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
           const Vector            beam_mu{mu0};
-          brdf_fourier_modes[m](alpha, beam_raw, mu_arr[Range{0, N}], beam_mu);
+          brdf_fourier_modes[m].beam(alpha, beam_raw, mu_arr[Range{0, N}], beam_mu);
           const Numeric           attenuation = std::exp(-tau_arr.back() / mu0);
           const rtepack::stokvec& beam        = beam_stokes;
           for (Index i = 0; i < N; ++i) {
@@ -1185,7 +1199,7 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                 Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * um[NLayers - 1, alpha, m, N + j]);
           }
           if (has_beam_source) {
-            brdf_fourier_modes[m](alpha, beam_raw, outgoing, beam_direction);
+            brdf_fourier_modes[m].beam(alpha, beam_raw, outgoing, beam_direction);
             mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (beam_raw[0, 0] * beam_stokes);
           }
         }

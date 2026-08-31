@@ -5,6 +5,7 @@
 #include <nanobind/stl/vector.h>
 #include <pydocs.h>
 #include <python_interface.h>
+#include <vdisort-brdf.h>
 #include <vdisort.h>
 
 #include <concepts>
@@ -120,12 +121,13 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
       .def(
           "__init__",
           [polarized_bdrf_callback](vdisort::BDRF* b, const DisortBDRFOperator& cosine) {
-            new (b)
-                vdisort::BDRF{.cosine = polarized_bdrf_callback(cosine),
-                              .sine   = vdisort::BDRF::func_t{
-                                  [](rtepack::muelmat_matrix_view mat, const ConstVectorView&, const ConstVectorView&) {
-                                    mat = rtepack::muelmat{0.0};
-                                  }}};
+            new (b) vdisort::BDRF{
+                .cosine      = polarized_bdrf_callback(cosine),
+                .sine        = vdisort::BDRF::func_t{[](rtepack::muelmat_matrix_view mat,
+                                                        const ConstVectorView&,
+                                                        const ConstVectorView&) { mat = rtepack::muelmat{0.0}; }},
+                .beam_cosine = {},
+                .beam_sine   = {}};
           },
           "cosine"_a,
           py::keep_alive<0, 1>())
@@ -133,7 +135,10 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
           "__init__",
           [polarized_bdrf_callback](
               vdisort::BDRF* b, const DisortBDRFOperator& cosine, const DisortBDRFOperator& sine) {
-            new (b) vdisort::BDRF{.cosine = polarized_bdrf_callback(cosine), .sine = polarized_bdrf_callback(sine)};
+            new (b) vdisort::BDRF{.cosine      = polarized_bdrf_callback(cosine),
+                                  .sine        = polarized_bdrf_callback(sine),
+                                  .beam_cosine = {},
+                                  .beam_sine   = {}};
           },
           "cosine"_a,
           "sine"_a,
@@ -173,6 +178,32 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "cosine"_a,
                  "sine"_a,
                  "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def(
+      "cox_munk_reflection",
+      [](const Numeric outgoing_mu,
+         const Numeric incoming_mu,
+         const Numeric relative_azimuth,
+         const Numeric wind_speed,
+         const Numeric refractive_index,
+         const bool    shadowing) {
+        return vdisort::brdf::CoxMunk{wind_speed, refractive_index, shadowing}(
+            outgoing_mu, incoming_mu, relative_azimuth);
+      },
+      "outgoing_mu"_a,
+      "incoming_mu"_a,
+      "relative_azimuth"_a,
+      "wind_speed"_a       = 5.0,
+      "refractive_index"_a = 1.34,
+      "shadowing"_a        = true,
+      "Evaluate the raw polarized Cox-Munk BPrDF in the ARTS Stokes basis");
+  vdisort_nm.def("cox_munk_fourier_modes",
+                 &vdisort::brdf::cox_munk_fourier_modes,
+                 "wind_speed"_a,
+                 "refractive_index"_a,
+                 "shadowing"_a,
+                 "number_of_modes"_a,
+                 "azimuth_quadrature_points"_a = 100,
+                 "Construct VDISORT-ready combined Fourier modes for a polarized Cox-Munk ocean");
   // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
@@ -491,6 +522,10 @@ supplied as ``[B, 0, 0, 0]``.
           },
           "tau"_a,
           "Compute Stokes-I upward, downward-diffuse, and downward-direct flux")
+      .def("has_complex_eigensolutions",
+           &vdisort::main_data::has_complex_eigensolutions,
+           "tolerance"_a = 1.0e-12,
+           "Return whether any retained transport eigenvalue is significantly complex")
       .def(
           "u_user",
           [](vdisort::main_data&                                   dis,
