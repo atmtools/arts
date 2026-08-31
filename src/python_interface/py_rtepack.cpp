@@ -311,10 +311,12 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(mt3);
 
   py::class_<MuelmatTensor4> mt4(m, "MuelmatTensor4");
+  mt4.doc() = "A 4-tensor of :class:`~pyarts3.arts.Muelmat`";
   rtepack_array<Muelmat, 4, 4, 4>(mt4);
   generic_interface(mt4);
 
   py::class_<MuelmatTensor5> mt5(m, "MuelmatTensor5");
+  mt5.doc() = "A 5-tensor of :class:`~pyarts3.arts.Muelmat`";
   rtepack_array<Muelmat, 5, 4, 4>(mt5);
   generic_interface(mt5);
 

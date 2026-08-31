@@ -547,6 +547,68 @@ reduced polarized problem.  It is simpler to audit against the published
 equations and supports general Mueller coupling, but it makes VDISORT
 substantially more expensive than scalar DISORT.
 
+The physical energy-conservation pair receives the same centered treatment as
+the scalar solver.  This pair can occur only in the cosine system at
+:math:`m=0`.  Before selecting it, the code verifies directly that the supplied
+Mueller quadrature operator leaves the isotropic unpolarized field
+
+.. math::
+
+   X_{\rho(i,s)}=\delta_{sI}
+
+unchanged at unit single-scattering albedo.  It also verifies the dual energy
+condition
+
+.. math::
+
+   \frac12\sum_i w_i\left[P^{00\ell}_{ij}\right]_{Is}=\delta_{sI}
+
+for every incident stream :math:`j` and Stokes component :math:`s`.  Thus
+setting :math:`\omega=1` does not by itself make a non-normalized phase matrix
+singular.  For
+:math:`\omega<1`, let :math:`v_-` and :math:`v_+` be the two near-zero
+eigenvectors, normalized so that
+
+.. math::
+
+   \frac12\sum_i w_i(v_\pm)_{\rho(i,I)}=1.
+
+With propagation constants :math:`-\kappa` and :math:`+\kappa`, VDISORT stores
+the finite columns
+
+.. math::
+
+   X=\frac{v_-+v_+}{2},\qquad
+   R=\frac{v_+-v_-}{2\kappa}.
+
+At exact conservation, :math:`X` is supplied explicitly and the generalized
+vector is obtained from
+
+.. math::
+
+   \boldsymbol A R=X,\qquad
+   \frac12\sum_iw_iR_{\rho(i,I)}=0.
+
+The second equation fixes the otherwise arbitrary addition of the null vector.
+Replacing one dependent conservation row by this gauge yields a nonsingular
+solve, after which the omitted transport residual is checked.  At distance
+:math:`s` from the layer midpoint, the two homogeneous columns are evaluated
+as
+
+.. math::
+
+   F_0(s)&=X\cosh(\kappa s)+\kappa R\sinh(\kappa s),\\
+   F_1(s)&=X\frac{\sinh(\kappa s)}{\kappa}+R\cosh(\kappa s).
+
+Consequently :math:`F_0=X` and :math:`F_1=R+sX` at
+:math:`\kappa=0`.  Boundary assembly, gridded radiances, fluxes, and the
+arbitrary-angle formal integral all use these same columns.  The centered path
+is selected for :math:`\omega\in[1-10^{-8},1]`, or whenever the measured
+:math:`\kappa\leq10^{-4}`, matching scalar DISORT.  If the general complex
+eigensolver perturbs an unresolved real pair into slightly complex roots, only
+that pair is recomputed with the real eigensolver.  This fallback adds no
+eigensolve or allocation to the ordinary-albedo path.
+
 VDISORT particular-solution right-hand sides
 =============================================
 
@@ -1023,13 +1085,14 @@ The following details are intentional and should be considered when changing
 or comparing the cores:
 
 * **Conservative scattering.**  Exact :math:`\omega=1` gives a defective zero
-  pair in the scalar zeroth-mode reduction.  CPP-DISORT keeps the input albedo
-  unchanged and represents this pair by the constant/linear centered basis
+  pair in the zeroth cosine mode.  Both cores keep the input albedo unchanged
+  and represent the physical energy pair by the constant/linear centered basis
   above.  The same basis is selected through the near-conservative interval
   :math:`[1-10^{-8},1]`; ordinary modes retain the fast anchored-exponential
-  path.  VDISORT accepts :math:`\omega=1`, but its full complex eigensystem
-  does not yet have the analogous explicit Jordan-pair treatment and can be
-  poorly conditioned.
+  path.  VDISORT stabilizes the one physically required energy-conservation
+  pair.  A contrived Mueller operator with additional independently conserved
+  polarization quantities can contain more zero pairs and is not covered by
+  this single-pair representation.
 * **Complex VDISORT modes.**  A real physical solution can use complex
   eigenpairs.  The reconstructed imaginary part is required to cancel to a
   relative tolerance of about :math:`2\,10^{-8}` before the real part is

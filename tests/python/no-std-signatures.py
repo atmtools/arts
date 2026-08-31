@@ -24,8 +24,9 @@ def recursion(orig, name="pyarts.arts"):
 
 errors = recursion(cxx)
 
+msg = ""
 for error in errors:
-    print(error, end="\n\n")
+    msg += error + "\n"
 
 assert len(errors) == 0, (
     f"Found {len(errors)} signatures with remaining 'std::' in them.\n\n"
@@ -34,5 +35,5 @@ assert len(errors) == 0, (
     "(e.g., not using 'bind_vector', but using the 'std::vector<>' or 'Array<>'), "
     "or 2) there is a missing include (e.g., one of the many '#include <nanobind/stl/XYZ.h>' is missing).  "
     "There could be other reasons we are not aware of for this to happen.\n\n"
-    "Please investigate the above and correct these signatures."
+    f"Please investigate the above and correct these signatures.\nErrors:\n{msg}"
 )

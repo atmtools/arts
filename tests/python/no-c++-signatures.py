@@ -24,12 +24,13 @@ def recursion(orig, name="pyarts.arts"):
 
 errors = recursion(cxx)
 
+msg = ""
 for error in errors:
-    print(error, end="\n\n")
+    msg += error + "\n"
 
 assert len(errors) == 0, (
     f"Found {len(errors)} signatures with remaining '::' in them.\n\n"
     "This means that there are missing type information when creating the python signature in the C++ bindings.\n\n"
     "The types are not defined in the python interface.\n\n"
-    "Please investigate the above and correct these signatures."
+    f"Please investigate the above and correct these signatures.\nErrors:\n{msg}"
 )

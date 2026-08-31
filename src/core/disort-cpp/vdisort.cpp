@@ -16,6 +16,12 @@
 namespace {
 [[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
 
+Numeric sinhc(const Numeric x) {
+  if (std::abs(x) >= 1.0e-4) return std::sinh(x) / x;
+  const Numeric x2 = x * x;
+  return 1.0 + x2 * (1.0 / 6.0 + x2 * (1.0 / 120.0 + x2 / 5040.0));
+}
+
 void barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
   const Index n = static_cast<Index>(nodes.size());
   weights.resize(n);
@@ -86,6 +92,29 @@ Complex user_angle_exponential_integral(const Complex k,
   const Complex z       = e1 - e0;
   const Complex average = z.real() > 0.0 ? std::exp(e1) * exprel(-z) : std::exp(e0) * exprel(z);
   return (upper - lower) / abs_mu * average;
+}
+
+Numeric user_angle_centered_first_moment(const Numeric center,
+                                         const Numeric lower,
+                                         const Numeric upper,
+                                         const Numeric observation,
+                                         const Numeric abs_mu,
+                                         const bool    downward) {
+  if (upper <= lower) return 0.0;
+  const Numeric near        = downward ? upper : lower;
+  const Numeric distance    = downward ? observation - near : near - observation;
+  const Numeric z           = (upper - lower) / abs_mu;
+  const Numeric attenuation = std::exp(-distance / abs_mu);
+  const Numeric l0          = -std::expm1(-z);
+  Numeric       l1;
+  if (std::abs(z) < 1.0e-3) {
+    const Numeric z2 = z * z;
+    l1               = z2 * (0.5 + z * (-1.0 / 3.0 + z * (1.0 / 8.0 + z * (-1.0 / 30.0 + z / 144.0))));
+  } else {
+    l1 = 1.0 - (1.0 + z) * std::exp(-z);
+  }
+  const Numeric direction = downward ? -1.0 : 1.0;
+  return attenuation * ((near - center) * l0 + direction * abs_mu * l1);
 }
 
 void exponential_moments(Vector& moments, const Numeric z) {
@@ -516,7 +545,9 @@ main_data::main_data(
       B_collect(2, NFourier, NLayers, NQuad),
       source_collect(2, NFourier, NLayers, NQuad, Nscoeffs),
       um(NLayers, 2, NFourier, NQuad),
-      top_anchored(static_cast<std::size_t>(2 * NFourier * NLayers * NState), 0) {
+      top_anchored(static_cast<std::size_t>(2 * NFourier * NLayers * NState), 0),
+      conservative_pair_index(static_cast<std::size_t>(NLayers), std::array<Index, 2>{-1, -1}),
+      conservative_pair_kappa(NLayers) {
   ARTS_USER_ERROR_IF(NQuad <= 0 or NQuad % 2 != 0, "NQuad must be a positive even number, got {}", NQuad);
   Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
   std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](const Numeric x) { return -x; });
@@ -579,6 +610,19 @@ Complex main_data::homogeneous(const Index   alpha,
                                const Index   state,
                                const Index   eigen,
                                const Numeric tau) const {
+  const auto [negative, positive] = conservative_pair_index[static_cast<std::size_t>(layer)];
+  if (alpha == cosine_mode and m == 0 and negative >= 0 and (eigen == negative or eigen == positive)) {
+    const Numeric center = 0.5 * (layer_top(layer) + tau_arr[layer]);
+    const Numeric s      = tau - center;
+    const Numeric kappa  = conservative_pair_kappa[layer];
+    const Numeric z      = kappa * s;
+    const Numeric c      = std::cosh(z);
+    if (eigen == negative)
+      return c * G_collect[alpha, m, layer, state, negative] +
+             kappa * std::sinh(z) * G_collect[alpha, m, layer, state, positive];
+    return s * sinhc(z) * G_collect[alpha, m, layer, state, negative] + c * G_collect[alpha, m, layer, state, positive];
+  }
+
   const Numeric anchor = top_anchored[anchor_index(alpha, m, layer, eigen)] ? layer_top(layer) : tau_arr[layer];
   return G_collect[alpha, m, layer, state, eigen] * std::exp(K_collect[alpha, m, layer, eigen] * (tau - anchor));
 }
@@ -680,6 +724,8 @@ void main_data::diagonalize() {
   Vector                       rhs(NState);
   std::vector<Index>           order(static_cast<std::size_t>(NState));
   complex_diagonalize_workdata eigen_work(NState);
+  std::ranges::fill(conservative_pair_index, std::array<Index, 2>{-1, -1});
+  conservative_pair_kappa = 0.0;
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
       for (Index l = 0; l < NLayers; ++l) {
@@ -713,6 +759,220 @@ void main_data::diagonalize() {
           K_collect[alpha, m, l, e]                  = eigenvalues[old];
           top_anchored[anchor_index(alpha, m, l, e)] = static_cast<unsigned char>(e < NHalfState);
           for (Index s = 0; s < NState; ++s) G_collect[alpha, m, l, s, e] = eigenvectors[s, old];
+        }
+
+        if (alpha == cosine_mode and m == 0) {
+          Index negative = 0;
+          for (Index e = 1; e < NHalfState; ++e)
+            if (std::abs(K_collect[alpha, m, l, e]) < std::abs(K_collect[alpha, m, l, negative])) negative = e;
+          Index positive = NHalfState;
+          for (Index e = NHalfState + 1; e < NState; ++e)
+            if (std::abs(K_collect[alpha, m, l, e]) < std::abs(K_collect[alpha, m, l, positive])) positive = e;
+
+          const Complex lambda_negative = K_collect[alpha, m, l, negative];
+          const Complex lambda_positive = K_collect[alpha, m, l, positive];
+          const Numeric measured_kappa  = std::sqrt(std::abs(-lambda_negative * lambda_positive));
+
+          // A physical conservative phase operator leaves an isotropic,
+          // unpolarized field unchanged and conserves integrated outgoing I
+          // for every incident Stokes component.  Check both the right and
+          // left invariants independently of omega before replacing the two
+          // coalescing eigenvectors.  This keeps an omega=1 phase operator
+          // with only a simple zero mode on the ordinary path.
+          Numeric conservation_residual = 0.0;
+          Numeric conservation_scale    = 1.0;
+          for (Index i = 0; i < NQuad; ++i) {
+            for (Index so = 0; so < stokes_dimension; ++so) {
+              Numeric scattered = 0.0;
+              Numeric magnitude = so == 0 ? 1.0 : 0.0;
+              for (Index j = 0; j < NQuad; ++j) {
+                const Numeric term  = 0.5 * W[j % N] * phase_matrix[alpha, m, l, i, j][so, 0];
+                scattered          += term;
+                magnitude          += std::abs(term);
+              }
+              conservation_residual =
+                  std::max(conservation_residual, std::abs(inv_mu_arr[i] * ((so == 0 ? 1.0 : 0.0) - scattered)));
+              conservation_scale = std::max(conservation_scale, std::abs(inv_mu_arr[i]) * magnitude);
+            }
+          }
+          Numeric energy_residual = 0.0;
+          Numeric energy_scale    = 1.0;
+          for (Index j = 0; j < NQuad; ++j) {
+            for (Index si = 0; si < stokes_dimension; ++si) {
+              Numeric integrated = 0.0;
+              Numeric magnitude  = si == 0 ? 1.0 : 0.0;
+              for (Index i = 0; i < NQuad; ++i) {
+                const Numeric term  = 0.5 * W[i % N] * phase_matrix[alpha, m, l, i, j][0, si];
+                integrated         += term;
+                magnitude          += std::abs(term);
+              }
+              energy_residual = std::max(energy_residual, std::abs((si == 0 ? 1.0 : 0.0) - integrated));
+              energy_scale    = std::max(energy_scale, magnitude);
+            }
+          }
+          const bool normalized_conservative =
+              conservation_residual <= 1.0e-10 * conservation_scale and energy_residual <= 1.0e-10 * energy_scale;
+          const bool requested_stable_pair = omega_arr[l] >= 1.0 - 1.0e-8 or measured_kappa <= 1.0e-4;
+          if (normalized_conservative and requested_stable_pair) {
+            Numeric kappa = omega_arr[l] == 1.0 ? 0.0 : measured_kappa;
+
+            const auto normalization = [&](const Index eigen) {
+              Complex value = 0.0;
+              for (Index stream = 0; stream < NQuad; ++stream)
+                value += 0.5 * W[stream % N] * G_collect[alpha, m, l, state_index(stream, 0), eigen];
+              return value;
+            };
+
+            if (omega_arr[l] != 1.0) {
+              // ZGEEV does not exploit that the transport matrix is real.  In
+              // the last few ulps before conservation it can perturb the two
+              // true real roots into a slightly complex +/- pair.  Use its
+              // result when it is well resolved; otherwise recompute only
+              // this pair with real DGEEV.  Ordinary layers and well-resolved
+              // near-conservative layers pay no second eigensolve.
+              bool use_real_pair = measured_kappa <= std::numeric_limits<Numeric>::epsilon() * conservation_scale or
+                                   std::max(std::abs(lambda_negative.imag()), std::abs(lambda_positive.imag())) >
+                                       1.0e-8 * measured_kappa;
+              if (not use_real_pair) {
+                const Complex negative_norm = normalization(negative);
+                const Complex positive_norm = normalization(positive);
+                ARTS_USER_ERROR_IF(std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
+                                       std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon(),
+                                   "VDISORT could not normalize the conservative eigenpair in layer {}: {} and {}",
+                                   l,
+                                   negative_norm,
+                                   positive_norm);
+                Numeric pair_imag  = 0.0;
+                Numeric pair_scale = 1.0;
+                for (Index state = 0; state < NState; ++state) {
+                  const Complex v_negative                = G_collect[alpha, m, l, state, negative] / negative_norm;
+                  const Complex v_positive                = G_collect[alpha, m, l, state, positive] / positive_norm;
+                  G_collect[alpha, m, l, state, negative] = 0.5 * (v_negative + v_positive);
+                  G_collect[alpha, m, l, state, positive] = (v_positive - v_negative) / (2.0 * kappa);
+                  pair_imag  = std::max({pair_imag,
+                                         std::abs(G_collect[alpha, m, l, state, negative].imag()),
+                                         std::abs(G_collect[alpha, m, l, state, positive].imag())});
+                  pair_scale = std::max({pair_scale,
+                                         std::abs(G_collect[alpha, m, l, state, negative].real()),
+                                         std::abs(G_collect[alpha, m, l, state, positive].real())});
+                }
+                use_real_pair = pair_imag > 1.0e-8 * pair_scale;
+              }
+
+              if (use_real_pair) {
+                Matrix real_vectors(NState, NState);
+                Vector wr(NState), wi(NState);
+                ::diagonalize(real_vectors, wr, wi, A_real);
+
+                Index real_negative = -1;
+                Index real_positive = -1;
+                for (Index eigen = 0; eigen < NState; ++eigen) {
+                  if (wi[eigen] != 0.0) continue;
+                  if (wr[eigen] < 0.0 and (real_negative < 0 or std::abs(wr[eigen]) < std::abs(wr[real_negative])))
+                    real_negative = eigen;
+                  if (wr[eigen] > 0.0 and (real_positive < 0 or std::abs(wr[eigen]) < std::abs(wr[real_positive])))
+                    real_positive = eigen;
+                }
+                ARTS_USER_ERROR_IF(real_negative < 0 or real_positive < 0,
+                                   "VDISORT could not resolve the real conservative eigenpair in layer {}",
+                                   l);
+
+                kappa                         = std::sqrt(std::abs(-wr[real_negative] * wr[real_positive]));
+                const auto real_normalization = [&](const Index eigen) {
+                  Numeric value = 0.0;
+                  for (Index stream = 0; stream < NQuad; ++stream)
+                    value += 0.5 * W[stream % N] * real_vectors[state_index(stream, 0), eigen];
+                  return value;
+                };
+                const Numeric negative_norm = real_normalization(real_negative);
+                const Numeric positive_norm = real_normalization(real_positive);
+                ARTS_USER_ERROR_IF(std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
+                                       std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon(),
+                                   "VDISORT could not normalize the real conservative eigenpair in layer {}: {} and {}",
+                                   l,
+                                   negative_norm,
+                                   positive_norm);
+                for (Index state = 0; state < NState; ++state) {
+                  const Numeric v_negative                = real_vectors[state, real_negative] / negative_norm;
+                  const Numeric v_positive                = real_vectors[state, real_positive] / positive_norm;
+                  G_collect[alpha, m, l, state, negative] = 0.5 * (v_negative + v_positive);
+                  G_collect[alpha, m, l, state, positive] = (v_positive - v_negative) / (2.0 * kappa);
+                }
+              }
+
+              Numeric pair_residual = 0.0;
+              Numeric pair_scale    = 1.0;
+              for (Index row = 0; row < NState; ++row) {
+                Complex ax        = 0.0;
+                Complex ar        = 0.0;
+                Numeric row_scale = 0.0;
+                for (Index column = 0; column < NState; ++column) {
+                  const Complex term_x  = A_real[row, column] * G_collect[alpha, m, l, column, negative];
+                  const Complex term_r  = A_real[row, column] * G_collect[alpha, m, l, column, positive];
+                  ax                   += term_x;
+                  ar                   += term_r;
+                  row_scale            += std::abs(term_x) + std::abs(term_r);
+                }
+                const Complex expected_ax = kappa * kappa * G_collect[alpha, m, l, row, positive];
+                const Complex expected_ar = G_collect[alpha, m, l, row, negative];
+                pair_residual = std::max({pair_residual, std::abs(ax - expected_ax), std::abs(ar - expected_ar)});
+                pair_scale    = std::max(pair_scale, row_scale + std::abs(expected_ax) + std::abs(expected_ar));
+              }
+              ARTS_USER_ERROR_IF(pair_residual > 1.0e-8 * pair_scale,
+                                 "VDISORT conservative eigenpair in layer {} has relative residual {}",
+                                 l,
+                                 pair_residual / pair_scale);
+            } else {
+              // At exact conservation A has a size-two Jordan block.  Supply
+              // its null vector X explicitly and solve A R = X with the
+              // angular-mean gauge <R_I>=0.  Replacing a row whose
+              // conservation left-nullvector is largest makes the remaining
+              // square system nonsingular without changing the transport
+              // equations.
+              Matrix pair_work{A_real};
+              Vector pair_r(NState, 0.0);
+              for (Index stream = 0; stream < NQuad; ++stream) pair_r[state_index(stream, 0)] = 1.0;
+
+              Index constraint_stream = 0;
+              for (Index stream = 1; stream < NQuad; ++stream)
+                if (std::abs(W[stream % N] * mu_arr[stream]) >
+                    std::abs(W[constraint_stream % N] * mu_arr[constraint_stream]))
+                  constraint_stream = stream;
+              const Index constraint_row = state_index(constraint_stream, 0);
+              for (Index column = 0; column < NState; ++column) pair_work[constraint_row, column] = 0.0;
+              for (Index stream = 0; stream < NQuad; ++stream)
+                pair_work[constraint_row, state_index(stream, 0)] = 0.5 * W[stream % N];
+              pair_r[constraint_row] = 0.0;
+              solve_inplace(pair_r, pair_work);
+
+              Numeric residual = 0.0;
+              Numeric scale    = 1.0;
+              for (Index row = 0; row < NState; ++row) {
+                Numeric value     = -(row % stokes_dimension == 0 ? 1.0 : 0.0);
+                Numeric row_scale = std::abs(value);
+                for (Index column = 0; column < NState; ++column) {
+                  value     += A_real[row, column] * pair_r[column];
+                  row_scale += std::abs(A_real[row, column] * pair_r[column]);
+                }
+                residual = std::max(residual, std::abs(value));
+                scale    = std::max(scale, row_scale);
+              }
+              ARTS_USER_ERROR_IF(residual > 1.0e-8 * scale,
+                                 "VDISORT could not construct the exact conservative mode in layer {}: "
+                                 "relative residual {}",
+                                 l,
+                                 residual / scale);
+
+              for (Index state = 0; state < NState; ++state) {
+                G_collect[alpha, m, l, state, negative] = state % stokes_dimension == 0 ? 1.0 : 0.0;
+                G_collect[alpha, m, l, state, positive] = pair_r[state];
+              }
+            }
+            conservative_pair_index[static_cast<std::size_t>(l)] = {negative, positive};
+            conservative_pair_kappa[l]                           = kappa;
+            K_collect[alpha, m, l, negative]                     = -kappa;
+            K_collect[alpha, m, l, positive]                     = kappa;
+          }
         }
 
         if (has_beam_source) {
@@ -757,6 +1017,13 @@ void main_data::source_function() {
   for (Index alpha = 0; alpha < 2; ++alpha) {
     const Index m = 0;
     for (Index l = 0; l < NLayers; ++l) {
+      bool zero_emission = true;
+      for (Index p = 0; p < Nscoeffs; ++p) zero_emission &= scaled_source_poly_coeffs[l, p].is_zero();
+      // Exact conservative scattering has no absorption emission.  Its
+      // transport matrix is singular, so select the zero particular solution
+      // explicitly and let the finite homogeneous Jordan pair carry the field.
+      if (zero_emission) continue;
+
       Matrix A(NState, NState, 0.0);
       for (Index i = 0; i < NQuad; ++i) {
         for (Index so = 0; so < stokes_dimension; ++so) {
@@ -943,16 +1210,37 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
                      2 * NFourier,
                      NState);
 
+  // Keep the eigenmode index as the innermost summation so G_collect is read
+  // contiguously.  The amplitude scratch is reused for every combined mode;
+  // the centered pair only changes the two amplitudes multiplying its stored
+  // X and R columns.
+  ComplexVector modal_amplitude(NState);
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
-      ComplexVector modal_amplitude(NState);
-      for (Index e = 0; e < NState; ++e) {
-        const Numeric anchor = top_anchored[anchor_index(alpha, m, layer, e)] ? layer_top(layer) : tau_arr[layer];
-        modal_amplitude[e] = GC_collect[alpha, m, layer, e] * std::exp(K_collect[alpha, m, layer, e] * (tau - anchor));
+      for (Index eigen = 0; eigen < NState; ++eigen) {
+        const Numeric anchor = top_anchored[anchor_index(alpha, m, layer, eigen)] ? layer_top(layer) : tau_arr[layer];
+        modal_amplitude[eigen] =
+            GC_collect[alpha, m, layer, eigen] * std::exp(K_collect[alpha, m, layer, eigen] * (tau - anchor));
       }
+
+      const auto [negative, positive] = conservative_pair_index[static_cast<std::size_t>(layer)];
+      if (alpha == cosine_mode and m == 0 and negative >= 0) {
+        const Numeric center      = 0.5 * (layer_top(layer) + tau_arr[layer]);
+        const Numeric s           = tau - center;
+        const Numeric kappa       = conservative_pair_kappa[layer];
+        const Numeric z           = kappa * s;
+        const Numeric c           = std::cosh(z);
+        const Numeric sz          = std::sinh(z);
+        const Complex c0          = GC_collect[alpha, m, layer, negative];
+        const Complex c1          = GC_collect[alpha, m, layer, positive];
+        modal_amplitude[negative] = c0 * c + c1 * s * sinhc(z);
+        modal_amplitude[positive] = c0 * kappa * sz + c1 * c;
+      }
+
       for (Index state = 0; state < NState; ++state) {
         Complex value = particular(alpha, m, layer, state, tau);
-        for (Index e = 0; e < NState; ++e) value += G_collect[alpha, m, layer, state, e] * modal_amplitude[e];
+        for (Index eigen = 0; eigen < NState; ++eigen)
+          value += G_collect[alpha, m, layer, state, eigen] * modal_amplitude[eigen];
         const Numeric scale = 1.0 + std::abs(value.real());
         // VDISORT CHANGE: highly conservative scalar-limit cases can be very
         // ill-conditioned; conjugate eigenpairs may leave roundoff at a few
@@ -1107,7 +1395,10 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
           const Numeric abs_mu   = std::abs(mu);
           const bool    downward = mu < 0.0;
 
+          const auto [pair_negative, pair_positive] = conservative_pair_index[static_cast<std::size_t>(layer)];
+          const bool has_pair                       = alpha == cosine_mode and m == 0 and pair_negative >= 0;
           for (Index eigen = 0; eigen < NState; ++eigen) {
+            if (has_pair and (eigen == pair_negative or eigen == pair_positive)) continue;
             std::array<Complex, stokes_dimension> source{};
             for (Index j = 0; j < NQuad; ++j) {
               const Numeric factor = 0.5 * omega_arr[layer] * W[j % N];
@@ -1126,6 +1417,53 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
               const Complex integral = user_angle_exponential_integral(
                   K_collect[alpha, m, layer, eigen], anchor, lower, upper, tau[t], abs_mu, downward);
               for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += coefficient * source[s] * integral;
+            }
+          }
+
+          if (has_pair) {
+            std::array<Complex, stokes_dimension> source_x{};
+            std::array<Complex, stokes_dimension> source_r{};
+            for (Index j = 0; j < NQuad; ++j) {
+              const Numeric factor = 0.5 * omega_arr[layer] * W[j % N];
+              const auto&   phase  = user_phase_matrix[alpha, m, layer, iu, j];
+              for (Index so = 0; so < stokes_dimension; ++so) {
+                for (Index si = 0; si < stokes_dimension; ++si) {
+                  source_x[so] +=
+                      factor * phase[so, si] * G_collect[alpha, m, layer, state_index(j, si), pair_negative];
+                  source_r[so] +=
+                      factor * phase[so, si] * G_collect[alpha, m, layer, state_index(j, si), pair_positive];
+                }
+              }
+            }
+
+            const Complex c0     = GC_collect[alpha, m, layer, pair_negative];
+            const Complex c1     = GC_collect[alpha, m, layer, pair_positive];
+            const Numeric center = 0.5 * (layer_top(layer) + tau_arr[layer]);
+            const Numeric kappa  = conservative_pair_kappa[layer];
+            for (Index t = 0; t < ntau; ++t) {
+              const auto [lower, upper] = limits(layer, tau[t], downward);
+              if (upper <= lower) continue;
+
+              Complex       integral_c;
+              Complex       integral_s;
+              const Numeric max_s = std::max(std::abs(lower - center), std::abs(upper - center));
+              if (std::abs(kappa) * max_s < 1.0e-5) {
+                integral_c =
+                    user_angle_exponential_integral(Complex{0.0}, center, lower, upper, tau[t], abs_mu, downward);
+                integral_s = user_angle_centered_first_moment(center, lower, upper, tau[t], abs_mu, downward);
+              } else {
+                const Complex plus =
+                    user_angle_exponential_integral(kappa, center, lower, upper, tau[t], abs_mu, downward);
+                const Complex minus =
+                    user_angle_exponential_integral(-kappa, center, lower, upper, tau[t], abs_mu, downward);
+                integral_c = 0.5 * (plus + minus);
+                integral_s = (plus - minus) / (2.0 * kappa);
+              }
+              for (Index s = 0; s < stokes_dimension; ++s) {
+                const Complex ac       = source_x[s] * c0 + source_r[s] * c1;
+                const Complex as       = source_x[s] * c1 + kappa * kappa * source_r[s] * c0;
+                modes[t, iu, mode, s] += ac * integral_c + as * integral_s;
+              }
             }
           }
 

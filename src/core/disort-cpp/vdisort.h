@@ -214,13 +214,15 @@ class main_data {
   rtepack::stokvec_matrix scaled_source_poly_coeffs{};       // [NLayers, Nscoeffs], transport emission
 
   // VDISORT CHANGE BEGIN: the homogeneous solution is complex (paper Sec. 3.3.1).
-  ComplexTensor5             G_collect{};       // [2, NFourier, NLayers, NState, NState]
-  ComplexTensor4             K_collect{};       // [2, NFourier, NLayers, NState]
-  ComplexTensor4             GC_collect{};      // [2, NFourier, NLayers, NState]
-  rtepack::stokvec_tensor4   B_collect{};       // [2, NFourier, NLayers, NQuad]
-  rtepack::stokvec_tensor5   source_collect{};  // [2, NFourier, NLayers, NQuad, Nscoeffs]
-  rtepack::stokvec_tensor4   um{};              // [NLayers, 2, NFourier, NQuad], layer-bottom fields
-  std::vector<unsigned char> top_anchored{};    // one flag per eigenmode collection
+  ComplexTensor5                    G_collect{};                // [2, NFourier, NLayers, NState, NState]
+  ComplexTensor4                    K_collect{};                // [2, NFourier, NLayers, NState]
+  ComplexTensor4                    GC_collect{};               // [2, NFourier, NLayers, NState]
+  rtepack::stokvec_tensor4          B_collect{};                // [2, NFourier, NLayers, NQuad]
+  rtepack::stokvec_tensor5          source_collect{};           // [2, NFourier, NLayers, NQuad, Nscoeffs]
+  rtepack::stokvec_tensor4          um{};                       // [NLayers, 2, NFourier, NQuad], layer-bottom fields
+  std::vector<unsigned char>        top_anchored{};             // one flag per eigenmode collection
+  std::vector<std::array<Index, 2>> conservative_pair_index{};  // [NLayers], stable m=0 cosine pair, or {-1,-1}
+  Vector                            conservative_pair_kappa{};  // [NLayers]
   // VDISORT CHANGE END
 
   [[nodiscard]] Index   state_index(Index stream, Index stokes) const;
