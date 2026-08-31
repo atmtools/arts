@@ -43,6 +43,73 @@ def _sun_halo_profile(scattering_angle, center=np.deg2rad(22.0)):
     return 1.0 + 80.0 * np.exp(-0.5 * ((scattering_angle - center) / width) ** 2)
 
 
+def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
+    """Rayleigh first Mueller column in each outgoing local-meridian frame."""
+    mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
+    horizontal = np.sqrt(1.0 - mu_out**2)
+    outgoing = np.stack(
+        (
+            horizontal * np.cos(phi_out),
+            horizontal * np.sin(phi_out),
+            mu_out,
+        ),
+        axis=-1,
+    )
+    incident = np.array(
+        [
+            np.sqrt(1.0 - mu0**2) * np.cos(phi0),
+            np.sqrt(1.0 - mu0**2) * np.sin(phi0),
+            -mu0,
+        ]
+    )
+    cos_scattering = np.clip(outgoing @ incident, -1.0, 1.0)
+    polarized = 0.75 * (1.0 - cos_scattering**2)
+
+    # The local horizontal axis is k_out x z and the local vertical axis is
+    # horizontal x k_out.  Rayleigh polarization is perpendicular to the
+    # scattering plane spanned by the incident and outgoing rays.
+    local_horizontal = np.stack(
+        (np.sin(phi_out), -np.cos(phi_out), np.zeros_like(phi_out)), axis=-1
+    )
+    local_vertical = np.cross(local_horizontal, outgoing)
+    perpendicular = np.cross(incident, outgoing)
+    perpendicular /= np.linalg.norm(perpendicular, axis=-1)[..., None]
+    vertical_component = np.sum(perpendicular * local_vertical, axis=-1)
+    horizontal_component = np.sum(perpendicular * local_horizontal, axis=-1)
+
+    stokes = np.zeros(mu_out.shape + (4,))
+    stokes[..., 0] = 0.75 * (1.0 + cos_scattering**2)
+    stokes[..., 1] = polarized * (vertical_component**2 - horizontal_component**2)
+    stokes[..., 2] = 2.0 * polarized * vertical_component * horizontal_component
+    return stokes
+
+
+def _rayleigh_beam_fourier(mu_out, mu0, phi0, nfourier):
+    """Project the Rayleigh beam source into VDISORT's combined Fourier modes."""
+    sample_phi = np.linspace(0.0, 2.0 * np.pi, 2048, endpoint=False)
+    mu_grid, phi_grid = np.meshgrid(mu_out, sample_phi, indexing="ij")
+    stokes = _rayleigh_stokes_column(mu_grid, phi_grid, mu0, phi0)
+    delta_phi = phi0 - sample_phi
+    combined = np.zeros((2, nfourier, 1, len(mu_out), 4, 4))
+
+    for mode in range(nfourier):
+        epsilon = 1.0 if mode == 0 else 2.0
+        cosine = epsilon * np.mean(
+            stokes * np.cos(mode * delta_phi)[None, :, None], axis=1
+        )
+        sine = epsilon * np.mean(
+            stokes * np.sin(mode * delta_phi)[None, :, None], axis=1
+        )
+        # The beam source multiplies nonzero Fourier modes by epsilon.  Divide
+        # the standard Fourier coefficients by the same factor here.  I,Q use
+        # the ordinary combined ordering; U,V swap cosine and sine systems.
+        combined[arts.vdisort.cosine_mode, mode, 0, :, :2, 0] = cosine[:, :2] / epsilon
+        combined[arts.vdisort.sine_mode, mode, 0, :, :2, 0] = sine[:, :2] / epsilon
+        combined[arts.vdisort.sine_mode, mode, 0, :, 2:, 0] = cosine[:, 2:] / epsilon
+        combined[arts.vdisort.cosine_mode, mode, 0, :, 2:, 0] = sine[:, 2:] / epsilon
+    return combined
+
+
 def test_phase_helpers():
     cosine = np.zeros((1, 1, 2, 2, 4, 4))
     sine = np.zeros_like(cosine)
@@ -369,6 +436,106 @@ def test_optically_thin_rayleigh_atmosphere():
         plt.show()
 
 
+def test_nonprincipal_plane_rayleigh_polarization():
+    """Reconstruct rotated Rayleigh Q/U outside the solar principal plane."""
+    depth = 1.0e-8
+    nquad = 4
+    nfourier = 3
+    mu0 = 0.6
+    phi0 = 0.0
+
+    phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
+    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
+    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    signed_mu = np.concatenate((positive_mu, -positive_mu))
+    quadrature_beam_phase = _rayleigh_beam_fourier(signed_mu, mu0, phi0, nfourier)
+
+    model = arts.cppvdisort(
+        tau_arr=np.array([depth]),
+        omega_arr=np.array([1.0]),
+        NQuad=nquad,
+        NFourier=nfourier,
+        phase_matrix=phase,
+        mu0=mu0,
+        beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
+        phi0=phi0,
+        beam_phase_matrix=quadrature_beam_phase,
+    )
+
+    user_mu = np.array([0.4])
+    phi = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
+    user_phase = np.zeros((2, nfourier, 1, 1, nquad, 4, 4))
+    user_beam_phase = _rayleigh_beam_fourier(user_mu, mu0, phi0, nfourier)
+    stokes = np.asarray(
+        model.u_user(
+            tau=np.array([0.0]),
+            phi=phi,
+            mu=user_mu,
+            phase_matrix=user_phase,
+            beam_phase_matrix=user_beam_phase,
+        )
+    )[0, :, 0]
+
+    expected_phase = _rayleigh_stokes_column(user_mu[0], phi, mu0, phi0)
+    ray_integral = -np.expm1(-depth * (1.0 / mu0 + 1.0 / user_mu[0])) / (
+        1.0 + user_mu[0] / mu0
+    )
+    expected = expected_phase * ray_integral / (4.0 * np.pi)
+    np.testing.assert_allclose(stokes, expected, rtol=3.0e-8, atol=3.0e-15)
+
+    degree_linear = np.hypot(stokes[:, 1], stokes[:, 2]) / stokes[:, 0]
+    cos_scattering = -user_mu[0] * mu0 + np.sqrt(1.0 - user_mu[0] ** 2) * np.sqrt(
+        1.0 - mu0**2
+    ) * np.cos(phi - phi0)
+    expected_degree = (1.0 - cos_scattering**2) / (1.0 + cos_scattering**2)
+    np.testing.assert_allclose(
+        degree_linear, expected_degree, rtol=3.0e-8, atol=3.0e-12
+    )
+    np.testing.assert_allclose(stokes[:, 3], 0.0, atol=3.0e-15)
+
+    principal = np.array([0, np.argmin(np.abs(phi - np.pi))])
+    np.testing.assert_allclose(stokes[principal, 2], 0.0, atol=3.0e-15)
+    nonprincipal = np.argmax(np.abs(stokes[:, 2]))
+    assert np.abs(stokes[nonprincipal, 2]) > 0.2 * stokes[nonprincipal, 0]
+
+    if "ARTS_HEADLESS" not in os.environ:
+        import matplotlib.pyplot as plt
+
+        scattering_angle = np.rad2deg(np.arccos(cos_scattering))
+        figure, (stokes_plot, invariant_plot) = plt.subplots(
+            1, 2, figsize=(11, 4), constrained_layout=True
+        )
+        stokes_plot.plot(np.rad2deg(phi), stokes[:, 1], label="VDISORT Q")
+        stokes_plot.plot(np.rad2deg(phi), stokes[:, 2], label="VDISORT U")
+        stokes_plot.plot(np.rad2deg(phi), expected[:, 1], "--", label="Analytical Q")
+        stokes_plot.plot(np.rad2deg(phi), expected[:, 2], "--", label="Analytical U")
+        stokes_plot.set(
+            xlabel="Relative azimuth [degree]",
+            ylabel="Polarized radiance",
+            title="Non-principal-plane Rayleigh polarization",
+            xlim=(0.0, 360.0),
+        )
+        stokes_plot.grid(True, alpha=0.25)
+        stokes_plot.legend(ncol=2)
+
+        invariant_plot.plot(scattering_angle, degree_linear, label="VDISORT")
+        invariant_plot.plot(
+            scattering_angle,
+            expected_degree,
+            "--",
+            label="Analytical Rayleigh",
+        )
+        invariant_plot.set(
+            xlabel="Scattering angle [degree]",
+            ylabel="Degree of linear polarization",
+            title="Rotation-invariant polarization",
+            ylim=(-0.02, 1.02),
+        )
+        invariant_plot.grid(True, alpha=0.25)
+        invariant_plot.legend()
+        plt.show()
+
+
 def test_optically_thin_sun_halo():
     """Transport a prescribed 22-degree halo through a thin atmosphere."""
     depth = 1.0e-8
@@ -489,4 +656,5 @@ if __name__ == "__main__":
     test_absorbing_stokes_field()
     test_fresnel_brewster_angle()
     test_optically_thin_rayleigh_atmosphere()
+    test_nonprincipal_plane_rayleigh_polarization()
     test_optically_thin_sun_halo()
