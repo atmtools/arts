@@ -7,7 +7,7 @@ does not count.
 
 | Problem | Cases | Current state | CPP limitation or required work |
 |---|---|---|---|
-| 1 | a–f | ported | All original user-angle radiances and fluxes pass, including exact-unity input through the internal conservative dither. |
+| 1 | a–f | ported | All original user-angle radiances and fluxes pass. Exact-unity input uses the finite constant/linear conservative pair without changing the supplied albedo. |
 | 2 | a–d | ported | All original user-angle radiances and fluxes pass, including exact-unity input. |
 | 3 | a–b | ported | Arbitrary-angle IMS/TMS corrections are applied to the original user-angle radiances. |
 | 4 | a–c | ported | All Haze-L fluxes and user-angle radiances are checked with arbitrary-angle IMS/TMS corrections. |

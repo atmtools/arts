@@ -129,7 +129,7 @@ void print_result(const std::string_view name, std::vector<double> elapsed) {
 }  // namespace
 
 int main(const int argc, char** argv) try {
-  const Index repetitions = argc > 1 ? static_cast<Index>(std::stoll(argv[1])) : 20;
+  const Index repetitions = argc > 1 ? static_cast<Index>(std::stoll(argv[1])) : 200;
   ARTS_USER_ERROR_IF(repetitions < 1, "The repetition count must be positive, got {}", repetitions);
 
   Numeric    checksum = run_cpp_disort() + run_cdisort();

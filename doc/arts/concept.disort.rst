@@ -255,6 +255,45 @@ the full eigenvector matrix, with negative propagation constants first, is
      \boldsymbol X-\boldsymbol Z&\boldsymbol X+\boldsymbol Z
    \end{pmatrix}.
 
+The division by :math:`\boldsymbol\kappa` is not used for the conservative
+zeroth-mode pair.  Let :math:`\boldsymbol x` be the reduced eigenvector of the
+small root and solve
+
+.. math::
+
+   (\boldsymbol\alpha-\boldsymbol\beta)\boldsymbol r
+      =\boldsymbol x.
+
+Define :math:`\boldsymbol X_0=[\boldsymbol x;\boldsymbol x]`,
+:math:`\boldsymbol R=[\boldsymbol r;-\boldsymbol r]`, the scaled layer
+midpoint :math:`c`, and :math:`s=\tau^*-c`.  The two finite homogeneous
+columns are
+
+.. math::
+
+   \boldsymbol F_0(s)
+      &=\boldsymbol X_0\cosh(\kappa s)
+        -\kappa\boldsymbol R\sinh(\kappa s),\\
+   \boldsymbol F_1(s)
+      &=\boldsymbol X_0\frac{\sinh(\kappa s)}{\kappa}
+        -\boldsymbol R\cosh(\kappa s).
+
+The quotient is evaluated as a stable ``sinhc`` function.  At exact
+conservation,
+
+.. math::
+
+   \boldsymbol F_0=\boldsymbol X_0,
+   \qquad
+   \boldsymbol F_1=s\boldsymbol X_0-\boldsymbol R.
+
+Thus the zero eigenvalue retains both the constant solution and its linear
+generalized eigenvector.  This is the continuous :math:`\kappa\to0` limit of
+the two exponential modes, without nearly equal eigenvectors or coefficients
+that grow as :math:`1/\kappa`.  CPP-DISORT uses this centered representation
+for physical albedos in :math:`[1-10^{-8},1]`, and also when round-off produces
+an even smaller root.
+
 In the implementation, ``apb`` and ``amb`` represent
 :math:`\boldsymbol\alpha+\boldsymbol\beta` and
 :math:`\boldsymbol\alpha-\boldsymbol\beta`, respectively.
@@ -290,11 +329,14 @@ amplitude in the standard ODE, then
    (\boldsymbol A^m+\mu_0^{-1}\boldsymbol I_{2N})
       \boldsymbol B_\ell^m=-\widetilde{\boldsymbol X}^m.
 
-CPP-DISORT evaluates this solve in the eigenbasis.  The isotropic polynomial
-particular solution exists only for :math:`m=0`; it is likewise transformed
-through :math:`\boldsymbol G^{-1}` and evaluated by a backwards polynomial
-recurrence.  The complete layer field is the sum of homogeneous, beam, and
-polynomial parts.
+CPP-DISORT evaluates this solve in the eigenbasis for ordinary layers.  A
+layer using the centered conservative pair solves the beam system directly in
+stream space, so the beam particular solution never depends on the singular
+pair.  The isotropic polynomial particular solution exists only for
+:math:`m=0`.  Ordinary layers retain the established eigenbasis recurrence;
+conservative-pair layers use a stream-space polynomial recurrence, with an
+explicit zero particular solution when :math:`(1-\omega')B=0`.  The complete
+layer field is the sum of homogeneous, beam, and polynomial parts.
 
 Polarized radiative transfer
 ****************************
@@ -776,18 +818,22 @@ factorization:
      - ``G_collect[m, layer, state, eigen]``
      - ``G_collect[alpha, m, layer, state, eigen]``
    * - Modal constants :math:`\boldsymbol c_\ell`
-     - The band-solve ``RHS`` is overwritten by the constants
+     - The band-solve ``RHS`` is overwritten by the constants and copied to
+       ``C_collect[m, layer, eigen]``
      - The complex band-solve ``rhs`` is copied into ``GC_collect``
    * - ``GC_collect``
-     - Stores :math:`G_{qe}c_e` for every state and eigenmode
+     - Caches :math:`G_{qe}c_e` for ordinary exponential evaluation; the
+       conservative pair is evaluated from ``C_collect`` and its coupled
+       two-column basis
      - Despite the name, stores only :math:`c_e`; multiplication by
        :math:`G_{qe}` occurs during field reconstruction
    * - Beam particular solution :math:`\boldsymbol B`
      - ``B_collect[m, layer, stream]``
      - ``B_collect[alpha, m, layer, stream]`` of Stokes vectors
    * - Polynomial particular solution
-     - Evaluated through scalar scratch arrays ``SRC0``, ``SRC1``, and
-       ``SRCB``
+     - Coefficients are cached in
+       ``source_collect[layer, stream, power]``; ``SRC0``, ``SRC1``, and
+       ``SRCB`` retain boundary values used by the ordinary fast assembly
      - Coefficients are Stokes vectors in
        ``source_collect[alpha, m, layer, stream, power]``
    * - Layer-bottom total field
@@ -976,12 +1022,14 @@ Numerical behavior and limitations
 The following details are intentional and should be considered when changing
 or comparing the cores:
 
-* **Conservative scattering.**  Exact :math:`\omega=1` gives a zero eigenvalue
-  in the scalar zeroth-mode reduction.  Scalar DISORT internally replaces it
-  by :math:`1-10^{-8}`, the smallest tested dither which retains the original
-  DISORT reference results with this eigensolver.  VDISORT accepts
-  :math:`\omega=1` directly, but conservative vector eigensystems can be poorly
-  conditioned.
+* **Conservative scattering.**  Exact :math:`\omega=1` gives a defective zero
+  pair in the scalar zeroth-mode reduction.  CPP-DISORT keeps the input albedo
+  unchanged and represents this pair by the constant/linear centered basis
+  above.  The same basis is selected through the near-conservative interval
+  :math:`[1-10^{-8},1]`; ordinary modes retain the fast anchored-exponential
+  path.  VDISORT accepts :math:`\omega=1`, but its full complex eigensystem
+  does not yet have the analogous explicit Jordan-pair treatment and can be
+  poorly conditioned.
 * **Complex VDISORT modes.**  A real physical solution can use complex
   eigenpairs.  The reconstructed imaginary part is required to cancel to a
   relative tolerance of about :math:`2\,10^{-8}` before the real part is

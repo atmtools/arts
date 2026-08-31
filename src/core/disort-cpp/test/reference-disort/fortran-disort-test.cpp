@@ -822,7 +822,7 @@ void test_problem_17() {
 
     expect_reference(std::format("{} scaled depth", test.name),
                      dis.scaled_tau().back(),
-                     test.depth * (1.0 - (1.0 - 1e-8) * scaling.fraction[0]),
+                     test.depth * (1.0 - scaling.fraction[0]),
                      2e-13);
 
     disort::user_u_data user;

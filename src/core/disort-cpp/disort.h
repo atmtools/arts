@@ -170,26 +170,31 @@ class main_data {
   Numeric           phi0{};
 
   //! Derived values
-  Vector  scale_tau{};                   // [NLayers]
-  Vector  scaled_omega_arr{};            // [NLayers]
-  Vector  scaled_tau_arr_with_0{};       // [NLayers + 1]
-  Matrix  scaled_source_poly_coeffs{};   // [NLayers, Nscoeffs], emission polynomial in scaled tau
-  Vector  mu_arr{};                      // [NQuad]
-  Vector  inv_mu_arr{};                  // [NQuad]
-  Vector  W{};                           // [N]
-  Matrix  Leg_coeffs_residue_avg{};      // [NLayers + 1, NLeg_all]
-  Vector  IMS_scalar{};                  // [NLayers + 1]
-  Matrix  weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
-  Matrix  weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
-  Tensor4 GC_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
-  Tensor4 G_collect{};                   // [NFourier, NLayers, NQuad, NQuad]
-  Tensor3 K_collect{};                   // [NFourier, NLayers, NQuad]
-  Tensor3 expK_collect{};                // [NFourier, NLayers, NQuad]
-  Tensor3 exponent{};                    // [NLayers, NFourier, NQuad]
-  Tensor3 um{};                          // [NLayers, NFourier, NQuad]
-  Tensor3 B_collect{};                   // [NFourier, NLayers, NQuad]
-  Numeric I0_orig{};
-  Vector  scaled_mu0{};  // [NLayers + 1]
+  Vector             scale_tau{};                   // [NLayers]
+  Vector             scaled_omega_arr{};            // [NLayers]
+  Vector             scaled_tau_arr_with_0{};       // [NLayers + 1]
+  Matrix             scaled_source_poly_coeffs{};   // [NLayers, Nscoeffs], emission polynomial in scaled tau
+  Vector             mu_arr{};                      // [NQuad]
+  Vector             inv_mu_arr{};                  // [NQuad]
+  Vector             W{};                           // [N]
+  Matrix             Leg_coeffs_residue_avg{};      // [NLayers + 1, NLeg_all]
+  Vector             IMS_scalar{};                  // [NLayers + 1]
+  Matrix             weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
+  Matrix             weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
+  Tensor4            GC_collect{};               // [NFourier, NLayers, NQuad, NQuad], cached basis-column contributions
+  Tensor3            C_collect{};                // [NFourier, NLayers, NQuad], homogeneous-basis coefficients
+  Tensor4            G_collect{};                // [NFourier, NLayers, NQuad, NQuad]
+  Tensor3            K_collect{};                // [NFourier, NLayers, NQuad]
+  Tensor3            expK_collect{};             // [NFourier, NLayers, NQuad]
+  Tensor3            exponent{};                 // [NLayers, NFourier, NQuad]
+  Tensor3            um{};                       // [NLayers, NFourier, NQuad]
+  Tensor3            B_collect{};                // [NFourier, NLayers, NQuad]
+  Tensor3            source_collect{};           // [NLayers, NQuad, Nscoeffs], polynomial particular solution
+  Tensor3            transport_matrix{};         // [NLayers, NQuad, NQuad], zeroth-mode first-order operator
+  std::vector<Index> conservative_pair_index{};  // [NLayers], first column of a stable near-zero pair, or -1
+  Vector             conservative_pair_kappa{};  // [NLayers]
+  Numeric            I0_orig{};
+  Vector             scaled_mu0{};  // [NLayers + 1]
 
   //! Internal compute data
   Index  n{};                           // NQuad * NLayers;
@@ -235,6 +240,11 @@ class main_data {
   void prepare_TMS(tms_data& data, Numeric phi, const ConstVectorView& mu) const;
   void check_classical_delta_m_correction() const;
   void evaluate_TMS(tms_data& data, Numeric tau, const ConstVectorView& mu) const;
+
+  [[nodiscard]] Numeric homogeneous(Index m, Index layer, Index state, Index eigen, Numeric tau) const;
+  void                  homogeneous_field(VectorView out, Index m, Index layer, Numeric tau) const;
+  [[nodiscard]] Numeric source_particular(Index layer, Index state, Numeric tau) const;
+  [[nodiscard]] Numeric particular(Index m, Index layer, Index state, Numeric tau) const;
 
  public:
   friend struct std::formatter<main_data>;
