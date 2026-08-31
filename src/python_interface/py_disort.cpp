@@ -204,6 +204,19 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "number_of_modes"_a,
                  "azimuth_quadrature_points"_a = 100,
                  "Construct VDISORT-ready combined Fourier modes for a polarized Cox-Munk ocean");
+  vdisort_nm.def(
+      "fresnel_reflection",
+      [](const Numeric incident_mu, const Numeric refractive_index) {
+        return vdisort::brdf::Fresnel{refractive_index}(incident_mu);
+      },
+      "incident_mu"_a,
+      "refractive_index"_a = 1.5,
+      "Evaluate the polarized Fresnel reflection matrix of a flat dielectric interface");
+  vdisort_nm.def("fresnel_fourier_modes",
+                 &vdisort::brdf::fresnel_fourier_modes,
+                 "refractive_index"_a,
+                 "number_of_modes"_a,
+                 "Construct quadrature-normalized VDISORT Fourier modes for an ideal Fresnel surface");
   // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");

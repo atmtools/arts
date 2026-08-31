@@ -2,10 +2,7 @@
 
 """Self-contained VDISORT tests derived from Lin et al. (2022), 880768.
 
-The source is ``tmp/frsen-03-880768.pdf``.  The tests exercise the layered
-single-scattering recurrences (Eqs. 136--141), the Lambertian BPrDF
-(Eq. 146), the decoupled real 3x3 eigenproblem discussed in section 4, and
-the Rayleigh multiple-scattering symmetries illustrated in section 6.
+The source is ``doi: 10.3389/frsen.2022.880768``
 """
 
 import os
@@ -26,6 +23,19 @@ def _double_gauss_mu(nquad):
 
 def _empty_phase(nfourier, nlayers, nquad):
     return np.zeros((2, nfourier, nlayers, nquad, nquad, 4, 4))
+
+
+def _missing_figure(figure, reason, **missing_data):
+    """Report an intentionally empty paper-figure comparison.
+
+    Zero-length arrays mark data that must be replaced by published or
+    author-supplied values.  They must never be interpreted as physical zero.
+    """
+    names = ", ".join(missing_data)
+    if any(np.asarray(value).size for value in missing_data.values()):
+        raise ValueError(f"Figure {figure} placeholder data must remain empty")
+    print(f"Figure {figure} comparison is not implemented: {reason}")
+    print(f"Required data: {names}")
 
 
 def test_layered_single_scattering_recurrence():
@@ -522,9 +532,147 @@ def test_multiple_scattering_rayleigh_principal_plane():
         plt.show()
 
 
+def test_figure_2_missing_garcia_siewert_data():
+    """Placeholder for Figure 2's Garcia-Siewert benchmark comparison."""
+    _missing_figure(
+        2,
+        "the article identifies the benchmark but does not tabulate its inputs or curves",
+        polarized_phase_expansion=np.zeros((0, 4, 4)),
+        benchmark_angles=np.zeros(0),
+        benchmark_stokes=np.zeros((0, 4)),
+    )
+
+
+def test_figure_4_missing_cirrus_benchmark_data():
+    """Placeholder for the Figure 4 cirrus/VLBLE comparison."""
+    _missing_figure(
+        4,
+        "the b2=0 invariant is tested separately, but the cirrus expansion and VLBLE curve are external",
+        cirrus_phase_expansion=np.zeros((0, 4, 4)),
+        vlble_angles=np.zeros(0),
+        vlble_stokes=np.zeros((0, 4)),
+    )
+
+
+def test_figure_5_missing_ice_cloud_phase_data():
+    """Placeholder for Figure 5's ice-cloud phase-matrix elements."""
+    _missing_figure(
+        5,
+        "the required Kokhanovsky et al. ice-cloud phase matrix is not supplied by the article",
+        ice_cloud_scattering_angles=np.zeros(0),
+        ice_cloud_mueller_matrices=np.zeros((0, 4, 4)),
+    )
+
+
+def _missing_polarized_aerosol_figure(figure):
+    _missing_figure(
+        figure,
+        "bulk aerosol properties are stated, but neither the Mie expansion nor the plotted reference values are supplied",
+        aerosol_phase_expansion=np.zeros((0, 4, 4)),
+        reference_angles=np.zeros(0),
+        reference_stokes=np.zeros((0, 4)),
+    )
+
+
+def test_figure_6_missing_polarized_aerosol_data():
+    """Placeholder for the Figure 6 aerosol comparison."""
+    _missing_polarized_aerosol_figure(6)
+
+
+def test_figure_7_missing_polarized_aerosol_data():
+    """Placeholder for the Figure 7 aerosol comparison."""
+    _missing_polarized_aerosol_figure(7)
+
+
+def test_figure_8_missing_polarized_aerosol_data():
+    """Placeholder for the Figure 8 aerosol comparison."""
+    _missing_polarized_aerosol_figure(8)
+
+
+def _missing_polarized_cloud_figure(figure):
+    _missing_figure(
+        figure,
+        "bulk cloud properties are stated, but neither the Mie expansion nor the plotted reference values are supplied",
+        cloud_phase_expansion=np.zeros((0, 4, 4)),
+        reference_angles=np.zeros(0),
+        reference_stokes=np.zeros((0, 4)),
+    )
+
+
+def test_figure_9_missing_polarized_cloud_data():
+    """Placeholder for the Figure 9 cloud comparison."""
+    _missing_polarized_cloud_figure(9)
+
+
+def test_figure_10_missing_polarized_cloud_data():
+    """Placeholder for the Figure 10 cloud comparison."""
+    _missing_polarized_cloud_figure(10)
+
+
+def test_figure_11_missing_coupled_atmosphere_surface_reference():
+    """Placeholder for Figure 11's atmosphere-over-ocean comparison."""
+    _missing_figure(
+        11,
+        "the geometry is stated and the ocean is tested in Figure 3, but the molecular depolarization convention and reference curves are unavailable",
+        molecular_phase_expansion=np.zeros((0, 4, 4)),
+        reference_angles=np.zeros(0),
+        reference_stokes=np.zeros((0, 4)),
+    )
+
+
+def _missing_ssc_aerosol_figure(figure):
+    _missing_figure(
+        figure,
+        "the aerosol expansion, paper-specific single-scattering-correction inputs, and benchmark curves are unavailable",
+        aerosol_phase_expansion=np.zeros((0, 4, 4)),
+        untruncated_phase_matrix=np.zeros((0, 4, 4)),
+        ssc_reference_angles=np.zeros(0),
+        ssc_reference_stokes=np.zeros((0, 4)),
+    )
+
+
+def test_figure_12_missing_ssc_aerosol_data():
+    """Placeholder for the Figure 12 SSC comparison."""
+    _missing_ssc_aerosol_figure(12)
+
+
+def test_figure_13_missing_ssc_aerosol_data():
+    """Placeholder for the Figure 13 SSC comparison."""
+    _missing_ssc_aerosol_figure(13)
+
+
+def test_figure_14_missing_ssc_aerosol_data():
+    """Placeholder for the Figure 14 SSC comparison."""
+    _missing_ssc_aerosol_figure(14)
+
+
+def test_figure_15_missing_l13_phase_data():
+    """Placeholder for Figure 15's L=13 benchmark comparison."""
+    _missing_figure(
+        15,
+        "the scalar inputs are stated, but the external L=13 phase matrix and Schulz et al. reference arrays are unavailable",
+        l13_phase_expansion=np.zeros((0, 4, 4)),
+        schulz_angles=np.zeros(0),
+        schulz_stokes=np.zeros((0, 4)),
+    )
+
+
 if __name__ == "__main__":
     test_layered_single_scattering_recurrence()
     test_polarized_lambertian_depolarizes()
     test_b2_zero_decouples_circular_polarization()
     test_figure_3_cox_munk_reflection()
     test_multiple_scattering_rayleigh_principal_plane()
+    test_figure_2_missing_garcia_siewert_data()
+    test_figure_4_missing_cirrus_benchmark_data()
+    test_figure_5_missing_ice_cloud_phase_data()
+    test_figure_6_missing_polarized_aerosol_data()
+    test_figure_7_missing_polarized_aerosol_data()
+    test_figure_8_missing_polarized_aerosol_data()
+    test_figure_9_missing_polarized_cloud_data()
+    test_figure_10_missing_polarized_cloud_data()
+    test_figure_11_missing_coupled_atmosphere_surface_reference()
+    test_figure_12_missing_ssc_aerosol_data()
+    test_figure_13_missing_ssc_aerosol_data()
+    test_figure_14_missing_ssc_aerosol_data()
+    test_figure_15_missing_l13_phase_data()

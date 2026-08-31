@@ -20,6 +20,18 @@ struct CoxMunk {
   [[nodiscard]] rtepack::muelmat operator()(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth) const;
 };
 
+/** Ideal polarized Fresnel reflection from a flat dielectric interface.
+ *
+ * Unlike Cox-Munk, this is a specular delta distribution.  Its Fourier-mode
+ * factory therefore constructs the quadrature-normalized discrete boundary
+ * operator directly rather than passing through fourier_modes().
+ */
+struct Fresnel {
+  Numeric refractive_index{1.5};
+
+  [[nodiscard]] rtepack::muelmat operator()(Numeric incident_mu) const;
+};
+
 /** Project an azimuth-resolved polarized BPrDF into VDISORT combined modes. */
 [[nodiscard]] std::vector<BDRF> fourier_modes(RawFunction raw,
                                               Index       number_of_modes,
@@ -31,5 +43,13 @@ struct CoxMunk {
                                                        bool    shadowing,
                                                        Index   number_of_modes,
                                                        Index   azimuth_quadrature_points = 100);
+
+/** Construct VDISORT modes for an ideal flat Fresnel surface.
+ *
+ * The callbacks recognize matching incoming and outgoing discrete ordinates.
+ * Consequently this representation is intended for the native quadrature
+ * solution, not direct-beam reflection at arbitrary user directions.
+ */
+[[nodiscard]] std::vector<BDRF> fresnel_fourier_modes(Numeric refractive_index, Index number_of_modes);
 
 }  // namespace vdisort::brdf

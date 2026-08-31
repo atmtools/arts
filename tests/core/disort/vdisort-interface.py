@@ -193,23 +193,8 @@ def test_fresnel_brewster_angle():
 
     # VDISORT uses a Gauss-Legendre rule mapped from [-1, 1] to [0, 1]
     # independently in each hemisphere.
-    nodes, weights = np.polynomial.legendre.leggauss(npositive)
+    nodes, _ = np.polynomial.legendre.leggauss(npositive)
     mu = 0.5 * (nodes + 1.0)
-    weights = 0.5 * weights
-
-    def specular_fresnel(mu_out, mu_in):
-        """Mode-zero discrete specular BRDF, including quadrature normalization."""
-        out = np.zeros((4 * len(mu_out), 4 * len(mu_in)))
-        for i, outgoing in enumerate(mu_out):
-            for j, incoming in enumerate(mu_in):
-                if not np.isclose(outgoing, incoming, rtol=0.0, atol=1.0e-13):
-                    continue
-                rv, rh = _fresnel_amplitudes(incoming, refractive_index)
-                reflection = np.asarray(arts.rtepack.fresnel_reflectance(rv, rh))
-                out[4 * i : 4 * (i + 1), 4 * j : 4 * (j + 1)] = reflection / (
-                    np.pi * weights[j] * incoming
-                )
-        return out
 
     phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
     boundary_down = np.zeros((2, 1, npositive, 4))
@@ -227,7 +212,9 @@ def test_fresnel_brewster_angle():
         beam_stokes=np.zeros(4),
         phi0=0.0,
         b_neg=boundary_down,
-        BDRF_Fourier_modes=[arts.VDisortBDRF(specular_fresnel)],
+        BDRF_Fourier_modes=arts.vdisort.fresnel_fourier_modes(
+            refractive_index, 1
+        ),
     )
 
     stokes = np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]

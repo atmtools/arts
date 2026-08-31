@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <complex>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 
@@ -92,6 +94,16 @@ rtepack::muelmat CoxMunk::operator()(const Numeric outgoing_mu,
   Numeric factor = probability / (4.0 * mu_i * mu_r * normal_mu_sq * normal_mu_sq);
   if (shadowing) factor /= 1.0 + shadow_eta(mu_i, slope_variance) + shadow_eta(mu_r, slope_variance);
   return factor * rtepack::fresnel_reflectance_nonspecular(rv, rh, incident, outgoing, normal);
+}
+
+rtepack::muelmat Fresnel::operator()(const Numeric incident_mu) const {
+  const Numeric mu = checked_mu(incident_mu);
+  if (refractive_index <= 0.0) throw std::domain_error("The Fresnel refractive index must be positive");
+  const Numeric transmitted_sine = std::sqrt(std::max(0.0, 1.0 - mu * mu)) / refractive_index;
+  const Complex transmitted_mu   = std::sqrt(Complex{1.0 - transmitted_sine * transmitted_sine, 0.0});
+  const Complex rv               = (refractive_index * mu - transmitted_mu) / (refractive_index * mu + transmitted_mu);
+  const Complex rh               = (mu - refractive_index * transmitted_mu) / (mu + refractive_index * transmitted_mu);
+  return rtepack::fresnel_reflectance(rv, rh);
 }
 
 std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, const Index azimuth_quadrature_points) {
@@ -187,6 +199,50 @@ std::vector<BDRF> cox_munk_fourier_modes(const Numeric wind_speed,
                                          const Index   number_of_modes,
                                          const Index   azimuth_quadrature_points) {
   return fourier_modes(CoxMunk{wind_speed, refractive_index, shadowing}, number_of_modes, azimuth_quadrature_points);
+}
+
+std::vector<BDRF> fresnel_fourier_modes(const Numeric refractive_index, const Index number_of_modes) {
+  if (number_of_modes < 0) throw std::invalid_argument("The number of Fresnel Fourier modes cannot be negative");
+  const Fresnel fresnel{refractive_index};
+  // Validate eagerly, including when zero modes are requested.
+  static_cast<void>(fresnel(1.0));
+
+  std::vector<BDRF> result;
+  result.reserve(static_cast<std::size_t>(number_of_modes));
+  for (Index mode = 0; mode < number_of_modes; ++mode) {
+    const auto evaluate = [fresnel, mode](const Index                  alpha,
+                                          rtepack::muelmat_matrix_view output,
+                                          const ConstVectorView&       outgoing,
+                                          const ConstVectorView&       incoming) {
+      output = rtepack::muelmat{0.0};
+      if (alpha == sine_mode) return;
+
+      Vector nodes(incoming.size()), weights(incoming.size());
+      Legendre::PositiveDoubleGaussLegendre(nodes, weights);
+      const Numeric azimuth_factor = mode == 0 ? 1.0 : 2.0;
+      for (Index i = 0; i < static_cast<Index>(outgoing.size()); ++i)
+        for (Index j = 0; j < static_cast<Index>(incoming.size()); ++j) {
+          const Numeric mu_in = std::abs(incoming[j]);
+          if (std::abs(outgoing[i] - mu_in) > 64.0 * std::numeric_limits<Numeric>::epsilon()) continue;
+          output[i, j] = azimuth_factor / (Constant::pi * weights[j] * mu_in) * fresnel(mu_in);
+        }
+    };
+    const auto unsupported_beam = [](rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&) {
+      throw std::runtime_error(
+          "Ideal Fresnel reflection is a directional delta distribution and cannot reflect a direct beam into the "
+          "native VDISORT quadrature; use a finite-width surface model such as Cox-Munk");
+    };
+    result.push_back(BDRF{
+        .cosine = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view out,
+                                          const ConstVectorView&       mu_out,
+                                          const ConstVectorView& mu_in) { evaluate(cosine_mode, out, mu_out, mu_in); }},
+        .sine   = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view out,
+                                          const ConstVectorView&       mu_out,
+                                          const ConstVectorView& mu_in) { evaluate(sine_mode, out, mu_out, mu_in); }},
+        .beam_cosine = BDRF::func_t{unsupported_beam},
+        .beam_sine   = BDRF::func_t{unsupported_beam}});
+  }
+  return result;
 }
 
 }  // namespace vdisort::brdf
