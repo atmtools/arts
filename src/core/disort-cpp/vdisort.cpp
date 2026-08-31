@@ -16,8 +16,10 @@
 namespace dc = disort_common;
 
 namespace {
+/** Return whether a beam Stokes vector carries positive incident intensity. */
 [[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
 
+/** Compute integral moments of a finite exponential segment by series or recurrence. */
 void exponential_moments(Vector& moments, const Numeric z) {
   const Index count = static_cast<Index>(moments.size());
   if (count == 0) return;
@@ -47,6 +49,7 @@ void exponential_moments(Vector& moments, const Numeric z) {
     moments[degree] = (exponential - static_cast<Numeric>(degree) * moments[degree - 1]) / z;
 }
 
+/** Integrate a Stokes-valued source polynomial along one finite user ray. */
 rtepack::stokvec user_angle_polynomial_integral(const rtepack::stokvec_vector& coefficients,
                                                 const Numeric                  source_scale,
                                                 const Numeric                  source_offset,
@@ -80,6 +83,7 @@ rtepack::stokvec user_angle_polynomial_integral(const rtepack::stokvec_vector& c
   return result;
 }
 
+/** Form combined cosine/sine Mueller blocks from ordinary Fourier coefficients. */
 void fill_combined(rtepack::muelmat&       out_cos,
                    rtepack::muelmat&       out_sin,
                    const rtepack::muelmat& ordinary_cos,
@@ -495,9 +499,7 @@ Complex main_data::homogeneous(const Index   alpha,
 Numeric main_data::particular(
     const Index alpha, const Index m, const Index layer, const Index state, const Numeric tau) const {
   Numeric value = 0.0;
-  // VDISORT CHANGE: permit a layer-local affine source coordinate.  The
-  // scalar-limit adapter uses this to retain DISORT's original-tau source
-  // convention while its delta-M transport operator runs on scaled tau.
+  // Each layer source polynomial uses x = offset + scale * tau.
   const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau, source_coordinate_offset[layer]);
   const Index   stream     = state / stokes_dimension;
   const Index   stokes     = state % stokes_dimension;
@@ -567,8 +569,7 @@ Index main_data::tau_index(const Numeric tau) const { return dc::layer_index(tau
 void main_data::diagonalize() {
   ARTS_TIME_REPORT
 
-  // VDISORT CHANGE BEGIN: solve the real, generally non-symmetric 8N x 8N
-  // eigenproblem with complex arithmetic (paper Eqs. 85-90).
+  // The real, generally nonsymmetric 8N x 8N operator may have complex eigenpairs.
   Matrix                       A_real(NState, NState);
   ComplexMatrix                A(NState, NState);
   ComplexMatrix                eigenvectors(NState, NState);
@@ -625,12 +626,8 @@ void main_data::diagonalize() {
           const Complex lambda_positive = K_collect[alpha, m, l, positive];
           const Numeric measured_kappa  = std::sqrt(std::abs(-lambda_negative * lambda_positive));
 
-          // A physical conservative phase operator leaves an isotropic,
-          // unpolarized field unchanged and conserves integrated outgoing I
-          // for every incident Stokes component.  Check both the right and
-          // left invariants independently of omega before replacing the two
-          // coalescing eigenvectors.  This keeps an omega=1 phase operator
-          // with only a simple zero mode on the ordinary path.
+          // A conservative phase operator has both isotropic right invariance
+          // and integrated-Stokes-I left invariance.
           Numeric conservation_residual = 0.0;
           Numeric conservation_scale    = 1.0;
           for (Index i = 0; i < NQuad; ++i) {
@@ -676,12 +673,8 @@ void main_data::diagonalize() {
             };
 
             if (omega_arr[l] != 1.0) {
-              // ZGEEV does not exploit that the transport matrix is real.  In
-              // the last few ulps before conservation it can perturb the two
-              // true real roots into a slightly complex +/- pair.  Use its
-              // result when it is well resolved; otherwise recompute only
-              // this pair with real DGEEV.  Ordinary layers and well-resolved
-              // near-conservative layers pay no second eigensolve.
+              // Near conservation, complex eigensolution roundoff can perturb
+              // two real roots into a slightly complex conjugate pair.
               bool use_real_pair = measured_kappa <= std::numeric_limits<Numeric>::epsilon() * conservation_scale or
                                    std::max(std::abs(lambda_negative.imag()), std::abs(lambda_positive.imag())) >
                                        1.0e-8 * measured_kappa;
@@ -775,12 +768,8 @@ void main_data::diagonalize() {
                                  l,
                                  pair_residual / pair_scale);
             } else {
-              // At exact conservation A has a size-two Jordan block.  Supply
-              // its null vector X explicitly and solve A R = X with the
-              // angular-mean gauge <R_I>=0.  Replacing a row whose
-              // conservation left-nullvector is largest makes the remaining
-              // square system nonsingular without changing the transport
-              // equations.
+              // Exact conservation has a size-two Jordan block with A X = 0,
+              // A R = X, and the gauge <R_I> = 0.
               Matrix pair_work{A_real};
               Vector pair_r(NState, 0.0);
               for (Index stream = 0; stream < NQuad; ++stream) pair_r[state_index(stream, 0)] = 1.0;
@@ -845,7 +834,6 @@ void main_data::diagonalize() {
       }
     }
   }
-  // VDISORT CHANGE END
 }
 
 void main_data::set_scales() {
@@ -862,18 +850,15 @@ void main_data::source_function() {
   source_collect = 0.0;
   if (not has_source_poly) return;
 
-  // VDISORT CHANGE BEGIN: polynomial source-function coefficients are
-  // four-vectors B.  The transfer-equation emission is (1 - omega) B, as in
-  // scalar DISORT.  The m=0 combined systems split [I,Q] and [U,V] as in
-  // paper Eq. (82).
+  // Transfer-equation emission is (1 - omega) B; the m=0 systems split
+  // [I,Q] and [U,V] according to paper Eq. (82).
   for (Index alpha = 0; alpha < 2; ++alpha) {
     const Index m = 0;
     for (Index l = 0; l < NLayers; ++l) {
       bool zero_emission = true;
       for (Index p = 0; p < Nscoeffs; ++p) zero_emission &= scaled_source_poly_coeffs[l, p].is_zero();
-      // Exact conservative scattering has no absorption emission.  Its
-      // transport matrix is singular, so select the zero particular solution
-      // explicitly and let the finite homogeneous Jordan pair carry the field.
+      // Exact conservative scattering has zero absorption emission and a
+      // singular transport matrix.
       if (zero_emission) continue;
 
       Matrix A(NState, NState, 0.0);
@@ -911,14 +896,10 @@ void main_data::source_function() {
       }
     }
   }
-  // VDISORT CHANGE END
 }
 
 void main_data::transmission() {
-  // VDISORT CHANGE BEGIN: complex modes are anchored at the nearest layer
-  // boundary and evaluated directly by homogeneous().  This is the stable
-  // complex counterpart of DISORT's real expK_collect table.
-  // VDISORT CHANGE END
+  // Complex modes are anchored at their nearest layer boundary.
 }
 
 void main_data::solve_for_coefs() {
@@ -936,7 +917,7 @@ void main_data::solve_for_coefs() {
       lhs.zero();
       rhs = 0.0;
 
-      // VDISORT CHANGE BEGIN: reflection is a matrix coupling Stokes components.
+      // Reflection couples all Stokes components.
       reflection        = 0.0;
       direct_reflection = 0.0;
       if (m < NBDRF) {
@@ -961,8 +942,6 @@ void main_data::solve_for_coefs() {
           }
         }
       }
-      // VDISORT CHANGE END
-
       // Top boundary: prescribed downward diffuse Stokes field.
       for (Index i = 0; i < N; ++i) {
         for (Index s = 0; s < stokes_dimension; ++s) {
@@ -1026,8 +1005,7 @@ void main_data::solve_for_coefs() {
 }
 
 void main_data::rad_field() {
-  // VDISORT CHANGE BEGIN: retain both combined modes at every layer bottom.
-  // The physical [I,Q,U,V] field is reconstructed by u() using paper Eq. (78).
+  // Both combined modes are retained; paper Eq. (78) reconstructs [I,Q,U,V].
   Matrix field(2 * NFourier, NState);
   for (Index l = 0; l < NLayers; ++l) {
     combined_field(field, tau_arr[l]);
@@ -1037,7 +1015,6 @@ void main_data::rad_field() {
           for (Index s = 0; s < stokes_dimension; ++s)
             um[l, alpha, m, i][s] = field[alpha * NFourier + m, state_index(i, s)];
   }
-  // VDISORT CHANGE END
 }
 
 void main_data::update_all() {
@@ -1062,10 +1039,8 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
                      2 * NFourier,
                      NState);
 
-  // Keep the eigenmode index as the innermost summation so G_collect is read
-  // contiguously.  The amplitude scratch is reused for every combined mode;
-  // the centered pair only changes the two amplitudes multiplying its stored
-  // X and R columns.
+  // G_collect is contiguous in the innermost eigenmode index; centered pairs
+  // occupy stored X and R columns.
   ComplexVector modal_amplitude(NState);
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
@@ -1092,9 +1067,8 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
         for (Index eigen = 0; eigen < NState; ++eigen)
           value += G_collect[alpha, m, layer, state, eigen] * modal_amplitude[eigen];
         const Numeric scale = 1.0 + std::abs(value.real());
-        // VDISORT CHANGE: highly conservative scalar-limit cases can be very
-        // ill-conditioned; conjugate eigenpairs may leave roundoff at a few
-        // parts in 1e9 while the reconstructed physical field remains real.
+        // Conservative scalar-limit eigenpairs may leave small imaginary
+        // roundoff although the reconstructed physical field is real.
         ARTS_USER_ERROR_IF(std::abs(value.imag()) > 2e-8 * scale,
                            "VDISORT left an uncancelled imaginary radiance {} at alpha={}, m={}, state={}, tau={}",
                            value,
@@ -1123,7 +1097,7 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
       for (Index stokes = 0; stokes < 2; ++stokes)
         data.intensities[i][stokes] +=
             combined[m, state_index(i, stokes)] * c + combined[NFourier + m, state_index(i, stokes)] * s;
-      // VDISORT CHANGE: U and V swap combined cosine/sine roles, paper Eq. (78).
+      // U and V swap combined cosine/sine roles in paper Eq. (78).
       for (Index stokes = 2; stokes < 4; ++stokes)
         data.intensities[i][stokes] +=
             combined[NFourier + m, state_index(i, stokes)] * c + combined[m, state_index(i, stokes)] * s;
@@ -1477,7 +1451,7 @@ void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
         for (Index i = 0; i < NQuad; ++i) {
           for (Index stokes = 0; stokes < 2; ++stokes)
             out[l, p, i, stokes] += um[l, cosine_mode, m, i][stokes] * c + um[l, sine_mode, m, i][stokes] * s;
-          // VDISORT paper Eq. (78): U and V swap combined cosine/sine roles.
+          // U and V swap combined cosine/sine roles in paper Eq. (78).
           for (Index stokes = 2; stokes < stokes_dimension; ++stokes)
             out[l, p, i, stokes] += um[l, sine_mode, m, i][stokes] * c + um[l, cosine_mode, m, i][stokes] * s;
         }

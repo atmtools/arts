@@ -120,7 +120,7 @@ def test_fresnel_brewster_angle():
                     continue
                 rv, rh = _fresnel_amplitudes(incoming, refractive_index)
                 reflection = np.asarray(arts.rtepack.fresnel_reflectance(rv, rh))
-                out[4 * i : 4 * (i + 1), 4 * j : 4 * (j + 1)] = reflection / (
+                out[4 * i: 4 * (i + 1), 4 * j: 4 * (j + 1)] = reflection / (
                     np.pi * weights[j] * incoming
                 )
         return out

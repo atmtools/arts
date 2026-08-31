@@ -19,10 +19,13 @@ struct radiances {
   ZenGrid        zen_grid;   // nza
   Tensor4        data;       // nf, nl - 1, naa, nza
 
+  /** Replace all grids and resize the radiance tensor to their Cartesian product. */
   void resize(AscendingGrid freq_grid, DescendingGrid alt_grid, AziGrid azi_grid, ZenGrid zen_grid);
 
+  /** Merge radiances defined on adjacent or overlapping compatible grids. */
   [[nodiscard]] radiances combine(const radiances& other) const;
 
+  /** Reorder the zenith dimension to match the supplied solver-stream ordering. */
   void sort(const Vector& solver_mu);
 };
 
@@ -33,8 +36,10 @@ struct fluxes {
   Matrix         down_diffuse;  // nf, nl - 1
   Matrix         down_direct;   // nf, nl - 1
 
+  /** Replace both grids and resize all three flux matrices. */
   void resize(AscendingGrid freq_grid, DescendingGrid alt_grid);
 
+  /** Merge fluxes defined on adjacent or overlapping compatible grids. */
   [[nodiscard]] fluxes combine(const fluxes& other) const;
 };
 
@@ -42,8 +47,10 @@ struct BDRF {
   using func_t = CustomOperator<void, MatrixView, const ConstVectorView&, const ConstVectorView&>;
   func_t f;
 
+  /** Evaluate the BRDF Fourier mode for outgoing cosines a and incoming cosines b. */
   void operator()(MatrixView x, const ConstVectorView& a, const ConstVectorView& b) const;
 
+  /** Evaluate and return the BRDF Fourier-mode matrix. */
   Matrix operator()(const Vector& a, const Vector& b) const;
 };
 
@@ -65,13 +72,19 @@ struct mathscr_v_data {
   Vector         k1, k2;
   Vector         cvec;
 
+  /** Allocate ordinary-source scratch arrays for Nk streams and Nc coefficients. */
   mathscr_v_data(const Index Nk = 0, const Index Nc = 0)
       : src(Nk, Nc), G(Nk, Nk), solve_work(Nk), k1(Nk), k2(Nk), cvec(Nc) {}
-  mathscr_v_data(const mathscr_v_data&)            = default;
-  mathscr_v_data(mathscr_v_data&&)                 = default;
+  /** Copy ordinary-source scratch storage. */
+  mathscr_v_data(const mathscr_v_data&) = default;
+  /** Move ordinary-source scratch storage. */
+  mathscr_v_data(mathscr_v_data&&) = default;
+  /** Copy-assign ordinary-source scratch storage. */
   mathscr_v_data& operator=(const mathscr_v_data&) = default;
-  mathscr_v_data& operator=(mathscr_v_data&&)      = default;
+  /** Move-assign ordinary-source scratch storage. */
+  mathscr_v_data& operator=(mathscr_v_data&&) = default;
 
+  /** Resize every ordinary-source work array consistently. */
   void resize(const Index Nk, const Index Nc) {
     src.resize(Nk, Nc);
     G.resize(Nk, Nk);
@@ -232,24 +245,37 @@ class main_data {
   //! [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
   mathscr_v_data comp_data{};
 
+  /** Cache angle-dependent terms required to evaluate TMS at multiple depths. */
   void prepare_TMS(tms_data& data, Numeric phi, const ConstVectorView& mu) const;
+  /** Require classical delta-M peak moments before evaluating scalar IMS/TMS. */
   void check_classical_delta_m_correction() const;
+  /** Evaluate prepared TMS data at one optical depth. */
   void evaluate_TMS(tms_data& data, Numeric tau, const ConstVectorView& mu) const;
 
+  /** Evaluate one scalar homogeneous eigenmode component. */
   [[nodiscard]] Numeric homogeneous(Index m, Index layer, Index state, Index eigen, Numeric tau) const;
-  void                  homogeneous_field(VectorView out, Index m, Index layer, Numeric tau) const;
+  /** Assemble the complete homogeneous field for one Fourier mode and layer. */
+  void homogeneous_field(VectorView out, Index m, Index layer, Numeric tau) const;
+  /** Evaluate the polynomial-source particular solution for one stream. */
   [[nodiscard]] Numeric source_particular(Index layer, Index state, Numeric tau) const;
+  /** Evaluate the beam and polynomial particular solution for one stream. */
   [[nodiscard]] Numeric particular(Index m, Index layer, Index state, Numeric tau) const;
 
  public:
   friend struct std::formatter<main_data>;
 
-  main_data()                            = default;
-  main_data(const main_data&)            = default;
-  main_data(main_data&&)                 = default;
+  /** Construct an empty, uninitialized solver. */
+  main_data() = default;
+  /** Copy a solver and all cached solution data. */
+  main_data(const main_data&) = default;
+  /** Move a solver and all cached solution data. */
+  main_data(main_data&&) = default;
+  /** Copy-assign a solver and all cached solution data. */
   main_data& operator=(const main_data&) = default;
-  main_data& operator=(main_data&&)      = default;
+  /** Move-assign a solver and all cached solution data. */
+  main_data& operator=(main_data&&) = default;
 
+  /** Allocate solver input and work arrays without computing a solution. */
   main_data(const Index NLayers,
             const Index NQuad,
             const Index NLeg,
@@ -258,6 +284,7 @@ class main_data {
             const Index NLeg_all,
             const Index NBDRF);
 
+  /** Construct and solve a scalar discrete-ordinate problem from complete inputs. */
   main_data(const Index       NQuad,
             const Index       NLeg,
             const Index       NFourier,
@@ -274,14 +301,14 @@ class main_data {
             Numeric           phi0,
             Matrix            delta_m_peak = {});
 
-  /** Get the index of the tau value closest to the given tau
+  /** Return the layer containing a physical optical depth.
     *
     * Throws if tau is out-of-bounds
     *
     * Safe for parallel use
     *
     * @param tau The point-wise optical thickness
-    * @return Index of the tau value closest to the given tau
+    * @return Layer index, assigning an interface to the layer below it
     */
   [[nodiscard]] Index tau_index(const Numeric tau) const;
 
@@ -298,6 +325,7 @@ class main_data {
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
   /** TMS correction at arbitrary signed polar-angle cosines. */
   void TMS(tms_data& data, Numeric tau, Numeric phi, const ConstVectorView& mu) const;
+  /** Evaluate TMS at every layer bottom, azimuth, and quadrature direction. */
   void gridded_TMS(Tensor3View tms, const Vector& phi) const;
 
   /** Get the IMS correction factor
@@ -320,6 +348,7 @@ class main_data {
            Numeric                phi,
            const ConstVectorView& mu,
            ims_convention         convention = ims_convention::disort) const;
+  /** Evaluate IMS at every layer bottom, azimuth, and quadrature direction. */
   void gridded_IMS(Tensor3View ims, const Vector& phi, ims_convention convention = ims_convention::disort) const;
 
   /** Spectral radiance at a given tau and phi
@@ -377,6 +406,7 @@ class main_data {
               Numeric        tau,
               Numeric        phi,
               ims_convention convention = ims_convention::disort) const;
+  /** Evaluate IMS/TMS-corrected radiances at all layer bottoms and quadrature directions. */
   void gridded_u_corr(Tensor3View    u_data,
                       Tensor3View    tms,
                       Tensor3View    ims,
@@ -395,11 +425,16 @@ class main_data {
     */
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
+  /** Return the cached Fourier radiances at the bottom of one layer. */
   [[nodiscard]] ConstMatrixView layer_um(Size l) const;
-  void                          gridded_u(Tensor3View, const Vector& phi) const;
-  void                          gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
+  /** Evaluate radiances at every layer bottom for all quadrature streams and azimuths. */
+  void gridded_u(Tensor3View, const Vector& phi) const;
+  /** Evaluate upward, downward-diffuse, and downward-direct flux at every layer bottom. */
+  void gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
 
+  /** Evaluate quadrature-stream radiances on an arbitrary ascending optical-depth grid. */
   void ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vector& phi) const;
+  /** Evaluate flux components on an arbitrary ascending optical-depth grid. */
   void ungridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd, const AscendingGrid& tau) const;
 
   /** Compute the downward flux at a given tau
@@ -503,6 +538,7 @@ class main_data {
     */
   void transmission();
 
+  /** Cache the Fourier radiance field at every layer bottom. */
   void rad_field();
 
   /** Compute the source function
@@ -775,34 +811,46 @@ struct DisortSettings {
   // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.
   Tensor3 downward_boundary_condition{};
 
+  /** Construct empty DISORT settings. */
   DisortSettings() = default;
 
+  /** Replace grids and dimensions, then resize every frequency- and layer-dependent input. */
   void resize(Index          quadrature_dimension,
               Index          legendre_polynomial_dimension,
               Index          fourier_mode_dimension,
               AscendingGrid  freq_grid,
               DescendingGrid alt_grid_);
 
+  /** Return the number of configured frequencies. */
   [[nodiscard]] Index frequency_count() const { return freq_grid.size(); }
+  /** Return the number of atmospheric layers. */
   [[nodiscard]] Index layer_count() const { return alt_grid.size() - 1; }
 
+  /** Allocate a scalar solver with the dimensions represented by these settings. */
   [[nodiscard]] disort::main_data init() const;
-  disort::main_data&              set(disort::main_data&, Index iv) const;
+  /** Populate and solve an existing scalar solver for frequency index iv. */
+  disort::main_data& set(disort::main_data&, Index iv) const;
 #ifdef ENABLE_CDISORT
+  /** Populate an existing scalar solver using cdisort-compatible truncation conventions. */
   disort::main_data& set_cdisort(disort::main_data&, Index iv) const;
 #endif
+  /** Validate settings dimensions, grids, and physical input ranges. */
   void check() const;
 };
 
 template <> struct std::formatter<DisortBDRF> {
   format_tags tags;
 
+  /** Return the mutable nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  /** Return the read-only nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
+  /** Parse ARTS format tags for a BRDF callback. */
   constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
+  /** Format the opaque BRDF callback representation. */
   template <class FmtContext> FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
     return tags.format(ctx, "BDRF"sv);
   }
@@ -811,15 +859,19 @@ template <> struct std::formatter<DisortBDRF> {
 template <> struct std::formatter<disort::main_data> {
   format_tags tags;
 
+  /** Return the mutable nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  /** Return the read-only nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
+  /** Parse ARTS format tags for a scalar DISORT solver. */
   constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
+  /** Format solver dimensions or the complete scalar DISORT state. */
   template <class FmtContext> FmtContext::iterator format(const disort::main_data& v, FmtContext& ctx) const {
     const auto sep = tags.sep();
     return tags.format(ctx,
@@ -1006,13 +1058,17 @@ template <> struct std::formatter<disort::main_data> {
 template <> struct std::formatter<DisortSettings> {
   format_tags tags;
 
+  /** Return the mutable nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  /** Return the read-only nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
+  /** Parse ARTS format tags for DISORT settings. */
   constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
+  /** Format settings dimensions, validation diagnostics, or complete values. */
   template <class FmtContext> FmtContext::iterator format(const DisortSettings& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(
@@ -1152,19 +1208,23 @@ downward_boundary_condition:
 template <> struct xml_io_stream<DisortBDRF> {
   static constexpr std::string_view type_name = "DisortBDRF"sv;
 
+  /** Write the serializable representation of a DISORT BRDF callback. */
   static void write(std::ostream& os, const DisortBDRF& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
+  /** Read a DISORT BRDF callback representation. */
   static void read(std::istream& is, DisortBDRF& x, bifstream* pbifs = nullptr);
 };
 
 template <> struct xml_io_stream<DisortSettings> {
   static constexpr std::string_view type_name = "DisortSettings"sv;
 
+  /** Write DISORT settings to XML or the associated binary stream. */
   static void write(std::ostream&         os,
                     const DisortSettings& x,
                     bofstream*            pbofs = nullptr,
                     std::string_view      name  = ""sv);
 
+  /** Read DISORT settings from XML or the associated binary stream. */
   static void read(std::istream& is, DisortSettings& x, bifstream* pbifs = nullptr);
 };
 
@@ -1181,15 +1241,19 @@ template <> struct xml_io_stream_aggregate<DisortFlux> {
 template <> struct std::formatter<DisortFlux> {
   format_tags tags;
 
+  /** Return the mutable nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  /** Return the read-only nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
+  /** Parse ARTS format tags for flux output. */
   constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
+  /** Format flux dimensions or complete gridded flux values. */
   template <class FmtContext> FmtContext::iterator format(const DisortFlux& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(ctx,
@@ -1227,15 +1291,19 @@ template <> struct xml_io_stream_aggregate<DisortRadiance> {
 template <> struct std::formatter<DisortRadiance> {
   format_tags tags;
 
+  /** Return the mutable nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  /** Return the read-only nested formatter used by generic formatting helpers. */
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
+  /** Parse ARTS format tags for radiance output. */
   constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     std::format_parse_context::iterator v = parse_format_tags(tags, ctx);
     tags.newline                          = not tags.newline;
     return v;
   }
 
+  /** Format radiance dimensions or complete gridded radiance values. */
   template <class FmtContext> FmtContext::iterator format(const DisortRadiance& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(ctx,

@@ -16,10 +16,8 @@
 /**
  * Vector DISORT core.
  *
- * The class deliberately follows disort::main_data's naming and update model.
- * Every semantic difference from the scalar class is enclosed in a
- * `VDISORT CHANGE BEGIN/END` marker.  Ordinary bookkeeping which is identical
- * to DISORT is left unmarked.
+ * The class follows disort::main_data's naming and update model so equivalent
+ * scalar and polarized solver stages can be compared directly.
  *
  * Conventions follow Lin et al. (2022), doi:10.3389/frsen.2022.880768:
  *   - Stokes order is [I, Q, U, V].
@@ -54,7 +52,6 @@ struct phase_matrix_fourier_coefficients {
 [[nodiscard]] phase_matrix_fourier_coefficients phase_matrix_fourier_split(
     const rtepack::specmat_matrix_const_view& phase_matrix);
 
-// VDISORT CHANGE BEGIN: scalar radiances become one Stokes vector per stream.
 struct u_data {
   rtepack::stokvec_vector intensities;  // [NQuad]
 };
@@ -67,7 +64,6 @@ struct user_u_data {
 struct u0_data {
   rtepack::stokvec_vector u0;  // [NQuad]
 };
-// VDISORT CHANGE END
 
 struct flux_data {
   rtepack::stokvec_vector u0;  // scratch [NQuad]
@@ -108,7 +104,10 @@ class delta_m_correction_cache {
   Vector                   ims_mu0_;       // [boundary]
 
  public:
+  /** Construct an empty correction cache. */
   delta_m_correction_cache() = default;
+
+  /** Precompute polarized TMS and IMS operators on the requested user-angle grid. */
   delta_m_correction_cache(AscendingGrid                       physical_tau,
                            Vector                              omega,
                            Vector                              fraction,
@@ -127,13 +126,19 @@ class delta_m_correction_cache {
   /** Return the cached TMS+IMS Stokes correction at one cached azimuth. */
   [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric tau, Index phi_index) const;
 
+  /** Return the physical, unscaled layer-bottom optical depths. */
   [[nodiscard]] const AscendingGrid& physical_tau() const { return physical_tau_; }
+
+  /** Return the delta-M-scaled layer-bottom optical depths. */
   [[nodiscard]] const AscendingGrid& scaled_tau() const { return scaled_tau_; }
-  [[nodiscard]] const Vector&        user_mu() const { return user_mu_; }
-  [[nodiscard]] const Vector&        phi() const { return phi_; }
+
+  /** Return the signed user-direction cosines cached by the correction. */
+  [[nodiscard]] const Vector& user_mu() const { return user_mu_; }
+
+  /** Return the user azimuths cached by the correction. */
+  [[nodiscard]] const Vector& phi() const { return phi_; }
 };
 
-// VDISORT CHANGE BEGIN: a BRDF Fourier mode is a 4x4 block operator.
 /** Polarized BRDF Fourier mode in the combined representation.
  *
  * Each callback fills a Mueller-block matrix with shape [n_out, n_in].  Block
@@ -147,12 +152,12 @@ struct BDRF {
   func_t cosine;
   func_t sine;
 
+  /** Evaluate one combined cosine or sine BRDF Fourier operator. */
   void operator()(Index                        alpha,
                   rtepack::muelmat_matrix_view out,
                   const ConstVectorView&       mu_out,
                   const ConstVectorView&       mu_in) const;
 };
-// VDISORT CHANGE END
 
 /** Convert ordinary phase-matrix cosine/sine Fourier coefficients to the
  * combined VDISORT matrices of Lin et al. (2022), Eqs. (81)-(82).
@@ -189,7 +194,7 @@ class main_data {
   AscendingGrid tau_arr{};    // [NLayers]
   Vector        omega_arr{};  // [NLayers]
 
-  // VDISORT CHANGE BEGIN: all radiation-bearing inputs carry Stokes and mode dimensions.
+  // Radiation-bearing inputs carry Stokes and combined-mode dimensions.
   rtepack::stokvec_matrix  source_poly_coeffs{};        // [NLayers, Nscoeffs], Stokes source function B
   Vector                   source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
   Vector                   source_coordinate_offset{};  // [NLayers]
@@ -201,7 +206,6 @@ class main_data {
   rtepack::stokvec         beam_stokes{};  // irradiance Stokes vector S_b
   Numeric                  phi0{};
   beam_phase_matrix_data   beam_phase_matrix{};  // [2, NFourier, NLayers, NQuad] of 4x4 blocks
-  // VDISORT CHANGE END
 
   //! Derived values
   Vector                  mu_arr{};                          // [NQuad]
@@ -210,7 +214,7 @@ class main_data {
   Vector                  half_range_barycentric_weights{};  // [N]
   rtepack::stokvec_matrix scaled_source_poly_coeffs{};       // [NLayers, Nscoeffs], transport emission
 
-  // VDISORT CHANGE BEGIN: the homogeneous solution is complex (paper Sec. 3.3.1).
+  // The homogeneous solution is complex (paper Sec. 3.3.1).
   ComplexTensor5                    G_collect{};                // [2, NFourier, NLayers, NState, NState]
   ComplexTensor4                    K_collect{};                // [2, NFourier, NLayers, NState]
   ComplexTensor4                    GC_collect{};               // [2, NFourier, NLayers, NState]
@@ -220,30 +224,46 @@ class main_data {
   std::vector<unsigned char>        top_anchored{};             // one flag per eigenmode collection
   std::vector<std::array<Index, 2>> conservative_pair_index{};  // [NLayers], stable m=0 cosine pair, or {-1,-1}
   Vector                            conservative_pair_kappa{};  // [NLayers]
-  // VDISORT CHANGE END
 
-  [[nodiscard]] Index   state_index(Index stream, Index stokes) const;
-  [[nodiscard]] Index   anchor_index(Index alpha, Index m, Index layer, Index eigen) const;
+  /** Flatten a quadrature-stream and Stokes-component pair into a state index. */
+  [[nodiscard]] Index state_index(Index stream, Index stokes) const;
+  /** Flatten the mode, layer, and eigenvector indices used by the anchoring flags. */
+  [[nodiscard]] Index anchor_index(Index alpha, Index m, Index layer, Index eigen) const;
+  /** Return the physical optical depth at the top of a layer. */
   [[nodiscard]] Numeric layer_top(Index layer) const;
+  /** Evaluate one anchored complex homogeneous eigenmode component. */
   [[nodiscard]] Complex homogeneous(Index alpha, Index m, Index layer, Index state, Index eigen, Numeric tau) const;
+  /** Evaluate the beam and polynomial particular solution for one state. */
   [[nodiscard]] Numeric particular(Index alpha, Index m, Index layer, Index state, Numeric tau) const;
-  void                  combined_field(MatrixView out, Numeric tau) const;
-  void                  user_fourier_modes(ComplexTensor4&               out,
-                                           const AscendingGrid&          tau,
-                                           const ConstVectorView&        user_mu,
-                                           const phase_matrix_data&      user_phase_matrix,
-                                           const beam_phase_matrix_data& user_beam_phase_matrix) const;
+  /** Assemble all combined Fourier and Stokes components on quadrature streams. */
+  void combined_field(MatrixView out, Numeric tau) const;
+  /** Formally integrate the cached modal solution along arbitrary user directions. */
+  void user_fourier_modes(ComplexTensor4&               out,
+                          const AscendingGrid&          tau,
+                          const ConstVectorView&        user_mu,
+                          const phase_matrix_data&      user_phase_matrix,
+                          const beam_phase_matrix_data& user_beam_phase_matrix) const;
 
  public:
-  main_data()                            = default;
-  main_data(const main_data&)            = default;
-  main_data(main_data&&)                 = default;
+  /** Construct an empty, uninitialized solver. */
+  main_data() = default;
+  /** Copy a fully initialized solver and all of its cached solution data. */
+  main_data(const main_data&) = default;
+  /** Move a solver and its cached solution data. */
+  main_data(main_data&&) = default;
+  /** Copy-assign a solver and all of its cached solution data. */
   main_data& operator=(const main_data&) = default;
-  main_data& operator=(main_data&&)      = default;
+  /** Move-assign a solver and its cached solution data. */
+  main_data& operator=(main_data&&) = default;
 
+  /** Allocate solver input and work arrays without computing a solution. */
   main_data(Index NLayers, Index NQuad, Index NFourier, Index Nscoeffs, Index NBDRF);
 
-  // VDISORT CHANGE BEGIN: phase operators are stored as rtepack Mueller blocks.
+  /** Construct and solve a polarized discrete-ordinate problem.
+   *
+   * Phase, boundary, beam, and source arrays use Mueller or Stokes blocks in
+   * the combined cosine/sine representation documented for this class.
+   */
   main_data(Index                    NQuad,
             Index                    NFourier,
             AscendingGrid            tau_arr,
@@ -259,10 +279,11 @@ class main_data {
             beam_phase_matrix_data   beam_phase_matrix        = {},
             Vector                   source_coordinate_scale  = {},
             Vector                   source_coordinate_offset = {});
-  // VDISORT CHANGE END
 
+  /** Return the layer containing a physical optical depth. */
   [[nodiscard]] Index tau_index(Numeric tau) const;
 
+  /** Evaluate the Stokes radiance on all quadrature streams at one point. */
   void u(u_data& data, Numeric tau, Numeric phi) const;
 
   /** Radiance at arbitrary nonzero polar-angle cosines.
@@ -298,56 +319,101 @@ class main_data {
                         const ConstVectorView&        user_mu,
                         const phase_matrix_data&      user_phase_matrix,
                         const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
+
+  /** Evaluate the azimuth-independent quadrature-stream field at one depth. */
   void u0(u0_data& data, Numeric tau) const;
 
-  [[nodiscard]] Numeric                     flux_up(flux_data&, Numeric tau) const;
+  /** Return the upward diffuse Stokes-I flux at one optical depth. */
+  [[nodiscard]] Numeric flux_up(flux_data&, Numeric tau) const;
+  /** Return the downward diffuse and direct Stokes-I fluxes at one optical depth. */
   [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, Numeric tau) const;
-  [[nodiscard]] flux_values                 flux(flux_data&, Numeric tau) const;
+  /** Return all flux components and the flux divergence at one optical depth. */
+  [[nodiscard]] flux_values flux(flux_data&, Numeric tau) const;
 
+  /** Evaluate radiances at every layer bottom for all quadrature streams and azimuths. */
   void gridded_u(Tensor4View out, const Vector& phi) const;
+  /** Evaluate flux components at every layer bottom. */
   void gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
+  /** Evaluate quadrature-stream radiances on an arbitrary ascending optical-depth grid. */
   void ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vector& phi) const;
+  /** Evaluate flux components on an arbitrary ascending optical-depth grid. */
   void ungridded_flux(VectorView up, VectorView down, VectorView down_direct, const AscendingGrid& tau) const;
 
+  /** Return the cached combined Fourier field at the bottom of one layer. */
   [[nodiscard]] rtepack::stokvec_tensor3_const_view layer_um(Size layer) const;
 
+  /** Assemble and diagonalize each layer and Fourier-mode transport operator.
+   *
+   * The full nonsymmetric Stokes operator is solved in complex arithmetic.
+   * Near conservation, unresolved nominally real roots are checked with a
+   * real eigensolve.  An exactly conservative operator is represented by an
+   * explicitly constructed null vector and generalized Jordan vector.
+   */
   void diagonalize();
+  /** Derive source-coordinate scales and internally scaled source coefficients. */
   void set_scales();
+  /** Prepare transmission data; complex VDISORT modes are evaluated from anchored exponentials. */
   void transmission();
+  /** Compute polynomial particular solutions for internal thermal sources. */
   void source_function();
+  /** Solve the banded multilayer boundary and continuity system. */
   void solve_for_coefs();
+  /** Cache the combined Fourier fields at every layer bottom. */
   void rad_field();
 
+  /** Validate all input-array dimensions against the configured solver sizes. */
   void check_input_size() const;
+  /** Validate physical ranges and angular conventions of solver inputs. */
   void check_input_value() const;
+  /** Recompute every derived quantity and solution cache after input changes. */
   void update_all();
 
+  /** Report whether any retained eigenvalue has a significant imaginary component. */
   [[nodiscard]] bool has_complex_eigensolutions(Numeric tolerance = 1e-12) const;
 
-  [[nodiscard]] const Vector&        mu() const { return mu_arr; }
-  [[nodiscard]] const Vector&        weights() const { return W; }
+  /** Return signed quadrature cosines, with upward streams first. */
+  [[nodiscard]] const Vector& mu() const { return mu_arr; }
+  /** Return positive-hemisphere double-Gauss weights. */
+  [[nodiscard]] const Vector& weights() const { return W; }
+  /** Return physical layer-bottom optical depths. */
   [[nodiscard]] const AscendingGrid& tau() const { return tau_arr; }
-  [[nodiscard]] const Vector&        omega() const { return omega_arr; }
+  /** Return physical single-scattering albedos. */
+  [[nodiscard]] const Vector& omega() const { return omega_arr; }
 
-  // VDISORT CHANGE BEGIN: polarized accessors replace scalar coefficient accessors.
-  [[nodiscard]] const phase_matrix_data&        all_phase_matrices() const { return phase_matrix; }
-  [[nodiscard]] rtepack::muelmat_tensor5_view   all_phase_matrices() { return phase_matrix; }
+  /** Return a read-only view of all combined phase-matrix Fourier coefficients. */
+  [[nodiscard]] const phase_matrix_data& all_phase_matrices() const { return phase_matrix; }
+  /** Return a writable view of all combined phase-matrix Fourier coefficients. */
+  [[nodiscard]] rtepack::muelmat_tensor5_view all_phase_matrices() { return phase_matrix; }
+  /** Return the prescribed upward boundary Fourier coefficients. */
   [[nodiscard]] const rtepack::stokvec_tensor3& upward_boundary() const { return boundary_up; }
-  [[nodiscard]] rtepack::stokvec_tensor3_view   upward_boundary() { return boundary_up; }
+  /** Return writable prescribed upward boundary Fourier coefficients. */
+  [[nodiscard]] rtepack::stokvec_tensor3_view upward_boundary() { return boundary_up; }
+  /** Return the prescribed downward boundary Fourier coefficients. */
   [[nodiscard]] const rtepack::stokvec_tensor3& downward_boundary() const { return boundary_down; }
-  [[nodiscard]] rtepack::stokvec_tensor3_view   downward_boundary() { return boundary_down; }
-  [[nodiscard]] const rtepack::stokvec_matrix&  source_poly() const { return source_poly_coeffs; }
-  [[nodiscard]] rtepack::stokvec_matrix_view    source_poly() { return source_poly_coeffs; }
-  [[nodiscard]] std::span<const BDRF>           brdf_modes() const { return brdf_fourier_modes; }
-  [[nodiscard]] std::span<BDRF>                 brdf_modes() { return brdf_fourier_modes; }
-  [[nodiscard]] const rtepack::stokvec&         beam_source() const { return beam_stokes; }
-  [[nodiscard]] rtepack::stokvec&               beam_source() { return beam_stokes; }
-  void                                          set_beam_source(rtepack::stokvec beam);
-  // VDISORT CHANGE END
+  /** Return writable prescribed downward boundary Fourier coefficients. */
+  [[nodiscard]] rtepack::stokvec_tensor3_view downward_boundary() { return boundary_down; }
+  /** Return the input Stokes source-function polynomial coefficients. */
+  [[nodiscard]] const rtepack::stokvec_matrix& source_poly() const { return source_poly_coeffs; }
+  /** Return writable Stokes source-function polynomial coefficients. */
+  [[nodiscard]] rtepack::stokvec_matrix_view source_poly() { return source_poly_coeffs; }
+  /** Return the configured polarized BRDF Fourier modes. */
+  [[nodiscard]] std::span<const BDRF> brdf_modes() const { return brdf_fourier_modes; }
+  /** Return writable polarized BRDF Fourier modes. */
+  [[nodiscard]] std::span<BDRF> brdf_modes() { return brdf_fourier_modes; }
+  /** Return the incident beam irradiance Stokes vector. */
+  [[nodiscard]] const rtepack::stokvec& beam_source() const { return beam_stokes; }
+  /** Return a writable incident beam irradiance Stokes vector. */
+  [[nodiscard]] rtepack::stokvec& beam_source() { return beam_stokes; }
+  /** Replace the beam Stokes vector and update the beam-presence flag. */
+  void set_beam_source(rtepack::stokvec beam);
 
-  [[nodiscard]] Numeric  solar_zenith() const { return mu0; }
+  /** Return the cosine of the incident beam zenith angle. */
+  [[nodiscard]] Numeric solar_zenith() const { return mu0; }
+  /** Return a writable cosine of the incident beam zenith angle. */
   [[nodiscard]] Numeric& solar_zenith() { return mu0; }
-  [[nodiscard]] Numeric  beam_azimuth() const { return phi0; }
+  /** Return the incident beam azimuth in radians. */
+  [[nodiscard]] Numeric beam_azimuth() const { return phi0; }
+  /** Return a writable incident beam azimuth in radians. */
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
 };
 }  // namespace vdisort

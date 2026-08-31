@@ -36,7 +36,7 @@ delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nl
     const Numeric pn  = phase_moments[layer, nleg];
     const Numeric pn1 = phase_moments[layer, nleg + 1];
 
-    // DISORT 4.0.99 falls back globally if any layer fails these guards.
+    // DISORT 4.0.99 applies these guards globally across all layers.
     if (use_classical_delta_m) {
       out.fraction[layer] = pn;
       continue;
@@ -78,10 +78,10 @@ void radiances::resize(AscendingGrid f_grid, DescendingGrid alt_grid_, AziGrid a
 namespace {
 enum class CoupledType : char { freq_unique, freq_coupled, alt_coupled };
 
-/*! Couple the sizes of two radiance grids.
+/** Construct the joint storage and overlap classification for two radiance grids.
  *
- * Grid extension always [first, second] and never [second, first], only alt or freq.
- * May miss first value of second if it is equal to last value of first.  This is intended behavior.
+ * Grids are extended from the first object into the second object. A shared
+ * endpoint is represented once.
  *
  * @param freq_grid The first frequency grid
  * @param freq_grid_second The second frequency grid
@@ -161,20 +161,15 @@ extension: {:Bs,}
   return out;
 }
 
-/*! Couple the sizes of two fluxes grids.
+/** Construct the joint storage and overlap classification for two flux grids.
  *
- * Grid extension always [first, second] and never [second, first], only alt or freq.
- * May miss first value of second if it is equal to last value of first.  This is intended behavior.
+ * Grids are extended from the first object into the second object. A shared
+ * endpoint is represented once.
  *
  * @param freq_grid The first frequency grid
  * @param freq_grid_second The second frequency grid
  * @param alt_grid The first altitude grid
  * @param alt_grid_second The second altitude grid
- * @param azi_grid The first azimuth grid
- * @param azi_grid_second The second azimuth grid
- * @param zen_grid The first zenith grid
- * @param zen_grid_second The second zenith grid
- *
  * @return A pair of the coupled type and the new fluxes object with the coupled size.
  */
 std::pair<CoupledType, fluxes> coupled_size(AscendingGrid         freq_grid,
@@ -339,15 +334,19 @@ Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
 }
 
 namespace {
+/** Return the positive-stream half-range [0, N). */
 constexpr Range rf(Size N) { return {0, N}; }
+/** Return the negative-stream half-range [N, 2N). */
 constexpr Range rb(Size N) { return {N, N}; }
 
+/** Solve the stream-coupling system used by the ordinary polynomial source. */
 void ordinary_source_set_k1(mathscr_v_data& data, const ConstMatrixView& G, const ConstVectorView& inv_mu) {
   stdr::copy(inv_mu, data.k1.elem_begin());
   stdr::copy(G | by_elem, data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
 }
 
+/** Form eigenmode coefficients for an ordinary polynomial source at one depth. */
 void ordinary_source_set_k2(mathscr_v_data&        data,
                             const Numeric          tau,
                             const ConstVectorView& source_poly_coeffs,
@@ -371,6 +370,7 @@ void ordinary_source_set_k2(mathscr_v_data&        data,
   }
 }
 
+/** Replace or accumulate an ordinary-source particular field. */
 void ordinary_source_update(VectorView             field,
                             mathscr_v_data&        data,
                             const Numeric          tau,
@@ -387,6 +387,7 @@ void ordinary_source_update(VectorView             field,
   mult(field, G[Range{row0, static_cast<Index>(field.size())}], data.k2, 1.0, add);
 }
 
+/** Add an ordinary polynomial-source particular solution to an existing field. */
 void ordinary_source_add(VectorView             field,
                          mathscr_v_data&        data,
                          const Numeric          tau,
@@ -397,6 +398,7 @@ void ordinary_source_add(VectorView             field,
   ordinary_source_update(field, data, tau, source_poly_coeffs, G, K, inv_mu, 0, 1.0);
 }
 
+/** Assemble ordinary-source boundary and interface terms for the coefficient solve. */
 void ordinary_source_terms(MatrixView              SRC0,
                            MatrixView              SRC1,
                            VectorView              SRCB,
@@ -513,9 +515,7 @@ void main_data::solve_for_coefs() {
     const bool has_stable_pair =
         m == 0 and std::ranges::any_of(conservative_pair_index, [](const Index i) { return i >= 0; });
     if (not has_stable_pair) {
-      // Ordinary modes retain the established anchored-exponential assembly.
-      // Besides being faster, this avoids changing roundoff in the reference
-      // solution when no conservative pair is present.
+      // Ordinary-mode storage is an anchored-exponential representation.
       auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NLayers - 1, NQuad);
       RHS             = 0.0;
 
@@ -660,6 +660,7 @@ void main_data::solve_for_coefs() {
 }
 
 namespace {
+/** Evaluate the rising factorial (x)_n through the Legendre gamma-ratio helper. */
 Numeric poch(Index x, Index n) { return Legendre::tgamma_ratio(static_cast<Numeric>(x + n), static_cast<Numeric>(x)); }
 }  // namespace
 
@@ -720,9 +721,7 @@ void main_data::diagonalize() {
         einsum<"ij", "i", "ij", "j">(apb, inv_mu_arr[rf(N)], D_pos, W);
         diagonal(apb) -= inv_mu_arr[rf(N)];
 
-        // Only the zeroth mode can contain the conservative pair or an
-        // isotropic source polynomial.  Cache its full stream-space operator;
-        // ordinary modes stay on the original reduced-eigenproblem path.
+        // Only the zeroth mode contains a conservative pair or isotropic source polynomial.
         if (m == 0) {
           for (Index i = 0; i < N; ++i) {
             for (Index j = 0; j < N; ++j) {
@@ -755,9 +754,7 @@ void main_data::diagonalize() {
             if (std::abs(eval[i]) < std::abs(eval[pair])) pair = i;
 
           const Numeric kappa = std::sqrt(std::abs(eval[pair]));
-          // The reduced eigenvectors coalesce like 1/kappa.  Select the
-          // centered two-column basis throughout the requested conservative
-          // interval, and also for any still smaller numerical root.
+          // Reduced eigenvectors coalesce as 1/kappa near conservation.
           if (dc::use_centered_pair(omega_arr[l], kappa)) {
             conservative_pair_index[static_cast<std::size_t>(l)] = pair;
             conservative_pair_kappa[l]                           = omega_arr[l] == 1.0 ? 0.0 : kappa;
@@ -788,9 +785,7 @@ void main_data::diagonalize() {
 
         if (pair >= 0) {
           if (has_beam_source) {
-            // The stabilized pair has no invertible eigenvector matrix.  Its
-            // beam particular solution is therefore solved once in stream
-            // space.  Ordinary layers use the established modal solve below.
+            // A stabilized Jordan pair has no invertible eigenvector matrix.
             einsum<"i", "i", "i", "">(X_temp,
                                       weighted_asso_Leg_coeffs_l,
                                       asso_leg_term_mu0,
@@ -807,14 +802,11 @@ void main_data::diagonalize() {
             Bm[l] = jvec;
           }
 
-          // At exact conservation the null vector of alpha+beta is the
-          // constant angular field.  Supplying it explicitly avoids letting
-          // roundoff choose a direction in the defective zero eigenspace.
+          // At exact conservation the null vector of alpha+beta is the constant angular field.
           for (Index i = 0; i < N; ++i) jvec[i] = omega_arr[l] == 1.0 ? 1.0 : evec[i, pair];
 
-          // Reconstruct alpha-beta from the cached full operator and solve
-          // (alpha-beta) r = x.  Store X=[x;x] and -R=[-r;r] in the two pair
-          // columns; homogeneous() applies their finite cosh/sinh block.
+          // The pair columns store X=[x;x] and -R=[-r;r], where
+          // (alpha-beta) r = x.
           for (Index i = 0; i < N; ++i)
             for (Index j = 0; j < N; ++j) D_pos[i, j] = -transport_matrix[l, i, j] + transport_matrix[l, i, N + j];
           solve_inplace(jvec[rf(N)], D_pos);
@@ -832,10 +824,7 @@ void main_data::diagonalize() {
             K[N + pair] = conservative_pair_kappa[l];
           }
         } else if (has_beam_source) {
-          // Retain the established eigenbasis solve for ordinary layers.  The
-          // direct stream-space solve above is required for the stabilized
-          // pair, while this path preserves roundoff-level compatibility away
-          // from conservation.
+          // Ordinary layers have an invertible eigenbasis.
           einsum<"i", "i", "i", "">(X_temp,
                                     weighted_asso_Leg_coeffs_l,
                                     asso_leg_term_mu0,
@@ -911,8 +900,7 @@ void main_data::set_ims_factors() {
     }
   }
 
-  // The top-boundary limiting set samples only the first layer.  Copying the
-  // first lower-boundary set also makes IMS exact throughout a single layer.
+  // The top-boundary limiting set samples only the first layer.
   scaled_mu0[0]             = scaled_mu0[1];
   IMS_scalar[0]             = IMS_scalar[1];
   Leg_coeffs_residue_avg[0] = Leg_coeffs_residue_avg[1];
@@ -933,11 +921,8 @@ void main_data::set_scales() {
   eintra<"i", "i", "i", "i">(
       [](auto om, auto fr, auto st) { return om * (1.0 - fr) / st; }, scaled_omega_arr, omega_arr, f_arr, scale_tau);
 
-  // Rewrite B_l(tau) as the transport-equation emission polynomial
-  // (1 - omega'_l) B_l(tau(tau')) once per update, where tau' is the
-  // cumulative delta-M-scaled optical depth used by K_collect.  In layer l,
-  // tau = affine_scale * tau' + affine_offset.  Horner composition avoids
-  // repeated polynomial refits and absorption scaling in radiance evaluation.
+  // The transport emission is (1 - omega'_l) B_l(tau(tau')), with physical
+  // tau affine in the cumulative delta-M-scaled coordinate tau'.
   scaled_source_poly_coeffs = 0.0;
   if (has_source_poly) {
     for (Index l = 0; l < NLayers; ++l) {
@@ -1066,9 +1051,7 @@ void main_data::transmission() {
 void main_data::rad_field() {
   ARTS_TIME_REPORT
 
-  // Reuse the coefficient-weighted eigenvectors and layer transmissions for
-  // ordinary modes.  Only a stabilized zeroth mode needs the generalized-pair
-  // evaluator.
+  // Ordinary-mode storage contains coefficient-weighted eigenvectors and layer transmissions.
   static_assert(matpack::einsum_optpath<"mi", "mij", "mj">(),
                 "On Failure, the einsum has been changed to not use optimal path");
   for (Index l = 0; l < NLayers; ++l) {
@@ -1117,16 +1100,12 @@ void main_data::source_function() {
   }
 
   for (Index l = 0; l < NLayers; ++l) {
-    // Exact conservative scattering has no absorption emission.  Its
-    // transport matrix is singular, so select the zero particular solution
-    // explicitly and let the finite homogeneous Jordan pair carry the field.
+    // Exact conservative scattering has zero absorption emission and a singular transport matrix.
     if (stdr::all_of(scaled_source_poly_coeffs[l], Cmp::eq<0>())) continue;
 
     const Index pair = conservative_pair_index[static_cast<std::size_t>(l)];
     if (pair < 0) {
-      // Preserve the established scalar eigenbasis recurrence away from the
-      // conservative pair.  It is algebraically equivalent to the stream
-      // solve below, but retains the existing numerical results.
+      // Away from the conservative pair, the eigenbasis recurrence and stream solve are equivalent.
       jvec = inv_mu_arr;
       Gml  = G_collect[0, l];
       solve_inplace(jvec, Gml, solve_work);
@@ -1597,11 +1576,13 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
 }
 
 namespace {
+/** Return the cosine of the scattering angle between two directions. */
 Numeric calculate_nu(const Numeric mu, const Numeric phi, const Numeric mu_p, const Numeric phi_p) {
   const Numeric scl = std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi);
   return mu * mu_p + scl * std::sqrt(1.0 - mu * mu);
 }
 
+/** Vectorized scattering-angle cosine for several outgoing polar directions. */
 void calculate_nu(Vector& nu, const ConstVectorView& mu, const Numeric phi, const Numeric mu_p, const Numeric phi_p) {
   nu.resize(mu.size());
 
@@ -1724,8 +1705,7 @@ void main_data::IMS(Vector&                ims,
     const Numeric nu     = calculate_nu(mu[i], phi, -mu0, phi0);
 
     if (convention == ims_convention::disort) {
-      // DISORT confines IMS to the 10-degree aureole surrounding the
-      // incident beam.  Outside it, TMS alone is the intended correction.
+      // The DISORT convention defines IMS only inside the 10-degree incident-beam aureole.
       const Numeric beam_theta = std::acos(-mu0);
       const Numeric ray_theta  = std::acos(mu[i]);
       if (std::abs(beam_theta - ray_theta) > Constant::pi / 18.0) continue;
@@ -1797,10 +1777,8 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
     for (Index l = 0; l < NLayers; ++l)
       ray_transport[angle, l] = std::exp(-(scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l]) / mu_arr[angle]);
 
-  // At layer boundaries the transport from one boundary to the next is a
-  // recurrence.  Prepare the phase coefficients once per azimuth and sweep
-  // downward/upward, instead of re-summing all intervening layers for every
-  // output boundary.
+  // Boundary-to-boundary transport is a downward/upward recurrence with fixed
+  // phase coefficients for each azimuth.
   for (Index j = 0; j < M; j++) {
     prepare_TMS(t, phi[j], mu_arr);
     for (Index angle = 0; angle < N; ++angle) {
@@ -2097,7 +2075,7 @@ coupling_result couple(main_data&    atmosphere,
     clamp(res, 0.0, std::numeric_limits<Numeric>::max());
     eatm_sum.noalias() = relaxation * atm_res + (1 - relaxation) * atm_up;
 
-    //! Only 1-R is transmitted from the atmosphere into the subsurface
+    // The atmosphere-to-subsurface transmission factor is 1-R.
     for (Size m = 0; m < nbrdfs; ++m) { eatm_sum.row(m) = ImR[m] * eatm_sum.row(m); }
 
     res = subsurface.layer_um(0);
@@ -2109,7 +2087,7 @@ coupling_result couple(main_data&    atmosphere,
 
     if (not out.converged) {
       if (out.iterations == 0) {
-        //! see set_beam_source for why this is called.
+        // set_beam_source maintains the original and transport-scaled beam intensities.
         atmosphere.update_all(atmosphere.beam_source());
         subsurface.update_all(subsurface.beam_source());
       } else {
