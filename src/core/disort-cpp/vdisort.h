@@ -11,6 +11,8 @@
 #include <span>
 #include <vector>
 
+#include "common.h"
+
 /**
  * Vector DISORT core.
  *
@@ -71,12 +73,7 @@ struct flux_data {
   rtepack::stokvec_vector u0;  // scratch [NQuad]
 };
 
-struct flux_values {
-  Numeric up{};
-  Numeric down_diffuse{};
-  Numeric down_direct{};
-  Numeric dfdt{};
-};
+using flux_values = disort_common::flux_values;
 
 /** Laboratory-frame Mueller phase function used by the delta-M correction.
  * Arguments are layer, outgoing (mu, phi), and incident (mu, phi).

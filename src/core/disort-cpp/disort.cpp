@@ -18,6 +18,8 @@
 #include <ranges>
 #include <vector>
 
+namespace dc = disort_common;
+
 namespace disort {
 delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nleg) {
   ARTS_USER_ERROR_IF(nleg < 1, "nleg must be positive, got {}", nleg);
@@ -340,13 +342,6 @@ namespace {
 constexpr Range rf(Size N) { return {0, N}; }
 constexpr Range rb(Size N) { return {N, N}; }
 
-Numeric sinhc(const Numeric x) {
-  const Numeric ax = std::abs(x);
-  if (ax >= 1.0e-4) return std::sinh(x) / x;
-  const Numeric x2 = x * x;
-  return 1.0 + x2 * (1.0 / 6.0 + x2 * (1.0 / 120.0 + x2 / 5040.0));
-}
-
 void ordinary_source_set_k1(mathscr_v_data& data, const ConstMatrixView& G, const ConstVectorView& inv_mu) {
   stdr::copy(inv_mu, data.k1.elem_begin());
   stdr::copy(G | by_elem, data.G.elem_begin());
@@ -446,11 +441,10 @@ Numeric main_data::homogeneous(
     const Numeric center = 0.5 * (scaled_tau_arr_with_0[layer] + scaled_tau_arr_with_0[layer + 1]);
     const Numeric s      = tau - center;
     const Numeric kappa  = conservative_pair_kappa[layer];
-    const Numeric z      = kappa * s;
-    const Numeric c      = std::cosh(z);
-    if (eigen == pair)
-      return c * G_collect[m, layer, state, pair] + kappa * std::sinh(z) * G_collect[m, layer, state, pair + N];
-    return s * sinhc(z) * G_collect[m, layer, state, pair] + c * G_collect[m, layer, state, pair + N];
+    const auto    basis  = dc::centered_pair(kappa, s);
+    const auto    columns =
+        dc::centered_pair_columns(G_collect[m, layer, state, pair], G_collect[m, layer, state, pair + N], basis);
+    return columns[eigen == pair ? 0 : 1];
   }
 
   const Numeric anchor = eigen < N ? scaled_tau_arr_with_0[layer] : scaled_tau_arr_with_0[layer + 1];
@@ -474,26 +468,20 @@ void main_data::homogeneous_field(VectorView out, const Index m, const Index lay
     const Numeric center = 0.5 * (scaled_tau_arr_with_0[layer] + scaled_tau_arr_with_0[layer + 1]);
     const Numeric s      = tau - center;
     const Numeric kappa  = conservative_pair_kappa[layer];
-    const Numeric z      = kappa * s;
-    const Numeric c      = std::cosh(z);
-    const Numeric sz     = std::sinh(z);
-    const Numeric shc    = sinhc(z);
-    const Numeric c0     = C_collect[m, layer, pair];
-    const Numeric c1     = C_collect[m, layer, pair + N];
-    const Numeric a0     = std::fma(c1, s * shc, c0 * c);
-    const Numeric a1     = std::fma(c0, kappa * sz, c1 * c);
+    const auto    basis  = dc::centered_pair(kappa, s);
+    const auto    amplitudes =
+        dc::centered_pair_amplitudes(C_collect[m, layer, pair], C_collect[m, layer, pair + N], basis);
 
     for (Index state = 0; state < NQuad; ++state) {
-      out[state] = std::fma(
-          a0, G_collect[m, layer, state, pair], std::fma(a1, G_collect[m, layer, state, pair + N], out[state]));
+      out[state] = std::fma(amplitudes[0],
+                            G_collect[m, layer, state, pair],
+                            std::fma(amplitudes[1], G_collect[m, layer, state, pair + N], out[state]));
     }
   }
 }
 
 Numeric main_data::source_particular(const Index layer, const Index state, const Numeric tau) const {
-  Numeric value = 0.0;
-  for (Index p = Nscoeffs - 1; p >= 0; --p) value = std::fma(value, tau, source_collect[layer, state, p]);
-  return value;
+  return dc::horner_polynomial(Nscoeffs, tau, [&](const Index p) { return source_collect[layer, state, p]; });
 }
 
 Numeric main_data::particular(const Index m, const Index layer, const Index state, const Numeric tau) const {
@@ -770,7 +758,7 @@ void main_data::diagonalize() {
           // The reduced eigenvectors coalesce like 1/kappa.  Select the
           // centered two-column basis throughout the requested conservative
           // interval, and also for any still smaller numerical root.
-          if (omega_arr[l] >= 1.0 - 1.0e-8 or kappa <= 1.0e-4) {
+          if (dc::use_centered_pair(omega_arr[l], kappa)) {
             conservative_pair_index[static_cast<std::size_t>(l)] = pair;
             conservative_pair_kappa[l]                           = omega_arr[l] == 1.0 ? 0.0 : kappa;
           } else {
@@ -1010,9 +998,7 @@ void main_data::set_beam_source(const Numeric I0_) {
 void main_data::check_input_size() const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(tau_arr.size()) != NLayers, "{} vs {}", tau_arr.size(), NLayers);
-
-  ARTS_USER_ERROR_IF(static_cast<Index>(omega_arr.size()) != NLayers, "{} vs {}", omega_arr.size(), NLayers);
+  dc::check_layer_input_sizes(NLayers, tau_arr, omega_arr);
 
   ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
                      "{:B,} vs [{}, {}]",
@@ -1044,11 +1030,7 @@ void main_data::check_input_size() const {
 void main_data::check_input_value() const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0, "tau_arr must be strictly positive, got {:B,}", tau_arr);
-
-  ARTS_USER_ERROR_IF(stdr::any_of(omega_arr, [](auto&& omega) { return omega > 1 or omega < 0; }),
-                     "omega_arr must be [0, 1], but got {:B,}",
-                     omega_arr);
+  dc::check_layer_input_values(tau_arr, omega_arr, mu0, phi0);
 
   ARTS_USER_ERROR_IF(stdr::any_of(Leg_coeffs_all,
                                   [](auto&& x) {
@@ -1060,8 +1042,6 @@ void main_data::check_input_value() const {
 
   ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative, got {}", I0);
 
-  ARTS_USER_ERROR_IF(phi0 < 0 or phi0 >= Constant::two_pi, "phi0 must be [0, 2*pi), got {}", phi0);
-
   ARTS_USER_ERROR_IF(
       stdr::any_of(f_arr, [](auto&& x) { return x >= 1 or x < 0; }), "f_arr must be [0, 1), got {:B,}", f_arr);
 
@@ -1069,8 +1049,6 @@ void main_data::check_input_value() const {
       stdr::any_of(delta_m_peak | by_elem, [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
       "delta_m_peak moments must be finite and [0, 1], got {:B,}",
       delta_m_peak);
-
-  ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1], got {}", mu0);
 }
 
 void main_data::transmission() {
@@ -1291,10 +1269,7 @@ main_data::main_data(const Index NLayers_,
       comp_data(NQuad, Nscoeffs) {
   ARTS_TIME_REPORT
 
-  Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
-
-  std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) { return -x; });
-  std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](auto&& x) { return 1.0 / x; });
+  dc::initialize_streams(mu_arr, inv_mu_arr, W);
 }
 
 main_data::main_data(const Index       NQuad_,
@@ -1394,10 +1369,7 @@ main_data::main_data(const Index       NQuad_,
       comp_data(NQuad, Nscoeffs) {
   ARTS_TIME_REPORT
 
-  Legendre::PositiveDoubleGaussLegendre(mu_arr[rf(N)], W);
-
-  std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) { return -x; });
-  std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](auto&& x) { return 1.0 / x; });
+  dc::initialize_streams(mu_arr, inv_mu_arr, W);
 
   if (delta_m_peak.empty()) delta_m_peak = Matrix(NLayers, NLeg, 1.0);
 
@@ -1407,10 +1379,7 @@ main_data::main_data(const Index       NQuad_,
 
 [[nodiscard]] Index main_data::tau_index(const Numeric tau) const {
   ARTS_TIME_REPORT
-
-  const Index l = std::distance(tau_arr.begin(), stdr::lower_bound(tau_arr, tau));
-  ARTS_USER_ERROR_IF(l == NLayers, "tau ({}) must be at most {}", tau, tau_arr.back());
-  return l;
+  return dc::layer_index(tau_arr, tau);
 }
 
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
@@ -1451,87 +1420,6 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   data.intensities *= I0_orig;
 }
 
-namespace {
-void user_angle_barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
-  const Index n = nodes.size();
-  weights.resize(n);
-  Vector  log_weights(n);
-  Numeric largest = -std::numeric_limits<Numeric>::infinity();
-  for (Index i = 0; i < n; ++i) {
-    Numeric sign   = 1.0;
-    log_weights[i] = 0.0;
-    for (Index j = 0; j < n; ++j) {
-      if (i == j) continue;
-      const Numeric d  = nodes[i] - nodes[j];
-      log_weights[i]  -= std::log(std::abs(d));
-      if (d < 0.0) sign = -sign;
-    }
-    weights[i] = sign;
-    largest    = std::max(largest, log_weights[i]);
-  }
-  for (Index i = 0; i < n; ++i) weights[i] *= std::exp(log_weights[i] - largest);
-}
-
-Numeric user_angle_barycentric(
-    Vector& weights, Vector& work, const ConstVectorView& nodes, const ConstVectorView& values, const Numeric x) {
-  if (weights.size() != nodes.size()) user_angle_barycentric_weights(weights, nodes);
-  work.resize(nodes.size());
-  Numeric numerator = 0.0, denominator = 0.0;
-  for (Size i = 0; i < nodes.size(); ++i) {
-    const Numeric d = x - nodes[i];
-    if (d == 0.0) return values[i];
-    work[i]      = weights[i] / d;
-    numerator   += work[i] * values[i];
-    denominator += work[i];
-  }
-  return numerator / denominator;
-}
-
-Numeric user_angle_exponential_integral(const Numeric k,
-                                        const Numeric reference,
-                                        const Numeric lower,
-                                        const Numeric upper,
-                                        const Numeric observation,
-                                        const Numeric abs_mu,
-                                        const bool    downward) {
-  if (upper <= lower) return 0.0;
-  const auto exponent = [&](const Numeric optical_depth) {
-    const Numeric distance = downward ? observation - optical_depth : optical_depth - observation;
-    return k * (optical_depth - reference) - distance / abs_mu;
-  };
-  const Numeric e0      = exponent(lower);
-  const Numeric e1      = exponent(upper);
-  const Numeric z       = e1 - e0;
-  const Numeric average = z == 0.0  ? std::exp(e0)
-                          : z > 0.0 ? std::exp(e1) * (-std::expm1(-z) / z)
-                                    : std::exp(e0) * (std::expm1(z) / z);
-  return (upper - lower) / abs_mu * average;
-}
-
-Numeric user_angle_centered_first_moment(const Numeric center,
-                                         const Numeric lower,
-                                         const Numeric upper,
-                                         const Numeric observation,
-                                         const Numeric abs_mu,
-                                         const bool    downward) {
-  if (upper <= lower) return 0.0;
-  const Numeric near        = downward ? upper : lower;
-  const Numeric distance    = downward ? observation - near : near - observation;
-  const Numeric z           = (upper - lower) / abs_mu;
-  const Numeric attenuation = std::exp(-distance / abs_mu);
-  const Numeric l0          = -std::expm1(-z);
-  Numeric       l1;
-  if (std::abs(z) < 1.0e-3) {
-    const Numeric z2 = z * z;
-    l1               = z2 * (0.5 + z * (-1.0 / 3.0 + z * (1.0 / 8.0 + z * (-1.0 / 30.0 + z / 144.0))));
-  } else {
-    l1 = 1.0 - (1.0 + z) * std::exp(-z);
-  }
-  const Numeric direction = downward ? -1.0 : 1.0;
-  return attenuation * ((near - center) * l0 + direction * abs_mu * l1);
-}
-}  // namespace
-
 void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, const ConstVectorView& user_mu) const {
   ARTS_TIME_REPORT
 
@@ -1563,9 +1451,9 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
     const auto nodes  = mu > 0.0 ? mu_arr[rf(N)] : mu_arr[rb(N)];
     const auto values = mu > 0.0 ? boundary_up[m] : boundary_down[m];
     if (data.barycentric_weights.size() != static_cast<Size>(N)) {
-      user_angle_barycentric_weights(data.barycentric_weights, mu_arr[rf(N)]);
+      dc::barycentric_weights(data.barycentric_weights, mu_arr[rf(N)]);
     }
-    return user_angle_barycentric(data.barycentric_weights, data.interpolation_work, nodes, values, mu);
+    return dc::barycentric_interpolate(nodes, data.barycentric_weights, values, mu);
   };
 
   static const auto source_quadrature = [] {
@@ -1623,7 +1511,7 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
           if (pair >= 0 and (q == pair or q == pair + N)) continue;
           const Numeric source     = scattering_source(m, layer, mu, GC_collect[m, layer, joker, q]);
           const Numeric reference  = q < N ? layer_top : layer_bottom;
-          mode                    += source * user_angle_exponential_integral(
+          mode                    += source * dc::user_angle_exponential_integral(
                                                   K_collect[m, layer, q], reference, lower, upper, scaled_output, abs_mu, downward);
         }
 
@@ -1637,20 +1525,8 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
           const Numeric ac     = l0 * c0 + l1 * c1;
           const Numeric as     = l0 * c1 + kappa * kappa * l1 * c0;
 
-          Numeric       integral_c;
-          Numeric       integral_s;
-          const Numeric max_s = std::max(std::abs(lower - center), std::abs(upper - center));
-          if (std::abs(kappa) * max_s < 1.0e-5) {
-            integral_c = user_angle_exponential_integral(0.0, center, lower, upper, scaled_output, abs_mu, downward);
-            integral_s = user_angle_centered_first_moment(center, lower, upper, scaled_output, abs_mu, downward);
-          } else {
-            const Numeric plus =
-                user_angle_exponential_integral(kappa, center, lower, upper, scaled_output, abs_mu, downward);
-            const Numeric minus =
-                user_angle_exponential_integral(-kappa, center, lower, upper, scaled_output, abs_mu, downward);
-            integral_c = 0.5 * (plus + minus);
-            integral_s = (plus - minus) / (2.0 * kappa);
-          }
+          const auto [integral_c, integral_s] =
+              dc::centered_pair_integrals(kappa, center, lower, upper, scaled_output, abs_mu, downward);
           mode += ac * integral_c + as * integral_s;
         }
 
@@ -1661,8 +1537,8 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
                       weighted_scaled_Leg_coeffs[layer, degree] * poch(degree + m + 1, -2 * m) *
                       Legendre::assoc_legendre(degree, m, mu) * Legendre::assoc_legendre(degree, m, -mu0);
           }
-          mode +=
-              source * user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, scaled_output, abs_mu, downward);
+          mode += source *
+                  dc::user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, scaled_output, abs_mu, downward);
         }
 
         if (has_source_poly && m == 0) {
@@ -1735,43 +1611,6 @@ void calculate_nu(Vector& nu, const ConstVectorView& mu, const Numeric phi, cons
       });
 }
 
-Numeric phi1_neg(const Numeric x) {
-  if (x == 0.0) return 1.0;
-  return -std::expm1(-x) / x;
-}
-
-Numeric phi2(const Numeric x) {
-  if (std::abs(x) >= 1.0) return (std::expm1(x) - x) / Math::pow2(x);
-
-  // phi2(x) = sum(k=0..infinity) x^k / (k + 2)!.  Sixteen
-  // nonconstant terms give sub-ulp truncation error for |x| < 1.
-  Numeric term = 0.5;
-  Numeric sum  = term;
-  for (Index k = 1; k <= 16; ++k) {
-    term *= x / static_cast<Numeric>(k + 2);
-    sum  += term;
-  }
-  return sum;
-}
-
-Numeric downward_tms_kernel(const Numeric mu,
-                            const Numeric mu0,
-                            const Numeric thickness,
-                            const Numeric value_at_lower_end,
-                            const Numeric value_at_upper_end) {
-  const Numeric y = 1.0 / mu - 1.0 / mu0;
-  const Numeric w = thickness * y;
-  if (std::abs(w) < 1.0) return thickness / mu * phi1_neg(w) * value_at_lower_end;
-  return (value_at_lower_end - value_at_upper_end) / (mu * y);
-}
-
-Numeric ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
-  const Numeric x = 1.0 / mu - 1.0 / scaled_mu0;
-  const Numeric z = -tau * x;
-  if (std::abs(z) < 1.0) { return Math::pow2(tau) * std::exp(-tau / scaled_mu0) * phi2(z) / (mu * scaled_mu0); }
-
-  return ((tau - 1.0 / x) * std::exp(-tau / scaled_mu0) + std::exp(-tau / mu) / x) / (mu * scaled_mu0 * x);
-}
 }  // namespace
 
 void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const { TMS(data, tau, phi, mu_arr); }
@@ -1843,13 +1682,13 @@ void main_data::evaluate_TMS(tms_data& data, const Numeric tau, const ConstVecto
     } else {
       const Numeric at_top = std::exp((scaled_tau_arr_lm1 - scaled_tau) / abs_mu - scaled_tau_arr_lm1 / mu0);
       data.TMS[j] =
-          data.mathscr_B[l, j] * downward_tms_kernel(abs_mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, at_top);
+          data.mathscr_B[l, j] * dc::downward_tms_kernel(abs_mu, mu0, scaled_tau - scaled_tau_arr_lm1, exptau, at_top);
       for (Index i = 0; i < l; ++i) {
         const Numeric top       = scaled_tau_arr_with_0[i];
         const Numeric bottom    = scaled_tau_arr_with_0[i + 1];
         const Numeric at_bottom = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0);
         const Numeric at_top_i  = std::exp((top - scaled_tau) / abs_mu - top / mu0);
-        data.TMS[j] += data.mathscr_B[i, j] * downward_tms_kernel(abs_mu, mu0, bottom - top, at_bottom, at_top_i);
+        data.TMS[j] += data.mathscr_B[i, j] * dc::downward_tms_kernel(abs_mu, mu0, bottom - top, at_bottom, at_top_i);
       }
     }
   }
@@ -1895,7 +1734,7 @@ void main_data::IMS(Vector&                ims,
     const auto correction_for_boundary = [&](const Index k) {
       const Numeric sign = convention == ims_convention::disort ? -1.0 : 1.0;
       return sign * IMS_scalar[k] * Legendre::legendre_sum(Leg_coeffs_residue_avg[k], nu) *
-             ims_chi(tau, abs_mu, scaled_mu0[k]);
+             dc::ims_chi(tau, abs_mu, scaled_mu0[k]);
     };
 
     if (NLayers == 1) {
@@ -1975,8 +1814,8 @@ void main_data::gridded_TMS(Tensor3View tms, const Vector& phi) const {
         const Numeric transport = ray_transport[angle, l];
         const Numeric at_bottom = beam_at_boundary[l + 1];
         const Numeric at_top    = transport * beam_at_boundary[l];
-        downward             = transport * downward +
-                               t.mathscr_B[l, angle + N] * downward_tms_kernel(mu, mu0, thickness, at_bottom, at_top);
+        downward = transport * downward +
+                   t.mathscr_B[l, angle + N] * dc::downward_tms_kernel(mu, mu0, thickness, at_bottom, at_top);
         tms[l, j, angle + N] = downward;
       }
 
@@ -2012,7 +1851,7 @@ void main_data::gridded_IMS(Tensor3View ims, const Vector& phi, const ims_conven
     for (Index l = 0; l < NLayers; ++l) {
       const Index   boundary = l + 1;
       const Numeric sign     = convention == ims_convention::disort ? -1.0 : 1.0;
-      depth_factor[l, angle] = sign * IMS_scalar[boundary] * ims_chi(tau_arr[l], mu, scaled_mu0[boundary]);
+      depth_factor[l, angle] = sign * IMS_scalar[boundary] * dc::ims_chi(tau_arr[l], mu, scaled_mu0[boundary]);
     }
   }
   for (Index j = 0; j < M; ++j) {
@@ -2051,24 +1890,21 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
   const Numeric scaled_tau       = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  const Numeric direct_beam        = has_beam_source ? I0 * mu0 * std::exp(-tau / mu0) : 0;
-  const Numeric direct_beam_scaled = has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
+  const Numeric direct_beam        = has_beam_source ? dc::direct_beam_flux(I0, mu0, tau) : 0.0;
+  const Numeric direct_beam_scaled = has_beam_source ? dc::direct_beam_flux(I0, mu0, scaled_tau) : 0.0;
   u0(data.u0, tau);
 
+  const auto  diffuse = dc::integrate_diffuse(mu_arr[rf(N)], W, [&](const Index i) { return data.u0.u0[i]; });
   flux_values out;
-  out.up           = Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0.u0[rf(N)]);
-  out.down_diffuse = Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, data.u0.u0[rb(N)]) -
-                     I0_orig * (direct_beam - direct_beam_scaled);
+  out.up           = Constant::two_pi * diffuse.upward;
+  out.down_diffuse = Constant::two_pi * diffuse.downward - I0_orig * (direct_beam - direct_beam_scaled);
   out.down_direct  = I0_orig * direct_beam;
 
-  Numeric mean_intensity = 0.5 * einsum<Numeric, "", "i", "i">(W, data.u0.u0[rf(N)] + data.u0.u0[rb(N)]);
-  if (has_beam_source) mean_intensity += I0_orig * I0 * std::exp(-tau / mu0) / (4.0 * Constant::pi);
+  Numeric mean_intensity = diffuse.mean_intensity;
+  if (has_beam_source) mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, tau) / (4.0 * Constant::pi);
 
-  Numeric source = 0.0;
-  if (has_source_poly) {
-    for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient)
-      source = std::fma(source, tau, source_poly_coeffs[l, coefficient]);
-  }
+  const Numeric source =
+      dc::horner_polynomial(Nscoeffs, tau, [&](const Index coefficient) { return source_poly_coeffs[l, coefficient]; });
   out.dfdt = (1.0 - omega_arr[l]) * 4.0 * Constant::pi * (mean_intensity - source);
   return out;
 }
@@ -2090,12 +1926,13 @@ void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView 
   for (Index l = 0; l < NLayers; l++) {
     const auto&& u0 = um[l, 0];
 
-    const Numeric direct_beam        = has_beam_source ? I0 * mu0 * std::exp(-tau_arr[l] / mu0) : 0;
-    const Numeric direct_beam_scaled = has_beam_source ? I0 * mu0 * std::exp(-scaled_tau_arr_with_0[l + 1] / mu0) : 0;
+    const Numeric direct_beam = has_beam_source ? dc::direct_beam_flux(I0, mu0, tau_arr[l]) : 0.0;
+    const Numeric direct_beam_scaled =
+        has_beam_source ? dc::direct_beam_flux(I0, mu0, scaled_tau_arr_with_0[l + 1]) : 0.0;
+    const auto diffuse = dc::integrate_diffuse(mu_arr[rf(N)], W, [&](const Index i) { return u0[i]; });
 
-    flux_up[l] = Constant::two_pi * I0_orig * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
-    flux_do[l] = I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rb(N)]) -
-                            direct_beam + direct_beam_scaled);
+    flux_up[l] = Constant::two_pi * I0_orig * diffuse.upward;
+    flux_do[l] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
     flux_dd[l] = I0_orig * direct_beam;
   }
 }
@@ -2146,11 +1983,11 @@ void main_data::ungridded_flux(VectorView           flux_up,
     homogeneous_field(u0, 0, l, scaled_tau);
     for (Index state = 0; state < NQuad; ++state) u0[state] += particular(0, l, state, scaled_tau);
 
-    const Numeric direct_beam        = has_beam_source ? I0 * mu0 * std::exp(-tau[il] / mu0) : 0;
-    const Numeric direct_beam_scaled = has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
-    flux_up[il] = Constant::two_pi * I0_orig * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rf(N)]);
-    flux_do[il] = I0_orig * (Constant::two_pi * einsum<Numeric, "", "i", "i", "i">(mu_arr[rf(N)], W, u0[rb(N)]) -
-                             direct_beam + direct_beam_scaled);
+    const Numeric direct_beam        = has_beam_source ? dc::direct_beam_flux(I0, mu0, tau[il]) : 0.0;
+    const Numeric direct_beam_scaled = has_beam_source ? dc::direct_beam_flux(I0, mu0, scaled_tau) : 0.0;
+    const auto    diffuse            = dc::integrate_diffuse(mu_arr[rf(N)], W, [&](const Index i) { return u0[i]; });
+    flux_up[il]                      = Constant::two_pi * I0_orig * diffuse.upward;
+    flux_do[il] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
     flux_dd[il] = I0_orig * direct_beam;
   }
 }

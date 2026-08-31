@@ -8,6 +8,7 @@
 #include <iosfwd>
 #include <string_view>
 
+#include "common.h"
 #include "disort-eigen.h"
 
 namespace disort {
@@ -92,7 +93,6 @@ struct u_data {
 struct user_u_data {
   mathscr_v_data source;
   Vector         barycentric_weights;
-  Vector         interpolation_work;
   Vector         particular;
   Vector         intensities;
 };
@@ -113,12 +113,7 @@ struct flux_data {
   u0_data u0;
 };
 
-struct flux_values {
-  Numeric up{};
-  Numeric down_diffuse{};
-  Numeric down_direct{};
-  Numeric dfdt{};
-};
+using flux_values = disort_common::flux_values;
 
 struct coupling_result {
   Index   iterations{0};

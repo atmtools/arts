@@ -13,109 +13,10 @@
 #include <numeric>
 #include <ranges>
 
+namespace dc = disort_common;
+
 namespace {
 [[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
-
-Numeric sinhc(const Numeric x) {
-  if (std::abs(x) >= 1.0e-4) return std::sinh(x) / x;
-  const Numeric x2 = x * x;
-  return 1.0 + x2 * (1.0 / 6.0 + x2 * (1.0 / 120.0 + x2 / 5040.0));
-}
-
-void barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
-  const Index n = static_cast<Index>(nodes.size());
-  weights.resize(n);
-  Vector  log_weights(n);
-  Numeric largest = -std::numeric_limits<Numeric>::infinity();
-  for (Index i = 0; i < n; ++i) {
-    Numeric sign   = 1.0;
-    log_weights[i] = 0.0;
-    for (Index j = 0; j < n; ++j) {
-      if (i == j) continue;
-      const Numeric difference  = nodes[i] - nodes[j];
-      log_weights[i]           -= std::log(std::abs(difference));
-      if (difference < 0.0) sign = -sign;
-    }
-    weights[i] = sign;
-    largest    = std::max(largest, log_weights[i]);
-  }
-  for (Index i = 0; i < n; ++i) weights[i] *= std::exp(log_weights[i] - largest);
-}
-
-Numeric barycentric_interpolate(const ConstVectorView& nodes,
-                                const ConstVectorView& weights,
-                                const ConstVectorView& values,
-                                const Numeric          x) {
-  Numeric numerator   = 0.0;
-  Numeric denominator = 0.0;
-  for (Index i = 0; i < static_cast<Index>(nodes.size()); ++i) {
-    if (x == nodes[i]) return values[i];
-    const Numeric term  = weights[i] / (x - nodes[i]);
-    numerator          += term * values[i];
-    denominator        += term;
-  }
-  return numerator / denominator;
-}
-
-Complex exprel(const Complex z) {
-  if (z == Complex{0.0}) return 1.0;
-
-  // The direct quotient is well conditioned away from zero.  Around zero,
-  // sum exprel(z) = sum_n z^n/(n+1)! to a floating-point stopping criterion.
-  if (std::abs(z) > 0.5) return (std::exp(z) - 1.0) / z;
-
-  Complex         term      = 1.0;
-  Complex         sum       = term;
-  constexpr Index max_terms = 4 * std::numeric_limits<Numeric>::max_digits10;
-  for (Index n = 1; n <= max_terms; ++n) {
-    term *= z / static_cast<Numeric>(n + 1);
-    sum  += term;
-    if (std::abs(term) <= std::numeric_limits<Numeric>::epsilon() * std::abs(sum)) break;
-  }
-  return sum;
-}
-
-Complex user_angle_exponential_integral(const Complex k,
-                                        const Numeric reference,
-                                        const Numeric lower,
-                                        const Numeric upper,
-                                        const Numeric observation,
-                                        const Numeric abs_mu,
-                                        const bool    downward) {
-  if (upper <= lower) return 0.0;
-  const auto exponent = [&](const Numeric optical_depth) {
-    const Numeric distance = downward ? observation - optical_depth : optical_depth - observation;
-    return k * (optical_depth - reference) - distance / abs_mu;
-  };
-  const Complex e0      = exponent(lower);
-  const Complex e1      = exponent(upper);
-  const Complex z       = e1 - e0;
-  const Complex average = z.real() > 0.0 ? std::exp(e1) * exprel(-z) : std::exp(e0) * exprel(z);
-  return (upper - lower) / abs_mu * average;
-}
-
-Numeric user_angle_centered_first_moment(const Numeric center,
-                                         const Numeric lower,
-                                         const Numeric upper,
-                                         const Numeric observation,
-                                         const Numeric abs_mu,
-                                         const bool    downward) {
-  if (upper <= lower) return 0.0;
-  const Numeric near        = downward ? upper : lower;
-  const Numeric distance    = downward ? observation - near : near - observation;
-  const Numeric z           = (upper - lower) / abs_mu;
-  const Numeric attenuation = std::exp(-distance / abs_mu);
-  const Numeric l0          = -std::expm1(-z);
-  Numeric       l1;
-  if (std::abs(z) < 1.0e-3) {
-    const Numeric z2 = z * z;
-    l1               = z2 * (0.5 + z * (-1.0 / 3.0 + z * (1.0 / 8.0 + z * (-1.0 / 30.0 + z / 144.0))));
-  } else {
-    l1 = 1.0 - (1.0 + z) * std::exp(-z);
-  }
-  const Numeric direction = downward ? -1.0 : 1.0;
-  return attenuation * ((near - center) * l0 + direction * abs_mu * l1);
-}
 
 void exponential_moments(Vector& moments, const Numeric z) {
   const Index count = static_cast<Index>(moments.size());
@@ -235,37 +136,6 @@ void fill_combined(rtepack::muelmat&       out_cos,
 }  // namespace
 
 namespace vdisort {
-namespace {
-Numeric correction_phi2(const Numeric x) {
-  if (std::abs(x) >= 1.0) return (std::expm1(x) - x) / (x * x);
-  Numeric term = 0.5;
-  Numeric sum  = term;
-  for (Index k = 1; k <= 20; ++k) {
-    term *= x / static_cast<Numeric>(k + 2);
-    sum  += term;
-  }
-  return sum;
-}
-
-Numeric correction_downward_kernel(const Numeric mu,
-                                   const Numeric mu0,
-                                   const Numeric thickness,
-                                   const Numeric lower_value,
-                                   const Numeric upper_value) {
-  const Numeric y = 1.0 / mu - 1.0 / mu0;
-  const Numeric w = thickness * y;
-  if (std::abs(w) < 1.0) return thickness / mu * (w == 0.0 ? 1.0 : -std::expm1(-w) / w) * lower_value;
-  return (lower_value - upper_value) / (mu * y);
-}
-
-Numeric correction_ims_chi(const Numeric tau, const Numeric mu, const Numeric scaled_mu0) {
-  const Numeric x = 1.0 / mu - 1.0 / scaled_mu0;
-  const Numeric z = -tau * x;
-  if (std::abs(z) < 1.0) return tau * tau * std::exp(-tau / scaled_mu0) * correction_phi2(z) / (mu * scaled_mu0);
-  return ((tau - 1.0 / x) * std::exp(-tau / scaled_mu0) + std::exp(-tau / mu) / x) / (mu * scaled_mu0 * x);
-}
-}  // namespace
-
 delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                       physical_tau,
                                                    Vector                              omega,
                                                    Vector                              fraction,
@@ -427,14 +297,13 @@ rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, co
     } else {
       const Numeric at_observation = std::exp(-scaled_tau / mu0_);
       const Numeric at_top         = std::exp((scaled_layer_top - scaled_tau) / abs_mu - scaled_layer_top / mu0_);
-      out[u] += correction_downward_kernel(abs_mu, mu0_, scaled_tau - scaled_layer_top, at_observation, at_top) *
+      out[u] += dc::downward_tms_kernel(abs_mu, mu0_, scaled_tau - scaled_layer_top, at_observation, at_top) *
                 (tms_operator_[layer, phi_index, u] * beam_);
       for (Index l = 0; l < layer; ++l) {
         const Numeric top = l == 0 ? 0.0 : scaled_tau_[l - 1], bottom = scaled_tau_[l];
         const Numeric a = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0_);
         const Numeric b = std::exp((top - scaled_tau) / abs_mu - top / mu0_);
-        out[u] +=
-            correction_downward_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
+        out[u] += dc::downward_tms_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
       }
 
       const Numeric beam_theta = std::acos(-mu0_);
@@ -443,7 +312,7 @@ rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, co
         const Numeric layer_bottom        = physical_tau_[layer];
         const Numeric weight              = (tau - physical_layer_top) / (layer_bottom - physical_layer_top);
         const auto    boundary_correction = [&](const Index boundary) {
-          return ims_scalar_[boundary] * correction_ims_chi(tau, abs_mu, ims_mu0_[boundary]) *
+          return ims_scalar_[boundary] * dc::ims_chi(tau, abs_mu, ims_mu0_[boundary]) *
                  (ims_operator_[boundary, phi_index, u] * beam_);
         };
         out[u] -= (1.0 - weight) * boundary_correction(layer) + weight * boundary_correction(layer + 1);
@@ -549,10 +418,8 @@ main_data::main_data(
       conservative_pair_index(static_cast<std::size_t>(NLayers), std::array<Index, 2>{-1, -1}),
       conservative_pair_kappa(NLayers) {
   ARTS_USER_ERROR_IF(NQuad <= 0 or NQuad % 2 != 0, "NQuad must be a positive even number, got {}", NQuad);
-  Legendre::PositiveDoubleGaussLegendre(mu_arr[Range{0, N}], W);
-  std::transform(mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](const Numeric x) { return -x; });
-  std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](const Numeric x) { return 1.0 / x; });
-  barycentric_weights(half_range_barycentric_weights, mu_arr[Range{0, N}]);
+  dc::initialize_streams(mu_arr, inv_mu_arr, W);
+  dc::barycentric_weights(half_range_barycentric_weights, mu_arr[Range{0, N}]);
 }
 
 main_data::main_data(Index                    NQuad_,
@@ -612,15 +479,13 @@ Complex main_data::homogeneous(const Index   alpha,
                                const Numeric tau) const {
   const auto [negative, positive] = conservative_pair_index[static_cast<std::size_t>(layer)];
   if (alpha == cosine_mode and m == 0 and negative >= 0 and (eigen == negative or eigen == positive)) {
-    const Numeric center = 0.5 * (layer_top(layer) + tau_arr[layer]);
-    const Numeric s      = tau - center;
-    const Numeric kappa  = conservative_pair_kappa[layer];
-    const Numeric z      = kappa * s;
-    const Numeric c      = std::cosh(z);
-    if (eigen == negative)
-      return c * G_collect[alpha, m, layer, state, negative] +
-             kappa * std::sinh(z) * G_collect[alpha, m, layer, state, positive];
-    return s * sinhc(z) * G_collect[alpha, m, layer, state, negative] + c * G_collect[alpha, m, layer, state, positive];
+    const Numeric center  = 0.5 * (layer_top(layer) + tau_arr[layer]);
+    const Numeric s       = tau - center;
+    const Numeric kappa   = conservative_pair_kappa[layer];
+    const auto    basis   = dc::centered_pair(kappa, s);
+    const auto    columns = dc::centered_pair_columns(
+        G_collect[alpha, m, layer, state, negative], G_collect[alpha, m, layer, state, positive], basis);
+    return columns[eigen == negative ? 0 : 1];
   }
 
   const Numeric anchor = top_anchored[anchor_index(alpha, m, layer, eigen)] ? layer_top(layer) : tau_arr[layer];
@@ -636,17 +501,14 @@ Numeric main_data::particular(
   const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau, source_coordinate_offset[layer]);
   const Index   stream     = state / stokes_dimension;
   const Index   stokes     = state % stokes_dimension;
-  for (Index p = Nscoeffs - 1; p >= 0; --p)
-    value = std::fma(value, source_tau, source_collect[alpha, m, layer, stream, p][stokes]);
+  value                    = dc::horner_polynomial(
+      Nscoeffs, source_tau, [&](const Index p) { return source_collect[alpha, m, layer, stream, p][stokes]; });
   if (has_beam_source) value += B_collect[alpha, m, layer, stream][stokes] * std::exp(-tau / mu0);
   return value;
 }
 
 void main_data::check_input_size() const {
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(tau_arr.size()) != NLayers, "tau_arr has size {}, expected {}", tau_arr.size(), NLayers);
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(omega_arr.size()) != NLayers, "omega_arr has size {}, expected {}", omega_arr.size(), NLayers);
+  dc::check_layer_input_sizes(NLayers, tau_arr, omega_arr);
   ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array<Index, 2>{NLayers, Nscoeffs}),
                      "source_poly_coeffs has shape {:B,}, expected [{}, {}] Stokes blocks",
                      source_poly_coeffs.shape(),
@@ -688,14 +550,8 @@ void main_data::check_input_size() const {
 }
 
 void main_data::check_input_value() const {
-  ARTS_USER_ERROR_IF(NLayers <= 0, "VDISORT requires at least one layer");
+  dc::check_layer_input_values(tau_arr, omega_arr, mu0, phi0);
   ARTS_USER_ERROR_IF(NFourier <= 0, "VDISORT requires at least one Fourier mode");
-  ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0, "tau_arr must be strictly positive, got {:B,}", tau_arr);
-  ARTS_USER_ERROR_IF(std::ranges::any_of(omega_arr, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
-                     "omega_arr must be in [0, 1], got {:B,}",
-                     omega_arr);
-  ARTS_USER_ERROR_IF(mu0 < 0.0 or mu0 > 1.0, "mu0 must be in [0, 1], got {}", mu0);
-  ARTS_USER_ERROR_IF(phi0 < 0.0 or phi0 >= Constant::two_pi, "phi0 must be in [0, 2*pi), got {}", phi0);
   ARTS_USER_ERROR_IF(beam_stokes[0] < 0.0, "The beam I component must be non-negative, got {}", beam_stokes[0]);
   const Numeric polarized_norm = std::hypot(beam_stokes[1], beam_stokes[2], beam_stokes[3]);
   ARTS_USER_ERROR_IF(polarized_norm > beam_stokes[0] * (1.0 + 1e-12),
@@ -706,11 +562,7 @@ void main_data::check_input_value() const {
   ARTS_USER_ERROR_IF(NBDRF > NFourier, "There are {} BRDF modes but only {} Fourier modes", NBDRF, NFourier);
 }
 
-Index main_data::tau_index(const Numeric tau) const {
-  ARTS_USER_ERROR_IF(tau < 0.0 or tau > tau_arr.back(), "tau ({}) must be in [0, {}]", tau, tau_arr.back());
-  const Index layer = std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
-  return std::min(layer, NLayers - 1);
-}
+Index main_data::tau_index(const Numeric tau) const { return dc::layer_index(tau_arr, tau); }
 
 void main_data::diagonalize() {
   ARTS_TIME_REPORT
@@ -812,7 +664,7 @@ void main_data::diagonalize() {
           }
           const bool normalized_conservative =
               conservation_residual <= 1.0e-10 * conservation_scale and energy_residual <= 1.0e-10 * energy_scale;
-          const bool requested_stable_pair = omega_arr[l] >= 1.0 - 1.0e-8 or measured_kappa <= 1.0e-4;
+          const bool requested_stable_pair = dc::use_centered_pair(omega_arr[l], measured_kappa);
           if (normalized_conservative and requested_stable_pair) {
             Numeric kappa = omega_arr[l] == 1.0 ? 0.0 : measured_kappa;
 
@@ -1225,16 +1077,14 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
 
       const auto [negative, positive] = conservative_pair_index[static_cast<std::size_t>(layer)];
       if (alpha == cosine_mode and m == 0 and negative >= 0) {
-        const Numeric center      = 0.5 * (layer_top(layer) + tau_arr[layer]);
-        const Numeric s           = tau - center;
-        const Numeric kappa       = conservative_pair_kappa[layer];
-        const Numeric z           = kappa * s;
-        const Numeric c           = std::cosh(z);
-        const Numeric sz          = std::sinh(z);
-        const Complex c0          = GC_collect[alpha, m, layer, negative];
-        const Complex c1          = GC_collect[alpha, m, layer, positive];
-        modal_amplitude[negative] = c0 * c + c1 * s * sinhc(z);
-        modal_amplitude[positive] = c0 * kappa * sz + c1 * c;
+        const Numeric center     = 0.5 * (layer_top(layer) + tau_arr[layer]);
+        const Numeric s          = tau - center;
+        const Numeric kappa      = conservative_pair_kappa[layer];
+        const auto    basis      = dc::centered_pair(kappa, s);
+        const auto    amplitudes = dc::centered_pair_amplitudes(
+            GC_collect[alpha, m, layer, negative], GC_collect[alpha, m, layer, positive], basis);
+        modal_amplitude[negative] = amplitudes[0];
+        modal_amplitude[positive] = amplitudes[1];
       }
 
       for (Index state = 0; state < NState; ++state) {
@@ -1328,16 +1178,10 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                      NLayers,
                      nuser);
 
-  Vector     interpolation_values(N);
   const auto interpolate_boundary =
       [&](const rtepack::stokvec_tensor3& boundary, const Index alpha, const Index m, const Numeric abs_mu) {
-        rtepack::stokvec result{};
-        for (Index s = 0; s < stokes_dimension; ++s) {
-          for (Index i = 0; i < N; ++i) interpolation_values[i] = boundary[alpha, m, i][s];
-          result[s] = barycentric_interpolate(
-              mu_arr[Range{0, N}], half_range_barycentric_weights, interpolation_values, abs_mu);
-        }
-        return result;
+        return dc::barycentric_interpolate(
+            mu_arr[Range{0, N}], half_range_barycentric_weights, boundary[alpha, m], abs_mu);
       };
 
   modes.resize(ntau, nuser, 2 * NFourier, stokes_dimension);
@@ -1414,7 +1258,7 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
             for (Index t = 0; t < ntau; ++t) {
               const auto [lower, upper] = limits(layer, tau[t], downward);
               if (upper <= lower) continue;
-              const Complex integral = user_angle_exponential_integral(
+              const Complex integral = dc::user_angle_exponential_integral(
                   K_collect[alpha, m, layer, eigen], anchor, lower, upper, tau[t], abs_mu, downward);
               for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += coefficient * source[s] * integral;
             }
@@ -1444,21 +1288,8 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
               const auto [lower, upper] = limits(layer, tau[t], downward);
               if (upper <= lower) continue;
 
-              Complex       integral_c;
-              Complex       integral_s;
-              const Numeric max_s = std::max(std::abs(lower - center), std::abs(upper - center));
-              if (std::abs(kappa) * max_s < 1.0e-5) {
-                integral_c =
-                    user_angle_exponential_integral(Complex{0.0}, center, lower, upper, tau[t], abs_mu, downward);
-                integral_s = user_angle_centered_first_moment(center, lower, upper, tau[t], abs_mu, downward);
-              } else {
-                const Complex plus =
-                    user_angle_exponential_integral(kappa, center, lower, upper, tau[t], abs_mu, downward);
-                const Complex minus =
-                    user_angle_exponential_integral(-kappa, center, lower, upper, tau[t], abs_mu, downward);
-                integral_c = 0.5 * (plus + minus);
-                integral_s = (plus - minus) / (2.0 * kappa);
-              }
+              const auto [integral_c, integral_s] =
+                  dc::centered_pair_integrals(kappa, center, lower, upper, tau[t], abs_mu, downward);
               for (Index s = 0; s < stokes_dimension; ++s) {
                 const Complex ac       = source_x[s] * c0 + source_r[s] * c1;
                 const Complex as       = source_x[s] * c1 + kappa * kappa * source_r[s] * c0;
@@ -1478,8 +1309,8 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
             for (Index t = 0; t < ntau; ++t) {
               const auto [lower, upper] = limits(layer, tau[t], downward);
               if (upper <= lower) continue;
-              const Complex integral =
-                  user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, tau[t], abs_mu, downward);
+              const Numeric integral =
+                  dc::user_angle_exponential_integral(-1.0 / mu0, 0.0, lower, upper, tau[t], abs_mu, downward);
               for (Index s = 0; s < stokes_dimension; ++s) modes[t, iu, mode, s] += source[s] * integral;
             }
           }
@@ -1585,23 +1416,11 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   }
 }
 
-Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
-  u0_data field;
-  u0(field, tau);
-  data.u0        = std::move(field.u0);
-  Numeric result = 0.0;
-  for (Index i = 0; i < N; ++i) result += W[i] * mu_arr[i] * data.u0[i].I();
-  return Constant::two_pi * result;
-}
+Numeric main_data::flux_up(flux_data& data, const Numeric tau) const { return flux(data, tau).up; }
 
 std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric tau) const {
-  u0_data field;
-  u0(field, tau);
-  data.u0         = std::move(field.u0);
-  Numeric diffuse = 0.0;
-  for (Index i = 0; i < N; ++i) diffuse += W[i] * mu_arr[i] * data.u0[N + i].I();
-  const Numeric direct = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau / mu0) : 0.0;
-  return {Constant::two_pi * diffuse, direct};
+  const auto result = flux(data, tau);
+  return {result.down_diffuse, result.down_direct};
 }
 
 flux_values main_data::flux(flux_data& data, const Numeric tau) const {
@@ -1609,26 +1428,19 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   u0(field, tau);
   data.u0 = std::move(field.u0);
 
-  Numeric up = 0.0, down = 0.0, mean_intensity = 0.0;
-  for (Index i = 0; i < N; ++i) {
-    const Numeric upward    = data.u0[i].I();
-    const Numeric downward  = data.u0[N + i].I();
-    up                     += W[i] * mu_arr[i] * upward;
-    down                   += W[i] * mu_arr[i] * downward;
-    mean_intensity         += 0.5 * W[i] * (upward + downward);
-  }
+  const auto diffuse = dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return data.u0[i].I(); });
 
-  const Numeric direct = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau / mu0) : 0.0;
-  if (has_beam_source) mean_intensity += beam_stokes.I() * std::exp(-tau / mu0) / (4.0 * Constant::pi);
+  const Numeric direct         = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau) : 0.0;
+  Numeric       mean_intensity = diffuse.mean_intensity;
+  if (has_beam_source) mean_intensity += dc::direct_beam_radiance(beam_stokes.I(), mu0, tau) / (4.0 * Constant::pi);
 
   const Index   layer      = tau_index(tau);
   const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau, source_coordinate_offset[layer]);
-  Numeric       source     = 0.0;
-  for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient)
-    source = std::fma(source, source_tau, source_poly_coeffs[layer, coefficient].I());
+  const Numeric source     = dc::horner_polynomial(
+      Nscoeffs, source_tau, [&](const Index coefficient) { return source_poly_coeffs[layer, coefficient].I(); });
 
-  return {.up           = Constant::two_pi * up,
-          .down_diffuse = Constant::two_pi * down,
+  return {.up           = Constant::two_pi * diffuse.upward,
+          .down_diffuse = Constant::two_pi * diffuse.downward,
           .down_direct  = direct,
           .dfdt         = 4.0 * Constant::pi * (1.0 - omega_arr[layer]) * (mean_intensity - source)};
 }
@@ -1678,15 +1490,11 @@ void main_data::gridded_flux(VectorView up, VectorView down, VectorView down_dir
                      "All gridded flux outputs must have size {}",
                      NLayers);
   for (Index l = 0; l < NLayers; ++l) {
-    Numeric upward   = 0.0;
-    Numeric downward = 0.0;
-    for (Index i = 0; i < N; ++i) {
-      upward   += W[i] * mu_arr[i] * um[l, cosine_mode, 0, i].I();
-      downward += W[i] * mu_arr[i] * um[l, cosine_mode, 0, N + i].I();
-    }
-    up[l]          = Constant::two_pi * upward;
-    down[l]        = Constant::two_pi * downward;
-    down_direct[l] = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau_arr[l] / mu0) : 0.0;
+    const auto diffuse =
+        dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return um[l, cosine_mode, 0, i].I(); });
+    up[l]          = Constant::two_pi * diffuse.upward;
+    down[l]        = Constant::two_pi * diffuse.downward;
+    down_direct[l] = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau_arr[l]) : 0.0;
   }
 }
 
@@ -1743,15 +1551,11 @@ void main_data::ungridded_flux(VectorView up, VectorView down, VectorView down_d
   Matrix combined(2 * NFourier, NState);
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
     combined_field(combined, tau[t]);
-    Numeric upward   = 0.0;
-    Numeric downward = 0.0;
-    for (Index i = 0; i < N; ++i) {
-      upward   += W[i] * mu_arr[i] * combined[0, state_index(i, 0)];
-      downward += W[i] * mu_arr[i] * combined[0, state_index(N + i, 0)];
-    }
-    up[t]          = Constant::two_pi * upward;
-    down[t]        = Constant::two_pi * downward;
-    down_direct[t] = has_beam_source ? mu0 * beam_stokes.I() * std::exp(-tau[t] / mu0) : 0.0;
+    const auto diffuse =
+        dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return combined[0, state_index(i, 0)]; });
+    up[t]          = Constant::two_pi * diffuse.upward;
+    down[t]        = Constant::two_pi * diffuse.downward;
+    down_direct[t] = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau[t]) : 0.0;
   }
 }
 
