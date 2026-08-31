@@ -492,6 +492,30 @@ supplied as ``[B, 0, 0, 0]``.
           "tau"_a,
           "Compute Stokes-I upward, downward-diffuse, and downward-direct flux")
       .def(
+          "u_user",
+          [](vdisort::main_data&                                   dis,
+             const AscendingGrid&                                  tau,
+             const Vector&                                         phi,
+             const Vector&                                         mu,
+             const vdisort::phase_matrix_data&                     phase_matrix,
+             const std::optional<vdisort::beam_phase_matrix_data>& beam_phase_matrix) {
+            rtepack::stokvec_tensor3 out(tau.size(), phi.size(), mu.size());
+            dis.ungridded_u_user(
+                out, tau, phi, mu, phase_matrix, beam_phase_matrix.value_or(vdisort::beam_phase_matrix_data{}));
+            return out;
+          },
+          "tau"_a,
+          "phi"_a,
+          "mu"_a,
+          "phase_matrix"_a,
+          "beam_phase_matrix"_a.none() = py::none(),
+          R"(Compute Stokes radiance at arbitrary nonzero polar-angle cosines.
+
+The phase arrays contain the combined cosine/sine Mueller coefficients sampled
+at the requested outgoing directions.  Their numerical shapes are
+``[2, NFourier, NLayers, NUser, NQuad, 4, 4]`` and
+``[2, NFourier, NLayers, NUser, 4, 4]`` for the direct beam.)")
+      .def(
           "pydisort_u",
           [](vdisort::main_data& dis, Vector tau_, const Vector& phi) {
             std::vector<Index> sorting(tau_.size());

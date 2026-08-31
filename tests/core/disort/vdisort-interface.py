@@ -24,6 +24,19 @@ def _fresnel_amplitudes(mu, refractive_index):
     return vertical, horizontal
 
 
+def _rayleigh_phase_matrix(cos_scattering_angle):
+    """Normalized Rayleigh Mueller matrix in the scattering-plane basis."""
+    cosine = np.asarray(cos_scattering_angle)
+    phase = np.zeros(cosine.shape + (4, 4))
+    phase[..., 0, 0] = 0.75 * (1.0 + cosine**2)
+    phase[..., 0, 1] = -0.75 * (1.0 - cosine**2)
+    phase[..., 1, 0] = phase[..., 0, 1]
+    phase[..., 1, 1] = phase[..., 0, 0]
+    phase[..., 2, 2] = 1.5 * cosine
+    phase[..., 3, 3] = 1.5 * cosine
+    return phase
+
+
 def test_phase_helpers():
     cosine = np.zeros((1, 1, 2, 2, 4, 4))
     sine = np.zeros_like(cosine)
@@ -120,7 +133,7 @@ def test_fresnel_brewster_angle():
                     continue
                 rv, rh = _fresnel_amplitudes(incoming, refractive_index)
                 reflection = np.asarray(arts.rtepack.fresnel_reflectance(rv, rh))
-                out[4 * i: 4 * (i + 1), 4 * j: 4 * (j + 1)] = reflection / (
+                out[4 * i : 4 * (i + 1), 4 * j : 4 * (j + 1)] = reflection / (
                     np.pi * weights[j] * incoming
                 )
         return out
@@ -234,8 +247,125 @@ def test_fresnel_brewster_angle():
         plt.show()
 
 
+def test_optically_thin_rayleigh_atmosphere():
+    """Recover the analytical single-Rayleigh-scattering Stokes field."""
+    depth = 1.0e-8
+    nquad = 4
+    nfourier = 1
+
+    # A vertical beam makes the Rayleigh field axisymmetric.  Diffuse
+    # rescattering is omitted from the transport phase matrix; its contribution
+    # is second order in this optical depth and is outside the tested
+    # single-scattering limit.
+    phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
+    quadrature_beam_phase = np.zeros((2, nfourier, 1, nquad, 4, 4))
+    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
+    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    signed_mu = np.concatenate((positive_mu, -positive_mu))
+    quadrature_rayleigh = _rayleigh_phase_matrix(-signed_mu)
+    quadrature_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, :2, :2] = (
+        quadrature_rayleigh[:, :2, :2]
+    )
+    quadrature_beam_phase[arts.vdisort.sine_mode, 0, 0, :, 2:, 2:] = (
+        quadrature_rayleigh[:, 2:, 2:]
+    )
+    model = arts.cppvdisort(
+        tau_arr=np.array([depth]),
+        omega_arr=np.array([1.0]),
+        NQuad=nquad,
+        phase_matrix=phase,
+        mu0=1.0,
+        beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
+        phi0=0.0,
+        beam_phase_matrix=quadrature_beam_phase,
+    )
+
+    # Positive mu observes the upward field at the top of the atmosphere.  For
+    # a downward vertical beam, cos(scattering angle) = -mu.  The smallest mu
+    # samples 90 degrees to within 0.006 degrees while remaining a valid ray.
+    mu = np.geomspace(1.0e-4, 1.0, 80)
+    rayleigh = _rayleigh_phase_matrix(-mu)
+    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
+    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
+    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, :2, :2] = rayleigh[:, :2, :2]
+    user_beam_phase[arts.vdisort.sine_mode, 0, 0, :, 2:, 2:] = rayleigh[:, 2:, 2:]
+
+    stokes = np.asarray(
+        model.u_user(
+            tau=np.array([0.0]),
+            phi=np.array([0.0]),
+            mu=mu,
+            phase_matrix=user_phase,
+            beam_phase_matrix=user_beam_phase,
+        )
+    )[0, 0]
+
+    # Along an upward ray at the top boundary, the attenuated direct-beam
+    # source integrates to [1-exp(-depth*(1+1/mu))]/(1+mu).
+    ray_integral = -np.expm1(-depth * (1.0 + 1.0 / mu)) / (1.0 + mu)
+    expected = rayleigh[:, :, 0] * ray_integral[:, None] / (4.0 * np.pi)
+    np.testing.assert_allclose(stokes, expected, rtol=2.0e-8, atol=2.0e-15)
+
+    linear_polarization = np.hypot(stokes[:, 1], stokes[:, 2]) / stokes[:, 0]
+    expected_polarization = (1.0 - mu**2) / (1.0 + mu**2)
+    np.testing.assert_allclose(
+        linear_polarization, expected_polarization, rtol=2.0e-8, atol=2.0e-12
+    )
+    assert linear_polarization[0] > 1.0 - 3.0e-8
+    np.testing.assert_allclose(stokes[:, 2:], 0.0, atol=2.0e-15)
+
+    if "ARTS_HEADLESS" not in os.environ:
+        import matplotlib.pyplot as plt
+
+        scattering_angle = np.rad2deg(np.arccos(-mu))
+        _, (stokes_plot, polarization_plot) = plt.subplots(
+            1, 2, figsize=(11, 4), constrained_layout=True
+        )
+        for component, label in enumerate("IQUV"):
+            stokes_plot.plot(
+                scattering_angle, stokes[:, component], label=f"VDISORT {label}"
+            )
+            stokes_plot.plot(
+                scattering_angle,
+                expected[:, component],
+                "--",
+                label=f"Analytical {label}",
+            )
+        stokes_plot.set(
+            xlabel="Scattering angle [degree]",
+            ylabel="Radiance",
+            title="Optically thin Rayleigh Stokes field",
+            xlim=(90.0, 180.0),
+        )
+        stokes_plot.grid(True, alpha=0.25)
+        stokes_plot.legend(ncol=2)
+
+        polarization_plot.plot(
+            scattering_angle,
+            linear_polarization,
+            label="VDISORT",
+        )
+        polarization_plot.plot(
+            scattering_angle,
+            expected_polarization,
+            "--",
+            label="Analytical Rayleigh",
+        )
+        polarization_plot.set(
+            xlabel="Scattering angle [degree]",
+            ylabel="Degree of linear polarization",
+            title="Rayleigh polarization",
+            xlim=(90.0, 180.0),
+            ylim=(-0.02, 1.02),
+        )
+        polarization_plot.grid(True, alpha=0.25)
+        polarization_plot.legend()
+        plt.show()
+
+
 if __name__ == "__main__":
     test_phase_helpers()
     test_bdrf()
     test_absorbing_stokes_field()
     test_fresnel_brewster_angle()
+    test_optically_thin_rayleigh_atmosphere()
