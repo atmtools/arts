@@ -16,12 +16,6 @@
 namespace {
 [[nodiscard]] bool polarized_source(const rtepack::stokvec& stokes) { return stokes.I() > 0.0; }
 
-rtepack::stokvec to_stokvec(const ConstVectorView block) {
-  ARTS_USER_ERROR_IF(
-      block.size() != vdisort::stokes_dimension, "A Stokes vector must have four components, got {}", block.size());
-  return {block[0], block[1], block[2], block[3]};
-}
-
 void barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
   const Index n = static_cast<Index>(nodes.size());
   weights.resize(n);
@@ -156,28 +150,6 @@ rtepack::stokvec user_angle_polynomial_integral(const rtepack::stokvec_vector& c
   return result;
 }
 
-rtepack::stokvec_tensor3 to_boundary_data(const Tensor4& in) {
-  if (in.size() == 0) return {};
-  const auto [nalpha, nfourier, nstream, nstokes] = in.shape();
-  ARTS_USER_ERROR_IF(
-      nstokes != vdisort::stokes_dimension, "The boundary Stokes dimension must be 4, got {:B,}", in.shape());
-  rtepack::stokvec_tensor3 out(nalpha, nfourier, nstream);
-  for (Index a = 0; a < nalpha; ++a)
-    for (Index m = 0; m < nfourier; ++m)
-      for (Index i = 0; i < nstream; ++i) out[a, m, i] = to_stokvec(in[a, m, i]);
-  return out;
-}
-
-rtepack::stokvec_matrix to_source_poly_data(const Tensor3& in) {
-  const auto [nlayers, ncoeffs, nstokes] = in.shape();
-  ARTS_USER_ERROR_IF(
-      nstokes != vdisort::stokes_dimension, "The source Stokes dimension must be 4, got {:B,}", in.shape());
-  rtepack::stokvec_matrix out(nlayers, ncoeffs);
-  for (Index l = 0; l < nlayers; ++l)
-    for (Index p = 0; p < ncoeffs; ++p) out[l, p] = to_stokvec(in[l, p]);
-  return out;
-}
-
 void fill_combined(rtepack::muelmat&       out_cos,
                    rtepack::muelmat&       out_sin,
                    const rtepack::muelmat& ordinary_cos,
@@ -231,42 +203,6 @@ void fill_combined(rtepack::muelmat&       out_cos,
   out_sin[3, 3] = ordinary_cos[3, 3];
 }
 
-rtepack::muelmat to_muelmat(const ConstMatrixView block) {
-  assert(block.nrows() == vdisort::stokes_dimension and block.ncols() == vdisort::stokes_dimension);
-  rtepack::muelmat out{0.0};
-  for (Index i = 0; i < vdisort::stokes_dimension; ++i)
-    for (Index j = 0; j < vdisort::stokes_dimension; ++j) out[i, j] = block[i, j];
-  return out;
-}
-
-vdisort::phase_matrix_data to_phase_matrix_data(const Tensor7& in) {
-  if (in.size() == 0) return {};
-  const auto [nalpha, nfourier, nlayers, nout, nin, ns1, ns2] = in.shape();
-  ARTS_USER_ERROR_IF(ns1 != vdisort::stokes_dimension or ns2 != vdisort::stokes_dimension,
-                     "The last two phase-matrix dimensions must both be 4, got {:B,}",
-                     in.shape());
-  vdisort::phase_matrix_data out(nalpha, nfourier, nlayers, nout, nin, rtepack::muelmat{0.0});
-  for (Index a = 0; a < nalpha; ++a)
-    for (Index m = 0; m < nfourier; ++m)
-      for (Index l = 0; l < nlayers; ++l)
-        for (Index i = 0; i < nout; ++i)
-          for (Index j = 0; j < nin; ++j) out[a, m, l, i, j] = to_muelmat(in[a, m, l, i, j]);
-  return out;
-}
-
-vdisort::beam_phase_matrix_data to_beam_phase_matrix_data(const Tensor6& in) {
-  if (in.size() == 0) return {};
-  const auto [nalpha, nfourier, nlayers, nout, ns1, ns2] = in.shape();
-  ARTS_USER_ERROR_IF(ns1 != vdisort::stokes_dimension or ns2 != vdisort::stokes_dimension,
-                     "The last two beam phase-matrix dimensions must both be 4, got {:B,}",
-                     in.shape());
-  vdisort::beam_phase_matrix_data out(nalpha, nfourier, nlayers, nout, rtepack::muelmat{0.0});
-  for (Index a = 0; a < nalpha; ++a)
-    for (Index m = 0; m < nfourier; ++m)
-      for (Index l = 0; l < nlayers; ++l)
-        for (Index i = 0; i < nout; ++i) out[a, m, l, i] = to_muelmat(in[a, m, l, i]);
-  return out;
-}
 }  // namespace
 
 namespace vdisort {
@@ -532,36 +468,6 @@ phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
   return out;
 }
 
-Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine) {
-  ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
-                     "Cosine and sine phase matrices have different shapes: {:B,} and {:B,}",
-                     cosine.shape(),
-                     sine.shape());
-  const auto [nfourier, nlayers, nout, nin, ns1, ns2] = cosine.shape();
-  ARTS_USER_ERROR_IF(ns1 != stokes_dimension or ns2 != stokes_dimension,
-                     "The last two phase-matrix dimensions must both be 4, got {:B,}",
-                     cosine.shape());
-  rtepack::muelmat_tensor4 c(nfourier, nlayers, nout, nin), s(nfourier, nlayers, nout, nin);
-  for (Index m = 0; m < nfourier; ++m)
-    for (Index l = 0; l < nlayers; ++l)
-      for (Index i = 0; i < nout; ++i)
-        for (Index j = 0; j < nin; ++j) {
-          c[m, l, i, j] = to_muelmat(cosine[m, l, i, j]);
-          s[m, l, i, j] = to_muelmat(sine[m, l, i, j]);
-        }
-  const auto combined = combine_phase_matrices(c, s);
-  Tensor7    out(2, nfourier, nlayers, nout, nin, stokes_dimension, stokes_dimension, 0.0);
-  for (Index a = 0; a < 2; ++a)
-    for (Index m = 0; m < nfourier; ++m)
-      for (Index l = 0; l < nlayers; ++l)
-        for (Index i = 0; i < nout; ++i)
-          for (Index j = 0; j < nin; ++j)
-            for (Index so = 0; so < stokes_dimension; ++so)
-              for (Index si = 0; si < stokes_dimension; ++si)
-                out[a, m, l, i, j, so, si] = combined[a, m, l, i, j][so, si];
-  return out;
-}
-
 beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                    const rtepack::muelmat_tensor3& sine) {
   ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
@@ -574,33 +480,6 @@ beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor
     for (Index l = 0; l < nlayers; ++l)
       for (Index i = 0; i < nout; ++i)
         fill_combined(out[cosine_mode, m, l, i], out[sine_mode, m, l, i], cosine[m, l, i], sine[m, l, i], m);
-  return out;
-}
-
-Tensor6 combine_beam_phase_matrices(const Tensor5& cosine, const Tensor5& sine) {
-  ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
-                     "Cosine and sine beam phase matrices have different shapes: {:B,} and {:B,}",
-                     cosine.shape(),
-                     sine.shape());
-  const auto [nfourier, nlayers, nout, ns1, ns2] = cosine.shape();
-  ARTS_USER_ERROR_IF(ns1 != stokes_dimension or ns2 != stokes_dimension,
-                     "The last two beam phase-matrix dimensions must both be 4, got {:B,}",
-                     cosine.shape());
-  rtepack::muelmat_tensor3 c(nfourier, nlayers, nout), s(nfourier, nlayers, nout);
-  for (Index m = 0; m < nfourier; ++m)
-    for (Index l = 0; l < nlayers; ++l)
-      for (Index i = 0; i < nout; ++i) {
-        c[m, l, i] = to_muelmat(cosine[m, l, i]);
-        s[m, l, i] = to_muelmat(sine[m, l, i]);
-      }
-  const auto combined = combine_beam_phase_matrices(c, s);
-  Tensor6    out(2, nfourier, nlayers, nout, stokes_dimension, stokes_dimension, 0.0);
-  for (Index a = 0; a < 2; ++a)
-    for (Index m = 0; m < nfourier; ++m)
-      for (Index l = 0; l < nlayers; ++l)
-        for (Index i = 0; i < nout; ++i)
-          for (Index so = 0; so < stokes_dimension; ++so)
-            for (Index si = 0; si < stokes_dimension; ++si) out[a, m, l, i, so, si] = combined[a, m, l, i][so, si];
   return out;
 }
 
@@ -644,37 +523,6 @@ main_data::main_data(
   std::transform(mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](const Numeric x) { return 1.0 / x; });
   barycentric_weights(half_range_barycentric_weights, mu_arr[Range{0, N}]);
 }
-
-main_data::main_data(Index             NQuad_,
-                     Index             NFourier_,
-                     AscendingGrid     tau_arr_,
-                     Vector            omega_arr_,
-                     Tensor7           phase_matrix_,
-                     Tensor4           boundary_up_,
-                     Tensor4           boundary_down_,
-                     Tensor3           source_poly_coeffs_,
-                     std::vector<BDRF> brdf_fourier_modes_,
-                     Numeric           mu0_,
-                     Vector            beam_stokes_,
-                     Numeric           phi0_,
-                     Tensor6           beam_phase_matrix_,
-                     Vector            source_coordinate_scale_,
-                     Vector            source_coordinate_offset_)
-    : main_data(NQuad_,
-                NFourier_,
-                std::move(tau_arr_),
-                std::move(omega_arr_),
-                to_phase_matrix_data(phase_matrix_),
-                to_boundary_data(boundary_up_),
-                to_boundary_data(boundary_down_),
-                to_source_poly_data(source_poly_coeffs_),
-                std::move(brdf_fourier_modes_),
-                mu0_,
-                to_stokvec(beam_stokes_),
-                phi0_,
-                to_beam_phase_matrix_data(beam_phase_matrix_),
-                std::move(source_coordinate_scale_),
-                std::move(source_coordinate_offset_)) {}
 
 main_data::main_data(Index                    NQuad_,
                      Index                    NFourier_,

@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "disort.h"
+#include "test-adapter.h"
 
 namespace {
 constexpr Numeric tolerance = 2e-9;
@@ -55,25 +56,29 @@ vdisort::main_data make_vdisort(const Index                nquad,
                                 Tensor7                    phase,
                                 Tensor4                    up,
                                 Tensor4                    down,
-                                Tensor3                    source     = {},
-                                Vector                     beam       = Vector(4, 0.0),
-                                Tensor6                    beam_phase = {},
-                                std::vector<vdisort::BDRF> brdf       = {}) {
+                                Tensor3                    source        = {},
+                                Vector                     beam          = Vector(4, 0.0),
+                                Tensor6                    beam_phase    = {},
+                                std::vector<vdisort::BDRF> brdf          = {},
+                                Vector                     source_scale  = {},
+                                Vector                     source_offset = {}) {
   if (source.size() == 0) source.resize(tau.size(), 0, 4);
   const Index nfourier = phase.shape()[1];
-  return vdisort::main_data(nquad,
-                            nfourier,
-                            std::move(tau),
-                            std::move(omega),
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            std::move(source),
-                            std::move(brdf),
-                            0.5,
-                            std::move(beam),
-                            0.0,
-                            std::move(beam_phase));
+  return vdisort_test::make_solver(nquad,
+                                   nfourier,
+                                   std::move(tau),
+                                   std::move(omega),
+                                   std::move(phase),
+                                   std::move(up),
+                                   std::move(down),
+                                   std::move(source),
+                                   std::move(brdf),
+                                   0.5,
+                                   std::move(beam),
+                                   0.0,
+                                   std::move(beam_phase),
+                                   std::move(source_scale),
+                                   std::move(source_offset));
 }
 
 vdisort::main_data make_native_two_stream(const Numeric              depth,
@@ -385,21 +390,18 @@ void test_affine_source_coordinate() {
     Tensor3 source(1, 2, 4, 0.0);
     source[0, 0, 0] = constant_coefficient;
     source[0, 1, 0] = linear_coefficient;
-    return vdisort::main_data(nquad,
-                              modes,
-                              AscendingGrid{depth},
-                              Vector{omega},
-                              std::move(phase),
-                              std::move(up),
-                              std::move(down),
-                              std::move(source),
-                              {},
-                              0.5,
-                              Vector(4, 0.0),
-                              0.0,
-                              {},
-                              Vector{scale},
-                              Vector{offset});
+    return make_vdisort(nquad,
+                        AscendingGrid{depth},
+                        Vector{omega},
+                        std::move(phase),
+                        std::move(up),
+                        std::move(down),
+                        std::move(source),
+                        Vector(4, 0.0),
+                        {},
+                        {},
+                        Vector{scale},
+                        Vector{offset});
   };
 
   auto physical = make_model(1.0, 0.0, intercept, slope);
@@ -662,13 +664,6 @@ void test_bulk_quadrature_equivalence() {
 }
 
 void test_combined_matrix_transform() {
-  Tensor6 cosine(2, 1, 1, 1, 4, 4, 0.0), sine(2, 1, 1, 1, 4, 4, 0.0);
-  cosine[1, 0, 0, 0, 0, 2] = 3.0;
-  sine[1, 0, 0, 0, 0, 2]   = 5.0;
-  const Tensor7 combined   = vdisort::combine_phase_matrices(cosine, sine);
-  expect_close(combined[vdisort::cosine_mode, 1, 0, 0, 0, 0, 2], -5.0, "Eq. 81 cosine sign");
-  expect_close(combined[vdisort::sine_mode, 1, 0, 0, 0, 0, 2], 5.0, "Eq. 81 sine sign");
-
   rtepack::muelmat_tensor4 native_cosine(2, 1, 1, 1, rtepack::muelmat{0.0});
   rtepack::muelmat_tensor4 native_sine(2, 1, 1, 1, rtepack::muelmat{0.0});
   native_cosine[1, 0, 0, 0][0, 2] = 3.0;

@@ -157,16 +157,8 @@ struct BDRF {
 };
 // VDISORT CHANGE END
 
-/** Convert numeric ordinary phase-matrix cosine/sine Fourier coefficients to the
+/** Convert ordinary phase-matrix cosine/sine Fourier coefficients to the
  * combined VDISORT matrices of Lin et al. (2022), Eqs. (81)-(82).
- *
- * Inputs have shape [NFourier, NLayers, NQuad, NQuad, 4, 4].  The result has
- * shape [2, NFourier, NLayers, NQuad, NQuad, 4, 4].  This transform assumes
- * randomly oriented particles and therefore the block structure in Eq. (75).
- */
-[[nodiscard]] Tensor7 combine_phase_matrices(const Tensor6& cosine, const Tensor6& sine);
-
-/** Native rtepack overload of combine_phase_matrices.
  *
  * Inputs have shape [NFourier, NLayers, NQuad, NQuad] of Mueller blocks and
  * the result has shape [2, NFourier, NLayers, NQuad, NQuad].
@@ -174,15 +166,7 @@ struct BDRF {
 [[nodiscard]] phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
                                                        const rtepack::muelmat_tensor4& sine);
 
-/** Beam-angle counterpart of combine_phase_matrices.
- *
- * Inputs have shape [NFourier, NLayers, NQuad, 4, 4], with the incident
- * direction fixed at -mu0.  The result has shape
- * [2, NFourier, NLayers, NQuad, 4, 4].
- */
-[[nodiscard]] Tensor6 combine_beam_phase_matrices(const Tensor5& cosine, const Tensor5& sine);
-
-/** Native rtepack overload of combine_beam_phase_matrices. */
+/** Beam-angle counterpart of combine_phase_matrices. */
 [[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                                  const rtepack::muelmat_tensor3& sine);
 
@@ -260,24 +244,7 @@ class main_data {
 
   main_data(Index NLayers, Index NQuad, Index NFourier, Index Nscoeffs, Index NBDRF);
 
-  // VDISORT CHANGE BEGIN: compatibility constructor for numeric 4x4 trailing dimensions.
-  main_data(Index             NQuad,
-            Index             NFourier,
-            AscendingGrid     tau_arr,
-            Vector            omega_arr,
-            Tensor7           phase_matrix,
-            Tensor4           boundary_up,
-            Tensor4           boundary_down,
-            Tensor3           source_poly_coeffs,
-            std::vector<BDRF> brdf_fourier_modes,
-            Numeric           mu0,
-            Vector            beam_stokes,
-            Numeric           phi0,
-            Tensor6           beam_phase_matrix        = {},
-            Vector            source_coordinate_scale  = {},
-            Vector            source_coordinate_offset = {});
-
-  // Native constructor: phase operators are stored as rtepack Mueller blocks.
+  // VDISORT CHANGE BEGIN: phase operators are stored as rtepack Mueller blocks.
   main_data(Index                    NQuad,
             Index                    NFourier,
             AscendingGrid            tau_arr,

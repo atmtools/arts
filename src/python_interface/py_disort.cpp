@@ -163,18 +163,16 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
   vvecs.doc() = "An array of polarized BDRF Fourier modes";
   generic_interface(vvecs);
 
-  vdisort_nm.def(
-      "combine_phase_matrices",
-      [](const Tensor6& cosine, const Tensor6& sine) { return vdisort::combine_phase_matrices(cosine, sine); },
-      "cosine"_a,
-      "sine"_a,
-      "Convert ordinary cosine/sine phase coefficients to the combined VDISORT representation.");
-  vdisort_nm.def(
-      "combine_beam_phase_matrices",
-      [](const Tensor5& cosine, const Tensor5& sine) { return vdisort::combine_beam_phase_matrices(cosine, sine); },
-      "cosine"_a,
-      "sine"_a,
-      "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def("combine_phase_matrices",
+                 &vdisort::combine_phase_matrices,
+                 "cosine"_a,
+                 "sine"_a,
+                 "Convert ordinary cosine/sine phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def("combine_beam_phase_matrices",
+                 &vdisort::combine_beam_phase_matrices,
+                 "cosine"_a,
+                 "sine"_a,
+                 "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
   // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
@@ -423,22 +421,22 @@ supplied as ``[B, 0, 0, 0]``.
 )");
   vx.def(
       "__init__",
-      [](vdisort::main_data*               n,
-         const AscendingGrid&              tau_arr,
-         const Vector&                     omega_arr,
-         const Index                       NQuad,
-         const Tensor7&                    phase_matrix,
-         Numeric                           mu0,
-         const Vector&                     beam_stokes,
-         Numeric                           phi0,
-         const std::optional<Index>        NFourier_,
-         const std::optional<Tensor4>&     b_pos,
-         const std::optional<Tensor4>&     b_neg,
-         const std::vector<vdisort::BDRF>& bdrf,
-         const std::optional<Tensor3>&     s_poly_coeffs,
-         const std::optional<Tensor6>&     beam_phase_matrix,
-         const std::optional<Vector>&      source_coordinate_scale,
-         const std::optional<Vector>&      source_coordinate_offset) {
+      [](vdisort::main_data*                                   n,
+         const AscendingGrid&                                  tau_arr,
+         const Vector&                                         omega_arr,
+         const Index                                           NQuad,
+         const vdisort::phase_matrix_data&                     phase_matrix,
+         Numeric                                               mu0,
+         const rtepack::stokvec&                               beam_stokes,
+         Numeric                                               phi0,
+         const std::optional<Index>                            NFourier_,
+         const std::optional<rtepack::stokvec_tensor3>&        b_pos,
+         const std::optional<rtepack::stokvec_tensor3>&        b_neg,
+         const std::vector<vdisort::BDRF>&                     bdrf,
+         const std::optional<rtepack::stokvec_matrix>&         s_poly_coeffs,
+         const std::optional<vdisort::beam_phase_matrix_data>& beam_phase_matrix,
+         const std::optional<Vector>&                          source_coordinate_scale,
+         const std::optional<Vector>&                          source_coordinate_offset) {
         const Index NFourier = NFourier_.value_or(phase_matrix.shape()[1]);
         const Index NLayers  = tau_arr.size();
 
@@ -447,14 +445,14 @@ supplied as ``[B, 0, 0, 0]``.
                                    tau_arr,
                                    omega_arr,
                                    phase_matrix,
-                                   b_pos.value_or(Tensor4(2, NFourier, NQuad / 2, vdisort::stokes_dimension, 0.0)),
-                                   b_neg.value_or(Tensor4(2, NFourier, NQuad / 2, vdisort::stokes_dimension, 0.0)),
-                                   s_poly_coeffs.value_or(Tensor3(NLayers, 0, vdisort::stokes_dimension, 0.0)),
+                                   b_pos.value_or(rtepack::stokvec_tensor3(2, NFourier, NQuad / 2)),
+                                   b_neg.value_or(rtepack::stokvec_tensor3(2, NFourier, NQuad / 2)),
+                                   s_poly_coeffs.value_or(rtepack::stokvec_matrix(NLayers, 0)),
                                    bdrf,
                                    mu0,
                                    beam_stokes,
                                    phi0,
-                                   beam_phase_matrix.value_or(Tensor6{}),
+                                   beam_phase_matrix.value_or(vdisort::beam_phase_matrix_data{}),
                                    source_coordinate_scale.value_or(Vector{}),
                                    source_coordinate_offset.value_or(Vector{}));
       },

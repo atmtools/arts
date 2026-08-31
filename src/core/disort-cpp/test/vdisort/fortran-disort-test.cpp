@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "../reference-data.h"
+#include "test-adapter.h"
 
 namespace {
 constexpr Numeric reference_tolerance    = 7e-5;
@@ -120,19 +121,19 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
     for (Index i = 0; i < nquad; ++i)
       beam_phase[vdisort::cosine_mode, m, 0, i, 0, 0] = scalar_phase_mode(transport_moments, m, quadrature_mu[i], -mu0);
 
-  vdisort::main_data solver(nquad,
-                            nmodes,
-                            AscendingGrid{optical_depth_scale * physical_depth},
-                            Vector{transport_omega},
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            Tensor3(nlayers, 0, nstokes),
-                            {},
-                            mu0,
-                            has_beam ? Vector{beam_intensity, 0.0, 0.0, 0.0} : Vector(4, 0.0),
-                            phi0,
-                            std::move(beam_phase));
+  auto solver = vdisort_test::make_solver(nquad,
+                                          nmodes,
+                                          AscendingGrid{optical_depth_scale * physical_depth},
+                                          Vector{transport_omega},
+                                          std::move(phase),
+                                          std::move(up),
+                                          std::move(down),
+                                          Tensor3(nlayers, 0, nstokes),
+                                          {},
+                                          mu0,
+                                          has_beam ? Vector{beam_intensity, 0.0, 0.0, 0.0} : Vector(4, 0.0),
+                                          phi0,
+                                          std::move(beam_phase));
 
   vdisort::phase_matrix_data user_phase(nalpha, nmodes, nlayers, nuser, nquad, rtepack::muelmat{0.0});
   for (Index m = 0; m < nmodes; ++m)
@@ -657,18 +658,18 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
     source.resize(1, 0, nstokes);
   }
 
-  return vdisort::main_data(nquad,
-                            nmodes,
-                            AscendingGrid{depth},
-                            Vector{test.single_scattering_albedo},
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            std::move(source),
-                            std::move(brdf),
-                            test.beam_mu,
-                            Vector{test.beam, 0.0, 0.0, 0.0},
-                            0.0);
+  return vdisort_test::make_solver(nquad,
+                                   nmodes,
+                                   AscendingGrid{depth},
+                                   Vector{test.single_scattering_albedo},
+                                   std::move(phase),
+                                   std::move(up),
+                                   std::move(down),
+                                   std::move(source),
+                                   std::move(brdf),
+                                   test.beam_mu,
+                                   Vector{test.beam, 0.0, 0.0, 0.0},
+                                   0.0);
 }
 
 void test_problem_6() {
@@ -758,19 +759,19 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
   source[0, 0, 0] = atmosphere_top_planck;
   source[0, 1, 0] = (atmosphere_bottom_planck - atmosphere_top_planck) / test.optical_depth;
 
-  return vdisort::main_data(nquad,
-                            nmodes,
-                            AscendingGrid{test.optical_depth},
-                            Vector{test.single_scattering_albedo},
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            std::move(source),
-                            std::move(brdf),
-                            mu0,
-                            Vector{test.beam, 0.0, 0.0, 0.0},
-                            0.0,
-                            std::move(beam_phase));
+  return vdisort_test::make_solver(nquad,
+                                   nmodes,
+                                   AscendingGrid{test.optical_depth},
+                                   Vector{test.single_scattering_albedo},
+                                   std::move(phase),
+                                   std::move(up),
+                                   std::move(down),
+                                   std::move(source),
+                                   std::move(brdf),
+                                   mu0,
+                                   Vector{test.beam, 0.0, 0.0, 0.0},
+                                   0.0,
+                                   std::move(beam_phase));
 }
 
 void expect_small_reference(const std::string_view name,
@@ -846,18 +847,18 @@ problem_8_model make_problem_8_model(const disort_test::reference::layered_isotr
       for (Index stream = 0; stream < nquad; ++stream)
         user_phase[vdisort::cosine_mode, 0, layer, user, stream][0, 0] = 1.0;
 
-  vdisort::main_data solver(nquad,
-                            nmodes,
-                            AscendingGrid{test.cumulative_tau},
-                            Vector{test.single_scattering_albedo},
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            Tensor3(nlayers, 0, nstokes),
-                            {},
-                            0.5,
-                            Vector(4, 0.0),
-                            0.0);
+  auto solver = vdisort_test::make_solver(nquad,
+                                          nmodes,
+                                          AscendingGrid{test.cumulative_tau},
+                                          Vector{test.single_scattering_albedo},
+                                          std::move(phase),
+                                          std::move(up),
+                                          std::move(down),
+                                          Tensor3(nlayers, 0, nstokes),
+                                          {},
+                                          0.5,
+                                          Vector(4, 0.0),
+                                          0.0);
   return {.solver = std::move(solver), .user_phase = std::move(user_phase)};
 }
 
@@ -996,19 +997,19 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
     }
   }
 
-  vdisort::main_data solver(nquad,
-                            nmodes,
-                            AscendingGrid{test.cumulative_tau},
-                            Vector{test.single_scattering_albedo},
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            std::move(source),
-                            std::move(brdf),
-                            test.beam_mu,
-                            Vector{test.beam, 0.0, 0.0, 0.0},
-                            0.0,
-                            std::move(beam_phase));
+  auto solver = vdisort_test::make_solver(nquad,
+                                          nmodes,
+                                          AscendingGrid{test.cumulative_tau},
+                                          Vector{test.single_scattering_albedo},
+                                          std::move(phase),
+                                          std::move(up),
+                                          std::move(down),
+                                          std::move(source),
+                                          std::move(brdf),
+                                          test.beam_mu,
+                                          Vector{test.beam, 0.0, 0.0, 0.0},
+                                          0.0,
+                                          std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
 }
@@ -1126,7 +1127,7 @@ problem_9_model make_problem_11_model(const bool subdivided) {
     return disort_test::reference::problem_11_surface_albedo * Constant::inv_pi;
   };
 
-  vdisort::main_data solver(
+  auto solver = vdisort_test::make_solver(
       nquad,
       nmodes,
       subdivided ? AscendingGrid{Vector(disort_test::reference::problem_11_subdivided_tau)}
@@ -1254,7 +1255,7 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) {
     return optical_depth_scale * tau;
   });
 
-  vdisort::main_data solver(
+  auto solver = vdisort_test::make_solver(
       nquad,
       nmodes,
       AscendingGrid{std::move(cumulative_tau)},
@@ -1383,19 +1384,19 @@ vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_tr
   const disort::brdf::RawFunction lambert = [](Numeric, Numeric, Numeric) {
     return disort_test::reference::problem_13_surface_albedo * Constant::inv_pi;
   };
-  return vdisort::main_data(nquad,
-                            nmodes,
-                            AscendingGrid{std::move(scaled_cumulative_tau)},
-                            std::move(transport_omega),
-                            std::move(phase),
-                            std::move(up),
-                            std::move(down),
-                            Tensor3(nlayers, 0, nstokes),
-                            scalar_brdf_modes(lambert, 1),
-                            disort_test::reference::problem_13_beam_mu,
-                            Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
-                            0.0,
-                            std::move(beam_phase));
+  return vdisort_test::make_solver(nquad,
+                                   nmodes,
+                                   AscendingGrid{std::move(scaled_cumulative_tau)},
+                                   std::move(transport_omega),
+                                   std::move(phase),
+                                   std::move(up),
+                                   std::move(down),
+                                   Tensor3(nlayers, 0, nstokes),
+                                   scalar_brdf_modes(lambert, 1),
+                                   disort_test::reference::problem_13_beam_mu,
+                                   Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
+                                   0.0,
+                                   std::move(beam_phase));
 }
 
 void test_problem_13_boundary_limits() {
@@ -1408,19 +1409,19 @@ void test_problem_13_boundary_limits() {
   const disort::brdf::RawFunction lambert = [](Numeric, Numeric, Numeric) {
     return problem_13_surface_albedo * Constant::inv_pi;
   };
-  vdisort::main_data absorbing(nquad,
-                               nmodes,
-                               AscendingGrid{depth},
-                               Vector{0.0},
-                               Tensor7(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0),
-                               Tensor4(2, nmodes, n, nstokes, 0.0),
-                               Tensor4(2, nmodes, n, nstokes, 0.0),
-                               Tensor3(1, 0, nstokes),
-                               scalar_brdf_modes(lambert, 1),
-                               problem_13_beam_mu,
-                               Vector{problem_13_beam, 0.0, 0.0, 0.0},
-                               0.0,
-                               Tensor6(2, nmodes, 1, nquad, nstokes, nstokes, 0.0));
+  auto absorbing = vdisort_test::make_solver(nquad,
+                                             nmodes,
+                                             AscendingGrid{depth},
+                                             Vector{0.0},
+                                             Tensor7(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0),
+                                             Tensor4(2, nmodes, n, nstokes, 0.0),
+                                             Tensor4(2, nmodes, n, nstokes, 0.0),
+                                             Tensor3(1, 0, nstokes),
+                                             scalar_brdf_modes(lambert, 1),
+                                             problem_13_beam_mu,
+                                             Vector{problem_13_beam, 0.0, 0.0, 0.0},
+                                             0.0,
+                                             Tensor6(2, nmodes, 1, nquad, nstokes, nstokes, 0.0));
 
   const Numeric incident_flux       = problem_13_beam * problem_13_beam_mu;
   const Numeric bottom_beam         = incident_flux * std::exp(-depth / problem_13_beam_mu);
@@ -1491,19 +1492,19 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
     user_beam_phase[vdisort::cosine_mode, 0, 0, user][0, 0] = 1.0;
   }
 
-  vdisort::main_data solver(nquad,
-                            nmodes,
-                            AscendingGrid{depth},
-                            Vector{omega},
-                            std::move(phase),
-                            Tensor4(2, nmodes, n, nstokes, 0.0),
-                            Tensor4(2, nmodes, n, nstokes, 0.0),
-                            Tensor3(nlayers, 0, nstokes),
-                            scalar_brdf_modes(raw, nmodes),
-                            disort_test::reference::problem_14_beam_mu,
-                            Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
-                            0.0,
-                            std::move(beam_phase));
+  auto solver = vdisort_test::make_solver(nquad,
+                                          nmodes,
+                                          AscendingGrid{depth},
+                                          Vector{omega},
+                                          std::move(phase),
+                                          Tensor4(2, nmodes, n, nstokes, 0.0),
+                                          Tensor4(2, nmodes, n, nstokes, 0.0),
+                                          Tensor3(nlayers, 0, nstokes),
+                                          scalar_brdf_modes(raw, nmodes),
+                                          disort_test::reference::problem_14_beam_mu,
+                                          Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
+                                          0.0,
+                                          std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
 }
@@ -1599,19 +1600,19 @@ problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
       }
     }
 
-  vdisort::main_data solver(nquad,
-                            nmodes,
-                            scaled_tau,
-                            Vector{1.0, 1.0},
-                            std::move(phase),
-                            Tensor4(2, nmodes, n, nstokes, 0.0),
-                            Tensor4(2, nmodes, n, nstokes, 0.0),
-                            Tensor3(nlayers, 0, nstokes),
-                            scalar_brdf_modes(raw, nmodes),
-                            problem_15_beam_mu,
-                            Vector{problem_15_beam, 0.0, 0.0, 0.0},
-                            0.0,
-                            std::move(beam_phase));
+  auto solver = vdisort_test::make_solver(nquad,
+                                          nmodes,
+                                          scaled_tau,
+                                          Vector{1.0, 1.0},
+                                          std::move(phase),
+                                          Tensor4(2, nmodes, n, nstokes, 0.0),
+                                          Tensor4(2, nmodes, n, nstokes, 0.0),
+                                          Tensor3(nlayers, 0, nstokes),
+                                          scalar_brdf_modes(raw, nmodes),
+                                          problem_15_beam_mu,
+                                          Vector{problem_15_beam, 0.0, 0.0, 0.0},
+                                          0.0,
+                                          std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
 }
