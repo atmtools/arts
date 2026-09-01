@@ -201,6 +201,40 @@ struct BDRF {
 [[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                                  const rtepack::muelmat_tensor3& sine);
 
+/** Solver-ready result of an explicitly specified polarized delta-M transform. */
+struct delta_m_transport_data {
+  AscendingGrid          tau;
+  Vector                 omega;
+  phase_matrix_data      phase_matrix;
+  beam_phase_matrix_data beam_phase_matrix;
+  Vector                 source_coordinate_scale;
+  Vector                 source_coordinate_offset;
+};
+
+/** Apply a caller-defined polarized delta-M split to VDISORT inputs.
+ *
+ * `removed_phase_matrix` and `removed_beam_phase_matrix` contain the
+ * normalized Mueller forward peak R in the same combined representation and
+ * on the same angular grids as their original counterparts.  This function
+ * applies
+ *
+ *   dt' = (1 - omega*f) dt,
+ *   omega' = omega*(1-f)/(1-omega*f),
+ *   P' = (P-f*R)/(1-f),
+ *
+ * and returns the affine coordinate map needed to evaluate physical source
+ * polynomials on the scaled depth grid.  It validates sizes, ranges, and
+ * finite values, but deliberately does not infer or certify the physical
+ * normalization of the caller's removed Mueller peak.
+ */
+[[nodiscard]] delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical_tau,
+                                                        const Vector&                 physical_omega,
+                                                        const Vector&                 fraction,
+                                                        const phase_matrix_data&      original_phase_matrix,
+                                                        const phase_matrix_data&      removed_phase_matrix,
+                                                        const beam_phase_matrix_data& original_beam_phase_matrix = {},
+                                                        const beam_phase_matrix_data& removed_beam_phase_matrix  = {});
+
 /** The main data structure for the polarized VDISORT algorithm.
  *
  * This is the direct full-eigenproblem formulation (paper Eq. 87), retaining

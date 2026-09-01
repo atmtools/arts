@@ -776,11 +776,13 @@ hemispherical Lambertian albedo :math:`A`.
 The remaining scalar empirical models do not define a unique polarized
 surface.  They can be embedded consistently as fully depolarizing operators by
 placing the scalar BRDF in :math:`M_{00}` and setting every other Mueller
-element to zero.  That embedding preserves scalar DISORT exactly, but it is not
-a physical polarized Hapke, RPV, or Ross--Li model.  A genuinely polarized
-catalogue requires selecting a published Mueller extension and its reference-
-plane conventions for each model; it cannot be inferred from the scalar BRDF
-alone.
+element to zero.  VDISORT provides this embedding for Hapke, RPV, and Ross--Li;
+their physical scalar kernels are shared with DISORT, while only the Fourier
+normalization adapter differs.  The embedding preserves scalar DISORT exactly,
+but it is not a physical polarized Hapke, RPV, or Ross--Li model.  A genuinely
+polarized catalogue requires selecting a published Mueller extension and its
+reference-plane conventions for each model; it cannot be inferred from the
+scalar BRDF alone.
 
 The physical Cox--Munk microfacet calculation is shared.  It computes one
 slope-probability/geometric factor and the two complex Fresnel amplitude
@@ -1041,6 +1043,15 @@ transport phase operator, and the normalized removed Mueller peak, applying
 the transformation and constructing the correction cache is mechanical.  The
 caller that owns the particle model is also the component best placed to know
 whether those quantities form a physically meaningful split.
+
+The ``delta_m_preprocess`` core helper performs that mechanical step from the
+physical optical depths and albedos, the removed fractions, and matching
+original/removed diffuse and beam Mueller operators.  It returns the scaled
+depth grid, transport albedos and phase operators, and the affine coordinate
+map required to keep source polynomials in physical optical depth.  The
+laboratory-frame callbacks used to build the IMS/TMS correction cache remain
+explicit because a quadrature-sampled combined operator cannot reconstruct a
+general physical phase matrix at arbitrary directions.
 
 Inferring that split automatically is a different and substantially harder
 operation.  A scalar forward-peak width and fraction cannot in general be

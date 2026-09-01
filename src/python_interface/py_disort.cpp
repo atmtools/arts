@@ -192,6 +192,15 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
   vvecs.doc() = "An array of polarized BDRF Fourier modes";
   generic_interface(vvecs);
 
+  py::class_<vdisort::delta_m_transport_data> delta_m_transport(vdisort_nm, "DeltaMTransportData");
+  delta_m_transport.def_rw("tau", &vdisort::delta_m_transport_data::tau)
+      .def_rw("omega", &vdisort::delta_m_transport_data::omega)
+      .def_rw("phase_matrix", &vdisort::delta_m_transport_data::phase_matrix)
+      .def_rw("beam_phase_matrix", &vdisort::delta_m_transport_data::beam_phase_matrix)
+      .def_rw("source_coordinate_scale", &vdisort::delta_m_transport_data::source_coordinate_scale)
+      .def_rw("source_coordinate_offset", &vdisort::delta_m_transport_data::source_coordinate_offset);
+  delta_m_transport.doc() = "Solver-ready result of an explicitly specified polarized delta-M transform";
+
   vdisort_nm.def("combine_phase_matrices",
                  &vdisort::combine_phase_matrices,
                  "cosine"_a,
@@ -202,6 +211,16 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "cosine"_a,
                  "sine"_a,
                  "Convert ordinary cosine/sine beam phase coefficients to the combined VDISORT representation.");
+  vdisort_nm.def("delta_m_preprocess",
+                 &vdisort::delta_m_preprocess,
+                 "physical_tau"_a,
+                 "physical_omega"_a,
+                 "fraction"_a,
+                 "original_phase_matrix"_a,
+                 "removed_phase_matrix"_a,
+                 "original_beam_phase_matrix"_a = vdisort::beam_phase_matrix_data{},
+                 "removed_beam_phase_matrix"_a  = vdisort::beam_phase_matrix_data{},
+                 "Apply a caller-defined polarized delta-M split and return solver-ready transport inputs");
   vdisort_nm.def(
       "cox_munk_reflection",
       [](const Numeric outgoing_mu,
@@ -246,6 +265,32 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "albedo"_a,
                  "number_of_modes"_a,
                  "Construct exact fully depolarizing Lambertian VDISORT Fourier modes");
+  vdisort_nm.def("hapke_fourier_modes",
+                 &vdisort::brdf::hapke_fourier_modes,
+                 "opposition_amplitude"_a,
+                 "opposition_width"_a,
+                 "single_scattering_albedo"_a,
+                 "number_of_modes"_a,
+                 "azimuth_quadrature_points"_a = 100,
+                 "Construct fully depolarizing Hapke VDISORT Fourier modes");
+  vdisort_nm.def("rpv_fourier_modes",
+                 &vdisort::brdf::rpv_fourier_modes,
+                 "rho0"_a,
+                 "kappa"_a,
+                 "asymmetry"_a,
+                 "hotspot"_a,
+                 "number_of_modes"_a,
+                 "azimuth_quadrature_points"_a = 100,
+                 "Construct fully depolarizing RPV VDISORT Fourier modes");
+  vdisort_nm.def("ross_li_fourier_modes",
+                 &vdisort::brdf::ross_li_fourier_modes,
+                 "isotropic"_a,
+                 "volumetric"_a,
+                 "geometric"_a,
+                 "hotspot_angle"_a,
+                 "number_of_modes"_a,
+                 "azimuth_quadrature_points"_a = 100,
+                 "Construct fully depolarizing Ross-Li VDISORT Fourier modes");
   vdisort_nm.def("combine_fourier_modes",
                  &vdisort::brdf::combine_fourier_modes,
                  "first"_a,

@@ -9,35 +9,10 @@
 #include <stdexcept>
 
 namespace disort::brdf {
-namespace {
-Numeric checked_mu(const Numeric mu) {
-  const Numeric value = std::abs(mu);
-  if (not(value > 0.0 and value <= 1.0)) throw std::domain_error("BRDF direction cosine must satisfy 0 < |mu| <= 1");
-  return value;
-}
-
-Numeric unit_clamp(const Numeric value) { return std::clamp(value, -1.0, 1.0); }
-
-}  // namespace
 
 Numeric Hapke::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
-  const Numeric mu  = checked_mu(outgoing_mu);
-  const Numeric mup = checked_mu(incoming_mu);
-  if (not(single_scattering_albedo >= 0.0 and single_scattering_albedo <= 1.0) or opposition_width < 0.0)
-    throw std::domain_error("Invalid Hapke BRDF parameters");
-
-  const Numeric sin_mu    = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  const Numeric sin_mup   = std::sqrt(std::max(0.0, 1.0 - mup * mup));
-  const Numeric cos_alpha = unit_clamp(mu * mup - sin_mu * sin_mup * std::cos(relative_azimuth));
-  const Numeric alpha     = std::acos(cos_alpha);
-  const Numeric phase     = 1.0 + 0.5 * cos_alpha;
-  const Numeric tangent   = std::tan(0.5 * alpha);
-  const Numeric opposition =
-      opposition_width == 0.0 ? 0.0 : opposition_amplitude * opposition_width / (opposition_width + tangent);
-  const Numeric gamma = std::sqrt(1.0 - single_scattering_albedo);
-  const Numeric h0    = (1.0 + 2.0 * mup) / (1.0 + 2.0 * mup * gamma);
-  const Numeric h     = (1.0 + 2.0 * mu) / (1.0 + 2.0 * mu * gamma);
-  return single_scattering_albedo / (4.0 * Constant::pi * (mu + mup)) * ((1.0 + opposition) * phase + h0 * h - 1.0);
+  return disort_common::hapke_brdf(
+      outgoing_mu, incoming_mu, relative_azimuth, opposition_amplitude, opposition_width, single_scattering_albedo);
 }
 
 Numeric CoxMunk::operator()(const Numeric outgoing_mu,
@@ -50,51 +25,12 @@ Numeric CoxMunk::operator()(const Numeric outgoing_mu,
 }
 
 Numeric RPV::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
-  const Numeric mu_r = checked_mu(outgoing_mu);
-  const Numeric mu_i = checked_mu(incoming_mu);
-  if (rho0 < 0.0 or not(asymmetry > -1.0 and asymmetry < 1.0) or hotspot < 0.0)
-    throw std::domain_error("Invalid RPV BRDF parameters");
-
-  const Numeric sin_i     = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
-  const Numeric sin_r     = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
-  const Numeric tan_i     = sin_i / mu_i;
-  const Numeric tan_r     = sin_r / mu_r;
-  const Numeric cosine    = std::cos(relative_azimuth);
-  const Numeric cos_alpha = unit_clamp(mu_i * mu_r - sin_i * sin_r * cosine);
-  const Numeric distance  = std::sqrt(std::max(0.0, tan_i * tan_i + tan_r * tan_r + 2.0 * tan_i * tan_r * cosine));
-  const Numeric phase =
-      (1.0 - asymmetry * asymmetry) / std::pow(1.0 + asymmetry * asymmetry + 2.0 * asymmetry * cos_alpha, 1.5);
-  return rho0 * std::pow(mu_i * mu_r * (mu_i + mu_r), kappa - 1.0) * phase * (1.0 + (1.0 - hotspot) / (1.0 + distance));
+  return disort_common::rpv_brdf(outgoing_mu, incoming_mu, relative_azimuth, rho0, kappa, asymmetry, hotspot);
 }
 
 Numeric RossLi::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
-  const Numeric mu_r = checked_mu(outgoing_mu);
-  const Numeric mu_i = checked_mu(incoming_mu);
-  if (hotspot_angle <= 0.0) throw std::domain_error("Ross-Li hotspot angle must be positive");
-
-  const Numeric sin_i          = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
-  const Numeric sin_r          = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
-  const Numeric tan_i          = sin_i / mu_i;
-  const Numeric tan_r          = sin_r / mu_r;
-  const Numeric cosine         = std::cos(relative_azimuth);
-  const Numeric sine           = std::sin(relative_azimuth);
-  const Numeric cos_alpha      = unit_clamp(mu_i * mu_r - sin_i * sin_r * cosine);
-  const Numeric sin_alpha      = std::sqrt(std::max(0.0, 1.0 - cos_alpha * cos_alpha));
-  const Numeric alpha          = std::acos(cos_alpha);
-  const Numeric hotspot_factor = 1.0 + 1.0 / (1.0 + alpha / hotspot_angle);
-  const Numeric volume         = 4.0 / (3.0 * Constant::pi * (mu_i + mu_r)) *
-                                     ((Constant::pi / 2.0 - alpha) * cos_alpha + sin_alpha) * hotspot_factor -
-                                 1.0 / 3.0;
-
-  constexpr Numeric height_to_base = 2.0;
-  const Numeric     distance_sq    = tan_i * tan_i + tan_r * tan_r + 2.0 * tan_i * tan_r * cosine;
-  const Numeric     cos_t = height_to_base * mu_i * mu_r / (mu_i + mu_r) *
-                            std::sqrt(std::max(0.0, distance_sq + tan_i * tan_i * tan_r * tan_r * sine * sine));
-  const Numeric     t     = cos_t >= -1.0 and cos_t <= 1.0 ? std::acos(cos_t) : 0.0;
-  const Numeric     geometric =
-      (mu_i + mu_r) / (Constant::pi * mu_i * mu_r) * (t - std::sin(t) * std::cos(t) - Constant::pi) +
-      (1.0 + cos_alpha) / (2.0 * mu_i * mu_r);
-  return std::max(0.0, isotropic + geometric * this->geometric + volumetric * volume);
+  return disort_common::ross_li_brdf(
+      outgoing_mu, incoming_mu, relative_azimuth, isotropic, volumetric, geometric, hotspot_angle);
 }
 
 std::vector<BDRF> lambertian_fourier_modes(const Numeric albedo, const Index number_of_modes) {

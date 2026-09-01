@@ -581,6 +581,122 @@ beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor
   return out;
 }
 
+delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical_tau,
+                                          const Vector&                 physical_omega,
+                                          const Vector&                 fraction,
+                                          const phase_matrix_data&      original_phase_matrix,
+                                          const phase_matrix_data&      removed_phase_matrix,
+                                          const beam_phase_matrix_data& original_beam_phase_matrix,
+                                          const beam_phase_matrix_data& removed_beam_phase_matrix) {
+  const Index nlayers = static_cast<Index>(physical_tau.size());
+  ARTS_USER_ERROR_IF(nlayers == 0, "Polarized delta-M preprocessing requires at least one layer");
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(physical_omega.size()) != nlayers or static_cast<Index>(fraction.size()) != nlayers,
+      "Polarized delta-M arrays must contain {} layers, got omega={} and fraction={}",
+      nlayers,
+      physical_omega.size(),
+      fraction.size());
+
+  const auto phase_shape = original_phase_matrix.shape();
+  ARTS_USER_ERROR_IF(phase_shape[0] != 2 or phase_shape[2] != nlayers or phase_shape[3] != phase_shape[4],
+                     "Original polarized phase matrix has incompatible shape {:B,}; expected "
+                     "[2, NFourier, {}, NQuad, NQuad] Mueller blocks",
+                     phase_shape,
+                     nlayers);
+  ARTS_USER_ERROR_IF(removed_phase_matrix.shape() != phase_shape,
+                     "Original and removed polarized phase matrices have different shapes: {:B,} and {:B,}",
+                     phase_shape,
+                     removed_phase_matrix.shape());
+
+  const bool has_beam_phase = original_beam_phase_matrix.size() != 0 or removed_beam_phase_matrix.size() != 0;
+  if (has_beam_phase) {
+    const std::array expected_beam_shape{phase_shape[0], phase_shape[1], phase_shape[2], phase_shape[3]};
+    ARTS_USER_ERROR_IF(original_beam_phase_matrix.shape() != expected_beam_shape or
+                           removed_beam_phase_matrix.shape() != expected_beam_shape,
+                       "Original and removed beam phase matrices must both have shape {:B,}; got {:B,} and {:B,}",
+                       expected_beam_shape,
+                       original_beam_phase_matrix.shape(),
+                       removed_beam_phase_matrix.shape());
+  }
+
+  Vector  scaled_tau(nlayers), transport_omega(nlayers), coordinate_scale(nlayers), coordinate_offset(nlayers);
+  Numeric physical_top = 0.0;
+  Numeric scaled_top   = 0.0;
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    const Numeric omega = physical_omega[layer];
+    const Numeric f     = fraction[layer];
+    ARTS_USER_ERROR_IF(
+        not std::isfinite(omega) or omega < 0.0 or omega > 1.0 or not std::isfinite(f) or f < 0.0 or f >= 1.0,
+        "Invalid polarized delta-M omega/fraction in layer {}: {}, {}",
+        layer,
+        omega,
+        f);
+    const Numeric scale        = 1.0 - omega * f;
+    const Numeric scaled_base  = scaled_top;
+    scaled_top                += scale * (physical_tau[layer] - physical_top);
+    scaled_tau[layer]          = scaled_top;
+    transport_omega[layer]     = omega * (1.0 - f) / scale;
+    coordinate_scale[layer]    = 1.0 / scale;
+    coordinate_offset[layer]   = physical_top - scaled_base / scale;
+    physical_top               = physical_tau[layer];
+  }
+
+  phase_matrix_data transport_phase(
+      phase_shape[0], phase_shape[1], phase_shape[2], phase_shape[3], phase_shape[4], rtepack::muelmat{0.0});
+  for (Index alpha = 0; alpha < phase_shape[0]; ++alpha)
+    for (Index mode = 0; mode < phase_shape[1]; ++mode)
+      for (Index layer = 0; layer < nlayers; ++layer)
+        for (Index out = 0; out < phase_shape[3]; ++out)
+          for (Index in = 0; in < phase_shape[4]; ++in)
+            for (Index row = 0; row < stokes_dimension; ++row)
+              for (Index column = 0; column < stokes_dimension; ++column) {
+                const Numeric original = original_phase_matrix[alpha, mode, layer, out, in][row, column];
+                const Numeric removed  = removed_phase_matrix[alpha, mode, layer, out, in][row, column];
+                ARTS_USER_ERROR_IF(not std::isfinite(original) or not std::isfinite(removed),
+                                   "Non-finite polarized delta-M phase value at [{}, {}, {}, {}, {}][{}, {}]",
+                                   alpha,
+                                   mode,
+                                   layer,
+                                   out,
+                                   in,
+                                   row,
+                                   column);
+                transport_phase[alpha, mode, layer, out, in][row, column] =
+                    (original - fraction[layer] * removed) / (1.0 - fraction[layer]);
+              }
+
+  beam_phase_matrix_data transport_beam_phase;
+  if (has_beam_phase) {
+    transport_beam_phase.resize(phase_shape[0], phase_shape[1], phase_shape[2], phase_shape[3]);
+    for (Index alpha = 0; alpha < phase_shape[0]; ++alpha)
+      for (Index mode = 0; mode < phase_shape[1]; ++mode)
+        for (Index layer = 0; layer < nlayers; ++layer)
+          for (Index out = 0; out < phase_shape[3]; ++out)
+            for (Index row = 0; row < stokes_dimension; ++row)
+              for (Index column = 0; column < stokes_dimension; ++column) {
+                const Numeric original = original_beam_phase_matrix[alpha, mode, layer, out][row, column];
+                const Numeric removed  = removed_beam_phase_matrix[alpha, mode, layer, out][row, column];
+                ARTS_USER_ERROR_IF(not std::isfinite(original) or not std::isfinite(removed),
+                                   "Non-finite polarized delta-M beam phase value at [{}, {}, {}, {}][{}, {}]",
+                                   alpha,
+                                   mode,
+                                   layer,
+                                   out,
+                                   row,
+                                   column);
+                transport_beam_phase[alpha, mode, layer, out][row, column] =
+                    (original - fraction[layer] * removed) / (1.0 - fraction[layer]);
+              }
+  }
+
+  return {.tau                      = AscendingGrid{std::move(scaled_tau)},
+          .omega                    = std::move(transport_omega),
+          .phase_matrix             = std::move(transport_phase),
+          .beam_phase_matrix        = std::move(transport_beam_phase),
+          .source_coordinate_scale  = std::move(coordinate_scale),
+          .source_coordinate_offset = std::move(coordinate_offset)};
+}
+
 main_data::main_data(
     const Index NLayers_, const Index NQuad_, const Index NFourier_, const Index Nscoeffs_, const Index NBDRF_)
     : NLayers(NLayers_),
@@ -1014,15 +1130,18 @@ void main_data::diagonalize() {
         }
 
         if (has_beam_source) {
-          const rtepack::stokvec& beam = beam_stokes;
-          rhs                          = 0.0;
-          const Numeric epsilon        = m == 0 ? 1.0 : 2.0;
+          const rtepack::stokvec& beam            = beam_stokes;
+          rhs                                     = 0.0;
+          bool          has_scattered_beam_source = false;
+          const Numeric epsilon                   = m == 0 ? 1.0 : 2.0;
           for (Index i = 0; i < NQuad; ++i) {
             const rtepack::stokvec scattered = beam_phase_matrix[alpha, m, l, i] * beam;
             for (Index so = 0; so < stokes_dimension; ++so) {
               rhs[state_index(i, so)] = inv_mu_arr[i] * epsilon * omega_arr[l] * scattered[so] / (4.0 * Constant::pi);
+              has_scattered_beam_source |= rhs[state_index(i, so)] != 0.0;
             }
           }
+          if (not has_scattered_beam_source) continue;
           diagonal(A_real) += 1.0 / mu0;
           solve_inplace(rhs, A_real);
           for (Index i = 0; i < NQuad; ++i)

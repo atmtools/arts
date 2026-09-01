@@ -188,6 +188,67 @@ std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, co
   return result;
 }
 
+std::vector<BDRF> depolarizing_fourier_modes(ScalarRawFunction raw,
+                                             const Index       number_of_modes,
+                                             const Index       azimuth_quadrature_points) {
+  if (not raw) throw std::invalid_argument("A raw scalar BRDF function is required");
+  return fourier_modes(
+      [raw = std::move(raw)](const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) {
+        rtepack::muelmat result{0.0};
+        result[0, 0] = raw(outgoing_mu, incoming_mu, relative_azimuth);
+        return result;
+      },
+      number_of_modes,
+      azimuth_quadrature_points);
+}
+
+std::vector<BDRF> hapke_fourier_modes(const Numeric opposition_amplitude,
+                                      const Numeric opposition_width,
+                                      const Numeric single_scattering_albedo,
+                                      const Index   number_of_modes,
+                                      const Index   azimuth_quadrature_points) {
+  return depolarizing_fourier_modes(
+      [=](const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) {
+        return disort_common::hapke_brdf(outgoing_mu,
+                                         incoming_mu,
+                                         relative_azimuth,
+                                         opposition_amplitude,
+                                         opposition_width,
+                                         single_scattering_albedo);
+      },
+      number_of_modes,
+      azimuth_quadrature_points);
+}
+
+std::vector<BDRF> rpv_fourier_modes(const Numeric rho0,
+                                    const Numeric kappa,
+                                    const Numeric asymmetry,
+                                    const Numeric hotspot,
+                                    const Index   number_of_modes,
+                                    const Index   azimuth_quadrature_points) {
+  return depolarizing_fourier_modes(
+      [=](const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) {
+        return disort_common::rpv_brdf(outgoing_mu, incoming_mu, relative_azimuth, rho0, kappa, asymmetry, hotspot);
+      },
+      number_of_modes,
+      azimuth_quadrature_points);
+}
+
+std::vector<BDRF> ross_li_fourier_modes(const Numeric isotropic,
+                                        const Numeric volumetric,
+                                        const Numeric geometric,
+                                        const Numeric hotspot_angle,
+                                        const Index   number_of_modes,
+                                        const Index   azimuth_quadrature_points) {
+  return depolarizing_fourier_modes(
+      [=](const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) {
+        return disort_common::ross_li_brdf(
+            outgoing_mu, incoming_mu, relative_azimuth, isotropic, volumetric, geometric, hotspot_angle);
+      },
+      number_of_modes,
+      azimuth_quadrature_points);
+}
+
 std::vector<BDRF> cox_munk_fourier_modes(const Numeric wind_speed,
                                          const Complex refractive_index,
                                          const bool    shadowing,

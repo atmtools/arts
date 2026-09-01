@@ -3,6 +3,7 @@
 #include <legendre.h>
 #include <rtepack_multitype.h>
 #include <time_report.h>
+#include <vdisort-brdf.h>
 #include <vdisort.h>
 
 #include <cmath>
@@ -541,33 +542,7 @@ Numeric band_blackbody_radiance(const Numeric temperature,
 }
 
 std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& raw, const Index number_of_modes) {
-  constexpr Index nazimuth = 100;
-  Vector          azimuth_node(nazimuth), azimuth_weight(nazimuth);
-  Legendre::PositiveDoubleGaussLegendre(azimuth_node, azimuth_weight);
-  std::vector<vdisort::BDRF> result;
-  result.reserve(static_cast<std::size_t>(number_of_modes));
-  for (Index m = 0; m < number_of_modes; ++m) {
-    const auto coefficient = [raw, m, azimuth_node, azimuth_weight](rtepack::muelmat_matrix_view out,
-                                                                    const ConstVectorView&       outgoing,
-                                                                    const ConstVectorView&       incoming) {
-      out = rtepack::muelmat{0.0};
-      for (Index i = 0; i < static_cast<Index>(outgoing.size()); ++i)
-        for (Index j = 0; j < static_cast<Index>(incoming.size()); ++j) {
-          Numeric coefficient = 0.0;
-          for (Index k = 0; k < nazimuth; ++k) {
-            const Numeric azimuth  = Constant::pi * azimuth_node[k];
-            coefficient           += azimuth_weight[k] * raw(outgoing[i], std::abs(incoming[j]), azimuth) *
-                                     std::cos(static_cast<Numeric>(m) * azimuth);
-          }
-          out[i, j][0, 0] = 2.0 * (m == 0 ? 1.0 : 2.0) * coefficient;
-        }
-    };
-    const vdisort::BDRF::func_t sine{[](rtepack::muelmat_matrix_view out,
-                                        const ConstVectorView&,
-                                        const ConstVectorView&) { out = rtepack::muelmat{0.0}; }};
-    result.push_back(vdisort::BDRF{.cosine = {coefficient}, .sine = sine, .beam_cosine = {}, .beam_sine = {}});
-  }
-  return result;
+  return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, 100);
 }
 
 Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) {

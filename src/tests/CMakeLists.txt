@@ -146,6 +146,11 @@ target_link_libraries(test_matpack_eigen PUBLIC matpack)
 add_test(NAME "cpp.fast.test_matpack_eigen" COMMAND test_matpack_eigen)
 add_dependencies(check-deps test_matpack_eigen)
 
+add_executable(test_linalg_info test_linalg_info.cc)
+target_link_libraries(test_linalg_info PRIVATE matpack)
+add_test(NAME "cpp.fast.test_linalg_info" COMMAND test_linalg_info)
+add_dependencies(check-deps test_linalg_info)
+
 # #######################################################################################
 add_executable(run_partfun run_partfun.cc)
 target_link_libraries(run_partfun PRIVATE artsworkspace)

@@ -22,12 +22,38 @@
 #include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <cmath>
+#include <string_view>
 #include <vector>
 
 #include "lapack.h"
 #include "matpack_mdspan_helpers_eigen.h"
 #include "matpack_mdspan_helpers_matrix.h"
 #include "matpack_mdspan_helpers_reduce.h"
+
+namespace {
+
+/** Check the status returned by a LAPACK LU factorization or inversion.
+ *
+ * A negative status identifies an invalid LAPACK argument.  A positive
+ * status identifies the one-based diagonal element of U that is exactly
+ * zero, so the matrix is singular.
+ */
+void check_lu_info(const int info, const std::string_view routine) {
+  ARTS_USER_ERROR_IF(info < 0, "{} received an illegal value for argument {}.", routine, -info);
+  ARTS_USER_ERROR_IF(info > 0, "{} found a singular matrix: U({}, {}) is exactly zero.", routine, info, info);
+}
+
+/** Check the status returned by a LAPACK LU back-substitution.
+ *
+ * DGETRS reports invalid input through a negative status.  A positive status
+ * is not specified and is treated as an unexpected LAPACK failure.
+ */
+void check_lu_solve_info(const int info, const std::string_view routine) {
+  ARTS_USER_ERROR_IF(info < 0, "{} received an illegal value for argument {}.", routine, -info);
+  ARTS_USER_ERROR_IF(info > 0, "{} returned an unexpected positive INFO value {}.", routine, info);
+}
+
+}  // namespace
 
 //! LU decomposition.
 /*!
@@ -54,6 +80,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
 
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::dgetrf_(&n_int, &n_int, LU.data_handle(), &n_int, ipiv.data(), &info);
+  check_lu_info(info, "DGETRF");
 
   // Copy pivot array to pivot vector.
   for (Index i = 0; i < n; i++) { indx[i] = ipiv[i]; }
@@ -96,6 +123,7 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
 
   lapack::dgetrs_(
       &trans, &n_int, &one, const_cast<Numeric*>(LU.data_handle()), &n_int, ipiv.data(), rhs.data(), &n_int, &info);
+  check_lu_solve_info(info, "DGETRS");
 
   for (Index i = 0; i < n; i++) { x[i] = rhs[i]; }
 }
@@ -141,14 +169,13 @@ void inv_inplace(MatrixView A, inv_workdata& wo) {
 
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::dgetrf_(&n_int, &n_int, A.data_handle(), &n_int, wo.ipiv.data(), &info);
+  check_lu_info(info, "DGETRF");
 
   // Invert matrix.
   int lwork = n_int;
 
   lapack::dgetri_(&n_int, A.data_handle(), &n_int, wo.ipiv.data(), wo.work.data(), &lwork, &info);
-
-  // Check for success.
-  ARTS_USER_ERROR_IF(info not_eq 0, "Error inverting matrix: Matrix not of full rank.");
+  check_lu_info(info, "DGETRI");
 }
 
 //! Matrix Inverse
@@ -196,10 +223,9 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
 
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::zgetrf_(&n_int, &n_int, const_cast<Complex*>(Ainv.data_handle()), &n_int, ipiv.data(), &info);
+  check_lu_info(info, "ZGETRF");
   lapack::zgetri_(&n_int, const_cast<Complex*>(Ainv.data_handle()), &n_int, ipiv.data(), work.data(), &lwork, &info);
-
-  // Check for success.
-  ARTS_USER_ERROR_IF(info not_eq 0, "Error inverting matrix: Matrix not of full rank.");
+  check_lu_info(info, "ZGETRI");
 }
 
 void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A, diagonalize_workdata& wo) {
@@ -592,8 +618,10 @@ void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::dgetrf_(
       &n_int, &n_int, const_cast<Numeric*>(inplace_transpose(A).data_handle()), &n_int, wo.ipiv.data(), &info);
+  check_lu_info(info, "DGETRF");
 
   lapack::dgetrs_(&trans, &n_int, &one, A.data_handle(), &n_int, wo.ipiv.data(), X.data_handle(), &n_int, &info);
+  check_lu_solve_info(info, "DGETRS");
 }
 
 void solve_inplace(VectorView X, MatrixView A) {

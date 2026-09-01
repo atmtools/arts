@@ -64,6 +64,32 @@ struct cox_munk_optics {
 /** Return the physical Lambertian BRDF A/pi after validating its albedo. */
 [[nodiscard]] Numeric lambertian_brdf(Numeric albedo);
 
+/** Evaluate the shared scalar Hapke BRDF used by both transport cores. */
+[[nodiscard]] Numeric hapke_brdf(Numeric outgoing_mu,
+                                 Numeric incoming_mu,
+                                 Numeric relative_azimuth,
+                                 Numeric opposition_amplitude,
+                                 Numeric opposition_width,
+                                 Numeric single_scattering_albedo);
+
+/** Evaluate the shared scalar RPV BRDF used by both transport cores. */
+[[nodiscard]] Numeric rpv_brdf(Numeric outgoing_mu,
+                               Numeric incoming_mu,
+                               Numeric relative_azimuth,
+                               Numeric rho0,
+                               Numeric kappa,
+                               Numeric asymmetry,
+                               Numeric hotspot);
+
+/** Evaluate the shared scalar Ross-Li BRDF used by both transport cores. */
+[[nodiscard]] Numeric ross_li_brdf(Numeric outgoing_mu,
+                                   Numeric incoming_mu,
+                                   Numeric relative_azimuth,
+                                   Numeric isotropic,
+                                   Numeric volumetric,
+                                   Numeric geometric,
+                                   Numeric hotspot_angle);
+
 /** Validate a nonnegative finite surface-mixture weight. */
 void check_surface_weight(Numeric weight);
 

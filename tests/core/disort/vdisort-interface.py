@@ -96,6 +96,165 @@ def test_combined_surface_models():
     assert abs(absorbing[2, 3]) > 1.0e-12
 
 
+def test_delta_m_preprocessing():
+    physical_tau = np.array([1.0, 3.0])
+    physical_omega = np.array([0.5, 0.8])
+    fraction = np.array([0.2, 0.25])
+    phase = np.full((2, 1, 2, 2, 2, 4, 4), 3.0)
+    removed = np.full_like(phase, 0.5)
+    beam_phase = np.full((2, 1, 2, 2, 4, 4), 4.0)
+    removed_beam = np.full_like(beam_phase, 1.0)
+
+    transport = arts.vdisort.delta_m_preprocess(
+        physical_tau,
+        physical_omega,
+        fraction,
+        phase,
+        removed,
+        beam_phase,
+        removed_beam,
+    )
+    np.testing.assert_allclose(transport.tau, [0.9, 2.5])
+    np.testing.assert_allclose(transport.omega, [0.5 * 0.8 / 0.9, 0.75])
+    np.testing.assert_allclose(transport.source_coordinate_scale, [1.0 / 0.9, 1.25])
+    np.testing.assert_allclose(transport.source_coordinate_offset, [0.0, -0.125])
+    np.testing.assert_allclose(
+        np.asarray(transport.phase_matrix)[:, :, 0], (3.0 - 0.2 * 0.5) / 0.8
+    )
+    np.testing.assert_allclose(
+        np.asarray(transport.phase_matrix)[:, :, 1], (3.0 - 0.25 * 0.5) / 0.75
+    )
+    np.testing.assert_allclose(
+        np.asarray(transport.beam_phase_matrix)[:, :, 0], (4.0 - 0.2) / 0.8
+    )
+    np.testing.assert_allclose(
+        np.asarray(transport.beam_phase_matrix)[:, :, 1], (4.0 - 0.25) / 0.75
+    )
+
+
+def test_depolarizing_surface_catalogue():
+    models = (
+        arts.vdisort.hapke_fourier_modes(1.0, 0.06, 0.6, 2, 32),
+        arts.vdisort.rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, 2, 32),
+        arts.vdisort.ross_li_fourier_modes(0.091, 0.02, 0.01, np.deg2rad(1.5), 2, 32),
+    )
+    mu = np.array([0.2, 0.7])
+    stokes_mask = np.ones((8, 8), dtype=bool)
+    stokes_mask[0::4, 0::4] = False
+    for model in models:
+        assert len(model) == 2
+        for mode in model:
+            for alpha in (arts.vdisort.cosine_mode, arts.vdisort.sine_mode):
+                matrix = np.asarray(mode(alpha, mu, mu))
+                assert np.isfinite(matrix).all()
+                np.testing.assert_allclose(matrix[stokes_mask], 0.0, atol=1e-14)
+
+
+def test_depolarizing_surface_catalogue_combinations():
+    """Plot the new BRDFs alone and diluted by a polarized Fresnel component."""
+    nquad = 16
+    npositive = nquad // 2
+    depth = 1.0e-8
+    specular_fraction = 0.2
+    refractive_index = 1.5
+
+    nodes, _ = np.polynomial.legendre.leggauss(npositive)
+    mu = 0.5 * (nodes + 1.0)
+    viewing_angle = np.rad2deg(np.arccos(mu))
+    phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
+    boundary_down = np.zeros((2, 1, npositive, 4))
+    boundary_down[arts.vdisort.cosine_mode, 0, :, 0] = 1.0
+
+    surfaces = {
+        "Hapke": arts.vdisort.hapke_fourier_modes(1.0, 0.06, 0.6, 1, 48),
+        "RPV": arts.vdisort.rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, 1, 48),
+        "Ross-Li": arts.vdisort.ross_li_fourier_modes(
+            0.091, 0.02, 0.01, np.deg2rad(1.5), 1, 48
+        ),
+    }
+    fresnel = arts.vdisort.fresnel_fourier_modes(refractive_index, 1)
+
+    def reflected_stokes(modes):
+        model = arts.cppvdisort(
+            tau_arr=np.array([depth]),
+            omega_arr=np.array([0.0]),
+            NQuad=nquad,
+            phase_matrix=phase,
+            mu0=0.5,
+            beam_stokes=np.zeros(4),
+            phi0=0.0,
+            b_neg=boundary_down,
+            BDRF_Fourier_modes=modes,
+        )
+        return np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
+
+    fresnel_stokes = reflected_stokes(fresnel)
+    pure = {}
+    mixed = {}
+    for name, surface in surfaces.items():
+        pure[name] = reflected_stokes(surface)
+        mixture = arts.vdisort.combine_fourier_modes(
+            fresnel, specular_fraction, surface, 1.0 - specular_fraction
+        )
+        mixed[name] = reflected_stokes(mixture)
+        np.testing.assert_allclose(pure[name][:, 1:], 0.0, atol=2.0e-12)
+        np.testing.assert_allclose(
+            mixed[name],
+            specular_fraction * fresnel_stokes + (1.0 - specular_fraction) * pure[name],
+            rtol=2.0e-8,
+            atol=2.0e-12,
+        )
+        np.testing.assert_allclose(mixed[name][:, 2:], 0.0, atol=2.0e-12)
+
+    if "ARTS_HEADLESS" not in os.environ:
+        import matplotlib.pyplot as plt
+
+        figure, axes = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
+        pure_intensity, mixed_intensity, mixed_q, polarization = axes.flat
+        order = np.argsort(viewing_angle)
+        angle = viewing_angle[order]
+
+        for name in surfaces:
+            line = pure_intensity.plot(angle, pure[name][order, 0], "o-", label=name)[0]
+            color = line.get_color()
+            mixed_intensity.plot(
+                angle, mixed[name][order, 0], "o-", color=color, label=name
+            )
+            mixed_q.plot(angle, mixed[name][order, 1], "o-", color=color, label=name)
+            degree = np.divide(
+                np.abs(mixed[name][order, 1]),
+                mixed[name][order, 0],
+                out=np.zeros(npositive),
+                where=mixed[name][order, 0] > 0.0,
+            )
+            polarization.plot(angle, 100.0 * degree, "o-", color=color, label=name)
+
+        pure_intensity.set(
+            title="Fully depolarizing BRDF catalogue",
+            ylabel="Reflected Stokes I",
+        )
+        mixed_intensity.set(
+            title=f"{100 * specular_fraction:g}% Fresnel + BRDF",
+            ylabel="Reflected Stokes I",
+        )
+        mixed_q.set(
+            title="Polarized contribution after mixing",
+            xlabel="Positive viewing angle [degree]",
+            ylabel="Reflected Stokes Q",
+        )
+        polarization.set(
+            title="Depolarization of Fresnel reflection",
+            xlabel="Positive viewing angle [degree]",
+            ylabel="Degree of linear polarization [%]",
+        )
+        for axis in axes.flat:
+            axis.set_xlim(0.0, 90.0)
+            axis.grid(True, alpha=0.25)
+            axis.legend()
+        figure.suptitle("VDISORT surface BRDFs under isotropic illumination")
+        plt.show()
+
+
 def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
     """Rayleigh first Mueller column in each outgoing local-meridian frame."""
     mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
@@ -263,9 +422,7 @@ def test_fresnel_brewster_angle():
         beam_stokes=np.zeros(4),
         phi0=0.0,
         b_neg=boundary_down,
-        BDRF_Fourier_modes=arts.vdisort.fresnel_fourier_modes(
-            refractive_index, 1
-        ),
+        BDRF_Fourier_modes=arts.vdisort.fresnel_fourier_modes(refractive_index, 1),
     )
 
     stokes = np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
@@ -386,9 +543,7 @@ def test_fresnel_lambertian_depolarization():
             b_neg=boundary_down,
             BDRF_Fourier_modes=modes,
         )
-        return np.asarray(model.u(np.array([depth]), np.array([0.0])))[
-            0, 0, :npositive
-        ]
+        return np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
 
     pure_fresnel = reflected_stokes(
         arts.vdisort.fresnel_fourier_modes(refractive_index, 1)
@@ -421,9 +576,7 @@ def test_fresnel_lambertian_depolarization():
         assert np.max(dolp) <= previous_peak + 2.0e-12
         previous_peak = np.max(dolp)
 
-    np.testing.assert_allclose(
-        degree_of_linear_polarization[0.0], 0.0, atol=2.0e-12
-    )
+    np.testing.assert_allclose(degree_of_linear_polarization[0.0], 0.0, atol=2.0e-12)
     assert np.max(degree_of_linear_polarization[1.0]) > 0.99
     assert np.max(degree_of_linear_polarization[0.02]) < 0.1
 
@@ -431,9 +584,7 @@ def test_fresnel_lambertian_depolarization():
         import matplotlib.pyplot as plt
 
         angle = np.linspace(0.0, 0.5 * np.pi - 1.0e-6, 500)
-        dense_rv, dense_rh = _fresnel_amplitudes(
-            np.cos(angle), refractive_index
-        )
+        dense_rv, dense_rh = _fresnel_amplitudes(np.cos(angle), refractive_index)
         fresnel_i = 0.5 * (dense_rv**2 + dense_rh**2)
         fresnel_q = 0.5 * (dense_rv**2 - dense_rh**2)
 
@@ -441,10 +592,7 @@ def test_fresnel_lambertian_depolarization():
             1, 2, figsize=(12, 4), constrained_layout=True
         )
         for fraction in fresnel_fractions:
-            mixed_i = (
-                fraction * fresnel_i
-                + (1.0 - fraction) * lambertian_albedo
-            )
+            mixed_i = fraction * fresnel_i + (1.0 - fraction) * lambertian_albedo
             mixed_q = fraction * fresnel_q
             dense_dolp = np.divide(
                 np.abs(mixed_q),
@@ -453,9 +601,7 @@ def test_fresnel_lambertian_depolarization():
                 where=mixed_i > 0.0,
             )
             label = f"{100.0 * fraction:g}% Fresnel"
-            line = intensity_plot.plot(
-                np.rad2deg(angle), mixed_i, label=label
-            )[0]
+            line = intensity_plot.plot(np.rad2deg(angle), mixed_i, label=label)[0]
             intensity_plot.plot(
                 np.rad2deg(quadrature_angle),
                 reflected[fraction][:, 0],
@@ -837,6 +983,9 @@ def test_optically_thin_sun_halo():
 
 if __name__ == "__main__":
     test_combined_surface_models()
+    test_delta_m_preprocessing()
+    test_depolarizing_surface_catalogue()
+    test_depolarizing_surface_catalogue_combinations()
     test_phase_helpers()
     test_bdrf()
     test_absorbing_stokes_field()

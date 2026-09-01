@@ -871,6 +871,93 @@ void test_scalar_and_polarized_cox_munk_overlap() {
                      "A complex refractive index produced no Fresnel U/V phase coupling");
 }
 
+void test_delta_m_preprocessing() {
+  constexpr Index     nfourier = 2;
+  constexpr Index     nlayers  = 2;
+  constexpr Index     nquad    = 2;
+  const AscendingGrid physical_tau{1.0, 3.0};
+  const Vector        physical_omega{0.5, 0.8};
+  const Vector        fraction{0.2, 0.25};
+
+  vdisort::phase_matrix_data      original(2, nfourier, nlayers, nquad, nquad, rtepack::muelmat{0.0});
+  vdisort::phase_matrix_data      removed(2, nfourier, nlayers, nquad, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data original_beam(2, nfourier, nlayers, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data removed_beam(2, nfourier, nlayers, nquad, rtepack::muelmat{0.0});
+  for (Index alpha = 0; alpha < 2; ++alpha)
+    for (Index mode = 0; mode < nfourier; ++mode)
+      for (Index layer = 0; layer < nlayers; ++layer)
+        for (Index out = 0; out < nquad; ++out) {
+          const Numeric layer_value                    = static_cast<Numeric>(layer);
+          original_beam[alpha, mode, layer, out][0, 0] = 4.0 + layer_value;
+          removed_beam[alpha, mode, layer, out][0, 0]  = 1.0 + layer_value;
+          for (Index in = 0; in < nquad; ++in) {
+            original[alpha, mode, layer, out, in][0, 0] = 3.0 + layer_value;
+            removed[alpha, mode, layer, out, in][0, 0]  = 0.5 + layer_value;
+          }
+        }
+
+  const auto transport = vdisort::delta_m_preprocess(
+      physical_tau, physical_omega, fraction, original, removed, original_beam, removed_beam);
+  expect_close(transport.tau[0], 0.9, "delta-M first scaled boundary");
+  expect_close(transport.tau[1], 2.5, "delta-M second scaled boundary");
+  expect_close(transport.omega[0], 0.5 * 0.8 / 0.9, "delta-M first transport albedo");
+  expect_close(transport.omega[1], 0.8 * 0.75 / 0.8, "delta-M second transport albedo");
+  expect_close(transport.source_coordinate_scale[0], 1.0 / 0.9, "delta-M first source scale");
+  expect_close(transport.source_coordinate_offset[0], 0.0, "delta-M first source offset");
+  expect_close(transport.source_coordinate_scale[1], 1.0 / 0.8, "delta-M second source scale");
+  expect_close(transport.source_coordinate_offset[1], -0.125, "delta-M second source offset");
+  for (Index layer = 0; layer < nlayers; ++layer) {
+    const Numeric layer_value = static_cast<Numeric>(layer);
+    const Numeric expected_phase =
+        (3.0 + layer_value - fraction[layer] * (0.5 + layer_value)) / (1.0 - fraction[layer]);
+    const Numeric expected_beam = (4.0 + layer_value - fraction[layer] * (1.0 + layer_value)) / (1.0 - fraction[layer]);
+    expect_close(transport.phase_matrix[1, 1, layer, 1, 0][0, 0], expected_phase, "delta-M transport phase");
+    expect_close(transport.beam_phase_matrix[1, 1, layer, 1][0, 0], expected_beam, "delta-M transport beam phase");
+  }
+}
+
+void test_depolarizing_surface_catalogue() {
+  constexpr Index modes    = 3;
+  constexpr Index nazimuth = 64;
+  const Vector    outgoing{0.2, 0.7};
+  const Vector    incoming{0.3, 0.8};
+
+  const auto compare = [&](const vdisort::brdf::ScalarRawFunction& raw,
+                           const std::vector<vdisort::BDRF>&       named,
+                           const std::string_view                  name) {
+    const auto generic = vdisort::brdf::depolarizing_fourier_modes(raw, modes, nazimuth);
+    for (Index mode = 0; mode < modes; ++mode) {
+      for (Index alpha = 0; alpha < 2; ++alpha) {
+        rtepack::muelmat_matrix actual(outgoing.size(), incoming.size(), rtepack::muelmat{0.0});
+        rtepack::muelmat_matrix expected(outgoing.size(), incoming.size(), rtepack::muelmat{0.0});
+        named[mode](alpha, actual, outgoing, incoming);
+        generic[mode](alpha, expected, outgoing, incoming);
+        for (Index out = 0; out < actual.nrows(); ++out)
+          for (Index in = 0; in < actual.ncols(); ++in)
+            for (Index row = 0; row < vdisort::stokes_dimension; ++row)
+              for (Index column = 0; column < vdisort::stokes_dimension; ++column)
+                expect_close(actual[out, in][row, column], expected[out, in][row, column], name);
+      }
+    }
+  };
+
+  const disort::brdf::Hapke hapke;
+  expect_close(hapke(0.4, 0.7, 0.3), disort_common::hapke_brdf(0.4, 0.7, 0.3, 1.0, 0.06, 0.6), "shared Hapke kernel");
+  compare(hapke, vdisort::brdf::hapke_fourier_modes(1.0, 0.06, 0.6, modes, nazimuth), "depolarizing Hapke embedding");
+  const disort::brdf::RPV rpv;
+  expect_close(
+      rpv(0.4, 0.7, 0.3), disort_common::rpv_brdf(0.4, 0.7, 0.3, 0.027, 0.647, -0.169, 0.1), "shared RPV kernel");
+  compare(
+      rpv, vdisort::brdf::rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, modes, nazimuth), "depolarizing RPV embedding");
+  const disort::brdf::RossLi ross_li;
+  expect_close(ross_li(0.4, 0.7, 0.3),
+               disort_common::ross_li_brdf(0.4, 0.7, 0.3, 0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0),
+               "shared Ross-Li kernel");
+  compare(ross_li,
+          vdisort::brdf::ross_li_fourier_modes(0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0, modes, nazimuth),
+          "depolarizing Ross-Li embedding");
+}
+
 void test_eigenvalue_direction_check() {
   constexpr Index nquad = 2;
   Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
@@ -910,6 +997,8 @@ int main() try {
   test_spectral_phase_matrix_split();
   test_combined_surface_models();
   test_scalar_and_polarized_cox_munk_overlap();
+  test_delta_m_preprocessing();
+  test_depolarizing_surface_catalogue();
   test_eigenvalue_direction_check();
   std::cout << "vdisort tests passed\n";
   return 0;

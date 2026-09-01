@@ -17,6 +17,8 @@ Numeric checked_surface_mu(const Numeric mu) {
   return value;
 }
 
+Numeric unit_clamp(const Numeric value) { return std::clamp(value, -1.0, 1.0); }
+
 Numeric shadow_eta(const Numeric mu, const Numeric slope_variance) {
   const Numeric sine = std::sqrt(std::max(0.0, 1.0 - mu * mu));
   if (sine == 0.0) return 0.0;
@@ -31,6 +33,96 @@ Numeric lambertian_brdf(const Numeric albedo) {
   if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
     throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
   return albedo * Constant::inv_pi;
+}
+
+Numeric hapke_brdf(const Numeric outgoing_mu,
+                   const Numeric incoming_mu,
+                   const Numeric relative_azimuth,
+                   const Numeric opposition_amplitude,
+                   const Numeric opposition_width,
+                   const Numeric single_scattering_albedo) {
+  const Numeric mu  = checked_surface_mu(outgoing_mu);
+  const Numeric mup = checked_surface_mu(incoming_mu);
+  if (not std::isfinite(opposition_amplitude) or not std::isfinite(opposition_width) or
+      not std::isfinite(single_scattering_albedo) or opposition_width < 0.0 or single_scattering_albedo < 0.0 or
+      single_scattering_albedo > 1.0)
+    throw std::domain_error("Invalid Hapke BRDF parameters");
+
+  const Numeric sin_mu    = std::sqrt(std::max(0.0, 1.0 - mu * mu));
+  const Numeric sin_mup   = std::sqrt(std::max(0.0, 1.0 - mup * mup));
+  const Numeric cos_alpha = unit_clamp(mu * mup - sin_mu * sin_mup * std::cos(relative_azimuth));
+  const Numeric alpha     = std::acos(cos_alpha);
+  const Numeric phase     = 1.0 + 0.5 * cos_alpha;
+  const Numeric tangent   = std::tan(0.5 * alpha);
+  const Numeric opposition =
+      opposition_width == 0.0 ? 0.0 : opposition_amplitude * opposition_width / (opposition_width + tangent);
+  const Numeric gamma = std::sqrt(1.0 - single_scattering_albedo);
+  const Numeric h0    = (1.0 + 2.0 * mup) / (1.0 + 2.0 * mup * gamma);
+  const Numeric h     = (1.0 + 2.0 * mu) / (1.0 + 2.0 * mu * gamma);
+  return single_scattering_albedo / (4.0 * Constant::pi * (mu + mup)) * ((1.0 + opposition) * phase + h0 * h - 1.0);
+}
+
+Numeric rpv_brdf(const Numeric outgoing_mu,
+                 const Numeric incoming_mu,
+                 const Numeric relative_azimuth,
+                 const Numeric rho0,
+                 const Numeric kappa,
+                 const Numeric asymmetry,
+                 const Numeric hotspot) {
+  const Numeric mu_r = checked_surface_mu(outgoing_mu);
+  const Numeric mu_i = checked_surface_mu(incoming_mu);
+  if (not std::isfinite(rho0) or not std::isfinite(kappa) or not std::isfinite(asymmetry) or
+      not std::isfinite(hotspot) or rho0 < 0.0 or not(asymmetry > -1.0 and asymmetry < 1.0) or hotspot < 0.0)
+    throw std::domain_error("Invalid RPV BRDF parameters");
+
+  const Numeric sin_i     = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
+  const Numeric sin_r     = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
+  const Numeric tan_i     = sin_i / mu_i;
+  const Numeric tan_r     = sin_r / mu_r;
+  const Numeric cosine    = std::cos(relative_azimuth);
+  const Numeric cos_alpha = unit_clamp(mu_i * mu_r - sin_i * sin_r * cosine);
+  const Numeric distance  = std::sqrt(std::max(0.0, tan_i * tan_i + tan_r * tan_r + 2.0 * tan_i * tan_r * cosine));
+  const Numeric phase =
+      (1.0 - asymmetry * asymmetry) / std::pow(1.0 + asymmetry * asymmetry + 2.0 * asymmetry * cos_alpha, 1.5);
+  return rho0 * std::pow(mu_i * mu_r * (mu_i + mu_r), kappa - 1.0) * phase * (1.0 + (1.0 - hotspot) / (1.0 + distance));
+}
+
+Numeric ross_li_brdf(const Numeric outgoing_mu,
+                     const Numeric incoming_mu,
+                     const Numeric relative_azimuth,
+                     const Numeric isotropic,
+                     const Numeric volumetric,
+                     const Numeric geometric,
+                     const Numeric hotspot_angle) {
+  const Numeric mu_r = checked_surface_mu(outgoing_mu);
+  const Numeric mu_i = checked_surface_mu(incoming_mu);
+  if (not std::isfinite(isotropic) or not std::isfinite(volumetric) or not std::isfinite(geometric) or
+      not std::isfinite(hotspot_angle) or hotspot_angle <= 0.0)
+    throw std::domain_error("Invalid Ross-Li BRDF parameters");
+
+  const Numeric sin_i          = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
+  const Numeric sin_r          = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
+  const Numeric tan_i          = sin_i / mu_i;
+  const Numeric tan_r          = sin_r / mu_r;
+  const Numeric cosine         = std::cos(relative_azimuth);
+  const Numeric sine           = std::sin(relative_azimuth);
+  const Numeric cos_alpha      = unit_clamp(mu_i * mu_r - sin_i * sin_r * cosine);
+  const Numeric sin_alpha      = std::sqrt(std::max(0.0, 1.0 - cos_alpha * cos_alpha));
+  const Numeric alpha          = std::acos(cos_alpha);
+  const Numeric hotspot_factor = 1.0 + 1.0 / (1.0 + alpha / hotspot_angle);
+  const Numeric volume         = 4.0 / (3.0 * Constant::pi * (mu_i + mu_r)) *
+                                     ((Constant::pi / 2.0 - alpha) * cos_alpha + sin_alpha) * hotspot_factor -
+                                 1.0 / 3.0;
+
+  constexpr Numeric height_to_base = 2.0;
+  const Numeric     distance_sq    = tan_i * tan_i + tan_r * tan_r + 2.0 * tan_i * tan_r * cosine;
+  const Numeric     cos_t = height_to_base * mu_i * mu_r / (mu_i + mu_r) *
+                            std::sqrt(std::max(0.0, distance_sq + tan_i * tan_i * tan_r * tan_r * sine * sine));
+  const Numeric     t     = cos_t >= -1.0 and cos_t <= 1.0 ? std::acos(cos_t) : 0.0;
+  const Numeric     geometric_kernel =
+      (mu_i + mu_r) / (Constant::pi * mu_i * mu_r) * (t - std::sin(t) * std::cos(t) - Constant::pi) +
+      (1.0 + cos_alpha) / (2.0 * mu_i * mu_r);
+  return std::max(0.0, isotropic + geometric * geometric_kernel + volumetric * volume);
 }
 
 void check_surface_weight(const Numeric weight) {

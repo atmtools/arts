@@ -5,6 +5,7 @@
 namespace vdisort::brdf {
 
 using RawFunction = std::function<rtepack::muelmat(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth)>;
+using ScalarRawFunction = std::function<Numeric(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth)>;
 
 /** Polarized one-dimensional Gaussian Cox-Munk ocean reflection.
  *
@@ -44,6 +45,39 @@ struct Fresnel {
 [[nodiscard]] std::vector<BDRF> fourier_modes(RawFunction raw,
                                               Index       number_of_modes,
                                               Index       azimuth_quadrature_points = 100);
+
+/** Embed a scalar BRDF as a fully depolarizing VDISORT surface.
+ *
+ * The scalar value is placed in M00 and every other Mueller element is zero.
+ * Fourier projection then follows the same polarized normalization and
+ * combined cosine/sine layout as any other VDISORT surface.
+ */
+[[nodiscard]] std::vector<BDRF> depolarizing_fourier_modes(ScalarRawFunction raw,
+                                                           Index             number_of_modes,
+                                                           Index             azimuth_quadrature_points = 100);
+
+/** Construct a fully depolarizing Hapke surface from the shared scalar model. */
+[[nodiscard]] std::vector<BDRF> hapke_fourier_modes(Numeric opposition_amplitude,
+                                                    Numeric opposition_width,
+                                                    Numeric single_scattering_albedo,
+                                                    Index   number_of_modes,
+                                                    Index   azimuth_quadrature_points = 100);
+
+/** Construct a fully depolarizing RPV surface from the shared scalar model. */
+[[nodiscard]] std::vector<BDRF> rpv_fourier_modes(Numeric rho0,
+                                                  Numeric kappa,
+                                                  Numeric asymmetry,
+                                                  Numeric hotspot,
+                                                  Index   number_of_modes,
+                                                  Index   azimuth_quadrature_points = 100);
+
+/** Construct a fully depolarizing Ross-Li surface from the shared scalar model. */
+[[nodiscard]] std::vector<BDRF> ross_li_fourier_modes(Numeric isotropic,
+                                                      Numeric volumetric,
+                                                      Numeric geometric,
+                                                      Numeric hotspot_angle,
+                                                      Index   number_of_modes,
+                                                      Index   azimuth_quadrature_points = 100);
 
 /** Construct VDISORT-ready combined Fourier modes for a Cox-Munk ocean. */
 [[nodiscard]] std::vector<BDRF> cox_munk_fourier_modes(Numeric wind_speed,
