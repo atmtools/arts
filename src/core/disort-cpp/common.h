@@ -24,6 +24,13 @@ struct flux_values {
   Numeric dfdt{};
 };
 
+enum class ims_convention : bool {
+  /** DISORT 4.0.99 INTCOR: subtract IMS within the 10-degree aureole. */
+  disort,
+  /** Pythonic-DISORT NT correction: add IMS in every downward direction. */
+  pythonic_disort,
+};
+
 struct diffuse_moments {
   Numeric upward{};
   Numeric downward{};

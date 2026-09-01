@@ -375,23 +375,30 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
                                                                48,
                                                                96);
 
-  vdisort::user_u_data user;
-  vdisort::flux_data   flux;
+  vdisort::user_u_data    user;
+  vdisort::flux_data      flux;
+  rtepack::stokvec_vector polarized_ims, polarized_tms;
   for (Index level = 0; level < 2; ++level) {
     const Numeric physical_tau = output_tau[level];
     const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
-    model.solver.u_user(user, scaled_tau, 0.0, user_mu, model.user_phase, model.user_beam_phase);
+    model.solver.u_user_corr(user,
+                             polarized_ims,
+                             polarized_tms,
+                             physical_tau,
+                             0,
+                             polarized_correction,
+                             model.user_phase,
+                             model.user_beam_phase);
     const Vector correction = scalar_delta_m_correction(model, physical_tau, 0.0, user_mu);
-    const auto   polarized  = polarized_correction.evaluate(physical_tau, 0);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
+      const auto polarized = polarized_tms[angle] + polarized_ims[angle];
       expect_reference(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
-                       polarized[angle].I(),
+                       polarized.I(),
                        correction[angle],
                        2e-7);
       expect_unpolarized(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
-                         polarized[angle]);
-      user.intensities[angle].I() += correction[angle];
-      const auto label             = std::format("{} radiance [{}, {}]", test.name, level, angle);
+                         polarized);
+      const auto label = std::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle]);
       expect_unpolarized(label, user.intensities[angle]);
     }
@@ -1783,14 +1790,46 @@ void test_polarized_delta_m_correction() {
                                                      constant_phase,
                                                      8,
                                                      16);
-  const auto                              actual       = correction.evaluate(tau, 0);
-  const Numeric                           omega_f      = omega * fraction;
-  const Numeric                           scalar       = Constant::inv_pi * 0.25 * omega_f * omega_f / (1.0 - omega_f);
-  const rtepack::muelmat                  ims_operator = 2.0 * removed - removed * removed;
-  const rtepack::stokvec expected = -scalar * ims_chi(tau, -user_mu, mu0 / (1.0 - omega_f)) * (ims_operator * beam);
-  for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+  rtepack::stokvec_vector                 tms, ims;
+  correction.TMS(tms, tau, 0);
+  correction.IMS(ims, tau, 0);
+  const auto             actual       = correction.evaluate(tau, 0);
+  const Numeric          omega_f      = omega * fraction;
+  const Numeric          scalar       = Constant::inv_pi * 0.25 * omega_f * omega_f / (1.0 - omega_f);
+  const rtepack::muelmat ims_operator = 2.0 * removed - removed * removed;
+  const rtepack::stokvec expected     = -scalar * ims_chi(tau, -user_mu, mu0 / (1.0 - omega_f)) * (ims_operator * beam);
+  for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
+    expect_reference(std::format("Separated polarized delta-M TMS Stokes {}", stokes), tms[0][stokes], 0.0, 2e-12);
+    expect_reference(
+        std::format("Separated polarized delta-M IMS Stokes {}", stokes), ims[0][stokes], expected[stokes], 2e-12);
     expect_reference(
         std::format("Polarized delta-M IMS Stokes {}", stokes), actual[0][stokes], expected[stokes], 2e-12);
+  }
+
+  rtepack::stokvec_vector pythonic_ims;
+  correction.IMS(pythonic_ims, tau, 0, vdisort::ims_convention::pythonic_disort);
+  for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+    expect_reference(std::format("Pythonic polarized delta-M IMS Stokes {}", stokes),
+                     pythonic_ims[0][stokes],
+                     -expected[stokes],
+                     2e-12);
+
+  rtepack::stokvec_tensor3 gridded_tms(1, 1, 1), gridded_ims(1, 1, 1);
+  correction.gridded_TMS(gridded_tms);
+  correction.gridded_IMS(gridded_ims);
+  rtepack::stokvec_vector bottom_tms, bottom_ims;
+  correction.TMS(bottom_tms, depth, 0);
+  correction.IMS(bottom_ims, depth, 0);
+  for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
+    expect_reference(std::format("Gridded polarized delta-M TMS Stokes {}", stokes),
+                     gridded_tms[0, 0, 0][stokes],
+                     bottom_tms[0][stokes],
+                     2e-12);
+    expect_reference(std::format("Gridded polarized delta-M IMS Stokes {}", stokes),
+                     gridded_ims[0, 0, 0][stokes],
+                     bottom_ims[0][stokes],
+                     2e-12);
+  }
   ARTS_USER_ERROR_IF(std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0,
                      "Polarized delta-M IMS failed to generate all polarized Stokes components: {}",
                      actual[0]);

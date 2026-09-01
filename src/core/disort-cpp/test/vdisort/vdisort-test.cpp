@@ -667,6 +667,106 @@ void test_bulk_quadrature_equivalence() {
   }
 }
 
+void test_delta_m_correction_api_overlap() {
+  constexpr Index        nquad          = 4;
+  constexpr Index        nfourier       = 1;
+  constexpr Numeric      physical_depth = 1.0;
+  constexpr Numeric      omega          = 0.5;
+  constexpr Numeric      fraction       = 0.2;
+  constexpr Numeric      scale          = 1.0 - omega * fraction;
+  const rtepack::stokvec beam{0.7, 0.1, -0.05, 0.02};
+
+  Tensor7 phase(2, nfourier, 1, nquad, nquad, 4, 4, 0.0);
+  Tensor4 up(2, nfourier, nquad / 2, 4, 0.0), down(2, nfourier, nquad / 2, 4, 0.0);
+  Tensor6 beam_phase(2, nfourier, 1, nquad, 4, 4, 0.0);
+  auto    model = make_vdisort(nquad,
+                               AscendingGrid{scale * physical_depth},
+                               Vector{0.0},
+                               std::move(phase),
+                               std::move(up),
+                               std::move(down),
+                               {},
+                               Vector{beam.I(), beam.Q(), beam.U(), beam.V()},
+                               std::move(beam_phase));
+
+  rtepack::muelmat removed{0.0};
+  removed[0, 0]               = 1.0;
+  removed[1, 0]               = 0.2;
+  removed[2, 0]               = -0.1;
+  removed[3, 0]               = 0.05;
+  removed[1, 1]               = 0.7;
+  removed[2, 2]               = 0.6;
+  removed[3, 3]               = 0.5;
+  const auto   original_phase = [removed](Index, Numeric, Numeric, Numeric, Numeric) { return removed; };
+  const auto   zero_phase     = [](Index, Numeric, Numeric, Numeric, Numeric) { return rtepack::muelmat{0.0}; };
+  const Vector phi{0.0, 0.7};
+  const vdisort::delta_m_correction_cache correction(AscendingGrid{physical_depth},
+                                                     Vector{omega},
+                                                     Vector{fraction},
+                                                     0.5,
+                                                     0.0,
+                                                     beam,
+                                                     Vector{model.mu()},
+                                                     Vector{phi},
+                                                     original_phase,
+                                                     zero_phase,
+                                                     original_phase,
+                                                     8,
+                                                     16);
+
+  constexpr Numeric       physical_tau = 0.4;
+  vdisort::u_data         quadrature;
+  rtepack::stokvec_vector ims, tms;
+  model.TMS(tms, physical_tau, 1, correction);
+  model.IMS(ims, physical_tau, 1, correction);
+  const auto separated_tms = tms;
+  const auto separated_ims = ims;
+  model.u_corr(quadrature, ims, tms, physical_tau, 1, correction);
+  bool polarized = false;
+  for (Index stream = 0; stream < nquad; ++stream) {
+    for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
+      expect_close((separated_tms[stream] + separated_ims[stream])[stokes],
+                   (tms[stream] + ims[stream])[stokes],
+                   "separated TMS/IMS API");
+      expect_close(quadrature.intensities[stream][stokes],
+                   (tms[stream] + ims[stream])[stokes],
+                   "quadrature corrected-radiance API");
+    }
+    polarized = polarized or std::abs(quadrature.intensities[stream].Q()) > 1e-12 or
+                std::abs(quadrature.intensities[stream].U()) > 1e-12 or
+                std::abs(quadrature.intensities[stream].V()) > 1e-12;
+  }
+  ARTS_USER_ERROR_IF(
+      not polarized, "The polarized correction API produced no Q, U, or V signal: {:B,}", quadrature.intensities);
+
+  vdisort::phase_matrix_data      user_phase(2, nfourier, 1, nquad, nquad, rtepack::muelmat{0.0});
+  vdisort::beam_phase_matrix_data user_beam_phase(2, nfourier, 1, nquad, rtepack::muelmat{0.0});
+  vdisort::user_u_data            user;
+  rtepack::stokvec_vector         user_ims, user_tms;
+  model.u_user_corr(user, user_ims, user_tms, physical_tau, 1, correction, user_phase, user_beam_phase);
+  for (Index stream = 0; stream < nquad; ++stream)
+    for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
+      expect_close(user.intensities[stream][stokes],
+                   quadrature.intensities[stream][stokes],
+                   "user-angle corrected-radiance API");
+
+  Tensor4                  corrected(1, phi.size(), nquad, vdisort::stokes_dimension);
+  rtepack::stokvec_tensor3 gridded_tms(1, phi.size(), nquad), gridded_ims(1, phi.size(), nquad);
+  model.gridded_TMS(gridded_tms, correction);
+  model.gridded_IMS(gridded_ims, correction);
+  model.gridded_u_corr(corrected, gridded_tms, gridded_ims, correction);
+  for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
+    model.u_corr(quadrature, ims, tms, physical_depth, p, correction);
+    for (Index stream = 0; stream < nquad; ++stream)
+      for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
+        expect_close(
+            corrected[0, p, stream, stokes], quadrature.intensities[stream][stokes], "gridded corrected-radiance API");
+        expect_close(gridded_tms[0, p, stream][stokes], tms[stream][stokes], "gridded TMS API");
+        expect_close(gridded_ims[0, p, stream][stokes], ims[stream][stokes], "gridded IMS API");
+      }
+  }
+}
+
 void test_combined_matrix_transform() {
   rtepack::muelmat_tensor4 native_cosine(2, 1, 1, 1, rtepack::muelmat{0.0});
   rtepack::muelmat_tensor4 native_sine(2, 1, 1, 1, rtepack::muelmat{0.0});
@@ -701,6 +801,7 @@ int main() try {
   test_polarized_brdf();
   test_complex_uv_eigenmodes();
   test_bulk_quadrature_equivalence();
+  test_delta_m_correction_api_overlap();
   test_combined_matrix_transform();
   test_spectral_phase_matrix_split();
   std::cout << "vdisort tests passed\n";

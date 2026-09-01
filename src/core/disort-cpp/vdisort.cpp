@@ -268,13 +268,68 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
   ims_mu0_[0]      = ims_mu0_[1];
 }
 
-rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, const Index phi_index) const {
-  ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(tau < 0.0 or tau > physical_tau_.back(),
+Numeric delta_m_correction_cache::scaled_tau(const Numeric physical_tau) const {
+  ARTS_USER_ERROR_IF(physical_tau_.empty(), "Cannot evaluate an empty delta-M correction cache");
+  ARTS_USER_ERROR_IF(physical_tau < 0.0 or physical_tau > physical_tau_.back(),
                      "Physical correction depth must be in [0, {}], got {}",
                      physical_tau_.back(),
-                     tau);
+                     physical_tau);
+  const Index layer =
+      std::min<Index>(std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, physical_tau)),
+                      physical_tau_.size() - 1);
+  const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
+  const Numeric scaled_layer_top   = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
+  return scaled_layer_top + scale_[layer] * (physical_tau - physical_layer_top);
+}
+
+void delta_m_correction_cache::TMS(rtepack::stokvec_vector& tms, const Numeric tau, const Index phi_index) const {
+  ARTS_TIME_REPORT
+
+  const Numeric transport_tau = scaled_tau(tau);
+  ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
+                     "Correction azimuth index {} is outside [0, {})",
+                     phi_index,
+                     phi_.size());
+  const Index layer = std::min<Index>(
+      std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, tau)), physical_tau_.size() - 1);
+  const Numeric scaled_layer_top = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
+
+  tms.resize(user_mu_.size());
+  tms = rtepack::stokvec{};
+  for (Index u = 0; u < static_cast<Index>(user_mu_.size()); ++u) {
+    const Numeric mu = user_mu_[u], abs_mu = std::abs(mu);
+    if (mu > 0.0) {
+      const Numeric at_observation = std::exp(-transport_tau / mu0_);
+      const Numeric at_bottom  = std::exp((transport_tau - scaled_tau_[layer]) / abs_mu - scaled_tau_[layer] / mu0_);
+      tms[u]                  += (at_observation - at_bottom) * (tms_operator_[layer, phi_index, u] * beam_);
+      for (Index l = layer + 1; l < static_cast<Index>(physical_tau_.size()); ++l) {
+        const Numeric top = scaled_tau_[l - 1], bottom = scaled_tau_[l];
+        const Numeric a  = std::exp((transport_tau - top) / abs_mu - top / mu0_);
+        const Numeric b  = std::exp((transport_tau - bottom) / abs_mu - bottom / mu0_);
+        tms[u]          += (a - b) * (tms_operator_[l, phi_index, u] * beam_);
+      }
+    } else {
+      const Numeric at_observation = std::exp(-transport_tau / mu0_);
+      const Numeric at_top         = std::exp((scaled_layer_top - transport_tau) / abs_mu - scaled_layer_top / mu0_);
+      tms[u] += dc::downward_tms_kernel(abs_mu, mu0_, transport_tau - scaled_layer_top, at_observation, at_top) *
+                (tms_operator_[layer, phi_index, u] * beam_);
+      for (Index l = 0; l < layer; ++l) {
+        const Numeric top = l == 0 ? 0.0 : scaled_tau_[l - 1], bottom = scaled_tau_[l];
+        const Numeric a = std::exp((bottom - transport_tau) / abs_mu - bottom / mu0_);
+        const Numeric b = std::exp((top - transport_tau) / abs_mu - top / mu0_);
+        tms[u] += dc::downward_tms_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
+      }
+    }
+  }
+}
+
+void delta_m_correction_cache::IMS(rtepack::stokvec_vector& ims,
+                                   const Numeric            tau,
+                                   const Index              phi_index,
+                                   const ims_convention     convention) const {
+  ARTS_TIME_REPORT
+
+  static_cast<void>(scaled_tau(tau));
   ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
                      "Correction azimuth index {} is outside [0, {})",
                      phi_index,
@@ -282,48 +337,114 @@ rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric tau, co
   const Index layer = std::min<Index>(
       std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, tau)), physical_tau_.size() - 1);
   const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
-  const Numeric scaled_layer_top   = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
-  const Numeric scaled_tau         = scaled_layer_top + scale_[layer] * (tau - physical_layer_top);
+  const Numeric layer_bottom       = physical_tau_[layer];
+  const Numeric weight             = (tau - physical_layer_top) / (layer_bottom - physical_layer_top);
+  const Numeric beam_theta         = std::acos(-mu0_);
+  const Numeric sign               = convention == ims_convention::disort ? -1.0 : 1.0;
 
-  rtepack::stokvec_vector out(user_mu_.size(), rtepack::stokvec{});
+  ims.resize(user_mu_.size());
+  ims = rtepack::stokvec{};
   for (Index u = 0; u < static_cast<Index>(user_mu_.size()); ++u) {
-    const Numeric mu = user_mu_[u], abs_mu = std::abs(mu);
-    if (mu > 0.0) {
-      const Numeric at_observation  = std::exp(-scaled_tau / mu0_);
-      const Numeric at_bottom       = std::exp((scaled_tau - scaled_tau_[layer]) / abs_mu - scaled_tau_[layer] / mu0_);
-      out[u]                       += (at_observation - at_bottom) * (tms_operator_[layer, phi_index, u] * beam_);
-      for (Index l = layer + 1; l < static_cast<Index>(physical_tau_.size()); ++l) {
-        const Numeric top = scaled_tau_[l - 1], bottom = scaled_tau_[l];
-        const Numeric a  = std::exp((scaled_tau - top) / abs_mu - top / mu0_);
-        const Numeric b  = std::exp((scaled_tau - bottom) / abs_mu - bottom / mu0_);
-        out[u]          += (a - b) * (tms_operator_[l, phi_index, u] * beam_);
-      }
-    } else {
-      const Numeric at_observation = std::exp(-scaled_tau / mu0_);
-      const Numeric at_top         = std::exp((scaled_layer_top - scaled_tau) / abs_mu - scaled_layer_top / mu0_);
-      out[u] += dc::downward_tms_kernel(abs_mu, mu0_, scaled_tau - scaled_layer_top, at_observation, at_top) *
-                (tms_operator_[layer, phi_index, u] * beam_);
-      for (Index l = 0; l < layer; ++l) {
-        const Numeric top = l == 0 ? 0.0 : scaled_tau_[l - 1], bottom = scaled_tau_[l];
-        const Numeric a = std::exp((bottom - scaled_tau) / abs_mu - bottom / mu0_);
-        const Numeric b = std::exp((top - scaled_tau) / abs_mu - top / mu0_);
-        out[u] += dc::downward_tms_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
-      }
+    const Numeric mu = user_mu_[u];
+    if (mu > 0.0) continue;
+    if (convention == ims_convention::disort and std::abs(beam_theta - std::acos(mu)) > Constant::pi / 18.0) continue;
 
-      const Numeric beam_theta = std::acos(-mu0_);
-      const Numeric ray_theta  = std::acos(mu);
-      if (std::abs(beam_theta - ray_theta) <= Constant::pi / 18.0) {
-        const Numeric layer_bottom        = physical_tau_[layer];
-        const Numeric weight              = (tau - physical_layer_top) / (layer_bottom - physical_layer_top);
-        const auto    boundary_correction = [&](const Index boundary) {
-          return ims_scalar_[boundary] * dc::ims_chi(tau, abs_mu, ims_mu0_[boundary]) *
-                 (ims_operator_[boundary, phi_index, u] * beam_);
-        };
-        out[u] -= (1.0 - weight) * boundary_correction(layer) + weight * boundary_correction(layer + 1);
+    const Numeric abs_mu              = -mu;
+    const auto    boundary_correction = [&](const Index boundary) {
+      return sign * ims_scalar_[boundary] * dc::ims_chi(tau, abs_mu, ims_mu0_[boundary]) *
+             (ims_operator_[boundary, phi_index, u] * beam_);
+    };
+    ims[u] = (1.0 - weight) * boundary_correction(layer) + weight * boundary_correction(layer + 1);
+  }
+}
+
+void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms) const {
+  ARTS_TIME_REPORT
+
+  const std::array<Index, 3> expected{
+      static_cast<Index>(physical_tau_.size()), static_cast<Index>(phi_.size()), static_cast<Index>(user_mu_.size())};
+  ARTS_USER_ERROR_IF(
+      tms.shape() != expected, "gridded_TMS output has shape {:B,}, expected {:B,}", tms.shape(), expected);
+
+  tms = rtepack::stokvec{};
+  Vector beam_at_boundary(expected[0] + 1);
+  beam_at_boundary[0] = 1.0;
+  for (Index layer = 0; layer < expected[0]; ++layer)
+    beam_at_boundary[layer + 1] = std::exp(-scaled_tau_[layer] / mu0_);
+
+  Matrix ray_transport(expected[2], expected[0]);
+  for (Index user = 0; user < expected[2]; ++user)
+    for (Index layer = 0; layer < expected[0]; ++layer) {
+      const Numeric top          = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
+      const Numeric thickness    = scaled_tau_[layer] - top;
+      ray_transport[user, layer] = std::exp(-thickness / std::abs(user_mu_[user]));
+    }
+
+  for (Index p = 0; p < expected[1]; ++p)
+    for (Index user = 0; user < expected[2]; ++user) {
+      const Numeric abs_mu = std::abs(user_mu_[user]);
+      if (user_mu_[user] < 0.0) {
+        rtepack::stokvec downward{};
+        for (Index layer = 0; layer < expected[0]; ++layer) {
+          const Numeric top       = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
+          const Numeric bottom    = scaled_tau_[layer];
+          const Numeric thickness = bottom - top;
+          const Numeric transport = ray_transport[user, layer];
+          const Numeric at_bottom = beam_at_boundary[layer + 1];
+          const Numeric at_top    = transport * beam_at_boundary[layer];
+          downward = transport * downward + dc::downward_tms_kernel(abs_mu, mu0_, thickness, at_bottom, at_top) *
+                                                (tms_operator_[layer, p, user] * beam_);
+          tms[layer, p, user] = downward;
+        }
+      } else {
+        rtepack::stokvec upward{};
+        tms[expected[0] - 1, p, user] = upward;
+        for (Index layer = expected[0] - 1; layer > 0; --layer) {
+          const Numeric transport = ray_transport[user, layer];
+          const Numeric at_top    = beam_at_boundary[layer];
+          const Numeric at_bottom = transport * beam_at_boundary[layer + 1];
+          upward                  = transport * upward + (at_top - at_bottom) * (tms_operator_[layer, p, user] * beam_);
+          tms[layer - 1, p, user] = upward;
+        }
       }
     }
+}
+
+void delta_m_correction_cache::gridded_IMS(rtepack::stokvec_tensor3_view ims, const ims_convention convention) const {
+  ARTS_TIME_REPORT
+
+  const std::array<Index, 3> expected{
+      static_cast<Index>(physical_tau_.size()), static_cast<Index>(phi_.size()), static_cast<Index>(user_mu_.size())};
+  ARTS_USER_ERROR_IF(
+      ims.shape() != expected, "gridded_IMS output has shape {:B,}, expected {:B,}", ims.shape(), expected);
+
+  ims                      = rtepack::stokvec{};
+  const Numeric beam_theta = std::acos(-mu0_);
+  const Numeric sign       = convention == ims_convention::disort ? -1.0 : 1.0;
+  for (Index user = 0; user < expected[2]; ++user) {
+    const Numeric mu = user_mu_[user];
+    if (mu > 0.0 or
+        (convention == ims_convention::disort and std::abs(beam_theta - std::acos(mu)) > Constant::pi / 18.0))
+      continue;
+    const Numeric abs_mu = -mu;
+    for (Index layer = 0; layer < expected[0]; ++layer) {
+      const Index   boundary = layer + 1;
+      const Numeric depth_factor =
+          sign * ims_scalar_[boundary] * dc::ims_chi(physical_tau_[layer], abs_mu, ims_mu0_[boundary]);
+      for (Index p = 0; p < expected[1]; ++p)
+        ims[layer, p, user] = depth_factor * (ims_operator_[boundary, p, user] * beam_);
+    }
   }
-  return out;
+}
+
+rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric        tau,
+                                                           const Index          phi_index,
+                                                           const ims_convention convention) const {
+  rtepack::stokvec_vector tms, ims;
+  TMS(tms, tau, phi_index);
+  IMS(ims, tau, phi_index, convention);
+  for (Index user = 0; user < static_cast<Index>(tms.size()); ++user) tms[user] += ims[user];
+  return tms;
 }
 
 phase_matrix_fourier_coefficients phase_matrix_fourier_split(const rtepack::specmat_matrix_const_view& phase_matrix) {
@@ -1131,6 +1252,93 @@ void main_data::u_user(user_u_data&                  data,
   for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user) data.intensities[user] = result[0, 0, user];
 }
 
+void main_data::check_correction_compatibility(const delta_m_correction_cache& correction,
+                                               const bool                      quadrature_angles) const {
+  const auto& correction_tau = correction.scaled_tau();
+  ARTS_USER_ERROR_IF(correction_tau.size() != tau_arr.size(),
+                     "The delta-M correction has {} scaled layers, but VDISORT has {}",
+                     correction_tau.size(),
+                     tau_arr.size());
+  for (Index layer = 0; layer < NLayers; ++layer) {
+    const Numeric scale = std::max({1.0, std::abs(correction_tau[layer]), std::abs(tau_arr[layer])});
+    ARTS_USER_ERROR_IF(
+        std::abs(correction_tau[layer] - tau_arr[layer]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale,
+        "The delta-M correction scaled depth {} in layer {} differs from VDISORT depth {}",
+        correction_tau[layer],
+        layer,
+        tau_arr[layer]);
+  }
+
+  if (not quadrature_angles) return;
+  const auto& correction_mu = correction.user_mu();
+  ARTS_USER_ERROR_IF(correction_mu.size() != mu_arr.size(),
+                     "The delta-M correction has {} directions, but VDISORT has {} quadrature streams",
+                     correction_mu.size(),
+                     mu_arr.size());
+  for (Index stream = 0; stream < NQuad; ++stream) {
+    const Numeric scale = std::max({1.0, std::abs(correction_mu[stream]), std::abs(mu_arr[stream])});
+    ARTS_USER_ERROR_IF(
+        std::abs(correction_mu[stream] - mu_arr[stream]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale,
+        "The delta-M correction cosine {} at stream {} differs from VDISORT cosine {}",
+        correction_mu[stream],
+        stream,
+        mu_arr[stream]);
+  }
+}
+
+void main_data::TMS(rtepack::stokvec_vector&        tms,
+                    const Numeric                   physical_tau,
+                    const Index                     phi_index,
+                    const delta_m_correction_cache& correction) const {
+  check_correction_compatibility(correction, false);
+  correction.TMS(tms, physical_tau, phi_index);
+}
+
+void main_data::IMS(rtepack::stokvec_vector&        ims,
+                    const Numeric                   physical_tau,
+                    const Index                     phi_index,
+                    const delta_m_correction_cache& correction,
+                    const ims_convention            convention) const {
+  check_correction_compatibility(correction, false);
+  correction.IMS(ims, physical_tau, phi_index, convention);
+}
+
+void main_data::gridded_TMS(rtepack::stokvec_tensor3_view tms, const delta_m_correction_cache& correction) const {
+  check_correction_compatibility(correction, false);
+  correction.gridded_TMS(tms);
+}
+
+void main_data::gridded_IMS(rtepack::stokvec_tensor3_view   ims,
+                            const delta_m_correction_cache& correction,
+                            const ims_convention            convention) const {
+  check_correction_compatibility(correction, false);
+  correction.gridded_IMS(ims, convention);
+}
+
+void main_data::u_user_corr(user_u_data&                    data,
+                            rtepack::stokvec_vector&        ims,
+                            rtepack::stokvec_vector&        tms,
+                            const Numeric                   physical_tau,
+                            const Index                     phi_index,
+                            const delta_m_correction_cache& correction,
+                            const phase_matrix_data&        user_phase_matrix,
+                            const beam_phase_matrix_data&   user_beam_phase_matrix,
+                            const ims_convention            convention) const {
+  ARTS_TIME_REPORT
+
+  check_correction_compatibility(correction, false);
+  correction.TMS(tms, physical_tau, phi_index);
+  correction.IMS(ims, physical_tau, phi_index, convention);
+  u_user(data,
+         correction.scaled_tau(physical_tau),
+         correction.phi()[phi_index],
+         correction.user_mu(),
+         user_phase_matrix,
+         user_beam_phase_matrix);
+  for (Index user = 0; user < static_cast<Index>(data.intensities.size()); ++user)
+    data.intensities[user] += tms[user] + ims[user];
+}
+
 void main_data::user_fourier_modes(ComplexTensor4&               modes,
                                    const AscendingGrid&          tau,
                                    const ConstVectorView&        user_mu,
@@ -1404,6 +1612,22 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   }
 }
 
+void main_data::u_corr(u_data&                         data,
+                       rtepack::stokvec_vector&        ims,
+                       rtepack::stokvec_vector&        tms,
+                       const Numeric                   physical_tau,
+                       const Index                     phi_index,
+                       const delta_m_correction_cache& correction,
+                       const ims_convention            convention) const {
+  ARTS_TIME_REPORT
+
+  check_correction_compatibility(correction, true);
+  correction.TMS(tms, physical_tau, phi_index);
+  correction.IMS(ims, physical_tau, phi_index, convention);
+  u(data, correction.scaled_tau(physical_tau), correction.phi()[phi_index]);
+  for (Index stream = 0; stream < NQuad; ++stream) data.intensities[stream] += tms[stream] + ims[stream];
+}
+
 flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   u0_data field;
   u0(field, tau);
@@ -1463,6 +1687,24 @@ void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
             out[l, p, i, stokes] += um[l, sine_mode, m, i][stokes] * c + um[l, cosine_mode, m, i][stokes] * s;
         }
       }
+}
+
+void main_data::gridded_u_corr(Tensor4View                     out,
+                               rtepack::stokvec_tensor3_view   tms,
+                               rtepack::stokvec_tensor3_view   ims,
+                               const delta_m_correction_cache& correction,
+                               const ims_convention            convention) const {
+  ARTS_TIME_REPORT
+
+  check_correction_compatibility(correction, true);
+  correction.gridded_TMS(tms);
+  correction.gridded_IMS(ims, convention);
+  gridded_u(out, correction.phi());
+  for (Index layer = 0; layer < NLayers; ++layer)
+    for (Index p = 0; p < static_cast<Index>(correction.phi().size()); ++p)
+      for (Index stream = 0; stream < NQuad; ++stream)
+        for (Index stokes = 0; stokes < stokes_dimension; ++stokes)
+          out[layer, p, stream, stokes] += tms[layer, p, stream][stokes] + ims[layer, p, stream][stokes];
 }
 
 void main_data::gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const {

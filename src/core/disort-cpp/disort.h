@@ -135,12 +135,7 @@ struct coupling_result {
   bool    converged{false};
 };
 
-enum class ims_convention : bool {
-  /** DISORT 4.0.99 INTCOR: subtract IMS within the 10-degree aureole. */
-  disort,
-  /** Pythonic-DISORT NT correction: add IMS in every downward direction. */
-  pythonic_disort,
-};
+using ims_convention = disort_common::ims_convention;
 
 /** The main data structure for the DISORT algorithm
  * 

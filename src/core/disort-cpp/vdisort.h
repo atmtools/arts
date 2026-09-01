@@ -69,7 +69,8 @@ struct flux_data {
   rtepack::stokvec_vector u0;  // scratch [NQuad]
 };
 
-using flux_values = disort_common::flux_values;
+using flux_values    = disort_common::flux_values;
+using ims_convention = disort_common::ims_convention;
 
 /** Laboratory-frame Mueller phase function used by the delta-M correction.
  * Arguments are layer, outgoing (mu, phi), and incident (mu, phi).
@@ -123,8 +124,28 @@ class delta_m_correction_cache {
                            Index                               intermediate_phi         = 64,
                            lab_phase_pair_convolution_function removed_pair_convolution = {});
 
+  /** Evaluate the cached Mueller-valued TMS correction at one physical depth and cached azimuth. */
+  void TMS(rtepack::stokvec_vector& tms, Numeric tau, Index phi_index) const;
+
+  /** Evaluate the cached Mueller-valued IMS correction at one physical depth and cached azimuth. */
+  void IMS(rtepack::stokvec_vector& ims,
+           Numeric                  tau,
+           Index                    phi_index,
+           ims_convention           convention = ims_convention::disort) const;
+
+  /** Evaluate TMS at every physical layer bottom, cached azimuth, and user direction. */
+  void gridded_TMS(rtepack::stokvec_tensor3_view tms) const;
+
+  /** Evaluate IMS at every physical layer bottom, cached azimuth, and user direction. */
+  void gridded_IMS(rtepack::stokvec_tensor3_view ims, ims_convention convention = ims_convention::disort) const;
+
   /** Return the cached TMS+IMS Stokes correction at one cached azimuth. */
-  [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric tau, Index phi_index) const;
+  [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric        tau,
+                                                 Index          phi_index,
+                                                 ims_convention convention = ims_convention::disort) const;
+
+  /** Map one physical optical depth to the transport solver's scaled coordinate. */
+  [[nodiscard]] Numeric scaled_tau(Numeric physical_tau) const;
 
   /** Return the physical, unscaled layer-bottom optical depths. */
   [[nodiscard]] const AscendingGrid& physical_tau() const { return physical_tau_; }
@@ -251,6 +272,8 @@ class main_data {
                           const ConstVectorView&        user_mu,
                           const phase_matrix_data&      user_phase_matrix,
                           const beam_phase_matrix_data& user_beam_phase_matrix) const;
+  /** Validate that a correction cache uses this solver's scaled depth grid and optionally its streams. */
+  void check_correction_compatibility(const delta_m_correction_cache& correction, bool quadrature_angles) const;
 
  public:
   /** Construct an empty, uninitialized solver. */
@@ -291,6 +314,27 @@ class main_data {
   /** Return the layer containing a physical optical depth. */
   [[nodiscard]] Index tau_index(Numeric tau) const;
 
+  /** Evaluate polarized TMS from a compatible physical-phase correction cache. */
+  void TMS(rtepack::stokvec_vector&        tms,
+           Numeric                         physical_tau,
+           Index                           phi_index,
+           const delta_m_correction_cache& correction) const;
+
+  /** Evaluate polarized IMS from a compatible physical-phase correction cache. */
+  void IMS(rtepack::stokvec_vector&        ims,
+           Numeric                         physical_tau,
+           Index                           phi_index,
+           const delta_m_correction_cache& correction,
+           ims_convention                  convention = ims_convention::disort) const;
+
+  /** Evaluate polarized TMS at every layer bottom and cached correction angle. */
+  void gridded_TMS(rtepack::stokvec_tensor3_view tms, const delta_m_correction_cache& correction) const;
+
+  /** Evaluate polarized IMS at every layer bottom and cached correction angle. */
+  void gridded_IMS(rtepack::stokvec_tensor3_view   ims,
+                   const delta_m_correction_cache& correction,
+                   ims_convention                  convention = ims_convention::disort) const;
+
   /** Evaluate the Stokes radiance on all quadrature streams at one point. */
   void u(u_data& data, Numeric tau, Numeric phi) const;
 
@@ -314,6 +358,17 @@ class main_data {
               const phase_matrix_data&      user_phase_matrix,
               const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
 
+  /** Evaluate and apply cached polarized IMS/TMS corrections at arbitrary user directions. */
+  void u_user_corr(user_u_data&                    data,
+                   rtepack::stokvec_vector&        ims,
+                   rtepack::stokvec_vector&        tms,
+                   Numeric                         physical_tau,
+                   Index                           phi_index,
+                   const delta_m_correction_cache& correction,
+                   const phase_matrix_data&        user_phase_matrix,
+                   const beam_phase_matrix_data&   user_beam_phase_matrix = {},
+                   ims_convention                  convention             = ims_convention::disort) const;
+
   /** Radiance at arbitrary polar angles, optical depths, and azimuths.
    *
    * The output contains Stokes blocks with shape [NTau, NPhi, NUser].
@@ -331,11 +386,26 @@ class main_data {
   /** Evaluate the azimuth-independent quadrature-stream field at one depth. */
   void u0(u0_data& data, Numeric tau) const;
 
+  /** Evaluate and apply cached polarized IMS/TMS corrections on the quadrature streams. */
+  void u_corr(u_data&                         data,
+              rtepack::stokvec_vector&        ims,
+              rtepack::stokvec_vector&        tms,
+              Numeric                         physical_tau,
+              Index                           phi_index,
+              const delta_m_correction_cache& correction,
+              ims_convention                  convention = ims_convention::disort) const;
+
   /** Return all flux components and the flux divergence at one optical depth. */
   [[nodiscard]] flux_values flux(flux_data&, Numeric tau) const;
 
   /** Evaluate radiances at every layer bottom for all quadrature streams and azimuths. */
   void gridded_u(Tensor4View out, const Vector& phi) const;
+  /** Evaluate corrected radiances at all layer bottoms, cached azimuths, and quadrature streams. */
+  void gridded_u_corr(Tensor4View                     out,
+                      rtepack::stokvec_tensor3_view   tms,
+                      rtepack::stokvec_tensor3_view   ims,
+                      const delta_m_correction_cache& correction,
+                      ims_convention                  convention = ims_convention::disort) const;
   /** Evaluate every flux quantity at every layer bottom. */
   void gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const;
   /** Evaluate quadrature-stream radiances on an arbitrary ascending optical-depth grid. */

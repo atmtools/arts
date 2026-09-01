@@ -980,8 +980,9 @@ are used where :math:`\mu` approaches :math:`\mu_0`, avoiding cancellation in
 expressions containing :math:`1/\mu-1/\mu_0`.
 
 By default, IMS is applied only to downward directions within 10 degrees of
-the incident beam and is subtracted from the TMS-corrected field.  The scalar
-core also exposes the alternative sign/domain convention for explicit callers.
+the incident beam and is subtracted from the TMS-corrected field.  Both cores
+also expose the alternative convention which adds IMS in every downward
+direction.
 
 Scalar IMS/TMS is available at quadrature and arbitrary user angles and has a
 gridded path which reuses angle-dependent work.  It is restricted to classical
@@ -1004,7 +1005,13 @@ The matrix product preserves polarization and reference-frame rotations.  This
 angular convolution is expensive, so it is computed once for a selected set of
 user directions and azimuths and cached.  A supplied analytic pair-convolution
 can replace the numerical intermediate-angle quadrature.  Evaluation at
-different optical depths then reuses the cached operators.
+different optical depths then reuses the cached operators.  The vector core
+exposes TMS and IMS separately at one depth or at all layer bottoms, as well as
+``u_corr``, ``u_user_corr``, and ``gridded_u_corr`` combinations analogous to
+the scalar core.  The correction cache remains a separate argument because it
+depends on the original, transport, and removed physical Mueller phase
+functions, whereas the VDISORT transport object contains only the already
+transformed discrete-ordinate operators.
 
 Arbitrary-angle radiances
 *************************
