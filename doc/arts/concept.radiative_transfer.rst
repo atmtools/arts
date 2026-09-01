@@ -122,6 +122,45 @@ In practice, it is often more convenient to just use
 the step-by-step equations for forward calculations, but the matrix above
 gives insight on optimizations for the Jacobian of the "measured" :math:`I_N`.
 
+Propagation-matrix exponential
+******************************
+
+For polarized radiative transfer, :math:`K` and :math:`T` are matrices and
+the transmittance is evaluated as a matrix exponential.  Both the ordinary
+and Magnus layer options use the same specialized Cayley--Hamilton evaluator;
+they differ only in the matrix supplied to that evaluator.
+
+After separating the scalar diagonal part, the characteristic polynomial of
+the polarized part :math:`P` has the form
+
+.. math::
+
+  0 = \lambda^4 + B\lambda^2 + C.
+
+With :math:`S=\sqrt{B^2-4C}`, define
+
+.. math::
+
+  x^2 = \frac{S-B}{2},\qquad
+  y^2 = \frac{S+B}{2}.
+
+The four eigenvalues of :math:`P` are then
+:math:`+x`, :math:`-x`, :math:`+iy`, and :math:`-iy`.  In particular,
+the expressions above already give :math:`x^2` and :math:`y^2`; the square
+roots used to obtain :math:`x` and :math:`y` are taken only once afterward.
+The exponential can consequently be reduced to
+
+.. math::
+
+  \exp(P) = c_0 1 + c_1P + c_2P^2 + c_3P^3,
+
+where the coefficients contain combinations of :math:`\cosh(x)`,
+:math:`\sinh(x)`, :math:`\cos(y)`, and :math:`\sin(y)`.  ARTS evaluates the
+zero and repeated-eigenvalue limits separately to avoid divisions by small
+numbers.  The derivatives of the exponential coefficients and their
+degenerate limits are evaluated analytically and are used by all
+``rte_option`` choices described below.
+
 Partial derivatives
 *******************
 
@@ -257,22 +296,42 @@ and where the function :math:`f` is defined as
 the map from :math:`\vec{x}_i\rightarrow\mathbf{x}`.
 Often in ARTS, :math:`f` is just an inverse interpolation operator.
 
-Potential improvements
-**********************
+Layer interpolation options
+***************************
 
 Note that here, the indexing is not the same as above as
-it is experimental notation.  This section exists mostly
-as a reminder that we are using constant source and constant
-propagation matrix above.  If these are allowed to change
-within a layer, the equations below offers some approach to
-achieving it.
+it is layer-oriented notation.  ARTS provides several approximations for
+how the source and propagation matrix vary between the two endpoints of a
+layer.  They are selected through :attr:`~pyarts3.workspace.Workspace.rte_option`.
 
-.. note::
+.. list-table:: Radiative-transfer layer options
+   :header-rows: 1
+   :widths: 18 30 52
 
-  These are untested and not how ARTS compute things,
-  they are left as a future exercise so that we can
-  implement them later.  Just the concept, for instance,
-  of a Dawson function of a matrix is questionable.
+   * - Option
+     - Within-layer model
+     - Step
+   * - ``constant``
+     - Endpoint-average propagation matrix and source
+     - Ordinary matrix exponential with a layer-average source.
+   * - ``lintau``
+     - Constant propagation matrix and linear source
+     - Uses the linear-source operator :math:`\Lambda` described below.
+   * - ``linprop``
+     - Linear propagation matrix and linear source
+     - Uses the approximate Dawson-function correction described below.
+   * - ``magop``
+     - Linear propagation matrix and layer-average source
+     - Uses the second-order Magnus exponent and the ordinary source step.
+   * - ``magop_linsrc``
+     - Linear propagation matrix and linear source
+     - Uses the second-order augmented Magnus exponent for both propagation
+       and source evolution.
+
+All five options propagate analytical derivatives of their transmittance
+and, where applicable, source operators.  ``magop`` and ``magop_linsrc``
+are most useful when the polarized propagation matrices at the layer
+endpoints do not commute.
 
 Linear source function
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -536,6 +595,74 @@ case above, just replacing :math:`\Lambda_i` with this new definition.
 
   Also be aware that the square root of a matrix is not unique, leading to
   further potential numerical issues.
+
+Magnus propagation matrix
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Magnus options treat the propagation matrix as linear across a layer,
+
+.. math::
+
+  K(s) = K_0 + \frac{s}{r}(K_1-K_0),\qquad 0\leq s\leq r,
+
+and retain the first commutator correction in the ordered exponential.  With
+:math:`[A,B]=AB-BA`, the effective optical-depth matrix is
+
+.. math::
+
+  \Omega = \frac{r}{2}(K_0+K_1)
+           - \frac{r^2}{12}[K_1,K_0],
+  \qquad T=\exp(-\Omega).
+
+When :math:`K_0=K_1`, or when the endpoint matrices commute, the commutator
+vanishes and this reduces to the ordinary exponential of the endpoint
+average.  The commutator term is the distinction between ``magop`` and the
+``constant`` transmittance approximation.
+
+The ``magop`` option uses the endpoint-average source
+
+.. math::
+
+  \overline{J}=\frac{J_0+J_1}{2},\qquad
+  I_1=\overline{J}+T(I_0-\overline{J}).
+
+This option improves the ordered propagation matrix but does not model the
+source gradient explicitly.
+
+Magnus propagation matrix and linear source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``magop_linsrc`` option augments the Magnus system with a source that is
+linear between :math:`J_0` and :math:`J_1`.  Define the matrix function
+
+.. math::
+
+  \phi_1(X)=X^{-1}\left(\exp(X)-1\right),
+
+where its power-series limit is used when :math:`X` is singular.  The
+linear-source operator used by ARTS is
+
+.. math::
+
+  L = \phi_1(-\Omega)
+      \left[1-\frac{r}{12}(K_1-K_0)\right],
+
+and the layer step is
+
+.. math::
+
+  I_1 = J_1 + T(I_0-J_0) + L(J_0-J_1).
+
+For a constant propagation matrix this reduces to the ``lintau`` source
+operator.  Unlike ``linprop``, it does not use an element-wise Dawson
+function and remains a matrix construction for polarized propagation.
+The derivatives of both :math:`T` and :math:`L` with respect to either
+endpoint and the layer length are evaluated analytically.
+
+Both Magnus options truncate the Magnus series after the first commutator
+term.  They therefore still require sufficiently short layers when the
+propagation matrix changes rapidly; reducing the ray-path step size is the
+appropriate convergence check in that regime.
 
 Deriving the expressions
 ************************

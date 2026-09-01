@@ -357,11 +357,13 @@ void rte_emission(stokvec_vector_view        I,
                   const TransmittanceMatrix &tramat,
                   const SourceVector        &srcvec) {
   switch (tramat.option) {
+    case TransmittanceOption::magop:
     case TransmittanceOption::constant:
       constant(I, dI, tramat.T, tramat.P, tramat.dT[0], tramat.dT[1], srcvec.J, srcvec.dJ);
       break;
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc:
       linevo(I,
              dI,
              tramat.T,
@@ -416,9 +418,11 @@ void rte_emission_path(stokvec_matrix_view Is, const TransmittanceMatrix &Ts, co
   if (Is.size() == 0) return;
 
   switch (Ts.option) {
-    case TransmittanceOption::constant: constant(Is, Ts.T, Js.J); break;
+    case TransmittanceOption::magop:
+    case TransmittanceOption::constant:     constant(Is, Ts.T, Js.J); break;
     case TransmittanceOption::linsrc:
-    case TransmittanceOption::linprop:  linevo(Is, Ts.T, Ts.L, Js.J); break;
+    case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc: linevo(Is, Ts.T, Ts.L, Js.J); break;
   }
 }
 

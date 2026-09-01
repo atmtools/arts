@@ -19,6 +19,131 @@
 namespace rtepack {
 static constexpr Numeric too_small = 1e-4;
 
+namespace {
+constexpr propmat commutator(const propmat &lhs, const propmat &rhs) {
+  return {0.0,
+          rhs.C() * lhs.U() - lhs.C() * rhs.U() + rhs.D() * lhs.V() - lhs.D() * rhs.V(),
+          lhs.B() * rhs.U() - rhs.B() * lhs.U() + rhs.D() * lhs.W() - lhs.D() * rhs.W(),
+          lhs.B() * rhs.V() - rhs.B() * lhs.V() - rhs.C() * lhs.W() + lhs.C() * rhs.W(),
+          lhs.B() * rhs.C() - rhs.B() * lhs.C() + rhs.V() * lhs.W() - lhs.V() * rhs.W(),
+          lhs.B() * rhs.D() - rhs.B() * lhs.D() - rhs.U() * lhs.W() + lhs.U() * rhs.W(),
+          lhs.C() * rhs.D() - rhs.C() * lhs.D() + rhs.U() * lhs.V() - lhs.U() * rhs.V()};
+}
+
+constexpr propmat magnus_exponent_deriv(
+    const propmat &k1, const propmat &k2, const propmat &dk, const Numeric r, const Numeric dr, const bool k1_deriv) {
+  const propmat dk1 = k1_deriv ? dk : propmat{};
+  const propmat dk2 = k1_deriv ? propmat{} : dk;
+
+  return -0.5 * (dr * (k1 + k2) + r * (dk1 + dk2)) + (r * dr / 6.0) * commutator(k2, k1) +
+         (r * r / 12.0) * (commutator(dk2, k1) + commutator(k2, dk1));
+}
+
+Numeric max_abs(const muelmat &m) {
+  Numeric out{};
+  for (Size i = 0; i < 4; ++i) {
+    for (Size j = 0; j < 4; ++j) out = std::max(out, std::abs(m[i, j]));
+  }
+  return out;
+}
+
+// Scaling-and-squaring Taylor evaluation of the Frechet derivative of exp.
+// This is used only for degenerate polarized generators, where the closed
+// Cayley-Hamilton derivative has removable singularities in x, y, and S.
+muelmat exp_frechet_degenerate(const propmat &g, const propmat &dg) {
+  muelmat A = to_muelmat(g);
+  muelmat E = to_muelmat(dg);
+
+  Numeric row_norm{};
+  for (Size i = 0; i < 4; ++i) {
+    Numeric sum{};
+    for (Size j = 0; j < 4; ++j) sum += std::abs(A[i, j]);
+    row_norm = std::max(row_norm, sum);
+  }
+
+  const int     squarings  = row_norm > 0.5 ? std::max(0, static_cast<int>(std::ceil(std::log2(row_norm / 0.5)))) : 0;
+  const Numeric scale      = std::ldexp(1.0, squarings);
+  A                       /= scale;
+  E                       /= scale;
+
+  muelmat value = muelmat::id();
+  muelmat deriv = muelmat::constant(0.0);
+  muelmat term  = muelmat::id();
+  muelmat dterm = muelmat::constant(0.0);
+
+  for (Size n = 1; n <= 32; ++n) {
+    const muelmat previous  = term;
+    dterm                   = (dterm * A + previous * E) / static_cast<Numeric>(n);
+    term                    = (previous * A) / static_cast<Numeric>(n);
+    value                  += term;
+    deriv                  += dterm;
+
+    if (max_abs(term) + max_abs(dterm) <=
+        std::numeric_limits<Numeric>::epsilon() * (1.0 + max_abs(value) + max_abs(deriv)))
+      break;
+  }
+
+  for (int i = 0; i < squarings; ++i) {
+    deriv = value * deriv + deriv * value;
+    value = value * value;
+  }
+
+  return deriv;
+}
+
+// Scaling-and-squaring Taylor evaluation of D phi_1(G)[dG].
+muelmat phi1_frechet_degenerate(const propmat &g, const propmat &dg) {
+  muelmat A = to_muelmat(g);
+  muelmat E = to_muelmat(dg);
+
+  Numeric row_norm{};
+  for (Size i = 0; i < 4; ++i) {
+    Numeric sum{};
+    for (Size j = 0; j < 4; ++j) sum += std::abs(A[i, j]);
+    row_norm = std::max(row_norm, sum);
+  }
+
+  const int     squarings  = row_norm > 0.5 ? std::max(0, static_cast<int>(std::ceil(std::log2(row_norm / 0.5)))) : 0;
+  const Numeric scale      = std::ldexp(1.0, squarings);
+  A                       /= scale;
+  E                       /= scale;
+
+  muelmat value = muelmat::id();
+  muelmat deriv = muelmat::constant(0.0);
+  muelmat term  = muelmat::id();
+  muelmat dterm = muelmat::constant(0.0);
+
+  for (Size n = 1; n <= 32; ++n) {
+    const muelmat previous  = term;
+    dterm                   = (dterm * A + previous * E) / static_cast<Numeric>(n + 1);
+    term                    = (previous * A) / static_cast<Numeric>(n + 1);
+    value                  += term;
+    deriv                  += dterm;
+
+    if (max_abs(term) + max_abs(dterm) <=
+        std::numeric_limits<Numeric>::epsilon() * (1.0 + max_abs(value) + max_abs(deriv)))
+      break;
+  }
+
+  muelmat exp_value = muelmat::id() + A * value;
+  muelmat exp_deriv = E * value + A * deriv;
+
+  for (int i = 0; i < squarings; ++i) {
+    const muelmat old_value     = value;
+    const muelmat old_deriv     = deriv;
+    const muelmat old_exp_value = exp_value;
+    const muelmat old_exp_deriv = exp_deriv;
+
+    value     = 0.5 * ((muelmat::id() + old_exp_value) * old_value);
+    deriv     = 0.5 * (old_exp_deriv * old_value + (muelmat::id() + old_exp_value) * old_deriv);
+    exp_value = old_exp_value * old_exp_value;
+    exp_deriv = old_exp_deriv * old_exp_value + old_exp_value * old_exp_deriv;
+  }
+
+  return deriv;
+}
+}  // namespace
+
 tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
     : a{-0.5 * r * (k1.A() + k2.A())}, exp_a{std::exp(a)}, polarized(k1.is_polarized() or k2.is_polarized()) {
   if (not polarized) return;
@@ -30,6 +155,24 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   v = -0.5 * r * (k1.V() + k2.V());
   w = -0.5 * r * (k1.W() + k2.W());
 
+  init_polarized();
+}
+
+tran::tran(const propmat &k1, const propmat &k2, const Numeric r, MagnusOperator)
+    : a{-0.5 * r * (k1.A() + k2.A())}, exp_a{std::exp(a)}, polarized(k1.is_polarized() or k2.is_polarized()) {
+  if (not polarized) return;
+
+  b = -0.5 * r * (k1.B() + k2.B() - r * (k1.C() * k2.U() - k2.C() * k1.U() + k1.D() * k2.V() - k2.D() * k1.V()) / 6.0);
+  c = -0.5 * r * (k1.C() + k2.C() - r * (k2.B() * k1.U() - k1.B() * k2.U() + k1.D() * k2.W() - k2.D() * k1.W()) / 6.0);
+  d = -0.5 * r * (k1.D() + k2.D() - r * (k2.B() * k1.V() - k1.B() * k2.V() - k1.C() * k2.W() + k2.C() * k1.W()) / 6.0);
+  u = -0.5 * r * (k1.U() + k2.U() - r * (k2.B() * k1.C() - k1.B() * k2.C() + k1.V() * k2.W() - k2.V() * k1.W()) / 6.0);
+  v = -0.5 * r * (k1.V() + k2.V() - r * (k2.B() * k1.D() - k1.B() * k2.D() - k1.U() * k2.W() + k2.U() * k1.W()) / 6.0);
+  w = -0.5 * r * (k1.W() + k2.W() - r * (k2.C() * k1.D() - k1.C() * k2.D() + k1.U() * k2.V() - k2.U() * k1.V()) / 6.0);
+
+  init_polarized();
+}
+
+void tran::init_polarized() {
   b2 = b * b;
   c2 = c * c;
   d2 = d * d;
@@ -37,7 +180,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   v2 = v * v;
   w2 = w * w;
 
-  /** Solve: 
+  /** Solve:
         0 = L^4 + B L^2 + C
         B = U^2+V^2+W^2-B^2-C^2-D^2
         C = - (DU - CV + BW)^2
@@ -48,7 +191,7 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
   S                  = std::sqrt(std::max<Numeric>(0.0, disc));
 
   /**
-        We define: 
+        We define:
             x2 and y2 are the squares of x and y
             x and y are real and positive
             x is from the real part of the Eigenvalues
@@ -58,14 +201,15 @@ tran::tran(const propmat &k1, const propmat &k2, const Numeric r)
             |S| >= |B|
             S-B >=  0
             S+B >=  0
-            The y2 sqrt is without the minus sign to avoid complex numbers
+            y2 stores the magnitude of the negative squared eigenvalue
     */
-  const Numeric t1 = 0.5 * (S - B);
-  const Numeric t2 = 0.5 * (S + B);
-  x2               = std::sqrt(std::max<Numeric>(0.0, t1));
-  y2               = std::sqrt(std::max<Numeric>(0.0, t2));
-  x                = std::sqrt(x2);
-  y                = std::sqrt(y2);
+  // The characteristic equation gives lambda^2 = (-B +/- S) / 2.
+  // Therefore these quantities already are x^2 and -y^2.  In particular,
+  // no additional square root belongs here; x and y are taken below.
+  x2 = std::max<Numeric>(0.0, 0.5 * (S - B));
+  y2 = std::max<Numeric>(0.0, 0.5 * (S + B));
+  x  = std::sqrt(x2);
+  y  = std::sqrt(y2);
 
   cy = std::cos(y);
   sy = std::sin(y);
@@ -266,6 +410,12 @@ muelmat tran::linsrc() const noexcept {
 }
 
 muelmat tran::linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const {
+  const Numeric inv_r = (std::abs(r) > 1e-20) ? 1.0 / r : 0.0;
+  const Numeric dr_r  = dr * inv_r;
+  return linsrc_deriv(dr_r * propmat{a, b, c, d, u, v, w} - 0.5 * r * dk);
+}
+
+muelmat tran::linsrc_deriv(const propmat &dg) const {
   const auto func_F = [](Numeric z) { return std::abs(z) < 1e-8 ? 1.0 + z * 0.5 + z * z / 6.0 : std::expm1(z) / z; };
 
   const auto func_Fp = [](Numeric z) {
@@ -298,18 +448,12 @@ muelmat tran::linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr)
     return (ez * (z4 - 4.0 * z3 + 12.0 * z2 - 24.0 * z + 24.0) - 24.0) / z5;
   };
 
-  const Numeric inv_r = (std::abs(r) > 1e-20) ? 1.0 / r : 0.0;
-  const Numeric dr_r  = dr * inv_r;
-  const Numeric da    = dr_r * a - 0.5 * r * dk.A();
+  const auto &[da, db, dc, dd, du, dv, dw] = dg.data;
 
-  if (not polarized) return {func_Fp(a) * da};
+  if (not polarized) return func_Fp(a) * to_muelmat(dg);
 
-  const Numeric db     = dr_r * b - 0.5 * r * dk.B();
-  const Numeric dc     = dr_r * c - 0.5 * r * dk.C();
-  const Numeric dd     = dr_r * d - 0.5 * r * dk.D();
-  const Numeric du     = dr_r * u - 0.5 * r * dk.U();
-  const Numeric dv     = dr_r * v - 0.5 * r * dk.V();
-  const Numeric dw     = dr_r * w - 0.5 * r * dk.W();
+  if (x_zero or y_zero or S <= 1e-9) { return phi1_frechet_degenerate(propmat{a, b, c, d, u, v, w}, dg); }
+
   const Numeric db2    = 2.0 * db * b;
   const Numeric dc2    = 2.0 * dc * c;
   const Numeric dd2    = 2.0 * dd * d;
@@ -319,8 +463,8 @@ muelmat tran::linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr)
   const Numeric dB     = du2 + dv2 + dw2 - db2 - dc2 - dd2;
   const Numeric dC     = -2.0 * (d * u - c * v + b * w) * (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
   const Numeric dS_val = (S > 1e-9) ? (B * dB - 2.0 * dC) / S : 0.0;
-  const Numeric dx2    = (x2 > 1e-9) ? 0.25 * (dS_val - dB) / x2 : 0.0;
-  const Numeric dy2    = (y2 > 1e-9) ? 0.25 * (dS_val + dB) / y2 : 0.0;
+  const Numeric dx2    = 0.5 * (dS_val - dB);
+  const Numeric dy2    = 0.5 * (dS_val + dB);
   const Numeric dx     = (x > 1e-9) ? 0.5 * dx2 / x : 0.0;
   const Numeric dy     = (y > 1e-9) ? 0.5 * dy2 / y : 0.0;
 
@@ -539,15 +683,15 @@ muelmat tran::deriv(const muelmat &t,
                     const propmat &dk,
                     const Numeric  r,
                     const Numeric  dr) const {
-  const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A()));
-  if (not polarized) return {da * exp_a};
+  return deriv(t, -0.5 * (r * dk + dr * (k1 + k2)));
+}
 
-  const Numeric db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B()));
-  const Numeric dc = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C()));
-  const Numeric dd = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D()));
-  const Numeric du = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U()));
-  const Numeric dv = -0.5 * (r * dk.V() + dr * (k1.V() + k2.V()));
-  const Numeric dw = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
+muelmat tran::deriv(const muelmat &t, const propmat &dg) const {
+  const auto &[da, db, dc, dd, du, dv, dw] = dg.data;
+
+  if (not polarized) return exp_a * to_muelmat(dg);
+
+  if (S <= 1e-9 or x_zero or y_zero) { return exp_frechet_degenerate(propmat{a, b, c, d, u, v, w}, dg); }
 
   const Numeric db2 = 2 * db * b;
   const Numeric dc2 = 2 * dc * c;
@@ -565,8 +709,8 @@ muelmat tran::deriv(const muelmat &t,
   const Numeric dC = -2 * (d * u - c * v + b * w) * (dd * u + d * du - dc * v - c * dv + db * w + b * dw);
   const Numeric dS = (B * dB - 2 * dC) / S;
 
-  const Numeric dx2 = 0.25 * (dS - dB) / x2;
-  const Numeric dy2 = 0.25 * (dS + dB) / y2;
+  const Numeric dx2 = 0.5 * (dS - dB);
+  const Numeric dy2 = 0.5 * (dS + dB);
   const Numeric dx  = 0.5 * dx2 / x;
   const Numeric dy  = 0.5 * dy2 / y;
 
@@ -629,6 +773,46 @@ muelmat tran::deriv(const muelmat &t,
     dC1 * c + C1 * dc - dC2c + dC3c, - dC1 * u - C1 * du + dC2u - dC3u,   dM22,                            dC1 * w + C1 * dw + dC2w + dC3w,
     dC1 * d + C1 * dd - dC2d + dC3d, - dC1 * v - C1 * dv + dC2v - dC3v, - dC1 * w - C1 * dw + dC2w - dC3w, dM33};
   // clang-format on
+}
+
+muelmat tran::magnus_deriv(const propmat &k1,
+                           const propmat &k2,
+                           const propmat &dk,
+                           const Numeric  r,
+                           const Numeric  dr,
+                           const bool     k1_deriv) const {
+  return magnus_deriv((*this)(), k1, k2, dk, r, dr, k1_deriv);
+}
+
+muelmat tran::magnus_deriv(const muelmat &t,
+                           const propmat &k1,
+                           const propmat &k2,
+                           const propmat &dk,
+                           const Numeric  r,
+                           const Numeric  dr,
+                           const bool     k1_deriv) const {
+  return deriv(t, magnus_exponent_deriv(k1, k2, dk, r, dr, k1_deriv));
+}
+
+muelmat tran::magnus_linsrc(const propmat &k1, const propmat &k2, const Numeric r) const {
+  const muelmat q = muelmat::id() - (r / 12.0) * to_muelmat(k2 - k1);
+  return linsrc() * q;
+}
+
+muelmat tran::magnus_linsrc_deriv(const propmat &k1,
+                                  const propmat &k2,
+                                  const propmat &dk,
+                                  const Numeric  r,
+                                  const Numeric  dr,
+                                  const bool     k1_deriv) const {
+  const propmat delta  = k2 - k1;
+  const propmat ddelta = k1_deriv ? -dk : dk;
+  const propmat dg     = magnus_exponent_deriv(k1, k2, dk, r, dr, k1_deriv);
+  const muelmat q      = muelmat::id() - (r / 12.0) * to_muelmat(delta);
+  const muelmat dq     = -(1.0 / 12.0) * to_muelmat(dr * delta + r * ddelta);
+  const muelmat f      = linsrc();
+
+  return linsrc_deriv(dg) * q + f * dq;
 }
 
 muelmat exp(propmat k, Numeric r) { return tran(k, k, r)(); }
@@ -953,7 +1137,7 @@ void TransmittanceMatrix::constant(const std::span<const propmat>        &K,
                                    const ConstVectorView                 &r,
                                    const ConstTensor3View                &dr) {
   const Size N  = K.size();
-  const Size nq = dr.npages();
+  const Size nq = dT.ncols();
 
   auto dT0 = dT[0, 0];
   auto dT1 = dT[1, 0];
@@ -977,7 +1161,7 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat>        &K,
                                  const ConstVectorView                 &r,
                                  const ConstTensor3View                &dr) {
   const Size N  = K.size();
-  const Size nq = dr.npages();
+  const Size nq = dT.ncols();
 
   auto dT0 = dT[0, 0];
   auto dT1 = dT[1, 0];
@@ -1010,7 +1194,7 @@ void TransmittanceMatrix::linprop(const std::span<const propmat>        &K,
                                   const ConstVectorView                 &r,
                                   const ConstTensor3View                &dr) {
   const Size N  = K.size();
-  const Size nq = dr.npages();
+  const Size nq = dT.ncols();
 
   auto dT0 = dT[0, 0];
   auto dT1 = dT[1, 0];
@@ -1036,6 +1220,64 @@ void TransmittanceMatrix::linprop(const std::span<const propmat>        &K,
           tr.linsrc_linprop_deriv(L_[i], T_[i], k1, k2, dK[i - 1][iq], dT0[i - 1, iq], r[i - 1], dr0[i - 1, iq], true);
       dL1[i, iq] =
           tr.linsrc_linprop_deriv(L_[i], T_[i], k1, k2, dK[i][iq], dT1[i, iq], r[i - 1], dr1[i - 1, iq], false);
+    }
+  }
+}
+
+void TransmittanceMatrix::magop(const std::span<const propmat>        &K,
+                                const std::span<const propmat_vector> &dK,
+                                const ConstVectorView                 &r,
+                                const ConstTensor3View                &dr) {
+  const Size N  = K.size();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0, 0];
+  auto dT1 = dT[1, 0];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; i++) {
+    const propmat &start = K[i];
+    const propmat &end   = K[i - 1];
+    const tran     tr{start, end, r[i - 1], MagnusOperator::magnus};
+    T[0, i] = tr();
+
+    for (Size iq = 0; iq < nq; iq++) {
+      dT0[i - 1, iq] = tr.magnus_deriv(T[0, i], start, end, dK[i - 1][iq], r[i - 1], dr0[i - 1, iq], false);
+      dT1[i, iq]     = tr.magnus_deriv(T[0, i], start, end, dK[i][iq], r[i - 1], dr1[i - 1, iq], true);
+    }
+  }
+}
+
+void TransmittanceMatrix::magop_linsrc(const std::span<const propmat>        &K,
+                                       const std::span<const propmat_vector> &dK,
+                                       const ConstVectorView                 &r,
+                                       const ConstTensor3View                &dr) {
+  const Size N  = K.size();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0, 0];
+  auto dT1 = dT[1, 0];
+  auto dL0 = dL[0, 0];
+  auto dL1 = dL[1, 0];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size i = 1; i < N; ++i) {
+    const propmat &start = K[i];
+    const propmat &end   = K[i - 1];
+    const Numeric  ri    = r[i - 1];
+    const tran     tr{start, end, ri, MagnusOperator::magnus};
+    T[0, i] = tr();
+    L[0, i] = tr.magnus_linsrc(start, end, ri);
+
+    for (Size iq = 0; iq < nq; ++iq) {
+      dT0[i - 1, iq] = tr.magnus_deriv(T[0, i], start, end, dK[i - 1][iq], ri, dr0[i - 1, iq], false);
+      dT1[i, iq]     = tr.magnus_deriv(T[0, i], start, end, dK[i][iq], ri, dr1[i - 1, iq], true);
+      dL0[i - 1, iq] = tr.magnus_linsrc_deriv(start, end, dK[i - 1][iq], ri, dr0[i - 1, iq], false);
+      dL1[i, iq]     = tr.magnus_linsrc_deriv(start, end, dK[i][iq], ri, dr1[i - 1, iq], true);
     }
   }
 }
@@ -1143,6 +1385,70 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
   }
 }
 
+void TransmittanceMatrix::magop(const std::span<const propmat_vector> &K,
+                                const std::span<const propmat_matrix> &dK,
+                                const ConstVectorView                 &r,
+                                const ConstTensor3View                &dr) {
+  const Size nf = dT.npages();
+  const Size np = dT.nrows();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size i = 1; i < np; i++) {
+    for (Size iv = 0; iv < nf; ++iv) {
+      const propmat &start = K[i][iv];
+      const propmat &end   = K[i - 1][iv];
+      const tran     tr{start, end, r[i - 1], MagnusOperator::magnus};
+      T[iv, i] = tr();
+
+      for (Size iq = 0; iq < nq; iq++) {
+        dT0[iv, i - 1, iq] = tr.magnus_deriv(T[iv, i], start, end, dK[i - 1][iq, iv], r[i - 1], dr0[i - 1, iq], false);
+        dT1[iv, i, iq]     = tr.magnus_deriv(T[iv, i], start, end, dK[i][iq, iv], r[i - 1], dr1[i - 1, iq], true);
+      }
+    }
+  }
+}
+
+void TransmittanceMatrix::magop_linsrc(const std::span<const propmat_vector> &K,
+                                       const std::span<const propmat_matrix> &dK,
+                                       const ConstVectorView                 &r,
+                                       const ConstTensor3View                &dr) {
+  const Size nf = dT.npages();
+  const Size np = dT.nrows();
+  const Size nq = dT.ncols();
+
+  auto dT0 = dT[0];
+  auto dT1 = dT[1];
+  auto dL0 = dL[0];
+  auto dL1 = dL[1];
+  auto dr0 = dr[0];
+  auto dr1 = dr[1];
+
+#pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Size i = 1; i < np; ++i) {
+    for (Size iv = 0; iv < nf; ++iv) {
+      const propmat &start = K[i][iv];
+      const propmat &end   = K[i - 1][iv];
+      const Numeric  ri    = r[i - 1];
+      const tran     tr{start, end, ri, MagnusOperator::magnus};
+      T[iv, i] = tr();
+      L[iv, i] = tr.magnus_linsrc(start, end, ri);
+
+      for (Size iq = 0; iq < nq; ++iq) {
+        dT0[iv, i - 1, iq] = tr.magnus_deriv(T[iv, i], start, end, dK[i - 1][iq, iv], ri, dr0[i - 1, iq], false);
+        dT1[iv, i, iq]     = tr.magnus_deriv(T[iv, i], start, end, dK[i][iq, iv], ri, dr1[i - 1, iq], true);
+        dL0[iv, i - 1, iq] = tr.magnus_linsrc_deriv(start, end, dK[i - 1][iq, iv], ri, dr0[i - 1, iq], false);
+        dL1[iv, i, iq]     = tr.magnus_linsrc_deriv(start, end, dK[i][iq, iv], ri, dr1[i - 1, iq], true);
+      }
+    }
+  }
+}
+
 void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                                const std::span<const propmat_matrix> &dK,
                                const ConstVectorView                 &r,
@@ -1187,11 +1493,13 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   switch (option) {
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc:
       L.resize(nf, np);
       dL.resize(nt, nf, np, nq);
       L  = muelmat::id();
       dL = muelmat::constant(0);
       [[fallthrough]];
+    case TransmittanceOption::magop:
     case TransmittanceOption::constant:
       T.resize(nf, np);
       dT.resize(nt, nf, np, nq);
@@ -1201,9 +1509,11 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   }
 
   switch (option) {
-    case TransmittanceOption::constant: constant(K, dK, r, dr); break;
-    case TransmittanceOption::linsrc:   linsrc(K, dK, r, dr); break;
-    case TransmittanceOption::linprop:  linprop(K, dK, r, dr); break;
+    case TransmittanceOption::constant:     constant(K, dK, r, dr); break;
+    case TransmittanceOption::linsrc:       linsrc(K, dK, r, dr); break;
+    case TransmittanceOption::linprop:      linprop(K, dK, r, dr); break;
+    case TransmittanceOption::magop:        magop(K, dK, r, dr); break;
+    case TransmittanceOption::magop_linsrc: magop_linsrc(K, dK, r, dr); break;
   }
 
   for (Size i = 0; i < nf; i++) {
@@ -1222,13 +1532,23 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   constexpr Size nt = 2;
   constexpr Size nf = 1;
   const Size     np = K.size();
-  const Size     nq = dr.npages();
 
   ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
                      "K and dK must have the same size: K: {}, dK: {}, r: {}",
                      K.size(),
                      dK.size(),
                      r.size());
+
+  if (np == 0) {
+    T.resize(nf, 0);
+    L.resize(nf, 0);
+    P.resize(nf, 0);
+    dT.resize(nt, nf, 0, 0);
+    dL.resize(nt, nf, 0, 0);
+    return;
+  }
+
+  const Size nq = dK.front().size();
 
   ARTS_USER_ERROR_IF(
       dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
@@ -1245,11 +1565,13 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   switch (option) {
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc:
       L.resize(nf, np);
       dL.resize(nt, nf, np, nq);
       L  = muelmat::id();
       dL = muelmat::constant(0);
       [[fallthrough]];
+    case TransmittanceOption::magop:
     case TransmittanceOption::constant:
       T.resize(nf, np);
       dT.resize(nt, nf, np, nq);
@@ -1259,9 +1581,11 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   }
 
   switch (option) {
-    case TransmittanceOption::constant: constant(K, dK, r, dr); break;
-    case TransmittanceOption::linsrc:   linsrc(K, dK, r, dr); break;
-    case TransmittanceOption::linprop:  linprop(K, dK, r, dr); break;
+    case TransmittanceOption::constant:     constant(K, dK, r, dr); break;
+    case TransmittanceOption::linsrc:       linsrc(K, dK, r, dr); break;
+    case TransmittanceOption::linprop:      linprop(K, dK, r, dr); break;
+    case TransmittanceOption::magop:        magop(K, dK, r, dr); break;
+    case TransmittanceOption::magop_linsrc: magop_linsrc(K, dK, r, dr); break;
   }
 
   P[0, 0] = muelmat::id();
@@ -1270,6 +1594,7 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
 
 void TransmittanceMatrix::check(Size np, Size nq, Size nf, const std::string_view caller) const {
   switch (option) {
+    case TransmittanceOption::magop:
     case TransmittanceOption::constant:
       ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, P),
                          R"(Mismatched shapes in Transmittance in {6}:
@@ -1303,6 +1628,7 @@ Expected shape: (2, {2}, {3}, {4}
       break;
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc:
       ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, L, P),
                          R"(Mismatched shapes in Transmittance in {6}:
 

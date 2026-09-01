@@ -50,6 +50,16 @@ struct TransmittanceMatrix {
                const ConstVectorView                 &r,
                const ConstTensor3View                &dr);
 
+  void magop(const std::span<const propmat_vector> &K,
+             const std::span<const propmat_matrix> &dK,
+             const ConstVectorView                 &r,
+             const ConstTensor3View                &dr);
+
+  void magop_linsrc(const std::span<const propmat_vector> &K,
+                    const std::span<const propmat_matrix> &dK,
+                    const ConstVectorView                 &r,
+                    const ConstTensor3View                &dr);
+
   void constant(const std::span<const propmat>        &K,
                 const std::span<const propmat_vector> &dK,
                 const ConstVectorView                 &r,
@@ -64,7 +74,19 @@ struct TransmittanceMatrix {
                const std::span<const propmat_vector> &dK,
                const ConstVectorView                 &r,
                const ConstTensor3View                &dr);
+
+  void magop(const std::span<const propmat>        &K,
+             const std::span<const propmat_vector> &dK,
+             const ConstVectorView                 &r,
+             const ConstTensor3View                &dr);
+
+  void magop_linsrc(const std::span<const propmat>        &K,
+                    const std::span<const propmat_vector> &dK,
+                    const ConstVectorView                 &r,
+                    const ConstTensor3View                &dr);
 };
+
+enum class MagnusOperator : bool { magnus };
 
 struct tran {
   Numeric a, exp_a;
@@ -79,6 +101,7 @@ struct tran {
   constexpr tran() = default;
 
   tran(const propmat &k1, const propmat &k2, const Numeric r);
+  tran(const propmat &k1, const propmat &k2, const Numeric r, MagnusOperator);
 
   [[nodiscard]] muelmat operator()() const noexcept;
   [[nodiscard]] muelmat expm1() const noexcept;
@@ -94,7 +117,21 @@ struct tran {
                               const propmat &dk,
                               const Numeric  r,
                               const Numeric  dr) const;
+  [[nodiscard]] muelmat deriv(const muelmat &t, const propmat &dg) const;
+  [[nodiscard]] muelmat magnus_deriv(
+      const propmat &k1, const propmat &k2, const propmat &dk, const Numeric r, const Numeric dr, bool k1_deriv) const;
+  [[nodiscard]] muelmat magnus_deriv(const muelmat &t,
+                                     const propmat &k1,
+                                     const propmat &k2,
+                                     const propmat &dk,
+                                     const Numeric  r,
+                                     const Numeric  dr,
+                                     bool           k1_deriv) const;
   [[nodiscard]] muelmat linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const;
+  [[nodiscard]] muelmat linsrc_deriv(const propmat &dg) const;
+  [[nodiscard]] muelmat magnus_linsrc(const propmat &k1, const propmat &k2, const Numeric r) const;
+  [[nodiscard]] muelmat magnus_linsrc_deriv(
+      const propmat &k1, const propmat &k2, const propmat &dk, const Numeric r, const Numeric dr, bool k1_deriv) const;
   [[nodiscard]] muelmat linsrc_linprop_deriv(const muelmat &lambda,
                                              const muelmat &t,
                                              const propmat &k1,
@@ -104,6 +141,9 @@ struct tran {
                                              const Numeric  r,
                                              const Numeric  dr,
                                              bool           k1_deriv) const;
+
+ private:
+  void init_polarized();
 };
 
 muelmat exp(propmat k, Numeric r = 1.0);
