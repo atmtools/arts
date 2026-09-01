@@ -1,3 +1,4 @@
+#include <disort-brdf.h>
 #include <legendre.h>
 
 #include "../reference-data.h"
@@ -5,6 +6,33 @@
 
 namespace legacy_disotest {
 namespace {
+void expect_reference(const std::string_view name,
+                      const Numeric          actual,
+                      const Numeric          expected,
+                      const Numeric          relative_tolerance,
+                      const Numeric          absolute_tolerance = 0.0) {
+  ARTS_USER_ERROR_IF(
+      std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::max(1.0, std::abs(expected)),
+      "{}: expected {}, got {} (difference {})",
+      name,
+      expected,
+      actual,
+      actual - expected);
+}
+
+void expect_small_reference(const std::string_view name,
+                            const Numeric          actual,
+                            const Numeric          expected,
+                            const Numeric          relative_tolerance = 2e-3,
+                            const Numeric          absolute_tolerance = 1e-10) {
+  ARTS_USER_ERROR_IF(std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected),
+                     "{}: expected {}, got {} (difference {})",
+                     name,
+                     expected,
+                     actual,
+                     actual - expected);
+}
+
 Numeric blackbody_radiance(const Numeric temperature) {
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi;
 }
@@ -29,20 +57,21 @@ Numeric band_blackbody_radiance(const Numeric temperature,
   return blackbody_radiance(temperature) * integral / (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 }
 
-Numeric hapke(const Numeric mu,
-              const Numeric mup,
-              const Numeric dphi,
-              const Numeric b0 = 1.0,
-              const Numeric hh = 0.06,
-              const Numeric w  = 0.6) {
-  const Numeric ctheta =
-      std::clamp(mu * mup + std::sqrt((1.0 - mu * mu) * (1.0 - mup * mup)) * std::cos(dphi), -1.0, 1.0);
-  const Numeric theta      = std::acos(ctheta);
-  const Numeric opposition = b0 * hh / (hh + std::tan(0.5 * theta));
-  const Numeric gamma      = std::sqrt(1.0 - w);
-  const Numeric h0         = (1.0 + 2.0 * mup) / (1.0 + 2.0 * gamma * mup);
-  const Numeric h          = (1.0 + 2.0 * mu) / (1.0 + 2.0 * gamma * mu);
-  return 0.25 * w * ((1.0 + opposition) * (1.0 + 0.5 * ctheta) + h0 * h - 1.0) / (mu + mup);
+Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) {
+  constexpr Index nmu      = 64;
+  constexpr Index nazimuth = 256;
+  Vector          mu(nmu), weight(nmu);
+  Legendre::PositiveDoubleGaussLegendre(mu, weight);
+  Numeric reflectance = 0.0;
+  for (Index j = 0; j < nmu; ++j) {
+    Numeric azimuth_average = 0.0;
+    for (Index k = 0; k < nazimuth; ++k)
+      azimuth_average +=
+          raw(outgoing_mu, mu[j], Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(nazimuth));
+    // DISOTESTAUX's BEMST convention integrates azimuth through x = phi / pi.
+    reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
+  }
+  return 1.0 - reflectance;
 }
 
 Matrix henyey_greenstein(const Vector& g, const Index nmom) {
@@ -69,12 +98,6 @@ Matrix linear_polynomial(const AscendingGrid& tau, const Vector& values) {
     tau0      = tau[i];
   }
   return out;
-}
-
-Matrix linear_source(const AscendingGrid& tau, const Vector& temperature) {
-  Vector radiance(temperature.size());
-  std::ranges::transform(temperature, radiance.begin(), blackbody_radiance);
-  return linear_polynomial(tau, radiance);
 }
 
 disort::main_data make_disort(const Index               NQuad,
@@ -144,75 +167,86 @@ void run_case(const std::string_view   name,
 }
 
 void disort_test06() {
-  constexpr Index NQuad = 16;
-  const Vector    phis{Constant::pi / 2};
+  using namespace disort_test::reference;
+  constexpr Index nquad = 16;
 
-  // 6a: transparent medium and beam source.  A strictly zero optical
-  // thickness is not a valid main_data grid, so use its floating-point limit.
-  {
-    const AscendingGrid tau{1e-12};
-    auto                dis = make_disort(NQuad, tau, Vector{1e-8}, henyey_greenstein(Vector{0.0}, NQuad), 0.5, 200.0);
-    run_case("test_6a", dis, Vector{0.0, 1e-12}, phis);
-  }
-
-  // 6b: add optical depth.
-  {
-    const AscendingGrid tau{1.0};
-    auto                dis = make_disort(NQuad, tau, Vector{1e-8}, henyey_greenstein(Vector{0.0}, NQuad), 0.5, 200.0);
-    run_case("test_6b", dis, Vector{0.0, 0.5, 1.0}, phis);
-  }
-
-  // 6c and 6d: Lambertian and non-Lambertian reflection.  The C++ API
-  // represents both through Fourier BRDF callbacks.
-  for (const auto& [name, albedo] : {std::pair{"test_6c", 0.5}, std::pair{"test_6d", 0.25}}) {
-    const AscendingGrid       tau{1.0};
-    std::vector<disort::BDRF> brdf{disort::BDRF{[=](auto c, auto&, auto&) { c = albedo; }}};
-    auto                      dis = make_disort(
-        NQuad, tau, Vector{1e-8}, henyey_greenstein(Vector{0.0}, NQuad), 0.5, 200.0, {}, {}, {}, std::move(brdf));
-    run_case(name, dis, Vector{0.0, 0.5, 1.0}, phis);
-  }
-
-  // 6e: bottom emission.
-  {
-    const AscendingGrid tau{1.0};
-    Matrix              up(NQuad, NQuad / 2, 0);
-    up[0]    = blackbody_radiance(300.0);
-    auto dis = make_disort(NQuad, tau, Vector{1e-8}, henyey_greenstein(Vector{0.0}, NQuad), 0.5, 200.0, up);
-    run_case("test_6e", dis, Vector{0.0, 0.5, 1.0}, phis);
-  }
-
-  // 6f: prescribed plus thermally emitted top incidence and bottom emission.
-  {
-    const AscendingGrid tau{1.0};
-    Matrix              up(NQuad, NQuad / 2, 0), down(NQuad, NQuad / 2, 0);
-    up[0]    = blackbody_radiance(300.0);
-    down[0]  = 100.0 * Constant::inv_pi + blackbody_radiance(250.0);
-    auto dis = make_disort(NQuad, tau, Vector{1e-8}, henyey_greenstein(Vector{0.0}, NQuad), 0.5, 200.0, up, down);
-    run_case("test_6f", dis, Vector{0.0, 0.5, 1.0}, phis);
-  }
-
-  // 6g and 6h: add a linear internal thermal source, then increase depth.
-  for (const auto& [name, depth] : {std::pair{"test_6g", 1.0}, std::pair{"test_6h", 10.0}}) {
+  for (Index case_index = 0; case_index < static_cast<Index>(problem_6.size()); ++case_index) {
+    const auto&         test      = problem_6[case_index];
+    const auto&         reference = problem_6_flux[case_index];
+    const Numeric       depth     = test.optical_depth == 0.0 ? 1e-12 : test.optical_depth;
     const AscendingGrid tau{depth};
-    const Vector        omega{1e-8};
-    Matrix              up(NQuad, NQuad / 2, 0), down(NQuad, NQuad / 2, 0);
-    up[0]    = blackbody_radiance(300.0);
-    down[0]  = blackbody_radiance(250.0);
-    auto dis = make_disort(NQuad,
+    Matrix              up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
+
+    disort::brdf::RawFunction raw;
+    if (test.surface == surface_type::lambertian)
+      raw = [albedo = test.lambertian_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
+    else if (test.surface == surface_type::hapke)
+      raw = disort::brdf::Hapke{.opposition_amplitude     = test.hapke_parameters[0],
+                                .opposition_width         = test.hapke_parameters[1],
+                                .single_scattering_albedo = test.hapke_parameters[2]};
+
+    const Numeric top_planck =
+        band_blackbody_radiance(test.top_temperature, problem_6_wavenumber_low, problem_6_wavenumber_high);
+    down[0] = test.top_isotropic + test.top_emissivity * top_planck;
+
+    const Numeric bottom_planck =
+        band_blackbody_radiance(test.bottom_temperature, problem_6_wavenumber_low, problem_6_wavenumber_high);
+    Vector surface_mu(nquad / 2), surface_weight(nquad / 2);
+    Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
+    for (Index stream = 0; stream < nquad / 2; ++stream) {
+      Numeric emissivity = 1.0;
+      if (test.surface == surface_type::lambertian)
+        emissivity = 1.0 - test.lambertian_albedo;
+      else if (test.surface == surface_type::hapke)
+        emissivity = directional_emissivity(raw, surface_mu[stream]);
+      up[0, stream] = emissivity * bottom_planck;
+    }
+
+    Matrix source;
+    if (test.interface_temperature.size() == 2) {
+      source = linear_polynomial(
+          tau,
+          Vector{band_blackbody_radiance(
+                     test.interface_temperature[0], problem_6_wavenumber_low, problem_6_wavenumber_high),
+                 band_blackbody_radiance(
+                     test.interface_temperature[1], problem_6_wavenumber_low, problem_6_wavenumber_high)});
+    }
+
+    auto dis = make_disort(nquad,
                            tau,
-                           omega,
-                           henyey_greenstein(Vector{0.0}, NQuad),
-                           0.5,
-                           200.0,
-                           up,
-                           down,
-                           linear_source(tau, Vector{250.0, 300.0}));
-    run_case(name, dis, depth == 1.0 ? Vector{0.0, 0.5, 1.0} : Vector{0.0, 1.0, 10.0}, phis);
+                           Vector{std::max(test.single_scattering_albedo, 1e-8)},
+                           henyey_greenstein(Vector{0.0}, nquad),
+                           test.beam_mu,
+                           test.beam,
+                           std::move(up),
+                           std::move(down),
+                           std::move(source),
+                           raw ? disort::brdf::fourier_modes(raw, nquad) : std::vector<disort::BDRF>{});
+
+    disort::flux_data flux_data;
+    for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
+      const Numeric output_tau = test.optical_depth == 0.0 ? 0.0 : test.output_tau[level];
+      const auto    flux       = dis.flux(flux_data, output_tau);
+      expect_reference(
+          std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], 7e-5);
+      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+                       flux.down_diffuse,
+                       reference.diffuse_down[level],
+                       1e-3);
+      const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
+      expect_reference(
+          std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
+      expect_reference(
+          std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
+    }
+    std::cout << std::format("test_{} completed\n", test.name);
   }
 }
 
 void disort_test07() {
-  for (const auto& c : disort_test::reference::problem_7) {
+  for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_7.size()); ++case_index) {
+    const auto&         c         = disort_test::reference::problem_7[case_index];
+    const auto&         reference = disort_test::reference::problem_7_flux[case_index];
     const AscendingGrid tau{c.optical_depth};
     const Vector        omega{c.single_scattering_albedo};
     Matrix              up(c.streams, c.streams / 2, 0), down(c.streams, c.streams / 2, 0);
@@ -221,44 +255,18 @@ void disort_test07() {
     down[0] =
         c.top_isotropic + band_blackbody_radiance(c.top_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
 
-    std::vector<disort::BDRF> brdf;
+    disort::brdf::RawFunction raw;
     if (c.surface != disort_test::reference::surface_type::hapke) up[0] = (1.0 - c.lambertian_albedo) * bottom_planck;
     if (c.surface == disort_test::reference::surface_type::lambertian) {
-      brdf.push_back(disort::BDRF{[albedo = c.lambertian_albedo](auto value, auto&, auto&) { value = albedo; }});
+      raw = [albedo = c.lambertian_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
     } else if (c.surface == disort_test::reference::surface_type::hapke) {
-      constexpr Index naz = 512;
-      for (Index m = 0; m < c.streams; ++m) {
-        brdf.push_back(disort::BDRF{[m](auto value, const auto& outgoing, const auto& incoming) {
-          const Index nout = outgoing.size();
-          const Index nin  = incoming.size();
-          for (Index i = 0; i < nout; ++i)
-            for (Index j = 0; j < nin; ++j) {
-              Numeric coefficient = 0.0;
-              for (Index k = 0; k < naz; ++k) {
-                const Numeric phi = Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(naz);
-                coefficient += hapke(outgoing[i], std::abs(incoming[j]), phi) * std::cos(static_cast<Numeric>(m) * phi);
-              }
-              value[i, j] = coefficient / naz;
-            }
-        }});
-      }
-      // Directional Kirchhoff emissivity at the computational angles.
+      raw = disort::brdf::Hapke{};
       Vector surface_mu(c.streams / 2), surface_weight(c.streams / 2);
       Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
-      for (Index i = 0; i < c.streams / 2; ++i) {
-        constexpr Index nmu         = 256;
-        Numeric         reflectance = 0.0;
-        for (Index j = 0; j < nmu; ++j) {
-          const Numeric mup             = (static_cast<Numeric>(j) + 0.5) / static_cast<Numeric>(nmu);
-          Numeric       azimuth_average = 0.0;
-          for (Index k = 0; k < naz; ++k)
-            azimuth_average += hapke(
-                surface_mu[i], mup, Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(naz));
-          reflectance += 2.0 * mup * azimuth_average / (nmu * naz);
-        }
-        up[0, i] = (1.0 - reflectance) * bottom_planck;
-      }
+      for (Index i = 0; i < c.streams / 2; ++i) up[0, i] = directional_emissivity(raw, surface_mu[i]) * bottom_planck;
     }
+
+    auto brdf = raw ? disort::brdf::fourier_modes(raw, c.streams) : std::vector<disort::BDRF>{};
 
     auto dis = make_disort(
         c.streams,
@@ -274,10 +282,30 @@ void disort_test07() {
             Vector{band_blackbody_radiance(c.atmosphere_top_temperature, c.wavenumber_low, c.wavenumber_high),
                    band_blackbody_radiance(c.atmosphere_bottom_temperature, c.wavenumber_low, c.wavenumber_high)}),
         std::move(brdf));
-    run_case(c.name,
-             dis,
-             c.optical_depth == 100.0 ? Vector{0.0, 100.0} : Vector{0.0, 0.5, 1.0},
-             Vector{0.0, Constant::pi / 2});
+    const Vector      output_tau = case_index < 2 ? Vector{0.0, c.optical_depth} : Vector{0.0, 0.5, 1.0};
+    disort::flux_data flux_data;
+    for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
+      const auto flux = dis.flux(flux_data, output_tau[level]);
+      if (case_index == 1) {
+        expect_small_reference(
+            std::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level]);
+        expect_small_reference(
+            std::format("{} diffuse-down flux [{}]", c.name, level), flux.down_diffuse, reference.diffuse_down[level]);
+        expect_small_reference(std::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level]);
+        expect_small_reference(std::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level]);
+      } else {
+        const Numeric tolerance = case_index == 4 ? 1e-2 : 2e-3;
+        expect_reference(
+            std::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level], tolerance);
+        expect_reference(std::format("{} diffuse-down flux [{}]", c.name, level),
+                         flux.down_diffuse,
+                         reference.diffuse_down[level],
+                         tolerance);
+        expect_reference(std::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level], tolerance);
+        expect_reference(std::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level], tolerance);
+      }
+    }
+    std::cout << std::format("test_{} completed\n", c.name);
   }
 }
 

@@ -12,8 +12,8 @@ does not count.
 | 3 | a–b | ported | Arbitrary-angle IMS/TMS corrections are applied to the original user-angle radiances. |
 | 4 | a–c | ported | All Haze-L fluxes and user-angle radiances are checked with arbitrary-angle IMS/TMS corrections. |
 | 5 | a–b | ported | Cloud C.1 inputs and references are shared for reuse by scalar VDISORT tests. |
-| 6 | a–h | smoke only; references extracted | Active Fortran direct/diffuse/up/DFDT values are now shared; boundary and thermal-source inputs still require normalization mapping to the CPP API. |
-| 7 | a–e | smoke only; references extracted | Active Fortran direct/diffuse/up/DFDT values are now shared; numerical assertions require the thermal/boundary mapping. |
+| 6 | a–h | ported | All active Fortran direct/diffuse/up/DFDT references are checked. The tests map Planck source polynomials, directional Kirchhoff emission, and Lambertian/Hapke reflection to the CPP API. The exactly non-scattering cases use `omega=1e-8` to regularize otherwise degenerate nonzero Fourier modes. |
+| 7 | a–e | ported | All active Fortran direct/diffuse/up/DFDT references are checked, including the narrow-band small-signal case and the Hapke thermal boundary. |
 | 8 | a–c | ported | All two-layer fluxes and four user-angle radiances are checked; inputs and references are shared for scalar VDISORT reuse. |
 | 9 | a–c | ported | All multilayer fluxes and user-angle radiances are checked, including the fully general thermal/beam/Lambertian case. |
 | 10 | a–b | ported | The formal `u_user()` solution at all four quadrature angles is compared with direct `u()` output; pointwise and bulk quadrature paths are also checked. |

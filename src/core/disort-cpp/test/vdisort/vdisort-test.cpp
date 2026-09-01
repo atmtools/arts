@@ -465,17 +465,18 @@ void test_conservative_reflecting_source_limit() {
     for (Index i = 0; i < value.nrows(); ++i)
       for (Index j = 0; j < value.ncols(); ++j) value[i, j][0, 0] = 2.0 * Constant::inv_pi;
   };
-  std::vector<vdisort::BDRF> vector_brdf{{.cosine = {reflection}, .sine = {reflection}}};
-  auto                       vector = make_vdisort(nquad,
-                                                   tau,
-                                                   omega,
-                                                   std::move(phase),
-                                                   std::move(vector_up),
-                                                   std::move(vector_down),
-                                                   std::move(vector_source),
-                                                   Vector(4, 0.0),
-                                                   {},
-                                                   std::move(vector_brdf));
+  std::vector<vdisort::BDRF> vector_brdf{
+      {.cosine = {reflection}, .sine = {reflection}, .beam_cosine = {}, .beam_sine = {}}};
+  auto vector = make_vdisort(nquad,
+                             tau,
+                             omega,
+                             std::move(phase),
+                             std::move(vector_up),
+                             std::move(vector_down),
+                             std::move(vector_source),
+                             Vector(4, 0.0),
+                             {},
+                             std::move(vector_brdf));
   for (const Numeric optical_depth : {0.2, 4.0, 8.0}) {
     disort::u_data  scalar_field;
     vdisort::u_data vector_field;
@@ -530,7 +531,7 @@ void test_polarized_brdf() {
     for (Index i = 0; i < blocks; ++i)
       for (Index s = 0; s < 4; ++s) value[i, i][s, s] = reflectance;
   };
-  std::vector<vdisort::BDRF> brdf{{.cosine = {callback}, .sine = {callback}}};
+  std::vector<vdisort::BDRF> brdf{{.cosine = {callback}, .sine = {callback}, .beam_cosine = {}, .beam_sine = {}}};
 
   const Numeric    depth = 0.2;
   auto             model = make_vdisort(nquad,
