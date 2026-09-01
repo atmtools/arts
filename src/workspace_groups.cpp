@@ -661,6 +661,7 @@ and returns any associated data.
 #. *Matrix* upwelling flux
 #. *Matrix* diffuse downwelling flux
 #. *Matrix* direct downwelling flux
+#. *Matrix* heating rate (dF/dt)
 )",
   };
 

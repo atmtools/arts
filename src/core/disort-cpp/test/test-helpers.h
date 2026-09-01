@@ -63,8 +63,8 @@ inline Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
   return u0;
 }
 
-inline std::tuple<Vector, Vector, Vector> compute_flux(const disort::main_data& dis, const Vector& taus) {
-  Vector            flux_up(taus.size()), flux_down_diffuse(taus.size()), flux_down_direct(taus.size());
+inline std::tuple<Vector, Vector, Vector, Vector> compute_flux(const disort::main_data& dis, const Vector& taus) {
+  Vector flux_up(taus.size()), flux_down_diffuse(taus.size()), flux_down_direct(taus.size()), dfdt(taus.size());
   disort::flux_data flux_data;
 
   for (Size j = 0; j < taus.size(); j++) {
@@ -72,8 +72,9 @@ inline std::tuple<Vector, Vector, Vector> compute_flux(const disort::main_data& 
     flux_up[j]           = values.up;
     flux_down_diffuse[j] = values.down_diffuse;
     flux_down_direct[j]  = values.down_direct;
+    dfdt[j]              = values.dfdt;
   }
-  return {flux_up, flux_down_diffuse, flux_down_direct};
+  return {flux_up, flux_down_diffuse, flux_down_direct, dfdt};
 }
 
 inline void compare(const std::string_view   name,
@@ -86,9 +87,10 @@ inline void compare(const std::string_view   name,
                     const Vector&            flux_down_direct,
                     const Vector&            flux_up,
                     const bool               nt_corr) {
-  const auto u_arts                                                        = compute_u(dis, taus, phis, nt_corr);
-  const auto u0_arts                                                       = compute_u0(dis, taus);
-  const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts] = compute_flux(dis, taus);
+  const auto u_arts  = compute_u(dis, taus, phis, nt_corr);
+  const auto u0_arts = compute_u0(dis, taus);
+  const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts, dfdt_arts] = compute_flux(dis, taus);
+  static_cast<void>(dfdt_arts);
 
   std::print(std::cout,
              R"(

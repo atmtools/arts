@@ -282,17 +282,13 @@ void run_problem_1_case(const disort_test::reference::single_layer_case& test) {
       expect_unpolarized(label, user.intensities[angle]);
     }
 
-    const auto [diffuse_down, direct] = model.solver.flux_down(flux, output_tau[level]);
+    const auto values = model.solver.flux(flux, output_tau[level]);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
       expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-
-    const Numeric up = model.solver.flux_up(flux, output_tau[level]);
-    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -325,17 +321,13 @@ void run_problem_2_case(const disort_test::reference::single_layer_case& test) {
       expect_unpolarized(label, user.intensities[angle]);
     }
 
-    const auto [diffuse_down, direct] = model.solver.flux_down(flux, output_tau[level]);
+    const auto values = model.solver.flux(flux, output_tau[level]);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
       expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-
-    const Numeric up = model.solver.flux_up(flux, output_tau[level]);
-    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -404,18 +396,15 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
       expect_unpolarized(label, user.intensities[angle]);
     }
 
-    const auto [scaled_diffuse_down, scaled_direct] = model.solver.flux_down(flux, scaled_tau);
+    const auto scaled_flux = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
       expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
-    const Numeric diffuse_down    = scaled_diffuse_down - (physical_direct - scaled_direct);
+    const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    const Numeric up = model.solver.flux_up(flux, scaled_tau);
-    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
 }
 
@@ -460,20 +449,17 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
 
   vdisort::flux_data flux;
   for (Index level = 0; level < static_cast<Index>(disort_test::reference::problem_4_output_tau.size()); ++level) {
-    const Numeric physical_tau                      = disort_test::reference::problem_4_output_tau[level];
-    const Numeric scaled_tau                        = model.optical_depth_scale * physical_tau;
-    const auto [scaled_diffuse_down, scaled_direct] = model.solver.flux_down(flux, scaled_tau);
+    const Numeric physical_tau = disort_test::reference::problem_4_output_tau[level];
+    const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
+    const auto    scaled_flux  = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
       expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
-    const Numeric diffuse_down    = scaled_diffuse_down - (physical_direct - scaled_direct);
+    const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    const Numeric up = model.solver.flux_up(flux, scaled_tau);
-    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
 }
 
@@ -510,18 +496,15 @@ void run_problem_5_case(const disort_test::reference::scalar_case& test) {
       expect_unpolarized(label, user.intensities[angle]);
     }
 
-    const auto [scaled_diffuse_down, scaled_direct] = model.solver.flux_down(flux, scaled_tau);
+    const auto scaled_flux = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
       expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
-    const Numeric diffuse_down    = scaled_diffuse_down - (physical_direct - scaled_direct);
+    const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
     expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    const Numeric up = model.solver.flux_up(flux, scaled_tau);
-    for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), up, test.up[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
 }
 
@@ -575,7 +558,7 @@ std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& ra
     const vdisort::BDRF::func_t sine{[](rtepack::muelmat_matrix_view out,
                                         const ConstVectorView&,
                                         const ConstVectorView&) { out = rtepack::muelmat{0.0}; }};
-    result.push_back(vdisort::BDRF{.cosine = {coefficient}, .sine = sine});
+    result.push_back(vdisort::BDRF{.cosine = {coefficient}, .sine = sine, .beam_cosine = {}, .beam_sine = {}});
   }
   return result;
 }

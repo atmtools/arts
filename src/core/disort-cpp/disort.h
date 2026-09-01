@@ -35,8 +35,9 @@ struct fluxes {
   Matrix         up;            // nf, nl - 1
   Matrix         down_diffuse;  // nf, nl - 1
   Matrix         down_direct;   // nf, nl - 1
+  Matrix         dfdt;          // nf, nl - 1
 
-  /** Replace both grids and resize all three flux matrices. */
+  /** Replace both grids and resize all four flux matrices. */
   void resize(AscendingGrid freq_grid, DescendingGrid alt_grid);
 
   /** Merge fluxes defined on adjacent or overlapping compatible grids. */
@@ -416,35 +417,18 @@ class main_data {
   /** Compute all flux quantities at a given tau from one zeroth-mode evaluation. */
   [[nodiscard]] flux_values flux(flux_data&, Numeric tau) const;
 
-  /** Compute the upward flux at a given tau
-    *
-    * Safe for parallel use if flux_data is unique per thread
-    * 
-    * @param tau The point-wise optical thickness 
-    * @return Numeric value of the upward flux
-    */
-  [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
-
   /** Return the cached Fourier radiances at the bottom of one layer. */
   [[nodiscard]] ConstMatrixView layer_um(Size l) const;
   /** Evaluate radiances at every layer bottom for all quadrature streams and azimuths. */
   void gridded_u(Tensor3View, const Vector& phi) const;
-  /** Evaluate upward, downward-diffuse, and downward-direct flux at every layer bottom. */
-  void gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
+  /** Evaluate every flux quantity at every layer bottom. */
+  void gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const;
 
   /** Evaluate quadrature-stream radiances on an arbitrary ascending optical-depth grid. */
   void ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vector& phi) const;
-  /** Evaluate flux components on an arbitrary ascending optical-depth grid. */
-  void ungridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd, const AscendingGrid& tau) const;
-
-  /** Compute the downward flux at a given tau
-    *
-    * Safe for parallel use if flux_data is unique per thread
-    * 
-    * @param tau The point-wise optical thickness 
-    * @return std::pair<Numeric, Numeric> Diffuse and direct downward flux, respectively
-    */
-  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, const Numeric tau) const;
+  /** Evaluate every flux quantity on an arbitrary ascending optical-depth grid. */
+  void ungridded_flux(
+      VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt, const AscendingGrid& tau) const;
 
   /** Computes the IMS correction factors
     *
@@ -1270,11 +1254,15 @@ template <> struct std::formatter<DisortFlux> {
                          v.down_direct.shape(),
                          "\n"sv,
                          "up.shape:           "sv,
-                         v.up.shape());
+                         v.up.shape(),
+                         "\n"sv,
+                         "dfdt.shape:         "sv,
+                         v.dfdt.shape());
     }
 
     auto sep = tags.sep();
-    return tags.format(ctx, v.freq_grid, sep, v.alt_grid, sep, v.up, sep, v.down_diffuse, sep, v.down_direct);
+    return tags.format(
+        ctx, v.freq_grid, sep, v.alt_grid, sep, v.up, sep, v.down_diffuse, sep, v.down_direct, sep, v.dfdt);
   }
 };
 

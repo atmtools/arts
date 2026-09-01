@@ -275,6 +275,7 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
   up.resize(freq_grid.size(), alt_grid.size() - 1);
   down_diffuse.resize(freq_grid.size(), alt_grid.size() - 1);
   down_direct.resize(freq_grid.size(), alt_grid.size() - 1);
+  dfdt.resize(freq_grid.size(), alt_grid.size() - 1);
 }
 
 [[nodiscard]] fluxes fluxes::combine(const fluxes& other) const {
@@ -291,6 +292,8 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
       out.down_diffuse[g] = other.down_diffuse;
       out.down_direct[f]  = down_direct;
       out.down_direct[g]  = other.down_direct;
+      out.dfdt[f]         = dfdt;
+      out.dfdt[g]         = other.dfdt;
     } break;
     case freq_coupled: {
       const Range f{0, up.nrows()};
@@ -301,6 +304,8 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
       out.down_diffuse[g] = other.down_diffuse;
       out.down_direct[f]  = down_direct;
       out.down_direct[g]  = other.down_direct;
+      out.dfdt[f]         = dfdt;
+      out.dfdt[g]         = other.dfdt;
     } break;
     case alt_coupled: {
       const Range f{0, up.ncols()};
@@ -311,6 +316,8 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
       out.down_diffuse[joker, g] = other.down_diffuse;
       out.down_direct[joker, f]  = down_direct;
       out.down_direct[joker, g]  = other.down_direct;
+      out.dfdt[joker, f]         = dfdt;
+      out.dfdt[joker, g]         = other.dfdt;
     } break;
   }
 
@@ -1887,19 +1894,16 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   return out;
 }
 
-Numeric main_data::flux_up(flux_data& data, const Numeric tau) const { return flux(data, tau).up; }
-
-std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric tau) const {
-  const auto out = flux(data, tau);
-  return {out.down_diffuse, out.down_direct};
-}
-
-void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView flux_dd) const {
+void main_data::gridded_flux(VectorView flux_up,
+                             VectorView flux_down_diffuse,
+                             VectorView flux_down_direct,
+                             VectorView flux_dfdt) const {
   ARTS_TIME_REPORT
 
   assert(flux_up.size() == static_cast<Size>(NLayers));
-  assert(flux_do.size() == static_cast<Size>(NLayers));
-  assert(flux_dd.size() == static_cast<Size>(NLayers));
+  assert(flux_down_diffuse.size() == static_cast<Size>(NLayers));
+  assert(flux_down_direct.size() == static_cast<Size>(NLayers));
+  assert(flux_dfdt.size() == static_cast<Size>(NLayers));
 
   for (Index l = 0; l < NLayers; l++) {
     const auto&& u0 = um[l, 0];
@@ -1909,9 +1913,16 @@ void main_data::gridded_flux(VectorView flux_up, VectorView flux_do, VectorView 
         has_beam_source ? dc::direct_beam_flux(I0, mu0, scaled_tau_arr_with_0[l + 1]) : 0.0;
     const auto diffuse = dc::integrate_diffuse(mu_arr[rf(N)], W, [&](const Index i) { return u0[i]; });
 
-    flux_up[l] = Constant::two_pi * I0_orig * diffuse.upward;
-    flux_do[l] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
-    flux_dd[l] = I0_orig * direct_beam;
+    flux_up[l]           = Constant::two_pi * I0_orig * diffuse.upward;
+    flux_down_diffuse[l] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
+    flux_down_direct[l]  = I0_orig * direct_beam;
+
+    Numeric mean_intensity = I0_orig * diffuse.mean_intensity;
+    if (has_beam_source)
+      mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, tau_arr[l]) / (4.0 * Constant::pi);
+    const Numeric source = dc::horner_polynomial(
+        Nscoeffs, tau_arr[l], [&](const Index coefficient) { return source_poly_coeffs[l, coefficient]; });
+    flux_dfdt[l] = (1.0 - omega_arr[l]) * 4.0 * Constant::pi * (mean_intensity - source);
   }
 }
 
@@ -1938,10 +1949,17 @@ void main_data::gridded_u(Tensor3View out, const Vector& phi) const {
 }
 
 void main_data::ungridded_flux(VectorView           flux_up,
-                               VectorView           flux_do,
-                               VectorView           flux_dd,
+                               VectorView           flux_down_diffuse,
+                               VectorView           flux_down_direct,
+                               VectorView           flux_dfdt,
                                const AscendingGrid& tau) const {
   ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(flux_up.size() != tau.size() or flux_down_diffuse.size() != tau.size() or
+                         flux_down_direct.size() != tau.size() or flux_dfdt.size() != tau.size(),
+                     "All ungridded flux outputs must have the same size as tau ({})",
+                     tau.size());
+  if (tau.empty()) return;
 
   ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
   ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
@@ -1965,8 +1983,14 @@ void main_data::ungridded_flux(VectorView           flux_up,
     const Numeric direct_beam_scaled = has_beam_source ? dc::direct_beam_flux(I0, mu0, scaled_tau) : 0.0;
     const auto    diffuse            = dc::integrate_diffuse(mu_arr[rf(N)], W, [&](const Index i) { return u0[i]; });
     flux_up[il]                      = Constant::two_pi * I0_orig * diffuse.upward;
-    flux_do[il] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
-    flux_dd[il] = I0_orig * direct_beam;
+    flux_down_diffuse[il] = I0_orig * (Constant::two_pi * diffuse.downward - direct_beam + direct_beam_scaled);
+    flux_down_direct[il]  = I0_orig * direct_beam;
+
+    Numeric mean_intensity = I0_orig * diffuse.mean_intensity;
+    if (has_beam_source) mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, tau[il]) / (4.0 * Constant::pi);
+    const Numeric source = dc::horner_polynomial(
+        Nscoeffs, tau[il], [&](const Index coefficient) { return source_poly_coeffs[l, coefficient]; });
+    flux_dfdt[il] = (1.0 - omega_arr[l]) * 4.0 * Constant::pi * (mean_intensity - source);
   }
 }
 

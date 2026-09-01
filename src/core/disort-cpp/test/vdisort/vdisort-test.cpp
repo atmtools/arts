@@ -643,24 +643,27 @@ void test_bulk_quadrature_equivalence() {
                          std::abs(ungridded[1, 0, 0, 0] - ungridded[1, 1, 0, 0]) < 1e-12,
                      "Bulk equivalence model did not exercise U, V, and m>0 radiance");
 
-  Vector gridded_up(layers), gridded_down(layers), gridded_direct(layers);
-  model.gridded_flux(gridded_up, gridded_down, gridded_direct);
+  Vector gridded_up(layers), gridded_down(layers), gridded_direct(layers), gridded_dfdt(layers);
+  model.gridded_flux(gridded_up, gridded_down, gridded_direct, gridded_dfdt);
   for (Index layer = 0; layer < layers; ++layer) {
     vdisort::flux_data scratch;
     const auto         pointwise = model.flux(scratch, layer_tau[layer]);
     expect_close(gridded_up[layer], pointwise.up, "gridded/pointwise upward flux");
     expect_close(gridded_down[layer], pointwise.down_diffuse, "gridded/pointwise downward flux");
     expect_close(gridded_direct[layer], pointwise.down_direct, "gridded/pointwise direct flux");
+    expect_close(gridded_dfdt[layer], pointwise.dfdt, "gridded/pointwise DFDT");
   }
 
-  Vector ungridded_up(output_tau.size()), ungridded_down(output_tau.size()), ungridded_direct(output_tau.size());
-  model.ungridded_flux(ungridded_up, ungridded_down, ungridded_direct, output_tau);
+  Vector ungridded_up(output_tau.size()), ungridded_down(output_tau.size()), ungridded_direct(output_tau.size()),
+      ungridded_dfdt(output_tau.size());
+  model.ungridded_flux(ungridded_up, ungridded_down, ungridded_direct, ungridded_dfdt, output_tau);
   for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
     vdisort::flux_data scratch;
     const auto         pointwise = model.flux(scratch, output_tau[level]);
     expect_close(ungridded_up[level], pointwise.up, "ungridded/pointwise upward flux");
     expect_close(ungridded_down[level], pointwise.down_diffuse, "ungridded/pointwise downward flux");
     expect_close(ungridded_direct[level], pointwise.down_direct, "ungridded/pointwise direct flux");
+    expect_close(ungridded_dfdt[level], pointwise.dfdt, "ungridded/pointwise DFDT");
   }
 }
 

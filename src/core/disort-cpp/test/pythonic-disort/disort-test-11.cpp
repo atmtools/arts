@@ -84,7 +84,8 @@ void check_test_11a_reference(const std::string_view   name,
   require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275991.914094502);
   require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972939.758737655);
 
-  const auto [up, down_diffuse, down_direct] = compute_flux(dis, taus);
+  const auto [up, down_diffuse, down_direct, dfdt] = compute_flux(dis, taus);
+  static_cast<void>(dfdt);
   require_close("delta-scaled source upward flux",
                 up,
                 Vector{-24332790.748160336, -27833449.381811786, -45865859.33752958},
@@ -521,6 +522,37 @@ void test_11h_delta_scaled_source_equivalence() try {
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-11h-delta-scaled-source-equivalence:\n{}", e.what()));
 }
+
+void test_11i_full_bulk_flux_equivalence() {
+  const AscendingGrid layer_tau{0.4, 1.0};
+  const auto          dis = identical_atmosphere(layer_tau);
+
+  Vector gridded_up(layer_tau.size()), gridded_down(layer_tau.size()), gridded_direct(layer_tau.size()),
+      gridded_dfdt(layer_tau.size());
+  dis.gridded_flux(gridded_up, gridded_down, gridded_direct, gridded_dfdt);
+  disort::flux_data scratch;
+  for (Index layer = 0; layer < static_cast<Index>(layer_tau.size()); ++layer) {
+    const auto pointwise = dis.flux(scratch, layer_tau[layer]);
+    require_scalar_close("gridded/pointwise upward flux", gridded_up[layer], pointwise.up, 2e-12);
+    require_scalar_close("gridded/pointwise diffuse-downward flux", gridded_down[layer], pointwise.down_diffuse, 2e-12);
+    require_scalar_close("gridded/pointwise direct-downward flux", gridded_direct[layer], pointwise.down_direct, 2e-12);
+    require_scalar_close("gridded/pointwise DFDT", gridded_dfdt[layer], pointwise.dfdt, 2e-12);
+  }
+
+  const AscendingGrid output_tau{0.0, 0.2, 0.4, 0.7, 1.0};
+  Vector ungridded_up(output_tau.size()), ungridded_down(output_tau.size()), ungridded_direct(output_tau.size()),
+      ungridded_dfdt(output_tau.size());
+  dis.ungridded_flux(ungridded_up, ungridded_down, ungridded_direct, ungridded_dfdt, output_tau);
+  for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
+    const auto pointwise = dis.flux(scratch, output_tau[level]);
+    require_scalar_close("ungridded/pointwise upward flux", ungridded_up[level], pointwise.up, 2e-12);
+    require_scalar_close(
+        "ungridded/pointwise diffuse-downward flux", ungridded_down[level], pointwise.down_diffuse, 2e-12);
+    require_scalar_close(
+        "ungridded/pointwise direct-downward flux", ungridded_direct[level], pointwise.down_direct, 2e-12);
+    require_scalar_close("ungridded/pointwise DFDT", ungridded_dfdt[level], pointwise.dfdt, 2e-12);
+  }
+}
 }  // namespace
 
 int main() try {
@@ -534,6 +566,7 @@ int main() try {
   test_11f_disort_user_angle_formal_solution();
   test_11g_gridded_correction_cache_equivalence();
   test_11h_delta_scaled_source_equivalence();
+  test_11i_full_bulk_flux_equivalence();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;

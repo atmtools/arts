@@ -179,9 +179,7 @@ def test_absorbing_stokes_field():
 
     compatible = np.asarray(model.pydisort_u(np.array([0.5, 0.2]), np.array([0.0])))
     assert compatible.shape == (nquad, 2, 1, arts.vdisort.stokes_dimension)
-    assert np.asarray(model.flux(np.array([0.2, 0.5]))).shape == (3, 2)
-    assert np.asarray(model.pydisort_flux_up(np.array([0.5, 0.2]))).shape == (2,)
-    assert len(model.pydisort_flux_down(np.array([0.5, 0.2]))) == 2
+    assert np.asarray(model.flux(np.array([0.2, 0.5]))).shape == (4, 2)
 
 
 def test_fresnel_brewster_angle():

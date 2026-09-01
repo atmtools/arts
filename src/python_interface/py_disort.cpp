@@ -383,12 +383,12 @@ The relevant references are:
       .def(
           "flux",
           [](disort::main_data& dis, const AscendingGrid& tau) {
-            Matrix out(3, tau.size());
-            dis.ungridded_flux(out[0], out[1], out[2], tau);
+            Matrix out(4, tau.size());
+            dis.ungridded_flux(out[0], out[1], out[2], out[3], tau);
             return out;
           },
           "tau"_a,
-          "Compute the flux")
+          "Compute upward, downward-diffuse, downward-direct flux and DFDT")
       .def(
           "pydisort_u",
           [](disort::main_data& dis, Vector tau_, const Vector& phi) {
@@ -406,44 +406,7 @@ The relevant references are:
           },
           "tau"_a,
           "phi"_a,
-          "Compute the intensity")
-      .def(
-          "pydisort_flux_up",
-          [](disort::main_data& dis, Vector tau_) {
-            std::vector<Index> sorting(tau_.size());
-            stdr::iota(sorting, 0);
-            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
-
-            AscendingGrid tau{std::move(tau_)};
-            Matrix        res(3, tau.size());
-            dis.ungridded_flux(res[0], res[1], res[2], tau);
-
-            Vector out(tau.size());
-            for (Size i = 0; i < tau.size(); i++) { out[i] = res[0, sorting[i]]; }
-            return out;
-          },
-          "tau"_a,
-          "Compute the upward flux")
-      .def(
-          "pydisort_flux_down",
-          [](disort::main_data& dis, Vector tau_) {
-            std::vector<Index> sorting(tau_.size());
-            stdr::iota(sorting, 0);
-            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
-
-            AscendingGrid tau{std::move(tau_)};
-            Matrix        res(3, tau.size());
-            dis.ungridded_flux(res[0], res[1], res[2], tau);
-
-            ArrayOfVector out(2, Vector(tau.size()));
-            for (Size i = 0; i < tau.size(); i++) {
-              out[0][i] = res[1, sorting[i]];
-              out[1][i] = res[2, sorting[i]];
-            }
-            return out;
-          },
-          "tau"_a,
-          "Compute the downward flux");
+          "Compute the intensity");
   generic_interface(x);
 
   // VDISORT PYTHON INTERFACE BEGIN: low-level polarized counterpart of
@@ -529,12 +492,12 @@ supplied as ``[B, 0, 0, 0]``.
       .def(
           "flux",
           [](vdisort::main_data& dis, const AscendingGrid& tau) {
-            Matrix out(3, tau.size());
-            dis.ungridded_flux(out[0], out[1], out[2], tau);
+            Matrix out(4, tau.size());
+            dis.ungridded_flux(out[0], out[1], out[2], out[3], tau);
             return out;
           },
           "tau"_a,
-          "Compute Stokes-I upward, downward-diffuse, and downward-direct flux")
+          "Compute Stokes-I upward, downward-diffuse, downward-direct flux and DFDT")
       .def("has_complex_eigensolutions",
            &vdisort::main_data::has_complex_eigensolutions,
            "tolerance"_a = 1.0e-12,
@@ -583,44 +546,7 @@ at the requested outgoing directions.  Their numerical shapes are
           },
           "tau"_a,
           "phi"_a,
-          "Compute Stokes radiance with shape [stream, tau, phi, stokes]")
-      .def(
-          "pydisort_flux_up",
-          [](vdisort::main_data& dis, Vector tau_) {
-            std::vector<Index> sorting(tau_.size());
-            stdr::iota(sorting, 0);
-            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
-
-            AscendingGrid tau{std::move(tau_)};
-            Matrix        res(3, tau.size());
-            dis.ungridded_flux(res[0], res[1], res[2], tau);
-
-            Vector out(tau.size());
-            for (Size i = 0; i < tau.size(); ++i) { out[i] = res[0, sorting[i]]; }
-            return out;
-          },
-          "tau"_a,
-          "Compute the upward Stokes-I flux")
-      .def(
-          "pydisort_flux_down",
-          [](vdisort::main_data& dis, Vector tau_) {
-            std::vector<Index> sorting(tau_.size());
-            stdr::iota(sorting, 0);
-            stdr::sort(stdv::zip(sorting, tau_), {}, [](const auto& x) { return std::get<1>(x); });
-
-            AscendingGrid tau{std::move(tau_)};
-            Matrix        res(3, tau.size());
-            dis.ungridded_flux(res[0], res[1], res[2], tau);
-
-            ArrayOfVector out(2, Vector(tau.size()));
-            for (Size i = 0; i < tau.size(); ++i) {
-              out[0][i] = res[1, sorting[i]];
-              out[1][i] = res[2, sorting[i]];
-            }
-            return out;
-          },
-          "tau"_a,
-          "Compute downward diffuse and direct Stokes-I flux");
+          "Compute Stokes radiance with shape [stream, tau, phi, stokes]");
   generic_interface(vx);
   // VDISORT PYTHON INTERFACE END
 
@@ -657,6 +583,7 @@ at the requested outgoing directions.  Their numerical shapes are
   df.def_rw("up", &DisortFlux::up, "Upwelling flux (layer values)\n\n.. :class:`Matrix`");
   df.def_rw("down_diffuse", &DisortFlux::down_diffuse, "Downward diffuse flux (layer values)\n\n.. :class:`Matrix`");
   df.def_rw("down_direct", &DisortFlux::down_direct, "Downward direct flux (layer values)\n\n.. :class:`Matrix`");
+  df.def_rw("dfdt", &DisortFlux::dfdt, "Flux divergence (layer values)\n\n.. :class:`Matrix`");
 
   py::class_<DisortRadiance> dr(m, "DisortRadiance");
   generic_interface(dr);

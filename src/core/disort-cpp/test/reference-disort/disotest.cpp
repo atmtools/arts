@@ -157,9 +157,9 @@ void run_case(const std::string_view   name,
       }
     }
 
-    const auto [down_diffuse, down_direct] = dis.flux_down(flux, tau);
-    const Numeric up                       = dis.flux_up(flux, tau);
-    ARTS_USER_ERROR_IF(not(std::isfinite(up) and std::isfinite(down_diffuse) and std::isfinite(down_direct)),
+    const auto values = dis.flux(flux, tau);
+    ARTS_USER_ERROR_IF(not(std::isfinite(values.up) and std::isfinite(values.down_diffuse) and
+                           std::isfinite(values.down_direct) and std::isfinite(values.dfdt)),
                        "{} produced a non-finite flux",
                        name);
   }

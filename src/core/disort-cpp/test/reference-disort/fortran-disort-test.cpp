@@ -55,11 +55,11 @@ void run_isotropic_case(const disort_test::reference::single_layer_case& test) {
                        user.intensities[angle],
                        test.radiance[level, angle]);
 
-    const auto [diffuse_down, direct] = dis.flux_down(flux, tau[level]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    const auto values = dis.flux(flux, tau[level]);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, tau[level]), test.up[level]);
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -96,10 +96,11 @@ void run_rayleigh_case(const disort_test::reference::single_layer_case& test) {
       expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
-    const auto [down, beam] = dis.flux_down(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), beam, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, tau), test.up[level]);
+    const auto values = dis.flux(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -138,10 +139,11 @@ void run_henyey_greenstein_case(const disort_test::reference::single_layer_case&
       expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
-    const auto [down, beam] = dis.flux_down(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), beam, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, tau), test.up[level]);
+    const auto values = dis.flux(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -225,11 +227,11 @@ void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
                        user.intensities[angle],
                        test.radiance[level, angle],
                        2e-4);
-    const auto [down, beam] = dis.flux_down(flux, test.tau[level]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), beam, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
+    const auto values = dis.flux(flux, test.tau[level]);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, test.tau[level]), test.up[level]);
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -271,10 +273,11 @@ void run_problem_8_case(const disort_test::reference::layered_isotropic_case& te
                        user.intensities[angle],
                        test.radiance[level, angle]);
 
-    const auto [down, direct] = dis.flux_down(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level), down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), dis.flux_up(flux, tau), test.up[level]);
+    const auto values = dis.flux(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(
+        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -382,17 +385,15 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
     }
 
   for (Index level = 0; level < 5; ++level) {
-    const Numeric tau              = test.output_tau[level];
-    const auto [down_flux, direct] = dis.flux_down(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), direct, test.direct[level]);
+    const Numeric tau    = test.output_tau[level];
+    const auto    values = dis.flux(flux, tau);
+    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
-                     down_flux,
+                     values.down_diffuse,
                      test.diffuse_down[level],
                      test.thermal ? 1e-3 : 7e-5);
-    expect_reference(std::format("{} up flux [{}]", test.name, level),
-                     dis.flux_up(flux, tau),
-                     test.up[level],
-                     test.thermal ? 1e-3 : 7e-5);
+    expect_reference(
+        std::format("{} up flux [{}]", test.name, level), values.up, test.up[level], test.thermal ? 1e-3 : 7e-5);
   }
 }
 

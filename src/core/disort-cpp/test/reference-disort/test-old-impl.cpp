@@ -133,13 +133,13 @@ void newimpl(bool print_results = false) {
     // DebugTime comput{"comput"};
     disort::flux_data fd;
     disort::u_data    ud;
-    const auto [a0, b0] = dis.flux_down(fd, 0);
-    const auto c0       = dis.flux_up(fd, 0);
-    std::cout << a0 << ',' << b0 << ',' << c0 << ',' << '\n';
+    const auto        values0 = dis.flux(fd, 0);
+    std::cout << values0.down_diffuse << ',' << values0.down_direct << ',' << values0.up << ',' << values0.dfdt << ','
+              << '\n';
     for (auto t : tau | stdv::take(NLayers - 1)) {
-      const auto [a, b] = dis.flux_down(fd, t);
-      const auto c      = dis.flux_up(fd, t);
-      std::cout << a << ',' << b << ',' << c << ',' << '\n';
+      const auto values = dis.flux(fd, t);
+      std::cout << values.down_diffuse << ',' << values.down_direct << ',' << values.up << ',' << values.dfdt << ','
+                << '\n';
     }
   }
 }
@@ -245,46 +245,54 @@ void test_flat() try {
   Vector fu1(NLayers_), fu2(NLayers_), fu3(NLayers_);
   Vector fd1(NLayers_), fd2(NLayers_), fd3(NLayers_);
   Vector fb1(NLayers_), fb2(NLayers_), fb3(NLayers_);
+  Vector ft1(NLayers_), ft2(NLayers_), ft3(NLayers_);
   {
     DebugTime         norm{"1-by-1 Flux"};
     disort::flux_data data_flux;
     for (Index i = 0; i < NLayers_; i++) {
-      fu1[i]      = dis.flux_up(data_flux, tau_arr[i]);
-      auto [d, b] = dis.flux_down(data_flux, tau_arr[i]);
-      fd1[i]      = d;
-      fb1[i]      = b;
+      const auto values = dis.flux(data_flux, tau_arr[i]);
+      fu1[i]            = values.up;
+      fd1[i]            = values.down_diffuse;
+      fb1[i]            = values.down_direct;
+      ft1[i]            = values.dfdt;
     }
   }
 
   {
     DebugTime norm{"Gridded Flux"};
-    dis.gridded_flux(fu2, fd2, fb2);
+    dis.gridded_flux(fu2, fd2, fb2, ft2);
   }
 
   {
     DebugTime norm{"Ungridded Flux"};
-    dis.ungridded_flux(fu3, fd3, fb3, tau_arr);
+    dis.ungridded_flux(fu3, fd3, fb3, ft3, tau_arr);
   }
 
   const auto [fu2_abs, fu2_rel] = absrel(fu2.view_as(u2.size()), fu1.view_as(u1.size()));
   const auto [fd2_abs, fd2_rel] = absrel(fd2.view_as(fd2.size()), fd1.view_as(fd1.size()));
   const auto [fb2_abs, fb2_rel] = absrel(fb2.view_as(fb2.size()), fb1.view_as(fb1.size()));
+  const auto [ft2_abs, ft2_rel] = absrel(ft2.view_as(ft2.size()), ft1.view_as(ft1.size()));
   std::cout << "fu abs-max gridded:   " << fu2_abs << '\n';
   std::cout << "fu abs-rel gridded:   " << fu2_rel << '\n';
   std::cout << "fd abs-max gridded:   " << fd2_abs << '\n';
   std::cout << "fd abs-rel gridded:   " << fd2_rel << '\n';
   std::cout << "fb abs-max gridded:   " << fb2_abs << '\n';
   std::cout << "fb abs-rel gridded:   " << fb2_rel << '\n';
+  std::cout << "ft abs-max gridded:   " << ft2_abs << '\n';
+  std::cout << "ft abs-rel gridded:   " << ft2_rel << '\n';
 
   const auto [fu3_abs, fu3_rel] = absrel(fu3.view_as(fu3.size()), fu1.view_as(u1.size()));
   const auto [fd3_abs, fd3_rel] = absrel(fd3.view_as(fd3.size()), fd1.view_as(fd1.size()));
   const auto [fb3_abs, fb3_rel] = absrel(fb3.view_as(fb3.size()), fb1.view_as(fb1.size()));
+  const auto [ft3_abs, ft3_rel] = absrel(ft3.view_as(ft3.size()), ft1.view_as(ft1.size()));
   std::cout << "fu abs-max ungridded: " << fu3_abs << '\n';
   std::cout << "fu abs-rel ungridded: " << fu3_rel << '\n';
   std::cout << "fd abs-max ungridded: " << fd3_abs << '\n';
   std::cout << "fd abs-rel ungridded: " << fd3_rel << '\n';
   std::cout << "fb abs-max ungridded: " << fb3_abs << '\n';
   std::cout << "fb abs-rel ungridded: " << fb3_rel << '\n';
+  std::cout << "ft abs-max ungridded: " << ft3_abs << '\n';
+  std::cout << "ft abs-rel ungridded: " << ft3_rel << '\n';
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-test:\n{}", e.what())); }
 
 void handle_opt(const char* c, bool& print, Index& N) {

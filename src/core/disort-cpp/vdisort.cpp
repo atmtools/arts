@@ -1404,13 +1404,6 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   }
 }
 
-Numeric main_data::flux_up(flux_data& data, const Numeric tau) const { return flux(data, tau).up; }
-
-std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data, const Numeric tau) const {
-  const auto result = flux(data, tau);
-  return {result.down_diffuse, result.down_direct};
-}
-
 flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   u0_data field;
   u0(field, tau);
@@ -1472,17 +1465,25 @@ void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
       }
 }
 
-void main_data::gridded_flux(VectorView up, VectorView down, VectorView down_direct) const {
-  ARTS_USER_ERROR_IF(up.size() != static_cast<Size>(NLayers) or down.size() != static_cast<Size>(NLayers) or
-                         down_direct.size() != static_cast<Size>(NLayers),
+void main_data::gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const {
+  ARTS_USER_ERROR_IF(up.size() != static_cast<Size>(NLayers) or down_diffuse.size() != static_cast<Size>(NLayers) or
+                         down_direct.size() != static_cast<Size>(NLayers) or dfdt.size() != static_cast<Size>(NLayers),
                      "All gridded flux outputs must have size {}",
                      NLayers);
   for (Index l = 0; l < NLayers; ++l) {
     const auto diffuse =
         dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return um[l, cosine_mode, 0, i].I(); });
-    up[l]          = Constant::two_pi * diffuse.upward;
-    down[l]        = Constant::two_pi * diffuse.downward;
-    down_direct[l] = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau_arr[l]) : 0.0;
+    up[l]           = Constant::two_pi * diffuse.upward;
+    down_diffuse[l] = Constant::two_pi * diffuse.downward;
+    down_direct[l]  = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau_arr[l]) : 0.0;
+
+    Numeric mean_intensity = diffuse.mean_intensity;
+    if (has_beam_source)
+      mean_intensity += dc::direct_beam_radiance(beam_stokes.I(), mu0, tau_arr[l]) / (4.0 * Constant::pi);
+    const Numeric source_tau = std::fma(source_coordinate_scale[l], tau_arr[l], source_coordinate_offset[l]);
+    const Numeric source     = dc::horner_polynomial(
+        Nscoeffs, source_tau, [&](const Index coefficient) { return source_poly_coeffs[l, coefficient].I(); });
+    dfdt[l] = 4.0 * Constant::pi * (1.0 - omega_arr[l]) * (mean_intensity - source);
   }
 }
 
@@ -1532,8 +1533,10 @@ void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vec
   }
 }
 
-void main_data::ungridded_flux(VectorView up, VectorView down, VectorView down_direct, const AscendingGrid& tau) const {
-  ARTS_USER_ERROR_IF(up.size() != tau.size() or down.size() != tau.size() or down_direct.size() != tau.size(),
+void main_data::ungridded_flux(
+    VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt, const AscendingGrid& tau) const {
+  ARTS_USER_ERROR_IF(up.size() != tau.size() or down_diffuse.size() != tau.size() or down_direct.size() != tau.size() or
+                         dfdt.size() != tau.size(),
                      "All ungridded flux outputs must have the same size as tau ({})",
                      tau.size());
   Matrix combined(2 * NFourier, NState);
@@ -1541,9 +1544,18 @@ void main_data::ungridded_flux(VectorView up, VectorView down, VectorView down_d
     combined_field(combined, tau[t]);
     const auto diffuse =
         dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return combined[0, state_index(i, 0)]; });
-    up[t]          = Constant::two_pi * diffuse.upward;
-    down[t]        = Constant::two_pi * diffuse.downward;
-    down_direct[t] = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau[t]) : 0.0;
+    up[t]           = Constant::two_pi * diffuse.upward;
+    down_diffuse[t] = Constant::two_pi * diffuse.downward;
+    down_direct[t]  = has_beam_source ? dc::direct_beam_flux(beam_stokes.I(), mu0, tau[t]) : 0.0;
+
+    Numeric mean_intensity = diffuse.mean_intensity;
+    if (has_beam_source)
+      mean_intensity += dc::direct_beam_radiance(beam_stokes.I(), mu0, tau[t]) / (4.0 * Constant::pi);
+    const Index   layer      = tau_index(tau[t]);
+    const Numeric source_tau = std::fma(source_coordinate_scale[layer], tau[t], source_coordinate_offset[layer]);
+    const Numeric source     = dc::horner_polynomial(
+        Nscoeffs, source_tau, [&](const Index coefficient) { return source_poly_coeffs[layer, coefficient].I(); });
+    dfdt[t] = 4.0 * Constant::pi * (1.0 - omega_arr[layer]) * (mean_intensity - source);
   }
 }
 

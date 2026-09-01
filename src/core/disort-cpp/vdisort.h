@@ -331,21 +331,18 @@ class main_data {
   /** Evaluate the azimuth-independent quadrature-stream field at one depth. */
   void u0(u0_data& data, Numeric tau) const;
 
-  /** Return the upward diffuse Stokes-I flux at one optical depth. */
-  [[nodiscard]] Numeric flux_up(flux_data&, Numeric tau) const;
-  /** Return the downward diffuse and direct Stokes-I fluxes at one optical depth. */
-  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, Numeric tau) const;
   /** Return all flux components and the flux divergence at one optical depth. */
   [[nodiscard]] flux_values flux(flux_data&, Numeric tau) const;
 
   /** Evaluate radiances at every layer bottom for all quadrature streams and azimuths. */
   void gridded_u(Tensor4View out, const Vector& phi) const;
-  /** Evaluate flux components at every layer bottom. */
-  void gridded_flux(VectorView up, VectorView down, VectorView down_direct) const;
+  /** Evaluate every flux quantity at every layer bottom. */
+  void gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const;
   /** Evaluate quadrature-stream radiances on an arbitrary ascending optical-depth grid. */
   void ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vector& phi) const;
-  /** Evaluate flux components on an arbitrary ascending optical-depth grid. */
-  void ungridded_flux(VectorView up, VectorView down, VectorView down_direct, const AscendingGrid& tau) const;
+  /** Evaluate every flux quantity on an arbitrary ascending optical-depth grid. */
+  void ungridded_flux(
+      VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt, const AscendingGrid& tau) const;
 
   /** Return the cached combined Fourier field at the bottom of one layer. */
   [[nodiscard]] rtepack::stokvec_tensor3_const_view layer_um(Size layer) const;
