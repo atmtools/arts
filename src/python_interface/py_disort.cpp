@@ -193,12 +193,25 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
   generic_interface(vvecs);
 
   py::class_<vdisort::delta_m_transport_data> delta_m_transport(vdisort_nm, "DeltaMTransportData");
-  delta_m_transport.def_rw("tau", &vdisort::delta_m_transport_data::tau)
-      .def_rw("omega", &vdisort::delta_m_transport_data::omega)
-      .def_rw("phase_matrix", &vdisort::delta_m_transport_data::phase_matrix)
-      .def_rw("beam_phase_matrix", &vdisort::delta_m_transport_data::beam_phase_matrix)
-      .def_rw("source_coordinate_scale", &vdisort::delta_m_transport_data::source_coordinate_scale)
-      .def_rw("source_coordinate_offset", &vdisort::delta_m_transport_data::source_coordinate_offset);
+  delta_m_transport
+      .def_rw("tau",
+              &vdisort::delta_m_transport_data::tau,
+              "Delta-M optical-depth grid\n\n.. :class:`AscendingGrid`")
+      .def_rw("omega",
+              &vdisort::delta_m_transport_data::omega,
+              "Delta-M single-scattering albedo\n\n.. :class:`Vector`")
+      .def_rw("phase_matrix",
+              &vdisort::delta_m_transport_data::phase_matrix,
+              "Delta-M diffuse phase matrices\n\n.. :class:`MuelmatTensor5`")
+      .def_rw("beam_phase_matrix",
+              &vdisort::delta_m_transport_data::beam_phase_matrix,
+              "Delta-M beam phase matrices\n\n.. :class:`MuelmatTensor4`")
+      .def_rw("source_coordinate_scale",
+              &vdisort::delta_m_transport_data::source_coordinate_scale,
+              "Scale of the affine physical-source coordinate map\n\n.. :class:`Vector`")
+      .def_rw("source_coordinate_offset",
+              &vdisort::delta_m_transport_data::source_coordinate_offset,
+              "Offset of the affine physical-source coordinate map\n\n.. :class:`Vector`");
   delta_m_transport.doc() = "Solver-ready result of an explicitly specified polarized delta-M transform";
 
   vdisort_nm.def("combine_phase_matrices",
