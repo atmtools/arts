@@ -52,10 +52,16 @@ void require_finite(const std::string_view name, const auto& values) {
 void require_scalar_close(const std::string_view name,
                           const Numeric          actual,
                           const Numeric          expected,
-                          const Numeric          tolerance = 1e-6) {
+                          const Numeric          tolerance = 5e-8) {
   const Numeric scale = std::max({1.0, std::abs(actual), std::abs(expected)});
-  ARTS_USER_ERROR_IF(
-      std::abs(actual - expected) > tolerance * scale, "{}: {} differs from reference {}", name, actual, expected);
+  const Numeric scaled_error = std::abs(actual - expected) / scale;
+  ARTS_USER_ERROR_IF(scaled_error > tolerance,
+                     "{}: {} differs from reference {} (scaled error {}, tolerance {})",
+                     name,
+                     actual,
+                     expected,
+                     scaled_error,
+                     tolerance);
 }
 
 void check_test_11a_reference(const std::string_view   name,
@@ -71,7 +77,10 @@ void check_test_11a_reference(const std::string_view   name,
   require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252729.563810989);
   require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972939.78056413);
   require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.1380472905);
-  require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.47086339454);
+  // This comparatively small outgoing value is the residual of source terms
+  // amplified by 1 / (1 - omega) = 1e6.  Eigensolver and math-library
+  // roundoff therefore loses about two additional relative digits here.
+  require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.47086339454, 5e-6);
   require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275991.914094502);
   require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972939.758737655);
 
