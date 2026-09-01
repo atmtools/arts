@@ -6,6 +6,7 @@ from copy import copy
 PLOT = False  # Plot for debug
 NF = 1001
 noise = 0.1
+rng = np.random.default_rng(0)
 
 ws = pyarts.workspace.Workspace()
 
@@ -65,7 +66,7 @@ ws.measurement_vecFromSensor()
 apri = ws.measurement_vec * 1.0
 
 ws.measurement_vec_error_covmatConstant(value=noise**2)
-meas += np.random.normal(0, noise, NF)
+meas += rng.normal(0, noise, NF)
 ws.measurement_vec = meas
 
 # %% OEM
